@@ -1,0 +1,19 @@
+{
+  "name": "bobliftcrane",
+  "private": true,
+  "scripts": {
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f postgres",
+    "admin:dev": "npm --prefix apps/web run dev",
+    "payload:generate:types": "npm --prefix apps/web run payload:generate:types",
+    "payload:generate:importmap": "npm --prefix apps/web run payload:generate:importmap",
+    "payload:migrate": "npm --prefix apps/web run payload:migrate",
+    "payload:migrate:create": "npm --prefix apps/web run payload:migrate:create",
+    "payload:migrate:status": "npm --prefix apps/web run payload:migrate:status",
+    "web:dev": "npm --prefix apps/web run dev",
+    "web:build": "npm --prefix apps/web run build",
+    "web:start": "npm --prefix apps/web run start",
+    "web:responsive": "npm --prefix apps/web run responsive"
+  }
+}

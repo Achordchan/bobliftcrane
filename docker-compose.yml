@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: bobliftcrane-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-bobliftcrane_content}
+      POSTGRES_USER: ${POSTGRES_USER:-bobliftcrane}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bobliftcrane_dev_2026}
+    ports:
+      - "${POSTGRES_PORT:-5438}:5432"
+    volumes:
+      - bobliftcrane-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bobliftcrane} -d ${POSTGRES_DB:-bobliftcrane_content}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  bobliftcrane-postgres-data:

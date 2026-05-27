@@ -1,0 +1,13 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+node_modules/
+.cache/
+build/
+dist/
+.tmp/
+apps/web/media/*
+!apps/web/media/.gitkeep
+.next/
+*.tsbuildinfo
