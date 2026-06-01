@@ -5,7 +5,7 @@ import { setTimeout as wait } from 'node:timers/promises';
 import { chromium } from 'playwright';
 
 const port = Number(process.env.RESPONSIVE_TEST_PORT || 3100);
-let baseUrl = process.env.RESPONSIVE_TARGET_URL || `http://127.0.0.1:${port}`;
+let baseUrl = process.env.RESPONSIVE_TARGET_URL || `http://localhost:${port}`;
 const chromePath = process.env.PLAYWRIGHT_CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const nodePath = process.env.RESPONSIVE_NODE_PATH || (existsSync('/opt/homebrew/bin/node') ? '/opt/homebrew/bin/node' : process.execPath);
 const appDir = fileURLToPath(new URL('..', import.meta.url));
@@ -16,10 +16,9 @@ const viewports = [
   { name: 'desktop', width: 1440, height: 1200 },
 ];
 
-const paths = [
+const staticPaths = [
   '/',
   '/products',
-  '/products/10-ton-telescopic-boom-truck-mounted-crane',
   '/news',
   '/news/bob-lift-sq10za5-limited-time-discount-hot-selling',
   '/cases',
@@ -50,7 +49,7 @@ async function waitForServer(url) {
 
 async function startServer() {
   if (process.env.RESPONSIVE_TARGET_URL) return;
-  const runningDevUrl = 'http://127.0.0.1:3000';
+  const runningDevUrl = 'http://localhost:3000';
   if (await isReady(runningDevUrl)) {
     baseUrl = runningDevUrl;
     return;
@@ -72,7 +71,7 @@ function joinUrl(base, path) {
 
 async function inspect(page, viewport, path) {
   await page.setViewportSize({ width: viewport.width, height: viewport.height });
-  await page.goto(joinUrl(baseUrl, path), { waitUntil: 'networkidle' });
+  await gotoStable(page, joinUrl(baseUrl, path));
 
   const result = await page.evaluate(() => {
     const box = (selector) => {
@@ -113,10 +112,47 @@ async function inspect(page, viewport, path) {
   }
 }
 
+async function discoverProductDetailPath(page) {
+  await page.setViewportSize({ width: 1440, height: 1200 });
+  await gotoStable(page, joinUrl(baseUrl, '/products'));
+
+  const href = await page
+    .locator('a[href*=".html"], a[href^="/products/"]')
+    .filter({ hasText: /View Details|Details|详情/i })
+    .first()
+    .getAttribute('href')
+    .catch(() => null);
+
+  if (!href) return null;
+  const url = new URL(href, baseUrl);
+  return `${url.pathname}${url.search}`;
+}
+
+async function gotoStable(page, url) {
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 });
+      await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+      return;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (!message.includes('net::ERR_ABORTED') || attempt === 2) throw error;
+      await wait(600);
+    }
+  }
+}
+
 try {
   await startServer();
   const browser = await chromium.launch({ headless: true, executablePath: chromePath });
   const page = await browser.newPage();
+  const productDetailPath = await discoverProductDetailPath(page);
+  const paths = [
+    ...staticPaths.slice(0, 2),
+    ...(productDetailPath ? [productDetailPath] : []),
+    ...staticPaths.slice(2),
+  ];
+
   for (const viewport of viewports) {
     for (const path of paths) {
       await inspect(page, viewport, path);

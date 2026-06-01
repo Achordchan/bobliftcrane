@@ -1,99 +1,167 @@
-import Image from "next/image";
 import { notFound } from "next/navigation";
-import { ArrowRight, CheckCircle2, ChevronLeft } from "lucide-react";
 
-import { PageHero } from "@/components/site/PageHero";
+import { ProductDetailExperience } from "@/components/products/ProductDetailExperience";
+import { ProductListingPage } from "@/components/products/ProductListingPage";
 import { SiteChrome } from "@/components/site/SiteChrome";
-import { allProductEntries, getProductEntryBySlug, productDetailPath, productSlug } from "@/lib/product-catalog";
+import {
+  getCmsListingProductByLegacyPath,
+  getCmsListingProductBySlug,
+  getCmsProductCategorySeoByLegacyPath,
+  getCmsProductCategorySeoBySlug,
+  getCmsProductListingSeo,
+  getCmsProductDetailExtras,
+  getCmsProductDetailExtrasByLegacyPath,
+  getCmsProductSeoByLegacyPath,
+  getCmsProductSeoBySlug,
+  getCmsRedirectBySourcePath,
+  getPageUiContent,
+  getProductListingContent,
+  getProductUiContent,
+} from "@/lib/cms-content";
+import { localizedPath } from "@/lib/i18n";
+import { applicationCardFromCms, productDetailFromListing } from "@/lib/product-detail-page-data";
+import { readyLanguageAlternates } from "@/lib/seo-language-alternates";
+import { getRequestLocale } from "@/lib/server-locale";
+import { formatSeoTemplate } from "@/lib/site-ui";
+
+const productsPrefix = "/products";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
-export function generateStaticParams() {
-  return allProductEntries().map(({ product }) => ({ slug: productSlug(product) }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
-  const entry = getProductEntryBySlug(slug);
+  const legacyPath = productLegacyPath(slug);
+  const redirectTarget = await getCmsRedirectBySourcePath(legacyPath);
+  const targetCategorySlug = redirectTarget ? categorySlugFromTarget(redirectTarget.targetPath) : null;
+  const shouldUseListingSeo = redirectTarget?.targetPath === "/products";
+  const [cmsSeo, legacySeo, categorySeo, redirectedCategorySeo, listingSeo, pageUi, locale] = await Promise.all([
+    getCmsProductSeoBySlug(slug),
+    getCmsProductSeoByLegacyPath(legacyPath),
+    getCmsProductCategorySeoByLegacyPath(legacyPath),
+    targetCategorySlug ? getCmsProductCategorySeoBySlug(targetCategorySlug) : Promise.resolve(null),
+    shouldUseListingSeo ? getCmsProductListingSeo() : Promise.resolve(null),
+    getPageUiContent(),
+    getRequestLocale(),
+  ]);
+  const seo = cmsSeo ?? legacySeo ?? categorySeo ?? redirectedCategorySeo ?? listingSeo;
+  const canonicalPath = seo?.canonicalPath ?? `/products/${slug}`;
+  const fallbacks = pageUi.seoFallbacks;
+
   return {
-    title: entry ? `${entry.product.name} | BOB-LIFT` : "Product | BOB-LIFT",
-    description: entry?.product.intro ?? "BOB-LIFT product detail page.",
+    title: seo?.title ? formatSeoTemplate(fallbacks.productTitleTemplate, { title: seo.title }) : fallbacks.productTitle,
+    description: seo?.description ?? fallbacks.productDescription,
+    alternates: {
+      canonical: localizedPath(canonicalPath, locale),
+      languages: await readyLanguageAlternates(canonicalPath),
+    },
   };
 }
 
 export default async function ProductDetailPage({ params }: PageProps) {
   const { slug } = await params;
-  const entry = getProductEntryBySlug(slug);
-  if (!entry) notFound();
+  const legacyPath = productLegacyPath(slug);
+  const [cmsProduct, legacyProduct, ui, locale] = await Promise.all([
+    getCmsListingProductBySlug(slug),
+    getCmsListingProductByLegacyPath(legacyPath),
+    getProductUiContent(),
+    getRequestLocale(),
+  ]);
+  const productSource = cmsProduct ? "slug" : legacyProduct ? "legacy" : null;
+  const productRecord = cmsProduct ?? legacyProduct;
 
-  const { product, category } = entry;
-  const related = category.products.filter((item) => item.model !== product.model).slice(0, 4);
-  const specs = [
-    { label: "Model", value: product.model },
-    { label: "Capacity", value: product.capacity },
-    { label: "Type", value: product.type },
-    { label: "Category", value: category.name },
-  ];
+  if (productRecord && productSource) {
+    const product = productDetailFromListing(productRecord, ui.detail, locale);
+    const extras = productSource === "slug"
+      ? await getCmsProductDetailExtras(slug, ui.detail)
+      : await getCmsProductDetailExtrasByLegacyPath(legacyPath, ui.detail);
 
-  return (
-    <SiteChrome>
-      <PageHero label="Product Detail" title={product.name} description={product.intro} image="/images/global-network-blue.jpg">
-        <a className="btn-primary rounded-full" href="/quote">Request Quote <ArrowRight className="h-4 w-4" /></a>
-        <a className="btn-white rounded-full" href="/products"><ChevronLeft className="h-4 w-4" /> Back to Products</a>
-      </PageHero>
+    if (extras) {
+      Object.assign(product, extras);
+      if (extras.applicationCards.length > 0) {
+        product.applications = extras.applicationCards.map(applicationCardFromCms);
+      }
+    }
 
-      <section className="page-shell grid grid-cols-1 gap-8 py-10 md:py-16 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12">
-        <div className="relative min-h-[360px] overflow-hidden rounded-[32px] border border-line bg-[linear-gradient(180deg,#edf4ff_0%,#f8fbff_60%,#e8f1ff_100%)] shadow-[0_34px_100px_rgba(8,35,74,0.1)] md:min-h-[580px]">
-          <span className="pointer-events-none absolute inset-x-4 top-8 select-none bg-[linear-gradient(180deg,rgba(8,35,74,0.16),rgba(37,99,235,0.06))] bg-clip-text text-center text-[clamp(4rem,12vw,11rem)] font-black uppercase leading-none tracking-[-0.1em] text-transparent">BOB-LIFT</span>
-          <div className="absolute inset-x-[12%] bottom-8 h-28 rounded-[34px] bg-white/70 blur-sm md:h-40" />
-          <Image className="absolute bottom-8 left-1/2 z-10 h-[300px] w-auto max-w-none -translate-x-1/2 object-contain drop-shadow-[0_34px_32px_rgba(8,35,74,0.16)] md:h-[520px]" src={product.image} alt={product.name} width={760} height={560} priority />
-        </div>
+    return (
+      <SiteChrome>
+        <ProductDetailExperience product={product} ui={ui.detail} />
+      </SiteChrome>
+    );
+  }
 
-        <div className="flex flex-col justify-center">
-          <p className="section-label mb-4">Specifications</p>
-          <h2 className="text-[34px] font-black leading-none tracking-[-0.05em] text-ink md:text-[56px]">Built for reliable lifting work.</h2>
-          <p className="mt-5 text-base font-semibold leading-8 text-slate-600">Review the model identity, capacity range and application direction before sending your working-condition details to BOB-LIFT.</p>
+  const categorySeo = await getCmsProductCategorySeoByLegacyPath(legacyPath);
+  if (categorySeo?.slug) {
+    const { products, categories, ui: listingUi } = await getProductListingContent();
+    return (
+      <SiteChrome showFinalCta={false}>
+        <ProductListingPage categories={categories} initialCategorySlug={categorySeo.slug} products={products} ui={listingUi} />
+      </SiteChrome>
+    );
+  }
 
-          <div className="mt-7 grid grid-cols-2 gap-3">
-            {specs.map((item) => (
-              <div className="rounded-2xl border border-line bg-[#f8fbff] p-4" key={item.label}>
-                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{item.label}</p>
-                <p className="mt-2 text-base font-black text-ink md:text-lg">{item.value}</p>
-              </div>
-            ))}
-          </div>
+  const cmsRedirect = await getCmsRedirectBySourcePath(legacyPath);
+  if (cmsRedirect) {
+    const targetProductSlug = productSlugFromTarget(cmsRedirect.targetPath);
+    if (targetProductSlug && targetProductSlug !== slug) {
+      const targetProduct = await getCmsListingProductBySlug(targetProductSlug);
+      if (targetProduct) {
+        const product = productDetailFromListing(targetProduct, ui.detail, locale);
+        const extras = await getCmsProductDetailExtras(targetProductSlug, ui.detail);
+        if (extras) {
+          Object.assign(product, extras);
+          if (extras.applicationCards.length > 0) {
+            product.applications = extras.applicationCards.map(applicationCardFromCms);
+          }
+        }
 
-          <div className="mt-7 rounded-[26px] border border-line bg-white p-5 shadow-card">
-            <h3 className="text-lg font-black text-ink">Before quotation</h3>
-            <div className="mt-4 grid gap-3 text-sm font-semibold leading-6 text-slate-600">
-              {["Target load and working radius", "Truck chassis or vessel installation space", "Destination country and delivery plan"].map((item) => (
-                <p className="flex gap-3" key={item}><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-gold" /> {item}</p>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+        return (
+          <SiteChrome>
+            <ProductDetailExperience product={product} ui={ui.detail} />
+          </SiteChrome>
+        );
+      }
+    }
 
-      <section className="bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] py-10 md:py-16">
-        <div className="page-shell">
-          <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className="section-label mb-3">Related Models</p>
-              <h2 className="text-3xl font-black tracking-[-0.04em] text-ink md:text-5xl">More from {category.name}</h2>
-            </div>
-            <a className="inline-flex items-center gap-2 text-sm font-black text-ink" href="/products">View all products <ArrowRight className="h-4 w-4" /></a>
-          </div>
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5">
-            {related.map((item) => (
-              <a className="card-hover rounded-[22px] border border-line bg-white p-3 shadow-card" href={productDetailPath(item)} key={item.model}>
-                <div className="relative h-32 rounded-[18px] bg-[#f8fbff] md:h-40"><Image className="object-contain p-3" src={item.image} alt={item.name} fill sizes="25vw" /></div>
-                <p className="mt-3 text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">{item.model}</p>
-                <h3 className="mt-1 line-clamp-2 text-sm font-black leading-5 text-ink">{item.name.replace(item.model, "").trim()}</h3>
-              </a>
-            ))}
-          </div>
-        </div>
-      </section>
-    </SiteChrome>
-  );
+    const targetCategorySlug = categorySlugFromTarget(cmsRedirect.targetPath);
+    if (targetCategorySlug) {
+      const { products, categories, ui: listingUi } = await getProductListingContent();
+      if (categories.some((item) => item.slug === targetCategorySlug)) {
+        return (
+          <SiteChrome showFinalCta={false}>
+            <ProductListingPage categories={categories} initialCategorySlug={targetCategorySlug} products={products} ui={listingUi} />
+          </SiteChrome>
+        );
+      }
+    }
+
+    if (cmsRedirect.targetPath === "/products") {
+      const { products, categories, ui: listingUi } = await getProductListingContent();
+      return (
+        <SiteChrome showFinalCta={false}>
+          <ProductListingPage categories={categories} products={products} ui={listingUi} />
+        </SiteChrome>
+      );
+    }
+
+    notFound();
+  }
+
+  notFound();
+}
+
+function productLegacyPath(slug: string) {
+  return `${productsPrefix}/${slug}`.replace(/\/+/g, "/");
+}
+
+
+function productSlugFromTarget(targetPath: string) {
+  const match = targetPath.match(/^\/products\/([^/?#]+)(?:[?#].*)?$/);
+  return match?.[1] ?? null;
+}
+
+function categorySlugFromTarget(targetPath: string) {
+  const match = targetPath.match(/^\/products\/category\/([^/?#]+)(?:[?#].*)?$/);
+  return match?.[1] ?? null;
 }

@@ -6,16 +6,18 @@ import {
 import type { CollectionConfig } from 'payload';
 
 import { isAdmin } from '../access/isAdmin';
+import { legacyAliasesField } from '../fields/legacyAliases';
 import { publishedOrAdmin } from '../access/publishedOrAdmin';
 import { seoFields } from '../fields/seo';
 import { slugField } from '../fields/slug';
 import { statusField } from '../fields/status';
+import { validateUniqueLegacyPaths } from '../hooks/validateUniqueLegacyPaths';
 
 export const Articles: CollectionConfig = {
   slug: 'articles',
   labels: {
-    singular: { zh: '新闻文章', en: 'Article' },
-    plural: { zh: '新闻文章', en: 'Articles' },
+    singular: '新闻文章',
+    plural: '新闻文章',
   },
   access: {
     create: isAdmin,
@@ -25,7 +27,7 @@ export const Articles: CollectionConfig = {
   },
   admin: {
     defaultColumns: ['title', 'category', 'status', 'publishedAt'],
-    group: { zh: '内容管理', en: 'Content' },
+    group: { zh: '03 内容与旧站 URL', en: '03 Content & Legacy URLs' },
     preview: ({ legacyPath, slug }) => {
       if (typeof legacyPath === 'string' && legacyPath.startsWith('/')) return legacyPath;
       if (typeof slug === 'string' && slug) return `/${slug}.html`;
@@ -33,21 +35,28 @@ export const Articles: CollectionConfig = {
     },
     useAsTitle: 'title',
   },
+  hooks: {
+    beforeValidate: [validateUniqueLegacyPaths('articles')],
+  },
   fields: [
-    { name: 'title', type: 'text', label: { zh: '文章标题', en: 'Title' }, required: true },
+    { name: 'title', type: 'text', localized: true, label: { zh: '文章标题', en: 'Title' }, required: true },
     slugField('title'),
     {
       name: 'legacyPath',
       type: 'text',
       admin: {
         description: {
-          zh: '旧站兼容 URL，例如：/company-news.html',
-          en: 'Old-site compatible URL path, for example: /company-news.html',
+          zh: '当前公开文章 URL。为了让改版后链接与旧站一致，优先填写旧站真实 .html 路径，例如：/company-news.html。',
+          en: 'Current public article URL. Use the original old-site .html path whenever possible, for example: /company-news.html.',
         },
         position: 'sidebar',
       },
-      label: { zh: '旧站 .html 路径', en: 'Legacy .html Path' },
+      label: { zh: '公开文章 URL（保持旧站一致）', en: 'Public Article URL' },
     },
+    legacyAliasesField({
+      zh: '同一文章曾经用过的其他旧站路径。主公开 URL 请填上方“公开文章 URL”，这些别名也会直接渲染文章详情页。',
+      en: 'Other historical paths for this article. Put the main public URL in Public Article URL above. These aliases also render the article detail page directly.',
+    }),
     {
       name: 'category',
       type: 'select',
@@ -60,11 +69,23 @@ export const Articles: CollectionConfig = {
       ],
       required: true,
     },
-    { name: 'excerpt', type: 'textarea', label: { zh: '摘要', en: 'Excerpt' }, maxLength: 260 },
+    { name: 'excerpt', type: 'textarea', localized: true, label: { zh: '摘要', en: 'Excerpt' }, maxLength: 260 },
     { name: 'coverImage', type: 'upload', label: { zh: '封面图', en: 'Cover Image' }, relationTo: 'media' },
+    {
+      name: 'coverImagePath',
+      type: 'text',
+      admin: {
+        description: {
+          zh: '可选。旧站图片已在 public 下时可填路径，例如 /images/oldsite/news/example.jpg；上传封面图优先级更高。',
+          en: 'Optional static image path, e.g. /images/oldsite/news/example.jpg. Uploaded cover image takes priority.',
+        },
+      },
+      label: { zh: '封面图静态路径', en: 'Static Cover Image Path' },
+    },
     {
       name: 'content',
       type: 'richText',
+      localized: true,
       editor: lexicalEditor({
         features: ({ defaultFeatures }) => [
           ...defaultFeatures,

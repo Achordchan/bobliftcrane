@@ -10,14 +10,22 @@ export const seoFields: Field = {
     {
       name: 'metaTitle',
       type: 'text',
-      label: 'Meta Title',
+      admin: {
+        description: '按当前语言填写。英语是默认来源，其他语言由翻译流程从英语生成后再复核。',
+      },
+      label: { zh: 'SEO 标题', en: 'Meta Title' },
+      localized: true,
       maxLength: 70,
     },
     {
       name: 'metaDescription',
       type: 'textarea',
-      label: 'Meta Description',
-      maxLength: 180,
+      admin: {
+        description: '按当前语言填写。英语是默认来源，其他语言由翻译流程从英语生成后再复核。',
+      },
+      label: { zh: 'SEO 描述', en: 'Meta Description' },
+      localized: true,
+      maxLength: 360,
     },
     {
       name: 'canonicalPath',

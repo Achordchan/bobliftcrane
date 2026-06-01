@@ -1,5 +1,13 @@
 export { Articles } from './Articles';
 export { Cases } from './Cases';
+export { Inquiries } from './Inquiries';
 export { Media } from './Media';
+export { Pages } from './Pages';
+export { ProductImportBatches } from './ProductImportBatches';
+export { ProductCategories } from './ProductCategories';
+export { ProductDrawingReviews } from './ProductDrawingReviews';
+export { ProductUrlAudits } from './ProductUrlAudits';
 export { Products } from './Products';
+export { Redirects } from './Redirects';
+export { TranslationJobs } from './TranslationJobs';
 export { Users } from './Users';

@@ -5,8 +5,8 @@ import { isAdmin } from '../access/isAdmin';
 export const Users: CollectionConfig = {
   slug: 'users',
   labels: {
-    singular: { zh: '用户', en: 'User' },
-    plural: { zh: '用户', en: 'Users' },
+    singular: '用户',
+    plural: '用户',
   },
   admin: {
     defaultColumns: ['name', 'email', 'updatedAt'],

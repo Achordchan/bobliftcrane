@@ -3,136 +3,135 @@ import { ArrowRight } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { articles, caseStudies } from "@/lib/site-content";
+import { articlePublicPath } from "@/lib/cms-pages";
+import { defaultNewsSectionContent, type NewsSectionContent } from "@/lib/home-defaults";
+import { localizedPath } from "@/lib/i18n";
+import { articles as fallbackArticles, type Article } from "@/lib/site-content";
 
-type StoryCard = {
-  title: string;
-  type: string;
-  image: string;
-  slug: string;
-};
+function NewsCenter({ articles, content, locale }: { articles: Article[]; content: NewsSectionContent; locale?: string }) {
+  const sourceArticles = articles.length > 0 ? articles : fallbackArticles;
+  const [featured, ...secondary] = sourceArticles.slice(0, Math.max(1, content.maxArticles));
+  const [leftPinned, ...rightItems] = secondary;
 
-function ProjectsSection() {
-  return (
-    <section id="projects" className="page-shell py-8 md:py-10">
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[260px_1fr] lg:gap-10">
-        <div>
-          <p className="section-label mb-3 md:mb-4">Success Stories</p>
-          <h2 className="max-w-none text-[clamp(27px,7vw,34px)] font-black leading-[1.02] tracking-[-0.055em] text-ink sm:text-3xl sm:leading-tight sm:tracking-[-0.03em]">
-            Projects That Define Our Commitment.
-          </h2>
-          <a className="mt-4 inline-flex items-center gap-2 text-sm font-black text-ink lg:mt-9" href="/cases">
-          View All Projects <ArrowRight className="h-4 w-4" />
-        </a>
-        </div>
-        <div className="-mx-4 overflow-x-auto px-4 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] md:mx-0 md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden">
-          <div className="grid auto-cols-[82%] grid-flow-col gap-4 md:grid-flow-row md:grid-cols-3 md:gap-5 lg:gap-6">
-            {caseStudies.map((item) => (
-              <StoryTile item={item} key={item.title} />
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function StoryTile({ item }: { item: StoryCard }) {
-  return (
-    <a className="card-hover block overflow-hidden rounded-[24px] border border-line bg-white p-2 shadow-card md:rounded-2xl md:p-3" href={`/cases/${item.slug}`}>
-      <div className="relative h-40 overflow-hidden rounded-[18px] md:rounded-xl">
-        <Image className="object-cover" src={item.image} alt={item.title} fill sizes="(min-width: 768px) 25vw, 82vw" />
-      </div>
-      <div className="flex items-end justify-between gap-3 p-3 md:p-4">
-        <div className="min-w-0">
-          <h3 className="line-clamp-2 text-sm font-black leading-5 text-ink">{item.title}</h3>
-          <p className="mt-1 line-clamp-1 text-xs font-semibold text-slate-500">{item.type}</p>
-        </div>
-        <ArrowRight className="h-4 w-4 shrink-0" />
-      </div>
-    </a>
-  );
-}
-
-function NewsCenter() {
-  const [featured, ...secondary] = articles;
+  if (!featured) return null;
 
   return (
-    <section id="news" className="page-shell py-8 md:py-14">
-      <div className="relative overflow-hidden rounded-[28px] border border-line bg-[linear-gradient(135deg,#f8fbff_0%,#eef5ff_56%,#ffffff_100%)] p-4 shadow-[0_34px_100px_rgba(8,35,74,0.08)] md:rounded-[34px] md:p-8 lg:p-10">
-        <span className="pointer-events-none absolute right-5 top-8 select-none font-serif text-[68px] font-black italic leading-none tracking-[-0.14em] text-ink/[0.035] md:right-8 md:top-6 md:text-[150px]">
-          NEWS
+    <section id="news" className="relative overflow-hidden bg-[linear-gradient(135deg,#f8fbff_0%,#eef5ff_52%,#ffffff_100%)] py-10 md:py-16">
+      <div className="page-shell relative">
+        <span className="pointer-events-none absolute right-0 top-3 select-none font-serif text-[68px] font-black italic leading-none tracking-[-0.14em] text-ink/[0.035] md:top-0 md:text-[150px]">
+          {content.backgroundWord}
         </span>
-        <div className="relative z-10 grid grid-cols-1 gap-4 lg:grid-cols-[0.82fr_1fr] lg:items-end lg:gap-6">
-          <div>
-            <Badge className="mb-4 h-7 rounded-full bg-gold/12 px-3 text-[10px] font-black uppercase tracking-[0.22em] text-gold md:mb-5">
-              News Center
-            </Badge>
-            <h2 className="max-w-none text-[clamp(31px,7.2vw,38px)] font-black leading-[0.98] tracking-[-0.06em] text-ink sm:max-w-[560px] sm:text-[52px] lg:text-[64px]">
-              Latest Insights from BOB-LIFT.
+        <div className="relative z-10 grid grid-cols-1 gap-4 lg:flex lg:items-end lg:justify-between lg:gap-8">
+          <div className="min-w-0">
+            <p className="section-label mb-4 md:mb-5">
+              {content.label}
+            </p>
+            <h2 className="max-w-none text-[clamp(31px,7.2vw,38px)] font-black leading-[0.98] tracking-[-0.06em] text-ink sm:text-[52px] lg:whitespace-nowrap lg:text-[56px] xl:text-[64px]">
+              {content.title}
             </h2>
           </div>
-          <div className="flex flex-col gap-4 lg:max-w-[560px] lg:justify-self-end lg:gap-5">
-            <p className="text-sm font-medium leading-6 text-slate-600 md:text-lg md:leading-7">
-              Follow product updates, lifting technology trends and global service news from our engineering and export teams.
-            </p>
-            <Button nativeButton={false} render={<a href="/news" />} className="h-auto w-fit rounded-full bg-navy px-5 py-2.5 text-xs font-black text-white shadow-card hover:-translate-y-0.5 hover:bg-[#0b2d5b] md:px-6 md:py-3 md:text-sm">
-              View All News <ArrowRight data-icon="inline-end" />
+          {content.showCta ? (
+          <div className="flex lg:justify-self-end">
+            <Button nativeButton={false} render={<a href={content.ctaHref} />} className="h-auto w-fit rounded-full bg-navy px-5 py-2.5 text-xs font-black text-white shadow-card hover:-translate-y-0.5 hover:bg-[#0b2d5b] md:px-6 md:py-3 md:text-sm">
+              {content.ctaLabel} <ArrowRight data-icon="inline-end" />
             </Button>
           </div>
+          ) : null}
         </div>
 
-        <div className="relative z-10 mt-6 grid grid-cols-1 gap-4 md:mt-8 lg:grid-cols-[1.15fr_0.85fr] lg:gap-6">
-          <Card className="card-hover rounded-[24px] border-line bg-white/92 p-2 shadow-card ring-0 md:rounded-[28px]">
-            <CardContent className="grid gap-5 p-0 md:grid-cols-[1fr_0.9fr] md:items-stretch">
-              <div className="relative min-h-[210px] overflow-hidden rounded-[20px] md:min-h-[360px] md:rounded-[22px]">
-                <Image className="object-cover" src={featured.image} alt={featured.title} fill sizes="48vw" />
+        <div className="relative z-10 mt-7 grid grid-cols-1 items-stretch gap-5 md:mt-9 xl:grid-cols-[minmax(0,1.08fr)_minmax(380px,0.92fr)] xl:gap-7">
+          <div className="grid h-full content-stretch gap-5 xl:grid-rows-[minmax(0,1fr)_auto]">
+            <a className="group grid h-full overflow-hidden rounded-[26px] border border-line bg-white p-2 shadow-card transition duration-300 hover:-translate-y-1 hover:shadow-soft md:grid-cols-[1fr_0.88fr] md:rounded-[30px] md:p-3" href={localizedPath(articlePublicPath(featured), locale)}>
+              <div className="relative min-h-[230px] overflow-hidden rounded-[20px] md:min-h-[330px] md:rounded-[24px]">
+                <Image className="object-cover transition duration-500 group-hover:scale-[1.035]" src={featured.image} alt={featured.title} fill sizes="(min-width: 1280px) 44vw, 92vw" />
               </div>
-              <div className="flex flex-col justify-center px-3 pb-4 md:px-3 md:py-6 lg:px-5">
-                <div className="mb-3 flex flex-wrap items-center gap-2 md:mb-5 md:gap-3">
-                  <Badge variant="outline" className="h-7 rounded-full border-line bg-[#f7fbff] px-3 text-[10px] font-black uppercase tracking-[0.16em] text-blue-700">
-                    {featured.category}
-                  </Badge>
-                  <span className="text-xs font-bold text-slate-500">{featured.date}</span>
-                </div>
-                <CardTitle className="text-xl font-black leading-tight tracking-[-0.03em] text-ink md:text-3xl">
-                  {featured.title}
-                </CardTitle>
-                <CardDescription className="mt-3 text-sm font-medium leading-6 text-slate-600 md:mt-4 md:text-base md:leading-7">
-                  {featured.excerpt}
-                </CardDescription>
-                <a className="mt-5 inline-flex items-center gap-2 text-sm font-black text-ink md:mt-7" href={`/news/${featured.slug}`}>
-                  Read Article <ArrowRight className="h-4 w-4" />
-                </a>
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="grid gap-4 md:gap-5">
-            {secondary.map((item) => (
-              <Card className="card-hover rounded-[22px] border-line bg-white/88 p-2 shadow-card ring-0 md:rounded-[26px]" key={item.title}>
-                <CardContent className="grid grid-cols-[104px_1fr] gap-3 p-0 sm:grid-cols-[180px_1fr] lg:grid-cols-[150px_1fr] xl:grid-cols-[190px_1fr]">
-                  <div className="relative min-h-[118px] overflow-hidden rounded-[18px] md:min-h-[150px] md:rounded-[20px]">
-                    <Image className="object-cover" src={item.image} alt={item.title} fill sizes="18vw" />
-                  </div>
-                  <CardHeader className="justify-center px-0 py-2 md:px-1 md:py-3">
-                    <div className="mb-1.5 flex flex-wrap items-center gap-1.5 md:mb-2 md:gap-2">
-                      <Badge variant="outline" className="h-5 rounded-full border-line bg-white px-2 text-[8px] font-black uppercase tracking-[0.08em] text-gold md:h-6 md:px-2.5 md:text-[10px] md:tracking-[0.12em]">
-                        {item.category}
+              <div className="flex min-w-0 flex-col justify-center bg-white p-4 md:p-6 lg:p-8">
+                {content.showCategory || content.showDate ? (
+                  <div className="mb-3 flex flex-wrap items-center gap-2 md:mb-5 md:gap-3">
+                    {content.showCategory ? (
+                      <Badge variant="outline" className="h-7 rounded-full border-line bg-[#f7fbff] px-3 text-[10px] font-black uppercase tracking-[0.16em] text-blue-700">
+                        {featured.category}
                       </Badge>
-                      <span className="text-[10px] font-bold text-slate-500 md:text-xs">{item.date}</span>
+                    ) : null}
+                    {content.showDate ? <span className="text-xs font-bold text-slate-500">{featured.date}</span> : null}
+                  </div>
+                ) : null}
+                <h3 className="text-2xl font-black leading-tight tracking-[-0.04em] text-ink md:text-4xl">
+                  {featured.title}
+                </h3>
+                {content.showExcerpt ? (
+                  <p className="mt-4 text-sm font-medium leading-6 text-slate-600 md:text-base md:leading-7">
+                    {featured.excerpt}
+                  </p>
+                ) : null}
+                <span className="mt-6 inline-flex w-fit items-center gap-2 text-sm font-black text-ink">
+                  {content.readMoreLabel} <ArrowRight className="h-4 w-4 transition duration-300 group-hover:translate-x-1" />
+                </span>
+              </div>
+            </a>
+
+            {leftPinned && (
+              <a className="group grid min-w-0 overflow-hidden rounded-[24px] border border-line bg-white/92 p-2 shadow-card transition duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-soft md:grid-cols-[220px_1fr] md:rounded-[28px]" href={localizedPath(articlePublicPath(leftPinned), locale)}>
+                <div className="relative min-h-[170px] overflow-hidden rounded-[20px] md:min-h-[210px] md:rounded-[22px]">
+                  <Image className="object-cover transition duration-500 group-hover:scale-[1.04]" src={leftPinned.image} alt={leftPinned.title} fill sizes="(min-width: 1280px) 18vw, (min-width: 768px) 28vw, 92vw" />
+                </div>
+                <div className="flex min-w-0 flex-col justify-center p-4 md:p-6">
+                  {content.showCategory || content.showDate ? (
+                    <div className="mb-3 flex flex-wrap items-center gap-2">
+                      {content.showCategory ? (
+                        <Badge variant="outline" className="h-6 rounded-full border-line bg-[#fffaf5] px-2.5 text-[10px] font-black uppercase tracking-[0.12em] text-gold">
+                          {content.pinnedLabel}
+                        </Badge>
+                      ) : null}
+                      {content.showDate ? <span className="text-xs font-bold text-slate-500">{leftPinned.date}</span> : null}
                     </div>
-                    <CardTitle className="line-clamp-2 text-sm font-black leading-snug text-ink md:text-lg">{item.title}</CardTitle>
-                    <CardDescription className="line-clamp-1 text-xs font-medium leading-5 text-slate-500 md:line-clamp-2 md:text-sm">
+                  ) : null}
+                  <h3 className="line-clamp-2 text-xl font-black leading-tight tracking-[-0.03em] text-ink md:text-2xl">
+                    {leftPinned.title}
+                  </h3>
+                  {content.showExcerpt ? (
+                    <p className="mt-3 line-clamp-2 text-sm font-medium leading-6 text-slate-600">
+                      {leftPinned.excerpt}
+                    </p>
+                  ) : null}
+                  <span className="mt-5 inline-flex w-fit items-center gap-2 text-sm font-black text-ink">
+                    {content.readMoreLabel} <ArrowRight className="h-4 w-4 transition duration-300 group-hover:translate-x-1" />
+                  </span>
+                </div>
+              </a>
+            )}
+          </div>
+
+          <div className="grid h-full content-stretch gap-4 sm:grid-cols-2 xl:grid-cols-1 xl:grid-rows-3">
+            {rightItems.map((item, index) => (
+              <a className="group grid h-full min-w-0 grid-cols-[112px_1fr] gap-3 overflow-hidden rounded-[22px] border border-line bg-white/90 p-2 shadow-card transition duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-soft sm:grid-cols-1 xl:grid-cols-[178px_1fr] xl:rounded-[26px]" href={localizedPath(articlePublicPath(item), locale)} key={item.slug}>
+                <div className="relative min-h-[122px] overflow-hidden rounded-[18px] sm:min-h-[190px] xl:min-h-[164px] xl:rounded-[20px]">
+                  <Image className="object-cover transition duration-500 group-hover:scale-[1.04]" src={item.image} alt={item.title} fill sizes="(min-width: 1280px) 16vw, (min-width: 640px) 42vw, 112px" />
+                </div>
+                <div className="flex min-w-0 flex-col justify-center px-1 py-1.5 sm:px-2 sm:py-3 xl:px-2 xl:py-4">
+                  {content.showCategory || content.showDate ? (
+                    <div className="mb-2 flex flex-wrap items-center gap-1.5 md:gap-2">
+                      {content.showCategory ? (
+                        <Badge variant="outline" className="h-5 rounded-full border-line bg-white px-2 text-[8px] font-black uppercase tracking-[0.08em] text-gold md:h-6 md:px-2.5 md:text-[10px] md:tracking-[0.12em]">
+                          {item.category}
+                        </Badge>
+                      ) : null}
+                      {content.showDate ? <span className="text-[10px] font-bold text-slate-500 md:text-xs">{item.date}</span> : null}
+                    </div>
+                  ) : null}
+                  <h3 className="line-clamp-2 text-sm font-black leading-snug text-ink md:text-lg">
+                    {item.title}
+                  </h3>
+                  {content.showExcerpt ? (
+                    <p className="mt-2 line-clamp-2 text-xs font-medium leading-5 text-slate-500 md:text-sm md:leading-6">
                       {item.excerpt}
-                    </CardDescription>
-                    <a className="mt-1 inline-flex items-center gap-2 text-xs font-black text-ink" href={`/news/${item.slug}`}>
-                      Read More <ArrowRight className="h-3.5 w-3.5" />
-                    </a>
-                  </CardHeader>
-                </CardContent>
-              </Card>
+                    </p>
+                  ) : null}
+                  <span className="mt-3 inline-flex items-center gap-2 text-xs font-black text-ink">
+                    {content.readMoreLabel} <ArrowRight className="h-3.5 w-3.5 transition duration-300 group-hover:translate-x-1" />
+                  </span>
+                </div>
+              </a>
             ))}
           </div>
         </div>
@@ -141,11 +140,16 @@ function NewsCenter() {
   );
 }
 
-export function StoriesNews() {
+export function StoriesNews({
+  articles = fallbackArticles,
+  content = defaultNewsSectionContent,
+  locale,
+}: {
+  articles?: Article[];
+  content?: NewsSectionContent;
+  locale?: string;
+}) {
   return (
-    <>
-      <ProjectsSection />
-      <NewsCenter />
-    </>
+    <NewsCenter articles={articles} content={content} locale={locale} />
   );
 }

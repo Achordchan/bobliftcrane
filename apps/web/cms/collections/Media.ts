@@ -5,8 +5,8 @@ import { isAdmin } from '../access/isAdmin';
 export const Media: CollectionConfig = {
   slug: 'media',
   labels: {
-    singular: { zh: '媒体素材', en: 'Media' },
-    plural: { zh: '媒体素材', en: 'Media' },
+    singular: '媒体素材',
+    plural: '媒体素材',
   },
   access: {
     create: isAdmin,
@@ -16,20 +16,22 @@ export const Media: CollectionConfig = {
   },
   admin: {
     defaultColumns: ['filename', 'alt', 'updatedAt'],
-    group: { zh: '资源管理', en: 'Assets' },
+    group: { zh: '05 媒体素材', en: '05 Media Assets' },
     useAsTitle: 'filename',
   },
   fields: [
     {
       name: 'alt',
       type: 'text',
-      label: 'Alt Text',
+      localized: true,
+      label: { zh: '图片说明 Alt', en: 'Alt Text' },
       required: true,
     },
     {
       name: 'caption',
       type: 'text',
-      label: 'Caption',
+      localized: true,
+      label: { zh: '图片标题/说明', en: 'Caption' },
     },
   ],
   upload: {
@@ -55,6 +57,6 @@ export const Media: CollectionConfig = {
         position: 'centre',
       },
     ],
-    mimeTypes: ['image/avif', 'image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
+    mimeTypes: ['image/avif', 'image/jpeg', 'image/png', 'image/webp', 'image/svg+xml', 'application/pdf'],
   },
 };

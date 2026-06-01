@@ -1,18 +1,26 @@
 import type { Metadata } from "next";
 import "../globals.css";
 import { Geist } from "next/font/google";
+import { getPageUiContent } from "@/lib/cms-content";
+import { rtlLocales } from "@/lib/i18n";
+import { getRequestLocale } from "@/lib/server-locale";
 import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
-export const metadata: Metadata = {
-  title: "BOB-LIFT | Engineered Lifting Power for Global Projects",
-  description: "BOB-LIFT manufactures truck mounted cranes, marine cranes and custom lifting solutions for global projects.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { seoFallbacks } = await getPageUiContent();
+  return {
+    title: seoFallbacks.siteTitle,
+    description: seoFallbacks.siteDescription,
+  };
+}
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const lang = await getRequestLocale();
+
   return (
-    <html lang="en" className={cn("font-sans", geist.variable)}>
+    <html lang={lang} dir={rtlLocales.has(lang) ? "rtl" : "ltr"} className={cn("font-sans", geist.variable)}>
       <body>{children}</body>
     </html>
   );

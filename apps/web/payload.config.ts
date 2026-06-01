@@ -7,11 +7,33 @@ import { buildConfig } from 'payload';
 import sharp from 'sharp';
 import { fileURLToPath } from 'url';
 
-import { Articles, Cases, Media, Products, Users } from './cms/collections';
+import { Articles, Cases, Inquiries, Media, Pages, ProductCategories, ProductDrawingReviews, ProductImportBatches, ProductUrlAudits, Products, Redirects, TranslationJobs, Users } from './cms/collections';
+import { HomeSettings } from './cms/globals/HomeSettings';
+import { PageTextSettings } from './cms/globals/PageTextSettings';
+import { ProductDetailSettings } from './cms/globals/ProductDetailSettings';
+import { ProductListingSettings } from './cms/globals/ProductListingSettings';
 import { SiteSettings } from './cms/globals/SiteSettings';
+import { TranslationSettings } from './cms/globals/TranslationSettings';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
+
+const contentLocales = [
+  { code: 'en', label: 'English' },
+  { code: 'es', label: 'Español' },
+  { code: 'ru', label: 'Русский' },
+  { code: 'ar', label: 'العربية', rtl: true },
+  { code: 'pt', label: 'Português' },
+  { code: 'fr', label: 'Français' },
+  { code: 'de', label: 'Deutsch' },
+  { code: 'tr', label: 'Türkçe' },
+  { code: 'id', label: 'Bahasa Indonesia' },
+  { code: 'vi', label: 'Tiếng Việt' },
+  { code: 'th', label: 'ไทย' },
+  { code: 'hi', label: 'हिन्दी' },
+  { code: 'zh', label: '中文' },
+  { code: 'ko', label: '한국어' },
+];
 
 export default buildConfig({
   admin: {
@@ -24,7 +46,7 @@ export default buildConfig({
     },
     user: Users.slug,
   },
-  collections: [Users, Media, Products, Articles, Cases],
+  collections: [Pages, ProductCategories, ProductDrawingReviews, ProductImportBatches, ProductUrlAudits, Products, Media, Articles, Cases, Redirects, Inquiries, TranslationJobs, Users],
   db: postgresAdapter({
     migrationDir: path.resolve(dirname, 'migrations'),
     pool: {
@@ -33,10 +55,15 @@ export default buildConfig({
     push: process.env.PAYLOAD_DB_PUSH === 'true',
   }),
   editor: lexicalEditor({}),
-  globals: [SiteSettings],
+  globals: [HomeSettings, ProductListingSettings, ProductDetailSettings, SiteSettings, PageTextSettings, TranslationSettings],
   i18n: {
     fallbackLanguage: 'zh',
     supportedLanguages: { zh, en },
+  },
+  localization: {
+    defaultLocale: 'en',
+    fallback: true,
+    locales: contentLocales,
   },
   graphQL: {
     schemaOutputFile: path.resolve(dirname, 'payload-schema.graphql'),

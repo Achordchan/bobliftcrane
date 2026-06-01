@@ -11,9 +11,20 @@
     "payload:migrate": "npm --prefix apps/web run payload:migrate",
     "payload:migrate:create": "npm --prefix apps/web run payload:migrate:create",
     "payload:migrate:status": "npm --prefix apps/web run payload:migrate:status",
+    "payload:seed:front-office": "node apps/web/scripts/seed-front-office-globals.mjs && node apps/web/scripts/seed-front-office-navigation.mjs",
+    "payload:seed:import-batches": "node apps/web/scripts/seed-product-import-batches.mjs",
+    "payload:seed:legacy-content": "node apps/web/scripts/seed-legacy-content.mjs && node apps/web/scripts/import-legacy-articles.mjs && node apps/web/scripts/seed-legacy-pages.mjs && node apps/web/scripts/seed-legacy-redirects.mjs",
+    "payload:import:legacy-articles": "node apps/web/scripts/import-legacy-articles.mjs",
+    "payload:seed:product-i18n": "node apps/web/scripts/seed-product-i18n.mjs",
     "web:dev": "npm --prefix apps/web run dev",
     "web:build": "npm --prefix apps/web run build",
     "web:start": "npm --prefix apps/web run start",
-    "web:responsive": "npm --prefix apps/web run responsive"
+    "web:responsive": "npm --prefix apps/web run responsive",
+    "payload:seed:legacy-redirects": "node apps/web/scripts/seed-legacy-redirects.mjs",
+    "payload:translate": "node apps/web/scripts/translate-localized-content.mjs",
+    "payload:audit:urls": "node apps/web/scripts/audit-local-url-preservation.mjs",
+    "payload:run:product-import-batch": "node apps/web/scripts/run-product-import-batch.mjs",
+    "payload:audit:product-source": "python3 apps/web/scripts/audit-product-source.py",
+    "payload:seed:legacy-pages": "node apps/web/scripts/seed-legacy-pages.mjs"
   }
 }

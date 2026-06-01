@@ -12,7 +12,10 @@
     "payload:generate:importmap": "PATH=/opt/homebrew/bin:/usr/local/bin:$PATH payload generate:importmap",
     "payload:migrate": "PATH=/opt/homebrew/bin:/usr/local/bin:$PATH payload migrate",
     "payload:migrate:create": "PATH=/opt/homebrew/bin:/usr/local/bin:$PATH payload migrate:create",
-    "payload:migrate:status": "PATH=/opt/homebrew/bin:/usr/local/bin:$PATH payload migrate:status"
+    "payload:migrate:status": "PATH=/opt/homebrew/bin:/usr/local/bin:$PATH payload migrate:status",
+    "payload:translate": "PATH=/opt/homebrew/bin:/usr/local/bin:$PATH node scripts/translate-localized-content.mjs",
+    "seed:product-i18n": "PATH=/opt/homebrew/bin:/usr/local/bin:$PATH node scripts/seed-product-i18n.mjs",
+    "translate": "PATH=/opt/homebrew/bin:/usr/local/bin:$PATH node scripts/translate-localized-content.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
@@ -22,6 +25,7 @@
     "@payloadcms/translations": "^3.84.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "deepl-node": "^1.27.0",
     "graphql": "^16.14.0",
     "lucide-react": "^1.16.0",
     "next": "16.2.6",

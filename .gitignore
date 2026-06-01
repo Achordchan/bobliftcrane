@@ -7,6 +7,10 @@ node_modules/
 build/
 dist/
 .tmp/
+output/
+.playwright-cli/
+__pycache__/
+*.pyc
 apps/web/media/*
 !apps/web/media/.gitkeep
 .next/

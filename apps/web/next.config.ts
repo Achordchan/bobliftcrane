@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
+  skipTrailingSlashRedirect: true,
 };
 
 export default withPayload(nextConfig);

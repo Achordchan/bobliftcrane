@@ -67,11 +67,19 @@ export interface Config {
   };
   blocks: {};
   collections: {
-    users: User;
-    media: Media;
+    pages: Page;
+    'product-categories': ProductCategory;
+    'product-drawing-reviews': ProductDrawingReview;
+    'product-import-batches': ProductImportBatch;
+    'product-url-audits': ProductUrlAudit;
     products: Product;
+    media: Media;
     articles: Article;
     cases: Case;
+    redirects: Redirect;
+    inquiries: Inquiry;
+    'translation-jobs': TranslationJob;
+    users: User;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -79,11 +87,19 @@ export interface Config {
   };
   collectionsJoins: {};
   collectionsSelect: {
-    users: UsersSelect<false> | UsersSelect<true>;
-    media: MediaSelect<false> | MediaSelect<true>;
+    pages: PagesSelect<false> | PagesSelect<true>;
+    'product-categories': ProductCategoriesSelect<false> | ProductCategoriesSelect<true>;
+    'product-drawing-reviews': ProductDrawingReviewsSelect<false> | ProductDrawingReviewsSelect<true>;
+    'product-import-batches': ProductImportBatchesSelect<false> | ProductImportBatchesSelect<true>;
+    'product-url-audits': ProductUrlAuditsSelect<false> | ProductUrlAuditsSelect<true>;
     products: ProductsSelect<false> | ProductsSelect<true>;
+    media: MediaSelect<false> | MediaSelect<true>;
     articles: ArticlesSelect<false> | ArticlesSelect<true>;
     cases: CasesSelect<false> | CasesSelect<true>;
+    redirects: RedirectsSelect<false> | RedirectsSelect<true>;
+    inquiries: InquiriesSelect<false> | InquiriesSelect<true>;
+    'translation-jobs': TranslationJobsSelect<false> | TranslationJobsSelect<true>;
+    users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -92,14 +108,29 @@ export interface Config {
   db: {
     defaultIDType: number;
   };
-  fallbackLocale: null;
+  fallbackLocale:
+    | ('false' | 'none' | 'null')
+    | false
+    | null
+    | ('en' | 'es' | 'ru' | 'ar' | 'pt' | 'fr' | 'de' | 'tr' | 'id' | 'vi' | 'th' | 'hi' | 'zh' | 'ko')
+    | ('en' | 'es' | 'ru' | 'ar' | 'pt' | 'fr' | 'de' | 'tr' | 'id' | 'vi' | 'th' | 'hi' | 'zh' | 'ko')[];
   globals: {
+    'home-settings': HomeSetting;
+    'product-listing-ui': ProductListingUi;
+    'product-detail-ui': ProductDetailUi;
     'site-settings': SiteSetting;
+    'page-text-settings': PageTextSetting;
+    'translation-settings': TranslationSetting;
   };
   globalsSelect: {
+    'home-settings': HomeSettingsSelect<false> | HomeSettingsSelect<true>;
+    'product-listing-ui': ProductListingUiSelect<false> | ProductListingUiSelect<true>;
+    'product-detail-ui': ProductDetailUiSelect<false> | ProductDetailUiSelect<true>;
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
+    'page-text-settings': PageTextSettingsSelect<false> | PageTextSettingsSelect<true>;
+    'translation-settings': TranslationSettingsSelect<false> | TranslationSettingsSelect<true>;
   };
-  locale: null;
+  locale: 'en' | 'es' | 'ru' | 'ar' | 'pt' | 'fr' | 'de' | 'tr' | 'id' | 'vi' | 'th' | 'hi' | 'zh' | 'ko';
   widgets: {
     collections: CollectionsWidget;
   };
@@ -128,30 +159,72 @@ export interface UserAuthOperations {
   };
 }
 /**
+ * Manage standalone landing pages such as legacy Application and Service pages. Public URL is rendered directly without redirect.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users".
+ * via the `definition` "pages".
  */
-export interface User {
+export interface Page {
   id: number;
-  name?: string | null;
-  updatedAt: string;
-  createdAt: string;
-  email: string;
-  resetPasswordToken?: string | null;
-  resetPasswordExpiration?: string | null;
-  salt?: string | null;
-  hash?: string | null;
-  loginAttempts?: number | null;
-  lockUntil?: string | null;
-  sessions?:
+  title: string;
+  /**
+   * URL slug without .html, for example: 10-ton-telescopic-boom-truck-mounted-crane
+   */
+  slug: string;
+  /**
+   * Public page URL. Keep it identical to the old site whenever possible.
+   */
+  legacyPath: string;
+  /**
+   * Other historical paths for this page. Put the primary public URL above.
+   */
+  legacyAliases?:
     | {
-        id: string;
-        createdAt?: string | null;
-        expiresAt: string;
+        path: string;
+        id?: string | null;
       }[]
     | null;
-  password?: string | null;
-  collection: 'users';
+  pageType: 'application' | 'service' | 'custom';
+  heroLabel?: string | null;
+  heroTitle: string;
+  heroDescription?: string | null;
+  heroImage?: (number | null) | Media;
+  heroImagePath?: string | null;
+  contentBlocks?:
+    | {
+        label?: string | null;
+        title: string;
+        text: string;
+        image?: (number | null) | Media;
+        imagePath?: string | null;
+        ctaLabel?: string | null;
+        ctaHref?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Search result metadata for Google and legacy URL migration.
+   */
+  seo?: {
+    /**
+     * 按当前语言填写。英语是默认来源，其他语言由翻译流程从英语生成后再复核。
+     */
+    metaTitle?: string | null;
+    /**
+     * 按当前语言填写。英语是默认来源，其他语言由翻译流程从英语生成后再复核。
+     */
+    metaDescription?: string | null;
+    /**
+     * Optional canonical path, for example: /10-ton-telescopic-boom-truck-mounted-crane.html
+     */
+    canonicalPath?: string | null;
+  };
+  status: 'draft' | 'published';
+  showInNavigation?: boolean | null;
+  sortOrder?: number | null;
+  publishedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -200,6 +273,159 @@ export interface Media {
   };
 }
 /**
+ * Edit product categories here. Create and publish categories first, then select them from Product Upload / Product Management. Categories drive the Products mega menu, listing filters, category page banner/SEO, public URLs, and home category entry.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-categories".
+ */
+export interface ProductCategory {
+  id: number;
+  title: string;
+  /**
+   * URL slug without .html, for example: 10-ton-telescopic-boom-truck-mounted-crane
+   */
+  slug: string;
+  /**
+   * Optional parent category for SEO or sub-category hierarchy.
+   */
+  parentCategory?: (number | null) | ProductCategory;
+  /**
+   * Short label for navigation.
+   */
+  shortTitle?: string | null;
+  /**
+   * Public category URL. Use the current front-end path that matches the old website path. The front end renders this category directly at this path without relying on redirects.
+   */
+  legacyPath?: string | null;
+  description?: string | null;
+  image?: (number | null) | Media;
+  /**
+   * Free icon key. Known front-end icons are matched automatically; unknown keys use a fallback icon.
+   */
+  iconName?: string | null;
+  pageType: 'product-listing' | 'seo-landing' | 'redirect-only';
+  /**
+   * Free mega-menu group key. Match it with Site Settings → Product Mega Menu Groups.
+   */
+  menuGroup: string;
+  /**
+   * Free listing group name for editorial organization.
+   */
+  listingGroup: string;
+  showInMegaMenu?: boolean | null;
+  showOnHome?: boolean | null;
+  /**
+   * When disabled, the category page remains directly accessible but is hidden from listing filter options. Useful for legacy SEO landing pages and capacity pages.
+   */
+  showInProductFilters?: boolean | null;
+  sortOrder?: number | null;
+  /**
+   * Other historical paths for this category. Put the main public URL in Public Category URL above.
+   */
+  legacyAliases?:
+    | {
+        path: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Optional category slugs applied when this category page opens. Empty means filter by this category and child categories.
+   */
+  defaultCategoryFilters?: string[] | null;
+  /**
+   * Optional values from Product Listing Settings → Capacity Filter Options, e.g. 0 - 5 tons.
+   */
+  defaultCapacityFilters?: string[] | null;
+  /**
+   * Optional values from Product Listing Settings → Boom Type Filter Options, e.g. knuckle-boom.
+   */
+  defaultBoomTypeFilters?: string[] | null;
+  /**
+   * Optional values from Product Listing Settings → Application Dictionary, e.g. construction.
+   */
+  defaultApplicationFilters?: string[] | null;
+  /**
+   * Optional values from Product Listing Settings → Availability Filter Options, e.g. customizable.
+   */
+  defaultAvailabilityFilters?: string[] | null;
+  bannerLabel?: string | null;
+  bannerTitle?: string | null;
+  bannerImage?: (number | null) | Media;
+  /**
+   * Supports plain paragraphs and [link text](/products?category=category-slug&boom=boom-key). Clicking applies listing filters on the front end.
+   */
+  bannerParagraphs?:
+    | {
+        text: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Search result metadata for Google and legacy URL migration.
+   */
+  seo?: {
+    /**
+     * 按当前语言填写。英语是默认来源，其他语言由翻译流程从英语生成后再复核。
+     */
+    metaTitle?: string | null;
+    /**
+     * 按当前语言填写。英语是默认来源，其他语言由翻译流程从英语生成后再复核。
+     */
+    metaDescription?: string | null;
+    /**
+     * Optional canonical path, for example: /10-ton-telescopic-boom-truck-mounted-crane.html
+     */
+    canonicalPath?: string | null;
+  };
+  status: 'draft' | 'published';
+  publishedAt?: string | null;
+  /**
+   * Auto calculated: ready is testable on category/listing/menu/home; needs-url-review is visible but missing legacy URL; hidden is not public.
+   */
+  frontendSurfaceStatus?: string | null;
+  /**
+   * Auto lists why this category does not appear in product menus, home, or legacy URL tests.
+   */
+  frontendSurfaceNote?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Central record for every drawing or parameter image. These records are for evidence archiving only and do not block front-end readiness.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-drawing-reviews".
+ */
+export interface ProductDrawingReview {
+  id: number;
+  title: string;
+  reviewStatus: 'needs-review' | 'in-review' | 'reviewed' | 'not-required';
+  parameterMatchStatus: 'unchecked' | 'matches-product-specs' | 'spec-mismatch' | 'image-unreadable';
+  product: number | Product;
+  drawingRowId: string;
+  drawingOrder?: number | null;
+  productTitleSnapshot?: string | null;
+  productModelSnapshot?: string | null;
+  specsSnapshot?: string | null;
+  image: number | Media;
+  sourceType?: string | null;
+  sourceUrl?: string | null;
+  /**
+   * Key text recorded from the drawing or parameter image.
+   */
+  extractedText?: string | null;
+  reviewNotes?: string | null;
+  reviewMethod?: ('manual' | 'image2-assisted' | 'supplier-document') | null;
+  reviewer?: string | null;
+  reviewedAt?: string | null;
+  syncStatus?: string | null;
+  lastSyncedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Upload and edit products here. This controls product listing, detail page, home recommendations, specifications, drawings, gallery, features, and FAQ. Manage categories from Product Categories in this same group first, then select Product Category here. Boom type, applications, and availability are validated against Product Listing Settings dictionaries.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "products".
  */
@@ -211,26 +437,147 @@ export interface Product {
    */
   slug: string;
   /**
-   * Old-site compatible URL path, for example: /10-ton-telescopic-boom-truck-mounted-crane.html
+   * Current public product URL. Use the original old-site .html path whenever possible. The front end renders the product directly at this path without relying on redirects.
    */
   legacyPath?: string | null;
+  /**
+   * Other historical paths for this product. Put the main public URL in Public Product URL above. These aliases also render the product detail page directly.
+   */
+  legacyAliases?:
+    | {
+        path: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * The real editable category used by front-end navigation, filters, and home category sections. Only published front-end categories can be selected here.
+   */
+  categoryRef: number | ProductCategory;
   model?: string | null;
+  /**
+   * Legacy fallback category. Front-end reads Product Category first.
+   */
   category:
     | 'telescopic-boom-truck-mounted-cranes'
     | 'knuckle-boom-truck-mounted-cranes'
     | 'knuckle-boom-marine-cranes'
     | 'telescopic-boom-marine-cranes'
+    | 'aerial-work-platform'
     | 'pickup-cranes'
     | 'forklift-fly-jib-cranes'
     | 'mini-dumpers'
+    | 'crane-accessories'
     | 'other-cranes';
   capacity?: string | null;
+  /**
+   * Used by filters and sorting. Number only, e.g. 10 or 3.2.
+   */
+  capacityValue?: number | null;
+  /**
+   * Used by listing filters, detail specs, and home cards. Enter a value from Product Listing Settings → Boom Type Filter Options, e.g. telescopic-boom. New dictionary values can be used here directly.
+   */
+  boomType: string;
   productType?: string | null;
   intro?: string | null;
-  coverImage?: (number | null) | Media;
+  /**
+   * Required source URL used to verify product parameters.
+   */
+  sourceUrl: string;
+  importSource?: ('manual' | 'legacy-site' | 'ai-assisted') | null;
+  /**
+   * Keep imported products as needs review until a human checks the old source text or factory data. Drawing images are supporting records only and no longer block readiness.
+   */
+  parameterReviewStatus?: ('needs-review' | 'in-review' | 'verified-from-source' | 'changes-required') | null;
+  parameterReviewer?: string | null;
+  parameterReviewedAt?: string | null;
+  importBatchId?: string | null;
+  parameterReviewNotes?: string | null;
+  /**
+   * Controls product-card status badges and listing filters. Enter a value from Product Listing Settings → Availability Filter Options, e.g. customizable. New dictionary values can be used here directly.
+   */
+  availability: string;
+  /**
+   * Used by listing filters and detail application cards. Enter values from Product Listing Settings → Application Dictionary, e.g. construction. New dictionary values can be used here directly.
+   */
+  applications?: string[] | null;
+  tags?:
+    | {
+        label: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * When disabled, the published product can still be tested by its detail URL, but it will not appear in listing, category, or filter results. Even when enabled, only products with Front-end Content Status = ready enter listing pages.
+   */
+  showInProductList?: boolean | null;
+  /**
+   * When disabled, the product is excluded from home product families and featured products. Detail pages are unaffected. Even when enabled, only products with Front-end Content Status = ready enter the home page.
+   */
+  showOnHome?: boolean | null;
+  isFeatured?: boolean | null;
+  popularity?: number | null;
+  sortOrder?: number | null;
+  coverImage: number | Media;
   gallery?:
     | {
         image: number | Media;
+        label?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Hotspot labels shown on the product detail hero image. Defaults from Product Detail Settings are used when empty.
+   */
+  detailHotspots?:
+    | {
+        label: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Optional per-product application cards for the detail page. If empty, global application dictionary cards are used.
+   */
+  applicationCards?:
+    | {
+        title: string;
+        text: string;
+        image?: (number | null) | Media;
+        imagePath?: string | null;
+        iconName?: string | null;
+        sortOrder?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Drawings or parameter images are stored as supporting product material and do not block publishing.
+   */
+  drawingImages?:
+    | {
+        image: number | Media;
+        label?: string | null;
+        sourceType?: ('parameter-chart' | 'engineering-drawing' | 'product-detail-photo' | 'other') | null;
+        sourceUrl?: string | null;
+        reviewStatus?: ('needs-review' | 'in-review' | 'reviewed' | 'not-required') | null;
+        parameterMatchStatus?: ('unchecked' | 'matches-product-specs' | 'spec-mismatch' | 'image-unreadable') | null;
+        /**
+         * Key text recorded from the drawing or parameter image.
+         */
+        extractedText?: string | null;
+        /**
+         * Record the source, usage, and any product-spec follow-up for this image.
+         */
+        reviewNotes?: string | null;
+        reviewMethod?: ('manual' | 'image2-assisted' | 'supplier-document') | null;
+        reviewer?: string | null;
+        reviewedAt?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  documents?:
+    | {
+        title: string;
+        file?: (number | null) | Media;
+        url?: string | null;
         id?: string | null;
       }[]
     | null;
@@ -238,6 +585,22 @@ export interface Product {
     | {
         label: string;
         value: string;
+        sourceNote?: string | null;
+        sourceImage?: (number | null) | Media;
+        id?: string | null;
+      }[]
+    | null;
+  keyFeatures?:
+    | {
+        title: string;
+        text: string;
+        id?: string | null;
+      }[]
+    | null;
+  faqs?:
+    | {
+        question: string;
+        answer: string;
         id?: string | null;
       }[]
     | null;
@@ -245,7 +608,13 @@ export interface Product {
    * Search result metadata for Google and legacy URL migration.
    */
   seo?: {
+    /**
+     * 按当前语言填写。英语是默认来源，其他语言由翻译流程从英语生成后再复核。
+     */
     metaTitle?: string | null;
+    /**
+     * 按当前语言填写。英语是默认来源，其他语言由翻译流程从英语生成后再复核。
+     */
     metaDescription?: string | null;
     /**
      * Optional canonical path, for example: /10-ton-telescopic-boom-truck-mounted-crane.html
@@ -254,6 +623,129 @@ export interface Product {
   };
   status: 'draft' | 'published';
   publishedAt?: string | null;
+  /**
+   * Auto calculated: ready can enter home and listing tests; needs-content is missing front-end content; needs-parameter-review still needs parameter verification. Drawing images are evidence records and no longer block public listings. Non-ready products are excluded from public listings.
+   */
+  frontendContentStatus?: string | null;
+  /**
+   * Auto lists missing content that affects product listing, detail page, and home page tests.
+   */
+  frontendMissingFieldsNote?: string | null;
+  /**
+   * Auto calculated drawing evidence status. Drawing images no longer block front-end visibility.
+   */
+  drawingReviewStatus?: string | null;
+  /**
+   * Auto summary for drawing and parameter-image evidence records.
+   */
+  drawingReviewSummary?: string | null;
+  drawingReviewNeededCount?: number | null;
+  drawingReviewedCount?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Review and run legacy-site crawls, product imports, and parameter review batches here. Choose an action, set Status to Queued, and save. Verified products are preserved.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-import-batches".
+ */
+export interface ProductImportBatch {
+  id: number;
+  title: string;
+  batchId: string;
+  status: 'queued' | 'in-review' | 'reviewing' | 'completed' | 'failed';
+  /**
+   * Use Source Audit Only for routine verification. Use Import Legacy Products and Audit when you need to crawl bobliftcrane.com again.
+   */
+  runAction: 'source-audit' | 'import-and-source-audit' | 'dry-run-import';
+  sourceType: 'legacy-site' | 'manual' | 'ai-assisted';
+  sourceBaseUrl?: string | null;
+  sitemapUrl?: string | null;
+  reportPath?: string | null;
+  startedAt?: string | null;
+  completedAt?: string | null;
+  productCount?: number | null;
+  importedCount?: number | null;
+  skippedCount?: number | null;
+  failedCount?: number | null;
+  needsReviewCount?: number | null;
+  inReviewCount?: number | null;
+  verifiedCount?: number | null;
+  drawingReviewNeededCount?: number | null;
+  drawingReviewedCount?: number | null;
+  overwritePolicy: 'preserve-verified' | 'rewrite-unverified' | 'record-only';
+  reviewChecklist?: string | null;
+  notes?: string | null;
+  summary?: string | null;
+  errorMessage?: string | null;
+  failureLogs?:
+    | {
+        sourceUrl?: string | null;
+        productTitle?: string | null;
+        error?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Optional products imported in this batch.
+   */
+  products?: (number | Product)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Run legacy URL direct-render audits from the admin. Set Status to Queued and save to check audit/url-preservation-map.csv. Passing URLs must return 200 without redirect. Treat the Current row as the latest conclusion.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-url-audits".
+ */
+export interface ProductUrlAudit {
+  id: number;
+  title: string;
+  status: 'draft' | 'queued' | 'running' | 'completed' | 'content-mismatch' | 'failed';
+  /**
+   * Current site base URL to audit.
+   */
+  baseUrl: string;
+  /**
+   * Legacy URL inventory CSV.
+   */
+  sourceCsvPath?: string | null;
+  reportPath?: string | null;
+  isCurrent?: boolean | null;
+  supersededAt?: string | null;
+  lastRunAt?: string | null;
+  completedAt?: string | null;
+  totalUrls?: number | null;
+  directRenderCount?: number | null;
+  contentMatchCount?: number | null;
+  contentMismatchCount?: number | null;
+  compatibleFallbackCount?: number | null;
+  redirectCount?: number | null;
+  failedCount?: number | null;
+  summary?: string | null;
+  errorMessage?: string | null;
+  /**
+   * Per-URL result. Prioritize rows where ok=false or directRender=false.
+   */
+  results?:
+    | {
+        path?: string | null;
+        type?: string | null;
+        expectedAction?: string | null;
+        expectedTitle?: string | null;
+        localStatus?: string | null;
+        localLocation?: string | null;
+        localTitle?: string | null;
+        directRender?: boolean | null;
+        contentMatch?: boolean | null;
+        compatibleFallback?: boolean | null;
+        contentMatchNote?: string | null;
+        ok?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -269,12 +761,25 @@ export interface Article {
    */
   slug: string;
   /**
-   * Old-site compatible URL path, for example: /company-news.html
+   * Current public article URL. Use the original old-site .html path whenever possible, for example: /company-news.html.
    */
   legacyPath?: string | null;
+  /**
+   * Other historical paths for this article. Put the main public URL in Public Article URL above. These aliases also render the article detail page directly.
+   */
+  legacyAliases?:
+    | {
+        path: string;
+        id?: string | null;
+      }[]
+    | null;
   category: 'company-news' | 'product-news' | 'industry-insight';
   excerpt?: string | null;
   coverImage?: (number | null) | Media;
+  /**
+   * Optional static image path, e.g. /images/oldsite/news/example.jpg. Uploaded cover image takes priority.
+   */
+  coverImagePath?: string | null;
   content?: {
     root: {
       type: string;
@@ -295,7 +800,13 @@ export interface Article {
    * Search result metadata for Google and legacy URL migration.
    */
   seo?: {
+    /**
+     * 按当前语言填写。英语是默认来源，其他语言由翻译流程从英语生成后再复核。
+     */
     metaTitle?: string | null;
+    /**
+     * 按当前语言填写。英语是默认来源，其他语言由翻译流程从英语生成后再复核。
+     */
     metaDescription?: string | null;
     /**
      * Optional canonical path, for example: /10-ton-telescopic-boom-truck-mounted-crane.html
@@ -318,11 +829,48 @@ export interface Case {
    * URL slug without .html, for example: 10-ton-telescopic-boom-truck-mounted-crane
    */
   slug: string;
+  /**
+   * Current public case URL. Use the original old-site .html path whenever possible.
+   */
   legacyPath?: string | null;
+  /**
+   * Other historical paths for this case. Put the main public URL in Public Case URL above. These aliases also render the case detail page directly.
+   */
+  legacyAliases?:
+    | {
+        path: string;
+        id?: string | null;
+      }[]
+    | null;
+  caseType?: string | null;
   country?: string | null;
   industry?: string | null;
   summary?: string | null;
   coverImage?: (number | null) | Media;
+  /**
+   * Optional static image path, e.g. /images/oldsite/cases/example.jpg. Uploaded cover image takes priority.
+   */
+  coverImagePath?: string | null;
+  /**
+   * Fact cards shown on the case detail page.
+   */
+  facts?:
+    | {
+        label: string;
+        value: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Structured article sections; rich text is used when empty.
+   */
+  sections?:
+    | {
+        heading: string;
+        body: string;
+        id?: string | null;
+      }[]
+    | null;
   content?: {
     root: {
       type: string;
@@ -338,11 +886,18 @@ export interface Case {
     };
     [k: string]: unknown;
   } | null;
+  contentHtml?: string | null;
   /**
    * Search result metadata for Google and legacy URL migration.
    */
   seo?: {
+    /**
+     * 按当前语言填写。英语是默认来源，其他语言由翻译流程从英语生成后再复核。
+     */
     metaTitle?: string | null;
+    /**
+     * 按当前语言填写。英语是默认来源，其他语言由翻译流程从英语生成后再复核。
+     */
     metaDescription?: string | null;
     /**
      * Optional canonical path, for example: /10-ton-telescopic-boom-truck-mounted-crane.html
@@ -351,6 +906,134 @@ export interface Case {
   };
   status: 'draft' | 'published';
   publishedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Fallback rules only. Products, categories, articles, and cases should use their public URL fields first so current URLs match legacy URLs and render directly.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "redirects".
+ */
+export interface Redirect {
+  id: number;
+  /**
+   * Path to support, starting with /. Prefer product/category public URL fields when possible.
+   */
+  sourcePath: string;
+  /**
+   * Fallback target path; use only when direct same-URL rendering is not possible.
+   */
+  targetPath: string;
+  redirectType: 'permanent' | 'temporary';
+  notes?: string | null;
+  status: 'published' | 'draft';
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Front-end quote requests land here for assignment, follow-up notes, and status tracking.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "inquiries".
+ */
+export interface Inquiry {
+  id: number;
+  name: string;
+  email: string;
+  phone?: string | null;
+  country?: string | null;
+  productInterest?: string | null;
+  product?: (number | null) | Product;
+  quantity?: string | null;
+  message?: string | null;
+  priority: 'normal' | 'high' | 'urgent';
+  status: 'new' | 'in-progress' | 'replied' | 'closed';
+  sourcePage?: string | null;
+  sourcePath?: string | null;
+  locale?: string | null;
+  utm?: {
+    source?: string | null;
+    medium?: string | null;
+    campaign?: string | null;
+    term?: string | null;
+    content?: string | null;
+  };
+  ipAddress?: string | null;
+  assignee?: (number | null) | User;
+  followUpAt?: string | null;
+  notificationStatus?: ('pending' | 'sent' | 'skipped' | 'failed') | null;
+  notifiedAt?: string | null;
+  notificationError?: string | null;
+  followUpNotes?:
+    | {
+        note: string;
+        createdAt?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  submittedAt: string;
+  userAgent?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users".
+ */
+export interface User {
+  id: number;
+  name?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
+  password?: string | null;
+  collection: 'users';
+}
+/**
+ * Tracks and runs professional translation jobs. English is the source locale. Set status to Queued and save to start DeepL / DeepLX in the background. dryRun checks coverage only; disable dryRun to write translations.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "translation-jobs".
+ */
+export interface TranslationJob {
+  id: number;
+  title: string;
+  provider: 'deepl' | 'deeplx';
+  status:
+    | 'draft'
+    | 'needs-credentials'
+    | 'coverage-needed'
+    | 'queued'
+    | 'running'
+    | 'machine-translated'
+    | 'human-review'
+    | 'approved'
+    | 'completed'
+    | 'failed';
+  sourceLocale: string;
+  targetLocales: string[];
+  scopes: string[];
+  overwriteExisting?: boolean | null;
+  dryRun?: boolean | null;
+  preserveBrandTerms?: boolean | null;
+  glossaryId?: string | null;
+  lastRunAt?: string | null;
+  summary?: string | null;
+  errorMessage?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -379,16 +1062,32 @@ export interface PayloadLockedDocument {
   id: number;
   document?:
     | ({
-        relationTo: 'users';
-        value: number | User;
+        relationTo: 'pages';
+        value: number | Page;
       } | null)
     | ({
-        relationTo: 'media';
-        value: number | Media;
+        relationTo: 'product-categories';
+        value: number | ProductCategory;
+      } | null)
+    | ({
+        relationTo: 'product-drawing-reviews';
+        value: number | ProductDrawingReview;
+      } | null)
+    | ({
+        relationTo: 'product-import-batches';
+        value: number | ProductImportBatch;
+      } | null)
+    | ({
+        relationTo: 'product-url-audits';
+        value: number | ProductUrlAudit;
       } | null)
     | ({
         relationTo: 'products';
         value: number | Product;
+      } | null)
+    | ({
+        relationTo: 'media';
+        value: number | Media;
       } | null)
     | ({
         relationTo: 'articles';
@@ -397,6 +1096,22 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'cases';
         value: number | Case;
+      } | null)
+    | ({
+        relationTo: 'redirects';
+        value: number | Redirect;
+      } | null)
+    | ({
+        relationTo: 'inquiries';
+        value: number | Inquiry;
+      } | null)
+    | ({
+        relationTo: 'translation-jobs';
+        value: number | TranslationJob;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -442,26 +1157,346 @@ export interface PayloadMigration {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users_select".
+ * via the `definition` "pages_select".
  */
-export interface UsersSelect<T extends boolean = true> {
-  name?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  email?: T;
-  resetPasswordToken?: T;
-  resetPasswordExpiration?: T;
-  salt?: T;
-  hash?: T;
-  loginAttempts?: T;
-  lockUntil?: T;
-  sessions?:
+export interface PagesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  legacyPath?: T;
+  legacyAliases?:
     | T
     | {
+        path?: T;
         id?: T;
-        createdAt?: T;
-        expiresAt?: T;
       };
+  pageType?: T;
+  heroLabel?: T;
+  heroTitle?: T;
+  heroDescription?: T;
+  heroImage?: T;
+  heroImagePath?: T;
+  contentBlocks?:
+    | T
+    | {
+        label?: T;
+        title?: T;
+        text?: T;
+        image?: T;
+        imagePath?: T;
+        ctaLabel?: T;
+        ctaHref?: T;
+        id?: T;
+      };
+  seo?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        canonicalPath?: T;
+      };
+  status?: T;
+  showInNavigation?: T;
+  sortOrder?: T;
+  publishedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-categories_select".
+ */
+export interface ProductCategoriesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  parentCategory?: T;
+  shortTitle?: T;
+  legacyPath?: T;
+  description?: T;
+  image?: T;
+  iconName?: T;
+  pageType?: T;
+  menuGroup?: T;
+  listingGroup?: T;
+  showInMegaMenu?: T;
+  showOnHome?: T;
+  showInProductFilters?: T;
+  sortOrder?: T;
+  legacyAliases?:
+    | T
+    | {
+        path?: T;
+        id?: T;
+      };
+  defaultCategoryFilters?: T;
+  defaultCapacityFilters?: T;
+  defaultBoomTypeFilters?: T;
+  defaultApplicationFilters?: T;
+  defaultAvailabilityFilters?: T;
+  bannerLabel?: T;
+  bannerTitle?: T;
+  bannerImage?: T;
+  bannerParagraphs?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  seo?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        canonicalPath?: T;
+      };
+  status?: T;
+  publishedAt?: T;
+  frontendSurfaceStatus?: T;
+  frontendSurfaceNote?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-drawing-reviews_select".
+ */
+export interface ProductDrawingReviewsSelect<T extends boolean = true> {
+  title?: T;
+  reviewStatus?: T;
+  parameterMatchStatus?: T;
+  product?: T;
+  drawingRowId?: T;
+  drawingOrder?: T;
+  productTitleSnapshot?: T;
+  productModelSnapshot?: T;
+  specsSnapshot?: T;
+  image?: T;
+  sourceType?: T;
+  sourceUrl?: T;
+  extractedText?: T;
+  reviewNotes?: T;
+  reviewMethod?: T;
+  reviewer?: T;
+  reviewedAt?: T;
+  syncStatus?: T;
+  lastSyncedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-import-batches_select".
+ */
+export interface ProductImportBatchesSelect<T extends boolean = true> {
+  title?: T;
+  batchId?: T;
+  status?: T;
+  runAction?: T;
+  sourceType?: T;
+  sourceBaseUrl?: T;
+  sitemapUrl?: T;
+  reportPath?: T;
+  startedAt?: T;
+  completedAt?: T;
+  productCount?: T;
+  importedCount?: T;
+  skippedCount?: T;
+  failedCount?: T;
+  needsReviewCount?: T;
+  inReviewCount?: T;
+  verifiedCount?: T;
+  drawingReviewNeededCount?: T;
+  drawingReviewedCount?: T;
+  overwritePolicy?: T;
+  reviewChecklist?: T;
+  notes?: T;
+  summary?: T;
+  errorMessage?: T;
+  failureLogs?:
+    | T
+    | {
+        sourceUrl?: T;
+        productTitle?: T;
+        error?: T;
+        id?: T;
+      };
+  products?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-url-audits_select".
+ */
+export interface ProductUrlAuditsSelect<T extends boolean = true> {
+  title?: T;
+  status?: T;
+  baseUrl?: T;
+  sourceCsvPath?: T;
+  reportPath?: T;
+  isCurrent?: T;
+  supersededAt?: T;
+  lastRunAt?: T;
+  completedAt?: T;
+  totalUrls?: T;
+  directRenderCount?: T;
+  contentMatchCount?: T;
+  contentMismatchCount?: T;
+  compatibleFallbackCount?: T;
+  redirectCount?: T;
+  failedCount?: T;
+  summary?: T;
+  errorMessage?: T;
+  results?:
+    | T
+    | {
+        path?: T;
+        type?: T;
+        expectedAction?: T;
+        expectedTitle?: T;
+        localStatus?: T;
+        localLocation?: T;
+        localTitle?: T;
+        directRender?: T;
+        contentMatch?: T;
+        compatibleFallback?: T;
+        contentMatchNote?: T;
+        ok?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "products_select".
+ */
+export interface ProductsSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  legacyPath?: T;
+  legacyAliases?:
+    | T
+    | {
+        path?: T;
+        id?: T;
+      };
+  categoryRef?: T;
+  model?: T;
+  category?: T;
+  capacity?: T;
+  capacityValue?: T;
+  boomType?: T;
+  productType?: T;
+  intro?: T;
+  sourceUrl?: T;
+  importSource?: T;
+  parameterReviewStatus?: T;
+  parameterReviewer?: T;
+  parameterReviewedAt?: T;
+  importBatchId?: T;
+  parameterReviewNotes?: T;
+  availability?: T;
+  applications?: T;
+  tags?:
+    | T
+    | {
+        label?: T;
+        id?: T;
+      };
+  showInProductList?: T;
+  showOnHome?: T;
+  isFeatured?: T;
+  popularity?: T;
+  sortOrder?: T;
+  coverImage?: T;
+  gallery?:
+    | T
+    | {
+        image?: T;
+        label?: T;
+        id?: T;
+      };
+  detailHotspots?:
+    | T
+    | {
+        label?: T;
+        id?: T;
+      };
+  applicationCards?:
+    | T
+    | {
+        title?: T;
+        text?: T;
+        image?: T;
+        imagePath?: T;
+        iconName?: T;
+        sortOrder?: T;
+        id?: T;
+      };
+  drawingImages?:
+    | T
+    | {
+        image?: T;
+        label?: T;
+        sourceType?: T;
+        sourceUrl?: T;
+        reviewStatus?: T;
+        parameterMatchStatus?: T;
+        extractedText?: T;
+        reviewNotes?: T;
+        reviewMethod?: T;
+        reviewer?: T;
+        reviewedAt?: T;
+        id?: T;
+      };
+  documents?:
+    | T
+    | {
+        title?: T;
+        file?: T;
+        url?: T;
+        id?: T;
+      };
+  specs?:
+    | T
+    | {
+        label?: T;
+        value?: T;
+        sourceNote?: T;
+        sourceImage?: T;
+        id?: T;
+      };
+  keyFeatures?:
+    | T
+    | {
+        title?: T;
+        text?: T;
+        id?: T;
+      };
+  faqs?:
+    | T
+    | {
+        question?: T;
+        answer?: T;
+        id?: T;
+      };
+  seo?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        canonicalPath?: T;
+      };
+  status?: T;
+  publishedAt?: T;
+  frontendContentStatus?: T;
+  frontendMissingFieldsNote?: T;
+  drawingReviewStatus?: T;
+  drawingReviewSummary?: T;
+  drawingReviewNeededCount?: T;
+  drawingReviewedCount?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -518,54 +1553,22 @@ export interface MediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "products_select".
- */
-export interface ProductsSelect<T extends boolean = true> {
-  title?: T;
-  slug?: T;
-  legacyPath?: T;
-  model?: T;
-  category?: T;
-  capacity?: T;
-  productType?: T;
-  intro?: T;
-  coverImage?: T;
-  gallery?:
-    | T
-    | {
-        image?: T;
-        id?: T;
-      };
-  specs?:
-    | T
-    | {
-        label?: T;
-        value?: T;
-        id?: T;
-      };
-  seo?:
-    | T
-    | {
-        metaTitle?: T;
-        metaDescription?: T;
-        canonicalPath?: T;
-      };
-  status?: T;
-  publishedAt?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "articles_select".
  */
 export interface ArticlesSelect<T extends boolean = true> {
   title?: T;
   slug?: T;
   legacyPath?: T;
+  legacyAliases?:
+    | T
+    | {
+        path?: T;
+        id?: T;
+      };
   category?: T;
   excerpt?: T;
   coverImage?: T;
+  coverImagePath?: T;
   content?: T;
   contentHtml?: T;
   seo?:
@@ -588,11 +1591,34 @@ export interface CasesSelect<T extends boolean = true> {
   title?: T;
   slug?: T;
   legacyPath?: T;
+  legacyAliases?:
+    | T
+    | {
+        path?: T;
+        id?: T;
+      };
+  caseType?: T;
   country?: T;
   industry?: T;
   summary?: T;
   coverImage?: T;
+  coverImagePath?: T;
+  facts?:
+    | T
+    | {
+        label?: T;
+        value?: T;
+        id?: T;
+      };
+  sections?:
+    | T
+    | {
+        heading?: T;
+        body?: T;
+        id?: T;
+      };
   content?: T;
+  contentHtml?: T;
   seo?:
     | T
     | {
@@ -604,6 +1630,108 @@ export interface CasesSelect<T extends boolean = true> {
   publishedAt?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "redirects_select".
+ */
+export interface RedirectsSelect<T extends boolean = true> {
+  sourcePath?: T;
+  targetPath?: T;
+  redirectType?: T;
+  notes?: T;
+  status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "inquiries_select".
+ */
+export interface InquiriesSelect<T extends boolean = true> {
+  name?: T;
+  email?: T;
+  phone?: T;
+  country?: T;
+  productInterest?: T;
+  product?: T;
+  quantity?: T;
+  message?: T;
+  priority?: T;
+  status?: T;
+  sourcePage?: T;
+  sourcePath?: T;
+  locale?: T;
+  utm?:
+    | T
+    | {
+        source?: T;
+        medium?: T;
+        campaign?: T;
+        term?: T;
+        content?: T;
+      };
+  ipAddress?: T;
+  assignee?: T;
+  followUpAt?: T;
+  notificationStatus?: T;
+  notifiedAt?: T;
+  notificationError?: T;
+  followUpNotes?:
+    | T
+    | {
+        note?: T;
+        createdAt?: T;
+        id?: T;
+      };
+  submittedAt?: T;
+  userAgent?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "translation-jobs_select".
+ */
+export interface TranslationJobsSelect<T extends boolean = true> {
+  title?: T;
+  provider?: T;
+  status?: T;
+  sourceLocale?: T;
+  targetLocales?: T;
+  scopes?: T;
+  overwriteExisting?: T;
+  dryRun?: T;
+  preserveBrandTerms?: T;
+  glossaryId?: T;
+  lastRunAt?: T;
+  summary?: T;
+  errorMessage?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users_select".
+ */
+export interface UsersSelect<T extends boolean = true> {
+  name?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  email?: T;
+  resetPasswordToken?: T;
+  resetPasswordExpiration?: T;
+  salt?: T;
+  hash?: T;
+  loginAttempts?: T;
+  lockUntil?: T;
+  sessions?:
+    | T
+    | {
+        id?: T;
+        createdAt?: T;
+        expiresAt?: T;
+      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -647,17 +1775,1459 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "home-settings".
+ */
+export interface HomeSetting {
+  id: number;
+  homeSeo?: {
+    metaTitle?: string | null;
+    metaDescription?: string | null;
+    canonicalPath?: string | null;
+  };
+  /**
+   * Home hero carousel slides. Defaults are used when empty.
+   */
+  homeHeroSlides?:
+    | {
+        eyebrow?: string | null;
+        title: string;
+        description?: string | null;
+        image?: (number | null) | Media;
+        imagePath?: string | null;
+        mobileImage?: (number | null) | Media;
+        mobileImagePath?: string | null;
+        primaryCtaLabel?: string | null;
+        primaryCtaHref?: string | null;
+        secondaryCtaLabel?: string | null;
+        secondaryCtaHref?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  homeHeroUi?: {
+    ariaLabel?: string | null;
+    previousSlideLabel?: string | null;
+    nextSlideLabel?: string | null;
+    slideIndicatorLabelTemplate?: string | null;
+    autoplay?: boolean | null;
+    autoplayIntervalMs?: number | null;
+    showControls?: boolean | null;
+    showIndicators?: boolean | null;
+    showOverlay?: boolean | null;
+  };
+  homeSectionVisibility?: {
+    hero?: boolean | null;
+    trustBar?: boolean | null;
+    productSection?: boolean | null;
+    featuredProducts?: boolean | null;
+    applicationSection?: boolean | null;
+    aboutSection?: boolean | null;
+    newsSection?: boolean | null;
+    finalCta?: boolean | null;
+  };
+  /**
+   * Optional home featured products. Only published, front-end ready products allowed on the home page can be selected, so the admin does not pick invisible products.
+   */
+  homeFeaturedProducts?: (number | Product)[] | null;
+  /**
+   * Optional articles for the home news section. The front end follows this order.
+   */
+  homeFeaturedArticles?: (number | Article)[] | null;
+  homeProductSection?: {
+    label?: string | null;
+    title?: string | null;
+    maxCategoryProducts?: number | null;
+    showCategoryScrollButtons?: boolean | null;
+    showInlineProductDetail?: boolean | null;
+    showProductSpecs?: boolean | null;
+    showProductVisualWatermark?: boolean | null;
+    showFeaturedCta?: boolean | null;
+    showFeaturedProductModel?: boolean | null;
+    featuredLabel?: string | null;
+    featuredTitle?: string | null;
+    featuredCtaLabel?: string | null;
+    featuredCtaHref?: string | null;
+    maxFeaturedProducts?: number | null;
+    showFeaturedProductSpecs?: boolean | null;
+    featuredCapacityLabel?: string | null;
+    featuredTypeLabel?: string | null;
+    findModelTitle?: string | null;
+    detailsShortLabel?: string | null;
+    viewDetailsLabel?: string | null;
+    backToModelsLabel?: string | null;
+    previousCategoriesLabel?: string | null;
+    nextCategoriesLabel?: string | null;
+    productNameLabel?: string | null;
+    modelLabel?: string | null;
+    modelSpecLabel?: string | null;
+    capacitySpecLabel?: string | null;
+    typeSpecLabel?: string | null;
+    systemSpecLabel?: string | null;
+    systemValue?: string | null;
+    visualWatermarkLabel?: string | null;
+  };
+  trustBar?: {
+    label?: string | null;
+    title?: string | null;
+    description?: string | null;
+    showIntroCard?: boolean | null;
+    showMarkNames?: boolean | null;
+    marks?:
+      | {
+          name: string;
+          logoPath?: string | null;
+          logoImage?: (number | null) | Media;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  applicationSection?: {
+    label?: string | null;
+    title?: string | null;
+    ctaLabel?: string | null;
+    ctaHref?: string | null;
+    showCta?: boolean | null;
+    showImages?: boolean | null;
+    showIcons?: boolean | null;
+    items?:
+      | {
+          title: string;
+          image?: (number | null) | Media;
+          imagePath?: string | null;
+          iconName?:
+            | ('award' | 'building' | 'factory' | 'globe' | 'network' | 'package-check' | 'ship' | 'truck' | 'wrench')
+            | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  aboutSection?: {
+    label?: string | null;
+    title?: string | null;
+    text?: string | null;
+    ctaLabel?: string | null;
+    ctaHref?: string | null;
+    showGallery?: boolean | null;
+    showStats?: boolean | null;
+    showTimeline?: boolean | null;
+    showCta?: boolean | null;
+    galleryThumbnailLabelTemplate?: string | null;
+    videoLabel?: string | null;
+    gallery?:
+      | {
+          image?: (number | null) | Media;
+          imagePath?: string | null;
+          alt: string;
+          video?: boolean | null;
+          videoUrl?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    stats?:
+      | {
+          value: string;
+          label: string;
+          iconName?:
+            | ('award' | 'building' | 'factory' | 'globe' | 'network' | 'package-check' | 'ship' | 'truck' | 'wrench')
+            | null;
+          id?: string | null;
+        }[]
+      | null;
+    timeline?:
+      | {
+          text: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  newsSection?: {
+    label?: string | null;
+    title?: string | null;
+    ctaLabel?: string | null;
+    ctaHref?: string | null;
+    showCta?: boolean | null;
+    showExcerpt?: boolean | null;
+    showDate?: boolean | null;
+    showCategory?: boolean | null;
+    maxArticles?: number | null;
+    readMoreLabel?: string | null;
+    pinnedLabel?: string | null;
+    backgroundWord?: string | null;
+  };
+  finalCta?: {
+    label?: string | null;
+    title?: string | null;
+    buttonLabel?: string | null;
+    buttonHref?: string | null;
+    image?: (number | null) | Media;
+    imagePath?: string | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-listing-ui".
+ */
+export interface ProductListingUi {
+  id: number;
+  productListingUi: {
+    metaTitle?: string | null;
+    metaDescription?: string | null;
+    canonicalPath?: string | null;
+    bannerLabel?: string | null;
+    bannerTitle?: string | null;
+    bannerImage?: (number | null) | Media;
+    bannerImageAlt?: string | null;
+    bannerWatermarkLabel?: string | null;
+    /**
+     * Supports plain paragraphs and [link text](/products?category=category-slug&boom=boom-key). Clicking applies listing filters on the front end.
+     */
+    bannerParagraphs?:
+      | {
+          text?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    resultSummaryTemplate?: string | null;
+    filterButtonLabel?: string | null;
+    filtersTitle?: string | null;
+    clearAllLabel?: string | null;
+    closeFiltersLabel?: string | null;
+    filterGroups?: {
+      categories?: string | null;
+      capacities?: string | null;
+      boomTypes?: string | null;
+      applications?: string | null;
+      availability?: string | null;
+    };
+    sortLabel?: string | null;
+    sortOptions?: {
+      recommended?: string | null;
+      capacityAsc?: string | null;
+      capacityDesc?: string | null;
+      newest?: string | null;
+      popular?: string | null;
+    };
+    sortVisibility?: {
+      recommended?: boolean | null;
+      capacityAsc?: boolean | null;
+      capacityDesc?: boolean | null;
+      newest?: boolean | null;
+      popular?: boolean | null;
+    };
+    viewModeLabel?: string | null;
+    gridViewLabel?: string | null;
+    listViewLabel?: string | null;
+    favoriteAddLabel?: string | null;
+    favoriteRemoveLabel?: string | null;
+    quickViewLabelTemplate?: string | null;
+    quickViewCloseLabel?: string | null;
+    requestQuoteLabel?: string | null;
+    viewDetailsLabel?: string | null;
+    emptyTitle?: string | null;
+    emptyText?: string | null;
+    clearFiltersButtonLabel?: string | null;
+    previousPageLabel?: string | null;
+    nextPageLabel?: string | null;
+    paginationLabel?: string | null;
+    rowsPerPage?: number | null;
+    maxCardSpecs?: number | null;
+    maxListItemSpecs?: number | null;
+    maxQuickViewSpecs?: number | null;
+    defaultSortOption: 'recommended' | 'capacityAsc' | 'capacityDesc' | 'newest' | 'popular';
+    defaultViewMode: 'grid' | 'list';
+    showFilters?: boolean | null;
+    showSortDropdown?: boolean | null;
+    showViewModeToggle?: boolean | null;
+    showFavoriteButton?: boolean | null;
+    showQuickViewButton?: boolean | null;
+    showPagination?: boolean | null;
+    showBanner?: boolean | null;
+    showResultSummary?: boolean | null;
+    showFilterCounts?: boolean | null;
+    filterVisibility?: {
+      categories?: boolean | null;
+      capacities?: boolean | null;
+      boomTypes?: boolean | null;
+      applications?: boolean | null;
+      availability?: boolean | null;
+    };
+    cardVisibility?: {
+      statusBadge?: boolean | null;
+      categoryLabel?: boolean | null;
+      capacityLabel?: boolean | null;
+      specGrid?: boolean | null;
+      ctaButtons?: boolean | null;
+    };
+    listItemVisibility?: {
+      statusBadge?: boolean | null;
+      categoryLabel?: boolean | null;
+      capacityLabel?: boolean | null;
+      boomTypeLabel?: boolean | null;
+      description?: boolean | null;
+      specGrid?: boolean | null;
+      ctaButtons?: boolean | null;
+    };
+    quickViewVisibility?: {
+      statusBadge?: boolean | null;
+      categoryLabel?: boolean | null;
+      description?: boolean | null;
+      specGrid?: boolean | null;
+      ctaButtons?: boolean | null;
+      favoriteButton?: boolean | null;
+    };
+    statusLabels?: {
+      inStock?: string | null;
+      bestSeller?: string | null;
+      customizable?: string | null;
+      preOrder?: string | null;
+    };
+    /**
+     * Controls capacity filter labels and numeric bounds.
+     */
+    capacityRanges?:
+      | {
+          /**
+           * Free value used by front-end filters.
+           */
+          key: string;
+          label?: string | null;
+          min: number;
+          max?: number | null;
+          enabled?: boolean | null;
+          sortOrder?: number | null;
+          id?: string | null;
+        }[]
+      | null;
+    boomTypes?:
+      | {
+          /**
+           * Free value. Product Boom Type should match this value.
+           */
+          key: string;
+          label?: string | null;
+          enabled?: boolean | null;
+          sortOrder?: number | null;
+          id?: string | null;
+        }[]
+      | null;
+    /**
+     * Controls application filters and detail-page application cards.
+     */
+    applications?:
+      | {
+          /**
+           * Free value. Product Applications should match this value.
+           */
+          key: string;
+          label?: string | null;
+          title?: string | null;
+          text?: string | null;
+          image?: (number | null) | Media;
+          imagePath?: string | null;
+          iconName?: ('construction' | 'truck' | 'building' | 'ship' | 'tractor' | 'wrench') | null;
+          enabled?: boolean | null;
+          sortOrder?: number | null;
+          id?: string | null;
+        }[]
+      | null;
+    availability?:
+      | {
+          /**
+           * Free value. Product Listing Status should match this value.
+           */
+          key: string;
+          label?: string | null;
+          enabled?: boolean | null;
+          sortOrder?: number | null;
+          id?: string | null;
+        }[]
+      | null;
+    specLabels?: {
+      maxLift?: string | null;
+      boomLength?: string | null;
+      rotation?: string | null;
+      boomType?: string | null;
+      specificationStatus?: string | null;
+      parameterReview?: string | null;
+    };
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-detail-ui".
+ */
+export interface ProductDetailUi {
+  id: number;
+  productDetailUi?: {
+    requestQuoteLabel?: string | null;
+    downloadCatalogLabel?: string | null;
+    viewTechnicalSpecsLabel?: string | null;
+    anchorLabels?: {
+      overview?: string | null;
+      features?: string | null;
+      technical?: string | null;
+      details?: string | null;
+      catalog?: string | null;
+      applications?: string | null;
+      faq?: string | null;
+      quote?: string | null;
+    };
+    ariaLabels?: {
+      anchorNav?: string | null;
+      sideNav?: string | null;
+    };
+    hotspots?:
+      | {
+          label?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    overviewTitle?: string | null;
+    overviewTextTemplate?: string | null;
+    defaultFeatures?:
+      | {
+          title?: string | null;
+          text?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    technicalTitle?: string | null;
+    catalogBrandLabel?: string | null;
+    catalogCoverTitle?: string | null;
+    catalogTitleTemplate?: string | null;
+    catalogCoverAltTemplate?: string | null;
+    downloadCenterLabel?: string | null;
+    downloadCatalogTitle?: string | null;
+    catalogDescriptionTemplate?: string | null;
+    requestPdfLabel?: string | null;
+    galleryTitle?: string | null;
+    galleryEmptyLabel?: string | null;
+    galleryEmptyTitle?: string | null;
+    galleryEmptyText?: string | null;
+    galleryMainImageLabel?: string | null;
+    galleryDetailImageLabel?: string | null;
+    galleryDrawingLabel?: string | null;
+    defaultGalleryLabels?:
+      | {
+          label?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    applicationsTitle?: string | null;
+    reviewStatusLabels?: {
+      needsReview?: string | null;
+      inReview?: string | null;
+      verifiedFromSource?: string | null;
+      changesRequired?: string | null;
+    };
+    customizationLabels?: {
+      available?: string | null;
+      availableOnRequest?: string | null;
+    };
+    specLabels?: {
+      model?: string | null;
+      maxLift?: string | null;
+      maxLiftingCapacity?: string | null;
+      boomLength?: string | null;
+      maxBoomLength?: string | null;
+      rotation?: string | null;
+      boomType?: string | null;
+      application?: string | null;
+      customization?: string | null;
+      specificationStatus?: string | null;
+      parameterReview?: string | null;
+    };
+    faqTitle?: string | null;
+    defaultFaqs?:
+      | {
+          question?: string | null;
+          answer?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    quoteTitle?: string | null;
+    quoteText?: string | null;
+    contactEngineerLabel?: string | null;
+    maxHeroSpecs?: number | null;
+    maxApplicationCards?: number | null;
+    maxHotspots?: number | null;
+    heroVisibility?: {
+      categoryLabel?: boolean | null;
+      description?: boolean | null;
+      heroSpecs?: boolean | null;
+      hotspots?: boolean | null;
+      requestQuoteButton?: boolean | null;
+      catalogButton?: boolean | null;
+      technicalButton?: boolean | null;
+    };
+    catalogVisibility?: {
+      cover?: boolean | null;
+      downloadButton?: boolean | null;
+      requestPdfButton?: boolean | null;
+      extraDocumentLinks?: boolean | null;
+    };
+    quoteVisibility?: {
+      requestQuoteButton?: boolean | null;
+      contactEngineerButton?: boolean | null;
+    };
+    sectionVisibility?: {
+      anchorNav?: boolean | null;
+      sideNav?: boolean | null;
+      overview?: boolean | null;
+      features?: boolean | null;
+      technical?: boolean | null;
+      gallery?: boolean | null;
+      catalog?: boolean | null;
+      applications?: boolean | null;
+      faq?: boolean | null;
+      quote?: boolean | null;
+    };
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "site-settings".
  */
 export interface SiteSetting {
   id: number;
   siteName?: string | null;
+  logoImage?: (number | null) | Media;
+  logoPath?: string | null;
+  logoWidth?: number | null;
+  logoHeight?: number | null;
   email?: string | null;
   phone?: string | null;
   whatsapp?: string | null;
+  wechatId?: string | null;
+  wechatQr?: (number | null) | Media;
   address?: string | null;
+  quotePath?: string | null;
+  inquirySubject?: string | null;
+  defaultInquiryText?: string | null;
+  inquiryNotificationEnabled?: boolean | null;
+  /**
+   * Separate multiple recipients with commas or line breaks. If empty, the contact email above is used.
+   */
+  inquiryNotificationRecipients?: string | null;
+  inquiryNotificationSubject?: string | null;
+  inquiryNotificationIntro?: string | null;
+  /**
+   * Optional. Put an env var name such as INQUIRY_WEBHOOK_URL; the system POSTs inquiry payloads to that URL.
+   */
+  inquiryNotificationWebhookEnvName?: string | null;
+  headerTopBar?: {
+    highlight?: string | null;
+    text?: string | null;
+    linkLabel?: string | null;
+    linkHref?: string | null;
+  };
+  navigationItems?:
+    | {
+        label: string;
+        href: string;
+        hasMenu?: boolean | null;
+        showInHeader?: boolean | null;
+        sortOrder?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Subtle background image for the Products mega menu.
+   */
+  productMenuBackgroundImage?: (number | null) | Media;
+  productMenuBackgroundImagePath?: string | null;
+  /**
+   * Top Products mega-menu group titles and descriptions.
+   */
+  productMenuGroups?:
+    | {
+        /**
+         * Free group key. Product categories with the same Mega Menu Group value are placed here.
+         */
+        groupKey: string;
+        title: string;
+        description?: string | null;
+        href?: string | null;
+        iconName?: string | null;
+        sortOrder?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Front-end language menu options. English is always available. Other locales are only public when ready and at least 95% complete.
+   */
+  languageOptions?:
+    | {
+        locale: 'en' | 'es' | 'ru' | 'ar' | 'pt' | 'fr' | 'de' | 'tr' | 'id' | 'vi' | 'th' | 'hi' | 'zh' | 'ko';
+        label: string;
+        market?: string | null;
+        flag: string;
+        direction: 'ltr' | 'rtl';
+        /**
+         * Editorial translation readiness. Non-English locales are hidden until ready and at least 95% complete.
+         */
+        translationStatus: 'not-started' | 'in-progress' | 'ready';
+        completionPercent?: number | null;
+        translationOwner?: string | null;
+        lastReviewedAt?: string | null;
+        enabled?: boolean | null;
+        sortOrder?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  chromeUi?: {
+    languageMenuAriaLabel?: string | null;
+    mainNavigationLabel?: string | null;
+    logoHomeLabel?: string | null;
+    logoImageAlt?: string | null;
+    mobileMenuAriaLabel?: string | null;
+    mobileMenuEyebrow?: string | null;
+    mobileMenuTitle?: string | null;
+    mobileProductCategoriesLabel?: string | null;
+    requestQuoteLabel?: string | null;
+    productCatalogTitle?: string | null;
+    productCatalogDescription?: string | null;
+    viewProductCatalogLabel?: string | null;
+    floatingQuoteLabel?: string | null;
+    floatingQuoteTooltip?: string | null;
+    floatingEmailLabel?: string | null;
+    floatingWhatsAppLabel?: string | null;
+    floatingCallLabel?: string | null;
+    floatingWeChatLabel?: string | null;
+    weChatTitle?: string | null;
+    weChatDescriptionTemplate?: string | null;
+    weChatQrAlt?: string | null;
+    closeWeChatLabel?: string | null;
+    backToTopLabel?: string | null;
+  };
+  footerIntro?: string | null;
+  socialLinks?:
+    | {
+        label: string;
+        href: string;
+        id?: string | null;
+      }[]
+    | null;
+  footerGroups?:
+    | {
+        title: string;
+        links?:
+          | {
+              label: string;
+              href: string;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  footerContactTitle?: string | null;
+  copyright?: string | null;
+  legalLinks?:
+    | {
+        label: string;
+        href: string;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt?: string | null;
   createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "page-text-settings".
+ */
+export interface PageTextSetting {
+  id: number;
+  seoFallbacksUi?: {
+    siteTitle?: string | null;
+    siteDescription?: string | null;
+    genericTitle?: string | null;
+    genericDescription?: string | null;
+    productTitle?: string | null;
+    productTitleTemplate?: string | null;
+    productDescription?: string | null;
+    productDescriptionTemplate?: string | null;
+    productsTitle?: string | null;
+    productsTitleTemplate?: string | null;
+    productsDescription?: string | null;
+    productCategoryDescriptionTemplate?: string | null;
+    productNavGroupDescription?: string | null;
+    articleTitle?: string | null;
+    articleTitleTemplate?: string | null;
+    articleDescription?: string | null;
+    articleExcerpt?: string | null;
+    caseTitle?: string | null;
+    caseTitleTemplate?: string | null;
+    caseDescription?: string | null;
+    caseSummary?: string | null;
+  };
+  contactPageUi?: {
+    metaTitle?: string | null;
+    metaDescription?: string | null;
+    canonicalPath?: string | null;
+    heroLabel?: string | null;
+    heroTitle?: string | null;
+    heroDescription?: string | null;
+    heroImage?: string | null;
+    cardLabels?: {
+      email?: string | null;
+      phone?: string | null;
+      whatsapp?: string | null;
+      address?: string | null;
+    };
+    whatsappValue?: string | null;
+    weChatTitle?: string | null;
+    weChatDescriptionTemplate?: string | null;
+    weChatQrAlt?: string | null;
+  };
+  quotePageUi?: {
+    metaTitle?: string | null;
+    metaDescription?: string | null;
+    canonicalPath?: string | null;
+    heroLabel?: string | null;
+    heroTitle?: string | null;
+    heroDescription?: string | null;
+    heroImage?: string | null;
+    workflowLabel?: string | null;
+    workflowTitle?: string | null;
+    workflowItems?:
+      | {
+          iconName?: ('file-text' | 'mail-check' | 'message-circle') | null;
+          title?: string | null;
+          text?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    productLinkLabel?: string | null;
+    productLinkHref?: string | null;
+  };
+  quoteFormUi?: {
+    label?: string | null;
+    title?: string | null;
+    badge?: string | null;
+    /**
+     * Maximum products in the inquiry dropdown. Use 0 to show all published products.
+     */
+    productOptionLimit?: number | null;
+    fields?: {
+      name?: string | null;
+      email?: string | null;
+      phone?: string | null;
+      country?: string | null;
+      product?: string | null;
+      productNotDecided?: string | null;
+      quantity?: string | null;
+      message?: string | null;
+      messagePlaceholder?: string | null;
+    };
+    buttons?: {
+      save?: string | null;
+      saving?: string | null;
+      email?: string | null;
+      whatsapp?: string | null;
+    };
+    /**
+     * Control visibility and required state for each inquiry field. Name and email remain visible and required when Save to Admin is enabled.
+     */
+    fieldControls?: {
+      name?: {
+        visible?: boolean | null;
+        required?: boolean | null;
+      };
+      email?: {
+        visible?: boolean | null;
+        required?: boolean | null;
+      };
+      phone?: {
+        visible?: boolean | null;
+        required?: boolean | null;
+      };
+      country?: {
+        visible?: boolean | null;
+        required?: boolean | null;
+      };
+      product?: {
+        visible?: boolean | null;
+        required?: boolean | null;
+      };
+      quantity?: {
+        visible?: boolean | null;
+        required?: boolean | null;
+      };
+      message?: {
+        visible?: boolean | null;
+        required?: boolean | null;
+      };
+    };
+    /**
+     * Controls which inquiry channels are visible.
+     */
+    buttonChannels?: {
+      save?: boolean | null;
+      email?: boolean | null;
+      whatsapp?: boolean | null;
+    };
+    messages?: {
+      successTitle?: string | null;
+      successText?: string | null;
+      errorFallback?: string | null;
+      invalidPayload?: string | null;
+      requiredFields?: string | null;
+    };
+    inquiryLineLabels?: {
+      name?: string | null;
+      email?: string | null;
+      phone?: string | null;
+      country?: string | null;
+      product?: string | null;
+      quantity?: string | null;
+      message?: string | null;
+    };
+  };
+  newsPageUi?: {
+    metaTitle?: string | null;
+    metaDescription?: string | null;
+    canonicalPath?: string | null;
+    heroLabel?: string | null;
+    heroTitle?: string | null;
+    heroDescription?: string | null;
+    heroImage?: string | null;
+    readFeaturedLabel?: string | null;
+    requestQuoteLabel?: string | null;
+    featuredLabel?: string | null;
+    readArticleLabel?: string | null;
+    readMoreLabel?: string | null;
+  };
+  newsDetailUi?: {
+    backLabel?: string | null;
+    relatedLabel?: string | null;
+    quoteCtaLabel?: string | null;
+    relatedArticleCount?: number | null;
+  };
+  casesPageUi?: {
+    metaTitle?: string | null;
+    metaDescription?: string | null;
+    canonicalPath?: string | null;
+    heroLabel?: string | null;
+    heroTitle?: string | null;
+    heroDescription?: string | null;
+    heroImage?: string | null;
+    primaryCtaLabel?: string | null;
+    secondaryCtaLabel?: string | null;
+    listLabel?: string | null;
+    listTitle?: string | null;
+    cardTypeLabel?: string | null;
+    viewCaseLabel?: string | null;
+  };
+  caseDetailUi?: {
+    backLabel?: string | null;
+    factsTitle?: string | null;
+    discussSimilarLabel?: string | null;
+  };
+  aboutPageUi?: {
+    metaTitle?: string | null;
+    metaDescription?: string | null;
+    canonicalPath?: string | null;
+    primaryCtaLabel?: string | null;
+    secondaryCtaLabel?: string | null;
+    strengthLabel?: string | null;
+    strengthTitle?: string | null;
+    timelineLabel?: string | null;
+    galleryImageCount?: number | null;
+  };
+  contentLabelsUi?: {
+    articleCategories?: {
+      companyNews?: string | null;
+      productNews?: string | null;
+      industryInsight?: string | null;
+    };
+    caseFacts?: {
+      region?: string | null;
+      industry?: string | null;
+      priority?: string | null;
+      defaultPriority?: string | null;
+      defaultCaseType?: string | null;
+    };
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * English is the source locale. Other languages are generated from English by a professional translation provider; the front end only reads Payload localized content.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "translation-settings".
+ */
+export interface TranslationSetting {
+  id: number;
+  enabled?: boolean | null;
+  provider: 'deepl' | 'deeplx';
+  authKeyEnvName?: string | null;
+  deeplxApiUrlEnvName?: string | null;
+  deeplxAuthKeyEnvName?: string | null;
+  sourceLocale: string;
+  /**
+   * Defaults to every front-end locale except English. After translation and review, mark the locale as ready in Site Settings → Language Menu.
+   */
+  targetLocales: string[];
+  formality?: ('default' | 'more' | 'less') | null;
+  preserveVariables?: boolean | null;
+  preserveBrandTerms?: boolean | null;
+  protectedTerms?:
+    | {
+        term: string;
+        id?: string | null;
+      }[]
+    | null;
+  notes?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "home-settings_select".
+ */
+export interface HomeSettingsSelect<T extends boolean = true> {
+  homeSeo?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        canonicalPath?: T;
+      };
+  homeHeroSlides?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        description?: T;
+        image?: T;
+        imagePath?: T;
+        mobileImage?: T;
+        mobileImagePath?: T;
+        primaryCtaLabel?: T;
+        primaryCtaHref?: T;
+        secondaryCtaLabel?: T;
+        secondaryCtaHref?: T;
+        id?: T;
+      };
+  homeHeroUi?:
+    | T
+    | {
+        ariaLabel?: T;
+        previousSlideLabel?: T;
+        nextSlideLabel?: T;
+        slideIndicatorLabelTemplate?: T;
+        autoplay?: T;
+        autoplayIntervalMs?: T;
+        showControls?: T;
+        showIndicators?: T;
+        showOverlay?: T;
+      };
+  homeSectionVisibility?:
+    | T
+    | {
+        hero?: T;
+        trustBar?: T;
+        productSection?: T;
+        featuredProducts?: T;
+        applicationSection?: T;
+        aboutSection?: T;
+        newsSection?: T;
+        finalCta?: T;
+      };
+  homeFeaturedProducts?: T;
+  homeFeaturedArticles?: T;
+  homeProductSection?:
+    | T
+    | {
+        label?: T;
+        title?: T;
+        maxCategoryProducts?: T;
+        showCategoryScrollButtons?: T;
+        showInlineProductDetail?: T;
+        showProductSpecs?: T;
+        showProductVisualWatermark?: T;
+        showFeaturedCta?: T;
+        showFeaturedProductModel?: T;
+        featuredLabel?: T;
+        featuredTitle?: T;
+        featuredCtaLabel?: T;
+        featuredCtaHref?: T;
+        maxFeaturedProducts?: T;
+        showFeaturedProductSpecs?: T;
+        featuredCapacityLabel?: T;
+        featuredTypeLabel?: T;
+        findModelTitle?: T;
+        detailsShortLabel?: T;
+        viewDetailsLabel?: T;
+        backToModelsLabel?: T;
+        previousCategoriesLabel?: T;
+        nextCategoriesLabel?: T;
+        productNameLabel?: T;
+        modelLabel?: T;
+        modelSpecLabel?: T;
+        capacitySpecLabel?: T;
+        typeSpecLabel?: T;
+        systemSpecLabel?: T;
+        systemValue?: T;
+        visualWatermarkLabel?: T;
+      };
+  trustBar?:
+    | T
+    | {
+        label?: T;
+        title?: T;
+        description?: T;
+        showIntroCard?: T;
+        showMarkNames?: T;
+        marks?:
+          | T
+          | {
+              name?: T;
+              logoPath?: T;
+              logoImage?: T;
+              id?: T;
+            };
+      };
+  applicationSection?:
+    | T
+    | {
+        label?: T;
+        title?: T;
+        ctaLabel?: T;
+        ctaHref?: T;
+        showCta?: T;
+        showImages?: T;
+        showIcons?: T;
+        items?:
+          | T
+          | {
+              title?: T;
+              image?: T;
+              imagePath?: T;
+              iconName?: T;
+              id?: T;
+            };
+      };
+  aboutSection?:
+    | T
+    | {
+        label?: T;
+        title?: T;
+        text?: T;
+        ctaLabel?: T;
+        ctaHref?: T;
+        showGallery?: T;
+        showStats?: T;
+        showTimeline?: T;
+        showCta?: T;
+        galleryThumbnailLabelTemplate?: T;
+        videoLabel?: T;
+        gallery?:
+          | T
+          | {
+              image?: T;
+              imagePath?: T;
+              alt?: T;
+              video?: T;
+              videoUrl?: T;
+              id?: T;
+            };
+        stats?:
+          | T
+          | {
+              value?: T;
+              label?: T;
+              iconName?: T;
+              id?: T;
+            };
+        timeline?:
+          | T
+          | {
+              text?: T;
+              id?: T;
+            };
+      };
+  newsSection?:
+    | T
+    | {
+        label?: T;
+        title?: T;
+        ctaLabel?: T;
+        ctaHref?: T;
+        showCta?: T;
+        showExcerpt?: T;
+        showDate?: T;
+        showCategory?: T;
+        maxArticles?: T;
+        readMoreLabel?: T;
+        pinnedLabel?: T;
+        backgroundWord?: T;
+      };
+  finalCta?:
+    | T
+    | {
+        label?: T;
+        title?: T;
+        buttonLabel?: T;
+        buttonHref?: T;
+        image?: T;
+        imagePath?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-listing-ui_select".
+ */
+export interface ProductListingUiSelect<T extends boolean = true> {
+  productListingUi?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        canonicalPath?: T;
+        bannerLabel?: T;
+        bannerTitle?: T;
+        bannerImage?: T;
+        bannerImageAlt?: T;
+        bannerWatermarkLabel?: T;
+        bannerParagraphs?:
+          | T
+          | {
+              text?: T;
+              id?: T;
+            };
+        resultSummaryTemplate?: T;
+        filterButtonLabel?: T;
+        filtersTitle?: T;
+        clearAllLabel?: T;
+        closeFiltersLabel?: T;
+        filterGroups?:
+          | T
+          | {
+              categories?: T;
+              capacities?: T;
+              boomTypes?: T;
+              applications?: T;
+              availability?: T;
+            };
+        sortLabel?: T;
+        sortOptions?:
+          | T
+          | {
+              recommended?: T;
+              capacityAsc?: T;
+              capacityDesc?: T;
+              newest?: T;
+              popular?: T;
+            };
+        sortVisibility?:
+          | T
+          | {
+              recommended?: T;
+              capacityAsc?: T;
+              capacityDesc?: T;
+              newest?: T;
+              popular?: T;
+            };
+        viewModeLabel?: T;
+        gridViewLabel?: T;
+        listViewLabel?: T;
+        favoriteAddLabel?: T;
+        favoriteRemoveLabel?: T;
+        quickViewLabelTemplate?: T;
+        quickViewCloseLabel?: T;
+        requestQuoteLabel?: T;
+        viewDetailsLabel?: T;
+        emptyTitle?: T;
+        emptyText?: T;
+        clearFiltersButtonLabel?: T;
+        previousPageLabel?: T;
+        nextPageLabel?: T;
+        paginationLabel?: T;
+        rowsPerPage?: T;
+        maxCardSpecs?: T;
+        maxListItemSpecs?: T;
+        maxQuickViewSpecs?: T;
+        defaultSortOption?: T;
+        defaultViewMode?: T;
+        showFilters?: T;
+        showSortDropdown?: T;
+        showViewModeToggle?: T;
+        showFavoriteButton?: T;
+        showQuickViewButton?: T;
+        showPagination?: T;
+        showBanner?: T;
+        showResultSummary?: T;
+        showFilterCounts?: T;
+        filterVisibility?:
+          | T
+          | {
+              categories?: T;
+              capacities?: T;
+              boomTypes?: T;
+              applications?: T;
+              availability?: T;
+            };
+        cardVisibility?:
+          | T
+          | {
+              statusBadge?: T;
+              categoryLabel?: T;
+              capacityLabel?: T;
+              specGrid?: T;
+              ctaButtons?: T;
+            };
+        listItemVisibility?:
+          | T
+          | {
+              statusBadge?: T;
+              categoryLabel?: T;
+              capacityLabel?: T;
+              boomTypeLabel?: T;
+              description?: T;
+              specGrid?: T;
+              ctaButtons?: T;
+            };
+        quickViewVisibility?:
+          | T
+          | {
+              statusBadge?: T;
+              categoryLabel?: T;
+              description?: T;
+              specGrid?: T;
+              ctaButtons?: T;
+              favoriteButton?: T;
+            };
+        statusLabels?:
+          | T
+          | {
+              inStock?: T;
+              bestSeller?: T;
+              customizable?: T;
+              preOrder?: T;
+            };
+        capacityRanges?:
+          | T
+          | {
+              key?: T;
+              label?: T;
+              min?: T;
+              max?: T;
+              enabled?: T;
+              sortOrder?: T;
+              id?: T;
+            };
+        boomTypes?:
+          | T
+          | {
+              key?: T;
+              label?: T;
+              enabled?: T;
+              sortOrder?: T;
+              id?: T;
+            };
+        applications?:
+          | T
+          | {
+              key?: T;
+              label?: T;
+              title?: T;
+              text?: T;
+              image?: T;
+              imagePath?: T;
+              iconName?: T;
+              enabled?: T;
+              sortOrder?: T;
+              id?: T;
+            };
+        availability?:
+          | T
+          | {
+              key?: T;
+              label?: T;
+              enabled?: T;
+              sortOrder?: T;
+              id?: T;
+            };
+        specLabels?:
+          | T
+          | {
+              maxLift?: T;
+              boomLength?: T;
+              rotation?: T;
+              boomType?: T;
+              specificationStatus?: T;
+              parameterReview?: T;
+            };
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-detail-ui_select".
+ */
+export interface ProductDetailUiSelect<T extends boolean = true> {
+  productDetailUi?:
+    | T
+    | {
+        requestQuoteLabel?: T;
+        downloadCatalogLabel?: T;
+        viewTechnicalSpecsLabel?: T;
+        anchorLabels?:
+          | T
+          | {
+              overview?: T;
+              features?: T;
+              technical?: T;
+              details?: T;
+              catalog?: T;
+              applications?: T;
+              faq?: T;
+              quote?: T;
+            };
+        ariaLabels?:
+          | T
+          | {
+              anchorNav?: T;
+              sideNav?: T;
+            };
+        hotspots?:
+          | T
+          | {
+              label?: T;
+              id?: T;
+            };
+        overviewTitle?: T;
+        overviewTextTemplate?: T;
+        defaultFeatures?:
+          | T
+          | {
+              title?: T;
+              text?: T;
+              id?: T;
+            };
+        technicalTitle?: T;
+        catalogBrandLabel?: T;
+        catalogCoverTitle?: T;
+        catalogTitleTemplate?: T;
+        catalogCoverAltTemplate?: T;
+        downloadCenterLabel?: T;
+        downloadCatalogTitle?: T;
+        catalogDescriptionTemplate?: T;
+        requestPdfLabel?: T;
+        galleryTitle?: T;
+        galleryEmptyLabel?: T;
+        galleryEmptyTitle?: T;
+        galleryEmptyText?: T;
+        galleryMainImageLabel?: T;
+        galleryDetailImageLabel?: T;
+        galleryDrawingLabel?: T;
+        defaultGalleryLabels?:
+          | T
+          | {
+              label?: T;
+              id?: T;
+            };
+        applicationsTitle?: T;
+        reviewStatusLabels?:
+          | T
+          | {
+              needsReview?: T;
+              inReview?: T;
+              verifiedFromSource?: T;
+              changesRequired?: T;
+            };
+        customizationLabels?:
+          | T
+          | {
+              available?: T;
+              availableOnRequest?: T;
+            };
+        specLabels?:
+          | T
+          | {
+              model?: T;
+              maxLift?: T;
+              maxLiftingCapacity?: T;
+              boomLength?: T;
+              maxBoomLength?: T;
+              rotation?: T;
+              boomType?: T;
+              application?: T;
+              customization?: T;
+              specificationStatus?: T;
+              parameterReview?: T;
+            };
+        faqTitle?: T;
+        defaultFaqs?:
+          | T
+          | {
+              question?: T;
+              answer?: T;
+              id?: T;
+            };
+        quoteTitle?: T;
+        quoteText?: T;
+        contactEngineerLabel?: T;
+        maxHeroSpecs?: T;
+        maxApplicationCards?: T;
+        maxHotspots?: T;
+        heroVisibility?:
+          | T
+          | {
+              categoryLabel?: T;
+              description?: T;
+              heroSpecs?: T;
+              hotspots?: T;
+              requestQuoteButton?: T;
+              catalogButton?: T;
+              technicalButton?: T;
+            };
+        catalogVisibility?:
+          | T
+          | {
+              cover?: T;
+              downloadButton?: T;
+              requestPdfButton?: T;
+              extraDocumentLinks?: T;
+            };
+        quoteVisibility?:
+          | T
+          | {
+              requestQuoteButton?: T;
+              contactEngineerButton?: T;
+            };
+        sectionVisibility?:
+          | T
+          | {
+              anchorNav?: T;
+              sideNav?: T;
+              overview?: T;
+              features?: T;
+              technical?: T;
+              gallery?: T;
+              catalog?: T;
+              applications?: T;
+              faq?: T;
+              quote?: T;
+            };
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -665,10 +3235,417 @@ export interface SiteSetting {
  */
 export interface SiteSettingsSelect<T extends boolean = true> {
   siteName?: T;
+  logoImage?: T;
+  logoPath?: T;
+  logoWidth?: T;
+  logoHeight?: T;
   email?: T;
   phone?: T;
   whatsapp?: T;
+  wechatId?: T;
+  wechatQr?: T;
   address?: T;
+  quotePath?: T;
+  inquirySubject?: T;
+  defaultInquiryText?: T;
+  inquiryNotificationEnabled?: T;
+  inquiryNotificationRecipients?: T;
+  inquiryNotificationSubject?: T;
+  inquiryNotificationIntro?: T;
+  inquiryNotificationWebhookEnvName?: T;
+  headerTopBar?:
+    | T
+    | {
+        highlight?: T;
+        text?: T;
+        linkLabel?: T;
+        linkHref?: T;
+      };
+  navigationItems?:
+    | T
+    | {
+        label?: T;
+        href?: T;
+        hasMenu?: T;
+        showInHeader?: T;
+        sortOrder?: T;
+        id?: T;
+      };
+  productMenuBackgroundImage?: T;
+  productMenuBackgroundImagePath?: T;
+  productMenuGroups?:
+    | T
+    | {
+        groupKey?: T;
+        title?: T;
+        description?: T;
+        href?: T;
+        iconName?: T;
+        sortOrder?: T;
+        id?: T;
+      };
+  languageOptions?:
+    | T
+    | {
+        locale?: T;
+        label?: T;
+        market?: T;
+        flag?: T;
+        direction?: T;
+        translationStatus?: T;
+        completionPercent?: T;
+        translationOwner?: T;
+        lastReviewedAt?: T;
+        enabled?: T;
+        sortOrder?: T;
+        id?: T;
+      };
+  chromeUi?:
+    | T
+    | {
+        languageMenuAriaLabel?: T;
+        mainNavigationLabel?: T;
+        logoHomeLabel?: T;
+        logoImageAlt?: T;
+        mobileMenuAriaLabel?: T;
+        mobileMenuEyebrow?: T;
+        mobileMenuTitle?: T;
+        mobileProductCategoriesLabel?: T;
+        requestQuoteLabel?: T;
+        productCatalogTitle?: T;
+        productCatalogDescription?: T;
+        viewProductCatalogLabel?: T;
+        floatingQuoteLabel?: T;
+        floatingQuoteTooltip?: T;
+        floatingEmailLabel?: T;
+        floatingWhatsAppLabel?: T;
+        floatingCallLabel?: T;
+        floatingWeChatLabel?: T;
+        weChatTitle?: T;
+        weChatDescriptionTemplate?: T;
+        weChatQrAlt?: T;
+        closeWeChatLabel?: T;
+        backToTopLabel?: T;
+      };
+  footerIntro?: T;
+  socialLinks?:
+    | T
+    | {
+        label?: T;
+        href?: T;
+        id?: T;
+      };
+  footerGroups?:
+    | T
+    | {
+        title?: T;
+        links?:
+          | T
+          | {
+              label?: T;
+              href?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  footerContactTitle?: T;
+  copyright?: T;
+  legalLinks?:
+    | T
+    | {
+        label?: T;
+        href?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "page-text-settings_select".
+ */
+export interface PageTextSettingsSelect<T extends boolean = true> {
+  seoFallbacksUi?:
+    | T
+    | {
+        siteTitle?: T;
+        siteDescription?: T;
+        genericTitle?: T;
+        genericDescription?: T;
+        productTitle?: T;
+        productTitleTemplate?: T;
+        productDescription?: T;
+        productDescriptionTemplate?: T;
+        productsTitle?: T;
+        productsTitleTemplate?: T;
+        productsDescription?: T;
+        productCategoryDescriptionTemplate?: T;
+        productNavGroupDescription?: T;
+        articleTitle?: T;
+        articleTitleTemplate?: T;
+        articleDescription?: T;
+        articleExcerpt?: T;
+        caseTitle?: T;
+        caseTitleTemplate?: T;
+        caseDescription?: T;
+        caseSummary?: T;
+      };
+  contactPageUi?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        canonicalPath?: T;
+        heroLabel?: T;
+        heroTitle?: T;
+        heroDescription?: T;
+        heroImage?: T;
+        cardLabels?:
+          | T
+          | {
+              email?: T;
+              phone?: T;
+              whatsapp?: T;
+              address?: T;
+            };
+        whatsappValue?: T;
+        weChatTitle?: T;
+        weChatDescriptionTemplate?: T;
+        weChatQrAlt?: T;
+      };
+  quotePageUi?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        canonicalPath?: T;
+        heroLabel?: T;
+        heroTitle?: T;
+        heroDescription?: T;
+        heroImage?: T;
+        workflowLabel?: T;
+        workflowTitle?: T;
+        workflowItems?:
+          | T
+          | {
+              iconName?: T;
+              title?: T;
+              text?: T;
+              id?: T;
+            };
+        productLinkLabel?: T;
+        productLinkHref?: T;
+      };
+  quoteFormUi?:
+    | T
+    | {
+        label?: T;
+        title?: T;
+        badge?: T;
+        productOptionLimit?: T;
+        fields?:
+          | T
+          | {
+              name?: T;
+              email?: T;
+              phone?: T;
+              country?: T;
+              product?: T;
+              productNotDecided?: T;
+              quantity?: T;
+              message?: T;
+              messagePlaceholder?: T;
+            };
+        buttons?:
+          | T
+          | {
+              save?: T;
+              saving?: T;
+              email?: T;
+              whatsapp?: T;
+            };
+        fieldControls?:
+          | T
+          | {
+              name?:
+                | T
+                | {
+                    visible?: T;
+                    required?: T;
+                  };
+              email?:
+                | T
+                | {
+                    visible?: T;
+                    required?: T;
+                  };
+              phone?:
+                | T
+                | {
+                    visible?: T;
+                    required?: T;
+                  };
+              country?:
+                | T
+                | {
+                    visible?: T;
+                    required?: T;
+                  };
+              product?:
+                | T
+                | {
+                    visible?: T;
+                    required?: T;
+                  };
+              quantity?:
+                | T
+                | {
+                    visible?: T;
+                    required?: T;
+                  };
+              message?:
+                | T
+                | {
+                    visible?: T;
+                    required?: T;
+                  };
+            };
+        buttonChannels?:
+          | T
+          | {
+              save?: T;
+              email?: T;
+              whatsapp?: T;
+            };
+        messages?:
+          | T
+          | {
+              successTitle?: T;
+              successText?: T;
+              errorFallback?: T;
+              invalidPayload?: T;
+              requiredFields?: T;
+            };
+        inquiryLineLabels?:
+          | T
+          | {
+              name?: T;
+              email?: T;
+              phone?: T;
+              country?: T;
+              product?: T;
+              quantity?: T;
+              message?: T;
+            };
+      };
+  newsPageUi?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        canonicalPath?: T;
+        heroLabel?: T;
+        heroTitle?: T;
+        heroDescription?: T;
+        heroImage?: T;
+        readFeaturedLabel?: T;
+        requestQuoteLabel?: T;
+        featuredLabel?: T;
+        readArticleLabel?: T;
+        readMoreLabel?: T;
+      };
+  newsDetailUi?:
+    | T
+    | {
+        backLabel?: T;
+        relatedLabel?: T;
+        quoteCtaLabel?: T;
+        relatedArticleCount?: T;
+      };
+  casesPageUi?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        canonicalPath?: T;
+        heroLabel?: T;
+        heroTitle?: T;
+        heroDescription?: T;
+        heroImage?: T;
+        primaryCtaLabel?: T;
+        secondaryCtaLabel?: T;
+        listLabel?: T;
+        listTitle?: T;
+        cardTypeLabel?: T;
+        viewCaseLabel?: T;
+      };
+  caseDetailUi?:
+    | T
+    | {
+        backLabel?: T;
+        factsTitle?: T;
+        discussSimilarLabel?: T;
+      };
+  aboutPageUi?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        canonicalPath?: T;
+        primaryCtaLabel?: T;
+        secondaryCtaLabel?: T;
+        strengthLabel?: T;
+        strengthTitle?: T;
+        timelineLabel?: T;
+        galleryImageCount?: T;
+      };
+  contentLabelsUi?:
+    | T
+    | {
+        articleCategories?:
+          | T
+          | {
+              companyNews?: T;
+              productNews?: T;
+              industryInsight?: T;
+            };
+        caseFacts?:
+          | T
+          | {
+              region?: T;
+              industry?: T;
+              priority?: T;
+              defaultPriority?: T;
+              defaultCaseType?: T;
+            };
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "translation-settings_select".
+ */
+export interface TranslationSettingsSelect<T extends boolean = true> {
+  enabled?: T;
+  provider?: T;
+  authKeyEnvName?: T;
+  deeplxApiUrlEnvName?: T;
+  deeplxAuthKeyEnvName?: T;
+  sourceLocale?: T;
+  targetLocales?: T;
+  formality?: T;
+  preserveVariables?: T;
+  preserveBrandTerms?: T;
+  protectedTerms?:
+    | T
+    | {
+        term?: T;
+        id?: T;
+      };
+  notes?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
