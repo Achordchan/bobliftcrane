@@ -24,7 +24,7 @@ export function MobileNavMenu({
         aria-label={chromeUi.mobileMenuAriaLabel}
         className={({ open }) =>
           cn(
-            "grid h-11 w-11 place-items-center rounded-full border border-navy/10 bg-navy text-white shadow-[0_16px_34px_rgba(8,35,74,0.22)] transition duration-300 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20 lg:hidden",
+            "grid h-11 w-11 place-items-center rounded-full border border-navy/10 bg-navy text-white shadow-[0_16px_34px_rgba(8,35,74,0.22)] transition duration-300 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20 xl:hidden",
             open && "-translate-y-0.5 bg-[#0b2d5b]",
           )
         }

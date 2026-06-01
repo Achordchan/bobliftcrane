@@ -45,7 +45,7 @@ export function ProductListingPage({
   const filterableCategories = useMemo(() => categories.filter((category) => category.showInProductFilters !== false), [categories]);
   const categoryValues = useMemo(
     () => filterableCategories.length > 0
-      ? filterableCategories.map((category) => ({ value: category.slug, label: category.label, enabled: true, sortOrder: 100 }))
+      ? filterableCategories.map((category, index) => ({ value: category.slug, label: category.label, enabled: true, sortOrder: index + 1, depth: category.depth, hasChildren: category.hasChildren }))
       : Array.from(new Set(products.map((product) => product.category).filter(Boolean))),
     [filterableCategories, products],
   );

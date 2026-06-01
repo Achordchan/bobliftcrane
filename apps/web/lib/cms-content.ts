@@ -337,7 +337,7 @@ export async function getProductListingContent(): Promise<ProductListingContent>
     products: products
       .filter((product) => product.showInProductList !== false && productHasFrontendContent(product))
       .map((product) => cmsProductToListingProduct(product, quotePath, ui, locale)),
-    categories: categories.length > 0 ? categories.map((category) => cmsCategoryToListingMeta(category, categories)) : [],
+    categories: categories.length > 0 ? orderCategoriesByHierarchy(categories).map((category) => cmsCategoryToListingMeta(category, categories)) : [],
     ui: ui.listing,
   };
 }
@@ -749,6 +749,16 @@ function cmsCategoriesToProductNavGroups(categories: CmsProductCategory[], setti
     };
   });
 
+  const visibleCategoryIds = new Set(visibleCategories.map((category) => category.id));
+  const childrenByParentId = new Map<number, CmsProductCategory[]>();
+  visibleCategories.forEach((category) => {
+    const parentId = categoryParentId(category);
+    if (!parentId || !visibleCategoryIds.has(parentId)) return;
+    const children = childrenByParentId.get(parentId) ?? [];
+    children.push(category);
+    childrenByParentId.set(parentId, children);
+  });
+
   visibleCategories.forEach((category) => {
     const groupKey = category.menuGroup?.trim();
     if (!groupKey || groupMeta[groupKey]) return;
@@ -761,22 +771,86 @@ function cmsCategoriesToProductNavGroups(categories: CmsProductCategory[], setti
     };
   });
 
-  return Object.keys(groupMeta)
-    .sort((a, b) => groupMeta[a].sortOrder - groupMeta[b].sortOrder)
-    .map((groupKey) => {
-      const links = categories
-        .filter((category) => isPublicCategory(category) && category.showInMegaMenu !== false && (category.menuGroup || "compact-attachments") === groupKey)
-        .sort((a, b) => (a.sortOrder ?? 100) - (b.sortOrder ?? 100))
-        .map((category) => ({
-          label: category.shortTitle || category.title,
-          href: categoryPublicPath(category),
-          iconName: category.iconName || undefined,
-        }));
-      const meta = groupMeta[groupKey];
+  const groups = new Map<string, ProductNavGroup & { sortOrder?: number }>();
+  const usedCategoryIds = new Set<number>();
 
-      return { ...meta, links };
-    })
+  visibleCategories
+    .filter((category) => !categoryParentId(category) && childrenByParentId.has(category.id))
+    .sort((a, b) => (a.sortOrder ?? 100) - (b.sortOrder ?? 100))
+    .forEach((parentCategory) => {
+      const groupKey = parentCategory.menuGroup?.trim() || parentCategory.slug;
+      const children = [...(childrenByParentId.get(parentCategory.id) ?? [])].sort((a, b) => (a.sortOrder ?? 100) - (b.sortOrder ?? 100));
+      usedCategoryIds.add(parentCategory.id);
+      children.forEach((child) => usedCategoryIds.add(child.id));
+      groups.set(groupKey, {
+        title: parentCategory.shortTitle || parentCategory.title,
+        href: categoryPublicPath(parentCategory),
+        description: parentCategory.description || groupMeta[groupKey]?.description || fallbackDescription,
+        iconName: parentCategory.iconName || groupMeta[groupKey]?.iconName || "attachments",
+        sortOrder: parentCategory.sortOrder ?? groupMeta[groupKey]?.sortOrder ?? 100,
+        links: children.map(categoryToProductNavLink),
+      });
+    });
+
+  visibleCategories
+    .filter((category) => !usedCategoryIds.has(category.id))
+    .sort((a, b) => (a.sortOrder ?? 100) - (b.sortOrder ?? 100))
+    .forEach((category) => {
+      const groupKey = category.menuGroup?.trim() || "compact-attachments";
+      const meta = groupMeta[groupKey] ?? {
+        title: humanizeKey(groupKey),
+        description: category.description || fallbackDescription,
+        href: "/products",
+        iconName: category.iconName || "attachments",
+        sortOrder: 100,
+      };
+      const group = groups.get(groupKey) ?? { ...meta, links: [], sortOrder: meta.sortOrder };
+      group.links.push(categoryToProductNavLink(category));
+      groups.set(groupKey, group);
+    });
+
+  return Array.from(groups.values())
+    .sort((a, b) => (a.sortOrder ?? 100) - (b.sortOrder ?? 100))
+    .map(({ sortOrder, ...group }) => group)
     .filter((group) => group.links.length > 0);
+}
+
+function categoryToProductNavLink(category: CmsProductCategory): ProductNavGroup["links"][number] {
+  return {
+    label: category.shortTitle || category.title,
+    href: categoryPublicPath(category),
+    iconName: category.iconName || undefined,
+  };
+}
+
+function orderCategoriesByHierarchy(categories: CmsProductCategory[]) {
+  const childrenByParentId = new Map<number, CmsProductCategory[]>();
+  const visitedIds = new Set<number>();
+  const ordered: CmsProductCategory[] = [];
+
+  categories.forEach((category) => {
+    const parentId = categoryParentId(category);
+    if (!parentId) return;
+    const children = childrenByParentId.get(parentId) ?? [];
+    children.push(category);
+    childrenByParentId.set(parentId, children);
+  });
+
+  function bySortOrder(a: CmsProductCategory, b: CmsProductCategory) {
+    return (a.sortOrder ?? 100) - (b.sortOrder ?? 100);
+  }
+
+  function appendCategory(category: CmsProductCategory) {
+    if (visitedIds.has(category.id)) return;
+    visitedIds.add(category.id);
+    ordered.push(category);
+    (childrenByParentId.get(category.id) ?? []).sort(bySortOrder).forEach(appendCategory);
+  }
+
+  categories.filter((category) => !categoryParentId(category)).sort(bySortOrder).forEach(appendCategory);
+  categories.filter((category) => !visitedIds.has(category.id)).sort(bySortOrder).forEach(appendCategory);
+
+  return ordered;
 }
 
 function mergeNavigationPages(baseItems: NavItem[], pageItems: NavItem[]): NavItem[] {
@@ -822,6 +896,9 @@ function cmsCategoryToListingMeta(category: CmsProductCategory, categories: CmsP
     label: category.title,
     slug: category.slug,
     legacyPath: category.legacyPath || undefined,
+    parentSlug: categoryParentSlug(category, categories),
+    depth: categoryDepth(category, categories),
+    hasChildren: categories.some((item) => categoryParentId(item) === category.id),
     includedCategorySlugs: includedCategorySlugs.length > 0 ? includedCategorySlugs : undefined,
     showInProductFilters: category.showInProductFilters !== false,
     defaultFilters,
@@ -850,6 +927,28 @@ function categoryParentId(category: CmsProductCategory) {
   if (!category.parentCategory) return null;
   if (typeof category.parentCategory === "number") return category.parentCategory;
   return category.parentCategory.id;
+}
+
+function categoryParentSlug(category: CmsProductCategory, categories: CmsProductCategory[]) {
+  const parentId = categoryParentId(category);
+  if (!parentId) return undefined;
+  return categories.find((item) => item.id === parentId)?.slug;
+}
+
+function categoryDepth(category: CmsProductCategory, categories: CmsProductCategory[]) {
+  let depth = 0;
+  let current = category;
+  const visitedIds = new Set<number>();
+
+  while (true) {
+    const parentId = categoryParentId(current);
+    if (!parentId || visitedIds.has(parentId)) return depth;
+    const parent = categories.find((item) => item.id === parentId);
+    if (!parent) return depth;
+    visitedIds.add(parentId);
+    current = parent;
+    depth += 1;
+  }
 }
 
 function cleanStringArray(values?: string[] | null) {

@@ -35,7 +35,7 @@ function categoryFrontendChecklist(data: CategoryDraftData) {
 
   return {
     status: notes.some((note) => note.includes('页面地址')) ? 'needs-url-review' : 'ready',
-    note: notes.length > 0 ? notes.join('、') : '已具备产品列表筛选、分类页、顶部菜单和首页分类测试条件',
+    note: notes.length > 0 ? notes.join('、') : '已发布，可在网站对应位置显示',
   };
 }
 
@@ -53,9 +53,9 @@ export const ProductCategories: CollectionConfig = {
   },
   admin: {
     hideAPIURL: true,
-    defaultColumns: ['title', 'frontendSurfaceStatus', 'frontendSurfaceNote', 'parentCategory', 'legacyPath', 'pageType', 'menuGroup', 'showInMegaMenu', 'showOnHome', 'showInProductFilters', 'sortOrder', 'status'],
+    defaultColumns: ['title', 'frontendSurfaceStatus', 'frontendSurfaceNote', 'parentCategory', 'legacyPath', 'pageType', 'showInMegaMenu', 'showOnHome', 'showInProductFilters', 'sortOrder', 'status'],
     description: {
-      zh: '这里管理产品分类。先建并发布分类，再到“产品管理”里给产品选择分类。分类会影响顶部产品菜单、产品列表筛选、分类页顶部内容、页面地址和首页产品入口。',
+      zh: '这里管理网站前台的产品分类。一级分类作为产品类型，二级分类挂到父级分类下面；顶部产品菜单和产品列表会按这个层级显示。',
       en: 'Edit product categories here. Create and publish categories first, then select them from Product Upload / Product Management. Categories drive the Products mega menu, listing filters, category page banner/search display, public URLs, and home category entry.',
     },
     group: { zh: '01 产品管理', en: '01 Product Management' },
@@ -94,7 +94,7 @@ export const ProductCategories: CollectionConfig = {
             {
               name: 'parentCategory',
               type: 'relationship',
-              admin: { description: { zh: '可选。用于把专题子栏目归到主分类下面；主分类仍可作为产品列表筛选入口。', en: 'Optional parent category for search display or sub-category hierarchy.' } },
+              admin: { description: { zh: '选择上级产品类型。例如 Knuckle Boom Truck Mounted Cranes 的父级应选 Truck Mounted Cranes；顶部产品菜单会按这个层级显示。', en: 'Optional parent category for search display or sub-category hierarchy.' } },
               label: { zh: '父级分类', en: 'Parent Category' },
               relationTo: 'product-categories',
             },
@@ -165,11 +165,11 @@ export const ProductCategories: CollectionConfig = {
               defaultValue: 'truck-mounted-crane',
               admin: {
                 description: {
-                  zh: '自由填写分组名称；会与“网站设置 → 产品大菜单分组”的分组名称对应，决定该分类在顶部产品大菜单的哪一列显示。',
-                  en: 'Free mega-menu group key. Match it with Site Settings → Product Mega Menu Groups.',
+                  zh: '一般不用改。只有这个分类没有父级分类时，系统才用这里决定它放到顶部产品菜单哪一列。',
+                  en: 'Advanced fallback group key. Parent category hierarchy is preferred for the mega menu.',
                 },
               },
-              label: { zh: '顶部产品菜单分组', en: 'Products Mega Menu Group' },
+              label: { zh: '备用菜单分组', en: 'Fallback Menu Group' },
               required: true,
             },
             {

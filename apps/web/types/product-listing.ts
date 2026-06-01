@@ -30,6 +30,8 @@ export type ProductFilterDictionaryOption<T extends string> = {
   label: string;
   enabled: boolean;
   sortOrder: number;
+  depth?: number;
+  hasChildren?: boolean;
 };
 
 export type ProductCapacityRangeOption = ProductFilterDictionaryOption<LiftingCapacityRange> & {
@@ -73,12 +75,17 @@ export type ProductFilterOption<T extends string> = {
   value: T;
   label: string;
   count: number;
+  depth?: number;
+  hasChildren?: boolean;
 };
 
 export type ProductListingCategoryMeta = {
   label: string;
   slug: string;
   legacyPath?: string;
+  parentSlug?: string;
+  depth?: number;
+  hasChildren?: boolean;
   includedCategorySlugs?: string[];
   showInProductFilters?: boolean;
   defaultFilters?: Partial<ProductFilters>;

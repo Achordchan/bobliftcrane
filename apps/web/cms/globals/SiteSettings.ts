@@ -236,6 +236,7 @@ export const SiteSettings: GlobalConfig = {
                 { name: 'mobileMenuTitle', type: 'text', localized: true, defaultValue: defaultChromeUiContent.mobileMenuTitle, label: { zh: '移动端菜单标题', en: 'Mobile Menu Title' } },
                 { name: 'mobileProductCategoriesLabel', type: 'text', localized: true, defaultValue: defaultChromeUiContent.mobileProductCategoriesLabel, label: { zh: '移动端产品分类标题', en: 'Mobile Product Categories Label' } },
                 { name: 'requestQuoteLabel', type: 'text', localized: true, defaultValue: defaultChromeUiContent.requestQuoteLabel, label: { zh: '询盘按钮文案', en: 'Request Quote Label' } },
+                { name: 'shortRequestQuoteLabel', type: 'text', localized: true, defaultValue: defaultChromeUiContent.shortRequestQuoteLabel, label: { zh: '窄屏询盘按钮文案', en: 'Short Request Quote Label' } },
                 { name: 'productCatalogTitle', type: 'text', localized: true, defaultValue: defaultChromeUiContent.productCatalogTitle, label: { zh: '产品菜单底部标题', en: 'Product Catalog Title' } },
                 { name: 'productCatalogDescription', type: 'text', localized: true, defaultValue: defaultChromeUiContent.productCatalogDescription, label: { zh: '产品菜单底部说明', en: 'Product Catalog Description' } },
                 { name: 'viewProductCatalogLabel', type: 'text', localized: true, defaultValue: defaultChromeUiContent.viewProductCatalogLabel, label: { zh: '查看产品目录按钮', en: 'View Product Catalog Label' } },

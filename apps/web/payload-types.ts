@@ -305,7 +305,7 @@ export interface ProductCategory {
   iconName?: string | null;
   pageType: 'product-listing' | 'seo-landing' | 'redirect-only';
   /**
-   * Free mega-menu group key. Match it with Site Settings → Product Mega Menu Groups.
+   * Advanced fallback group key. Parent category hierarchy is preferred for the mega menu.
    */
   menuGroup: string;
   /**
@@ -2346,6 +2346,7 @@ export interface SiteSetting {
     mobileMenuTitle?: string | null;
     mobileProductCategoriesLabel?: string | null;
     requestQuoteLabel?: string | null;
+    shortRequestQuoteLabel?: string | null;
     productCatalogTitle?: string | null;
     productCatalogDescription?: string | null;
     viewProductCatalogLabel?: string | null;
@@ -3230,6 +3231,7 @@ export interface SiteSettingsSelect<T extends boolean = true> {
         mobileMenuTitle?: T;
         mobileProductCategoriesLabel?: T;
         requestQuoteLabel?: T;
+        shortRequestQuoteLabel?: T;
         productCatalogTitle?: T;
         productCatalogDescription?: T;
         viewProductCatalogLabel?: T;

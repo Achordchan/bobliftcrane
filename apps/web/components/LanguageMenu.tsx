@@ -43,7 +43,7 @@ export function LanguageMenu({
         dir={current.direction}
         className={({ open }) =>
           cn(
-            "group flex h-11 w-11 items-center justify-center rounded-full border border-line bg-white p-0 text-left shadow-[0_10px_28px_rgba(8,35,74,0.07)] transition duration-300 hover:-translate-y-0.5 hover:border-gold/50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/20 md:h-12 md:w-[164px] md:justify-start md:gap-3 md:px-4",
+            "group flex h-12 min-w-[132px] items-center justify-start gap-2 rounded-full border border-line bg-white px-3 text-left shadow-[0_10px_28px_rgba(8,35,74,0.07)] transition duration-300 hover:-translate-y-0.5 hover:border-gold/50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/20 max-[360px]:h-11 max-[360px]:w-11 max-[360px]:min-w-0 max-[360px]:justify-center max-[360px]:gap-0 max-[360px]:p-0 md:w-[164px] md:gap-3 md:px-4",
             open && "-translate-y-0.5 border-gold/60 shadow-[0_18px_38px_rgba(8,35,74,0.13)]",
           )
         }
@@ -51,10 +51,10 @@ export function LanguageMenu({
       >
         <span
           aria-label={`${current.label} flag`}
-          className="block size-7 shrink-0 overflow-hidden rounded-full bg-[#eef4fb] bg-cover bg-center shadow-inner ring-1 ring-line transition group-hover:bg-white md:size-8"
+          className="block size-8 shrink-0 overflow-hidden rounded-full bg-[#eef4fb] bg-cover bg-center shadow-inner ring-1 ring-line transition group-hover:bg-white max-[360px]:size-7"
           style={{ backgroundImage: `url(${current.flag})` }}
         />
-        <strong className="hidden min-w-0 flex-1 whitespace-nowrap text-sm font-black text-ink md:block">{current.label}</strong>
+        <strong className="block min-w-0 flex-1 truncate whitespace-nowrap text-sm font-black text-ink max-[360px]:hidden">{current.label}</strong>
       </Menu.Trigger>
 
       <Menu.Portal>

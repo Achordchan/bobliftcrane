@@ -11,7 +11,7 @@ import { articles as fallbackArticles, type Article } from "@/lib/site-content";
 function NewsCenter({ articles, content, locale }: { articles: Article[]; content: NewsSectionContent; locale?: string }) {
   const sourceArticles = articles.length > 0 ? articles : fallbackArticles;
   const [featured, ...secondary] = sourceArticles.slice(0, Math.max(1, content.maxArticles));
-  const [leftPinned, ...rightItems] = secondary;
+  const rightItems = secondary.slice(0, 2);
 
   if (!featured) return null;
 
@@ -40,7 +40,7 @@ function NewsCenter({ articles, content, locale }: { articles: Article[]; conten
         </div>
 
         <div className="relative z-10 mt-7 grid grid-cols-1 items-stretch gap-5 md:mt-9 2xl:grid-cols-[minmax(0,1.08fr)_minmax(430px,0.92fr)] 2xl:gap-7">
-          <div className="grid h-full content-stretch gap-5 2xl:grid-rows-[minmax(0,1fr)_auto]">
+          <div className="grid h-full content-stretch">
             <a className="group grid h-full overflow-hidden rounded-[26px] border border-line bg-white p-2 shadow-card transition duration-300 hover:-translate-y-1 hover:shadow-soft md:rounded-[30px] md:p-3 lg:grid-cols-[minmax(0,0.96fr)_minmax(300px,0.74fr)] 2xl:grid-cols-[1fr_0.88fr]" href={localizedPath(articlePublicPath(featured), locale)}>
               <div className="relative min-h-[220px] overflow-hidden rounded-[20px] sm:min-h-[260px] lg:min-h-[300px] md:rounded-[24px] 2xl:min-h-[330px]">
                 <Image className="object-cover transition duration-500 group-hover:scale-[1.035]" src={featured.image} alt={featured.title} fill sizes="(min-width: 1536px) 40vw, (min-width: 1024px) 46vw, 92vw" />
@@ -69,40 +69,9 @@ function NewsCenter({ articles, content, locale }: { articles: Article[]; conten
                 </span>
               </div>
             </a>
-
-            {leftPinned && (
-              <a className="group grid min-w-0 overflow-hidden rounded-[24px] border border-line bg-white/92 p-2 shadow-card transition duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-soft md:grid-cols-[220px_1fr] md:rounded-[28px]" href={localizedPath(articlePublicPath(leftPinned), locale)}>
-                <div className="relative min-h-[170px] overflow-hidden rounded-[20px] md:min-h-[210px] md:rounded-[22px]">
-                  <Image className="object-cover transition duration-500 group-hover:scale-[1.04]" src={leftPinned.image} alt={leftPinned.title} fill sizes="(min-width: 1280px) 18vw, (min-width: 768px) 28vw, 92vw" />
-                </div>
-                <div className="flex min-w-0 flex-col justify-center p-4 md:p-6">
-                  {content.showCategory || content.showDate ? (
-                    <div className="mb-3 flex flex-wrap items-center gap-2">
-                      {content.showCategory ? (
-                        <Badge variant="outline" className="h-6 rounded-full border-line bg-[#fffaf5] px-2.5 text-[10px] font-black uppercase tracking-[0.12em] text-gold">
-                          {content.pinnedLabel}
-                        </Badge>
-                      ) : null}
-                      {content.showDate ? <span className="text-xs font-bold text-slate-500">{leftPinned.date}</span> : null}
-                    </div>
-                  ) : null}
-                  <h3 className="line-clamp-2 text-xl font-black leading-tight tracking-[-0.03em] text-ink md:text-2xl">
-                    {leftPinned.title}
-                  </h3>
-                  {content.showExcerpt ? (
-                    <p className="mt-3 line-clamp-2 text-sm font-medium leading-6 text-slate-600">
-                      {leftPinned.excerpt}
-                    </p>
-                  ) : null}
-                  <span className="mt-5 inline-flex w-fit items-center gap-2 text-sm font-black text-ink">
-                    {content.readMoreLabel} <ArrowRight className="h-4 w-4 transition duration-300 group-hover:translate-x-1" />
-                  </span>
-                </div>
-              </a>
-            )}
           </div>
 
-          <div className="grid h-full content-stretch gap-4 sm:grid-cols-2 2xl:grid-cols-1 2xl:grid-rows-3">
+          <div className="grid h-full content-stretch gap-4 sm:grid-cols-2 2xl:grid-cols-1 2xl:grid-rows-2">
             {rightItems.map((item) => (
               <a className="group grid h-full min-w-0 grid-cols-[112px_1fr] gap-3 overflow-hidden rounded-[22px] border border-line bg-white/90 p-2 shadow-card transition duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-soft sm:grid-cols-1 2xl:grid-cols-[178px_1fr] 2xl:rounded-[26px]" href={localizedPath(articlePublicPath(item), locale)} key={item.slug}>
                 <div className="relative min-h-[122px] overflow-hidden rounded-[18px] sm:min-h-[190px] 2xl:min-h-[164px] 2xl:rounded-[20px]">

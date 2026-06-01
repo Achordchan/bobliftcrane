@@ -25,6 +25,34 @@ const productCategoryOptions = [
   { label: { zh: '其他起重机', en: 'Other Cranes' }, value: 'other-cranes' },
 ];
 
+function shouldSyncImportBatchStats({
+  data,
+  doc,
+  operation,
+  previousDoc,
+}: {
+  data?: Partial<ProductDraftData>;
+  doc: ProductDraftData;
+  operation: 'create' | 'update';
+  previousDoc?: ProductDraftData | null;
+}) {
+  const batchId = typeof doc.importBatchId === 'string' ? doc.importBatchId.trim() : '';
+  if (!batchId) return false;
+  if (operation === 'create') return true;
+
+  const changedImportStatsFields = ['importBatchId', 'parameterReviewStatus', 'drawingImages'].some((field) =>
+    Object.prototype.hasOwnProperty.call(data ?? {}, field),
+  );
+  if (!changedImportStatsFields) return false;
+  if (!previousDoc) return true;
+
+  return (
+    previousDoc.importBatchId !== doc.importBatchId ||
+    previousDoc.parameterReviewStatus !== doc.parameterReviewStatus ||
+    JSON.stringify(previousDoc.drawingImages ?? null) !== JSON.stringify(doc.drawingImages ?? null)
+  );
+}
+
 export const Products: CollectionConfig = {
   slug: 'products',
   labels: {
@@ -74,9 +102,14 @@ export const Products: CollectionConfig = {
       },
     ],
     afterChange: [
-      async ({ doc, req }) => {
+      async ({ data, doc, operation, previousDoc, req }) => {
         const batchId = typeof doc.importBatchId === 'string' ? doc.importBatchId.trim() : '';
-        if (!batchId) return doc;
+        if (!shouldSyncImportBatchStats({
+          data: data as Partial<ProductDraftData> | undefined,
+          doc: doc as ProductDraftData,
+          operation,
+          previousDoc: previousDoc as ProductDraftData | null | undefined,
+        })) return doc;
         await syncProductImportBatchStats(req.payload, batchId);
         return doc;
       },

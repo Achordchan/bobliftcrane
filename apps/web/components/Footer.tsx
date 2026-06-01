@@ -58,30 +58,32 @@ export function Footer({
   chromeUi?: Pick<ChromeUiContent, "logoHomeLabel" | "logoImageAlt">;
 }) {
   const mainFooterGroups = content.groups.filter((group) => group.links.length > 0);
-  const footerGroupsClassName = `grid border-b border-[#dbe6f2] md:border-b-0 md:border-l md:border-[#dbe6f2] md:pl-8 xl:pl-0 ${
+  const footerGroupsClassName = `grid border-b border-[#dbe6f2] md:border-b-0 md:border-l md:border-[#dbe6f2] md:pl-8 xl:pl-0 2xl:gap-x-10 ${
     mainFooterGroups.length >= 3 ? "md:grid-cols-2 2xl:grid-cols-3" : "md:grid-cols-2"
   }`;
 
   return (
-    <footer className="border-t border-[#d8e3ef] bg-white pb-32 pt-0 md:pb-0">
-      <div className="page-shell max-w-[1760px]">
-        <div className="grid grid-cols-1 gap-0 py-7 md:grid-cols-[0.92fr_1.08fr] md:gap-y-9 md:py-10 xl:grid-cols-[minmax(230px,0.9fr)_minmax(0,1.65fr)_minmax(260px,0.95fr)] xl:gap-y-0 xl:py-14">
-          <div className="border-b border-[#dbe6f2] pb-7 md:border-b-0 md:pr-8 xl:pr-10">
-            <Logo
-              height={branding?.logoHeight}
-              homeLabel={chromeUi?.logoHomeLabel}
-              imageAlt={chromeUi?.logoImageAlt}
-              src={branding?.logoSrc}
-              width={branding?.logoWidth}
-            />
-            <p className="mt-5 max-w-[34rem] text-sm font-medium leading-6 text-slate-500 md:max-w-[300px] md:text-[15px] md:leading-7">
+    <footer className="border-t border-[#d8e3ef] bg-[linear-gradient(180deg,#ffffff_0%,#f6f9ff_45%,#edf5ff_100%)] pb-32 pt-0 md:pb-0">
+      <div className="page-shell max-w-[2200px]">
+        <div className="grid grid-cols-1 gap-0 py-10 md:grid-cols-[0.92fr_1.08fr] md:gap-y-10 md:py-14 xl:grid-cols-[minmax(300px,0.95fr)_minmax(0,1.65fr)_minmax(340px,0.95fr)] xl:gap-y-0 xl:py-20 2xl:grid-cols-[minmax(360px,0.9fr)_minmax(0,1.75fr)_minmax(390px,0.95fr)] 2xl:py-24">
+          <div className="border-b border-[#dbe6f2] pb-8 md:border-b-0 md:pr-9 xl:pr-12 2xl:pr-16">
+            <div className="[&_img]:h-[56px] [&_img]:w-auto 2xl:[&_img]:h-[72px]">
+              <Logo
+                height={branding?.logoHeight}
+                homeLabel={chromeUi?.logoHomeLabel}
+                imageAlt={chromeUi?.logoImageAlt}
+                src={branding?.logoSrc}
+                width={branding?.logoWidth}
+              />
+            </div>
+            <p className="mt-6 max-w-[34rem] text-sm font-medium leading-6 text-slate-500 md:max-w-[360px] md:text-base md:leading-7 2xl:mt-8 2xl:max-w-[460px] 2xl:text-lg 2xl:leading-8">
               {content.intro}
             </p>
-            <div className="mt-6 flex flex-wrap gap-3">
+            <div className="mt-6 flex flex-wrap gap-3 2xl:mt-8 2xl:gap-4">
               {content.socialLinks.map((item) => (
                 <a
                   aria-label={socialPlatform(item).name}
-                  className="group grid h-11 w-11 place-items-center rounded-full border border-[#dfe8f2] bg-white shadow-[0_12px_28px_rgba(8,35,74,0.08)] transition duration-300 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-[0_18px_36px_rgba(8,35,74,0.14)]"
+                  className="group grid h-11 w-11 place-items-center rounded-full border border-[#dfe8f2] bg-white shadow-[0_12px_28px_rgba(8,35,74,0.08)] transition duration-300 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-[0_18px_36px_rgba(8,35,74,0.14)] 2xl:h-12 2xl:w-12"
                   href={item.href}
                   key={`${item.label}-${item.href}`}
                   rel={isExternalLink(item.href) ? "noreferrer" : undefined}
@@ -96,11 +98,11 @@ export function Footer({
 
           <div className={footerGroupsClassName}>
             {mainFooterGroups.map((group) => (
-              <div className="border-b border-[#dbe6f2] py-7 last:border-b-0 md:border-b-0 md:py-0 md:pr-8 xl:pl-10" key={group.title}>
-                <h3 className="mb-5 text-sm font-black uppercase tracking-[0.14em] text-navy">{group.title}</h3>
-                <div className="grid gap-3.5">
+              <div className="border-b border-[#dbe6f2] py-8 last:border-b-0 md:border-b-0 md:py-0 md:pr-8 xl:pl-12 2xl:pl-16" key={group.title}>
+                <h3 className="mb-5 text-sm font-black uppercase tracking-[0.14em] text-navy 2xl:mb-7 2xl:text-base">{group.title}</h3>
+                <div className="grid gap-3.5 2xl:gap-5">
                   {group.links.map((link) => (
-                    <a className="group flex min-w-0 items-center justify-between gap-4 text-sm font-medium leading-6 text-slate-500 transition hover:text-blue-700 md:text-[15px]" href={link.href} key={link.label}>
+                    <a className="group flex min-w-0 items-center justify-between gap-4 text-sm font-medium leading-6 text-slate-500 transition hover:text-blue-700 md:text-[15px] 2xl:text-base 2xl:leading-7" href={link.href} key={link.label}>
                       <span className="min-w-0">{link.label}</span>
                       <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition group-hover:translate-x-1 group-hover:text-blue-600" strokeWidth={1.9} />
                     </a>
@@ -110,26 +112,26 @@ export function Footer({
             ))}
           </div>
 
-          <div className="pt-7 md:col-span-2 md:border-t md:border-[#dbe6f2] md:pt-8 xl:col-span-1 xl:border-l xl:border-t-0 xl:pl-10 xl:pt-0">
-            <h3 className="mb-5 text-sm font-black uppercase tracking-[0.14em] text-navy">{content.contactTitle}</h3>
-            <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-1">
+          <div className="pt-8 md:col-span-2 md:border-t md:border-[#dbe6f2] md:pt-10 xl:col-span-1 xl:border-l xl:border-t-0 xl:pl-12 xl:pt-0 2xl:pl-16">
+            <h3 className="mb-5 text-sm font-black uppercase tracking-[0.14em] text-navy 2xl:mb-7 2xl:text-base">{content.contactTitle}</h3>
+            <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-1 2xl:gap-6">
               {[
                 { icon: Phone, label: contact.phone, href: contact.phoneHref },
                 { icon: Mail, label: contact.email, href: `mailto:${contact.email}` },
                 { icon: MapPin, label: contact.address, href: contact.contactPath },
               ].map(({ href, icon: Icon, label }) => (
-                <a className="group flex min-w-0 items-start gap-3.5 border-b border-[#e5edf6] pb-4 last:border-b-0 last:pb-0 md:border-b-0 md:pb-0 xl:border-b xl:pb-4 xl:last:border-b-0 xl:last:pb-0" href={href} key={label}>
-                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-white text-navy shadow-[0_10px_24px_rgba(8,35,74,0.08)] ring-1 ring-[#e2eaf3] transition group-hover:text-blue-700">
+                <a className="group flex min-w-0 items-start gap-3.5 border-b border-[#e5edf6] pb-4 last:border-b-0 last:pb-0 md:border-b-0 md:pb-0 xl:border-b xl:pb-5 xl:last:border-b-0 xl:last:pb-0 2xl:gap-4 2xl:pb-6" href={href} key={label}>
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-white text-navy shadow-[0_10px_24px_rgba(8,35,74,0.08)] ring-1 ring-[#e2eaf3] transition group-hover:text-blue-700 2xl:h-[54px] 2xl:w-[54px] 2xl:rounded-2xl">
                     <Icon className="h-5 w-5" strokeWidth={1.9} />
                   </span>
-                  <span className="min-w-0 break-words text-sm font-medium leading-6 text-slate-600 transition group-hover:text-blue-700 md:text-[15px] md:leading-7">{label}</span>
+                  <span className="min-w-0 break-words text-sm font-medium leading-6 text-slate-600 transition group-hover:text-blue-700 md:text-[15px] md:leading-7 2xl:text-base">{label}</span>
                 </a>
               ))}
             </div>
           </div>
         </div>
 
-        <div className="flex flex-col gap-3 border-t border-[#c9dced] py-5 text-sm font-semibold leading-6 text-slate-500 lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:py-6">
+        <div className="flex flex-col gap-3 border-t border-[#c9dced] py-6 text-sm font-semibold leading-6 text-slate-500 lg:flex-row lg:items-center lg:justify-between lg:gap-4 2xl:py-8 2xl:text-[15px]">
           <span>{content.copyright}</span>
           <span className="flex flex-wrap gap-x-6 gap-y-2 md:pr-24">
             {content.legalLinks.map((link) => (

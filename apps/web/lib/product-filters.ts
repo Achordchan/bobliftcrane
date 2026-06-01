@@ -81,6 +81,7 @@ export function countByValue<T extends string>(
     const option = typeof item === "string" ? { value: item, label: item } : item;
 
     return {
+      ...option,
       value: option.value,
       label: option.label,
       count: products.filter((product) => predicate(product, option.value)).length,

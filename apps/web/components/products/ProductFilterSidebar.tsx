@@ -8,6 +8,7 @@ import {
   productStatusLabel,
   type ProductListingUiContent,
 } from "@/lib/product-ui";
+import { cn } from "@/lib/utils";
 import type {
   BoomType,
   LiftingCapacityRange,
@@ -95,8 +96,16 @@ function FilterGroup<T extends string>({
       <div className="space-y-3">
         {options.map((option) => {
           const checked = selected.includes(option.value);
+          const categoryDepth = group === "categories" ? option.depth ?? 0 : 0;
           return (
-            <label className="flex cursor-pointer items-center gap-3 text-sm font-semibold text-slate-700" key={option.value}>
+            <label
+              className={cn(
+                "flex cursor-pointer items-center gap-3 text-sm font-semibold text-slate-700",
+                group === "categories" && option.hasChildren && "font-black text-[#0B1B33]",
+                categoryDepth > 0 && "pl-6 text-slate-600",
+              )}
+              key={option.value}
+            >
               <span className="relative flex h-5 w-5 shrink-0 items-center justify-center">
                 <input className="peer h-5 w-5 appearance-none rounded border border-slate-300 bg-white transition checked:border-[#0B3F7D] checked:bg-[#0B3F7D] focus:outline-none focus:ring-4 focus:ring-blue-100" type="checkbox" checked={checked} onChange={() => onToggle(option.value)} />
                 <span className="pointer-events-none absolute h-2.5 w-1.5 -translate-y-0.5 rotate-45 border-b-2 border-r-2 border-white opacity-0 peer-checked:opacity-100" />

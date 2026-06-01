@@ -21,10 +21,10 @@ export function FloatingContact({
   ] as const;
 
   return (
-    <div className="fixed bottom-5 left-4 right-4 z-40 mx-auto flex max-w-[430px] items-center justify-center gap-1.5 rounded-[28px] border border-white/80 bg-white/[0.9] p-2 shadow-[0_24px_70px_rgba(8,35,74,0.18)] backdrop-blur-xl 2xl:bottom-auto 2xl:left-auto 2xl:right-4 2xl:top-1/2 2xl:mx-0 2xl:w-auto 2xl:max-w-none 2xl:-translate-y-1/2 2xl:flex-col 2xl:gap-2">
+    <div className="fixed bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center justify-center gap-1.5 rounded-full border border-white/80 bg-white/[0.88] p-1.5 shadow-[0_16px_44px_rgba(8,35,74,0.14)] backdrop-blur-xl 2xl:bottom-auto 2xl:left-auto 2xl:right-4 2xl:top-1/2 2xl:mx-0 2xl:w-auto 2xl:max-w-none 2xl:-translate-x-0 2xl:-translate-y-1/2 2xl:flex-col 2xl:gap-2 2xl:rounded-[28px] 2xl:p-2 2xl:shadow-[0_24px_70px_rgba(8,35,74,0.18)]">
       <a
         aria-label={chromeUi.floatingQuoteTooltip}
-        className="group relative inline-flex h-11 items-center justify-center gap-2 overflow-hidden rounded-2xl bg-navy px-4 text-sm font-black text-white shadow-[0_16px_38px_rgba(8,35,74,0.18)] transition duration-300 hover:-translate-y-1 hover:bg-[#0b2d5b] 2xl:size-12 2xl:px-0"
+        className="group relative inline-flex h-10 items-center justify-center gap-2 overflow-hidden rounded-full bg-navy px-4 text-sm font-black text-white shadow-[0_12px_28px_rgba(8,35,74,0.18)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#0b2d5b] sm:h-11 2xl:size-12 2xl:rounded-2xl 2xl:px-0"
         href={contact.quotePath}
       >
         <span className="absolute inset-x-2 top-0 h-px bg-gradient-to-r from-transparent via-gold/80 to-transparent" />
@@ -41,7 +41,7 @@ export function FloatingContact({
         return (
           <a
             aria-label={item.label}
-            className="group relative grid size-11 place-items-center rounded-2xl border border-line bg-white text-ink shadow-[0_12px_30px_rgba(8,35,74,0.1)] transition duration-300 hover:-translate-y-1 hover:border-white hover:text-white hover:shadow-[0_20px_44px_rgba(8,35,74,0.18)] 2xl:size-12"
+            className="group relative grid size-10 place-items-center rounded-full border border-line bg-white text-ink shadow-[0_10px_24px_rgba(8,35,74,0.08)] transition duration-300 hover:-translate-y-0.5 hover:border-white hover:text-white hover:shadow-[0_16px_34px_rgba(8,35,74,0.14)] sm:size-11 2xl:size-12 2xl:rounded-2xl"
             href={item.href}
             key={item.label}
             rel={item.external ? "noreferrer" : undefined}
@@ -57,7 +57,7 @@ export function FloatingContact({
       })}
 
       <Dialog.Root modal="trap-focus">
-        <Dialog.Trigger aria-label={chromeUi.floatingWeChatLabel} className="group relative grid size-11 place-items-center rounded-2xl border border-line bg-white text-ink shadow-[0_12px_30px_rgba(8,35,74,0.1)] outline-none transition duration-300 hover:-translate-y-1 hover:border-white hover:text-white hover:shadow-[0_20px_44px_rgba(8,35,74,0.18)] focus-visible:ring-4 focus-visible:ring-gold/20 2xl:size-12" type="button">
+        <Dialog.Trigger aria-label={chromeUi.floatingWeChatLabel} className="group relative grid size-10 place-items-center rounded-full border border-line bg-white text-ink shadow-[0_10px_24px_rgba(8,35,74,0.08)] outline-none transition duration-300 hover:-translate-y-0.5 hover:border-white hover:text-white hover:shadow-[0_16px_34px_rgba(8,35,74,0.14)] focus-visible:ring-4 focus-visible:ring-gold/20 sm:size-11 2xl:size-12 2xl:rounded-2xl" type="button">
           <span className="absolute inset-0 rounded-2xl bg-[linear-gradient(135deg,#071f42_0%,#1d5fe8_58%,#f59a3c_100%)] opacity-0 transition duration-300 group-hover:opacity-100" />
           <QrCode className="relative z-10 size-5" />
           <span className="pointer-events-none absolute right-[58px] hidden whitespace-nowrap rounded-full bg-navy px-3 py-2 text-xs font-black text-white opacity-0 shadow-card transition duration-300 group-hover:translate-x-[-4px] group-hover:opacity-100 2xl:block">

@@ -36,14 +36,14 @@ export function Hero({ slides = defaultHomeHeroSlides, ui = defaultHomeHeroUiCon
   }
 
   return (
-    <section className="relative h-[430px] overflow-hidden bg-[#d9eef9] md:h-[560px]" aria-label={ui.ariaLabel}>
+    <section className="relative aspect-[12/5] w-full overflow-hidden bg-white" aria-label={ui.ariaLabel}>
       <div className="absolute inset-0 h-full w-full">
         {heroSlides.map((slide, index) => (
           <picture className="absolute inset-0 block h-full w-full" key={`${slide.image}-${index}`}>
             {slide.mobileImage && <source media="(max-width: 767px)" srcSet={slide.mobileImage} />}
             <Image
               alt=""
-              className={`h-full w-full object-cover object-center transition duration-700 ease-out ${activeIndex === index ? "opacity-100 scale-100" : "opacity-0 scale-[1.015]"}`}
+              className={`h-full w-full object-contain object-center transition duration-700 ease-out ${activeIndex === index ? "opacity-100 scale-100" : "opacity-0"}`}
               fill
               priority={index === 0}
               sizes="100vw"
@@ -53,34 +53,33 @@ export function Hero({ slides = defaultHomeHeroSlides, ui = defaultHomeHeroUiCon
         ))}
       </div>
 
-      {ui.showControls || ui.showIndicators ? (
-        <div className="absolute inset-x-4 top-1/2 z-20 flex -translate-y-1/2 items-center justify-between md:inset-x-auto md:bottom-12 md:left-1/2 md:top-auto md:-translate-x-1/2 md:translate-y-0 md:justify-start md:gap-2 md:rounded-full md:border md:border-white/45 md:bg-white/18 md:p-2 md:shadow-[0_16px_42px_rgba(8,35,74,0.18)] md:backdrop-blur-md lg:bottom-14">
-          {ui.showControls ? (
+      {ui.showControls ? (
+        <>
+          <div className="pointer-events-auto absolute left-4 top-1/2 z-20 -translate-y-1/2 md:left-8 lg:left-10">
             <HeroSwitchButton label={ui.previousSlideLabel} onClick={showPreviousSlide}>
               <ChevronLeft className="h-5 w-5 drop-shadow-sm" strokeWidth={3} />
             </HeroSwitchButton>
-          ) : null}
-
-          {ui.showIndicators ? (
-            <div className="absolute bottom-[-56px] left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full bg-white/25 px-2 py-1 backdrop-blur-sm md:static md:translate-x-0 md:gap-2 md:bg-transparent md:px-1 md:py-0 md:backdrop-blur-0">
-              {heroSlides.map((slide, index) => (
-                <button
-                  aria-label={formatHeroLabel(ui.slideIndicatorLabelTemplate, index + 1)}
-                  aria-current={activeIndex === index}
-                  className={`h-1 rounded-full transition-all duration-300 md:h-2 ${activeIndex === index ? "w-5 bg-gold md:w-8" : "w-1 bg-white/85 hover:bg-white md:w-2"}`}
-                  key={`${slide.image}-${index}`}
-                  onClick={() => showSlide(index)}
-                  type="button"
-                />
-              ))}
-            </div>
-          ) : null}
-
-          {ui.showControls ? (
+          </div>
+          <div className="pointer-events-auto absolute right-4 top-1/2 z-20 -translate-y-1/2 md:right-8 lg:right-10">
             <HeroSwitchButton label={ui.nextSlideLabel} onClick={showNextSlide}>
               <ChevronRight className="h-5 w-5 drop-shadow-sm" strokeWidth={3} />
             </HeroSwitchButton>
-          ) : null}
+          </div>
+        </>
+      ) : null}
+
+      {ui.showIndicators ? (
+        <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full border border-white/35 bg-white/40 px-2.5 py-1.5 shadow-[0_10px_28px_rgba(8,35,74,0.16)] backdrop-blur-sm md:bottom-8 md:gap-2 md:px-3 md:py-2 lg:bottom-10">
+          {heroSlides.map((slide, index) => (
+            <button
+              aria-label={formatHeroLabel(ui.slideIndicatorLabelTemplate, index + 1)}
+              aria-current={activeIndex === index}
+              className={`h-1.5 rounded-full transition-all duration-300 md:h-2 ${activeIndex === index ? "w-7 bg-gold md:w-9" : "w-1.5 bg-white/90 hover:bg-white md:w-2"}`}
+              key={`${slide.image}-${index}-mobile`}
+              onClick={() => showSlide(index)}
+              type="button"
+            />
+          ))}
         </div>
       ) : null}
     </section>

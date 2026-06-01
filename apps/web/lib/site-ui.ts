@@ -20,6 +20,7 @@ export type ChromeUiContent = {
   mobileMenuTitle: string;
   mobileProductCategoriesLabel: string;
   requestQuoteLabel: string;
+  shortRequestQuoteLabel: string;
   productCatalogTitle: string;
   productCatalogDescription: string;
   viewProductCatalogLabel: string;
@@ -63,6 +64,7 @@ export const defaultChromeUiContent: ChromeUiContent = {
   mobileMenuTitle: "BOB-LIFT Menu",
   mobileProductCategoriesLabel: "Product Categories",
   requestQuoteLabel: "Request Quote",
+  shortRequestQuoteLabel: "Quote",
   productCatalogTitle: "Explore All Products",
   productCatalogDescription: "Discover our full range of lifting solutions.",
   viewProductCatalogLabel: "View Product Catalog",
