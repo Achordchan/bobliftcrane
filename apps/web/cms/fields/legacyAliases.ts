@@ -9,10 +9,10 @@ export function legacyAliasesField(description: { zh: string; en: string }): Fie
       {
         name: 'path',
         type: 'text',
-        label: { zh: '旧路径', en: 'Old Path' },
+        label: { zh: '旧页面地址', en: 'Old Path' },
         required: true,
       },
     ],
-    label: { zh: '历史别名路径', en: 'Historical Alias Paths' },
+    label: { zh: '其他旧地址（一般不用）', en: 'Historical Alias Paths' },
   };
 }

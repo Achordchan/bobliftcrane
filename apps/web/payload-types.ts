@@ -207,11 +207,11 @@ export interface Page {
    */
   seo?: {
     /**
-     * 按当前语言填写。英语是默认来源，其他语言由翻译流程从英语生成后再复核。
+     * 按当前语言填写。英语是默认来源，其他语言后续再统一处理。
      */
     metaTitle?: string | null;
     /**
-     * 按当前语言填写。英语是默认来源，其他语言由翻译流程从英语生成后再复核。
+     * 按当前语言填写。英语是默认来源，其他语言后续再统一处理。
      */
     metaDescription?: string | null;
     /**
@@ -273,7 +273,7 @@ export interface Media {
   };
 }
 /**
- * Edit product categories here. Create and publish categories first, then select them from Product Upload / Product Management. Categories drive the Products mega menu, listing filters, category page banner/SEO, public URLs, and home category entry.
+ * Edit product categories here. Create and publish categories first, then select them from Product Upload / Product Management. Categories drive the Products mega menu, listing filters, category page banner/search display, public URLs, and home category entry.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "product-categories".
@@ -286,7 +286,7 @@ export interface ProductCategory {
    */
   slug: string;
   /**
-   * Optional parent category for SEO or sub-category hierarchy.
+   * Optional parent category for search display or sub-category hierarchy.
    */
   parentCategory?: (number | null) | ProductCategory;
   /**
@@ -315,7 +315,7 @@ export interface ProductCategory {
   showInMegaMenu?: boolean | null;
   showOnHome?: boolean | null;
   /**
-   * When disabled, the category page remains directly accessible but is hidden from listing filter options. Useful for legacy SEO landing pages and capacity pages.
+   * When disabled, the category page remains directly accessible but is hidden from listing filter options. Useful for legacy search landing pages and capacity pages.
    */
   showInProductFilters?: boolean | null;
   sortOrder?: number | null;
@@ -329,7 +329,7 @@ export interface ProductCategory {
       }[]
     | null;
   /**
-   * Optional category slugs applied when this category page opens. Empty means filter by this category and child categories.
+   * Optional category 短地址 applied when this category page opens. Empty means filter by this category and child categories.
    */
   defaultCategoryFilters?: string[] | null;
   /**
@@ -352,7 +352,7 @@ export interface ProductCategory {
   bannerTitle?: string | null;
   bannerImage?: (number | null) | Media;
   /**
-   * Supports plain paragraphs and [link text](/products?category=category-slug&boom=boom-key). Clicking applies listing filters on the front end.
+   * Supports plain paragraphs and [link text](/products?category=category-短地址&boom=boom-key). Clicking applies listing filters on the front end.
    */
   bannerParagraphs?:
     | {
@@ -365,11 +365,11 @@ export interface ProductCategory {
    */
   seo?: {
     /**
-     * 按当前语言填写。英语是默认来源，其他语言由翻译流程从英语生成后再复核。
+     * 按当前语言填写。英语是默认来源，其他语言后续再统一处理。
      */
     metaTitle?: string | null;
     /**
-     * 按当前语言填写。英语是默认来源，其他语言由翻译流程从英语生成后再复核。
+     * 按当前语言填写。英语是默认来源，其他语言后续再统一处理。
      */
     metaDescription?: string | null;
     /**
@@ -380,7 +380,7 @@ export interface ProductCategory {
   status: 'draft' | 'published';
   publishedAt?: string | null;
   /**
-   * Auto calculated: ready is testable on category/listing/menu/home; needs-url-review is visible but missing legacy URL; hidden is not public.
+   * Auto calculated: 可显示 is testable on category/listing/menu/home; needs-url-review is visible but missing legacy URL; hidden is not public.
    */
   frontendSurfaceStatus?: string | null;
   /**
@@ -455,7 +455,7 @@ export interface Product {
   categoryRef: number | ProductCategory;
   model?: string | null;
   /**
-   * Legacy fallback category. Front-end reads Product Category first.
+   * Legacy field kept for old data.
    */
   category:
     | 'telescopic-boom-truck-mounted-cranes'
@@ -507,11 +507,11 @@ export interface Product {
       }[]
     | null;
   /**
-   * When disabled, the published product can still be tested by its detail URL, but it will not appear in listing, category, or filter results. Even when enabled, only products with Front-end Content Status = ready enter listing pages.
+   * When disabled, the published product can still be tested by its detail URL, but it will not appear in listing, category, or filter results. Even when enabled, only products with Front-end Content Status = 可显示 enter listing pages.
    */
   showInProductList?: boolean | null;
   /**
-   * When disabled, the product is excluded from home product families and featured products. Detail pages are unaffected. Even when enabled, only products with Front-end Content Status = ready enter the home page.
+   * When disabled, the product is excluded from the home product section. Detail pages are unaffected. Even when enabled, only products with Front-end Content Status = 可显示 enter the home page.
    */
   showOnHome?: boolean | null;
   isFeatured?: boolean | null;
@@ -609,11 +609,11 @@ export interface Product {
    */
   seo?: {
     /**
-     * 按当前语言填写。英语是默认来源，其他语言由翻译流程从英语生成后再复核。
+     * 按当前语言填写。英语是默认来源，其他语言后续再统一处理。
      */
     metaTitle?: string | null;
     /**
-     * 按当前语言填写。英语是默认来源，其他语言由翻译流程从英语生成后再复核。
+     * 按当前语言填写。英语是默认来源，其他语言后续再统一处理。
      */
     metaDescription?: string | null;
     /**
@@ -624,7 +624,7 @@ export interface Product {
   status: 'draft' | 'published';
   publishedAt?: string | null;
   /**
-   * Auto calculated: ready can enter home and listing tests; needs-content is missing front-end content; needs-parameter-review still needs parameter verification. Drawing images are evidence records and no longer block public listings. Non-ready products are excluded from public listings.
+   * Auto calculated: 可显示 can enter home and listing tests; needs-content is missing front-end content; needs-parameter-review still needs parameter verification. Drawing images are evidence records and no longer block public listings. Non-可显示 products are excluded from public listings.
    */
   frontendContentStatus?: string | null;
   /**
@@ -727,7 +727,7 @@ export interface ProductUrlAudit {
   summary?: string | null;
   errorMessage?: string | null;
   /**
-   * Per-URL result. Prioritize rows where ok=false or directRender=false.
+   * Per-网址 result. Prioritize rows where ok=false or directRender=false.
    */
   results?:
     | {
@@ -801,11 +801,11 @@ export interface Article {
    */
   seo?: {
     /**
-     * 按当前语言填写。英语是默认来源，其他语言由翻译流程从英语生成后再复核。
+     * 按当前语言填写。英语是默认来源，其他语言后续再统一处理。
      */
     metaTitle?: string | null;
     /**
-     * 按当前语言填写。英语是默认来源，其他语言由翻译流程从英语生成后再复核。
+     * 按当前语言填写。英语是默认来源，其他语言后续再统一处理。
      */
     metaDescription?: string | null;
     /**
@@ -892,11 +892,11 @@ export interface Case {
    */
   seo?: {
     /**
-     * 按当前语言填写。英语是默认来源，其他语言由翻译流程从英语生成后再复核。
+     * 按当前语言填写。英语是默认来源，其他语言后续再统一处理。
      */
     metaTitle?: string | null;
     /**
-     * 按当前语言填写。英语是默认来源，其他语言由翻译流程从英语生成后再复核。
+     * 按当前语言填写。英语是默认来源，其他语言后续再统一处理。
      */
     metaDescription?: string | null;
     /**
@@ -910,7 +910,7 @@ export interface Case {
   createdAt: string;
 }
 /**
- * Fallback rules only. Products, categories, articles, and cases should use their public URL fields first so current URLs match legacy URLs and render directly.
+ * Backup rules only. Products, categories, articles, and cases should use their public URL fields first so current URLs match legacy URLs and render directly.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
@@ -922,7 +922,7 @@ export interface Redirect {
    */
   sourcePath: string;
   /**
-   * Fallback target path; use only when direct same-URL rendering is not possible.
+   * Backup target path; use only when direct same-网址 rendering is not possible.
    */
   targetPath: string;
   redirectType: 'permanent' | 'temporary';
@@ -1004,7 +1004,7 @@ export interface User {
   collection: 'users';
 }
 /**
- * Tracks and runs professional translation jobs. English is the source locale. Set status to Queued and save to start DeepL / DeepLX in the background. dryRun checks coverage only; disable dryRun to write translations.
+ * Tracks and runs professional translation jobs. English is the source locale. Set status to Queued and save to start DeepL / DeepLX in the background. 只检查 checks coverage only; disable 只检查 to write translations.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "translation-jobs".
@@ -1789,17 +1789,10 @@ export interface HomeSetting {
    */
   homeHeroSlides?:
     | {
-        eyebrow?: string | null;
-        title: string;
-        description?: string | null;
         image?: (number | null) | Media;
         imagePath?: string | null;
         mobileImage?: (number | null) | Media;
         mobileImagePath?: string | null;
-        primaryCtaLabel?: string | null;
-        primaryCtaHref?: string | null;
-        secondaryCtaLabel?: string | null;
-        secondaryCtaHref?: string | null;
         id?: string | null;
       }[]
     | null;
@@ -1812,22 +1805,15 @@ export interface HomeSetting {
     autoplayIntervalMs?: number | null;
     showControls?: boolean | null;
     showIndicators?: boolean | null;
-    showOverlay?: boolean | null;
   };
   homeSectionVisibility?: {
     hero?: boolean | null;
     trustBar?: boolean | null;
     productSection?: boolean | null;
-    featuredProducts?: boolean | null;
-    applicationSection?: boolean | null;
     aboutSection?: boolean | null;
     newsSection?: boolean | null;
     finalCta?: boolean | null;
   };
-  /**
-   * Optional home featured products. Only published, front-end ready products allowed on the home page can be selected, so the admin does not pick invisible products.
-   */
-  homeFeaturedProducts?: (number | Product)[] | null;
   /**
    * Optional articles for the home news section. The front end follows this order.
    */
@@ -1840,16 +1826,6 @@ export interface HomeSetting {
     showInlineProductDetail?: boolean | null;
     showProductSpecs?: boolean | null;
     showProductVisualWatermark?: boolean | null;
-    showFeaturedCta?: boolean | null;
-    showFeaturedProductModel?: boolean | null;
-    featuredLabel?: string | null;
-    featuredTitle?: string | null;
-    featuredCtaLabel?: string | null;
-    featuredCtaHref?: string | null;
-    maxFeaturedProducts?: number | null;
-    showFeaturedProductSpecs?: boolean | null;
-    featuredCapacityLabel?: string | null;
-    featuredTypeLabel?: string | null;
     findModelTitle?: string | null;
     detailsShortLabel?: string | null;
     viewDetailsLabel?: string | null;
@@ -1876,26 +1852,6 @@ export interface HomeSetting {
           name: string;
           logoPath?: string | null;
           logoImage?: (number | null) | Media;
-          id?: string | null;
-        }[]
-      | null;
-  };
-  applicationSection?: {
-    label?: string | null;
-    title?: string | null;
-    ctaLabel?: string | null;
-    ctaHref?: string | null;
-    showCta?: boolean | null;
-    showImages?: boolean | null;
-    showIcons?: boolean | null;
-    items?:
-      | {
-          title: string;
-          image?: (number | null) | Media;
-          imagePath?: string | null;
-          iconName?:
-            | ('award' | 'building' | 'factory' | 'globe' | 'network' | 'package-check' | 'ship' | 'truck' | 'wrench')
-            | null;
           id?: string | null;
         }[]
       | null;
@@ -1980,7 +1936,7 @@ export interface ProductListingUi {
     bannerImageAlt?: string | null;
     bannerWatermarkLabel?: string | null;
     /**
-     * Supports plain paragraphs and [link text](/products?category=category-slug&boom=boom-key). Clicking applies listing filters on the front end.
+     * Supports plain paragraphs and [link text](/products?category=category-短地址&boom=boom-key). Clicking applies listing filters on the front end.
      */
     bannerParagraphs?:
       | {
@@ -2359,7 +2315,7 @@ export interface SiteSetting {
       }[]
     | null;
   /**
-   * Front-end language menu options. English is always available. Other locales are only public when ready and at least 95% complete.
+   * Front-end language menu options. English is always available. Other locales are only public when 可显示 and at least 95% complete.
    */
   languageOptions?:
     | {
@@ -2369,7 +2325,7 @@ export interface SiteSetting {
         flag: string;
         direction: 'ltr' | 'rtl';
         /**
-         * Editorial translation readiness. Non-English locales are hidden until ready and at least 95% complete.
+         * Editorial translation readiness. Non-English locales are hidden until 可显示 and at least 95% complete.
          */
         translationStatus: 'not-started' | 'in-progress' | 'ready';
         completionPercent?: number | null;
@@ -2666,6 +2622,9 @@ export interface PageTextSetting {
  */
 export interface TranslationSetting {
   id: number;
+  /**
+   * Keep disabled until translation credentials are ready.
+   */
   enabled?: boolean | null;
   provider: 'deepl' | 'deeplx';
   authKeyEnvName?: string | null;
@@ -2673,7 +2632,7 @@ export interface TranslationSetting {
   deeplxAuthKeyEnvName?: string | null;
   sourceLocale: string;
   /**
-   * Defaults to every front-end locale except English. After translation and review, mark the locale as ready in Site Settings → Language Menu.
+   * Defaults to every front-end locale except English. After translation and review, mark the locale as 可显示 in Site Settings → Language Menu.
    */
   targetLocales: string[];
   formality?: ('default' | 'more' | 'less') | null;
@@ -2704,17 +2663,10 @@ export interface HomeSettingsSelect<T extends boolean = true> {
   homeHeroSlides?:
     | T
     | {
-        eyebrow?: T;
-        title?: T;
-        description?: T;
         image?: T;
         imagePath?: T;
         mobileImage?: T;
         mobileImagePath?: T;
-        primaryCtaLabel?: T;
-        primaryCtaHref?: T;
-        secondaryCtaLabel?: T;
-        secondaryCtaHref?: T;
         id?: T;
       };
   homeHeroUi?:
@@ -2728,7 +2680,6 @@ export interface HomeSettingsSelect<T extends boolean = true> {
         autoplayIntervalMs?: T;
         showControls?: T;
         showIndicators?: T;
-        showOverlay?: T;
       };
   homeSectionVisibility?:
     | T
@@ -2736,13 +2687,10 @@ export interface HomeSettingsSelect<T extends boolean = true> {
         hero?: T;
         trustBar?: T;
         productSection?: T;
-        featuredProducts?: T;
-        applicationSection?: T;
         aboutSection?: T;
         newsSection?: T;
         finalCta?: T;
       };
-  homeFeaturedProducts?: T;
   homeFeaturedArticles?: T;
   homeProductSection?:
     | T
@@ -2754,16 +2702,6 @@ export interface HomeSettingsSelect<T extends boolean = true> {
         showInlineProductDetail?: T;
         showProductSpecs?: T;
         showProductVisualWatermark?: T;
-        showFeaturedCta?: T;
-        showFeaturedProductModel?: T;
-        featuredLabel?: T;
-        featuredTitle?: T;
-        featuredCtaLabel?: T;
-        featuredCtaHref?: T;
-        maxFeaturedProducts?: T;
-        showFeaturedProductSpecs?: T;
-        featuredCapacityLabel?: T;
-        featuredTypeLabel?: T;
         findModelTitle?: T;
         detailsShortLabel?: T;
         viewDetailsLabel?: T;
@@ -2793,26 +2731,6 @@ export interface HomeSettingsSelect<T extends boolean = true> {
               name?: T;
               logoPath?: T;
               logoImage?: T;
-              id?: T;
-            };
-      };
-  applicationSection?:
-    | T
-    | {
-        label?: T;
-        title?: T;
-        ctaLabel?: T;
-        ctaHref?: T;
-        showCta?: T;
-        showImages?: T;
-        showIcons?: T;
-        items?:
-          | T
-          | {
-              title?: T;
-              image?: T;
-              imagePath?: T;
-              iconName?: T;
               id?: T;
             };
       };

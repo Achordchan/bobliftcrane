@@ -6,8 +6,8 @@ import { stampDrawingReviewSyncBeforeChange, syncDrawingReviewToProductAfterChan
 export const ProductDrawingReviews: CollectionConfig = {
   slug: 'product-drawing-reviews',
   labels: {
-    singular: '产品图纸记录（不复核）',
-    plural: '产品图纸记录（不复核）',
+    singular: '产品资料图片',
+    plural: '产品资料图片',
   },
   access: {
     create: isAdmin,
@@ -16,12 +16,13 @@ export const ProductDrawingReviews: CollectionConfig = {
     update: isAdmin,
   },
   admin: {
+    hideAPIURL: true,
     defaultColumns: ['title', 'reviewStatus', 'parameterMatchStatus', 'product', 'sourceType', 'reviewer', 'reviewedAt', 'updatedAt'],
     description: {
       zh: '这里集中查看每一张图纸/参数图。当前只做资料归档；保存备注会反写到对应产品，但不会阻止产品进入首页和产品列表。',
       en: 'Central record for every drawing or parameter image. These records are for evidence archiving only and do not block front-end readiness.',
     },
-    group: { zh: '01 产品中心', en: '01 Product Center' },
+    group: { zh: '90 管理员工具（一般不用）', en: '90 Admin Tools' },
     listSearchableFields: ['title', 'productTitleSnapshot', 'productModelSnapshot', 'sourceUrl', 'extractedText', 'reviewNotes'],
     useAsTitle: 'title',
   },
@@ -71,8 +72,8 @@ export const ProductDrawingReviews: CollectionConfig = {
             { name: 'productModelSnapshot', type: 'text', admin: { readOnly: true }, label: { zh: '产品型号快照', en: 'Product Model Snapshot' } },
             { name: 'specsSnapshot', type: 'textarea', admin: { readOnly: true }, label: { zh: '当前产品参数快照', en: 'Current Product Specs Snapshot' } },
             { name: 'image', type: 'upload', label: { zh: '图纸/参数图', en: 'Drawing Image' }, relationTo: 'media', required: true },
-            { name: 'sourceType', type: 'text', label: { zh: '来源类型', en: 'Source Type' } },
-            { name: 'sourceUrl', type: 'text', label: { zh: '旧站原图 URL', en: 'Legacy Source Image URL' } },
+            { name: 'sourceType', type: 'text', label: { zh: '导入来源', en: 'Source Type' } },
+            { name: 'sourceUrl', type: 'text', label: { zh: '旧网站原图地址', en: 'Legacy Source Image URL' } },
           ],
         },
         {

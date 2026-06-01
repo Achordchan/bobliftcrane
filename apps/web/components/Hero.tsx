@@ -2,14 +2,13 @@
 
 import Image from "next/image";
 import { type ReactNode, useEffect, useState } from "react";
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { defaultHomeHeroSlides, defaultHomeHeroUiContent, type HomeHeroSlide, type HomeHeroUiContent } from "@/lib/home-defaults";
 
 export function Hero({ slides = defaultHomeHeroSlides, ui = defaultHomeHeroUiContent }: { slides?: HomeHeroSlide[]; ui?: HomeHeroUiContent }) {
   const heroSlides = slides.length > 0 ? slides : defaultHomeHeroSlides;
   const [activeIndex, setActiveIndex] = useState(0);
-  const activeSlide = heroSlides[activeIndex] ?? heroSlides[0];
 
   useEffect(() => {
     if (!ui.autoplay || heroSlides.length <= 1) return;
@@ -37,14 +36,14 @@ export function Hero({ slides = defaultHomeHeroSlides, ui = defaultHomeHeroUiCon
   }
 
   return (
-    <section className="relative min-h-[430px] overflow-hidden bg-[#d9eef9] md:min-h-[560px]" aria-label={ui.ariaLabel}>
-      <div className="absolute inset-0">
+    <section className="relative h-[430px] overflow-hidden bg-[#d9eef9] md:h-[560px]" aria-label={ui.ariaLabel}>
+      <div className="absolute inset-0 h-full w-full">
         {heroSlides.map((slide, index) => (
-          <picture className="absolute inset-0" key={`${slide.title}-${index}`}>
+          <picture className="absolute inset-0 block h-full w-full" key={`${slide.image}-${index}`}>
             {slide.mobileImage && <source media="(max-width: 767px)" srcSet={slide.mobileImage} />}
             <Image
-              alt={slide.title}
-              className={`object-cover object-center transition duration-700 ease-out ${activeIndex === index ? "opacity-100 scale-100" : "opacity-0 scale-[1.015]"}`}
+              alt=""
+              className={`h-full w-full object-cover object-center transition duration-700 ease-out ${activeIndex === index ? "opacity-100 scale-100" : "opacity-0 scale-[1.015]"}`}
               fill
               priority={index === 0}
               sizes="100vw"
@@ -52,46 +51,6 @@ export function Hero({ slides = defaultHomeHeroSlides, ui = defaultHomeHeroUiCon
             />
           </picture>
         ))}
-      </div>
-
-      {ui.showOverlay ? (
-        <>
-          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(8,35,74,0.74)_0%,rgba(8,35,74,0.44)_42%,rgba(8,35,74,0.08)_100%)]" />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#08234a]/36 to-transparent" />
-        </>
-      ) : null}
-
-      <div className="page-shell relative z-10 flex min-h-[430px] items-center py-20 md:min-h-[560px] md:py-28">
-        <div className="max-w-3xl text-white">
-          {activeSlide?.eyebrow && (
-            <p className="text-xs font-black uppercase tracking-[0.28em] text-gold md:text-sm">
-              {activeSlide.eyebrow}
-            </p>
-          )}
-          <h1 className="mt-4 text-[clamp(2.4rem,7vw,5.8rem)] font-black leading-[0.95] tracking-[-0.065em] drop-shadow-[0_18px_42px_rgba(0,0,0,0.22)]">
-            {activeSlide?.title}
-          </h1>
-          {activeSlide?.description && (
-            <p className="mt-5 max-w-2xl text-base font-semibold leading-7 text-white/82 md:text-lg md:leading-8">
-              {activeSlide.description}
-            </p>
-          )}
-          {(activeSlide?.primaryCtaLabel || activeSlide?.secondaryCtaLabel) && (
-            <div className="mt-8 flex flex-wrap gap-3">
-              {activeSlide.primaryCtaLabel && activeSlide.primaryCtaHref && (
-                <a className="inline-flex min-h-12 items-center justify-center gap-3 rounded-full bg-gold px-6 text-sm font-black text-navy shadow-[0_18px_44px_rgba(245,154,60,0.24)] transition hover:-translate-y-0.5 hover:bg-white" href={activeSlide.primaryCtaHref}>
-                  {activeSlide.primaryCtaLabel}
-                  <ArrowRight className="h-4 w-4" />
-                </a>
-              )}
-              {activeSlide.secondaryCtaLabel && activeSlide.secondaryCtaHref && (
-                <a className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/50 bg-white/12 px-6 text-sm font-black text-white backdrop-blur transition hover:-translate-y-0.5 hover:bg-white hover:text-navy" href={activeSlide.secondaryCtaHref}>
-                  {activeSlide.secondaryCtaLabel}
-                </a>
-              )}
-            </div>
-          )}
-        </div>
       </div>
 
       {ui.showControls || ui.showIndicators ? (
@@ -106,10 +65,10 @@ export function Hero({ slides = defaultHomeHeroSlides, ui = defaultHomeHeroUiCon
             <div className="absolute bottom-[-56px] left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full bg-white/25 px-2 py-1 backdrop-blur-sm md:static md:translate-x-0 md:gap-2 md:bg-transparent md:px-1 md:py-0 md:backdrop-blur-0">
               {heroSlides.map((slide, index) => (
                 <button
-                  aria-label={formatHeroLabel(ui.slideIndicatorLabelTemplate, slide.title)}
+                  aria-label={formatHeroLabel(ui.slideIndicatorLabelTemplate, index + 1)}
                   aria-current={activeIndex === index}
                   className={`h-1 rounded-full transition-all duration-300 md:h-2 ${activeIndex === index ? "w-5 bg-gold md:w-8" : "w-1 bg-white/85 hover:bg-white md:w-2"}`}
-                  key={`${slide.title}-${index}`}
+                  key={`${slide.image}-${index}`}
                   onClick={() => showSlide(index)}
                   type="button"
                 />
@@ -128,8 +87,9 @@ export function Hero({ slides = defaultHomeHeroSlides, ui = defaultHomeHeroUiCon
   );
 }
 
-function formatHeroLabel(template: string, title: string) {
-  return template.replaceAll("{title}", title);
+function formatHeroLabel(template: string, index: number) {
+  const normalizedTemplate = template.includes("{index}") ? template : "Show banner {index}";
+  return normalizedTemplate.replaceAll("{index}", String(index));
 }
 
 function HeroSwitchButton({ children, label, onClick }: { children: ReactNode; label: string; onClick: () => void }) {

@@ -26,8 +26,9 @@ export const Cases: CollectionConfig = {
     update: isAdmin,
   },
   admin: {
+    hideAPIURL: true,
     defaultColumns: ['title', 'caseType', 'country', 'status', 'updatedAt'],
-    group: { zh: '03 内容与旧站 URL', en: '03 Content & Legacy URLs' },
+    group: { zh: '03 新闻与案例', en: '03 News & Cases' },
     preview: ({ legacyPath, slug }) => {
       if (typeof legacyPath === 'string' && legacyPath.startsWith('/')) return legacyPath;
       return typeof slug === 'string' && slug ? `/cases/${slug}` : '/cases';
@@ -44,13 +45,13 @@ export const Cases: CollectionConfig = {
       name: 'legacyPath',
       type: 'text',
       admin: {
-        description: { zh: '当前公开案例 URL。为了让改版后链接与旧站一致，优先填写旧站真实 .html 路径，例如：/customer-case.html。', en: 'Current public case URL. Use the original old-site .html path whenever possible.' },
+      description: { zh: '案例页面地址。为了让改版后链接与旧网站一致，优先填写旧网站真实 .html 路径，例如：/customer-case.html。', en: 'Current public case URL. Use the original old-site .html path whenever possible.' },
         position: 'sidebar',
       },
-      label: { zh: '公开案例 URL（保持旧站一致）', en: 'Public Case URL' },
+      label: { zh: '案例页面地址', en: 'Public Case URL' },
     },
     legacyAliasesField({
-      zh: '同一案例曾经用过的其他旧站路径。主公开 URL 请填上方“公开案例 URL”，这些别名也会直接渲染案例详情页。',
+      zh: '同一案例曾经用过的其他旧地址，一般不用改。主页面地址填上方“案例页面地址”。',
       en: 'Other historical paths for this case. Put the main public URL in Public Case URL above. These aliases also render the case detail page directly.',
     }),
     { name: 'caseType', type: 'text', localized: true, label: { zh: '案例类型', en: 'Case Type' } },
@@ -63,11 +64,11 @@ export const Cases: CollectionConfig = {
       type: 'text',
       admin: {
         description: {
-          zh: '可选。旧站图片已在 public 下时可填路径，例如 /images/oldsite/cases/example.jpg；上传封面图优先级更高。',
+      zh: '可选。旧网站图片已整理到网站文件夹时可填路径，例如 /images/oldsite/cases/example.jpg；上传封面图优先级更高。',
           en: 'Optional static image path, e.g. /images/oldsite/cases/example.jpg. Uploaded cover image takes priority.',
         },
       },
-      label: { zh: '封面图静态路径', en: 'Static Cover Image Path' },
+      label: { zh: '封面图片路径（一般不用）', en: 'Static Cover Image Path' },
     },
     {
       name: 'facts',
@@ -82,7 +83,7 @@ export const Cases: CollectionConfig = {
     {
       name: 'sections',
       type: 'array',
-      admin: { description: { zh: '结构化正文；未填写时前台会使用富文本正文。', en: 'Structured article sections; rich text is used when empty.' }, initCollapsed: true },
+      admin: { description: { zh: '结构化正文；未填写时网站会使用富文本正文。', en: 'Structured article sections; rich text is used when empty.' }, initCollapsed: true },
       fields: [
         { name: 'heading', type: 'text', localized: true, label: { zh: '小标题', en: 'Heading' }, required: true },
         { name: 'body', type: 'textarea', localized: true, label: { zh: '正文', en: 'Body' }, required: true },

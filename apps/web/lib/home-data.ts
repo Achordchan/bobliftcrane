@@ -5,7 +5,6 @@ export type ProductNavGroup = { title: string; href: string; description: string
 export const navItems: NavItem[] = [
   { label: "Home", href: "/" },
   { label: "Products", href: "/products", hasMenu: true },
-  { label: "Application", href: "/#application", hasMenu: true },
   { label: "Cases", href: "/cases" },
   { label: "About BOB-LIFT", href: "/about" },
   { label: "News", href: "/news" },

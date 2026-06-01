@@ -7,8 +7,8 @@ import { validateUniqueLegacyPaths } from '../hooks/validateUniqueLegacyPaths';
 export const Redirects: CollectionConfig = {
   slug: 'redirects',
   labels: {
-    singular: '旧 URL 兜底规则（非主要入口）',
-    plural: '旧 URL 兜底规则（非主要入口）',
+    singular: '历史链接规则（一般不用）',
+    plural: '历史链接规则（一般不用）',
   },
   access: {
     create: isAdmin,
@@ -17,9 +17,10 @@ export const Redirects: CollectionConfig = {
     update: isAdmin,
   },
   admin: {
+    hideAPIURL: true,
     defaultColumns: ['sourcePath', 'targetPath', 'status', 'redirectType', 'updatedAt'],
-    description: { zh: '这里只处理少数无法直接渲染的历史路径。产品、分类、新闻、案例必须优先在各自内容里填写“公开 URL”，让当前链接和旧站一致并直接渲染；不要把这里当旧站跳转入口。', en: 'Fallback rules only. Products, categories, articles, and cases should use their public URL fields first so current URLs match legacy URLs and render directly.' },
-    group: { zh: '03 内容与旧站 URL', en: '03 Content & Legacy URLs' },
+    description: { zh: '这里是历史链接规则，日常运营一般不用。产品、分类、新闻、案例请优先在各自内容里填写“页面地址”。', en: 'Backup rules only. Products, categories, articles, and cases should use their public URL fields first so current URLs match legacy URLs and render directly.' },
+    group: { zh: '90 管理员工具（一般不用）', en: '90 Admin Tools' },
     useAsTitle: 'sourcePath',
   },
   hooks: {
@@ -29,26 +30,26 @@ export const Redirects: CollectionConfig = {
     {
       name: 'sourcePath',
       type: 'text',
-      admin: { description: { zh: '需要兼容的访问路径，必须以 / 开头，例如 /telescopic-boom-truck-mounted-crane。能直接填到产品/分类公开 URL 的，不要在这里维护。', en: 'Path to support, starting with /. Prefer product/category public URL fields when possible.' } },
-      label: { zh: '旧访问路径', en: 'Legacy Source Path' },
+      admin: { description: { zh: '旧网站地址，必须以 / 开头，例如 /telescopic-boom-truck-mounted-crane。能填到产品或分类里的，不要在这里维护。', en: 'Path to support, starting with /. Prefer product/category public URL fields when possible.' } },
+      label: { zh: '旧页面地址', en: 'Legacy Source Path' },
       required: true,
       unique: true,
     },
     {
       name: 'targetPath',
       type: 'text',
-      admin: { description: { zh: '兜底目标路径；仅在不能把该 URL 直接填到产品/分类/文章/案例时使用。', en: 'Fallback target path; use only when direct same-URL rendering is not possible.' } },
-      label: { zh: '兜底目标路径', en: 'Target Path' },
+      admin: { description: { zh: '这个旧地址最终应该打开到哪个新页面。', en: 'Backup target path; use only when direct same-网址 rendering is not possible.' } },
+      label: { zh: '打开到哪个页面', en: 'Target Path' },
       required: true,
     },
     {
       name: 'redirectType',
       type: 'select',
       defaultValue: 'permanent',
-      label: { zh: '最后兜底方式（一般不用）', en: 'Last-Resort Fallback Type' },
+      label: { zh: '处理方式（管理员）', en: 'Backup Type' },
       options: [
-        { label: { zh: '永久跳转（仅无直出组件时）', en: 'Permanent Redirect, Only Without Direct Render' }, value: 'permanent' },
-        { label: { zh: '临时跳转（仅无直出组件时）', en: 'Temporary Redirect, Only Without Direct Render' }, value: 'temporary' },
+        { label: { zh: '长期使用这条规则', en: 'Permanent Redirect, Only Without Direct Render' }, value: 'permanent' },
+        { label: { zh: '临时使用这条规则', en: 'Temporary Redirect, Only Without Direct Render' }, value: 'temporary' },
       ],
       required: true,
     },

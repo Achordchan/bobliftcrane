@@ -26,7 +26,7 @@ function NewsCenter({ articles, content, locale }: { articles: Article[]; conten
             <p className="section-label mb-4 md:mb-5">
               {content.label}
             </p>
-            <h2 className="max-w-none text-[clamp(31px,7.2vw,38px)] font-black leading-[0.98] tracking-[-0.06em] text-ink sm:text-[52px] lg:whitespace-nowrap lg:text-[56px] xl:text-[64px]">
+            <h2 className="max-w-none text-[clamp(31px,7.2vw,38px)] font-black leading-[0.98] tracking-[-0.06em] text-ink sm:text-[48px] lg:text-[52px] 2xl:whitespace-nowrap 2xl:text-[64px]">
               {content.title}
             </h2>
           </div>
@@ -39,13 +39,13 @@ function NewsCenter({ articles, content, locale }: { articles: Article[]; conten
           ) : null}
         </div>
 
-        <div className="relative z-10 mt-7 grid grid-cols-1 items-stretch gap-5 md:mt-9 xl:grid-cols-[minmax(0,1.08fr)_minmax(380px,0.92fr)] xl:gap-7">
-          <div className="grid h-full content-stretch gap-5 xl:grid-rows-[minmax(0,1fr)_auto]">
-            <a className="group grid h-full overflow-hidden rounded-[26px] border border-line bg-white p-2 shadow-card transition duration-300 hover:-translate-y-1 hover:shadow-soft md:grid-cols-[1fr_0.88fr] md:rounded-[30px] md:p-3" href={localizedPath(articlePublicPath(featured), locale)}>
-              <div className="relative min-h-[230px] overflow-hidden rounded-[20px] md:min-h-[330px] md:rounded-[24px]">
-                <Image className="object-cover transition duration-500 group-hover:scale-[1.035]" src={featured.image} alt={featured.title} fill sizes="(min-width: 1280px) 44vw, 92vw" />
+        <div className="relative z-10 mt-7 grid grid-cols-1 items-stretch gap-5 md:mt-9 2xl:grid-cols-[minmax(0,1.08fr)_minmax(430px,0.92fr)] 2xl:gap-7">
+          <div className="grid h-full content-stretch gap-5 2xl:grid-rows-[minmax(0,1fr)_auto]">
+            <a className="group grid h-full overflow-hidden rounded-[26px] border border-line bg-white p-2 shadow-card transition duration-300 hover:-translate-y-1 hover:shadow-soft md:rounded-[30px] md:p-3 lg:grid-cols-[minmax(0,0.96fr)_minmax(300px,0.74fr)] 2xl:grid-cols-[1fr_0.88fr]" href={localizedPath(articlePublicPath(featured), locale)}>
+              <div className="relative min-h-[220px] overflow-hidden rounded-[20px] sm:min-h-[260px] lg:min-h-[300px] md:rounded-[24px] 2xl:min-h-[330px]">
+                <Image className="object-cover transition duration-500 group-hover:scale-[1.035]" src={featured.image} alt={featured.title} fill sizes="(min-width: 1536px) 40vw, (min-width: 1024px) 46vw, 92vw" />
               </div>
-              <div className="flex min-w-0 flex-col justify-center bg-white p-4 md:p-6 lg:p-8">
+              <div className="flex min-w-0 flex-col justify-center bg-white p-4 sm:p-5 lg:p-6 2xl:p-8">
                 {content.showCategory || content.showDate ? (
                   <div className="mb-3 flex flex-wrap items-center gap-2 md:mb-5 md:gap-3">
                     {content.showCategory ? (
@@ -56,11 +56,11 @@ function NewsCenter({ articles, content, locale }: { articles: Article[]; conten
                     {content.showDate ? <span className="text-xs font-bold text-slate-500">{featured.date}</span> : null}
                   </div>
                 ) : null}
-                <h3 className="text-2xl font-black leading-tight tracking-[-0.04em] text-ink md:text-4xl">
+                <h3 className="line-clamp-3 text-2xl font-black leading-tight tracking-[-0.04em] text-ink sm:text-3xl lg:text-[32px] 2xl:line-clamp-4 2xl:text-4xl">
                   {featured.title}
                 </h3>
                 {content.showExcerpt ? (
-                  <p className="mt-4 text-sm font-medium leading-6 text-slate-600 md:text-base md:leading-7">
+                  <p className="mt-4 line-clamp-3 text-sm font-medium leading-6 text-slate-600 md:text-base md:leading-7 2xl:line-clamp-4">
                     {featured.excerpt}
                   </p>
                 ) : null}
@@ -102,13 +102,13 @@ function NewsCenter({ articles, content, locale }: { articles: Article[]; conten
             )}
           </div>
 
-          <div className="grid h-full content-stretch gap-4 sm:grid-cols-2 xl:grid-cols-1 xl:grid-rows-3">
-            {rightItems.map((item, index) => (
-              <a className="group grid h-full min-w-0 grid-cols-[112px_1fr] gap-3 overflow-hidden rounded-[22px] border border-line bg-white/90 p-2 shadow-card transition duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-soft sm:grid-cols-1 xl:grid-cols-[178px_1fr] xl:rounded-[26px]" href={localizedPath(articlePublicPath(item), locale)} key={item.slug}>
-                <div className="relative min-h-[122px] overflow-hidden rounded-[18px] sm:min-h-[190px] xl:min-h-[164px] xl:rounded-[20px]">
-                  <Image className="object-cover transition duration-500 group-hover:scale-[1.04]" src={item.image} alt={item.title} fill sizes="(min-width: 1280px) 16vw, (min-width: 640px) 42vw, 112px" />
+          <div className="grid h-full content-stretch gap-4 sm:grid-cols-2 2xl:grid-cols-1 2xl:grid-rows-3">
+            {rightItems.map((item) => (
+              <a className="group grid h-full min-w-0 grid-cols-[112px_1fr] gap-3 overflow-hidden rounded-[22px] border border-line bg-white/90 p-2 shadow-card transition duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-soft sm:grid-cols-1 2xl:grid-cols-[178px_1fr] 2xl:rounded-[26px]" href={localizedPath(articlePublicPath(item), locale)} key={item.slug}>
+                <div className="relative min-h-[122px] overflow-hidden rounded-[18px] sm:min-h-[190px] 2xl:min-h-[164px] 2xl:rounded-[20px]">
+                  <Image className="object-cover transition duration-500 group-hover:scale-[1.04]" src={item.image} alt={item.title} fill sizes="(min-width: 1536px) 16vw, (min-width: 640px) 42vw, 112px" />
                 </div>
-                <div className="flex min-w-0 flex-col justify-center px-1 py-1.5 sm:px-2 sm:py-3 xl:px-2 xl:py-4">
+                <div className="flex min-w-0 flex-col justify-center px-1 py-1.5 sm:px-2 sm:py-3 2xl:px-2 2xl:py-4">
                   {content.showCategory || content.showDate ? (
                     <div className="mb-2 flex flex-wrap items-center gap-1.5 md:gap-2">
                       {content.showCategory ? (

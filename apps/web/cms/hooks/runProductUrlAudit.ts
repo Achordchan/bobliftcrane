@@ -45,7 +45,7 @@ async function startProductUrlAudit(payload: Parameters<AfterChangeHook>[0]['req
         isCurrent: true,
         supersededAt: null,
         lastRunAt: new Date().toISOString(),
-        summary: '后台已启动旧站 URL 直出验收，完成后会自动写入明细。',
+        summary: '后台已开始检查旧网站地址，完成后会自动写入明细。',
         errorMessage: '',
       },
     });
@@ -76,12 +76,12 @@ async function startProductUrlAudit(payload: Parameters<AfterChangeHook>[0]['req
   });
   child.on('error', async (error) => {
     runningJobIds.delete(jobId);
-    await markProductUrlAuditFailed(payload, audit.id, `URL 验收任务启动失败：${error.message}`);
+    await markProductUrlAuditFailed(payload, audit.id, `旧网站地址检查启动失败：${error.message}`);
   });
   child.on('close', async (code, signal) => {
     runningJobIds.delete(jobId);
     if (signal || (code && code !== 0)) {
-      await markProductUrlAuditFailed(payload, audit.id, stderr || `URL 验收任务异常退出，退出码：${code ?? '无'}，信号：${signal ?? '无'}`);
+      await markProductUrlAuditFailed(payload, audit.id, stderr || `旧网站地址检查异常退出，退出码：${code ?? '无'}，信号：${signal ?? '无'}`);
     }
   });
 }
@@ -99,7 +99,7 @@ async function markProductUrlAuditFailed(
       data: {
         status: 'failed',
         completedAt: new Date().toISOString(),
-        summary: '后台 URL 验收任务未正常完成。',
+        summary: '旧网站地址检查未正常完成。',
         errorMessage: tail(message, 900),
       },
     });

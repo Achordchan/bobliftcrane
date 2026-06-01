@@ -21,11 +21,11 @@ function categoryFrontendChecklist(data: CategoryDraftData) {
   const notes: string[] = [];
 
   if (data.status !== 'published') blocking.push('分类未发布');
-  if (data.pageType === 'redirect-only') blocking.push('栏目类型为不在前台展示');
+  if (data.pageType === 'redirect-only') blocking.push('栏目类型为不在网站展示');
   if (!hasText(data.title)) blocking.push('分类名称');
-  if (!hasText(data.slug)) blocking.push('slug');
-  if (!hasText(data.legacyPath)) notes.push('未填写旧站公开 URL，将使用 /products/category/{slug}');
-  if (data.showInMegaMenu === false) notes.push('不进入顶部 Products 菜单');
+  if (!hasText(data.slug)) blocking.push('短地址');
+  if (!hasText(data.legacyPath)) notes.push('未填写旧网站页面地址，将使用 /products/category/{分类值}');
+  if (data.showInMegaMenu === false) notes.push('不进入顶部产品菜单');
   if (data.showOnHome === false) notes.push('不进入首页产品分类');
   if (data.showInProductFilters === false) notes.push('不进入产品列表筛选项，但直接访问分类页仍生效');
 
@@ -34,7 +34,7 @@ function categoryFrontendChecklist(data: CategoryDraftData) {
   }
 
   return {
-    status: notes.some((note) => note.includes('公开 URL')) ? 'needs-url-review' : 'ready',
+    status: notes.some((note) => note.includes('页面地址')) ? 'needs-url-review' : 'ready',
     note: notes.length > 0 ? notes.join('、') : '已具备产品列表筛选、分类页、顶部菜单和首页分类测试条件',
   };
 }
@@ -42,8 +42,8 @@ function categoryFrontendChecklist(data: CategoryDraftData) {
 export const ProductCategories: CollectionConfig = {
   slug: 'product-categories',
   labels: {
-    singular: '产品分类管理（先建分类）',
-    plural: '产品分类管理（先建分类）',
+    singular: '产品分类',
+    plural: '产品分类',
   },
   access: {
     create: isAdmin,
@@ -52,12 +52,13 @@ export const ProductCategories: CollectionConfig = {
     update: isAdmin,
   },
   admin: {
+    hideAPIURL: true,
     defaultColumns: ['title', 'frontendSurfaceStatus', 'frontendSurfaceNote', 'parentCategory', 'legacyPath', 'pageType', 'menuGroup', 'showInMegaMenu', 'showOnHome', 'showInProductFilters', 'sortOrder', 'status'],
     description: {
-      zh: '这里就是编辑产品分类的地方：先建并发布分类，再到“产品上传 / 产品管理（看前台可见状态）”里选择该分类。分类会同步控制顶部 Products 大菜单、产品列表筛选、分类页 Banner/SEO、公开 URL 和首页产品分类入口。',
-      en: 'Edit product categories here. Create and publish categories first, then select them from Product Upload / Product Management. Categories drive the Products mega menu, listing filters, category page banner/SEO, public URLs, and home category entry.',
+      zh: '这里管理产品分类。先建并发布分类，再到“产品管理”里给产品选择分类。分类会影响顶部产品菜单、产品列表筛选、分类页顶部内容、页面地址和首页产品入口。',
+      en: 'Edit product categories here. Create and publish categories first, then select them from Product Upload / Product Management. Categories drive the Products mega menu, listing filters, category page banner/search display, public URLs, and home category entry.',
     },
-    group: { zh: '01 产品中心', en: '01 Product Center' },
+    group: { zh: '01 产品管理', en: '01 Product Management' },
     listSearchableFields: ['title', 'slug', 'shortTitle', 'legacyPath'],
     preview: ({ legacyPath, slug }) => {
       if (typeof legacyPath === 'string' && legacyPath.startsWith('/')) return legacyPath;
@@ -93,7 +94,7 @@ export const ProductCategories: CollectionConfig = {
             {
               name: 'parentCategory',
               type: 'relationship',
-              admin: { description: { zh: '可选。用于把 SEO 子栏目归到主分类下面；主分类会继续作为产品列表筛选入口。', en: 'Optional parent category for SEO or sub-category hierarchy.' } },
+              admin: { description: { zh: '可选。用于把专题子栏目归到主分类下面；主分类仍可作为产品列表筛选入口。', en: 'Optional parent category for search display or sub-category hierarchy.' } },
               label: { zh: '父级分类', en: 'Parent Category' },
               relationTo: 'product-categories',
             },
@@ -109,12 +110,12 @@ export const ProductCategories: CollectionConfig = {
               type: 'text',
               admin: {
                 description: {
-                  zh: '公开分类 URL。这里填写当前前台真实访问路径，要求和旧站路径一致；前台会直接在这个路径渲染分类页，不依赖跳转。',
+                  zh: '分类页面地址。填写这个分类在网站上的访问路径，尽量和旧网站保持一致。',
                   en: 'Public category URL. Use the current front-end path that matches the old website path. The front end renders this category directly at this path without relying on redirects.',
                 },
                 position: 'sidebar',
               },
-              label: { zh: '公开分类 URL（保持旧站一致）', en: 'Public Category URL' },
+              label: { zh: '分类页面地址', en: 'Public Category URL' },
             },
             {
               name: 'description',
@@ -135,7 +136,7 @@ export const ProductCategories: CollectionConfig = {
               defaultValue: 'truck-crane',
               admin: {
                 description: {
-                  zh: '自由填写图标标识；前台已有图标会自动匹配，未匹配时使用默认图标。',
+                  zh: '自由填写图标名称（一般不用）；网站已有图标会自动匹配，未匹配时使用默认图标。',
                   en: 'Free icon key. Known front-end icons are matched automatically; unknown keys use a fallback icon.',
                 },
               },
@@ -144,7 +145,7 @@ export const ProductCategories: CollectionConfig = {
           ],
         },
         {
-          label: { zh: '前台展示', en: 'Front-end Display' },
+          label: { zh: '网站显示', en: 'Website Display' },
           fields: [
             {
               name: 'pageType',
@@ -153,8 +154,8 @@ export const ProductCategories: CollectionConfig = {
               label: { zh: '栏目类型', en: 'Page Type' },
               options: [
                 { label: { zh: '产品列表栏目', en: 'Product Listing' }, value: 'product-listing' },
-                { label: { zh: 'SEO 落地页', en: 'SEO Landing Page' }, value: 'seo-landing' },
-                { label: { zh: '不在前台展示', en: 'Hidden From Front-end' }, value: 'redirect-only' },
+                { label: { zh: '专题页', en: 'Search Landing Page' }, value: 'seo-landing' },
+                { label: { zh: '不在网站展示', en: 'Hidden From Front-end' }, value: 'redirect-only' },
               ],
               required: true,
             },
@@ -164,11 +165,11 @@ export const ProductCategories: CollectionConfig = {
               defaultValue: 'truck-mounted-crane',
               admin: {
                 description: {
-                  zh: '自由填写分组标识；会与“网站设置 → 产品大菜单分组”的分组标识对应，决定该分类在顶部 Products 大菜单的哪一列显示。',
+                  zh: '自由填写分组名称；会与“网站设置 → 产品大菜单分组”的分组名称对应，决定该分类在顶部产品大菜单的哪一列显示。',
                   en: 'Free mega-menu group key. Match it with Site Settings → Product Mega Menu Groups.',
                 },
               },
-              label: { zh: '顶部 Products 菜单分组', en: 'Products Mega Menu Group' },
+              label: { zh: '顶部产品菜单分组', en: 'Products Mega Menu Group' },
               required: true,
             },
             {
@@ -177,11 +178,11 @@ export const ProductCategories: CollectionConfig = {
               defaultValue: 'Crane Accessories',
               admin: {
                 description: {
-                  zh: '自由填写后台归类名称，只用于编辑人员理解；前台分类筛选由“分类名称、是否发布、是否前台展示”控制。',
+                  zh: '只给后台编辑人员看的内部分类，不影响网站筛选。',
                   en: 'Free listing group name for editorial organization.',
                 },
               },
-              label: { zh: '后台归类标签（不控制前台筛选）', en: 'Editorial Group, Not Filter Logic' },
+              label: { zh: '内部备注分类', en: 'Editorial Group, Not Filter Logic' },
               required: true,
             },
             { name: 'showInMegaMenu', type: 'checkbox', defaultValue: true, label: { zh: '显示在顶部产品菜单', en: 'Show in mega menu' } },
@@ -192,15 +193,15 @@ export const ProductCategories: CollectionConfig = {
               defaultValue: true,
               admin: {
                 description: {
-                  zh: '关闭后，这个分类页仍可直接访问，但不会出现在产品列表页左侧分类筛选里。适合旧站 SEO 落地页、按吨位页等后台可维护页面。',
-                  en: 'When disabled, the category page remains directly accessible but is hidden from listing filter options. Useful for legacy SEO landing pages and capacity pages.',
+                  zh: '关闭后，这个分类页仍可通过页面地址打开，但不会出现在产品列表页左侧筛选里。适合旧网站专题页、按吨位页等页面。',
+                  en: 'When disabled, the category page remains directly accessible but is hidden from listing filter options. Useful for legacy search landing pages and capacity pages.',
                 },
               },
               label: { zh: '显示在产品列表筛选', en: 'Show in product filters' },
             },
             { name: 'sortOrder', type: 'number', defaultValue: 100, label: { zh: '排序值', en: 'Sort Order' }, admin: { position: 'sidebar' } },
             legacyAliasesField({
-              zh: '同一分类曾经用过的其他历史路径。主公开 URL 请填上方“公开分类 URL”。',
+              zh: '同一分类曾经用过的其他旧地址，一般不用改。主页面地址填上方“分类页面地址”。',
               en: 'Other historical paths for this category. Put the main public URL in Public Category URL above.',
             }),
             {
@@ -209,11 +210,11 @@ export const ProductCategories: CollectionConfig = {
               hasMany: true,
               admin: {
                 description: {
-                  zh: '可选。访问这个分类页时默认筛选的产品分类 slug。为空时按当前分类和子分类筛选；适合 /truck-mounted-crane 这类聚合旧 URL。',
-                  en: 'Optional category slugs applied when this category page opens. Empty means filter by this category and child categories.',
+                  zh: '可选。打开这个分类页时默认选中的产品分类值。为空时按当前分类和子分类筛选；适合 /truck-mounted-crane 这类旧网站聚合页。',
+                  en: 'Optional category 短地址 applied when this category page opens. Empty means filter by this category and child categories.',
                 },
               },
-              label: { zh: '默认筛选：产品分类 slug', en: 'Default Filter: Category Slugs' },
+              label: { zh: '默认筛选：产品分类', en: 'Default Filter: Category Slug' },
             },
             {
               name: 'defaultCapacityFilters',
@@ -221,7 +222,7 @@ export const ProductCategories: CollectionConfig = {
               hasMany: true,
               admin: {
                 description: {
-                  zh: '可选。填写“产品列表页设置 → 起重能力筛选项”的值，例如 0 - 5 tons。用于旧站按吨位落地页。',
+                  zh: '可选。填写“产品列表页设置 → 起重能力筛选项”的值，例如 0 - 5 tons。用于旧网站按吨位页面。',
                   en: 'Optional values from Product Listing Settings → Capacity Filter Options, e.g. 0 - 5 tons.',
                 },
               },
@@ -245,7 +246,7 @@ export const ProductCategories: CollectionConfig = {
               hasMany: true,
               admin: {
                 description: {
-                  zh: '可选。填写“产品列表页设置 → 应用场景字典”的值，例如 construction。',
+                  zh: '可选。填写“产品列表页设置 → 应用场景选项”的值，例如 construction。',
                   en: 'Optional values from Product Listing Settings → Application Dictionary, e.g. construction.',
                 },
               },
@@ -266,18 +267,18 @@ export const ProductCategories: CollectionConfig = {
           ],
         },
         {
-          label: { zh: '列表页 SEO 区块', en: 'Listing SEO Block' },
+          label: { zh: '分类页顶部内容', en: 'Listing Banner Block' },
           fields: [
-            { name: 'bannerLabel', type: 'text', localized: true, label: { zh: '列表页标签', en: 'Banner Label' } },
-            { name: 'bannerTitle', type: 'text', localized: true, label: { zh: '列表页标题', en: 'Banner Title' } },
+            { name: 'bannerLabel', type: 'text', localized: true, label: { zh: '列表页标签', en: '顶部横幅 Label' } },
+            { name: 'bannerTitle', type: 'text', localized: true, label: { zh: '列表页标题', en: '顶部横幅 Title' } },
             { name: 'bannerImage', type: 'upload', label: { zh: '列表页图片', en: 'Banner Image' }, relationTo: 'media' },
             {
               name: 'bannerParagraphs',
               type: 'array',
               admin: {
                 description: {
-                  zh: '支持普通段落，也支持 [可点击文字](/products?category=分类slug&boom=臂架值) 这种写法；前台点击后会直接应用筛选。',
-                  en: 'Supports plain paragraphs and [link text](/products?category=category-slug&boom=boom-key). Clicking applies listing filters on the front end.',
+                  zh: '填写普通说明文字即可。需要可点击筛选链接时，再让管理员配置。',
+                  en: 'Supports plain paragraphs and [link text](/products?category=category-短地址&boom=boom-key). Clicking applies listing filters on the front end.',
                 },
                 initCollapsed: true,
               },
@@ -287,7 +288,7 @@ export const ProductCategories: CollectionConfig = {
           ],
         },
         {
-          label: { zh: 'SEO 与发布', en: 'SEO & Publish' },
+          label: { zh: '搜索设置与发布', en: 'Search Settings & Publish' },
           fields: [seoFields, statusField, { name: 'publishedAt', type: 'date', admin: { position: 'sidebar' }, label: { zh: '发布时间', en: 'Published At' } }],
         },
       ],
@@ -297,27 +298,27 @@ export const ProductCategories: CollectionConfig = {
       type: 'text',
       admin: {
         description: {
-          zh: '系统自动计算：ready=分类页、列表筛选、菜单和首页入口可测试；needs-url-review=可显示但还缺旧站公开 URL；hidden=不会进入前台。',
-          en: 'Auto calculated: ready is testable on category/listing/menu/home; needs-url-review is visible but missing legacy URL; hidden is not public.',
+          zh: '系统自动判断这个分类是否能在网站菜单、首页和列表筛选中显示。',
+          en: 'Auto calculated: 可显示 is testable on category/listing/menu/home; needs-url-review is visible but missing legacy URL; hidden is not public.',
         },
         position: 'sidebar',
         readOnly: true,
       },
       defaultValue: 'hidden',
-      label: { zh: '分类前台状态', en: 'Category Front-end Status' },
+      label: { zh: '分类显示状态', en: 'Category Website Status' },
     },
     {
       name: 'frontendSurfaceNote',
       type: 'textarea',
       admin: {
         description: {
-          zh: '系统自动列出这个分类为什么不会出现在产品菜单、首页或旧站 URL 测试中。',
+          zh: '系统自动说明这个分类为什么不会出现在产品菜单、首页或旧网站链接检查结果中。',
           en: 'Auto lists why this category does not appear in product menus, home, or legacy URL tests.',
         },
         position: 'sidebar',
         readOnly: true,
       },
-      label: { zh: '分类显示说明', en: 'Category Visibility Note' },
+      label: { zh: '显示说明', en: 'Category Visibility Note' },
     },
   ],
   timestamps: true,

@@ -47,13 +47,14 @@ function normalizeLanguageOptions(data: unknown) {
 
 export const SiteSettings: GlobalConfig = {
   slug: 'site-settings',
-  label: { zh: '网站设置（导航 / 联系 / 页脚）', en: 'Site Settings (Navigation / Contact / Footer)' },
+  label: { zh: '导航、联系、页脚', en: 'Site Settings (Navigation / Contact / Footer)' },
   access: {
     read: () => true,
     update: isAdmin,
   },
   admin: {
-    group: { zh: '02 前台页面设置', en: '02 Front-end Page Settings' },
+    hideAPIURL: true,
+    group: { zh: '02 页面内容', en: '02 Page Content' },
   },
   hooks: {
     beforeValidate: [({ data }) => normalizeLanguageOptions(data)],
@@ -67,7 +68,7 @@ export const SiteSettings: GlobalConfig = {
           fields: [
             { name: 'siteName', type: 'text', localized: true, defaultValue: 'BOB-LIFT' },
             { name: 'logoImage', type: 'upload', label: { zh: '网站 Logo 图片', en: 'Site Logo Image' }, relationTo: 'media' },
-            { name: 'logoPath', type: 'text', defaultValue: '/images/bob-lift-logo.png', label: { zh: 'Logo 备用路径', en: 'Logo Fallback Path' } },
+            { name: 'logoPath', type: 'text', defaultValue: '/images/bob-lift-logo.png', label: { zh: 'Logo 图片路径（一般不用）', en: 'Logo Backup Path' } },
             { name: 'logoWidth', type: 'number', defaultValue: 188, min: 1, label: { zh: 'Logo 宽度', en: 'Logo Width' } },
             { name: 'logoHeight', type: 'number', defaultValue: 91, min: 1, label: { zh: 'Logo 高度', en: 'Logo Height' } },
             { name: 'email', type: 'email', defaultValue: 'info@bobliftcrane.com' },
@@ -116,12 +117,12 @@ export const SiteSettings: GlobalConfig = {
               type: 'text',
               admin: {
                 description: {
-                  zh: '可选。填写环境变量名，例如 INQUIRY_WEBHOOK_URL；系统会把询盘同步 POST 到该地址。',
+                  zh: '管理员填写。用于把询盘同步到外部系统，运营一般不用改。',
                   en: 'Optional. Put an env var name such as INQUIRY_WEBHOOK_URL; the system POSTs inquiry payloads to that URL.',
                 },
               },
               defaultValue: 'INQUIRY_WEBHOOK_URL',
-              label: { zh: '询盘通知 Webhook 环境变量名', en: 'Inquiry Webhook Env Name' },
+              label: { zh: '询盘外部同步设置（管理员）', en: 'Inquiry Webhook Env Name' },
             },
           ],
         },
@@ -145,7 +146,7 @@ export const SiteSettings: GlobalConfig = {
               admin: { initCollapsed: true },
               fields: [
                 { name: 'label', type: 'text', localized: true, required: true, label: { zh: '名称', en: 'Label' } },
-                { name: 'href', type: 'text', required: true, label: { zh: '链接', en: 'URL' } },
+                { name: 'href', type: 'text', required: true, label: { zh: '链接', en: '网址' } },
                 { name: 'hasMenu', type: 'checkbox', defaultValue: false, label: { zh: '显示下拉箭头', en: 'Has Dropdown' } },
                 { name: 'showInHeader', type: 'checkbox', defaultValue: true, label: { zh: '显示在顶部导航', en: 'Show in Header' } },
                 { name: 'sortOrder', type: 'number', defaultValue: 100, label: { zh: '排序值', en: 'Sort Order' } },
@@ -155,7 +156,7 @@ export const SiteSettings: GlobalConfig = {
             {
               name: 'productMenuBackgroundImage',
               type: 'upload',
-              admin: { description: { zh: '顶部 Products 大菜单的浅背景图。为空时使用备用路径。', en: 'Subtle background image for the Products mega menu.' } },
+              admin: { description: { zh: '顶部产品大菜单的浅背景图。为空时使用备用路径。', en: 'Subtle background image for the Products mega menu.' } },
               label: { zh: '产品大菜单背景图', en: 'Product Menu Background Image' },
               relationTo: 'media',
             },
@@ -163,23 +164,23 @@ export const SiteSettings: GlobalConfig = {
               name: 'productMenuBackgroundImagePath',
               type: 'text',
               defaultValue: '/images/telescopic-banner.jpg',
-              label: { zh: '产品菜单背景备用路径', en: 'Product Menu Background Fallback Path' },
+              label: { zh: '产品菜单背景图片路径（一般不用）', en: 'Product Menu Background Backup Path' },
             },
             {
               name: 'productMenuGroups',
               type: 'array',
-              admin: { description: { zh: '顶部 Products 大菜单的三组标题、说明和链接。', en: 'Top Products mega-menu group titles and descriptions.' }, initCollapsed: true },
+              admin: { description: { zh: '顶部产品大菜单的三组标题、说明和链接。', en: 'Top Products mega-menu group titles and descriptions.' }, initCollapsed: true },
               fields: [
                 {
                   name: 'groupKey',
                   type: 'text',
                   admin: {
                     description: {
-                      zh: '自由填写分组标识；产品分类里的“产品导航分组”填写同一个值即可归入该组。',
+                      zh: '自由填写分组名称；产品分类里的“产品导航分组”填写同一个值即可归入该组。',
                       en: 'Free group key. Product categories with the same Mega Menu Group value are placed here.',
                     },
                   },
-                  label: { zh: '分组标识', en: 'Group Key' },
+                  label: { zh: '分组名称', en: 'Group Key' },
                   required: true,
                 },
                 { name: 'title', type: 'text', localized: true, label: { zh: '分组标题', en: 'Group Title' }, required: true },
@@ -194,7 +195,7 @@ export const SiteSettings: GlobalConfig = {
               name: 'languageOptions',
               type: 'array',
               admin: {
-                description: { zh: '前台语言下拉菜单。英语永远可用；其他语言必须“翻译状态=可上线”且完成度至少 95%，即使误开“启用”也会自动保持前台不可见。', en: 'Front-end language menu options. English is always available. Other locales are only public when ready and at least 95% complete.' },
+                description: { zh: '网站右上角的语言菜单。英语永远可用；其他语言只有内容完成后才会显示。', en: 'Front-end language menu options. English is always available. Other locales are only public when 可显示 and at least 95% complete.' },
                 initCollapsed: true,
               },
               defaultValue: defaultLanguageOptions,
@@ -207,7 +208,7 @@ export const SiteSettings: GlobalConfig = {
                 {
                   name: 'translationStatus',
                   type: 'select',
-                  admin: { description: { zh: '用于判断该语言内容是否已经可上线。非英语语言未达到 ready + 95% 时，系统会自动禁止前台显示。', en: 'Editorial translation readiness. Non-English locales are hidden until ready and at least 95% complete.' } },
+                  admin: { description: { zh: '用于判断该语言内容是否可以显示。自动翻译暂停期间，运营暂时不用改。', en: 'Editorial translation readiness. Non-English locales are hidden until 可显示 and at least 95% complete.' } },
                   defaultValue: 'in-progress',
                   label: { zh: '翻译状态', en: 'Translation Status' },
                   options: translationStatusOptions,
@@ -215,7 +216,7 @@ export const SiteSettings: GlobalConfig = {
                 },
                 { name: 'completionPercent', type: 'number', defaultValue: 0, min: 0, max: 100, label: { zh: '翻译完成度 %', en: 'Translation Completion %' } },
                 { name: 'translationOwner', type: 'text', label: { zh: '翻译负责人', en: 'Translation Owner' } },
-                { name: 'lastReviewedAt', type: 'date', label: { zh: '最后复核时间', en: 'Last Reviewed At' } },
+                { name: 'lastReviewedAt', type: 'date', label: { zh: '最后确认时间', en: 'Last Reviewed At' } },
                 { name: 'enabled', type: 'checkbox', defaultValue: true, label: { zh: '启用', en: 'Enabled' } },
                 { name: 'sortOrder', type: 'number', defaultValue: 100, label: { zh: '排序值', en: 'Sort Order' } },
               ],
@@ -227,7 +228,7 @@ export const SiteSettings: GlobalConfig = {
               label: { zh: '全站导航与浮窗文案', en: 'Chrome UI Text' },
               fields: [
                 { name: 'languageMenuAriaLabel', type: 'text', localized: true, defaultValue: defaultChromeUiContent.languageMenuAriaLabel, label: { zh: '语言按钮辅助文案', en: 'Language Button Aria Label' } },
-                { name: 'mainNavigationLabel', type: 'text', localized: true, defaultValue: defaultChromeUiContent.mainNavigationLabel, label: { zh: '主导航辅助文案', en: 'Main Navigation Aria Label' } },
+                { name: 'mainNavigationLabel', type: 'text', localized: true, defaultValue: defaultChromeUiContent.mainNavigationLabel, label: { zh: '主导航辅助文案', en: 'Main Navigation 说明文字' } },
                 { name: 'logoHomeLabel', type: 'text', localized: true, defaultValue: defaultChromeUiContent.logoHomeLabel, label: { zh: 'Logo 首页链接说明', en: 'Logo Home Label' } },
                 { name: 'logoImageAlt', type: 'text', localized: true, defaultValue: defaultChromeUiContent.logoImageAlt, label: { zh: 'Logo 图片说明', en: 'Logo Image Alt' } },
                 { name: 'mobileMenuAriaLabel', type: 'text', localized: true, defaultValue: defaultChromeUiContent.mobileMenuAriaLabel, label: { zh: '移动端菜单按钮辅助文案', en: 'Mobile Menu Aria Label' } },
@@ -263,7 +264,7 @@ export const SiteSettings: GlobalConfig = {
               admin: { initCollapsed: true },
               fields: [
                 { name: 'label', type: 'text', localized: true, required: true, label: { zh: '名称', en: 'Label' } },
-                { name: 'href', type: 'text', required: true, label: { zh: '链接', en: 'URL' } },
+                { name: 'href', type: 'text', required: true, label: { zh: '链接', en: '网址' } },
               ],
               label: { zh: '社交链接', en: 'Social Links' },
             },

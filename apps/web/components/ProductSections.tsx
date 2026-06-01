@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowRight, ChevronLeft, ChevronRight, Ruler, Weight } from "lucide-react";
-import { defaultHomeProductSectionContent, type HomeFeaturedProduct, type HomeProductSectionContent } from "@/lib/home-defaults";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { defaultHomeProductSectionContent, type HomeProductSectionContent } from "@/lib/home-defaults";
 
 import { type CatalogProduct, type ProductCategory } from "@/lib/product-catalog";
 
@@ -115,62 +115,6 @@ export function ProductFamilies({
             ) : (
               <ProductGridView category={selectedCategory} key={`${selectedCategory.name}-${categoryIndex}`} onSelect={openProduct} section={section} />
             )}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-export function FeaturedProducts({
-  products = [],
-  section = defaultHomeProductSectionContent,
-}: {
-  products?: HomeFeaturedProduct[];
-  section?: HomeProductSectionContent;
-}) {
-  if (products.length === 0) return null;
-
-  return (
-    <section className="bg-gradient-to-r from-white via-[#f8fafc] to-white py-8 md:py-14">
-      <div className="page-shell">
-        <div className="mb-5 flex flex-col gap-3 sm:mb-8 lg:grid lg:grid-cols-[300px_1fr] lg:gap-10">
-          <div>
-            <p className="section-label mb-3 md:mb-4">{section.featuredLabel}</p>
-            <h2 className="max-w-none text-[clamp(27px,6.9vw,34px)] font-black leading-[1.02] tracking-[-0.055em] text-ink sm:text-3xl sm:leading-tight sm:tracking-[-0.03em]">
-              {section.featuredTitle}
-            </h2>
-          </div>
-          {section.showFeaturedCta ? (
-            <a className="inline-flex w-fit items-center gap-2 text-sm font-black text-ink lg:mt-9 lg:self-start" href={section.featuredCtaHref}>
-              {section.featuredCtaLabel} <ArrowRight className="h-4 w-4" />
-            </a>
-          ) : null}
-        </div>
-
-        <div className="-mx-4 overflow-x-auto px-4 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:mx-0 sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
-          <div className="grid auto-cols-[76%] grid-flow-col gap-4 sm:auto-cols-auto sm:grid-flow-row sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
-            {products.slice(0, section.maxFeaturedProducts).map((product) => (
-              <a className="group block h-full" href={product.href} key={`${product.model}-${product.href}`}>
-                <article className="h-full rounded-[24px] border border-line bg-white p-2 shadow-card transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-soft sm:rounded-2xl sm:p-1">
-                  <div className="px-2 pt-2 sm:px-4 sm:pt-4">
-                    <div className="relative h-32 rounded-[18px] bg-[#f7fbff] sm:h-36 sm:bg-transparent">
-                      <Image className="object-contain p-2 transition duration-300 group-hover:scale-[1.04] sm:p-0" src={product.image} alt={product.name} fill sizes="(min-width: 1024px) 20vw, 76vw" />
-                    </div>
-                  </div>
-                  <div className="px-3 pb-2 pt-3 sm:px-4">
-                    {section.showFeaturedProductModel ? <p className="text-[11px] font-bold text-slate-400 sm:text-xs">{product.model}</p> : null}
-                    <h3 className="min-h-10 text-sm font-black leading-5 text-ink">{product.name}</h3>
-                  </div>
-                  {section.showFeaturedProductSpecs ? (
-                    <div className="grid grid-cols-1 gap-2 px-3 pb-4 text-[11px] font-semibold text-slate-500 sm:px-4 sm:text-xs">
-                      <p className="flex items-center gap-1.5"><Weight className="h-3.5 w-3.5 text-gold sm:h-4 sm:w-4" /> {section.featuredCapacityLabel}: {product.capacity}</p>
-                      <p className="flex items-center gap-1.5"><Ruler className="h-3.5 w-3.5 text-gold sm:h-4 sm:w-4" /> {section.featuredTypeLabel}: {product.type}</p>
-                    </div>
-                  ) : null}
-                </article>
-              </a>
-            ))}
           </div>
         </div>
       </div>

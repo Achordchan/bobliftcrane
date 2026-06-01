@@ -136,7 +136,7 @@ export function Header({
           />
           <nav className="hidden items-center rounded-full border border-line bg-[#f7faff]/90 p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] lg:flex" aria-label={chromeUi.mainNavigationLabel}>
             {navItems.map((item) => {
-              const active = item.href === "/" ? pathname === "/" : item.href !== "/#application" && pathname.startsWith(item.href);
+              const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
               const navLinkClassName = `group flex h-10 items-center gap-1.5 rounded-full px-4 text-sm font-black transition duration-300 ${active ? "bg-white text-ink shadow-[0_8px_22px_rgba(8,35,74,0.08)]" : "text-slate-600 hover:bg-white hover:text-ink hover:shadow-[0_8px_22px_rgba(8,35,74,0.06)]"}`;
 
               if (item.hasMenu && item.href.startsWith("/products")) {
@@ -278,7 +278,7 @@ export function Header({
           <div className="flex items-center gap-2 md:gap-3">
             <LanguageMenu ariaLabel={chromeUi.languageMenuAriaLabel} options={languageOptions} />
             <MobileNavMenu chromeUi={chromeUi} navItems={navItems} productNavGroups={productNavGroups} quotePath={contact.quotePath} />
-            <Button nativeButton={false} render={<a href={contact.quotePath} />} className="group hidden h-12 min-w-[11.75rem] rounded-full bg-navy px-5 text-sm font-black text-white shadow-[0_16px_34px_rgba(8,35,74,0.24)] hover:-translate-y-0.5 hover:bg-navy lg:inline-flex">
+            <Button nativeButton={false} render={<a href={contact.quotePath} />} className="group hidden h-12 min-w-[11.75rem] rounded-full bg-navy px-5 text-sm font-black text-white shadow-[0_16px_34px_rgba(8,35,74,0.24)] hover:-translate-y-0.5 hover:bg-navy xl:inline-flex">
               <span>{chromeUi.requestQuoteLabel}</span>
               <span className="grid h-6 w-6 place-items-center rounded-full bg-white/12 text-white transition md:h-7 md:w-7">
                 <Check data-icon="inline-end" />

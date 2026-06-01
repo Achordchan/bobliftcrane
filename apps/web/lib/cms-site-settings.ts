@@ -1,7 +1,6 @@
 import { contact as defaultContactSettings, phoneToHref, type ContactSettings, whatsappToHref } from "@/lib/contact";
 import {
   defaultAboutSectionContent,
-  defaultApplicationSectionContent,
   defaultFinalCtaContent,
   defaultFooterContent,
   defaultHeaderTopBarContent,
@@ -12,7 +11,6 @@ import {
   defaultNewsSectionContent,
   defaultTrustBarContent,
   type AboutSectionContent,
-  type ApplicationSectionContent,
   type FinalCtaContent,
   type FooterContent,
   type HeaderTopBarContent,
@@ -27,11 +25,10 @@ import { navItems as defaultNavItems, type NavItem } from "@/lib/home-data";
 import { mediaUrl } from "@/lib/cms-media";
 import type { ProductDetailUiSettings, ProductListingUiSettings } from "@/lib/cms-product-ui-settings";
 import { defaultChromeUiContent, defaultLanguageOptions, defaultPageUiContent, type ChromeUiContent, type PageUiContent, type QuoteFormUiContent, type QuoteWorkflowItem, type SiteLanguageOption } from "@/lib/site-ui";
-import type { Article as PayloadArticle, HomeSetting, Media, PageTextSetting, Product as PayloadProduct, ProductDetailUi, ProductListingUi, SiteSetting } from "@/payload-types";
+import type { Article as PayloadArticle, HomeSetting, Media, PageTextSetting, ProductDetailUi, ProductListingUi, SiteSetting } from "@/payload-types";
 
 export type CmsSiteSetting = Partial<SiteSetting> & Partial<HomeSetting> & Partial<ProductListingUi> & Partial<ProductDetailUi> & Partial<PageTextSetting> & {
-  homeHeroSlides?: { eyebrow?: string | null; title?: string | null; description?: string | null; image?: number | Media | null; imagePath?: string | null; mobileImage?: number | Media | null; mobileImagePath?: string | null; primaryCtaLabel?: string | null; primaryCtaHref?: string | null; secondaryCtaLabel?: string | null; secondaryCtaHref?: string | null; id?: string | null }[] | null;
-  homeFeaturedProducts?: (number | PayloadProduct)[] | null;
+  homeHeroSlides?: { image?: number | Media | null; imagePath?: string | null; mobileImage?: number | Media | null; mobileImagePath?: string | null; id?: string | null }[] | null;
   homeFeaturedArticles?: (number | PayloadArticle)[] | null;
   logoImage?: number | Media | null;
   logoPath?: string | null;
@@ -69,16 +66,6 @@ export type CmsSiteSetting = Partial<SiteSetting> & Partial<HomeSetting> & Parti
     showIntroCard?: boolean | null;
     showMarkNames?: boolean | null;
     marks?: ({ name?: string | null; logoPath?: string | null; logoImage?: number | Media | null } | null)[] | null;
-  } | null;
-  applicationSection?: {
-    label?: string | null;
-    title?: string | null;
-    ctaLabel?: string | null;
-    ctaHref?: string | null;
-    showCta?: boolean | null;
-    showImages?: boolean | null;
-    showIcons?: boolean | null;
-    items?: ({ title?: string | null; image?: number | Media | null; imagePath?: string | null; iconName?: string | null } | null)[] | null;
   } | null;
   aboutSection?: {
     label?: string | null;
@@ -213,7 +200,6 @@ export function homeHeroUiFromSettings(settings: CmsSiteSetting | null): HomeHer
     autoplay: settings?.homeHeroUi?.autoplay ?? defaultHomeHeroUiContent.autoplay,
     showControls: settings?.homeHeroUi?.showControls ?? defaultHomeHeroUiContent.showControls,
     showIndicators: settings?.homeHeroUi?.showIndicators ?? defaultHomeHeroUiContent.showIndicators,
-    showOverlay: settings?.homeHeroUi?.showOverlay ?? defaultHomeHeroUiContent.showOverlay,
     autoplayIntervalMs: positiveNumber(settings?.homeHeroUi?.autoplayIntervalMs, defaultHomeHeroUiContent.autoplayIntervalMs),
   };
 }
@@ -316,16 +302,6 @@ export function productSectionFromSettings(settings: CmsSiteSetting | null): Hom
     showInlineProductDetail: settings?.homeProductSection?.showInlineProductDetail ?? defaultHomeProductSectionContent.showInlineProductDetail,
     showProductSpecs: settings?.homeProductSection?.showProductSpecs ?? defaultHomeProductSectionContent.showProductSpecs,
     showProductVisualWatermark: settings?.homeProductSection?.showProductVisualWatermark ?? defaultHomeProductSectionContent.showProductVisualWatermark,
-    showFeaturedCta: settings?.homeProductSection?.showFeaturedCta ?? defaultHomeProductSectionContent.showFeaturedCta,
-    showFeaturedProductModel: settings?.homeProductSection?.showFeaturedProductModel ?? defaultHomeProductSectionContent.showFeaturedProductModel,
-    featuredLabel: settings?.homeProductSection?.featuredLabel || defaultHomeProductSectionContent.featuredLabel,
-    featuredTitle: settings?.homeProductSection?.featuredTitle || defaultHomeProductSectionContent.featuredTitle,
-    featuredCtaLabel: settings?.homeProductSection?.featuredCtaLabel || defaultHomeProductSectionContent.featuredCtaLabel,
-    featuredCtaHref: settings?.homeProductSection?.featuredCtaHref || defaultHomeProductSectionContent.featuredCtaHref,
-    maxFeaturedProducts: positiveNumber(settings?.homeProductSection?.maxFeaturedProducts, defaultHomeProductSectionContent.maxFeaturedProducts),
-    showFeaturedProductSpecs: settings?.homeProductSection?.showFeaturedProductSpecs ?? defaultHomeProductSectionContent.showFeaturedProductSpecs,
-    featuredCapacityLabel: settings?.homeProductSection?.featuredCapacityLabel || defaultHomeProductSectionContent.featuredCapacityLabel,
-    featuredTypeLabel: settings?.homeProductSection?.featuredTypeLabel || defaultHomeProductSectionContent.featuredTypeLabel,
     findModelTitle: settings?.homeProductSection?.findModelTitle || defaultHomeProductSectionContent.findModelTitle,
     detailsShortLabel: settings?.homeProductSection?.detailsShortLabel || defaultHomeProductSectionContent.detailsShortLabel,
     viewDetailsLabel: settings?.homeProductSection?.viewDetailsLabel || defaultHomeProductSectionContent.viewDetailsLabel,
@@ -356,24 +332,6 @@ export function trustBarFromSettings(settings: CmsSiteSetting | null): TrustBarC
     showIntroCard: settings?.trustBar?.showIntroCard ?? defaultTrustBarContent.showIntroCard,
     showMarkNames: settings?.trustBar?.showMarkNames ?? defaultTrustBarContent.showMarkNames,
     marks: marks && marks.length > 0 ? marks : defaultTrustBarContent.marks,
-  };
-}
-
-export function applicationSectionFromSettings(settings: CmsSiteSetting | null): ApplicationSectionContent {
-  const items = settings?.applicationSection?.items?.flatMap((item) => {
-    const image = mediaUrl(item?.image, "card") ?? item?.imagePath;
-    return item?.title && image ? [{ title: item.title, image, iconName: item.iconName || undefined }] : [];
-  });
-
-  return {
-    label: settings?.applicationSection?.label || defaultApplicationSectionContent.label,
-    title: settings?.applicationSection?.title || defaultApplicationSectionContent.title,
-    ctaLabel: settings?.applicationSection?.ctaLabel || defaultApplicationSectionContent.ctaLabel,
-    ctaHref: settings?.applicationSection?.ctaHref || defaultApplicationSectionContent.ctaHref,
-    showCta: settings?.applicationSection?.showCta ?? defaultApplicationSectionContent.showCta,
-    showImages: settings?.applicationSection?.showImages ?? defaultApplicationSectionContent.showImages,
-    showIcons: settings?.applicationSection?.showIcons ?? defaultApplicationSectionContent.showIcons,
-    items: items && items.length > 0 ? items : defaultApplicationSectionContent.items,
   };
 }
 

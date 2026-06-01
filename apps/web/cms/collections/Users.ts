@@ -9,8 +9,9 @@ export const Users: CollectionConfig = {
     plural: '用户',
   },
   admin: {
+    hideAPIURL: true,
     defaultColumns: ['name', 'email', 'updatedAt'],
-    group: { zh: '系统设置', en: 'System' },
+    group: { zh: '91 系统账号', en: '91 System Accounts' },
     useAsTitle: 'email',
   },
   auth: true,

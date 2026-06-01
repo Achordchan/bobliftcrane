@@ -139,7 +139,7 @@ function resolveTranslationResult({
     return {
       status: 'needs-credentials',
       summary: output || `${providerLabelFromOutput(rawCombined)} 翻译任务未执行：缺少服务配置。`,
-      errorMessage: errorOutput || '请先在运行环境配置 DEEPL_AUTH_KEY / DEEPL_API_KEY，或 DEEPLX_API_URL / DEEPLX_ENDPOINT / DEEPLX_API_KEY，再重新排队任务。',
+      errorMessage: errorOutput || '自动翻译缺少管理员配置。当前翻译已暂停，请不要重新排队任务。',
     };
   }
 
@@ -147,7 +147,7 @@ function resolveTranslationResult({
     return {
       status: 'failed',
       summary: output || `翻译任务退出码：${code}`,
-      errorMessage: errorOutput || '翻译任务失败，请检查环境变量和后台翻译设置。',
+      errorMessage: errorOutput || '翻译任务失败。当前翻译已暂停，请交给管理员处理。',
     };
   }
 
@@ -159,15 +159,15 @@ function resolveTranslationResult({
         status: hasCredentials ? 'coverage-needed' : 'needs-credentials',
         summary: coverageSummaryFromOutput(rawCombined, missingCount),
         errorMessage: hasCredentials
-          ? '覆盖率未通过。请关闭 dryRun 后重新排队，写入机器翻译译文。'
-          : '覆盖率未通过且当前运行环境缺少 DeepL Key 或 DeepLX 接口地址。',
+          ? '内容检查未通过。当前翻译已暂停，请交给管理员处理。'
+          : '内容检查未通过，并且自动翻译缺少管理员配置。',
       };
     }
   }
 
   return {
     status: 'machine-translated',
-    summary: output || '机器翻译已写入，下一步请人工复核，确认后把任务状态改为“已批准上线”。',
+    summary: output || '自动翻译已写入，下一步请人工检查，确认后把任务状态改为“已确认可用”。',
     errorMessage: '',
   };
 }

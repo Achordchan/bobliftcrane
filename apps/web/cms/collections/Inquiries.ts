@@ -15,9 +15,10 @@ export const Inquiries: CollectionConfig = {
     update: isAdmin,
   },
   admin: {
+    hideAPIURL: true,
     defaultColumns: ['name', 'email', 'productInterest', 'product', 'status', 'priority', 'submittedAt'],
-    description: { zh: '前台询盘表单提交后进入这里，可分配负责人、记录跟进并标记处理状态。', en: 'Front-end quote requests land here for assignment, follow-up notes, and status tracking.' },
-    group: { zh: '04 询盘与客户', en: '04 Leads & Customers' },
+    description: { zh: '网站询盘表单提交后进入这里，可分配负责人、记录跟进并标记处理状态。', en: 'Front-end quote requests land here for assignment, follow-up notes, and status tracking.' },
+    group: { zh: '04 询盘管理', en: '04 Inquiry Management' },
     useAsTitle: 'name',
   },
   fields: [

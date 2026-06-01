@@ -28,8 +28,8 @@ const productCategoryOptions = [
 export const Products: CollectionConfig = {
   slug: 'products',
   labels: {
-    singular: '产品上传 / 产品管理（看前台可见状态）',
-    plural: '产品上传 / 产品管理（看前台可见状态）',
+    singular: '产品管理',
+    plural: '产品管理',
   },
   access: {
     create: isAdmin,
@@ -38,12 +38,13 @@ export const Products: CollectionConfig = {
     update: isAdmin,
   },
   admin: {
+    hideAPIURL: true,
     defaultColumns: ['title', 'frontendContentStatus', 'model', 'categoryRef', 'capacity', 'parameterReviewStatus', 'showInProductList', 'showOnHome', 'status'],
     description: {
-      zh: '这里上传和编辑产品，控制前台产品列表、产品详情页、首页推荐、参数、图纸记录、图库、卖点和 FAQ。先到“产品分类管理（先建分类）”创建并发布分类，再回到这里选择“产品分类”。发布后是否进入首页/列表，以右侧“前台可见状态”和“不能显示原因”为准。臂架类型、应用场景、可售状态会按“产品列表页设置”的后台字典校验，避免筛选失效。',
+      zh: '日常上传和编辑产品。先建产品分类，再填写产品名称、型号、参数、图片、卖点和是否在网站显示。右侧会自动提示这个产品能不能出现在首页和产品列表。',
       en: 'Upload and edit products here. This controls product listing, detail page, home recommendations, specifications, drawings, gallery, features, and FAQ. Manage categories from Product Categories in this same group first, then select Product Category here. Boom type, applications, and availability are validated against Product Listing Settings dictionaries.',
     },
-    group: { zh: '01 产品中心', en: '01 Product Center' },
+    group: { zh: '01 产品管理', en: '01 Product Management' },
     listSearchableFields: ['title', 'slug', 'model', 'sourceUrl'],
     preview: ({ legacyPath, slug }) => {
       if (typeof legacyPath === 'string' && legacyPath.startsWith('/')) return legacyPath;
@@ -95,15 +96,15 @@ export const Products: CollectionConfig = {
               type: 'text',
               admin: {
                 description: {
-                  zh: '当前公开产品 URL。为了让改版后链接与旧站一致，优先填写旧站真实 .html 路径；前台会直接在这个路径渲染产品详情，不依赖跳转。',
+                  zh: '产品页面地址。为了让改版后链接与旧网站一致，优先填写旧网站真实 .html 路径。',
                   en: 'Current public product URL. Use the original old-site .html path whenever possible. The front end renders the product directly at this path without relying on redirects.',
                 },
                 position: 'sidebar',
               },
-              label: { zh: '公开产品 URL（保持旧站一致）', en: 'Public Product URL' },
+              label: { zh: '产品页面地址', en: 'Public Product URL' },
             },
             legacyAliasesField({
-              zh: '同一产品曾经用过的其他旧站路径。主公开 URL 请填上方“公开产品 URL”，这些别名也会直接渲染产品详情页。',
+              zh: '同一产品曾经用过的其他旧地址，一般不用改。主页面地址填上方“产品页面地址”。',
               en: 'Other historical paths for this product. Put the main public URL in Public Product URL above. These aliases also render the product detail page directly.',
             }),
             {
@@ -111,7 +112,7 @@ export const Products: CollectionConfig = {
               type: 'relationship',
               admin: {
                 description: {
-                  zh: '真正用于前台展示、导航、筛选和首页分类的产品分类。这里只允许选择“已发布且在前台展示”的分类；分类入口在同一分组的“产品分类管理（先建分类）”。',
+                  zh: '选择产品属于哪个分类。这里会影响产品菜单、产品列表筛选和首页分类展示。',
                   en: 'The real editable category used by front-end navigation, filters, and home category sections. Only published front-end categories can be selected here.',
                 },
               },
@@ -130,11 +131,11 @@ export const Products: CollectionConfig = {
               name: 'category',
               type: 'select',
               admin: {
-                description: { zh: '旧版兼容字段，前台优先读取上方“产品分类”。', en: 'Legacy fallback category. Front-end reads Product Category first.' },
+                description: { zh: '旧数据保留字段，平时不用填写。', en: 'Legacy field kept for old data.' },
                 hidden: true,
               },
               defaultValue: 'other-cranes',
-              label: { zh: '旧版兼容分类', en: 'Legacy Category' },
+              label: { zh: '旧分类（不用填）', en: 'Legacy Category' },
               options: productCategoryOptions,
               required: true,
             },
@@ -151,7 +152,7 @@ export const Products: CollectionConfig = {
               defaultValue: 'custom-solution',
               admin: {
                 description: {
-                  zh: '用于产品列表筛选、详情页参数和首页卡片。这里填写“产品列表页设置 → 臂架类型筛选项”的值，例如 telescopic-boom；后台字典新增后，这里可直接填写新值。',
+                  zh: '用于产品列表筛选、详情页参数和首页卡片。这里填写“产品列表页设置 → 臂架类型筛选项”里的选项值；不确定时先不要改。',
                   en: 'Used by listing filters, detail specs, and home cards. Enter a value from Product Listing Settings → Boom Type Filter Options, e.g. telescopic-boom. New dictionary values can be used here directly.',
                 },
               },
@@ -164,10 +165,10 @@ export const Products: CollectionConfig = {
               name: 'sourceUrl',
               type: 'text',
               admin: {
-                description: { zh: '必填。旧站或供应商资料来源 URL，用于核对参数。', en: 'Required source URL used to verify product parameters.' },
+                description: { zh: '必填。填写旧网站或供应商资料地址，用来核对参数。', en: 'Required source URL used to verify product parameters.' },
                 position: 'sidebar',
               },
-              label: { zh: '资料来源 URL', en: 'Source URL' },
+              label: { zh: '资料来源地址', en: 'Source URL' },
               required: true,
             },
             {
@@ -178,28 +179,28 @@ export const Products: CollectionConfig = {
               label: { zh: '内容来源', en: 'Content Source' },
               options: [
                 { label: { zh: '手动录入', en: 'Manual' }, value: 'manual' },
-                { label: { zh: '旧站导入', en: 'Legacy Site Import' }, value: 'legacy-site' },
-                { label: { zh: 'AI 辅助生成', en: 'AI Assisted' }, value: 'ai-assisted' },
+                { label: { zh: '旧网站导入', en: 'Legacy Site Import' }, value: 'legacy-site' },
+                { label: { zh: '智能辅助生成', en: 'AI Assisted' }, value: 'ai-assisted' },
               ],
             },
             {
               name: 'parameterReviewStatus',
               type: 'select',
               admin: {
-                description: { zh: '导入后先保持“待复核”；只有人工对照旧站原文或厂家资料后才选“已按来源核对”。图纸只作为资料记录，不再作为复核阻塞。', en: 'Keep imported products as needs review until a human checks the old source text or factory data. Drawing images are supporting records only and no longer block readiness.' },
+                description: { zh: '导入后先保持“待核对”；人工对照旧网站原文或厂家资料后，再选“已按来源核对”。图纸只作为资料记录，不影响产品显示。', en: 'Keep imported products as needs review until a human checks the old source text or factory data. Drawing images are supporting records only and no longer block readiness.' },
                 position: 'sidebar',
               },
               defaultValue: 'needs-review',
               label: { zh: '参数核对状态', en: 'Parameter Review Status' },
               options: [
-                { label: { zh: '待复核', en: 'Needs Review' }, value: 'needs-review' },
-                { label: { zh: '复核中', en: 'In Review' }, value: 'in-review' },
+                { label: { zh: '待核对', en: 'Needs Review' }, value: 'needs-review' },
+                { label: { zh: '核对中', en: 'In Review' }, value: 'in-review' },
                 { label: { zh: '已按来源核对', en: 'Verified From Source' }, value: 'verified-from-source' },
                 { label: { zh: '退回修改', en: 'Changes Required' }, value: 'changes-required' },
               ],
             },
-            { name: 'parameterReviewer', type: 'text', admin: { position: 'sidebar' }, label: { zh: '复核人', en: 'Reviewer' } },
-            { name: 'parameterReviewedAt', type: 'date', admin: { position: 'sidebar' }, label: { zh: '复核时间', en: 'Reviewed At' } },
+            { name: 'parameterReviewer', type: 'text', admin: { position: 'sidebar' }, label: { zh: '核对人', en: 'Reviewer' } },
+            { name: 'parameterReviewedAt', type: 'date', admin: { position: 'sidebar' }, label: { zh: '核对时间', en: 'Reviewed At' } },
             { name: 'importBatchId', type: 'text', admin: { position: 'sidebar' }, label: { zh: '导入批次', en: 'Import Batch' } },
             { name: 'parameterReviewNotes', type: 'textarea', localized: true, label: { zh: '参数核对备注', en: 'Parameter Review Notes' } },
           ],
@@ -213,7 +214,7 @@ export const Products: CollectionConfig = {
               defaultValue: 'customizable',
               admin: {
                 description: {
-                  zh: '控制产品卡片状态标签和列表筛选。这里填写“产品列表页设置 → 可售状态筛选项”的值，例如 customizable；后台字典新增后，这里可直接填写新值。',
+                  zh: '控制产品卡片状态标签和列表筛选。这里填写“产品列表页设置 → 可售状态筛选项”里的选项值；不确定时先不要改。',
                   en: 'Controls product-card status badges and listing filters. Enter a value from Product Listing Settings → Availability Filter Options, e.g. customizable. New dictionary values can be used here directly.',
                 },
               },
@@ -225,7 +226,7 @@ export const Products: CollectionConfig = {
               type: 'text',
               admin: {
                 description: {
-                  zh: '用于产品列表筛选和详情页应用场景卡片。每一行填写“产品列表页设置 → 应用场景字典”的值，例如 construction；后台字典新增后，这里可直接填写新值。',
+                  zh: '用于产品列表筛选和详情页应用场景卡片。每一行填写“产品列表页设置 → 应用场景选项”里的选项值；不确定时先不要改。',
                   en: 'Used by listing filters and detail application cards. Enter values from Product Listing Settings → Application Dictionary, e.g. construction. New dictionary values can be used here directly.',
                 },
               },
@@ -245,8 +246,8 @@ export const Products: CollectionConfig = {
               defaultValue: true,
               admin: {
                 description: {
-                  zh: '关闭后，这个已发布产品仍可通过详情 URL 测试，但不会出现在产品列表页、分类页和筛选结果中。即使开启，也只有“前台可见状态=ready”的产品会进入列表。',
-                  en: 'When disabled, the published product can still be tested by its detail URL, but it will not appear in listing, category, or filter results. Even when enabled, only products with Front-end Content Status = ready enter listing pages.',
+                  zh: '关闭后，这个已发布产品仍可通过产品页面地址打开，但不会出现在产品列表页、分类页和筛选结果中。即使开启，也只有“网站显示状态=可显示”的产品会进入列表。',
+                  en: 'When disabled, the published product can still be tested by its detail URL, but it will not appear in listing, category, or filter results. Even when enabled, only products with Front-end Content Status = 可显示 enter listing pages.',
                 },
               },
               label: { zh: '显示在产品列表页', en: 'Show in Product Listing' },
@@ -257,14 +258,14 @@ export const Products: CollectionConfig = {
               defaultValue: true,
               admin: {
                 description: {
-                  zh: '关闭后，这个产品不会进入首页产品分类区或首页推荐产品区；不影响产品详情页。即使开启，也只有“前台可见状态=ready”的产品会进入首页。',
-                  en: 'When disabled, the product is excluded from home product families and featured products. Detail pages are unaffected. Even when enabled, only products with Front-end Content Status = ready enter the home page.',
+                  zh: '关闭后，这个产品不会进入首页产品区；不影响产品详情页。即使开启，也只有“网站显示状态=可显示”的产品会进入首页。',
+                  en: 'When disabled, the product is excluded from the home product section. Detail pages are unaffected. Even when enabled, only products with Front-end Content Status = 可显示 enter the home page.',
                 },
               },
               label: { zh: '显示在首页', en: 'Show on Home Page' },
             },
-            { name: 'isFeatured', type: 'checkbox', defaultValue: false, label: { zh: '首页/推荐优先展示', en: 'Featured' } },
-            { name: 'popularity', type: 'number', defaultValue: 50, label: { zh: '推荐热度', en: 'Popularity' }, min: 0, max: 100 },
+            { name: 'isFeatured', type: 'checkbox', defaultValue: false, label: { zh: '重点产品优先展示', en: 'Featured' } },
+            { name: 'popularity', type: 'number', defaultValue: 50, label: { zh: '排序热度', en: 'Popularity' }, min: 0, max: 100 },
             { name: 'sortOrder', type: 'number', defaultValue: 100, label: { zh: '排序值', en: 'Sort Order' }, admin: { position: 'sidebar' } },
           ],
         },
@@ -292,7 +293,7 @@ export const Products: CollectionConfig = {
                 initCollapsed: true,
               },
               fields: [{ name: 'label', type: 'text', localized: true, label: { zh: '标注文字', en: 'Hotspot Label' }, required: true }],
-              label: { zh: '详情页主图标注', en: 'Detail Hero Hotspots' },
+              label: { zh: '详情页主图标注', en: 'Detail 顶部区域 Hotspots' },
               maxRows: 6,
             },
             {
@@ -300,7 +301,7 @@ export const Products: CollectionConfig = {
               type: 'array',
               admin: {
                 description: {
-                  zh: '可选。为当前产品单独覆盖详情页“应用场景”卡片；不填写时使用产品列表页设置里的应用场景字典。',
+                  zh: '可选。为当前产品单独覆盖详情页“应用场景”卡片；不填写时使用产品列表页设置里的应用场景选项。',
                   en: 'Optional per-product application cards for the detail page. If empty, global application dictionary cards are used.',
                 },
                 initCollapsed: true,
@@ -309,8 +310,8 @@ export const Products: CollectionConfig = {
                 { name: 'title', type: 'text', localized: true, label: { zh: '卡片标题', en: 'Card Title' }, required: true },
                 { name: 'text', type: 'textarea', localized: true, label: { zh: '卡片说明', en: 'Card Text' }, required: true, maxLength: 220 },
                 { name: 'image', type: 'upload', label: { zh: '卡片图片', en: 'Card Image' }, relationTo: 'media' },
-                { name: 'imagePath', type: 'text', label: { zh: '备用图片路径', en: 'Fallback Image Path' } },
-                { name: 'iconName', type: 'text', defaultValue: 'construction', label: { zh: '图标标识', en: 'Icon Key' } },
+                { name: 'imagePath', type: 'text', label: { zh: '图片路径（一般不用）', en: 'Backup Image Path' } },
+                { name: 'iconName', type: 'text', defaultValue: 'construction', label: { zh: '图标名称（一般不用）', en: 'Icon Key' } },
                 { name: 'sortOrder', type: 'number', defaultValue: 100, label: { zh: '排序值', en: 'Sort Order' } },
               ],
               label: { zh: '详情页应用场景卡片', en: 'Detail Application Cards' },
@@ -363,7 +364,7 @@ export const Products: CollectionConfig = {
           ],
         },
         {
-          label: { zh: 'SEO 与发布', en: 'SEO & Publish' },
+          label: { zh: '搜索设置与发布', en: 'Search Settings & Publish' },
           fields: [
             seoFields,
             statusField,
@@ -377,14 +378,14 @@ export const Products: CollectionConfig = {
       type: 'text',
       admin: {
         description: {
-          zh: '系统自动计算：ready=已满足首页、产品列表、分类页和详情页测试条件；needs-content=缺少前台必要内容；needs-parameter-review=只差参数复核。图纸只作为资料记录，不再阻止产品进入首页/列表。非 ready 不进入公开首页/列表。',
-          en: 'Auto calculated: ready can enter home and listing tests; needs-content is missing front-end content; needs-parameter-review still needs parameter verification. Drawing images are evidence records and no longer block public listings. Non-ready products are excluded from public listings.',
+          zh: '系统自动判断产品资料是否完整。显示“可显示”才会进入首页、产品列表和分类页。',
+          en: 'Auto calculated: 可显示 can enter home and listing tests; needs-content is missing front-end content; needs-parameter-review still needs parameter verification. Drawing images are evidence records and no longer block public listings. Non-可显示 products are excluded from public listings.',
         },
         position: 'sidebar',
         readOnly: true,
       },
       defaultValue: 'needs-content',
-      label: { zh: '前台可见状态', en: 'Front-end Visibility Status' },
+      label: { zh: '网站显示状态', en: 'Front-end Visibility Status' },
     },
     {
       name: 'frontendMissingFieldsNote',
@@ -404,7 +405,7 @@ export const Products: CollectionConfig = {
       type: 'text',
       admin: {
         description: {
-          zh: '系统自动计算：当前图纸/参数图只作为资料记录，不影响前台可见性。',
+          zh: '系统自动计算：当前图纸/参数图只作为资料记录，不影响网站可见性。',
           en: 'Auto calculated drawing evidence status. Drawing images no longer block front-end visibility.',
         },
         position: 'sidebar',

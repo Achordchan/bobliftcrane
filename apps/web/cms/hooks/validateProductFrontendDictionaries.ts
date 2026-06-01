@@ -32,11 +32,11 @@ export const validateProductFrontendDictionaries: CollectionBeforeValidateHook =
 
   const unknownApplications = arrayValues(draft.applications).filter((item) => !dictionaries.applications.has(item));
   if (unknownApplications.length > 0) {
-    errors.push(`应用场景“${unknownApplications.join('、')}”不在“产品列表页设置 → 应用场景字典”中`);
+    errors.push(`应用场景“${unknownApplications.join('、')}”不在“产品列表页设置 → 应用场景选项”中`);
   }
 
   if (errors.length > 0) {
-    throw new Error(`产品前台字典校验失败：${errors.join('；')}。请先在对应后台字典里维护取值，再保存产品。`);
+    throw new Error(`产品选项不匹配：${errors.join('；')}。请先在对应后台选项里维护取值，再保存产品。`);
   }
 
   return data;

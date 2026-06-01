@@ -36,16 +36,12 @@ const sql = [
     updated_at: raw(now),
   }),
   insertIfMissing("home_settings", {
-    application_section_cta_href: "#application",
     about_section_cta_href: "/about",
     news_section_cta_href: "/news",
     final_cta_button_href: "/quote",
     final_cta_image_path: "/images/cta-lift-photo.png",
     trust_bar_show_intro_card: true,
     trust_bar_show_mark_names: true,
-    application_section_show_cta: true,
-    application_section_show_images: true,
-    application_section_show_icons: true,
     about_section_show_gallery: true,
     about_section_show_stats: true,
     about_section_show_timeline: true,
@@ -55,8 +51,6 @@ const sql = [
     news_section_show_date: true,
     news_section_show_category: true,
     news_section_max_articles: 4,
-    home_product_section_show_featured_cta: true,
-    home_product_section_show_featured_product_model: true,
     home_seo_canonical_path: "/",
     created_at: raw(now),
     updated_at: raw(now),
@@ -276,14 +270,9 @@ function homeLocaleRows() {
       home_hero_ui_aria_label: "Featured lifting solutions",
       home_hero_ui_previous_slide_label: "Previous banner",
       home_hero_ui_next_slide_label: "Next banner",
-      home_hero_ui_slide_indicator_label_template: "Show {title}",
+      home_hero_ui_slide_indicator_label_template: "Show banner {index}",
       home_product_section_label: "Main Products",
       home_product_section_title: "BOB-LIFT Crane Solutions",
-      home_product_section_featured_label: "Featured Products",
-      home_product_section_featured_title: "High Performance Cranes. Built for Extreme Demands.",
-      home_product_section_featured_cta_label: "View All Products",
-      home_product_section_featured_capacity_label: "Capacity",
-      home_product_section_featured_type_label: "Type",
       home_product_section_find_model_title: "Find Your Model",
       home_product_section_details_short_label: "Details",
       home_product_section_view_details_label: "View Details",
@@ -301,9 +290,6 @@ function homeLocaleRows() {
       trust_bar_label: "Certified",
       trust_bar_title: "Quality Assurance",
       trust_bar_description: "Export-ready documentation.",
-      application_section_label: "Solutions for Every Industry",
-      application_section_title: "Lifting Solutions That Build Stronger Futures.",
-      application_section_cta_label: "View All Applications",
       about_section_label: "About BOB-LIFT",
       about_section_title: "Engineering Excellence. Powered by People.",
       about_section_text: "BOB-LIFT combines manufacturing, engineering and export support for practical lifting projects.",
@@ -326,14 +312,9 @@ function homeLocaleRows() {
       home_hero_ui_aria_label: "重点起重解决方案",
       home_hero_ui_previous_slide_label: "上一张横幅",
       home_hero_ui_next_slide_label: "下一张横幅",
-      home_hero_ui_slide_indicator_label_template: "显示 {title}",
+      home_hero_ui_slide_indicator_label_template: "显示第 {index} 张横幅",
       home_product_section_label: "主营产品",
       home_product_section_title: "BOB-LIFT 起重解决方案",
-      home_product_section_featured_label: "推荐产品",
-      home_product_section_featured_title: "高性能起重设备，适配严苛工况。",
-      home_product_section_featured_cta_label: "查看全部产品",
-      home_product_section_featured_capacity_label: "起重能力",
-      home_product_section_featured_type_label: "类型",
       home_product_section_find_model_title: "选择型号",
       home_product_section_details_short_label: "详情",
       home_product_section_view_details_label: "查看详情",
@@ -351,9 +332,6 @@ function homeLocaleRows() {
       trust_bar_label: "认证",
       trust_bar_title: "质量保障",
       trust_bar_description: "支持出口所需资料。",
-      application_section_label: "多行业应用",
-      application_section_title: "面向真实工况的起重方案。",
-      application_section_cta_label: "查看应用场景",
       about_section_label: "关于 BOB-LIFT",
       about_section_title: "制造、工程与出口服务一体化。",
       about_section_text: "BOB-LIFT 为全球项目提供起重设备制造、方案匹配和出口支持。",
@@ -376,14 +354,9 @@ function homeLocaleRows() {
       home_hero_ui_aria_label: "Soluciones destacadas de elevación",
       home_hero_ui_previous_slide_label: "Banner anterior",
       home_hero_ui_next_slide_label: "Banner siguiente",
-      home_hero_ui_slide_indicator_label_template: "Mostrar {title}",
+      home_hero_ui_slide_indicator_label_template: "Mostrar banner {index}",
       home_product_section_label: "Productos principales",
       home_product_section_title: "Soluciones de grúas BOB-LIFT",
-      home_product_section_featured_label: "Productos destacados",
-      home_product_section_featured_title: "Grúas de alto rendimiento para condiciones exigentes.",
-      home_product_section_featured_cta_label: "Ver todos los productos",
-      home_product_section_featured_capacity_label: "Capacidad",
-      home_product_section_featured_type_label: "Tipo",
       home_product_section_find_model_title: "Encuentre su modelo",
       home_product_section_details_short_label: "Detalles",
       home_product_section_view_details_label: "Ver detalles",
@@ -401,9 +374,6 @@ function homeLocaleRows() {
       trust_bar_label: "Certificado",
       trust_bar_title: "Control de calidad",
       trust_bar_description: "Documentación lista para exportación.",
-      application_section_label: "Soluciones por industria",
-      application_section_title: "Soluciones de elevación para condiciones reales.",
-      application_section_cta_label: "Ver aplicaciones",
       about_section_label: "Sobre BOB-LIFT",
       about_section_title: "Fabricación, ingeniería y soporte de exportación.",
       about_section_text: "BOB-LIFT combina fabricación, selección técnica y soporte de exportación para proyectos globales.",
@@ -426,14 +396,9 @@ function homeLocaleRows() {
       home_hero_ui_aria_label: "حلول رفع مميزة",
       home_hero_ui_previous_slide_label: "الشريحة السابقة",
       home_hero_ui_next_slide_label: "الشريحة التالية",
-      home_hero_ui_slide_indicator_label_template: "عرض {title}",
+      home_hero_ui_slide_indicator_label_template: "عرض الشريحة {index}",
       home_product_section_label: "المنتجات الرئيسية",
       home_product_section_title: "حلول رافعات BOB-LIFT",
-      home_product_section_featured_label: "منتجات مميزة",
-      home_product_section_featured_title: "رافعات عالية الأداء لظروف العمل الصعبة.",
-      home_product_section_featured_cta_label: "عرض كل المنتجات",
-      home_product_section_featured_capacity_label: "القدرة",
-      home_product_section_featured_type_label: "النوع",
       home_product_section_find_model_title: "اختر الموديل",
       home_product_section_details_short_label: "تفاصيل",
       home_product_section_view_details_label: "عرض التفاصيل",
@@ -451,9 +416,6 @@ function homeLocaleRows() {
       trust_bar_label: "اعتماد",
       trust_bar_title: "ضمان الجودة",
       trust_bar_description: "وثائق جاهزة للتصدير.",
-      application_section_label: "حلول لكل صناعة",
-      application_section_title: "حلول رفع لظروف عمل حقيقية.",
-      application_section_cta_label: "عرض التطبيقات",
       about_section_label: "عن BOB-LIFT",
       about_section_title: "تصنيع وهندسة ودعم تصدير.",
       about_section_text: "تجمع BOB-LIFT بين التصنيع والاختيار الفني ودعم التصدير للمشاريع العالمية.",
@@ -803,24 +765,9 @@ function seedProductListingArrays() {
 function seedHomeArrays() {
   return [
     seedChildRows("home_settings", "home_settings_home_hero_slides", [
-      homeHeroSlideRow("seed-hero-marine", 0, "/images/marine-scene.jpg", "/products/category/knuckle-boom-marine-cranes", "/quote", {
-        en: ["BOB-LIFT Marine Lifting", "Marine Crane", "Deck and port crane solutions for shipboard lifting, dock handling and offshore service work.", "View Marine Cranes", "Request Quote"],
-        zh: ["BOB-LIFT 船用起重", "船用起重机", "面向船舶吊装、码头搬运和近海服务作业的甲板与港口起重方案。", "查看船用起重机", "获取报价"],
-        es: ["Elevación marina BOB-LIFT", "Grúa marina", "Soluciones para izaje a bordo, manejo portuario y servicio offshore.", "Ver grúas marinas", "Solicitar cotización"],
-        ar: ["حلول BOB-LIFT البحرية", "رافعة بحرية", "حلول رافعات للسطح والموانئ وخدمات العمل البحري.", "عرض الرافعات البحرية", "اطلب عرض سعر"],
-      }),
-      homeHeroSlideRow("seed-hero-truck", 1, "/images/telescopic-banner.jpg", "/products/category/telescopic-boom-truck-mounted-cranes", "/quote", {
-        en: ["Road Transport Lifting", "Truck Mounted Crane", "Telescopic and knuckle boom truck-mounted cranes for construction, logistics and municipal projects.", "View Truck Cranes", "Send Inquiry"],
-        zh: ["道路运输起重", "随车起重机", "适用于建筑、物流和市政项目的伸缩臂与折臂随车起重机。", "查看随车起重机", "发送询盘"],
-        es: ["Elevación sobre carretera", "Grúa sobre camión", "Grúas telescópicas y articuladas sobre camión para construcción, logística y proyectos municipales.", "Ver grúas sobre camión", "Enviar consulta"],
-        ar: ["رفع للنقل البري", "رافعة مثبتة على شاحنة", "رافعات شاحنات تلسكوبية ومفصلية للبناء واللوجستيات والمشاريع البلدية.", "عرض رافعات الشاحنات", "إرسال استفسار"],
-      }),
-      homeHeroSlideRow("seed-hero-knuckle", 2, "/images/knuckle-banner.jpg", "/products/category/knuckle-boom-truck-mounted-cranes", "/contact", {
-        en: ["Compact Power", "Knuckle Boom Crane", "Folding boom configurations keep lifting, loading and installation work efficient in limited space.", "View Knuckle Cranes", "Contact Us"],
-        zh: ["紧凑强力", "折臂起重机", "折叠臂架结构适合有限空间内的起吊、装卸和安装作业。", "查看折臂起重机", "联系我们"],
-        es: ["Potencia compacta", "Grúa articulada", "Configuraciones plegables para izaje, carga e instalación eficiente en espacios limitados.", "Ver grúas articuladas", "Contactar"],
-        ar: ["قوة مدمجة", "رافعة بذراع مفصلي", "تصميم الذراع القابل للطي يحافظ على كفاءة الرفع والتحميل في المساحات المحدودة.", "عرض الرافعات المفصلية", "اتصل بنا"],
-      }),
+      homeHeroSlideRow("seed-hero-marine", 0, "/images/marine-scene.jpg"),
+      homeHeroSlideRow("seed-hero-truck", 1, "/images/telescopic-banner.jpg"),
+      homeHeroSlideRow("seed-hero-knuckle", 2, "/images/knuckle-banner.jpg"),
     ], "home_settings_home_hero_slides_locales"),
     seedChildRows("home_settings", "home_settings_trust_bar_marks", [
       {
@@ -868,38 +815,6 @@ function seedHomeArrays() {
         },
       },
     ], "home_settings_trust_bar_marks_locales"),
-    seedChildRows("home_settings", "home_settings_application_section_items", [
-      homeApplicationRow("seed-home-app-construction", 0, "/images/construction-scene.jpg", "factory", {
-        en: "Construction",
-        zh: "建筑施工",
-        es: "Construcción",
-        ar: "البناء",
-      }),
-      homeApplicationRow("seed-home-app-logistics", 1, "/images/aerial-platform.jpg", "truck", {
-        en: "Logistics & Transport",
-        zh: "物流运输",
-        es: "Logística y transporte",
-        ar: "اللوجستيات والنقل",
-      }),
-      homeApplicationRow("seed-home-app-port", 2, "/images/marine-scene.jpg", "ship", {
-        en: "Port Operations",
-        zh: "港口作业",
-        es: "Operaciones portuarias",
-        ar: "عمليات الموانئ",
-      }),
-      homeApplicationRow("seed-home-app-marine", 3, "/images/global-network-blue.jpg", "network", {
-        en: "Marine Operations",
-        zh: "船舶作业",
-        es: "Operaciones marinas",
-        ar: "العمليات البحرية",
-      }),
-      homeApplicationRow("seed-home-app-municipal", 4, "/images/telescopic-banner.jpg", "building", {
-        en: "Municipal Engineering",
-        zh: "市政工程",
-        es: "Ingeniería municipal",
-        ar: "الهندسة البلدية",
-      }),
-    ], "home_settings_application_section_items_locales"),
     seedChildRows("home_settings", "home_settings_about_section_gallery", [
       homeGalleryRow("seed-about-gallery-truck", 0, "/images/truck-mounted-crane.png", false, {
         en: "Truck mounted crane",
@@ -1137,21 +1052,12 @@ function workflowRow(id, order, iconName, locales) {
   };
 }
 
-function homeHeroSlideRow(id, order, imagePath, primaryCtaHref, secondaryCtaHref, locales) {
+function homeHeroSlideRow(id, order, imagePath) {
   return {
     id,
     order,
-    values: { image_path: imagePath, primary_cta_href: primaryCtaHref, secondary_cta_href: secondaryCtaHref },
-    locales: Object.fromEntries(Object.entries(locales).map(([locale, [eyebrow, title, description, primaryCtaLabel, secondaryCtaLabel]]) => [locale, { eyebrow, title, description, primary_cta_label: primaryCtaLabel, secondary_cta_label: secondaryCtaLabel }])),
-  };
-}
-
-function homeApplicationRow(id, order, imagePath, iconName, labels) {
-  return {
-    id,
-    order,
-    values: { image_path: imagePath, icon_name: iconName },
-    locales: Object.fromEntries(Object.entries(labels).map(([locale, title]) => [locale, { title }])),
+    values: { image_path: imagePath },
+    locales: {},
   };
 }
 

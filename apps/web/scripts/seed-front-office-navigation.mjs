@@ -38,11 +38,10 @@ function seedSiteNavigation() {
   return seedChildRows("site_settings", "site_settings_navigation_items", [
     navRow("seed-nav-home", 0, "/", false, { en: "Home", zh: "首页", es: "Inicio", ar: "الرئيسية" }),
     navRow("seed-nav-products", 1, "/products", true, { en: "Products", zh: "产品中心", es: "Productos", ar: "المنتجات" }),
-    navRow("seed-nav-application", 2, "/#application", true, { en: "Application", zh: "应用场景", es: "Aplicaciones", ar: "التطبيقات" }),
-    navRow("seed-nav-cases", 3, "/cases", false, { en: "Cases", zh: "案例中心", es: "Casos", ar: "الحالات" }),
-    navRow("seed-nav-about", 4, "/about", false, { en: "About BOB-LIFT", zh: "关于 BOB-LIFT", es: "Sobre BOB-LIFT", ar: "عن BOB-LIFT" }),
-    navRow("seed-nav-news", 5, "/news", false, { en: "News", zh: "新闻中心", es: "Noticias", ar: "الأخبار" }),
-    navRow("seed-nav-contact", 6, "/contact", false, { en: "Contact Us", zh: "联系我们", es: "Contacto", ar: "اتصل بنا" }),
+    navRow("seed-nav-cases", 2, "/cases", false, { en: "Cases", zh: "案例中心", es: "Casos", ar: "الحالات" }),
+    navRow("seed-nav-about", 3, "/about", false, { en: "About BOB-LIFT", zh: "关于 BOB-LIFT", es: "Sobre BOB-LIFT", ar: "عن BOB-LIFT" }),
+    navRow("seed-nav-news", 4, "/news", false, { en: "News", zh: "新闻中心", es: "Noticias", ar: "الأخبار" }),
+    navRow("seed-nav-contact", 5, "/contact", false, { en: "Contact Us", zh: "联系我们", es: "Contacto", ar: "اتصل بنا" }),
   ], "site_settings_navigation_items_locales");
 }
 
@@ -109,14 +108,7 @@ function seedFooterLinks() {
       ["/products/category/pickup-cranes", { en: "Pickup Cranes", zh: "皮卡起重机", es: "Grúas pickup", ar: "رافعات بيك أب" }],
       ["/products/category/mini-dumpers", { en: "Mini Dumpers", zh: "迷你自卸车", es: "Mini volquetes", ar: "قلاب صغير" }],
     ]),
-    footerGroup("seed-footer-application", 1, { en: "Application", zh: "应用场景", es: "Aplicaciones", ar: "التطبيقات" }, [
-      ["/#application", { en: "Construction", zh: "建筑施工", es: "Construcción", ar: "البناء" }],
-      ["/#application", { en: "Logistics & Transport", zh: "物流运输", es: "Logística y transporte", ar: "اللوجستيات والنقل" }],
-      ["/#application", { en: "Port Operations", zh: "港口作业", es: "Operaciones portuarias", ar: "عمليات الموانئ" }],
-      ["/#application", { en: "Marine Operations", zh: "船舶作业", es: "Operaciones marinas", ar: "عمليات بحرية" }],
-      ["/#application", { en: "Municipal Engineering", zh: "市政工程", es: "Ingeniería municipal", ar: "الهندسة البلدية" }],
-    ]),
-    footerGroup("seed-footer-company", 2, { en: "Company", zh: "公司信息", es: "Empresa", ar: "الشركة" }, [
+    footerGroup("seed-footer-company", 1, { en: "Company", zh: "公司信息", es: "Empresa", ar: "الشركة" }, [
       ["/about", { en: "About BOB-LIFT", zh: "关于 BOB-LIFT", es: "Sobre BOB-LIFT", ar: "عن BOB-LIFT" }],
       ["/cases", { en: "Customer Cases", zh: "客户案例", es: "Casos de clientes", ar: "حالات العملاء" }],
       ["/news", { en: "Company News", zh: "公司新闻", es: "Noticias", ar: "أخبار الشركة" }],
@@ -126,9 +118,9 @@ function seedFooterLinks() {
   const groupSql = seedChildRows("site_settings", "site_settings_footer_groups", groups, "site_settings_footer_groups_locales");
   const linkSql = groups.map((group) => seedStaticParentChildRows(group.id, "site_settings_footer_groups_links", group.links, "site_settings_footer_groups_links_locales")).join("\n");
   const socialSql = seedChildRows("site_settings", "site_settings_social_links", [
-    simpleLinkRow("seed-social-linkedin", 0, "/contact", { en: "in", zh: "in", es: "in", ar: "in" }),
-    simpleLinkRow("seed-social-youtube", 1, "/contact", { en: "yt", zh: "yt", es: "yt", ar: "yt" }),
-    simpleLinkRow("seed-social-facebook", 2, "/contact", { en: "fb", zh: "fb", es: "fb", ar: "fb" }),
+    simpleLinkRow("seed-social-linkedin", 0, "/contact", { en: "LinkedIn", zh: "LinkedIn", es: "LinkedIn", ar: "LinkedIn" }),
+    simpleLinkRow("seed-social-youtube", 1, "/contact", { en: "YouTube", zh: "YouTube", es: "YouTube", ar: "YouTube" }),
+    simpleLinkRow("seed-social-facebook", 2, "/contact", { en: "Facebook", zh: "Facebook", es: "Facebook", ar: "Facebook" }),
   ], "site_settings_social_links_locales");
   const legalSql = seedChildRows("site_settings", "site_settings_legal_links", [
     simpleLinkRow("seed-legal-privacy", 0, "/privacy-policy.html", { en: "Privacy Policy", zh: "隐私政策", es: "Política de privacidad", ar: "سياسة الخصوصية" }),

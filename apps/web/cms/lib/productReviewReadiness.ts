@@ -64,6 +64,6 @@ export function productFrontendChecklist(data: ProductDraftData) {
   const hasOnlyReviewMissing = missing.length === 1 && missing[0] === '参数未按来源核对';
   return {
     status: missing.length === 0 ? 'ready' : hasOnlyReviewMissing ? 'needs-parameter-review' : 'needs-content',
-    note: missing.length > 0 ? missing.join('、') : '已具备前台测试需要的基础内容',
+    note: missing.length > 0 ? missing.join('、') : '已具备网站测试需要的基础内容',
   };
 }

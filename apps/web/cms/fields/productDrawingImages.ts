@@ -4,7 +4,7 @@ export const productDrawingImagesField: Field = {
   name: 'drawingImages',
   type: 'array',
   admin: {
-    description: { zh: '上传从旧站详情、图纸或参数图中提取的资料图片；这些图片只作为资料记录，不参与产品发布阻塞。', en: 'Drawings or parameter images are stored as supporting product material and do not block publishing.' },
+    description: { zh: '上传从旧网站详情、图纸或参数图中提取的资料图片；这些图片只作为资料记录，不影响产品发布。', en: 'Drawings or parameter images are stored as supporting product material and do not block publishing.' },
     initCollapsed: true,
   },
   fields: [
@@ -14,7 +14,7 @@ export const productDrawingImagesField: Field = {
       name: 'sourceType',
       type: 'select',
       defaultValue: 'parameter-chart',
-      label: { zh: '来源类型', en: 'Source Type' },
+      label: { zh: '导入来源', en: 'Source Type' },
       options: [
         { label: { zh: '参数图 / 曲线图', en: 'Parameter Chart' }, value: 'parameter-chart' },
         { label: { zh: '结构图纸', en: 'Engineering Drawing' }, value: 'engineering-drawing' },
@@ -22,7 +22,7 @@ export const productDrawingImagesField: Field = {
         { label: { zh: '其他来源图', en: 'Other Evidence Image' }, value: 'other' },
       ],
     },
-    { name: 'sourceUrl', type: 'text', label: { zh: '旧站原图 URL', en: 'Legacy Source Image URL' } },
+    { name: 'sourceUrl', type: 'text', label: { zh: '旧网站原图地址', en: 'Legacy Source Image URL' } },
     {
       name: 'reviewStatus',
       type: 'select',

@@ -5,10 +5,8 @@ import {
   defaultHomeHeroSlides,
   defaultHomeProductSectionContent,
   type AboutSectionContent,
-  type ApplicationSectionContent,
   type FinalCtaContent,
   type FooterContent,
-  type HomeFeaturedProduct,
   type HeaderTopBarContent,
   type HomeHeroSlide,
   type HomeHeroUiContent,
@@ -25,7 +23,6 @@ import {
   aboutSectionFromSettings,
   chromeBrandingFromSettings,
   combineCmsSettings,
-  applicationSectionFromSettings,
   contactFromSettings,
   chromeUiFromSettings,
   finalCtaFromSettings,
@@ -172,11 +169,9 @@ export type HomeContent = {
   heroSlides: HomeHeroSlide[];
   heroUi: HomeHeroUiContent;
   productCatalog: CatalogCategory[];
-  featuredProducts: HomeFeaturedProduct[];
   articles: SiteArticle[];
   productSection: HomeProductSectionContent;
   trustBar: TrustBarContent;
-  applicationSection: ApplicationSectionContent;
   aboutSection: AboutSectionContent;
   newsSection: NewsSectionContent;
   sectionVisibility: HomeSectionVisibility;
@@ -486,20 +481,17 @@ export async function getHomeContent(): Promise<HomeContent> {
     getActiveLocale(),
   ]);
 
-  const applicationSection = applicationSectionFromSettings(settings);
   const aboutSection = aboutSectionFromSettings(settings);
   const newsSection = newsSectionFromSettings(settings);
   const productSection = productSectionFromSettings(settings);
 
   return {
-    heroSlides: heroSlidesFromSettings(settings, locale),
+    heroSlides: heroSlidesFromSettings(settings),
     heroUi: homeHeroUiFromSettings(settings),
-    productCatalog: cmsProductsToCatalog(products, settings?.homeFeaturedProducts, locale, productSection),
-    featuredProducts: cmsProductsToFeaturedProducts(products, settings?.homeFeaturedProducts, locale, productSection),
+    productCatalog: cmsProductsToCatalog(products, locale, productSection),
     articles: homeArticlesFromSettings(settings, articles.length > 0 ? articles : fallbackArticles, newsSection.maxArticles),
-    productSection: { ...productSection, featuredCtaHref: localizeCmsHref(productSection.featuredCtaHref, locale) },
+    productSection,
     trustBar: trustBarFromSettings(settings),
-    applicationSection: { ...applicationSection, ctaHref: localizeCmsHref(applicationSection.ctaHref, locale) },
     aboutSection: { ...aboutSection, ctaHref: localizeCmsHref(aboutSection.ctaHref, locale) },
     newsSection: { ...newsSection, ctaHref: localizeCmsHref(newsSection.ctaHref, locale) },
     sectionVisibility: homeSectionVisibilityFromSettings(settings),
@@ -864,40 +856,26 @@ function cleanStringArray(values?: string[] | null) {
   return values?.map((value) => value.trim()).filter(Boolean) ?? [];
 }
 
-function heroSlidesFromSettings(settings: CmsSiteSetting | null, locale?: CmsLocale): HomeHeroSlide[] {
+function heroSlidesFromSettings(settings: CmsSiteSetting | null): HomeHeroSlide[] {
   const slides = settings?.homeHeroSlides
     ?.map((slide) => ({
-      title: slide.title?.trim() ?? "",
-      eyebrow: slide.eyebrow?.trim() || undefined,
-      description: slide.description?.trim() || undefined,
       image: mediaUrl(slide.image, "hero") ?? slide.imagePath?.trim() ?? "",
       mobileImage: mediaUrl(slide.mobileImage, "hero") ?? slide.mobileImagePath?.trim() ?? undefined,
-      primaryCtaLabel: slide.primaryCtaLabel?.trim() || undefined,
-      primaryCtaHref: slide.primaryCtaHref ? localizeCmsHref(slide.primaryCtaHref, locale) : undefined,
-      secondaryCtaLabel: slide.secondaryCtaLabel?.trim() || undefined,
-      secondaryCtaHref: slide.secondaryCtaHref ? localizeCmsHref(slide.secondaryCtaHref, locale) : undefined,
     }))
-    .filter((slide) => slide.title && slide.image);
+    .filter((slide) => slide.image);
 
   if (slides && slides.length > 0) return slides;
-  return defaultHomeHeroSlides.map((slide) => ({
-    ...slide,
-    primaryCtaHref: slide.primaryCtaHref ? localizeCmsHref(slide.primaryCtaHref, locale) : undefined,
-    secondaryCtaHref: slide.secondaryCtaHref ? localizeCmsHref(slide.secondaryCtaHref, locale) : undefined,
-  }));
+  return defaultHomeHeroSlides;
 }
 
 function cmsProductsToCatalog(
   products: CmsProduct[],
-  featuredProducts?: (number | CmsProduct)[] | null,
   locale?: CmsLocale,
   productSection: HomeProductSectionContent = defaultHomeProductSectionContent,
 ): CatalogCategory[] {
-  const featuredRanks = relationRanks(featuredProducts);
   const orderedProducts = [...products].sort((a, b) => {
-    const selectedRankDiff = relationRank(a.id, featuredRanks) - relationRank(b.id, featuredRanks);
-    const featuredDiff = Number(featuredRanks.has(b.id) || b.isFeatured) - Number(featuredRanks.has(a.id) || a.isFeatured);
-    return selectedRankDiff || featuredDiff || categorySortOrder(a) - categorySortOrder(b) || (a.sortOrder ?? 100) - (b.sortOrder ?? 100) || (b.popularity ?? 50) - (a.popularity ?? 50);
+    const featuredDiff = Number(Boolean(b.isFeatured)) - Number(Boolean(a.isFeatured));
+    return featuredDiff || categorySortOrder(a) - categorySortOrder(b) || (a.sortOrder ?? 100) - (b.sortOrder ?? 100) || (b.popularity ?? 50) - (a.popularity ?? 50);
   });
   const groups = new Map<string, CatalogCategory>();
 
@@ -934,40 +912,6 @@ function cmsProductToCatalogProduct(product: CmsProduct, locale?: CmsLocale): Ca
     href: localizeCmsHref(productPublicPath(product), locale),
     detailPath: localizeCmsHref(productPublicPath(product), locale),
   };
-}
-
-function cmsProductsToFeaturedProducts(
-  products: CmsProduct[],
-  featuredProducts?: (number | CmsProduct)[] | null,
-  locale?: CmsLocale,
-  productSection: HomeProductSectionContent = defaultHomeProductSectionContent,
-): HomeFeaturedProduct[] {
-  const featuredRanks = relationRanks(featuredProducts);
-  const hasMarkedFeatured = products.some((product) => product.isFeatured);
-  const orderedProducts = [...products].sort((a, b) => {
-    const selectedDiff = relationRank(a.id, featuredRanks) - relationRank(b.id, featuredRanks);
-    const featuredDiff = Number(Boolean(b.isFeatured)) - Number(Boolean(a.isFeatured));
-    return selectedDiff || featuredDiff || (b.popularity ?? 50) - (a.popularity ?? 50) || (a.sortOrder ?? 100) - (b.sortOrder ?? 100);
-  });
-
-  return orderedProducts
-    .filter((product) => {
-      if (product.showOnHome === false || !productHasFrontendContent(product)) return false;
-      if (featuredRanks.size > 0) return featuredRanks.has(product.id);
-      return hasMarkedFeatured ? Boolean(product.isFeatured) : true;
-    })
-    .slice(0, productSection.maxFeaturedProducts)
-    .map((product) => {
-      const catalogProduct = cmsProductToCatalogProduct(product, locale);
-      return {
-        name: catalogProduct.name,
-        model: catalogProduct.model,
-        image: catalogProduct.image,
-        href: catalogProduct.detailPath ?? catalogProduct.href,
-        capacity: catalogProduct.capacity,
-        type: catalogProduct.type,
-      };
-    });
 }
 
 export function cmsProductToListingProduct(product: CmsProduct, quotePath = defaultContactSettings.quotePath, ui?: ProductUiContent, locale?: CmsLocale): Product {
@@ -1192,20 +1136,6 @@ function formatSpecNumber(value: number) {
 function productInquiryUrl(quotePath: string, title: string, slug: string) {
   const separator = quotePath.includes("?") ? "&" : "?";
   return `${quotePath}${separator}product=${encodeURIComponent(title)}&productSlug=${encodeURIComponent(slug)}`;
-}
-
-function relationRanks(items: ((number | { id: number }) | null | undefined)[] | null | undefined) {
-  const ranks = new Map<number, number>();
-  items?.forEach((item, index) => {
-    if (!item) return;
-    const id = typeof item === "number" ? item : item.id;
-    if (typeof id === "number" && !ranks.has(id)) ranks.set(id, index);
-  });
-  return ranks;
-}
-
-function relationRank(id: number, ranks: Map<number, number>) {
-  return ranks.get(id) ?? Number.MAX_SAFE_INTEGER;
 }
 
 function humanizeKey(value: string) {

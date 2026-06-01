@@ -95,6 +95,10 @@ import * as migration_20260529_151800_import_batch_drawing_notes from './2026052
 import * as migration_20260529_152000_import_batch_mixed_locale_note from './20260529_152000_import_batch_mixed_locale_note';
 import * as migration_20260529_153000_localized_media_alt_caption from './20260529_153000_localized_media_alt_caption';
 import * as migration_20260529_154000_translation_target_locales_all from './20260529_154000_translation_target_locales_all';
+import * as migration_20260601_143500_remove_home_hero_description from './20260601_143500_remove_home_hero_description';
+import * as migration_20260601_150500_remove_home_featured_products_section from './20260601_150500_remove_home_featured_products_section';
+import * as migration_20260601_151000_remove_home_application_section from './20260601_151000_remove_home_application_section';
+import * as migration_20260601_160500_remove_home_hero_visible_overlay from './20260601_160500_remove_home_hero_visible_overlay';
 
 export const migrations = [
   {
@@ -581,5 +585,25 @@ export const migrations = [
     up: migration_20260529_154000_translation_target_locales_all.up,
     down: migration_20260529_154000_translation_target_locales_all.down,
     name: '20260529_154000_translation_target_locales_all',
+  },
+  {
+    up: migration_20260601_143500_remove_home_hero_description.up,
+    down: migration_20260601_143500_remove_home_hero_description.down,
+    name: '20260601_143500_remove_home_hero_description',
+  },
+  {
+    up: migration_20260601_150500_remove_home_featured_products_section.up,
+    down: migration_20260601_150500_remove_home_featured_products_section.down,
+    name: '20260601_150500_remove_home_featured_products_section',
+  },
+  {
+    up: migration_20260601_151000_remove_home_application_section.up,
+    down: migration_20260601_151000_remove_home_application_section.down,
+    name: '20260601_151000_remove_home_application_section',
+  },
+  {
+    up: migration_20260601_160500_remove_home_hero_visible_overlay.up,
+    down: migration_20260601_160500_remove_home_hero_visible_overlay.down,
+    name: '20260601_160500_remove_home_hero_visible_overlay',
   },
 ];

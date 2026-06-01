@@ -15,7 +15,7 @@ export function slugField(sourceField = 'title'): Field {
     type: 'text',
     admin: {
       description: {
-        zh: '不含 .html 的 URL 标识，例如：10-ton-telescopic-boom-truck-mounted-crane',
+        zh: '系统会根据标题自动生成，通常不用改。不含 .html，例如：10-ton-telescopic-boom-truck-mounted-crane',
         en: 'URL slug without .html, for example: 10-ton-telescopic-boom-truck-mounted-crane',
       },
       position: 'sidebar',
@@ -28,7 +28,7 @@ export function slugField(sourceField = 'title'): Field {
       }],
     },
     index: true,
-    label: { zh: 'URL Slug', en: 'URL Slug' },
+    label: { zh: '页面短地址', en: 'URL Slug' },
     required: true,
     unique: true,
   };

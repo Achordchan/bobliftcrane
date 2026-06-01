@@ -15,7 +15,7 @@ const pathOwners: PathOwner[] = [
   { slug: 'articles', label: '新闻文章' },
   { slug: 'cases', label: '客户案例' },
   { slug: 'pages', label: '独立页面' },
-  { slug: 'redirects', label: 'URL 兼容规则' },
+  { slug: 'redirects', label: '历史链接规则' },
 ];
 
 export function validateUniqueLegacyPaths(currentCollection: LegacyCollectionSlug): CollectionBeforeValidateHook {
@@ -28,7 +28,7 @@ export function validateUniqueLegacyPaths(currentCollection: LegacyCollectionSlu
 
     const duplicateInDraft = firstDuplicate(paths);
     if (duplicateInDraft) {
-      throw new Error(`公开 URL / 历史别名路径重复：${duplicateInDraft}。请保留一个主路径，其他路径放到历史别名里且不要重复。`);
+      throw new Error(`页面地址重复：${duplicateInDraft}。请保留一个主页面地址，其他旧地址放到历史别名里，且不要重复。`);
     }
 
     if (currentCollection === 'redirects' && textValue(draft.status) !== 'published') return data;
@@ -41,7 +41,7 @@ export function validateUniqueLegacyPaths(currentCollection: LegacyCollectionSlu
     }
 
     if (conflicts.length > 0) {
-      throw new Error(`旧站 URL 冲突：${conflicts.join('；')}。同一个公开链接只能绑定到一个内容或一条 URL 兼容规则。`);
+      throw new Error(`旧网站页面地址冲突：${conflicts.join('；')}。同一个页面地址只能绑定到一个内容或一条历史链接规则。`);
     }
 
     return data;
