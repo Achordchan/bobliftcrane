@@ -1,0 +1,244 @@
+<?php
+get_header();
+$products = boblift_all_products();
+$categories = boblift_categories();
+$initial_category = sanitize_title((string) get_query_var('boblift_product_category'));
+if ($initial_category === '' && isset($_GET['category']) && is_string($_GET['category'])) {
+    $initial_category = sanitize_title(wp_unslash($_GET['category']));
+}
+$category_counts = array_fill_keys(array_map(static fn($item) => $item['slug'], $categories), 0);
+$category_product_map = array_fill_keys(array_map(static fn($item) => $item['slug'], $categories), []);
+$archive_ui = function_exists('boblift_site_ui') ? boblift_site_ui('productArchive') : [];
+$capacity_ranges = is_array($archive_ui['capacityRanges'] ?? null) ? $archive_ui['capacityRanges'] : [];
+$boom_options = is_array($archive_ui['boomOptions'] ?? null) ? $archive_ui['boomOptions'] : [];
+$application_options = is_array($archive_ui['applicationOptions'] ?? null) ? $archive_ui['applicationOptions'] : [];
+$status_options = is_array($archive_ui['statusOptions'] ?? null) ? $archive_ui['statusOptions'] : [];
+$sort_options = is_array($archive_ui['sortOptions'] ?? null) ? $archive_ui['sortOptions'] : [];
+$product_archive = boblift_product_archive_options();
+$product_ui = function_exists('boblift_site_ui') ? boblift_site_ui('productDetail') : [];
+$quote_list_ui = function_exists('boblift_site_ui') ? boblift_site_ui('quoteList') : [];
+$banner_default = [
+    'label' => (string) ($product_archive['label'] ?? 'BOB-LIFT Product Range'),
+    'title' => (string) ($product_archive['title'] ?? 'Construction Equipment'),
+    'text' => (string) ($product_archive['text'] ?? 'Explore reliable BOB-LIFT lifting and construction machinery for global projects.'),
+    'image' => boblift_image_setting_url($product_archive['image'] ?? [], 'images/products/truck-mounted-crane.png'),
+    'imageAlt' => (string) ($product_archive['image_alt'] ?? 'BOB-LIFT truck mounted crane'),
+    'watermark' => (string) ($product_archive['watermark'] ?? 'BOB-LIFT'),
+];
+$banner_categories = [];
+foreach ($categories as $category) {
+    $slug = (string) ($category['slug'] ?? '');
+    if ($slug === '') {
+        continue;
+    }
+    $banner_categories[$slug] = [
+        'label' => $category['banner_label'] ?? 'BOB-LIFT Product Range',
+        'title' => $category['banner_title'] ?? ($category['title'] ?? $slug),
+        'text' => $category['description'] ?? $banner_default['text'],
+        'image' => boblift_image_src($category['image'] ?? 'images/products/truck-mounted-crane.png'),
+        'imageAlt' => $category['title'] ?? $banner_default['imageAlt'],
+        'watermark' => $banner_default['watermark'],
+    ];
+}
+$valid_category_slugs = array_fill_keys(array_keys($banner_categories), true);
+if ($initial_category !== '' && !isset($valid_category_slugs[$initial_category])) {
+    $initial_category = '';
+}
+$capacity_counts = array_fill_keys(array_column($capacity_ranges, 'value'), 0);
+$boom_counts = array_fill_keys(array_keys($boom_options), 0);
+$application_counts = array_fill_keys(array_keys($application_options), 0);
+$status_counts = array_fill_keys(array_keys($status_options), 0);
+foreach ($products as $product) {
+    $product_key = (string) ($product['id'] ?? $product['slug'] ?? $product['title'] ?? wp_unique_id('product_'));
+    $product_categories = array_values(array_unique(array_filter(array_map('strval', $product['categories'] ?? [($product['category'] ?? '')]))));
+    foreach ($product_categories as $category) {
+        if (isset($category_counts[$category])) {
+            $category_counts[$category]++;
+            $category_product_map[$category][$product_key] = true;
+        }
+    }
+    $capacity = (float) ($product['capacity_value'] ?? 0);
+    foreach ($capacity_ranges as $range) {
+        $range_value = (string) $range['value'];
+        preg_match_all('/\d+(?:\.\d+)?/', $range_value, $matches);
+        $min = isset($matches[0][0]) ? (float) $matches[0][0] : 0.0;
+        $max = isset($matches[0][1]) ? (float) $matches[0][1] : null;
+        $in_range = $max === null ? $capacity > $min : (($min <= 0 && $capacity > 0 && $capacity <= $max) || ($min > 0 && $capacity > $min && $capacity <= $max));
+        if ($in_range) {
+            $capacity_counts[$range_value]++;
+        }
+    }
+    $boom = $product['boom_type'] ?? '';
+    if (isset($boom_counts[$boom])) {
+        $boom_counts[$boom]++;
+    }
+    foreach (($product['applications'] ?? []) as $application) {
+        if (isset($application_counts[$application])) {
+            $application_counts[$application]++;
+        }
+    }
+    $status = boblift_normalize_product_status((string) ($product['status'] ?? 'customizable'));
+    if (isset($status_counts[$status])) {
+        $status_counts[$status]++;
+    }
+}
+$category_hierarchy = boblift_product_category_hierarchy();
+$category_url_map = [];
+foreach ($categories as $category) {
+    $slug = (string) ($category['slug'] ?? '');
+    if ($slug === '') {
+        continue;
+    }
+    $term = get_term_by('slug', $slug, 'product_category');
+    $term_url = $term instanceof WP_Term ? get_term_link($term) : '';
+    $category_url_map[$slug] = is_string($term_url) ? $term_url : boblift_public_path_url('/' . $slug);
+}
+$category_filter_tree = [];
+foreach ($category_hierarchy as $group) {
+    $children = $group['children'] ?? [];
+    if ($children) {
+        $parent_slug = (string) ($group['slug'] ?? '');
+        $child_slugs = array_values(array_filter(array_map(static fn(array $child): string => (string) ($child['slug'] ?? ''), $children)));
+        $filter_slugs = array_values(array_unique(array_filter(array_merge([$parent_slug], $child_slugs))));
+        $product_ids = [];
+        foreach ($filter_slugs as $filter_slug) {
+            foreach (($category_product_map[$filter_slug] ?? []) as $product_id => $_selected) {
+                $product_ids[$product_id] = true;
+            }
+        }
+        $count = count($product_ids);
+        if ($count <= 0) {
+            continue;
+        }
+        $category_filter_tree[] = ['slug' => $parent_slug, 'title' => (string) $group['title'], 'children' => $children, 'child_slugs' => $filter_slugs, 'count' => $count];
+        continue;
+    }
+    $category = $group['category'] ?? [];
+    $slug = (string) ($category['slug'] ?? $group['slug'] ?? '');
+    if ($slug !== '' && (($category_counts[$slug] ?? 0) > 0 || $slug === 'other-cranes')) {
+        $category_filter_tree[] = ['slug' => $slug, 'title' => (string) ($category['title'] ?? $group['title'] ?? $slug), 'children' => [], 'child_slugs' => [$slug], 'count' => (int) ($category_counts[$slug] ?? 0)];
+    }
+}
+$filter_group = static function (string $title, string $filter, array $items, array $counts): void { ?>
+    <fieldset class="border-t border-[#E5E7EB] pt-6 first:border-t-0 first:pt-0">
+        <legend class="mb-4 text-base font-black text-[#0B1B33]"><?php echo esc_html($title); ?></legend>
+        <div class="space-y-3">
+            <?php foreach ($items as $value => $label) : ?>
+                <label class="product-filter-option"><span class="relative flex h-5 w-5 shrink-0 items-center justify-center"><input class="peer h-5 w-5 appearance-none rounded border border-slate-300 bg-white transition checked:border-[#0B3F7D] checked:bg-[#0B3F7D] focus:outline-none focus:ring-4 focus:ring-blue-100" type="checkbox" data-filter="<?php echo esc_attr($filter); ?>" value="<?php echo esc_attr($value); ?>"><span class="pointer-events-none absolute h-2.5 w-1.5 -translate-y-0.5 rotate-45 border-b-2 border-r-2 border-white opacity-0 peer-checked:opacity-100"></span></span><span class="min-w-0 flex-1 whitespace-nowrap"><?php echo esc_html($label); ?></span><span class="shrink-0 text-xs font-black text-slate-400"><?php echo esc_html((string) ($counts[$value] ?? 0)); ?></span></label>
+            <?php endforeach; ?>
+        </div>
+    </fieldset>
+<?php };
+$category_filter_group = static function (array $tree) use ($category_counts, $archive_ui): void { ?>
+    <fieldset class="border-t border-[#E5E7EB] pt-6 first:border-t-0 first:pt-0">
+        <legend class="mb-4 text-base font-black text-[#0B1B33]"><?php echo esc_html($archive_ui['categoryFilterLabel'] ?? 'Product Category'); ?></legend>
+        <div class="space-y-3">
+            <?php foreach ($tree as $item) : ?>
+                <label class="product-filter-option"><span class="relative flex h-5 w-5 shrink-0 items-center justify-center"><input class="peer h-5 w-5 appearance-none rounded border border-slate-300 bg-white transition checked:border-[#0B3F7D] checked:bg-[#0B3F7D] focus:outline-none focus:ring-4 focus:ring-blue-100" type="checkbox" data-filter="category" data-category-role="<?php echo !empty($item['children']) ? 'parent' : 'single'; ?>" data-category-children="<?php echo esc_attr(implode(',', $item['child_slugs'] ?? [$item['slug']])); ?>" value="<?php echo esc_attr($item['slug']); ?>"><span class="pointer-events-none absolute h-2.5 w-1.5 -translate-y-0.5 rotate-45 border-b-2 border-r-2 border-white opacity-0 peer-checked:opacity-100"></span></span><span class="min-w-0 flex-1 font-black leading-snug"><?php echo esc_html($item['title']); ?></span><span class="shrink-0 text-xs font-black text-slate-400"><?php echo esc_html((string) ($item['count'] ?? 0)); ?></span></label>
+                <?php if (!empty($item['children'])) : ?>
+                    <div class="hidden space-y-3" data-category-children-panel="<?php echo esc_attr($item['slug']); ?>" data-category-children="<?php echo esc_attr(implode(',', $item['child_slugs'] ?? [])); ?>">
+                        <?php foreach (($item['children'] ?? []) as $child) : $child_slug = (string) ($child['slug'] ?? ''); ?>
+                            <label class="product-filter-option pl-8 text-[0.92em]"><span class="relative flex h-5 w-5 shrink-0 items-center justify-center"><input class="peer h-5 w-5 appearance-none rounded border border-slate-300 bg-white transition checked:border-[#0B3F7D] checked:bg-[#0B3F7D] focus:outline-none focus:ring-4 focus:ring-blue-100" type="checkbox" data-filter="category" data-category-role="child" data-category-parent="<?php echo esc_attr($item['slug']); ?>" value="<?php echo esc_attr($child_slug); ?>"><span class="pointer-events-none absolute h-2.5 w-1.5 -translate-y-0.5 rotate-45 border-b-2 border-r-2 border-white opacity-0 peer-checked:opacity-100"></span></span><span class="min-w-0 flex-1 leading-snug"><?php echo esc_html($child['title'] ?? $child_slug); ?></span><span class="shrink-0 text-xs font-black text-slate-400"><?php echo esc_html((string) ($category_counts[$child_slug] ?? 0)); ?></span></label>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            <?php endforeach; ?>
+        </div>
+    </fieldset>
+<?php };
+$filter_sidebar = static function (bool $show_close = false) use ($filter_group, $category_filter_group, $category_filter_tree, $capacity_ranges, $capacity_counts, $boom_options, $boom_counts, $application_options, $application_counts, $status_options, $status_counts, $archive_ui): void { ?>
+    <aside class="boblift-product-filter-sidebar rounded-[28px] border border-[#E5E7EB] bg-white p-6 shadow-[0_18px_50px_rgba(8,35,74,0.055)]">
+        <div class="boblift-product-filter-head mb-6 flex items-center justify-between gap-4">
+            <h2 class="text-2xl font-black tracking-[-0.04em] text-[#0B1B33]"><?php echo esc_html($archive_ui['filtersTitle'] ?? 'Filters'); ?></h2>
+            <div class="flex items-center gap-3">
+                <button class="text-sm font-bold text-slate-500 transition hover:text-blue-700" type="button" data-filter-reset><?php echo esc_html($archive_ui['clearAllLabel'] ?? 'Clear All'); ?></button>
+                <?php if ($show_close) : ?><button class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#E5E7EB] text-[#0B1B33] transition hover:border-blue-300 hover:text-blue-700" type="button" data-filter-drawer-close aria-label="<?php echo esc_attr($archive_ui['closeFiltersLabel'] ?? 'Close filters'); ?>"><?php echo boblift_icon('x', 'h-5 w-5'); ?></button><?php endif; ?>
+            </div>
+        </div>
+        <div class="space-y-7"><?php $category_filter_group($category_filter_tree); $filter_group((string) ($archive_ui['capacityFilterLabel'] ?? 'Lifting Capacity'), 'capacity', array_column($capacity_ranges, 'label', 'value'), $capacity_counts); $filter_group((string) ($archive_ui['boomFilterLabel'] ?? 'Boom Type'), 'boom', $boom_options, $boom_counts); $filter_group((string) ($archive_ui['applicationFilterLabel'] ?? 'Application'), 'application', $application_options, $application_counts); $filter_group((string) ($archive_ui['availabilityFilterLabel'] ?? 'Availability'), 'status', $status_options, $status_counts); ?></div>
+        <?php if ($show_close) : ?>
+            <div class="boblift-filter-drawer-actions mt-8 border-t border-[#E5E7EB] pt-6"><button class="min-h-12 w-full rounded-full bg-[#0B1B33] px-5 text-sm font-black text-white shadow-[0_16px_34px_rgba(8,35,74,0.18)] transition hover:-translate-y-0.5 hover:bg-[#0B3F7D]" type="button" data-filter-apply><?php echo esc_html($archive_ui['applyFiltersLabel'] ?? 'Apply'); ?></button></div>
+        <?php else : ?>
+            <div class="mt-8 border-t border-[#E5E7EB] pt-6"><button class="min-h-12 w-full rounded-full border border-[#D8DEE8] bg-white px-5 text-sm font-black text-[#0B1B33] transition hover:-translate-y-0.5 hover:border-blue-300 hover:text-blue-700" type="button" data-filter-reset><?php echo esc_html($archive_ui['clearAllLabel'] ?? 'Clear All'); ?></button></div>
+        <?php endif; ?>
+    </aside>
+<?php };
+?>
+<section class="boblift-product-listing bg-[#F8FAFC] py-8 md:py-12 lg:py-14" data-product-listing data-view="grid" data-current-category="<?php echo esc_attr($initial_category); ?>" data-product-archive-url="<?php echo esc_url(boblift_product_archive_url()); ?>" data-category-urls="<?php echo esc_attr(wp_json_encode($category_url_map, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)); ?>">
+    <div class="mx-auto max-w-[2320px] px-4 sm:px-6 xl:px-10 2xl:px-12">
+        <section class="boblift-product-archive-banner mb-6 overflow-hidden rounded-[32px] border border-[#DCE6F3] bg-[linear-gradient(135deg,#ffffff_0%,#eef6ff_54%,#dbeafe_100%)] shadow-[0_22px_70px_rgba(8,35,74,0.08)] md:mb-7" data-product-banner data-banner-default="<?php echo esc_attr(wp_json_encode($banner_default, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)); ?>" data-banner-categories="<?php echo esc_attr(wp_json_encode($banner_categories, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)); ?>">
+            <div class="boblift-product-archive-banner-inner grid min-h-[168px] grid-cols-1 items-center gap-6 px-6 py-7 md:min-h-[210px] md:grid-cols-[minmax(0,1fr)_300px] md:px-9 lg:grid-cols-[minmax(0,1fr)_420px] xl:px-12">
+                <div class="relative z-10 min-w-0 max-w-none">
+                    <p class="boblift-product-archive-banner-label text-xs font-black uppercase tracking-[0.18em] text-[#0B3F7D]" data-banner-label><?php echo esc_html($banner_default['label']); ?></p>
+                    <h1 class="boblift-product-archive-banner-title mt-3 max-w-full text-[clamp(2.25rem,3.05vw,4.5rem)] font-black leading-[0.98] tracking-[-0.06em] text-[#0B1B33] min-[1500px]:whitespace-nowrap" data-banner-title><?php echo esc_html($banner_default['title']); ?></h1>
+                    <div class="boblift-product-archive-banner-text mt-4 space-y-3 text-sm font-semibold leading-7 text-slate-600 md:text-base md:leading-8"><p data-banner-text><?php echo esc_html($banner_default['text']); ?></p></div>
+                </div>
+                <div class="relative hidden h-[150px] md:block">
+                    <span class="pointer-events-none absolute right-0 top-0 select-none text-[72px] font-black uppercase leading-none tracking-[-0.08em] text-white/80 lg:text-[92px]" data-banner-watermark><?php echo esc_html($banner_default['watermark']); ?></span>
+                    <div class="absolute inset-x-6 bottom-2 h-16 rounded-full bg-white/70 blur-xl"></div>
+                    <img class="absolute inset-0 h-full w-full object-contain object-right-bottom drop-shadow-[0_26px_26px_rgba(8,35,74,0.16)]" src="<?php echo esc_url($banner_default['image']); ?>" alt="<?php echo esc_attr($banner_default['imageAlt']); ?>" loading="eager" decoding="async" fetchpriority="high" data-banner-image>
+                </div>
+            </div>
+        </section>
+
+        <div class="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between lg:mb-7">
+            <div class="flex flex-wrap items-center gap-3">
+                <p class="text-sm font-black text-slate-500 md:text-base"><?php echo wp_kses(str_replace(['{count}', '{total}'], ['<span data-product-count>' . esc_html((string) count($products)) . '</span>', '<span data-product-total>' . esc_html((string) count($products)) . '</span>'], (string) ($archive_ui['showingTemplate'] ?? 'Showing {count} of {total} products')), ['span' => ['data-product-count' => true, 'data-product-total' => true]]); ?></p>
+            </div>
+            <div class="flex w-full flex-wrap items-center gap-3 md:w-auto">
+                <div class="boblift-product-mobile-tools relative flex w-full items-center gap-2 md:w-auto md:gap-3" data-sort-dropdown>
+                    <button class="boblift-product-filter-button inline-flex h-12 items-center gap-2 rounded-full border border-[#D8DEE8] bg-white px-5 text-sm font-black text-[#0B1B33] shadow-[0_10px_28px_rgba(8,35,74,0.06)] transition hover:border-blue-300 hover:text-blue-700 lg:hidden" type="button" data-filter-drawer-open><?php echo boblift_icon('sliders-horizontal', 'h-4 w-4'); ?><?php echo esc_html($archive_ui['filterButtonLabel'] ?? 'Filter'); ?></button>
+                    <span class="boblift-product-sort-label text-sm font-black text-slate-500"><?php echo esc_html($archive_ui['sortByLabel'] ?? 'Sort by:'); ?></span>
+                    <button class="boblift-product-sort-trigger inline-flex h-12 min-w-[240px] items-center justify-between gap-4 rounded-xl border border-[#D8DEE8] bg-white px-4 text-left text-sm font-black text-[#0B1B33] shadow-[0_10px_28px_rgba(8,35,74,0.06)] transition hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100" type="button" aria-haspopup="listbox" aria-expanded="false" data-sort-products data-sort-trigger data-sort-value="recommended"><span data-sort-label><?php echo esc_html($sort_options['recommended'] ?? 'Recommended'); ?></span><?php echo boblift_icon('chevron-down', 'h-4 w-4 text-slate-400 transition'); ?></button>
+                    <div class="absolute right-0 top-[calc(100%+10px)] z-50 hidden w-[240px] overflow-hidden rounded-2xl border border-[#DDE5EF] bg-white p-2 shadow-[0_24px_70px_rgba(8,35,74,0.16)]" role="listbox" data-sort-menu>
+                        <?php foreach ($sort_options as $value => $label) : ?>
+                            <button class="flex min-h-10 w-full items-center justify-between gap-3 rounded-xl px-3 text-left text-sm font-black transition <?php echo $value === 'recommended' ? 'bg-blue-50 text-blue-700' : 'text-[#0B1B33] hover:bg-[#F8FAFC]'; ?>" type="button" role="option" aria-selected="<?php echo $value === 'recommended' ? 'true' : 'false'; ?>" data-sort-option="<?php echo esc_attr($value); ?>"><span><?php echo esc_html($label); ?></span><span class="<?php echo $value === 'recommended' ? 'inline-flex' : 'hidden'; ?>" data-sort-check><?php echo boblift_icon('check', 'h-4 w-4'); ?></span></button>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+                <div class="hidden rounded-xl border border-[#D8DEE8] bg-white p-1 shadow-[0_10px_28px_rgba(8,35,74,0.06)] md:flex" aria-label="<?php echo esc_attr($archive_ui['viewModeLabel'] ?? 'Product view mode'); ?>"><button class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[#0B1B33] text-sm font-black text-white transition" type="button" data-view-toggle="grid" aria-label="<?php echo esc_attr($archive_ui['gridViewLabel'] ?? 'Grid view'); ?>"><?php echo boblift_icon('grid-3x3', 'h-5 w-5'); ?></button><button class="inline-flex h-10 w-10 items-center justify-center rounded-lg text-sm font-black text-[#0B1B33] transition hover:bg-slate-100" type="button" data-view-toggle="list" aria-label="<?php echo esc_attr($archive_ui['listViewLabel'] ?? 'List view'); ?>"><?php echo boblift_icon('list', 'h-5 w-5'); ?></button></div>
+            </div>
+        </div>
+
+        <div class="grid gap-7 lg:grid-cols-[320px_minmax(0,1fr)] xl:gap-8 min-[1800px]:grid-cols-[400px_minmax(0,1fr)]">
+            <div class="hidden lg:block lg:self-start"><?php $filter_sidebar(false); ?></div>
+            <div class="min-w-0 scroll-mt-6" data-products-results>
+                <div class="products-grid grid grid-cols-1 gap-5 md:grid-cols-2 2xl:grid-cols-3 xl:gap-6" data-products-grid>
+                    <?php foreach ($products as $index => $product) : boblift_product_card($product, '', $index === 0); endforeach; ?>
+                </div>
+                <div class="hidden min-h-[420px] flex-col items-center justify-center rounded-[32px] border border-dashed border-[#CBD5E1] bg-white px-6 text-center shadow-[0_18px_50px_rgba(8,35,74,0.045)]" data-product-empty><span class="inline-flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-blue-700"><?php echo boblift_icon('search-x', 'h-7 w-7'); ?></span><h2 class="mt-5 text-2xl font-black tracking-[-0.04em] text-[#0B1B33]"><?php echo esc_html($archive_ui['emptyTitle'] ?? 'No matching products found'); ?></h2><p class="mt-3 max-w-md text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html($archive_ui['emptyText'] ?? 'Try adjusting your filters or contact us for a custom lifting solution.'); ?></p><button class="mt-6 min-h-12 rounded-full bg-[#0B1B33] px-6 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-[#0B3F7D]" type="button" data-filter-reset><?php echo esc_html($archive_ui['clearFiltersLabel'] ?? 'Clear Filters'); ?></button></div>
+                <nav class="mt-8 flex flex-wrap items-center justify-center gap-2" aria-label="<?php echo esc_attr($archive_ui['paginationLabel'] ?? 'Product pagination'); ?>" data-product-pagination></nav>
+            </div>
+        </div>
+    </div>
+    <div class="fixed inset-0 z-[70] hidden items-center justify-center bg-[#0B1B33]/45 px-4 py-8 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="quick-view-title" data-quick-view-modal>
+        <div class="max-h-[calc(100vh-4rem)] w-full max-w-5xl overflow-y-auto rounded-[32px] bg-white shadow-[0_34px_120px_rgba(8,35,74,0.28)]" data-quick-view-panel>
+            <div class="grid gap-0 lg:grid-cols-[0.95fr_1.05fr]">
+                <div class="relative min-h-[340px] bg-[radial-gradient(circle_at_48%_34%,#ffffff_0%,#f8fafc_34%,#eef2f7_64%,#e2e8f0_100%)] lg:min-h-[560px]">
+                    <span class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_82%,rgba(15,23,42,0.12),transparent_44%)]"></span>
+                    <span class="pointer-events-none absolute bottom-12 left-[14%] right-[14%] h-16 rounded-full bg-slate-400/18 blur-2xl"></span>
+                    <img class="absolute inset-0 z-10 h-full w-full object-contain p-10 drop-shadow-[0_32px_38px_rgba(11,27,51,0.16)]" src="" alt="" data-quick-image loading="lazy" decoding="async">
+                    <span class="absolute left-6 top-6 z-20 inline-flex items-center gap-2 rounded-full bg-white/92 py-2 pl-3 pr-5 text-sm font-black leading-none text-indigo-700 shadow-[0_14px_32px_rgba(8,35,74,0.12)] ring-1 ring-[#E5E7EB] backdrop-blur" data-quick-status-badge><span data-quick-status-icon><?php echo boblift_icon('wrench', 'h-5 w-5 text-indigo-600'); ?></span><span data-quick-status-label><?php echo esc_html($product_ui['productStatusLabels']['customizable'] ?? 'Customizable'); ?></span></span><template data-quick-status-template="in-stock"><?php echo boblift_icon('check-circle', 'h-5 w-5 text-emerald-600'); ?></template><template data-quick-status-template="best-seller"><?php echo boblift_icon('flame', 'h-5 w-5 text-red-500'); ?></template><template data-quick-status-template="customizable"><?php echo boblift_icon('wrench', 'h-5 w-5 text-indigo-600'); ?></template><template data-quick-status-template="pre-order"><?php echo boblift_icon('clock-3', 'h-5 w-5 text-orange-600'); ?></template>
+                </div>
+                <div class="flex flex-col p-6 md:p-8">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <p class="text-xs font-black uppercase tracking-[0.16em] text-blue-700" data-quick-category>BOB-LIFT</p>
+                            <h2 id="quick-view-title" class="mt-3 text-3xl font-black leading-tight tracking-[-0.045em] text-[#0B1B33] md:text-4xl" data-quick-title></h2>
+                        </div>
+                        <button class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#E5E7EB] text-[#0B1B33] transition hover:border-blue-300 hover:text-blue-700" type="button" aria-label="<?php echo esc_attr($product_ui['closeQuickViewLabel'] ?? 'Close quick view'); ?>" data-quick-close><?php echo boblift_icon('x', 'h-5 w-5'); ?></button>
+                    </div>
+                    <p class="mt-4 text-base font-semibold leading-7 text-slate-600" data-quick-summary></p>
+                    <div class="mt-4 grid grid-cols-3 gap-2 border-t border-[#E5E7EB] pt-5" data-quick-specs></div>
+                    <div class="mt-auto grid gap-3 pt-8 sm:grid-cols-[1fr_1fr_auto]">
+                        <button class="inline-flex min-h-12 items-center justify-center rounded-full bg-[#0B1B33] px-6 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-[#0B3F7D]" type="button" data-quick-inquiry data-inquiry-modal-open><?php echo esc_html($product_ui['requestQuoteLabel'] ?? 'Request Quote'); ?></button>
+                        <a class="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#D8DEE8] bg-white px-6 text-sm font-black text-[#0B1B33] transition hover:-translate-y-0.5 hover:border-blue-300 hover:text-blue-700" href="<?php echo esc_url(boblift_product_archive_url()); ?>" data-quick-detail><?php echo esc_html($product_ui['viewDetailsLabel'] ?? 'View Details'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
+                        <button class="inline-flex min-h-12 items-center justify-center rounded-full border border-[#D8DEE8] bg-white px-5 text-[#0B1B33] transition hover:-translate-y-0.5 hover:border-blue-300 hover:text-blue-700" type="button" aria-label="<?php echo esc_attr($quote_list_ui['addLabel'] ?? 'Add to Quote List'); ?>" data-quick-favorite><?php echo boblift_icon('heart', 'h-5 w-5'); ?></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="boblift-filter-drawer fixed inset-0 z-[60] hidden bg-[#0B1B33]/40 backdrop-blur-sm lg:hidden" data-filter-drawer><div class="boblift-filter-drawer-panel ml-auto h-full w-full max-w-md overflow-y-auto bg-[#F8FAFC] p-4 shadow-[0_30px_90px_rgba(8,35,74,0.24)]"><?php $filter_sidebar(true); ?></div></div>
+</section>
+<?php get_footer(); ?>

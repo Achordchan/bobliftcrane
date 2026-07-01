@@ -1,0 +1,509 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PolyTranslate AI for Polylang\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-07 02:56+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: \n"
+"Language: \n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Loco-Version: 2.8.0; wp-6.8.3; php-8.4.5\n"
+"X-Domain: polytranslate-ai"
+
+#: admin/translatable-strings-tab.php:23
+msgid ""
+"Add or remove strings that will be registered with Polylang for translation. "
+"These strings will be available in Languages → Translations."
+msgstr ""
+
+#: admin/api-tab.php:66 admin/api-tab.php:115
+msgid "Add the AI model for translations."
+msgstr ""
+
+#: admin/translation-tab.php:85
+msgid "Adjust links in posts so they point to the translated content"
+msgstr ""
+
+#: admin/advanced-tab.php:39 admin/settings.php:183
+msgid "Advanced Settings"
+msgstr ""
+
+#. Description of the plugin
+msgid ""
+"AI automatic translation for Polylang. Translate posts, pages, WooCommerce, "
+"ACF, SEO meta & custom fields using OpenAI, DeepL, Google or OpenRouter."
+msgstr ""
+
+#: admin/api-tab.php:60 admin/api-tab.php:109
+msgid "AI Model"
+msgstr ""
+
+#. Author of the plugin
+msgid "Almhdy"
+msgstr ""
+
+#: admin/settings.php:168
+msgid "API Settings"
+msgstr ""
+
+#: admin/api-tab.php:178
+msgid ""
+"Avoid using thinking or reasoning models as they are designed for complex "
+"problem-solving and will cause slow responses or timeout errors during "
+"translation. This includes: DeepSeek R1, DeepSeek V4 Pro/Flash (thinking "
+"mode), Claude 3.7+ with reasoning, Gemini 2.5/3 Pro/Flash thinking variants, "
+"QwQ, any OpenAI o-series (o1, o3, o4-mini), GPT-5 Thinking variants, or any "
+"model with \"thinking\", \"reasoning\" or \"R1\" in its name. For OpenRouter "
+"and OpenAI, stick to standard fast models like GPT-4o mini or Gemini 2.5 "
+"Flash Lite."
+msgstr ""
+
+#: includes/enqueue.php:84 admin/restrictor.php:34 admin/bulk-actions.php:27
+msgid "Bulk Translate"
+msgstr ""
+
+#: admin/translation-tab.php:116 admin/free-vs-pro-tab.php:32
+msgid "Bulk Translation"
+msgstr ""
+
+#: admin/bulk-actions.php:74
+msgid "Cancel"
+msgstr ""
+
+#: admin/api-tab.php:26
+msgid "Choose API Engine"
+msgstr ""
+
+#: admin/free-vs-pro-tab.php:47
+msgid "Compare the features to find the best option for your website."
+msgstr ""
+
+#: admin/free-vs-pro-tab.php:35
+msgid "Compatibility for Translating Elementor Pages"
+msgstr ""
+
+#: includes/enqueue.php:82
+msgid "Connection failed. Please check your API key and try again."
+msgstr ""
+
+#: includes/enqueue.php:81
+msgid "Connection successful!"
+msgstr ""
+
+#: admin/advanced-tab.php:28
+msgid "Custom Fields Translation"
+msgstr ""
+
+#: admin/free-vs-pro-tab.php:34
+msgid "Custom Fields Translation (ACF, Meta Box, etc.)"
+msgstr ""
+
+#: admin/advanced-tab.php:21
+msgid ""
+"Custom fields translation is a premium feature available exclusively in "
+"Polytranslate AI Pro. Settings on this page will not take effect in the free "
+"version. Upgrade to unlock advanced translation capabilities for your custom "
+"fields."
+msgstr ""
+
+#: admin/api-tab.php:139
+msgid "DeepL API Key"
+msgstr ""
+
+#: admin/translation-tab.php:40
+msgid "Draft"
+msgstr ""
+
+#: admin/translation-tab.php:48
+msgid "Enable Features"
+msgstr ""
+
+#: admin/advanced-tab.php:48
+msgid ""
+"Enable to show meta fields in the post and term list tables for selecting "
+"translatable fields."
+msgstr ""
+
+#: admin/translatable-strings-tab.php:22
+msgid "Enter one string per line."
+msgstr ""
+
+#: admin/free-vs-pro-tab.php:51
+msgid "Feature"
+msgstr ""
+
+#: includes/enqueue.php:93
+msgid "fields filled — review then click <em>Save Changes</em>."
+msgstr ""
+
+#: includes/enqueue.php:86
+msgid "Fill Empty Translations"
+msgstr ""
+
+#: admin/free-vs-pro-tab.php:52
+msgid "Free"
+msgstr ""
+
+#: admin/settings.php:187
+msgid "Free vs Pro"
+msgstr ""
+
+#: admin/free-vs-pro-tab.php:42
+msgid "Free vs Pro Comparison"
+msgstr ""
+
+#: admin/api-tab.php:64 admin/api-tab.php:113
+msgid "Get AI Model"
+msgstr ""
+
+#: admin/api-tab.php:51 admin/api-tab.php:100 admin/api-tab.php:148
+#: admin/api-tab.php:166
+msgid "Get API Key"
+msgstr ""
+
+#: admin/api-tab.php:157
+msgid "Google Translate API Key"
+msgstr ""
+
+#: admin/free-vs-pro-tab.php:23
+msgid "Gutenberg Block Content"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "https://github.com/almhdy"
+msgstr ""
+
+#: admin/api-tab.php:182
+msgid ""
+"If your server has a limited AJAX timeout, AI models may not complete in "
+"time regardless of which model you choose. In this case we strongly "
+"recommend switching to Google Translate or DeepL from the API Engine "
+"selector above, as both are significantly faster and more reliable on shared "
+"hosting environments."
+msgstr ""
+
+#: admin/advanced-tab.php:52
+msgid "Items to Scan"
+msgstr ""
+
+#: admin/translation-tab.php:107
+msgid "Keep the original author"
+msgstr ""
+
+#: admin/translation-tab.php:96
+msgid "Keep the original publish date"
+msgstr ""
+
+#: admin/advanced-tab.php:69 admin/advanced-tab.php:108
+msgid "Meta Field"
+msgstr ""
+
+#: admin/advanced-tab.php:55
+msgid ""
+"Number of posts/terms to scan for meta fields. Higher numbers may impact "
+"performance."
+msgstr ""
+
+#: admin/free-vs-pro-tab.php:28
+msgid "OpenAI / DeepL / Google / OpenRouter"
+msgstr ""
+
+#: admin/api-tab.php:91
+msgid "OpenAi API Key"
+msgstr ""
+
+#: admin/api-tab.php:42
+msgid "OpenRouter API Key"
+msgstr ""
+
+#: includes/enqueue.php:92
+msgid "Overwrite existing"
+msgstr ""
+
+#: admin/translation-tab.php:38
+msgid "Pending Review"
+msgstr ""
+
+#: admin/bulk-actions.php:54
+msgid "Please select at least one item to translate."
+msgstr ""
+
+#: admin/free-vs-pro-tab.php:36
+msgid "Polylang Strings Bulk Auto Translation"
+msgstr ""
+
+#: admin/translation-tab.php:153
+msgid "Polylang Strings Bulk Translation"
+msgstr ""
+
+#: admin/settings.php:10 admin/settings.php:11 admin/settings.php:163
+msgid "Polytranslate AI"
+msgstr ""
+
+#. Name of the plugin
+msgid "PolyTranslate AI for Polylang"
+msgstr ""
+
+#: admin/settings.php:19
+msgid "Polytranslate AI Settings"
+msgstr ""
+
+#: admin/advanced-tab.php:68
+msgid "Post Type"
+msgstr ""
+
+#: admin/advanced-tab.php:62
+msgid "Post Type Meta Fields"
+msgstr ""
+
+#: admin/translation-tab.php:104 admin/free-vs-pro-tab.php:26
+msgid "Preserve Original Author"
+msgstr ""
+
+#: admin/translation-tab.php:93
+msgid "Preserve Original Date"
+msgstr ""
+
+#: admin/free-vs-pro-tab.php:25
+msgid "Preserve Original Publish Date"
+msgstr ""
+
+#: admin/free-vs-pro-tab.php:37
+msgid "Priority Support"
+msgstr ""
+
+#: admin/free-vs-pro-tab.php:53
+msgid "Pro"
+msgstr ""
+
+#: admin/advanced-tab.php:20
+msgid "Pro Feature Notice:"
+msgstr ""
+
+#: admin/translation-tab.php:36
+msgid "Publish"
+msgstr ""
+
+#: admin/free-vs-pro-tab.php:27
+msgid "Register Polylang Strings"
+msgstr ""
+
+#: admin/settings.php:176
+msgid "Register Strings"
+msgstr ""
+
+#: admin/advanced-tab.php:63 admin/advanced-tab.php:102
+msgid "Search"
+msgstr ""
+
+#: admin/translation-tab.php:131
+msgid "SEO Meta Descriptions Translation"
+msgstr ""
+
+#: admin/translation-tab.php:142
+msgid "SEO Meta Titles Translation"
+msgstr ""
+
+#. page title
+#: polytranslate-ai.php:127 admin/settings.php:20
+msgid "Settings"
+msgstr ""
+
+#: admin/advanced-tab.php:45
+msgid "Show Meta Fields"
+msgstr ""
+
+#: admin/translation-tab.php:42
+msgid "Status for newly translated posts"
+msgstr ""
+
+#: includes/enqueue.php:91
+msgid "strings"
+msgstr ""
+
+#: admin/translatable-strings-tab.php:18
+msgid "Strings to Translate"
+msgstr ""
+
+#: admin/bulk-actions.php:75
+msgid "Submit"
+msgstr ""
+
+#: admin/bulk-actions.php:64
+msgid "Target language:"
+msgstr ""
+
+#: admin/advanced-tab.php:101
+msgid "Taxonomy Meta Fields"
+msgstr ""
+
+#: admin/advanced-tab.php:107
+msgid "Taxonomy Type"
+msgstr ""
+
+#: admin/api-tab.php:73 admin/api-tab.php:122
+msgid "Temperature"
+msgstr ""
+
+#: admin/api-tab.php:52 admin/api-tab.php:101 admin/api-tab.php:149
+#: admin/api-tab.php:167
+msgid "Test Connection"
+msgstr ""
+
+#: includes/enqueue.php:80
+msgid "Testing connection..."
+msgstr ""
+
+#: admin/advanced-tab.php:70 admin/advanced-tab.php:109
+msgid "Translatable"
+msgstr ""
+
+#: admin/row-actions.php:92
+msgid "Translate"
+msgstr ""
+
+#: admin/translation-tab.php:56
+msgid "Translate Categories"
+msgstr ""
+
+#: admin/free-vs-pro-tab.php:21
+msgid "Translate Categories & Tags"
+msgstr ""
+
+#: admin/free-vs-pro-tab.php:20
+msgid "Translate Custom Post Types"
+msgstr ""
+
+#: admin/translation-tab.php:74 admin/free-vs-pro-tab.php:22
+msgid "Translate Custom Taxonomies"
+msgstr ""
+
+#: admin/translation-tab.php:82 admin/free-vs-pro-tab.php:24
+msgid "Translate Link Targets"
+msgstr ""
+
+#: admin/free-vs-pro-tab.php:18
+msgid "Translate Posts & Pages"
+msgstr ""
+
+#: admin/free-vs-pro-tab.php:33
+msgid "Translate SEO Meta Titles and Descriptions"
+msgstr ""
+
+#: admin/translation-tab.php:64
+msgid "Translate Tags"
+msgstr ""
+
+#: admin/free-vs-pro-tab.php:19
+msgid "Translate WooCommerce Products"
+msgstr ""
+
+#: admin/translation-tab.php:31
+msgid "Translated Post Status"
+msgstr ""
+
+#: includes/enqueue.php:90
+msgid "Translating"
+msgstr ""
+
+#: admin/settings.php:172
+msgid "Translation Settings"
+msgstr ""
+
+#: includes/enqueue.php:83 admin/advanced-tab.php:23
+msgid "Upgrade to Pro"
+msgstr ""
+
+#: admin/translation-tab.php:133 admin/translation-tab.php:144
+#: admin/translation-tab.php:158
+msgid "Upgrade to Pro to Unlock"
+msgstr ""
+
+#: admin/translation-tab.php:121
+msgid "Upgrade to Pro to unlock"
+msgstr ""
+
+#: admin/settings.php:181
+msgid "Upgrade to Pro to unlock advanced settings"
+msgstr ""
+
+#: admin/restrictor.php:34 admin/restrictor.php:73
+msgid "Upgrade to Pro to unlock bulk translation"
+msgstr ""
+
+#: admin/free-vs-pro-tab.php:44
+msgid "Upgrade to Pro ➜"
+msgstr ""
+
+#: admin/translation-tab.php:156
+msgid ""
+"When enabled, you can bulk translate Polylang strings from the Translatable "
+"Strings tab."
+msgstr ""
+
+#: admin/translation-tab.php:119
+msgid ""
+"When using Bulk Translation for Categories, Tags, or Custom Taxonomies, you "
+"must translate parent terms first before translating their child terms."
+msgstr ""
+
+#: admin/free-vs-pro-tab.php:10
+msgid "You are using the Pro version. All features are unlocked."
+msgstr ""
+
+#: admin/api-tab.php:103
+msgid "Your OpenAI API key (starts with sk-...)"
+msgstr ""
+
+#: admin/api-tab.php:54
+msgid "Your OpenRouter.ai API key (starts with sk-or-v1-...)"
+msgstr ""
+
+#: admin/api-tab.php:79 admin/api-tab.php:128
+msgid ""
+"• 0 - Zero creativity; strict terminology adherence (Legal/Medical/Financial)"
+msgstr ""
+
+#: admin/api-tab.php:80 admin/api-tab.php:129
+msgid ""
+"• 0.1 - Very low variation; literal translations (Technical docs, UI text)"
+msgstr ""
+
+#: admin/api-tab.php:81 admin/api-tab.php:130
+msgid ""
+"• 0.2 - Balanced accuracy + readability (General content, news articles)"
+msgstr ""
+
+#: admin/api-tab.php:82 admin/api-tab.php:131
+msgid "• 0.3 - Natural flow; contextual adaptation (Blog posts, narratives)"
+msgstr ""
+
+#: includes/enqueue.php:87
+msgid "⏳ Working…"
+msgstr ""
+
+#: admin/api-tab.php:177
+msgid "⚠️ Important: Model Selection Tips"
+msgstr ""
+
+#: includes/enqueue.php:88
+msgid "✅ Nothing to fill. Enable \"Overwrite existing\" to re-translate."
+msgstr ""
+
+#: includes/enqueue.php:89
+msgid "❌ Error:"
+msgstr ""
+
+#: admin/api-tab.php:181
+msgid "🏠 Shared Hosting Users"
+msgstr ""
+
+#: includes/enqueue.php:85
+msgid "🤖 AI Bulk Translate"
+msgstr ""

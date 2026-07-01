@@ -1,0 +1,198 @@
+:root {
+  --ptai-first-color: #000000;
+  --ptai-second-color: #888;
+  --ptai-table-icon-bg: #0073aa66;
+}
+[x-cloak] {
+  display: none !important;
+}
+.polytranslate-ai-loader-overlay-container {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background: rgb(17 24 39 / 0.5);
+  width: 100%;
+  height: 100vh;
+  z-index: 10000;
+}
+.polytranslate-ai-loader-overlay-container .loader-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  -webkit-transform: translate(-100%, -100%);
+  -ms-transform: translate(-100%, -100%);
+  transform: translate(-100%, -100%);
+}
+
+form.polytranslate-ai-settings-form .description {
+  vertical-align: middle;
+}
+
+span.polytranslate-ai-pro-icon {
+  font-weight: bold;
+  padding: 0 10px;
+  border-radius: 3px;
+  display: inline-block;
+  vertical-align: middle;
+  font-size: 10px;
+}
+
+/* DataTables */
+div.dt-container .dt-search input {
+  background-color: #fff;
+}
+div.dt-container select.dt-input {
+  padding-right: 15px;
+  background-color: #fff;
+}
+
+.visibility-status {
+  font-style: italic;
+  font-size: 0.9em;
+}
+
+/** Checkbox checkbox-Toggle-switch Switch */
+input.checkbox-toggle-switch {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 36px;
+  height: 18px;
+  background: #b4b9be;
+  border-radius: 18px;
+  position: relative;
+  cursor: pointer;
+  vertical-align: middle;
+  outline: none;
+  transition: background 0.2s;
+}
+
+input.checkbox-toggle-switch::after {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: #fff;
+  border-radius: 50%;
+  top: 50%;
+  left: 2px;
+  transform: translateY(-50%);
+  transition: left 0.2s;
+}
+
+input.checkbox-toggle-switch:checked {
+  background: #2271b1;
+}
+
+input.checkbox-toggle-switch:checked::after {
+  left: 18px;
+}
+
+/* Table Sorter Styles */
+table.tablesorter {
+  .group-header {
+    td {
+      .group-name {
+        font-size: small;
+      }
+    }
+    &:not(.collapsed) td {
+      i {
+        border-bottom-color: var(--ptai-table-icon-bg);
+        border-right-color: var(--ptai-table-icon-bg);
+      }
+    }
+    &.collapsed td {
+      i {
+        border-left-color: var(--ptai-table-icon-bg);
+      }
+    }
+  }
+}
+
+/** Polylang Strings Bulk Translation */
+#ptai-toolbar, #ptai-toolbar-free {
+  position: sticky;
+  top: 32px;
+  z-index: 99;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: #fff;
+  border: 1px solid #c3c4c7;
+  border-radius: 4px;
+  padding: 9px 14px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
+  font-size: 13px;
+  strong {
+    font-size: 13px;
+  }
+  .ptai-status {
+    flex: 1;
+    min-width: 200px;
+    color: #555;
+  }
+
+  #ptai-prog-wrap {
+    flex-basis: 100%;
+    background: #f0f0f1;
+    border-radius: 3px;
+    overflow: hidden;
+    display: none;
+    #ptai-prog-bar {
+      height: 5px;
+      background: #2271b1;
+      width: 0;
+      transition: width 0.4s;
+    }
+  }
+  .ptai-filled {
+    background-color: #edfaef !important;
+    transition: background 0.4s;
+  }
+}
+
+/** Test Connection Button */
+button.ptai-test-connections {
+  .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    vertical-align: text-bottom;
+    margin-right: 5px;
+  }
+}
+.ptai-test-key-result {
+  margin-left: 8px;
+}
+
+/** Free vs Pro Comparison Table */
+.polytranslate-ai-free-vs-pro table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  th,
+  td {
+    padding: 8px;
+    border: 1px solid #ddd;
+    font-size: 16px;
+  }
+  th {
+    background-color: #f4f4f4;
+    font-weight: bold;
+  }
+  td {
+    background-color: #fff;
+  }
+}
+
+/** Free Buttons */
+#ptai-free-ai-bulk-button {
+  opacity: 0.6;
+  span.dashicons {
+    margin-right: 5px;
+    vertical-align: text-bottom;
+  }
+}
