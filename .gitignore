@@ -24,3 +24,5 @@ uploads/
 backups/
 test-results/
 tmp/
+.deploy/
+var/

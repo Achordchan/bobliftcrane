@@ -448,6 +448,9 @@ function boblift_normalize_product_applications(array $applications): array
 function boblift_apply_product_runtime_meta(array $product, ?WP_Post $post = null): array
 {
     $seed = boblift_product_seed_lookup()[(string) ($product['slug'] ?? '')] ?? [];
+    $product['boom_type'] = function_exists('boblift_normalize_product_boom_type')
+        ? boblift_normalize_product_boom_type((string) ($product['boom_type'] ?? ''))
+        : sanitize_title((string) ($product['boom_type'] ?? ''));
     $product['featured'] = (bool) ($seed['featured'] ?? $product['featured'] ?? false);
     $product['popularity'] = (int) ($seed['popularity'] ?? $product['popularity'] ?? 50);
     $product['created_at'] = (string) ($seed['created_at'] ?? ($post instanceof WP_Post ? get_post_time(DATE_ATOM, false, $post) : ($product['created_at'] ?? '')));
@@ -489,24 +492,6 @@ function boblift_product_from_post(WP_Post $post): array
     };
     $gallery = $product_image_rows(get_post_meta($post->ID, '_gallery', true));
     $detail_images = $product_image_rows(get_post_meta($post->ID, '_detail_images', true));
-
-    $raw_color_variants = boblift_decode_meta(get_post_meta($post->ID, '_color_variants', true), []);
-    $color_variants = [];
-    foreach ($raw_color_variants as $item) {
-        if (!is_array($item)) {
-            continue;
-        }
-        $variant_image = trim((string) ($item['image'] ?? $item['url'] ?? ''));
-        $variant_label = trim((string) boblift_localize_product_text_fragments((string) ($item['label'] ?? '')));
-        if ($variant_image === '' || $variant_label === '') {
-            continue;
-        }
-        $color_variants[] = [
-            'label' => $variant_label,
-            'color' => (string) ($item['color'] ?? '#BD2F42'),
-            'image' => $variant_image,
-        ];
-    }
 
     $raw_hotspots = boblift_decode_meta(get_post_meta($post->ID, '_hotspots', true), []);
     $hotspots = [];
@@ -555,7 +540,6 @@ function boblift_product_from_post(WP_Post $post): array
         'features' => is_array($features) ? $features : [],
         'gallery' => $gallery,
         'detail_images' => $detail_images,
-        'color_variants' => $color_variants,
         'hotspots' => $hotspots,
         'detail_url' => get_permalink($post),
         'inquiry_url' => boblift_url('/quote?product=' . rawurlencode($title)),
@@ -819,13 +803,9 @@ function boblift_product_status_badge(string $status, string $class = ''): strin
 
 function boblift_boom_label(string $boom): string
 {
-    return match ($boom) {
-        'telescopic-boom' => 'Telescopic Boom',
-        'knuckle-boom' => 'Knuckle Boom',
-        'straight-boom' => 'Straight Boom',
-        'fly-jib' => 'Fly Jib',
-        default => 'Custom Solution',
-    };
+    $boom = function_exists('boblift_normalize_product_boom_type') ? boblift_normalize_product_boom_type($boom) : sanitize_title($boom);
+    $options = function_exists('boblift_product_boom_options') ? boblift_product_boom_options() : [];
+    return $boom !== '' ? (string) ($options[$boom] ?? '') : '';
 }
 
 function boblift_product_card_specs(array $product): array
@@ -857,6 +837,17 @@ function boblift_product_spec_icon_name(string $label, string $key = ''): string
 
 function boblift_product_card(array $product, string $extra_class = '', bool $eager_image = false): void
 {
+    $product_title = trim((string) ($product['title'] ?? ''));
+    $product_model = trim((string) ($product['model'] ?? ''));
+    $product_name = $product_title;
+    if ($product_model !== '') {
+        $title_without_model = trim(str_ireplace($product_model, '', $product_title), " \t\n\r\0\x0B-_–—|/");
+        if ($title_without_model !== '') {
+            $product_name = $title_without_model;
+        }
+    }
+    $card_eyebrow = $product_model !== '' ? $product_name : (string) ($product['category_title'] ?? 'BOB-LIFT');
+    $card_heading = $product_model !== '' ? $product_model : $product_title;
     $apps = implode(',', $product['applications'] ?? []);
     $product_categories = array_values(array_unique(array_filter(array_map('strval', $product['categories'] ?? [($product['category'] ?? '')]))));
     $status = boblift_normalize_product_status((string) ($product['status'] ?? 'customizable'));
@@ -884,8 +875,8 @@ function boblift_product_card(array $product, string $extra_class = '', bool $ea
             </div>
             <div class="product-card-body flex flex-1 flex-col p-6">
                 <a class="block" href="<?php echo esc_url($detail_url); ?>" aria-label="<?php echo esc_attr($view_details_label . ' ' . $product['title']); ?>">
-                    <div class="product-card-meta mb-3 flex min-w-0 items-center gap-4 font-black uppercase tracking-[0.08em] text-slate-500"><span class="block min-w-0 max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-[clamp(8px,0.56vw,11px)] leading-tight"><?php echo esc_html($product['category_title'] ?? 'BOB-LIFT'); ?></span></div>
-                    <h2 class="product-card-title text-xl font-black leading-tight tracking-[-0.035em] text-[#0B1B33]"><?php echo esc_html($product['title']); ?></h2>
+                    <div class="product-card-meta mb-1.5 flex min-w-0 items-center gap-4 font-semibold normal-case tracking-normal text-slate-600"><span class="line-clamp-2 block min-w-0 max-w-full break-words text-[14px] leading-[1.35]"><?php echo esc_html($card_eyebrow); ?></span></div>
+                    <h2 class="product-card-title font-black <?php echo $product_model !== '' ? 'product-card-model text-[clamp(28px,1.8vw,34px)] uppercase leading-none tracking-[0.02em] text-[#0B3F7D]' : 'text-xl leading-tight tracking-[-0.035em] text-[#0B1B33]'; ?>"><?php echo esc_html($card_heading); ?></h2>
                     <p class="product-card-summary mt-3 hidden max-w-3xl text-sm font-semibold leading-6 text-slate-600 lg:text-base lg:leading-7"><?php echo esc_html($product['short_description'] ?? ''); ?></p>
                 </a>
                 <div class="product-card-footer mt-auto grid grid-cols-2 gap-3 pt-5">

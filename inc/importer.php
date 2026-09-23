@@ -173,9 +173,10 @@ function boblift_import_current_content(): void
             continue;
         }
         wp_set_object_terms($id, $product['category'], 'product_category');
-        foreach (['model', 'capacity', 'capacity_value', 'boom_type', 'status', 'short_description'] as $key) {
+        foreach (['model', 'capacity', 'capacity_value', 'status', 'short_description'] as $key) {
             update_post_meta($id, '_' . $key, (string) ($product[$key] ?? ''));
         }
+        update_post_meta($id, '_boom_type', boblift_normalize_product_boom_type((string) ($product['boom_type'] ?? '')));
         update_post_meta($id, '_applications', implode(',', $product['applications'] ?? []));
         update_post_meta($id, '_tags', implode(',', $product['tags'] ?? []));
         update_post_meta($id, '_specs', wp_json_encode($product['specs'] ?? [], JSON_UNESCAPED_UNICODE));

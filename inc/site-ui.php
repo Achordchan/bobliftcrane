@@ -437,7 +437,7 @@ function boblift_site_ui_defaults(?string $section = null): array
                 ['value' => '20 - 50 tons', 'label' => '20 - 50 tons'],
                 ['value' => '50+ tons', 'label' => '50+ tons'],
             ],
-            'boomOptions' => ['telescopic-boom' => 'Telescopic Boom', 'knuckle-boom' => 'Knuckle Boom', 'straight-boom' => 'Straight Boom', 'fly-jib' => 'Fly Jib', 'custom-solution' => 'Custom Solution'],
+            'boomOptions' => ['telescopic-boom' => 'Telescopic Boom', 'knuckle-boom' => 'Knuckle Boom', 'straight-boom' => 'Straight Boom', 'fly-jib' => 'Fly Jib'],
             'applicationOptions' => ['construction' => 'Construction', 'logistics' => 'Logistics', 'municipal-engineering' => 'Municipal Engineering', 'marine' => 'Marine', 'agriculture' => 'Agriculture', 'mining' => 'Mining'],
             'statusOptions' => ['in-stock' => 'In Stock', 'best-seller' => 'Best Seller', 'customizable' => 'Customizable', 'pre-order' => 'Pre-Order'],
             'sortOptions' => ['recommended' => 'Recommended', 'capacityAsc' => 'Capacity: Low to High', 'capacityDesc' => 'Capacity: High to Low', 'newest' => 'Newest', 'popular' => 'Popular'],
@@ -526,8 +526,6 @@ function boblift_site_ui_defaults(?string $section = null): array
             'productDetailImageLabel' => 'Product detail image',
             'productPhotoLabel' => 'Product photo',
             'detailImageAltTemplate' => '{product} detail image',
-            'defaultColorLabel' => 'Default',
-            'colorOptionsLabel' => 'Product color options',
             'hotspotLabels' => ['Telescopic Boom', 'Hydraulic Cylinder', 'Outriggers', 'Control System', 'Slewing Mechanism', 'Mounting Base'],
             'galleryFallbackItems' => [
                 ['label' => 'Boom extension detail', 'icon' => 'maximize-2'],
@@ -610,6 +608,27 @@ function boblift_site_ui(?string $section = null): array
         $cache[$language] = boblift_localize_static_value($merged, $language);
     }
     return $section ? ($cache[$language][$section] ?? []) : $cache[$language];
+}
+
+function boblift_product_boom_options(): array
+{
+    $archive_ui = boblift_site_ui('productArchive');
+    $configured = is_array($archive_ui['boomOptions'] ?? null) ? $archive_ui['boomOptions'] : [];
+    $options = [];
+    foreach ($configured as $key => $label) {
+        $key = sanitize_title((string) $key);
+        if ($key === '' || $key === 'custom-solution') {
+            continue;
+        }
+        $options[$key] = (string) $label;
+    }
+    return $options;
+}
+
+function boblift_normalize_product_boom_type(string $boom_type): string
+{
+    $boom_type = sanitize_title($boom_type);
+    return isset(boblift_product_boom_options()[$boom_type]) ? $boom_type : '';
 }
 
 function boblift_contact_settings(): array

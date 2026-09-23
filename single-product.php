@@ -126,20 +126,7 @@ if (!$hotspots) {
         $hotspots[] = ['label' => (string) $label, 'x' => $position[0], 'y' => $position[1]];
     }
 }
-$color_variants = [];
-foreach (($product['color_variants'] ?? []) as $variant) {
-    if (!is_array($variant)) continue;
-    $variant_image = trim((string) ($variant['image'] ?? ($variant['url'] ?? '')));
-    $variant_label = trim((string) ($variant['label'] ?? ''));
-    if ($variant_image === '' || $variant_label === '') continue;
-    $variant_color = sanitize_hex_color((string) ($variant['color'] ?? '')) ?: '#BD2F42';
-    $color_variants[] = ['label' => $variant_label, 'color' => $variant_color, 'image' => $image_url($variant_image)];
-}
-if (!$color_variants) {
-    $color_variants[] = ['label' => (string) ($ui['defaultColorLabel'] ?? 'Default'), 'color' => '#BD2F42', 'image' => $main_image];
-}
-$hero_image = (string) ($color_variants[0]['image'] ?? $main_image);
-$show_color_switcher = count($color_variants) > 1;
+$hero_image = $main_image;
 $hero_gallery_items = [];
 $hero_gallery_seen = [];
 $add_hero_gallery_item = static function (string $image, string $label) use (&$hero_gallery_items, &$hero_gallery_seen): void {
@@ -191,30 +178,29 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
         <div class="pointer-events-none absolute inset-0 boblift-cinema-grid opacity-65"></div>
         <div class="pointer-events-none absolute -right-[14%] top-[8%] h-[560px] w-[560px] rounded-full bg-blue-300/28 blur-[120px]"></div>
         <div class="pointer-events-none absolute left-[8%] top-[14%] h-[360px] w-[360px] rounded-full bg-gold/16 blur-[110px]"></div>
-        <div class="page-shell relative z-10 py-4 lg:py-5 xl:py-6">
-            <div class="grid grid-cols-1 items-center gap-6 lg:grid-cols-2 lg:gap-8 xl:gap-10">
-                <div class="relative z-20 order-2 max-w-none lg:order-1">
+        <div class="page-shell relative z-10 py-8 lg:py-10 xl:py-12">
+            <div class="grid grid-cols-1 items-center gap-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-10 xl:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)] xl:gap-12">
+                <div class="relative z-20 order-2 max-w-none py-2 lg:order-1 lg:py-4">
                     <p class="boblift-product-hero-kicker inline-flex rounded-full border border-blue-100 bg-white/72 px-4 py-2 text-[11px] font-black uppercase tracking-[0.24em] text-[#0B3F7D] shadow-[0_14px_34px_rgba(8,35,74,0.08)] backdrop-blur-xl"><?php echo esc_html($product['category_title'] ?? 'BOB-LIFT Product'); ?></p>
-                    <h1 class="boblift-product-hero-title mt-5 max-w-none text-[clamp(46px,4.8vw,92px)] font-black leading-[0.88] tracking-[-0.045em] text-[#071f42] drop-shadow-[0_18px_28px_rgba(8,35,74,0.10)]"><?php echo esc_html($hero_title); ?></h1>
+                    <h1 class="boblift-product-hero-title mt-6 lg:mt-7 max-w-none text-[clamp(46px,4.8vw,92px)] font-black leading-[0.88] tracking-[-0.045em] text-[#071f42] drop-shadow-[0_18px_28px_rgba(8,35,74,0.10)]"><?php echo esc_html($hero_title); ?></h1>
                     <?php if ($show_hero_full_name) : ?>
-                        <p class="mt-3 max-w-[760px] text-[clamp(20px,1.55vw,30px)] font-black leading-tight tracking-[-0.045em] text-[#0B3F7D]"><?php echo esc_html($product_title); ?></p>
+                        <p class="mt-4 max-w-[760px] text-[clamp(20px,1.55vw,30px)] font-black leading-tight tracking-[-0.045em] text-[#0B3F7D]"><?php echo esc_html($product_title); ?></p>
                     <?php endif; ?>
-                    <p class="mt-5 line-clamp-4 max-w-[720px] text-[clamp(14px,0.95vw,18px)] font-semibold leading-7 text-slate-600 md:leading-8"><?php echo esc_html($product['short_description'] ?? ''); ?></p>
-                    <div class="boblift-product-hero-actions mt-5 flex flex-nowrap items-center gap-2.5 overflow-x-auto pb-2 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-3">
+                    <div class="boblift-product-hero-actions mt-8 lg:mt-10 flex flex-wrap items-center gap-2.5 overflow-visible pb-2 pt-1 sm:gap-3">
                         <button class="boblift-product-hero-request inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-[#071f42] px-5 text-[13px] font-black text-white shadow-[0_24px_54px_rgba(8,35,74,0.18)] transition hover:-translate-y-0.5 hover:bg-[#0B3F7D] sm:px-6 sm:text-sm" type="button" data-inquiry-modal-open data-inquiry-product="<?php echo esc_attr($product['title']); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html($ui['requestQuoteLabel'] ?? 'Request Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
                         <button class="boblift-product-hero-quote-toggle inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-full border border-blue-100 bg-white/74 px-5 text-[13px] font-black text-[#0B3F7D] shadow-[0_16px_38px_rgba(8,35,74,0.08)] backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-gold/60 hover:bg-white sm:px-6 sm:text-sm" type="button" data-product-quote-add data-product-id="<?php echo esc_attr((string) ($product['id'] ?? ($product['slug'] ?? $product['title']))); ?>" data-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-title="<?php echo esc_attr($product['title']); ?>" data-image="<?php echo esc_url($main_image); ?>" data-category-title="<?php echo esc_attr($product['category_title'] ?? 'BOB-LIFT'); ?>" data-detail-url="<?php echo esc_url($product['detail_url'] ?? get_permalink()); ?>" data-summary="<?php echo esc_attr($product['short_description'] ?? ''); ?>" data-label-add="<?php echo esc_attr($hero_quote_list_add_label); ?>" data-label-active="<?php echo esc_attr($hero_quote_list_active_label); ?>"><?php echo boblift_icon('heart', 'h-4 w-4'); ?><span data-product-quote-add-label><?php echo esc_html($hero_quote_list_add_label); ?></span></button>
                         <button class="boblift-product-hero-catalog inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-full border border-[#D8E2EF] bg-white/54 px-5 text-[13px] font-black text-[#071f42] transition hover:-translate-y-0.5 hover:border-blue-300 hover:bg-white sm:px-6 sm:text-sm" type="button" data-catalog-modal-open data-catalog-product="<?php echo esc_attr($product['title']); ?>" data-catalog-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-catalog-url="<?php echo esc_url($catalog_url); ?>"><?php echo boblift_icon('download', 'h-4 w-4'); ?><?php echo esc_html($hero_pdf_label); ?></button>
                     </div>
-                    <div class="mt-5 grid grid-cols-2 gap-3 2xl:grid-cols-4">
+                    <div class="mt-7 grid grid-cols-2 gap-3 lg:mt-8 2xl:grid-cols-4">
                         <?php foreach ($hero_specs as $spec) : ?>
                             <div class="min-h-[96px] rounded-[20px] border border-white/80 bg-white/68 p-4 shadow-[0_16px_42px_rgba(8,35,74,0.08)] backdrop-blur-xl"><?php echo boblift_icon($spec_icon($spec), 'h-4 w-4 text-[#0B3F7D]'); ?><p class="mt-2 text-[9px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html($spec['label']); ?></p><p class="mt-1 text-base font-black leading-tight tracking-[-0.035em] text-[#071f42] 2xl:text-lg"><?php echo esc_html($hero_spec_value((string) ($spec['value'] ?? ''))); ?></p></div>
                         <?php endforeach; ?>
                     </div>
                 </div>
-                <div class="relative order-1 grid min-h-[320px] place-items-center overflow-visible sm:min-h-[420px] lg:order-2 lg:min-h-[540px] xl:min-h-[620px]" data-product-color-root data-product-hero-gallery-root data-product-hero-primary-src="<?php echo esc_url($hero_image); ?>" data-product-hero-active-index="0">
-                    <div class="boblift-cinema-product-stage relative z-10 aspect-[1.35/1] w-full max-w-none" data-product-hotspot-stage>
-                        <img class="absolute inset-0 z-10 h-full w-full object-contain p-0 drop-shadow-[0_54px_42px_rgba(8,35,74,0.20)] transition-opacity duration-500 ease-out" src="<?php echo esc_url($hero_image); ?>" alt="<?php echo esc_attr($product['title']); ?>" loading="eager" fetchpriority="high" decoding="async" data-product-color-current data-product-hero-gallery-image>
-                        <img class="absolute inset-0 z-20 h-full w-full object-contain p-0 opacity-0 drop-shadow-[0_54px_42px_rgba(8,35,74,0.20)] transition-opacity duration-500 ease-out" src="<?php echo esc_url($hero_image); ?>" alt="" aria-hidden="true" loading="lazy" decoding="async" data-product-color-next>
+                <div class="relative order-1 flex min-h-[360px] flex-col items-center justify-center overflow-hidden pb-4 sm:min-h-[480px] sm:pb-5 lg:order-2 lg:min-h-[620px] xl:min-h-[680px] 2xl:min-h-[740px]" data-product-hero-gallery-root data-product-hero-active-index="0">
+                    <div class="boblift-cinema-product-stage relative z-10 aspect-[1.18/1] w-full max-w-[1120px] 2xl:max-w-[1240px]" data-product-hotspot-stage>
+                        <img class="absolute inset-0 z-10 h-full w-full object-contain p-0 drop-shadow-[0_44px_38px_rgba(8,35,74,0.18)] transition-opacity duration-500 ease-out lg:pl-20 xl:pl-24" src="<?php echo esc_url($hero_image); ?>" alt="<?php echo esc_attr($product['title']); ?>" loading="eager" fetchpriority="high" decoding="async" data-product-hero-gallery-current data-product-hero-gallery-image>
+                        <img class="absolute inset-0 z-20 h-full w-full object-contain p-0 opacity-0 drop-shadow-[0_44px_38px_rgba(8,35,74,0.18)] transition-opacity duration-500 ease-out lg:pl-20 xl:pl-24" src="<?php echo esc_url($hero_image); ?>" alt="" aria-hidden="true" loading="lazy" decoding="async" data-product-hero-gallery-next>
                         <div class="absolute inset-0 z-30 hidden lg:block" data-product-hotspot-root data-product-hero-primary-only>
                             <?php foreach ($hotspots as $index => $hotspot) :
                                 $label = (string) ($hotspot['label'] ?? '');
@@ -230,22 +216,14 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                         </div>
                     </div>
                     <?php if (count($hero_gallery_items) > 1) : ?>
-                        <div class="absolute left-1/2 z-40 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-2 overflow-x-auto rounded-full border border-white/80 bg-white/76 p-2 shadow-[0_22px_54px_rgba(8,35,74,0.14)] backdrop-blur-xl [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden <?php echo $show_color_switcher ? 'bottom-16' : 'bottom-3'; ?>" aria-label="<?php echo esc_attr($ui['photoGalleryTitle'] ?? 'Product Photos'); ?>">
-                            <?php foreach ($hero_gallery_items as $index => $item) : ?>
-                                <button class="grid h-11 w-14 shrink-0 place-items-center overflow-hidden rounded-full border p-1 transition <?php echo $index === 0 ? 'border-blue-500 bg-blue-50 shadow-[0_12px_30px_rgba(37,99,235,0.12)]' : 'border-[#DDE5EF] bg-white/80 hover:border-blue-300'; ?>" type="button" data-product-hero-gallery-thumb data-product-hero-gallery-index="<?php echo esc_attr((string) $index); ?>" data-product-hero-gallery-src="<?php echo esc_url($item['image']); ?>" data-product-hero-gallery-label="<?php echo esc_attr($item['label']); ?>" aria-pressed="<?php echo $index === 0 ? 'true' : 'false'; ?>" aria-label="<?php echo esc_attr($item['label']); ?>">
-                                    <img class="h-full w-full rounded-full object-cover" src="<?php echo esc_url($item['image']); ?>" alt="" loading="lazy" decoding="async">
-                                </button>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php endif; ?>
-                    <?php if ($show_color_switcher) : ?>
-                        <div class="absolute bottom-3 left-1/2 z-40 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-2 overflow-x-auto rounded-full border border-white/80 bg-white/76 p-2 shadow-[0_22px_54px_rgba(8,35,74,0.14)] backdrop-blur-xl" aria-label="<?php echo esc_attr($ui['colorOptionsLabel'] ?? 'Product color options'); ?>" data-product-hero-primary-only data-product-hero-color-controls>
-                            <?php foreach ($color_variants as $index => $variant) : ?>
-                                <button class="inline-flex h-9 shrink-0 items-center gap-2 rounded-full border px-2.5 text-xs font-black transition <?php echo $index === 0 ? 'border-blue-500 bg-blue-50 text-[#0B3F7D]' : 'border-[#DDE5EF] bg-white/80 text-slate-600 hover:border-blue-300 hover:text-[#0B3F7D]'; ?>" type="button" data-product-color-option data-product-color-image="<?php echo esc_url($variant['image']); ?>" data-product-color-label="<?php echo esc_attr($variant['label']); ?>" aria-pressed="<?php echo $index === 0 ? 'true' : 'false'; ?>">
-                                    <span class="h-4 w-4 rounded-full border border-black/10 shadow-inner" style="background-color:<?php echo esc_attr($variant['color']); ?>"></span>
-                                    <span><?php echo esc_html($variant['label']); ?></span>
-                                </button>
-                            <?php endforeach; ?>
+                        <div class="relative z-40 mt-4 flex w-full max-w-[760px] flex-col items-center gap-2 px-4 lg:mt-5 lg:items-center lg:px-0">
+                            <div class="flex max-w-full items-center gap-2 overflow-x-auto rounded-full border border-white/80 bg-white/82 p-2 shadow-[0_18px_44px_rgba(8,35,74,0.12)] backdrop-blur-xl [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="<?php echo esc_attr($ui['photoGalleryTitle'] ?? 'Product Photos'); ?>">
+                                <?php foreach ($hero_gallery_items as $index => $item) : ?>
+                                    <button class="grid h-11 w-14 shrink-0 place-items-center overflow-hidden rounded-full border p-1 transition <?php echo $index === 0 ? 'border-blue-500 bg-blue-50 shadow-[0_12px_30px_rgba(37,99,235,0.12)]' : 'border-[#DDE5EF] bg-white/80 hover:border-blue-300'; ?>" type="button" data-product-hero-gallery-thumb data-product-hero-gallery-index="<?php echo esc_attr((string) $index); ?>" data-product-hero-gallery-src="<?php echo esc_url($item['image']); ?>" data-product-hero-gallery-label="<?php echo esc_attr($item['label']); ?>" aria-pressed="<?php echo $index === 0 ? 'true' : 'false'; ?>" aria-label="<?php echo esc_attr($item['label']); ?>">
+                                        <img class="h-full w-full rounded-full object-cover" src="<?php echo esc_url($item['image']); ?>" alt="" loading="lazy" decoding="async">
+                                    </button>
+                                <?php endforeach; ?>
+                            </div>
                         </div>
                     <?php endif; ?>
                 </div>

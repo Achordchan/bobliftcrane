@@ -10,7 +10,7 @@ $category_counts = array_fill_keys(array_map(static fn($item) => $item['slug'], 
 $category_product_map = array_fill_keys(array_map(static fn($item) => $item['slug'], $categories), []);
 $archive_ui = function_exists('boblift_site_ui') ? boblift_site_ui('productArchive') : [];
 $capacity_ranges = is_array($archive_ui['capacityRanges'] ?? null) ? $archive_ui['capacityRanges'] : [];
-$boom_options = is_array($archive_ui['boomOptions'] ?? null) ? $archive_ui['boomOptions'] : [];
+$boom_options = function_exists('boblift_product_boom_options') ? boblift_product_boom_options() : [];
 $application_options = is_array($archive_ui['applicationOptions'] ?? null) ? $archive_ui['applicationOptions'] : [];
 $status_options = is_array($archive_ui['statusOptions'] ?? null) ? $archive_ui['statusOptions'] : [];
 $sort_options = is_array($archive_ui['sortOptions'] ?? null) ? $archive_ui['sortOptions'] : [];
@@ -119,12 +119,17 @@ foreach ($category_hierarchy as $group) {
         $category_filter_tree[] = ['slug' => $slug, 'title' => (string) ($category['title'] ?? $group['title'] ?? $slug), 'children' => [], 'child_slugs' => [$slug], 'count' => (int) ($category_counts[$slug] ?? 0)];
     }
 }
-$filter_group = static function (string $title, string $filter, array $items, array $counts): void { ?>
-    <fieldset class="border-t border-[#E5E7EB] pt-6 first:border-t-0 first:pt-0">
+$filter_group = static function (string $title, string $filter, array $items, array $counts): void {
+    $items = array_filter($items, static fn($label, $value): bool => (int) ($counts[$value] ?? 0) > 0, ARRAY_FILTER_USE_BOTH);
+    if (!$items) {
+        return;
+    }
+    ?>
+    <fieldset class="border-t border-[#E5E7EB] pt-6 first:border-t-0 first:pt-0" data-filter-group="<?php echo esc_attr($filter); ?>">
         <legend class="mb-4 text-base font-black text-[#0B1B33]"><?php echo esc_html($title); ?></legend>
         <div class="space-y-3">
             <?php foreach ($items as $value => $label) : ?>
-                <label class="product-filter-option"><span class="relative flex h-5 w-5 shrink-0 items-center justify-center"><input class="peer h-5 w-5 appearance-none rounded border border-slate-300 bg-white transition checked:border-[#0B3F7D] checked:bg-[#0B3F7D] focus:outline-none focus:ring-4 focus:ring-blue-100" type="checkbox" data-filter="<?php echo esc_attr($filter); ?>" value="<?php echo esc_attr($value); ?>"><span class="pointer-events-none absolute h-2.5 w-1.5 -translate-y-0.5 rotate-45 border-b-2 border-r-2 border-white opacity-0 peer-checked:opacity-100"></span></span><span class="min-w-0 flex-1 whitespace-nowrap"><?php echo esc_html($label); ?></span><span class="shrink-0 text-xs font-black text-slate-400"><?php echo esc_html((string) ($counts[$value] ?? 0)); ?></span></label>
+                <label class="product-filter-option" data-filter-option><span class="relative flex h-5 w-5 shrink-0 items-center justify-center"><input class="peer h-5 w-5 appearance-none rounded border border-slate-300 bg-white transition checked:border-[#0B3F7D] checked:bg-[#0B3F7D] focus:outline-none focus:ring-4 focus:ring-blue-100" type="checkbox" data-filter="<?php echo esc_attr($filter); ?>" value="<?php echo esc_attr($value); ?>"><span class="pointer-events-none absolute h-2.5 w-1.5 -translate-y-0.5 rotate-45 border-b-2 border-r-2 border-white opacity-0 peer-checked:opacity-100"></span></span><span class="min-w-0 flex-1 whitespace-nowrap"><?php echo esc_html($label); ?></span><span class="shrink-0 text-xs font-black text-slate-400" data-filter-count><?php echo esc_html((string) ($counts[$value] ?? 0)); ?></span></label>
             <?php endforeach; ?>
         </div>
     </fieldset>

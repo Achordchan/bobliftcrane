@@ -181,28 +181,20 @@
   });
 
 
-  qsa('[data-product-color-root]').forEach((root) => {
-    const currentImage = qs('[data-product-color-current]', root);
-    const nextImage = qs('[data-product-color-next]', root);
-    const colorOptions = qsa('[data-product-color-option]', root);
+  qsa('[data-product-hero-gallery-root]').forEach((root) => {
+    const currentImage = qs('[data-product-hero-gallery-current]', root) || qs('[data-product-hero-gallery-image]', root);
+    const nextImage = qs('[data-product-hero-gallery-next]', root);
     const thumbs = qsa('[data-product-hero-gallery-thumb]', root);
     const primaryOnlyItems = qsa('[data-product-hero-primary-only]', root);
-    if (!currentImage) return;
+    if (!currentImage || !thumbs.length) return;
 
     let switchToken = 0;
     const galleryActiveClasses = ['border-blue-500', 'bg-blue-50', 'shadow-[0_12px_30px_rgba(37,99,235,0.12)]'];
     const galleryInactiveClasses = ['border-[#DDE5EF]', 'bg-white/80', 'hover:border-blue-300'];
-    const colorActiveClasses = ['border-blue-500', 'bg-blue-50', 'text-[#0B3F7D]'];
-    const colorInactiveClasses = ['border-[#DDE5EF]', 'bg-white/80', 'text-slate-600', 'hover:border-blue-300', 'hover:text-[#0B3F7D]'];
     const setGalleryActive = (button, active) => {
       button.setAttribute('aria-pressed', active ? 'true' : 'false');
       galleryActiveClasses.forEach((className) => button.classList.toggle(className, active));
       galleryInactiveClasses.forEach((className) => button.classList.toggle(className, !active));
-    };
-    const setColorActive = (button, active) => {
-      button.setAttribute('aria-pressed', active ? 'true' : 'false');
-      colorActiveClasses.forEach((className) => button.classList.toggle(className, active));
-      colorInactiveClasses.forEach((className) => button.classList.toggle(className, !active));
     };
     const setPrimaryOnlyVisible = (visible) => {
       primaryOnlyItems.forEach((item) => {
@@ -252,35 +244,22 @@
       }
     };
 
-    root.dataset.productHeroPrimarySrc = root.dataset.productHeroPrimarySrc || currentImage.getAttribute('src') || '';
     root.dataset.productHeroActiveIndex = root.dataset.productHeroActiveIndex || '0';
     setPrimaryOnlyVisible(root.dataset.productHeroActiveIndex === '0');
-
-    colorOptions.forEach((button) => {
-      button.addEventListener('click', () => {
-        const src = button.dataset.productColorImage || '';
-        if (!src) return;
-        colorOptions.forEach((item) => setColorActive(item, item === button));
-        root.dataset.productHeroPrimarySrc = src;
-        const primaryThumbImage = qs('[data-product-hero-gallery-index="0"] img', root);
-        if (primaryThumbImage) primaryThumbImage.src = src;
-        if ((root.dataset.productHeroActiveIndex || '0') === '0') switchProductImage(src, button.dataset.productColorLabel || currentImage.alt || '');
-      });
-    });
 
     thumbs.forEach((button) => {
       button.addEventListener('click', () => {
         const index = button.dataset.productHeroGalleryIndex || '0';
-        const isPrimary = index === '0';
-        const src = isPrimary ? (root.dataset.productHeroPrimarySrc || button.dataset.productHeroGallerySrc || '') : (button.dataset.productHeroGallerySrc || '');
+        const src = button.dataset.productHeroGallerySrc || '';
         const label = button.dataset.productHeroGalleryLabel || '';
         root.dataset.productHeroActiveIndex = index;
-        setPrimaryOnlyVisible(isPrimary);
+        setPrimaryOnlyVisible(index === '0');
         thumbs.forEach((item) => setGalleryActive(item, item === button));
         switchProductImage(src, label);
       });
     });
   });
+
 
 
   qsa('[data-product-hotspot-root]').forEach((root) => {
@@ -480,20 +459,20 @@
       const pin = qs('[data-about-logo-pin]', section);
       const bg = qs('[data-about-crane-bg]', section);
       const logo = qs('[data-about-logo-text]', section);
-      const copy = qs('[data-about-copy]', section);
+      const logoSolid = qs('[data-about-logo-solid]', section);
+      const logoImage = qs('[data-about-logo-image]', section);
       const silhouette = qs('[data-about-silhouette]', section);
       const mask = qs('[data-about-mask]', section);
-      const chips = qsa('.about-proof-chip', section);
       const image = qs('img', bg);
       const aerialVideo = qs('[data-about-aerial-video]', section);
       const aerialStart = qs('[data-about-aerial-start]', section);
       const aerialEnd = qs('[data-about-aerial-end]', section);
-      if (!pin || !bg || !logo || !copy) return;
+      if (!pin || !bg || !logo) return;
 
       const mm = gsap.matchMedia();
       mm.add('(min-width: 901px) and (prefers-reduced-motion: no-preference)', () => {
         section.classList.add('is-gsap-ready');
-        gsap.set(bg, { scale: 1.08, yPercent: 0, opacity: 0, force3D: true });
+        gsap.set(bg, { scale: 1.08, yPercent: 0, opacity: 0, borderRadius: '40px', overflow: 'hidden', force3D: true });
         if (silhouette) gsap.set(silhouette, { scale: 1.02, opacity: 1, force3D: true });
         if (aerialVideo) {
           aerialVideo.muted = true;
@@ -506,30 +485,16 @@
         gsap.set(aerialVideo, { opacity: 0 });
         gsap.set(aerialEnd, { opacity: 0 });
         if (mask) gsap.set(mask, { opacity: 1, force3D: true });
-        gsap.set(logo, { scale: 0.58, y: () => -Math.max(160, window.innerHeight * 0.26), opacity: 1, '--about-logo-bg-y': '38%', '--about-logo-solid-alpha': 1, '--about-logo-stroke-alpha': 0, '--about-logo-shadow-alpha': 0, force3D: true });
-        gsap.set(copy, { y: 46, opacity: 0, scale: 0.965, force3D: true });
-        gsap.set(chips, { y: 22, opacity: 0, force3D: true });
+        gsap.set(logo, { scale: 0.58, y: () => -Math.max(160, window.innerHeight * 0.26), opacity: 1, force3D: true });
+        gsap.set(logoSolid, { opacity: 1 });
+        gsap.set(logoImage, { opacity: 0 });
 
         const aerialStartProgress = 0.08;
         let aerialPhase = 'start';
         let aerialIsPlaying = false;
-        let aboutCopyIsVisible = false;
-
-        const revealAboutCopy = () => {
-          if (aboutCopyIsVisible) return;
-          aboutCopyIsVisible = true;
-          gsap.killTweensOf([copy, ...chips]);
-          gsap.to(copy, { y: 0, opacity: 1, scale: 1, duration: 0.36, ease: 'back.out(1.18)', overwrite: true });
-          gsap.to(chips, { y: 0, opacity: 1, stagger: 0.04, duration: 0.24, ease: 'power2.out', overwrite: true });
-        };
-        const hideAboutCopy = () => {
-          aboutCopyIsVisible = false;
-          gsap.killTweensOf([copy, ...chips]);
-          gsap.set(copy, { y: 46, opacity: 0, scale: 0.965 });
-          gsap.set(chips, { y: 22, opacity: 0 });
-        };
 
         const setAerialLayer = (phase) => {
+          if (aerialPhase === phase) return;
           aerialPhase = phase;
           if (aerialStart) aerialStart.style.opacity = phase === 'start' ? '1' : '0';
           if (aerialVideo) aerialVideo.style.opacity = phase === 'playing' ? '1' : '0';
@@ -549,13 +514,11 @@
           try {
             if (aerialVideo.currentTime > 0.04) aerialVideo.currentTime = 0;
           } catch {}
-          hideAboutCopy();
           setAerialLayer('start');
         };
         const showAerialEnd = () => {
           aerialIsPlaying = false;
           setAerialLayer('end');
-          revealAboutCopy();
         };
         const playAerialVideo = () => {
           if (!aerialVideo) return;
@@ -570,16 +533,12 @@
           if (playResult && typeof playResult.catch === 'function') {
             playResult.catch(() => {
               aerialIsPlaying = false;
-              revealAboutCopy();
             });
           }
         };
         const updateAerialMedia = (progress) => {
           if (!aerialVideo) {
-            if (aerialStart) aerialStart.style.opacity = progress <= aerialStartProgress ? '1' : '0';
-            if (aerialEnd) aerialEnd.style.opacity = progress > aerialStartProgress ? '1' : '0';
-            if (progress > 0.92) revealAboutCopy();
-            else hideAboutCopy();
+            setAerialLayer(progress <= aerialStartProgress ? 'start' : 'end');
             return;
           }
 
@@ -595,13 +554,14 @@
           scrollTrigger: {
             trigger: section,
             start: 'top top',
-            end: 'bottom bottom',
-            scrub: 1.1,
+            end: '+=150%', // Shortened end since we don't need to read copy
+            scrub: 0.65,
             pin,
             pinSpacing: false,
             anticipatePin: 1,
             invalidateOnRefresh: true,
             markers: false,
+            onToggle: (self) => section.classList.toggle('is-about-logo-active', self.isActive),
             onUpdate: (self) => updateAerialMedia(self.progress),
           },
         });
@@ -610,11 +570,12 @@
           .to(silhouette, { scale: 1.04, opacity: 0, duration: 0.34, ease: 'none' }, 0.08)
           .to(mask, { opacity: 0.42, duration: 0.42, ease: 'none' }, 0)
           .to(logo, { scale: 1.04, y: 0, opacity: 1, duration: 0.42, ease: 'power2.out' }, 0)
-          .to(logo, { '--about-logo-solid-alpha': 0, '--about-logo-stroke-alpha': 0.72, '--about-logo-shadow-alpha': 0.14, duration: 0.08, ease: 'none' }, 0)
-          .to(logo, { '--about-logo-bg-y': '62%', duration: 0.62, ease: 'none' }, 0.12)
-          .to(bg, { scale: 1.14, yPercent: -7, opacity: 1, duration: 0.48, ease: 'none' }, 0.42)
-          .to(logo, { scale: 0.76, y: () => -Math.max(54, window.innerHeight * 0.09), opacity: 0.16, duration: 0.3, ease: 'power2.out' }, 0.58)
-          .to(mask, { opacity: 0.04, duration: 0.42, ease: 'none' }, 0.58);
+          .to(logoSolid, { opacity: 0, duration: 0.1, ease: 'none' }, 0)
+          .to(logoImage, { opacity: 1, duration: 0.1, ease: 'none' }, 0)
+          // The scene already has a static clip radius; scaling reveals it without repainting the radius every frame.
+          .to(bg, { scale: 0.94, yPercent: -5, duration: 0.48, ease: 'power2.inOut' }, 0.42)
+          .to(logo, { scale: 0.6, y: () => -window.innerHeight * 0.15, opacity: 0, duration: 0.48, ease: 'power2.inOut' }, 0.42)
+          .to(mask, { opacity: 0.85, duration: 0.48, ease: 'power2.inOut' }, 0.42);
 
         if (image && !image.complete) {
           image.addEventListener('load', () => ScrollTrigger.refresh(), { once: true });
@@ -632,6 +593,7 @@
 
         return () => {
           section.classList.remove('is-gsap-ready');
+          section.classList.remove('is-about-logo-active');
           if (aerialVideo) {
             aerialVideo.removeEventListener('loadedmetadata', handleAerialLoadedMetadata);
             aerialVideo.removeEventListener('ended', handleAerialEnded);
@@ -639,13 +601,171 @@
             pauseAerialVideo();
           }
           tl.kill();
-          gsap.set([bg, silhouette, mask, logo, copy, aerialStart, aerialVideo, aerialEnd, ...chips].filter(Boolean), { clearProps: 'all' });
+          gsap.set([bg, silhouette, mask, logo, logoSolid, logoImage, aerialStart, aerialVideo, aerialEnd].filter(Boolean), { clearProps: 'all' });
         };
       });
 
       window.addEventListener('pagehide', () => mm.revert(), { once: true });
     });
   }
+
+  const aboutStrengthSections = qsa('[data-about-strength]');
+  if (aboutStrengthSections.length && window.gsap && window.ScrollTrigger) {
+    const gsap = window.gsap;
+    const ScrollTrigger = window.ScrollTrigger;
+    gsap.registerPlugin(ScrollTrigger);
+
+    aboutStrengthSections.forEach((section) => {
+      const copy = qs('[data-about-strength-copy]', section);
+      const bridge = qs('[data-about-strength-bridge]', section);
+      const mm = gsap.matchMedia();
+
+      mm.add('(min-width: 901px) and (prefers-reduced-motion: no-preference)', () => {
+        if (!copy) return undefined;
+        section.classList.add('is-gsap-ready');
+        gsap.set(copy, { y: 72, opacity: 0, force3D: true });
+        gsap.set(bridge, { scaleY: 1.22, opacity: 1, force3D: true });
+
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: section,
+            start: 'top 82%',
+            end: 'top 24%',
+            scrub: 0.85,
+            invalidateOnRefresh: true,
+          },
+        });
+
+        tl.to(bridge, { scaleY: 0.64, opacity: 0.45, duration: 0.34, ease: 'none' }, 0)
+          .to(copy, { y: 0, opacity: 1, duration: 0.62, ease: 'power2.out' }, 0.04);
+
+        return () => {
+          section.classList.remove('is-gsap-ready');
+          tl.kill();
+          gsap.set([copy, bridge].filter(Boolean), { clearProps: 'all' });
+        };
+      });
+
+      window.addEventListener('pagehide', () => mm.revert(), { once: true });
+    });
+  }
+
+  const aboutTimelineSections = qsa('[data-about-timeline]');
+  if (aboutTimelineSections.length && window.gsap && window.ScrollTrigger) {
+    const gsap = window.gsap;
+    const ScrollTrigger = window.ScrollTrigger;
+    gsap.registerPlugin(ScrollTrigger);
+
+    aboutTimelineSections.forEach((section) => {
+      const header  = qs('[data-about-timeline-header]', section);
+      const spine   = qs('[data-about-timeline-spine]', section);
+      const entries = qsa('[data-about-timeline-entry]', section);
+      const mm = gsap.matchMedia();
+
+      mm.add('(min-width: 901px) and (prefers-reduced-motion: no-preference)', () => {
+        if (!entries.length) return undefined;
+        section.classList.add('is-gsap-ready');
+
+        // Set initial states (CSS .is-gsap-ready handles opacity:0 for elements;
+        // here we add translate offsets so GSAP can tween from them)
+        if (header) gsap.set(header, { y: 52, opacity: 0, force3D: true });
+        if (spine)  gsap.set(spine,  { scaleY: 0, transformOrigin: 'top center', force3D: true });
+
+        entries.forEach((entry) => {
+          const isRight = entry.classList.contains('entry--right');
+          const dot     = qs('[data-about-timeline-dot]',   entry);
+          const year    = qs('[data-about-timeline-year]',  entry);
+          const panel   = qs('[data-about-timeline-panel]', entry);
+          const xOffset = isRight ? 56 : -56;
+
+          if (dot)   gsap.set(dot,   { scale: 0.3, opacity: 0, force3D: true });
+          if (year)  gsap.set(year,  { x: isRight ? -32 : 32, opacity: 0, force3D: true });
+          if (panel) gsap.set(panel, { x: xOffset, opacity: 0, force3D: true });
+        });
+
+        // Header ScrollTrigger
+        if (header) {
+          ScrollTrigger.create({
+            trigger: header,
+            start: 'top 82%',
+            once: true,
+            onEnter: () => {
+              gsap.to(header, { y: 0, opacity: 1, duration: 0.56, ease: 'power2.out' });
+            },
+          });
+        }
+
+        // Spine draws down as the section scrolls into view
+        if (spine) {
+          ScrollTrigger.create({
+            trigger: section,
+            start: 'top 72%',
+            end: 'bottom 28%',
+            scrub: 0.9,
+            onUpdate: (self) => {
+              gsap.set(spine, { scaleY: self.progress });
+            },
+          });
+        }
+
+        // Each entry has its own ScrollTrigger
+        entries.forEach((entry) => {
+          const isRight = entry.classList.contains('entry--right');
+          const dot     = qs('[data-about-timeline-dot]',   entry);
+          const year    = qs('[data-about-timeline-year]',  entry);
+          const panel   = qs('[data-about-timeline-panel]', entry);
+
+          ScrollTrigger.create({
+            trigger: entry,
+            start: 'top 78%',
+            once: true,
+            onEnter: () => {
+              const tl = gsap.timeline();
+              if (dot) {
+                tl.to(dot, {
+                  scale: 1, opacity: 1,
+                  duration: 0.36, ease: 'back.out(1.8)',
+                }, 0);
+              }
+              if (year) {
+                tl.to(year, {
+                  x: 0, opacity: 1,
+                  duration: 0.44, ease: 'power3.out',
+                }, 0.06);
+              }
+              if (panel) {
+                tl.to(panel, {
+                  x: 0, opacity: 1,
+                  duration: 0.52, ease: 'power3.out',
+                }, 0.12);
+              }
+            },
+          });
+        });
+
+        return () => {
+          section.classList.remove('is-gsap-ready');
+          ScrollTrigger.getAll().forEach((st) => {
+            if (st.trigger === header || st.trigger === section || entries.includes(st.trigger)) {
+              st.kill();
+            }
+          });
+          const targets = [
+            header, spine,
+            ...entries.map((e) => [
+              qs('[data-about-timeline-dot]', e),
+              qs('[data-about-timeline-year]', e),
+              qs('[data-about-timeline-panel]', e),
+            ]).flat(),
+          ].filter(Boolean);
+          gsap.set(targets, { clearProps: 'all' });
+        };
+      });
+
+      window.addEventListener('pagehide', () => mm.revert(), { once: true });
+    });
+  }
+
 
   const executiveSections = qsa('[data-about-executive]');
   if (executiveSections.length && window.gsap && window.ScrollTrigger) {
@@ -694,7 +814,7 @@
         const tl = gsap.timeline({
           scrollTrigger: {
             trigger: section,
-            start: 'top top',
+            start: 'center center',
             end: () => `+=${Math.max(window.innerHeight * 2.35, 1900)}`,
             scrub: 1.05,
             pin,
@@ -728,6 +848,204 @@
 
       window.addEventListener('pagehide', () => mm.revert(), { once: true });
     });
+  }
+
+  const gallerySections = qsa('[data-about-gallery]');
+  if (gallerySections.length && window.gsap && window.ScrollTrigger) {
+    const gsap = window.gsap;
+    const ScrollTrigger = window.ScrollTrigger;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    gallerySections.forEach((section) => {
+      const pin = qs('[data-gallery-pin]', section);
+      const track = qs('[data-gallery-track]', section);
+      const spacer = qs('[data-gallery-spacer]', section);
+      if (!pin || !track || reduceMotion) return;
+
+      const getTravel = () => Math.max(0, track.scrollWidth - window.innerWidth + 64);
+      const syncGallerySpacer = () => {
+        if (!spacer) return;
+        const height = Math.max(getTravel(), 520);
+        spacer.style.height = `${height}px`;
+      };
+
+      const mm = gsap.matchMedia();
+      mm.add('(min-width: 901px)', () => {
+        syncGallerySpacer();
+        const tween = gsap.to(track, {
+          x: () => -getTravel(),
+          ease: 'none',
+          scrollTrigger: {
+            trigger: pin,
+            start: 'center center',
+            end: () => `+=${getTravel()}`,
+            pin: true,
+            pinSpacing: false,
+            scrub: 1,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+            onRefreshInit: syncGallerySpacer,
+          }
+        });
+        return () => {
+          tween.scrollTrigger?.kill();
+          tween.kill();
+          if (spacer) spacer.style.height = '';
+          gsap.set(track, { clearProps: 'transform' });
+        };
+      });
+    });
+  }
+
+  const globalSections = qsa('[data-about-global]');
+  if (globalSections.length && window.gsap && window.ScrollTrigger) {
+    const gsap = window.gsap;
+    const ScrollTrigger = window.ScrollTrigger;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    globalSections.forEach((section) => {
+      const stats = qsa('[data-global-stat]', section);
+      if (!stats.length) return;
+      if (reduceMotion) {
+        stats.forEach((stat) => {
+          stat.textContent = stat.getAttribute('data-global-stat') || '0';
+        });
+        return;
+      }
+
+      ScrollTrigger.create({
+        trigger: section,
+        start: 'top 75%',
+        once: true,
+        onEnter: () => {
+          stats.forEach((stat) => {
+            const target = parseInt(stat.getAttribute('data-global-stat') || '0', 10);
+            const obj = { val: 0 };
+            gsap.to(obj, {
+              val: target,
+              duration: 2.5,
+              ease: 'power3.out',
+              onUpdate: () => {
+                stat.textContent = String(Math.floor(obj.val));
+              }
+            });
+          });
+        }
+      });
+    });
+  }
+
+  const marqueeSections = qsa('[data-about-certifications]');
+  if (marqueeSections.length) {
+    const gsap = window.gsap;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    marqueeSections.forEach((section) => {
+      const tracks = qsa('[data-marquee-track]', section);
+      let marqueeTween = null;
+      if (gsap && tracks.length >= 2 && !reduceMotion) {
+        marqueeTween = gsap.to(tracks, {
+          xPercent: -100,
+          repeat: -1,
+          duration: 25,
+          ease: 'none'
+        });
+        section.addEventListener('mouseenter', () => marqueeTween?.pause());
+        section.addEventListener('mouseleave', () => marqueeTween?.resume());
+      }
+
+      const lightbox = qs('[data-certification-lightbox]', section);
+      const lightboxImage = qs('[data-certification-lightbox-image]', section);
+      const lightboxTitle = qs('[data-certification-lightbox-title]', section);
+      const openButtons = qsa('[data-certification-open]', section);
+      const closeButtons = qsa('[data-certification-close]', section);
+      if (!lightbox || !lightboxImage || !openButtons.length) return;
+      if (lightbox.parentElement !== document.body) {
+        document.body.appendChild(lightbox);
+      }
+
+      const closeLightbox = () => {
+        lightbox.classList.add('hidden');
+        lightbox.classList.remove('flex');
+        lightbox.setAttribute('aria-hidden', 'true');
+        lightboxImage.setAttribute('src', '');
+        lightboxImage.setAttribute('alt', '');
+        document.body.classList.remove('overflow-hidden');
+      };
+
+      openButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+          const src = button.getAttribute('data-certification-src') || '';
+          const title = button.getAttribute('data-certification-title') || '';
+          if (!src) return;
+          lightboxImage.setAttribute('src', src);
+          lightboxImage.setAttribute('alt', title);
+          if (lightboxTitle) lightboxTitle.textContent = title;
+          lightbox.classList.remove('hidden');
+          lightbox.classList.add('flex');
+          lightbox.setAttribute('aria-hidden', 'false');
+          document.body.classList.add('overflow-hidden');
+        });
+      });
+
+      closeButtons.forEach((button) => button.addEventListener('click', closeLightbox));
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && lightbox.getAttribute('aria-hidden') === 'false') {
+          closeLightbox();
+        }
+      });
+    });
+  }
+
+  const heroMarquee = qsa('[data-social-bg-marquee]');
+  if (heroMarquee.length && window.gsap) {
+    const gsap = window.gsap;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!reduceMotion) {
+      heroMarquee.forEach((section) => {
+        const line1 = qsa('[data-marquee-line]', section);
+        const line2 = qsa('[data-marquee-line-reverse]', section);
+        if (line1.length) {
+          gsap.to(line1, { xPercent: -50, repeat: -1, duration: 60, ease: 'none' });
+        }
+        if (line2.length) {
+          gsap.fromTo(line2, { xPercent: -50 }, { xPercent: 0, repeat: -1, duration: 80, ease: 'none' });
+        }
+      });
+    }
+  }
+
+  const socialMarqueeSections = qsa('[data-social-marquee]');
+  if (socialMarqueeSections.length && window.gsap) {
+    const gsap = window.gsap;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    socialMarqueeSections.forEach((section) => {
+      const tracks = qsa('[data-marquee-track]', section);
+      if (tracks.length < 2 || reduceMotion) return;
+      gsap.to(tracks, { xPercent: -100, repeat: -1, duration: 45, ease: 'none' });
+    });
+  }
+
+  const socialCardsContainer = qsa('[data-social-cards]');
+  if (socialCardsContainer.length && window.gsap && window.ScrollTrigger) {
+    const gsap = window.gsap;
+    const ScrollTrigger = window.ScrollTrigger;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!reduceMotion) {
+      socialCardsContainer.forEach((container) => {
+        const cards = qsa('[data-social-card]', container);
+        if (!cards.length) return;
+        gsap.from(cards, {
+          y: 80,
+          opacity: 0,
+          rotationX: -15,
+          stagger: 0.1,
+          duration: 0.8,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: container,
+            start: 'top 85%',
+          }
+        });
+      });
+    }
   }
 
   qsa('[data-back-top]').forEach((button) => {
@@ -2196,6 +2514,7 @@
     const resets = qsa('[data-filter-reset]', root);
     const applyFilterButtons = qsa('[data-filter-apply]', root);
     const categoryChildPanels = qsa('[data-category-children-panel]', root);
+    const filterGroups = qsa('[data-filter-group]', root);
     const drawer = qs('[data-filter-drawer]', root);
     const grid = qs('[data-products-grid]', root);
     const banner = qs('[data-product-banner]', root);
@@ -2358,6 +2677,8 @@
         });
       });
       syncAllCategoryScopes();
+      const clearedSelection = updateFilterAvailability();
+      if (clearedSelection) updateUrlFromFilters();
       apply({ resetPage: true });
     };
     const updateUrlFromFilters = ({ replace = true } = {}) => {
@@ -2386,6 +2707,54 @@
       if (min <= 0) return numberValue > 0 && numberValue <= max;
       return numberValue > min && numberValue <= max;
     });
+    const cardCategories = (card) => (card.dataset.categories || card.dataset.category || '').split(',').filter(Boolean);
+    const cardApplications = (card) => (card.dataset.applications || '').split(',').filter(Boolean);
+    const cardMatchesFilterOption = (card, filterName, value) => {
+      if (filterName === 'capacity') return inAnyRange(Number(card.dataset.capacity || 0), [value]);
+      if (filterName === 'boom') return (card.dataset.boom || '') === value;
+      if (filterName === 'application') return cardApplications(card).includes(value);
+      if (filterName === 'status') return (card.dataset.status || '') === value;
+      return false;
+    };
+    const cardHasFilterValue = (card, filterName) => {
+      if (filterName === 'capacity') return Number(card.dataset.capacity || 0) > 0;
+      if (filterName === 'boom') return (card.dataset.boom || '') !== '';
+      if (filterName === 'application') return cardApplications(card).length > 0;
+      if (filterName === 'status') return (card.dataset.status || '') !== '';
+      return false;
+    };
+    const updateFilterAvailability = () => {
+      const categories = activeCategoryFilterValues();
+      const categoryCards = cards.filter((card) => hasAny(cardCategories(card), categories));
+      let clearedSelection = false;
+
+      filterGroups.forEach((group) => {
+        const filterName = group.dataset.filterGroup || '';
+        const eligibleCards = categoryCards.filter((card) => cardHasFilterValue(card, filterName));
+        let usefulOptions = 0;
+        qsa('[data-filter-option]', group).forEach((option) => {
+          const input = qs('input[data-filter]', option);
+          if (!input) return;
+          const optionCount = eligibleCards.filter((card) => cardMatchesFilterOption(card, filterName, input.value)).length;
+          const useful = optionCount > 0 && optionCount < eligibleCards.length;
+          if (!useful && input.checked) {
+            input.checked = false;
+            clearedSelection = true;
+          }
+          input.disabled = !useful;
+          option.classList.toggle('hidden', !useful);
+          option.setAttribute('aria-hidden', String(!useful));
+          const countLabel = qs('[data-filter-count]', option);
+          if (countLabel) countLabel.textContent = String(optionCount);
+          if (useful) usefulOptions += 1;
+        });
+        const groupUseful = usefulOptions > 0;
+        group.classList.toggle('hidden', !groupUseful);
+        group.setAttribute('aria-hidden', String(!groupUseful));
+      });
+
+      return clearedSelection;
+    };
     const matchesCapacity = (card) => {
       const selectedRanges = activeValues('capacity');
       const dropdownValue = capacitySelect ? capacitySelect.value : '';
@@ -2399,12 +2768,10 @@
       const booms = activeValues('boom');
       const applications = activeValues('application');
       const statuses = activeValues('status');
-      const cardCategories = (card.dataset.categories || card.dataset.category || '').split(',').filter(Boolean);
-      const cardApplications = (card.dataset.applications || '').split(',').filter(Boolean);
-      return hasAny(cardCategories, categories)
+      return hasAny(cardCategories(card), categories)
         && (!booms.length || booms.includes(card.dataset.boom || ''))
         && (!statuses.length || statuses.includes(card.dataset.status || ''))
-        && hasAny(cardApplications, applications)
+        && hasAny(cardApplications(card), applications)
         && matchesCapacity(card);
     };
     const getSortMode = () => sortTrigger?.dataset.sortValue || 'recommended';
@@ -2452,6 +2819,7 @@
     };
     const apply = ({ resetPage = false, scroll = false } = {}) => {
       updateCategoryChildrenVisibility();
+      updateFilterAvailability();
       updateGridColumns();
       if (resetPage) currentPage = 1;
       const ordered = sortedCards();
@@ -2528,6 +2896,7 @@
       root.dataset.currentCategory = state.currentCategory || '';
       syncAllCategoryScopes();
       updateCategoryChildrenVisibility();
+      updateFilterAvailability();
     };
     let filterDrawerScrollY = 0;
     let filterDrawerSnapshot = null;
@@ -2576,6 +2945,7 @@
       if (!drawer) return;
       filterDrawerCommitted = true;
       syncAllCategoryScopes();
+      updateFilterAvailability();
       updateUrlFromFilters({ replace: false });
       apply({ resetPage: true });
       closeDrawer({ restore: false });
@@ -2695,6 +3065,7 @@
     checks.forEach((input) => input.addEventListener('change', () => {
       syncMatchingFilterInputs(input);
       syncCategoryScope(input);
+      if (input.dataset.filter === 'category') updateFilterAvailability();
       if (isMobileFilterDrawerActive(input)) {
         updateCategoryChildrenVisibility();
         return;
@@ -2713,6 +3084,7 @@
       root.dataset.currentCategory = '';
       syncAllCategoryScopes();
       updateCategoryChildrenVisibility();
+      updateFilterAvailability();
       if (isMobileFilterDrawerActive(button)) return;
       updateUrlFromFilters({ replace: false });
       apply({ resetPage: true });

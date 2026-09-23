@@ -16,6 +16,27 @@ function boblift_setup(): void
 }
 add_action('after_setup_theme', 'boblift_setup');
 
+
+function boblift_sanitize_upload_filename(string $filename, string $filename_raw = ''): string
+{
+    $source = $filename_raw !== '' ? $filename_raw : $filename;
+    if (!preg_match('/[^\x20-\x7E]/', $source) && !preg_match('/-{2,}/', $filename)) {
+        return $filename;
+    }
+
+    $extension = strtolower((string) pathinfo($source, PATHINFO_EXTENSION));
+    if ($extension === '') {
+        $extension = strtolower((string) pathinfo($filename, PATHINFO_EXTENSION));
+    }
+    $extension = preg_replace('/[^a-z0-9]/', '', $extension) ?: 'file';
+
+    $date = function_exists('current_time') ? current_time('Ymd-His') : gmdate('Ymd-His');
+    $hash = substr(md5($source), 0, 10);
+
+    return sprintf('boblift-%s-%s.%s', $date, $hash, $extension);
+}
+add_filter('sanitize_file_name', 'boblift_sanitize_upload_filename', 20, 2);
+
 function boblift_assets(): void
 {
     $css = get_template_directory() . '/assets/css/theme.css';
@@ -100,7 +121,7 @@ function boblift_seo_default_description_for_post(WP_Post $post): string
         }
         if ($post->post_name === 'about') {
             $about = function_exists('boblift_about_page_options') ? boblift_about_page_options() : [];
-            return boblift_localize_seo_text((string) ($about['logo']['paragraph'] ?? 'BOB-LIFT integrates crane engineering, manufacturing and export support for global lifting projects.'));
+            return boblift_localize_seo_text((string) ($about['strength']['text'] ?? 'BOB-LIFT integrates crane engineering, manufacturing and export support for global lifting projects.'));
         }
         if ($post->post_name === 'contact') {
             $ui = function_exists('boblift_site_ui') ? boblift_site_ui('contactPage') : [];

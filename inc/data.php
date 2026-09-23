@@ -79,10 +79,6 @@ function boblift_social_media_page_defaults(): array
     return [
         'hero' => [
             'label' => 'BOB-LIFT Social Media',
-            'title' => 'Follow BOB-LIFT official updates.',
-            'text' => 'Stay connected with BOB-LIFT on the platforms you trust. Get product updates, factory news, project communication and export-ready lifting solution insights from official channels.',
-            'button_label' => 'Explore Channels',
-            'email_label' => 'Email Us',
             'image' => boblift_image_option('images/social-media/social-media-hero-factory.webp'),
             'image_alt' => 'BOB-LIFT factory official social media updates',
         ],
@@ -373,7 +369,6 @@ function boblift_about_page_defaults(): array
             ['label' => 'Contact Us', 'href' => '/contact.html', 'slug' => 'contact'],
         ],
         'logo' => [
-            'texture_image' => boblift_image_option('images/about/about-logo-cranes-background-realistic-v3.png'),
             'silhouette_image' => boblift_image_option('images/about/about-logo-1.png'),
             'silhouette_alt' => 'BOB-LIFT crane silhouette background',
             'aerial_start_image' => boblift_image_option('images/about/about-aerial-mid-start.webp'),
@@ -381,27 +376,28 @@ function boblift_about_page_defaults(): array
             'aerial_video' => ['id' => 0, 'path' => 'videos/about/about-aerial-mid.mp4'],
             'aerial_start_alt' => 'BOB-LIFT factory aerial view opening frame',
             'aerial_end_alt' => 'BOB-LIFT factory aerial view ending frame',
-            'label' => 'About BOB-LIFT',
-            'headline' => 'Engineering Strength Behind Every Lift.',
-            'paragraph' => 'BOB-LIFT integrates crane manufacturing, engineering expertise, quality control, and global service capability to deliver reliable lifting solutions for demanding projects worldwide.',
-            'proof_chips' => [
-                ['number' => '01', 'label' => 'Advanced Crane Manufacturing'],
-                ['number' => '02', 'label' => 'Global Export Capability'],
-                ['number' => '03', 'label' => 'Strict Quality Control'],
-            ],
         ],
         'strength' => [
-            'image' => boblift_image_option('images/about/about-logo-prototype-crane-ai.png'),
-            'label' => 'Company Strength',
-            'title' => 'Manufacturing intelligence for global lifting projects.',
-            'text' => 'BOB-LIFT combines product engineering, precision production and responsive export service into one disciplined workflow for overseas B2B buyers.',
-            'cta_label' => 'Talk to Our Team',
-            'cta_href' => '/contact',
-            'cards' => [
-                ['title' => 'R&D and Engineering', 'text' => 'Engineering teams support practical crane selection, structural design and project-specific configurations.'],
-                ['title' => 'Precision Manufacturing', 'text' => 'Controlled welding, assembly and inspection workflows keep every lifting system stable and repeatable.'],
-                ['title' => 'Global Delivery', 'text' => 'Export-ready documentation, packing and logistics support help projects move across international markets.'],
-                ['title' => 'After-Sales Support', 'text' => 'Service guidance, spare parts coordination and technical response help customers keep equipment working.'],
+            'label' => 'Company Profile',
+            'title' => 'BOB-LIFT is a crane manufacturer based in Xuzhou, China.',
+            'text' => 'Xuzhou BOB-LIFT Construction Machinery Co., Ltd. designs, manufactures and exports truck-mounted cranes and related lifting equipment from a 40,000㎡ manufacturing base in Xuzhou, Jiangsu, China. Our core products include truck-mounted cranes, marine cranes, aerial work platforms, pickup cranes and spider cranes for overseas B2B projects.',
+        ],
+        'certifications' => [
+            'label' => 'International Certifications',
+            'title' => 'Certification documents for export projects',
+            'text' => 'Core certification documents supporting overseas procurement, factory audits and project delivery reviews.',
+            'items' => [
+                ['image' => boblift_image_option('certifications/iso.svg'), 'title' => 'ISO 9001 Quality Management', 'text' => 'Quality management system certificate'],
+                ['image' => boblift_image_option('certifications/ce.svg'), 'title' => 'CE European Conformity', 'text' => 'European conformity certificate'],
+                ['image' => boblift_image_option('certifications/eac.svg'), 'title' => 'EAC Conformity', 'text' => 'EAEU conformity certificate'],
+                ['image' => boblift_image_option('certifications/sgs.svg'), 'title' => 'SGS Inspection & Certification', 'text' => 'Inspection and certification document'],
+            ],
+        ],
+        'global_footprint' => [
+            'stats' => [
+                ['number' => '80', 'suffix' => '+', 'label' => 'Countries Exported'],
+                ['number' => '15', 'suffix' => '+', 'label' => 'Years Experience'],
+                ['number' => '5000', 'suffix' => '+', 'label' => 'Units Delivered'],
             ],
         ],
         'timeline' => [
@@ -431,10 +427,24 @@ function boblift_about_page_defaults(): array
                 ['image' => boblift_image_option('images/oldsite/news/enter-the-bob-lift-factory-with-professional-manufacturing.jpg'), 'label' => 'Product Inspection', 'title' => 'Close look at crane details', 'text' => 'Visitors can compare product structures, manufacturing details and practical configuration options before choosing a model.'],
             ],
         ],
+        'manufacturing_gallery' => [
+            'label' => 'Modern Manufacturing Base',
+            'title' => 'Intelligent Production.',
+            'text' => 'Experience our state-of-the-art 40,000 sqm facility where precision engineering meets rigorous quality control.',
+            'items' => [
+                ['image' => boblift_image_option('images/factory-workshop.jpg'), 'title' => 'Precision Workshop', 'text' => 'Structured production flow for crane welding, assembly and inspection.'],
+                ['image' => boblift_image_option('images/oldsite/news/enter-the-bob-lift-factory-with-professional-manufacturing.jpg'), 'title' => 'Manufacturing Process', 'text' => 'Factory operations built around stable output and repeatable quality.'],
+                ['image' => boblift_image_option('images/about/about-aerial-mid-start.webp'), 'title' => 'Factory Scale', 'text' => 'A modern manufacturing base supporting global lifting equipment demand.'],
+                ['image' => boblift_image_option('images/social-media/social-media-factory-news.webp'), 'title' => 'Quality Control', 'text' => 'Production details are documented for export-ready delivery.'],
+            ],
+        ],
         'executives' => [
             'label' => 'Executive Leadership',
             'title' => 'Leadership Team',
-            'group_image' => boblift_image_option('images/about/quanyuan-compressed.jpg'),
+            'team_label' => 'Whole Team',
+            'team_title' => 'BOB-LIFT Team',
+            'team_image' => boblift_image_option('images/about/quanyuan-compressed.jpg'),
+            'team_image_alt' => 'BOB-LIFT full team group photo',
             'members' => [
                 ['image' => boblift_image_option('images/about/executives/executive-01-square.png'), 'name' => 'Daniel Chen', 'role' => 'Chief Executive Officer'],
                 ['image' => boblift_image_option('images/about/executives/executive-02-square.png'), 'name' => 'Sophia Lin', 'role' => 'Chief Operating Officer'],

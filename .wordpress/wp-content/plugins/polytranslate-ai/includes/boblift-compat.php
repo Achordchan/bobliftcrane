@@ -156,7 +156,6 @@ function ptai_boblift_post_meta_map( string $postType ): array {
             '_features'          => 'json',
             '_detail_images'     => 'json',
             '_gallery'           => 'json',
-            '_color_variants'    => 'json',
             '_hotspots'          => 'json',
         ] + $sharedSeo;
     }
