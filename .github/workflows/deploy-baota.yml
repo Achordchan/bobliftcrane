@@ -1,0 +1,76 @@
+name: Deploy BOB-LIFT to Baota
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: boblift-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Validate and deploy
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 30
+    env:
+      BAOTA_HOST: ${{ secrets.BAOTA_HOST }}
+      BAOTA_USER: ${{ secrets.BAOTA_USER }}
+      BAOTA_SSH_KEY_PATH: ${{ github.workspace }}/.deploy-key
+      BAOTA_DEPLOY_ROOT: /www/wwwroot/bobliftcrane
+      BAOTA_BACKUP_ROOT: /www/backup/bobliftcrane-code
+      BAOTA_HEALTH_URL: ${{ secrets.BAOTA_HEALTH_URL }}
+      BAOTA_BASIC_AUTH_USER: ${{ secrets.BAOTA_BASIC_AUTH_USER }}
+      BAOTA_BASIC_AUTH_PASSWORD: ${{ secrets.BAOTA_BASIC_AUTH_PASSWORD }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install front-end dependencies
+        run: npm ci
+
+      - name: Build theme CSS
+        run: npm run build:css
+
+      - name: Validate source
+        shell: bash
+        run: |
+          node --check assets/js/theme.js
+          if ! command -v php >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq php-cli
+          fi
+          find . -maxdepth 1 -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+          find inc .wordpress/wp-content/plugins/boblift-multilingual-sync .wordpress/wp-content/plugins/polytranslate-ai \
+            -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Package deployable code
+        run: bash scripts/package-deploy.sh
+
+      - name: Configure deployment SSH key
+        shell: bash
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.BAOTA_SSH_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.BAOTA_KNOWN_HOSTS }}
+        run: |
+          install -m 600 /dev/null "${BAOTA_SSH_KEY_PATH}"
+          printf '%s\n' "${SSH_PRIVATE_KEY}" > "${BAOTA_SSH_KEY_PATH}"
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "${SSH_KNOWN_HOSTS}" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Deploy with backup and verification
+        run: bash scripts/deploy-baota.sh
