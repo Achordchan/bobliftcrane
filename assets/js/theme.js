@@ -51,9 +51,6 @@
       menu.style.transform = '';
     }
     trigger.setAttribute('aria-expanded', String(open));
-    trigger.classList.toggle('-translate-y-0.5', open);
-    trigger.classList.toggle('border-gold/60', open);
-    trigger.classList.toggle('shadow-[0_18px_38px_rgba(8,35,74,0.13)]', open);
   };
   const positionLanguageMenu = (root) => {
     const menu = qs('[data-language-menu]', root);
@@ -189,7 +186,7 @@
     if (!currentImage || !thumbs.length) return;
 
     let switchToken = 0;
-    const galleryActiveClasses = ['border-blue-500', 'bg-blue-50', 'shadow-[0_12px_30px_rgba(37,99,235,0.12)]'];
+    const galleryActiveClasses = ['border-blue-500', 'bg-blue-50', 'shadow-card'];
     const galleryInactiveClasses = ['border-[#DDE5EF]', 'bg-white/80', 'hover:border-blue-300'];
     const setGalleryActive = (button, active) => {
       button.setAttribute('aria-pressed', active ? 'true' : 'false');
@@ -291,7 +288,7 @@
     const thumbs = qsa('[data-product-gallery-thumb]', root);
     if (!mainImage || thumbs.length < 2) return;
 
-    const activeClasses = ['border-blue-500', 'bg-blue-50', 'shadow-[0_12px_30px_rgba(37,99,235,0.12)]'];
+    const activeClasses = ['border-blue-500', 'bg-blue-50', 'shadow-card'];
     const inactiveClasses = ['border-[#DDE5EF]', 'bg-white/80', 'hover:border-blue-300'];
     const setActive = (button, active) => {
       button.setAttribute('aria-pressed', active ? 'true' : 'false');
@@ -472,7 +469,7 @@
       const mm = gsap.matchMedia();
       mm.add('(min-width: 901px) and (prefers-reduced-motion: no-preference)', () => {
         section.classList.add('is-gsap-ready');
-        gsap.set(bg, { scale: 1.08, yPercent: 0, opacity: 0, borderRadius: '40px', overflow: 'hidden', force3D: true });
+        gsap.set(bg, { scale: 1.08, yPercent: 0, opacity: 0, borderRadius: '4px', overflow: 'hidden', force3D: true });
         if (silhouette) gsap.set(silhouette, { scale: 1.02, opacity: 1, force3D: true });
         if (aerialVideo) {
           aerialVideo.muted = true;
@@ -1797,13 +1794,13 @@
     const removeLabelTemplate = quoteFormText('selectedProductRemoveLabelTemplate', quoteListText('removeLabelTemplate', 'Remove {product} from Quote List'));
     inquiryModalSelectedProducts.forEach((item, index) => {
       const row = document.createElement('article');
-      row.className = 'group relative grid min-h-[68px] shrink-0 grid-cols-[46px_minmax(0,1fr)] gap-3 rounded-[18px] border border-line bg-white p-2.5 shadow-[0_8px_22px_rgba(8,35,74,0.05)] transition hover:border-blue-200 hover:bg-white';
+      row.className = 'group relative grid min-h-[68px] shrink-0 grid-cols-[46px_minmax(0,1fr)] gap-3 rounded border border-line bg-white p-2.5 shadow-card transition hover:border-blue-200 hover:bg-white';
       row.innerHTML = `
-        <div class="h-[46px] w-[46px] overflow-hidden rounded-xl bg-[#eef2f7]">${item.image ? `<img class="h-full w-full object-contain p-1" src="${escapeInquiryText(item.image)}" alt="${escapeInquiryText(item.title)}" loading="lazy" decoding="async">` : ''}</div>
+        <div class="h-[46px] w-[46px] overflow-hidden rounded-sm bg-[#eef2f7]">${item.image ? `<img class="h-full w-full object-contain p-1" src="${escapeInquiryText(item.image)}" alt="${escapeInquiryText(item.title)}" loading="lazy" decoding="async">` : ''}</div>
         <div class="min-w-0 self-center">
           <h3 class="line-clamp-2 text-xs font-black leading-4 text-ink">${escapeInquiryText(item.title)}</h3>
         </div>
-        <button class="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full border border-line bg-white/95 text-slate-500 opacity-100 shadow-sm backdrop-blur transition hover:border-red-100 hover:bg-red-50 hover:text-red-600 focus:opacity-100 focus:outline-none focus:ring-4 focus:ring-red-100 md:opacity-0 md:group-hover:opacity-100" type="button" data-inquiry-product-remove="${index}" aria-label="${escapeInquiryText(removeLabelTemplate.replace('{product}', item.title || ''))}">
+        <button class="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-sm border border-line bg-white/95 text-slate-500 opacity-100 shadow-card backdrop-blur transition hover:border-red-100 hover:bg-red-50 hover:text-red-600 focus:opacity-100 focus:outline-none focus:ring-4 focus:ring-red-100 md:opacity-0 md:group-hover:opacity-100" type="button" data-inquiry-product-remove="${index}" aria-label="${escapeInquiryText(removeLabelTemplate.replace('{product}', item.title || ''))}">
           <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </button>
       `;
@@ -1893,6 +1890,11 @@
     loadInquiryModalMedia();
     const characters = initInquiryCharacters();
     characters?.reset();
+    const sourceField = form && qs('[data-inquiry-source-field]', form);
+    if (sourceField) {
+      const label = trigger instanceof HTMLElement ? (trigger.dataset.inquirySource || trigger.getAttribute('aria-label') || trigger.innerText || '') : '';
+      sourceField.value = label.replace(/\s+/g, ' ').trim().slice(0, 120) || '询价弹窗';
+    }
     let product = trigger?.dataset?.inquiryProduct || '';
     let slug = trigger?.dataset?.inquiryProductSlug || '';
     let selectedProducts = inquiryProductsFromTrigger(trigger, product, slug);
@@ -1995,7 +1997,7 @@
     const submit = qs('[data-inquiry-modal-submit]', form);
     form.dataset.submitting = 'true';
     submit?.setAttribute('disabled', 'disabled');
-    inquiryModalStatus(quoteFormMessage('saving', 'Saving your inquiry...'), 'info');
+    inquiryModalStatus(quoteFormMessage('saving', 'Sending your inquiry...'), 'info');
     initInquiryCharacters()?.submitting();
     try {
       const endpoint = form.getAttribute('action') || '/?boblift_inquiry_submit=1';
@@ -2013,9 +2015,9 @@
         const title = responseText.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.replace(/&#8211;/g, '-').replace(/\s+/g, ' ').trim();
         throw new Error(title ? `The server returned ${title}. Please refresh and try again.` : quoteFormMessage('serverInvalid', 'The server returned an invalid response. Please refresh and try again.'));
       }
-      if (!response.ok || !data.success) throw new Error(data?.data?.message || quoteFormMessage('saveFailed', 'The inquiry could not be saved.'));
+      if (!response.ok || !data.success) throw new Error(data?.data?.message || quoteFormMessage('saveFailed', 'The inquiry could not be sent.'));
       qs('[data-inquiry-modal-success]', inquiryModal)?.classList.remove('hidden');
-      inquiryModalStatus(data?.data?.message || quoteFormText('successInlineText', 'Inquiry saved. Our team will contact you soon.'), 'success');
+      inquiryModalStatus(data?.data?.message || quoteFormText('successInlineText', 'Inquiry sent. Our team will contact you soon.'), 'success');
       initInquiryCharacters()?.success();
       form.dataset.submitted = 'true';
       if (form.dataset.clearQuoteListOnSuccess === 'true') window.bobliftQuoteList?.clear();
@@ -2023,7 +2025,7 @@
       window.location.href = data?.data?.redirect || form.dataset.successUrl || '/success.html';
     } catch (error) {
       form.dataset.submitting = 'false';
-      inquiryModalStatus(error.message || quoteFormMessage('saveFailed', 'The inquiry could not be saved. Please try again.'), 'error');
+      inquiryModalStatus(error.message || quoteFormMessage('saveFailed', 'The inquiry could not be sent. Please try again.'), 'error');
       submit?.removeAttribute('disabled');
       resetTurnstile(form);
     }
@@ -2249,16 +2251,16 @@
       itemsRoot.replaceChildren();
       list.forEach((item) => {
         const node = document.createElement('article');
-        node.className = 'grid grid-cols-[72px_minmax(0,1fr)_36px] gap-3 rounded-[22px] border border-line bg-white p-3 shadow-[0_12px_32px_rgba(8,35,74,0.06)]';
+        node.className = 'grid grid-cols-[72px_minmax(0,1fr)_36px] gap-3 rounded border border-line bg-white p-3 shadow-card';
         node.innerHTML = `
-          <div class="h-[72px] overflow-hidden rounded-2xl bg-[#eef2f7]">${item.image ? `<img class="h-full w-full object-cover" src="${escapeText(item.image)}" alt="${escapeText(item.title)}" loading="lazy" decoding="async">` : ''}</div>
+          <div class="h-[72px] overflow-hidden rounded bg-[#eef2f7]">${item.image ? `<img class="h-full w-full object-cover" src="${escapeText(item.image)}" alt="${escapeText(item.title)}" loading="lazy" decoding="async">` : ''}</div>
           <div class="min-w-0">
             <p class="truncate text-[11px] font-black uppercase tracking-[0.12em] text-blue-700">${escapeText(item.category)}</p>
             <h3 class="mt-1 line-clamp-2 text-sm font-black leading-5 text-ink">${escapeText(item.title)}</h3>
             ${item.summary ? `<p class="mt-1 line-clamp-2 text-xs font-semibold leading-5 text-slate-500">${escapeText(item.summary)}</p>` : ''}
             ${item.detailUrl ? `<a class="mt-2 inline-flex text-xs font-black text-blue-700 hover:text-navy" href="${escapeText(item.detailUrl)}">${escapeText(quoteListText('viewDetailsLabel', 'View details'))}</a>` : ''}
           </div>
-          <button class="grid h-9 w-9 place-items-center rounded-full border border-line bg-white text-slate-500 transition hover:border-red-100 hover:bg-red-50 hover:text-red-600" type="button" data-quote-list-remove="${escapeText(item.id)}" aria-label="${escapeText(quoteListText('removeLabelTemplate', 'Remove {product} from Quote List').replace('{product}', item.title || ''))}"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+          <button class="grid h-9 w-9 place-items-center rounded-sm border border-line bg-white text-slate-500 transition hover:border-red-100 hover:bg-red-50 hover:text-red-600" type="button" data-quote-list-remove="${escapeText(item.id)}" aria-label="${escapeText(quoteListText('removeLabelTemplate', 'Remove {product} from Quote List').replace('{product}', item.title || ''))}"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
         `;
         itemsRoot.appendChild(node);
       });
@@ -2330,6 +2332,7 @@
       requestButton.dataset.inquiryProducts = JSON.stringify(list);
       delete requestButton.dataset.inquiryMessage;
       requestButton.dataset.clearQuoteList = 'true';
+      requestButton.dataset.inquirySource = '询价清单';
       setOpen(false);
       openInquiryModal(requestButton);
     });
@@ -2456,6 +2459,39 @@
     updateLinks();
   });
 
+  // Heavy media below the fold: stills load when within 400px of the viewport (native lazy loading starts
+  // far earlier), background videos only once they scroll into view, and they play only while visible.
+  const lazyStills = qsa('img[data-inview-src]');
+  const showStill = (img) => { img.src = img.dataset.inviewSrc; };
+  if ('IntersectionObserver' in window) {
+    const stillObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(({ target, isIntersecting }) => {
+        if (!isIntersecting) return;
+        showStill(target);
+        observer.unobserve(target);
+      });
+    }, { rootMargin: '400px 0px' });
+    lazyStills.forEach((img) => stillObserver.observe(img));
+  } else {
+    lazyStills.forEach(showStill);
+  }
+
+  // Reduced-motion and data-saver users keep the still image.
+  const quietMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches || navigator.connection?.saveData;
+  if (!quietMotion && 'IntersectionObserver' in window) {
+    const videoObserver = new IntersectionObserver((entries) => {
+      entries.forEach(({ target, isIntersecting }) => {
+        if (!isIntersecting) {
+          target.pause();
+          return;
+        }
+        if (!target.getAttribute('src') && target.dataset.src) target.src = target.dataset.src;
+        target.play().catch(() => {});
+      });
+    }, { threshold: 0.2 });
+    qsa('[data-inview-video]').forEach((video) => videoObserver.observe(video));
+  }
+
   qsa('[data-home-products]').forEach((root) => {
     const scroller = qs('[data-product-category-scroller]', root);
     const tabs = qsa('[data-product-category-tab]', root);
@@ -2469,18 +2505,7 @@
       if (next) next.disabled = scroller.scrollLeft >= max - 2;
     };
     const setTab = (index) => {
-      tabs.forEach((tab, current) => {
-        const active = current === index;
-        const line = qs('[data-product-category-line]', tab);
-        tab.setAttribute('aria-pressed', String(active));
-        tab.classList.toggle('border-blue-500', active);
-        tab.classList.toggle('bg-blue-50/55', active);
-        tab.classList.toggle('shadow-[0_18px_48px_rgba(37,99,235,0.14)]', active);
-        tab.classList.toggle('border-line', !active);
-        line?.classList.toggle('bg-blue-600', active);
-        line?.classList.toggle('bg-transparent', !active);
-        line?.classList.toggle('group-hover:bg-blue-200', !active);
-      });
+      tabs.forEach((tab, current) => tab.setAttribute('aria-pressed', String(current === index)));
       grids.forEach((panel, current) => panel.classList.toggle('hidden', current !== index));
     };
     tabs.forEach((tab) => tab.addEventListener('click', () => setTab(Number(tab.dataset.productCategoryTab || 0))));
@@ -2803,10 +2828,10 @@
         button.disabled = disabled;
         const numeric = /^\d+$/.test(label);
         button.className = active
-          ? 'h-11 min-w-11 rounded-full bg-[#0B1B33] px-4 text-sm font-black text-white transition'
+          ? 'h-11 min-w-11 rounded-sm bg-[#0B1B33] px-4 text-sm font-black text-white transition'
           : (numeric
-            ? 'h-11 min-w-11 rounded-full border border-[#D8DEE8] bg-white px-4 text-sm font-black text-[#0B1B33] transition hover:border-blue-300'
-            : 'h-11 rounded-full border border-[#D8DEE8] bg-white px-5 text-sm font-black text-[#0B1B33] transition hover:border-blue-300 disabled:cursor-not-allowed disabled:opacity-40');
+            ? 'h-11 min-w-11 rounded-sm border border-[#D8DEE8] bg-white px-4 text-sm font-black text-[#0B1B33] transition hover:border-blue-300'
+            : 'h-11 rounded-sm border border-[#D8DEE8] bg-white px-5 text-sm font-black text-[#0B1B33] transition hover:border-blue-300 disabled:cursor-not-allowed disabled:opacity-40');
         if (!Number.isNaN(page)) button.addEventListener('click', () => changePage(page));
         if (active) button.setAttribute('aria-current', 'page');
         return button;
@@ -2955,7 +2980,7 @@
       if (label === 'Rotation') return '<path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/>';
       return '<circle cx="12" cy="5" r="3"/><path d="M6.5 8h11L20 22H4L6.5 8Z"/>';
     };
-    const specMarkup = (specs) => specs.slice(0, 3).map((spec) => `<div class="flex min-h-[132px] min-w-0 flex-col items-center justify-end rounded-[24px] border border-[#DDE5EF] bg-white px-2 pb-4 pt-4 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.92),0_12px_32px_rgba(8,35,74,0.055)]"><svg class="mb-3 h-7 w-7 text-[#2563EB]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${specIconPath(spec.label || '')}</svg><p class="line-clamp-2 max-w-full text-[clamp(8px,0.52vw,10px)] font-black uppercase tracking-[0.08em] text-slate-500">${escapeHtml(spec.label || '')}</p><p class="mt-2 line-clamp-3 max-w-full break-words text-[clamp(15px,0.95vw,21px)] font-black leading-tight tracking-[-0.045em] text-[#0B1B33]">${escapeHtml(String(spec.value || '-'))}</p></div>`).join('');
+    const specMarkup = (specs) => specs.slice(0, 3).map((spec) => `<div class="flex min-h-[132px] min-w-0 flex-col items-center justify-end rounded border border-[#DDE5EF] bg-white px-2 pb-4 pt-4 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.92)]"><svg class="mb-3 h-7 w-7 text-[#2563EB]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${specIconPath(spec.label || '')}</svg><p class="line-clamp-2 max-w-full text-[clamp(8px,0.52vw,10px)] font-black uppercase tracking-[0.08em] text-slate-500">${escapeHtml(spec.label || '')}</p><p class="mt-2 line-clamp-3 max-w-full break-words text-[clamp(15px,0.95vw,21px)] font-black leading-tight tracking-[-0.015em] text-[#0B1B33]">${escapeHtml(String(spec.value || '-'))}</p></div>`).join('');
     const statusBadgeClass = (status) => ({
       'in-stock': 'text-emerald-700',
       'best-seller': 'text-blue-700',
@@ -2965,7 +2990,7 @@
     const updateQuickStatusBadge = (status) => {
       if (!quickStatusBadge) return;
       const normalizedStatus = ['in-stock', 'best-seller', 'customizable', 'pre-order'].includes(status) ? status : 'customizable';
-      quickStatusBadge.className = `absolute left-6 top-6 z-20 inline-flex items-center gap-2 rounded-full bg-white/92 py-2 pl-3 pr-5 text-sm font-black leading-none ${statusBadgeClass(normalizedStatus)} shadow-[0_14px_32px_rgba(8,35,74,0.12)] ring-1 ring-[#E5E7EB] backdrop-blur`;
+      quickStatusBadge.className = `absolute left-6 top-6 z-20 inline-flex items-center gap-2 rounded-sm bg-white/92 py-2 pl-3 pr-5 text-sm font-black leading-none ${statusBadgeClass(normalizedStatus)} shadow-raised ring-1 ring-[#E5E7EB] backdrop-blur`;
       const template = qs(`[data-quick-status-template="${normalizedStatus}"]`, root);
       if (quickStatusIcon && template) quickStatusIcon.innerHTML = template.innerHTML;
     };
@@ -3251,11 +3276,11 @@
       if (modalTitle) modalTitle.textContent = title;
       const youtubeSrc = mediaType === 'video' ? youtubeEmbedUrl(mediaSrc) : '';
       if (youtubeSrc) {
-        modalMedia.innerHTML = `<iframe class="h-[72vh] min-h-[260px] w-full rounded-[24px] bg-black" src="${escapeCasesAttr(youtubeSrc)}" title="${escapeCasesAttr(title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
+        modalMedia.innerHTML = `<iframe class="h-[72vh] min-h-[260px] w-full rounded bg-black" src="${escapeCasesAttr(youtubeSrc)}" title="${escapeCasesAttr(title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
       } else if (mediaType === 'video') {
-        modalMedia.innerHTML = `<video class="h-full max-h-[78vh] w-full rounded-[24px] bg-black object-contain" src="${escapeCasesAttr(mediaSrc)}" controls playsinline preload="metadata"></video>`;
+        modalMedia.innerHTML = `<video class="h-full max-h-[78vh] w-full rounded bg-black object-contain" src="${escapeCasesAttr(mediaSrc)}" controls playsinline preload="metadata"></video>`;
       } else {
-        modalMedia.innerHTML = `<img class="h-full max-h-[78vh] w-full rounded-[24px] object-contain" src="${escapeCasesAttr(mediaSrc)}" alt="${escapeCasesAttr(title)}">`;
+        modalMedia.innerHTML = `<img class="h-full max-h-[78vh] w-full rounded object-contain" src="${escapeCasesAttr(mediaSrc)}" alt="${escapeCasesAttr(title)}">`;
       }
       setModalOpen(true);
     };

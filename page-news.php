@@ -27,11 +27,11 @@ $empty_text = (string) ($ui['emptyText'] ?? 'Choose another category to browse m
     <div class="page-shell boblift-news-hero-shell grid items-center gap-7 py-8 md:gap-10 md:py-16 lg:grid-cols-[0.92fr_1.08fr] lg:gap-16 2xl:py-20">
         <div class="max-w-3xl">
             <p class="section-label mb-4 md:mb-5"><?php echo esc_html($ui['heroLabel'] ?? 'BOB-LIFT Newsroom'); ?></p>
-            <h1 class="text-[clamp(32px,8.8vw,38px)] font-black leading-[1.04] tracking-[-0.05em] text-navy md:text-[50px] xl:text-[56px] 2xl:text-[64px]"><?php echo esc_html($ui['heroTitle'] ?? 'News & Insights'); ?></h1>
+            <h1 class="text-[clamp(32px,8.8vw,38px)] font-black leading-[1.04] tracking-[-0.015em] text-navy md:text-[50px] xl:text-[56px] 2xl:text-[64px]"><?php echo esc_html($ui['heroTitle'] ?? 'News & Insights'); ?></h1>
             <p class="mt-4 max-w-2xl text-base font-semibold leading-7 text-slate-600 md:mt-6 md:text-lg md:leading-8 2xl:text-xl 2xl:leading-9"><?php echo esc_html($ui['heroDescription'] ?? 'Stay informed with the latest updates from BOB-LIFT, including product innovations, company news, and industry insights.'); ?></p>
             <div class="mt-6 grid grid-cols-2 gap-3 md:mt-8 md:flex md:flex-wrap md:gap-4">
-                <div class="boblift-news-proof-chip"><?php echo boblift_icon('globe', 'h-6 w-6 text-gold md:h-8 md:w-8', '1.8'); ?><span><strong><?php echo esc_html($ui['countriesValue'] ?? '80+'); ?></strong><small><?php echo esc_html($ui['countriesLabel'] ?? 'Countries Served'); ?></small></span></div>
-                <div class="boblift-news-proof-chip"><?php echo boblift_icon('building-2', 'h-6 w-6 text-gold md:h-8 md:w-8', '1.8'); ?><span><strong><?php echo esc_html($ui['yearsValue'] ?? '20+'); ?></strong><small><?php echo esc_html($ui['yearsLabel'] ?? 'Years of Expertise'); ?></small></span></div>
+                <div class="boblift-news-proof-chip"><?php echo boblift_icon('globe', 'h-6 w-6 text-gold md:h-8 md:w-8', '1.8'); ?><span><strong><?php echo esc_html($ui['countriesValue'] ?? '120+'); ?></strong><small><?php echo esc_html($ui['countriesLabel'] ?? 'Countries Served'); ?></small></span></div>
+                <div class="boblift-news-proof-chip"><?php echo boblift_icon('building-2', 'h-6 w-6 text-gold md:h-8 md:w-8', '1.8'); ?><span><strong><?php echo esc_html($ui['yearsValue'] ?? '35+'); ?></strong><small><?php echo esc_html($ui['yearsLabel'] ?? 'Years of Expertise'); ?></small></span></div>
             </div>
         </div>
         <div class="boblift-news-hero-image">
@@ -57,7 +57,7 @@ $empty_text = (string) ($ui['emptyText'] ?? 'Choose another category to browse m
     <?php if ($grid_articles) : ?>
         <div class="mb-8 flex items-center gap-4">
             <span class="h-9 w-1 rounded-full bg-gold"></span>
-            <h2 class="text-3xl font-black tracking-[-0.04em] text-navy md:text-4xl"><?php echo esc_html($ui['featuredUpdatesLabel'] ?? 'Featured Updates'); ?></h2>
+            <h2 class="text-3xl font-black tracking-[-0.015em] text-navy md:text-4xl"><?php echo esc_html($ui['featuredUpdatesLabel'] ?? 'Featured Updates'); ?></h2>
         </div>
         <div class="boblift-news-results-grid grid grid-cols-1 gap-4 md:grid-cols-3 lg:gap-5 xl:gap-6" data-news-grid>
             <?php
@@ -70,14 +70,14 @@ $empty_text = (string) ($ui['emptyText'] ?? 'Choose another category to browse m
                     $initial_visible_count++;
                 }
                 ?>
-                <a class="boblift-news-result-card group grid min-w-0 overflow-hidden rounded-[24px] border border-line bg-white/92 p-2 shadow-card transition duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-soft md:rounded-[28px] <?php echo $visible_on_load ? '' : 'hidden'; ?>" href="<?php echo esc_url($article['url']); ?>" data-news-card data-news-category="<?php echo esc_attr($article_category_slug); ?>">
-                    <div class="boblift-news-result-media relative aspect-[1.5/1] overflow-hidden rounded-[18px] md:rounded-[22px]"><img loading="lazy" decoding="async" class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" src="<?php echo esc_url(boblift_item_image($article)); ?>" alt="<?php echo esc_attr($article['title']); ?>"></div>
-                    <div class="boblift-news-result-content flex min-w-0 flex-col px-2 py-4 md:px-3 md:py-5 xl:px-4"><div class="boblift-news-result-meta mb-2 flex flex-wrap items-center gap-1.5 md:gap-2"><span class="boblift-news-result-category inline-flex h-6 w-fit shrink-0 items-center justify-center gap-1 overflow-hidden whitespace-nowrap rounded-full border border-line bg-white px-2.5 py-0.5 text-[10px] font-black uppercase tracking-[0.12em] text-gold transition-all"><?php echo esc_html($article['category']); ?></span><span class="boblift-news-result-date text-xs font-bold text-slate-500"><?php echo esc_html($article['date']); ?></span></div><h3 class="boblift-news-result-title line-clamp-2 text-lg font-black leading-snug tracking-[-0.01em] text-ink xl:text-xl"><?php echo esc_html($article['title']); ?></h3><p class="boblift-news-result-excerpt mt-2 line-clamp-2 text-sm font-medium leading-6 text-slate-500"><?php echo esc_html($article['excerpt']); ?></p><span class="boblift-news-result-readmore mt-4 inline-flex items-center gap-2 text-xs font-black text-ink"><?php echo esc_html($ui['readMoreLabel'] ?? 'Read More'); ?> <?php echo boblift_icon('arrow-right', 'h-3.5 w-3.5'); ?></span></div>
+                <a class="boblift-news-result-card group grid min-w-0 overflow-hidden rounded border border-line bg-white/92 p-2 shadow-card transition duration-300 hover:-translate-y-1 hover:bg-white <?php echo $visible_on_load ? '' : 'hidden'; ?>" href="<?php echo esc_url($article['url']); ?>" data-news-card data-news-category="<?php echo esc_attr($article_category_slug); ?>">
+                    <div class="boblift-news-result-media relative aspect-[1.5/1] overflow-hidden rounded "><img loading="lazy" decoding="async" class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" src="<?php echo esc_url(boblift_item_image($article)); ?>" alt="<?php echo esc_attr($article['title']); ?>"></div>
+                    <div class="boblift-news-result-content flex min-w-0 flex-col px-2 py-4 md:px-3 md:py-5 xl:px-4"><div class="boblift-news-result-meta mb-2 flex flex-wrap items-center gap-1.5 md:gap-2"><span class="boblift-news-result-category inline-flex h-6 w-fit shrink-0 items-center justify-center gap-1 overflow-hidden whitespace-nowrap rounded-sm border border-line bg-white px-2.5 py-0.5 text-[10px] font-black uppercase tracking-[0.12em] text-gold transition-all"><?php echo esc_html($article['category']); ?></span><span class="boblift-news-result-date text-xs font-bold text-slate-500"><?php echo esc_html($article['date']); ?></span></div><h3 class="boblift-news-result-title line-clamp-2 text-lg font-black leading-snug tracking-normal text-ink xl:text-xl"><?php echo esc_html($article['title']); ?></h3><p class="boblift-news-result-excerpt mt-2 line-clamp-2 text-sm font-medium leading-6 text-slate-500"><?php echo esc_html($article['excerpt']); ?></p><span class="boblift-news-result-readmore mt-4 inline-flex items-center gap-2 text-xs font-black text-ink"><?php echo esc_html($ui['readMoreLabel'] ?? 'Read More'); ?> <?php echo boblift_icon('arrow-right', 'h-3.5 w-3.5'); ?></span></div>
                 </a>
             <?php endforeach; ?>
         </div>
-        <div class="hidden rounded-[28px] border border-dashed border-blue-200 bg-blue-50/45 p-8 text-center" data-news-empty>
-            <h2 class="text-2xl font-black tracking-[-0.04em] text-ink"><?php echo esc_html($empty_title); ?></h2>
+        <div class="hidden rounded border border-dashed border-blue-200 bg-blue-50/45 p-8 text-center" data-news-empty>
+            <h2 class="text-2xl font-black tracking-[-0.015em] text-ink"><?php echo esc_html($empty_title); ?></h2>
             <p class="mx-auto mt-3 max-w-[560px] text-sm font-semibold leading-7 text-slate-600"><?php echo esc_html($empty_text); ?></p>
         </div>
     <?php endif; ?>

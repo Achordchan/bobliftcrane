@@ -9,12 +9,12 @@ $workflow_items = is_array($ui['workflowItems'] ?? null) ? array_values(array_fi
 boblift_page_hero($ui['heroLabel'], $ui['heroTitle'], $ui['heroDescription'], $ui['heroImage']);
 ?>
 <section class="page-shell grid grid-cols-1 gap-8 py-10 md:py-16 lg:grid-cols-[0.72fr_1.28fr] lg:gap-12">
-    <aside class="rounded-[30px] border border-line bg-[linear-gradient(180deg,#071f42_0%,#0b3a78_100%)] p-6 text-white shadow-[0_34px_100px_rgba(8,35,74,0.16)] md:p-8 lg:sticky lg:top-8 lg:h-fit">
+    <aside class="rounded border border-line bg-[linear-gradient(180deg,#071f42_0%,#0b3a78_100%)] p-6 text-white shadow-card md:p-8 lg:sticky lg:top-8 lg:h-fit">
         <p class="text-[11px] font-black uppercase tracking-[0.24em] text-gold"><?php echo esc_html($ui['workflowLabel']); ?></p>
-        <h2 class="mt-4 text-3xl font-black leading-tight tracking-[-0.04em] md:text-4xl"><?php echo esc_html($ui['workflowTitle']); ?></h2>
+        <h2 class="mt-4 text-3xl font-black leading-tight tracking-[-0.015em] md:text-4xl"><?php echo esc_html($ui['workflowTitle']); ?></h2>
         <div class="mt-7 grid gap-4">
             <?php foreach ($workflow_items as $item) : ?>
-                <div class="rounded-2xl border border-white/10 bg-white/8 p-4">
+                <div class="rounded border border-white/10 bg-white/8 p-4">
                     <?php echo boblift_icon((string) ($item['iconName'] ?? 'check-circle'), 'h-5 w-5 text-gold'); ?>
                     <h3 class="mt-3 text-base font-black"><?php echo esc_html((string) ($item['title'] ?? 'Quote step')); ?></h3>
                     <p class="mt-1 text-sm font-semibold leading-6 text-white/70"><?php echo esc_html((string) ($item['text'] ?? '')); ?></p>

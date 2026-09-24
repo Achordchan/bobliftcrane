@@ -1423,13 +1423,6 @@ function boblift_render_sitemap_page_fields(array $options, string $base): void
         boblift_admin_input('news_title', $options, '新闻标题', $base);
         boblift_admin_input('cases_title', $options, '案例标题', $base);
     });
-    boblift_admin_panel('3. 更新说明', static function () use ($options, $base): void {
-        boblift_admin_input('help_title', $options, '说明标题', $base);
-        boblift_admin_input('html_note_label', $options, 'HTML Sitemap 标签', $base);
-        boblift_admin_textarea('html_note', $options, 'HTML Sitemap 说明', $base);
-        boblift_admin_input('xml_note_label', $options, 'XML Sitemap 标签', $base);
-        boblift_admin_textarea('xml_note', $options, 'XML Sitemap 说明', $base);
-    });
     echo '</div>';
 }
 
@@ -1480,7 +1473,7 @@ function boblift_render_home_page_fields(array $home, string $base): void
     boblift_admin_panel('3. 产品区', static function () use ($home, $base): void {
         boblift_admin_input('product_section.label', $home, '标签', $base);
         boblift_admin_input('product_section.title', $home, '标题', $base);
-        boblift_admin_input('product_section.find_model_title', $home, '型号区标题', $base);
+        boblift_admin_input('product_section.view_all_label', $home, '「查看全部」按钮文字（{count} 替换为该分类产品总数，留空用默认）', $base);
         boblift_admin_input('product_section.max_category_products', $home, '每个分类最多展示产品数', $base);
         boblift_admin_checkbox('product_section.show_category_scroll_buttons', $home, '显示分类左右切换按钮', $base);
         boblift_admin_checkbox('product_section.show_product_specs', $home, '产品卡片显示起重能力参数', $base);

@@ -2,8 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Barlow, self-hosted (SIL OFL 1.1, see assets/fonts/barlow/OFL.txt). Latin and Latin Extended subsets. */
+@font-face { font-family: 'Barlow'; font-style: normal; font-weight: 400; font-display: swap; src: url('../fonts/barlow/barlow-400-latin-ext.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Barlow'; font-style: normal; font-weight: 400; font-display: swap; src: url('../fonts/barlow/barlow-400-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Barlow'; font-style: normal; font-weight: 500; font-display: swap; src: url('../fonts/barlow/barlow-500-latin-ext.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Barlow'; font-style: normal; font-weight: 500; font-display: swap; src: url('../fonts/barlow/barlow-500-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Barlow'; font-style: normal; font-weight: 600; font-display: swap; src: url('../fonts/barlow/barlow-600-latin-ext.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Barlow'; font-style: normal; font-weight: 600; font-display: swap; src: url('../fonts/barlow/barlow-600-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 
-:root { --ink:#08234a; --navy:#071f42; --gold:#f59a3c; --line:#e4ebf4; --font-sans:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; --radius:0.625rem; }
+
+:root { --ink:#08234a; --navy:#071f42; --gold:#f59a3c; --line:#e4ebf4; --font-sans:"Barlow","Helvetica Neue",Arial,sans-serif; --radius:0.625rem; }
 * { box-sizing: border-box; }
 html { max-width: 100%; overflow-x: hidden; font-size: 16px; scroll-behavior: smooth; }
 body { max-width: 100%; overflow-x: hidden; margin: 0; color: var(--ink); background: #fff; font-family: var(--font-sans); line-height: 1.5; }
@@ -17,15 +25,15 @@ img { max-width: 100%; }
 
 @layer components {
   .page-shell { width: min(1600px, calc(100% - 96px)); margin-inline: auto; }
-  .btn-primary { @apply inline-flex items-center justify-center gap-3 rounded-md bg-navy px-7 py-4 text-base font-bold text-white shadow-card transition duration-300 hover:-translate-y-0.5 hover:bg-[#0b2d5b]; }
-  .btn-white { @apply inline-flex items-center justify-center gap-3 rounded-md border border-line bg-white px-7 py-4 text-base font-bold text-ink shadow-card transition duration-300 hover:-translate-y-0.5; }
+  .btn-primary { @apply inline-flex items-center justify-center gap-3 rounded-sm bg-navy px-7 py-4 text-base font-bold text-white shadow-card transition duration-300 hover:-translate-y-0.5 hover:bg-[#0b2d5b]; }
+  .btn-white { @apply inline-flex items-center justify-center gap-3 rounded-sm border border-line bg-white px-7 py-4 text-base font-bold text-ink shadow-card transition duration-300 hover:-translate-y-0.5; }
   .section-label { @apply text-xs font-extrabold uppercase tracking-[0.2em] text-gold lg:text-sm; }
-  .card-hover { @apply transition duration-300 hover:-translate-y-2 hover:shadow-soft; }
-  .nav-icon-btn { @apply inline-flex h-14 items-center justify-center gap-2 rounded-full border border-line bg-white px-5 text-sm font-black text-navy shadow-[0_10px_24px_rgba(8,35,74,0.06)] transition hover:-translate-y-0.5 hover:border-blue-200; }
-  .floating-contact-link { @apply relative grid size-10 place-items-center rounded-full border border-line bg-white text-[11px] font-black text-ink shadow-[0_10px_24px_rgba(8,35,74,0.08)] transition duration-300 hover:-translate-y-0.5 hover:border-white hover:bg-navy hover:text-white hover:shadow-[0_16px_34px_rgba(8,35,74,0.14)] sm:size-11 lg:size-12 lg:rounded-2xl; }
+  .card-hover { @apply transition duration-300 hover:-translate-y-2; }
+  .nav-icon-btn { @apply inline-flex h-14 items-center justify-center gap-2 rounded-sm border border-line bg-white px-5 text-sm font-black text-navy shadow-card transition hover:-translate-y-0.5 hover:border-blue-200; }
+  .floating-contact-link { @apply relative grid size-10 place-items-center rounded-sm border border-line bg-white text-[11px] font-black text-ink shadow-card transition duration-300 hover:-translate-y-0.5 hover:border-white hover:bg-navy hover:text-white sm:size-11 min-[1780px]:size-12; }
   .boblift-quote-list-float { @apply fixed right-20 z-[90]; bottom: 6.5rem; }
-  .form-input { @apply w-full rounded-2xl border border-line bg-white px-4 py-3 text-sm font-semibold text-navy outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100; }
-  .filter-row { @apply flex cursor-pointer items-center gap-3 rounded-2xl border border-line bg-[#f8fbff] px-4 py-3 text-sm font-bold text-slate-600 transition hover:border-blue-200 hover:bg-white; }
+  .form-input { @apply w-full rounded-sm border border-line bg-white px-4 py-3 text-sm font-semibold text-navy outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100; }
+  .filter-row { @apply flex cursor-pointer items-center gap-3 rounded border border-line bg-[#f8fbff] px-4 py-3 text-sm font-bold text-slate-600 transition hover:border-blue-200 hover:bg-white; }
   .filter-row input { @apply h-4 w-4 accent-blue-700; }
   .product-filter-option { @apply flex cursor-pointer items-center gap-3 text-sm font-semibold text-slate-700 transition hover:text-blue-700; }
 }
@@ -35,7 +43,7 @@ img { max-width: 100%; }
   .boblift-final-cta {
     width: calc(100% - 32px);
     margin-block: 44px;
-    border-radius: 28px;
+    border-radius: 4px;
   }
   .boblift-final-cta-frame,
   .boblift-final-cta-content {
@@ -59,7 +67,7 @@ img { max-width: 100%; }
     white-space: normal;
     font-size: clamp(34px, 11.4vw, 42px);
     line-height: .98;
-    letter-spacing: -.055em;
+    letter-spacing: -.02em;
   }
   .boblift-final-cta-actions {
     margin-top: 24px;
@@ -78,46 +86,13 @@ img { max-width: 100%; }
     line-height: 1.25;
     overflow-wrap: anywhere;
   }
-  .boblift-home-category-scroller {
-    margin-inline: -16px;
-    padding-inline: 16px;
-    padding-block: 4px 8px;
-  }
-  .boblift-home-category-track {
-    grid-auto-columns: clamp(132px, 39vw, 148px);
-    gap: 10px;
-  }
-  .boblift-home-category-card {
-    height: 122px;
-    border-radius: 16px;
-  }
-  .boblift-home-category-card [data-product-category-line] {
-    inset-inline: 28px;
-    height: 2px;
-  }
-  .boblift-home-category-media-wrap {
-    padding: 8px 10px 0;
-  }
-  .boblift-home-category-media {
-    height: 58px;
-    border-radius: 14px;
-  }
-  .boblift-home-category-media img {
-    padding: 2px;
-  }
-  .boblift-home-category-title-wrap {
-    padding: 3px 8px 18px;
-  }
-  .boblift-home-category-title {
-    font-size: clamp(10px, 2.9vw, 11px);
-    line-height: 1.06;
-    letter-spacing: -.025em;
-  }
   .boblift-home-product-card-title {
-    min-height: 38px;
-    font-size: clamp(10px, 2.9vw, 11px);
-    line-height: 1.06;
-    letter-spacing: -.025em;
+    min-height: 0;
+    font-size: clamp(17px, 5vw, 22px);
+    line-height: 1.05;
+    letter-spacing: .01em;
+    overflow-wrap: anywhere;
+    margin-bottom: 12px;
   }
   .boblift-floating-contact-bar {
     max-width: calc(100vw - 32px);
@@ -136,7 +111,7 @@ img { max-width: 100%; }
     border-color: rgba(37,99,235,.34);
     background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
     color: #071f42;
-    box-shadow: 0 14px 32px rgba(37,99,235,.18), inset 0 0 0 1px rgba(255,255,255,.72);
+    box-shadow: 0 8px 24px rgba(8, 35, 74, .12), inset 0 0 0 1px rgba(255,255,255,.72);
   }
   .boblift-quote-list-float [data-quote-list-toggle] svg {
     width: 20px;
@@ -152,7 +127,7 @@ img { max-width: 100%; }
   .boblift-quote-list-float { bottom: 5.25rem; }
 }
 
-@media (min-width: 1536px) {
+@media (min-width: 1024px) {
   .boblift-quote-list-float { right: 7rem; bottom: 1.75rem; }
 }
 
@@ -222,7 +197,7 @@ img { max-width: 100%; }
   font-size: clamp(5.05rem, 19.4vw, 24rem);
   font-weight: 1000;
   line-height: .82;
-  letter-spacing: -.055em;
+  letter-spacing: -.02em;
   opacity: 1;
   transform-origin: center;
 }
@@ -264,7 +239,7 @@ img { max-width: 100%; }
   transform: none;
   background: linear-gradient(135deg, rgba(255,255,255,.94), rgba(248,250,252,.88));
   border-color: rgba(255,255,255,.94);
-  box-shadow: 0 28px 78px rgba(11,27,51,.16), inset 0 1px 0 rgba(255,255,255,.72);
+  box-shadow: 0 1px 2px rgba(8, 35, 74, .06), inset 0 1px 0 rgba(255,255,255,.72);
 }
 .about-scroll-copy h1 {
   color: #071f42;
@@ -282,7 +257,7 @@ img { max-width: 100%; }
   transform: none;
   background: rgba(255,255,255,.92);
   border-color: rgba(203,213,225,.82);
-  box-shadow: 0 14px 36px rgba(11,27,51,.10);
+  box-shadow: 0 1px 2px rgba(8, 35, 74, .06);
 }
 .about-proof-chip span:last-child {
   color: #071f42;
@@ -383,19 +358,17 @@ img { max-width: 100%; }
   border-radius: 50%;
   background: #fff;
   border: 3px solid #0B3F7D;
-  box-shadow: 0 0 0 7px rgba(11, 63, 125, 0.08),
-              0 10px 28px rgba(11, 63, 125, 0.18);
+  box-shadow: 0 0 0 7px rgba(11, 63, 125, 0.08), 0 1px 2px rgba(8, 35, 74, .06);
   transition: box-shadow 0.3s ease;
 }
 .about-timeline-entry:hover .about-timeline-dot {
-  box-shadow: 0 0 0 11px rgba(11, 63, 125, 0.10),
-              0 10px 28px rgba(11, 63, 125, 0.22);
+  box-shadow: 0 0 0 11px rgba(11, 63, 125, 0.10);
 }
 .about-timeline-year {
   font-size: clamp(48px, 5vw, 88px);
   font-weight: 900;
   line-height: 0.95;
-  letter-spacing: -0.05em;
+  letter-spacing: -.015em;
   color: #0B3F7D;
   white-space: nowrap;
   user-select: none;
@@ -414,9 +387,9 @@ img { max-width: 100%; }
   width: 100%;
   aspect-ratio: 16 / 9;
   overflow: hidden;
-  border-radius: clamp(22px, 2vw, 34px);
+  border-radius: 4px;
   background: #EAF1F8;
-  box-shadow: 0 22px 60px rgba(11, 27, 51, 0.10);
+  box-shadow: 0 1px 2px rgba(8, 35, 74, .06);
   grid-row: 1;
 }
 .about-timeline-panel-media img {
@@ -445,7 +418,7 @@ img { max-width: 100%; }
   font-size: clamp(22px, 2.1vw, 34px);
   font-weight: 900;
   line-height: 1.14;
-  letter-spacing: -0.04em;
+  letter-spacing: -.015em;
   color: #0B1B33;
   margin: 0 0 16px;
 }
@@ -528,7 +501,7 @@ img { max-width: 100%; }
   }
   .about-timeline-year {
     font-size: clamp(13px, 3.8vw, 18px);
-    letter-spacing: -0.02em;
+    letter-spacing: -.005em;
     writing-mode: vertical-rl;
     text-orientation: mixed;
     transform: rotate(180deg);
@@ -552,8 +525,8 @@ img { max-width: 100%; }
   }
   .about-timeline-panel-media {
     order: 1;
-    border-radius: 18px;
-    box-shadow: 0 14px 36px rgba(11, 27, 51, 0.09);
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(8, 35, 74, .06);
   }
   .about-timeline-panel-body {
     order: 2;
@@ -720,7 +693,7 @@ img { max-width: 100%; }
   }
   .about-logo-fill {
     font-size: clamp(4rem, 19vw, 10.5rem);
-    letter-spacing: -.055em;
+    letter-spacing: -.02em;
     background-size: 100% 100%, 100% 100%, 152% auto;
     filter: drop-shadow(0 18px 28px rgba(11,27,51,.12));
     will-change: auto;
@@ -783,7 +756,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
 .product-hero-3d { transform: translateX(-50%) rotateY(-4deg) rotateX(1deg); transform-origin: center bottom; }
 .cms-richtext { color: #475569; font-size: 1rem; font-weight: 600; line-height: 2; }
 .cms-richtext > * + * { margin-top: 1rem; }
-.cms-richtext h1, .cms-richtext h2, .cms-richtext h3 { color: var(--ink); font-weight: 900; letter-spacing: -0.035em; line-height: 1.12; }
+.cms-richtext h1, .cms-richtext h2, .cms-richtext h3 { color: var(--ink); font-weight: 900; letter-spacing: -.01em; line-height: 1.12; }
 .cms-richtext h1 { font-size: clamp(2rem, 4vw, 3.5rem); }
 .cms-richtext h2 { font-size: clamp(1.5rem, 3vw, 2.25rem); }
 .cms-richtext h3 { font-size: 1.25rem; }
@@ -834,7 +807,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   }
   .boblift-product-archive-banner {
     margin-bottom: 18px;
-    border-radius: 24px;
+    border-radius: 4px;
   }
   .boblift-product-archive-banner-inner {
     min-height: 0;
@@ -850,7 +823,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
     margin-top: 12px;
     font-size: clamp(24px, 8vw, 32px);
     line-height: 1.08;
-    letter-spacing: -.058em;
+    letter-spacing: -.02em;
   }
   .boblift-product-archive-banner-text {
     margin-top: 14px;
@@ -866,7 +839,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
     gap: 12px;
   }
   .boblift-product-listing .product-card {
-    border-radius: 18px;
+    border-radius: 4px;
   }
   .boblift-product-listing .product-card:hover {
     transform: none;
@@ -922,7 +895,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
     -webkit-line-clamp: 3;
     font-size: 15px;
     line-height: 1.12;
-    letter-spacing: -.045em;
+    letter-spacing: -.015em;
   }
   .boblift-product-listing .product-card-model {
     font-size: 22px;
@@ -942,10 +915,10 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   .boblift-product-listing .product-card-ctas a {
     min-height: 36px;
     gap: 4px;
-    border-radius: 13px;
+    border-radius: 2px;
     padding-inline: 6px;
     font-size: 9px;
-    letter-spacing: -.02em;
+    letter-spacing: -.005em;
   }
   .boblift-product-listing .product-card-ctas svg {
     width: 12px;
@@ -954,17 +927,17 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
 }
 
 .boblift-product-listing[data-view="list"] .products-grid { grid-template-columns: minmax(0, 1fr); }
-.boblift-product-listing[data-view="list"] .product-card { border-radius: 28px; }
+.boblift-product-listing[data-view="list"] .product-card { border-radius: 4px; }
 .boblift-product-listing[data-view="list"] .product-card-inner { display: grid; gap: 1.25rem; padding: 1rem; }
-.boblift-product-listing[data-view="list"] .product-card-media { aspect-ratio: 1 / 1; width: 100%; height: auto; min-height: 0; align-self: start; border-radius: 22px; }
+.boblift-product-listing[data-view="list"] .product-card-media { aspect-ratio: 1 / 1; width: 100%; height: auto; min-height: 0; align-self: start; border-radius: 4px; }
 .boblift-product-listing[data-view="list"] .product-card-overlay-actions { display: none; }
 .boblift-product-listing[data-view="list"] .product-card-body { justify-content: space-between; gap: 1.25rem; padding: .25rem 0; }
 .boblift-product-listing[data-view="list"] .product-card-meta { justify-content: flex-start; flex-wrap: wrap; gap: .75rem; margin-bottom: 0; }
-.boblift-product-listing[data-view="list"] .product-card-meta span + span::before { content: ""; display: inline-block; width: .25rem; height: .25rem; margin-right: .75rem; border-radius: 9999px; background: #cbd5e1; vertical-align: middle; }
-.boblift-product-listing[data-view="list"] .product-card-title { margin-top: .75rem; font-size: clamp(1.5rem,2.4vw,1.875rem); line-height: 1.08; letter-spacing: -.04em; }
+.boblift-product-listing[data-view="list"] .product-card-meta span + span::before { content: ""; display: inline-block; width: .25rem; height: .25rem; margin-right: .75rem; border-radius: 2px; background: #cbd5e1; vertical-align: middle; }
+.boblift-product-listing[data-view="list"] .product-card-title { margin-top: .75rem; font-size: clamp(1.5rem,2.4vw,1.875rem); line-height: 1.08; letter-spacing: -.015em; }
 .boblift-product-listing[data-view="list"] .product-card-summary { display: block; }
 .boblift-product-listing[data-view="list"] .product-card-spec-grid { max-width: 48rem; grid-template-columns: repeat(1,minmax(0,1fr)); gap: .5rem; margin-top: 1rem; padding-top: 0; border-top: 0; }
-.boblift-product-listing[data-view="list"] .product-card-spec { min-height: 0; align-items: flex-start; justify-content: flex-start; border-color: #E5E7EB; border-radius: 16px; background: #F8FAFC; padding: .75rem 1rem; text-align: left; box-shadow: none; }
+.boblift-product-listing[data-view="list"] .product-card-spec { min-height: 0; align-items: flex-start; justify-content: flex-start; border-color: #E5E7EB; border-radius: 4px; background: #F8FAFC; padding: .75rem 1rem; text-align: left; box-shadow: none; }
 .boblift-product-listing[data-view="list"] .product-card-spec svg { display: none; }
 .boblift-product-listing[data-view="list"] .product-card-spec-label { font-size: 10px; letter-spacing: .12em; color: #94a3b8; }
 .boblift-product-listing[data-view="list"] .product-card-spec-value { margin-top: .25rem; font-size: 1rem; letter-spacing: 0; }
@@ -991,7 +964,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   animation: inquiryModalIn .24s ease both;
 }
 .boblift-inquiry-step-tab[aria-current="step"] {
-  box-shadow: inset 0 0 0 1px rgba(37,99,235,.16), 0 12px 28px rgba(37,99,235,.08);
+  box-shadow: inset 0 0 0 1px rgba(37,99,235,.16);
 }
 @keyframes inquiryModalIn {
   from { opacity: 0; transform: translateY(18px) scale(.985); }
@@ -1031,9 +1004,9 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   width: min(280px, calc(100% - 16px));
   transform: translate(-50%, -10px) scale(.96);
   border: 1px solid rgba(255,255,255,.34);
-  border-radius: 18px;
+  border-radius: 4px;
   background: rgba(255,255,255,.94);
-  box-shadow: 0 18px 42px rgba(8,35,74,.22);
+  box-shadow: 0 1px 2px rgba(8, 35, 74, .06);
   color: #071f42;
   font-size: 12px;
   font-weight: 900;
@@ -1335,7 +1308,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   }
   .boblift-inquiry-modal-form input[data-quote-field] {
     height: 42px;
-    border-radius: 14px;
+    border-radius: 2px;
     padding-inline: 12px;
     font-size: 13px;
   }
@@ -1348,7 +1321,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   .boblift-inquiry-modal-form textarea[data-quote-field="message"] {
     min-height: 82px;
     max-height: 96px;
-    border-radius: 16px;
+    border-radius: 2px;
     padding: 10px 12px;
     font-size: 13px;
     line-height: 1.45;
@@ -1439,7 +1412,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   .boblift-inquiry-modal.has-selected-products [data-inquiry-selected-products-list] > article > div:first-child {
     width: 40px;
     height: 40px;
-    border-radius: 12px;
+    border-radius: 4px;
   }
   .boblift-inquiry-modal.has-selected-products [data-inquiry-selected-products-list] > article > div:nth-child(2) {
     min-width: 0;
@@ -1500,10 +1473,10 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   @apply relative z-[1];
 }
 .boblift-news-hero-image {
-  @apply h-[clamp(140px,38vw,180px)] overflow-hidden rounded-[22px] border border-line bg-slate-100 shadow-[0_18px_48px_rgba(8,35,74,0.14)] md:h-[360px] md:rounded-[28px] xl:h-[390px];
+  @apply h-[clamp(140px,38vw,180px)] overflow-hidden rounded border border-line bg-slate-100 shadow-card md:h-[360px] xl:h-[390px];
 }
 .boblift-news-proof-chip {
-  @apply inline-flex min-w-0 items-center gap-3 rounded-2xl border border-line bg-white px-3 py-3 shadow-[0_12px_30px_rgba(8,35,74,0.05)] md:min-w-[168px] md:gap-4 md:px-5 md:py-4;
+  @apply inline-flex min-w-0 items-center gap-3 rounded border border-line bg-white px-3 py-3 shadow-card md:min-w-[168px] md:gap-4 md:px-5 md:py-4;
 }
 .boblift-news-proof-chip span {
   @apply grid gap-0.5 leading-none;
@@ -1524,10 +1497,10 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
     linear-gradient(120deg, rgba(37, 99, 235, .055) 0 1px, transparent 1px 88px);
 }
 .boblift-contact-hero .boblift-news-hero-image {
-  @apply border-blue-100 shadow-[0_18px_48px_rgba(37,99,235,0.14)];
+  @apply border-blue-100 shadow-card;
 }
 .boblift-contact-proof-chip {
-  @apply inline-flex min-w-0 max-w-full items-center gap-3 rounded-2xl border border-blue-100 bg-white/90 px-3 py-3 shadow-[0_12px_30px_rgba(37,99,235,0.06)] transition hover:-translate-y-0.5 hover:border-blue-200 md:min-w-[190px] md:gap-4 md:px-5 md:py-4;
+  @apply inline-flex min-w-0 max-w-full items-center gap-3 rounded border border-blue-100 bg-white/90 px-3 py-3 shadow-card transition hover:-translate-y-0.5 hover:border-blue-200 md:min-w-[190px] md:gap-4 md:px-5 md:py-4;
 }
 .boblift-contact-proof-chip span {
   @apply grid min-w-0 gap-0.5 leading-none;
@@ -1540,19 +1513,19 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
 }
 
 .boblift-news-category-pill {
-  @apply inline-flex min-w-[140px] items-center justify-center whitespace-nowrap rounded-full border border-line bg-white px-7 py-3 text-sm font-black text-navy shadow-[0_8px_22px_rgba(8,35,74,0.04)] transition duration-200 hover:border-blue-200;
+  @apply inline-flex min-w-[140px] items-center justify-center whitespace-nowrap rounded-sm border border-line bg-white px-7 py-3 text-sm font-black text-navy shadow-card transition duration-200 hover:border-blue-200;
 }
 .boblift-news-category-pill.is-active {
-  @apply border-navy bg-navy text-white shadow-[0_14px_32px_rgba(8,35,74,0.18)];
+  @apply border-navy bg-navy text-white;
 }
 .boblift-news-view-switch {
-  @apply inline-flex w-fit overflow-hidden rounded-full border border-blue-100 bg-white/90 p-1 shadow-[0_12px_30px_rgba(8,35,74,0.06)] backdrop-blur;
+  @apply inline-flex w-fit overflow-hidden rounded-sm border border-blue-100 bg-white/90 p-1 shadow-card backdrop-blur;
 }
 .boblift-news-view-button {
-  @apply inline-flex h-11 items-center justify-center gap-2 rounded-full px-4 text-xs font-black uppercase tracking-[0.12em] text-slate-500 transition hover:bg-blue-50 hover:text-blue-700;
+  @apply inline-flex h-11 items-center justify-center gap-2 rounded-sm px-4 text-xs font-black uppercase tracking-[0.12em] text-slate-500 transition hover:bg-blue-50 hover:text-blue-700;
 }
 .boblift-news-view-button.is-active {
-  @apply bg-navy text-white shadow-[0_12px_28px_rgba(8,35,74,0.18)] hover:bg-navy hover:text-white;
+  @apply bg-navy text-white hover:bg-navy hover:text-white;
 }
 #news-updates.is-list-view .boblift-news-results-grid {
   grid-template-columns: minmax(0, 1fr) !important;
@@ -1564,13 +1537,13 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   grid-template-columns: 260px minmax(0, 1fr);
   align-items: stretch;
   gap: 26px;
-  @apply rounded-[22px] border border-blue-100 bg-white p-3 shadow-[0_14px_34px_rgba(8,35,74,0.055)] hover:translate-y-0 hover:border-blue-200 hover:shadow-[0_22px_54px_rgba(8,35,74,0.09)];
+  @apply rounded border border-blue-100 bg-white p-3 shadow-card hover:translate-y-0 hover:border-blue-200;
 }
 #news-updates.is-list-view .boblift-news-result-card.hidden {
   display: none !important;
 }
 #news-updates.is-list-view .boblift-news-result-media {
-  @apply relative min-w-0 overflow-hidden rounded-[18px] bg-slate-100;
+  @apply relative min-w-0 overflow-hidden rounded bg-slate-100;
   width: 100%;
   aspect-ratio: 1.35 / 1;
 }
@@ -1581,7 +1554,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   @apply mb-3 flex items-center gap-3;
 }
 #news-updates.is-list-view .boblift-news-result-category {
-  @apply inline-flex h-7 rounded-full border-blue-100 bg-blue-50 px-3 text-[10px] text-blue-700;
+  @apply inline-flex h-7 rounded-sm border-blue-100 bg-blue-50 px-3 text-[10px] text-blue-700;
 }
 #news-updates.is-list-view .boblift-news-result-date {
   @apply text-[12px] font-black uppercase tracking-[0.12em] text-slate-400;
@@ -1593,7 +1566,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   @apply mt-2 line-clamp-2 max-w-[860px] text-sm font-semibold leading-6 text-slate-600 md:text-base md:leading-7;
 }
 #news-updates.is-list-view .boblift-news-result-readmore {
-  @apply mt-4 w-fit rounded-full border border-line bg-white px-4 py-2 text-[11px] uppercase tracking-[0.14em] text-navy shadow-[0_8px_20px_rgba(8,35,74,0.04)] transition group-hover:border-blue-200 group-hover:bg-blue-50;
+  @apply mt-4 w-fit rounded-sm border border-line bg-white px-4 py-2 text-[11px] uppercase tracking-[0.14em] text-navy shadow-card transition group-hover:border-blue-200 group-hover:bg-blue-50;
 }
 @media (max-width: 767px) {
   #news-updates.is-list-view .boblift-news-result-card {
@@ -1611,7 +1584,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
 }
 
 .boblift-news-featured-card {
-  @apply grid overflow-hidden rounded-[24px] border border-line bg-white shadow-[0_18px_46px_rgba(8,35,74,0.07)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_28px_70px_rgba(8,35,74,0.10)] lg:h-[320px] lg:grid-cols-[1.1fr_0.9fr] 2xl:h-[350px];
+  @apply grid overflow-hidden rounded border border-line bg-white shadow-card transition duration-300 hover:-translate-y-1 lg:h-[320px] lg:grid-cols-[1.1fr_0.9fr] 2xl:h-[350px];
 }
 .boblift-news-featured-image-wrap {
   @apply relative block aspect-[16/9] overflow-hidden bg-slate-100 lg:h-full lg:aspect-auto;
@@ -1627,7 +1600,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
 }
 
 .boblift-news-card {
-  @apply flex min-h-full flex-col overflow-hidden rounded-[18px] border border-line bg-white shadow-[0_14px_36px_rgba(8,35,74,0.055)] transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-[0_24px_60px_rgba(8,35,74,0.09)];
+  @apply flex min-h-full flex-col overflow-hidden rounded border border-line bg-white shadow-card transition duration-300 hover:-translate-y-1 hover:border-blue-200;
 }
 .boblift-news-card-image-wrap {
   @apply relative block aspect-[16/6.3] overflow-hidden bg-slate-100;
@@ -1651,7 +1624,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   max-width: min(100%, 1600px);
   font-size: clamp(36px, 3.2vw, 64px);
   line-height: 1.08;
-  letter-spacing: -0.014em;
+  letter-spacing: -.005em;
   text-wrap: balance;
   overflow-wrap: normal;
 }
@@ -1690,10 +1663,10 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   column-gap: clamp(40px, 4.2vw, 88px);
 }
 .boblift-news-detail-breadcrumb {
-  @apply flex w-fit max-w-full flex-wrap items-center justify-start gap-2 rounded-full border border-blue-100 bg-white/90 px-3 py-2 text-xs font-black uppercase tracking-[0.08em] text-slate-500 shadow-[0_14px_36px_rgba(8,35,74,0.07)] backdrop-blur lg:col-start-1 lg:row-start-1 lg:self-end lg:justify-self-start;
+  @apply flex w-fit max-w-full flex-wrap items-center justify-start gap-2 rounded-sm border border-blue-100 bg-white/90 px-3 py-2 text-xs font-black uppercase tracking-[0.08em] text-slate-500 shadow-card backdrop-blur lg:col-start-1 lg:row-start-1 lg:self-end lg:justify-self-start;
 }
 .boblift-news-detail-breadcrumb a {
-  @apply rounded-full px-2.5 py-1 transition hover:bg-blue-50 hover:text-blue-700;
+  @apply rounded-sm px-2.5 py-1 transition hover:bg-blue-50 hover:text-blue-700;
 }
 .boblift-news-detail-breadcrumb span:not(:last-child) {
   @apply inline-flex h-auto w-auto items-center justify-center text-blue-300;
@@ -1702,7 +1675,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   content: none;
 }
 .boblift-news-detail-breadcrumb span:last-child {
-  @apply rounded-full bg-blue-50 px-3 py-1 text-blue-700;
+  @apply rounded-sm bg-blue-50 px-3 py-1 text-blue-700;
 }
 .boblift-middle-breadcrumb-detail .boblift-news-detail-heading {
   @apply lg:row-start-1 lg:self-center;
@@ -1722,11 +1695,11 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   @apply flex min-w-0 flex-wrap items-center justify-start gap-3;
 }
 .boblift-detail-breadcrumb {
-  @apply justify-start border-blue-100 bg-white/95 shadow-[0_18px_46px_rgba(8,35,74,0.08)];
+  @apply justify-start border-blue-100 bg-white/95 shadow-card;
   margin-inline: 0;
 }
 .boblift-detail-breadcrumb-meta {
-  @apply inline-flex min-h-10 max-w-full flex-wrap items-center gap-2 rounded-full border border-blue-100 bg-blue-50/70 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-blue-700 shadow-[0_12px_30px_rgba(8,35,74,0.05)];
+  @apply inline-flex min-h-10 max-w-full flex-wrap items-center gap-2 rounded-sm border border-blue-100 bg-blue-50/70 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-blue-700 shadow-card;
 }
 .boblift-detail-breadcrumb-dot {
   @apply h-1 w-1 rounded-full bg-gold;
@@ -1753,7 +1726,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   line-height: 1.75;
 }
 .boblift-news-detail-hero-image {
-  @apply h-[260px] w-full overflow-hidden rounded-[30px] border border-line bg-slate-100 shadow-[0_24px_70px_rgba(8,35,74,0.10)] md:h-[390px] lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:justify-self-start;
+  @apply h-[260px] w-full overflow-hidden rounded border border-line bg-slate-100 shadow-card md:h-[390px] lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:justify-self-start;
   height: clamp(320px, 22vw, 520px);
   max-width: clamp(460px, 30vw, 680px);
 }
@@ -1786,7 +1759,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   max-width: 100%;
 }
 .boblift-news-detail-summary {
-  @apply rounded-[26px] border border-line bg-[#f8fbff] p-6 shadow-[0_14px_36px_rgba(8,35,74,0.045)] md:p-7;
+  @apply rounded border border-line bg-[#f8fbff] p-6 shadow-card md:p-7;
 }
 .boblift-news-detail-summary-list {
   @apply mt-5 grid gap-4;
@@ -1801,7 +1774,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   @apply mt-2 block text-base font-black leading-snug text-navy;
 }
 .boblift-news-detail-quote-card {
-  @apply rounded-[26px] border border-line bg-white p-6 shadow-[0_14px_36px_rgba(8,35,74,0.045)] md:p-7;
+  @apply rounded border border-line bg-white p-6 shadow-card md:p-7;
 }
 .boblift-news-detail-quote-card h2 {
   @apply mt-3 text-2xl font-black leading-tight tracking-[-0.035em] text-navy;
@@ -1826,10 +1799,10 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   @apply pt-6 text-2xl;
 }
 .boblift-news-detail-content blockquote {
-  @apply my-10 rounded-r-[26px] border-l-4 border-gold bg-[#f8fbff] px-7 py-6 text-xl font-black leading-9 text-navy;
+  @apply my-10 rounded-r border-l-4 border-gold bg-[#f8fbff] px-7 py-6 text-xl font-black leading-9 text-navy;
 }
 .boblift-news-detail-content figure {
-  @apply my-10 overflow-hidden rounded-[28px] border border-line bg-slate-100 shadow-[0_20px_54px_rgba(8,35,74,0.08)];
+  @apply my-10 overflow-hidden rounded border border-line bg-slate-100 shadow-card;
 }
 .boblift-news-detail-content figure img {
   @apply w-full;
@@ -1851,7 +1824,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   width: 100%;
 }
 .boblift-news-detail-related-card {
-  @apply overflow-hidden rounded-[26px] border border-line bg-white shadow-[0_16px_44px_rgba(8,35,74,0.06)] transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-[0_26px_68px_rgba(8,35,74,0.10)];
+  @apply overflow-hidden rounded border border-line bg-white shadow-card transition duration-300 hover:-translate-y-1 hover:border-blue-200;
 }
 .boblift-news-detail-related-image {
   @apply block aspect-[16/7] overflow-hidden bg-slate-100;
@@ -1963,7 +1936,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   overflow-wrap: anywhere;
   font-size: clamp(13px, 3.55vw, 16px);
   line-height: 1.25;
-  letter-spacing: -.015em;
+  letter-spacing: -.005em;
 }
 @media (min-width: 1280px) {
   .boblift-technical-spec-item:nth-child(2n) {
@@ -2000,7 +1973,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
     max-width: 100%;
     font-size: clamp(34px, 9.1vw, 42px);
     line-height: 1.02;
-    letter-spacing: -.058em;
+    letter-spacing: -.02em;
   }
   .boblift-product-quote-text {
     margin-top: 18px;
@@ -2085,21 +2058,21 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   min-width: 140px;
   align-items: center;
   justify-content: center;
-  border-radius: 999px;
+  border-radius: 2px;
   border: 1px solid var(--cases-line);
   background: #fff;
   padding: 0 28px;
   color: #08234a;
   font-size: 14px;
   font-weight: 900;
-  box-shadow: 0 8px 22px rgba(8,35,74,.04);
+  box-shadow: 0 1px 2px rgba(8, 35, 74, .06);
   transition: background .2s ease, color .2s ease, box-shadow .2s ease, border-color .2s ease;
 }
 .boblift-cases-tab.is-active {
   background: #071f42;
   border-color: #071f42;
   color: #fff;
-  box-shadow: 0 14px 32px rgba(8,35,74,.18);
+  box-shadow: none;
 }
 .boblift-cases-filter {
   position: relative;
@@ -2122,7 +2095,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   width: 100%;
   min-width: 0;
   border: 1px solid var(--cases-line);
-  border-radius: 999px;
+  border-radius: 2px;
   background: #fff;
   padding: 0 18px;
   color: #08234a;
@@ -2137,7 +2110,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   justify-content: space-between;
   gap: 14px;
   text-align: left;
-  box-shadow: 0 10px 28px rgba(8,35,74,.045);
+  box-shadow: 0 1px 2px rgba(8, 35, 74, .06);
 }
 .boblift-cases-select-trigger span:first-child {
   min-width: 0;
@@ -2162,10 +2135,10 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   right: 0;
   overflow: hidden;
   border: 1px solid rgba(147,197,253,.5);
-  border-radius: 24px;
+  border-radius: 4px;
   background: rgba(255,255,255,.96);
   padding: 8px;
-  box-shadow: 0 24px 70px rgba(8,35,74,.16);
+  box-shadow: 0 8px 24px rgba(8, 35, 74, .12);
   backdrop-filter: blur(18px);
 }
 .boblift-cases-select-search {
@@ -2175,7 +2148,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   height: 42px;
   width: 100%;
   border: 1px solid rgba(226,235,245,.95);
-  border-radius: 16px;
+  border-radius: 2px;
   background: #f8fbff;
   padding: 0 13px;
   color: #08234a;
@@ -2200,7 +2173,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  border-radius: 16px;
+  border-radius: 4px;
   padding: 9px 12px;
   text-align: left;
   color: #08234a;
@@ -2236,14 +2209,14 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border-radius: 999px;
+  border-radius: 2px;
   border: 1px solid var(--cases-line);
   background: #fff;
   padding: 0 14px;
   color: #08234a;
   font-size: 14px;
   font-weight: 900;
-  box-shadow: 0 10px 28px rgba(8,35,74,.045);
+  box-shadow: 0 1px 2px rgba(8, 35, 74, .06);
   transition: border-color .2s ease, color .2s ease, box-shadow .2s ease, transform .2s ease;
 }
 .boblift-cases-reset-button:hover,
@@ -2257,16 +2230,16 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   min-width: 0;
   overflow: hidden;
   border: 1px solid var(--cases-line);
-  border-radius: 18px;
+  border-radius: 4px;
   background: #fff;
   padding: 10px;
-  box-shadow: 0 14px 36px rgba(8,35,74,.055);
+  box-shadow: 0 1px 2px rgba(8, 35, 74, .06);
   transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
 }
 .boblift-case-card:hover {
   transform: translateY(-4px);
   border-color: #bfdbfe;
-  box-shadow: 0 24px 60px rgba(8,35,74,.09);
+  box-shadow: none;
 }
 .boblift-cases-media-modal[hidden] {
   display: none !important;
@@ -2314,7 +2287,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
     height: 46px;
     min-width: 46px;
     padding: 0;
-    border-radius: 16px;
+    border-radius: 2px;
   }
   .boblift-cases-reset-button span {
     position: absolute;
@@ -2330,7 +2303,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
     gap: 12px;
   }
   .boblift-case-card {
-    border-radius: 16px;
+    border-radius: 4px;
     padding: 7px;
   }
   .boblift-case-card:hover {
@@ -2338,7 +2311,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   }
   .boblift-case-card-media {
     height: clamp(108px, 31vw, 132px);
-    border-radius: 12px;
+    border-radius: 4px;
   }
   .boblift-case-card-content {
     padding: 11px 5px 5px;
@@ -2356,7 +2329,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
     -webkit-line-clamp: 3;
     font-size: 13px;
     line-height: 1.18;
-    letter-spacing: -0.035em;
+    letter-spacing: -.01em;
   }
   .boblift-case-card-summary {
     margin-top: 7px;
@@ -2404,7 +2377,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
     padding: 16px 24px calc(16px + env(safe-area-inset-bottom));
     border-top: 1px solid #E5E7EB;
     background: rgba(255,255,255,.96);
-    box-shadow: 0 -18px 42px rgba(8,35,74,.08);
+    box-shadow: 0 -1px 0 rgba(8, 35, 74, .08);
     backdrop-filter: blur(14px);
   }
 }
@@ -2439,8 +2412,44 @@ body.boblift-filter-drawer-locked {
     margin: -24px -24px 24px;
     padding: 20px 24px 16px;
     border-bottom: 1px solid #E5E7EB;
-    border-radius: 28px 28px 0 0;
+    border-radius: 4px 4px 0 0;
     background: rgba(255,255,255,.96);
     backdrop-filter: blur(14px);
   }
+}
+
+/* Home product family selector: product cut-out on a studio plate, navy label when active. */
+.boblift-cat-scroller { margin-inline: -16px; padding: 6px 16px 14px; overflow-x: auto; scroll-snap-type: x proximity; scroll-padding-inline: 16px; scrollbar-width: none; }
+.boblift-cat-scroller::-webkit-scrollbar { display: none; }
+.boblift-cat-track { display: grid; grid-auto-flow: column; grid-auto-columns: clamp(148px, 41vw, 172px); gap: 10px; }
+.boblift-cat-card { position: relative; display: flex; flex-direction: column; min-width: 0; overflow: hidden; scroll-snap-align: start; border: 1px solid #e4ebf4; border-radius: 4px; background: #fff; color: var(--ink); text-align: left; box-shadow: 0 1px 2px rgba(8, 35, 74, .06); transition: transform .35s ease, box-shadow .35s ease, border-color .35s ease; }
+.boblift-cat-card:hover { transform: translateY(-3px); border-color: #bfd3ee; box-shadow: none; }
+.boblift-cat-card:focus-visible { outline: 3px solid #93c5fd; outline-offset: 3px; }
+.boblift-cat-media { position: relative; display: block; height: 84px; margin: 10px 10px 0; border-radius: 4px; background: radial-gradient(75% 75% at 50% 55%, #fff 0%, #f2f6fb 62%, #e7eef7 100%); }
+.boblift-cat-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 8px; mix-blend-mode: multiply; transition: transform .5s ease; }
+.boblift-cat-card:hover .boblift-cat-media img { transform: scale(1.05); }
+.boblift-cat-label { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 54px; margin-top: 10px; padding: 10px 12px; border-top: 1px solid #edf2f8; font-size: 14px; font-weight: 600; line-height: 1.2; transition: background-color .35s ease, color .35s ease, border-color .35s ease; }
+.boblift-cat-name { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.boblift-cat-arrow-icon { flex: none; opacity: .35; transition: transform .35s ease, opacity .35s ease; }
+.boblift-cat-card:hover .boblift-cat-arrow-icon { opacity: 1; transform: translateX(3px); }
+.boblift-cat-card[aria-pressed="true"] { border-color: var(--navy); box-shadow: none; }
+.boblift-cat-card[aria-pressed="true"] .boblift-cat-label { border-top-color: var(--navy); background: var(--navy); color: #fff; }
+.boblift-cat-card[aria-pressed="true"] .boblift-cat-arrow-icon { opacity: 1; }
+@media (min-width: 640px) {
+  .boblift-cat-scroller { margin-inline: 0; padding-inline: 2px; scroll-padding-inline: 2px; }
+  .boblift-cat-track { grid-auto-columns: 210px; gap: 14px; }
+  .boblift-cat-card { border-radius: 4px; }
+  .boblift-cat-media { height: 128px; margin: 14px 14px 0; border-radius: 4px; }
+  .boblift-cat-label { min-height: 62px; margin-top: 14px; padding: 12px 16px; font-size: 16px; }
+}
+@media (min-width: 1024px) {
+  .boblift-cat-wrap.is-fit .boblift-cat-track { grid-auto-flow: row; grid-template-columns: repeat(var(--cat-count), minmax(0, 1fr)); gap: 12px; }
+  .boblift-cat-wrap.is-fit .boblift-cat-arrow { display: none; }
+  .boblift-cat-wrap.is-fit .boblift-cat-media { height: 112px; margin: 10px 10px 0; }
+  .boblift-cat-wrap.is-fit .boblift-cat-label { min-height: 58px; margin-top: 12px; padding: 10px 12px; font-size: 14px; }
+}
+@media (min-width: 1200px) {
+  .boblift-cat-wrap.is-fit .boblift-cat-track { gap: 14px; }
+  .boblift-cat-wrap.is-fit .boblift-cat-media { height: 150px; margin: 14px 14px 0; }
+  .boblift-cat-wrap.is-fit .boblift-cat-label { min-height: 62px; margin-top: 14px; padding: 12px 16px; font-size: 16px; }
 }

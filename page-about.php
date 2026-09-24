@@ -17,19 +17,20 @@ $about_language = function_exists('boblift_current_language_slug') ? boblift_cur
 $is_zh_about = str_starts_with($about_language, 'zh');
 $gallery_label = (string) ($manufacturing_gallery['label'] ?? 'Modern Manufacturing Base');
 $gallery_title = (string) ($manufacturing_gallery['title'] ?? 'Intelligent Production.');
-$gallery_text = (string) ($manufacturing_gallery['text'] ?? 'Experience our state-of-the-art 40,000 sqm facility where precision engineering meets rigorous quality control.');
+$gallery_text = (string) ($manufacturing_gallery['text'] ?? 'Experience our state-of-the-art 37,000 sqm facility where precision engineering meets rigorous quality control.');
 $global_footprint = is_array($about_page['global_footprint'] ?? null) ? $about_page['global_footprint'] : [];
 $global_stats = is_array($global_footprint['stats'] ?? null) ? array_values(array_filter($global_footprint['stats'], static fn($item): bool => is_array($item))) : [];
 if ($is_zh_about) {
     $gallery_label = $gallery_label === 'Modern Manufacturing Base' ? '现代化制造基地' : $gallery_label;
     $gallery_title = $gallery_title === 'Intelligent Production.' ? '现代化生产现场' : $gallery_title;
-    $gallery_text = $gallery_text === 'Experience our state-of-the-art 40,000 sqm facility where precision engineering meets rigorous quality control.' ? '从结构件加工到整机装配，制造流程围绕稳定质量和出口交付展开。' : $gallery_text;
+    $gallery_text = $gallery_text === 'Experience our state-of-the-art 37,000 sqm facility where precision engineering meets rigorous quality control.' ? '从结构件加工到整机装配，制造流程围绕稳定质量和出口交付展开。' : $gallery_text;
     $executive_team_label = $executive_team_label === 'Whole Team' ? '全体团队' : $executive_team_label;
     $executive_team_title = $executive_team_title === 'BOB-LIFT Team' ? 'BOB-LIFT 团队' : $executive_team_title;
     $global_stat_label_map = [
         'Countries Exported' => '出口国家和地区',
-        'Years Experience' => '出口服务经验',
+        'Years Experience' => '经验年限',
         'Units Delivered' => '累计交付设备',
+        'Cranes Exported' => '已出口起重机数量',
     ];
     foreach ($global_stats as $global_stat_index => $global_stat) {
         $global_stat_label = (string) ($global_stat['label'] ?? '');
@@ -130,7 +131,7 @@ foreach (['中国徐州', 'Xuzhou, China', '起重设备制造商', 'crane manuf
     <div class="page-shell about-wide-shell relative z-10">
         <div class="about-manufacturing-copy mx-auto w-full text-center" data-about-strength-copy>
             <p class="section-label mb-6 text-center"><?php echo esc_html($strength['label'] ?? 'Company Strength'); ?></p>
-            <h2 class="about-strength-title mx-auto max-w-none text-[34px] font-black leading-[1.1] tracking-[-0.02em] text-[#0B1B33] md:text-[52px] xl:text-[68px]"><?php echo wp_kses_post($strength_title_html); ?></h2>
+            <h2 class="about-strength-title mx-auto max-w-none text-[34px] font-black leading-[1.1] tracking-[-0.005em] text-[#0B1B33] md:text-[52px] xl:text-[68px]"><?php echo wp_kses_post($strength_title_html); ?></h2>
             <p class="mx-auto mt-6 max-w-none text-base font-semibold leading-[1.7] tracking-normal text-[#64748B] md:text-lg xl:text-xl"><?php echo esc_html($strength['text'] ?? 'BOB-LIFT combines product engineering, precision production and responsive export service into one disciplined workflow for overseas B2B buyers.'); ?></p>
         </div>
 
@@ -141,10 +142,10 @@ foreach (['中国徐州', 'Xuzhou, China', '起重设备制造商', 'crane manuf
                 $stat_target = preg_replace('/[^0-9]/', '', $stat_number_raw) ?: '0';
                 $stat_suffix = (string) ($stat['suffix'] ?? '+');
             ?>
-                <div class="about-stat-card relative min-h-[190px] overflow-hidden rounded-[28px] border border-[#E5E7EB] bg-white p-8 text-left shadow-[0_12px_40px_rgba(11,27,51,0.03)] transition hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(11,27,51,0.08)] lg:p-10 xl:p-12">
-                    <span class="pointer-events-none absolute -right-4 -top-8 select-none text-[120px] font-black italic leading-none tracking-tighter text-[#F1F5F9] lg:-right-6 lg:-top-10 lg:text-[140px]"><?php echo esc_html(str_pad((string) ($global_stat_index + 1), 2, '0', STR_PAD_LEFT)); ?></span>
+                <div class="about-stat-card relative min-h-[190px] overflow-hidden rounded border border-[#E5E7EB] bg-white p-8 text-left shadow-card transition hover:-translate-y-1 lg:p-10 xl:p-12">
+                    <span class="pointer-events-none absolute -right-4 -top-8 select-none text-[120px] font-black italic leading-none tracking-[-0.015em] text-[#F1F5F9] lg:-right-6 lg:-top-10 lg:text-[140px]"><?php echo esc_html(str_pad((string) ($global_stat_index + 1), 2, '0', STR_PAD_LEFT)); ?></span>
                     <div class="relative z-10">
-                        <p class="flex items-baseline font-black leading-none tracking-[-0.06em] text-[#0B3F7D]">
+                        <p class="flex items-baseline font-black leading-none tracking-[-0.02em] text-[#0B3F7D]">
                             <span class="text-[54px] lg:text-[68px]" data-global-stat="<?php echo esc_attr($stat_target); ?>"><?php echo esc_html($stat_target); ?></span><span class="ml-1 text-[28px] text-[#2563EB] lg:text-[34px]"><?php echo esc_html($stat_suffix); ?></span>
                         </p>
                         <h3 class="mt-6 max-w-none text-lg font-black leading-tight text-[#0B1B33] lg:text-xl"><?php echo esc_html($stat['label'] ?? ''); ?></h3>
@@ -160,7 +161,7 @@ foreach (['中国徐州', 'Xuzhou, China', '起重设备制造商', 'crane manuf
 <section class="about-timeline-section bg-[#F8FAFC] pt-16 lg:pt-24 pb-16 lg:pb-28" data-about-timeline>
     <div class="page-shell about-wide-shell">
         <div class="about-timeline-header mx-auto w-full text-center mb-16 max-w-none lg:mb-24" data-about-timeline-header>
-            <h2 class="text-[28px] font-black leading-[1.15] tracking-[-0.02em] text-[#0B1B33] md:text-[36px] xl:text-[44px]"><?php echo esc_html($timeline['title'] ?? 'Built step by step for global lifting projects.'); ?></h2>
+            <h2 class="text-[28px] font-black leading-[1.15] tracking-[-0.005em] text-[#0B1B33] md:text-[36px] xl:text-[44px]"><?php echo esc_html($timeline['title'] ?? 'Built step by step for global lifting projects.'); ?></h2>
         </div>
         <div class="about-timeline-track" data-about-timeline-track>
             <div class="about-timeline-spine" data-about-timeline-spine></div>
@@ -216,8 +217,8 @@ foreach (['中国徐州', 'Xuzhou, China', '起重设备制造商', 'crane manuf
                         $certification_image_url = boblift_image_setting_url($certification['image'], (string) ($certification['image']['path'] ?? ''));
                         $certification_title_text = $certification['title'] !== '' ? $certification['title'] : $certification_label;
                     ?>
-                    <button class="about-certification-card group w-[230px] shrink-0 cursor-zoom-in rounded-[18px] border border-[#DDE7F2] bg-white p-2 text-left shadow-[0_12px_34px_rgba(11,27,51,0.055)] transition hover:-translate-y-1 hover:border-[#BFD2EA] hover:shadow-[0_20px_50px_rgba(11,27,51,0.11)] md:w-[270px]" type="button"<?php echo $track_index === 1 ? ' tabindex="-1"' : ''; ?> data-certification-open data-certification-src="<?php echo esc_url($certification_image_url); ?>" data-certification-title="<?php echo esc_attr($certification_title_text); ?>">
-                        <span class="block overflow-hidden rounded-[14px] bg-[#F8FAFC] ring-1 ring-[#E5E7EB]">
+                    <button class="about-certification-card group w-[230px] shrink-0 cursor-zoom-in rounded border border-[#DDE7F2] bg-white p-2 text-left shadow-card transition hover:-translate-y-1 hover:border-[#BFD2EA] md:w-[270px]" type="button"<?php echo $track_index === 1 ? ' tabindex="-1"' : ''; ?> data-certification-open data-certification-src="<?php echo esc_url($certification_image_url); ?>" data-certification-title="<?php echo esc_attr($certification_title_text); ?>">
+                        <span class="block overflow-hidden rounded bg-[#F8FAFC] ring-1 ring-[#E5E7EB]">
                             <img class="aspect-[4/5] w-full object-contain p-3 transition duration-500 group-hover:scale-[1.02]" src="<?php echo esc_url($certification_image_url); ?>" alt="<?php echo esc_attr($certification_title_text); ?>" loading="lazy" decoding="async">
                         </span>
                         <span class="block px-2 pb-2 pt-4">
@@ -234,9 +235,9 @@ foreach (['中国徐州', 'Xuzhou, China', '起重设备制造商', 'crane manuf
 
             <div class="fixed inset-0 z-[999] hidden items-center justify-center bg-[#0B1B33]/88 p-4 backdrop-blur-md" data-certification-lightbox aria-hidden="true">
                 <button class="absolute inset-0 cursor-zoom-out" type="button" data-certification-close aria-label="<?php echo esc_attr($is_zh_about ? '关闭证书大图' : 'Close certificate preview'); ?>"></button>
-                <figure class="relative z-10 max-h-[92vh] w-full max-w-[980px] rounded-[24px] bg-white p-3 shadow-[0_32px_100px_rgba(0,0,0,0.34)] md:p-4">
-                    <button class="absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full bg-[#0B1B33] text-white shadow-lg transition hover:bg-[#0B3F7D]" type="button" data-certification-close aria-label="<?php echo esc_attr($is_zh_about ? '关闭' : 'Close'); ?>">×</button>
-                    <img class="max-h-[78vh] w-full rounded-[18px] object-contain" src="" alt="" data-certification-lightbox-image>
+                <figure class="relative z-10 max-h-[92vh] w-full max-w-[980px] rounded bg-white p-3 shadow-card md:p-4">
+                    <button class="absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-sm bg-[#0B1B33] text-white shadow-card transition hover:bg-[#0B3F7D]" type="button" data-certification-close aria-label="<?php echo esc_attr($is_zh_about ? '关闭' : 'Close'); ?>">×</button>
+                    <img class="max-h-[78vh] w-full rounded object-contain" src="" alt="" data-certification-lightbox-image>
                     <figcaption class="px-2 pb-1 pt-3 text-center text-sm font-black text-[#0B1B33]" data-certification-lightbox-title></figcaption>
                 </figure>
             </div>
@@ -259,7 +260,7 @@ foreach (['中国徐州', 'Xuzhou, China', '起重设备制造商', 'crane manuf
     <div class="about-gallery-pin" data-gallery-pin>
         <div class="about-gallery-track flex w-max h-full items-center gap-6 px-4 md:px-8" data-gallery-track>
             <?php foreach ($facility_gallery as $index => $item) : ?>
-                <article class="about-gallery-item group relative shrink-0 overflow-hidden rounded-[22px] bg-[#E8EEF5] shadow-[0_18px_54px_rgba(11,27,51,0.08)]" data-gallery-item>
+                <article class="about-gallery-item group relative shrink-0 overflow-hidden rounded bg-[#E8EEF5] shadow-card" data-gallery-item>
                     <?php echo boblift_img_from_setting($item['image'] ?? [], 'images/factory-workshop.jpg', (string) ($item['title'] ?? 'BOB-LIFT factory view'), 'absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]', ['loading' => 'lazy', 'decoding' => 'async']); ?>
                     <div class="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(11,27,51,0.02)_0%,rgba(11,27,51,0.12)_48%,rgba(11,27,51,0.72)_100%)]"></div>
                     <div class="absolute inset-x-0 bottom-0 p-5 text-white md:p-7">
@@ -280,33 +281,33 @@ foreach (['中国徐州', 'Xuzhou, China', '起重设备制造商', 'crane manuf
     <div class="about-executive-pin flex min-h-screen items-center py-12" data-executive-pin>
         <div class="page-shell">
             <div class="about-executive-flip relative" data-executive-flip>
-                <div class="about-executive-card relative overflow-hidden rounded-[42px] border border-[#E5E7EB] bg-white p-5 shadow-[0_34px_120px_rgba(11,27,51,0.10)] md:p-7 lg:p-8 2xl:p-10" data-executive-card>
+                <div class="about-executive-card relative overflow-hidden rounded border border-[#E5E7EB] bg-white p-5 shadow-card md:p-7 lg:p-8 2xl:p-10" data-executive-card>
                 <div class="about-executive-aura pointer-events-none absolute inset-0"></div>
-                <div class="about-executive-watermark pointer-events-none absolute -right-10 top-4 text-[clamp(72px,12vw,230px)] font-black leading-none tracking-[-0.11em] text-[#0B3F7D]/[0.055]" data-executive-watermark><?php echo esc_html($about_ui['leadershipWatermark'] ?? 'LEADERSHIP'); ?></div>
+                <div class="about-executive-watermark pointer-events-none absolute -right-10 top-4 text-[clamp(72px,12vw,230px)] font-black leading-none tracking-[-0.03em] text-[#0B3F7D]/[0.055]" data-executive-watermark><?php echo esc_html($about_ui['leadershipWatermark'] ?? 'LEADERSHIP'); ?></div>
                 <div class="relative z-10 mb-6 grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-end">
                     <div data-executive-copy-item>
                         <p class="mb-4 text-xs font-black uppercase tracking-[0.42em] text-[#0B3F7D]"><?php echo esc_html($executives['label'] ?? 'Executive Leadership'); ?></p>
-                        <h2 class="max-w-none whitespace-nowrap text-[clamp(34px,4.2vw,72px)] font-black leading-[1.02] tracking-[-0.045em] text-[#0B1B33]"><?php echo esc_html($executives['title'] ?? 'Leadership Team'); ?></h2>
+                        <h2 class="max-w-none whitespace-nowrap text-[clamp(34px,4.2vw,72px)] font-black leading-[1.02] tracking-[-0.015em] text-[#0B1B33]"><?php echo esc_html($executives['title'] ?? 'Leadership Team'); ?></h2>
                     </div>
                 </div>
                 <div class="about-executive-grid relative z-10 grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:gap-5" data-executive-grid>
                     <?php foreach ($executive_members as $member) : ?>
-                        <article class="about-executive-member group grid overflow-hidden rounded-[30px] border border-[#E5E7EB] bg-white shadow-[0_22px_70px_rgba(11,27,51,0.08)] md:grid-cols-[clamp(150px,12vw,200px)_minmax(0,1fr)]" data-executive-member>
+                        <article class="about-executive-member group grid overflow-hidden rounded border border-[#E5E7EB] bg-white shadow-card md:grid-cols-[clamp(150px,12vw,200px)_minmax(0,1fr)]" data-executive-member>
                             <div class="relative aspect-square w-full overflow-hidden bg-[#EAF1F8] md:aspect-[4/5]">
                                 <?php echo boblift_img_from_setting($member['image'] ?? [], 'images/about/executives/executive-01-square.png', ($member['name'] ?? 'BOB-LIFT executive') . ' portrait', 'absolute inset-0 h-full w-full object-cover object-center transition duration-700 group-hover:scale-[1.035]', ['loading' => 'lazy', 'decoding' => 'async', 'data-executive-image' => '']); ?>
                             </div>
                             <div class="flex min-w-0 flex-col justify-center p-5 2xl:p-6">
                                 <p class="text-[11px] font-black uppercase tracking-[0.22em] text-[#2563EB]"><?php echo esc_html($member['role'] ?? ''); ?></p>
-                                <h3 class="mt-3 text-[clamp(24px,1.75vw,36px)] font-black leading-[1.04] tracking-[-0.035em] text-[#0B1B33]"><?php echo esc_html($member['name'] ?? ''); ?></h3>
+                                <h3 class="mt-3 text-[clamp(24px,1.75vw,36px)] font-black leading-[1.04] tracking-[-0.01em] text-[#0B1B33]"><?php echo esc_html($member['name'] ?? ''); ?></h3>
                             </div>
                         </article>
                     <?php endforeach; ?>
                 </div>
                 </div>
-                <div class="about-executive-photo absolute inset-0 flex flex-col overflow-hidden rounded-[42px] border border-[#DDE7F2] bg-white shadow-[0_34px_120px_rgba(11,27,51,0.12)]" data-executive-photo aria-hidden="true">
+                <div class="about-executive-photo absolute inset-0 flex flex-col overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card" data-executive-photo aria-hidden="true">
                     <div class="relative z-10 shrink-0 px-5 pb-4 pt-5 md:px-7 md:pt-7 lg:px-8 lg:pt-8 2xl:px-10 2xl:pt-10">
                         <p class="mb-4 text-xs font-black uppercase tracking-[0.42em] text-[#0B3F7D]"><?php echo esc_html($executive_team_label); ?></p>
-                        <h2 class="max-w-none whitespace-nowrap text-[clamp(34px,4.2vw,72px)] font-black leading-[1.02] tracking-[-0.045em] text-[#0B1B33]"><?php echo esc_html($executive_team_title); ?></h2>
+                        <h2 class="max-w-none whitespace-nowrap text-[clamp(34px,4.2vw,72px)] font-black leading-[1.02] tracking-[-0.015em] text-[#0B1B33]"><?php echo esc_html($executive_team_title); ?></h2>
                     </div>
                     <div class="relative min-h-0 flex-1 bg-[#F8FAFC] px-4 pb-5 md:px-7 md:pb-7 lg:px-8 lg:pb-8 2xl:px-10 2xl:pb-10">
                         <?php echo boblift_img_from_setting($executive_team_image, 'images/about/quanyuan-compressed.jpg', $executive_team_alt, 'h-full w-full object-contain object-center', ['loading' => 'lazy', 'decoding' => 'async']); ?>

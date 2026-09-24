@@ -98,7 +98,7 @@ $labels = $ui;
                         <div class="boblift-news-detail-quote-card">
                             <p class="section-label"><?php echo esc_html($labels['ctaLabel']); ?></p>
                             <h2><?php echo esc_html($labels['ctaTitle']); ?></h2>
-                            <a class="btn-primary rounded-full" href="<?php echo esc_url(boblift_url('/quote')); ?>"><?php echo esc_html($labels['ctaButton']); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4 text-gold'); ?></a>
+                            <a class="btn-primary rounded-sm" href="<?php echo esc_url(boblift_url('/contact.html#inquiry')); ?>" data-inquiry-modal-open data-inquiry-source="新闻详情"><?php echo esc_html($labels['ctaButton']); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4 text-gold'); ?></a>
                         </div>
                     </div>
                 </aside>
@@ -112,7 +112,7 @@ $labels = $ui;
                 <div class="boblift-news-detail-related">
                     <div class="mb-7 flex items-center gap-4">
                         <span class="h-9 w-1 rounded-full bg-gold"></span>
-                        <h2 class="text-3xl font-black tracking-[-0.04em] text-navy md:text-4xl"><?php echo esc_html($labels['related']); ?></h2>
+                        <h2 class="text-3xl font-black tracking-[-0.015em] text-navy md:text-4xl"><?php echo esc_html($labels['related']); ?></h2>
                     </div>
                     <div class="grid gap-7 md:grid-cols-2">
                         <?php while ($related_query->have_posts()) : $related_query->the_post();
@@ -127,7 +127,7 @@ $labels = $ui;
                                         <span class="text-blue-700"><?php $related_category = get_the_category()[0]->name ?? ($ui['news'] ?? 'News'); echo esc_html(function_exists('boblift_localized_static_text') ? boblift_localized_static_text((string) $related_category) : (string) $related_category); ?></span>
                                         <span class="text-slate-500"><?php echo esc_html(get_the_date('Y-m-d')); ?></span>
                                     </div>
-                                    <h3 class="mt-3 line-clamp-2 text-2xl font-black leading-tight tracking-[-0.035em] text-navy">
+                                    <h3 class="mt-3 line-clamp-2 text-2xl font-black leading-tight tracking-[-0.01em] text-navy">
                                         <a class="transition hover:text-blue-700" href="<?php the_permalink(); ?>"><?php echo esc_html($related_title); ?></a>
                                     </h3>
                                 </div>

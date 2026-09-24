@@ -31,7 +31,7 @@ $pagination_base = function_exists('boblift_url') ? boblift_url('/global-custome
     <div class="page-shell relative">
         <div class="mx-auto max-w-[2200px] py-6 text-center md:py-8 lg:py-10">
             <p class="section-label mb-6 justify-center"><?php echo esc_html((string) ($visits['label'] ?? 'Global Customer Visits')); ?></p>
-            <h1 class="mx-auto max-w-none text-[clamp(32px,4vw,96px)] font-black leading-[0.98] tracking-[-0.055em] text-[#0B1B33] lg:whitespace-nowrap"><?php echo esc_html((string) ($visits['title'] ?? 'Welcoming partners to see how BOB-LIFT builds.')); ?></h1>
+            <h1 class="mx-auto max-w-none text-[clamp(32px,4vw,96px)] font-black leading-[0.98] tracking-[-0.02em] text-[#0B1B33] lg:whitespace-nowrap"><?php echo esc_html((string) ($visits['title'] ?? 'Welcoming partners to see how BOB-LIFT builds.')); ?></h1>
             <p class="mx-auto mt-7 max-w-[1120px] text-sm font-semibold leading-7 text-[#64748B] md:text-base md:leading-8"><?php echo esc_html((string) ($visits['text'] ?? 'Factory visits help customers review production details, discuss lifting requirements and align the right solution before cooperation moves forward.')); ?></p>
             <?php if ($total_items > 0) : ?>
                 <p class="mt-5 text-xs font-black uppercase tracking-[0.18em] text-blue-700"><?php echo esc_html((string) $total_items); ?> <?php echo esc_html((string) ($visits['visit_count_suffix'] ?? 'Visit Photos')); ?></p>
@@ -48,7 +48,7 @@ $pagination_base = function_exists('boblift_url') ? boblift_url('/global-custome
                     $global_index = (($current_page - 1) * $per_page) + $index;
                     $is_tail_single = $grid_total % 3 === 1 && $index === $grid_total - 1;
                     ?>
-                    <figure class="group relative overflow-hidden rounded-[30px] border border-line bg-[#EEF5FF] shadow-[0_20px_64px_rgba(8,35,74,0.07)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_30px_88px_rgba(8,35,74,0.12)] <?php echo $is_tail_single ? 'lg:col-start-2' : ''; ?>">
+                    <figure class="group relative overflow-hidden rounded border border-line bg-[#EEF5FF] shadow-card transition duration-300 hover:-translate-y-1 <?php echo $is_tail_single ? 'lg:col-start-2' : ''; ?>">
                         <div class="relative aspect-[1.18/1] overflow-hidden">
                             <?php echo boblift_img_from_setting($item['image'] ?? [], 'images/factory-workshop.jpg', (string) ($item['title'] ?? $item['label'] ?? 'BOB-LIFT customer visit'), 'absolute inset-0 h-full w-full object-cover object-center transition duration-700 group-hover:scale-[1.035]', ['loading' => $global_index === 0 ? 'eager' : 'lazy', 'decoding' => 'async', 'fetchpriority' => $global_index === 0 ? 'high' : 'auto']); ?>
                         </div>
@@ -61,12 +61,12 @@ $pagination_base = function_exists('boblift_url') ? boblift_url('/global-custome
                         $url = $page === 1 ? $pagination_base : add_query_arg('visit_page', $page, $pagination_base);
                         $active = $page === $current_page;
                         ?>
-                        <a class="inline-flex h-11 min-w-11 items-center justify-center rounded-full border px-4 text-sm font-black transition <?php echo $active ? 'border-navy bg-navy text-white shadow-[0_14px_30px_rgba(8,35,74,0.18)]' : 'border-line bg-white text-ink hover:-translate-y-0.5 hover:border-blue-200 hover:text-blue-700'; ?>" href="<?php echo esc_url($url); ?>" <?php echo $active ? 'aria-current="page"' : ''; ?>><?php echo esc_html((string) $page); ?></a>
+                        <a class="inline-flex h-11 min-w-11 items-center justify-center rounded-sm border px-4 text-sm font-black transition <?php echo $active ? 'border-navy bg-navy text-white shadow-card' : 'border-line bg-white text-ink hover:-translate-y-0.5 hover:border-blue-200 hover:text-blue-700'; ?>" href="<?php echo esc_url($url); ?>" <?php echo $active ? 'aria-current="page"' : ''; ?>><?php echo esc_html((string) $page); ?></a>
                     <?php endfor; ?>
                 </nav>
             <?php endif; ?>
         <?php else : ?>
-            <div class="rounded-[30px] border border-line bg-[#F8FAFC] p-8 text-center">
+            <div class="rounded border border-line bg-[#F8FAFC] p-8 text-center">
                 <p class="text-base font-bold text-slate-600"><?php echo esc_html((string) ($visits['empty_text'] ?? 'No customer visit photos have been added yet.')); ?></p>
             </div>
         <?php endif; ?>

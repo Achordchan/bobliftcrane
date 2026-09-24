@@ -64,6 +64,7 @@ function boblift_inquiry_columns(array $columns): array
         'inquiry_contact' => '联系方式',
         'inquiry_product' => '意向产品',
         'inquiry_country' => '国家',
+        'inquiry_source' => '来源',
         'inquiry_date' => '提交时间',
     ];
 }
@@ -85,6 +86,16 @@ function boblift_inquiry_column_content(string $column, int $post_id): void
     }
     if ($column === 'inquiry_product') {
         echo esc_html((string) get_post_meta($post_id, '_product', true));
+        return;
+    }
+    if ($column === 'inquiry_source') {
+        $entry = (string) get_post_meta($post_id, '_source_entry', true);
+        $page = (string) get_post_meta($post_id, '_source_page', true);
+        $path = $page !== '' ? (string) wp_parse_url($page, PHP_URL_PATH) : '';
+        echo esc_html($entry !== '' ? $entry : '—');
+        if ($path !== '') {
+            echo '<br><a href="' . esc_url($page) . '" target="_blank" rel="noopener">' . esc_html(rawurldecode($path)) . '</a>';
+        }
         return;
     }
     if ($column === 'inquiry_country') {
@@ -848,6 +859,8 @@ function boblift_inquiry_meta_box(WP_Post $post): void
         'contact_method' => '期望联系方式',
         'preferred_contact_time' => '期望联系时间',
         'other_requirements' => '其他需求',
+        'source_entry' => '来源入口',
+        'source_page' => '来源页面',
     ];
     $copy_lines = [];
     foreach ($labels as $key => $label) {

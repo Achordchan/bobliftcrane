@@ -66,7 +66,7 @@ $related_query = new WP_Query([
                         <?php if ($meta_badges) : ?>
                             <div class="mt-7 flex flex-wrap items-center gap-2">
                                 <?php foreach ($meta_badges as $badge) : ?>
-                                    <span class="rounded-full border border-line bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-slate-600 shadow-[0_10px_24px_rgba(8,35,74,0.04)]"><?php echo esc_html($badge); ?></span>
+                                    <span class="rounded-sm border border-line bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-slate-600 shadow-card"><?php echo esc_html($badge); ?></span>
                                 <?php endforeach; ?>
                             </div>
                         <?php endif; ?>
@@ -128,7 +128,7 @@ $related_query = new WP_Query([
                         <div class="boblift-news-detail-quote-card">
                             <p class="section-label"><?php echo esc_html($ui['projectSupportLabel'] ?? 'Project Support'); ?></p>
                             <h2><?php echo esc_html($ui['discussSimilarLabel'] ?? 'Discuss Similar Project'); ?></h2>
-                            <a class="btn-primary rounded-full" href="<?php echo esc_url(boblift_url('/quote')); ?>"><?php echo esc_html($ui['discussSimilarLabel'] ?? 'Discuss Similar Project'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4 text-gold'); ?></a>
+                            <a class="btn-primary rounded-sm" href="<?php echo esc_url(boblift_url($product_name !== '' ? '/contact.html?product=' . rawurlencode($product_name) . '#inquiry' : '/contact.html#inquiry')); ?>" data-inquiry-modal-open data-inquiry-source="案例详情"<?php echo $product_name !== '' ? ' data-inquiry-product="' . esc_attr($product_name) . '"' : ''; ?>><?php echo esc_html($ui['discussSimilarLabel'] ?? 'Discuss Similar Project'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4 text-gold'); ?></a>
                         </div>
                     </div>
                 </aside>
@@ -142,7 +142,7 @@ $related_query = new WP_Query([
                 <div class="boblift-news-detail-related">
                     <div class="mb-7 flex items-center gap-4">
                         <span class="h-9 w-1 rounded-full bg-gold"></span>
-                        <h2 class="text-3xl font-black tracking-[-0.04em] text-navy md:text-4xl"><?php echo esc_html($ui['relatedCasesLabel'] ?? 'Related Cases'); ?></h2>
+                        <h2 class="text-3xl font-black tracking-[-0.015em] text-navy md:text-4xl"><?php echo esc_html($ui['relatedCasesLabel'] ?? 'Related Cases'); ?></h2>
                     </div>
                     <div class="grid gap-7 md:grid-cols-2">
                         <?php while ($related_query->have_posts()) : $related_query->the_post();
@@ -157,7 +157,7 @@ $related_query = new WP_Query([
                                     <div class="flex flex-wrap items-center gap-4 text-xs font-black uppercase tracking-[0.14em]">
                                         <span class="text-blue-700"><?php echo esc_html($localize_case_text($related_type !== '' ? $related_type : (string) ($ui['defaultTypeLabel'] ?? 'Customer Case'))); ?></span>
                                     </div>
-                                    <h3 class="mt-3 line-clamp-2 text-2xl font-black leading-tight tracking-[-0.035em] text-navy">
+                                    <h3 class="mt-3 line-clamp-2 text-2xl font-black leading-tight tracking-[-0.01em] text-navy">
                                         <a class="transition hover:text-blue-700" href="<?php the_permalink(); ?>"><?php echo esc_html($related_title); ?></a>
                                     </h3>
                                 </div>

@@ -20,8 +20,18 @@ function boblift_sitemap_pages(): array
         'sort_column' => 'menu_order,post_title',
         'sort_order' => 'ASC',
         'post_status' => 'publish',
+        'exclude' => function_exists('boblift_utility_page_ids') ? boblift_utility_page_ids() : [],
     ]);
-    return array_values(array_filter($pages, static fn($page): bool => $page instanceof WP_Post));
+    $pages = array_values(array_filter($pages, static fn($page): bool => $page instanceof WP_Post));
+
+    // Home first, then the rest in menu order.
+    $front_id = (int) get_option('page_on_front');
+    if ($front_id > 0 && function_exists('pll_get_post')) {
+        $front_id = (int) (pll_get_post($front_id) ?: $front_id);
+    }
+    usort($pages, static fn(WP_Post $a, WP_Post $b): int => (int) ($a->ID !== $front_id) <=> (int) ($b->ID !== $front_id));
+
+    return $pages;
 }
 
 function boblift_sitemap_posts(string $post_type, int $limit = 120): array
@@ -60,15 +70,15 @@ function boblift_render_sitemap_block(string $title, array $links, string $colum
         return;
     }
     ?>
-    <section class="rounded-[30px] border border-line bg-white p-6 shadow-[0_16px_42px_rgba(8,35,74,0.055)] md:p-8">
+    <section class="rounded border border-line bg-white p-6 shadow-card md:p-8">
         <div class="mb-5 flex items-center justify-between gap-4">
-            <h2 class="text-2xl font-black tracking-[-0.035em] text-navy"><?php echo esc_html($title); ?></h2>
-            <span class="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-black text-blue-700"><?php echo esc_html((string) count($links)); ?></span>
+            <h2 class="text-2xl font-black tracking-[-0.01em] text-navy"><?php echo esc_html($title); ?></h2>
+            <span class="rounded-sm border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-black text-blue-700"><?php echo esc_html((string) count($links)); ?></span>
         </div>
         <ul class="grid gap-2 <?php echo esc_attr($columns); ?>">
             <?php foreach ($links as [$label, $url]) : ?>
                 <li>
-                    <a class="group flex min-h-11 items-center justify-between gap-4 rounded-2xl px-3 py-2 text-sm font-bold leading-6 text-slate-600 transition hover:bg-blue-50 hover:text-blue-700" href="<?php echo esc_url((string) $url); ?>">
+                    <a class="group flex min-h-11 items-center justify-between gap-4 rounded-sm px-3 py-2 text-sm font-bold leading-6 text-slate-600 transition hover:bg-blue-50 hover:text-blue-700" href="<?php echo esc_url((string) $url); ?>">
                         <span class="min-w-0"><?php echo esc_html((string) $label); ?></span>
                         <span class="shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-blue-600" aria-hidden="true">›</span>
                     </a>
@@ -93,10 +103,10 @@ $total_links = count($core_pages) + count($product_categories) + count($products
             <p class="section-label mb-5"><?php echo esc_html((string) ($sitemap_ui['label'] ?? 'HTML Sitemap')); ?></p>
             <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
                 <div>
-                    <h1 class="max-w-5xl text-[clamp(38px,6vw,78px)] font-black leading-[1.02] tracking-[-0.06em] text-navy"><?php echo esc_html((string) ($sitemap_ui['title'] ?? 'Find BOB-LIFT pages quickly.')); ?></h1>
+                    <h1 class="max-w-5xl text-[clamp(38px,6vw,78px)] font-black leading-[1.02] tracking-[-0.02em] text-navy"><?php echo esc_html((string) ($sitemap_ui['title'] ?? 'Find BOB-LIFT pages quickly.')); ?></h1>
                     <p class="mt-6 max-w-3xl text-base font-semibold leading-8 text-slate-600 md:text-lg"><?php echo esc_html((string) ($sitemap_ui['description'] ?? 'Browse main pages, product ranges, news and customer cases from one structured index.')); ?></p>
                 </div>
-                <div class="grid w-fit grid-cols-2 overflow-hidden rounded-[26px] border border-blue-100 bg-white shadow-[0_16px_42px_rgba(8,35,74,0.06)]">
+                <div class="grid w-fit grid-cols-2 overflow-hidden rounded border border-blue-100 bg-white shadow-card">
                     <div class="border-r border-blue-100 px-6 py-5 text-center">
                         <span class="block text-3xl font-black text-navy"><?php echo esc_html((string) $total_links); ?></span>
                         <span class="mt-1 block text-[11px] font-black uppercase tracking-[0.16em] text-slate-400"><?php echo esc_html((string) ($sitemap_ui['links_label'] ?? 'Links')); ?></span>
@@ -114,13 +124,13 @@ $total_links = count($core_pages) + count($product_categories) + count($products
         <div class="grid gap-8">
             <?php boblift_render_sitemap_block((string) ($sitemap_ui['core_pages_title'] ?? 'Core Pages'), $core_pages, 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'); ?>
 
-            <section class="rounded-[34px] border border-blue-100 bg-[linear-gradient(135deg,#ffffff_0%,#f8fbff_100%)] p-6 shadow-[0_18px_48px_rgba(8,35,74,0.06)] md:p-8">
+            <section class="rounded border border-blue-100 bg-[linear-gradient(135deg,#ffffff_0%,#f8fbff_100%)] p-6 shadow-card md:p-8">
                 <div class="mb-7 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                     <div>
                         <p class="section-label mb-3"><?php echo esc_html((string) ($sitemap_ui['product_range_label'] ?? 'Product Range')); ?></p>
-                        <h2 class="text-3xl font-black tracking-[-0.045em] text-navy md:text-4xl"><?php echo esc_html((string) ($sitemap_ui['product_range_title'] ?? 'Products and categories')); ?></h2>
+                        <h2 class="text-3xl font-black tracking-[-0.015em] text-navy md:text-4xl"><?php echo esc_html((string) ($sitemap_ui['product_range_title'] ?? 'Products and categories')); ?></h2>
                     </div>
-                    <a class="inline-flex w-fit rounded-full border border-blue-100 bg-white px-5 py-3 text-sm font-black text-navy transition hover:bg-blue-50 hover:text-blue-700" href="<?php echo esc_url(boblift_url('/products.html')); ?>"><?php echo esc_html((string) ($sitemap_ui['view_products_label'] ?? 'View Products')); ?></a>
+                    <a class="inline-flex w-fit rounded-sm border border-blue-100 bg-white px-5 py-3 text-sm font-black text-navy transition hover:bg-blue-50 hover:text-blue-700" href="<?php echo esc_url(boblift_url('/products.html')); ?>"><?php echo esc_html((string) ($sitemap_ui['view_products_label'] ?? 'View Products')); ?></a>
                 </div>
                 <div class="grid gap-6">
                     <?php boblift_render_sitemap_block((string) ($sitemap_ui['product_categories_title'] ?? 'Product Categories'), $product_categories, 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'); ?>
@@ -134,14 +144,6 @@ $total_links = count($core_pages) + count($product_categories) + count($products
             </div>
 
             <?php boblift_render_sitemap_block((string) ($sitemap_ui['cases_title'] ?? 'Cases'), $cases, 'sm:grid-cols-2 lg:grid-cols-3'); ?>
-
-            <aside class="rounded-[30px] border border-blue-100 bg-blue-50/55 p-6 text-sm font-semibold leading-7 text-slate-600 md:p-8">
-                <h2 class="text-xl font-black tracking-[-0.03em] text-navy"><?php echo esc_html((string) ($sitemap_ui['help_title'] ?? 'How this updates')); ?></h2>
-                <div class="mt-3 grid gap-3 md:grid-cols-2">
-                    <p><strong class="text-navy"><?php echo esc_html((string) ($sitemap_ui['html_note_label'] ?? 'HTML Sitemap:')); ?></strong> <?php echo esc_html((string) ($sitemap_ui['html_note'] ?? 'generated from WordPress queries, so published pages, products, news and cases appear automatically.')); ?></p>
-                    <p><strong class="text-navy"><?php echo esc_html((string) ($sitemap_ui['xml_note_label'] ?? 'XML Sitemap:')); ?></strong> <a class="font-black text-blue-700 hover:text-blue-800" href="<?php echo esc_url(home_url('/sitemap.xml')); ?>">/sitemap.xml</a> <?php echo esc_html((string) ($sitemap_ui['xml_note'] ?? 'uses WordPress Core, or a mature SEO plugin such as Yoast SEO or Rank Math on production.')); ?></p>
-                </div>
-            </aside>
         </div>
     </section>
 </div>

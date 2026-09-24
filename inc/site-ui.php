@@ -181,7 +181,7 @@ function boblift_site_ui_defaults(?string $section = null): array
         'contactPage' => [
             'heroLabel' => 'Contact Us',
             'heroTitle' => 'Talk to BOB-LIFT before choosing a crane.',
-            'heroDescription' => 'For model selection, site access matching, marine installation and export questions, use the direct contact channels or create a structured inquiry draft.',
+            'heroDescription' => 'For model selection, site access matching, marine installation and export questions, use the direct contact channels or send an inquiry below.',
             'heroImage' => 'images/global-network-blue.jpg',
             'heroImageAlt' => 'BOB-LIFT contact support',
             'cardLabels' => ['email' => 'Email', 'phone' => 'Phone', 'whatsapp' => 'WhatsApp', 'address' => 'Address'],
@@ -210,7 +210,7 @@ function boblift_site_ui_defaults(?string $section = null): array
             'workflowTitle' => 'Fill once, send through your preferred channel.',
             'workflowItems' => [
                 ['iconName' => 'file-text', 'title' => 'Describe requirement', 'text' => 'Model, quantity, load and working radius.'],
-                ['iconName' => 'mail-check', 'title' => 'Create inquiry draft', 'text' => 'Your details become a clean quotation message.'],
+                ['iconName' => 'mail-check', 'title' => 'Send your inquiry', 'text' => 'Your details become a clean quotation message.'],
                 ['iconName' => 'message-circle', 'title' => 'Send by Email or WhatsApp', 'text' => 'You control the final sending channel.'],
             ],
             'productLinkLabel' => 'Need to choose a model first?',
@@ -222,14 +222,14 @@ function boblift_site_ui_defaults(?string $section = null): array
             'badge' => '24h reply',
             'modalLabel' => 'Contact BOB-LIFT',
             'modalTitle' => 'Send your inquiry',
-            'submitLabel' => 'Inquiry',
+            'submitLabel' => 'Send Inquiry',
             'sideLabel' => 'BOB-LIFT Inquiry',
             'sideTitle' => 'Tell us what you need to lift.',
             'sideDescription' => 'Share your contact details and working conditions. Our team will turn it into a clear quotation request.',
             'privacyBubbleText' => 'We strictly protect your privacy information.',
             'fieldRequiredLabel' => 'Required',
             'closeLabel' => 'Close inquiry form',
-            'successInlineText' => 'Inquiry saved. Our team will contact you soon.',
+            'successInlineText' => 'Inquiry sent. Our team will contact you soon.',
             'defaultInquiryText' => 'Hello BOB-LIFT, I would like to request a quotation.',
             'inquirySubject' => 'BOB-LIFT quotation request',
             'selectedProductsLabel' => 'Selected products',
@@ -272,18 +272,18 @@ function boblift_site_ui_defaults(?string $section = null): array
                 'preferred_contact_time' => 'Preferred contact time',
                 'other_requirements' => 'Other requirements',
             ],
-            'buttons' => ['save' => 'Save Inquiry Draft', 'saving' => 'Saving Inquiry...', 'email' => 'Send Email', 'whatsapp' => 'WhatsApp'],
+            'buttons' => ['save' => 'Send Inquiry', 'saving' => 'Sending...', 'email' => 'Send Email', 'whatsapp' => 'WhatsApp'],
             'messages' => [
-                'successTitle' => 'Inquiry saved in the admin.',
-                'successText' => 'Use Email or WhatsApp if you also want to send the draft through your preferred app.',
+                'successTitle' => 'Inquiry received.',
+                'successText' => 'Our team will contact you soon. For anything urgent, use Email or WhatsApp.',
                 'requiredFields' => 'Please enter a valid email address and project details.',
                 'verificationRequired' => 'Please complete the verification and try again.',
                 'verificationLoading' => 'Loading verification...',
                 'verificationSubmitAgain' => 'Please complete the verification and submit again.',
                 'verificationLoadFailed' => 'Verification could not be loaded. Please try again.',
-                'saving' => 'Saving your inquiry...',
+                'saving' => 'Sending your inquiry...',
                 'serverInvalid' => 'The server returned an invalid response. Please refresh and try again.',
-                'saveFailed' => 'The inquiry could not be saved. Please try again.',
+                'saveFailed' => 'The inquiry could not be sent. Please try again.',
                 'invalidRequest' => 'Invalid inquiry request. Please refresh and try again.',
                 'mailSubject' => 'New BOB-LIFT inquiry',
             ],
@@ -339,9 +339,9 @@ function boblift_site_ui_defaults(?string $section = null): array
             'heroDescription' => 'Stay informed with the latest updates from BOB-LIFT, including product innovations, company news, and industry insights.',
             'heroImage' => 'images/factory-workshop.jpg',
             'allLabel' => 'All',
-            'countriesValue' => '80+',
+            'countriesValue' => '120+',
             'countriesLabel' => 'Countries Served',
-            'yearsValue' => '20+',
+            'yearsValue' => '35+',
             'yearsLabel' => 'Years of Expertise',
             'featuredUpdatesLabel' => 'Featured Updates',
             'readFeaturedLabel' => 'Read Featured',
@@ -773,7 +773,7 @@ function boblift_render_floating_contact_button(array $button, array $contact, a
             ];
             $inquiry_attrs = ' data-inquiry-product="' . esc_attr($product_title) . '" data-inquiry-product-slug="' . esc_attr($product_slug) . '" data-inquiry-products="' . esc_attr((string) wp_json_encode([$product_item], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) . '"';
         }
-        echo '<button class="group relative inline-flex h-10 items-center justify-center gap-2 overflow-hidden rounded-full bg-navy px-4 text-sm font-black text-white shadow-[0_12px_28px_rgba(8,35,74,0.18)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#0b2d5b] sm:h-11 lg:size-12 lg:rounded-2xl lg:px-0" type="button" data-inquiry-modal-open' . $inquiry_attrs . ' aria-label="' . esc_attr($aria_label) . '"><span class="absolute inset-x-2 top-0 h-px bg-gradient-to-r from-transparent via-gold/80 to-transparent"></span><span class="relative z-10 lg:hidden">' . esc_html($label) . '</span><span class="relative z-10">' . boblift_floating_contact_icon($button, 'h-4 w-4') . '</span></button>';
+        echo '<button class="group relative inline-flex h-10 items-center justify-center gap-2 overflow-hidden rounded-sm bg-navy px-4 text-sm font-black text-white shadow-card transition duration-300 hover:-translate-y-0.5 hover:bg-[#0b2d5b] sm:h-11 min-[1780px]:size-12 min-[1780px]:px-0" type="button" data-inquiry-modal-open data-inquiry-source="浮动联系按钮"' . $inquiry_attrs . ' aria-label="' . esc_attr($aria_label) . '"><span class="absolute inset-x-2 top-0 h-px bg-gradient-to-r from-transparent via-gold/80 to-transparent"></span><span class="relative z-10 min-[1780px]:hidden">' . esc_html($label) . '</span><span class="relative z-10">' . boblift_floating_contact_icon($button, 'h-4 w-4') . '</span></button>';
         return;
     }
 
@@ -826,27 +826,20 @@ function boblift_product_interest_options(): array
     }
 
     $skip_slugs = [];
+    $group_titles = [];
     $items = [];
     $groups = function_exists('boblift_product_category_group_definitions') ? boblift_product_category_group_definitions() : [];
     foreach ($groups as $group) {
         foreach (($group['children'] ?? []) as $child_slug) {
             $skip_slugs[(string) $child_slug] = true;
         }
-        $slug = (string) ($group['slug'] ?? '');
-        $title = $localized_category_title($slug, (string) ($group['title'] ?? ($category_map[$slug]['title'] ?? '')));
-        if ($slug !== '' && $title !== '') {
-            $items[$slug] = [
-                'key' => $slug,
-                'label' => $title,
-                'value' => $title,
-                'slug' => $slug,
-            ];
-        }
+        $group_titles[(string) ($group['slug'] ?? '')] = (string) ($group['title'] ?? '');
     }
 
+    usort($categories, static fn(array $a, array $b): int => ((int) ($a['sort'] ?? 100)) <=> ((int) ($b['sort'] ?? 100)));
     foreach ($categories as $category) {
         $slug = (string) ($category['slug'] ?? '');
-        $title = $localized_category_title($slug, (string) ($category['title'] ?? ''));
+        $title = $localized_category_title($slug, (string) (($group_titles[$slug] ?? '') ?: ($category['title'] ?? '')));
         if ($slug === '' || $title === '' || isset($skip_slugs[$slug]) || isset($items[$slug])) {
             continue;
         }

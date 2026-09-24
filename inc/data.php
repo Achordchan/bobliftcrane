@@ -66,8 +66,8 @@ function boblift_product_archive_defaults(): array
 {
     return [
         'label' => 'BOB-LIFT Product Range',
-        'title' => 'Construction Equipment',
-        'text' => 'Explore reliable BOB-LIFT lifting and construction machinery for global projects.',
+        'title' => 'Cranes & Lifting Equipment',
+        'text' => 'Explore BOB-LIFT truck mounted cranes, marine cranes and lifting equipment for global projects.',
         'image' => boblift_image_option('images/products/truck-mounted-crane.png'),
         'image_alt' => 'BOB-LIFT truck mounted crane',
         'watermark' => 'BOB-LIFT',
@@ -344,11 +344,6 @@ function boblift_sitemap_page_defaults(): array
         'news_categories_title' => 'News Categories',
         'news_title' => 'News',
         'cases_title' => 'Cases',
-        'help_title' => 'How this updates',
-        'html_note_label' => 'HTML Sitemap:',
-        'html_note' => 'generated from WordPress queries, so published pages, products, news and cases appear automatically.',
-        'xml_note_label' => 'XML Sitemap:',
-        'xml_note' => 'use WordPress Core at /sitemap.xml, or a mature SEO plugin such as Yoast SEO or Rank Math on production.',
     ];
 }
 
@@ -380,7 +375,7 @@ function boblift_about_page_defaults(): array
         'strength' => [
             'label' => 'Company Profile',
             'title' => 'BOB-LIFT is a crane manufacturer based in Xuzhou, China.',
-            'text' => 'Xuzhou BOB-LIFT Construction Machinery Co., Ltd. designs, manufactures and exports truck-mounted cranes and related lifting equipment from a 40,000㎡ manufacturing base in Xuzhou, Jiangsu, China. Our core products include truck-mounted cranes, marine cranes, aerial work platforms, pickup cranes and spider cranes for overseas B2B projects.',
+            'text' => 'Xuzhou BOB-LIFT Construction Machinery Co., Ltd. designs, manufactures and exports truck-mounted cranes and related lifting equipment from a 37,000㎡ manufacturing base in Xuzhou, Jiangsu, China. Our core products include truck-mounted cranes, marine cranes, aerial work platforms, pickup cranes and spider cranes for overseas B2B projects.',
         ],
         'certifications' => [
             'label' => 'International Certifications',
@@ -395,9 +390,9 @@ function boblift_about_page_defaults(): array
         ],
         'global_footprint' => [
             'stats' => [
-                ['number' => '80', 'suffix' => '+', 'label' => 'Countries Exported'],
-                ['number' => '15', 'suffix' => '+', 'label' => 'Years Experience'],
-                ['number' => '5000', 'suffix' => '+', 'label' => 'Units Delivered'],
+                ['number' => '120', 'suffix' => '+', 'label' => 'Countries Exported'],
+                ['number' => '35', 'suffix' => '+', 'label' => 'Years Experience'],
+                ['number' => '9999', 'suffix' => '+', 'label' => 'Cranes Exported'],
             ],
         ],
         'timeline' => [
@@ -430,7 +425,7 @@ function boblift_about_page_defaults(): array
         'manufacturing_gallery' => [
             'label' => 'Modern Manufacturing Base',
             'title' => 'Intelligent Production.',
-            'text' => 'Experience our state-of-the-art 40,000 sqm facility where precision engineering meets rigorous quality control.',
+            'text' => 'Experience our state-of-the-art 37,000 sqm facility where precision engineering meets rigorous quality control.',
             'items' => [
                 ['image' => boblift_image_option('images/factory-workshop.jpg'), 'title' => 'Precision Workshop', 'text' => 'Structured production flow for crane welding, assembly and inspection.'],
                 ['image' => boblift_image_option('images/oldsite/news/enter-the-bob-lift-factory-with-professional-manufacturing.jpg'), 'title' => 'Manufacturing Process', 'text' => 'Factory operations built around stable output and repeatable quality.'],
@@ -642,12 +637,22 @@ function boblift_product_category_group_definitions(): array
         [
             'slug' => 'truck-mounted-crane',
             'title' => 'Truck Mounted Crane',
-            'children' => ['telescopic-boom-truck-mounted-cranes', 'knuckle-boom-truck-mounted-cranes'],
+            'children' => ['telescopic-boom-truck-mounted-cranes', 'knuckle-boom-truck-mounted-cranes', 'pickup-cranes'],
         ],
         [
             'slug' => 'marine-crane',
             'title' => 'Marine Crane',
             'children' => ['knuckle-boom-marine-cranes', 'telescopic-boom-marine-cranes'],
+        ],
+        [
+            'slug' => 'aerial-work-platform',
+            'title' => 'Aerial Work Platform',
+            'children' => ['truck-mounted-aerial-work-platform'],
+        ],
+        [
+            'slug' => 'other-cranes',
+            'title' => 'Other Cranes',
+            'children' => ['spider-cranes', 'timber-cranes'],
         ],
     ];
 }
