@@ -14,59 +14,79 @@ $quote_list_ui = function_exists('boblift_site_ui') ? boblift_site_ui('quoteList
 ?>
 </main>
 <?php if ($show_cta) : ?>
-<section id="quote" class="boblift-final-cta mx-auto my-10 w-[calc(100%_-_32px)] overflow-hidden rounded border border-[#d6e2ef] bg-navy shadow-card md:my-16 md:w-[calc(100%_-_96px)] ">
-    <div class="boblift-final-cta-frame relative min-h-[270px] md:min-h-[330px]">
-        <?php echo boblift_img_from_setting($cta['image'] ?? 'images/cta-lift-photo.png', 'images/cta-lift-photo.png', '', 'absolute inset-0 h-full w-full object-cover object-center', ['loading' => 'lazy', 'decoding' => 'async', 'sizes' => '(min-width: 3840px) 3200px, (min-width: 1921px) 83vw, 1600px']); ?>
-        <div class="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,31,66,0.98)_0%,rgba(7,31,66,0.88)_28%,rgba(7,31,66,0.46)_58%,rgba(247,251,255,0.18)_100%)]"></div>
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_78%_18%,rgba(255,255,255,0.36),transparent_32%)]"></div>
-        <div class="boblift-final-cta-content relative flex min-h-[270px] items-center px-6 py-8 text-white md:min-h-[330px] md:px-12 lg:px-16">
+<section id="quote" class="boblift-final-cta page-shell my-10 overflow-hidden rounded border border-[#d6e2ef] bg-navy shadow-card md:my-16">
+    <div class="boblift-final-cta-frame relative min-h-[270px] md:min-h-[330px] 2xl:min-h-[360px]">
+        <div class="boblift-final-cta-media absolute inset-y-0 right-0 w-full md:w-[min(72%,990px)] 2xl:w-[min(66%,1080px)]">
+            <img class="h-full w-full object-cover object-[72%_center] md:object-right" src="<?php echo esc_url(boblift_page_hero_image_setting($cta['image'] ?? [], 'images/page-heroes/site-dusk.webp')); ?>" alt="" loading="lazy" decoding="async">
+        </div>
+        <div class="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,31,66,0.94)_0%,rgba(7,31,66,0.78)_45%,rgba(7,31,66,0.35)_100%)] md:hidden"></div>
+        <div class="boblift-final-cta-content relative flex min-h-[270px] items-center px-6 py-8 text-white md:min-h-[330px] md:px-12 lg:px-16 2xl:min-h-[360px]">
             <div class="boblift-final-cta-copy max-w-none">
-                <p class="boblift-final-cta-label mb-5 text-[11px] font-black uppercase tracking-[0.34em] text-white/90"><?php echo esc_html($cta['label'] ?? 'Project Consultation'); ?></p>
-                <h2 class="boblift-final-cta-title max-w-none text-[clamp(34px,5.2vw,76px)] font-semibold leading-[0.95] tracking-[-0.015em] whitespace-nowrap"><?php echo esc_html($cta['title'] ?? 'Need a Lifting Solution?'); ?></h2>
-                <div class="boblift-final-cta-actions mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8">
-                    <button class="boblift-final-cta-button inline-flex h-[58px] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-sm border border-transparent bg-gold bg-clip-padding px-8 text-base font-black text-white shadow-card outline-none transition-all hover:-translate-y-0.5 hover:bg-gold" type="button" data-inquiry-modal-open data-inquiry-source="页脚询价横幅"><?php echo esc_html($cta['button_label'] ?? 'Request a Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
-                    <span class="hidden h-10 w-px bg-white/30 sm:block"></span>
-                    <a class="boblift-final-cta-email inline-flex items-center gap-3 text-base font-semibold text-white/90 transition hover:text-white" href="mailto:<?php echo esc_attr($email); ?>"><?php echo boblift_icon('mail', 'h-5 w-5', '1.8'); ?><?php echo esc_html($email); ?></a>
+                <p class="boblift-final-cta-label mb-4 text-xs font-black uppercase tracking-[0.18em] text-white/75"><?php echo esc_html($cta['label'] ?? 'Project Consultation'); ?></p>
+                <h2 class="boblift-final-cta-title max-w-none text-[clamp(2rem,3vw,3.75rem)] font-black leading-[1.02] tracking-[-0.02em]"><?php echo esc_html($cta['title'] ?? 'Need a Lifting Solution?'); ?></h2>
+                <div class="boblift-final-cta-actions mt-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8">
+                    <button class="boblift-final-cta-button inline-flex h-[54px] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-sm bg-gold px-7 text-base font-black text-white outline-none transition hover:brightness-95 focus-visible:ring-2 focus-visible:ring-white/70" type="button" data-inquiry-modal-open data-inquiry-source="页脚询价横幅"><?php echo esc_html($cta['button_label'] ?? 'Request a Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
+                    <span class="hidden h-10 w-px bg-white/25 sm:block"></span>
+                    <a class="boblift-final-cta-email inline-flex items-center gap-3 text-base font-semibold text-white/85 transition hover:text-white" href="mailto:<?php echo esc_attr($email); ?>"><?php echo boblift_icon('mail', 'h-5 w-5', '1.8'); ?><?php echo esc_html($email); ?></a>
                 </div>
             </div>
         </div>
     </div>
 </section>
 <?php endif; ?>
-<footer class="border-t border-[#d8e3ef] bg-[linear-gradient(180deg,#ffffff_0%,#f6f9ff_45%,#edf5ff_100%)] pb-32 pt-0 lg:pb-0">
+<?php
+$site_host = (string) wp_parse_url(home_url('/'), PHP_URL_HOST);
+// Social links still pointing back to this site are placeholders; they stay hidden until a real profile URL is saved.
+$footer_social_links = array_values(array_filter(is_array($footer['social_links'] ?? null) ? $footer['social_links'] : [], static function ($link) use ($site_host): bool {
+    $host = is_array($link) ? (string) wp_parse_url(trim((string) ($link['href'] ?? '')), PHP_URL_HOST) : '';
+    return $host !== '' && strcasecmp($host, $site_host) !== 0;
+}));
+$footer_link_groups = array_map(static function (array $group): array {
+    if (boblift_footer_is_product_group($group)) {
+        $group['links'] = array_map(static fn(array $family): array => ['label' => $family['title'], 'url' => $family['url']], boblift_product_menu_families());
+    }
+    return $group;
+}, array_values(array_filter(is_array($footer['groups'] ?? null) ? $footer['groups'] : [], 'is_array')));
+?>
+<footer class="border-t border-line bg-mist pb-[calc(76px+env(safe-area-inset-bottom))] pt-0 lg:pb-0">
     <div class="page-shell max-w-[2200px]">
-        <div class="grid grid-cols-1 gap-0 py-10 md:grid-cols-[0.92fr_1.08fr] md:gap-y-10 md:py-14 xl:grid-cols-[minmax(300px,0.95fr)_minmax(0,1.65fr)_minmax(340px,0.95fr)] xl:gap-y-0 xl:py-20 2xl:grid-cols-[minmax(360px,0.9fr)_minmax(0,1.75fr)_minmax(390px,0.95fr)] 2xl:py-24">
-            <div class="border-b border-[#dbe6f2] pb-8 md:border-b-0 md:pr-9 xl:pr-12 2xl:pr-16">
-                <a href="<?php echo esc_url(home_url('/')); ?>"><?php echo boblift_img_from_setting($branding['logo'] ?? 'images/bob-lift-logo.png', 'images/bob-lift-logo.png', $branding['logo_alt'] ?? 'BOB-LIFT', 'h-[56px] w-auto 2xl:h-[72px]'); ?></a>
-                <p class="mt-6 max-w-[34rem] text-sm font-medium leading-6 text-slate-500 md:max-w-[360px] md:text-base md:leading-7 2xl:mt-8 2xl:max-w-[460px] 2xl:text-lg 2xl:leading-8"><?php echo esc_html($footer['intro'] ?? 'Engineered lifting solutions for global projects. Built to lift. Built to last.'); ?></p>
-                <div class="mt-6 flex flex-wrap gap-3 2xl:mt-8 2xl:gap-4">
-                    <?php foreach ($footer['social_links'] ?? [] as $link) : $label = strtolower((string) ($link['label'] ?? '')); ?>
-                        <a class="group grid h-11 w-11 place-items-center rounded-sm border border-[#dfe8f2] bg-white shadow-card transition duration-300 hover:-translate-y-0.5 hover:border-blue-200 2xl:h-12 2xl:w-12" href="<?php echo esc_url(boblift_url($link['href'] ?? '/contact')); ?>" aria-label="<?php echo esc_attr($link['label'] ?? 'Social'); ?>">
-                            <?php if (str_contains($label, 'linkedin')) : ?><span class="grid h-6 w-6 place-items-center rounded-sm bg-[#0A66C2] text-[13px] font-black leading-none text-white">in</span><?php elseif (str_contains($label, 'youtube')) : ?><span class="relative h-[18px] w-[26px] rounded-sm bg-[#FF0000]"><span class="absolute left-[10px] top-1/2 h-0 w-0 -translate-y-1/2 border-y-[5px] border-l-[8px] border-y-transparent border-l-white"></span></span><?php elseif (str_contains($label, 'facebook')) : ?><span class="grid h-6 w-6 place-items-center rounded-sm bg-[#1877F2] font-serif text-[19px] font-black leading-none text-white">f</span><?php else : ?><span class="text-xs font-black uppercase text-navy"><?php echo esc_html(substr((string) ($link['label'] ?? 'SN'), 0, 2)); ?></span><?php endif; ?>
-                        </a>
-                    <?php endforeach; ?>
-                </div>
+        <div class="grid grid-cols-1 gap-0 py-10 md:grid-cols-[0.92fr_1.08fr] md:gap-y-10 md:py-14 xl:grid-cols-[minmax(300px,0.95fr)_minmax(0,1.65fr)_minmax(340px,0.95fr)] xl:gap-y-0 xl:py-16 2xl:grid-cols-[minmax(360px,0.9fr)_minmax(0,1.75fr)_minmax(390px,0.95fr)] 2xl:py-20">
+            <div class="border-b border-line pb-8 md:border-b-0 md:pr-9 xl:pr-12 2xl:pr-16">
+                <a href="<?php echo esc_url(home_url('/')); ?>"><?php echo boblift_img_from_setting($branding['logo'] ?? 'images/bob-lift-logo.png', 'images/bob-lift-logo.png', $branding['logo_alt'] ?? 'BOB-LIFT', 'h-[52px] w-auto 2xl:h-[64px]'); ?></a>
+                <p class="mt-6 max-w-[34rem] text-sm font-medium leading-6 text-slate-500 md:max-w-[360px] md:text-base md:leading-7 2xl:max-w-[440px]"><?php echo esc_html($footer['intro'] ?? 'Engineered lifting solutions for global projects. Built to lift. Built to last.'); ?></p>
+                <?php if ($footer_social_links !== []) : ?>
+                    <div class="mt-6 flex flex-wrap items-center gap-4">
+                        <?php foreach ($footer_social_links as $link) :
+                            $social_label = (string) ($link['label'] ?? '');
+                            $social_icon = 'images/social-icons/' . sanitize_key(str_replace(' ', '', strtolower($social_label))) . '.svg';
+                        ?>
+                            <a class="grid h-6 w-6 place-items-center text-slate-400 transition hover:text-navy" href="<?php echo esc_url((string) $link['href']); ?>" target="_blank" rel="noreferrer" aria-label="<?php echo esc_attr($social_label); ?>">
+                                <?php if (is_readable(boblift_asset_path($social_icon))) : ?><span class="h-5 w-5 bg-current [mask-position:center] [mask-repeat:no-repeat] [mask-size:contain]" style="-webkit-mask-image: url('<?php echo esc_url(boblift_asset($social_icon)); ?>'); mask-image: url('<?php echo esc_url(boblift_asset($social_icon)); ?>');"></span><?php else : ?><span class="text-xs font-black uppercase"><?php echo esc_html(substr($social_label, 0, 2)); ?></span><?php endif; ?>
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
             </div>
-            <div class="grid border-b border-[#dbe6f2] md:grid-cols-2 md:border-b-0 md:border-l md:border-[#dbe6f2] md:pl-8 xl:pl-0 2xl:gap-x-10">
-                <?php foreach ($footer['groups'] ?? [] as $group) : ?>
-                    <div class="border-b border-[#dbe6f2] py-8 last:border-b-0 md:border-b-0 md:py-0 md:pr-8 xl:pl-12 2xl:pl-16">
-                        <h3 class="mb-5 text-sm font-black uppercase tracking-[0.14em] text-navy 2xl:mb-7 2xl:text-base"><?php echo esc_html($group['title']); ?></h3>
-                        <div class="grid gap-3.5 2xl:gap-5">
-                            <?php foreach ($group['links'] as $link) : ?><a class="group flex min-w-0 items-center justify-between gap-4 text-sm font-medium leading-6 text-slate-500 transition hover:text-blue-700 md:text-[15px] 2xl:text-base 2xl:leading-7" href="<?php echo esc_url(boblift_product_nav_url((string) ($link['href'] ?? '/'), (string) ($link['label'] ?? ''))); ?>"><span class="min-w-0"><?php echo esc_html($link['label']); ?></span><span class="shrink-0 text-slate-400 transition group-hover:translate-x-1 group-hover:text-blue-600"><?php echo boblift_icon('chevron-right', 'h-4 w-4', '1.9'); ?></span></a><?php endforeach; ?>
-                        </div>
+            <div class="grid border-b border-line md:grid-cols-2 md:border-b-0 md:border-l md:pl-8 xl:pl-0 2xl:gap-x-10">
+                <?php foreach ($footer_link_groups as $group) : ?>
+                    <div class="border-b border-line py-8 last:border-b-0 md:border-b-0 md:py-0 md:pr-8 xl:pl-12 2xl:pl-16">
+                        <h3 class="mb-5 text-sm font-black uppercase tracking-[0.14em] text-navy"><?php echo esc_html((string) ($group['title'] ?? '')); ?></h3>
+                        <ul class="grid gap-3">
+                            <?php foreach (($group['links'] ?? []) as $link) : ?><li><a class="text-sm font-medium leading-6 text-slate-500 transition hover:text-blue-700 md:text-[15px]" href="<?php echo esc_url(isset($link['url']) ? (string) $link['url'] : boblift_product_nav_url((string) ($link['href'] ?? '/'), (string) ($link['label'] ?? ''))); ?>"><?php echo esc_html((string) ($link['label'] ?? '')); ?></a></li><?php endforeach; ?>
+                        </ul>
                     </div>
                 <?php endforeach; ?>
             </div>
-            <div class="pt-8 md:col-span-2 md:border-t md:border-[#dbe6f2] md:pt-10 xl:col-span-1 xl:border-l xl:border-t-0 xl:pl-12 xl:pt-0 2xl:pl-16">
-                <h3 class="mb-5 text-sm font-black uppercase tracking-[0.14em] text-navy 2xl:mb-7 2xl:text-base"><?php echo esc_html($footer['contact_title'] ?? 'Contact Us'); ?></h3>
-                <div class="grid gap-4 md:grid-cols-3 xl:grid-cols-1 2xl:gap-6">
+            <div class="pt-8 md:col-span-2 md:border-t md:border-line md:pt-10 xl:col-span-1 xl:border-l xl:border-t-0 xl:pl-12 xl:pt-0 2xl:pl-16">
+                <h3 class="mb-5 text-sm font-black uppercase tracking-[0.14em] text-navy"><?php echo esc_html($footer['contact_title'] ?? 'Contact Us'); ?></h3>
+                <ul class="grid gap-3 md:grid-cols-3 xl:grid-cols-1">
                     <?php foreach ([['phone', $phone, $phone_href], ['mail', $email, 'mailto:' . $email], ['map-pin', $contact['address'] ?? 'Xuzhou, China', boblift_url('/contact')]] as $row) : ?>
-                        <a class="group flex min-w-0 items-start gap-3.5 border-b border-[#e5edf6] pb-4 last:border-b-0 last:pb-0 md:border-b-0 md:pb-0 xl:border-b xl:pb-5 xl:last:border-b-0 xl:last:pb-0 2xl:gap-4 2xl:pb-6" href="<?php echo esc_url($row[2]); ?>"><span class="grid h-11 w-11 shrink-0 place-items-center rounded-sm bg-white text-navy shadow-card ring-1 ring-[#e2eaf3] transition group-hover:text-blue-700 2xl:h-[54px] 2xl:w-[54px] "><?php echo boblift_icon($row[0], 'h-5 w-5', '1.9'); ?></span><span class="min-w-0 break-words text-sm font-medium leading-6 text-slate-600 transition group-hover:text-blue-700 md:text-[15px] md:leading-7 2xl:text-base"><?php echo esc_html($row[1]); ?></span></a>
+                        <li><a class="inline-flex min-w-0 items-start gap-3 text-sm font-medium leading-6 text-slate-600 transition hover:text-blue-700 md:text-[15px]" href="<?php echo esc_url($row[2]); ?>"><?php echo boblift_icon($row[0], 'mt-1 h-4 w-4 shrink-0 text-slate-400', '1.9'); ?><span class="min-w-0 break-words"><?php echo esc_html($row[1]); ?></span></a></li>
                     <?php endforeach; ?>
-                </div>
+                </ul>
             </div>
         </div>
-        <div class="flex flex-col gap-3 border-t border-[#c9dced] py-6 text-sm font-semibold leading-6 text-slate-500 lg:flex-row lg:items-center lg:justify-between lg:gap-4 2xl:py-8 2xl:text-[15px]"><span><?php echo esc_html($footer['copyright'] ?? '© 2026 BOB-LIFT. All Rights Reserved.'); ?></span><span class="flex flex-wrap gap-x-6 gap-y-2 md:pr-24"><?php foreach ($footer['legal_links'] ?? [] as $link) : ?><a class="hover:text-blue-700" href="<?php echo esc_url(boblift_url($link['href'])); ?>"><?php echo esc_html($link['label']); ?></a><?php endforeach; ?></span></div>
+        <div class="flex flex-col gap-3 border-t border-line py-6 text-sm font-semibold leading-6 text-slate-500 lg:flex-row lg:items-center lg:justify-between lg:gap-4"><span><?php echo esc_html($footer['copyright'] ?? '© 2026 BOB-LIFT. All Rights Reserved.'); ?></span><span class="flex flex-wrap gap-x-6 gap-y-2 md:pr-24"><?php foreach ($footer['legal_links'] ?? [] as $link) : ?><a class="hover:text-blue-700" href="<?php echo esc_url(boblift_url($link['href'])); ?>"><?php echo esc_html($link['label']); ?></a><?php endforeach; ?></span></div>
     </div>
 </footer>
 <?php
@@ -78,7 +98,7 @@ $show_quote_list = is_post_type_archive('product') || is_singular('product') || 
 $floating_contact_buttons = function_exists('boblift_floating_contact_buttons') ? boblift_floating_contact_buttons() : [];
 ?>
 <?php if ($floating_contact_buttons !== []) : ?>
-<div class="boblift-floating-contact-bar fixed bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center justify-center gap-1.5 rounded-sm border border-white/80 bg-white/[0.88] p-1.5 shadow-raised backdrop-blur-xl min-[1780px]:bottom-auto min-[1780px]:left-auto min-[1780px]:right-4 min-[1780px]:top-1/2 min-[1780px]:-translate-x-0 min-[1780px]:-translate-y-1/2 min-[1780px]:flex-col min-[1780px]:gap-2 min-[1780px]:p-2">
+<div class="boblift-floating-contact-bar fixed inset-x-0 bottom-0 z-40 flex items-center gap-2 border-t border-line bg-white px-4 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 lg:inset-x-auto lg:bottom-4 lg:left-1/2 lg:-translate-x-1/2 lg:gap-1.5 lg:rounded-sm lg:border lg:border-white/80 lg:bg-white/[0.88] lg:p-1.5 lg:shadow-raised lg:backdrop-blur-xl min-[1780px]:bottom-auto min-[1780px]:left-auto min-[1780px]:right-4 min-[1780px]:top-1/2 min-[1780px]:-translate-x-0 min-[1780px]:-translate-y-1/2 min-[1780px]:flex-col min-[1780px]:gap-2 min-[1780px]:p-2">
     <?php foreach ($floating_contact_buttons as $floating_contact_button) : ?>
         <?php boblift_render_floating_contact_button($floating_contact_button, $contact, $quote_list_ui); ?>
     <?php endforeach; ?>
@@ -116,7 +136,7 @@ $floating_contact_buttons = function_exists('boblift_floating_contact_buttons') 
     </aside>
 </div>
 <?php endif; ?>
-<button class="fixed bottom-28 right-4 z-30 size-10 translate-y-4 rounded-sm bg-navy p-0 text-white opacity-0 shadow-raised transition duration-300 hover:-translate-y-1 hover:bg-[#0b2d5b] pointer-events-none md:bottom-24 md:z-40 lg:bottom-8 lg:right-8 lg:size-14" type="button" data-back-top aria-label="<?php echo esc_attr($quote_list_ui['backTopLabel'] ?? 'Back to top'); ?>"><?php echo boblift_icon('arrow-up', 'mx-auto h-5 w-5'); ?></button>
+<button class="fixed bottom-8 right-8 z-40 hidden size-11 translate-y-4 rounded-sm bg-navy p-0 text-white opacity-0 shadow-raised transition duration-300 hover:bg-[#0b2d5b] pointer-events-none lg:block" type="button" data-back-top aria-label="<?php echo esc_attr($quote_list_ui['backTopLabel'] ?? 'Back to top'); ?>"><?php echo boblift_icon('arrow-up', 'mx-auto h-5 w-5'); ?></button>
 <div class="fixed inset-0 z-50 hidden place-items-center bg-ink/18 p-4 backdrop-blur-[2px]" data-qr-modal>
     <div class="relative w-full max-w-[300px] rounded border border-line bg-white p-5 text-center shadow-card">
         <button class="absolute right-3 top-3 grid size-8 place-items-center rounded-sm bg-[#f4f7fb] text-slate-500 transition hover:bg-navy hover:text-white" type="button" data-qr-close aria-label="<?php echo esc_attr($quote_list_ui['wechatCloseLabel'] ?? 'Close WeChat QR code'); ?>"><?php echo boblift_icon('x', 'h-4 w-4'); ?></button>

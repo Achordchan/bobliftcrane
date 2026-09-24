@@ -7,16 +7,18 @@ $page_options = function_exists('boblift_privacy_policy_page_options') ? boblift
 $sections = is_array($page_options['sections'] ?? null) ? array_values(array_filter($page_options['sections'], static fn($item): bool => is_array($item))) : [];
 ?>
 <main class="bg-white text-ink">
-    <section class="relative overflow-hidden border-b border-line bg-[linear-gradient(135deg,#f8fbff_0%,#ffffff_58%,#edf5ff_100%)]">
-        <div class="page-shell py-14 md:py-20 2xl:py-24">
-            <p class="section-label mb-5"><?php echo esc_html((string) ($page_options['label'] ?? 'BOB-LIFT Policy')); ?></p>
-            <h1 class="max-w-5xl text-[clamp(38px,6vw,78px)] font-black leading-[1.02] tracking-[-0.02em] text-navy"><?php echo esc_html((string) ($page_options['title'] ?? 'Privacy Policy')); ?></h1>
-            <p class="mt-6 max-w-3xl text-base font-semibold leading-8 text-slate-600 md:text-lg"><?php echo esc_html((string) ($page_options['description'] ?? 'This page explains how BOB-LIFT handles contact, inquiry and website usage information submitted through this website.')); ?></p>
-            <p class="mt-5 text-sm font-black uppercase tracking-[0.14em] text-slate-400"><?php echo esc_html((string) ($page_options['updated_label'] ?? 'Last updated:')); ?> <?php echo esc_html((string) ($page_options['updated'] ?? '2026-06-29')); ?></p>
-        </div>
-    </section>
+    <div class="page-shell pt-5 md:pt-8">
+        <?php
+        boblift_page_hero([
+            'label' => (string) ($page_options['label'] ?? 'BOB-LIFT Policy'),
+            'title' => (string) ($page_options['title'] ?? 'Privacy Policy'),
+            'text' => (string) ($page_options['description'] ?? 'This page explains how BOB-LIFT handles contact, inquiry and website usage information submitted through this website.'),
+            'meta' => trim((string) ($page_options['updated_label'] ?? 'Last updated:') . ' ' . (string) ($page_options['updated'] ?? '2026-06-29')),
+        ]);
+        ?>
+    </div>
 
-    <section class="page-shell py-12 md:py-16 2xl:py-20">
+    <section class="page-shell pb-12 pt-8 md:pb-16 md:pt-10 2xl:pb-20">
         <div class="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:gap-12">
             <aside class="h-fit rounded border border-blue-100 bg-blue-50/45 p-6 shadow-card">
                 <h2 class="text-xl font-black tracking-[-0.01em] text-navy"><?php echo esc_html((string) ($page_options['side_title'] ?? 'Scope')); ?></h2>

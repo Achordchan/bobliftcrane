@@ -10,22 +10,22 @@ $map_query = rawurlencode((string) ($contact['address'] ?? 'Xuzhou, China'));
 $map_embed_url = 'https://www.google.com/maps?q=' . $map_query . '&output=embed';
 $map_link_url = 'https://www.google.com/maps/search/?api=1&query=' . $map_query;
 ?>
-<section class="boblift-news-hero boblift-contact-hero">
-    <div class="page-shell boblift-news-hero-shell grid items-center gap-7 py-8 md:gap-10 md:py-16 lg:grid-cols-[0.92fr_1.08fr] lg:gap-16 2xl:py-20">
-        <div class="max-w-3xl">
-            <p class="mb-4 text-xs font-extrabold uppercase tracking-[0.2em] text-blue-700 md:mb-5 lg:text-sm"><?php echo esc_html($ui['heroLabel']); ?></p>
-            <h1 class="text-[clamp(32px,8.8vw,38px)] font-black leading-[1.04] tracking-[-0.015em] text-navy md:text-[50px] xl:text-[56px] 2xl:text-[64px]"><?php echo esc_html($ui['heroTitle']); ?></h1>
-            <p class="mt-4 max-w-2xl text-base font-semibold leading-7 text-slate-600 md:mt-6 md:text-lg md:leading-8 2xl:text-xl 2xl:leading-9"><?php echo esc_html($ui['heroDescription']); ?></p>
-            <div class="mt-6 grid grid-cols-2 gap-3 md:mt-8 md:flex md:flex-wrap md:gap-4">
-                <a class="boblift-contact-proof-chip" href="mailto:<?php echo esc_attr($contact['email']); ?>"><?php echo boblift_icon('mail', 'h-6 w-6 text-blue-700 md:h-7 md:w-7', '1.8'); ?><span><strong><?php echo esc_html($ui['cardLabels']['email']); ?></strong><small><?php echo esc_html($contact['email']); ?></small></span></a>
-                <a class="boblift-contact-proof-chip" href="<?php echo esc_url($contact['whatsappHref']); ?>" target="_blank" rel="noreferrer"><?php echo boblift_icon('message-circle', 'h-6 w-6 text-blue-700 md:h-7 md:w-7', '1.8'); ?><span><strong><?php echo esc_html($ui['cardLabels']['whatsapp']); ?></strong><small><?php echo esc_html($ui['whatsappValue']); ?></small></span></a>
-            </div>
-        </div>
-        <div class="boblift-news-hero-image">
-            <?php if (!empty($ui['heroImage'])) : ?><img class="h-full w-full object-cover" src="<?php echo esc_url(boblift_image_src((string) $ui['heroImage'])); ?>" alt="<?php echo esc_attr((string) ($ui['heroImageAlt'] ?? 'BOB-LIFT contact support')); ?>" loading="eager" decoding="async" fetchpriority="high"><?php endif; ?>
-        </div>
-    </div>
-</section>
+<div class="page-shell pt-5 md:pt-8">
+    <?php
+    boblift_page_hero([
+        'label' => $ui['heroLabel'] ?? 'Contact Us',
+        'title' => $ui['heroTitle'] ?? '',
+        'text' => $ui['heroDescription'] ?? '',
+        'image' => (string) ($ui['heroImage'] ?? ''),
+        'image_alt' => (string) ($ui['heroImageAlt'] ?? 'The BOB-LIFT sales and service team'),
+        'image_position' => 'right 20%',
+        'links' => [
+            ['label' => $contact['email'], 'href' => 'mailto:' . $contact['email'], 'icon' => 'mail'],
+            ['label' => $contact['whatsapp'], 'href' => $contact['whatsappHref'], 'icon' => 'message-circle', 'external' => true],
+        ],
+    ]);
+    ?>
+</div>
 
 <section class="page-shell space-y-6 py-10 md:py-16">
     <?php boblift_render_inquiry_form(isset($_GET['product']) ? sanitize_text_field(wp_unslash($_GET['product'])) : '', ['compact' => true, 'source' => '联系页表单']); ?>

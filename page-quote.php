@@ -6,8 +6,10 @@ get_header();
 $product = isset($_GET['product']) ? sanitize_text_field(wp_unslash($_GET['product'])) : '';
 $ui = boblift_site_ui('quotePage');
 $workflow_items = is_array($ui['workflowItems'] ?? null) ? array_values(array_filter($ui['workflowItems'], static fn($item): bool => is_array($item))) : [];
-boblift_page_hero($ui['heroLabel'], $ui['heroTitle'], $ui['heroDescription'], $ui['heroImage']);
 ?>
+<div class="page-shell pt-5 md:pt-8">
+    <?php boblift_page_hero(['label' => $ui['heroLabel'] ?? '', 'title' => $ui['heroTitle'] ?? '', 'text' => $ui['heroDescription'] ?? '', 'image' => (string) ($ui['heroImage'] ?? '')]); ?>
+</div>
 <section class="page-shell grid grid-cols-1 gap-8 py-10 md:py-16 lg:grid-cols-[0.72fr_1.28fr] lg:gap-12">
     <aside class="rounded border border-line bg-[linear-gradient(180deg,#071f42_0%,#0b3a78_100%)] p-6 text-white shadow-card md:p-8 lg:sticky lg:top-8 lg:h-fit">
         <p class="text-[11px] font-black uppercase tracking-[0.24em] text-gold"><?php echo esc_html($ui['workflowLabel']); ?></p>

@@ -63,25 +63,28 @@ $content_cards = array_values(array_filter(is_array($social_page['content_cards'
 }));
 $panel_items = array_values(array_filter(is_array($panel['items'] ?? null) ? $panel['items'] : [], static fn($row): bool => is_array($row) && trim((string) ($row['text'] ?? '')) !== ''));
 ?>
-<section class="relative overflow-hidden bg-[#071f42]" aria-label="<?php echo esc_attr((string) ($hero['label'] ?? 'BOB-LIFT Social Media')); ?>">
-    <div class="relative h-[42vh] min-h-[320px] max-h-[560px] w-full">
-        <?php echo boblift_img_from_setting($hero['image'] ?? boblift_image_option('images/social-media/social-media-hero-factory.webp'), 'images/social-media/social-media-hero-factory.webp', (string) ($hero['image_alt'] ?? 'BOB-LIFT factory official social media updates'), 'absolute inset-0 h-full w-full object-cover object-center', ['loading' => 'eager', 'decoding' => 'async', 'fetchpriority' => 'high']); ?>
-    </div>
-</section>
+<div class="page-shell pt-5 md:pt-8">
+    <?php
+    boblift_page_hero([
+        'label' => (string) ($hero['label'] ?? 'BOB-LIFT Social Media'),
+        'title' => (string) ($labels['main_platforms_title'] ?? 'Connect with BOB-LIFT where you work.'),
+        'text' => (string) ($labels['main_platforms_text'] ?? 'Current key channels are highlighted first. More domestic and international platforms are listed below with lighter visual weight.'),
+        'image' => boblift_image_setting_url($hero['image'] ?? [], 'images/social-media/social-media-hero-factory.webp'),
+        'image_alt' => (string) ($hero['image_alt'] ?? 'BOB-LIFT factory official social media updates'),
+        'image_position' => 'center 40%',
+    ]);
+    ?>
+</div>
 
-<section id="official-channels" class="bg-white py-12 lg:py-16">
+<section id="official-channels" class="bg-white pb-12 pt-10 lg:pb-16 lg:pt-12">
     <div class="page-shell">
-        <div class="text-center">
-            <p class="section-label mb-4"><?php echo esc_html((string) ($labels['main_platforms_label'] ?? 'Our Main Platforms')); ?></p>
-            <h2 class="text-[clamp(30px,4vw,54px)] font-black leading-tight tracking-[-0.015em] text-[#0B1B33]"><?php echo esc_html((string) ($labels['main_platforms_title'] ?? 'Connect with BOB-LIFT where you work.')); ?></h2>
-            <p class="mx-auto mt-4 max-w-[680px] text-sm font-semibold leading-7 text-[#64748B] md:text-base"><?php echo esc_html((string) ($labels['main_platforms_text'] ?? 'Current key channels are highlighted first. More domestic and international platforms are listed below with lighter visual weight.')); ?></p>
-        </div>
+        <h2 class="section-label"><?php echo esc_html((string) ($labels['main_platforms_label'] ?? 'Our Main Platforms')); ?></h2>
 
         <?php
         $all_main_platforms = array_merge($featured_platforms, $major_platforms);
         if ($all_main_platforms !== []) :
         ?>
-            <div class="mt-12 grid auto-rows-[280px] gap-4 md:grid-cols-2 xl:grid-cols-4 lg:gap-6">
+            <div class="mt-5 grid auto-rows-[280px] gap-4 md:grid-cols-2 xl:grid-cols-4 lg:gap-6">
                 <?php foreach ($all_main_platforms as $index => $platform) :
                     $href = $platform_href($platform);
                 ?>

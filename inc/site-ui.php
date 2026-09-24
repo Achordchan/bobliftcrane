@@ -182,10 +182,9 @@ function boblift_site_ui_defaults(?string $section = null): array
             'heroLabel' => 'Contact Us',
             'heroTitle' => 'Talk to BOB-LIFT before choosing a crane.',
             'heroDescription' => 'For model selection, site access matching, marine installation and export questions, use the direct contact channels or send an inquiry below.',
-            'heroImage' => 'images/global-network-blue.jpg',
-            'heroImageAlt' => 'BOB-LIFT contact support',
+            'heroImage' => 'images/page-heroes/sales-team.webp',
+            'heroImageAlt' => 'The BOB-LIFT sales and service team',
             'cardLabels' => ['email' => 'Email', 'phone' => 'Phone', 'whatsapp' => 'WhatsApp', 'address' => 'Address'],
-            'whatsappValue' => 'Start chat',
             'weChatTitle' => 'WeChat',
             'weChatDescriptionTemplate' => 'Scan the QR code or search ID {wechatId}. The QR block is kept as a compact card so it does not dominate mobile screens.',
             'weChatQrAlt' => 'BOB-LIFT WeChat QR code',
@@ -337,12 +336,8 @@ function boblift_site_ui_defaults(?string $section = null): array
             'heroLabel' => 'BOB-LIFT Newsroom',
             'heroTitle' => 'News & Insights',
             'heroDescription' => 'Stay informed with the latest updates from BOB-LIFT, including product innovations, company news, and industry insights.',
-            'heroImage' => 'images/factory-workshop.jpg',
+            'heroImage' => 'images/page-heroes/factory-floor.webp',
             'allLabel' => 'All',
-            'countriesValue' => '120+',
-            'countriesLabel' => 'Countries Served',
-            'yearsValue' => '35+',
-            'yearsLabel' => 'Years of Expertise',
             'featuredUpdatesLabel' => 'Featured Updates',
             'readFeaturedLabel' => 'Read Featured',
             'requestQuoteLabel' => 'Request Quote',
@@ -378,8 +373,8 @@ function boblift_site_ui_defaults(?string $section = null): array
             'heroLabel' => 'Case Center',
             'heroTitle' => 'Project stories with real working conditions.',
             'heroDescription' => 'Browse customer cases across marine operations, material handling and aerial work applications, then discuss a similar lifting solution with BOB-LIFT.',
-            'heroImage' => 'images/marine-scene.jpg',
-            'heroImageAlt' => 'BOB-LIFT customer cases',
+            'heroImage' => 'images/page-heroes/marine-deck.webp',
+            'heroImageAlt' => 'BOB-LIFT marine knuckle boom cranes on a working deck',
             'primaryCtaLabel' => 'Plan My Project',
             'secondaryCtaLabel' => 'View Cases',
             'listLabel' => 'Field Evidence',
@@ -773,7 +768,7 @@ function boblift_render_floating_contact_button(array $button, array $contact, a
             ];
             $inquiry_attrs = ' data-inquiry-product="' . esc_attr($product_title) . '" data-inquiry-product-slug="' . esc_attr($product_slug) . '" data-inquiry-products="' . esc_attr((string) wp_json_encode([$product_item], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) . '"';
         }
-        echo '<button class="group relative inline-flex h-10 items-center justify-center gap-2 overflow-hidden rounded-sm bg-navy px-4 text-sm font-black text-white shadow-card transition duration-300 hover:-translate-y-0.5 hover:bg-[#0b2d5b] sm:h-11 min-[1780px]:size-12 min-[1780px]:px-0" type="button" data-inquiry-modal-open data-inquiry-source="浮动联系按钮"' . $inquiry_attrs . ' aria-label="' . esc_attr($aria_label) . '"><span class="absolute inset-x-2 top-0 h-px bg-gradient-to-r from-transparent via-gold/80 to-transparent"></span><span class="relative z-10 min-[1780px]:hidden">' . esc_html($label) . '</span><span class="relative z-10">' . boblift_floating_contact_icon($button, 'h-4 w-4') . '</span></button>';
+        echo '<button class="inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-sm bg-navy px-4 text-sm font-black text-white transition hover:bg-[#0b2d5b] lg:flex-none min-[1780px]:size-12 min-[1780px]:px-0" type="button" data-inquiry-modal-open data-inquiry-source="浮动联系按钮"' . $inquiry_attrs . ' aria-label="' . esc_attr($aria_label) . '"><span class="min-[1780px]:hidden">' . esc_html($label) . '</span>' . boblift_floating_contact_icon($button, 'h-4 w-4') . '</button>';
         return;
     }
 

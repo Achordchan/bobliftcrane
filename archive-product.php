@@ -172,16 +172,17 @@ $filter_sidebar = static function (bool $show_close = false) use ($filter_group,
 ?>
 <section class="boblift-product-listing bg-[#F8FAFC] py-8 md:py-12 lg:py-14" data-product-listing data-view="grid" data-current-category="<?php echo esc_attr($initial_category); ?>" data-product-archive-url="<?php echo esc_url(boblift_product_archive_url()); ?>" data-category-urls="<?php echo esc_attr(wp_json_encode($category_url_map, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)); ?>">
     <div class="mx-auto max-w-[2320px] px-4 sm:px-6 xl:px-10 2xl:px-12 min-[1780px]:px-32">
-        <section class="boblift-product-archive-banner relative mb-6 overflow-hidden rounded border border-line bg-white shadow-card md:mb-7" data-product-banner data-banner-default="<?php echo esc_attr(wp_json_encode($banner_default, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)); ?>" data-banner-categories="<?php echo esc_attr(wp_json_encode($banner_categories, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)); ?>">
-            <div class="boblift-product-archive-banner-media relative aspect-[11/5] w-full overflow-hidden bg-mist sm:aspect-[3/1] lg:absolute lg:inset-y-0 lg:right-0 lg:aspect-auto lg:w-[72%] lg:bg-white xl:w-[66%] 2xl:w-[62%] min-[1920px]:w-[56%]">
-                <img class="absolute inset-0 h-full w-full object-cover object-[right_30%]" src="<?php echo esc_url($banner_initial['image']); ?>" alt="<?php echo esc_attr($banner_initial['imageAlt']); ?>" loading="eager" decoding="async" fetchpriority="high" data-banner-image>
-            </div>
-            <div class="boblift-product-archive-banner-inner relative z-10 px-5 py-6 sm:px-8 lg:flex lg:min-h-[320px] lg:max-w-[46%] lg:flex-col lg:justify-center lg:py-10 xl:min-h-[340px] xl:px-12 2xl:min-h-[360px] 2xl:max-w-[44%] min-[1920px]:min-h-[380px]">
-                <p class="boblift-product-archive-banner-label text-xs font-black uppercase tracking-[0.18em] text-[#0B3F7D]" data-banner-label><?php echo esc_html($banner_initial['label']); ?></p>
-                <h1 class="boblift-product-archive-banner-title mt-3 text-[clamp(2rem,3vw,3.75rem)] font-black leading-[1.02] tracking-[-0.02em] text-[#0B1B33]" data-banner-title><?php echo esc_html($banner_initial['title']); ?></h1>
-                <div class="boblift-product-archive-banner-text mt-4 max-w-xl text-sm font-semibold leading-7 text-slate-600 md:text-base md:leading-8"><p data-banner-text><?php echo esc_html($banner_initial['text']); ?></p></div>
-            </div>
-        </section>
+        <?php
+        boblift_page_hero([
+            'label' => $banner_initial['label'],
+            'title' => $banner_initial['title'],
+            'text' => $banner_initial['text'],
+            'image' => $banner_initial['image'],
+            'image_alt' => $banner_initial['imageAlt'],
+            'class' => 'mb-6 md:mb-7',
+            'attrs' => 'data-product-banner data-banner-default="' . esc_attr(wp_json_encode($banner_default, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)) . '" data-banner-categories="' . esc_attr(wp_json_encode($banner_categories, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)) . '"',
+        ]);
+        ?>
 
         <div class="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between lg:mb-7">
             <div class="flex flex-wrap items-center gap-3">

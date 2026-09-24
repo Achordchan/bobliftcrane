@@ -25,20 +25,18 @@ $paged_items = array_slice($items, ($current_page - 1) * $per_page, $per_page);
 $grid_total = count($paged_items);
 $pagination_base = function_exists('boblift_url') ? boblift_url('/global-customer-visits.html') : home_url('/global-customer-visits.html');
 ?>
-<section class="relative overflow-hidden bg-[linear-gradient(180deg,#F8FAFC_0%,#FFFFFF_62%,#F8FAFC_100%)] py-12 md:py-16 lg:py-20">
-    <div class="pointer-events-none absolute -left-28 top-20 h-80 w-80 rounded-full bg-blue-500/10 blur-3xl"></div>
-    <div class="pointer-events-none absolute -right-28 bottom-8 h-80 w-80 rounded-full bg-blue-500/8 blur-3xl"></div>
-    <div class="page-shell relative">
-        <div class="mx-auto max-w-[2200px] py-6 text-center md:py-8 lg:py-10">
-            <p class="section-label mb-6 justify-center"><?php echo esc_html((string) ($visits['label'] ?? 'Global Customer Visits')); ?></p>
-            <h1 class="mx-auto max-w-none text-[clamp(32px,4vw,96px)] font-black leading-[0.98] tracking-[-0.02em] text-[#0B1B33] lg:whitespace-nowrap"><?php echo esc_html((string) ($visits['title'] ?? 'Welcoming partners to see how BOB-LIFT builds.')); ?></h1>
-            <p class="mx-auto mt-7 max-w-[1120px] text-sm font-semibold leading-7 text-[#64748B] md:text-base md:leading-8"><?php echo esc_html((string) ($visits['text'] ?? 'Factory visits help customers review production details, discuss lifting requirements and align the right solution before cooperation moves forward.')); ?></p>
-            <?php if ($total_items > 0) : ?>
-                <p class="mt-5 text-xs font-black uppercase tracking-[0.18em] text-blue-700"><?php echo esc_html((string) $total_items); ?> <?php echo esc_html((string) ($visits['visit_count_suffix'] ?? 'Visit Photos')); ?></p>
-            <?php endif; ?>
-        </div>
-    </div>
-</section>
+<div class="page-shell pb-8 pt-5 md:pb-10 md:pt-8">
+    <?php
+    boblift_page_hero([
+        'label' => (string) ($visits['label'] ?? 'Global Customer Visits'),
+        'title' => (string) ($visits['title'] ?? 'Welcoming partners to see how BOB-LIFT builds.'),
+        'text' => (string) ($visits['text'] ?? 'Factory visits help customers review production details, discuss lifting requirements and align the right solution before cooperation moves forward.'),
+        'meta' => $total_items > 0 ? $total_items . ' ' . (string) ($visits['visit_count_suffix'] ?? 'Visit Photos') : '',
+        'image' => boblift_image_setting_url($visits['hero_image'] ?? [], 'images/page-heroes/factory-campus.webp'),
+        'image_alt' => (string) ($visits['hero_image_alt'] ?? 'The BOB-LIFT factory campus from the air'),
+    ]);
+    ?>
+</div>
 
 <section class="bg-white pb-12 md:pb-16 lg:pb-20">
     <div class="page-shell">

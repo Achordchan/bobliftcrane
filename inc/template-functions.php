@@ -768,23 +768,75 @@ function boblift_body_open(): void
     }
 }
 
-function boblift_page_hero(string $label, string $title, string $description, string $image, string $buttons = ''): void
+/**
+ * The old hero and closing-banner pictures were a 300px thumbnail, had a headline baked in or showed
+ * a generic crane. Stored options that still point at them get a clean photo instead.
+ */
+function boblift_page_hero_image(string $image): string
 {
+    $replacements = [
+        'images/factory-workshop.jpg' => 'images/page-heroes/factory-floor.webp',
+        'images/global-network-blue.jpg' => 'images/page-heroes/sales-team.webp',
+        'images/marine-scene.jpg' => 'images/page-heroes/marine-deck.webp',
+        'images/cta-lift-photo.png' => 'images/page-heroes/site-dusk.webp',
+    ];
+    $path = ltrim($image, '/');
+    return boblift_image_src($replacements[$path] ?? $image);
+}
+
+// Image setting (uploaded attachment or theme path) for a hero or banner, with old theme paths replaced.
+function boblift_page_hero_image_setting(mixed $image, string $fallback): string
+{
+    if (is_array($image) && (int) ($image['id'] ?? 0) > 0) {
+        return boblift_image_setting_url($image, $fallback);
+    }
+    $path = trim(is_array($image) ? (string) ($image['path'] ?? '') : (string) $image);
+    return boblift_page_hero_image($path !== '' ? $path : $fallback);
+}
+
+/**
+ * The hero at the top of inner pages, the same card as the product list banner: heading on the left,
+ * photo on the right fading into the card (mask rules in input.css). Without an image it is a plain
+ * text card, used by the policy pages.
+ *
+ * Keys: label, title, title_highlight (phrase shown in blue), text, meta (small line under the text),
+ * image (URL or theme path), image_alt, image_position (CSS object-position),
+ * links (list of [label, href, icon, external]), class, attrs (already escaped, for scripts).
+ */
+function boblift_page_hero(array $hero): void
+{
+    $image = trim((string) ($hero['image'] ?? ''));
+    $has_image = $image !== '';
+    $title = (string) ($hero['title'] ?? '');
+    $title_html = esc_html($title);
+    $highlight = trim((string) ($hero['title_highlight'] ?? ''));
+    if ($highlight !== '' && str_contains($title, $highlight)) {
+        $title_html = preg_replace('/' . preg_quote(esc_html($highlight), '/') . '/', '<span class="text-blue-700">' . esc_html($highlight) . '</span>', $title_html, 1);
+    }
+    $meta = trim((string) ($hero['meta'] ?? ''));
+    $links = array_values(array_filter(is_array($hero['links'] ?? null) ? $hero['links'] : [], static fn($link): bool => is_array($link) && trim((string) ($link['label'] ?? '')) !== ''));
+    $inner_class = $has_image
+        ? 'px-5 py-6 sm:px-8 lg:flex lg:min-h-[320px] lg:max-w-[46%] lg:flex-col lg:justify-center lg:py-10 xl:min-h-[340px] xl:px-12 2xl:min-h-[360px] 2xl:max-w-[44%] min-[1920px]:min-h-[380px]'
+        : 'px-5 py-7 sm:px-8 md:py-10 xl:px-12 xl:py-12';
     ?>
-    <section class="relative overflow-hidden border-b border-line bg-[linear-gradient(135deg,#f8fbff_0%,#eef5ff_48%,#ffffff_100%)]">
-        <div class="pointer-events-none absolute -right-24 top-8 h-72 w-72 rounded-full bg-blue-500/10 blur-3xl md:h-[420px] md:w-[420px]"></div>
-        <div class="pointer-events-none absolute -left-24 bottom-0 h-60 w-60 rounded-full bg-gold/12 blur-3xl"></div>
-        <div class="page-shell relative grid min-h-[340px] grid-cols-1 items-center gap-8 py-10 md:min-h-[430px] md:py-14 lg:grid-cols-[0.9fr_1.1fr] lg:gap-12">
-            <div class="reveal max-w-[760px]">
-                <p class="section-label mb-4"><?php echo esc_html($label); ?></p>
-                <h1 class="text-[42px] font-black leading-[0.96] tracking-[-0.02em] text-ink sm:text-[62px] lg:text-[78px]"><?php echo esc_html($title); ?></h1>
-                <p class="mt-5 max-w-[620px] text-base font-semibold leading-7 text-slate-600 md:text-lg md:leading-8"><?php echo esc_html($description); ?></p>
-                <?php if ($buttons) : ?><div class="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center"><?php echo $buttons; ?></div><?php endif; ?>
+    <section class="boblift-page-hero relative overflow-hidden rounded border border-line bg-white shadow-card <?php echo esc_attr((string) ($hero['class'] ?? '')); ?>" <?php echo (string) ($hero['attrs'] ?? ''); ?>>
+        <?php if ($has_image) : ?>
+            <div class="boblift-page-hero-media relative aspect-[11/5] w-full overflow-hidden bg-mist sm:aspect-[3/1] lg:absolute lg:inset-y-0 lg:right-0 lg:aspect-auto lg:w-[72%] lg:bg-white xl:w-[66%] 2xl:w-[62%] min-[1920px]:w-[56%]">
+                <img class="absolute inset-0 h-full w-full object-cover" style="object-position: <?php echo esc_attr((string) ($hero['image_position'] ?? 'right 30%')); ?>" src="<?php echo esc_url(boblift_page_hero_image($image)); ?>" alt="<?php echo esc_attr((string) ($hero['image_alt'] ?? '')); ?>" loading="eager" decoding="async" fetchpriority="high" data-banner-image>
             </div>
-            <div class="relative min-h-[220px] overflow-hidden rounded border border-white bg-white/70 shadow-card md:min-h-[320px] lg:min-h-[360px]">
-                <?php if ($image !== '') : ?><img class="absolute inset-0 h-full w-full object-cover" src="<?php echo esc_url(boblift_image_src($image)); ?>" alt="" loading="eager" decoding="async" fetchpriority="high"><?php else : ?><div class="absolute inset-0 bg-[radial-gradient(circle_at_62%_42%,rgba(37,99,235,0.2),transparent_28%),linear-gradient(135deg,#ffffff,#edf4ff)]"></div><?php endif; ?>
-                <div class="absolute inset-0 bg-[linear-gradient(120deg,rgba(7,31,66,0.12)_0%,rgba(7,31,66,0)_55%)]"></div>
-            </div>
+        <?php endif; ?>
+        <div class="boblift-page-hero-inner relative z-10 <?php echo esc_attr($inner_class); ?>">
+            <p class="boblift-page-hero-label mb-3 text-xs font-black uppercase tracking-[0.18em] text-[#0B3F7D] empty:hidden" data-banner-label><?php echo esc_html(trim((string) ($hero['label'] ?? ''))); ?></p>
+            <h1 class="boblift-page-hero-title <?php echo $has_image ? '' : 'max-w-4xl'; ?> text-[clamp(2rem,3vw,3.75rem)] font-black leading-[1.02] tracking-[-0.02em] text-[#0B1B33]" data-banner-title><?php echo $title_html; ?></h1>
+            <p class="boblift-page-hero-text mt-4 <?php echo $has_image ? 'max-w-xl' : 'max-w-3xl'; ?> text-sm font-semibold leading-7 text-slate-600 empty:hidden md:text-base md:leading-8" data-banner-text><?php echo esc_html(trim((string) ($hero['text'] ?? ''))); ?></p>
+            <?php if ($meta !== '') : ?><p class="mt-4 text-xs font-black uppercase tracking-[0.14em] text-slate-400"><?php echo esc_html($meta); ?></p><?php endif; ?>
+            <?php if ($links !== []) : ?>
+                <div class="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-bold text-navy md:mt-6">
+                    <?php foreach ($links as $link) : ?>
+                        <a class="inline-flex items-center gap-2 transition hover:text-blue-700" href="<?php echo esc_url((string) ($link['href'] ?? '#')); ?>"<?php echo !empty($link['external']) ? ' target="_blank" rel="noreferrer"' : ''; ?>><?php echo !empty($link['icon']) ? boblift_icon((string) $link['icon'], 'h-4 w-4 text-slate-400') : ''; ?><?php echo esc_html((string) $link['label']); ?></a>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
         </div>
     </section>
     <?php

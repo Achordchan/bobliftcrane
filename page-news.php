@@ -16,29 +16,25 @@ if ($active_category !== '' && !in_array($active_category, $allowed_category_slu
 $articles = boblift_articles('', -1);
 $grid_articles = $articles;
 $ui = boblift_site_ui('newsPage');
-$hero_image = $ui['heroImage'] ?? 'images/factory-workshop.jpg';
+$hero_image = $ui['heroImage'] ?? 'images/page-heroes/factory-floor.webp';
 $language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
 $all_label = function_exists('boblift_localized_static_text') ? boblift_localized_static_text((string) ($ui['allLabel'] ?? 'All')) : (string) ($ui['allLabel'] ?? 'All');
 $empty_title = (string) ($ui['emptyTitle'] ?? 'No matching news found');
 $empty_text = (string) ($ui['emptyText'] ?? 'Choose another category to browse more BOB-LIFT updates.');
 ?>
 
-<section class="boblift-news-hero">
-    <div class="page-shell boblift-news-hero-shell grid items-center gap-7 py-8 md:gap-10 md:py-16 lg:grid-cols-[0.92fr_1.08fr] lg:gap-16 2xl:py-20">
-        <div class="max-w-3xl">
-            <p class="section-label mb-4 md:mb-5"><?php echo esc_html($ui['heroLabel'] ?? 'BOB-LIFT Newsroom'); ?></p>
-            <h1 class="text-[clamp(32px,8.8vw,38px)] font-black leading-[1.04] tracking-[-0.015em] text-navy md:text-[50px] xl:text-[56px] 2xl:text-[64px]"><?php echo esc_html($ui['heroTitle'] ?? 'News & Insights'); ?></h1>
-            <p class="mt-4 max-w-2xl text-base font-semibold leading-7 text-slate-600 md:mt-6 md:text-lg md:leading-8 2xl:text-xl 2xl:leading-9"><?php echo esc_html($ui['heroDescription'] ?? 'Stay informed with the latest updates from BOB-LIFT, including product innovations, company news, and industry insights.'); ?></p>
-            <div class="mt-6 grid grid-cols-2 gap-3 md:mt-8 md:flex md:flex-wrap md:gap-4">
-                <div class="boblift-news-proof-chip"><?php echo boblift_icon('globe', 'h-6 w-6 text-gold md:h-8 md:w-8', '1.8'); ?><span><strong><?php echo esc_html($ui['countriesValue'] ?? '120+'); ?></strong><small><?php echo esc_html($ui['countriesLabel'] ?? 'Countries Served'); ?></small></span></div>
-                <div class="boblift-news-proof-chip"><?php echo boblift_icon('building-2', 'h-6 w-6 text-gold md:h-8 md:w-8', '1.8'); ?><span><strong><?php echo esc_html($ui['yearsValue'] ?? '35+'); ?></strong><small><?php echo esc_html($ui['yearsLabel'] ?? 'Years of Expertise'); ?></small></span></div>
-            </div>
-        </div>
-        <div class="boblift-news-hero-image">
-            <img class="h-full w-full object-cover" src="<?php echo esc_url(boblift_image_src($hero_image)); ?>" alt="BOB-LIFT crane newsroom" loading="eager" decoding="async" fetchpriority="high">
-        </div>
-    </div>
-</section>
+<div class="page-shell pt-5 md:pt-8">
+    <?php
+    boblift_page_hero([
+        'label' => $ui['heroLabel'] ?? 'BOB-LIFT Newsroom',
+        'title' => $ui['heroTitle'] ?? 'News & Insights',
+        'text' => $ui['heroDescription'] ?? 'Stay informed with the latest updates from BOB-LIFT, including product innovations, company news, and industry insights.',
+        'image' => (string) $hero_image,
+        'image_alt' => (string) ($ui['heroImageAlt'] ?? 'Rows of BOB-LIFT knuckle boom cranes in the factory'),
+        'image_position' => 'center 45%',
+    ]);
+    ?>
+</div>
 
 <section id="news-updates" class="page-shell scroll-mt-[120px] pb-20 pt-8 md:pt-10 2xl:pb-24" data-news-filter-root data-news-max-visible="6" data-news-initial-category="<?php echo esc_attr($active_category); ?>">
     <div class="mb-14 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">

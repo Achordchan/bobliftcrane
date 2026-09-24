@@ -16,15 +16,7 @@ $case_close_feedback_label = $ui['closeFeedbackMediaLabel'] ?? 'Close feedback m
 $case_tabs_aria_label = $ui['tabsAriaLabel'] ?? 'Case sections';
 $country_options = [];
 $product_options = [];
-$scene_count = 0;
-$feedback_count = 0;
 foreach ($cases as $case) {
-    $case_kind = boblift_normalize_case_kind((string) ($case['case_kind'] ?? 'scene_case'));
-    if ($case_kind === 'customer_feedback') {
-        $feedback_count++;
-    } else {
-        $scene_count++;
-    }
     $country = trim((string) ($case['country'] ?? ''));
     $product = trim((string) ($case['product_name'] ?? ''));
     if ($country !== '') {
@@ -71,22 +63,17 @@ $render_case_filter = static function (string $id, string $filter, string $all_l
     <?php
 };
 ?>
-<section class="boblift-news-hero">
-    <div class="page-shell boblift-news-hero-shell grid items-center gap-7 py-8 md:gap-10 md:py-16 lg:grid-cols-[0.92fr_1.08fr] lg:gap-16 2xl:py-20">
-        <div class="max-w-3xl">
-            <p class="section-label mb-4 md:mb-5"><?php echo esc_html($ui['heroLabel'] ?? 'Case Center'); ?></p>
-            <h1 class="text-[clamp(32px,8.8vw,38px)] font-black leading-[1.04] tracking-[-0.015em] text-navy md:text-[50px] xl:text-[56px] 2xl:text-[64px]"><?php echo esc_html($ui['heroTitle'] ?? 'Project stories and customer feedback.'); ?></h1>
-            <p class="mt-4 max-w-2xl text-base font-semibold leading-7 text-slate-600 md:mt-6 md:text-lg md:leading-8 2xl:text-xl 2xl:leading-9"><?php echo esc_html($ui['heroDescription'] ?? 'Browse real working conditions and customer feedback to find a BOB-LIFT reference close to your project.'); ?></p>
-            <div class="mt-6 grid grid-cols-2 gap-3 md:mt-8 md:flex md:flex-wrap md:gap-4">
-                <div class="boblift-news-proof-chip"><?php echo boblift_icon('building-2', 'h-6 w-6 text-gold md:h-8 md:w-8', '1.8'); ?><span><strong><?php echo esc_html((string) $scene_count); ?></strong><small><?php echo esc_html($scene_label); ?></small></span></div>
-                <div class="boblift-news-proof-chip"><?php echo boblift_icon('circle-play', 'h-6 w-6 text-gold md:h-8 md:w-8', '1.8'); ?><span><strong><?php echo esc_html((string) $feedback_count); ?></strong><small><?php echo esc_html($feedback_label); ?></small></span></div>
-            </div>
-        </div>
-        <div class="boblift-news-hero-image">
-            <?php if (!empty($ui['heroImage'])) : ?><img class="h-full w-full object-cover" src="<?php echo esc_url(boblift_image_src((string) $ui['heroImage'])); ?>" alt="<?php echo esc_attr((string) ($ui['heroImageAlt'] ?? 'BOB-LIFT customer cases')); ?>" loading="eager" decoding="async" fetchpriority="high"><?php endif; ?>
-        </div>
-    </div>
-</section>
+<div class="page-shell pt-5 md:pt-8">
+    <?php
+    boblift_page_hero([
+        'label' => $ui['heroLabel'] ?? 'Case Center',
+        'title' => $ui['heroTitle'] ?? 'Project stories and customer feedback.',
+        'text' => $ui['heroDescription'] ?? 'Browse real working conditions and customer feedback to find a BOB-LIFT reference close to your project.',
+        'image' => (string) ($ui['heroImage'] ?? ''),
+        'image_alt' => (string) ($ui['heroImageAlt'] ?? 'BOB-LIFT customer cases'),
+    ]);
+    ?>
+</div>
 
 <section id="case-list" class="boblift-cases-center page-shell pb-20 pt-8 md:pt-10 2xl:pb-24" data-cases-root data-cases-empty-title="<?php echo esc_attr($empty_title); ?>">
     <div class="mb-12 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
@@ -94,7 +81,7 @@ $render_case_filter = static function (string $id, string $filter, string $all_l
                 <button class="boblift-cases-tab is-active" type="button" data-cases-tab-button="scene_case" aria-pressed="true"><?php echo esc_html($scene_label); ?></button>
                 <button class="boblift-cases-tab" type="button" data-cases-tab-button="customer_feedback" aria-pressed="false"><?php echo esc_html($feedback_label); ?></button>
             </div>
-            <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_48px] gap-3 xl:min-w-[680px] xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+            <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] gap-3 xl:min-w-[680px]">
                 <?php $render_case_filter('case-country-filter', 'country', $all_countries_label, $country_options); ?>
                 <?php $render_case_filter('case-product-filter', 'product', $all_products_label, $product_options); ?>
                 <button class="boblift-cases-reset-button" type="button" data-cases-reset aria-label="<?php echo esc_attr($reset_label); ?>"><?php echo boblift_icon('rotate-cw', 'h-4 w-4'); ?><span><?php echo esc_html($reset_label); ?></span></button>

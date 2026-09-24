@@ -218,9 +218,8 @@ function boblift_public_welfare_page_defaults(): array
 {
     return [
         'hero' => [
-            'aria_label' => 'Public Welfare',
             'image' => boblift_image_option('images/public-welfare/public-welfare-hero-banner.webp'),
-            'image_alt' => 'BOB-LIFT public welfare factory visit banner',
+            'image_alt' => 'BOB-LIFT engineers reviewing work in the factory',
         ],
         'statement' => [
             'label' => 'Daily Responsibility',
@@ -332,8 +331,6 @@ function boblift_sitemap_page_defaults(): array
         'title' => 'Find BOB-LIFT pages quickly.',
         'description' => 'Browse main pages, product ranges, news and customer cases from one structured index.',
         'links_label' => 'Links',
-        'auto_label' => 'Updated',
-        'auto_value' => 'Auto',
         'core_pages_title' => 'Core Pages',
         'product_range_label' => 'Product Range',
         'product_range_title' => 'Products and categories',
@@ -408,6 +405,8 @@ function boblift_about_page_defaults(): array
             'label' => 'Global Customer Visits',
             'title' => 'Welcoming partners to see how BOB-LIFT builds.',
             'text' => 'Factory visits help customers review production details, discuss lifting requirements and align the right solution before cooperation moves forward.',
+            'hero_image' => boblift_image_option('images/page-heroes/factory-campus.webp'),
+            'hero_image_alt' => 'The BOB-LIFT factory campus from the air',
             'cta_label' => 'Plan a Visit',
             'cta_href' => '/contact.html',
             'home_title' => 'Customer Visit Gallery',
@@ -742,6 +741,28 @@ function boblift_product_menu_families(): array
         ];
     }
     return $families;
+}
+
+/**
+ * The footer's product column follows the product category tree, like the Products menu. It is the
+ * link group saved with source "product_categories" or, in options saved before that existed, the
+ * group whose links all point into the catalog.
+ */
+function boblift_footer_is_product_group(array $group): bool
+{
+    if (($group['source'] ?? '') === 'product_categories') {
+        return true;
+    }
+    $links = is_array($group['links'] ?? null) ? $group['links'] : [];
+    if ($links === []) {
+        return false;
+    }
+    foreach ($links as $link) {
+        if (!is_array($link) || !preg_match('~^/?products(?:\.html)?(?:[/#?]|$)~', trim((string) ($link['href'] ?? '')))) {
+            return false;
+        }
+    }
+    return true;
 }
 
 function boblift_product_category_hierarchy(): array

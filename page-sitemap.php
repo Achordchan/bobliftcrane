@@ -98,29 +98,18 @@ $cases = boblift_sitemap_link_rows(array_map(static fn(WP_Post $post): array => 
 $total_links = count($core_pages) + count($product_categories) + count($products) + count($news_categories) + count($news) + count($cases);
 ?>
 <div class="bg-white text-ink">
-    <section class="relative overflow-hidden border-b border-line bg-[linear-gradient(135deg,#f8fbff_0%,#ffffff_58%,#edf5ff_100%)]">
-        <div class="page-shell py-14 md:py-20 2xl:py-24">
-            <p class="section-label mb-5"><?php echo esc_html((string) ($sitemap_ui['label'] ?? 'HTML Sitemap')); ?></p>
-            <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
-                <div>
-                    <h1 class="max-w-5xl text-[clamp(38px,6vw,78px)] font-black leading-[1.02] tracking-[-0.02em] text-navy"><?php echo esc_html((string) ($sitemap_ui['title'] ?? 'Find BOB-LIFT pages quickly.')); ?></h1>
-                    <p class="mt-6 max-w-3xl text-base font-semibold leading-8 text-slate-600 md:text-lg"><?php echo esc_html((string) ($sitemap_ui['description'] ?? 'Browse main pages, product ranges, news and customer cases from one structured index.')); ?></p>
-                </div>
-                <div class="grid w-fit grid-cols-2 overflow-hidden rounded border border-blue-100 bg-white shadow-card">
-                    <div class="border-r border-blue-100 px-6 py-5 text-center">
-                        <span class="block text-3xl font-black text-navy"><?php echo esc_html((string) $total_links); ?></span>
-                        <span class="mt-1 block text-[11px] font-black uppercase tracking-[0.16em] text-slate-400"><?php echo esc_html((string) ($sitemap_ui['links_label'] ?? 'Links')); ?></span>
-                    </div>
-                    <div class="px-6 py-5 text-center">
-                        <span class="block text-3xl font-black text-navy"><?php echo esc_html((string) ($sitemap_ui['auto_value'] ?? 'Auto')); ?></span>
-                        <span class="mt-1 block text-[11px] font-black uppercase tracking-[0.16em] text-slate-400"><?php echo esc_html((string) ($sitemap_ui['auto_label'] ?? 'Updated')); ?></span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+    <div class="page-shell pt-5 md:pt-8">
+        <?php
+        boblift_page_hero([
+            'label' => (string) ($sitemap_ui['label'] ?? 'HTML Sitemap'),
+            'title' => (string) ($sitemap_ui['title'] ?? 'Find BOB-LIFT pages quickly.'),
+            'text' => (string) ($sitemap_ui['description'] ?? 'Browse main pages, product ranges, news and customer cases from one structured index.'),
+            'meta' => $total_links . ' ' . (string) ($sitemap_ui['links_label'] ?? 'Links'),
+        ]);
+        ?>
+    </div>
 
-    <section class="page-shell py-12 md:py-16 2xl:py-20">
+    <section class="page-shell pb-12 pt-8 md:pb-16 md:pt-10 2xl:pb-20">
         <div class="grid gap-8">
             <?php boblift_render_sitemap_block((string) ($sitemap_ui['core_pages_title'] ?? 'Core Pages'), $core_pages, 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'); ?>
 

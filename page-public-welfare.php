@@ -5,38 +5,23 @@ $hero = is_array($page_options['hero'] ?? null) ? $page_options['hero'] : [];
 $statement = is_array($page_options['statement'] ?? null) ? $page_options['statement'] : [];
 $focus_items = is_array($page_options['focus_items'] ?? null) ? array_values(array_filter($page_options['focus_items'], static fn($item): bool => is_array($item))) : [];
 $cta = is_array($page_options['cta'] ?? null) ? $page_options['cta'] : [];
-$statement_title = (string) ($statement['title'] ?? 'Responsibility is not a slogan. It is our daily operation.');
-$statement_highlight = trim((string) ($statement['highlight'] ?? 'daily operation'));
-$statement_title_html = esc_html($statement_title);
-if ($statement_highlight !== '' && str_contains($statement_title, $statement_highlight)) {
-    $statement_title_html = str_replace(esc_html($statement_highlight), '<span class="text-blue-700">' . esc_html($statement_highlight) . '</span>', $statement_title_html);
-}
 ?>
-<section class="relative overflow-hidden bg-[#071f42]" aria-label="<?php echo esc_attr((string) ($hero['aria_label'] ?? 'Public Welfare')); ?>">
-    <div class="relative h-[42vh] min-h-[360px] max-h-[620px] w-full">
-        <?php echo boblift_img_from_setting($hero['image'] ?? [], 'images/public-welfare/public-welfare-hero-banner.webp', (string) ($hero['image_alt'] ?? 'BOB-LIFT public welfare factory visit banner'), 'absolute inset-0 h-full w-full object-cover object-center', ['loading' => 'eager', 'decoding' => 'async', 'fetchpriority' => 'high']); ?>
-    </div>
-</section>
+<div class="page-shell pb-8 pt-5 md:pb-10 md:pt-8">
+    <?php
+    boblift_page_hero([
+        'label' => (string) ($statement['label'] ?? 'Daily Responsibility'),
+        'title' => (string) ($statement['title'] ?? 'Responsibility is not a slogan. It is our daily operation.'),
+        'title_highlight' => (string) ($statement['highlight'] ?? 'daily operation'),
+        'text' => (string) ($statement['text'] ?? 'From design and build, to how we work and communicate, BOB-LIFT stays focused on doing the right thing every day.'),
+        'image' => boblift_image_setting_url($hero['image'] ?? [], 'images/public-welfare/public-welfare-hero-banner.webp'),
+        'image_alt' => (string) ($hero['image_alt'] ?? 'BOB-LIFT engineers reviewing work in the factory'),
+    ]);
+    ?>
+</div>
 
-<section class="relative overflow-hidden bg-white py-12 md:py-16 lg:py-24">
-    <div class="pointer-events-none absolute -left-24 top-1/2 h-72 w-72 -translate-y-1/2 rounded-full bg-blue-500/10 blur-3xl"></div>
-    <div class="pointer-events-none absolute -right-24 top-1/3 h-80 w-80 rounded-full bg-blue-500/8 blur-3xl"></div>
-    <div class="page-shell relative">
-        <div class="mx-auto max-w-[1600px] py-8 text-center md:py-10 lg:py-14">
-            <p class="section-label mb-8 justify-center"><?php echo esc_html((string) ($statement['label'] ?? 'Daily Responsibility')); ?></p>
-            <h2 class="boblift-welfare-statement-title mx-auto w-full font-black text-[#0B1B33]">
-                <?php echo $statement_title_html; ?>
-            </h2>
-            <p class="mx-auto mt-9 max-w-[1600px] text-[clamp(18px,1.75vw,30px)] font-black leading-[1.35] tracking-[-0.01em] text-[#64748B] [text-wrap:balance]">
-                <?php echo esc_html((string) ($statement['text'] ?? 'From design and build, to how we work and communicate, BOB-LIFT stays focused on doing the right thing every day.')); ?>
-            </p>
-        </div>
-    </div>
-</section>
-
-<section class="bg-[#F8FAFC] pb-12 pt-4 lg:pb-20">
+<section class="pb-12 lg:pb-20">
     <div class="page-shell">
-        <div class="mx-auto grid max-w-[2200px] gap-6 lg:grid-cols-2 lg:gap-8">
+        <div class="mx-auto grid max-w-[2200px] gap-6 lg:gap-8 xl:grid-cols-2">
             <?php foreach ($focus_items as $index => $item) : ?>
                 <article class="grid overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card md:grid-cols-[minmax(280px,0.9fr)_minmax(0,1.1fr)] ">
                     <div class="relative min-h-[260px] overflow-hidden bg-[#EAF1F8] md:min-h-[340px] lg:min-h-[360px]">
