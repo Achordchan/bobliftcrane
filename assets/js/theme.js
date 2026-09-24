@@ -446,6 +446,27 @@
     });
   });
 
+  // Products menu: the family row under the pointer (or keyboard focus) picks the preview panel.
+  // A short hover delay keeps a diagonal move toward the panel from switching families on the way.
+  qsa('[data-mega-families]').forEach((nav) => {
+    const rows = qsa('[data-mega-family]', nav);
+    const panels = qsa('[data-mega-panel]', nav);
+    let hoverTimer = 0;
+    const activate = (slug) => {
+      window.clearTimeout(hoverTimer);
+      rows.forEach((row) => { row.dataset.active = String(row.dataset.megaFamily === slug); });
+      panels.forEach((panel) => { panel.hidden = panel.dataset.megaPanel !== slug; });
+    };
+    rows.forEach((row) => {
+      row.addEventListener('pointerenter', () => {
+        window.clearTimeout(hoverTimer);
+        hoverTimer = window.setTimeout(() => activate(row.dataset.megaFamily), 90);
+      });
+      row.addEventListener('pointerleave', () => window.clearTimeout(hoverTimer));
+      row.addEventListener('focus', () => activate(row.dataset.megaFamily));
+    });
+  });
+
   const aboutLogoSections = qsa('[data-about-logo-scroll]');
   if (aboutLogoSections.length && window.gsap && window.ScrollTrigger) {
     const gsap = window.gsap;
@@ -2547,7 +2568,6 @@
     const bannerTitle = qs('[data-banner-title]', root);
     const bannerText = qs('[data-banner-text]', root);
     const bannerImage = qs('[data-banner-image]', root);
-    const bannerWatermark = qs('[data-banner-watermark]', root);
     const pagination = qs('[data-product-pagination]', root);
     const results = qs('[data-products-results]', root);
     const quickModal = qs('[data-quick-view-modal]', root);
@@ -2672,7 +2692,6 @@
       if (bannerLabel) bannerLabel.textContent = content.label || '';
       if (bannerTitle) bannerTitle.textContent = content.title || '';
       if (bannerText) bannerText.textContent = content.text || '';
-      if (bannerWatermark) bannerWatermark.textContent = content.watermark || 'BOB-LIFT';
       if (bannerImage && content.image) {
         if (bannerImage.getAttribute('src') !== content.image) bannerImage.setAttribute('src', content.image);
         bannerImage.setAttribute('alt', content.imageAlt || '');

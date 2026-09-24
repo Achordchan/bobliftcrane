@@ -832,6 +832,28 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   }
 }
 
+/* Beside the heading, the banner photo fades out to the left. A mask instead of a white overlay,
+   so no sub-pixel column of the photo can show at its left edge. */
+@media (min-width: 1024px) {
+  .boblift-product-archive-banner-media {
+    --banner-fade: 60%;
+  }
+  .boblift-product-archive-banner-media img {
+    -webkit-mask-image: linear-gradient(to right, transparent 0, rgba(0, 0, 0, .2) calc(var(--banner-fade) / 2), #000 var(--banner-fade));
+    mask-image: linear-gradient(to right, transparent 0, rgba(0, 0, 0, .2) calc(var(--banner-fade) / 2), #000 var(--banner-fade));
+  }
+}
+@media (min-width: 1280px) {
+  .boblift-product-archive-banner-media {
+    --banner-fade: 50%;
+  }
+}
+@media (min-width: 1536px) {
+  .boblift-product-archive-banner-media {
+    --banner-fade: 40%;
+  }
+}
+
 
 @media (max-width: 767px) {
   .boblift-product-listing .products-grid {

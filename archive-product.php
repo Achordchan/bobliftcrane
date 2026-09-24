@@ -17,13 +17,14 @@ $sort_options = is_array($archive_ui['sortOptions'] ?? null) ? $archive_ui['sort
 $product_archive = boblift_product_archive_options();
 $product_ui = function_exists('boblift_site_ui') ? boblift_site_ui('productDetail') : [];
 $quote_list_ui = function_exists('boblift_site_ui') ? boblift_site_ui('quoteList') : [];
+// The default banner shows the built-in photo unless an image was uploaded in 产品页默认 Banner.
+$archive_banner_image_id = is_array($product_archive['image'] ?? null) ? (int) ($product_archive['image']['id'] ?? 0) : 0;
 $banner_default = [
     'label' => (string) ($product_archive['label'] ?? 'BOB-LIFT Product Range'),
     'title' => (string) ($product_archive['title'] ?? 'Cranes & Lifting Equipment'),
     'text' => (string) ($product_archive['text'] ?? 'Explore BOB-LIFT truck mounted cranes, marine cranes and lifting equipment for global projects.'),
-    'image' => boblift_image_setting_url($product_archive['image'] ?? [], 'images/products/truck-mounted-crane.png'),
-    'imageAlt' => (string) ($product_archive['image_alt'] ?? 'BOB-LIFT truck mounted crane'),
-    'watermark' => (string) ($product_archive['watermark'] ?? 'BOB-LIFT'),
+    'image' => $archive_banner_image_id > 0 ? boblift_image_setting_url($product_archive['image']) : boblift_product_banner_photo_url(),
+    'imageAlt' => $archive_banner_image_id > 0 ? (string) ($product_archive['image_alt'] ?? '') : 'BOB-LIFT knuckle boom crane in the factory yard',
 ];
 $banner_categories = [];
 foreach ($categories as $category) {
@@ -35,15 +36,15 @@ foreach ($categories as $category) {
         'label' => $category['banner_label'] ?? 'BOB-LIFT Product Range',
         'title' => $category['banner_title'] ?? ($category['title'] ?? $slug),
         'text' => $category['description'] ?? $banner_default['text'],
-        'image' => boblift_image_src($category['image'] ?? 'images/products/truck-mounted-crane.png'),
+        'image' => boblift_product_banner_photo_url(get_term_by('slug', $slug, 'product_category') ?: null),
         'imageAlt' => $category['title'] ?? $banner_default['imageAlt'],
-        'watermark' => $banner_default['watermark'],
     ];
 }
 $valid_category_slugs = array_fill_keys(array_keys($banner_categories), true);
 if ($initial_category !== '' && !isset($valid_category_slugs[$initial_category])) {
     $initial_category = '';
 }
+$banner_initial = $initial_category !== '' ? $banner_categories[$initial_category] : $banner_default;
 $capacity_counts = array_fill_keys(array_column($capacity_ranges, 'value'), 0);
 $boom_counts = array_fill_keys(array_keys($boom_options), 0);
 $application_counts = array_fill_keys(array_keys($application_options), 0);
@@ -170,19 +171,15 @@ $filter_sidebar = static function (bool $show_close = false) use ($filter_group,
 <?php };
 ?>
 <section class="boblift-product-listing bg-[#F8FAFC] py-8 md:py-12 lg:py-14" data-product-listing data-view="grid" data-current-category="<?php echo esc_attr($initial_category); ?>" data-product-archive-url="<?php echo esc_url(boblift_product_archive_url()); ?>" data-category-urls="<?php echo esc_attr(wp_json_encode($category_url_map, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)); ?>">
-    <div class="mx-auto max-w-[2320px] px-4 sm:px-6 xl:px-10 2xl:px-12">
-        <section class="boblift-product-archive-banner mb-6 overflow-hidden rounded border border-[#DCE6F3] bg-[linear-gradient(135deg,#ffffff_0%,#eef6ff_54%,#dbeafe_100%)] shadow-card md:mb-7" data-product-banner data-banner-default="<?php echo esc_attr(wp_json_encode($banner_default, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)); ?>" data-banner-categories="<?php echo esc_attr(wp_json_encode($banner_categories, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)); ?>">
-            <div class="boblift-product-archive-banner-inner grid min-h-[168px] grid-cols-1 items-center gap-6 px-6 py-7 md:min-h-[210px] md:grid-cols-[minmax(0,1fr)_300px] md:px-9 lg:grid-cols-[minmax(0,1fr)_420px] xl:px-12">
-                <div class="relative z-10 min-w-0 max-w-none">
-                    <p class="boblift-product-archive-banner-label text-xs font-black uppercase tracking-[0.18em] text-[#0B3F7D]" data-banner-label><?php echo esc_html($banner_default['label']); ?></p>
-                    <h1 class="boblift-product-archive-banner-title mt-3 max-w-full text-[clamp(2.25rem,3.05vw,4.5rem)] font-black leading-[0.98] tracking-[-0.02em] text-[#0B1B33] min-[1500px]:whitespace-nowrap" data-banner-title><?php echo esc_html($banner_default['title']); ?></h1>
-                    <div class="boblift-product-archive-banner-text mt-4 space-y-3 text-sm font-semibold leading-7 text-slate-600 md:text-base md:leading-8"><p data-banner-text><?php echo esc_html($banner_default['text']); ?></p></div>
-                </div>
-                <div class="relative hidden h-[150px] md:block">
-                    <span class="pointer-events-none absolute right-0 top-0 select-none text-[72px] font-black uppercase leading-none tracking-[-0.025em] text-white/80 lg:text-[92px]" data-banner-watermark><?php echo esc_html($banner_default['watermark']); ?></span>
-                    <div class="absolute inset-x-6 bottom-2 h-16 rounded-full bg-white/70 blur-xl"></div>
-                    <img class="absolute inset-0 h-full w-full object-contain object-right-bottom drop-shadow-[0_6px_8px_rgba(11,27,51,0.10)]" src="<?php echo esc_url($banner_default['image']); ?>" alt="<?php echo esc_attr($banner_default['imageAlt']); ?>" loading="eager" decoding="async" fetchpriority="high" data-banner-image>
-                </div>
+    <div class="mx-auto max-w-[2320px] px-4 sm:px-6 xl:px-10 2xl:px-12 min-[1780px]:px-32">
+        <section class="boblift-product-archive-banner relative mb-6 overflow-hidden rounded border border-line bg-white shadow-card md:mb-7" data-product-banner data-banner-default="<?php echo esc_attr(wp_json_encode($banner_default, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)); ?>" data-banner-categories="<?php echo esc_attr(wp_json_encode($banner_categories, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)); ?>">
+            <div class="boblift-product-archive-banner-media relative aspect-[11/5] w-full overflow-hidden bg-mist sm:aspect-[3/1] lg:absolute lg:inset-y-0 lg:right-0 lg:aspect-auto lg:w-[72%] lg:bg-white xl:w-[66%] 2xl:w-[62%] min-[1920px]:w-[56%]">
+                <img class="absolute inset-0 h-full w-full object-cover object-[right_30%]" src="<?php echo esc_url($banner_initial['image']); ?>" alt="<?php echo esc_attr($banner_initial['imageAlt']); ?>" loading="eager" decoding="async" fetchpriority="high" data-banner-image>
+            </div>
+            <div class="boblift-product-archive-banner-inner relative z-10 px-5 py-6 sm:px-8 lg:flex lg:min-h-[320px] lg:max-w-[46%] lg:flex-col lg:justify-center lg:py-10 xl:min-h-[340px] xl:px-12 2xl:min-h-[360px] 2xl:max-w-[44%] min-[1920px]:min-h-[380px]">
+                <p class="boblift-product-archive-banner-label text-xs font-black uppercase tracking-[0.18em] text-[#0B3F7D]" data-banner-label><?php echo esc_html($banner_initial['label']); ?></p>
+                <h1 class="boblift-product-archive-banner-title mt-3 text-[clamp(2rem,3vw,3.75rem)] font-black leading-[1.02] tracking-[-0.02em] text-[#0B1B33]" data-banner-title><?php echo esc_html($banner_initial['title']); ?></h1>
+                <div class="boblift-product-archive-banner-text mt-4 max-w-xl text-sm font-semibold leading-7 text-slate-600 md:text-base md:leading-8"><p data-banner-text><?php echo esc_html($banner_initial['text']); ?></p></div>
             </div>
         </section>
 

@@ -5,7 +5,25 @@ $branding = $options['branding'] ?? [];
 $top_bar = is_array($options['top_bar'] ?? null) ? $options['top_bar'] : [];
 $show_top_bar = !array_key_exists('enabled', $top_bar) || (string) ($top_bar['enabled'] ?? '1') === '1';
 $nav_items = $options['nav_items'] ?? [];
-$product_groups = $options['product_nav_groups'] ?? [];
+$product_menu_families = function_exists('boblift_product_menu_families') ? boblift_product_menu_families() : [];
+// The Products menu opens on the family of the category or product being viewed, otherwise the first one.
+$product_menu_active = (string) ($product_menu_families[0]['slug'] ?? '');
+$product_menu_term = null;
+if (is_singular('product')) {
+    $product_menu_terms = get_the_terms(get_queried_object_id(), 'product_category');
+    $product_menu_term = is_array($product_menu_terms) ? ($product_menu_terms[0] ?? null) : null;
+} elseif (function_exists('boblift_current_product_category_term')) {
+    $product_menu_term = boblift_current_product_category_term();
+}
+if ($product_menu_term instanceof WP_Term) {
+    $product_menu_ancestors = get_ancestors($product_menu_term->term_id, 'product_category', 'taxonomy');
+    $product_menu_top = $product_menu_ancestors ? get_term((int) end($product_menu_ancestors), 'product_category') : $product_menu_term;
+    if ($product_menu_top instanceof WP_Term && in_array($product_menu_top->slug, array_column($product_menu_families, 'slug'), true)) {
+        $product_menu_active = $product_menu_top->slug;
+    }
+}
+$product_menu_view_all = function_exists('boblift_home_product_section_config') ? (string) (boblift_home_product_section_config()['viewAllLabel'] ?? '') : '';
+$product_menu_view_all = $product_menu_view_all !== '' ? $product_menu_view_all : 'View All {count} Models';
 $contact = $options['contact'] ?? [];
 $header_ui = function_exists('boblift_site_ui') ? boblift_site_ui('header') : [];
 $quote_form_ui = function_exists('boblift_site_ui') ? boblift_site_ui('quoteForm') : [];
@@ -203,40 +221,58 @@ foreach ($languages as $language) {
                     <?php if ($is_product_menu_item) : ?>
                         <div class="group/products static" data-mega-root>
                             <a class="<?php echo esc_attr($pill); ?>" href="<?php echo esc_url($item_url); ?>" aria-haspopup="true"><?php echo esc_html(function_exists('boblift_localized_static_text') ? boblift_localized_static_text((string) $item['label']) : (string) $item['label']); ?><?php echo boblift_icon('chevron-down', 'h-3.5 w-3.5 text-gold transition group-hover/products:rotate-180'); ?></a>
-                            <div class="mega-menu absolute left-1/2 top-full z-[210] w-[min(1560px,calc(100vw-80px))] -translate-x-1/2">
-                                <div class="relative max-h-[calc(100vh-132px)] overflow-hidden rounded border border-[#d8e7f7] bg-white shadow-raised ring-1 ring-white/80" data-product-nav="desktop">
-                                    <div class="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.98)_0%,rgba(247,251,255,0.94)_100%)]"></div>
-                                    <div class="relative grid max-h-[calc(100vh-280px)] grid-cols-3 items-stretch gap-4 overflow-y-auto p-4 pr-3 2xl:max-h-[calc(100vh-250px)] 2xl:gap-6 2xl:p-6 2xl:pr-5">
-                                        <?php foreach ($product_groups as $group_index => $group) : $featured = $group_index < 2; ?>
-                                            <div class="relative flex h-full min-h-[500px] flex-col overflow-hidden rounded border border-[#dbe8f5] bg-white/92 shadow-card 2xl:min-h-[590px] <?php echo $featured ? 'p-0' : 'p-5 2xl:p-6'; ?>">
-                                                <?php if ($featured) : ?>
-                                                    <a class="group/title relative block h-[clamp(260px,19vw,310px)] w-full shrink-0 overflow-hidden border-b border-[#dbe8f5] bg-[#f4f8fd] 2xl:h-[clamp(300px,17vw,340px)]" href="<?php echo esc_url(boblift_product_nav_url((string) ($group['href'] ?? '/products'), (string) ($group['title'] ?? ''))); ?>">
-                                                        <?php echo boblift_img_from_setting($group['image'] ?? 'images/telescopic-banner.jpg', 'images/telescopic-banner.jpg', '', 'h-full w-full object-cover object-center'); ?>
-                                                        <span class="absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.96)_0%,rgba(255,255,255,0.78)_42%,rgba(255,255,255,0.18)_100%)]"></span>
-                                                        <span class="absolute left-4 top-4 flex items-start gap-3 2xl:left-6 2xl:top-6 2xl:gap-4"><span class="grid h-[52px] w-[52px] shrink-0 place-items-center rounded-sm bg-blue-700 shadow-card min-[1700px]:h-16 min-[1700px]:w-16 2xl:h-[68px] 2xl:w-[68px]"><?php echo boblift_img('images/mega-menu-icons/' . ($group['iconName'] ?? $group['icon'] ?? 'attachments') . '.png', '', 'h-8 w-8 object-contain brightness-0 invert min-[1700px]:h-11 min-[1700px]:w-11'); ?></span><span class="min-w-0 max-w-[300px] pt-1"><strong class="block text-[clamp(18px,1.12vw,26px)] font-black leading-tight tracking-[-0.015em] text-navy"><?php echo esc_html($group['title']); ?></strong><span class="mt-1.5 block text-[clamp(12px,0.72vw,15px)] font-semibold leading-5 text-slate-600"><?php echo esc_html($group['description']); ?></span><span class="mt-3 block h-1 w-12 rounded-full bg-blue-600"></span></span></span>
+                            <div class="mega-menu absolute left-1/2 top-full z-[210] w-[min(1180px,calc(100vw-48px))] -translate-x-1/2">
+                                <div class="relative overflow-hidden rounded border border-line bg-white shadow-raised" data-product-nav="desktop" data-mega-families>
+                                    <div class="grid grid-cols-[264px_minmax(0,1fr)] xl:grid-cols-[292px_minmax(0,1fr)]">
+                                        <ul class="grid content-start gap-0.5 border-r border-line bg-mist p-3">
+                                            <?php foreach ($product_menu_families as $family) : ?>
+                                                <li>
+                                                    <a class="relative flex min-h-14 items-center gap-2.5 rounded-sm px-3 py-2 text-slate-600 xl:gap-3 outline-none transition before:absolute before:inset-y-3 before:left-0 before:w-0.5 before:bg-gold before:opacity-0 hover:text-ink focus-visible:ring-2 focus-visible:ring-blue-300 data-[active=true]:bg-white data-[active=true]:text-ink data-[active=true]:before:opacity-100" href="<?php echo esc_url($family['url']); ?>" data-mega-family="<?php echo esc_attr($family['slug']); ?>" data-active="<?php echo $family['slug'] === $product_menu_active ? 'true' : 'false'; ?>">
+                                                        <?php echo boblift_img('images/mega-menu-icons/' . $family['icon'] . '.png', '', 'h-8 w-8 shrink-0 object-contain'); ?>
+                                                        <span class="min-w-0 flex-1 text-[14px] font-black leading-tight xl:text-[15px]"><?php echo esc_html($family['title']); ?></span>
+                                                        <span class="shrink-0 text-xs font-bold tabular-nums text-slate-400"><?php echo esc_html((string) $family['count']); ?></span>
                                                     </a>
-                                                <?php else : ?>
-                                                    <a class="group/title flex items-center gap-4" href="<?php echo esc_url(boblift_product_nav_url((string) ($group['href'] ?? '/products'), (string) ($group['title'] ?? ''))); ?>"><span class="grid h-14 w-14 shrink-0 place-items-center rounded-sm bg-blue-700 shadow-card"><?php echo boblift_img('images/mega-menu-icons/' . ($group['iconName'] ?? $group['icon'] ?? 'attachments') . '.png', '', 'h-9 w-9 object-contain brightness-0 invert'); ?></span><span class="min-w-0"><strong class="block text-[clamp(18px,1vw,22px)] font-black leading-tight tracking-[-0.015em] text-navy"><?php echo esc_html($group['title']); ?></strong><span class="mt-1.5 block text-[clamp(13px,0.76vw,15px)] font-semibold leading-5 text-slate-500"><?php echo esc_html($group['description']); ?></span><span class="mt-3 block h-1 w-10 rounded-full bg-blue-600"></span></span></a>
-                                                <?php endif; ?>
-                                                <div class="grid flex-1 content-start gap-0 <?php echo $featured ? 'p-3.5 2xl:p-5' : 'mt-4 2xl:mt-5'; ?>">
-                                                    <?php foreach (($group['links'] ?? []) as $link_index => $link) : ?>
-                                                        <a class="group/item relative flex min-h-[50px] items-center gap-3 border-b border-[#e2ebf5] px-1 py-2 text-navy transition duration-200 ease-out last:border-b-0 hover:text-blue-700 2xl:min-h-[58px] 2xl:gap-4 2xl:py-2.5 <?php echo $group_index === 0 && $link_index === 0 ? 'text-blue-700' : ''; ?>" href="<?php echo esc_url(boblift_product_nav_url((string) ($link['href'] ?? '/products'), (string) ($link['label'] ?? ''))); ?>"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-sm bg-[#f3f7fc] text-navy/75 transition duration-200 group-hover/item:bg-blue-50 2xl:h-12 2xl:w-12 "><?php echo boblift_img('images/mega-menu-icons/' . ($link['iconName'] ?? $link['icon'] ?? 'truck-crane') . '.png', '', 'h-7 w-7 object-contain 2xl:h-8 2xl:w-8'); ?></span><span class="min-w-0 flex-1 text-[clamp(13px,0.8vw,16px)] font-black leading-[1.16] tracking-[-0.01em]"><?php echo esc_html($link['label']); ?></span><span class="shrink-0 -rotate-90 text-blue-600 transition duration-200 group-hover/item:translate-x-1"><?php echo boblift_icon('chevron-down', 'h-4 w-4'); ?></span></a>
-                                                    <?php endforeach; ?>
-                                                </div>
-                                            </div>
-                                        <?php endforeach; ?>
+                                                </li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                        <div class="min-w-0 p-5 xl:p-6">
+                                            <?php foreach ($product_menu_families as $family) : $family_links = $family['children'] ?: $family['models']; ?>
+                                                <section class="grid min-h-[260px] grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] gap-6 xl:gap-8 [&[hidden]]:hidden" data-mega-panel="<?php echo esc_attr($family['slug']); ?>" <?php echo $family['slug'] === $product_menu_active ? '' : 'hidden'; ?>>
+                                                    <a class="relative block overflow-hidden rounded bg-mist" href="<?php echo esc_url($family['url']); ?>" tabindex="-1" aria-hidden="true">
+                                                        <img class="absolute inset-0 h-full w-full object-cover object-[89%_center]" src="<?php echo esc_url($family['photo']); ?>" alt="" loading="lazy" decoding="async">
+                                                    </a>
+                                                    <div class="flex min-w-0 flex-col">
+                                                        <a class="text-2xl font-black leading-tight tracking-[-0.015em] text-navy transition hover:text-blue-700" href="<?php echo esc_url($family['url']); ?>"><?php echo esc_html($family['title']); ?></a>
+                                                        <ul class="mt-4 border-t border-line">
+                                                            <?php foreach ($family_links as $family_link) : ?>
+                                                                <li>
+                                                                    <a class="group/row flex min-h-[44px] items-center gap-3 border-b border-line py-2 text-[15px] font-bold leading-snug text-navy transition hover:text-blue-700" href="<?php echo esc_url($family_link['url']); ?>">
+                                                                        <span class="min-w-0 flex-1"><?php echo esc_html($family_link['title']); ?></span>
+                                                                        <?php if (isset($family_link['count'])) : ?><span class="shrink-0 text-xs font-bold tabular-nums text-slate-400"><?php echo esc_html((string) $family_link['count']); ?></span><?php endif; ?>
+                                                                        <?php echo boblift_icon('chevron-down', 'h-4 w-4 shrink-0 -rotate-90 text-blue-600 transition group-hover/row:translate-x-0.5'); ?>
+                                                                    </a>
+                                                                </li>
+                                                            <?php endforeach; ?>
+                                                        </ul>
+                                                        <?php if ($family['count'] > 1) : ?>
+                                                        <a class="mt-5 inline-flex h-11 w-fit items-center gap-2 rounded-sm border border-navy/20 bg-white px-5 text-sm font-black text-navy transition hover:border-blue-300 hover:text-blue-700" href="<?php echo esc_url($family['url']); ?>"><?php echo esc_html(str_replace('{count}', (string) $family['count'], $product_menu_view_all)); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </section>
+                                            <?php endforeach; ?>
+                                        </div>
                                     </div>
-                                    <div class="relative border-t border-[#dbe8f5] bg-[#f4f8fd]/94 px-5 py-3.5 2xl:px-7">
+                                    <div class="relative border-t border-line bg-mist px-5 py-3.5 xl:px-6">
                                         <div class="flex flex-wrap items-center justify-between gap-4">
-                                            <div class="flex min-w-[260px] items-center gap-4">
-                                                <span class="grid h-12 w-12 shrink-0 place-items-center rounded-sm bg-white text-navy"><?php echo boblift_img('images/mega-menu-icons/catalog.png', '', 'h-8 w-8 object-contain'); ?></span>
+                                            <div class="flex min-w-[260px] items-center gap-3">
+                                                <?php echo boblift_img('images/mega-menu-icons/catalog.png', '', 'h-8 w-8 shrink-0 object-contain'); ?>
                                                 <span><span class="block text-[17px] font-black leading-tight text-navy"><?php echo esc_html($header_ui['megaTitle'] ?? 'Explore All Products'); ?></span><span class="mt-1 block text-sm font-semibold text-slate-500"><?php echo esc_html($header_ui['megaDescription'] ?? 'Discover our full range of lifting solutions.'); ?></span></span>
                                             </div>
-                                            <div class="flex flex-wrap items-center gap-x-5 gap-y-3 text-sm font-black text-navy 2xl:text-base">
-                                                <a class="inline-flex items-center gap-4 text-navy transition hover:text-blue-700" href="mailto:<?php echo esc_attr($contact['email'] ?? 'info@bobliftcrane.com'); ?>"><span class="grid h-10 w-10 place-items-center rounded-sm border border-[#d8e7f7] bg-white text-navy"><?php echo boblift_icon('mail', 'h-5 w-5'); ?></span><?php echo esc_html($contact['email'] ?? 'info@bobliftcrane.com'); ?></a>
-                                                <a class="inline-flex items-center gap-4 text-navy transition hover:text-blue-700" href="https://wa.me/<?php echo esc_attr(preg_replace('/\D+/', '', $contact['whatsapp'] ?? $contact['phone'] ?? '8615852499415')); ?>"><span class="grid h-10 w-10 place-items-center rounded-sm border border-[#d8e7f7] bg-white text-navy"><?php echo boblift_icon('phone', 'h-5 w-5'); ?></span><?php echo esc_html($contact['phone'] ?? '+86 15852499415'); ?></a>
+                                            <div class="hidden flex-wrap items-center gap-x-6 gap-y-3 text-sm font-bold text-navy xl:flex">
+                                                <a class="inline-flex items-center gap-2 text-navy transition hover:text-blue-700" href="mailto:<?php echo esc_attr($contact['email'] ?? 'info@bobliftcrane.com'); ?>"><?php echo boblift_icon('mail', 'h-4 w-4 text-slate-400'); ?><?php echo esc_html($contact['email'] ?? 'info@bobliftcrane.com'); ?></a>
+                                                <a class="inline-flex items-center gap-2 text-navy transition hover:text-blue-700" href="https://wa.me/<?php echo esc_attr(preg_replace('/\D+/', '', $contact['whatsapp'] ?? $contact['phone'] ?? '8615852499415')); ?>"><?php echo boblift_icon('phone', 'h-4 w-4 text-slate-400'); ?><?php echo esc_html($contact['phone'] ?? '+86 15852499415'); ?></a>
                                             </div>
-                                            <a class="group/catalog inline-flex h-12 shrink-0 items-center gap-3 rounded-sm bg-blue-700 px-6 text-sm font-black text-white shadow-card transition hover:-translate-y-0.5 hover:bg-blue-800 2xl:text-base" href="<?php echo esc_url(boblift_product_archive_url()); ?>"><?php echo esc_html($header_ui['megaButtonLabel'] ?? 'View Product Catalog'); ?><span class="grid h-7 w-7 place-items-center rounded-sm border border-white/60 text-white transition group-hover/catalog:translate-x-0.5"><?php echo boblift_icon('arrow-right', 'h-4 w-4 -rotate-45'); ?></span></a>
+                                            <a class="inline-flex h-11 shrink-0 items-center gap-2 rounded-sm bg-navy px-5 text-sm font-black text-white transition hover:bg-[#0b2d5b]" href="<?php echo esc_url(boblift_product_archive_url()); ?>"><?php echo esc_html($header_ui['megaButtonLabel'] ?? 'View Product Catalog'); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
                                         </div>
                                     </div>
                                 </div>
@@ -342,12 +378,14 @@ foreach ($languages as $language) {
                         <div id="mobile-products-submenu" class="mx-1.5 mb-2 hidden rounded border border-line bg-[#f8fbff] p-2.5" data-product-nav="mobile" data-mobile-submenu-panel>
                             <p class="px-2 pb-2 text-[10px] font-black uppercase tracking-[0.18em] text-gold"><?php echo esc_html($header_ui['productCategoriesLabel'] ?? 'Product Categories'); ?></p>
                             <div class="grid gap-3">
-                                <?php foreach ($product_groups as $group_index => $group) : ?>
+                                <?php foreach ($product_menu_families as $family) : ?>
                                     <div>
-                                        <a class="block rounded bg-white px-3 py-2 text-[13px] font-black leading-4 text-ink shadow-card" href="<?php echo esc_url(boblift_product_nav_url((string) ($group['href'] ?? '/products'), (string) ($group['title'] ?? ''))); ?>"><?php echo esc_html($group['title'] ?? 'Products'); ?></a>
-                                        <div class="mt-1 grid gap-1 pl-2">
-                                            <?php foreach (($group['links'] ?? []) as $link) : ?><a class="rounded px-3 py-1.5 text-xs font-bold leading-[18px] text-slate-500 hover:bg-white hover:text-blue-700" href="<?php echo esc_url(boblift_product_nav_url((string) ($link['href'] ?? '/products'), (string) ($link['label'] ?? ''))); ?>"><?php echo esc_html($link['label'] ?? 'Product'); ?></a><?php endforeach; ?>
-                                        </div>
+                                        <a class="flex items-center justify-between gap-3 rounded bg-white px-3 py-2 text-[13px] font-black leading-4 text-ink shadow-card" href="<?php echo esc_url($family['url']); ?>"><span class="min-w-0"><?php echo esc_html($family['title']); ?></span><span class="shrink-0 text-[11px] font-bold tabular-nums text-slate-400"><?php echo esc_html((string) $family['count']); ?></span></a>
+                                        <?php if ($family['children']) : ?>
+                                            <div class="mt-1 grid gap-1 pl-2">
+                                                <?php foreach ($family['children'] as $family_child) : ?><a class="rounded px-3 py-1.5 text-xs font-bold leading-[18px] text-slate-500 hover:bg-white hover:text-blue-700" href="<?php echo esc_url($family_child['url']); ?>"><?php echo esc_html($family_child['title']); ?></a><?php endforeach; ?>
+                                            </div>
+                                        <?php endif; ?>
                                     </div>
                                 <?php endforeach; ?>
                             </div>

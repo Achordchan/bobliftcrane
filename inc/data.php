@@ -68,9 +68,8 @@ function boblift_product_archive_defaults(): array
         'label' => 'BOB-LIFT Product Range',
         'title' => 'Cranes & Lifting Equipment',
         'text' => 'Explore BOB-LIFT truck mounted cranes, marine cranes and lifting equipment for global projects.',
-        'image' => boblift_image_option('images/products/truck-mounted-crane.png'),
-        'image_alt' => 'BOB-LIFT truck mounted crane',
-        'watermark' => 'BOB-LIFT',
+        'image' => boblift_image_option('images/product-banners/default.jpg'),
+        'image_alt' => 'BOB-LIFT knuckle boom crane in the factory yard',
     ];
 }
 
@@ -655,6 +654,94 @@ function boblift_product_category_group_definitions(): array
             'children' => ['spider-cranes', 'timber-cranes'],
         ],
     ];
+}
+
+// Product list banner photos. Each top-level product family has a built-in photo in
+// assets/images/product-banners/ named after its English slug; a subcategory uses its family's photo.
+function boblift_product_banner_builtin_photo(?WP_Term $term = null): string
+{
+    $family = 'default';
+    if ($term instanceof WP_Term) {
+        $ancestors = get_ancestors($term->term_id, 'product_category', 'taxonomy');
+        $top = $ancestors ? get_term((int) end($ancestors), 'product_category') : $term;
+        if ($top instanceof WP_Term) {
+            $family = sanitize_key(boblift_source_term_slug($top));
+        }
+    }
+    $path = 'images/product-banners/' . $family . '.jpg';
+    return is_readable(boblift_asset_path($path)) ? $path : 'images/product-banners/default.jpg';
+}
+
+// A photo uploaded in the category's "产品页 Banner 图片" field wins over the built-in one.
+function boblift_product_banner_photo_url(?WP_Term $term = null): string
+{
+    $image_id = $term instanceof WP_Term ? (int) get_term_meta($term->term_id, '_boblift_image_id', true) : 0;
+    $url = $image_id > 0 ? (string) wp_get_attachment_image_url($image_id, 'full') : '';
+    return $url !== '' ? $url : boblift_asset(boblift_product_banner_builtin_photo($term));
+}
+
+// The Products mega menu, built from the live category tree so it always matches the catalog:
+// every top-level family with its photo and model count, plus its subcategories, or its models
+// when it has fewer than two subcategories with products.
+function boblift_product_menu_families(): array
+{
+    $term_link = static function (WP_Term $term): string {
+        $url = get_term_link($term);
+        return is_string($url) ? $url : boblift_url('/' . $term->slug);
+    };
+    $families = [];
+    foreach (boblift_product_category_hierarchy() as $group) {
+        $term = get_term_by('slug', (string) ($group['slug'] ?? ''), 'product_category');
+        if (!$term instanceof WP_Term) {
+            continue;
+        }
+        // Distinct products in the whole family; a product filed under both a parent and a child counts once.
+        $total = (int) (new WP_Query([
+            'post_type' => 'product',
+            'post_status' => 'publish',
+            'posts_per_page' => 1,
+            'fields' => 'ids',
+            'tax_query' => [['taxonomy' => 'product_category', 'terms' => $term->term_id, 'include_children' => true]],
+        ]))->found_posts;
+        $children = [];
+        foreach (($group['children'] ?? []) as $child) {
+            $child_term = get_term_by('slug', (string) ($child['slug'] ?? ''), 'product_category');
+            if (!$child_term instanceof WP_Term || (int) $child_term->count === 0) {
+                continue;
+            }
+            $children[] = ['title' => $child_term->name, 'url' => $term_link($child_term), 'count' => (int) $child_term->count];
+        }
+        if ($total === 0) {
+            continue;
+        }
+        $models = [];
+        if (count($children) < 2) {
+            $children = [];
+            $posts = get_posts([
+                'post_type' => 'product',
+                'post_status' => 'publish',
+                'numberposts' => 12,
+                'tax_query' => [['taxonomy' => 'product_category', 'terms' => $term->term_id, 'include_children' => true]],
+            ]);
+            usort($posts, static fn(WP_Post $a, WP_Post $b): int => ((float) get_post_meta($a->ID, '_capacity_value', true) <=> (float) get_post_meta($b->ID, '_capacity_value', true)) ?: strnatcasecmp($a->post_title, $b->post_title));
+            foreach (array_slice($posts, 0, 5) as $post) {
+                $models[] = ['title' => (string) boblift_localize_product_text_fragments(get_the_title($post)), 'url' => (string) get_permalink($post)];
+            }
+        }
+        $icon = sanitize_key((string) ($group['category']['icon'] ?? ''));
+        $families[] = [
+            'slug' => $term->slug,
+            'source_slug' => boblift_source_term_slug($term),
+            'title' => $term->name,
+            'url' => $term_link($term),
+            'count' => $total,
+            'icon' => $icon !== '' && is_readable(boblift_asset_path('images/mega-menu-icons/' . $icon . '.png')) ? $icon : 'truck-crane',
+            'photo' => boblift_product_banner_photo_url($term),
+            'children' => $children,
+            'models' => $models,
+        ];
+    }
+    return $families;
 }
 
 function boblift_product_category_hierarchy(): array
