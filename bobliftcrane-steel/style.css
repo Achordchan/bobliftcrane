@@ -1,0 +1,13 @@
+/*
+Theme Name: BOB-LIFT Steel
+Theme URI: https://www.bobliftcrane.com/
+Description: Industrial, datasheet-inspired presentation layer for the BOB-LIFT crane site. Child theme of BOB-LIFT Crane: all post types, admin panels, importer and forms stay in the parent; this theme only replaces templates, CSS and front-end scripts.
+Author: BOB-LIFT
+Template: bobliftcrane
+Version: 0.1.0
+Requires at least: 6.4
+Requires PHP: 8.1
+Text Domain: boblift-steel
+*/
+
+/* Styles live in assets/css/steel.css and are enqueued from functions.php. */
