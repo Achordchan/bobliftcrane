@@ -737,7 +737,6 @@ img { max-width: 100%; }
 .group\/products.mega-menu-open .mega-menu,
 .mega-menu:hover { pointer-events: auto; visibility: visible; opacity: 1; transform: translate(-50%, 0); transition-delay: 0s; }
 body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: none; visibility: hidden; opacity: 0; transform: translate(-50%, 12px); transition-delay: 0s; }
-.hero-slide { transition: opacity .7s ease, transform .7s ease; }
 .reveal { animation: rise .75s ease both; }
 .product-stage { background: radial-gradient(circle at 70% 46%, rgba(37,99,235,.12), transparent 28%), radial-gradient(circle at 76% 72%, rgba(37,99,235,.08), transparent 20%), linear-gradient(135deg, rgba(255,255,255,.98), rgba(241,247,255,.92)); }
 .product-hero-3d { transform: translateX(-50%) rotateY(-4deg) rotateX(1deg); transform-origin: center bottom; }
@@ -816,6 +815,29 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
     line-height: 1.68;
   }
 }
+
+/* Home hero: the photo fades into white beside the headline. */
+@media (min-width: 1024px) {
+  .boblift-home-hero-media img {
+    -webkit-mask-image: linear-gradient(to right, transparent 0, rgba(0, 0, 0, .25) 18%, #000 42%);
+    mask-image: linear-gradient(to right, transparent 0, rgba(0, 0, 0, .25) 18%, #000 42%);
+  }
+}
+
+/* Home hero slides: the new photo fades in over the old one, the text swaps after a short
+   fade, and the active tab's bar fills while the slideshow runs. */
+.boblift-home-hero-image { transition: opacity .8s ease; }
+.boblift-home-hero-image:not([aria-hidden="true"]) { z-index: 1; }
+.boblift-home-hero-image[aria-hidden="true"] { opacity: 0; transition: opacity 0s linear .8s; }
+.boblift-home-hero-slide { transition: opacity .45s ease .2s, visibility 0s linear .2s; }
+.boblift-home-hero-slide[aria-hidden="true"] { opacity: 0; visibility: hidden; transition: opacity .2s ease, visibility 0s linear .2s; }
+.boblift-home-hero-tab-bar { transform: scaleX(0); transform-origin: left; }
+.boblift-home-hero-tab[aria-selected="true"] .boblift-home-hero-tab-bar { transform: scaleX(1); }
+[data-home-hero-playing] .boblift-home-hero-tab[aria-selected="true"] .boblift-home-hero-tab-bar { animation: boblift-home-hero-progress 7s linear both; }
+[data-home-hero-held] .boblift-home-hero-tab[aria-selected="true"] .boblift-home-hero-tab-bar { animation-play-state: paused; }
+@keyframes boblift-home-hero-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+/* Browsers have no phrase-aware breaking for Chinese yet, so the hero titles break at punctuation. */
+.boblift-home-hero-slide :is(h1, h2):lang(zh) { word-break: keep-all; overflow-wrap: anywhere; }
 
 /* The closing banner photo fades into the navy card beside the heading, like the page hero. */
 @media (min-width: 768px) {

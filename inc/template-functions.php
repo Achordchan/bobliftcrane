@@ -621,6 +621,18 @@ function boblift_find_product(string $slug): ?array
     return boblift_find_seed_item('products', $slug);
 }
 
+// Imported posts often use their own title plus ", BOB-LIFT" as the excerpt; a card is better without it.
+function boblift_article_card_excerpt(string $excerpt, string $title): string
+{
+    $normalize = static fn(string $text): string => mb_strtolower(trim((string) preg_replace('/[^\p{L}\p{N}]+/u', ' ', $text)));
+    $excerpt_key = $normalize($excerpt);
+    $title_key = $normalize($title);
+    if ($excerpt_key === '' || ($title_key !== '' && str_starts_with($excerpt_key, $title_key) && mb_strlen($excerpt_key) - mb_strlen($title_key) < 20)) {
+        return '';
+    }
+    return $excerpt;
+}
+
 function boblift_articles(string $category_slug = '', int $posts_per_page = 12): array
 {
     $category_slug = sanitize_title($category_slug);
@@ -650,9 +662,9 @@ function boblift_articles(string $category_slug = '', int $posts_per_page = 12):
                 'date' => get_the_date('Y-m-d', $post),
                 'category' => $category,
                 'category_slug' => $category_slug,
-                'image' => boblift_post_thumbnail_url($post, boblift_asset('images/factory-workshop.jpg')),
+                'image' => boblift_post_thumbnail_url($post, boblift_asset('images/page-heroes/factory-floor.webp')),
                 'image_is_url' => true,
-                'excerpt' => boblift_localize_product_text_fragments(get_the_excerpt($post)),
+                'excerpt' => boblift_article_card_excerpt(boblift_localize_product_text_fragments(get_the_excerpt($post)), boblift_localize_product_text_fragments(get_the_title($post))),
                 'content' => boblift_localize_product_text_fragments(apply_filters('the_content', $post->post_content)),
                 'url' => get_permalink($post),
             ];
@@ -769,8 +781,8 @@ function boblift_body_open(): void
 }
 
 /**
- * The old hero and closing-banner pictures were a 300px thumbnail, had a headline baked in or showed
- * a generic crane. Stored options that still point at them get a clean photo instead.
+ * The old hero, banner and home gallery pictures were a 300px thumbnail, had a headline baked in or
+ * showed a generic crane. Stored options that still point at them get a clean photo instead.
  */
 function boblift_page_hero_image(string $image): string
 {
@@ -779,6 +791,8 @@ function boblift_page_hero_image(string $image): string
         'images/global-network-blue.jpg' => 'images/page-heroes/sales-team.webp',
         'images/marine-scene.jpg' => 'images/page-heroes/marine-deck.webp',
         'images/cta-lift-photo.png' => 'images/page-heroes/site-dusk.webp',
+        'images/telescopic-banner.jpg' => 'images/product-banners/truck-mounted-crane.jpg',
+        'images/knuckle-banner.jpg' => 'images/product-banners/default.jpg',
     ];
     $path = ltrim($image, '/');
     return boblift_image_src($replacements[$path] ?? $image);

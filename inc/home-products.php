@@ -186,7 +186,7 @@ function boblift_render_home_products(): void
                 <div class="mb-6 flex flex-col gap-3 md:mb-8 md:gap-4 lg:mb-10 lg:flex-row lg:items-end lg:justify-between">
                     <div>
                         <p class="section-label mb-3"><?php echo esc_html($section['label']); ?></p>
-                        <h2 class="max-w-none whitespace-nowrap text-[clamp(26px,6.5vw,32px)] font-black leading-[0.96] tracking-[-0.01em] text-ink sm:text-[48px] lg:text-[62px]"><?php echo esc_html($section['title']); ?></h2>
+                        <h2 class="text-[clamp(1.75rem,2.8vw,3rem)] font-black leading-[1.05] tracking-[-0.015em] text-ink"><?php echo esc_html($section['title']); ?></h2>
                     </div>
                 </div>
 

@@ -1375,13 +1375,20 @@ function boblift_render_home_page_fields(array $home, string $base): void
 {
     echo '<div class="boblift-admin-grid">';
 
-    boblift_admin_panel('1. Hero 轮播图', static function () use ($home, $base): void {
-        echo '<p class="boblift-admin-note">建议保持 3 张左右。桌面图推荐 2880×1200，接近 12:5；移动图推荐 1200×1500。</p>';
+    boblift_admin_panel('1. 首屏轮播', static function () use ($home, $base): void {
+        echo '<p class="boblift-admin-note">首页第一屏：左侧标题和按钮，右侧照片，每张约 7 秒自动切换，标题下方的切换按钮显示每张的“切换按钮文字”。填写了标题的才会显示；只剩一张时不显示切换按钮。英文默认文案已内置日文、中文翻译；在这里改成其他文字后，需要到对应语言的首页设置里分别填写。</p>';
+        boblift_admin_input('hero.label', $home, '小标签（所有幻灯片共用）', $base);
+        boblift_admin_input('hero.secondary_label', $home, '询价按钮文字（所有幻灯片共用，打开询价弹窗）', $base);
         for ($i = 0; $i < 3; $i++) {
-            boblift_admin_subpanel('轮播图 ' . (string) ($i + 1), static function () use ($home, $base, $i): void {
-                boblift_admin_media("hero_slides.$i.image", $home, '桌面图', $base, '推荐 2880×1200；主体机械居中，左右保留安全裁切。');
-                boblift_admin_media("hero_slides.$i.mobile_image", $home, '移动端图', $base, '可选。推荐 1200×1500；不设置时移动端使用桌面图。');
-            }, false, (string) ($home['hero_slides'][$i]['image']['path'] ?? ''));
+            boblift_admin_subpanel('幻灯片 ' . (string) ($i + 1), static function () use ($home, $base, $i): void {
+                boblift_admin_input("hero.slides.$i.tab", $home, '切换按钮文字（如产品类别）', $base);
+                boblift_admin_input("hero.slides.$i.title", $home, $i === 0 ? '标题（第一张为页面 H1）' : '标题', $base);
+                boblift_admin_textarea("hero.slides.$i.text", $home, '说明文字', $base);
+                boblift_admin_input("hero.slides.$i.primary_label", $home, '主按钮文字', $base);
+                boblift_admin_link_input("hero.slides.$i.primary_href", $home, '主按钮链接', $base);
+                boblift_admin_media("hero.slides.$i.image", $home, '照片', $base, '横向实景照片，推荐 2:1（如 2400×1200）。主体放在右半边，左侧留出明亮、少细节的空间给标题；手机上照片单独显示在标题上方。');
+                boblift_admin_input("hero.slides.$i.image_alt", $home, '照片 Alt', $base);
+            }, $i === 0, (string) ($home['hero']['slides'][$i]['tab'] ?? ''));
         }
     });
 
@@ -1466,7 +1473,6 @@ function boblift_render_home_page_fields(array $home, string $base): void
         boblift_admin_input('news.title', $home, '标题', $base);
         boblift_admin_input('news.cta_label', $home, '按钮文字', $base);
         boblift_admin_link_input('news.cta_href', $home, '按钮链接', $base);
-        boblift_admin_input('news.background_word', $home, '背景大字', $base);
     });
 
     echo '</div>';
@@ -1776,7 +1782,7 @@ function boblift_admin_site_ui_field_label(string $key): string
         'placeholder' => '占位提示', 'messagePlaceholder' => '详情占位提示', 'successInlineText' => '成功提示', 'defaultInquiryText' => '默认询盘内容', 'inquirySubject' => '询盘邮件主题',
         'openLabel' => '打开按钮', 'closeLabel' => '关闭按钮', 'emptyText' => '空状态', 'clearLabel' => '清空按钮', 'requestLabel' => '提交询盘按钮', 'countSuffix' => '数量后缀',
         'selectedProductsLabel' => '已选产品小标签', 'selectedProductsTitle' => '已选产品标题', 'selectedProductsSummary' => '已选产品数量说明', 'selectedProductsAriaLabel' => '已选产品区域辅助标签', 'selectedProductRemoveLabelTemplate' => '移除已选产品按钮文案',
-        'previousBannerLabel' => '上一张 Banner 按钮文案', 'nextBannerLabel' => '下一张 Banner 按钮文案', 'showBannerTemplate' => '切换到第几张 Banner 文案',
+        'pauseHeroLabel' => '首屏轮播暂停按钮文案', 'playHeroLabel' => '首屏轮播播放按钮文案',
         'qualityCertificationsLabel' => '质量认证标题', 'showGalleryTemplate' => '切换图库项文案', 'galleryFallbackLabel' => '图库默认图片说明', 'videoLabel' => '视频标签',
         'detailImagesTitle' => '产品详情长图标题', 'detailImageAltTemplate' => '详情长图 Alt 模板', 'photosLabel' => '产品照片导航标签', 'photoGalleryTitle' => '产品照片区块标题', 'productPhotoLabel' => '产品照片默认说明',
         'home' => '首页', 'news' => '新闻', 'summary' => '摘要标题', 'category' => '分类', 'published' => '发布时间',

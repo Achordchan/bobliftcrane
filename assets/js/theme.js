@@ -1080,37 +1080,81 @@
     toggle();
   });
 
-  qsa('.js-hero').forEach((hero) => {
-    const slides = qsa('[data-hero-slide]', hero);
-    const dots = qsa('[data-hero-dot]', hero);
-    const previous = qs('[data-hero-prev]', hero);
-    const next = qs('[data-hero-next]', hero);
-    if (slides.length < 2) return;
+  // Home hero slideshow. CSS runs the active tab's progress bar; when it finishes, the next
+  // slide shows. Mouse hover and keyboard focus hold it, and the toggle stops or restarts it.
+  qsa('[data-home-hero]').forEach((hero) => {
+    const slides = qsa('[data-home-hero-slide]', hero);
+    const images = qsa('[data-home-hero-image]', hero);
+    const tabs = qsa('[data-home-hero-tab]', hero);
+    const toggle = qs('[data-home-hero-toggle]', hero);
+    if (slides.length < 2 || tabs.length !== slides.length) return;
     let index = 0;
+    let hovered = false;
+    const setHidden = (element, hidden) => {
+      if (hidden) element.setAttribute('aria-hidden', 'true');
+      else element.removeAttribute('aria-hidden');
+    };
     const show = (nextIndex) => {
       index = (nextIndex + slides.length) % slides.length;
-      slides.forEach((slide, i) => {
-        slide.classList.toggle('opacity-100', i === index);
-        slide.classList.toggle('scale-100', i === index);
-        slide.classList.toggle('opacity-0', i !== index);
-      });
-      dots.forEach((dot, i) => {
-        const active = i === index;
-        dot.setAttribute('aria-current', String(active));
-        dot.classList.toggle('w-7', active);
-        dot.classList.toggle('md:w-9', active);
-        dot.classList.toggle('bg-gold', active);
-        dot.classList.toggle('w-1.5', !active);
-        dot.classList.toggle('md:w-2', !active);
-        dot.classList.toggle('bg-white/90', !active);
+      slides.forEach((slide, i) => setHidden(slide, i !== index));
+      images.forEach((image, i) => setHidden(image, i !== index));
+      tabs.forEach((tab, i) => {
+        tab.setAttribute('aria-selected', String(i === index));
+        tab.tabIndex = i === index ? 0 : -1;
       });
     };
-    previous?.addEventListener('click', () => show(index - 1));
-    next?.addEventListener('click', () => show(index + 1));
-    dots.forEach((dot) => dot.addEventListener('click', () => show(Number(dot.dataset.heroDot || 0))));
-    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      window.setInterval(() => show(index + 1), 5600);
-    }
+    const setPlaying = (playing) => {
+      hero.toggleAttribute('data-home-hero-playing', playing);
+      if (!toggle) return;
+      toggle.setAttribute('aria-label', (playing ? toggle.dataset.pauseLabel : toggle.dataset.playLabel) || '');
+      const [pauseIcon, playIcon] = qsa('svg', toggle);
+      pauseIcon?.classList.toggle('hidden', !playing);
+      playIcon?.classList.toggle('hidden', playing);
+    };
+    const updateHold = () => {
+      const active = document.activeElement;
+      const keyboardFocus = Boolean(active && hero.contains(active) && active.matches(':focus-visible'));
+      hero.toggleAttribute('data-home-hero-held', hovered || keyboardFocus);
+    };
+    hero.addEventListener('pointerenter', (event) => {
+      if (event.pointerType !== 'mouse') return;
+      hovered = true;
+      updateHold();
+    });
+    hero.addEventListener('pointerleave', (event) => {
+      if (event.pointerType !== 'mouse') return;
+      hovered = false;
+      updateHold();
+    });
+    hero.addEventListener('focusin', updateHold);
+    hero.addEventListener('focusout', () => window.setTimeout(updateHold));
+    hero.addEventListener('animationend', (event) => {
+      if (event.animationName === 'boblift-home-hero-progress') show(index + 1);
+    });
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => show(i));
+      tab.addEventListener('keydown', (event) => {
+        const targets = { ArrowRight: index + 1, ArrowLeft: index - 1, Home: 0, End: tabs.length - 1 };
+        if (!(event.key in targets)) return;
+        event.preventDefault();
+        show(targets[event.key]);
+        tabs[index].focus();
+      });
+    });
+    const media = qs('.boblift-home-hero-media', hero);
+    let touchStart = null;
+    media?.addEventListener('touchstart', (event) => {
+      touchStart = event.touches.length === 1 ? { x: event.touches[0].clientX, y: event.touches[0].clientY } : null;
+    }, { passive: true });
+    media?.addEventListener('touchend', (event) => {
+      if (!touchStart) return;
+      const dx = event.changedTouches[0].clientX - touchStart.x;
+      const dy = event.changedTouches[0].clientY - touchStart.y;
+      touchStart = null;
+      if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.5) show(index + (dx < 0 ? 1 : -1));
+    }, { passive: true });
+    toggle?.addEventListener('click', () => setPlaying(!hero.hasAttribute('data-home-hero-playing')));
+    setPlaying(!window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   });
 
   qsa('[data-about-gallery]').forEach((root) => {

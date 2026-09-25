@@ -4,12 +4,13 @@ the_post();
 
 $ui = boblift_site_ui('newsDetail');
 $post_id = get_the_ID();
-$image = get_the_post_thumbnail_url($post_id, 'full') ?: boblift_asset('images/factory-workshop.jpg');
+$image = get_the_post_thumbnail_url($post_id, 'full') ?: boblift_asset('images/page-heroes/factory-floor.webp');
 $category_term = get_the_category($post_id)[0] ?? null;
 $category = $category_term instanceof WP_Term ? $category_term->name : (string) ($ui['news'] ?? 'News');
 $category = function_exists('boblift_localized_static_text') ? boblift_localized_static_text($category) : $category;
 $title = function_exists('boblift_localize_product_text_fragments') ? (string) boblift_localize_product_text_fragments(get_the_title()) : get_the_title();
 $excerpt = function_exists('boblift_localize_product_text_fragments') ? (string) boblift_localize_product_text_fragments(get_the_excerpt()) : get_the_excerpt();
+$excerpt = boblift_article_card_excerpt($excerpt, $title);
 $content = apply_filters('the_content', get_the_content());
 $content = function_exists('boblift_localize_product_text_fragments') ? (string) boblift_localize_product_text_fragments($content) : $content;
 $published_date = get_the_date('Y-m-d');

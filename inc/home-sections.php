@@ -43,18 +43,20 @@ function boblift_home_factory_content(): array
     ][$language] ?? [];
     $translate = static fn(string $text): string => $translations[$text] ?? $text;
 
-    $poster = boblift_image_setting_url($logo['aerial_start_image'] ?? [], 'images/about/about-aerial-mid-start.webp');
+    // The video opens over the lake; the factory frame reads better as its still.
+    $poster = boblift_image_setting_url($logo['aerial_end_image'] ?? [], 'images/about/about-aerial-mid-end.webp');
     $video_setting = is_array($logo['aerial_video'] ?? null) ? $logo['aerial_video'] : ['id' => 0, 'path' => 'videos/about/about-aerial-mid.mp4'];
     $video = (int) ($video_setting['id'] ?? 0) > 0 ? (string) wp_get_attachment_url((int) $video_setting['id']) : '';
     if ($video === '' && trim((string) ($video_setting['path'] ?? '')) !== '') {
         $video = boblift_asset((string) $video_setting['path']);
     }
 
-    // Skip photos the page already shows: the video poster and the About section gallery.
-    $shown = [$poster];
+    // Skip photos the page already shows: both frames of the aerial video and the About section gallery.
+    // Old theme paths are compared after their clean replacements, as the page displays them.
+    $shown = [$poster, boblift_image_setting_url($logo['aerial_start_image'] ?? [], 'images/about/about-aerial-mid-start.webp')];
     foreach ((array) (boblift_options()['home']['about']['gallery'] ?? []) as $item) {
-        if (is_array($item) && trim((string) ($item['src'] ?? '')) !== '') {
-            $shown[] = boblift_image_src((string) $item['src']);
+        if (is_array($item) && !empty($item['src'])) {
+            $shown[] = boblift_page_hero_image_setting($item['src'], '');
         }
     }
     $tiles = [];
@@ -62,7 +64,7 @@ function boblift_home_factory_content(): array
         if (!is_array($item)) {
             continue;
         }
-        $image = boblift_image_setting_url($item['image'] ?? [], '');
+        $image = empty($item['image']) ? '' : boblift_page_hero_image_setting($item['image'], '');
         if ($image === '' || in_array($image, $shown, true)) {
             continue;
         }
@@ -99,7 +101,7 @@ function boblift_render_home_factory(): void
                 <?php endif; ?>
                 <span class="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(8,35,74,0.12)_0%,rgba(8,35,74,0.62)_36%,rgba(8,35,74,0.92)_100%)] lg:bg-[linear-gradient(90deg,rgba(8,35,74,0.92)_0%,rgba(8,35,74,0.6)_46%,rgba(8,35,74,0.08)_100%)]"></span>
                 <p class="section-label mb-3"><?php echo esc_html($factory['label']); ?></p>
-                <h2 id="home-factory-title" class="max-w-[16ch] text-[clamp(32px,8.5vw,40px)] font-black leading-[1.02] tracking-[-0.01em] sm:text-[52px] lg:text-[60px]"><?php echo esc_html($factory['title']); ?></h2>
+                <h2 id="home-factory-title" class="max-w-[16ch] text-[clamp(1.75rem,2.8vw,3rem)] font-black leading-[1.05] tracking-[-0.015em]"><?php echo esc_html($factory['title']); ?></h2>
                 <?php if ($factory['text'] !== '') : ?><p class="mt-4 max-w-[520px] text-sm font-semibold leading-7 text-white/80 md:text-base"><?php echo esc_html($factory['text']); ?></p><?php endif; ?>
                 <a class="mt-7 inline-flex h-12 w-fit items-center justify-center gap-2 rounded-sm bg-white px-6 text-sm font-black text-navy shadow-card transition hover:-translate-y-0.5 hover:bg-blue-50" href="<?php echo esc_url(boblift_url($factory['cta_href'])); ?>"><?php echo esc_html($factory['cta_label']); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
             </div>
@@ -132,7 +134,7 @@ function boblift_render_home_cases(): void
             <div class="mb-6 flex flex-col gap-4 md:mb-8 md:flex-row md:items-end md:justify-between">
                 <div class="min-w-0">
                     <p class="section-label mb-3"><?php echo esc_html($ui['heroLabel'] ?? 'Case Center'); ?></p>
-                    <h2 id="home-cases-title" class="max-w-[22ch] text-[clamp(30px,7.5vw,38px)] font-black leading-[1.02] tracking-[-0.01em] text-ink sm:text-[48px] lg:text-[52px]"><?php echo esc_html($ui['heroTitle'] ?? 'Project stories with real working conditions.'); ?></h2>
+                    <h2 id="home-cases-title" class="max-w-[22ch] text-[clamp(1.75rem,2.8vw,3rem)] font-black leading-[1.05] tracking-[-0.015em] text-ink"><?php echo esc_html($ui['heroTitle'] ?? 'Project stories with real working conditions.'); ?></h2>
                 </div>
                 <a class="inline-flex w-fit shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-sm bg-navy px-5 py-2.5 text-xs font-black text-white shadow-card transition hover:-translate-y-0.5 hover:bg-[#0b2d5b] md:px-6 md:py-3 md:text-sm" href="<?php echo esc_url(boblift_case_archive_url()); ?>"><?php echo esc_html($ui['secondaryCtaLabel'] ?? 'View Cases'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
             </div>

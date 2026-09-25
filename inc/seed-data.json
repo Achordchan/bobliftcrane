@@ -243,17 +243,30 @@
     "home": {
       "seo_title": "BOB-LIFT | Truck Mounted Cranes and Lifting Solutions",
       "seo_description": "BOB-LIFT supplies truck mounted cranes, marine cranes, aerial work platforms and lifting attachments for global projects.",
-      "hero_slides": [
-        {
-          "image": "images/marine-scene.jpg"
-        },
-        {
-          "image": "images/telescopic-banner.jpg"
-        },
-        {
-          "image": "images/knuckle-banner.jpg"
-        }
-      ],
+      "hero": {
+        "label": "Crane manufacturer since 1989",
+        "secondary_label": "Request a Quote",
+        "slides": [
+          {
+            "tab": "Marine Cranes",
+            "title": "Marine cranes, built for work at sea.",
+            "text": "Knuckle boom and telescopic marine cranes from 1 t to 25 t for vessels, ports and offshore work, configured to your deck and lifting needs.",
+            "primary_label": "View Marine Cranes",
+            "primary_href": "/marine-crane",
+            "image": "images/page-heroes/home-marine.webp",
+            "image_alt": "BOB-LIFT knuckle boom marine crane lifting a cargo container on a supply vessel"
+          },
+          {
+            "tab": "Truck Mounted Cranes",
+            "title": "Truck mounted cranes, built to lift.",
+            "text": "Knuckle boom and telescopic truck cranes from 800 kg to 25 t, built in our 37,000 m² factory in Xuzhou and exported to 120+ countries.",
+            "primary_label": "View Truck Cranes",
+            "primary_href": "/truck-mounted-crane",
+            "image": "images/page-heroes/home-site.webp",
+            "image_alt": "BOB-LIFT knuckle boom truck crane lifting a precast concrete panel"
+          }
+        ]
+      },
       "trust_bar": {
         "label": "Certified",
         "title": "Quality Assurance",
@@ -362,8 +375,7 @@
         "label": "News Center",
         "title": "Latest Insights from BOB-LIFT.",
         "cta_label": "View All News",
-        "cta_href": "/news",
-        "background_word": "NEWS"
+        "cta_href": "/news"
       }
     }
   },
