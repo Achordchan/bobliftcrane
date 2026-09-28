@@ -1,0 +1,30 @@
+{
+  "extraKnownMarketplaces": {
+    "agricidaniel-claude-seo": {
+      "source": {
+        "source": "github",
+        "repo": "AgriciDaniel/claude-seo",
+        "ref": "v2.4.0"
+      }
+    },
+    "agricidaniel-blog": {
+      "source": {
+        "source": "github",
+        "repo": "AgriciDaniel/claude-blog",
+        "ref": "v2.2.0"
+      }
+    },
+    "ai-marketing-hub-claude-ads": {
+      "source": {
+        "source": "github",
+        "repo": "AgriciDaniel/claude-ads",
+        "ref": "v2.0.2"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "claude-seo@agricidaniel-claude-seo": true,
+    "claude-blog@agricidaniel-blog": true,
+    "claude-ads@ai-marketing-hub-claude-ads": true
+  }
+}
