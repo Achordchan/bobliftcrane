@@ -208,6 +208,14 @@
       nextImage.offsetHeight;
       nextImage.classList.remove('transition-none');
     };
+    // Cut-outs sit whole on the stage floor; photos fill the stage.
+    const cutoutFit = ['object-contain', 'object-bottom', 'p-5', 'sm:p-8', 'lg:p-10'];
+    const applyFit = (image, src) => {
+      if (!image?.classList) return;
+      const cutout = /transparent|\.png(?:$|[?&])/i.test(src);
+      cutoutFit.forEach((className) => image.classList.toggle(className, cutout));
+      image.classList.toggle('object-cover', !cutout);
+    };
     const switchProductImage = async (src, label = '') => {
       if (!src) return;
       const token = ++switchToken;
@@ -222,6 +230,7 @@
         targetImage.classList?.add('transition-none');
         targetImage.classList?.remove('opacity-100');
         targetImage.classList?.add('opacity-0');
+        applyFit(targetImage, src);
         await waitForProductImage(targetImage, src);
         if (token !== switchToken) return;
         if (nextImage) {
@@ -231,6 +240,7 @@
           nextImage.offsetHeight;
         }
         currentImage.src = src;
+        applyFit(currentImage, src);
         currentImage.classList.remove('opacity-0');
         window.requestAnimationFrame(() => {
           if (token !== switchToken) return;
