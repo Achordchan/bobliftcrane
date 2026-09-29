@@ -591,7 +591,8 @@ function boblift_product_from_post(WP_Post $post): array
         'category_title' => $category['title'] ?? $category_slug,
         'capacity' => boblift_localize_product_text_fragments((string) get_post_meta($post->ID, '_capacity', true)),
         'capacity_value' => (float) get_post_meta($post->ID, '_capacity_value', true),
-        'boom_type' => (string) get_post_meta($post->ID, '_boom_type', true),
+        'boom_type' => (string) get_post_meta(boblift_product_english_id($post->ID), '_boom_type', true),
+        'filter_values' => boblift_product_filter_values($post->ID),
         'catalog_pdf_url' => esc_url_raw((string) get_post_meta($post->ID, '_catalog_pdf_url', true)),
         'applications' => boblift_normalize_product_applications(boblift_csv_meta(get_post_meta($post->ID, '_applications', true))),
         'status' => (string) get_post_meta($post->ID, '_status', true),
@@ -855,6 +856,35 @@ function boblift_product_english_id(int $product_id): int
     return $english ?: $product_id;
 }
 
+/**
+ * Numbers the product filters use, read from the English spec table (translations carry translated labels):
+ * max lifting capacity in tonnes, max lifting moment in t·m (kN·m converted) and self weight in kg. 0 = not given.
+ */
+function boblift_product_filter_values(int $product_id): array
+{
+    static $cache = [];
+    $english_id = boblift_product_english_id($product_id);
+    if (isset($cache[$english_id])) {
+        return $cache[$english_id];
+    }
+    $values = ['capacity' => 0.0, 'moment' => 0.0, 'weight' => 0.0];
+    foreach (boblift_decode_meta(get_post_meta($english_id, '_specs', true), []) as $row) {
+        $label = is_array($row) ? (string) ($row['label'] ?? '') : '';
+        if (!preg_match('/^([\d.,]+)\s*(t·m|kN·m|kg|t)(?![\p{L}·])/u', trim((string) ($row['value'] ?? '')), $m)) {
+            continue;
+        }
+        $number = (float) str_replace(',', '', $m[1]);
+        if ($label === 'Max Lifting Capacity') {
+            $values['capacity'] = $m[2] === 'kg' ? $number / 1000 : ($m[2] === 't' ? $number : 0.0);
+        } elseif ($label === 'Max Lifting Moment') {
+            $values['moment'] = $m[2] === 'kN·m' ? round($number / 9.81, 1) : ($m[2] === 't·m' ? $number : 0.0);
+        } elseif ($label === 'Self Weight' && $m[2] === 'kg') {
+            $values['weight'] = $number;
+        }
+    }
+    return $cache[$english_id] = $values;
+}
+
 function boblift_product_feedback(int $product_id, int $limit = 8): array
 {
     return boblift_feedback_items(['posts_per_page' => $limit, 'meta_key' => '_related_product', 'meta_value' => (string) boblift_product_english_id($product_id)]);
@@ -1098,7 +1128,7 @@ function boblift_product_card(array $product, string $extra_class = '', bool $ea
         ? 'scale-[1.08] object-contain p-4 drop-shadow-[0_6px_8px_rgba(11,27,51,0.10)] group-hover:scale-[1.12] sm:p-5'
         : 'object-contain bg-[#EDF1F5]';
     ?>
-    <article class="product-card group flex min-h-full cursor-pointer flex-col overflow-hidden rounded border border-[#E5E7EB] bg-white shadow-card transition duration-300 hover:-translate-y-1 hover:border-blue-200 <?php echo esc_attr($extra_class); ?>" data-product-id="<?php echo esc_attr($product_id); ?>" data-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-category="<?php echo esc_attr($product['category'] ?? ''); ?>" data-categories="<?php echo esc_attr(implode(',', $product_categories)); ?>" data-category-title="<?php echo esc_attr($product['category_title'] ?? 'BOB-LIFT'); ?>" data-capacity="<?php echo esc_attr((string) ($product['capacity_value'] ?? 0)); ?>" data-boom="<?php echo esc_attr($product['boom_type'] ?? ''); ?>" data-applications="<?php echo esc_attr($apps); ?>" data-status="<?php echo esc_attr($status); ?>" data-status-label="<?php echo esc_attr(boblift_product_status_label($status)); ?>" data-featured="<?php echo !empty($product['featured']) ? '1' : '0'; ?>" data-created="<?php echo esc_attr((string) ($product['created_at'] ?? '')); ?>" data-popularity="<?php echo esc_attr((string) ($product['popularity'] ?? 0)); ?>" data-title="<?php echo esc_attr($product['title']); ?>" data-image="<?php echo esc_url(boblift_product_image($product)); ?>" data-summary="<?php echo esc_attr($product['short_description'] ?? ''); ?>" data-inquiry-url="<?php echo esc_url($inquiry_url); ?>" data-detail-url="<?php echo esc_url($detail_url); ?>" data-specs="<?php echo $quick_specs; ?>">
+    <article class="product-card group flex min-h-full cursor-pointer flex-col overflow-hidden rounded border border-[#E5E7EB] bg-white shadow-card transition duration-300 hover:-translate-y-1 hover:border-blue-200 <?php echo esc_attr($extra_class); ?>" data-product-id="<?php echo esc_attr($product_id); ?>" data-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-category="<?php echo esc_attr($product['category'] ?? ''); ?>" data-categories="<?php echo esc_attr(implode(',', $product_categories)); ?>" data-category-title="<?php echo esc_attr($product['category_title'] ?? 'BOB-LIFT'); ?>" data-capacity="<?php echo esc_attr((string) ($product['filter_values']['capacity'] ?? 0)); ?>" data-moment="<?php echo esc_attr((string) ($product['filter_values']['moment'] ?? 0)); ?>" data-weight="<?php echo esc_attr((string) ($product['filter_values']['weight'] ?? 0)); ?>" data-boom="<?php echo esc_attr($product['boom_type'] ?? ''); ?>" data-featured="<?php echo !empty($product['featured']) ? '1' : '0'; ?>" data-created="<?php echo esc_attr((string) ($product['created_at'] ?? '')); ?>" data-popularity="<?php echo esc_attr((string) ($product['popularity'] ?? 0)); ?>" data-title="<?php echo esc_attr($product['title']); ?>" data-image="<?php echo esc_url(boblift_product_image($product)); ?>" data-summary="<?php echo esc_attr($product['short_description'] ?? ''); ?>" data-inquiry-url="<?php echo esc_url($inquiry_url); ?>" data-detail-url="<?php echo esc_url($detail_url); ?>" data-specs="<?php echo $quick_specs; ?>">
         <div class="product-card-inner flex min-h-full flex-col">
             <div class="product-card-media relative h-64 overflow-hidden bg-[radial-gradient(circle_at_48%_34%,#ffffff_0%,#f8fafc_34%,#eef2f7_64%,#e2e8f0_100%)] sm:h-72 lg:h-64 xl:h-72">
                 <span class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_82%,rgba(15,23,42,0.13),transparent_44%)]"></span>

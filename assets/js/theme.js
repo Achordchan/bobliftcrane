@@ -2729,7 +2729,10 @@
         bannerImage.setAttribute('alt', content.imageAlt || '');
       }
     };
-    const filterParamMap = { category: 'category', capacity: 'capacity', boom: 'boom', application: 'application', status: 'status' };
+    const filterParamMap = { category: 'category', boom: 'boom', capacity: 'capacity', moment: 'moment', weight: 'weight' };
+    // Spec filters hold a number per card (tonnes, t·m, kg; 0 = not given) matched against "min-max" / "min+" bins.
+    const specFilters = ['capacity', 'moment', 'weight'];
+    const cardNumber = (card, filterName) => Number(card.dataset[filterName] || 0);
     const slugifyFilter = (value) => value.toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     const optionLabel = (input) => qs('span', input.closest('label') || input.parentElement)?.textContent?.trim() || input.value;
     const paramValues = (params, key) => params.getAll(key).flatMap((value) => value.split(',')).map((value) => value.trim()).filter(Boolean);
@@ -2784,20 +2787,25 @@
       return numberValue > min && numberValue <= max;
     });
     const cardCategories = (card) => (card.dataset.categories || card.dataset.category || '').split(',').filter(Boolean);
-    const cardApplications = (card) => (card.dataset.applications || '').split(',').filter(Boolean);
     const cardMatchesFilterOption = (card, filterName, value) => {
-      if (filterName === 'capacity') return inAnyRange(Number(card.dataset.capacity || 0), [value]);
+      if (specFilters.includes(filterName)) return inAnyRange(cardNumber(card, filterName), [value]);
       if (filterName === 'boom') return (card.dataset.boom || '') === value;
-      if (filterName === 'application') return cardApplications(card).includes(value);
-      if (filterName === 'status') return (card.dataset.status || '') === value;
       return false;
     };
     const cardHasFilterValue = (card, filterName) => {
-      if (filterName === 'capacity') return Number(card.dataset.capacity || 0) > 0;
+      if (specFilters.includes(filterName)) return cardNumber(card, filterName) > 0;
       if (filterName === 'boom') return (card.dataset.boom || '') !== '';
-      if (filterName === 'application') return cardApplications(card).length > 0;
-      if (filterName === 'status') return (card.dataset.status || '') !== '';
       return false;
+    };
+    // Facet counts: each group counts the cards that pass the category and every other group's selection,
+    // so the numbers always say how many products a click would leave. Checked options stay visible;
+    // unchecked ones are hidden when they match nothing or would not narrow the list.
+    const passesOtherGroups = (card, filterName) => {
+      if (filterName !== 'boom') {
+        const booms = activeValues('boom');
+        if (booms.length && !booms.includes(card.dataset.boom || '')) return false;
+      }
+      return specFilters.every((name) => name === filterName || matchesSpec(card, name));
     };
     const updateFilterAvailability = () => {
       const categories = activeCategoryFilterValues();
@@ -2806,17 +2814,19 @@
 
       filterGroups.forEach((group) => {
         const filterName = group.dataset.filterGroup || '';
-        const eligibleCards = categoryCards.filter((card) => cardHasFilterValue(card, filterName));
+        const eligibleCards = categoryCards.filter((card) => cardHasFilterValue(card, filterName) && passesOtherGroups(card, filterName));
+        const groupTotal = categoryCards.filter((card) => cardHasFilterValue(card, filterName)).length;
         let usefulOptions = 0;
         qsa('[data-filter-option]', group).forEach((option) => {
           const input = qs('input[data-filter]', option);
           if (!input) return;
           const optionCount = eligibleCards.filter((card) => cardMatchesFilterOption(card, filterName, input.value)).length;
-          const useful = optionCount > 0 && optionCount < eligibleCards.length;
-          if (!useful && input.checked) {
+          // A category switch can leave a selection that no product in the new category has: drop it.
+          if (input.checked && !categoryCards.some((card) => cardMatchesFilterOption(card, filterName, input.value))) {
             input.checked = false;
             clearedSelection = true;
           }
+          const useful = input.checked || (optionCount > 0 && optionCount < eligibleCards.length);
           input.disabled = !useful;
           option.classList.toggle('hidden', !useful);
           option.setAttribute('aria-hidden', String(!useful));
@@ -2824,31 +2834,25 @@
           if (countLabel) countLabel.textContent = String(optionCount);
           if (useful) usefulOptions += 1;
         });
-        const groupUseful = usefulOptions > 0;
+        // Keep a group once it has options to choose from in this category, even if the others narrow it to one.
+        const groupUseful = usefulOptions > 0 || groupTotal > 0 && qsa('input[data-filter]:checked', group).length > 0;
         group.classList.toggle('hidden', !groupUseful);
         group.setAttribute('aria-hidden', String(!groupUseful));
       });
 
       return clearedSelection;
     };
-    const matchesCapacity = (card) => {
-      const selectedRanges = activeValues('capacity');
-      const dropdownValue = capacitySelect ? capacitySelect.value : '';
-      const ranges = selectedRanges.length ? selectedRanges : (dropdownValue ? [dropdownValue] : []);
-      if (!ranges.length) return true;
-      return inAnyRange(Number(card.dataset.capacity || 0), ranges);
+    const matchesSpec = (card, filterName) => {
+      const ranges = activeValues(filterName);
+      return !ranges.length || inAnyRange(cardNumber(card, filterName), ranges);
     };
     const hasAny = (source, values) => !values.length || values.some((value) => source.includes(value));
     const cardMatches = (card) => {
       const categories = activeCategoryFilterValues();
       const booms = activeValues('boom');
-      const applications = activeValues('application');
-      const statuses = activeValues('status');
       return hasAny(cardCategories(card), categories)
         && (!booms.length || booms.includes(card.dataset.boom || ''))
-        && (!statuses.length || statuses.includes(card.dataset.status || ''))
-        && hasAny(cardApplications(card), applications)
-        && matchesCapacity(card);
+        && specFilters.every((filterName) => matchesSpec(card, filterName));
     };
     const getSortMode = () => sortTrigger?.dataset.sortValue || 'recommended';
     const sortedCards = () => [...cards].sort((a, b) => {

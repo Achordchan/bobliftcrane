@@ -9,10 +9,20 @@ if ($initial_category === '' && isset($_GET['category']) && is_string($_GET['cat
 $category_counts = array_fill_keys(array_map(static fn($item) => $item['slug'], $categories), 0);
 $category_product_map = array_fill_keys(array_map(static fn($item) => $item['slug'], $categories), []);
 $archive_ui = function_exists('boblift_site_ui') ? boblift_site_ui('productArchive') : [];
-$capacity_ranges = is_array($archive_ui['capacityRanges'] ?? null) ? $archive_ui['capacityRanges'] : [];
-$boom_options = function_exists('boblift_product_boom_options') ? boblift_product_boom_options() : [];
-$application_options = is_array($archive_ui['applicationOptions'] ?? null) ? $archive_ui['applicationOptions'] : [];
-$status_options = is_array($archive_ui['statusOptions'] ?? null) ? $archive_ui['statusOptions'] : [];
+// Spec filters, all from the brochure figures: bins are "min-max" or "min+" in tonnes, t·m and kg.
+$spec_filters = [
+    'capacity' => ['label' => (string) ($archive_ui['capacityFilterLabel'] ?? 'Lifting Capacity'), 'bins' => (array) ($archive_ui['capacityBins'] ?? [])],
+    'moment' => ['label' => (string) ($archive_ui['momentFilterLabel'] ?? 'Lifting Moment'), 'bins' => (array) ($archive_ui['momentBins'] ?? [])],
+    'weight' => ['label' => (string) ($archive_ui['weightFilterLabel'] ?? 'Crane Self Weight'), 'bins' => (array) ($archive_ui['weightBins'] ?? [])],
+];
+// Boom type only separates knuckle and telescopic cranes; fly jibs and platforms are their own categories.
+$boom_options = array_intersect_key(function_exists('boblift_product_boom_options') ? boblift_product_boom_options() : [], ['knuckle-boom' => true, 'telescopic-boom' => true]);
+$in_bin = static function (float $number, string $bin): bool {
+    preg_match_all('/\d+(?:\.\d+)?/', $bin, $matches);
+    $min = (float) ($matches[0][0] ?? 0);
+    $max = isset($matches[0][1]) ? (float) $matches[0][1] : null;
+    return $number > 0 && $number > $min && ($max === null || $number <= $max);
+};
 $sort_options = is_array($archive_ui['sortOptions'] ?? null) ? $archive_ui['sortOptions'] : [];
 $product_archive = boblift_product_archive_options();
 $product_ui = function_exists('boblift_site_ui') ? boblift_site_ui('productDetail') : [];
@@ -45,10 +55,8 @@ if ($initial_category !== '' && !isset($valid_category_slugs[$initial_category])
     $initial_category = '';
 }
 $banner_initial = $initial_category !== '' ? $banner_categories[$initial_category] : $banner_default;
-$capacity_counts = array_fill_keys(array_column($capacity_ranges, 'value'), 0);
+$spec_counts = array_map(static fn(array $filter): array => array_fill_keys(array_keys($filter['bins']), 0), $spec_filters);
 $boom_counts = array_fill_keys(array_keys($boom_options), 0);
-$application_counts = array_fill_keys(array_keys($application_options), 0);
-$status_counts = array_fill_keys(array_keys($status_options), 0);
 foreach ($products as $product) {
     $product_key = (string) ($product['id'] ?? $product['slug'] ?? $product['title'] ?? wp_unique_id('product_'));
     $product_categories = array_values(array_unique(array_filter(array_map('strval', $product['categories'] ?? [($product['category'] ?? '')]))));
@@ -58,29 +66,17 @@ foreach ($products as $product) {
             $category_product_map[$category][$product_key] = true;
         }
     }
-    $capacity = (float) ($product['capacity_value'] ?? 0);
-    foreach ($capacity_ranges as $range) {
-        $range_value = (string) $range['value'];
-        preg_match_all('/\d+(?:\.\d+)?/', $range_value, $matches);
-        $min = isset($matches[0][0]) ? (float) $matches[0][0] : 0.0;
-        $max = isset($matches[0][1]) ? (float) $matches[0][1] : null;
-        $in_range = $max === null ? $capacity > $min : (($min <= 0 && $capacity > 0 && $capacity <= $max) || ($min > 0 && $capacity > $min && $capacity <= $max));
-        if ($in_range) {
-            $capacity_counts[$range_value]++;
+    foreach ($spec_filters as $filter => $config) {
+        $number = (float) ($product['filter_values'][$filter] ?? 0);
+        foreach (array_keys($config['bins']) as $bin) {
+            if ($in_bin($number, (string) $bin)) {
+                $spec_counts[$filter][$bin]++;
+            }
         }
     }
     $boom = $product['boom_type'] ?? '';
     if (isset($boom_counts[$boom])) {
         $boom_counts[$boom]++;
-    }
-    foreach (($product['applications'] ?? []) as $application) {
-        if (isset($application_counts[$application])) {
-            $application_counts[$application]++;
-        }
-    }
-    $status = boblift_normalize_product_status((string) ($product['status'] ?? 'customizable'));
-    if (isset($status_counts[$status])) {
-        $status_counts[$status]++;
     }
 }
 $category_hierarchy = boblift_product_category_hierarchy();
@@ -152,7 +148,7 @@ $category_filter_group = static function (array $tree) use ($category_counts, $a
         </div>
     </fieldset>
 <?php };
-$filter_sidebar = static function (bool $show_close = false) use ($filter_group, $category_filter_group, $category_filter_tree, $capacity_ranges, $capacity_counts, $boom_options, $boom_counts, $application_options, $application_counts, $status_options, $status_counts, $archive_ui): void { ?>
+$filter_sidebar = static function (bool $show_close = false) use ($filter_group, $category_filter_group, $category_filter_tree, $spec_filters, $spec_counts, $boom_options, $boom_counts, $archive_ui): void { ?>
     <aside class="boblift-product-filter-sidebar rounded border border-[#E5E7EB] bg-white p-6 shadow-card">
         <div class="boblift-product-filter-head mb-6 flex items-center justify-between gap-4">
             <h2 class="text-2xl font-black tracking-[-0.015em] text-[#0B1B33]"><?php echo esc_html($archive_ui['filtersTitle'] ?? 'Filters'); ?></h2>
@@ -161,7 +157,13 @@ $filter_sidebar = static function (bool $show_close = false) use ($filter_group,
                 <?php if ($show_close) : ?><button class="inline-flex h-10 w-10 items-center justify-center rounded-sm border border-[#E5E7EB] text-[#0B1B33] transition hover:border-blue-300 hover:text-blue-700" type="button" data-filter-drawer-close aria-label="<?php echo esc_attr($archive_ui['closeFiltersLabel'] ?? 'Close filters'); ?>"><?php echo boblift_icon('x', 'h-5 w-5'); ?></button><?php endif; ?>
             </div>
         </div>
-        <div class="space-y-7"><?php $category_filter_group($category_filter_tree); $filter_group((string) ($archive_ui['capacityFilterLabel'] ?? 'Lifting Capacity'), 'capacity', array_column($capacity_ranges, 'label', 'value'), $capacity_counts); $filter_group((string) ($archive_ui['boomFilterLabel'] ?? 'Boom Type'), 'boom', $boom_options, $boom_counts); $filter_group((string) ($archive_ui['applicationFilterLabel'] ?? 'Application'), 'application', $application_options, $application_counts); $filter_group((string) ($archive_ui['availabilityFilterLabel'] ?? 'Availability'), 'status', $status_options, $status_counts); ?></div>
+        <div class="space-y-7"><?php
+            $category_filter_group($category_filter_tree);
+            $filter_group((string) ($archive_ui['boomFilterLabel'] ?? 'Boom Type'), 'boom', $boom_options, $boom_counts);
+            foreach ($spec_filters as $filter => $config) {
+                $filter_group($config['label'], $filter, $config['bins'], $spec_counts[$filter]);
+            }
+            ?></div>
         <?php if ($show_close) : ?>
             <div class="boblift-filter-drawer-actions mt-8 border-t border-[#E5E7EB] pt-6"><button class="min-h-12 w-full rounded-sm bg-[#0B1B33] px-5 text-sm font-black text-white shadow-card transition hover:-translate-y-0.5 hover:bg-[#0B3F7D]" type="button" data-filter-apply><?php echo esc_html($archive_ui['applyFiltersLabel'] ?? 'Apply'); ?></button></div>
         <?php else : ?>
