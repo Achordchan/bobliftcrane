@@ -182,8 +182,13 @@ if ($brochure_features) {
 // Manufacturing and delivery steps: knuckle or telescopic set, by the English product's category.
 $process_slugs = wp_get_post_terms(boblift_product_english_id(get_the_ID()), 'product_category', ['fields' => 'slugs']);
 $process_slugs = is_array($process_slugs) ? $process_slugs : [];
-$process_set = array_intersect($process_slugs, ['knuckle-boom-truck-mounted-cranes', 'knuckle-boom-marine-cranes']) ? 'knuckle'
-    : (array_intersect($process_slugs, ['telescopic-boom-truck-mounted-cranes', 'telescopic-boom-marine-cranes']) ? 'telescopic' : '');
+$process_sets = [
+    'knuckle-boom-marine-cranes' => 'knuckle-marine',
+    'telescopic-boom-marine-cranes' => 'telescopic-marine',
+    'knuckle-boom-truck-mounted-cranes' => 'knuckle',
+    'telescopic-boom-truck-mounted-cranes' => 'telescopic',
+];
+$process_set = $process_sets[current(array_intersect(array_keys($process_sets), $process_slugs)) ?: ''] ?? '';
 $process_steps = $process_set !== '' ? array_values(array_filter((array) ($ui['processSteps'][$process_set] ?? []), static fn(mixed $step): bool => is_array($step) && trim((string) ($step['image'] ?? '')) !== '')) : [];
 if ($process_steps) {
     $anchors[] = ['id' => 'process', 'label' => (string) ($ui['processLabel'] ?? 'Manufacturing & delivery')];
@@ -385,12 +390,18 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                     </div>
                     <ol class="grid grid-cols-2 gap-x-4 gap-y-6 p-6 md:grid-cols-3 md:gap-x-5 md:p-8 <?php echo esc_attr($process_cols); ?>">
                         <?php foreach ($process_steps as $index => $step) :
-                            $step_image = (string) $step['image'];
-                            $step_image = preg_match('#^(https?:)?//#', $step_image) || str_starts_with($step_image, '/') ? $step_image : boblift_asset($step_image);
+                            $step_asset = static fn(string $path): string => $path === '' || preg_match('#^(https?:)?//#', $path) || str_starts_with($path, '/') ? $path : boblift_asset($path);
+                            $step_image = $step_asset(trim((string) $step['image']));
+                            $step_video = $step_asset(trim((string) ($step['video'] ?? '')));
                             ?>
                             <li class="min-w-0">
                                 <div class="relative aspect-[4/3] overflow-hidden rounded-sm bg-[#EDF1F5]">
-                                    <img class="h-full w-full object-cover" src="<?php echo esc_url($step_image); ?>" alt="<?php echo esc_attr((string) ($step['title'] ?? '')); ?>" loading="lazy" decoding="async">
+                                    <?php if ($step_video !== '') : ?>
+                                        <video class="h-full w-full object-cover" src="<?php echo esc_url($step_video); ?>" poster="<?php echo esc_url($step_image); ?>" muted loop playsinline preload="none" aria-label="<?php echo esc_attr((string) ($step['title'] ?? '')); ?>" data-inview-video></video>
+                                        <span class="pointer-events-none absolute bottom-2 right-2 grid size-7 place-items-center rounded-sm bg-[#071f42]/85 text-white"><?php echo boblift_icon('play', 'h-3.5 w-3.5'); ?></span>
+                                    <?php else : ?>
+                                        <img class="h-full w-full object-cover" src="<?php echo esc_url($step_image); ?>" alt="<?php echo esc_attr((string) ($step['title'] ?? '')); ?>" loading="lazy" decoding="async">
+                                    <?php endif; ?>
                                     <span class="absolute left-2 top-2 rounded-sm bg-[#071f42]/85 px-2 py-0.5 text-[11px] font-black tracking-[0.08em] text-white [font-variant-numeric:tabular-nums]"><?php echo esc_html(str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT)); ?></span>
                                 </div>
                                 <h3 class="mt-3 text-sm font-black leading-snug text-[#071f42] md:text-base"><?php echo esc_html((string) ($step['title'] ?? '')); ?></h3>
