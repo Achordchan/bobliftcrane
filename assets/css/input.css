@@ -1984,7 +1984,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   }
   .boblift-product-hero-actions {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 48px;
+    grid-template-columns: minmax(0, 1fr) 48px;
     gap: 8px;
     overflow: visible;
     padding-bottom: 0;
@@ -1998,11 +1998,8 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   .boblift-product-hero-request {
     order: 1;
   }
-  .boblift-product-hero-catalog {
-    order: 2;
-  }
   .boblift-product-hero-quote-toggle {
-    order: 3;
+    order: 2;
     justify-self: end;
     width: 48px !important;
     padding-inline: 0 !important;
