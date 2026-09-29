@@ -887,31 +887,20 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   .boblift-product-listing .product-card-media img {
     padding: 12px;
   }
-  .boblift-product-listing .product-card .absolute.left-5.top-5 {
-    left: 8px;
-    top: 8px;
-    max-width: calc(100% - 52px);
-    gap: 5px;
-    padding: 7px 10px;
-    font-size: 11px;
-    line-height: 1;
-  }
-  .boblift-product-listing .product-card .absolute.left-5.top-5 svg {
-    width: 14px;
-    height: 14px;
-  }
-  .boblift-product-listing .product-card-overlay-actions {
-    right: 8px;
-    top: 8px;
+  .boblift-product-listing .product-card-head {
+    flex-direction: column;
     gap: 8px;
   }
-  .boblift-product-listing .product-card-overlay-actions button {
-    width: 34px;
-    height: 34px;
+  .boblift-product-listing .product-card-inline-actions {
+    gap: 4px;
   }
-  .boblift-product-listing .product-card-overlay-actions svg {
-    width: 17px;
-    height: 17px;
+  .boblift-product-listing .product-card-inline-actions button {
+    width: 30px;
+    height: 30px;
+  }
+  .boblift-product-listing .product-card-inline-actions svg {
+    width: 15px;
+    height: 15px;
   }
   .boblift-product-listing .product-card-body {
     padding: 13px 11px 12px;
@@ -967,7 +956,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
 .boblift-product-listing[data-view="list"] .product-card { border-radius: 4px; }
 .boblift-product-listing[data-view="list"] .product-card-inner { display: grid; gap: 1.25rem; padding: 1rem; }
 .boblift-product-listing[data-view="list"] .product-card-media { aspect-ratio: 1 / 1; width: 100%; height: auto; min-height: 0; align-self: start; border-radius: 4px; }
-.boblift-product-listing[data-view="list"] .product-card-overlay-actions { display: none; }
+.boblift-product-listing[data-view="list"] .product-card-inline-actions { display: none; }
 .boblift-product-listing[data-view="list"] .product-card-body { justify-content: space-between; gap: 1.25rem; padding: .25rem 0; }
 .boblift-product-listing[data-view="list"] .product-card-meta { justify-content: flex-start; flex-wrap: wrap; gap: .75rem; margin-bottom: 0; }
 .boblift-product-listing[data-view="list"] .product-card-meta span + span::before { content: ""; display: inline-block; width: .25rem; height: .25rem; margin-right: .75rem; border-radius: 2px; background: #cbd5e1; vertical-align: middle; }
