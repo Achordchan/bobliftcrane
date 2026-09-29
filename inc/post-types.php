@@ -26,6 +26,18 @@ function boblift_register_content_types(): void
         'supports' => ['title', 'editor', 'excerpt', 'thumbnail', 'revisions'],
     ]);
 
+    // Customer feedback: photos and videos customers send back. Language-neutral on purpose (only country
+    // and model are shown, stored per language in meta), so one entry serves every language of the site.
+    register_post_type('feedback', [
+        'labels' => boblift_post_type_labels('客户反馈', '客户反馈'),
+        'public' => false,
+        'show_ui' => true,
+        'show_in_menu' => true,
+        'menu_icon' => 'dashicons-format-gallery',
+        'exclude_from_search' => true,
+        'supports' => ['title', 'page-attributes'],
+    ]);
+
     register_post_type('inquiry', [
         'labels' => boblift_post_type_labels('询盘', '询盘'),
         'public' => false,
@@ -534,6 +546,7 @@ function boblift_register_meta_boxes(): void
     add_meta_box('boblift_product_details', '产品参数', 'boblift_product_meta_box', 'product', 'normal', 'high');
     add_meta_box('boblift_case_details', '案例详情', 'boblift_case_meta_box', 'case', 'normal', 'high');
     add_meta_box('boblift_inquiry_details', '询盘详情', 'boblift_inquiry_meta_box', 'inquiry', 'normal', 'high');
+    add_meta_box('boblift_feedback_details', '反馈内容', 'boblift_feedback_meta_box', 'feedback', 'normal', 'high');
 }
 add_action('add_meta_boxes', 'boblift_register_meta_boxes');
 
@@ -1385,3 +1398,86 @@ add_filter('wp_generate_attachment_metadata', static function (array $metadata, 
     update_post_meta($attachment_id, '_boblift_image_fit', $fit);
     return $metadata;
 }, 10, 2);
+
+function boblift_feedback_meta_box(WP_Post $post): void
+{
+    wp_nonce_field('boblift_feedback_meta', 'boblift_feedback_nonce');
+    $country = json_decode((string) get_post_meta($post->ID, '_feedback_country', true), true) ?: [];
+    $note = json_decode((string) get_post_meta($post->ID, '_feedback_note', true), true) ?: [];
+    $ids = array_filter(array_map('intval', explode(',', (string) get_post_meta($post->ID, '_feedback_media', true))));
+    ?>
+    <style>.boblift-feedback-box .boblift-admin-field{display:grid;grid-template-columns:170px minmax(0,1fr);gap:12px;margin:0 0 12px}.boblift-feedback-box input[type=text]{width:100%;max-width:520px;margin-bottom:6px}</style>
+    <div class="boblift-feedback-box">
+    <p class="boblift-admin-help">前台只显示国家和型号，不显示客户信息。上传前请确认照片里没有客户人脸、电话、公司名或经销商品牌。</p>
+    <div class="boblift-admin-field"><label>国家（英文）</label><input type="text" name="boblift_feedback[country_en]" value="<?php echo esc_attr((string) ($country['en'] ?? '')); ?>" placeholder="Mexico"></div>
+    <div class="boblift-admin-field"><label>国家（日文）</label><input type="text" name="boblift_feedback[country_ja]" value="<?php echo esc_attr((string) ($country['ja'] ?? '')); ?>" placeholder="メキシコ"></div>
+    <div class="boblift-admin-field"><label>国家（中文）</label><input type="text" name="boblift_feedback[country_zh]" value="<?php echo esc_attr((string) ($country['zh'] ?? '')); ?>" placeholder="墨西哥"></div>
+    <div class="boblift-admin-field"><label>型号</label><input type="text" name="boblift_feedback[model]" value="<?php echo esc_attr((string) get_post_meta($post->ID, '_feedback_model', true)); ?>" placeholder="SQ6.3ZA4"></div>
+    <div class="boblift-admin-field"><label>配置说明（英/日/中，可空）</label><div>
+        <input type="text" name="boblift_feedback[note_en]" value="<?php echo esc_attr((string) ($note['en'] ?? '')); ?>" placeholder="with clamshell bucket">
+        <input type="text" name="boblift_feedback[note_ja]" value="<?php echo esc_attr((string) ($note['ja'] ?? '')); ?>" placeholder="クラムシェルバケット付き">
+        <input type="text" name="boblift_feedback[note_zh]" value="<?php echo esc_attr((string) ($note['zh'] ?? '')); ?>" placeholder="配贝壳斗">
+    </div></div>
+    <div class="boblift-admin-field boblift-feedback-media-field"><label>图片 / 视频</label><div>
+        <input type="hidden" class="boblift-feedback-media-ids" name="boblift_feedback[media]" value="<?php echo esc_attr(implode(',', $ids)); ?>">
+        <p><button type="button" class="button boblift-feedback-media-select">选择图片 / 视频</button> <span class="description">可多选；按选择顺序显示，第一张作为封面。视频建议 60 秒以内、720p、无声。</span></p>
+        <div class="boblift-feedback-media-preview" style="display:flex;flex-wrap:wrap;gap:6px">
+            <?php foreach ($ids as $id) : $thumb = wp_attachment_is('video', $id) ? (string) get_the_post_thumbnail_url($id, 'thumbnail') : (string) wp_get_attachment_image_url($id, 'thumbnail'); ?>
+                <span style="width:72px;height:54px;border:1px solid #dcdcde;background:#f6f7f7 center/cover no-repeat;<?php echo $thumb !== '' ? 'background-image:url(' . esc_url($thumb) . ')' : ''; ?>" title="<?php echo esc_attr(get_the_title($id)); ?>"><?php echo wp_attachment_is('video', $id) ? '&#9654;' : ''; ?></span>
+            <?php endforeach; ?>
+        </div>
+    </div></div>
+    <script>
+    jQuery(function ($) {
+      $(document).on('click', '.boblift-feedback-media-select', function (event) {
+        event.preventDefault();
+        var field = $(this).closest('.boblift-feedback-media-field');
+        var frame = wp.media({ title: '选择反馈图片 / 视频', button: { text: '使用所选' }, multiple: 'add', library: { type: ['image', 'video'] } });
+        frame.on('open', function () {
+          var selection = frame.state().get('selection');
+          (field.find('.boblift-feedback-media-ids').val() || '').split(',').filter(Boolean).forEach(function (id) {
+            var attachment = wp.media.attachment(id); attachment.fetch(); selection.add(attachment);
+          });
+        });
+        frame.on('select', function () {
+          var items = frame.state().get('selection').toJSON();
+          field.find('.boblift-feedback-media-ids').val(items.map(function (item) { return item.id; }).join(','));
+          var preview = field.find('.boblift-feedback-media-preview').empty();
+          items.forEach(function (item) {
+            var thumb = (item.sizes && item.sizes.thumbnail && item.sizes.thumbnail.url) || (item.image && item.image.src) || '';
+            $('<span>').css({ width: 72, height: 54, border: '1px solid #dcdcde', background: '#f6f7f7 center/cover no-repeat', backgroundImage: thumb ? 'url(' + thumb + ')' : '' }).text(item.type === 'video' ? '\u25B6' : '').appendTo(preview);
+          });
+        });
+        frame.open();
+      });
+    });
+    </script>
+    </div>
+    <?php
+}
+
+function boblift_save_feedback_meta(int $post_id): void
+{
+    if (!isset($_POST['boblift_feedback_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['boblift_feedback_nonce'])), 'boblift_feedback_meta')) {
+        return;
+    }
+    if ((defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) || !current_user_can('edit_post', $post_id)) {
+        return;
+    }
+    $data = is_array($_POST['boblift_feedback'] ?? null) ? wp_unslash($_POST['boblift_feedback']) : [];
+    $text = static fn(string $key): string => sanitize_text_field((string) ($data[$key] ?? ''));
+    update_post_meta($post_id, '_feedback_country', wp_slash(wp_json_encode(['en' => $text('country_en'), 'ja' => $text('country_ja'), 'zh' => $text('country_zh')], JSON_UNESCAPED_UNICODE)));
+    $note = ['en' => $text('note_en'), 'ja' => $text('note_ja'), 'zh' => $text('note_zh')];
+    update_post_meta($post_id, '_feedback_note', array_filter($note) ? wp_slash(wp_json_encode($note, JSON_UNESCAPED_UNICODE)) : '');
+    update_post_meta($post_id, '_feedback_model', $text('model'));
+    update_post_meta($post_id, '_feedback_media', implode(',', array_filter(array_map('intval', explode(',', $text('media'))))));
+}
+add_action('save_post_feedback', 'boblift_save_feedback_meta');
+
+// The media picker on the feedback editor needs the media library scripts.
+add_action('admin_enqueue_scripts', static function (): void {
+    $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+    if ($screen && $screen->post_type === 'feedback' && $screen->base === 'post') {
+        wp_enqueue_media();
+    }
+});

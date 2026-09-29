@@ -784,6 +784,52 @@ function boblift_case_item_from_post(WP_Post $post): array
     return boblift_normalize_case_item($item);
 }
 
+// Customer feedback entries for the Cases page. Country and configuration note are stored per language;
+// images use a web size, videos carry their poster (the video attachment's featured image).
+function boblift_feedback_items(): array
+{
+    $language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
+    $pick = static function (array $values) use ($language): string {
+        return trim((string) ($values[$language] ?? $values['en'] ?? ''));
+    };
+    $posts = get_posts(['post_type' => 'feedback', 'post_status' => 'publish', 'posts_per_page' => -1, 'orderby' => ['menu_order' => 'ASC', 'date' => 'DESC'], 'lang' => '']);
+    $items = [];
+    foreach ($posts as $post) {
+        $media = [];
+        foreach (array_filter(array_map('intval', explode(',', (string) get_post_meta($post->ID, '_feedback_media', true)))) as $id) {
+            if (wp_attachment_is('video', $id)) {
+                $src = (string) wp_get_attachment_url($id);
+                $poster = (string) get_the_post_thumbnail_url($id, 'large');
+                if ($src !== '') {
+                    $media[] = ['type' => 'video', 'src' => $src, 'poster' => $poster];
+                }
+            } elseif ($src = (string) wp_get_attachment_image_url($id, 'large')) {
+                $media[] = ['type' => 'image', 'src' => $src, 'full' => (string) wp_get_attachment_image_url($id, 'full')];
+            }
+        }
+        if (!$media) {
+            continue;
+        }
+        $cover = $media[0]['type'] === 'image' ? $media[0]['src'] : ($media[0]['poster'] ?? '');
+        foreach ($media as $m) {
+            if ($cover === '' && $m['type'] === 'image') {
+                $cover = $m['src'];
+            }
+        }
+        $items[] = [
+            'id' => $post->ID,
+            'country' => $pick(json_decode((string) get_post_meta($post->ID, '_feedback_country', true), true) ?: []),
+            'model' => trim((string) get_post_meta($post->ID, '_feedback_model', true)),
+            'note' => $pick(json_decode((string) get_post_meta($post->ID, '_feedback_note', true), true) ?: []),
+            'media' => $media,
+            'cover' => $cover,
+            'photos' => count(array_filter($media, static fn(array $m): bool => $m['type'] === 'image')),
+            'videos' => count(array_filter($media, static fn(array $m): bool => $m['type'] === 'video')),
+        ];
+    }
+    return $items;
+}
+
 function boblift_cases(): array
 {
     $query = new WP_Query(['post_type' => 'case', 'post_status' => 'publish', 'posts_per_page' => -1, 'orderby' => 'date', 'order' => 'DESC']);

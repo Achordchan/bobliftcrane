@@ -295,40 +295,6 @@
     document.addEventListener('click', closeHotspots);
   });
 
-
-  qsa('[data-product-gallery-root]').forEach((root) => {
-    const mainImage = qs('[data-product-gallery-image]', root);
-    const caption = qs('[data-product-gallery-caption]', root);
-    const thumbs = qsa('[data-product-gallery-thumb]', root);
-    if (!mainImage || thumbs.length < 2) return;
-
-    const activeClasses = ['border-blue-500', 'ring-2', 'ring-blue-500/20'];
-    const inactiveClasses = ['border-[#DDE5EF]', 'hover:border-blue-300'];
-    const setActive = (button, active) => {
-      button.setAttribute('aria-pressed', active ? 'true' : 'false');
-      activeClasses.forEach((className) => button.classList.toggle(className, active));
-      inactiveClasses.forEach((className) => button.classList.toggle(className, !active));
-    };
-
-    thumbs.forEach((button) => {
-      button.addEventListener('click', () => {
-        const src = button.dataset.productGallerySrc || '';
-        const label = button.dataset.productGalleryLabel || '';
-        if (!src) return;
-        thumbs.forEach((item) => setActive(item, item === button));
-        mainImage.classList.add('opacity-0');
-        const showImage = () => {
-          mainImage.classList.remove('opacity-0');
-          mainImage.removeEventListener('load', showImage);
-        };
-        mainImage.addEventListener('load', showImage);
-        mainImage.src = src;
-        if (caption && label) caption.textContent = label;
-        if (mainImage.complete) window.requestAnimationFrame(showImage);
-      });
-    });
-  });
-
   const mobileToggle = qs('[data-mobile-toggle]');
   const mobileMenu = qs('#mobile-menu');
   const resetMobileSubmenus = () => {
@@ -3304,6 +3270,14 @@
     const mediaButtons = qsa('[data-cases-media-open]', root);
     const closeButtons = qsa('[data-cases-modal-close]', root);
     const customSelects = qsa('[data-cases-custom-select]', root);
+    const modalNav = qs('[data-cases-modal-nav]', root);
+    const modalCounter = qs('[data-cases-modal-counter]', root);
+    const modalPrev = qs('[data-cases-modal-prev]', root);
+    const modalNext = qs('[data-cases-modal-next]', root);
+    // Feedback cards carry several photos and videos; the modal steps through them.
+    let gallery = [];
+    let galleryIndex = 0;
+    let galleryTitle = '';
     const urlTab = new URLSearchParams(window.location.search).get('tab');
     let activeKind = urlTab === 'customer_feedback' ? 'customer_feedback' : 'scene_case';
 
@@ -3354,8 +3328,49 @@
       }
     };
 
+    const showGalleryItem = (index) => {
+      if (!gallery.length || !modalMedia) return;
+      galleryIndex = (index + gallery.length) % gallery.length;
+      const item = gallery[galleryIndex] || {};
+      resetModalMedia();
+      if (item.type === 'video') {
+        modalMedia.innerHTML = `<video class="h-full max-h-[72vh] w-full rounded bg-black object-contain" src="${escapeCasesAttr(item.src || '')}" poster="${escapeCasesAttr(item.poster || '')}" controls muted playsinline autoplay preload="metadata"></video>`;
+      } else {
+        modalMedia.innerHTML = `<img class="h-full max-h-[72vh] w-full rounded object-contain" src="${escapeCasesAttr(item.src || '')}" alt="${escapeCasesAttr(galleryTitle)}">`;
+      }
+      if (modalCounter) modalCounter.textContent = `${galleryIndex + 1} / ${gallery.length}`;
+      if (modalNav) {
+        modalNav.classList.toggle('hidden', gallery.length < 2);
+        modalNav.classList.toggle('flex', gallery.length > 1);
+      }
+      // Warm the next photo so stepping feels instant.
+      const next = gallery[(galleryIndex + 1) % gallery.length];
+      if (next && next.type === 'image') {
+        const preload = new Image();
+        preload.src = next.src;
+      }
+    };
+
     const openCasesModal = (button) => {
       if (!button || !modalMedia) return;
+      if (button.dataset.mediaList) {
+        try {
+          gallery = JSON.parse(button.dataset.mediaList) || [];
+        } catch {
+          gallery = [];
+        }
+        if (!gallery.length) return;
+        galleryTitle = button.dataset.mediaTitle || '';
+        if (modalTitle) modalTitle.textContent = galleryTitle;
+        showGalleryItem(0);
+        setModalOpen(true);
+        return;
+      }
+      gallery = [];
+      if (modalNav) {
+        modalNav.classList.add('hidden');
+        modalNav.classList.remove('flex');
+      }
       const mediaType = button.dataset.mediaType === 'video' ? 'video' : 'image';
       const mediaSrc = button.dataset.mediaSrc || '';
       const title = button.dataset.mediaTitle || '';
@@ -3501,12 +3516,17 @@
     });
     mediaButtons.forEach((button) => button.addEventListener('click', () => openCasesModal(button)));
     closeButtons.forEach((button) => button.addEventListener('click', () => setModalOpen(false)));
+    modalPrev?.addEventListener('click', () => showGalleryItem(galleryIndex - 1));
+    modalNext?.addEventListener('click', () => showGalleryItem(galleryIndex + 1));
     document.addEventListener('pointerdown', (event) => {
       if (!customSelects.some((selectRoot) => selectRoot.contains(event.target))) closeCasesSelects();
     });
     window.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') closeCasesSelects();
       if (event.key === 'Escape' && modal && !modal.hidden) setModalOpen(false);
+      if (modal && !modal.hidden && gallery.length > 1 && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
+        showGalleryItem(galleryIndex + (event.key === 'ArrowRight' ? 1 : -1));
+      }
     });
     applyCasesFilter();
   });

@@ -26,3 +26,6 @@ test-results/
 tmp/
 .deploy/
 var/
+
+# Customer feedback media: built by tools/feedback/build.py from the shared folder, copied to the server for apply.php.
+tools/feedback/media/

@@ -190,7 +190,6 @@ if ($drawings) {
 if ($brochure_features) {
     $anchors[] = ['id' => 'features', 'label' => (string) ($ui['featuresLabel'] ?? 'Key Features')];
 }
-$anchors[] = ['id' => 'photos', 'label' => (string) ($ui['photosLabel'] ?? 'Product Photos')];
 $anchors[] = ['id' => 'faq', 'label' => (string) ($ui['faqLabel'] ?? 'FAQ')];
 $anchors[] = ['id' => 'quote', 'label' => (string) ($ui['quoteAnchorLabel'] ?? 'Request Quote')];
 $quote_title = (string) ($ui['quoteTitle'] ?? 'Need a crane matched to your site and lifting task?');
@@ -370,29 +369,6 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                     <?php endif; ?>
                 </article>
             <?php endif; ?>
-            <article id="photos" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white p-5 shadow-card md:p-8" data-product-gallery-root>
-                <div class="mb-5 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-                    <div>
-                        <p class="text-[11px] font-black uppercase tracking-[0.2em] text-[#0B3F7D]"><?php echo esc_html($ui['cinemaGalleryLabel'] ?? 'Product stage'); ?></p>
-                        <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($ui['photoGalleryTitle'] ?? ($ui['photosLabel'] ?? 'Product Photos')); ?></h2>
-                    </div>
-                </div>
-                <div class="space-y-3">
-                    <div class="relative aspect-[4/3] overflow-hidden rounded border border-[#DDE7F2] bg-[#F5F8FC] md:aspect-[2/1]">
-                        <img class="absolute inset-0 h-full w-full object-contain p-4 transition-opacity duration-200 md:p-8" src="<?php echo esc_url($gallery_items[0]['image'] ?? $main_image); ?>" alt="<?php echo esc_attr($product['title']); ?>" loading="lazy" data-product-gallery-image>
-                        <span class="absolute bottom-3 left-3 max-w-[calc(100%-1.5rem)] truncate rounded-sm border border-[#DDE7F2] bg-white px-3 py-1.5 text-xs font-black text-[#071f42]" data-product-gallery-caption><?php echo esc_html($gallery_items[0]['label'] ?? ($ui['mainProductViewLabel'] ?? 'Main product view')); ?></span>
-                    </div>
-                    <?php if (count($gallery_items) > 1) : ?>
-                        <div class="grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10">
-                            <?php foreach ($gallery_items as $index => $item) : ?>
-                                <button class="relative block aspect-[4/3] overflow-hidden rounded-sm border bg-[#F5F8FC] transition <?php echo $index === 0 ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-[#DDE5EF] hover:border-blue-300'; ?>" type="button" data-product-gallery-thumb data-product-gallery-src="<?php echo esc_url($item['image']); ?>" data-product-gallery-label="<?php echo esc_attr($item['label']); ?>" aria-pressed="<?php echo $index === 0 ? 'true' : 'false'; ?>" aria-label="<?php echo esc_attr($item['label']); ?>" title="<?php echo esc_attr($item['label']); ?>">
-                                    <img class="absolute inset-0 h-full w-full object-cover" src="<?php echo esc_url($item['image']); ?>" alt="" loading="lazy">
-                                </button>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php endif; ?>
-                </div>
-            </article>
             <section id="faq" class="scroll-mt-24"><h2 class="mb-5 text-3xl font-black tracking-[-0.015em] text-[#071f42] md:text-4xl"><?php echo esc_html($ui['faqLabel'] ?? 'FAQ'); ?></h2><div class="grid grid-cols-1 gap-4 lg:grid-cols-2"><?php foreach ($faqs as $faq) : ?><details class="group rounded border border-[#DDE7F2] bg-white px-5 py-4 shadow-card"><summary class="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-black text-[#071f42]"><?php echo esc_html($faq['question']); ?><?php echo boblift_icon('chevron-down', 'h-4 w-4 transition group-open:rotate-180'); ?></summary><p class="mt-3 text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html($faq['answer']); ?></p></details><?php endforeach; ?></div></section>
             <section id="quote" class="boblift-product-quote-section relative left-1/2 w-screen -translate-x-1/2 scroll-mt-24 overflow-hidden border-y border-[#DDE7F2] bg-[radial-gradient(circle_at_70%_28%,rgba(245,154,60,0.16),transparent_28%),linear-gradient(135deg,#ffffff_0%,#eaf2ff_100%)] py-12 text-[#071f42] shadow-card md:py-16">
                 <div class="page-shell grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_auto] xl:gap-12">
