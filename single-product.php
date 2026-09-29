@@ -183,6 +183,10 @@ if ($has_configured_detail_images && get_post_meta(get_the_ID(), '_detail_images
         if (preg_match('/[?&]src=([^&]+)/', $src, $match)) {
             $src = rawurldecode($match[1]);
         }
+        // Match on the uploads path: the stored host can differ from this language's domain.
+        if (preg_match('#/wp-content/uploads/(.+)$#', $src, $match)) {
+            $src = trailingslashit(wp_get_upload_dir()['baseurl']) . $match[1];
+        }
         $attachment_id = $src !== '' ? attachment_url_to_postid($src) : 0;
         $full = $attachment_id ? wp_get_attachment_image_src($attachment_id, 'full') : false;
         $preview = $attachment_id ? wp_get_attachment_image_src($attachment_id, 'medium_large') : false;
@@ -197,6 +201,24 @@ if ($has_configured_detail_images && get_post_meta(get_the_ID(), '_detail_images
         ];
     }
 }
+// Body layout: text before the first h3 is the lead (left); each h3 section stacks in the right column,
+// so a short body fills the card width instead of one narrow column.
+$detail_body_parts = $detail_body_html !== '' ? preg_split('/(?=<h3\b)/i', $detail_body_html) : [];
+$detail_body_lead = $detail_body_parts && !preg_match('/^\s*<h3\b/i', $detail_body_parts[0]) ? trim((string) array_shift($detail_body_parts)) : '';
+$detail_body_sections = implode('', $detail_body_parts);
+$render_detail_body = static function (string $wrapper_class) use ($detail_body_lead, $detail_body_sections): void {
+    $split = $detail_body_lead !== '' && trim($detail_body_sections) !== '';
+    ?>
+    <div class="<?php echo esc_attr($wrapper_class . ($split ? ' grid gap-8 lg:grid-cols-12 lg:gap-12' : '')); ?>">
+        <?php if ($detail_body_lead !== '') : ?>
+            <div class="boblift-story-prose boblift-product-body boblift-product-lead <?php echo $split ? 'lg:col-span-5' : 'max-w-[900px]'; ?>"><?php echo wp_kses_post($detail_body_lead); ?></div>
+        <?php endif; ?>
+        <?php if (trim($detail_body_sections) !== '') : ?>
+            <div class="boblift-story-prose boblift-product-body boblift-product-sections <?php echo $split ? 'lg:col-span-7' : ''; ?>"><?php echo wp_kses_post($detail_body_sections); ?></div>
+        <?php endif; ?>
+    </div>
+    <?php
+};
 $detail_alt = str_replace('{product}', $product_title, (string) ($ui['detailImageAltTemplate'] ?? '{product} detail image'));
 $anchors = [];
 $anchors[] = ['id' => 'technical', 'label' => (string) ($ui['technicalLabel'] ?? 'Technical Specifications')];
@@ -368,7 +390,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                             <?php endforeach; ?>
                         </div>
                         <?php if ($detail_body_html !== '') : ?>
-                            <div class="boblift-story-prose boblift-product-body mt-8 max-w-[860px] border-t border-[#E6EDF5] pt-7 md:mt-10 md:pt-8"><?php echo wp_kses_post($detail_body_html); ?></div>
+                            <?php $render_detail_body('mt-8 border-t border-[#E6EDF5] pt-7 md:mt-10 md:pt-8'); ?>
                         <?php endif; ?>
                     </div>
                     <div class="fixed inset-0 z-[1000] hidden flex-col bg-[#040f22]" data-detail-lightbox role="dialog" aria-modal="true" aria-hidden="true" aria-label="<?php echo esc_attr($detail_alt); ?>">
@@ -394,7 +416,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                             <p class="text-[11px] font-black uppercase tracking-[0.2em] text-[#0B3F7D]"><?php echo esc_html($ui['detailBodyLabel'] ?? 'Product details'); ?></p>
                             <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($hero_model !== '' ? $hero_model : $product_title); ?></h2>
                         </div>
-                        <div class="boblift-story-prose boblift-product-body max-w-[760px]"><?php echo wp_kses_post($detail_body_html); ?></div>
+                        <?php $render_detail_body(''); ?>
                     </div>
                 </article>
             <?php endif; ?>

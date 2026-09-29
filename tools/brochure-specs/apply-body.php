@@ -56,6 +56,27 @@ $attachments = [
     'zh' => ['<h3>可选属具</h3>', '<ul>', '<li><strong>液压抓具</strong>：由独立油缸控制开合，抓取和释放物料。</li>', '<li><strong>贝壳斗</strong>：用于垃圾、碎石、土方的装卸和轻度挖掘。</li>', '<li><strong>桔瓣抓斗</strong>：用于废钢和散料装卸。</li>', '<li><strong>抓木器</strong>：用于原木和木材装卸。</li>', '<li><strong>钻杆</strong>：用于植树坑、电线杆、基础桩钻孔和取土。</li>', '</ul>'],
 ];
 
+
+// Store the body as editor blocks (paragraph, heading, list) so the block editor opens it as normal,
+// editable blocks instead of one "Classic" block.
+$to_blocks = static function (array $lines): string {
+    $blocks = [];
+    foreach ($lines as $line) {
+        if (str_starts_with($line, '<p>')) {
+            $blocks[] = "<!-- wp:paragraph -->\n{$line}\n<!-- /wp:paragraph -->";
+        } elseif (str_starts_with($line, '<h3>')) {
+            $blocks[] = "<!-- wp:heading {\"level\":3} -->\n" . str_replace('<h3>', '<h3 class="wp-block-heading">', $line) . "\n<!-- /wp:heading -->";
+        } elseif ($line === '<ul>') {
+            $blocks[] = "<!-- wp:list -->\n<ul class=\"wp-block-list\">";
+        } elseif (str_starts_with($line, '<li>')) {
+            $blocks[count($blocks) - 1] .= "<!-- wp:list-item -->\n{$line}\n<!-- /wp:list-item -->";
+        } elseif ($line === '</ul>') {
+            $blocks[count($blocks) - 1] .= "</ul>\n<!-- /wp:list -->";
+        }
+    }
+    return implode("\n\n", $blocks);
+};
+
 $report = [];
 $written = 0;
 foreach ($products as $product) {
@@ -123,7 +144,7 @@ foreach ($products as $product) {
                 'zh' => "{$ce} 系列已取得依据欧盟机械指令 2006/42/EC 的 CE 符合性证书。",
             ][$lang]) . '</p>';
         }
-        $html[$lang] = implode("\n", $parts);
+        $html[$lang] = $to_blocks($parts);
     }
 
     $targets = ['en' => $post->ID];
