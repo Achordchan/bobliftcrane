@@ -64,10 +64,6 @@ $hero_spec_value = static function (string $value): string {
     ];
     return $short_values[$normalized] ?? $value;
 };
-$overview_title = (string) ($ui['overviewTitle'] ?? 'Built for reliable lifting work.');
-if (str_contains(strtolower($overview_title), 'truck-mounted') && !str_contains(strtolower((string) ($product['category_title'] ?? '')), 'truck')) {
-    $overview_title = (string) ($ui['spiderOverviewTitle'] ?? 'Built for precise lifting in tight working spaces.');
-}
 $technical_specs = array_values(array_filter(array_merge(
     $hero_model !== '' ? [['label' => (string) ($ui['specLabels']['model'] ?? 'Model'), 'value' => $hero_model]] : [],
     $specs
@@ -76,11 +72,6 @@ $drawings = array_values(array_filter($product['drawings'] ?? [], static fn($dra
 $brochure_features = get_post_meta((int) ($product['id'] ?? 0), '_features_source', true) === 'brochure'
     ? array_values(array_filter($product['features'] ?? [], static fn($feature): bool => is_array($feature) && trim((string) ($feature['title'] ?? '')) !== ''))
     : [];
-// Products checked against the product manual show the brochure-based summary, not old-site copy.
-$product_intro_html = trim((string) ($product['brochure_source'] ?? '')) !== '' ? '' : trim((string) ($product['content'] ?? ''));
-if ($product_intro_html === '') {
-    $product_intro_html = '<p>' . esc_html((string) ($product['short_description'] ?? ($overview_title . ' ' . ($ui['overviewSuffix'] ?? '')))) . '</p>';
-}
 $gallery = array_values(array_filter($product['gallery'] ?? []));
 if (!$gallery) {
     $gallery = [$main_image];
@@ -142,8 +133,6 @@ $hero_image_class = $hero_is_cutout ? $hero_cutout_class : $hero_photo_class;
 // Part hotspots only when an editor placed them for this product; the generic defaults do not match the image.
 $has_custom_hotspots = !empty($product['hotspots']);
 $hero_summary = trim((string) ($product['short_description'] ?? ''));
-// The specs header repeats nothing: drop the intro when it is the same sentence as the hero summary.
-$technical_intro_html = trim(wp_strip_all_tags($product_intro_html)) === $hero_summary ? '' : $product_intro_html;
 $former_models = trim((string) ($product['model_aliases'] ?? ''));
 // "2950 kg" -> ["2950", "kg"] so the hero can set the number large and the unit small.
 $hero_spec_parts = static function (string $value): array {
@@ -297,9 +286,6 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                             </dl>
                         <?php endif; ?>
                     </div>
-                    <?php if ($technical_intro_html !== '') : ?>
-                        <div class="mt-4 max-w-[860px] space-y-3 text-sm font-semibold leading-7 text-slate-600 md:text-[15px] [&_p]:m-0 [&_strong]:font-black [&_strong]:text-[#071f42] [&_ul]:m-0 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5"><?php echo wp_kses_post($technical_intro_html); ?></div>
-                    <?php endif; ?>
                 </div>
                 <dl class="-mb-px -mr-px grid grid-cols-2 border-t border-[#E6EDF5] sm:grid-cols-3 lg:grid-cols-4">
                     <?php foreach ($technical_specs as $index => $spec) :
