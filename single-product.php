@@ -234,10 +234,10 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                 <div class="relative order-1 min-w-0 lg:order-2" data-product-hero-gallery-root data-product-hero-active-index="0">
                     <div class="boblift-product-stage relative aspect-[4/3] overflow-hidden rounded border border-[#DDE7F2] bg-[linear-gradient(180deg,#FFFFFF_0%,#F2F6FB_62%,#E8EEF6_100%)] shadow-card lg:aspect-[5/4] xl:aspect-[4/3]" data-product-hotspot-stage>
                         <?php if ($hero_is_cutout) : ?>
-                            <span class="pointer-events-none absolute inset-x-[8%] h-px bg-[#CBD6E3] <?php echo count($hero_gallery_items) > 1 ? 'bottom-[76px] md:bottom-[84px]' : 'bottom-[9%]'; ?>" aria-hidden="true"></span>
-                            <span class="pointer-events-none absolute left-1/2 h-8 w-[58%] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgba(11,27,51,0.16),transparent)] <?php echo count($hero_gallery_items) > 1 ? 'bottom-[62px] md:bottom-[70px]' : 'bottom-[calc(9%-14px)]'; ?>" aria-hidden="true"></span>
+                            <span class="pointer-events-none absolute inset-x-[8%] h-px bg-[#CBD6E3] bottom-[9%]" aria-hidden="true"></span>
+                            <span class="pointer-events-none absolute left-1/2 h-8 w-[58%] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgba(11,27,51,0.16),transparent)] bottom-[calc(9%-14px)]" aria-hidden="true"></span>
                         <?php endif; ?>
-                        <div class="absolute inset-x-0 top-0 <?php echo count($hero_gallery_items) > 1 && $hero_is_cutout ? 'bottom-[76px] md:bottom-[84px]' : 'bottom-0'; ?>">
+                        <div class="absolute inset-0">
                             <img class="absolute inset-0 z-10 h-full w-full transition-opacity duration-500 ease-out <?php echo esc_attr($hero_image_class); ?>" src="<?php echo esc_url($hero_image); ?>" alt="<?php echo esc_attr($product['title']); ?>" loading="eager" fetchpriority="high" decoding="async" data-product-hero-gallery-current data-product-hero-gallery-image>
                             <img class="absolute inset-0 z-20 h-full w-full opacity-0 transition-opacity duration-500 ease-out <?php echo esc_attr($hero_image_class); ?>" src="<?php echo esc_url($hero_image); ?>" alt="" aria-hidden="true" loading="lazy" decoding="async" data-product-hero-gallery-next>
                             <?php if ($hero_is_cutout && $has_custom_hotspots) : ?>
@@ -256,18 +256,18 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                                 </div>
                             <?php endif; ?>
                         </div>
-                        <?php if (count($hero_gallery_items) > 1) : ?>
-                            <div class="absolute inset-x-3 bottom-3 z-40 flex justify-center">
-                                <div class="flex max-w-full items-center gap-2 overflow-x-auto rounded-sm border border-[#DDE7F2] bg-white/95 p-1.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="<?php echo esc_attr($ui['photoGalleryTitle'] ?? 'Product Photos'); ?>">
-                                    <?php foreach ($hero_gallery_items as $index => $item) : ?>
-                                        <button class="grid h-11 w-14 shrink-0 place-items-center overflow-hidden rounded-sm border p-0.5 transition md:h-12 md:w-16 <?php echo $index === 0 ? 'border-blue-500 bg-blue-50 shadow-card' : 'border-[#DDE5EF] bg-white/80 hover:border-blue-300'; ?>" type="button" data-product-hero-gallery-thumb data-product-hero-gallery-index="<?php echo esc_attr((string) $index); ?>" data-product-hero-gallery-src="<?php echo esc_url($item['image']); ?>" data-product-hero-gallery-label="<?php echo esc_attr($item['label']); ?>" aria-pressed="<?php echo $index === 0 ? 'true' : 'false'; ?>" aria-label="<?php echo esc_attr($item['label']); ?>">
-                                            <img class="h-full w-full rounded-sm object-cover" src="<?php echo esc_url($item['image']); ?>" alt="" loading="lazy" decoding="async">
-                                        </button>
-                                    <?php endforeach; ?>
-                                </div>
-                            </div>
-                        <?php endif; ?>
                     </div>
+                    <?php if (count($hero_gallery_items) > 1) : ?>
+                        <div class="mt-3 flex">
+                            <div class="flex max-w-full items-center gap-2 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="<?php echo esc_attr($ui['photoGalleryTitle'] ?? 'Product Photos'); ?>">
+                                <?php foreach ($hero_gallery_items as $index => $item) : ?>
+                                    <button class="grid h-11 w-14 shrink-0 place-items-center overflow-hidden rounded-sm border p-0.5 transition md:h-12 md:w-16 <?php echo $index === 0 ? 'border-blue-500 bg-blue-50 shadow-card' : 'border-[#DDE5EF] bg-white hover:border-blue-300'; ?>" type="button" data-product-hero-gallery-thumb data-product-hero-gallery-index="<?php echo esc_attr((string) $index); ?>" data-product-hero-gallery-src="<?php echo esc_url($item['image']); ?>" data-product-hero-gallery-label="<?php echo esc_attr($item['label']); ?>" aria-pressed="<?php echo $index === 0 ? 'true' : 'false'; ?>" aria-label="<?php echo esc_attr($item['label']); ?>">
+                                        <img class="h-full w-full rounded-sm object-cover" src="<?php echo esc_url($item['image']); ?>" alt="" loading="lazy" decoding="async">
+                                    </button>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>

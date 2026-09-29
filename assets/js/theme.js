@@ -187,7 +187,7 @@
 
     let switchToken = 0;
     const galleryActiveClasses = ['border-blue-500', 'bg-blue-50', 'shadow-card'];
-    const galleryInactiveClasses = ['border-[#DDE5EF]', 'bg-white/80', 'hover:border-blue-300'];
+    const galleryInactiveClasses = ['border-[#DDE5EF]', 'bg-white', 'hover:border-blue-300'];
     const setGalleryActive = (button, active) => {
       button.setAttribute('aria-pressed', active ? 'true' : 'false');
       galleryActiveClasses.forEach((className) => button.classList.toggle(className, active));
