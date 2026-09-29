@@ -100,7 +100,17 @@ foreach ($plan['products'] as $p) {
     update_post_meta($id, '_gallery', wp_slash(wp_json_encode($gallery, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)));
 
     if (!empty($p['features'])) {
-        update_post_meta($id, '_features', wp_slash(wp_json_encode($p['features'], JSON_UNESCAPED_UNICODE)));
+        $features = [];
+        foreach ($p['features'] as $feature) {
+            if (!empty($feature['photo'])) {
+                // Detail photo of the part this advantage is about; imported once and shared across the series.
+                $photo = $import($feature['photo'], $id, $feature['title'] . ' (BOB-LIFT crane detail)');
+                $feature['image'] = $photo ? (string) wp_get_attachment_image_url($photo, 'large') : '';
+            }
+            unset($feature['photo']);
+            $features[] = $feature;
+        }
+        update_post_meta($id, '_features', wp_slash(wp_json_encode($features, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)));
         // The product page shows the features block only for brochure text, not old-site copy.
         update_post_meta($id, '_features_source', 'brochure');
     }

@@ -22,31 +22,43 @@
    "features": [
     {
      "title": "High-strength welded structure",
-     "text": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability."
+     "text": "Welded high-strength plate with a hexagonal boom section.",
+     "detail": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability.",
+     "photo": "features/knuckle-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
+     "text": "Load moment limiter on every crane, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
     },
     {
      "title": "Box-type outriggers",
-     "text": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders."
+     "text": "Box outriggers above 6.3 t protect the cylinders.",
+     "detail": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders.",
+     "photo": "features/knuckle-box-outriggers.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient."
+     "text": "Manual levers, aerial seat or wireless remote.",
+     "detail": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient.",
+     "photo": "features/knuckle-levers.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation."
+     "text": "Reverse-angle reach for tight jobs.",
+     "detail": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation.",
+     "photo": "features/knuckle-four-bar.webp"
     },
     {
      "title": "Large-span outriggers",
-     "text": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
+     "text": "Wide fixed outriggers, manual flip optional.",
+     "detail": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
     }
    ],
    "features_series": "Knuckle Boom Truck Mounted Crane",
@@ -65,27 +77,37 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+     "text": "Compact, light and strong steel structure.",
+     "detail": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design.",
+     "photo": "features/marine-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+     "text": "Load moment limiter, safety certified.",
+     "detail": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
     },
     {
      "title": "Custom installation",
-     "text": "Customizable installation methods tailored to specific operational scenarios."
+     "text": "Pedestal mounting tailored to your deck.",
+     "detail": "Customizable installation methods tailored to specific operational scenarios.",
+     "photo": "features/marine-installation.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+     "text": "Winch, drill pipe, basket or grapple.",
+     "detail": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs.",
+     "photo": "features/marine-winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+     "text": "Manual levers, overhead seat or wireless remote.",
+     "detail": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience.",
+     "photo": "features/marine-controls.webp"
     },
     {
      "title": "Marine anti-rust treatment",
-     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+     "text": "Multi-layer anti-rust process for sea duty.",
+     "detail": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
     }
    ],
    "features_series": "Telescopic Boom Marine Crane",
@@ -113,31 +135,43 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+     "text": "Compact, light and strong steel structure.",
+     "detail": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design.",
+     "photo": "features/marine-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+     "text": "Load moment limiter, safety certified.",
+     "detail": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
     },
     {
      "title": "Custom installation",
-     "text": "Customizable installation methods tailored to specific operational scenarios."
+     "text": "Pedestal mounting tailored to your deck.",
+     "detail": "Customizable installation methods tailored to specific operational scenarios.",
+     "photo": "features/marine-installation.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+     "text": "Winch, drill pipe, basket or grapple.",
+     "detail": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs.",
+     "photo": "features/marine-winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+     "text": "Manual levers, overhead seat or wireless remote.",
+     "detail": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience.",
+     "photo": "features/marine-controls.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+     "text": "Reverse-angle reach for flexible work.",
+     "detail": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance.",
+     "photo": "features/marine-four-bar.webp"
     },
     {
      "title": "Marine anti-rust treatment",
-     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+     "text": "Multi-layer anti-rust process for sea duty.",
+     "detail": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
     }
    ],
    "features_series": "Knuckle Boom Marine Crane",
@@ -158,31 +192,43 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+     "text": "Compact, light and strong steel structure.",
+     "detail": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design.",
+     "photo": "features/marine-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+     "text": "Load moment limiter, safety certified.",
+     "detail": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
     },
     {
      "title": "Custom installation",
-     "text": "Customizable installation methods tailored to specific operational scenarios."
+     "text": "Pedestal mounting tailored to your deck.",
+     "detail": "Customizable installation methods tailored to specific operational scenarios.",
+     "photo": "features/marine-installation.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+     "text": "Winch, drill pipe, basket or grapple.",
+     "detail": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs.",
+     "photo": "features/marine-winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+     "text": "Manual levers, overhead seat or wireless remote.",
+     "detail": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience.",
+     "photo": "features/marine-controls.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+     "text": "Reverse-angle reach for flexible work.",
+     "detail": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance.",
+     "photo": "features/marine-four-bar.webp"
     },
     {
      "title": "Marine anti-rust treatment",
-     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+     "text": "Multi-layer anti-rust process for sea duty.",
+     "detail": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
     }
    ],
    "features_series": "Knuckle Boom Marine Crane",
@@ -205,31 +251,43 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+     "text": "Compact, light and strong steel structure.",
+     "detail": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design.",
+     "photo": "features/marine-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+     "text": "Load moment limiter, safety certified.",
+     "detail": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
     },
     {
      "title": "Custom installation",
-     "text": "Customizable installation methods tailored to specific operational scenarios."
+     "text": "Pedestal mounting tailored to your deck.",
+     "detail": "Customizable installation methods tailored to specific operational scenarios.",
+     "photo": "features/marine-installation.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+     "text": "Winch, drill pipe, basket or grapple.",
+     "detail": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs.",
+     "photo": "features/marine-winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+     "text": "Manual levers, overhead seat or wireless remote.",
+     "detail": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience.",
+     "photo": "features/marine-controls.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+     "text": "Reverse-angle reach for flexible work.",
+     "detail": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance.",
+     "photo": "features/marine-four-bar.webp"
     },
     {
      "title": "Marine anti-rust treatment",
-     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+     "text": "Multi-layer anti-rust process for sea duty.",
+     "detail": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
     }
    ],
    "features_series": "Knuckle Boom Marine Crane",
@@ -250,31 +308,43 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+     "text": "Compact, light and strong steel structure.",
+     "detail": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design.",
+     "photo": "features/marine-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+     "text": "Load moment limiter, safety certified.",
+     "detail": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
     },
     {
      "title": "Custom installation",
-     "text": "Customizable installation methods tailored to specific operational scenarios."
+     "text": "Pedestal mounting tailored to your deck.",
+     "detail": "Customizable installation methods tailored to specific operational scenarios.",
+     "photo": "features/marine-installation.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+     "text": "Winch, drill pipe, basket or grapple.",
+     "detail": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs.",
+     "photo": "features/marine-winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+     "text": "Manual levers, overhead seat or wireless remote.",
+     "detail": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience.",
+     "photo": "features/marine-controls.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+     "text": "Reverse-angle reach for flexible work.",
+     "detail": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance.",
+     "photo": "features/marine-four-bar.webp"
     },
     {
      "title": "Marine anti-rust treatment",
-     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+     "text": "Multi-layer anti-rust process for sea duty.",
+     "detail": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
     }
    ],
    "features_series": "Knuckle Boom Marine Crane",
@@ -295,31 +365,43 @@
    "features": [
     {
      "title": "High-strength welded structure",
-     "text": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability."
+     "text": "Welded high-strength plate with a hexagonal boom section.",
+     "detail": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability.",
+     "photo": "features/knuckle-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
+     "text": "Load moment limiter on every crane, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
     },
     {
      "title": "Box-type outriggers",
-     "text": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders."
+     "text": "Box outriggers above 6.3 t protect the cylinders.",
+     "detail": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders.",
+     "photo": "features/knuckle-box-outriggers.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient."
+     "text": "Manual levers, aerial seat or wireless remote.",
+     "detail": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient.",
+     "photo": "features/knuckle-levers.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation."
+     "text": "Reverse-angle reach for tight jobs.",
+     "detail": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation.",
+     "photo": "features/knuckle-four-bar.webp"
     },
     {
      "title": "Large-span outriggers",
-     "text": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
+     "text": "Wide fixed outriggers, manual flip optional.",
+     "detail": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
     }
    ],
    "features_series": "Knuckle Boom Truck Mounted Crane",
@@ -340,31 +422,43 @@
    "features": [
     {
      "title": "High-strength welded structure",
-     "text": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability."
+     "text": "Welded high-strength plate with a hexagonal boom section.",
+     "detail": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability.",
+     "photo": "features/knuckle-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
+     "text": "Load moment limiter on every crane, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
     },
     {
      "title": "Box-type outriggers",
-     "text": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders."
+     "text": "Box outriggers above 6.3 t protect the cylinders.",
+     "detail": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders.",
+     "photo": "features/knuckle-box-outriggers.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient."
+     "text": "Manual levers, aerial seat or wireless remote.",
+     "detail": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient.",
+     "photo": "features/knuckle-levers.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation."
+     "text": "Reverse-angle reach for tight jobs.",
+     "detail": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation.",
+     "photo": "features/knuckle-four-bar.webp"
     },
     {
      "title": "Large-span outriggers",
-     "text": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
+     "text": "Wide fixed outriggers, manual flip optional.",
+     "detail": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
     }
    ],
    "features_series": "Knuckle Boom Truck Mounted Crane",
@@ -391,31 +485,43 @@
    "features": [
     {
      "title": "High-strength welded structure",
-     "text": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability."
+     "text": "Welded high-strength plate with a hexagonal boom section.",
+     "detail": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability.",
+     "photo": "features/knuckle-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
+     "text": "Load moment limiter on every crane, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
     },
     {
      "title": "Box-type outriggers",
-     "text": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders."
+     "text": "Box outriggers above 6.3 t protect the cylinders.",
+     "detail": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders.",
+     "photo": "features/knuckle-box-outriggers.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient."
+     "text": "Manual levers, aerial seat or wireless remote.",
+     "detail": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient.",
+     "photo": "features/knuckle-levers.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation."
+     "text": "Reverse-angle reach for tight jobs.",
+     "detail": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation.",
+     "photo": "features/knuckle-four-bar.webp"
     },
     {
      "title": "Large-span outriggers",
-     "text": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
+     "text": "Wide fixed outriggers, manual flip optional.",
+     "detail": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
     }
    ],
    "features_series": "Knuckle Boom Truck Mounted Crane",
@@ -442,31 +548,43 @@
    "features": [
     {
      "title": "High-strength welded structure",
-     "text": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability."
+     "text": "Welded high-strength plate with a hexagonal boom section.",
+     "detail": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability.",
+     "photo": "features/knuckle-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
+     "text": "Load moment limiter on every crane, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
     },
     {
      "title": "Box-type outriggers",
-     "text": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders."
+     "text": "Box outriggers above 6.3 t protect the cylinders.",
+     "detail": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders.",
+     "photo": "features/knuckle-box-outriggers.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient."
+     "text": "Manual levers, aerial seat or wireless remote.",
+     "detail": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient.",
+     "photo": "features/knuckle-levers.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation."
+     "text": "Reverse-angle reach for tight jobs.",
+     "detail": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation.",
+     "photo": "features/knuckle-four-bar.webp"
     },
     {
      "title": "Large-span outriggers",
-     "text": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
+     "text": "Wide fixed outriggers, manual flip optional.",
+     "detail": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
     }
    ],
    "features_series": "Knuckle Boom Truck Mounted Crane",
@@ -492,31 +610,43 @@
    "features": [
     {
      "title": "High-strength welded structure",
-     "text": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability."
+     "text": "Welded high-strength plate with a hexagonal boom section.",
+     "detail": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability.",
+     "photo": "features/knuckle-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
+     "text": "Load moment limiter on every crane, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
     },
     {
      "title": "Box-type outriggers",
-     "text": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders."
+     "text": "Box outriggers above 6.3 t protect the cylinders.",
+     "detail": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders.",
+     "photo": "features/knuckle-box-outriggers.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient."
+     "text": "Manual levers, aerial seat or wireless remote.",
+     "detail": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient.",
+     "photo": "features/knuckle-levers.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation."
+     "text": "Reverse-angle reach for tight jobs.",
+     "detail": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation.",
+     "photo": "features/knuckle-four-bar.webp"
     },
     {
      "title": "Large-span outriggers",
-     "text": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
+     "text": "Wide fixed outriggers, manual flip optional.",
+     "detail": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
     }
    ],
    "features_series": "Knuckle Boom Truck Mounted Crane",
@@ -535,31 +665,43 @@
    "features": [
     {
      "title": "High-strength welded structure",
-     "text": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability."
+     "text": "Welded high-strength plate with a hexagonal boom section.",
+     "detail": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability.",
+     "photo": "features/knuckle-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
+     "text": "Load moment limiter on every crane, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
     },
     {
      "title": "Box-type outriggers",
-     "text": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders."
+     "text": "Box outriggers above 6.3 t protect the cylinders.",
+     "detail": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders.",
+     "photo": "features/knuckle-box-outriggers.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient."
+     "text": "Manual levers, aerial seat or wireless remote.",
+     "detail": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient.",
+     "photo": "features/knuckle-levers.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation."
+     "text": "Reverse-angle reach for tight jobs.",
+     "detail": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation.",
+     "photo": "features/knuckle-four-bar.webp"
     },
     {
      "title": "Large-span outriggers",
-     "text": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
+     "text": "Wide fixed outriggers, manual flip optional.",
+     "detail": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
     }
    ],
    "features_series": "Knuckle Boom Truck Mounted Crane",
@@ -578,31 +720,43 @@
    "features": [
     {
      "title": "High-strength welded structure",
-     "text": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability."
+     "text": "Welded high-strength plate with a hexagonal boom section.",
+     "detail": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability.",
+     "photo": "features/knuckle-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
+     "text": "Load moment limiter on every crane, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
     },
     {
      "title": "Box-type outriggers",
-     "text": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders."
+     "text": "Box outriggers above 6.3 t protect the cylinders.",
+     "detail": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders.",
+     "photo": "features/knuckle-box-outriggers.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient."
+     "text": "Manual levers, aerial seat or wireless remote.",
+     "detail": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient.",
+     "photo": "features/knuckle-levers.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation."
+     "text": "Reverse-angle reach for tight jobs.",
+     "detail": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation.",
+     "photo": "features/knuckle-four-bar.webp"
     },
     {
      "title": "Large-span outriggers",
-     "text": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
+     "text": "Wide fixed outriggers, manual flip optional.",
+     "detail": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
     }
    ],
    "features_series": "Knuckle Boom Truck Mounted Crane",
@@ -621,27 +775,37 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The key structural components are welded with high-strength steel plates, offering high strength and lighter self-weight."
+     "text": "High-strength plate: stronger and lighter.",
+     "detail": "The key structural components are welded with high-strength steel plates, offering high strength and lighter self-weight."
     },
     {
      "title": "Octagonal boom",
-     "text": "Cranes with a capacity above 8 tons use octagonal booms, which possess light self-weight and a strong load-bearing capacity."
+     "text": "Octagonal boom above 8 t: light and strong.",
+     "detail": "Cranes with a capacity above 8 tons use octagonal booms, which possess light self-weight and a strong load-bearing capacity.",
+     "photo": "features/telescopic-octagonal-boom.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, ensuring a high safety level. The cranes are certified for various safety standards, ensuring lifting operations are precise, safe, and reliable."
+     "text": "Load moment limiter with live display, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, ensuring a high safety level. The cranes are certified for various safety standards, ensuring lifting operations are precise, safe, and reliable.",
+     "photo": "features/telescopic-torque-limiter.webp"
     },
     {
      "title": "Overwinding protection",
-     "text": "The features of anti-overwinding and anti-overlowering protection systems significantly enhance lifting safety and extend crane service life."
+     "text": "Anti-overwind and anti-overlower cut-outs.",
+     "detail": "The features of anti-overwinding and anti-overlowering protection systems significantly enhance lifting safety and extend crane service life."
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, can satisfy personalized customization needs."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, can satisfy personalized customization needs.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various optional operation modes, such as top seats and wireless remote control systems, make operations more convenient."
+     "text": "Control panel, top seat or wireless remote.",
+     "detail": "Various optional operation modes, such as top seats and wireless remote control systems, make operations more convenient.",
+     "photo": "features/telescopic-control-panel.webp"
     }
    ],
    "features_series": "Telescopic Boom Truck Mounted Crane",
@@ -660,27 +824,37 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The key structural components are welded with high-strength steel plates, offering high strength and lighter self-weight."
+     "text": "High-strength plate: stronger and lighter.",
+     "detail": "The key structural components are welded with high-strength steel plates, offering high strength and lighter self-weight."
     },
     {
      "title": "Octagonal boom",
-     "text": "Cranes with a capacity above 8 tons use octagonal booms, which possess light self-weight and a strong load-bearing capacity."
+     "text": "Octagonal boom above 8 t: light and strong.",
+     "detail": "Cranes with a capacity above 8 tons use octagonal booms, which possess light self-weight and a strong load-bearing capacity.",
+     "photo": "features/telescopic-octagonal-boom.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, ensuring a high safety level. The cranes are certified for various safety standards, ensuring lifting operations are precise, safe, and reliable."
+     "text": "Load moment limiter with live display, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, ensuring a high safety level. The cranes are certified for various safety standards, ensuring lifting operations are precise, safe, and reliable.",
+     "photo": "features/telescopic-torque-limiter.webp"
     },
     {
      "title": "Overwinding protection",
-     "text": "The features of anti-overwinding and anti-overlowering protection systems significantly enhance lifting safety and extend crane service life."
+     "text": "Anti-overwind and anti-overlower cut-outs.",
+     "detail": "The features of anti-overwinding and anti-overlowering protection systems significantly enhance lifting safety and extend crane service life."
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, can satisfy personalized customization needs."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, can satisfy personalized customization needs.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various optional operation modes, such as top seats and wireless remote control systems, make operations more convenient."
+     "text": "Control panel, top seat or wireless remote.",
+     "detail": "Various optional operation modes, such as top seats and wireless remote control systems, make operations more convenient.",
+     "photo": "features/telescopic-control-panel.webp"
     }
    ],
    "features_series": "Telescopic Boom Truck Mounted Crane",
@@ -768,27 +942,37 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+     "text": "Compact, light and strong steel structure.",
+     "detail": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design.",
+     "photo": "features/marine-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+     "text": "Load moment limiter, safety certified.",
+     "detail": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
     },
     {
      "title": "Custom installation",
-     "text": "Customizable installation methods tailored to specific operational scenarios."
+     "text": "Pedestal mounting tailored to your deck.",
+     "detail": "Customizable installation methods tailored to specific operational scenarios.",
+     "photo": "features/marine-installation.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+     "text": "Winch, drill pipe, basket or grapple.",
+     "detail": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs.",
+     "photo": "features/marine-winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+     "text": "Manual levers, overhead seat or wireless remote.",
+     "detail": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience.",
+     "photo": "features/marine-controls.webp"
     },
     {
      "title": "Marine anti-rust treatment",
-     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+     "text": "Multi-layer anti-rust process for sea duty.",
+     "detail": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
     }
    ],
    "features_series": "Telescopic Boom Marine Crane",
@@ -809,31 +993,43 @@
    "features": [
     {
      "title": "High-strength welded structure",
-     "text": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability."
+     "text": "Welded high-strength plate with a hexagonal boom section.",
+     "detail": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability.",
+     "photo": "features/knuckle-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
+     "text": "Load moment limiter on every crane, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
     },
     {
      "title": "Box-type outriggers",
-     "text": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders."
+     "text": "Box outriggers above 6.3 t protect the cylinders.",
+     "detail": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders.",
+     "photo": "features/knuckle-box-outriggers.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient."
+     "text": "Manual levers, aerial seat or wireless remote.",
+     "detail": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient.",
+     "photo": "features/knuckle-levers.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation."
+     "text": "Reverse-angle reach for tight jobs.",
+     "detail": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation.",
+     "photo": "features/knuckle-four-bar.webp"
     },
     {
      "title": "Large-span outriggers",
-     "text": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
+     "text": "Wide fixed outriggers, manual flip optional.",
+     "detail": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
     }
    ],
    "features_series": "Knuckle Boom Truck Mounted Crane",
@@ -852,27 +1048,37 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+     "text": "Compact, light and strong steel structure.",
+     "detail": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design.",
+     "photo": "features/marine-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+     "text": "Load moment limiter, safety certified.",
+     "detail": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
     },
     {
      "title": "Custom installation",
-     "text": "Customizable installation methods tailored to specific operational scenarios."
+     "text": "Pedestal mounting tailored to your deck.",
+     "detail": "Customizable installation methods tailored to specific operational scenarios.",
+     "photo": "features/marine-installation.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+     "text": "Winch, drill pipe, basket or grapple.",
+     "detail": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs.",
+     "photo": "features/marine-winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+     "text": "Manual levers, overhead seat or wireless remote.",
+     "detail": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience.",
+     "photo": "features/marine-controls.webp"
     },
     {
      "title": "Marine anti-rust treatment",
-     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+     "text": "Multi-layer anti-rust process for sea duty.",
+     "detail": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
     }
    ],
    "features_series": "Telescopic Boom Marine Crane",
@@ -919,27 +1125,37 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+     "text": "Compact, light and strong steel structure.",
+     "detail": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design.",
+     "photo": "features/marine-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+     "text": "Load moment limiter, safety certified.",
+     "detail": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
     },
     {
      "title": "Custom installation",
-     "text": "Customizable installation methods tailored to specific operational scenarios."
+     "text": "Pedestal mounting tailored to your deck.",
+     "detail": "Customizable installation methods tailored to specific operational scenarios.",
+     "photo": "features/marine-installation.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+     "text": "Winch, drill pipe, basket or grapple.",
+     "detail": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs.",
+     "photo": "features/marine-winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+     "text": "Manual levers, overhead seat or wireless remote.",
+     "detail": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience.",
+     "photo": "features/marine-controls.webp"
     },
     {
      "title": "Marine anti-rust treatment",
-     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+     "text": "Multi-layer anti-rust process for sea duty.",
+     "detail": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
     }
    ],
    "features_series": "Telescopic Boom Marine Crane",
@@ -960,27 +1176,37 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+     "text": "Compact, light and strong steel structure.",
+     "detail": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design.",
+     "photo": "features/marine-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+     "text": "Load moment limiter, safety certified.",
+     "detail": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
     },
     {
      "title": "Custom installation",
-     "text": "Customizable installation methods tailored to specific operational scenarios."
+     "text": "Pedestal mounting tailored to your deck.",
+     "detail": "Customizable installation methods tailored to specific operational scenarios.",
+     "photo": "features/marine-installation.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+     "text": "Winch, drill pipe, basket or grapple.",
+     "detail": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs.",
+     "photo": "features/marine-winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+     "text": "Manual levers, overhead seat or wireless remote.",
+     "detail": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience.",
+     "photo": "features/marine-controls.webp"
     },
     {
      "title": "Marine anti-rust treatment",
-     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+     "text": "Multi-layer anti-rust process for sea duty.",
+     "detail": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
     }
    ],
    "features_series": "Telescopic Boom Marine Crane",
@@ -999,27 +1225,37 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+     "text": "Compact, light and strong steel structure.",
+     "detail": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design.",
+     "photo": "features/marine-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+     "text": "Load moment limiter, safety certified.",
+     "detail": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
     },
     {
      "title": "Custom installation",
-     "text": "Customizable installation methods tailored to specific operational scenarios."
+     "text": "Pedestal mounting tailored to your deck.",
+     "detail": "Customizable installation methods tailored to specific operational scenarios.",
+     "photo": "features/marine-installation.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+     "text": "Winch, drill pipe, basket or grapple.",
+     "detail": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs.",
+     "photo": "features/marine-winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+     "text": "Manual levers, overhead seat or wireless remote.",
+     "detail": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience.",
+     "photo": "features/marine-controls.webp"
     },
     {
      "title": "Marine anti-rust treatment",
-     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+     "text": "Multi-layer anti-rust process for sea duty.",
+     "detail": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
     }
    ],
    "features_series": "Telescopic Boom Marine Crane",
@@ -1038,27 +1274,37 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+     "text": "Compact, light and strong steel structure.",
+     "detail": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design.",
+     "photo": "features/marine-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+     "text": "Load moment limiter, safety certified.",
+     "detail": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
     },
     {
      "title": "Custom installation",
-     "text": "Customizable installation methods tailored to specific operational scenarios."
+     "text": "Pedestal mounting tailored to your deck.",
+     "detail": "Customizable installation methods tailored to specific operational scenarios.",
+     "photo": "features/marine-installation.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+     "text": "Winch, drill pipe, basket or grapple.",
+     "detail": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs.",
+     "photo": "features/marine-winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+     "text": "Manual levers, overhead seat or wireless remote.",
+     "detail": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience.",
+     "photo": "features/marine-controls.webp"
     },
     {
      "title": "Marine anti-rust treatment",
-     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+     "text": "Multi-layer anti-rust process for sea duty.",
+     "detail": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
     }
    ],
    "features_series": "Telescopic Boom Marine Crane",
@@ -1079,27 +1325,37 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+     "text": "Compact, light and strong steel structure.",
+     "detail": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design.",
+     "photo": "features/marine-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+     "text": "Load moment limiter, safety certified.",
+     "detail": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
     },
     {
      "title": "Custom installation",
-     "text": "Customizable installation methods tailored to specific operational scenarios."
+     "text": "Pedestal mounting tailored to your deck.",
+     "detail": "Customizable installation methods tailored to specific operational scenarios.",
+     "photo": "features/marine-installation.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+     "text": "Winch, drill pipe, basket or grapple.",
+     "detail": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs.",
+     "photo": "features/marine-winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+     "text": "Manual levers, overhead seat or wireless remote.",
+     "detail": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience.",
+     "photo": "features/marine-controls.webp"
     },
     {
      "title": "Marine anti-rust treatment",
-     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+     "text": "Multi-layer anti-rust process for sea duty.",
+     "detail": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
     }
    ],
    "features_series": "Telescopic Boom Marine Crane",
@@ -1118,31 +1374,43 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+     "text": "Compact, light and strong steel structure.",
+     "detail": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design.",
+     "photo": "features/marine-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+     "text": "Load moment limiter, safety certified.",
+     "detail": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
     },
     {
      "title": "Custom installation",
-     "text": "Customizable installation methods tailored to specific operational scenarios."
+     "text": "Pedestal mounting tailored to your deck.",
+     "detail": "Customizable installation methods tailored to specific operational scenarios.",
+     "photo": "features/marine-installation.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+     "text": "Winch, drill pipe, basket or grapple.",
+     "detail": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs.",
+     "photo": "features/marine-winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+     "text": "Manual levers, overhead seat or wireless remote.",
+     "detail": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience.",
+     "photo": "features/marine-controls.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+     "text": "Reverse-angle reach for flexible work.",
+     "detail": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance.",
+     "photo": "features/marine-four-bar.webp"
     },
     {
      "title": "Marine anti-rust treatment",
-     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+     "text": "Multi-layer anti-rust process for sea duty.",
+     "detail": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
     }
    ],
    "features_series": "Knuckle Boom Marine Crane",
@@ -1171,31 +1439,43 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+     "text": "Compact, light and strong steel structure.",
+     "detail": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design.",
+     "photo": "features/marine-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+     "text": "Load moment limiter, safety certified.",
+     "detail": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
     },
     {
      "title": "Custom installation",
-     "text": "Customizable installation methods tailored to specific operational scenarios."
+     "text": "Pedestal mounting tailored to your deck.",
+     "detail": "Customizable installation methods tailored to specific operational scenarios.",
+     "photo": "features/marine-installation.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+     "text": "Winch, drill pipe, basket or grapple.",
+     "detail": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs.",
+     "photo": "features/marine-winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+     "text": "Manual levers, overhead seat or wireless remote.",
+     "detail": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience.",
+     "photo": "features/marine-controls.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+     "text": "Reverse-angle reach for flexible work.",
+     "detail": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance.",
+     "photo": "features/marine-four-bar.webp"
     },
     {
      "title": "Marine anti-rust treatment",
-     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+     "text": "Multi-layer anti-rust process for sea duty.",
+     "detail": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
     }
    ],
    "features_series": "Knuckle Boom Marine Crane",
@@ -1218,31 +1498,43 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+     "text": "Compact, light and strong steel structure.",
+     "detail": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design.",
+     "photo": "features/marine-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+     "text": "Load moment limiter, safety certified.",
+     "detail": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
     },
     {
      "title": "Custom installation",
-     "text": "Customizable installation methods tailored to specific operational scenarios."
+     "text": "Pedestal mounting tailored to your deck.",
+     "detail": "Customizable installation methods tailored to specific operational scenarios.",
+     "photo": "features/marine-installation.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+     "text": "Winch, drill pipe, basket or grapple.",
+     "detail": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs.",
+     "photo": "features/marine-winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+     "text": "Manual levers, overhead seat or wireless remote.",
+     "detail": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience.",
+     "photo": "features/marine-controls.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+     "text": "Reverse-angle reach for flexible work.",
+     "detail": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance.",
+     "photo": "features/marine-four-bar.webp"
     },
     {
      "title": "Marine anti-rust treatment",
-     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+     "text": "Multi-layer anti-rust process for sea duty.",
+     "detail": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
     }
    ],
    "features_series": "Knuckle Boom Marine Crane",
@@ -1267,31 +1559,43 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+     "text": "Compact, light and strong steel structure.",
+     "detail": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design.",
+     "photo": "features/marine-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+     "text": "Load moment limiter, safety certified.",
+     "detail": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
     },
     {
      "title": "Custom installation",
-     "text": "Customizable installation methods tailored to specific operational scenarios."
+     "text": "Pedestal mounting tailored to your deck.",
+     "detail": "Customizable installation methods tailored to specific operational scenarios.",
+     "photo": "features/marine-installation.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+     "text": "Winch, drill pipe, basket or grapple.",
+     "detail": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs.",
+     "photo": "features/marine-winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+     "text": "Manual levers, overhead seat or wireless remote.",
+     "detail": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience.",
+     "photo": "features/marine-controls.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+     "text": "Reverse-angle reach for flexible work.",
+     "detail": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance.",
+     "photo": "features/marine-four-bar.webp"
     },
     {
      "title": "Marine anti-rust treatment",
-     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+     "text": "Multi-layer anti-rust process for sea duty.",
+     "detail": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
     }
    ],
    "features_series": "Knuckle Boom Marine Crane",
@@ -1312,27 +1616,37 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+     "text": "Compact, light and strong steel structure.",
+     "detail": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design.",
+     "photo": "features/marine-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+     "text": "Load moment limiter, safety certified.",
+     "detail": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
     },
     {
      "title": "Custom installation",
-     "text": "Customizable installation methods tailored to specific operational scenarios."
+     "text": "Pedestal mounting tailored to your deck.",
+     "detail": "Customizable installation methods tailored to specific operational scenarios.",
+     "photo": "features/marine-installation.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+     "text": "Winch, drill pipe, basket or grapple.",
+     "detail": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs.",
+     "photo": "features/marine-winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+     "text": "Manual levers, overhead seat or wireless remote.",
+     "detail": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience.",
+     "photo": "features/marine-controls.webp"
     },
     {
      "title": "Marine anti-rust treatment",
-     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+     "text": "Multi-layer anti-rust process for sea duty.",
+     "detail": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
     }
    ],
    "features_series": "Telescopic Boom Marine Crane",
@@ -1353,31 +1667,43 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+     "text": "Compact, light and strong steel structure.",
+     "detail": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design.",
+     "photo": "features/marine-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+     "text": "Load moment limiter, safety certified.",
+     "detail": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
     },
     {
      "title": "Custom installation",
-     "text": "Customizable installation methods tailored to specific operational scenarios."
+     "text": "Pedestal mounting tailored to your deck.",
+     "detail": "Customizable installation methods tailored to specific operational scenarios.",
+     "photo": "features/marine-installation.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+     "text": "Winch, drill pipe, basket or grapple.",
+     "detail": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs.",
+     "photo": "features/marine-winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+     "text": "Manual levers, overhead seat or wireless remote.",
+     "detail": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience.",
+     "photo": "features/marine-controls.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+     "text": "Reverse-angle reach for flexible work.",
+     "detail": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance.",
+     "photo": "features/marine-four-bar.webp"
     },
     {
      "title": "Marine anti-rust treatment",
-     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+     "text": "Multi-layer anti-rust process for sea duty.",
+     "detail": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
     }
    ],
    "features_series": "Knuckle Boom Marine Crane",
@@ -1396,31 +1722,43 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+     "text": "Compact, light and strong steel structure.",
+     "detail": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design.",
+     "photo": "features/marine-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+     "text": "Load moment limiter, safety certified.",
+     "detail": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
     },
     {
      "title": "Custom installation",
-     "text": "Customizable installation methods tailored to specific operational scenarios."
+     "text": "Pedestal mounting tailored to your deck.",
+     "detail": "Customizable installation methods tailored to specific operational scenarios.",
+     "photo": "features/marine-installation.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+     "text": "Winch, drill pipe, basket or grapple.",
+     "detail": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs.",
+     "photo": "features/marine-winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+     "text": "Manual levers, overhead seat or wireless remote.",
+     "detail": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience.",
+     "photo": "features/marine-controls.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+     "text": "Reverse-angle reach for flexible work.",
+     "detail": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance.",
+     "photo": "features/marine-four-bar.webp"
     },
     {
      "title": "Marine anti-rust treatment",
-     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+     "text": "Multi-layer anti-rust process for sea duty.",
+     "detail": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
     }
    ],
    "features_series": "Knuckle Boom Marine Crane",
@@ -1439,31 +1777,43 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+     "text": "Compact, light and strong steel structure.",
+     "detail": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design.",
+     "photo": "features/marine-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+     "text": "Load moment limiter, safety certified.",
+     "detail": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
     },
     {
      "title": "Custom installation",
-     "text": "Customizable installation methods tailored to specific operational scenarios."
+     "text": "Pedestal mounting tailored to your deck.",
+     "detail": "Customizable installation methods tailored to specific operational scenarios.",
+     "photo": "features/marine-installation.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+     "text": "Winch, drill pipe, basket or grapple.",
+     "detail": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs.",
+     "photo": "features/marine-winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+     "text": "Manual levers, overhead seat or wireless remote.",
+     "detail": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience.",
+     "photo": "features/marine-controls.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+     "text": "Reverse-angle reach for flexible work.",
+     "detail": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance.",
+     "photo": "features/marine-four-bar.webp"
     },
     {
      "title": "Marine anti-rust treatment",
-     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+     "text": "Multi-layer anti-rust process for sea duty.",
+     "detail": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
     }
    ],
    "features_series": "Knuckle Boom Marine Crane",
@@ -1482,31 +1832,43 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+     "text": "Compact, light and strong steel structure.",
+     "detail": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design.",
+     "photo": "features/marine-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+     "text": "Load moment limiter, safety certified.",
+     "detail": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
     },
     {
      "title": "Custom installation",
-     "text": "Customizable installation methods tailored to specific operational scenarios."
+     "text": "Pedestal mounting tailored to your deck.",
+     "detail": "Customizable installation methods tailored to specific operational scenarios.",
+     "photo": "features/marine-installation.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+     "text": "Winch, drill pipe, basket or grapple.",
+     "detail": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs.",
+     "photo": "features/marine-winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+     "text": "Manual levers, overhead seat or wireless remote.",
+     "detail": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience.",
+     "photo": "features/marine-controls.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+     "text": "Reverse-angle reach for flexible work.",
+     "detail": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance.",
+     "photo": "features/marine-four-bar.webp"
     },
     {
      "title": "Marine anti-rust treatment",
-     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+     "text": "Multi-layer anti-rust process for sea duty.",
+     "detail": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
     }
    ],
    "features_series": "Knuckle Boom Marine Crane",
@@ -1534,31 +1896,43 @@
    "features": [
     {
      "title": "High-strength welded structure",
-     "text": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability."
+     "text": "Welded high-strength plate with a hexagonal boom section.",
+     "detail": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability.",
+     "photo": "features/knuckle-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
+     "text": "Load moment limiter on every crane, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
     },
     {
      "title": "Box-type outriggers",
-     "text": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders."
+     "text": "Box outriggers above 6.3 t protect the cylinders.",
+     "detail": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders.",
+     "photo": "features/knuckle-box-outriggers.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient."
+     "text": "Manual levers, aerial seat or wireless remote.",
+     "detail": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient.",
+     "photo": "features/knuckle-levers.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation."
+     "text": "Reverse-angle reach for tight jobs.",
+     "detail": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation.",
+     "photo": "features/knuckle-four-bar.webp"
     },
     {
      "title": "Large-span outriggers",
-     "text": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
+     "text": "Wide fixed outriggers, manual flip optional.",
+     "detail": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
     }
    ],
    "features_series": "Knuckle Boom Truck Mounted Crane",
@@ -1577,31 +1951,43 @@
    "features": [
     {
      "title": "High-strength welded structure",
-     "text": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability."
+     "text": "Welded high-strength plate with a hexagonal boom section.",
+     "detail": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability.",
+     "photo": "features/knuckle-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
+     "text": "Load moment limiter on every crane, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
     },
     {
      "title": "Box-type outriggers",
-     "text": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders."
+     "text": "Box outriggers above 6.3 t protect the cylinders.",
+     "detail": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders.",
+     "photo": "features/knuckle-box-outriggers.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient."
+     "text": "Manual levers, aerial seat or wireless remote.",
+     "detail": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient.",
+     "photo": "features/knuckle-levers.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation."
+     "text": "Reverse-angle reach for tight jobs.",
+     "detail": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation.",
+     "photo": "features/knuckle-four-bar.webp"
     },
     {
      "title": "Large-span outriggers",
-     "text": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
+     "text": "Wide fixed outriggers, manual flip optional.",
+     "detail": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
     }
    ],
    "features_series": "Knuckle Boom Truck Mounted Crane",
@@ -1629,31 +2015,43 @@
    "features": [
     {
      "title": "High-strength welded structure",
-     "text": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability."
+     "text": "Welded high-strength plate with a hexagonal boom section.",
+     "detail": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability.",
+     "photo": "features/knuckle-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
+     "text": "Load moment limiter on every crane, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
     },
     {
      "title": "Box-type outriggers",
-     "text": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders."
+     "text": "Box outriggers above 6.3 t protect the cylinders.",
+     "detail": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders.",
+     "photo": "features/knuckle-box-outriggers.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient."
+     "text": "Manual levers, aerial seat or wireless remote.",
+     "detail": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient.",
+     "photo": "features/knuckle-levers.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation."
+     "text": "Reverse-angle reach for tight jobs.",
+     "detail": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation.",
+     "photo": "features/knuckle-four-bar.webp"
     },
     {
      "title": "Large-span outriggers",
-     "text": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
+     "text": "Wide fixed outriggers, manual flip optional.",
+     "detail": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
     }
    ],
    "features_series": "Knuckle Boom Truck Mounted Crane",
@@ -1672,31 +2070,43 @@
    "features": [
     {
      "title": "High-strength welded structure",
-     "text": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability."
+     "text": "Welded high-strength plate with a hexagonal boom section.",
+     "detail": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability.",
+     "photo": "features/knuckle-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
+     "text": "Load moment limiter on every crane, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
     },
     {
      "title": "Box-type outriggers",
-     "text": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders."
+     "text": "Box outriggers above 6.3 t protect the cylinders.",
+     "detail": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders.",
+     "photo": "features/knuckle-box-outriggers.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient."
+     "text": "Manual levers, aerial seat or wireless remote.",
+     "detail": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient.",
+     "photo": "features/knuckle-levers.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation."
+     "text": "Reverse-angle reach for tight jobs.",
+     "detail": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation.",
+     "photo": "features/knuckle-four-bar.webp"
     },
     {
      "title": "Large-span outriggers",
-     "text": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
+     "text": "Wide fixed outriggers, manual flip optional.",
+     "detail": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
     }
    ],
    "features_series": "Knuckle Boom Truck Mounted Crane",
@@ -1724,27 +2134,37 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The key structural components are welded with high-strength steel plates, offering high strength and lighter self-weight."
+     "text": "High-strength plate: stronger and lighter.",
+     "detail": "The key structural components are welded with high-strength steel plates, offering high strength and lighter self-weight."
     },
     {
      "title": "Octagonal boom",
-     "text": "Cranes with a capacity above 8 tons use octagonal booms, which possess light self-weight and a strong load-bearing capacity."
+     "text": "Octagonal boom above 8 t: light and strong.",
+     "detail": "Cranes with a capacity above 8 tons use octagonal booms, which possess light self-weight and a strong load-bearing capacity.",
+     "photo": "features/telescopic-octagonal-boom.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, ensuring a high safety level. The cranes are certified for various safety standards, ensuring lifting operations are precise, safe, and reliable."
+     "text": "Load moment limiter with live display, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, ensuring a high safety level. The cranes are certified for various safety standards, ensuring lifting operations are precise, safe, and reliable.",
+     "photo": "features/telescopic-torque-limiter.webp"
     },
     {
      "title": "Overwinding protection",
-     "text": "The features of anti-overwinding and anti-overlowering protection systems significantly enhance lifting safety and extend crane service life."
+     "text": "Anti-overwind and anti-overlower cut-outs.",
+     "detail": "The features of anti-overwinding and anti-overlowering protection systems significantly enhance lifting safety and extend crane service life."
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, can satisfy personalized customization needs."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, can satisfy personalized customization needs.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various optional operation modes, such as top seats and wireless remote control systems, make operations more convenient."
+     "text": "Control panel, top seat or wireless remote.",
+     "detail": "Various optional operation modes, such as top seats and wireless remote control systems, make operations more convenient.",
+     "photo": "features/telescopic-control-panel.webp"
     }
    ],
    "features_series": "Telescopic Boom Truck Mounted Crane",
@@ -1765,27 +2185,37 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The key structural components are welded with high-strength steel plates, offering high strength and lighter self-weight."
+     "text": "High-strength plate: stronger and lighter.",
+     "detail": "The key structural components are welded with high-strength steel plates, offering high strength and lighter self-weight."
     },
     {
      "title": "Octagonal boom",
-     "text": "Cranes with a capacity above 8 tons use octagonal booms, which possess light self-weight and a strong load-bearing capacity."
+     "text": "Octagonal boom above 8 t: light and strong.",
+     "detail": "Cranes with a capacity above 8 tons use octagonal booms, which possess light self-weight and a strong load-bearing capacity.",
+     "photo": "features/telescopic-octagonal-boom.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, ensuring a high safety level. The cranes are certified for various safety standards, ensuring lifting operations are precise, safe, and reliable."
+     "text": "Load moment limiter with live display, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, ensuring a high safety level. The cranes are certified for various safety standards, ensuring lifting operations are precise, safe, and reliable.",
+     "photo": "features/telescopic-torque-limiter.webp"
     },
     {
      "title": "Overwinding protection",
-     "text": "The features of anti-overwinding and anti-overlowering protection systems significantly enhance lifting safety and extend crane service life."
+     "text": "Anti-overwind and anti-overlower cut-outs.",
+     "detail": "The features of anti-overwinding and anti-overlowering protection systems significantly enhance lifting safety and extend crane service life."
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, can satisfy personalized customization needs."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, can satisfy personalized customization needs.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various optional operation modes, such as top seats and wireless remote control systems, make operations more convenient."
+     "text": "Control panel, top seat or wireless remote.",
+     "detail": "Various optional operation modes, such as top seats and wireless remote control systems, make operations more convenient.",
+     "photo": "features/telescopic-control-panel.webp"
     }
    ],
    "features_series": "Telescopic Boom Truck Mounted Crane",
@@ -1815,27 +2245,37 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The key structural components are welded with high-strength steel plates, offering high strength and lighter self-weight."
+     "text": "High-strength plate: stronger and lighter.",
+     "detail": "The key structural components are welded with high-strength steel plates, offering high strength and lighter self-weight."
     },
     {
      "title": "Octagonal boom",
-     "text": "Cranes with a capacity above 8 tons use octagonal booms, which possess light self-weight and a strong load-bearing capacity."
+     "text": "Octagonal boom above 8 t: light and strong.",
+     "detail": "Cranes with a capacity above 8 tons use octagonal booms, which possess light self-weight and a strong load-bearing capacity.",
+     "photo": "features/telescopic-octagonal-boom.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, ensuring a high safety level. The cranes are certified for various safety standards, ensuring lifting operations are precise, safe, and reliable."
+     "text": "Load moment limiter with live display, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, ensuring a high safety level. The cranes are certified for various safety standards, ensuring lifting operations are precise, safe, and reliable.",
+     "photo": "features/telescopic-torque-limiter.webp"
     },
     {
      "title": "Overwinding protection",
-     "text": "The features of anti-overwinding and anti-overlowering protection systems significantly enhance lifting safety and extend crane service life."
+     "text": "Anti-overwind and anti-overlower cut-outs.",
+     "detail": "The features of anti-overwinding and anti-overlowering protection systems significantly enhance lifting safety and extend crane service life."
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, can satisfy personalized customization needs."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, can satisfy personalized customization needs.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various optional operation modes, such as top seats and wireless remote control systems, make operations more convenient."
+     "text": "Control panel, top seat or wireless remote.",
+     "detail": "Various optional operation modes, such as top seats and wireless remote control systems, make operations more convenient.",
+     "photo": "features/telescopic-control-panel.webp"
     }
    ],
    "features_series": "Telescopic Boom Truck Mounted Crane",
@@ -1861,27 +2301,37 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The key structural components are welded with high-strength steel plates, offering high strength and lighter self-weight."
+     "text": "High-strength plate: stronger and lighter.",
+     "detail": "The key structural components are welded with high-strength steel plates, offering high strength and lighter self-weight."
     },
     {
      "title": "Octagonal boom",
-     "text": "Cranes with a capacity above 8 tons use octagonal booms, which possess light self-weight and a strong load-bearing capacity."
+     "text": "Octagonal boom above 8 t: light and strong.",
+     "detail": "Cranes with a capacity above 8 tons use octagonal booms, which possess light self-weight and a strong load-bearing capacity.",
+     "photo": "features/telescopic-octagonal-boom.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, ensuring a high safety level. The cranes are certified for various safety standards, ensuring lifting operations are precise, safe, and reliable."
+     "text": "Load moment limiter with live display, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, ensuring a high safety level. The cranes are certified for various safety standards, ensuring lifting operations are precise, safe, and reliable.",
+     "photo": "features/telescopic-torque-limiter.webp"
     },
     {
      "title": "Overwinding protection",
-     "text": "The features of anti-overwinding and anti-overlowering protection systems significantly enhance lifting safety and extend crane service life."
+     "text": "Anti-overwind and anti-overlower cut-outs.",
+     "detail": "The features of anti-overwinding and anti-overlowering protection systems significantly enhance lifting safety and extend crane service life."
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, can satisfy personalized customization needs."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, can satisfy personalized customization needs.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various optional operation modes, such as top seats and wireless remote control systems, make operations more convenient."
+     "text": "Control panel, top seat or wireless remote.",
+     "detail": "Various optional operation modes, such as top seats and wireless remote control systems, make operations more convenient.",
+     "photo": "features/telescopic-control-panel.webp"
     }
    ],
    "features_series": "Telescopic Boom Truck Mounted Crane",
@@ -1907,27 +2357,37 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The key structural components are welded with high-strength steel plates, offering high strength and lighter self-weight."
+     "text": "High-strength plate: stronger and lighter.",
+     "detail": "The key structural components are welded with high-strength steel plates, offering high strength and lighter self-weight."
     },
     {
      "title": "Octagonal boom",
-     "text": "Cranes with a capacity above 8 tons use octagonal booms, which possess light self-weight and a strong load-bearing capacity."
+     "text": "Octagonal boom above 8 t: light and strong.",
+     "detail": "Cranes with a capacity above 8 tons use octagonal booms, which possess light self-weight and a strong load-bearing capacity.",
+     "photo": "features/telescopic-octagonal-boom.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, ensuring a high safety level. The cranes are certified for various safety standards, ensuring lifting operations are precise, safe, and reliable."
+     "text": "Load moment limiter with live display, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, ensuring a high safety level. The cranes are certified for various safety standards, ensuring lifting operations are precise, safe, and reliable.",
+     "photo": "features/telescopic-torque-limiter.webp"
     },
     {
      "title": "Overwinding protection",
-     "text": "The features of anti-overwinding and anti-overlowering protection systems significantly enhance lifting safety and extend crane service life."
+     "text": "Anti-overwind and anti-overlower cut-outs.",
+     "detail": "The features of anti-overwinding and anti-overlowering protection systems significantly enhance lifting safety and extend crane service life."
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, can satisfy personalized customization needs."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, can satisfy personalized customization needs.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various optional operation modes, such as top seats and wireless remote control systems, make operations more convenient."
+     "text": "Control panel, top seat or wireless remote.",
+     "detail": "Various optional operation modes, such as top seats and wireless remote control systems, make operations more convenient.",
+     "photo": "features/telescopic-control-panel.webp"
     }
    ],
    "features_series": "Telescopic Boom Truck Mounted Crane",
@@ -1946,27 +2406,37 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The key structural components are welded with high-strength steel plates, offering high strength and lighter self-weight."
+     "text": "High-strength plate: stronger and lighter.",
+     "detail": "The key structural components are welded with high-strength steel plates, offering high strength and lighter self-weight."
     },
     {
      "title": "Octagonal boom",
-     "text": "Cranes with a capacity above 8 tons use octagonal booms, which possess light self-weight and a strong load-bearing capacity."
+     "text": "Octagonal boom above 8 t: light and strong.",
+     "detail": "Cranes with a capacity above 8 tons use octagonal booms, which possess light self-weight and a strong load-bearing capacity.",
+     "photo": "features/telescopic-octagonal-boom.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, ensuring a high safety level. The cranes are certified for various safety standards, ensuring lifting operations are precise, safe, and reliable."
+     "text": "Load moment limiter with live display, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, ensuring a high safety level. The cranes are certified for various safety standards, ensuring lifting operations are precise, safe, and reliable.",
+     "photo": "features/telescopic-torque-limiter.webp"
     },
     {
      "title": "Overwinding protection",
-     "text": "The features of anti-overwinding and anti-overlowering protection systems significantly enhance lifting safety and extend crane service life."
+     "text": "Anti-overwind and anti-overlower cut-outs.",
+     "detail": "The features of anti-overwinding and anti-overlowering protection systems significantly enhance lifting safety and extend crane service life."
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, can satisfy personalized customization needs."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, can satisfy personalized customization needs.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various optional operation modes, such as top seats and wireless remote control systems, make operations more convenient."
+     "text": "Control panel, top seat or wireless remote.",
+     "detail": "Various optional operation modes, such as top seats and wireless remote control systems, make operations more convenient.",
+     "photo": "features/telescopic-control-panel.webp"
     }
    ],
    "features_series": "Telescopic Boom Truck Mounted Crane",
@@ -1992,27 +2462,37 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The key structural components are welded with high-strength steel plates, offering high strength and lighter self-weight."
+     "text": "High-strength plate: stronger and lighter.",
+     "detail": "The key structural components are welded with high-strength steel plates, offering high strength and lighter self-weight."
     },
     {
      "title": "Octagonal boom",
-     "text": "Cranes with a capacity above 8 tons use octagonal booms, which possess light self-weight and a strong load-bearing capacity."
+     "text": "Octagonal boom above 8 t: light and strong.",
+     "detail": "Cranes with a capacity above 8 tons use octagonal booms, which possess light self-weight and a strong load-bearing capacity.",
+     "photo": "features/telescopic-octagonal-boom.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, ensuring a high safety level. The cranes are certified for various safety standards, ensuring lifting operations are precise, safe, and reliable."
+     "text": "Load moment limiter with live display, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, ensuring a high safety level. The cranes are certified for various safety standards, ensuring lifting operations are precise, safe, and reliable.",
+     "photo": "features/telescopic-torque-limiter.webp"
     },
     {
      "title": "Overwinding protection",
-     "text": "The features of anti-overwinding and anti-overlowering protection systems significantly enhance lifting safety and extend crane service life."
+     "text": "Anti-overwind and anti-overlower cut-outs.",
+     "detail": "The features of anti-overwinding and anti-overlowering protection systems significantly enhance lifting safety and extend crane service life."
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, can satisfy personalized customization needs."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, can satisfy personalized customization needs.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various optional operation modes, such as top seats and wireless remote control systems, make operations more convenient."
+     "text": "Control panel, top seat or wireless remote.",
+     "detail": "Various optional operation modes, such as top seats and wireless remote control systems, make operations more convenient.",
+     "photo": "features/telescopic-control-panel.webp"
     }
    ],
    "features_series": "Telescopic Boom Truck Mounted Crane",
@@ -2031,27 +2511,37 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The key structural components are welded with high-strength steel plates, offering high strength and lighter self-weight."
+     "text": "High-strength plate: stronger and lighter.",
+     "detail": "The key structural components are welded with high-strength steel plates, offering high strength and lighter self-weight."
     },
     {
      "title": "Octagonal boom",
-     "text": "Cranes with a capacity above 8 tons use octagonal booms, which possess light self-weight and a strong load-bearing capacity."
+     "text": "Octagonal boom above 8 t: light and strong.",
+     "detail": "Cranes with a capacity above 8 tons use octagonal booms, which possess light self-weight and a strong load-bearing capacity.",
+     "photo": "features/telescopic-octagonal-boom.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, ensuring a high safety level. The cranes are certified for various safety standards, ensuring lifting operations are precise, safe, and reliable."
+     "text": "Load moment limiter with live display, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, ensuring a high safety level. The cranes are certified for various safety standards, ensuring lifting operations are precise, safe, and reliable.",
+     "photo": "features/telescopic-torque-limiter.webp"
     },
     {
      "title": "Overwinding protection",
-     "text": "The features of anti-overwinding and anti-overlowering protection systems significantly enhance lifting safety and extend crane service life."
+     "text": "Anti-overwind and anti-overlower cut-outs.",
+     "detail": "The features of anti-overwinding and anti-overlowering protection systems significantly enhance lifting safety and extend crane service life."
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, can satisfy personalized customization needs."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, can satisfy personalized customization needs.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various optional operation modes, such as top seats and wireless remote control systems, make operations more convenient."
+     "text": "Control panel, top seat or wireless remote.",
+     "detail": "Various optional operation modes, such as top seats and wireless remote control systems, make operations more convenient.",
+     "photo": "features/telescopic-control-panel.webp"
     }
    ],
    "features_series": "Telescopic Boom Truck Mounted Crane",
@@ -2077,31 +2567,43 @@
    "features": [
     {
      "title": "High-strength welded structure",
-     "text": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability."
+     "text": "Welded high-strength plate with a hexagonal boom section.",
+     "detail": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability.",
+     "photo": "features/knuckle-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
+     "text": "Load moment limiter on every crane, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
     },
     {
      "title": "Box-type outriggers",
-     "text": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders."
+     "text": "Box outriggers above 6.3 t protect the cylinders.",
+     "detail": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders.",
+     "photo": "features/knuckle-box-outriggers.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient."
+     "text": "Manual levers, aerial seat or wireless remote.",
+     "detail": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient.",
+     "photo": "features/knuckle-levers.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation."
+     "text": "Reverse-angle reach for tight jobs.",
+     "detail": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation.",
+     "photo": "features/knuckle-four-bar.webp"
     },
     {
      "title": "Large-span outriggers",
-     "text": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
+     "text": "Wide fixed outriggers, manual flip optional.",
+     "detail": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
     }
    ],
    "features_series": "Knuckle Boom Truck Mounted Crane",
@@ -2120,31 +2622,43 @@
    "features": [
     {
      "title": "High-strength welded structure",
-     "text": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability."
+     "text": "Welded high-strength plate with a hexagonal boom section.",
+     "detail": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability.",
+     "photo": "features/knuckle-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
+     "text": "Load moment limiter on every crane, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
     },
     {
      "title": "Box-type outriggers",
-     "text": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders."
+     "text": "Box outriggers above 6.3 t protect the cylinders.",
+     "detail": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders.",
+     "photo": "features/knuckle-box-outriggers.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient."
+     "text": "Manual levers, aerial seat or wireless remote.",
+     "detail": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient.",
+     "photo": "features/knuckle-levers.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation."
+     "text": "Reverse-angle reach for tight jobs.",
+     "detail": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation.",
+     "photo": "features/knuckle-four-bar.webp"
     },
     {
      "title": "Large-span outriggers",
-     "text": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
+     "text": "Wide fixed outriggers, manual flip optional.",
+     "detail": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
     }
    ],
    "features_series": "Knuckle Boom Truck Mounted Crane",
@@ -2171,31 +2685,43 @@
    "features": [
     {
      "title": "High-strength welded structure",
-     "text": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability."
+     "text": "Welded high-strength plate with a hexagonal boom section.",
+     "detail": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability.",
+     "photo": "features/knuckle-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
+     "text": "Load moment limiter on every crane, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
     },
     {
      "title": "Box-type outriggers",
-     "text": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders."
+     "text": "Box outriggers above 6.3 t protect the cylinders.",
+     "detail": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders.",
+     "photo": "features/knuckle-box-outriggers.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient."
+     "text": "Manual levers, aerial seat or wireless remote.",
+     "detail": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient.",
+     "photo": "features/knuckle-levers.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation."
+     "text": "Reverse-angle reach for tight jobs.",
+     "detail": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation.",
+     "photo": "features/knuckle-four-bar.webp"
     },
     {
      "title": "Large-span outriggers",
-     "text": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
+     "text": "Wide fixed outriggers, manual flip optional.",
+     "detail": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
     }
    ],
    "features_series": "Knuckle Boom Truck Mounted Crane",
@@ -2214,31 +2740,43 @@
    "features": [
     {
      "title": "High-strength welded structure",
-     "text": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability."
+     "text": "Welded high-strength plate with a hexagonal boom section.",
+     "detail": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability.",
+     "photo": "features/knuckle-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
+     "text": "Load moment limiter on every crane, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
     },
     {
      "title": "Box-type outriggers",
-     "text": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders."
+     "text": "Box outriggers above 6.3 t protect the cylinders.",
+     "detail": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders.",
+     "photo": "features/knuckle-box-outriggers.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient."
+     "text": "Manual levers, aerial seat or wireless remote.",
+     "detail": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient.",
+     "photo": "features/knuckle-levers.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation."
+     "text": "Reverse-angle reach for tight jobs.",
+     "detail": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation.",
+     "photo": "features/knuckle-four-bar.webp"
     },
     {
      "title": "Large-span outriggers",
-     "text": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
+     "text": "Wide fixed outriggers, manual flip optional.",
+     "detail": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
     }
    ],
    "features_series": "Knuckle Boom Truck Mounted Crane",
@@ -2258,31 +2796,43 @@
    "features": [
     {
      "title": "High-strength welded structure",
-     "text": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability."
+     "text": "Welded high-strength plate with a hexagonal boom section.",
+     "detail": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability.",
+     "photo": "features/knuckle-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
+     "text": "Load moment limiter on every crane, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
     },
     {
      "title": "Box-type outriggers",
-     "text": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders."
+     "text": "Box outriggers above 6.3 t protect the cylinders.",
+     "detail": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders.",
+     "photo": "features/knuckle-box-outriggers.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient."
+     "text": "Manual levers, aerial seat or wireless remote.",
+     "detail": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient.",
+     "photo": "features/knuckle-levers.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation."
+     "text": "Reverse-angle reach for tight jobs.",
+     "detail": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation.",
+     "photo": "features/knuckle-four-bar.webp"
     },
     {
      "title": "Large-span outriggers",
-     "text": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
+     "text": "Wide fixed outriggers, manual flip optional.",
+     "detail": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
     }
    ],
    "features_series": "Knuckle Boom Truck Mounted Crane",
@@ -2302,31 +2852,43 @@
    "features": [
     {
      "title": "High-strength welded structure",
-     "text": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability."
+     "text": "Welded high-strength plate with a hexagonal boom section.",
+     "detail": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability.",
+     "photo": "features/knuckle-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
+     "text": "Load moment limiter on every crane, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
     },
     {
      "title": "Box-type outriggers",
-     "text": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders."
+     "text": "Box outriggers above 6.3 t protect the cylinders.",
+     "detail": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders.",
+     "photo": "features/knuckle-box-outriggers.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient."
+     "text": "Manual levers, aerial seat or wireless remote.",
+     "detail": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient.",
+     "photo": "features/knuckle-levers.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation."
+     "text": "Reverse-angle reach for tight jobs.",
+     "detail": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation.",
+     "photo": "features/knuckle-four-bar.webp"
     },
     {
      "title": "Large-span outriggers",
-     "text": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
+     "text": "Wide fixed outriggers, manual flip optional.",
+     "detail": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
     }
    ],
    "features_series": "Knuckle Boom Truck Mounted Crane",
@@ -2346,31 +2908,43 @@
    "features": [
     {
      "title": "High-strength welded structure",
-     "text": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability."
+     "text": "Welded high-strength plate with a hexagonal boom section.",
+     "detail": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability.",
+     "photo": "features/knuckle-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
+     "text": "Load moment limiter on every crane, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
     },
     {
      "title": "Box-type outriggers",
-     "text": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders."
+     "text": "Box outriggers above 6.3 t protect the cylinders.",
+     "detail": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders.",
+     "photo": "features/knuckle-box-outriggers.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient."
+     "text": "Manual levers, aerial seat or wireless remote.",
+     "detail": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient.",
+     "photo": "features/knuckle-levers.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation."
+     "text": "Reverse-angle reach for tight jobs.",
+     "detail": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation.",
+     "photo": "features/knuckle-four-bar.webp"
     },
     {
      "title": "Large-span outriggers",
-     "text": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
+     "text": "Wide fixed outriggers, manual flip optional.",
+     "detail": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
     }
    ],
    "features_series": "Knuckle Boom Truck Mounted Crane",
@@ -2396,31 +2970,43 @@
    "features": [
     {
      "title": "High-strength welded structure",
-     "text": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability."
+     "text": "Welded high-strength plate with a hexagonal boom section.",
+     "detail": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability.",
+     "photo": "features/knuckle-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
+     "text": "Load moment limiter on every crane, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
     },
     {
      "title": "Box-type outriggers",
-     "text": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders."
+     "text": "Box outriggers above 6.3 t protect the cylinders.",
+     "detail": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders.",
+     "photo": "features/knuckle-box-outriggers.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient."
+     "text": "Manual levers, aerial seat or wireless remote.",
+     "detail": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient.",
+     "photo": "features/knuckle-levers.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation."
+     "text": "Reverse-angle reach for tight jobs.",
+     "detail": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation.",
+     "photo": "features/knuckle-four-bar.webp"
     },
     {
      "title": "Large-span outriggers",
-     "text": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
+     "text": "Wide fixed outriggers, manual flip optional.",
+     "detail": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
     }
    ],
    "features_series": "Knuckle Boom Truck Mounted Crane",
@@ -2439,31 +3025,43 @@
    "features": [
     {
      "title": "High-strength welded structure",
-     "text": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability."
+     "text": "Welded high-strength plate with a hexagonal boom section.",
+     "detail": "All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability.",
+     "photo": "features/knuckle-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
+     "text": "Load moment limiter on every crane, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable."
     },
     {
      "title": "Box-type outriggers",
-     "text": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders."
+     "text": "Box outriggers above 6.3 t protect the cylinders.",
+     "detail": "Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders.",
+     "photo": "features/knuckle-box-outriggers.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient."
+     "text": "Manual levers, aerial seat or wireless remote.",
+     "detail": "Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient.",
+     "photo": "features/knuckle-levers.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation."
+     "text": "Reverse-angle reach for tight jobs.",
+     "detail": "The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation.",
+     "photo": "features/knuckle-four-bar.webp"
     },
     {
      "title": "Large-span outriggers",
-     "text": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
+     "text": "Wide fixed outriggers, manual flip optional.",
+     "detail": "Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations."
     }
    ],
    "features_series": "Knuckle Boom Truck Mounted Crane",
@@ -2483,27 +3081,37 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The key structural components are welded with high-strength steel plates, offering high strength and lighter self-weight."
+     "text": "High-strength plate: stronger and lighter.",
+     "detail": "The key structural components are welded with high-strength steel plates, offering high strength and lighter self-weight."
     },
     {
      "title": "Octagonal boom",
-     "text": "Cranes with a capacity above 8 tons use octagonal booms, which possess light self-weight and a strong load-bearing capacity."
+     "text": "Octagonal boom above 8 t: light and strong.",
+     "detail": "Cranes with a capacity above 8 tons use octagonal booms, which possess light self-weight and a strong load-bearing capacity.",
+     "photo": "features/telescopic-octagonal-boom.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, ensuring a high safety level. The cranes are certified for various safety standards, ensuring lifting operations are precise, safe, and reliable."
+     "text": "Load moment limiter with live display, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, ensuring a high safety level. The cranes are certified for various safety standards, ensuring lifting operations are precise, safe, and reliable.",
+     "photo": "features/telescopic-torque-limiter.webp"
     },
     {
      "title": "Overwinding protection",
-     "text": "The features of anti-overwinding and anti-overlowering protection systems significantly enhance lifting safety and extend crane service life."
+     "text": "Anti-overwind and anti-overlower cut-outs.",
+     "detail": "The features of anti-overwinding and anti-overlowering protection systems significantly enhance lifting safety and extend crane service life."
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, can satisfy personalized customization needs."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, can satisfy personalized customization needs.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various optional operation modes, such as top seats and wireless remote control systems, make operations more convenient."
+     "text": "Control panel, top seat or wireless remote.",
+     "detail": "Various optional operation modes, such as top seats and wireless remote control systems, make operations more convenient.",
+     "photo": "features/telescopic-control-panel.webp"
     }
    ],
    "features_series": "Telescopic Boom Truck Mounted Crane",
@@ -2523,27 +3131,37 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The key structural components are welded with high-strength steel plates, offering high strength and lighter self-weight."
+     "text": "High-strength plate: stronger and lighter.",
+     "detail": "The key structural components are welded with high-strength steel plates, offering high strength and lighter self-weight."
     },
     {
      "title": "Octagonal boom",
-     "text": "Cranes with a capacity above 8 tons use octagonal booms, which possess light self-weight and a strong load-bearing capacity."
+     "text": "Octagonal boom above 8 t: light and strong.",
+     "detail": "Cranes with a capacity above 8 tons use octagonal booms, which possess light self-weight and a strong load-bearing capacity.",
+     "photo": "features/telescopic-octagonal-boom.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Our products are equipped with a dedicated torque limiter, ensuring a high safety level. The cranes are certified for various safety standards, ensuring lifting operations are precise, safe, and reliable."
+     "text": "Load moment limiter with live display, safety certified.",
+     "detail": "Our products are equipped with a dedicated torque limiter, ensuring a high safety level. The cranes are certified for various safety standards, ensuring lifting operations are precise, safe, and reliable.",
+     "photo": "features/telescopic-torque-limiter.webp"
     },
     {
      "title": "Overwinding protection",
-     "text": "The features of anti-overwinding and anti-overlowering protection systems significantly enhance lifting safety and extend crane service life."
+     "text": "Anti-overwind and anti-overlower cut-outs.",
+     "detail": "The features of anti-overwinding and anti-overlowering protection systems significantly enhance lifting safety and extend crane service life."
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, such as winches, augers, baskets, and grapples, can satisfy personalized customization needs."
+     "text": "Winch, auger, basket or grapple on request.",
+     "detail": "Multiple optional configurations, such as winches, augers, baskets, and grapples, can satisfy personalized customization needs.",
+     "photo": "features/winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Various optional operation modes, such as top seats and wireless remote control systems, make operations more convenient."
+     "text": "Control panel, top seat or wireless remote.",
+     "detail": "Various optional operation modes, such as top seats and wireless remote control systems, make operations more convenient.",
+     "photo": "features/telescopic-control-panel.webp"
     }
    ],
    "features_series": "Telescopic Boom Truck Mounted Crane",
@@ -2651,31 +3269,43 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+     "text": "Compact, light and strong steel structure.",
+     "detail": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design.",
+     "photo": "features/marine-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+     "text": "Load moment limiter, safety certified.",
+     "detail": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
     },
     {
      "title": "Custom installation",
-     "text": "Customizable installation methods tailored to specific operational scenarios."
+     "text": "Pedestal mounting tailored to your deck.",
+     "detail": "Customizable installation methods tailored to specific operational scenarios.",
+     "photo": "features/marine-installation.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+     "text": "Winch, drill pipe, basket or grapple.",
+     "detail": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs.",
+     "photo": "features/marine-winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+     "text": "Manual levers, overhead seat or wireless remote.",
+     "detail": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience.",
+     "photo": "features/marine-controls.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+     "text": "Reverse-angle reach for flexible work.",
+     "detail": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance.",
+     "photo": "features/marine-four-bar.webp"
     },
     {
      "title": "Marine anti-rust treatment",
-     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+     "text": "Multi-layer anti-rust process for sea duty.",
+     "detail": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
     }
    ],
    "features_series": "Knuckle Boom Marine Crane",
@@ -2695,31 +3325,43 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+     "text": "Compact, light and strong steel structure.",
+     "detail": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design.",
+     "photo": "features/marine-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+     "text": "Load moment limiter, safety certified.",
+     "detail": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
     },
     {
      "title": "Custom installation",
-     "text": "Customizable installation methods tailored to specific operational scenarios."
+     "text": "Pedestal mounting tailored to your deck.",
+     "detail": "Customizable installation methods tailored to specific operational scenarios.",
+     "photo": "features/marine-installation.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+     "text": "Winch, drill pipe, basket or grapple.",
+     "detail": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs.",
+     "photo": "features/marine-winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+     "text": "Manual levers, overhead seat or wireless remote.",
+     "detail": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience.",
+     "photo": "features/marine-controls.webp"
     },
     {
      "title": "Dual four-bar linkage",
-     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+     "text": "Reverse-angle reach for flexible work.",
+     "detail": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance.",
+     "photo": "features/marine-four-bar.webp"
     },
     {
      "title": "Marine anti-rust treatment",
-     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+     "text": "Multi-layer anti-rust process for sea duty.",
+     "detail": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
     }
    ],
    "features_series": "Knuckle Boom Marine Crane",
@@ -2739,27 +3381,37 @@
    "features": [
     {
      "title": "High-strength steel structure",
-     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+     "text": "Compact, light and strong steel structure.",
+     "detail": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design.",
+     "photo": "features/marine-structure.webp"
     },
     {
      "title": "Dedicated torque limiter",
-     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+     "text": "Load moment limiter, safety certified.",
+     "detail": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
     },
     {
      "title": "Custom installation",
-     "text": "Customizable installation methods tailored to specific operational scenarios."
+     "text": "Pedestal mounting tailored to your deck.",
+     "detail": "Customizable installation methods tailored to specific operational scenarios.",
+     "photo": "features/marine-installation.webp"
     },
     {
      "title": "Optional attachments",
-     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+     "text": "Winch, drill pipe, basket or grapple.",
+     "detail": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs.",
+     "photo": "features/marine-winch.webp"
     },
     {
      "title": "Operation modes",
-     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+     "text": "Manual levers, overhead seat or wireless remote.",
+     "detail": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience.",
+     "photo": "features/marine-controls.webp"
     },
     {
      "title": "Marine anti-rust treatment",
-     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+     "text": "Multi-layer anti-rust process for sea duty.",
+     "detail": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
     }
    ],
    "features_series": "Telescopic Boom Marine Crane",

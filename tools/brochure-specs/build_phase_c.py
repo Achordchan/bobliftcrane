@@ -45,6 +45,39 @@ SERIES = {  # model family -> advantages list
     'truck-knuckle': lambda m, r: r['book'] == 'truck' and r['kind'] == 'main' and r['pdf_page'] in (6, 7, 8, 9, 10, 11),
 }
 ADV_KEY = {'marine-knuckle': 'marine', 'marine-telescopic': 'marine-telescopic', 'truck-telescopic': 'truck-telescopic', 'truck-knuckle': 'truck-knuckle'}
+# Short card copy and a detail photo per advantage. Photos are only set where the picture plainly shows that part;
+# the WIKA limiter screen was shot on a telescopic crane, so it is not reused for knuckle or marine cranes.
+KNUCKLE_STRUCTURE = ('Welded high-strength plate with a hexagonal boom section.', 'features/knuckle-structure.webp')
+FEATURE_CARDS = {
+    'truck-knuckle': {
+        'High-strength welded structure': KNUCKLE_STRUCTURE,
+        'Dedicated torque limiter': ('Load moment limiter on every crane, safety certified.', None),
+        'Box-type outriggers': ('Box outriggers above 6.3 t protect the cylinders.', 'features/knuckle-box-outriggers.webp'),
+        'Optional attachments': ('Winch, auger, basket or grapple on request.', 'features/winch.webp'),
+        'Operation modes': ('Manual levers, aerial seat or wireless remote.', 'features/knuckle-levers.webp'),
+        'Dual four-bar linkage': ('Reverse-angle reach for tight jobs.', 'features/knuckle-four-bar.webp'),
+        'Large-span outriggers': ('Wide fixed outriggers, manual flip optional.', None),
+    },
+    'truck-telescopic': {
+        'High-strength steel structure': ('High-strength plate: stronger and lighter.', None),
+        'Octagonal boom': ('Octagonal boom above 8 t: light and strong.', 'features/telescopic-octagonal-boom.webp'),
+        'Dedicated torque limiter': ('Load moment limiter with live display, safety certified.', 'features/telescopic-torque-limiter.webp'),
+        'Overwinding protection': ('Anti-overwind and anti-overlower cut-outs.', None),
+        'Optional attachments': ('Winch, auger, basket or grapple on request.', 'features/winch.webp'),
+        'Operation modes': ('Control panel, top seat or wireless remote.', 'features/telescopic-control-panel.webp'),
+    },
+    'marine': {
+        'High-strength steel structure': ('Compact, light and strong steel structure.', 'features/marine-structure.webp'),
+        'Dedicated torque limiter': ('Load moment limiter, safety certified.', None),
+        'Custom installation': ('Pedestal mounting tailored to your deck.', 'features/marine-installation.webp'),
+        'Optional attachments': ('Winch, drill pipe, basket or grapple.', 'features/marine-winch.webp'),
+        'Operation modes': ('Manual levers, overhead seat or wireless remote.', 'features/marine-controls.webp'),
+        'Dual four-bar linkage': ('Reverse-angle reach for flexible work.', 'features/marine-four-bar.webp'),
+        'Marine anti-rust treatment': ('Multi-layer anti-rust process for sea duty.', None),
+    },
+}
+FEATURE_CARDS['marine-telescopic'] = FEATURE_CARDS['marine']
+
 # The brochure opens each series with one photo beside its advantages list; the product page pairs them the same way.
 SERIES_NAME = {'marine-knuckle': 'Knuckle Boom Marine Crane', 'marine-telescopic': 'Telescopic Boom Marine Crane',
                'truck-telescopic': 'Telescopic Boom Truck Mounted Crane', 'truck-knuckle': 'Knuckle Boom Truck Mounted Crane'}
@@ -63,7 +96,12 @@ for p in products:
     assert os.path.exists(item['drawing']), item['drawing']
     for key, test in SERIES.items():
         if test(m, r):
-            item['features'] = [{'title': t, 'text': x} for t, x in ADV[ADV_KEY[key]]]
+            extra = FEATURE_CARDS[ADV_KEY[key]]
+            # text: one short line for the page; detail: the brochure wording, kept for reference.
+            item['features'] = [{'title': t, 'text': extra[t][0], 'detail': x, **({'photo': extra[t][1]} if extra[t][1] else {})}
+                                for t, x in ADV[ADV_KEY[key]]]
+            for f in item['features']:
+                assert 'photo' not in f or os.path.exists(f['photo']), f['photo']
             item['features_series'] = SERIES_NAME[key]
             item['features_photo'] = SERIES_PHOTO[key]
             assert os.path.exists(item['features_photo']), item['features_photo']
