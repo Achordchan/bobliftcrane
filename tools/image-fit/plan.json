@@ -1,0 +1,2312 @@
+{
+ "note": "Generated from a pixel scan of every product main and gallery image, checked by eye. swap = the file was a photo with holes cut by background removal, use the untouched original; trim = clean cut-out, crop the transparent margin to box [x0,y0,x1,y1]; cutout = clean cut-out already tight; photo = opaque image.",
+ "images": [
+  {
+   "file": "2026/06/MARINE-SHIP-CRANE-1-transparent.png",
+   "action": "trim",
+   "box": [
+    2,
+    113,
+    772,
+    729
+   ]
+  },
+  {
+   "file": "2026/06/zhutu-17-transparent.png",
+   "action": "trim",
+   "box": [
+    77,
+    18,
+    657,
+    756
+   ]
+  },
+  {
+   "file": "2026/06/baidi-transparent.png",
+   "action": "trim",
+   "box": [
+    16,
+    82,
+    764,
+    700
+   ]
+  },
+  {
+   "file": "2026/06/8-21-transparent.png",
+   "action": "trim",
+   "box": [
+    43,
+    153,
+    729,
+    647
+   ]
+  },
+  {
+   "file": "2026/06/0-24-transparent.png",
+   "action": "trim",
+   "box": [
+    81,
+    113,
+    1280,
+    1280
+   ]
+  },
+  {
+   "file": "2026/06/touming-transparent.png",
+   "action": "trim",
+   "box": [
+    142,
+    29,
+    833,
+    971
+   ]
+  },
+  {
+   "file": "2026/06/20S-marine-Crane-transparent.png",
+   "action": "trim",
+   "box": [
+    28,
+    233,
+    772,
+    568
+   ]
+  },
+  {
+   "file": "2026/06/1e40bc1b221d5f0f29de365a9466f976-transparent.png",
+   "action": "trim",
+   "box": [
+    36,
+    205,
+    1280,
+    1280
+   ]
+  },
+  {
+   "file": "2026/06/0-20-transparent.png",
+   "action": "trim",
+   "box": [
+    20,
+    286,
+    1280,
+    1280
+   ]
+  },
+  {
+   "file": "2026/06/hydraulic-marine-crane-10-transparent.png",
+   "action": "trim",
+   "box": [
+    3,
+    238,
+    792,
+    594
+   ]
+  },
+  {
+   "file": "2026/06/hydraulic-marine-crane-11-transparent.png",
+   "action": "trim",
+   "box": [
+    19,
+    154,
+    792,
+    621
+   ]
+  },
+  {
+   "file": "2026/06/hydraulic-marine-crane-4-transparent.png",
+   "action": "trim",
+   "box": [
+    19,
+    154,
+    792,
+    621
+   ]
+  },
+  {
+   "file": "2026/06/hydraulic-marine-crane-7-transparent.png",
+   "action": "trim",
+   "box": [
+    3,
+    238,
+    792,
+    594
+   ]
+  },
+  {
+   "file": "2026/06/MARINE-SHIP-CRANE-2-transparent.png",
+   "action": "trim",
+   "box": [
+    34,
+    188,
+    773,
+    619
+   ]
+  },
+  {
+   "file": "2026/06/zhutu-35-transparent.png",
+   "action": "trim",
+   "box": [
+    64,
+    64,
+    719,
+    762
+   ]
+  },
+  {
+   "file": "2026/06/9f6337fc3bbe1022cfd14b4d3064da6c-transparent.png",
+   "action": "trim",
+   "box": [
+    108,
+    86,
+    1280,
+    1280
+   ]
+  },
+  {
+   "file": "2026/06/zhutu-27-transparent.png",
+   "action": "trim",
+   "box": [
+    33,
+    63,
+    725,
+    780
+   ]
+  },
+  {
+   "file": "2026/06/zhutu-29-transparent.png",
+   "action": "trim",
+   "box": [
+    20,
+    50,
+    797,
+    755
+   ]
+  },
+  {
+   "file": "2026/06/zhutu-23-transparent.png",
+   "action": "trim",
+   "box": [
+    17,
+    35,
+    792,
+    759
+   ]
+  },
+  {
+   "file": "2026/06/zhutu-25-transparent.png",
+   "action": "trim",
+   "box": [
+    3,
+    9,
+    705,
+    767
+   ]
+  },
+  {
+   "file": "2026/06/0-19-transparent.png",
+   "action": "trim",
+   "box": [
+    21,
+    233,
+    1280,
+    1280
+   ]
+  },
+  {
+   "file": "2026/06/0-800-800-18-transparent.png",
+   "action": "trim",
+   "box": [
+    14,
+    146,
+    800,
+    800
+   ]
+  },
+  {
+   "file": "2026/06/b7c788bd42893dec096346a93796c75f-transparent.png",
+   "action": "trim",
+   "box": [
+    64,
+    207,
+    1280,
+    1280
+   ]
+  },
+  {
+   "file": "2026/06/zhutu-18-transparent.png",
+   "action": "trim",
+   "box": [
+    56,
+    76,
+    698,
+    704
+   ]
+  },
+  {
+   "file": "2026/06/zhutu-19-transparent.png",
+   "action": "trim",
+   "box": [
+    38,
+    62,
+    663,
+    757
+   ]
+  },
+  {
+   "file": "2026/06/zhutu-20-transparent.png",
+   "action": "trim",
+   "box": [
+    68,
+    43,
+    658,
+    777
+   ]
+  },
+  {
+   "file": "2026/06/0-12-transparent.png",
+   "action": "trim",
+   "box": [
+    11,
+    428,
+    1280,
+    1280
+   ]
+  },
+  {
+   "file": "2026/06/0-3-transparent.png",
+   "action": "trim",
+   "box": [
+    37,
+    242,
+    1280,
+    1280
+   ]
+  },
+  {
+   "file": "2026/06/0-10-transparent.png",
+   "action": "trim",
+   "box": [
+    61,
+    186,
+    1280,
+    1280
+   ]
+  },
+  {
+   "file": "2026/06/zhutu-16-transparent.png",
+   "action": "trim",
+   "box": [
+    64,
+    43,
+    716,
+    800
+   ]
+  },
+  {
+   "file": "2026/06/0-6-transparent.png",
+   "action": "trim",
+   "box": [
+    119,
+    269,
+    1280,
+    1280
+   ]
+  },
+  {
+   "file": "2026/06/0-26-transparent.png",
+   "action": "trim",
+   "box": [
+    0,
+    331,
+    1280,
+    1280
+   ]
+  },
+  {
+   "file": "2026/06/e9b24cf37a192719944402033c503ea1-transparent.png",
+   "action": "trim",
+   "box": [
+    130,
+    179,
+    1280,
+    1280
+   ]
+  },
+  {
+   "file": "2026/06/zhutu-24-transparent.png",
+   "action": "trim",
+   "box": [
+    0,
+    115,
+    781,
+    746
+   ]
+  },
+  {
+   "file": "2026/06/zhutu-28-transparent.png",
+   "action": "trim",
+   "box": [
+    56,
+    0,
+    727,
+    788
+   ]
+  },
+  {
+   "file": "2026/06/0-7-transparent.png",
+   "action": "trim",
+   "box": [
+    58,
+    140,
+    1280,
+    1280
+   ]
+  },
+  {
+   "file": "2026/06/0-25-transparent.png",
+   "action": "trim",
+   "box": [
+    81,
+    206,
+    1280,
+    1280
+   ]
+  },
+  {
+   "file": "2026/06/f06af94de22b0e78eb6a4e2e89baa2c0-transparent.png",
+   "action": "trim",
+   "box": [
+    70,
+    137,
+    1280,
+    1280
+   ]
+  },
+  {
+   "file": "2026/06/0-28-transparent.png",
+   "action": "trim",
+   "box": [
+    0,
+    336,
+    1280,
+    1280
+   ]
+  },
+  {
+   "file": "2026/06/039f9f53d433ddf65b64c02ba7a05be4-scaled-transparent.png",
+   "action": "cutout",
+   "box": [
+    0,
+    0,
+    2560,
+    2560
+   ]
+  },
+  {
+   "file": "2026/06/zhutu-30-transparent.png",
+   "action": "trim",
+   "box": [
+    0,
+    98,
+    800,
+    740
+   ]
+  },
+  {
+   "file": "2026/06/boblift-electric-cranes-for-yacht-1-transparent.png",
+   "action": "trim",
+   "box": [
+    0,
+    146,
+    789,
+    720
+   ]
+  },
+  {
+   "file": "2026/06/zhutu-6-transparent.png",
+   "action": "trim",
+   "box": [
+    0,
+    94,
+    793,
+    740
+   ]
+  },
+  {
+   "file": "2026/06/zhutu-8-transparent.png",
+   "action": "trim",
+   "box": [
+    0,
+    125,
+    800,
+    688
+   ]
+  },
+  {
+   "file": "2026/06/0-5-transparent.png",
+   "action": "trim",
+   "box": [
+    67,
+    214,
+    1202,
+    1280
+   ]
+  },
+  {
+   "file": "2026/06/0-8-transparent.png",
+   "action": "trim",
+   "box": [
+    161,
+    266,
+    1280,
+    1280
+   ]
+  },
+  {
+   "file": "2026/06/d25cff7a7c767015d193fd779a0e51fc-transparent.png",
+   "action": "trim",
+   "box": [
+    53,
+    64,
+    1280,
+    1280
+   ]
+  },
+  {
+   "file": "2026/06/0-16-transparent.png",
+   "action": "trim",
+   "box": [
+    0,
+    316,
+    1280,
+    1280
+   ]
+  },
+  {
+   "file": "2026/06/0-2-transparent.png",
+   "action": "trim",
+   "box": [
+    97,
+    208,
+    1280,
+    1280
+   ]
+  },
+  {
+   "file": "2026/06/0-27-transparent.png",
+   "action": "trim",
+   "box": [
+    0,
+    428,
+    1280,
+    1280
+   ]
+  },
+  {
+   "file": "2026/06/zhutu-5-transparent.png",
+   "action": "trim",
+   "box": [
+    0,
+    166,
+    800,
+    641
+   ]
+  },
+  {
+   "file": "2026/06/0-4-transparent.png",
+   "action": "trim",
+   "box": [
+    105,
+    118,
+    1280,
+    1280
+   ]
+  },
+  {
+   "file": "2026/06/zhutu-15-transparent.png",
+   "action": "trim",
+   "box": [
+    0,
+    216,
+    800,
+    635
+   ]
+  },
+  {
+   "file": "2026/06/4-ton-forklift-fly-jib-crane-2-transparent.png",
+   "action": "trim",
+   "box": [
+    0,
+    181,
+    750,
+    584
+   ]
+  },
+  {
+   "file": "2026/06/0-1-transparent.png",
+   "action": "trim",
+   "box": [
+    0,
+    178,
+    1280,
+    1280
+   ]
+  },
+  {
+   "file": "2026/06/0-11-transparent.png",
+   "action": "trim",
+   "box": [
+    102,
+    208,
+    1280,
+    1280
+   ]
+  },
+  {
+   "file": "2026/06/zhutu-3-transparent.png",
+   "action": "trim",
+   "box": [
+    0,
+    65,
+    800,
+    674
+   ]
+  },
+  {
+   "file": "2026/06/0-9-transparent.png",
+   "action": "trim",
+   "box": [
+    0,
+    318,
+    1184,
+    1231
+   ]
+  },
+  {
+   "file": "2026/06/0-14-transparent.png",
+   "action": "trim",
+   "box": [
+    0,
+    433,
+    1280,
+    1280
+   ]
+  },
+  {
+   "file": "2026/06/zhutu-22-transparent.png",
+   "action": "trim",
+   "box": [
+    39,
+    0,
+    725,
+    750
+   ]
+  },
+  {
+   "file": "2026/06/zhutu-26-transparent.png",
+   "action": "trim",
+   "box": [
+    0,
+    6,
+    750,
+    704
+   ]
+  },
+  {
+   "file": "2026/06/zhutu-1-transparent.png",
+   "action": "trim",
+   "box": [
+    0,
+    6,
+    800,
+    757
+   ]
+  },
+  {
+   "file": "2026/06/marine-deck-floor-transparent.png",
+   "action": "swap",
+   "original": "2026/06/marine-deck-floor.jpg"
+  },
+  {
+   "file": "2026/06/MARINE-SHIP-CRANE-3-transparent.png",
+   "action": "trim",
+   "box": [
+    176,
+    12,
+    632,
+    800
+   ]
+  },
+  {
+   "file": "2026/06/0-18-transparent.png",
+   "action": "trim",
+   "box": [
+    32,
+    283,
+    1280,
+    1280
+   ]
+  },
+  {
+   "file": "2026/06/0-15-transparent.png",
+   "action": "trim",
+   "box": [
+    0,
+    562,
+    1280,
+    1280
+   ]
+  },
+  {
+   "file": "2026/06/2-5-transparent.png",
+   "action": "trim",
+   "box": [
+    41,
+    85,
+    1233,
+    797
+   ]
+  },
+  {
+   "file": "2026/06/zhutu-9-transparent.png",
+   "action": "trim",
+   "box": [
+    0,
+    41,
+    800,
+    800
+   ]
+  },
+  {
+   "file": "2026/06/800-kg-pickup-crane-with-outriggers-transparent.png",
+   "action": "trim",
+   "box": [
+    0,
+    115,
+    750,
+    652
+   ]
+  },
+  {
+   "file": "2026/06/zhutu-21-transparent.png",
+   "action": "trim",
+   "box": [
+    0,
+    47,
+    750,
+    683
+   ]
+  },
+  {
+   "file": "2026/06/zhutu-31-transparent.png",
+   "action": "swap",
+   "original": "2026/06/zhutu-31.jpg"
+  },
+  {
+   "file": "2026/06/zhutu-14-transparent.png",
+   "action": "trim",
+   "box": [
+    0,
+    219,
+    800,
+    680
+   ]
+  },
+  {
+   "file": "2026/06/zhutu-11-transparent.png",
+   "action": "trim",
+   "box": [
+    0,
+    141,
+    800,
+    652
+   ]
+  },
+  {
+   "file": "2026/06/zhutu-12-transparent.png",
+   "action": "trim",
+   "box": [
+    0,
+    212,
+    800,
+    626
+   ]
+  },
+  {
+   "file": "2026/06/0-13-transparent.png",
+   "action": "trim",
+   "box": [
+    66,
+    176,
+    1280,
+    1280
+   ]
+  },
+  {
+   "file": "2026/06/zhutu-7-transparent.png",
+   "action": "trim",
+   "box": [
+    0,
+    201,
+    800,
+    591
+   ]
+  },
+  {
+   "file": "2026/06/0-800-800-12-transparent.png",
+   "action": "trim",
+   "box": [
+    42,
+    110,
+    800,
+    800
+   ]
+  },
+  {
+   "file": "2026/06/zhutu-34-transparent.png",
+   "action": "swap",
+   "original": "2026/06/zhutu-34.jpg"
+  },
+  {
+   "file": "2026/06/0-17-transparent.png",
+   "action": "trim",
+   "box": [
+    0,
+    166,
+    1280,
+    1280
+   ]
+  },
+  {
+   "file": "2026/06/0-800-800-16-transparent.png",
+   "action": "trim",
+   "box": [
+    0,
+    104,
+    800,
+    800
+   ]
+  },
+  {
+   "file": "2026/06/zhutu-32-transparent.png",
+   "action": "trim",
+   "box": [
+    0,
+    184,
+    750,
+    617
+   ]
+  },
+  {
+   "file": "2026/06/hydraulic-marine-crane-8-transparent.png",
+   "action": "cutout",
+   "box": [
+    0,
+    0,
+    800,
+    786
+   ]
+  },
+  {
+   "file": "2026/06/hydraulic-marine-crane-5-transparent.png",
+   "action": "cutout",
+   "box": [
+    0,
+    0,
+    800,
+    786
+   ]
+  },
+  {
+   "file": "2026/06/zhutu-2-transparent.png",
+   "action": "trim",
+   "box": [
+    0,
+    122,
+    800,
+    800
+   ]
+  },
+  {
+   "file": "2026/06/zhutu-4-transparent.png",
+   "action": "cutout",
+   "box": [
+    6,
+    11,
+    794,
+    800
+   ]
+  },
+  {
+   "file": "2026/06/zhutu-transparent.png",
+   "action": "trim",
+   "box": [
+    0,
+    141,
+    800,
+    713
+   ]
+  },
+  {
+   "file": "2026/06/zhutu-10-transparent.png",
+   "action": "trim",
+   "box": [
+    0,
+    121,
+    800,
+    764
+   ]
+  },
+  {
+   "file": "2026/06/12TON-MARINE-CRANE-transparent.png",
+   "action": "swap",
+   "original": "2026/06/12TON-MARINE-CRANE.jpg"
+  },
+  {
+   "file": "2026/06/0-transparent.png",
+   "action": "swap",
+   "original": "2026/06/0.jpg"
+  },
+  {
+   "file": "2026/06/15-1-transparent.png",
+   "action": "swap",
+   "original": "2026/06/15-1.jpg"
+  },
+  {
+   "file": "2023/04/SQ16SA4T-1-transparent.png",
+   "action": "swap",
+   "original": "2023/04/SQ16SA4T-1.jpg"
+  },
+  {
+   "file": "2026/06/SQ3-2SA2T-transparent.png",
+   "action": "swap",
+   "original": "2026/06/SQ3-2SA2T.jpg"
+  },
+  {
+   "file": "2026/06/boblift-electric-cranes-for-yacht-transparent.png",
+   "action": "swap",
+   "original": "2026/06/boblift-electric-cranes-for-yacht.jpg"
+  },
+  {
+   "file": "2026/06/3-2ton-telescopic-marine-crane-transparent.png",
+   "action": "swap",
+   "original": "2026/06/3-2ton-telescopic-marine-crane.jpg"
+  },
+  {
+   "file": "2026/06/20-transparent.png",
+   "action": "swap",
+   "original": "2026/06/20.jpg"
+  },
+  {
+   "file": "2026/06/4-ton-forklift-fly-jib-crane-1-transparent.png",
+   "action": "swap",
+   "original": "2026/06/4-ton-forklift-fly-jib-crane-1.jpg"
+  },
+  {
+   "file": "2026/06/22-transparent.png",
+   "action": "swap",
+   "original": "2026/06/22.jpg"
+  },
+  {
+   "file": "2026/06/5TON-MARINE-CRANE-transparent.png",
+   "action": "swap",
+   "original": "2026/06/5TON-MARINE-CRANE.jpg"
+  },
+  {
+   "file": "2026/06/4-ton-forklift-fly-jib-crane-transparent.png",
+   "action": "swap",
+   "original": "2026/06/4-ton-forklift-fly-jib-crane.jpg"
+  },
+  {
+   "file": "2026/06/3-ton-forklift-fly-jib-crane-transparent.png",
+   "action": "swap",
+   "original": "2026/06/3-ton-forklift-fly-jib-crane.jpg"
+  },
+  {
+   "file": "2026/06/SQ16SA4T-transparent.png",
+   "action": "swap",
+   "original": "2026/06/SQ16SA4T.jpg"
+  },
+  {
+   "file": "2026/06/zhutu-13-transparent.png",
+   "action": "swap",
+   "original": "2026/06/zhutu-13.jpg"
+  },
+  {
+   "file": "2026/06/zhutu-33-transparent.png",
+   "action": "swap",
+   "original": "2026/06/zhutu-33.jpg"
+  },
+  {
+   "file": "2026/06/3-2ton-marine-crane-transparent.png",
+   "action": "swap",
+   "original": "2026/06/3-2ton-marine-crane.jpg"
+  },
+  {
+   "file": "2026/06/SQ6-3SA2T-1-transparent.png",
+   "action": "swap",
+   "original": "2026/06/SQ6-3SA2T-1.jpg"
+  },
+  {
+   "file": "2026/06/SQ6-3SA2T-transparent.png",
+   "action": "swap",
+   "original": "2026/06/SQ6-3SA2T.jpg"
+  },
+  {
+   "file": "2026/06/5-TON-CRANE-transparent.png",
+   "action": "swap",
+   "original": "2026/06/5-TON-CRANE.jpg"
+  },
+  {
+   "file": "2026/06/26-1-transparent.png",
+   "action": "swap",
+   "original": "2026/06/26-1.jpg"
+  },
+  {
+   "file": "2026/06/3-6-transparent.png",
+   "action": "swap",
+   "original": "2026/06/3-6.jpg"
+  },
+  {
+   "file": "2026/06/3-2-ton-marine-crane-transparent.png",
+   "action": "swap",
+   "original": "2026/06/3-2-ton-marine-crane.jpg"
+  },
+  {
+   "file": "2026/06/hydraulic-marine-crane-9-transparent.png",
+   "action": "swap",
+   "original": "2026/06/hydraulic-marine-crane-9.jpg"
+  },
+  {
+   "file": "2026/06/hydraulic-marine-crane-6-transparent.png",
+   "action": "swap",
+   "original": "2026/06/hydraulic-marine-crane-6.jpg"
+  },
+  {
+   "file": "2026/06/3-2S-transparent.png",
+   "action": "swap",
+   "original": "2026/06/3-2S.jpg"
+  },
+  {
+   "file": "2026/06/1-11-transparent.png",
+   "action": "swap",
+   "original": "2026/06/1-11.jpg"
+  },
+  {
+   "file": "2023/04/SQ16SA4T-transparent.png",
+   "action": "swap",
+   "original": "2023/04/SQ16SA4T.jpg"
+  },
+  {
+   "file": "2026/06/14-4-transparent.png",
+   "action": "swap",
+   "original": "2026/06/14-4.jpg"
+  },
+  {
+   "file": "2026/06/15-transparent.png",
+   "action": "swap",
+   "original": "2026/06/15.jpg"
+  },
+  {
+   "file": "2026/06/16-1-transparent.png",
+   "action": "swap",
+   "original": "2026/06/16-1.jpg"
+  },
+  {
+   "file": "2026/06/16-transparent.png",
+   "action": "swap",
+   "original": "2026/06/16.jpg"
+  },
+  {
+   "file": "2026/06/10-12-transparent.png",
+   "action": "swap",
+   "original": "2026/06/10-12.jpg"
+  },
+  {
+   "file": "2026/06/SQ16SA4T-1-transparent.png",
+   "action": "swap",
+   "original": "2026/06/SQ16SA4T-1.jpg"
+  },
+  {
+   "file": "2026/06/3-7-transparent.png",
+   "action": "swap",
+   "original": "2026/06/3-7.jpg"
+  },
+  {
+   "file": "2026/06/2-9-transparent.png",
+   "action": "swap",
+   "original": "2026/06/2-9.jpg"
+  },
+  {
+   "file": "2026/06/2-8-transparent.png",
+   "action": "swap",
+   "original": "2026/06/2-8.jpg"
+  },
+  {
+   "file": "2026/06/6-14-transparent.png",
+   "action": "swap",
+   "original": "2026/06/6-14.jpg"
+  },
+  {
+   "file": "2026/06/4-9-transparent.png",
+   "action": "swap",
+   "original": "2026/06/4-9.jpg"
+  },
+  {
+   "file": "2026/06/10-15-transparent.png",
+   "action": "swap",
+   "original": "2026/06/10-15.jpg"
+  },
+  {
+   "file": "2026/06/9-18-transparent.png",
+   "action": "swap",
+   "original": "2026/06/9-18.jpg"
+  },
+  {
+   "file": "2026/06/5-20-transparent.png",
+   "action": "swap",
+   "original": "2026/06/5-20.jpg"
+  },
+  {
+   "file": "2026/06/4-12-transparent.png",
+   "action": "swap",
+   "original": "2026/06/4-12.jpg"
+  },
+  {
+   "file": "2026/06/9-17-transparent.png",
+   "action": "swap",
+   "original": "2026/06/9-17.jpg"
+  },
+  {
+   "file": "2026/06/3-5-transparent.png",
+   "action": "swap",
+   "original": "2026/06/3-5.jpg"
+  },
+  {
+   "file": "2026/06/26-transparent.png",
+   "action": "swap",
+   "original": "2026/06/26.jpg"
+  },
+  {
+   "file": "2026/06/14-3-transparent.png",
+   "action": "swap",
+   "original": "2026/06/14-3.jpg"
+  },
+  {
+   "file": "2026/06/14-2-transparent.png",
+   "action": "swap",
+   "original": "2026/06/14-2.jpg"
+  },
+  {
+   "file": "2026/06/21-transparent.png",
+   "action": "swap",
+   "original": "2026/06/21.jpg"
+  },
+  {
+   "file": "2026/06/8-22-transparent.png",
+   "action": "swap",
+   "original": "2026/06/8-22.jpg"
+  },
+  {
+   "file": "2026/06/3-9-transparent.png",
+   "action": "swap",
+   "original": "2026/06/3-9.jpg"
+  },
+  {
+   "file": "2026/06/6-7-transparent.png",
+   "action": "swap",
+   "original": "2026/06/6-7.jpg"
+  },
+  {
+   "file": "2026/06/25-transparent.png",
+   "action": "swap",
+   "original": "2026/06/25.jpg"
+  },
+  {
+   "file": "2026/06/8-18-transparent.png",
+   "action": "swap",
+   "original": "2026/06/8-18.jpg"
+  },
+  {
+   "file": "2026/06/4-10-transparent.png",
+   "action": "swap",
+   "original": "2026/06/4-10.jpg"
+  },
+  {
+   "file": "2026/06/4-5-transparent.png",
+   "action": "swap",
+   "original": "2026/06/4-5.jpg"
+  },
+  {
+   "file": "2026/06/4-11-transparent.png",
+   "action": "swap",
+   "original": "2026/06/4-11.jpg"
+  },
+  {
+   "file": "2026/06/5-21-transparent.png",
+   "action": "swap",
+   "original": "2026/06/5-21.jpg"
+  },
+  {
+   "file": "2026/06/9-9-transparent.png",
+   "action": "swap",
+   "original": "2026/06/9-9.jpg"
+  },
+  {
+   "file": "2026/06/3-8-transparent.png",
+   "action": "swap",
+   "original": "2026/06/3-8.jpg"
+  },
+  {
+   "file": "2026/06/6-11-transparent.png",
+   "action": "swap",
+   "original": "2026/06/6-11.jpg"
+  },
+  {
+   "file": "2026/06/1-1-transparent.png",
+   "action": "swap",
+   "original": "2026/06/1-1.jpg"
+  },
+  {
+   "file": "2026/06/5-10-transparent.png",
+   "action": "swap",
+   "original": "2026/06/5-10.jpg"
+  },
+  {
+   "file": "2026/06/1-3-transparent.png",
+   "action": "swap",
+   "original": "2026/06/1-3.jpg"
+  },
+  {
+   "file": "2026/06/7-15-transparent.png",
+   "action": "swap",
+   "original": "2026/06/7-15.jpg"
+  },
+  {
+   "file": "2026/06/7-14-transparent.png",
+   "action": "swap",
+   "original": "2026/06/7-14.jpg"
+  },
+  {
+   "file": "2026/06/10-9-transparent.png",
+   "action": "swap",
+   "original": "2026/06/10-9.jpg"
+  },
+  {
+   "file": "2026/06/7-2-transparent.png",
+   "action": "swap",
+   "original": "2026/06/7-2.jpg"
+  },
+  {
+   "file": "2026/06/5-19-transparent.png",
+   "action": "swap",
+   "original": "2026/06/5-19.jpg"
+  },
+  {
+   "file": "2026/06/11-3-transparent.png",
+   "action": "swap",
+   "original": "2026/06/11-3.jpg"
+  },
+  {
+   "file": "2026/06/2-10-transparent.png",
+   "action": "swap",
+   "original": "2026/06/2-10.jpg"
+  },
+  {
+   "file": "2026/06/8-14-transparent.png",
+   "action": "swap",
+   "original": "2026/06/8-14.jpg"
+  },
+  {
+   "file": "2026/06/10-14-transparent.png",
+   "action": "swap",
+   "original": "2026/06/10-14.jpg"
+  },
+  {
+   "file": "2026/06/10-10-transparent.png",
+   "action": "swap",
+   "original": "2026/06/10-10.jpg"
+  },
+  {
+   "file": "2026/06/6-4-transparent.png",
+   "action": "swap",
+   "original": "2026/06/6-4.jpg"
+  },
+  {
+   "file": "2026/06/6-9-transparent.png",
+   "action": "swap",
+   "original": "2026/06/6-9.jpg"
+  },
+  {
+   "file": "2026/06/23-transparent.png",
+   "action": "swap",
+   "original": "2026/06/23.jpg"
+  },
+  {
+   "file": "2026/06/1-4-transparent.png",
+   "action": "swap",
+   "original": "2026/06/1-4.jpg"
+  },
+  {
+   "file": "2026/06/6-10-transparent.png",
+   "action": "swap",
+   "original": "2026/06/6-10.jpg"
+  },
+  {
+   "file": "2026/06/8-2-transparent.png",
+   "action": "swap",
+   "original": "2026/06/8-2.jpg"
+  },
+  {
+   "file": "2026/06/5-7-transparent.png",
+   "action": "swap",
+   "original": "2026/06/5-7.jpg"
+  },
+  {
+   "file": "2026/06/5-12-transparent.png",
+   "action": "swap",
+   "original": "2026/06/5-12.jpg"
+  },
+  {
+   "file": "2026/06/6-13-transparent.png",
+   "action": "swap",
+   "original": "2026/06/6-13.jpg"
+  },
+  {
+   "file": "2026/06/12-transparent.png",
+   "action": "swap",
+   "original": "2026/06/12.jpg"
+  },
+  {
+   "file": "2026/06/8-9-transparent.png",
+   "action": "swap",
+   "original": "2026/06/8-9.jpg"
+  },
+  {
+   "file": "2026/06/17-transparent.png",
+   "action": "swap",
+   "original": "2026/06/17.jpg"
+  },
+  {
+   "file": "2026/06/6-8-transparent.png",
+   "action": "swap",
+   "original": "2026/06/6-8.jpg"
+  },
+  {
+   "file": "2026/06/10-3-transparent.png",
+   "action": "swap",
+   "original": "2026/06/10-3.jpg"
+  },
+  {
+   "file": "2026/06/6-3-transparent.png",
+   "action": "swap",
+   "original": "2026/06/6-3.jpg"
+  },
+  {
+   "file": "2026/06/2-1-transparent.png",
+   "action": "swap",
+   "original": "2026/06/2-1.jpg"
+  },
+  {
+   "file": "2026/06/5-18-transparent.png",
+   "action": "swap",
+   "original": "2026/06/5-18.jpg"
+  },
+  {
+   "file": "2026/06/7-4-transparent.png",
+   "action": "swap",
+   "original": "2026/06/7-4.jpg"
+  },
+  {
+   "file": "2026/06/8-13-transparent.png",
+   "action": "swap",
+   "original": "2026/06/8-13.jpg"
+  },
+  {
+   "file": "2026/06/9-4-transparent.png",
+   "action": "swap",
+   "original": "2026/06/9-4.jpg"
+  },
+  {
+   "file": "2026/06/9-transparent.png",
+   "action": "swap",
+   "original": "2026/06/9.jpg"
+  },
+  {
+   "file": "2026/06/1-transparent.png",
+   "action": "swap",
+   "original": "2026/06/1.jpg"
+  },
+  {
+   "file": "2026/06/17-2-transparent.png",
+   "action": "swap",
+   "original": "2026/06/17-2.jpg"
+  },
+  {
+   "file": "2026/06/9-11-transparent.png",
+   "action": "swap",
+   "original": "2026/06/9-11.jpg"
+  },
+  {
+   "file": "2026/06/2-transparent.png",
+   "action": "swap",
+   "original": "2026/06/2.jpg"
+  },
+  {
+   "file": "2026/06/7-9-transparent.png",
+   "action": "swap",
+   "original": "2026/06/7-9.jpg"
+  },
+  {
+   "file": "2026/06/1-5-transparent.png",
+   "action": "swap",
+   "original": "2026/06/1-5.jpg"
+  },
+  {
+   "file": "2026/06/5-2-transparent.png",
+   "action": "swap",
+   "original": "2026/06/5-2.jpg"
+  },
+  {
+   "file": "2026/06/6-1-transparent.png",
+   "action": "swap",
+   "original": "2026/06/6-1.jpg"
+  },
+  {
+   "file": "2026/06/4-8-transparent.png",
+   "action": "swap",
+   "original": "2026/06/4-8.jpg"
+  },
+  {
+   "file": "2026/06/6-5-transparent.png",
+   "action": "swap",
+   "original": "2026/06/6-5.jpg"
+  },
+  {
+   "file": "2026/06/11-4-transparent.png",
+   "action": "swap",
+   "original": "2026/06/11-4.jpg"
+  },
+  {
+   "file": "2026/06/9-7-transparent.png",
+   "action": "swap",
+   "original": "2026/06/9-7.jpg"
+  },
+  {
+   "file": "2026/06/9-8-transparent.png",
+   "action": "swap",
+   "original": "2026/06/9-8.jpg"
+  },
+  {
+   "file": "2026/06/5-1-transparent.png",
+   "action": "swap",
+   "original": "2026/06/5-1.jpg"
+  },
+  {
+   "file": "2026/06/5-4-transparent.png",
+   "action": "swap",
+   "original": "2026/06/5-4.jpg"
+  },
+  {
+   "file": "2026/06/1-7-transparent.png",
+   "action": "swap",
+   "original": "2026/06/1-7.jpg"
+  },
+  {
+   "file": "2026/06/7-1-transparent.png",
+   "action": "swap",
+   "original": "2026/06/7-1.jpg"
+  },
+  {
+   "file": "2026/06/10-4-transparent.png",
+   "action": "swap",
+   "original": "2026/06/10-4.jpg"
+  },
+  {
+   "file": "2026/06/14-1-transparent.png",
+   "action": "swap",
+   "original": "2026/06/14-1.jpg"
+  },
+  {
+   "file": "2026/06/4-2-transparent.png",
+   "action": "swap",
+   "original": "2026/06/4-2.jpg"
+  },
+  {
+   "file": "2026/06/11-2-transparent.png",
+   "action": "swap",
+   "original": "2026/06/11-2.jpg"
+  },
+  {
+   "file": "2026/06/19-transparent.png",
+   "action": "swap",
+   "original": "2026/06/19.jpg"
+  },
+  {
+   "file": "2026/06/5-8-transparent.png",
+   "action": "swap",
+   "original": "2026/06/5-8.jpg"
+  },
+  {
+   "file": "2026/06/4-transparent.png",
+   "action": "swap",
+   "original": "2026/06/4.jpg"
+  },
+  {
+   "file": "2026/06/8-12-transparent.png",
+   "action": "swap",
+   "original": "2026/06/8-12.jpg"
+  },
+  {
+   "file": "2026/06/8-8-transparent.png",
+   "action": "swap",
+   "original": "2026/06/8-8.jpg"
+  },
+  {
+   "file": "2026/06/13-transparent.png",
+   "action": "swap",
+   "original": "2026/06/13.jpg"
+  },
+  {
+   "file": "2026/06/13-1-transparent.png",
+   "action": "swap",
+   "original": "2026/06/13-1.jpg"
+  },
+  {
+   "file": "2026/06/17-1-transparent.png",
+   "action": "swap",
+   "original": "2026/06/17-1.jpg"
+  },
+  {
+   "file": "2026/06/10-1-scaled-transparent.png",
+   "action": "swap",
+   "original": "2026/06/10-1-scaled.jpg"
+  },
+  {
+   "file": "2026/06/9-6-transparent.png",
+   "action": "swap",
+   "original": "2026/06/9-6.jpg"
+  },
+  {
+   "file": "2026/06/5-3-transparent.png",
+   "action": "swap",
+   "original": "2026/06/5-3.jpg"
+  },
+  {
+   "file": "2026/06/5-11-transparent.png",
+   "action": "swap",
+   "original": "2026/06/5-11.jpg"
+  },
+  {
+   "file": "2026/02/3-transparent.png",
+   "action": "swap",
+   "original": "2026/02/3.jpg"
+  },
+  {
+   "file": "2026/06/14-transparent.png",
+   "action": "swap",
+   "original": "2026/06/14.jpg"
+  },
+  {
+   "file": "2026/06/7-3-transparent.png",
+   "action": "swap",
+   "original": "2026/06/7-3.jpg"
+  },
+  {
+   "file": "2026/06/9-2-transparent.png",
+   "action": "swap",
+   "original": "2026/06/9-2.jpg"
+  },
+  {
+   "file": "2026/06/9-12-transparent.png",
+   "action": "swap",
+   "original": "2026/06/9-12.jpg"
+  },
+  {
+   "file": "2026/06/9-16-transparent.png",
+   "action": "swap",
+   "original": "2026/06/9-16.jpg"
+  },
+  {
+   "file": "2026/06/10-7-transparent.png",
+   "action": "swap",
+   "original": "2026/06/10-7.jpg"
+  },
+  {
+   "file": "2026/06/8-5-transparent.png",
+   "action": "swap",
+   "original": "2026/06/8-5.jpg"
+  },
+  {
+   "file": "2026/06/10-transparent.png",
+   "action": "swap",
+   "original": "2026/06/10.jpg"
+  },
+  {
+   "file": "2026/06/7-20-transparent.png",
+   "action": "swap",
+   "original": "2026/06/7-20.jpg"
+  },
+  {
+   "file": "2026/06/7-transparent.png",
+   "action": "swap",
+   "original": "2026/06/7.jpg"
+  },
+  {
+   "file": "2026/06/9-13-transparent.png",
+   "action": "swap",
+   "original": "2026/06/9-13.jpg"
+  },
+  {
+   "file": "2026/06/13-2-transparent.png",
+   "action": "swap",
+   "original": "2026/06/13-2.jpg"
+  },
+  {
+   "file": "2026/06/8-10-transparent.png",
+   "action": "swap",
+   "original": "2026/06/8-10.jpg"
+  },
+  {
+   "file": "2026/02/2-transparent.png",
+   "action": "swap",
+   "original": "2026/02/2.jpg"
+  },
+  {
+   "file": "2026/06/8-3-transparent.png",
+   "action": "swap",
+   "original": "2026/06/8-3.jpg"
+  },
+  {
+   "file": "2026/06/5-17-transparent.png",
+   "action": "swap",
+   "original": "2026/06/5-17.jpg"
+  },
+  {
+   "file": "2026/06/11-5-transparent.png",
+   "action": "swap",
+   "original": "2026/06/11-5.jpg"
+  },
+  {
+   "file": "2026/06/5-6-transparent.png",
+   "action": "swap",
+   "original": "2026/06/5-6.jpg"
+  },
+  {
+   "file": "2026/06/10-2-transparent.png",
+   "action": "swap",
+   "original": "2026/06/10-2.jpg"
+  },
+  {
+   "file": "2026/06/9-10-transparent.png",
+   "action": "swap",
+   "original": "2026/06/9-10.jpg"
+  },
+  {
+   "file": "2026/06/3-3-transparent.png",
+   "action": "swap",
+   "original": "2026/06/3-3.jpg"
+  },
+  {
+   "file": "2026/06/1-2-transparent.png",
+   "action": "swap",
+   "original": "2026/06/1-2.jpg"
+  },
+  {
+   "file": "2026/06/5-14-transparent.png",
+   "action": "swap",
+   "original": "2026/06/5-14.jpg"
+  },
+  {
+   "file": "2026/06/8-4-transparent.png",
+   "action": "swap",
+   "original": "2026/06/8-4.jpg"
+  },
+  {
+   "file": "2026/06/4-6-transparent.png",
+   "action": "swap",
+   "original": "2026/06/4-6.jpg"
+  },
+  {
+   "file": "2026/06/9-5-transparent.png",
+   "action": "swap",
+   "original": "2026/06/9-5.jpg"
+  },
+  {
+   "file": "2026/06/6-2-transparent.png",
+   "action": "swap",
+   "original": "2026/06/6-2.jpg"
+  },
+  {
+   "file": "2026/06/8-20-transparent.png",
+   "action": "swap",
+   "original": "2026/06/8-20.jpg"
+  },
+  {
+   "file": "2026/06/9-15-transparent.png",
+   "action": "swap",
+   "original": "2026/06/9-15.jpg"
+  },
+  {
+   "file": "2026/06/6-6-transparent.png",
+   "action": "swap",
+   "original": "2026/06/6-6.jpg"
+  },
+  {
+   "file": "2026/06/5-15-transparent.png",
+   "action": "swap",
+   "original": "2026/06/5-15.jpg"
+  },
+  {
+   "file": "2026/06/7-19-transparent.png",
+   "action": "swap",
+   "original": "2026/06/7-19.jpg"
+  },
+  {
+   "file": "2026/06/5-13-transparent.png",
+   "action": "swap",
+   "original": "2026/06/5-13.jpg"
+  },
+  {
+   "file": "2026/06/7-12-transparent.png",
+   "action": "swap",
+   "original": "2026/06/7-12.jpg"
+  },
+  {
+   "file": "2026/06/7-13-transparent.png",
+   "action": "swap",
+   "original": "2026/06/7-13.jpg"
+  },
+  {
+   "file": "2026/06/9-3-transparent.png",
+   "action": "swap",
+   "original": "2026/06/9-3.jpg"
+  },
+  {
+   "file": "2026/06/2-2-transparent.png",
+   "action": "swap",
+   "original": "2026/06/2-2.jpg"
+  },
+  {
+   "file": "2026/06/7-5-transparent.png",
+   "action": "swap",
+   "original": "2026/06/7-5.jpg"
+  },
+  {
+   "file": "2026/06/5-transparent.png",
+   "action": "swap",
+   "original": "2026/06/5.jpg"
+  },
+  {
+   "file": "2026/06/8-transparent.png",
+   "action": "swap",
+   "original": "2026/06/8.jpg"
+  },
+  {
+   "file": "2026/06/5-5-transparent.png",
+   "action": "swap",
+   "original": "2026/06/5-5.jpg"
+  },
+  {
+   "file": "2026/06/1-6-transparent.png",
+   "action": "swap",
+   "original": "2026/06/1-6.jpg"
+  },
+  {
+   "file": "2026/06/3-1-transparent.png",
+   "action": "swap",
+   "original": "2026/06/3-1.jpg"
+  },
+  {
+   "file": "2026/06/2-6-transparent.png",
+   "action": "swap",
+   "original": "2026/06/2-6.jpg"
+  },
+  {
+   "file": "2026/06/10-5-transparent.png",
+   "action": "swap",
+   "original": "2026/06/10-5.jpg"
+  },
+  {
+   "file": "2026/06/12-1-transparent.png",
+   "action": "swap",
+   "original": "2026/06/12-1.jpg"
+  },
+  {
+   "file": "2026/06/7-11-transparent.png",
+   "action": "swap",
+   "original": "2026/06/7-11.jpg"
+  },
+  {
+   "file": "2026/09/2-45-ton-garbage-crane.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/09/5-15-ton-tow-truck-crane.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-photos-flyjib-1.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-photos-flyjib-2.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/09/boblift-factory-photos-SL70-01-IMG_3449.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/09/boblift-factory-photos-SL70-02-IMG_3443.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/09/boblift-factory-photos-SL70-03-IMG_3455.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/09/boblift-factory-photos-SL70-04-IMG_3473.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/09/boblift-factory-photos-SQZ700-01-IMG_9426.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/09/boblift-factory-photos-SQZ700-02-IMG_3923.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/09/boblift-factory-photos-SQZ700-03-IMG_8989.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/09/boblift-factory-photos-SQZ700-04-IMG_5569.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/09/boblift-factory-photos-SQZ700-05-IMG_9403.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/09/boblift-factory-photos-BLZ90K5-01-IMG_2820.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/09/boblift-factory-photos-BLZ90K5-02-IMG_3264.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/09/boblift-factory-photos-BLZ90K5-03-IMG_3274.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/09/boblift-factory-photos-BLZ90K5-04-IMG_3832.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/09/boblift-factory-photos-BLZ90K5-05-IMG_3850.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/09/boblift-factory-photos-BLZ90K5-06-IMG_3870.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/09/boblift-factory-photos-SQ3.2ZA4-01-IMG_2631.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/09/boblift-factory-photos-SQ3.2ZA4-02-IMG_2641.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/09/boblift-factory-photos-SQ3.2ZA4-03-IMG_2606.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/09/boblift-factory-photos-SQ3.2ZA4-04-IMG_6987.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/09/boblift-factory-photos-SQ3.2ZA4-05-IMG_2616.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/09/boblift-factory-photos-SQ3.2ZA4-06-IMG_7026.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/10-8-transparent.png",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/7-8-transparent.png",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/7-7-transparent.png",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/8-7-transparent.png",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/7-6-transparent.png",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/8-6-transparent.png",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/6-transparent.png",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/8-1-transparent.png",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/FLSQ085Z-scaled-transparent.png",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/2-3-ton-forklift-fly-jib-crane-transparent.png",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/8-19-transparent.png",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/8-11-transparent.png",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/10-6-transparent.png",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/3-transparent.png",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/4-1-transparent.png",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/9-1-scaled-transparent.png",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/11-1-scaled-transparent.png",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/11-transparent.png",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/7-10-transparent.png",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/5-9-transparent.png",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQZ500T-01-IMG_1097.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQZ500T-02-IMG_1280.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQZ500T-03-IMG_1305.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQZ500T-04-IMG_1329.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQZ500T-05-IMG_1400.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQZ500T-06-IMG_1526.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-photos-SQZ330T.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-photos-SQ12ZA6T.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQZ430-01-IMG_1906.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQZ430-02-IMG_1865.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQZ430-03-IMG_1897.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQZ430-04-IMG_1950.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQZ430-05-IMG_2057.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQZ430-06-IMG_1962.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ12ZA6-01-IMG_7326.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ12ZA6-02-IMG_7330.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ12ZA6-03-IMG_7338.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ12ZA6-04-IMG_7348.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ12ZA6-05-IMG_7354.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ10ZA6-01-IMG_1191.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ10ZA6-02-IMG_1187.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ10ZA6-03-IMG_1167.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ10ZA6-04-IMG_1224.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ10ZA6-05-IMG_1240.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ6.3ZA5-01-IMG_0128.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ6.3ZA5-02-IMG_0114.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ6.3ZA5-03-IMG_0126.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ6.3ZA5-04-IMG_0118.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-photos-BLS3.0T.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-photos-SQ4ZG3T.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ4ZG3T-01-IMG_2119.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ4ZG3T-02-IMG_2132.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ4ZG3T-03-IMG_2096.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ4ZG3T-04-IMG_2138.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ4ZG3T-05-IMG_2088.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-photos-CC125-main.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-photos-CC105-main.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-photos-SQ16SA5T.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-photos-SQ3.2SA4T.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-photos-SQ2SA3T.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-photos-SQ10ZA6TJ.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ10ZA6TJ-01-IMG_2359.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ10ZA6TJ-02-IMG_2334.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ10ZA6TJ-03-IMG_2385.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ10ZA6TJ-04-IMG_8496.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ10ZA6TJ-05-IMG_8504.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ10ZA6TJ-06-IMG_2438.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-photos-SQ8ZA6TJ.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-photos-SQ6.3ZA4TJ.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ6.3ZA4TJ-01-IMG_2672.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ6.3ZA4TJ-02-IMG_2680.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ6.3ZA4TJ-03-IMG_2668.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ6.3ZA4TJ-04-IMG_2678.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-photos-SQ4ZA3TJ.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ8ZA6-01-IMG_0728.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ8ZA6-02-IMG_0890.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ8ZA6-03-IMG_0870.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ8ZA6-04-IMG_0856.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ8ZA6-05-IMG_0783.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ8ZA6-06-IMG_0808.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ3.2ZA3-01-IMG_1564.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ3.2ZA3-02-IMG_1574.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ3.2ZA3-03-IMG_1622.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ3.2ZA3-04-IMG_8347.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ3.2ZA3-05-IMG_8391.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ3.2ZA3-06-IMG_8414.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ12SA4-00a-outdoor-20260905142402_150.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ12SA4-00b-outdoor-20260905142352_146.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ12SA4-01-IMG_3110.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ12SA4-02-IMG_3073.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ12SA4-03-IMG_3104.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ12SA4-04-IMG_3060.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ8SA5-01-IMG_0751.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ8SA5-02-IMG_0759.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ8SA5-03-IMG_0820.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ8SA5-04-IMG_0838.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ8SA5-05-IMG_0743.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ8SA5-06-IMG_0848.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ8SA5-07-IMG_7134.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ8SA5-08-IMG_7156.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ8SA5-09-IMG_7254.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ8SA5-10-IMG_7146.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ6.3SA4-01-IMG_2376.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ6.3SA4-02-IMG_2386.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ6.3SA4-03-IMG_2413.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ6.3SA4-04-IMG_2432.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ6.3SA4-05-IMG_2380.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ6.3SA4-06-IMG_2447.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ5SA4-01-IMG_1232.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ5SA4-02-IMG_1142.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ5SA4-03-IMG_1175.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ5SA4-04-IMG_1250.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ5SA4-05-IMG_2657.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ5SA4-06-IMG_1054.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ3.2SA4-01-IMG_7271.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ3.2SA4-02-IMG_7306.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ3.2SA4-03-IMG_7291.webp",
+   "action": "photo"
+  },
+  {
+   "file": "2026/06/boblift-factory-gallery-SQ3.2SA4-04-IMG_7312.webp",
+   "action": "photo"
+  }
+ ]
+}

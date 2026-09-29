@@ -136,8 +136,10 @@ if (!$hotspots) {
 $hero_image = $main_image;
 // Cut-out product images float on the hero; a site photo (factory or brochure) sits in a framed card
 // instead, without the part hotspots that are positioned for cut-outs.
-$hero_is_cutout = (bool) preg_match('/transparent|\.png(?:$|[?&])/i', $hero_image);
-$hero_image_class = $hero_is_cutout ? 'object-contain object-bottom p-5 sm:p-8 lg:p-10' : 'object-cover';
+$hero_is_cutout = boblift_image_fit($hero_image) === 'cutout';
+// Cut-outs stand on the floor line with only a thin margin, so they fill as much of the stage as their shape allows.
+$hero_cutout_class = 'object-contain object-bottom px-3 pt-3 pb-6 sm:px-4 sm:pt-4 sm:pb-8 lg:px-6 lg:pt-6 lg:pb-10';
+$hero_image_class = $hero_is_cutout ? $hero_cutout_class : 'object-cover';
 // Part hotspots only when an editor placed them for this product; the generic defaults do not match the image.
 $has_custom_hotspots = !empty($product['hotspots']);
 $hero_summary = trim((string) ($product['short_description'] ?? ''));
@@ -157,7 +159,7 @@ $add_hero_gallery_item = static function (string $image, string $label) use (&$h
     $key = strtolower($image);
     if (isset($hero_gallery_seen[$key])) return;
     $hero_gallery_seen[$key] = true;
-    $hero_gallery_items[] = ['image' => $image, 'label' => $label];
+    $hero_gallery_items[] = ['image' => $image, 'label' => $label, 'fit' => boblift_image_fit($image)];
 };
 $add_hero_gallery_item($hero_image, (string) ($ui['mainProductViewLabel'] ?? 'Main product view'));
 foreach ($gallery_items as $item) {
@@ -233,10 +235,8 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                 </div>
                 <div class="relative order-1 min-w-0 lg:order-2" data-product-hero-gallery-root data-product-hero-active-index="0">
                     <div class="boblift-product-stage relative aspect-[4/3] overflow-hidden rounded border border-[#DDE7F2] bg-[linear-gradient(180deg,#FFFFFF_0%,#F2F6FB_62%,#E8EEF6_100%)] shadow-card lg:aspect-[5/4] xl:aspect-[4/3]" data-product-hotspot-stage>
-                        <?php if ($hero_is_cutout) : ?>
-                            <span class="pointer-events-none absolute inset-x-[8%] h-px bg-[#CBD6E3] bottom-[9%]" aria-hidden="true"></span>
-                            <span class="pointer-events-none absolute left-1/2 h-8 w-[58%] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgba(11,27,51,0.16),transparent)] bottom-[calc(9%-14px)]" aria-hidden="true"></span>
-                        <?php endif; ?>
+                        <span class="pointer-events-none absolute inset-x-[8%] bottom-6 h-px bg-[#CBD6E3] sm:bottom-8 lg:bottom-10" aria-hidden="true"></span>
+                        <span class="pointer-events-none absolute bottom-2 left-1/2 h-8 w-[58%] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgba(11,27,51,0.16),transparent)] sm:bottom-4 lg:bottom-6" aria-hidden="true"></span>
                         <div class="absolute inset-0">
                             <img class="absolute inset-0 z-10 h-full w-full transition-opacity duration-500 ease-out <?php echo esc_attr($hero_image_class); ?>" src="<?php echo esc_url($hero_image); ?>" alt="<?php echo esc_attr($product['title']); ?>" loading="eager" fetchpriority="high" decoding="async" data-product-hero-gallery-current data-product-hero-gallery-image>
                             <img class="absolute inset-0 z-20 h-full w-full opacity-0 transition-opacity duration-500 ease-out <?php echo esc_attr($hero_image_class); ?>" src="<?php echo esc_url($hero_image); ?>" alt="" aria-hidden="true" loading="lazy" decoding="async" data-product-hero-gallery-next>
@@ -261,7 +261,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                         <div class="mt-3 flex">
                             <div class="flex max-w-full items-center gap-2 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="<?php echo esc_attr($ui['photoGalleryTitle'] ?? 'Product Photos'); ?>">
                                 <?php foreach ($hero_gallery_items as $index => $item) : ?>
-                                    <button class="grid h-11 w-14 shrink-0 place-items-center overflow-hidden rounded-sm border p-0.5 transition md:h-12 md:w-16 <?php echo $index === 0 ? 'border-blue-500 bg-blue-50 shadow-card' : 'border-[#DDE5EF] bg-white hover:border-blue-300'; ?>" type="button" data-product-hero-gallery-thumb data-product-hero-gallery-index="<?php echo esc_attr((string) $index); ?>" data-product-hero-gallery-src="<?php echo esc_url($item['image']); ?>" data-product-hero-gallery-label="<?php echo esc_attr($item['label']); ?>" aria-pressed="<?php echo $index === 0 ? 'true' : 'false'; ?>" aria-label="<?php echo esc_attr($item['label']); ?>">
+                                    <button class="grid h-11 w-14 shrink-0 place-items-center overflow-hidden rounded-sm border p-0.5 transition md:h-12 md:w-16 <?php echo $index === 0 ? 'border-blue-500 bg-blue-50 shadow-card' : 'border-[#DDE5EF] bg-white hover:border-blue-300'; ?>" type="button" data-product-hero-gallery-thumb data-product-hero-gallery-index="<?php echo esc_attr((string) $index); ?>" data-product-hero-gallery-src="<?php echo esc_url($item['image']); ?>" data-product-hero-gallery-label="<?php echo esc_attr($item['label']); ?>" data-product-hero-gallery-fit="<?php echo esc_attr($item['fit']); ?>" aria-pressed="<?php echo $index === 0 ? 'true' : 'false'; ?>" aria-label="<?php echo esc_attr($item['label']); ?>">
                                         <img class="h-full w-full rounded-sm object-cover" src="<?php echo esc_url($item['image']); ?>" alt="" loading="lazy" decoding="async">
                                     </button>
                                 <?php endforeach; ?>

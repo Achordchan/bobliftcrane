@@ -480,6 +480,29 @@ function boblift_clean_imported_product_text(string $text): string
     return ltrim($text, " ,;-–—");
 }
 
+// How a product image sits on the hero stage: 'cutout' floats whole on the floor, 'photo' fills the frame.
+// tools/image-fit records the fit from the pixels; images without it fall back to the file name.
+function boblift_image_fit(string $url): string
+{
+    static $cache = [];
+    if ($url === '') {
+        return 'photo';
+    }
+    if (!isset($cache[$url])) {
+        $id = attachment_url_to_postid($url);
+        if (!$id) {
+            // Resized copies ("-768x768.png") belong to the full-size attachment.
+            $id = attachment_url_to_postid((string) preg_replace('/-\d+x\d+(\.[a-z]+)$/i', '$1', strtok($url, '?')));
+        }
+        $fit = $id ? (string) get_post_meta($id, '_boblift_image_fit', true) : '';
+        if ($fit !== 'cutout' && $fit !== 'photo') {
+            $fit = preg_match('/transparent|\.png(?:$|[?&])/i', $url) ? 'cutout' : 'photo';
+        }
+        $cache[$url] = $fit;
+    }
+    return $cache[$url];
+}
+
 function boblift_product_from_post(WP_Post $post): array
 {
     $terms = get_the_terms($post, 'product_category');
@@ -969,12 +992,17 @@ function boblift_product_card(array $product, string $extra_class = '', bool $ea
     $quick_view_label = (string) ($product_ui['quickViewLabel'] ?? 'Quick view');
     $view_details_label = (string) ($product_ui['viewDetailsLabel'] ?? 'View Details');
     $request_quote_label = (string) ($product_ui['requestQuoteLabel'] ?? 'Request Quote');
+    // Cut-outs float on the card's backdrop; site photos fill the card.
+    $card_image = boblift_product_image($product);
+    $card_image_class = boblift_image_fit($card_image) === 'cutout'
+        ? 'scale-[1.08] object-contain p-4 drop-shadow-[0_6px_8px_rgba(11,27,51,0.10)] group-hover:scale-[1.12] sm:p-5'
+        : 'object-cover group-hover:scale-[1.03]';
     ?>
     <article class="product-card group flex min-h-full cursor-pointer flex-col overflow-hidden rounded border border-[#E5E7EB] bg-white shadow-card transition duration-300 hover:-translate-y-1 hover:border-blue-200 <?php echo esc_attr($extra_class); ?>" data-product-id="<?php echo esc_attr($product_id); ?>" data-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-category="<?php echo esc_attr($product['category'] ?? ''); ?>" data-categories="<?php echo esc_attr(implode(',', $product_categories)); ?>" data-category-title="<?php echo esc_attr($product['category_title'] ?? 'BOB-LIFT'); ?>" data-capacity="<?php echo esc_attr((string) ($product['capacity_value'] ?? 0)); ?>" data-boom="<?php echo esc_attr($product['boom_type'] ?? ''); ?>" data-applications="<?php echo esc_attr($apps); ?>" data-status="<?php echo esc_attr($status); ?>" data-status-label="<?php echo esc_attr(boblift_product_status_label($status)); ?>" data-featured="<?php echo !empty($product['featured']) ? '1' : '0'; ?>" data-created="<?php echo esc_attr((string) ($product['created_at'] ?? '')); ?>" data-popularity="<?php echo esc_attr((string) ($product['popularity'] ?? 0)); ?>" data-title="<?php echo esc_attr($product['title']); ?>" data-image="<?php echo esc_url(boblift_product_image($product)); ?>" data-summary="<?php echo esc_attr($product['short_description'] ?? ''); ?>" data-inquiry-url="<?php echo esc_url($inquiry_url); ?>" data-detail-url="<?php echo esc_url($detail_url); ?>" data-specs="<?php echo $quick_specs; ?>">
         <div class="product-card-inner flex min-h-full flex-col">
             <div class="product-card-media relative h-64 overflow-hidden bg-[radial-gradient(circle_at_48%_34%,#ffffff_0%,#f8fafc_34%,#eef2f7_64%,#e2e8f0_100%)] sm:h-72 lg:h-64 xl:h-72">
                 <span class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_82%,rgba(15,23,42,0.13),transparent_44%)]"></span>
-                <img class="absolute inset-0 z-10 h-full w-full scale-[1.08] object-contain p-4 drop-shadow-[0_6px_8px_rgba(11,27,51,0.10)] transition duration-500 group-hover:scale-[1.12] sm:p-5" src="<?php echo esc_url(boblift_product_image($product)); ?>" alt="<?php echo esc_attr($product['title']); ?>" <?php echo $eager_image ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'; ?> decoding="async">
+                <img class="absolute inset-0 z-10 h-full w-full transition duration-500 <?php echo esc_attr($card_image_class); ?>" src="<?php echo esc_url($card_image); ?>" alt="<?php echo esc_attr($product['title']); ?>" <?php echo $eager_image ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'; ?> decoding="async">
                 <a class="absolute inset-0 z-[15]" href="<?php echo esc_url($detail_url); ?>" aria-label="<?php echo esc_attr($view_details_label . ' ' . $product['title']); ?>"><span class="sr-only"><?php echo esc_html($view_details_label . ' ' . $product['title']); ?></span></a>
                 <?php echo boblift_product_status_badge($status, 'absolute left-5 top-5 z-20'); ?>
                 <div class="product-card-overlay-actions absolute right-5 top-5 z-20 flex flex-col gap-3"><button class="inline-flex h-11 w-11 items-center justify-center rounded-sm bg-white text-[#0B1B33] shadow-card transition hover:-translate-y-0.5 hover:text-blue-700" type="button" data-product-favorite aria-label="<?php echo esc_attr($add_quote_label); ?>"><?php echo boblift_icon('heart', 'h-5 w-5'); ?></button><button class="inline-flex h-11 w-11 items-center justify-center rounded-sm bg-white text-[#0B1B33] shadow-card transition hover:-translate-y-0.5 hover:text-blue-700" type="button" data-product-quick-view aria-label="<?php echo esc_attr($quick_view_label . ' ' . $product['title']); ?>"><?php echo boblift_icon('eye', 'h-5 w-5'); ?></button></div>

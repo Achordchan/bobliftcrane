@@ -208,15 +208,15 @@
       nextImage.offsetHeight;
       nextImage.classList.remove('transition-none');
     };
-    // Cut-outs sit whole on the stage floor; photos fill the stage.
-    const cutoutFit = ['object-contain', 'object-bottom', 'p-5', 'sm:p-8', 'lg:p-10'];
-    const applyFit = (image, src) => {
+    // Cut-outs stand whole on the stage floor; photos fill the stage. The fit comes from the thumb.
+    const cutoutFit = ['object-contain', 'object-bottom', 'px-3', 'pt-3', 'pb-6', 'sm:px-4', 'sm:pt-4', 'sm:pb-8', 'lg:px-6', 'lg:pt-6', 'lg:pb-10'];
+    const applyFit = (image, fit) => {
       if (!image?.classList) return;
-      const cutout = /transparent|\.png(?:$|[?&])/i.test(src);
+      const cutout = fit === 'cutout';
       cutoutFit.forEach((className) => image.classList.toggle(className, cutout));
       image.classList.toggle('object-cover', !cutout);
     };
-    const switchProductImage = async (src, label = '') => {
+    const switchProductImage = async (src, label = '', fit = 'photo') => {
       if (!src) return;
       const token = ++switchToken;
       currentImage.alt = label || currentImage.alt || '';
@@ -230,7 +230,7 @@
         targetImage.classList?.add('transition-none');
         targetImage.classList?.remove('opacity-100');
         targetImage.classList?.add('opacity-0');
-        applyFit(targetImage, src);
+        applyFit(targetImage, fit);
         await waitForProductImage(targetImage, src);
         if (token !== switchToken) return;
         if (nextImage) {
@@ -240,7 +240,7 @@
           nextImage.offsetHeight;
         }
         currentImage.src = src;
-        applyFit(currentImage, src);
+        applyFit(currentImage, fit);
         currentImage.classList.remove('opacity-0');
         window.requestAnimationFrame(() => {
           if (token !== switchToken) return;
@@ -262,7 +262,7 @@
         root.dataset.productHeroActiveIndex = index;
         setPrimaryOnlyVisible(index === '0');
         thumbs.forEach((item) => setGalleryActive(item, item === button));
-        switchProductImage(src, label);
+        switchProductImage(src, label, button.dataset.productHeroGalleryFit || 'photo');
       });
     });
   });
