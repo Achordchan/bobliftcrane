@@ -143,6 +143,8 @@ $hero_image_class = $hero_is_cutout ? $hero_cutout_class : $hero_photo_class;
 // Part hotspots only when an editor placed them for this product; the generic defaults do not match the image.
 $has_custom_hotspots = !empty($product['hotspots']);
 $hero_summary = trim((string) ($product['short_description'] ?? ''));
+// The specs header repeats nothing: drop the intro when it is the same sentence as the hero summary.
+$technical_intro_html = trim(wp_strip_all_tags($product_intro_html)) === $hero_summary ? '' : $product_intro_html;
 // "2950 kg" -> ["2950", "kg"] so the hero can set the number large and the unit small.
 $hero_spec_parts = static function (string $value): array {
     $value = trim($value);
@@ -220,7 +222,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                         ?>
                             <div class="flex min-w-0 flex-col py-4 pr-3 <?php echo $index % 2 === 1 ? 'border-l border-[#D5DEE9] pl-4' : ''; ?> <?php echo $index >= 2 ? 'border-t border-[#D5DEE9] sm:border-t-0' : ''; ?> <?php echo $index === 2 ? 'sm:border-l sm:pl-4' : ''; ?>">
                                 <dt class="text-[10px] font-black uppercase leading-4 tracking-[0.12em] text-slate-500"><?php echo esc_html($spec['label']); ?></dt>
-                                <dd class="mt-auto break-words pt-1.5 font-black leading-tight text-[#071f42] [font-variant-numeric:tabular-nums]"><span class="<?php echo ($spec_unit !== '' || mb_strlen($spec_number) <= 8) ? 'text-[clamp(22px,1.9vw,32px)]' : 'text-base'; ?>"><?php echo esc_html($spec_number); ?></span><?php if ($spec_unit !== '') : ?><span class="ml-1 text-sm font-bold text-slate-500"><?php echo esc_html($spec_unit); ?></span><?php endif; ?></dd>
+                                <dd class="mt-auto break-words pt-1.5 font-black leading-tight text-[#071f42] [font-variant-numeric:tabular-nums]"><span class="<?php echo ($spec_unit !== '' || mb_strlen($spec_number) <= 8) ? 'text-[clamp(22px,1.9vw,32px)]' : 'text-base'; ?>"><?php echo esc_html($spec_number); ?></span><?php if ($spec_unit !== '') : ?><span class="<?php echo $spec_unit === '°' ? '' : 'ml-1'; ?> text-sm font-bold text-slate-500"><?php echo esc_html($spec_unit); ?></span><?php endif; ?></dd>
                             </div>
                         <?php endforeach; ?>
                     </dl>
@@ -272,21 +274,26 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
     <section class="bg-[#F5F7FB] py-8 md:py-12">
         <div class="page-shell min-w-0 space-y-6 md:space-y-8">
             <article id="technical" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card">
-                <div class="grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-                    <div class="border-b border-[#DDE7F2] p-6 md:p-8 lg:border-b-0 lg:border-r lg:p-10">
+                <div class="flex flex-col gap-3 p-6 md:p-8 lg:flex-row lg:items-start lg:justify-between lg:gap-10">
+                    <div class="shrink-0">
                         <p class="text-[11px] font-black uppercase tracking-[0.2em] text-[#0B3F7D]"><?php echo esc_html($ui['cinemaSpecsLabel'] ?? 'Engineering data'); ?></p>
                         <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($ui['specsHeading'] ?? 'Specifications'); ?></h2>
-                        <div class="mt-5 space-y-3 text-sm font-semibold leading-7 text-slate-600 md:text-[15px] [&_p]:m-0 [&_strong]:font-black [&_strong]:text-[#071f42] [&_ul]:m-0 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5"><?php echo wp_kses_post($product_intro_html); ?></div>
                     </div>
-                    <dl class="divide-y divide-[#E6EDF5] self-start">
-                        <?php foreach ($technical_specs as $index => $spec) : ?>
-                            <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] gap-4 px-6 py-3.5 md:px-8 lg:px-10 <?php echo $index === 0 ? 'bg-[#F5F8FC]' : ''; ?>">
-                                <dt class="text-sm font-semibold leading-6 text-slate-500"><?php echo esc_html($spec['label']); ?></dt>
-                                <dd class="min-w-0 break-words text-sm font-black leading-6 text-[#071f42] [font-variant-numeric:tabular-nums] md:text-[15px]"><?php echo esc_html($spec['value']); ?></dd>
-                            </div>
-                        <?php endforeach; ?>
-                    </dl>
+                    <?php if ($technical_intro_html !== '') : ?>
+                        <div class="max-w-[640px] space-y-3 text-sm font-semibold leading-7 text-slate-600 md:text-[15px] [&_p]:m-0 [&_strong]:font-black [&_strong]:text-[#071f42] [&_ul]:m-0 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5"><?php echo wp_kses_post($technical_intro_html); ?></div>
+                    <?php endif; ?>
                 </div>
+                <dl class="-mb-px -mr-px grid grid-cols-2 border-t border-[#E6EDF5] sm:grid-cols-3 lg:grid-cols-4">
+                    <?php foreach ($technical_specs as $index => $spec) :
+                        [$spec_number, $spec_unit] = $hero_spec_parts((string) $spec['value']);
+                        $spec_wide = mb_strlen((string) $spec['value']) > 22;
+                    ?>
+                        <div class="flex min-w-0 flex-col border-b border-r border-[#E6EDF5] px-4 py-4 sm:px-6 sm:py-5 <?php echo $spec_wide ? 'col-span-2' : ''; ?> <?php echo $index === 0 ? 'bg-[#F5F8FC]' : ''; ?>">
+                            <dt class="text-xs font-semibold leading-5 text-slate-500"><?php echo esc_html($spec['label']); ?></dt>
+                            <dd class="mt-auto break-words pt-1.5 font-black leading-tight text-[#071f42] [font-variant-numeric:tabular-nums]"><span class="<?php echo ($spec_unit !== '' || mb_strlen($spec_number) <= 12) ? 'text-lg md:text-xl' : 'text-sm md:text-base'; ?>"><?php echo esc_html($spec_number); ?></span><?php if ($spec_unit !== '') : ?><span class="<?php echo $spec_unit === '°' ? '' : 'ml-1'; ?> text-xs font-bold text-slate-500 md:text-sm"><?php echo esc_html($spec_unit); ?></span><?php endif; ?></dd>
+                        </div>
+                    <?php endforeach; ?>
+                </dl>
             </article>
             <?php foreach ($drawings as $drawing) :
                 $drawing_ratio = ($drawing['height'] ?? 0) > 0 ? $drawing['width'] / $drawing['height'] : 2;
