@@ -851,6 +851,7 @@ function boblift_case_meta_box(WP_Post $post): void
             <?php boblift_render_textarea_field('boblift_case_meta[feedback_quote]', '客户反馈短句', boblift_meta_value($post->ID, 'feedback_quote'), 'boblift-admin-field-full'); ?>
         </div><p class="boblift-admin-help">客户反馈板块会读取这里的媒体 URL；视频支持 .mp4 / .webm 直链，也支持 YouTube 链接。图片 URL 留空时使用特色图。</p></div>
         <div class="boblift-admin-box"><h3>案例事实</h3><?php boblift_render_pair_rows('boblift_case_meta[facts_rows]', $facts, ['label', 'value'], ['标签', '值'], 4); ?></div>
+        <div class="boblift-admin-box"><h3>现场照片</h3><p class="boblift-admin-help">按顺序配在每个内容段落旁边（第 1 张配第 1 段），多出的照片在段落下方排成照片墙。横版 4:3 或 3:2，长边 1600 像素以上；不要客户人脸、电话、公司名。</p><?php boblift_render_media_picker('boblift_case_meta[gallery]', array_filter(array_map('intval', explode(',', boblift_meta_value($post->ID, 'case_gallery')))), ['image'], '可多选，按选择顺序显示。'); ?></div>
         <div class="boblift-admin-box"><h3>内容段落</h3><?php boblift_render_pair_rows('boblift_case_meta[sections_rows]', $sections, ['heading', 'body'], ['段落标题', '段落正文'], 4); ?></div>
     </div>
     <?php
@@ -992,6 +993,7 @@ function boblift_save_meta_boxes(int $post_id): void
         }
         update_post_meta($post_id, '_feedback_media_url', esc_url_raw((string) ($meta['feedback_media_url'] ?? '')));
         update_post_meta($post_id, '_facts', boblift_rows_to_json(is_array($meta['facts_rows'] ?? null) ? $meta['facts_rows'] : [], ['label', 'value']));
+        update_post_meta($post_id, '_case_gallery', implode(',', array_filter(array_map('intval', explode(',', (string) ($meta['gallery'] ?? ''))))));
         update_post_meta($post_id, '_sections', boblift_rows_to_json(is_array($meta['sections_rows'] ?? null) ? $meta['sections_rows'] : [], ['heading', 'body']));
         $post = get_post($post_id);
         if ($post instanceof WP_Post) {
@@ -1358,6 +1360,9 @@ add_action('template_redirect', 'boblift_legacy_html_redirects', 1);
 
 // The product featured image is the hero and card image; tell editors what the stage expects.
 add_filter('admin_post_thumbnail_html', static function (string $html, int $post_id): string {
+    if (get_post_type($post_id) === 'case') {
+        return $html . '<p class="description" style="margin-top:10px;line-height:1.6"><strong>案例封面规格</strong><br>现场实拍横版照片，3:2 或 16:9，长边 1600 像素以上，主体放在画面中间。详情页会按宽幅裁切上下边缘，所以不要把重要内容贴着上下边。不加 Logo、水印和文字。</p>';
+    }
     if (get_post_type($post_id) !== 'product') {
         return $html;
     }
@@ -1436,31 +1441,42 @@ function boblift_feedback_meta_box(WP_Post $post): void
         <?php endforeach; ?>
         <p class="description">显示在详情页图片下方，空行分段。留空时详情页只显示图片 / 视频。同样不要写客户姓名、公司名。</p>
     </div></div>
-    <div class="boblift-admin-field boblift-feedback-media-field"><label>图片 / 视频</label><div>
-        <input type="hidden" class="boblift-feedback-media-ids" name="boblift_feedback[media]" value="<?php echo esc_attr(implode(',', $ids)); ?>">
-        <p><button type="button" class="button boblift-feedback-media-select">选择图片 / 视频</button> <span class="description">可多选；按选择顺序显示，第一张作为封面。视频建议 60 秒以内、720p、无声。</span></p>
-        <div class="boblift-feedback-media-preview" style="display:flex;flex-wrap:wrap;gap:6px">
+    <div class="boblift-admin-field"><label>图片 / 视频</label><?php boblift_render_media_picker('boblift_feedback[media]', $ids, ['image', 'video'], '可多选；按选择顺序显示，第一张作为封面。视频建议 60 秒以内、720p、无声。'); ?></div>
+    </div>
+    <?php
+}
+
+// Media library picker storing attachment IDs (comma-separated) in one hidden field; order follows the selection.
+function boblift_render_media_picker(string $name, array $ids, array $types, string $help): void
+{
+    ?>
+    <div class="boblift-media-picker" data-types="<?php echo esc_attr(implode(',', $types)); ?>">
+        <input type="hidden" class="boblift-media-picker-ids" name="<?php echo esc_attr($name); ?>" value="<?php echo esc_attr(implode(',', $ids)); ?>">
+        <p><button type="button" class="button boblift-media-picker-select"><?php echo esc_html(in_array('video', $types, true) ? '选择图片 / 视频' : '选择图片'); ?></button> <span class="description"><?php echo esc_html($help); ?></span></p>
+        <div class="boblift-media-picker-preview" style="display:flex;flex-wrap:wrap;gap:6px">
             <?php foreach ($ids as $id) : $thumb = wp_attachment_is('video', $id) ? (string) get_the_post_thumbnail_url($id, 'thumbnail') : (string) wp_get_attachment_image_url($id, 'thumbnail'); ?>
                 <span style="width:72px;height:54px;border:1px solid #dcdcde;background:#f6f7f7 center/cover no-repeat;<?php echo $thumb !== '' ? 'background-image:url(' . esc_url($thumb) . ')' : ''; ?>" title="<?php echo esc_attr(get_the_title($id)); ?>"><?php echo wp_attachment_is('video', $id) ? '&#9654;' : ''; ?></span>
             <?php endforeach; ?>
         </div>
-    </div></div>
+    </div>
     <script>
     jQuery(function ($) {
-      $(document).on('click', '.boblift-feedback-media-select', function (event) {
+      if (window.bobliftMediaPickerReady) return;
+      window.bobliftMediaPickerReady = true;
+      $(document).on('click', '.boblift-media-picker-select', function (event) {
         event.preventDefault();
-        var field = $(this).closest('.boblift-feedback-media-field');
-        var frame = wp.media({ title: '选择反馈图片 / 视频', button: { text: '使用所选' }, multiple: 'add', library: { type: ['image', 'video'] } });
+        var field = $(this).closest('.boblift-media-picker');
+        var frame = wp.media({ title: $(this).text(), button: { text: '使用所选' }, multiple: 'add', library: { type: String(field.data('types')).split(',') } });
         frame.on('open', function () {
           var selection = frame.state().get('selection');
-          (field.find('.boblift-feedback-media-ids').val() || '').split(',').filter(Boolean).forEach(function (id) {
+          (field.find('.boblift-media-picker-ids').val() || '').split(',').filter(Boolean).forEach(function (id) {
             var attachment = wp.media.attachment(id); attachment.fetch(); selection.add(attachment);
           });
         });
         frame.on('select', function () {
           var items = frame.state().get('selection').toJSON();
-          field.find('.boblift-feedback-media-ids').val(items.map(function (item) { return item.id; }).join(','));
-          var preview = field.find('.boblift-feedback-media-preview').empty();
+          field.find('.boblift-media-picker-ids').val(items.map(function (item) { return item.id; }).join(','));
+          var preview = field.find('.boblift-media-picker-preview').empty();
           items.forEach(function (item) {
             var thumb = (item.sizes && item.sizes.thumbnail && item.sizes.thumbnail.url) || (item.image && item.image.src) || '';
             $('<span>').css({ width: 72, height: 54, border: '1px solid #dcdcde', background: '#f6f7f7 center/cover no-repeat', backgroundImage: thumb ? 'url(' + thumb + ')' : '' }).text(item.type === 'video' ? '\u25B6' : '').appendTo(preview);
@@ -1470,7 +1486,6 @@ function boblift_feedback_meta_box(WP_Post $post): void
       });
     });
     </script>
-    </div>
     <?php
 }
 
@@ -1500,7 +1515,7 @@ add_action('save_post_feedback', 'boblift_save_feedback_meta');
 // The media picker on the feedback editor needs the media library scripts.
 add_action('admin_enqueue_scripts', static function (): void {
     $screen = function_exists('get_current_screen') ? get_current_screen() : null;
-    if ($screen && $screen->post_type === 'feedback' && $screen->base === 'post') {
+    if ($screen && in_array($screen->post_type, ['feedback', 'case'], true) && $screen->base === 'post') {
         wp_enqueue_media();
     }
 });

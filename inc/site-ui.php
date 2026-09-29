@@ -164,6 +164,7 @@ function boblift_static_text_translations(): array
             'Interested in the {model}?' => '{model} にご興味がありますか？',
             'Get a Quote' => '見積もりを依頼',
             'Priority' => '重視点',
+            'Site photos' => '現場写真',
         ],
         'zh' => [
             'Customer Feedback' => '客户反馈',
@@ -178,6 +179,7 @@ function boblift_static_text_translations(): array
             'Product' => '产品',
             'Scenario' => '应用场景',
             'Priority' => '关注重点',
+            'Site photos' => '现场照片',
             'Former model' => '旧型号',
             'Product technical advantages' => '产品技术优势',
             'Series' => '系列',
@@ -464,7 +466,7 @@ function boblift_site_ui_defaults(?string $section = null): array
             'nextLabel' => 'Next',
             'tabsAriaLabel' => 'Case sections',
         ],
-        'caseDetail' => ['home' => 'Home', 'cases' => 'Cases', 'breadcrumbLabel' => 'Breadcrumb', 'backLabel' => 'Back to Case Center', 'factsTitle' => 'Case Facts', 'projectSupportLabel' => 'Project Support', 'discussSimilarLabel' => 'Discuss Similar Project', 'relatedCasesLabel' => 'Related Cases', 'defaultTypeLabel' => 'Customer Case', 'similarProjectPrompt' => 'Planning a similar project?', 'viewAllLabel' => 'View all', 'countryLabel' => 'Country', 'mediaLabel' => 'Media', 'moreFeedbackLabel' => 'More customer feedback', 'askModelTemplate' => 'Interested in the {model}?', 'getQuoteLabel' => 'Get a Quote'],
+        'caseDetail' => ['home' => 'Home', 'cases' => 'Cases', 'breadcrumbLabel' => 'Breadcrumb', 'backLabel' => 'Back to Case Center', 'factsTitle' => 'Case Facts', 'projectSupportLabel' => 'Project Support', 'discussSimilarLabel' => 'Discuss Similar Project', 'relatedCasesLabel' => 'Related Cases', 'defaultTypeLabel' => 'Customer Case', 'similarProjectPrompt' => 'Planning a similar project?', 'viewAllLabel' => 'View all', 'countryLabel' => 'Country', 'mediaLabel' => 'Media', 'moreFeedbackLabel' => 'More customer feedback', 'askModelTemplate' => 'Interested in the {model}?', 'getQuoteLabel' => 'Get a Quote', 'sitePhotosLabel' => 'Site photos'],
         'successPage' => [
             'label' => 'Inquiry Submitted',
             'title' => 'Thank you for your inquiry.',
