@@ -789,8 +789,8 @@ function boblift_product_meta_box(WP_Post $post): void
         </div></div>
         <div class="boblift-admin-box"><h3>技术参数</h3><p class="boblift-admin-help">保存后仍写入原 _specs JSON，前台无需改动。</p><?php boblift_render_pair_rows('boblift_meta[specs_rows]', $specs, ['label', 'value'], ['参数名', '参数值'], 8); ?></div>
         <div class="boblift-admin-box"><h3>产品特点</h3><?php boblift_render_pair_rows('boblift_meta[features_rows]', $features, ['title', 'text'], ['标题', '说明'], 5); ?></div>
-        <div class="boblift-admin-box"><h3>产品详情长图</h3><p class="boblift-admin-help">用于前台“Product Details”区块。适合上传瘦长详情图，多张会从上到下无间距拼接显示。</p><?php boblift_render_pair_rows('boblift_meta[detail_image_rows]', $detail_images, ['image', 'label'], ['详情图地址', '图片说明'], 4); ?></div>
-        <div class="boblift-admin-box"><h3>产品照片画廊</h3><p class="boblift-admin-help">只放产品照片，不放参数表、详情长图。填写图片 URL 或 assets 相对路径，例如 images/products/crane-accessories.png。</p><?php boblift_render_pair_rows('boblift_meta[gallery_rows]', $gallery, ['image', 'label'], ['照片地址', '照片标签'], 8); ?></div>
+        <div class="boblift-admin-box"><h3>产品详情长图</h3><p class="boblift-admin-help">前台产品页已不再显示详情长图（参数、图纸、照片都已做成页面模块），这里的内容只作存档，无需再做。</p><?php boblift_render_pair_rows('boblift_meta[detail_image_rows]', $detail_images, ['image', 'label'], ['详情图地址', '图片说明'], 4); ?></div>
+        <div class="boblift-admin-box"><h3>产品照片画廊</h3><p class="boblift-admin-help">只放产品实拍照片，不放参数表、详情长图。<strong>尺寸：横版 4:3，建议 1600×1200 像素（不小于 1200×900），JPG 或 WebP，单张 500KB 以内。</strong>画面铺满、不留白边，产品完整不被裁切，不加 Logo、水印和文字。比例不是 4:3 的照片也能完整显示，但两侧或上下会留灰底。填写图片 URL 或 assets 相对路径，例如 images/products/crane-accessories.png。</p><?php boblift_render_pair_rows('boblift_meta[gallery_rows]', $gallery, ['image', 'label'], ['照片地址', '照片标签'], 8); ?></div>
         <div class="boblift-admin-box"><h3>产品图锚点</h3><?php boblift_render_hotspot_editor('boblift_meta[hotspot_rows]', $hotspots, $hotspot_image); ?></div>
     </div>
     <?php
@@ -1332,3 +1332,56 @@ function boblift_legacy_html_redirects(): void
     }
 }
 add_action('template_redirect', 'boblift_legacy_html_redirects', 1);
+
+// The product featured image is the hero and card image; tell editors what the stage expects.
+add_filter('admin_post_thumbnail_html', static function (string $html, int $post_id): string {
+    if (get_post_type($post_id) !== 'product') {
+        return $html;
+    }
+    $help = '<p class="description" style="margin-top:10px;line-height:1.6">'
+        . '<strong>产品主图规格（二选一）</strong><br>'
+        . '1. 透明底抠图（推荐）：PNG，四周只留很窄的透明边（约为图片长边的 2%，不要大片留白），长边 1600 像素以上；产品会站在展示台的地面线上。<br>'
+        . '2. 实拍照片：横版 4:3，1600×1200 像素，JPG/WebP，画面铺满、不留白边。<br>'
+        . '都不要加 Logo、水印和文字。上传后前台会按图片本身判断是抠图还是照片。'
+        . '</p>';
+    return $html . $help;
+}, 10, 2);
+
+// Record whether a new upload is a cut-out (transparent edges) or a photo, so the product stage frames it
+// correctly without relying on the file name. Mirrors the rule tools/image-fit used for the existing library.
+add_filter('wp_generate_attachment_metadata', static function (array $metadata, int $attachment_id): array {
+    $file = get_attached_file($attachment_id);
+    if (!$file || !function_exists('imagecreatefromstring') || get_post_meta($attachment_id, '_boblift_image_fit', true) !== '') {
+        return $metadata;
+    }
+    $fit = 'photo';
+    if (preg_match('/\.png$/i', $file)) {
+        $image = @imagecreatefrompng($file);
+        if ($image) {
+            $w = imagesx($image);
+            $h = imagesy($image);
+            $clear = 0;
+            $total = 0;
+            // Sample the outer 2% ring; a cut-out's edge is mostly transparent, a photo's is opaque.
+            $band = max(2, (int) round(min($w, $h) * 0.02));
+            $step = max(1, (int) round(max($w, $h) / 400));
+            for ($x = 0; $x < $w; $x += $step) {
+                foreach ([0, $band - 1, $h - $band, $h - 1] as $y) {
+                    $total++;
+                    $clear += ((imagecolorat($image, $x, $y) >> 24) & 0x7F) > 64 ? 1 : 0;
+                }
+            }
+            for ($y = 0; $y < $h; $y += $step) {
+                foreach ([0, $band - 1, $w - $band, $w - 1] as $x) {
+                    $total++;
+                    $clear += ((imagecolorat($image, $x, $y) >> 24) & 0x7F) > 64 ? 1 : 0;
+                }
+            }
+            if ($total > 0 && $clear / $total > 0.9) {
+                $fit = 'cutout';
+            }
+        }
+    }
+    update_post_meta($attachment_id, '_boblift_image_fit', $fit);
+    return $metadata;
+}, 10, 2);

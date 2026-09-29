@@ -73,7 +73,6 @@ $technical_specs = array_values(array_filter(array_merge(
     trim((string) ($product['model_aliases'] ?? '')) !== '' ? [['label' => (string) ($ui['formerModelLabel'] ?? 'Former Model Name'), 'value' => (string) $product['model_aliases']]] : [],
     $specs
 ), static fn($spec): bool => is_array($spec) && trim((string) ($spec['label'] ?? '')) !== '' && trim((string) ($spec['value'] ?? '')) !== ''));
-$brochure_source = trim((string) ($product['brochure_source'] ?? ''));
 $drawings = array_values(array_filter($product['drawings'] ?? [], static fn($drawing): bool => is_array($drawing) && ($drawing['image'] ?? '') !== ''));
 $brochure_features = get_post_meta((int) ($product['id'] ?? 0), '_features_source', true) === 'brochure'
     ? array_values(array_filter($product['features'] ?? [], static fn($feature): bool => is_array($feature) && trim((string) ($feature['title'] ?? '')) !== ''))
@@ -229,9 +228,6 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                         <button class="boblift-product-hero-request inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-sm bg-[#071f42] px-6 text-sm font-black text-white transition hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页首屏" data-inquiry-product="<?php echo esc_attr($product['title']); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html($ui['requestQuoteLabel'] ?? 'Request Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
                         <button class="boblift-product-hero-quote-toggle inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-sm border border-[#D5DEE9] bg-white px-5 text-sm font-black text-[#0B3F7D] transition hover:border-blue-300" type="button" data-product-quote-add data-product-id="<?php echo esc_attr((string) ($product['id'] ?? ($product['slug'] ?? $product['title']))); ?>" data-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-title="<?php echo esc_attr($product['title']); ?>" data-image="<?php echo esc_url($main_image); ?>" data-category-title="<?php echo esc_attr($product['category_title'] ?? 'BOB-LIFT'); ?>" data-detail-url="<?php echo esc_url($product['detail_url'] ?? get_permalink()); ?>" data-summary="<?php echo esc_attr($product['short_description'] ?? ''); ?>" data-label-add="<?php echo esc_attr($hero_quote_list_add_label); ?>" data-label-active="<?php echo esc_attr($hero_quote_list_active_label); ?>"><?php echo boblift_icon('heart', 'h-4 w-4'); ?><span data-product-quote-add-label><?php echo esc_html($hero_quote_list_add_label); ?></span></button>
                     </div>
-                    <?php if ($brochure_source !== '') : ?>
-                        <p class="mt-5 flex items-center gap-2 text-xs font-semibold text-slate-500"><?php echo boblift_icon('book-open', 'h-4 w-4 shrink-0 text-[#0B3F7D]'); ?><span><?php echo esc_html(($ui['sourceLabel'] ?? 'Source') . ': ' . $brochure_source); ?></span></p>
-                    <?php endif; ?>
                 </div>
                 <div class="relative order-1 min-w-0 lg:order-2" data-product-hero-gallery-root data-product-hero-active-index="0">
                     <div class="boblift-product-stage relative aspect-[4/3] overflow-hidden rounded border border-[#DDE7F2] bg-[linear-gradient(180deg,#FFFFFF_0%,#F2F6FB_62%,#E8EEF6_100%)] shadow-card lg:aspect-[5/4] xl:aspect-[4/3]" data-product-hotspot-stage>
@@ -281,9 +277,6 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                         <p class="text-[11px] font-black uppercase tracking-[0.2em] text-[#0B3F7D]"><?php echo esc_html($ui['cinemaSpecsLabel'] ?? 'Engineering data'); ?></p>
                         <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($ui['specsHeading'] ?? 'Specifications'); ?></h2>
                         <div class="mt-5 space-y-3 text-sm font-semibold leading-7 text-slate-600 md:text-[15px] [&_p]:m-0 [&_strong]:font-black [&_strong]:text-[#071f42] [&_ul]:m-0 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5"><?php echo wp_kses_post($product_intro_html); ?></div>
-                        <?php if ($brochure_source !== '') : ?>
-                            <p class="mt-6 flex items-start gap-2 border-t border-[#E6EDF5] pt-5 text-xs font-semibold leading-5 text-slate-500"><?php echo boblift_icon('book-open', 'mt-0.5 h-4 w-4 shrink-0 text-[#0B3F7D]'); ?><span><?php echo esc_html(($ui['sourceLabel'] ?? 'Source') . ': ' . $brochure_source); ?></span></p>
-                        <?php endif; ?>
                     </div>
                     <dl class="divide-y divide-[#E6EDF5] self-start">
                         <?php foreach ($technical_specs as $index => $spec) : ?>
@@ -304,7 +297,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                             <p class="text-[11px] font-black uppercase tracking-[0.2em] text-[#0B3F7D]"><?php echo esc_html($ui['drawingLabel'] ?? 'Dimension Drawing'); ?></p>
                             <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($ui['drawingTitle'] ?? 'Dimensions and load chart'); ?></h2>
                         </div>
-                        <p class="text-xs font-semibold text-slate-500"><?php echo esc_html($hero_model !== '' ? $hero_model : $product_title); ?><?php echo $brochure_source !== '' ? ' · ' . esc_html($brochure_source) : ''; ?></p>
+                        <p class="text-xs font-semibold text-slate-500"><?php echo esc_html($hero_model !== '' ? $hero_model : $product_title); ?></p>
                     </div>
                     <div class="p-4 sm:p-6 md:p-8">
                         <button class="block w-full cursor-zoom-in rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" type="button" data-drawing-open aria-label="<?php echo esc_attr($drawing['label']); ?>">
