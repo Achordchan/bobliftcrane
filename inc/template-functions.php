@@ -580,6 +580,7 @@ function boblift_product_from_post(WP_Post $post): array
         'detail_images' => $detail_images,
         'drawings' => $drawings,
         'brochure_source' => (string) get_post_meta($post->ID, '_brochure_source', true),
+        'model_aliases' => (string) get_post_meta($post->ID, '_model_aliases', true),
         'hotspots' => $hotspots,
         'detail_url' => get_permalink($post),
         'inquiry_url' => boblift_url('/contact.html?product=' . rawurlencode($title) . '#inquiry'),

@@ -288,8 +288,8 @@
     const thumbs = qsa('[data-product-gallery-thumb]', root);
     if (!mainImage || thumbs.length < 2) return;
 
-    const activeClasses = ['border-blue-500', 'bg-blue-50', 'shadow-card'];
-    const inactiveClasses = ['border-[#DDE5EF]', 'bg-white/80', 'hover:border-blue-300'];
+    const activeClasses = ['border-blue-500', 'ring-2', 'ring-blue-500/20'];
+    const inactiveClasses = ['border-[#DDE5EF]', 'hover:border-blue-300'];
     const setActive = (button, active) => {
       button.setAttribute('aria-pressed', active ? 'true' : 'false');
       activeClasses.forEach((className) => button.classList.toggle(className, active));

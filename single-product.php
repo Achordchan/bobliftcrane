@@ -70,6 +70,7 @@ if (str_contains(strtolower($overview_title), 'truck-mounted') && !str_contains(
 }
 $technical_specs = array_values(array_filter(array_merge(
     $hero_model !== '' ? [['label' => (string) ($ui['specLabels']['model'] ?? 'Model'), 'value' => $hero_model]] : [],
+    trim((string) ($product['model_aliases'] ?? '')) !== '' ? [['label' => (string) ($ui['formerModelLabel'] ?? 'Former Model Name'), 'value' => (string) $product['model_aliases']]] : [],
     $specs
 ), static fn($spec): bool => is_array($spec) && trim((string) ($spec['label'] ?? '')) !== '' && trim((string) ($spec['value'] ?? '')) !== ''));
 $brochure_source = trim((string) ($product['brochure_source'] ?? ''));
@@ -321,17 +322,16 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                         <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($ui['photoGalleryTitle'] ?? ($ui['photosLabel'] ?? 'Product Photos')); ?></h2>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_280px]">
-                    <div class="relative aspect-[4/3] overflow-hidden rounded border border-[#DDE7F2] bg-[#F5F8FC] md:aspect-[16/9]">
+                <div class="space-y-3">
+                    <div class="relative aspect-[4/3] overflow-hidden rounded border border-[#DDE7F2] bg-[#F5F8FC] md:aspect-[2/1]">
                         <img class="absolute inset-0 h-full w-full object-contain p-4 transition-opacity duration-200 md:p-8" src="<?php echo esc_url($gallery_items[0]['image'] ?? $main_image); ?>" alt="<?php echo esc_attr($product['title']); ?>" loading="lazy" data-product-gallery-image>
                         <span class="absolute bottom-3 left-3 max-w-[calc(100%-1.5rem)] truncate rounded-sm border border-[#DDE7F2] bg-white px-3 py-1.5 text-xs font-black text-[#071f42]" data-product-gallery-caption><?php echo esc_html($gallery_items[0]['label'] ?? ($ui['mainProductViewLabel'] ?? 'Main product view')); ?></span>
                     </div>
                     <?php if (count($gallery_items) > 1) : ?>
-                        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-1 xl:content-start">
+                        <div class="grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10">
                             <?php foreach ($gallery_items as $index => $item) : ?>
-                                <button class="grid grid-cols-1 items-center gap-2 rounded border p-2 text-left transition xl:grid-cols-[76px_1fr] xl:gap-3 <?php echo $index === 0 ? 'border-blue-500 bg-blue-50' : 'border-[#DDE5EF] bg-white hover:border-blue-300'; ?>" type="button" data-product-gallery-thumb data-product-gallery-src="<?php echo esc_url($item['image']); ?>" data-product-gallery-label="<?php echo esc_attr($item['label']); ?>" aria-pressed="<?php echo $index === 0 ? 'true' : 'false'; ?>">
-                                    <span class="relative block aspect-[4/3] overflow-hidden rounded-sm bg-[#F5F8FC] xl:aspect-square"><img class="absolute inset-0 h-full w-full object-cover" src="<?php echo esc_url($item['image']); ?>" alt="<?php echo esc_attr($item['label']); ?>" loading="lazy"></span>
-                                    <span class="line-clamp-2 text-xs font-black leading-5 text-[#071f42]"><?php echo esc_html($item['label']); ?></span>
+                                <button class="relative block aspect-[4/3] overflow-hidden rounded-sm border bg-[#F5F8FC] transition <?php echo $index === 0 ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-[#DDE5EF] hover:border-blue-300'; ?>" type="button" data-product-gallery-thumb data-product-gallery-src="<?php echo esc_url($item['image']); ?>" data-product-gallery-label="<?php echo esc_attr($item['label']); ?>" aria-pressed="<?php echo $index === 0 ? 'true' : 'false'; ?>" aria-label="<?php echo esc_attr($item['label']); ?>" title="<?php echo esc_attr($item['label']); ?>">
+                                    <img class="absolute inset-0 h-full w-full object-cover" src="<?php echo esc_url($item['image']); ?>" alt="" loading="lazy">
                                 </button>
                             <?php endforeach; ?>
                         </div>

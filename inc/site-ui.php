@@ -469,6 +469,7 @@ function boblift_site_ui_defaults(?string $section = null): array
         'productDetail' => [
             'notFoundTitle' => 'Product not found',
             'specsHeading' => 'Specifications',
+            'formerModelLabel' => 'Former Model Name',
             'sourceLabel' => 'Source',
             'drawingLabel' => 'Dimension Drawing',
             'drawingTitle' => 'Dimensions and load chart',

@@ -79,7 +79,7 @@ foreach ($plan['products'] as $p) {
     }
     $urls = array_map(static fn($g) => is_array($g) ? (string) ($g['image'] ?? '') : (string) $g, $gallery);
     foreach ($p['photos'] as $index => $file) {
-        $factory = str_starts_with($file, 'factory-photos/');
+        $factory = str_starts_with($file, 'factory-');
         $photo = $import($file, $id, $model . ($factory ? ' factory photo' : ' photo from the BOB-LIFT product manual'));
         $url = $photo ? (string) wp_get_attachment_url($photo) : '';
         if ($url === '' || in_array($url, $urls, true)) {
@@ -99,6 +99,8 @@ foreach ($plan['products'] as $p) {
         update_post_meta($id, '_features_source', 'brochure');
     }
     update_post_meta($id, '_brochure_source', $p['source']);
+    // Model names the old site used, kept on the page so searches for them still land here.
+    update_post_meta($id, '_model_aliases', implode(', ', $p['model_aliases'] ?? []));
     // The overview and SEO description come from the brochure values, replacing old-site copy.
     update_post_meta($id, '_short_description', wp_slash($p['short_description']));
     update_post_meta($id, '_seo_description', wp_slash($p['short_description']));

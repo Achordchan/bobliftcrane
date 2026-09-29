@@ -4,9 +4,19 @@
    "slug": "20-ton-knuckle-boom-truck-mounted-crane",
    "model": "SQZ430",
    "drawing": "drawings/SQZ430.webp",
-   "photos": [],
+   "photos": [
+    "factory-gallery/SQZ430/01-IMG_1906.webp",
+    "factory-gallery/SQZ430/02-IMG_1865.webp",
+    "factory-gallery/SQZ430/03-IMG_1897.webp",
+    "factory-gallery/SQZ430/04-IMG_1950.webp",
+    "factory-gallery/SQZ430/05-IMG_2057.webp",
+    "factory-gallery/SQZ430/06-IMG_1962.webp"
+   ],
    "own_photos_first": false,
-   "short_description": "The BOB-LIFT SQZ430 knuckle boom truck mounted crane has a maximum lifting capacity of 20000 kg, a maximum lifting moment of 42.3 t·m and a self weight of 5500 kg.",
+   "short_description": "The BOB-LIFT SQZ430 knuckle boom truck mounted crane has a maximum lifting capacity of 20000 kg, a maximum lifting moment of 42.3 t·m and a self weight of 5500 kg. Previously listed as SQ20ZA4.",
+   "model_aliases": [
+    "SQ20ZA4"
+   ],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 10",
    "features": [
     {
@@ -46,6 +56,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ20SA5T telescopic boom marine crane has a maximum lifting capacity of 20000 kg, a maximum lifting moment of 50 t·m and a self weight of 6950 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Marine Crane Product Manual, PDF page 12",
    "features": [
     {
@@ -78,9 +89,19 @@
    "slug": "25-ton-knuckle-boom-marine-crane",
    "model": "SQZ500T",
    "drawing": "drawings/SQZ500T.webp",
-   "photos": [],
+   "photos": [
+    "factory-gallery/SQZ500T/01-IMG_1097.webp",
+    "factory-gallery/SQZ500T/02-IMG_1280.webp",
+    "factory-gallery/SQZ500T/03-IMG_1305.webp",
+    "factory-gallery/SQZ500T/04-IMG_1329.webp",
+    "factory-gallery/SQZ500T/05-IMG_1400.webp",
+    "factory-gallery/SQZ500T/06-IMG_1526.webp"
+   ],
    "own_photos_first": false,
-   "short_description": "The BOB-LIFT SQZ500T knuckle boom marine crane has a maximum lifting capacity of 25000 kg, a maximum lifting moment of 53 t·m and a self weight of 6474 kg.",
+   "short_description": "The BOB-LIFT SQZ500T knuckle boom marine crane has a maximum lifting capacity of 25000 kg, a maximum lifting moment of 53 t·m and a self weight of 6474 kg. Previously listed as SQ25ZA8T.",
+   "model_aliases": [
+    "SQ25ZA8T"
+   ],
    "source": "BOB-LIFT Marine Crane Product Manual, PDF page 9",
    "features": [
     {
@@ -119,7 +140,10 @@
    "drawing": "drawings/SQZ430T.webp",
    "photos": [],
    "own_photos_first": false,
-   "short_description": "The BOB-LIFT SQZ430T knuckle boom marine crane has a maximum lifting capacity of 20000 kg, a maximum lifting moment of 42.3 t·m and a self weight of 4900 kg.",
+   "short_description": "The BOB-LIFT SQZ430T knuckle boom marine crane has a maximum lifting capacity of 20000 kg, a maximum lifting moment of 42.3 t·m and a self weight of 4900 kg. Previously listed as SQ20ZA7TJ+1.",
+   "model_aliases": [
+    "SQ20ZA7TJ+1"
+   ],
    "source": "BOB-LIFT Marine Crane Product Manual, PDF page 9",
    "features": [
     {
@@ -160,7 +184,10 @@
     "photos/SQZ330T.webp"
    ],
    "own_photos_first": false,
-   "short_description": "The BOB-LIFT SQZ330T knuckle boom marine crane has a maximum lifting capacity of 16000 kg, a maximum lifting moment of 34.8 t·m and a self weight of 4500 kg.",
+   "short_description": "The BOB-LIFT SQZ330T knuckle boom marine crane has a maximum lifting capacity of 16000 kg, a maximum lifting moment of 34.8 t·m and a self weight of 4500 kg. Previously listed as SQ16ZA5T.",
+   "model_aliases": [
+    "SQ16ZA5T"
+   ],
    "source": "BOB-LIFT Marine Crane Product Manual, PDF page 8",
    "features": [
     {
@@ -202,6 +229,7 @@
    ],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ12ZA6T knuckle boom marine crane has a maximum lifting capacity of 12000 kg, a maximum lifting moment of 27 t·m and a self weight of 4350 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Marine Crane Product Manual, PDF page 8",
    "features": [
     {
@@ -240,7 +268,10 @@
    "drawing": "drawings/SQZ500.webp",
    "photos": [],
    "own_photos_first": false,
-   "short_description": "The BOB-LIFT SQZ500 knuckle boom truck mounted crane has a maximum lifting capacity of 25000 kg, a maximum lifting moment of 53.9 t·m and a self weight of 6300 kg.",
+   "short_description": "The BOB-LIFT SQZ500 knuckle boom truck mounted crane has a maximum lifting capacity of 25000 kg, a maximum lifting moment of 53.9 t·m and a self weight of 6300 kg. Previously listed as SQ25ZA6.",
+   "model_aliases": [
+    "SQ25ZA6"
+   ],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 10",
    "features": [
     {
@@ -279,7 +310,10 @@
    "drawing": "drawings/SQZ330.webp",
    "photos": [],
    "own_photos_first": false,
-   "short_description": "The BOB-LIFT SQZ330 knuckle boom truck mounted crane has a maximum lifting capacity of 16000 kg, a maximum lifting moment of 33 t·m and a self weight of 4900 kg.",
+   "short_description": "The BOB-LIFT SQZ330 knuckle boom truck mounted crane has a maximum lifting capacity of 16000 kg, a maximum lifting moment of 33 t·m and a self weight of 4900 kg. Previously listed as SQ16ZA4.",
+   "model_aliases": [
+    "SQ16ZA4"
+   ],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 9",
    "features": [
     {
@@ -318,7 +352,10 @@
    "drawing": "drawings/SQ12ZA6.webp",
    "photos": [],
    "own_photos_first": false,
-   "short_description": "The BOB-LIFT SQ12ZA6 knuckle boom truck mounted crane has a maximum lifting capacity of 12000 kg, a maximum lifting moment of 27 t·m and a self weight of 4800 kg.",
+   "short_description": "The BOB-LIFT SQ12ZA6 knuckle boom truck mounted crane has a maximum lifting capacity of 12000 kg, a maximum lifting moment of 27 t·m and a self weight of 4800 kg. Previously listed as SQ12ZA5.",
+   "model_aliases": [
+    "SQ12ZA5"
+   ],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 9",
    "features": [
     {
@@ -357,7 +394,10 @@
    "drawing": "drawings/SQ10ZA6.webp",
    "photos": [],
    "own_photos_first": false,
-   "short_description": "The BOB-LIFT SQ10ZA6 knuckle boom truck mounted crane has a maximum lifting capacity of 10000 kg, a maximum lifting moment of 21 t·m and a self weight of 3700 kg.",
+   "short_description": "The BOB-LIFT SQ10ZA6 knuckle boom truck mounted crane has a maximum lifting capacity of 10000 kg, a maximum lifting moment of 21 t·m and a self weight of 3700 kg. Previously listed as SQ10Z.",
+   "model_aliases": [
+    "SQ10Z"
+   ],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 9",
    "features": [
     {
@@ -396,7 +436,10 @@
    "drawing": "drawings/SQ6.3ZA5.webp",
    "photos": [],
    "own_photos_first": false,
-   "short_description": "The BOB-LIFT SQ6.3ZA5 knuckle boom truck mounted crane has a maximum lifting capacity of 6300 kg, a maximum lifting moment of 13.2 t·m and a self weight of 2310 kg.",
+   "short_description": "The BOB-LIFT SQ6.3ZA5 knuckle boom truck mounted crane has a maximum lifting capacity of 6300 kg, a maximum lifting moment of 13.2 t·m and a self weight of 2310 kg. Previously listed as SQ6.3ZA3.",
+   "model_aliases": [
+    "SQ6.3ZA3"
+   ],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 8",
    "features": [
     {
@@ -436,6 +479,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ5ZA4 knuckle boom truck mounted crane has a maximum lifting capacity of 5000 kg, a maximum lifting moment of 10.5 t·m and a self weight of 2386 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 8",
    "features": [
     {
@@ -475,6 +519,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ2ZA4 knuckle boom truck mounted crane has a maximum lifting capacity of 2000 kg, a maximum lifting moment of 4.2 t·m and a self weight of 750 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 6",
    "features": [
     {
@@ -514,6 +559,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ20SA5 telescopic boom truck mounted crane has a maximum lifting capacity of 20000 kg, a maximum lifting moment of 50 t·m and a self weight of 7300 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 14",
    "features": [
     {
@@ -549,6 +595,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ16SA5 telescopic boom truck mounted crane has a maximum lifting capacity of 16000 kg, a maximum lifting moment of 40 t·m and a self weight of 6600 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 14",
    "features": [
     {
@@ -584,6 +631,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT ZM75 timber crane has a maximum lifting capacity of 700 kg, a maximum lifting moment of 6.5 t·m and a self weight of 1400 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 15"
   },
   {
@@ -593,6 +641,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT ZM65 timber crane has a maximum lifting capacity of 700 kg, a maximum lifting moment of 6.5 t·m and a self weight of 1280 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 15"
   },
   {
@@ -604,6 +653,7 @@
    ],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT BLS3.0T spider crane has a maximum lifting capacity of 2950 kg and a maximum working radius of 8.46 m.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 20"
   },
   {
@@ -611,10 +661,16 @@
    "model": "SQ4ZG3T",
    "drawing": "drawings/SQ4ZG3T.webp",
    "photos": [
+    "factory-gallery/SQ4ZG3T/01-IMG_2119.webp",
+    "factory-gallery/SQ4ZG3T/02-IMG_2132.webp",
+    "factory-gallery/SQ4ZG3T/03-IMG_2096.webp",
+    "factory-gallery/SQ4ZG3T/04-IMG_2138.webp",
+    "factory-gallery/SQ4ZG3T/05-IMG_2088.webp",
     "photos/SQ4ZG3T.webp"
    ],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ4ZG3T spider crane has a maximum lifting capacity of 1600 kg and a maximum working radius of 5.6 m.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 19"
   },
   {
@@ -627,6 +683,7 @@
    ],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT CC85 forklift fly jib crane has a maximum lifting capacity of 2000 kg, a maximum lifting moment of 50 kN·m, a maximum working range of 5400 mm and a self weight of 560 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 17"
   },
   {
@@ -638,6 +695,7 @@
    ],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ16SA5T telescopic boom marine crane has a maximum lifting capacity of 16000 kg, a maximum lifting moment of 40 t·m and a self weight of 5800 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Marine Crane Product Manual, PDF page 12",
    "features": [
     {
@@ -672,7 +730,10 @@
    "drawing": "drawings/SQ08ZA3+1.webp",
    "photos": [],
    "own_photos_first": false,
-   "short_description": "The BOB-LIFT SQ08ZA3+1 pickup crane has a maximum lifting capacity of 800 kg, a maximum lifting moment of 1.3 t·m and a self weight of 330 kg.",
+   "short_description": "The BOB-LIFT SQ08ZA3+1 pickup crane has a maximum lifting capacity of 800 kg, a maximum lifting moment of 1.3 t·m and a self weight of 330 kg. Previously listed as SQ08ZA3.",
+   "model_aliases": [
+    "SQ08ZA3"
+   ],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 6",
    "features": [
     {
@@ -712,6 +773,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ12SA4T telescopic boom marine crane has a maximum lifting capacity of 12000 kg, a maximum lifting moment of 33 t·m and a self weight of 4050 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Marine Crane Product Manual, PDF page 11",
    "features": [
     {
@@ -750,6 +812,7 @@
    ],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT CC105 forklift fly jib crane has a maximum lifting capacity of 2300 kg, a maximum lifting moment of 50 kN·m, a maximum working range of 6500 mm and a self weight of 650 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 17"
   },
   {
@@ -762,6 +825,7 @@
    ],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT CC125 forklift fly jib crane has a maximum lifting capacity of 3500 kg, a maximum lifting moment of 60 kN·m, a maximum working range of 8000 mm and a self weight of 850 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 18"
   },
   {
@@ -771,6 +835,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ10SA4T telescopic boom marine crane has a maximum lifting capacity of 10000 kg, a maximum lifting moment of 25 t·m and a self weight of 3250 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Marine Crane Product Manual, PDF page 11",
    "features": [
     {
@@ -805,7 +870,10 @@
    "drawing": "drawings/SQ8SA5T.webp",
    "photos": [],
    "own_photos_first": false,
-   "short_description": "The BOB-LIFT SQ8SA5T telescopic boom marine crane has a maximum lifting capacity of 8000 kg, a maximum lifting moment of 20 t·m and a self weight of 3250 kg.",
+   "short_description": "The BOB-LIFT SQ8SA5T telescopic boom marine crane has a maximum lifting capacity of 8000 kg, a maximum lifting moment of 20 t·m and a self weight of 3250 kg. Previously listed as SQ8SA4T.",
+   "model_aliases": [
+    "SQ8SA4T"
+   ],
    "source": "BOB-LIFT Marine Crane Product Manual, PDF page 11",
    "features": [
     {
@@ -841,6 +909,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ6.3SA4T telescopic boom marine crane has a maximum lifting capacity of 6300 kg, a maximum lifting moment of 15.75 t·m and a self weight of 2200 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Marine Crane Product Manual, PDF page 11",
    "features": [
     {
@@ -876,6 +945,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ5SA4T telescopic boom marine crane has a maximum lifting capacity of 5000 kg, a maximum lifting moment of 12.5 t·m and a self weight of 2100 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Marine Crane Product Manual, PDF page 11",
    "features": [
     {
@@ -913,6 +983,7 @@
    ],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ3.2SA4T telescopic boom marine crane has a maximum lifting capacity of 3200 kg, a maximum lifting moment of 6.8 t·m and a self weight of 1250 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Marine Crane Product Manual, PDF page 10",
    "features": [
     {
@@ -948,6 +1019,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ5ZA3TJ knuckle boom marine crane has a maximum lifting capacity of 5000 kg, a maximum lifting moment of 10.5 t·m and a self weight of 2120 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Marine Crane Product Manual, PDF page 6",
    "features": [
     {
@@ -985,10 +1057,19 @@
    "model": "SQ10ZA6TJ",
    "drawing": "drawings/SQ10ZA6TJ.webp",
    "photos": [
+    "factory-gallery/SQ10ZA6TJ/01-IMG_2359.webp",
+    "factory-gallery/SQ10ZA6TJ/02-IMG_2334.webp",
+    "factory-gallery/SQ10ZA6TJ/03-IMG_2385.webp",
+    "factory-gallery/SQ10ZA6TJ/04-IMG_8496.webp",
+    "factory-gallery/SQ10ZA6TJ/05-IMG_8504.webp",
+    "factory-gallery/SQ10ZA6TJ/06-IMG_2438.webp",
     "photos/SQ10ZA6TJ.webp"
    ],
    "own_photos_first": false,
-   "short_description": "The BOB-LIFT SQ10ZA6TJ knuckle boom marine crane has a maximum lifting capacity of 10000 kg, a maximum lifting moment of 21 t·m and a self weight of 2920 kg.",
+   "short_description": "The BOB-LIFT SQ10ZA6TJ knuckle boom marine crane has a maximum lifting capacity of 10000 kg, a maximum lifting moment of 21 t·m and a self weight of 2920 kg. Previously listed as SQ10ZA5TJ.",
+   "model_aliases": [
+    "SQ10ZA5TJ"
+   ],
    "source": "BOB-LIFT Marine Crane Product Manual, PDF page 7",
    "features": [
     {
@@ -1029,7 +1110,10 @@
     "photos/SQ8ZA6TJ.webp"
    ],
    "own_photos_first": false,
-   "short_description": "The BOB-LIFT SQ8ZA6TJ knuckle boom marine crane has a maximum lifting capacity of 8000 kg, a maximum lifting moment of 16.7 t·m and a self weight of 2730 kg.",
+   "short_description": "The BOB-LIFT SQ8ZA6TJ knuckle boom marine crane has a maximum lifting capacity of 8000 kg, a maximum lifting moment of 16.7 t·m and a self weight of 2730 kg. Previously listed as SQ8ZA5TJ.",
+   "model_aliases": [
+    "SQ8ZA5TJ"
+   ],
    "source": "BOB-LIFT Marine Crane Product Manual, PDF page 7",
    "features": [
     {
@@ -1067,10 +1151,15 @@
    "model": "SQ6.3ZA4TJ",
    "drawing": "drawings/SQ6.3ZA4TJ.webp",
    "photos": [
+    "factory-gallery/SQ6.3ZA4TJ/01-IMG_2672.webp",
+    "factory-gallery/SQ6.3ZA4TJ/02-IMG_2680.webp",
+    "factory-gallery/SQ6.3ZA4TJ/03-IMG_2668.webp",
+    "factory-gallery/SQ6.3ZA4TJ/04-IMG_2678.webp",
     "photos/SQ6.3ZA4TJ.webp"
    ],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ6.3ZA4TJ knuckle boom marine crane has a maximum lifting capacity of 6300 kg, a maximum lifting moment of 13.2 t·m and a self weight of 1740 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Marine Crane Product Manual, PDF page 6",
    "features": [
     {
@@ -1112,6 +1201,7 @@
    ],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ2SA3T telescopic boom marine crane has a maximum lifting capacity of 2000 kg, a maximum lifting moment of 4.2 t·m and a self weight of 830 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Marine Crane Product Manual, PDF page 10",
    "features": [
     {
@@ -1149,6 +1239,7 @@
    ],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ4ZA3TJ knuckle boom marine crane has a maximum lifting capacity of 4000 kg, a maximum lifting moment of 8.4 t·m and a self weight of 1256 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Marine Crane Product Manual, PDF page 5",
    "features": [
     {
@@ -1188,6 +1279,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ3.2ZA3TJ knuckle boom marine crane has a maximum lifting capacity of 3200 kg, a maximum lifting moment of 6.8 t·m and a self weight of 1236 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Marine Crane Product Manual, PDF page 5",
    "features": [
     {
@@ -1227,6 +1319,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ2ZA2TJ knuckle boom marine crane has a maximum lifting capacity of 2000 kg, a maximum lifting moment of 4.2 t·m and a self weight of 590 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Marine Crane Product Manual, PDF page 5",
    "features": [
     {
@@ -1266,6 +1359,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ1ZA3TJ+1 knuckle boom marine crane has a maximum lifting capacity of 1600 kg, a maximum lifting moment of 2.2 t·m and a self weight of 380 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Marine Crane Product Manual, PDF page 4",
    "features": [
     {
@@ -1302,9 +1396,19 @@
    "slug": "8-ton-knuckle-boom-truck-mounted-crane",
    "model": "SQ8ZA6",
    "drawing": "drawings/SQ8ZA6.webp",
-   "photos": [],
+   "photos": [
+    "factory-gallery/SQ8ZA6/01-IMG_0728.webp",
+    "factory-gallery/SQ8ZA6/02-IMG_0890.webp",
+    "factory-gallery/SQ8ZA6/03-IMG_0870.webp",
+    "factory-gallery/SQ8ZA6/04-IMG_0856.webp",
+    "factory-gallery/SQ8ZA6/05-IMG_0783.webp",
+    "factory-gallery/SQ8ZA6/06-IMG_0808.webp"
+   ],
    "own_photos_first": false,
-   "short_description": "The BOB-LIFT SQ8ZA6 knuckle boom truck mounted crane has a maximum lifting capacity of 8000 kg, a maximum lifting moment of 16 t·m and a self weight of 3450 kg.",
+   "short_description": "The BOB-LIFT SQ8ZA6 knuckle boom truck mounted crane has a maximum lifting capacity of 8000 kg, a maximum lifting moment of 16 t·m and a self weight of 3450 kg. Previously listed as SQ8ZA5.",
+   "model_aliases": [
+    "SQ8ZA5"
+   ],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 9",
    "features": [
     {
@@ -1344,6 +1448,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ4ZA4 knuckle boom truck mounted crane has a maximum lifting capacity of 4000 kg, a maximum lifting moment of 8.4 t·m and a self weight of 1460 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 7",
    "features": [
     {
@@ -1380,9 +1485,19 @@
    "slug": "3-2-ton-knuckle-boom-truck-mounted-crane",
    "model": "SQ3.2ZA3",
    "drawing": "drawings/SQ3.2ZA3.webp",
-   "photos": [],
+   "photos": [
+    "factory-gallery/SQ3.2ZA3/01-IMG_1564.webp",
+    "factory-gallery/SQ3.2ZA3/02-IMG_1574.webp",
+    "factory-gallery/SQ3.2ZA3/03-IMG_1622.webp",
+    "factory-gallery/SQ3.2ZA3/04-IMG_8347.webp",
+    "factory-gallery/SQ3.2ZA3/05-IMG_8391.webp",
+    "factory-gallery/SQ3.2ZA3/06-IMG_8414.webp"
+   ],
    "own_photos_first": false,
-   "short_description": "The BOB-LIFT SQ3.2ZA3 knuckle boom truck mounted crane has a maximum lifting capacity of 3200 kg, a maximum lifting moment of 6.8 t·m and a self weight of 1330 kg.",
+   "short_description": "The BOB-LIFT SQ3.2ZA3 knuckle boom truck mounted crane has a maximum lifting capacity of 3200 kg, a maximum lifting moment of 6.8 t·m and a self weight of 1330 kg. Previously listed as SQ3.2Z.",
+   "model_aliases": [
+    "SQ3.2Z"
+   ],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 6",
    "features": [
     {
@@ -1422,6 +1537,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ1ZA3+1 knuckle boom truck mounted crane has a maximum lifting capacity of 1600 kg, a maximum lifting moment of 2.2 t·m and a self weight of 470 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 6",
    "features": [
     {
@@ -1458,9 +1574,19 @@
    "slug": "12-ton-telescopic-boom-truck-mounted-crane",
    "model": "SQ12SA4",
    "drawing": "drawings/SQ12SA4.webp",
-   "photos": [],
+   "photos": [
+    "factory-gallery/SQ12SA4/00a-outdoor-20260905142402_150.webp",
+    "factory-gallery/SQ12SA4/00b-outdoor-20260905142352_146.webp",
+    "factory-gallery/SQ12SA4/01-IMG_3110.webp",
+    "factory-gallery/SQ12SA4/02-IMG_3073.webp",
+    "factory-gallery/SQ12SA4/03-IMG_3104.webp",
+    "factory-gallery/SQ12SA4/04-IMG_3060.webp"
+   ],
    "own_photos_first": false,
-   "short_description": "The BOB-LIFT SQ12SA4 telescopic boom truck mounted crane has a maximum lifting capacity of 12000 kg, a maximum lifting moment of 33 t·m and a self weight of 4600 kg.",
+   "short_description": "The BOB-LIFT SQ12SA4 telescopic boom truck mounted crane has a maximum lifting capacity of 12000 kg, a maximum lifting moment of 33 t·m and a self weight of 4600 kg. Previously listed as SQ12SU4.",
+   "model_aliases": [
+    "SQ12SU4"
+   ],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 14",
    "features": [
     {
@@ -1495,7 +1621,10 @@
    "drawing": "drawings/SQ10SA4.webp",
    "photos": [],
    "own_photos_first": false,
-   "short_description": "The BOB-LIFT SQ10SA4 telescopic boom truck mounted crane has a maximum lifting capacity of 10000 kg, a maximum lifting moment of 25 t·m and a self weight of 3800 kg.",
+   "short_description": "The BOB-LIFT SQ10SA4 telescopic boom truck mounted crane has a maximum lifting capacity of 10000 kg, a maximum lifting moment of 25 t·m and a self weight of 3800 kg. Previously listed as SQ10SA5.",
+   "model_aliases": [
+    "SQ10SA5"
+   ],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 13",
    "features": [
     {
@@ -1528,9 +1657,17 @@
    "slug": "8-ton-telescopic-boom-truck-mounted-crane",
    "model": "SQ8SA5",
    "drawing": "drawings/SQ8SA5.webp",
-   "photos": [],
+   "photos": [
+    "factory-gallery/SQ8SA5/01-IMG_0751.webp",
+    "factory-gallery/SQ8SA5/02-IMG_0759.webp",
+    "factory-gallery/SQ8SA5/03-IMG_0820.webp",
+    "factory-gallery/SQ8SA5/04-IMG_0838.webp",
+    "factory-gallery/SQ8SA5/05-IMG_0743.webp",
+    "factory-gallery/SQ8SA5/06-IMG_0848.webp"
+   ],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ8SA5 telescopic boom truck mounted crane has a maximum lifting capacity of 8000 kg, a maximum lifting moment of 20 t·m and a self weight of 4000 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 13",
    "features": [
     {
@@ -1563,9 +1700,17 @@
    "slug": "6-3-ton-telescopic-boom-truck-mounted-crane",
    "model": "SQ6.3SA4",
    "drawing": "drawings/SQ6.3SA4.webp",
-   "photos": [],
+   "photos": [
+    "factory-gallery/SQ6.3SA4/01-IMG_2376.webp",
+    "factory-gallery/SQ6.3SA4/02-IMG_2386.webp",
+    "factory-gallery/SQ6.3SA4/03-IMG_2413.webp",
+    "factory-gallery/SQ6.3SA4/04-IMG_2432.webp",
+    "factory-gallery/SQ6.3SA4/05-IMG_2380.webp",
+    "factory-gallery/SQ6.3SA4/06-IMG_2447.webp"
+   ],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ6.3SA4 telescopic boom truck mounted crane has a maximum lifting capacity of 6300 kg, a maximum lifting moment of 15.75 t·m and a self weight of 2600 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 13",
    "features": [
     {
@@ -1598,9 +1743,17 @@
    "slug": "5-ton-telescopic-boom-truck-mounted-crane",
    "model": "SQ5SA4",
    "drawing": "drawings/SQ5SA4.webp",
-   "photos": [],
+   "photos": [
+    "factory-gallery/SQ5SA4/01-IMG_1232.webp",
+    "factory-gallery/SQ5SA4/02-IMG_1142.webp",
+    "factory-gallery/SQ5SA4/03-IMG_1175.webp",
+    "factory-gallery/SQ5SA4/04-IMG_1250.webp",
+    "factory-gallery/SQ5SA4/05-IMG_2657.webp",
+    "factory-gallery/SQ5SA4/06-IMG_1054.webp"
+   ],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ5SA4 telescopic boom truck mounted crane has a maximum lifting capacity of 5000 kg, a maximum lifting moment of 12.5 t·m and a self weight of 2400 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 13",
    "features": [
     {
@@ -1636,6 +1789,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ4SA4 telescopic boom truck mounted crane has a maximum lifting capacity of 4000 kg, a maximum lifting moment of 8.4 t·m and a self weight of 1780 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 12",
    "features": [
     {
@@ -1670,7 +1824,10 @@
    "drawing": "drawings/SQ3.2SA4.webp",
    "photos": [],
    "own_photos_first": false,
-   "short_description": "The BOB-LIFT SQ3.2SA4 telescopic boom truck mounted crane has a maximum lifting capacity of 3200 kg, a maximum lifting moment of 7 t·m and a self weight of 1350 kg.",
+   "short_description": "The BOB-LIFT SQ3.2SA4 telescopic boom truck mounted crane has a maximum lifting capacity of 3200 kg, a maximum lifting moment of 7 t·m and a self weight of 1350 kg. Previously listed as SQ3.2SA3.",
+   "model_aliases": [
+    "SQ3.2SA3"
+   ],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 12",
    "features": [
     {
@@ -1706,6 +1863,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ2SA3 telescopic boom truck mounted crane has a maximum lifting capacity of 2000 kg, a maximum lifting moment of 4.2 t·m and a self weight of 950 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 12",
    "features": [
     {
@@ -1748,6 +1906,7 @@
    ],
    "own_photos_first": true,
    "short_description": "The BOB-LIFT SQ3.2ZA4 knuckle boom truck mounted crane has a maximum lifting capacity of 3200 kg, a maximum lifting moment of 6.8 t·m and a self weight of 1450 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 7",
    "features": [
     {
@@ -1787,6 +1946,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ4ZA3 knuckle boom truck mounted crane has a maximum lifting capacity of 4000 kg, a maximum lifting moment of 8.4 t·m and a self weight of 1350 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 7",
    "features": [
     {
@@ -1834,6 +1994,7 @@
    ],
    "own_photos_first": true,
    "short_description": "The BOB-LIFT BLZ90K5 knuckle boom truck mounted crane has a maximum lifting capacity of 4600 kg, a maximum lifting moment of 9 t·m and a self weight of 1700 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 7",
    "features": [
     {
@@ -1873,6 +2034,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ5ZA3 knuckle boom truck mounted crane has a maximum lifting capacity of 5000 kg, a maximum lifting moment of 10.5 t·m and a self weight of 2286 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 8",
    "features": [
     {
@@ -1913,6 +2075,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT BLZ129K4 knuckle boom truck mounted crane has a maximum lifting capacity of 6300 kg, a maximum lifting moment of 12.9 t·m and a self weight of 1850 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 8",
    "features": [
     {
@@ -1953,6 +2116,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQZ560 knuckle boom truck mounted crane has a maximum lifting capacity of 28000 kg, a maximum lifting moment of 57.3 t·m and a self weight of 6100 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 10",
    "features": [
     {
@@ -1993,6 +2157,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQZ600 knuckle boom truck mounted crane has a maximum lifting capacity of 30000 kg, a maximum lifting moment of 63.3 t·m and a self weight of 7500 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 10",
    "features": [
     {
@@ -2039,6 +2204,7 @@
    ],
    "own_photos_first": true,
    "short_description": "The BOB-LIFT SQZ700 knuckle boom truck mounted crane has a maximum lifting capacity of 34000 kg, a maximum lifting moment of 70.1 t·m and a self weight of 8500 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 11",
    "features": [
     {
@@ -2078,6 +2244,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQZ800 knuckle boom truck mounted crane has a maximum lifting capacity of 40000 kg, a maximum lifting moment of 80 t·m and a self weight of 9000 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 11",
    "features": [
     {
@@ -2118,6 +2285,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ5SA3 telescopic boom truck mounted crane has a maximum lifting capacity of 5000 kg, a maximum lifting moment of 12.5 t·m and a self weight of 2100 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 12",
    "features": [
     {
@@ -2154,6 +2322,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ14SA5 telescopic boom truck mounted crane has a maximum lifting capacity of 14000 kg, a maximum lifting moment of 35 t·m and a self weight of 5100 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 14",
    "features": [
     {
@@ -2195,6 +2364,7 @@
    ],
    "own_photos_first": true,
    "short_description": "The BOB-LIFT SL70 timber crane has a maximum lifting capacity of 600 kg, a maximum lifting moment of 7 t·m and a self weight of 1450 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 16"
   },
   {
@@ -2204,6 +2374,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SL150-2A timber crane has a maximum lifting capacity of 1000 kg, a maximum lifting moment of 15 t·m and a self weight of 2650 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 16",
    "borrow_photo_from": "zm65-timber-crane"
   },
@@ -2214,6 +2385,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT ZT120Z-2A timber crane has a maximum lifting capacity of 1300 kg, a maximum lifting moment of 12 t·m and a self weight of 2300 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 16",
    "borrow_photo_from": "zm75-timber-crane"
   },
@@ -2224,6 +2396,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT ZT160Z-2A timber crane has a maximum lifting capacity of 1800 kg, a maximum lifting moment of 16 t·m and a self weight of 2700 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 16",
    "borrow_photo_from": "zm75-timber-crane"
   },
@@ -2237,6 +2410,7 @@
    ],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT CC145 forklift fly jib crane has a maximum lifting capacity of 5000 kg, a maximum lifting moment of 115 kN·m, a maximum working range of 9400 mm and a self weight of 1200 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 18"
   },
   {
@@ -2246,6 +2420,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ5SA2F tow truck crane has a maximum lifting capacity of 5150 kg and a maximum lifting moment of 14.5 t·m.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 18"
   },
   {
@@ -2255,6 +2430,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT F100Z-2E garbage crane has a maximum lifting capacity of 2450 kg and a maximum lifting moment of 10 t·m.",
+   "model_aliases": [],
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 19"
   },
   {
@@ -2264,6 +2440,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ08ZA3TJ+1 knuckle boom marine crane has a maximum lifting capacity of 800 kg, a maximum lifting moment of 1.3 t·m and a self weight of 220 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Marine Crane Product Manual, PDF page 4",
    "features": [
     {
@@ -2304,6 +2481,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT BLZ90K5TJ knuckle boom marine crane has a maximum lifting capacity of 4600 kg, a maximum lifting moment of 9 t·m and a self weight of 1520 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Marine Crane Product Manual, PDF page 6",
    "features": [
     {
@@ -2344,6 +2522,7 @@
    "photos": [],
    "own_photos_first": false,
    "short_description": "The BOB-LIFT SQ4SA3T telescopic boom marine crane has a maximum lifting capacity of 4000 kg, a maximum lifting moment of 10 t·m and a self weight of 1500 kg.",
+   "model_aliases": [],
    "source": "BOB-LIFT Marine Crane Product Manual, PDF page 11",
    "features": [
     {
