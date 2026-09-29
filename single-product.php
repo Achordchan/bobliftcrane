@@ -49,7 +49,8 @@ $spec_icon = static function (array $spec): string {
     if (str_contains($normalized, 'boomtype') || str_contains($normalized, 'boom_type')) return 'wrench';
     return 'layers';
 };
-$hero_specs = array_slice(array_values(array_filter($specs, static fn($spec): bool => is_array($spec) && ($spec['label'] ?? '') !== '' && ($spec['value'] ?? '') !== '')), 0, 4);
+// The hero strip takes the first four short values; long ones (two mast heights) stay in the spec table.
+$hero_specs = array_slice(array_values(array_filter($specs, static fn($spec): bool => is_array($spec) && ($spec['label'] ?? '') !== '' && ($spec['value'] ?? '') !== '' && mb_strlen((string) $spec['value']) <= 16)), 0, 4);
 $review_status = (string) ($product['parameter_review_status'] ?? 'verified-from-source');
 $review_status_labels = is_array($ui['statusLabels'] ?? null) ? $ui['statusLabels'] : [];
 $review_status_label = (string) ($review_status_labels[$review_status] ?? ($review_status_labels['verified-from-source'] ?? 'Verified from source'));

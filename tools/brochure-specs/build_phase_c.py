@@ -28,6 +28,8 @@ GALLERY = {m: sorted(f'factory-gallery/{m}/{f}' for f in os.listdir(f'factory-ga
 PHOTOS = {m: [f'photos/{m}.webp'] for m in ['SQ4ZA3TJ', 'SQ6.3ZA4TJ', 'SQ8ZA6TJ', 'SQ10ZA6TJ', 'SQ12ZA6T', 'SQZ330T', 'SQ2SA3T', 'SQ3.2SA4T', 'SQ16SA5T', 'SQ4ZG3T', 'BLS3.0T']}
 for m in ('CC85', 'CC105', 'CC125', 'CC145'):
     PHOTOS[m] = ['photos/flyjib-1.webp', 'photos/flyjib-2.webp']
+# Main image replaced by a brochure photo (CC85's old "transparent" PNG has an opaque background).
+MAIN = {'CC85': 'photos/flyjib-2.webp'}
 # New model <- sibling whose existing product photo stands in until real photos arrive.
 BORROW = {
     'SQ3.2ZA4': 'SQ3.2ZA3', 'SQ4ZA3': 'SQ4ZA4', 'BLZ90K5': 'SQ4ZA4', 'SQ5ZA3': 'SQ5ZA4', 'BLZ129K4': 'SQ6.3ZA5',
@@ -50,7 +52,8 @@ for p in products:
     item = {'slug': p['slug'], 'model': m, 'drawing': f'drawings/{m}.webp',
             'photos': FACTORY.get(m, []) + GALLERY.get(m, []) + PHOTOS.get(m, []), 'own_photos_first': m in FACTORY,
             'short_description': specs.short_description(r, noun) + (f" Previously listed as {', '.join(p['aliases'])}." if p.get('aliases') else ''),
-            'model_aliases': p.get('aliases', []), 'source': f"BOB-LIFT {'Truck Mounted Crane' if r['book'] == 'truck' else 'Marine Crane'} Product Manual, PDF page {r['pdf_page']}"}
+            'model_aliases': p.get('aliases', []),
+            'main_photo': MAIN.get(m), 'source': f"BOB-LIFT {'Truck Mounted Crane' if r['book'] == 'truck' else 'Marine Crane'} Product Manual, PDF page {r['pdf_page']}"}
     assert os.path.exists(item['drawing']), item['drawing']
     for key, test in SERIES.items():
         if test(m, r):

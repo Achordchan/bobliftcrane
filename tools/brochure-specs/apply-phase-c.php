@@ -91,6 +91,12 @@ foreach ($plan['products'] as $p) {
         $gallery[] = ['image' => $url, 'label' => $model . ($factory ? ' (factory photo)' : ' (BOB-LIFT product manual)')];
         $urls[] = $url;
     }
+    if (!empty($p['main_photo'])) {
+        $main = $import($p['main_photo'], $id, $model . ' photo from the BOB-LIFT product manual');
+        if ($main) {
+            set_post_thumbnail($id, $main);
+        }
+    }
     update_post_meta($id, '_gallery', wp_slash(wp_json_encode($gallery, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)));
 
     if (!empty($p['features'])) {
