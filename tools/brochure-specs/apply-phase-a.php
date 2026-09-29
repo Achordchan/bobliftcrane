@@ -11,7 +11,8 @@ $dry = in_array('dry-run', $args ?? [], true);
 $plan = json_decode((string) file_get_contents($dir . '/phase-a.json'), true);
 
 $find = static function (string $slug): ?WP_Post {
-    $posts = get_posts(['post_type' => 'product', 'name' => $slug, 'post_status' => 'any', 'posts_per_page' => 5, 'lang' => 'en']);
+    // WordPress renames trashed posts to "<slug>__trashed", so a rerun still finds them.
+    $posts = get_posts(['post_type' => 'product', 'post_name__in' => [$slug, $slug . '__trashed'], 'post_status' => ['publish', 'draft', 'pending', 'private', 'trash'], 'posts_per_page' => 5, 'lang' => 'en']);
     foreach ($posts as $post) {
         if (!function_exists('pll_get_post_language') || pll_get_post_language($post->ID) === 'en') {
             return $post;
@@ -29,8 +30,8 @@ foreach ($plan['updates'] as $u) {
         continue;
     }
     $id = $post->ID;
-    $keys = ['_model', '_specs', '_capacity', '_capacity_value', '_seo_title', '_seo_description', '_short_description'];
-    $backup[$u['slug']] = ['title' => $post->post_title] + array_combine($keys, array_map(static fn($k) => get_post_meta($id, $k, true), $keys));
+    $keys = ['_model', '_specs', '_capacity', '_capacity_value', '_seo_title', '_seo_description', '_short_description', '_features'];
+    $backup[$u['slug']] = ['title' => $post->post_title, 'content' => $post->post_content, 'excerpt' => $post->post_excerpt] + array_combine($keys, array_map(static fn($k) => get_post_meta($id, $k, true), $keys));
     if ($dry) {
         continue;
     }
@@ -39,11 +40,16 @@ foreach ($plan['updates'] as $u) {
     update_post_meta($id, '_capacity', $u['capacity']);
     update_post_meta($id, '_capacity_value', (string) $u['capacity_value']);
     if ($u['title'] !== $u['old_title']) {
-        wp_update_post(['ID' => $id, 'post_title' => $u['title']]);
-        foreach (['_seo_title', '_seo_description', '_short_description'] as $key) {
+        // Rewrite "2.3 Ton Forklift…" style mentions of the old tonnage in the product's own copy.
+        preg_match('/^([\d.]+)\s*Ton\b/', $u['old_title'], $old);
+        preg_match('/^([\d.]+)\s*Ton\b/', $u['title'], $new);
+        $pattern = '/(?<![\d.])' . preg_quote($old[1], '/') . '(\s*-?\s*)(ton|Ton|TON)(?=\s+(?:Knuckle|Forklift|Telescopic))/';
+        $retonnage = static fn(string $text): string => (string) preg_replace($pattern, $new[1] . '$1$2', $text);
+        wp_update_post(wp_slash(['ID' => $id, 'post_title' => $u['title'], 'post_content' => $retonnage($post->post_content), 'post_excerpt' => $retonnage($post->post_excerpt)]));
+        foreach (['_seo_title', '_seo_description', '_short_description', '_features'] as $key) {
             $value = (string) get_post_meta($id, $key, true);
-            if ($value !== '' && str_contains($value, $u['old_title'])) {
-                update_post_meta($id, $key, wp_slash(str_replace($u['old_title'], $u['title'], $value)));
+            if ($value !== '') {
+                update_post_meta($id, $key, wp_slash($retonnage(str_replace($u['old_title'], $u['title'], $value))));
             }
         }
     }
