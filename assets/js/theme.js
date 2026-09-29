@@ -2614,9 +2614,6 @@
     const quickSpecs = qs('[data-quick-specs]', root);
     const quickInquiry = qs('[data-quick-inquiry]', root);
     const quickDetail = qs('[data-quick-detail]', root);
-    const quickStatusBadge = qs('[data-quick-status-badge]', root);
-    const quickStatusIcon = qs('[data-quick-status-icon]', root);
-    const quickStatusLabel = qs('[data-quick-status-label]', root);
     const quickFavorite = qs('[data-quick-favorite]', root);
     const rowsPerPage = 3;
     let currentPage = 1;
@@ -3029,25 +3026,7 @@
       apply({ resetPage: true });
       closeDrawer({ restore: false });
     };
-    const specIconPath = (label) => {
-      if (label === 'Boom Length') return '<path d="M15 3h6v6"/><path d="m21 3-7 7"/><path d="M9 21H3v-6"/><path d="m3 21 7-7"/>';
-      if (label === 'Rotation') return '<path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/>';
-      return '<circle cx="12" cy="5" r="3"/><path d="M6.5 8h11L20 22H4L6.5 8Z"/>';
-    };
-    const specMarkup = (specs) => specs.slice(0, 3).map((spec) => `<div class="flex min-h-[132px] min-w-0 flex-col items-center justify-end rounded border border-[#DDE5EF] bg-white px-2 pb-4 pt-4 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.92)]"><svg class="mb-3 h-7 w-7 text-[#2563EB]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${specIconPath(spec.label || '')}</svg><p class="line-clamp-2 max-w-full text-[clamp(8px,0.52vw,10px)] font-black uppercase tracking-[0.08em] text-slate-500">${escapeHtml(spec.label || '')}</p><p class="mt-2 line-clamp-3 max-w-full break-words text-[clamp(15px,0.95vw,21px)] font-black leading-tight tracking-[-0.015em] text-[#0B1B33]">${escapeHtml(String(spec.value || '-'))}</p></div>`).join('');
-    const statusBadgeClass = (status) => ({
-      'in-stock': 'text-emerald-700',
-      'best-seller': 'text-blue-700',
-      customizable: 'text-indigo-700',
-      'pre-order': 'text-orange-700',
-    }[status] || 'text-indigo-700');
-    const updateQuickStatusBadge = (status) => {
-      if (!quickStatusBadge) return;
-      const normalizedStatus = ['in-stock', 'best-seller', 'customizable', 'pre-order'].includes(status) ? status : 'customizable';
-      quickStatusBadge.className = `absolute left-6 top-6 z-20 inline-flex items-center gap-2 rounded-sm bg-white/92 py-2 pl-3 pr-5 text-sm font-black leading-none ${statusBadgeClass(normalizedStatus)} shadow-raised ring-1 ring-[#E5E7EB] backdrop-blur`;
-      const template = qs(`[data-quick-status-template="${normalizedStatus}"]`, root);
-      if (quickStatusIcon && template) quickStatusIcon.innerHTML = template.innerHTML;
-    };
+    const specMarkup = (specs) => specs.slice(0, 6).map((spec) => `<div class="min-w-0 border-b border-r border-[#E5E7EB] px-3 py-3 md:px-4"><dt class="text-[11px] font-semibold leading-4 text-slate-500">${escapeHtml(spec.label || '')}</dt><dd class="mt-1 break-words text-base font-black leading-tight text-[#0B1B33] [font-variant-numeric:tabular-nums]">${escapeHtml(String(spec.value || '-'))}</dd></div>`).join('');
     const openQuickView = (card) => {
       if (!quickModal || !card) return;
       activeQuickCard = card;
@@ -3066,8 +3045,6 @@
       if (quickTitle) quickTitle.textContent = card.dataset.title || '';
       if (quickCategory) quickCategory.textContent = card.dataset.categoryTitle || 'BOB-LIFT';
       if (quickSummary) quickSummary.textContent = card.dataset.summary || '';
-      updateQuickStatusBadge(card.dataset.status || 'customizable');
-      if (quickStatusLabel) quickStatusLabel.textContent = card.dataset.statusLabel || 'Customizable';
       if (quickInquiry) {
         quickInquiry.dataset.inquiryUrl = card.dataset.inquiryUrl || '';
         quickInquiry.dataset.inquiryProduct = card.dataset.title || '';

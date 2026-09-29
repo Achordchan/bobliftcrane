@@ -217,10 +217,9 @@ $filter_sidebar = static function (bool $show_close = false) use ($filter_group,
     <div class="fixed inset-0 z-[70] hidden items-center justify-center bg-[#0B1B33]/45 px-4 py-8 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="quick-view-title" data-quick-view-modal>
         <div class="max-h-[calc(100vh-4rem)] w-full max-w-5xl overflow-y-auto rounded bg-white shadow-card" data-quick-view-panel>
             <div class="grid gap-0 lg:grid-cols-[0.95fr_1.05fr]">
-                <div class="relative min-h-[340px] bg-[radial-gradient(circle_at_48%_34%,#ffffff_0%,#f8fafc_34%,#eef2f7_64%,#e2e8f0_100%)] lg:min-h-[560px]">
+                <div class="relative min-h-[340px] bg-[radial-gradient(circle_at_48%_34%,#ffffff_0%,#f8fafc_34%,#eef2f7_64%,#e2e8f0_100%)] lg:min-h-[480px]">
                     <span class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_82%,rgba(15,23,42,0.12),transparent_44%)]"></span>
                     <img class="absolute inset-0 z-10 h-full w-full object-contain p-10 drop-shadow-[0_6px_8px_rgba(11,27,51,0.10)]" src="" alt="" data-quick-image loading="lazy" decoding="async">
-                    <span class="absolute left-6 top-6 z-20 inline-flex items-center gap-2 rounded-sm bg-white/92 py-2 pl-3 pr-5 text-sm font-black leading-none text-indigo-700 shadow-raised ring-1 ring-[#E5E7EB] backdrop-blur" data-quick-status-badge><span data-quick-status-icon><?php echo boblift_icon('wrench', 'h-5 w-5 text-indigo-600'); ?></span><span data-quick-status-label><?php echo esc_html($product_ui['productStatusLabels']['customizable'] ?? 'Customizable'); ?></span></span><template data-quick-status-template="in-stock"><?php echo boblift_icon('check-circle', 'h-5 w-5 text-emerald-600'); ?></template><template data-quick-status-template="best-seller"><?php echo boblift_icon('flame', 'h-5 w-5 text-red-500'); ?></template><template data-quick-status-template="customizable"><?php echo boblift_icon('wrench', 'h-5 w-5 text-indigo-600'); ?></template><template data-quick-status-template="pre-order"><?php echo boblift_icon('clock-3', 'h-5 w-5 text-orange-600'); ?></template>
                 </div>
                 <div class="flex flex-col p-6 md:p-8">
                     <div class="flex items-start justify-between gap-4">
@@ -231,7 +230,7 @@ $filter_sidebar = static function (bool $show_close = false) use ($filter_group,
                         <button class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-sm border border-[#E5E7EB] text-[#0B1B33] transition hover:border-blue-300 hover:text-blue-700" type="button" aria-label="<?php echo esc_attr($product_ui['closeQuickViewLabel'] ?? 'Close quick view'); ?>" data-quick-close><?php echo boblift_icon('x', 'h-5 w-5'); ?></button>
                     </div>
                     <p class="mt-4 text-base font-semibold leading-7 text-slate-600" data-quick-summary></p>
-                    <div class="mt-4 grid grid-cols-3 gap-2 border-t border-[#E5E7EB] pt-5" data-quick-specs></div>
+                    <dl class="mt-5 grid grid-cols-2 border-l border-t border-[#E5E7EB] sm:grid-cols-3" data-quick-specs></dl>
                     <div class="mt-auto grid gap-3 pt-8 sm:grid-cols-[1fr_1fr_auto]">
                         <button class="inline-flex min-h-12 items-center justify-center rounded-sm bg-[#0B1B33] px-6 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-[#0B3F7D]" type="button" data-quick-inquiry data-inquiry-modal-open data-inquiry-source="产品快速预览"><?php echo esc_html($product_ui['requestQuoteLabel'] ?? 'Request Quote'); ?></button>
                         <a class="inline-flex min-h-12 items-center justify-center gap-2 rounded-sm border border-[#D8DEE8] bg-white px-6 text-sm font-black text-[#0B1B33] transition hover:-translate-y-0.5 hover:border-blue-300 hover:text-blue-700" href="<?php echo esc_url(boblift_product_archive_url()); ?>" data-quick-detail><?php echo esc_html($product_ui['viewDetailsLabel'] ?? 'View Details'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>

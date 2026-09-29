@@ -1083,7 +1083,9 @@ function boblift_product_card(array $product, string $extra_class = '', bool $ea
     $detail_url = boblift_product_url($product);
     $inquiry_url = $product['inquiry_url'] ?? boblift_url('/contact.html#inquiry');
     $product_id = (string) ($product['id'] ?? $product['slug'] ?? $product['title']);
-    $quick_specs = esc_attr(wp_json_encode($specs, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+    // Quick view shows up to six rows of the real spec table; the card's three-spec summary is the fallback.
+    $quick_rows = array_values(array_filter(array_map(static fn($row): array => is_array($row) ? ['label' => (string) ($row['label'] ?? ''), 'value' => (string) ($row['value'] ?? '')] : [], $product['specs'] ?? []), static fn(array $row): bool => $row['label'] !== '' && $row['value'] !== ''));
+    $quick_specs = esc_attr(wp_json_encode($quick_rows ? array_slice($quick_rows, 0, 6) : $specs, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     $product_ui = function_exists('boblift_site_ui') ? boblift_site_ui('productDetail') : [];
     $quote_list_ui = function_exists('boblift_site_ui') ? boblift_site_ui('quoteList') : [];
     $add_quote_label = (string) ($quote_list_ui['addLabel'] ?? 'Add to Quote List');
