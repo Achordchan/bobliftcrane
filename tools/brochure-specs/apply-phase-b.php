@@ -46,10 +46,13 @@ foreach ($plan['products'] as $p) {
     wp_set_object_terms($id, [(int) $term->term_id], 'product_category');
 
     // Import the image into the media library and use it as the featured image and gallery.
-    $tmp = wp_tempnam($p['image']);
-    copy($dir . '/images/' . $p['image'], $tmp);
-    $attachment = media_handle_sideload(['name' => $slug . '.webp', 'tmp_name' => $tmp], $id, $p['title']);
     $gallery = [];
+    $attachment = new WP_Error('no_image');
+    if (!empty($p['image'])) {
+        $tmp = wp_tempnam(basename($p['image']));
+        copy($dir . '/' . $p['image'], $tmp);
+        $attachment = media_handle_sideload(['name' => $slug . '.webp', 'tmp_name' => $tmp], $id, $p['title']);
+    }
     if (!is_wp_error($attachment)) {
         set_post_thumbnail($id, $attachment);
         update_post_meta($attachment, '_wp_attachment_image_alt', $p['title']);

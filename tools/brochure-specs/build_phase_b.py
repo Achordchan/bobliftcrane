@@ -1,42 +1,14 @@
 """Build phase-b.json: new English products for brochure models the site does not have yet.
 
 Features are the brochure's own "Product technical advantages" text for each series.
-Images are in images/: the model's dimension drawing, or the brochure photo where one exists.
+Only the tow truck and garbage cranes get a brochure photo here; phase C adds drawings and photos.
 """
 import json
 import specs
+from specs import ADV
 
 B = {r['model']: r for r in json.load(open('brochure.json'))}
 
-ADV = {
-    'truck-knuckle': [
-        ('High-strength welded structure', 'All the key structural components are welded with high-strength plates. The hexagonal boom section ensures excellent alignment, more sturdy quality and greater durability.'),
-        ('Dedicated torque limiter', 'Our products are equipped with a dedicated torque limiter, offering a high level of safety. The cranes are certified for various safety standards, making lifting operations more precise, safe, and reliable.'),
-        ('Box-type outriggers', 'Cranes with a capacity above 6.3 tons feature box-type outriggers, offering better protection for the hydraulic cylinders.'),
-        ('Optional attachments', 'Multiple optional configurations, such as winches, augers, baskets, and grapples, allow for personalized customization.'),
-        ('Operation modes', 'Various operation modes are available, including aerial seats and wireless remote control systems, making work more convenient.'),
-        ('Dual four-bar linkage', 'The dual four-bar linkage mechanism allows for reverse angles, offering wide application versatility and flexible operation.'),
-        ('Large-span outriggers', 'Standard large-span fixed outriggers with optional manual flip provide stability and ease during operations.'),
-    ],
-    'truck-telescopic': [
-        ('High-strength steel structure', 'The key structural components are welded with high-strength steel plates, offering high strength and lighter self-weight.'),
-        ('Octagonal boom', 'Cranes with a capacity above 8 tons use octagonal booms, which possess light self-weight and a strong load-bearing capacity.'),
-        ('Dedicated torque limiter', 'Our products are equipped with a dedicated torque limiter, ensuring a high safety level. The cranes are certified for various safety standards, ensuring lifting operations are precise, safe, and reliable.'),
-        ('Overwinding protection', 'The features of anti-overwinding and anti-overlowering protection systems significantly enhance lifting safety and extend crane service life.'),
-        ('Optional attachments', 'Multiple optional configurations, such as winches, augers, baskets, and grapples, can satisfy personalized customization needs.'),
-        ('Operation modes', 'Various optional operation modes, such as top seats and wireless remote control systems, make operations more convenient.'),
-    ],
-    'marine': [
-        ('High-strength steel structure', 'The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design.'),
-        ('Dedicated torque limiter', 'Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations.'),
-        ('Custom installation', 'Customizable installation methods tailored to specific operational scenarios.'),
-        ('Optional attachments', 'Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs.'),
-        ('Operation modes', 'Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience.'),
-        ('Dual four-bar linkage', 'Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance.'),
-        ('Marine anti-rust treatment', 'Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions.'),
-    ],
-}
-ADV['marine-telescopic'] = [a for a in ADV['marine'] if a[0] != 'Dual four-bar linkage']
 
 KB_TRUCK = ('Knuckle Boom Truck Mounted Crane', 'knuckle-boom-truck-mounted-cranes', 'knuckle-boom', 'construction,logistics,municipal-engineering', 'truck-knuckle')
 TB_TRUCK = ('Telescopic Boom Truck Mounted Crane', 'telescopic-boom-truck-mounted-cranes', 'telescopic-boom', 'construction,logistics,municipal-engineering', 'truck-telescopic')
@@ -73,7 +45,8 @@ for model, ((noun, category, boom, apps, adv), with_model) in NEW.items():
     if 'Self Weight' in s:
         parts.append(f"a self weight of {s['Self Weight']}")
     short = f"The BOB-LIFT {model} {noun.lower()} has " + ', '.join(parts[:-1]) + (' and ' if len(parts) > 1 else '') + parts[-1] + '.'
-    image = f"{model}-photo.webp" if model in PHOTOS else f"{model}-drawing.webp"
+    # Brochure photo where the brochure has one; otherwise phase C borrows a sibling model's photo.
+    image = f"photos/{model}.webp" if model in PHOTOS else None
     products.append({
         'model': model, 'title': title, 'category': category, 'boom_type': boom, 'applications': apps,
         'capacity': specs.capacity_label(row), 'capacity_value': tons,

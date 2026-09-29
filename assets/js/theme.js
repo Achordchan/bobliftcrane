@@ -1080,6 +1080,17 @@
     toggle();
   });
 
+  // Product dimension drawing: opens full size in a dialog; Esc, the close button or the backdrop close it.
+  qsa('[data-drawing-root]').forEach((root) => {
+    const dialog = qs('[data-drawing-dialog]', root);
+    if (!dialog || typeof dialog.showModal !== 'function') return;
+    qs('[data-drawing-open]', root)?.addEventListener('click', () => dialog.showModal());
+    qs('[data-drawing-close]', root)?.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+  });
+
   // Home hero slideshow. CSS runs the active tab's progress bar; when it finishes, the next
   // slide shows. Mouse hover and keyboard focus hold it, and the toggle stops or restarts it.
   qsa('[data-home-hero]').forEach((hero) => {

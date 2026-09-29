@@ -68,11 +68,15 @@ $overview_title = (string) ($ui['overviewTitle'] ?? 'Built for reliable lifting 
 if (str_contains(strtolower($overview_title), 'truck-mounted') && !str_contains(strtolower((string) ($product['category_title'] ?? '')), 'truck')) {
     $overview_title = (string) ($ui['spiderOverviewTitle'] ?? 'Built for precise lifting in tight working spaces.');
 }
-$technical_specs = array_merge(
+$technical_specs = array_values(array_filter(array_merge(
     $hero_model !== '' ? [['label' => (string) ($ui['specLabels']['model'] ?? 'Model'), 'value' => $hero_model]] : [],
-    $specs,
-    [['label' => (string) ($ui['specLabels']['parameterReview'] ?? 'Parameter Review'), 'value' => $review_status_label]]
-);
+    $specs
+), static fn($spec): bool => is_array($spec) && trim((string) ($spec['label'] ?? '')) !== '' && trim((string) ($spec['value'] ?? '')) !== ''));
+$brochure_source = trim((string) ($product['brochure_source'] ?? ''));
+$drawings = array_values(array_filter($product['drawings'] ?? [], static fn($drawing): bool => is_array($drawing) && ($drawing['image'] ?? '') !== ''));
+$brochure_features = get_post_meta((int) ($product['id'] ?? 0), '_features_source', true) === 'brochure'
+    ? array_values(array_filter($product['features'] ?? [], static fn($feature): bool => is_array($feature) && trim((string) ($feature['title'] ?? '')) !== ''))
+    : [];
 $product_intro_html = trim((string) ($product['content'] ?? ''));
 if ($product_intro_html === '') {
     $product_intro_html = '<p>' . esc_html((string) ($product['short_description'] ?? ($overview_title . ' ' . ($ui['overviewSuffix'] ?? '')))) . '</p>';
@@ -158,8 +162,11 @@ $faqs = array_values(array_filter(array_map(static function ($faq): ?array {
 }, $faqs)));
 $anchors = [];
 $anchors[] = ['id' => 'technical', 'label' => (string) ($ui['technicalLabel'] ?? 'Technical Specifications')];
-if ($show_detail_images) {
-    $anchors[] = ['id' => 'details', 'label' => (string) ($ui['detailsLabel'] ?? 'Product Details')];
+if ($drawings) {
+    $anchors[] = ['id' => 'drawing', 'label' => (string) ($ui['drawingLabel'] ?? 'Dimension Drawing')];
+}
+if ($brochure_features) {
+    $anchors[] = ['id' => 'features', 'label' => (string) ($ui['featuresLabel'] ?? 'Key Features')];
 }
 $anchors[] = ['id' => 'photos', 'label' => (string) ($ui['photosLabel'] ?? 'Product Photos')];
 $anchors[] = ['id' => 'faq', 'label' => (string) ($ui['faqLabel'] ?? 'FAQ')];
@@ -187,9 +194,9 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                         <p class="mt-4 max-w-[760px] text-[clamp(20px,1.55vw,30px)] font-black leading-tight tracking-[-0.015em] text-[#0B3F7D]"><?php echo esc_html($product_title); ?></p>
                     <?php endif; ?>
                     <div class="boblift-product-hero-actions mt-8 lg:mt-10 flex flex-wrap items-center gap-2.5 overflow-visible pb-2 pt-1 sm:gap-3">
-                        <button class="boblift-product-hero-request inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-sm bg-[#071f42] px-5 text-[13px] font-black text-white shadow-card transition hover:-translate-y-0.5 hover:bg-[#0B3F7D] sm:px-6 sm:text-sm" type="button" data-inquiry-modal-open data-inquiry-source="产品页首屏" data-inquiry-product="<?php echo esc_attr($product['title']); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html($ui['requestQuoteLabel'] ?? 'Request Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
-                        <button class="boblift-product-hero-quote-toggle inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-sm border border-blue-100 bg-white/74 px-5 text-[13px] font-black text-[#0B3F7D] shadow-card backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-gold/60 hover:bg-white sm:px-6 sm:text-sm" type="button" data-product-quote-add data-product-id="<?php echo esc_attr((string) ($product['id'] ?? ($product['slug'] ?? $product['title']))); ?>" data-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-title="<?php echo esc_attr($product['title']); ?>" data-image="<?php echo esc_url($main_image); ?>" data-category-title="<?php echo esc_attr($product['category_title'] ?? 'BOB-LIFT'); ?>" data-detail-url="<?php echo esc_url($product['detail_url'] ?? get_permalink()); ?>" data-summary="<?php echo esc_attr($product['short_description'] ?? ''); ?>" data-label-add="<?php echo esc_attr($hero_quote_list_add_label); ?>" data-label-active="<?php echo esc_attr($hero_quote_list_active_label); ?>"><?php echo boblift_icon('heart', 'h-4 w-4'); ?><span data-product-quote-add-label><?php echo esc_html($hero_quote_list_add_label); ?></span></button>
-                        <button class="boblift-product-hero-catalog inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-sm border border-[#D8E2EF] bg-white/54 px-5 text-[13px] font-black text-[#071f42] transition hover:-translate-y-0.5 hover:border-blue-300 hover:bg-white sm:px-6 sm:text-sm" type="button" data-catalog-modal-open data-catalog-product="<?php echo esc_attr($product['title']); ?>" data-catalog-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-catalog-url="<?php echo esc_url($catalog_url); ?>"><?php echo boblift_icon('download', 'h-4 w-4'); ?><?php echo esc_html($hero_pdf_label); ?></button>
+                        <button class="boblift-product-hero-request inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-sm bg-[#071f42] px-5 text-[13px] font-black text-white shadow-card transition hover:bg-[#0B3F7D] sm:px-6 sm:text-sm" type="button" data-inquiry-modal-open data-inquiry-source="产品页首屏" data-inquiry-product="<?php echo esc_attr($product['title']); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html($ui['requestQuoteLabel'] ?? 'Request Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
+                        <button class="boblift-product-hero-quote-toggle inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-sm border border-blue-100 bg-white/74 px-5 text-[13px] font-black text-[#0B3F7D] shadow-card backdrop-blur-xl transition hover:border-gold/60 hover:bg-white sm:px-6 sm:text-sm" type="button" data-product-quote-add data-product-id="<?php echo esc_attr((string) ($product['id'] ?? ($product['slug'] ?? $product['title']))); ?>" data-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-title="<?php echo esc_attr($product['title']); ?>" data-image="<?php echo esc_url($main_image); ?>" data-category-title="<?php echo esc_attr($product['category_title'] ?? 'BOB-LIFT'); ?>" data-detail-url="<?php echo esc_url($product['detail_url'] ?? get_permalink()); ?>" data-summary="<?php echo esc_attr($product['short_description'] ?? ''); ?>" data-label-add="<?php echo esc_attr($hero_quote_list_add_label); ?>" data-label-active="<?php echo esc_attr($hero_quote_list_active_label); ?>"><?php echo boblift_icon('heart', 'h-4 w-4'); ?><span data-product-quote-add-label><?php echo esc_html($hero_quote_list_add_label); ?></span></button>
+                        <button class="boblift-product-hero-catalog inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-sm border border-[#D8E2EF] bg-white/54 px-5 text-[13px] font-black text-[#071f42] transition hover:border-blue-300 hover:bg-white sm:px-6 sm:text-sm" type="button" data-catalog-modal-open data-catalog-product="<?php echo esc_attr($product['title']); ?>" data-catalog-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-catalog-url="<?php echo esc_url($catalog_url); ?>"><?php echo boblift_icon('download', 'h-4 w-4'); ?><?php echo esc_html($hero_pdf_label); ?></button>
                     </div>
                     <div class="mt-7 grid grid-cols-2 gap-3 lg:mt-8 2xl:grid-cols-4">
                         <?php foreach ($hero_specs as $spec) : ?>
@@ -231,35 +238,98 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
         </div>
     </section>
     <div class="sticky top-0 z-30 border-y border-[#DDE7F2] bg-white/82 shadow-card backdrop-blur-xl"><nav class="page-shell flex min-h-14 items-center overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="<?php echo esc_attr($ui['sectionNavLabel'] ?? 'Product detail sections'); ?>"><a class="boblift-cinema-nav-link grid h-14 min-w-14 place-items-center border-x border-[#DDE7F2] text-[#0B3F7D]" href="#product-hero" data-product-section-link aria-label="<?php echo esc_attr($product['title'] ?? 'Product hero'); ?>"><?php echo boblift_icon('home', 'h-5 w-5'); ?></a><?php foreach ($anchors as $anchor) : ?><a class="boblift-cinema-nav-link flex h-14 min-w-max items-center justify-center border-r border-[#DDE7F2] px-5 text-xs font-black text-[#334155] transition hover:bg-blue-50 hover:text-[#0B3F7D] md:px-6 md:text-sm" href="#<?php echo esc_attr($anchor['id']); ?>" data-product-section-link><?php echo esc_html($anchor['label']); ?></a><?php endforeach; ?></nav></div>
-    <section class="relative overflow-hidden bg-[linear-gradient(180deg,#F5F7FB_0%,#EEF4FB_42%,#F8FAFC_100%)] py-10">
-        <div class="pointer-events-none absolute inset-0 boblift-cinema-grid opacity-35"></div>
-        <div class="page-shell relative z-10 min-w-0 space-y-8">
-            <article id="technical" class="boblift-cinema-panel scroll-mt-24 overflow-hidden rounded border border-white/80 bg-white/78 shadow-card backdrop-blur-xl">
-                <div class="border-b border-[#DDE7F2] bg-white/58 p-6 md:p-8 lg:p-10">
-                    <p class="text-[11px] font-black uppercase tracking-[0.2em] text-[#0B3F7D]"><?php echo esc_html($ui['productIntroLabel'] ?? 'Product overview'); ?></p>
-                    <div class="mt-4 max-w-[1120px] space-y-3 text-sm font-semibold leading-7 text-slate-600 md:text-[15px] md:leading-8 [&_p]:m-0 [&_strong]:text-[#071f42] [&_strong]:font-black [&_ul]:m-0 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5"><?php echo wp_kses_post($product_intro_html); ?></div>
-                </div>
-                <div class="p-5 md:p-6 lg:p-7">
-                    <div class="mb-4 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-                        <div>
-                            <p class="text-[11px] font-black uppercase tracking-[0.18em] text-[#0B3F7D]"><?php echo esc_html($ui['cinemaSpecsLabel'] ?? 'Engineering data'); ?></p>
-                        </div>
+    <section class="bg-[#F5F7FB] py-8 md:py-12">
+        <div class="page-shell min-w-0 space-y-6 md:space-y-8">
+            <article id="technical" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card">
+                <div class="grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+                    <div class="border-b border-[#DDE7F2] p-6 md:p-8 lg:border-b-0 lg:border-r lg:p-10">
+                        <p class="text-[11px] font-black uppercase tracking-[0.2em] text-[#0B3F7D]"><?php echo esc_html($ui['cinemaSpecsLabel'] ?? 'Engineering data'); ?></p>
+                        <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($ui['specsHeading'] ?? 'Specifications'); ?></h2>
+                        <div class="mt-5 space-y-3 text-sm font-semibold leading-7 text-slate-600 md:text-[15px] [&_p]:m-0 [&_strong]:font-black [&_strong]:text-[#071f42] [&_ul]:m-0 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5"><?php echo wp_kses_post($product_intro_html); ?></div>
+                        <?php if ($brochure_source !== '') : ?>
+                            <p class="mt-6 flex items-start gap-2 border-t border-[#E6EDF5] pt-5 text-xs font-semibold leading-5 text-slate-500"><?php echo boblift_icon('book-open', 'mt-0.5 h-4 w-4 shrink-0 text-[#0B3F7D]'); ?><span><?php echo esc_html(($ui['sourceLabel'] ?? 'Source') . ': ' . $brochure_source); ?></span></p>
+                        <?php endif; ?>
                     </div>
-                    <dl class="boblift-technical-spec-grid grid overflow-hidden rounded border border-[#DDE7F2] bg-[#F8FAFC]/80 xl:grid-cols-3">
+                    <dl class="divide-y divide-[#E6EDF5] self-start">
                         <?php foreach ($technical_specs as $index => $spec) : ?>
-                            <div class="boblift-technical-spec-item min-w-0 border-b border-[#DDE7F2] p-4 md:p-5">
-                                <dt class="boblift-technical-spec-label min-w-0 font-black uppercase text-slate-500"><?php echo esc_html($spec['label'] ?? ''); ?></dt>
-                                <dd class="boblift-technical-spec-value mt-2 min-w-0 break-words font-black text-[#071f42]"><?php echo esc_html($spec['value'] ?? ''); ?></dd>
+                            <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] gap-4 px-6 py-3.5 md:px-8 lg:px-10 <?php echo $index === 0 ? 'bg-[#F5F8FC]' : ''; ?>">
+                                <dt class="text-sm font-semibold leading-6 text-slate-500"><?php echo esc_html($spec['label']); ?></dt>
+                                <dd class="min-w-0 break-words text-sm font-black leading-6 text-[#071f42] [font-variant-numeric:tabular-nums] md:text-[15px]"><?php echo esc_html($spec['value']); ?></dd>
                             </div>
                         <?php endforeach; ?>
                     </dl>
                 </div>
             </article>
-            <?php if ($show_detail_images) : ?>
-                <article id="details" class="boblift-cinema-panel scroll-mt-24 rounded border border-white/80 bg-white/74 p-5 shadow-card backdrop-blur-xl md:p-7"><div class="mb-5 flex flex-col gap-2 md:flex-row md:items-end md:justify-between"><h2 class="text-3xl font-black tracking-[-0.015em] text-[#071f42] md:text-4xl"><?php echo esc_html($ui['detailImagesTitle'] ?? ($ui['detailsLabel'] ?? 'Product Details')); ?></h2><span class="text-xs font-black uppercase tracking-[0.18em] text-slate-500"><?php echo esc_html($ui['cinemaDetailsLabel'] ?? 'Detail scroll'); ?></span></div><div class="mx-auto max-w-[1180px] overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.55)]"><?php foreach ($detail_image_items as $item) : ?><img class="block h-auto w-full border-b border-[#DDE7F2] last:border-b-0" src="<?php echo esc_url($item['image']); ?>" alt="<?php echo esc_attr($item['label']); ?>" loading="lazy" decoding="async"><?php endforeach; ?></div></article>
+            <?php foreach ($drawings as $drawing) :
+                $drawing_ratio = ($drawing['height'] ?? 0) > 0 ? $drawing['width'] / $drawing['height'] : 2;
+            ?>
+                <article id="drawing" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card" data-drawing-root>
+                    <div class="flex flex-col gap-2 border-b border-[#DDE7F2] p-6 md:flex-row md:items-end md:justify-between md:p-8">
+                        <div>
+                            <p class="text-[11px] font-black uppercase tracking-[0.2em] text-[#0B3F7D]"><?php echo esc_html($ui['drawingLabel'] ?? 'Dimension Drawing'); ?></p>
+                            <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($ui['drawingTitle'] ?? 'Dimensions and load chart'); ?></h2>
+                        </div>
+                        <p class="text-xs font-semibold text-slate-500"><?php echo esc_html($hero_model !== '' ? $hero_model : $product_title); ?><?php echo $brochure_source !== '' ? ' · ' . esc_html($brochure_source) : ''; ?></p>
+                    </div>
+                    <div class="p-4 sm:p-6 md:p-8">
+                        <button class="block w-full cursor-zoom-in rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" type="button" data-drawing-open aria-label="<?php echo esc_attr($drawing['label']); ?>">
+                            <img class="mx-auto h-auto w-full <?php echo $drawing_ratio < 1.4 ? 'max-w-[560px]' : ''; ?>" src="<?php echo esc_url($drawing['image']); ?>" width="<?php echo esc_attr((string) $drawing['width']); ?>" height="<?php echo esc_attr((string) $drawing['height']); ?>" alt="<?php echo esc_attr($drawing['label']); ?>" loading="lazy" decoding="async">
+                        </button>
+                        <p class="mt-4 text-center text-xs font-semibold text-slate-500"><?php echo esc_html($ui['drawingHint'] ?? 'Select the drawing to view it full size.'); ?></p>
+                    </div>
+                    <dialog class="boblift-drawing-dialog m-auto h-[92vh] w-[96vw] max-w-none overflow-hidden rounded border border-[#DDE7F2] bg-white p-0 shadow-raised" data-drawing-dialog aria-label="<?php echo esc_attr($drawing['label']); ?>">
+                        <div class="flex h-full flex-col">
+                            <div class="flex items-center justify-between gap-4 border-b border-[#DDE7F2] px-4 py-3 md:px-6">
+                                <p class="truncate text-sm font-black text-[#071f42]"><?php echo esc_html($drawing['label']); ?></p>
+                                <button class="grid size-9 shrink-0 place-items-center rounded-sm border border-[#DDE7F2] text-[#071f42] transition hover:border-blue-300" type="button" data-drawing-close aria-label="<?php echo esc_attr($ui['drawingCloseLabel'] ?? 'Close drawing'); ?>"><?php echo boblift_icon('x', 'h-4 w-4'); ?></button>
+                            </div>
+                            <div class="min-h-0 flex-1 overflow-auto p-4 md:p-6"><img class="mx-auto h-auto max-w-none" style="width:max(100%, <?php echo esc_attr((string) min(2000, (int) $drawing['width'])); ?>px)" src="<?php echo esc_url($drawing['image']); ?>" alt="" loading="lazy" decoding="async"></div>
+                        </div>
+                    </dialog>
+                </article>
+            <?php break; endforeach; ?>
+            <?php if ($brochure_features) : ?>
+                <article id="features" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card">
+                    <div class="border-b border-[#DDE7F2] p-6 md:p-8">
+                        <p class="text-[11px] font-black uppercase tracking-[0.2em] text-[#0B3F7D]"><?php echo esc_html($ui['featuresLabel'] ?? 'Key Features'); ?></p>
+                        <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($ui['featuresTitle'] ?? 'Built into every crane in this series'); ?></h2>
+                    </div>
+                    <ol class="-mb-px -mr-px grid sm:grid-cols-2 xl:grid-cols-3">
+                        <?php foreach ($brochure_features as $index => $feature) : ?>
+                            <li class="border-b border-r border-[#E6EDF5] p-6 md:p-7">
+                                <span class="text-xs font-black text-[#0B3F7D] [font-variant-numeric:tabular-nums]"><?php echo esc_html(sprintf('%02d', $index + 1)); ?></span>
+                                <h3 class="mt-2 text-base font-black leading-snug text-[#071f42]"><?php echo esc_html((string) $feature['title']); ?></h3>
+                                <p class="mt-2 text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html((string) ($feature['text'] ?? '')); ?></p>
+                            </li>
+                        <?php endforeach; ?>
+                    </ol>
+                </article>
             <?php endif; ?>
-            <article id="photos" class="boblift-cinema-panel scroll-mt-24 rounded border border-white/80 bg-white/74 p-5 shadow-card backdrop-blur-xl md:p-7" data-product-gallery-root><div class="mb-5 flex flex-col gap-2 md:flex-row md:items-end md:justify-between"><h2 class="text-3xl font-black tracking-[-0.015em] text-[#071f42] md:text-4xl"><?php echo esc_html($ui['photoGalleryTitle'] ?? ($ui['photosLabel'] ?? 'Product Photos')); ?></h2><span class="text-xs font-black uppercase tracking-[0.18em] text-slate-500"><?php echo esc_html($ui['cinemaGalleryLabel'] ?? 'Product stage'); ?></span></div><div class="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_260px]"><div class="relative min-h-[360px] overflow-hidden rounded border border-[#DDE7F2] bg-[radial-gradient(circle_at_52%_38%,rgba(255,255,255,0.95)_0%,rgba(219,234,254,0.78)_42%,rgba(226,232,240,0.92)_100%)] md:min-h-[560px]"><img class="absolute inset-0 h-full w-full object-contain p-6 drop-shadow-[0_6px_8px_rgba(11,27,51,0.10)] transition-opacity duration-200 md:p-10" src="<?php echo esc_url($gallery_items[0]['image'] ?? $main_image); ?>" alt="<?php echo esc_attr($product['title']); ?>" loading="lazy" data-product-gallery-image><span class="absolute bottom-5 left-5 rounded-sm border border-white/80 bg-white/80 px-4 py-2 text-xs font-black text-[#071f42] shadow-card backdrop-blur-xl" data-product-gallery-caption><?php echo esc_html($gallery_items[0]['label'] ?? ($ui['mainProductViewLabel'] ?? 'Main product view')); ?></span></div><?php if (count($gallery_items) > 1) : ?><div class="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-1"><?php foreach ($gallery_items as $index => $item) : ?><button class="group grid min-h-[104px] grid-cols-[86px_1fr] items-center gap-3 rounded border p-3 text-left transition hover:-translate-y-0.5 <?php echo $index === 0 ? 'border-blue-500 bg-blue-50 shadow-card' : 'border-[#DDE5EF] bg-white/80 hover:border-blue-300'; ?>" type="button" data-product-gallery-thumb data-product-gallery-src="<?php echo esc_url($item['image']); ?>" data-product-gallery-label="<?php echo esc_attr($item['label']); ?>" aria-pressed="<?php echo $index === 0 ? 'true' : 'false'; ?>"><span class="relative block h-20 w-20 overflow-hidden rounded bg-white"><img class="absolute inset-0 h-full w-full object-cover" src="<?php echo esc_url($item['image']); ?>" alt="<?php echo esc_attr($item['label']); ?>" loading="lazy"></span><span class="text-sm font-black leading-5 text-[#071f42]"><?php echo esc_html($item['label']); ?></span></button><?php endforeach; ?></div><?php endif; ?></div></article>
-            <section id="faq" class="scroll-mt-24"><h2 class="mb-5 text-3xl font-black tracking-[-0.015em] text-[#071f42] md:text-4xl"><?php echo esc_html($ui['faqLabel'] ?? 'FAQ'); ?></h2><div class="grid grid-cols-1 gap-4 lg:grid-cols-2"><?php foreach ($faqs as $faq) : ?><details class="group rounded border border-white/80 bg-white/74 px-5 py-4 shadow-card backdrop-blur-xl"><summary class="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-black text-[#071f42]"><?php echo esc_html($faq['question']); ?><?php echo boblift_icon('chevron-down', 'h-4 w-4 transition group-open:rotate-180'); ?></summary><p class="mt-3 text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html($faq['answer']); ?></p></details><?php endforeach; ?></div></section>
+            <article id="photos" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white p-5 shadow-card md:p-8" data-product-gallery-root>
+                <div class="mb-5 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+                    <div>
+                        <p class="text-[11px] font-black uppercase tracking-[0.2em] text-[#0B3F7D]"><?php echo esc_html($ui['cinemaGalleryLabel'] ?? 'Product stage'); ?></p>
+                        <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($ui['photoGalleryTitle'] ?? ($ui['photosLabel'] ?? 'Product Photos')); ?></h2>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_280px]">
+                    <div class="relative aspect-[4/3] overflow-hidden rounded border border-[#DDE7F2] bg-[#F5F8FC] md:aspect-[16/9]">
+                        <img class="absolute inset-0 h-full w-full object-contain p-4 transition-opacity duration-200 md:p-8" src="<?php echo esc_url($gallery_items[0]['image'] ?? $main_image); ?>" alt="<?php echo esc_attr($product['title']); ?>" loading="lazy" data-product-gallery-image>
+                        <span class="absolute bottom-3 left-3 max-w-[calc(100%-1.5rem)] truncate rounded-sm border border-[#DDE7F2] bg-white px-3 py-1.5 text-xs font-black text-[#071f42]" data-product-gallery-caption><?php echo esc_html($gallery_items[0]['label'] ?? ($ui['mainProductViewLabel'] ?? 'Main product view')); ?></span>
+                    </div>
+                    <?php if (count($gallery_items) > 1) : ?>
+                        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-1 xl:content-start">
+                            <?php foreach ($gallery_items as $index => $item) : ?>
+                                <button class="grid grid-cols-1 items-center gap-2 rounded border p-2 text-left transition xl:grid-cols-[76px_1fr] xl:gap-3 <?php echo $index === 0 ? 'border-blue-500 bg-blue-50' : 'border-[#DDE5EF] bg-white hover:border-blue-300'; ?>" type="button" data-product-gallery-thumb data-product-gallery-src="<?php echo esc_url($item['image']); ?>" data-product-gallery-label="<?php echo esc_attr($item['label']); ?>" aria-pressed="<?php echo $index === 0 ? 'true' : 'false'; ?>">
+                                    <span class="relative block aspect-[4/3] overflow-hidden rounded-sm bg-[#F5F8FC] xl:aspect-square"><img class="absolute inset-0 h-full w-full object-cover" src="<?php echo esc_url($item['image']); ?>" alt="<?php echo esc_attr($item['label']); ?>" loading="lazy"></span>
+                                    <span class="line-clamp-2 text-xs font-black leading-5 text-[#071f42]"><?php echo esc_html($item['label']); ?></span>
+                                </button>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </article>
+            <section id="faq" class="scroll-mt-24"><h2 class="mb-5 text-3xl font-black tracking-[-0.015em] text-[#071f42] md:text-4xl"><?php echo esc_html($ui['faqLabel'] ?? 'FAQ'); ?></h2><div class="grid grid-cols-1 gap-4 lg:grid-cols-2"><?php foreach ($faqs as $faq) : ?><details class="group rounded border border-[#DDE7F2] bg-white px-5 py-4 shadow-card"><summary class="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-black text-[#071f42]"><?php echo esc_html($faq['question']); ?><?php echo boblift_icon('chevron-down', 'h-4 w-4 transition group-open:rotate-180'); ?></summary><p class="mt-3 text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html($faq['answer']); ?></p></details><?php endforeach; ?></div></section>
             <section id="quote" class="boblift-product-quote-section relative left-1/2 w-screen -translate-x-1/2 scroll-mt-24 overflow-hidden border-y border-[#DDE7F2] bg-[radial-gradient(circle_at_70%_28%,rgba(245,154,60,0.16),transparent_28%),linear-gradient(135deg,#ffffff_0%,#eaf2ff_100%)] py-12 text-[#071f42] shadow-card md:py-16">
                 <div class="page-shell grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_auto] xl:gap-12">
                     <div class="boblift-product-quote-copy flex items-start gap-5 md:gap-6">
@@ -270,8 +340,8 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                         </div>
                     </div>
                     <div class="boblift-product-quote-actions flex flex-wrap gap-3 lg:justify-end">
-                        <button class="boblift-product-quote-action boblift-product-quote-action-primary inline-flex h-14 items-center justify-center gap-3 rounded-sm bg-[#071f42] px-7 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页询价区" data-inquiry-product="<?php echo esc_attr($product['title']); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html($ui['requestQuoteLabel'] ?? 'Request Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
-                        <a class="boblift-product-quote-action boblift-product-quote-action-secondary inline-flex h-14 items-center justify-center gap-3 rounded-sm border border-blue-100 bg-white/70 px-7 text-sm font-black text-[#0B3F7D] transition hover:-translate-y-0.5 hover:border-blue-300" href="<?php echo esc_url($contact_url); ?>"><?php echo esc_html($ui['contactEngineerLabel'] ?? 'Contact Engineer'); ?> <?php echo boblift_icon('mail', 'h-4 w-4'); ?></a>
+                        <button class="boblift-product-quote-action boblift-product-quote-action-primary inline-flex h-14 items-center justify-center gap-3 rounded-sm bg-[#071f42] px-7 text-sm font-black text-white transition hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页询价区" data-inquiry-product="<?php echo esc_attr($product['title']); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html($ui['requestQuoteLabel'] ?? 'Request Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
+                        <a class="boblift-product-quote-action boblift-product-quote-action-secondary inline-flex h-14 items-center justify-center gap-3 rounded-sm border border-blue-100 bg-white/70 px-7 text-sm font-black text-[#0B3F7D] transition hover:border-blue-300" href="<?php echo esc_url($contact_url); ?>"><?php echo esc_html($ui['contactEngineerLabel'] ?? 'Contact Engineer'); ?> <?php echo boblift_icon('mail', 'h-4 w-4'); ?></a>
                     </div>
                 </div>
             </section>

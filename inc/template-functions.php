@@ -515,6 +515,14 @@ function boblift_product_from_post(WP_Post $post): array
     };
     $gallery = $product_image_rows(get_post_meta($post->ID, '_gallery', true));
     $detail_images = $product_image_rows(get_post_meta($post->ID, '_detail_images', true));
+    // Dimension drawings cropped from the product manual: [{id, image, label}], sized from the attachment.
+    $drawings = [];
+    foreach (boblift_decode_meta(get_post_meta($post->ID, '_drawings', true), []) as $item) {
+        $source = is_array($item) ? wp_get_attachment_image_src((int) ($item['id'] ?? 0), 'full') : false;
+        if ($source) {
+            $drawings[] = ['image' => (string) $source[0], 'width' => (int) $source[1], 'height' => (int) $source[2], 'label' => boblift_localize_product_text_fragments((string) ($item['label'] ?? ''))];
+        }
+    }
 
     $raw_hotspots = boblift_decode_meta(get_post_meta($post->ID, '_hotspots', true), []);
     $hotspots = [];
@@ -570,6 +578,8 @@ function boblift_product_from_post(WP_Post $post): array
         'features' => is_array($features) ? $features : [],
         'gallery' => $gallery,
         'detail_images' => $detail_images,
+        'drawings' => $drawings,
+        'brochure_source' => (string) get_post_meta($post->ID, '_brochure_source', true),
         'hotspots' => $hotspots,
         'detail_url' => get_permalink($post),
         'inquiry_url' => boblift_url('/contact.html?product=' . rawurlencode($title) . '#inquiry'),
