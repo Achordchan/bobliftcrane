@@ -98,16 +98,28 @@ $features = [
 
 // Product kinds: the features kicker, the noun in the short description and the title template.
 $kinds = [
-    'knuckle-boom-truck-mounted-cranes' => ['series' => 'Knuckle Boom Truck Mounted Crane', 'ja' => 'ナックルブーム トラック搭載クレーン', 'zh' => '折臂式随车起重机'],
-    'telescopic-boom-truck-mounted-cranes' => ['series' => 'Telescopic Boom Truck Mounted Crane', 'ja' => '伸縮ブーム トラック搭載クレーン', 'zh' => '伸缩臂随车起重机'],
-    'knuckle-boom-marine-cranes' => ['series' => 'Knuckle Boom Marine Crane', 'ja' => 'ナックルブーム マリンクレーン', 'zh' => '折臂式船用起重机'],
-    'telescopic-boom-marine-cranes' => ['series' => 'Telescopic Boom Marine Crane', 'ja' => '伸縮ブーム マリンクレーン', 'zh' => '伸缩臂船用起重机'],
-    'forklift-fly-jib-cranes' => ['ja' => 'フォークリフト フライジブクレーン', 'zh' => '叉车飞臂起重机'],
+    'knuckle-boom-truck-mounted-cranes' => ['series' => 'Knuckle Boom Truck Mounted Crane', 'ja' => 'ナックルブーム式トラック搭載クレーン', 'zh' => '折臂式随车起重机'],
+    'telescopic-boom-truck-mounted-cranes' => ['series' => 'Telescopic Boom Truck Mounted Crane', 'ja' => '伸縮ブーム式トラック搭載クレーン', 'zh' => '伸缩臂式随车起重机'],
+    'knuckle-boom-marine-cranes' => ['series' => 'Knuckle Boom Marine Crane', 'ja' => 'ナックルブーム式マリンクレーン', 'zh' => '折臂式船用起重机'],
+    'telescopic-boom-marine-cranes' => ['series' => 'Telescopic Boom Marine Crane', 'ja' => '伸縮ブーム式マリンクレーン', 'zh' => '伸缩臂式船用起重机'],
+    'forklift-fly-jib-cranes' => ['ja' => 'フォークリフト用フライジブクレーン', 'zh' => '叉车飞臂起重机'],
     'pickup-cranes' => ['ja' => 'ピックアップクレーン', 'zh' => '皮卡起重机'],
     'spider-cranes' => ['ja' => 'スパイダークレーン', 'zh' => '蜘蛛式起重机'],
     'timber-cranes' => ['ja' => '木材クレーン', 'zh' => '木材起重机'],
     'garbage' => ['ja' => 'ごみ収集クレーン', 'zh' => '垃圾抓斗起重机'],
     'tow' => ['ja' => 'レッカー車用クレーン', 'zh' => '清障车起重机'],
+];
+// One naming scheme for titles and category names (agreed with the user: 中文 "折臂式随车起重机").
+// Kinds whose titles follow the template: "{n} 吨{noun}" / "{n}トン {noun}", or "{model} {noun}".
+$templated_kinds = ['knuckle-boom-truck-mounted-cranes', 'telescopic-boom-truck-mounted-cranes', 'knuckle-boom-marine-cranes', 'telescopic-boom-marine-cranes', 'forklift-fly-jib-cranes', 'timber-cranes', 'garbage', 'tow'];
+// Category names per language, keyed by the English category slug.
+$category_names = [
+    'truck-mounted-crane' => ['ja' => 'トラック搭載クレーン', 'zh' => '随车起重机'],
+    'marine-crane' => ['ja' => 'マリンクレーン', 'zh' => '船用起重机'],
+    'knuckle-boom-truck-mounted-cranes' => ['ja' => 'ナックルブーム式トラック搭載クレーン', 'zh' => '折臂式随车起重机'],
+    'telescopic-boom-truck-mounted-cranes' => ['ja' => '伸縮ブーム式トラック搭載クレーン', 'zh' => '伸缩臂式随车起重机'],
+    'knuckle-boom-marine-cranes' => ['ja' => 'ナックルブーム式マリンクレーン', 'zh' => '折臂式船用起重机'],
+    'telescopic-boom-marine-cranes' => ['ja' => '伸縮ブーム式マリンクレーン', 'zh' => '伸缩臂式船用起重机'],
 ];
 $series_names = [];
 foreach ($kinds as $kind) {
@@ -178,6 +190,43 @@ $localize_capacity = static function (string $capacity, string $lang): string {
     return preg_replace('/\s*\bton\b/i', $lang === 'ja' ? 'トン' : ' 吨', $capacity) ?? $capacity;
 };
 
+$renamed = [];
+foreach ($category_names as $en_slug => $names) {
+    $en_term = get_term_by('slug', $en_slug, 'product_category');
+    foreach ($en_term ? $langs : [] as $lang) {
+        $term_id = (int) pll_get_term($en_term->term_id, $lang);
+        $term = $term_id ? get_term($term_id, 'product_category') : null;
+        if ($term && !is_wp_error($term) && $term->name !== $names[$lang]) {
+            $renamed[] = "{$lang} category: {$term->name} -> {$names[$lang]}";
+            if (!$dry) {
+                wp_update_term($term_id, 'product_category', ['name' => $names[$lang]]);
+            }
+        }
+    }
+}
+
+// Saved site texts (SEO title, alts, archive intro, footer labels) still using the old names.
+$option_replacements = [
+    'boblift_theme_options_zh' => ['伸缩臂车载起重机' => '伸缩臂式随车起重机', '折臂式车载起重机' => '折臂式随车起重机', '伸缩臂随车起重机' => '伸缩臂式随车起重机', '折臂随车起重机' => '折臂式随车起重机', '车载起重机' => '随车起重机'],
+    'boblift_theme_options_ja' => ['ナックルブームトラック搭載クレーン' => 'ナックルブーム式トラック搭載クレーン', '車載クレーン、船舶用クレーン' => 'トラック搭載クレーン、マリンクレーン'],
+];
+$replace_deep = static function ($value, array $map) use (&$replace_deep) {
+    if (is_array($value)) {
+        return array_map(static fn($child) => $replace_deep($child, $map), $value);
+    }
+    return is_string($value) ? strtr($value, $map) : $value;
+};
+foreach ($option_replacements as $option => $map) {
+    $current = get_option($option);
+    $next = $replace_deep($current, $map);
+    if ($next !== $current) {
+        $renamed[] = "{$option}: old names replaced";
+        if (!$dry) {
+            update_option($option, $next);
+        }
+    }
+}
+
 $json = static fn($value): string => wp_json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
 $backup = [];
@@ -210,8 +259,10 @@ foreach ($english as $en) {
         $target = function_exists('pll_get_post') ? (int) pll_get_post($en->ID, $lang) : 0;
         $title = $target ? get_the_title($target) : $make_title($en->post_title, $model, $kind, $lang);
         // Keep editor titles, but not ones that still carry English product words.
+        // Templated kinds always follow the naming scheme; others keep their title unless it still has English words.
         $title_words = str_ireplace(array_merge([$model, 'BOB-LIFT'], $aliases), '', html_entity_decode($title));
-        $retitle = $target && preg_match('/[A-Za-z]{4,}/', $title_words);
+        $wanted = $make_title($en->post_title, $model, $kind, $lang);
+        $retitle = $target && (in_array($kind, $templated_kinds, true) ? $title !== $wanted : (bool) preg_match('/[A-Za-z]{4,}/', $title_words));
         if ($retitle) {
             $title = $make_title($en->post_title, $model, $kind, $lang);
         }
@@ -260,9 +311,7 @@ foreach ($english as $en) {
         $summary = $short_description($model, $kinds[$kind][$lang], $specs, $aliases, $lang);
         $meta['_short_description'] = $summary;
         $meta['_seo_description'] = $summary;
-        if (!$target || $retitle) {
-            $meta['_seo_title'] = $title . ' | BOB-LIFT';
-        }
+        $meta['_seo_title'] = $title . ' | BOB-LIFT';
         $thumbnail = (int) get_post_thumbnail_id($en->ID);
 
         $report[] = sprintf('%-4s %-12s %-6s %s', $lang, $model, $target ? ($retitle ? 'retitle' : 'update') : 'CREATE', $title);
@@ -326,10 +375,36 @@ foreach ($english as $en) {
     }
 }
 
+// Products outside the title template (aerial platforms, spider and pickup cranes), named in the same scheme.
+$title_overrides = [
+    'knuckle-spider-crane' => ['ja' => 'ナックルブーム式スパイダークレーン', 'zh' => '折臂式蜘蛛起重机'],
+    'telescopic-spider-crane' => ['ja' => '伸縮ブーム式スパイダークレーン', 'zh' => '伸缩臂式蜘蛛起重机'],
+    '800-kg-pickup-crane-with-outriggers' => ['ja' => '800 kg アウトリガー付きピックアップクレーン', 'zh' => '800 kg 带支腿皮卡起重机'],
+];
+foreach (get_posts(['post_type' => 'product', 'post_status' => 'publish', 'posts_per_page' => -1, 'lang' => 'en']) as $en) {
+    $names = $title_overrides[$en->post_name] ?? null;
+    if (!$names && preg_match('/^Truck Mounted (\d+)-Meter Aerial Work Platform$/', $en->post_title, $m)) {
+        $names = ['ja' => "トラック搭載型{$m[1]}メートル高所作業車", 'zh' => "车载式{$m[1]}米高空作业平台"];
+    }
+    foreach ($names ? $langs : [] as $lang) {
+        $target = (int) pll_get_post($en->ID, $lang);
+        if (!$target || (get_the_title($target) === $names[$lang] && get_post_meta($target, '_seo_title', true) === $names[$lang] . ' | BOB-LIFT')) {
+            continue;
+        }
+        $report[] = sprintf('%-4s %-12s %-6s %s', $lang, $en->post_name, 'rename', $names[$lang]);
+        if (!$dry) {
+            $backup[$target]['post_title'] ??= get_the_title($target);
+            $backup[$target]['_seo_title'] ??= get_post_meta($target, '_seo_title', true);
+            wp_update_post(wp_slash(['ID' => $target, 'post_title' => $names[$lang]]));
+            update_post_meta($target, '_seo_title', wp_slash($names[$lang] . ' | BOB-LIFT'));
+        }
+    }
+}
+
 if (!$dry && $backup) {
     file_put_contents($dir . '/backup-translations-' . gmdate('Ymd-His') . '.json', $json($backup));
 }
-echo implode("\n", $report), "\n";
+echo implode("\n", array_merge($renamed, $report)), "\n";
 if ($problems) {
     echo "\nPROBLEMS:\n", implode("\n", $problems), "\n";
 }

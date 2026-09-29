@@ -225,11 +225,11 @@ $anchors[] = ['id' => 'technical', 'label' => (string) ($ui['technicalLabel'] ??
 if ($detail_body_html !== '' || $detail_gallery) {
     $anchors[] = ['id' => 'overview', 'label' => (string) ($ui['detailBodyLabel'] ?? 'Product details')];
 }
-if ($brochure_features) {
-    $anchors[] = ['id' => 'features', 'label' => (string) ($ui['featuresLabel'] ?? 'Key Features')];
-}
 if ($drawings) {
     $anchors[] = ['id' => 'drawing', 'label' => (string) ($ui['drawingLabel'] ?? 'Dimension Drawing')];
+}
+if ($brochure_features) {
+    $anchors[] = ['id' => 'features', 'label' => (string) ($ui['featuresLabel'] ?? 'Key Features')];
 }
 // Manufacturing and delivery steps: knuckle or telescopic set, by the English product's category.
 $process_slugs = wp_get_post_terms(boblift_product_english_id(get_the_ID()), 'product_category', ['fields' => 'slugs']);
@@ -420,6 +420,34 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                     </div>
                 </article>
             <?php endif; ?>
+            <?php foreach ($drawings as $drawing) :
+                $drawing_ratio = ($drawing['height'] ?? 0) > 0 ? $drawing['width'] / $drawing['height'] : 2;
+            ?>
+                <article id="drawing" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card" data-drawing-root>
+                    <div class="flex flex-col gap-2 border-b border-[#DDE7F2] p-6 md:flex-row md:items-end md:justify-between md:p-8">
+                        <div>
+                            <p class="text-[11px] font-black uppercase tracking-[0.2em] text-[#0B3F7D]"><?php echo esc_html($ui['drawingLabel'] ?? 'Dimension Drawing'); ?></p>
+                            <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($ui['drawingTitle'] ?? 'Dimensions and load chart'); ?></h2>
+                        </div>
+                        <p class="text-xs font-semibold text-slate-500"><?php echo esc_html($hero_model !== '' ? $hero_model : $product_title); ?></p>
+                    </div>
+                    <div class="p-4 sm:p-6 md:p-8">
+                        <button class="block w-full cursor-zoom-in rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" type="button" data-drawing-open aria-label="<?php echo esc_attr($drawing['label']); ?>">
+                            <img class="mx-auto h-auto w-full <?php echo $drawing_ratio < 1.4 ? 'max-w-[560px]' : ''; ?>" src="<?php echo esc_url($drawing['image']); ?>" width="<?php echo esc_attr((string) $drawing['width']); ?>" height="<?php echo esc_attr((string) $drawing['height']); ?>" alt="<?php echo esc_attr($drawing['label']); ?>" loading="lazy" decoding="async">
+                        </button>
+                        <p class="mt-4 text-center text-xs font-semibold text-slate-500"><?php echo esc_html($ui['drawingHint'] ?? 'Select the drawing to view it full size.'); ?></p>
+                    </div>
+                    <dialog class="boblift-drawing-dialog m-auto h-[92vh] w-[96vw] max-w-none overflow-hidden rounded border border-[#DDE7F2] bg-white p-0 shadow-raised" data-drawing-dialog aria-label="<?php echo esc_attr($drawing['label']); ?>">
+                        <div class="flex h-full flex-col">
+                            <div class="flex items-center justify-between gap-4 border-b border-[#DDE7F2] px-4 py-3 md:px-6">
+                                <p class="truncate text-sm font-black text-[#071f42]"><?php echo esc_html($drawing['label']); ?></p>
+                                <button class="grid size-9 shrink-0 place-items-center rounded-sm border border-[#DDE7F2] text-[#071f42] transition hover:border-blue-300" type="button" data-drawing-close aria-label="<?php echo esc_attr($ui['drawingCloseLabel'] ?? 'Close drawing'); ?>"><?php echo boblift_icon('x', 'h-4 w-4'); ?></button>
+                            </div>
+                            <div class="min-h-0 flex-1 overflow-auto p-4 md:p-6"><img class="mx-auto h-auto max-w-none" style="width:max(100%, <?php echo esc_attr((string) min(2000, (int) $drawing['width'])); ?>px)" src="<?php echo esc_url($drawing['image']); ?>" alt="" loading="lazy" decoding="async"></div>
+                        </div>
+                    </dialog>
+                </article>
+            <?php break; endforeach; ?>
             <?php if ($brochure_features) : ?>
                 <?php
                 $features_series = trim((string) ($product['features_series'] ?? ''));
@@ -458,34 +486,6 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                     <?php endif; ?>
                 </article>
             <?php endif; ?>
-            <?php foreach ($drawings as $drawing) :
-                $drawing_ratio = ($drawing['height'] ?? 0) > 0 ? $drawing['width'] / $drawing['height'] : 2;
-            ?>
-                <article id="drawing" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card" data-drawing-root>
-                    <div class="flex flex-col gap-2 border-b border-[#DDE7F2] p-6 md:flex-row md:items-end md:justify-between md:p-8">
-                        <div>
-                            <p class="text-[11px] font-black uppercase tracking-[0.2em] text-[#0B3F7D]"><?php echo esc_html($ui['drawingLabel'] ?? 'Dimension Drawing'); ?></p>
-                            <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($ui['drawingTitle'] ?? 'Dimensions and load chart'); ?></h2>
-                        </div>
-                        <p class="text-xs font-semibold text-slate-500"><?php echo esc_html($hero_model !== '' ? $hero_model : $product_title); ?></p>
-                    </div>
-                    <div class="p-4 sm:p-6 md:p-8">
-                        <button class="block w-full cursor-zoom-in rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" type="button" data-drawing-open aria-label="<?php echo esc_attr($drawing['label']); ?>">
-                            <img class="mx-auto h-auto w-full <?php echo $drawing_ratio < 1.4 ? 'max-w-[560px]' : ''; ?>" src="<?php echo esc_url($drawing['image']); ?>" width="<?php echo esc_attr((string) $drawing['width']); ?>" height="<?php echo esc_attr((string) $drawing['height']); ?>" alt="<?php echo esc_attr($drawing['label']); ?>" loading="lazy" decoding="async">
-                        </button>
-                        <p class="mt-4 text-center text-xs font-semibold text-slate-500"><?php echo esc_html($ui['drawingHint'] ?? 'Select the drawing to view it full size.'); ?></p>
-                    </div>
-                    <dialog class="boblift-drawing-dialog m-auto h-[92vh] w-[96vw] max-w-none overflow-hidden rounded border border-[#DDE7F2] bg-white p-0 shadow-raised" data-drawing-dialog aria-label="<?php echo esc_attr($drawing['label']); ?>">
-                        <div class="flex h-full flex-col">
-                            <div class="flex items-center justify-between gap-4 border-b border-[#DDE7F2] px-4 py-3 md:px-6">
-                                <p class="truncate text-sm font-black text-[#071f42]"><?php echo esc_html($drawing['label']); ?></p>
-                                <button class="grid size-9 shrink-0 place-items-center rounded-sm border border-[#DDE7F2] text-[#071f42] transition hover:border-blue-300" type="button" data-drawing-close aria-label="<?php echo esc_attr($ui['drawingCloseLabel'] ?? 'Close drawing'); ?>"><?php echo boblift_icon('x', 'h-4 w-4'); ?></button>
-                            </div>
-                            <div class="min-h-0 flex-1 overflow-auto p-4 md:p-6"><img class="mx-auto h-auto max-w-none" style="width:max(100%, <?php echo esc_attr((string) min(2000, (int) $drawing['width'])); ?>px)" src="<?php echo esc_url($drawing['image']); ?>" alt="" loading="lazy" decoding="async"></div>
-                        </div>
-                    </dialog>
-                </article>
-            <?php break; endforeach; ?>
             <?php if ($process_steps) :
                 // Literal class names so Tailwind keeps them.
                 $process_cols = [3 => 'lg:grid-cols-3', 4 => 'lg:grid-cols-4', 5 => 'lg:grid-cols-5'][count($process_steps)] ?? 'lg:grid-cols-6';
