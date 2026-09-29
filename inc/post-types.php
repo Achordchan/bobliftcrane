@@ -30,9 +30,9 @@ function boblift_register_content_types(): void
     // and model are shown, stored per language in meta), so one entry serves every language of the site.
     register_post_type('feedback', [
         'labels' => boblift_post_type_labels('客户反馈', '客户反馈'),
-        'public' => false,
-        'show_ui' => true,
-        'show_in_menu' => true,
+        'public' => true,
+        'has_archive' => false,
+        'rewrite' => ['slug' => 'feedback', 'with_front' => false],
         'menu_icon' => 'dashicons-format-gallery',
         'exclude_from_search' => true,
         'supports' => ['title', 'page-attributes'],
@@ -501,6 +501,16 @@ function boblift_product_html_permalink(string $link, WP_Post $post): string
     return boblift_public_path_url(boblift_post_public_path($post), $language ?: null);
 }
 add_filter('post_type_link', 'boblift_product_html_permalink', 10, 2);
+
+// Feedback is one entry for every language, so its link stays on the domain of the page showing it.
+function boblift_feedback_permalink(string $link, WP_Post $post): string
+{
+    if ($post->post_type !== 'feedback' || $post->post_status !== 'publish') {
+        return $link;
+    }
+    return trailingslashit(boblift_public_path_url('/feedback/' . $post->post_name));
+}
+add_filter('post_type_link', 'boblift_feedback_permalink', 10, 2);
 
 function boblift_product_archive_html_link(string $link, string $post_type): string
 {
@@ -1404,6 +1414,7 @@ function boblift_feedback_meta_box(WP_Post $post): void
     wp_nonce_field('boblift_feedback_meta', 'boblift_feedback_nonce');
     $country = json_decode((string) get_post_meta($post->ID, '_feedback_country', true), true) ?: [];
     $note = json_decode((string) get_post_meta($post->ID, '_feedback_note', true), true) ?: [];
+    $body = json_decode((string) get_post_meta($post->ID, '_feedback_body', true), true) ?: [];
     $ids = array_filter(array_map('intval', explode(',', (string) get_post_meta($post->ID, '_feedback_media', true))));
     ?>
     <style>.boblift-feedback-box .boblift-admin-field{display:grid;grid-template-columns:170px minmax(0,1fr);gap:12px;margin:0 0 12px}.boblift-feedback-box input[type=text]{width:100%;max-width:520px;margin-bottom:6px}</style>
@@ -1417,6 +1428,13 @@ function boblift_feedback_meta_box(WP_Post $post): void
         <input type="text" name="boblift_feedback[note_en]" value="<?php echo esc_attr((string) ($note['en'] ?? '')); ?>" placeholder="with clamshell bucket">
         <input type="text" name="boblift_feedback[note_ja]" value="<?php echo esc_attr((string) ($note['ja'] ?? '')); ?>" placeholder="クラムシェルバケット付き">
         <input type="text" name="boblift_feedback[note_zh]" value="<?php echo esc_attr((string) ($note['zh'] ?? '')); ?>" placeholder="配贝壳斗">
+    </div></div>
+    <div class="boblift-admin-field"><label>正文（英/日/中，可空）</label><div class="boblift-feedback-body">
+        <?php foreach (['en' => '英文', 'ja' => '日文', 'zh' => '中文'] as $lang => $lang_label) : ?>
+            <p class="description" style="margin:0 0 4px"><?php echo esc_html($lang_label); ?></p>
+            <textarea name="boblift_feedback[body_<?php echo esc_attr($lang); ?>]" rows="5" style="width:100%;max-width:720px;margin-bottom:10px"><?php echo esc_textarea((string) ($body[$lang] ?? '')); ?></textarea>
+        <?php endforeach; ?>
+        <p class="description">显示在详情页图片下方，空行分段。留空时详情页只显示图片 / 视频。同样不要写客户姓名、公司名。</p>
     </div></div>
     <div class="boblift-admin-field boblift-feedback-media-field"><label>图片 / 视频</label><div>
         <input type="hidden" class="boblift-feedback-media-ids" name="boblift_feedback[media]" value="<?php echo esc_attr(implode(',', $ids)); ?>">
@@ -1469,6 +1487,11 @@ function boblift_save_feedback_meta(int $post_id): void
     update_post_meta($post_id, '_feedback_country', wp_slash(wp_json_encode(['en' => $text('country_en'), 'ja' => $text('country_ja'), 'zh' => $text('country_zh')], JSON_UNESCAPED_UNICODE)));
     $note = ['en' => $text('note_en'), 'ja' => $text('note_ja'), 'zh' => $text('note_zh')];
     update_post_meta($post_id, '_feedback_note', array_filter($note) ? wp_slash(wp_json_encode($note, JSON_UNESCAPED_UNICODE)) : '');
+    $body = [];
+    foreach (['en', 'ja', 'zh'] as $lang) {
+        $body[$lang] = trim(sanitize_textarea_field((string) ($data['body_' . $lang] ?? '')));
+    }
+    update_post_meta($post_id, '_feedback_body', array_filter($body) ? wp_slash(wp_json_encode($body, JSON_UNESCAPED_UNICODE)) : '');
     update_post_meta($post_id, '_feedback_model', $text('model'));
     update_post_meta($post_id, '_feedback_media', implode(',', array_filter(array_map('intval', explode(',', $text('media'))))));
 }

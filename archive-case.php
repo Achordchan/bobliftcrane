@@ -155,7 +155,7 @@ $render_case_filter = static function (string $id, string $filter, string $all_l
             ]));
         ?>
             <article class="boblift-case-card group" data-cases-card data-case-kind="customer_feedback" data-country="<?php echo esc_attr($feedback['country']); ?>" data-product="<?php echo esc_attr($feedback['model']); ?>">
-                <button class="block h-full w-full text-left" type="button" data-cases-media-open data-media-title="<?php echo esc_attr($feedback_caption); ?>" data-media-list="<?php echo esc_attr(wp_json_encode($feedback['media'], JSON_UNESCAPED_SLASHES)); ?>">
+                <a class="block h-full" href="<?php echo esc_url($feedback['url']); ?>">
                     <span class="boblift-case-card-media relative block h-[260px] overflow-hidden rounded bg-[#eef5ff]">
                         <?php if ($feedback['cover'] !== '') : ?><img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.035]" src="<?php echo esc_url($feedback['cover']); ?>" alt="<?php echo esc_attr($feedback_caption); ?>" loading="lazy" decoding="async"><?php endif; ?>
                         <?php if ($feedback['media'][0]['type'] === 'video') : ?><span class="absolute inset-0 m-auto grid size-16 place-items-center rounded-sm bg-white/90 text-blue-700 shadow-card"><?php echo boblift_icon('circle-play', 'h-7 w-7'); ?></span><?php endif; ?>
@@ -168,7 +168,7 @@ $render_case_filter = static function (string $id, string $filter, string $all_l
                         <span class="boblift-case-card-title mt-3 block text-xl font-black leading-tight tracking-[-0.015em] text-ink"><?php echo esc_html($feedback_title); ?></span>
                         <?php if ($feedback_counts !== '') : ?><span class="boblift-case-card-summary mt-2 block text-sm font-semibold leading-6 text-slate-500"><?php echo esc_html($feedback_counts); ?></span><?php endif; ?>
                     </span>
-                </button>
+                </a>
             </article>
         <?php endforeach; ?>
     </div>

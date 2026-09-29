@@ -238,6 +238,14 @@ function boblift_document_title_parts(array $title): array
         $seo_title = boblift_seo_page_by_slug('products', 'title');
     } elseif (is_post_type_archive('case')) {
         $seo_title = boblift_seo_page_by_slug('cases', 'title');
+    } elseif (is_singular('feedback')) {
+        // Feedback has no per-language title; build it from the model and the localized country.
+        $post = get_queried_object();
+        $item = $post instanceof WP_Post ? boblift_feedback_item($post) : null;
+        if ($item) {
+            $label = (string) (boblift_site_ui('casesPage')['customerFeedbackLabel'] ?? 'Customer Feedback');
+            $seo_title = implode(' · ', array_filter([$item['model'], $item['country']])) . ' | ' . $label . ' | BOB-LIFT';
+        }
     } elseif (is_singular()) {
         $post = get_queried_object();
         $seo_title = $post instanceof WP_Post ? boblift_seo_post_title($post) : '';

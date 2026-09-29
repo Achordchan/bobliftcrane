@@ -47,12 +47,16 @@ foreach ($plan['items'] as $order => $item) {
         $media_count += count($item['media']);
         continue;
     }
-    $post_id = $existing ? (int) $existing[0] : wp_insert_post(['post_type' => 'feedback', 'post_status' => 'publish', 'post_title' => $title, 'menu_order' => $order], true);
+    $post_id = $existing ? (int) $existing[0] : wp_insert_post(['post_type' => 'feedback', 'post_status' => 'publish', 'post_title' => $title, 'post_name' => $item['slug'], 'menu_order' => $order], true);
     if (is_wp_error($post_id)) {
         $missing[] = $item['source'] . ' (post)';
         continue;
     }
     $created += $existing ? 0 : 1;
+    // The title's "·" once leaked into the slug as %c2%b7; the detail page URL uses the plan's clean slug.
+    if (get_post_field('post_name', $post_id) !== $item['slug']) {
+        wp_update_post(['ID' => $post_id, 'post_name' => $item['slug']]);
+    }
     $ids = [];
     foreach ($item['media'] as $media) {
         $id = $import($media['file'], $title);

@@ -3531,3 +3531,77 @@
     applyCasesFilter();
   });
 })();
+
+// Customer feedback detail: one stage, thumbnails below, arrows, keys and swipe.
+(() => {
+  const init = () => document.querySelectorAll('[data-feedback-gallery]').forEach((root) => {
+    let media = [];
+    try {
+      media = JSON.parse(root.dataset.feedbackMedia || '[]');
+    } catch (error) {
+      media = [];
+    }
+    if (media.length < 2) return;
+    const stage = root.querySelector('[data-feedback-stage]');
+    const holder = root.querySelector('[data-feedback-stage-media]');
+    const indexLabel = root.querySelector('[data-feedback-index]');
+    const thumbs = Array.from(root.querySelectorAll('[data-feedback-thumb]'));
+    const title = root.dataset.feedbackTitle || '';
+    let current = 0;
+
+    const pad = (n) => String(n).padStart(2, '0');
+    const preload = (index) => {
+      const item = media[(index + media.length) % media.length];
+      if (item.type === 'image') new Image().src = item.src;
+    };
+    const show = (index, autoplay) => {
+      current = (index + media.length) % media.length;
+      const item = media[current];
+      holder.replaceChildren();
+      if (item.type === 'video') {
+        const video = document.createElement('video');
+        video.className = 'h-full w-full object-contain';
+        Object.assign(video, { src: item.src, poster: item.poster || '', controls: true, muted: true, playsInline: true, preload: 'metadata' });
+        video.setAttribute('muted', '');
+        video.setAttribute('playsinline', '');
+        holder.append(video);
+        if (autoplay) video.play().catch(() => {});
+      } else {
+        const image = document.createElement('img');
+        image.className = 'h-full w-full object-contain';
+        image.src = item.src;
+        image.alt = title;
+        image.decoding = 'async';
+        holder.append(image);
+      }
+      if (indexLabel) indexLabel.textContent = pad(current + 1);
+      thumbs.forEach((thumb, i) => {
+        const active = i === current;
+        thumb.classList.toggle('is-active', active);
+        thumb.setAttribute('aria-pressed', active ? 'true' : 'false');
+        if (active) thumb.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+      });
+      preload(current + 1);
+    };
+
+    thumbs.forEach((thumb) => thumb.addEventListener('click', () => show(Number(thumb.dataset.feedbackThumb), true)));
+    root.querySelector('[data-feedback-prev]')?.addEventListener('click', () => show(current - 1, false));
+    root.querySelector('[data-feedback-next]')?.addEventListener('click', () => show(current + 1, false));
+    window.addEventListener('keydown', (event) => {
+      if (event.target.closest?.('input, textarea, select, [contenteditable]')) return;
+      if (event.key === 'ArrowLeft') show(current - 1, false);
+      if (event.key === 'ArrowRight') show(current + 1, false);
+    });
+    let touchX = null;
+    stage?.addEventListener('touchstart', (event) => { touchX = event.touches[0].clientX; }, { passive: true });
+    stage?.addEventListener('touchend', (event) => {
+      if (touchX === null) return;
+      const delta = event.changedTouches[0].clientX - touchX;
+      touchX = null;
+      if (Math.abs(delta) > 40 && !event.target.closest('video')) show(current + (delta < 0 ? 1 : -1), false);
+    }, { passive: true });
+    preload(1);
+  });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
