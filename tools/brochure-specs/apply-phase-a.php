@@ -44,12 +44,13 @@ foreach ($plan['updates'] as $u) {
         preg_match('/^([\d.]+)\s*Ton\b/', $u['old_title'], $old);
         preg_match('/^([\d.]+)\s*Ton\b/', $u['title'], $new);
         $pattern = '/(?<![\d.])' . preg_quote($old[1], '/') . '(\s*-?\s*)(ton|Ton|TON)(?=\s+(?:Knuckle|Forklift|Telescopic))/';
+        // Only the regex rewrites tonnage: its lookbehind leaves "2.3 Ton" alone on a rerun, so the script can run twice.
         $retonnage = static fn(string $text): string => (string) preg_replace($pattern, $new[1] . '$1$2', $text);
         wp_update_post(wp_slash(['ID' => $id, 'post_title' => $u['title'], 'post_content' => $retonnage($post->post_content), 'post_excerpt' => $retonnage($post->post_excerpt)]));
         foreach (['_seo_title', '_seo_description', '_short_description', '_features'] as $key) {
             $value = (string) get_post_meta($id, $key, true);
             if ($value !== '') {
-                update_post_meta($id, $key, wp_slash($retonnage(str_replace($u['old_title'], $u['title'], $value))));
+                update_post_meta($id, $key, wp_slash($retonnage($value)));
             }
         }
     }
