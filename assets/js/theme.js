@@ -3622,3 +3622,70 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();
+
+// Product detail images (详情图): thumbnail grid opens a full-screen viewer with arrows, keys and swipe.
+(() => {
+  const init = () => {
+    document.querySelectorAll('[data-detail-viewer]').forEach((viewer) => {
+      let images = [];
+      try { images = JSON.parse(viewer.dataset.detailImages || '[]'); } catch (error) { images = []; }
+      const box = viewer.querySelector('[data-detail-lightbox]');
+      if (!images.length || !box) return;
+      document.body.appendChild(box);
+      const image = box.querySelector('[data-detail-image]');
+      const stage = box.querySelector('[data-detail-stage]');
+      const index = box.querySelector('[data-detail-index]');
+      const alt = viewer.dataset.detailAlt || '';
+      const pad = (n) => String(n).padStart(2, '0');
+      let current = 0;
+      let opener = null;
+      let touchX = null;
+      const show = (next) => {
+        current = (next + images.length) % images.length;
+        image.src = images[current];
+        image.alt = `${alt} ${current + 1}`;
+        if (index) index.textContent = pad(current + 1);
+        stage.scrollTop = 0;
+        [current + 1, current - 1].forEach((n) => { new Image().src = images[(n + images.length) % images.length]; });
+      };
+      const close = () => {
+        box.classList.add('hidden');
+        box.classList.remove('flex');
+        box.setAttribute('aria-hidden', 'true');
+        document.documentElement.style.overflow = '';
+        if (opener) opener.focus();
+      };
+      const open = (n, button) => {
+        opener = button;
+        show(n);
+        box.classList.remove('hidden');
+        box.classList.add('flex');
+        box.setAttribute('aria-hidden', 'false');
+        document.documentElement.style.overflow = 'hidden';
+        box.querySelector('[data-detail-close]').focus();
+      };
+      viewer.querySelectorAll('[data-detail-open]').forEach((button) => {
+        button.addEventListener('click', () => open(Number(button.dataset.detailOpen) || 0, button));
+      });
+      box.querySelector('[data-detail-close]').addEventListener('click', close);
+      box.querySelector('[data-detail-prev]')?.addEventListener('click', () => show(current - 1));
+      box.querySelector('[data-detail-next]')?.addEventListener('click', () => show(current + 1));
+      stage.addEventListener('click', (event) => { if (event.target === stage) close(); });
+      document.addEventListener('keydown', (event) => {
+        if (box.getAttribute('aria-hidden') !== 'false') return;
+        if (event.key === 'Escape') close();
+        else if (event.key === 'ArrowLeft') show(current - 1);
+        else if (event.key === 'ArrowRight') show(current + 1);
+      });
+      stage.addEventListener('touchstart', (event) => { touchX = event.touches[0].clientX; }, { passive: true });
+      stage.addEventListener('touchend', (event) => {
+        if (touchX === null) return;
+        const delta = event.changedTouches[0].clientX - touchX;
+        touchX = null;
+        if (Math.abs(delta) > 50 && images.length > 1) show(current + (delta < 0 ? 1 : -1));
+      }, { passive: true });
+    });
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();

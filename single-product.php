@@ -174,9 +174,33 @@ $faqs = array_values(array_filter(array_map(static function ($faq): ?array {
 // Body text (正文) from the editor, only once an editor has switched it on: old-site copy stays hidden.
 $detail_body_html = get_post_meta(get_the_ID(), '_detail_body_ready', true) === '1' ? trim((string) ($product['content'] ?? '')) : '';
 $detail_body_html = trim(wp_strip_all_tags($detail_body_html)) !== '' ? $detail_body_html : '';
+// Designed detail images (详情图), shown as a one-screen grid with a viewer, only once an editor has switched them on.
+$detail_gallery = [];
+if ($has_configured_detail_images && get_post_meta(get_the_ID(), '_detail_images_ready', true) === '1') {
+    foreach ($detail_images as $item) {
+        $src = html_entity_decode((string) (is_string($item) ? $item : ($item['image'] ?? $item['url'] ?? '')));
+        // Old imports point at the WebP converter ("webpc-passthru.php?src=<upload url>"): use the upload itself.
+        if (preg_match('/[?&]src=([^&]+)/', $src, $match)) {
+            $src = rawurldecode($match[1]);
+        }
+        $attachment_id = $src !== '' ? attachment_url_to_postid($src) : 0;
+        $full = $attachment_id ? wp_get_attachment_image_src($attachment_id, 'full') : false;
+        $preview = $attachment_id ? wp_get_attachment_image_src($attachment_id, 'medium_large') : false;
+        if ($src === '' || ($attachment_id && !$full)) {
+            continue;
+        }
+        $detail_gallery[] = [
+            'full' => $full ? (string) $full[0] : $src,
+            'preview' => $preview ? (string) $preview[0] : ($full ? (string) $full[0] : $src),
+            'width' => $full ? (int) $full[1] : 0,
+            'height' => $full ? (int) $full[2] : 0,
+        ];
+    }
+}
+$detail_alt = str_replace('{product}', $product_title, (string) ($ui['detailImageAltTemplate'] ?? '{product} detail image'));
 $anchors = [];
 $anchors[] = ['id' => 'technical', 'label' => (string) ($ui['technicalLabel'] ?? 'Technical Specifications')];
-if ($detail_body_html !== '') {
+if ($detail_body_html !== '' || $detail_gallery) {
     $anchors[] = ['id' => 'overview', 'label' => (string) ($ui['detailBodyLabel'] ?? 'Product details')];
 }
 if ($brochure_features) {
@@ -319,7 +343,51 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                     <?php endforeach; ?>
                 </dl>
             </article>
-            <?php if ($detail_body_html !== '') : ?>
+            <?php if ($detail_gallery) : ?>
+                <?php
+                $pad = static fn(int $n): string => str_pad((string) $n, 2, '0', STR_PAD_LEFT);
+                // Up to 7 slices sit in one justified row on desktop (same height, width by aspect ratio); more wrap in a grid.
+                $detail_row = count($detail_gallery) <= 7 && !in_array(0, array_column($detail_gallery, 'height'), true);
+                ?>
+                <article id="overview" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card" data-detail-viewer data-detail-images="<?php echo esc_attr(wp_json_encode(array_column($detail_gallery, 'full'), JSON_UNESCAPED_SLASHES)); ?>" data-detail-alt="<?php echo esc_attr($detail_alt); ?>">
+                    <div class="p-6 md:p-8">
+                        <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+                            <div>
+                                <p class="text-[11px] font-black uppercase tracking-[0.2em] text-[#0B3F7D]"><?php echo esc_html($ui['detailBodyLabel'] ?? 'Product details'); ?></p>
+                                <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($hero_model !== '' ? $hero_model : $product_title); ?></h2>
+                            </div>
+                            <p class="flex items-center gap-1.5 text-xs font-bold text-slate-500"><?php echo boblift_icon('maximize-2', 'h-3.5 w-3.5'); ?><?php echo esc_html($ui['detailImagesHint'] ?? 'Click an image to enlarge'); ?></p>
+                        </div>
+                        <div class="mt-6 grid grid-cols-2 items-start gap-2 md:grid-cols-3 md:gap-3 <?php echo $detail_row ? 'lg:flex' : 'lg:grid-cols-4'; ?>">
+                            <?php foreach ($detail_gallery as $index => $image) : ?>
+                                <button class="group relative block overflow-hidden rounded-sm border border-[#E6EDF5] bg-[#EDF1F5] text-left transition hover:border-blue-300 lg:min-w-0 lg:[flex:var(--detail-ratio)_1_0%]"<?php if ($detail_row) : ?> style="--detail-ratio: <?php echo esc_attr(number_format($image['width'] / $image['height'], 4, '.', '')); ?>"<?php endif; ?> type="button" data-detail-open="<?php echo esc_attr((string) $index); ?>" aria-label="<?php echo esc_attr($detail_alt . ' ' . $pad($index + 1) . ' / ' . $pad(count($detail_gallery))); ?>">
+                                    <img class="block h-auto w-full" src="<?php echo esc_url($image['preview']); ?>" alt="<?php echo esc_attr($detail_alt . ' ' . ($index + 1)); ?>"<?php if ($image['width'] && $image['height']) : ?> width="<?php echo esc_attr((string) $image['width']); ?>" height="<?php echo esc_attr((string) $image['height']); ?>"<?php endif; ?> loading="lazy" decoding="async">
+                                    <span class="absolute bottom-1.5 left-1.5 rounded-sm bg-[#071f42]/80 px-1.5 py-0.5 text-[10px] font-black tracking-[0.08em] text-white [font-variant-numeric:tabular-nums]"><?php echo esc_html($pad($index + 1)); ?></span>
+                                    <span class="absolute inset-0 grid place-items-center bg-[#071f42]/0 text-white opacity-0 transition group-hover:bg-[#071f42]/30 group-hover:opacity-100"><?php echo boblift_icon('maximize-2', 'h-6 w-6'); ?></span>
+                                </button>
+                            <?php endforeach; ?>
+                        </div>
+                        <?php if ($detail_body_html !== '') : ?>
+                            <div class="boblift-story-prose boblift-product-body mt-8 max-w-[860px] border-t border-[#E6EDF5] pt-7 md:mt-10 md:pt-8"><?php echo wp_kses_post($detail_body_html); ?></div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="fixed inset-0 z-[1000] hidden flex-col bg-[#040f22]" data-detail-lightbox role="dialog" aria-modal="true" aria-hidden="true" aria-label="<?php echo esc_attr($detail_alt); ?>">
+                        <div class="flex shrink-0 items-center justify-between px-4 py-3 text-white md:px-6">
+                            <p class="text-xs font-black tracking-[0.08em] [font-variant-numeric:tabular-nums]" aria-live="polite"><span data-detail-index>01</span> / <?php echo esc_html($pad(count($detail_gallery))); ?></p>
+                            <button class="grid size-10 place-items-center rounded-sm bg-white/10 text-white transition hover:bg-white hover:text-[#071f42]" type="button" data-detail-close aria-label="<?php echo esc_attr($ui['closeLabel'] ?? 'Close'); ?>"><?php echo boblift_icon('x', 'h-5 w-5'); ?></button>
+                        </div>
+                        <div class="relative min-h-0 flex-1">
+                            <div class="absolute inset-0 overflow-auto px-3 pb-4 md:px-20" data-detail-stage>
+                                <img class="mx-auto block h-auto w-full max-w-[750px] md:h-full md:w-auto md:max-w-full md:object-contain" src="" alt="" data-detail-image>
+                            </div>
+                            <?php if (count($detail_gallery) > 1) : ?>
+                                <button class="boblift-feedback-arrow left-2 md:left-5" type="button" data-detail-prev aria-label="<?php echo esc_attr($ui['previousLabel'] ?? 'Previous'); ?>"><?php echo boblift_icon('chevron-left', 'h-5 w-5'); ?></button>
+                                <button class="boblift-feedback-arrow right-2 md:right-5" type="button" data-detail-next aria-label="<?php echo esc_attr($ui['nextLabel'] ?? 'Next'); ?>"><?php echo boblift_icon('chevron-right', 'h-5 w-5'); ?></button>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </article>
+            <?php elseif ($detail_body_html !== '') : ?>
                 <article id="overview" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card">
                     <div class="grid gap-6 p-6 md:p-8 lg:grid-cols-[minmax(0,280px)_minmax(0,1fr)] lg:gap-12">
                         <div>
