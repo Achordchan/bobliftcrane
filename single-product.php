@@ -77,7 +77,8 @@ $drawings = array_values(array_filter($product['drawings'] ?? [], static fn($dra
 $brochure_features = get_post_meta((int) ($product['id'] ?? 0), '_features_source', true) === 'brochure'
     ? array_values(array_filter($product['features'] ?? [], static fn($feature): bool => is_array($feature) && trim((string) ($feature['title'] ?? '')) !== ''))
     : [];
-$product_intro_html = trim((string) ($product['content'] ?? ''));
+// Products checked against the product manual show the brochure-based summary, not old-site copy.
+$product_intro_html = trim((string) ($product['brochure_source'] ?? '')) !== '' ? '' : trim((string) ($product['content'] ?? ''));
 if ($product_intro_html === '') {
     $product_intro_html = '<p>' . esc_html((string) ($product['short_description'] ?? ($overview_title . ' ' . ($ui['overviewSuffix'] ?? '')))) . '</p>';
 }
@@ -131,6 +132,12 @@ if (!$hotspots) {
     }
 }
 $hero_image = $main_image;
+// Cut-out product images float on the hero; a site photo (factory or brochure) sits in a framed card
+// instead, without the part hotspots that are positioned for cut-outs.
+$hero_is_cutout = (bool) preg_match('/transparent|\.png(?:$|[?&])/i', $hero_image);
+$hero_image_class = $hero_is_cutout
+    ? 'object-contain p-0 drop-shadow-[0_6px_8px_rgba(11,27,51,0.10)] lg:pl-20 xl:pl-24'
+    : 'rounded border border-[#DDE7F2] bg-white object-cover shadow-card lg:left-20 xl:left-24 lg:w-[calc(100%-5rem)] xl:w-[calc(100%-6rem)]';
 $hero_gallery_items = [];
 $hero_gallery_seen = [];
 $add_hero_gallery_item = static function (string $image, string $label) use (&$hero_gallery_items, &$hero_gallery_seen): void {
@@ -206,8 +213,9 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                 </div>
                 <div class="relative order-1 flex min-h-[360px] flex-col items-center justify-center overflow-hidden pb-4 sm:min-h-[480px] sm:pb-5 lg:order-2 lg:min-h-[620px] xl:min-h-[680px] 2xl:min-h-[740px]" data-product-hero-gallery-root data-product-hero-active-index="0">
                     <div class="boblift-cinema-product-stage relative z-10 aspect-[1.18/1] w-full max-w-[1120px] 2xl:max-w-[1240px]" data-product-hotspot-stage>
-                        <img class="absolute inset-0 z-10 h-full w-full object-contain p-0 drop-shadow-[0_6px_8px_rgba(11,27,51,0.10)] transition-opacity duration-500 ease-out lg:pl-20 xl:pl-24" src="<?php echo esc_url($hero_image); ?>" alt="<?php echo esc_attr($product['title']); ?>" loading="eager" fetchpriority="high" decoding="async" data-product-hero-gallery-current data-product-hero-gallery-image>
-                        <img class="absolute inset-0 z-20 h-full w-full object-contain p-0 opacity-0 drop-shadow-[0_6px_8px_rgba(11,27,51,0.10)] transition-opacity duration-500 ease-out lg:pl-20 xl:pl-24" src="<?php echo esc_url($hero_image); ?>" alt="" aria-hidden="true" loading="lazy" decoding="async" data-product-hero-gallery-next>
+                        <img class="absolute inset-0 z-10 h-full w-full transition-opacity duration-500 ease-out <?php echo esc_attr($hero_image_class); ?>" src="<?php echo esc_url($hero_image); ?>" alt="<?php echo esc_attr($product['title']); ?>" loading="eager" fetchpriority="high" decoding="async" data-product-hero-gallery-current data-product-hero-gallery-image>
+                        <img class="absolute inset-0 z-20 h-full w-full opacity-0 transition-opacity duration-500 ease-out <?php echo esc_attr($hero_image_class); ?>" src="<?php echo esc_url($hero_image); ?>" alt="" aria-hidden="true" loading="lazy" decoding="async" data-product-hero-gallery-next>
+                        <?php if ($hero_is_cutout) : ?>
                         <div class="absolute inset-0 z-30 hidden lg:block" data-product-hotspot-root data-product-hero-primary-only>
                             <?php foreach ($hotspots as $index => $hotspot) :
                                 $label = (string) ($hotspot['label'] ?? '');
@@ -221,6 +229,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                                 </button>
                             <?php endforeach; ?>
                         </div>
+                        <?php endif; ?>
                     </div>
                     <?php if (count($hero_gallery_items) > 1) : ?>
                         <div class="relative z-40 mt-4 flex w-full max-w-[760px] flex-col items-center gap-2 px-4 lg:mt-5 lg:items-center lg:px-0">

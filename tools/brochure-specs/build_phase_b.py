@@ -38,13 +38,7 @@ for model, ((noun, category, boom, apps, adv), with_model) in NEW.items():
         title = f'{model} {noun}'
     else:
         title = f'{tons:g} Ton {noun}' + (f' {model}' if with_model else '')
-    s = dict(specs.specs(row))
-    parts = [f"a maximum lifting capacity of {s['Max Lifting Capacity']}"]
-    if 'Max Lifting Moment' in s:
-        parts.append(f"a maximum lifting moment of {s['Max Lifting Moment']}")
-    if 'Self Weight' in s:
-        parts.append(f"a self weight of {s['Self Weight']}")
-    short = f"The BOB-LIFT {model} {noun.lower()} has " + ', '.join(parts[:-1]) + (' and ' if len(parts) > 1 else '') + parts[-1] + '.'
+    short = specs.short_description(row, noun.lower())
     # Brochure photo where the brochure has one; otherwise phase C borrows a sibling model's photo.
     image = f"photos/{model}.webp" if model in PHOTOS else None
     products.append({

@@ -95,3 +95,26 @@ ADV = {
     ],
 }
 ADV['marine-telescopic'] = [a for a in ADV['marine'] if a[0] != 'Dual four-bar linkage']
+
+
+NOUNS = {
+    'knuckle-boom-truck-mounted-cranes': 'knuckle boom truck mounted crane',
+    'telescopic-boom-truck-mounted-cranes': 'telescopic boom truck mounted crane',
+    'pickup-cranes': 'pickup crane',
+    'knuckle-boom-marine-cranes': 'knuckle boom marine crane',
+    'telescopic-boom-marine-cranes': 'telescopic boom marine crane',
+    'forklift-fly-jib-cranes': 'forklift fly jib crane',
+    'timber-cranes': 'timber crane',
+    'spider-cranes': 'spider crane',
+}
+
+
+def short_description(row, noun):
+    """One factual sentence built only from the brochure values."""
+    s = dict(specs(row))
+    parts = [f"a maximum lifting capacity of {s['Max Lifting Capacity']}"]
+    for label, text in (('Max Lifting Moment', 'a maximum lifting moment of {}'), ('Max Working Radius', 'a maximum working radius of {}'),
+                        ('Max Working Range', 'a maximum working range of {}'), ('Self Weight', 'a self weight of {}')):
+        if label in s:
+            parts.append(text.format(s[label]))
+    return f"The BOB-LIFT {row['model']} {noun} has " + ', '.join(parts[:-1]) + ' and ' + parts[-1] + '.'

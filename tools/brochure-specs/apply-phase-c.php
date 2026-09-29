@@ -62,6 +62,11 @@ foreach ($plan['products'] as $p) {
     }
 
     $gallery = json_decode((string) get_post_meta($id, '_gallery', true), true) ?: [];
+    if (!empty($p['own_photos_first'])) {
+        // Factory photos of this exact model replace any stand-in and become the main image.
+        $gallery = [];
+        delete_post_thumbnail($id);
+    }
     if (!empty($p['borrow_photo_from'])) {
         // A new model without its own photo shows the sibling's photo, labelled as a reference.
         $sibling = $find($p['borrow_photo_from']);
@@ -74,7 +79,8 @@ foreach ($plan['products'] as $p) {
     }
     $urls = array_map(static fn($g) => is_array($g) ? (string) ($g['image'] ?? '') : (string) $g, $gallery);
     foreach ($p['photos'] as $index => $file) {
-        $photo = $import($file, $id, $model . ' photo from the BOB-LIFT product manual');
+        $factory = str_starts_with($file, 'factory-photos/');
+        $photo = $import($file, $id, $model . ($factory ? ' factory photo' : ' photo from the BOB-LIFT product manual'));
         $url = $photo ? (string) wp_get_attachment_url($photo) : '';
         if ($url === '' || in_array($url, $urls, true)) {
             continue;
@@ -82,7 +88,7 @@ foreach ($plan['products'] as $p) {
         if (!has_post_thumbnail($id) || ($index === 0 && !$gallery)) {
             set_post_thumbnail($id, $photo);
         }
-        $gallery[] = ['image' => $url, 'label' => $model . ' (BOB-LIFT product manual)'];
+        $gallery[] = ['image' => $url, 'label' => $model . ($factory ? ' (factory photo)' : ' (BOB-LIFT product manual)')];
         $urls[] = $url;
     }
     update_post_meta($id, '_gallery', wp_slash(wp_json_encode($gallery, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)));
@@ -93,6 +99,12 @@ foreach ($plan['products'] as $p) {
         update_post_meta($id, '_features_source', 'brochure');
     }
     update_post_meta($id, '_brochure_source', $p['source']);
+    // The overview and SEO description come from the brochure values, replacing old-site copy.
+    update_post_meta($id, '_short_description', wp_slash($p['short_description']));
+    update_post_meta($id, '_seo_description', wp_slash($p['short_description']));
+    if ($post->post_excerpt !== $p['short_description']) {
+        wp_update_post(wp_slash(['ID' => $id, 'post_excerpt' => $p['short_description']]));
+    }
 }
 
 printf("%s: %d products, missing %d\n", $dry ? 'DRY RUN' : 'DONE', $done, count($missing));

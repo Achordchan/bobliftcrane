@@ -2,6 +2,7 @@
  "updates": [
   {
    "slug": "20-ton-knuckle-boom-truck-mounted-crane",
+   "category": "knuckle-boom-truck-mounted-cranes",
    "old_title": "20 Ton Knuckle Boom Truck Mounted Crane",
    "title": "20 Ton Knuckle Boom Truck Mounted Crane",
    "old_model": "SQ20ZA4",
@@ -42,6 +43,7 @@
   },
   {
    "slug": "20-ton-telescopic-boom-marine-crane",
+   "category": "telescopic-boom-marine-cranes",
    "old_title": "20 Ton Telescopic Boom Marine Crane",
    "title": "20 Ton Telescopic Boom Marine Crane",
    "old_model": "SQ20SA5T",
@@ -82,6 +84,7 @@
   },
   {
    "slug": "25-ton-knuckle-boom-marine-crane",
+   "category": "knuckle-boom-marine-cranes",
    "old_title": "25 Ton Knuckle Boom Marine Crane",
    "title": "25 Ton Knuckle Boom Marine Crane",
    "old_model": "SQ25ZA8T",
@@ -122,6 +125,7 @@
   },
   {
    "slug": "20-ton-knuckle-boom-marine-crane",
+   "category": "knuckle-boom-marine-cranes",
    "old_title": "20 Ton Knuckle Boom Marine Crane",
    "title": "20 Ton Knuckle Boom Marine Crane",
    "old_model": "SQ20ZA7TJ+1",
@@ -162,6 +166,7 @@
   },
   {
    "slug": "16-ton-knuckle-boom-marine-crane",
+   "category": "knuckle-boom-marine-cranes",
    "old_title": "16 Ton Knuckle Boom Marine Crane",
    "title": "16 Ton Knuckle Boom Marine Crane",
    "old_model": "SQ16ZA5T",
@@ -202,6 +207,7 @@
   },
   {
    "slug": "12-ton-knuckle-boom-marine-crane",
+   "category": "knuckle-boom-marine-cranes",
    "old_title": "12 Ton Knuckle Boom Marine Crane",
    "title": "12 Ton Knuckle Boom Marine Crane",
    "old_model": "SQ12ZA6T",
@@ -242,6 +248,7 @@
   },
   {
    "slug": "25-ton-knuckle-boom-truck-mounted-crane",
+   "category": "knuckle-boom-truck-mounted-cranes",
    "old_title": "25 Ton Knuckle Boom Truck Mounted Crane",
    "title": "25 Ton Knuckle Boom Truck Mounted Crane",
    "old_model": "SQ25ZA6",
@@ -282,6 +289,7 @@
   },
   {
    "slug": "16-ton-knuckle-boom-truck-mounted-crane",
+   "category": "knuckle-boom-truck-mounted-cranes",
    "old_title": "16 Ton Knuckle Boom Truck Mounted Crane",
    "title": "16 Ton Knuckle Boom Truck Mounted Crane",
    "old_model": "SQ16ZA4",
@@ -322,6 +330,7 @@
   },
   {
    "slug": "12-ton-knuckle-boom-truck-mounted-crane",
+   "category": "knuckle-boom-truck-mounted-cranes",
    "old_title": "12 Ton Knuckle Boom Truck Mounted Crane",
    "title": "12 Ton Knuckle Boom Truck Mounted Crane",
    "old_model": "SQ12ZA5",
@@ -362,6 +371,7 @@
   },
   {
    "slug": "10-ton-knuckle-boom-truck-mounted-crane",
+   "category": "knuckle-boom-truck-mounted-cranes",
    "old_title": "10 Ton Knuckle Boom Truck Mounted Crane",
    "title": "10 Ton Knuckle Boom Truck Mounted Crane",
    "old_model": "SQ10Z",
@@ -402,6 +412,7 @@
   },
   {
    "slug": "6-3-ton-knuckle-boom-truck-mounted-crane",
+   "category": "knuckle-boom-truck-mounted-cranes",
    "old_title": "6.3 Ton Knuckle Boom Truck Mounted Crane",
    "title": "6.3 Ton Knuckle Boom Truck Mounted Crane",
    "old_model": "SQ6.3ZA3",
@@ -442,6 +453,7 @@
   },
   {
    "slug": "5-ton-knuckle-boom-truck-mounted-crane",
+   "category": "knuckle-boom-truck-mounted-cranes",
    "old_title": "5 Ton Knuckle Boom Truck Mounted Crane",
    "title": "5 Ton Knuckle Boom Truck Mounted Crane",
    "old_model": "SQ5ZA4",
@@ -482,6 +494,7 @@
   },
   {
    "slug": "2-ton-knuckle-boom-truck-mounted-crane",
+   "category": "knuckle-boom-truck-mounted-cranes",
    "old_title": "2 Ton Knuckle Boom Truck Mounted Crane",
    "title": "2 Ton Knuckle Boom Truck Mounted Crane",
    "old_model": "SQ2ZA4",
@@ -522,6 +535,7 @@
   },
   {
    "slug": "20-ton-telescopic-boom-truck-mounted-crane",
+   "category": "telescopic-boom-truck-mounted-cranes",
    "old_title": "20 Ton Telescopic Boom Truck Mounted Crane",
    "title": "20 Ton Telescopic Boom Truck Mounted Crane",
    "old_model": "SQ20SA5",
@@ -562,6 +576,7 @@
   },
   {
    "slug": "16-ton-telescopic-boom-truck-mounted-crane",
+   "category": "telescopic-boom-truck-mounted-cranes",
    "old_title": "16 Ton Telescopic Boom Truck Mounted Crane",
    "title": "16 Ton Telescopic Boom Truck Mounted Crane",
    "old_model": "SQ16SA5",
@@ -602,6 +617,7 @@
   },
   {
    "slug": "zm75-timber-crane",
+   "category": "timber-cranes",
    "old_title": "ZM75: Arm Length 7667MM -Timber Crane",
    "title": "ZM75: Arm Length 7667MM -Timber Crane",
    "old_model": "ZM75",
@@ -642,6 +658,7 @@
   },
   {
    "slug": "zm65-timber-crane",
+   "category": "timber-cranes",
    "old_title": "ZM65: Arm Length 7600MM -Timber Crane",
    "title": "ZM65: Arm Length 7600MM -Timber Crane",
    "old_model": "ZM65",
@@ -682,6 +699,7 @@
   },
   {
    "slug": "telescopic-spider-crane",
+   "category": "spider-cranes",
    "old_title": "Telescopic Spider Crane",
    "title": "Telescopic Spider Crane",
    "old_model": "",
@@ -722,6 +740,7 @@
   },
   {
    "slug": "knuckle-spider-crane",
+   "category": "spider-cranes",
    "old_title": "Knuckle Spider Crane",
    "title": "Knuckle Spider Crane",
    "old_model": "",
@@ -762,6 +781,7 @@
   },
   {
    "slug": "2-3-ton-forklift-fly-jib-crane",
+   "category": "forklift-fly-jib-cranes",
    "old_title": "2.3 Ton Forklift Fly Jib Crane",
    "title": "2 Ton Forklift Fly Jib Crane",
    "old_model": "CC85",
@@ -802,6 +822,7 @@
   },
   {
    "slug": "16-ton-telescopic-boom-marine-crane",
+   "category": "telescopic-boom-marine-cranes",
    "old_title": "16 Ton Telescopic Boom Marine Crane",
    "title": "16 Ton Telescopic Boom Marine Crane",
    "old_model": "SQ16SA5T",
@@ -842,6 +863,7 @@
   },
   {
    "slug": "800-kg-pickup-crane-with-outriggers",
+   "category": "pickup-cranes",
    "old_title": "800 kg Pickup Crane With Outriggers",
    "title": "800 kg Pickup Crane With Outriggers",
    "old_model": "SQ08ZA3",
@@ -882,6 +904,7 @@
   },
   {
    "slug": "12-ton-telescopic-boom-marine-crane",
+   "category": "telescopic-boom-marine-cranes",
    "old_title": "12 Ton Telescopic Boom Marine Crane",
    "title": "12 Ton Telescopic Boom Marine Crane",
    "old_model": "SQ12SA4T",
@@ -922,6 +945,7 @@
   },
   {
    "slug": "3-ton-forklift-fly-jib-crane",
+   "category": "forklift-fly-jib-cranes",
    "old_title": "3 Ton Forklift Fly Jib Crane",
    "title": "2.3 Ton Forklift Fly Jib Crane",
    "old_model": "CC105",
@@ -962,6 +986,7 @@
   },
   {
    "slug": "4-ton-forklift-fly-jib-crane",
+   "category": "forklift-fly-jib-cranes",
    "old_title": "4 Ton Forklift Fly Jib Crane",
    "title": "3.5 Ton Forklift Fly Jib Crane",
    "old_model": "CC125",
@@ -1002,6 +1027,7 @@
   },
   {
    "slug": "10-ton-telescopic-boom-marine-crane",
+   "category": "telescopic-boom-marine-cranes",
    "old_title": "10 Ton Telescopic Boom Marine Crane",
    "title": "10 Ton Telescopic Boom Marine Crane",
    "old_model": "SQ10SA4T",
@@ -1042,6 +1068,7 @@
   },
   {
    "slug": "8-ton-telescopic-boom-marine-crane",
+   "category": "telescopic-boom-marine-cranes",
    "old_title": "8 Ton Telescopic Boom Marine Crane",
    "title": "8 Ton Telescopic Boom Marine Crane",
    "old_model": "SQ8SA4T",
@@ -1082,6 +1109,7 @@
   },
   {
    "slug": "6-3-ton-telescopic-boom-marine-crane",
+   "category": "telescopic-boom-marine-cranes",
    "old_title": "6.3 Ton Telescopic Boom Marine Crane",
    "title": "6.3 Ton Telescopic Boom Marine Crane",
    "old_model": "SQ6.3SA4T",
@@ -1122,6 +1150,7 @@
   },
   {
    "slug": "5-ton-telescopic-boom-marine-crane",
+   "category": "telescopic-boom-marine-cranes",
    "old_title": "5 Ton Telescopic Boom Marine Crane",
    "title": "5 Ton Telescopic Boom Marine Crane",
    "old_model": "SQ5SA4T",
@@ -1162,6 +1191,7 @@
   },
   {
    "slug": "3-2-ton-telescopic-boom-marine-crane",
+   "category": "telescopic-boom-marine-cranes",
    "old_title": "3.2 Ton Telescopic Boom Marine Crane",
    "title": "3.2 Ton Telescopic Boom Marine Crane",
    "old_model": "SQ3.2SA4T",
@@ -1202,6 +1232,7 @@
   },
   {
    "slug": "5-ton-knuckle-boom-marine-crane",
+   "category": "knuckle-boom-marine-cranes",
    "old_title": "5 Ton Knuckle Boom Marine Crane",
    "title": "5 Ton Knuckle Boom Marine Crane",
    "old_model": "SQ5ZA3TJ",
@@ -1242,6 +1273,7 @@
   },
   {
    "slug": "10-ton-knuckle-boom-marine-crane",
+   "category": "knuckle-boom-marine-cranes",
    "old_title": "10 Ton Knuckle Boom Marine Crane",
    "title": "10 Ton Knuckle Boom Marine Crane",
    "old_model": "SQ10ZA5TJ",
@@ -1282,6 +1314,7 @@
   },
   {
    "slug": "8-ton-knuckle-boom-marine-crane",
+   "category": "knuckle-boom-marine-cranes",
    "old_title": "8 Ton Knuckle Boom Marine Crane",
    "title": "8 Ton Knuckle Boom Marine Crane",
    "old_model": "SQ8ZA5TJ",
@@ -1322,6 +1355,7 @@
   },
   {
    "slug": "6-3-ton-knuckle-boom-marine-crane",
+   "category": "knuckle-boom-marine-cranes",
    "old_title": "6.3 Ton Knuckle Boom Marine Crane",
    "title": "6.3 Ton Knuckle Boom Marine Crane",
    "old_model": "SQ6.3ZA4TJ",
@@ -1362,6 +1396,7 @@
   },
   {
    "slug": "2-ton-telescopic-boom-marine-crane",
+   "category": "telescopic-boom-marine-cranes",
    "old_title": "2 Ton Telescopic Boom Marine Crane",
    "title": "2 Ton Telescopic Boom Marine Crane",
    "old_model": "SQ2SA3T",
@@ -1402,6 +1437,7 @@
   },
   {
    "slug": "4-ton-knuckle-boom-marine-crane",
+   "category": "knuckle-boom-marine-cranes",
    "old_title": "4 Ton Knuckle Boom Marine Crane",
    "title": "4 Ton Knuckle Boom Marine Crane",
    "old_model": "SQ4ZA3TJ",
@@ -1442,6 +1478,7 @@
   },
   {
    "slug": "3-2-ton-knuckle-boom-marine-crane",
+   "category": "knuckle-boom-marine-cranes",
    "old_title": "3.2 Ton Knuckle Boom Marine Crane",
    "title": "3.2 Ton Knuckle Boom Marine Crane",
    "old_model": "SQ3.2ZA3TJ",
@@ -1482,6 +1519,7 @@
   },
   {
    "slug": "2-ton-knuckle-boom-marine-crane",
+   "category": "knuckle-boom-marine-cranes",
    "old_title": "2 Ton Knuckle Boom Marine Crane",
    "title": "2 Ton Knuckle Boom Marine Crane",
    "old_model": "SQ2ZA2TJ",
@@ -1522,6 +1560,7 @@
   },
   {
    "slug": "1-ton-knuckle-boom-marine-crane",
+   "category": "knuckle-boom-marine-cranes",
    "old_title": "1 Ton Knuckle Boom Marine Crane",
    "title": "1.6 Ton Knuckle Boom Marine Crane",
    "old_model": "SQ1ZA3TJ+1",
@@ -1562,6 +1601,7 @@
   },
   {
    "slug": "8-ton-knuckle-boom-truck-mounted-crane",
+   "category": "knuckle-boom-truck-mounted-cranes",
    "old_title": "8 Ton Knuckle Boom Truck Mounted Crane",
    "title": "8 Ton Knuckle Boom Truck Mounted Crane",
    "old_model": "SQ8ZA5",
@@ -1602,6 +1642,7 @@
   },
   {
    "slug": "4-ton-knuckle-boom-truck-mounted-crane",
+   "category": "knuckle-boom-truck-mounted-cranes",
    "old_title": "4 Ton Knuckle Boom Truck Mounted Crane",
    "title": "4 Ton Knuckle Boom Truck Mounted Crane",
    "old_model": "SQ4ZA4",
@@ -1642,6 +1683,7 @@
   },
   {
    "slug": "3-2-ton-knuckle-boom-truck-mounted-crane",
+   "category": "knuckle-boom-truck-mounted-cranes",
    "old_title": "3.2 Ton Knuckle Boom Truck Mounted Crane",
    "title": "3.2 Ton Knuckle Boom Truck Mounted Crane",
    "old_model": "SQ3.2Z",
@@ -1682,6 +1724,7 @@
   },
   {
    "slug": "1-ton-knuckle-boom-truck-mounted-crane",
+   "category": "knuckle-boom-truck-mounted-cranes",
    "old_title": "1 Ton Knuckle Boom Truck Mounted Crane",
    "title": "1.6 Ton Knuckle Boom Truck Mounted Crane",
    "old_model": "SQ1ZA3+1",
@@ -1722,6 +1765,7 @@
   },
   {
    "slug": "12-ton-telescopic-boom-truck-mounted-crane",
+   "category": "telescopic-boom-truck-mounted-cranes",
    "old_title": "12 Ton Telescopic Boom Truck Mounted Crane",
    "title": "12 Ton Telescopic Boom Truck Mounted Crane",
    "old_model": "SQ12SU4",
@@ -1762,6 +1806,7 @@
   },
   {
    "slug": "10-ton-telescopic-boom-truck-mounted-crane",
+   "category": "telescopic-boom-truck-mounted-cranes",
    "old_title": "10 Ton Telescopic Boom Truck Mounted Crane",
    "title": "10 Ton Telescopic Boom Truck Mounted Crane",
    "old_model": "SQ10SA5",
@@ -1802,6 +1847,7 @@
   },
   {
    "slug": "8-ton-telescopic-boom-truck-mounted-crane",
+   "category": "telescopic-boom-truck-mounted-cranes",
    "old_title": "8 Ton Telescopic Boom Truck Mounted Crane",
    "title": "8 Ton Telescopic Boom Truck Mounted Crane",
    "old_model": "SQ8SA5",
@@ -1842,6 +1888,7 @@
   },
   {
    "slug": "6-3-ton-telescopic-boom-truck-mounted-crane",
+   "category": "telescopic-boom-truck-mounted-cranes",
    "old_title": "6.3 Ton Telescopic Boom Truck Mounted Crane",
    "title": "6.3 Ton Telescopic Boom Truck Mounted Crane",
    "old_model": "SQ6.3SA4",
@@ -1882,6 +1929,7 @@
   },
   {
    "slug": "5-ton-telescopic-boom-truck-mounted-crane",
+   "category": "telescopic-boom-truck-mounted-cranes",
    "old_title": "5 Ton Telescopic Boom Truck Mounted Crane",
    "title": "5 Ton Telescopic Boom Truck Mounted Crane",
    "old_model": "SQ5SA4",
@@ -1922,6 +1970,7 @@
   },
   {
    "slug": "4-ton-telescopic-boom-truck-mounted-crane",
+   "category": "telescopic-boom-truck-mounted-cranes",
    "old_title": "4 Ton Telescopic Boom Truck Mounted Crane",
    "title": "4 Ton Telescopic Boom Truck Mounted Crane",
    "old_model": "SQ4SA4",
@@ -1962,6 +2011,7 @@
   },
   {
    "slug": "3-2-ton-telescopic-boom-truck-mounted-crane",
+   "category": "telescopic-boom-truck-mounted-cranes",
    "old_title": "3.2 Ton Telescopic Boom Truck Mounted Crane",
    "title": "3.2 Ton Telescopic Boom Truck Mounted Crane",
    "old_model": "SQ3.2SA3",
@@ -2002,6 +2052,7 @@
   },
   {
    "slug": "2-ton-telescopic-boom-truck-mounted-crane",
+   "category": "telescopic-boom-truck-mounted-cranes",
    "old_title": "2 Ton Telescopic Boom Truck Mounted Crane",
    "title": "2 Ton Telescopic Boom Truck Mounted Crane",
    "old_model": "SQ2SA3",

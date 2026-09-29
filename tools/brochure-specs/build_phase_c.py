@@ -7,6 +7,7 @@ that has a brochure model (phase A updates + phase B new products).
 - borrow_photo_from: for new models the brochure has no photo of, a sibling model's product (by slug)
 """
 import json, os
+import specs
 from specs import ADV
 
 B = {r['model']: r for r in json.load(open('brochure.json'))}
@@ -17,9 +18,11 @@ def slug(title):
     import re
     return re.sub(r'-+', '-', re.sub(r'[^a-z0-9]+', '-', title.lower())).strip('-')
 
-products = [{'slug': u['slug'], 'model': u['model']} for u in a] + [{'slug': slug(p['title']), 'model': p['model'], 'new': True, 'has_image': bool(p['image'])} for p in b]
+products = [{'slug': u['slug'], 'model': u['model'], 'category': u.get('category', '')} for u in a] + [{'slug': slug(p['title']), 'model': p['model'], 'new': True, 'has_image': bool(p['image']), 'category': p['category']} for p in b]
 by_model = {p['model']: p['slug'] for p in products}
 
+# Factory photos (photographer's archive) for models the brochure has no photo of; they lead the gallery.
+FACTORY = {m: sorted(f'factory-photos/{m}/{f}' for f in os.listdir(f'factory-photos/{m}')) for m in os.listdir('factory-photos') if not m.startswith('.')}
 PHOTOS = {m: [f'photos/{m}.webp'] for m in ['SQ4ZA3TJ', 'SQ6.3ZA4TJ', 'SQ8ZA6TJ', 'SQ10ZA6TJ', 'SQ12ZA6T', 'SQZ330T', 'SQ2SA3T', 'SQ3.2SA4T', 'SQ16SA5T', 'SQ4ZG3T', 'BLS3.0T']}
 for m in ('CC85', 'CC105', 'CC125', 'CC145'):
     PHOTOS[m] = ['photos/flyjib-1.webp', 'photos/flyjib-2.webp']
@@ -41,8 +44,10 @@ ADV_KEY = {'marine-knuckle': 'marine', 'marine-telescopic': 'marine-telescopic',
 out = []
 for p in products:
     m = p['model']; r = B[m]
+    noun = specs.NOUNS.get(p['category']) or {'SQ5SA2F': 'tow truck crane', 'F100Z-2E': 'garbage crane'}.get(m, 'crane')
     item = {'slug': p['slug'], 'model': m, 'drawing': f'drawings/{m}.webp',
-            'photos': PHOTOS.get(m, []), 'source': f"BOB-LIFT {'Truck Mounted Crane' if r['book'] == 'truck' else 'Marine Crane'} Product Manual, PDF page {r['pdf_page']}"}
+            'photos': FACTORY.get(m, []) + PHOTOS.get(m, []), 'own_photos_first': m in FACTORY,
+            'short_description': specs.short_description(r, noun), 'source': f"BOB-LIFT {'Truck Mounted Crane' if r['book'] == 'truck' else 'Marine Crane'} Product Manual, PDF page {r['pdf_page']}"}
     assert os.path.exists(item['drawing']), item['drawing']
     for key, test in SERIES.items():
         if test(m, r):

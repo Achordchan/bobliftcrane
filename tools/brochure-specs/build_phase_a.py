@@ -40,7 +40,7 @@ for p in site:
     if m and float(m.group(1)) != specs.capacity_tons(row):
         title = f"{specs.capacity_tons(row):g} Ton" + title[m.end():]
     updates.append({
-        'slug': slug, 'old_title': p['title'], 'title': title, 'old_model': p['model'], 'model': model,
+        'slug': slug, 'category': (p['cats'] or [''])[0], 'old_title': p['title'], 'title': title, 'old_model': p['model'], 'model': model,
         'capacity': specs.capacity_label(row), 'capacity_value': specs.capacity_tons(row),
         'specs': [{'label': l, 'value': v} for l, v in specs.specs(row)],
         'source': f"{row['book']} brochure, PDF page {row['pdf_page']}",
