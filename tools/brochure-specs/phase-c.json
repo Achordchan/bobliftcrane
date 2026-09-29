@@ -853,7 +853,7 @@
    "own_photos_first": false,
    "short_description": "The BOB-LIFT CC105 forklift fly jib crane has a maximum lifting capacity of 2300 kg, a maximum lifting moment of 50 kN·m, a maximum working range of 6500 mm and a self weight of 650 kg.",
    "model_aliases": [],
-   "main_photo": null,
+   "main_photo": "photos/CC105-main.webp",
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 17"
   },
   {
@@ -867,7 +867,7 @@
    "own_photos_first": false,
    "short_description": "The BOB-LIFT CC125 forklift fly jib crane has a maximum lifting capacity of 3500 kg, a maximum lifting moment of 60 kN·m, a maximum working range of 8000 mm and a self weight of 850 kg.",
    "model_aliases": [],
-   "main_photo": null,
+   "main_photo": "photos/CC125-main.webp",
    "source": "BOB-LIFT Truck Mounted Crane Product Manual, PDF page 18"
   },
   {

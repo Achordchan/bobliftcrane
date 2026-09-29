@@ -28,8 +28,9 @@ GALLERY = {m: sorted(f'factory-gallery/{m}/{f}' for f in os.listdir(f'factory-ga
 PHOTOS = {m: [f'photos/{m}.webp'] for m in ['SQ4ZA3TJ', 'SQ6.3ZA4TJ', 'SQ8ZA6TJ', 'SQ10ZA6TJ', 'SQ12ZA6T', 'SQZ330T', 'SQ2SA3T', 'SQ3.2SA4T', 'SQ16SA5T', 'SQ4ZG3T', 'BLS3.0T']}
 for m in ('CC85', 'CC105', 'CC125', 'CC145'):
     PHOTOS[m] = ['photos/flyjib-1.webp', 'photos/flyjib-2.webp']
-# Main image replaced by a brochure photo (CC85's old "transparent" PNG has an opaque background).
-MAIN = {'CC85': 'photos/flyjib-2.webp'}
+# Main images that were photos saved as "transparent" PNGs: CC85 gets the brochure photo; CC105 and CC125
+# get their own photo with the transparent padding trimmed off.
+MAIN = {'CC85': 'photos/flyjib-2.webp', 'CC105': 'photos/CC105-main.webp', 'CC125': 'photos/CC125-main.webp'}
 # New model <- sibling whose existing product photo stands in until real photos arrive.
 BORROW = {
     'SQ3.2ZA4': 'SQ3.2ZA3', 'SQ4ZA3': 'SQ4ZA4', 'BLZ90K5': 'SQ4ZA4', 'SQ5ZA3': 'SQ5ZA4', 'BLZ129K4': 'SQ6.3ZA5',
