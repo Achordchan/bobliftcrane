@@ -15,8 +15,6 @@ $case_no_results_label = $ui['noResultsLabel'] ?? 'No results';
 $case_close_feedback_label = $ui['closeFeedbackMediaLabel'] ?? 'Close feedback media';
 $case_tabs_aria_label = $ui['tabsAriaLabel'] ?? 'Case sections';
 $feedback_items = function_exists('boblift_feedback_items') ? boblift_feedback_items() : [];
-$photos_label = $ui['feedbackPhotosLabel'] ?? 'photos';
-$videos_label = $ui['feedbackVideosLabel'] ?? 'videos';
 $country_options = [];
 $product_options = [];
 foreach ($feedback_items as $feedback) {
@@ -149,10 +147,7 @@ $render_case_filter = static function (string $id, string $filter, string $all_l
         <?php foreach ($feedback_items as $feedback) :
             $feedback_title = trim($feedback['model'] . ($feedback['note'] !== '' ? ' ' . $feedback['note'] : ''));
             $feedback_caption = implode(' · ', array_filter([$feedback['model'], $feedback['country']]));
-            $feedback_counts = implode(' · ', array_filter([
-                $feedback['photos'] ? $feedback['photos'] . ' ' . $photos_label : '',
-                $feedback['videos'] ? $feedback['videos'] . ' ' . $videos_label : '',
-            ]));
+            $feedback_counts = boblift_feedback_counts_text($feedback);
         ?>
             <article class="boblift-case-card group" data-cases-card data-case-kind="customer_feedback" data-country="<?php echo esc_attr($feedback['country']); ?>" data-product="<?php echo esc_attr($feedback['model']); ?>">
                 <a class="block h-full" href="<?php echo esc_url($feedback['url']); ?>">

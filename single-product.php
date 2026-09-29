@@ -190,6 +190,16 @@ if ($drawings) {
 if ($brochure_features) {
     $anchors[] = ['id' => 'features', 'label' => (string) ($ui['featuresLabel'] ?? 'Key Features')];
 }
+$cases_ui = boblift_site_ui('casesPage');
+$product_cases = boblift_product_cases(get_the_ID());
+$product_feedback = boblift_product_feedback(get_the_ID());
+$product_feedback_total = $product_feedback ? boblift_product_feedback_count(get_the_ID()) : 0;
+if ($product_cases) {
+    $anchors[] = ['id' => 'cases', 'label' => (string) ($cases_ui['sceneCasesLabel'] ?? 'Application Cases')];
+}
+if ($product_feedback) {
+    $anchors[] = ['id' => 'feedback', 'label' => (string) ($cases_ui['customerFeedbackLabel'] ?? 'Customer Feedback')];
+}
 $anchors[] = ['id' => 'faq', 'label' => (string) ($ui['faqLabel'] ?? 'FAQ')];
 $anchors[] = ['id' => 'quote', 'label' => (string) ($ui['quoteAnchorLabel'] ?? 'Request Quote')];
 $quote_title = (string) ($ui['quoteTitle'] ?? 'Need a crane matched to your site and lifting task?');
@@ -366,6 +376,70 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                                 </li>
                             <?php endforeach; ?>
                         </ul>
+                    <?php endif; ?>
+                </article>
+            <?php endif; ?>
+            <?php if ($product_cases) : ?>
+                <article id="cases" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card">
+                    <div class="flex items-end justify-between gap-4 p-6 pb-0 md:p-8 md:pb-0">
+                        <div>
+                            <p class="text-[11px] font-black uppercase tracking-[0.2em] text-[#0B3F7D]"><?php echo esc_html($cases_ui['sceneCasesLabel'] ?? 'Application Cases'); ?></p>
+                            <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($ui['casesTitle'] ?? 'Where this crane works'); ?></h2>
+                        </div>
+                    </div>
+                    <?php if (count($product_cases) === 1) : $case_item = $product_cases[0]; ?>
+                        <a class="group grid items-center gap-6 p-6 md:grid-cols-2 md:gap-10 md:p-8" href="<?php echo esc_url($case_item['url']); ?>">
+                            <span class="block aspect-[3/2] overflow-hidden rounded-sm bg-[#EDF1F5]"><img class="h-full w-full object-cover" src="<?php echo esc_url(boblift_item_image($case_item)); ?>" alt="<?php echo esc_attr($case_item['title']); ?>" loading="lazy" decoding="async"></span>
+                            <span class="block min-w-0">
+                                <?php if ($case_item['country'] !== '' || $case_item['application'] !== '') : ?><span class="block text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(implode(' · ', array_filter([$case_item['country'], $case_item['application']]))); ?></span><?php endif; ?>
+                                <span class="mt-2 block text-xl font-black leading-snug text-[#071f42] transition group-hover:text-blue-700 md:text-2xl"><?php echo esc_html($case_item['title']); ?></span>
+                                <?php if (trim((string) $case_item['summary']) !== '') : ?><span class="mt-3 line-clamp-3 block text-sm font-semibold leading-6 text-slate-600 md:text-base md:leading-7"><?php echo esc_html($case_item['summary']); ?></span><?php endif; ?>
+                                <span class="mt-5 inline-flex items-center gap-1.5 text-sm font-black text-blue-700"><?php echo esc_html($cases_ui['viewCaseLabel'] ?? 'View Case'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4 transition group-hover:translate-x-1'); ?></span>
+                            </span>
+                        </a>
+                    <?php else : ?>
+                    <div class="grid gap-5 p-6 md:p-8 <?php echo count($product_cases) === 2 ? 'md:grid-cols-2' : 'md:grid-cols-3'; ?>">
+                        <?php foreach ($product_cases as $case_item) : ?>
+                            <a class="group block min-w-0" href="<?php echo esc_url($case_item['url']); ?>">
+                                <span class="block aspect-[3/2] overflow-hidden rounded-sm bg-[#EDF1F5]"><img class="h-full w-full object-cover" src="<?php echo esc_url(boblift_item_image($case_item)); ?>" alt="<?php echo esc_attr($case_item['title']); ?>" loading="lazy" decoding="async"></span>
+                                <?php if ($case_item['country'] !== '' || $case_item['application'] !== '') : ?><span class="mt-3 block text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(implode(' · ', array_filter([$case_item['country'], $case_item['application']]))); ?></span><?php endif; ?>
+                                <span class="mt-1.5 line-clamp-2 block text-base font-black leading-snug text-[#071f42] transition group-hover:text-blue-700 md:text-lg"><?php echo esc_html($case_item['title']); ?></span>
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php endif; ?>
+                </article>
+            <?php endif; ?>
+            <?php if ($product_feedback) :
+                $feedback_list_url = add_query_arg('tab', 'customer_feedback', boblift_case_archive_url());
+                $feedback_shown = array_slice($product_feedback, 0, 4);
+                ?>
+                <article id="feedback" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card">
+                    <div class="flex items-end justify-between gap-4 p-6 pb-0 md:p-8 md:pb-0">
+                        <div>
+                            <p class="text-[11px] font-black uppercase tracking-[0.2em] text-[#0B3F7D]"><?php echo esc_html($cases_ui['customerFeedbackLabel'] ?? 'Customer Feedback'); ?></p>
+                            <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($ui['feedbackTitle'] ?? 'Photos and videos from customers'); ?></h2>
+                        </div>
+                        <?php if ($product_feedback_total > count($feedback_shown)) : ?>
+                            <a class="hidden shrink-0 items-center gap-1.5 text-sm font-black text-blue-700 transition hover:text-[#071f42] sm:inline-flex" href="<?php echo esc_url($feedback_list_url); ?>"><?php echo esc_html($ui['viewAllFeedbackLabel'] ?? 'All customer feedback'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
+                        <?php endif; ?>
+                    </div>
+                    <div class="grid grid-cols-2 gap-x-4 gap-y-6 p-6 md:gap-x-5 md:p-8 lg:grid-cols-4">
+                        <?php foreach ($feedback_shown as $feedback_item) :
+                            $feedback_count_text = boblift_feedback_counts_text($feedback_item);
+                            ?>
+                            <a class="group block min-w-0" href="<?php echo esc_url($feedback_item['url']); ?>">
+                                <span class="relative block aspect-[4/3] overflow-hidden rounded-sm bg-[#EDF1F5]">
+                                    <?php if ($feedback_item['cover'] !== '') : ?><img class="h-full w-full object-cover" src="<?php echo esc_url($feedback_item['cover']); ?>" alt="<?php echo esc_attr($feedback_item['model'] . ' · ' . $feedback_item['country']); ?>" loading="lazy" decoding="async"><?php endif; ?>
+                                    <?php if ($feedback_item['media'][0]['type'] === 'video') : ?><span class="absolute inset-0 m-auto grid size-12 place-items-center rounded-sm bg-white/90 text-[#0B3F7D]"><?php echo boblift_icon('play', 'h-5 w-5'); ?></span><?php endif; ?>
+                                </span>
+                                <span class="mt-3 flex items-center gap-1.5 text-sm font-black text-[#071f42] transition group-hover:text-blue-700 md:text-base"><?php echo boblift_icon('map-pin', 'h-4 w-4 shrink-0 text-gold'); ?><?php echo esc_html($feedback_item['country']); ?></span>
+                                <span class="mt-0.5 block text-xs font-semibold text-slate-500 md:text-sm"><?php echo esc_html(implode(' · ', array_filter([$feedback_item['model'], $feedback_count_text]))); ?></span>
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php if ($product_feedback_total > count($feedback_shown)) : ?>
+                        <a class="flex items-center justify-center gap-1.5 border-t border-[#E6EDF5] px-6 py-4 text-sm font-black text-blue-700 sm:hidden" href="<?php echo esc_url($feedback_list_url); ?>"><?php echo esc_html($ui['viewAllFeedbackLabel'] ?? 'All customer feedback'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
                     <?php endif; ?>
                 </article>
             <?php endif; ?>

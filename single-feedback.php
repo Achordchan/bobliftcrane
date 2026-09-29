@@ -13,10 +13,7 @@ $feedback_list_url = add_query_arg('tab', 'customer_feedback', boblift_case_arch
 $media = $feedback['media'];
 $total = count($media);
 $caption = implode(' · ', array_filter([$feedback['model'], $feedback['country']]));
-$counts = implode(' · ', array_filter([
-    $feedback['photos'] ? $feedback['photos'] . ' ' . ($cases_ui['feedbackPhotosLabel'] ?? 'photos') : '',
-    $feedback['videos'] ? $feedback['videos'] . ' ' . ($cases_ui['feedbackVideosLabel'] ?? 'videos') : '',
-]));
+$counts = boblift_feedback_counts_text($feedback);
 $first = $media[0];
 $pad = static fn(int $n): string => str_pad((string) $n, 2, '0', STR_PAD_LEFT);
 

@@ -828,11 +828,54 @@ function boblift_feedback_item(WP_Post $post): ?array
     ];
 }
 
+// "12 photos · 1 video", singular when the count is one.
+function boblift_feedback_counts_text(array $item): string
+{
+    $ui = boblift_site_ui('casesPage');
+    $part = static fn(int $n, string $one, string $many): string => $n ? $n . ' ' . ($n === 1 ? $one : $many) : '';
+    return implode(' · ', array_filter([
+        $part((int) $item['photos'], (string) ($ui['feedbackPhotoLabel'] ?? 'photo'), (string) ($ui['feedbackPhotosLabel'] ?? 'photos')),
+        $part((int) $item['videos'], (string) ($ui['feedbackVideoLabel'] ?? 'video'), (string) ($ui['feedbackVideosLabel'] ?? 'videos')),
+    ]));
+}
+
 // Customer feedback entries for the Cases page.
 function boblift_feedback_items(array $query = []): array
 {
     $posts = get_posts($query + ['post_type' => 'feedback', 'post_status' => 'publish', 'posts_per_page' => -1, 'orderby' => ['menu_order' => 'ASC', 'date' => 'DESC'], 'lang' => '']);
     return array_values(array_filter(array_map('boblift_feedback_item', $posts)));
+}
+
+// Cases and feedback linked to a product (stored against the English product, shown in every language).
+function boblift_product_english_id(int $product_id): int
+{
+    $english = function_exists('pll_get_post') ? (int) pll_get_post($product_id, 'en') : 0;
+    return $english ?: $product_id;
+}
+
+function boblift_product_feedback(int $product_id, int $limit = 8): array
+{
+    return boblift_feedback_items(['posts_per_page' => $limit, 'meta_key' => '_related_product', 'meta_value' => (string) boblift_product_english_id($product_id)]);
+}
+
+function boblift_product_feedback_count(int $product_id): int
+{
+    return count(get_posts(['post_type' => 'feedback', 'post_status' => 'publish', 'posts_per_page' => -1, 'fields' => 'ids', 'lang' => '', 'meta_key' => '_related_product', 'meta_value' => (string) boblift_product_english_id($product_id)]));
+}
+
+function boblift_product_cases(int $product_id, int $limit = 3): array
+{
+    $posts = get_posts(['post_type' => 'case', 'post_status' => 'publish', 'posts_per_page' => -1, 'lang' => '', 'meta_key' => '_related_product', 'meta_value' => (string) boblift_product_english_id($product_id)]);
+    $language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
+    $items = [];
+    foreach ($posts as $post) {
+        $translated = $language !== '' && function_exists('pll_get_post') ? (int) pll_get_post($post->ID, $language) : $post->ID;
+        $post = $translated ? get_post($translated) : null;
+        if ($post instanceof WP_Post && $post->post_status === 'publish' && !isset($items[$post->ID]) && boblift_normalize_case_kind((string) get_post_meta($post->ID, '_case_kind', true)) === 'scene_case') {
+            $items[$post->ID] = boblift_case_item_from_post($post);
+        }
+    }
+    return array_slice(array_values($items), 0, $limit);
 }
 
 function boblift_cases(): array

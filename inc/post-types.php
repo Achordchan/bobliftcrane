@@ -851,6 +851,7 @@ function boblift_case_meta_box(WP_Post $post): void
             <?php boblift_render_textarea_field('boblift_case_meta[feedback_quote]', '客户反馈短句', boblift_meta_value($post->ID, 'feedback_quote'), 'boblift-admin-field-full'); ?>
         </div><p class="boblift-admin-help">客户反馈板块会读取这里的媒体 URL；视频支持 .mp4 / .webm 直链，也支持 YouTube 链接。图片 URL 留空时使用特色图。</p></div>
         <div class="boblift-admin-box"><h3>案例事实</h3><?php boblift_render_pair_rows('boblift_case_meta[facts_rows]', $facts, ['label', 'value'], ['标签', '值'], 4); ?></div>
+        <div class="boblift-admin-box"><h3>关联产品</h3><?php boblift_render_related_products_field('boblift_case_meta[related]', $post->ID); ?></div>
         <div class="boblift-admin-box"><h3>现场照片</h3><p class="boblift-admin-help">按顺序配在每个内容段落旁边（第 1 张配第 1 段），多出的照片在段落下方排成照片墙。横版 4:3 或 3:2，长边 1600 像素以上；不要客户人脸、电话、公司名。</p><?php boblift_render_media_picker('boblift_case_meta[gallery]', array_filter(array_map('intval', explode(',', boblift_meta_value($post->ID, 'case_gallery')))), ['image'], '可多选，按选择顺序显示。'); ?></div>
         <div class="boblift-admin-box"><h3>内容段落</h3><?php boblift_render_pair_rows('boblift_case_meta[sections_rows]', $sections, ['heading', 'body'], ['段落标题', '段落正文'], 4); ?></div>
     </div>
@@ -993,6 +994,7 @@ function boblift_save_meta_boxes(int $post_id): void
         }
         update_post_meta($post_id, '_feedback_media_url', esc_url_raw((string) ($meta['feedback_media_url'] ?? '')));
         update_post_meta($post_id, '_facts', boblift_rows_to_json(is_array($meta['facts_rows'] ?? null) ? $meta['facts_rows'] : [], ['label', 'value']));
+        boblift_save_related_products($post_id, $meta['related'] ?? null);
         update_post_meta($post_id, '_case_gallery', implode(',', array_filter(array_map('intval', explode(',', (string) ($meta['gallery'] ?? ''))))));
         update_post_meta($post_id, '_sections', boblift_rows_to_json(is_array($meta['sections_rows'] ?? null) ? $meta['sections_rows'] : [], ['heading', 'body']));
         $post = get_post($post_id);
@@ -1441,12 +1443,50 @@ function boblift_feedback_meta_box(WP_Post $post): void
         <?php endforeach; ?>
         <p class="description">显示在详情页图片下方，空行分段。留空时详情页只显示图片 / 视频。同样不要写客户姓名、公司名。</p>
     </div></div>
+    <div class="boblift-admin-field"><label>关联产品</label><div><?php boblift_render_related_products_field('boblift_feedback[related]', $post->ID); ?></div></div>
     <div class="boblift-admin-field"><label>图片 / 视频</label><?php boblift_render_media_picker('boblift_feedback[media]', $ids, ['image', 'video'], '可多选；按选择顺序显示，第一张作为封面。视频建议 60 秒以内、720p、无声。'); ?></div>
     </div>
     <?php
 }
 
 // Media library picker storing attachment IDs (comma-separated) in one hidden field; order follows the selection.
+// "关联产品": checkboxes of the English products, grouped by category. The product page resolves
+// the English ID for every language, so one link covers all translations.
+function boblift_render_related_products_field(string $name, int $post_id): void
+{
+    $selected = array_map('intval', get_post_meta($post_id, '_related_product'));
+    $groups = [];
+    foreach (get_posts(['post_type' => 'product', 'post_status' => 'publish', 'posts_per_page' => -1, 'lang' => 'en', 'orderby' => 'title', 'order' => 'ASC']) as $product) {
+        $terms = get_the_terms($product, 'product_category');
+        $group = $terms && !is_wp_error($terms) ? $terms[0]->name : '其他';
+        $model = trim((string) get_post_meta($product->ID, '_model', true));
+        $groups[$group][] = ['id' => $product->ID, 'label' => ($model !== '' ? $model . ' — ' : '') . $product->post_title];
+    }
+    ksort($groups);
+    echo '<input type="hidden" name="' . esc_attr($name) . '[]" value="">';
+    echo '<div style="max-height:320px;overflow:auto;border:1px solid #dcdcde;padding:8px 12px;background:#fff">';
+    foreach ($groups as $group => $items) {
+        echo '<p style="margin:10px 0 4px;font-weight:700">' . esc_html($group) . '</p>';
+        foreach ($items as $item) {
+            echo '<label style="display:block;margin:2px 0"><input type="checkbox" name="' . esc_attr($name) . '[]" value="' . esc_attr((string) $item['id']) . '"' . checked(in_array($item['id'], $selected, true), true, false) . '> ' . esc_html($item['label']) . '</label>';
+        }
+    }
+    echo '</div><p class="description">勾选后，这条内容会出现在对应产品详情页。可多选；不勾选就不在任何产品页显示。</p>';
+}
+
+function boblift_save_related_products(int $post_id, mixed $values): void
+{
+    if (!is_array($values)) {
+        return;
+    }
+    delete_post_meta($post_id, '_related_product');
+    foreach (array_unique(array_filter(array_map('intval', $values))) as $product_id) {
+        if (get_post_type($product_id) === 'product') {
+            add_post_meta($post_id, '_related_product', (string) $product_id);
+        }
+    }
+}
+
 function boblift_render_media_picker(string $name, array $ids, array $types, string $help): void
 {
     ?>
@@ -1508,6 +1548,7 @@ function boblift_save_feedback_meta(int $post_id): void
     }
     update_post_meta($post_id, '_feedback_body', array_filter($body) ? wp_slash(wp_json_encode($body, JSON_UNESCAPED_UNICODE)) : '');
     update_post_meta($post_id, '_feedback_model', $text('model'));
+    boblift_save_related_products($post_id, $data['related'] ?? null);
     update_post_meta($post_id, '_feedback_media', implode(',', array_filter(array_map('intval', explode(',', $text('media'))))));
 }
 add_action('save_post_feedback', 'boblift_save_feedback_meta');
