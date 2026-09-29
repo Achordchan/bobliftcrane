@@ -165,6 +165,7 @@ function boblift_static_text_translations(): array
             'Get a Quote' => '見積もりを依頼',
             'Priority' => '重視点',
             'Site photos' => '現場写真',
+            'Product details' => '製品詳細',
             'Manufacturing & delivery' => '製造と出荷',
             'From our workshop to your port' => '自社工場からお客様の港まで',
             'Assembly' => '組立',
@@ -202,6 +203,7 @@ function boblift_static_text_translations(): array
             'Scenario' => '应用场景',
             'Priority' => '关注重点',
             'Site photos' => '现场照片',
+            'Product details' => '产品详情',
             'Manufacturing & delivery' => '生产与发货',
             'From our workshop to your port' => '从我们的车间到您的港口',
             'Assembly' => '装配',
@@ -566,6 +568,7 @@ function boblift_site_ui_defaults(?string $section = null): array
             'featuresLabel' => 'Key Features',
             'featuresTitle' => 'Product technical advantages',
             'casesTitle' => 'Where this crane works',
+            'detailBodyLabel' => 'Product details',
             'processLabel' => 'Manufacturing & delivery',
             'processTitle' => 'From our workshop to your port',
             // One set per crane type; the product page picks it from the English product category.

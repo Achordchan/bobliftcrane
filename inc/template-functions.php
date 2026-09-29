@@ -575,7 +575,9 @@ function boblift_product_from_post(WP_Post $post): array
     $short_description = boblift_localize_product_text_fragments($short_description);
     $features = boblift_localize_product_text_fragments(boblift_decode_meta(get_post_meta($post->ID, '_features', true), []));
     $content = boblift_localize_product_text_fragments(apply_filters('the_content', $post->post_content));
-    if (is_string($content) && boblift_text_has_untranslated_english($content)) {
+    // Hide English copy left untranslated on the Japanese and Chinese sites; English pages keep it.
+    $content_language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
+    if (is_string($content) && !in_array($content_language, ['', 'en'], true) && boblift_text_has_untranslated_english($content)) {
         $content = '';
     }
 

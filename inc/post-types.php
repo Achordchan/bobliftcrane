@@ -795,6 +795,7 @@ function boblift_product_meta_box(WP_Post $post): void
     $hotspot_image = $thumbnail ?: boblift_asset('images/products/crane-accessories.png');
     ?>
     <div class="boblift-structured-admin">
+        <div class="boblift-admin-box"><h3>产品正文</h3><label><input type="checkbox" name="boblift_meta[detail_body_ready]" value="1" <?php checked(get_post_meta($post->ID, '_detail_body_ready', true), '1'); ?>> 在产品页显示正文</label><p class="boblift-admin-help">正文就是上方编辑器里的内容，显示在"技术参数"下方。勾选前请确认内容已按画册核对；未勾选时产品页不显示正文。旧网站的原文已备份在 _legacy_content。</p></div>
         <div class="boblift-admin-box"><h3>基础信息</h3><div class="boblift-admin-fields">
             <?php boblift_render_text_field('boblift_meta[model]', '型号', boblift_meta_value($post->ID, 'model')); ?>
             <?php boblift_render_text_field('boblift_meta[capacity]', '吨位 / 起重能力', boblift_meta_value($post->ID, 'capacity')); ?>
@@ -960,6 +961,7 @@ function boblift_save_meta_boxes(int $post_id): void
         }
         update_post_meta($post_id, '_boom_type', boblift_normalize_product_boom_type((string) ($meta['boom_type'] ?? '')));
         update_post_meta($post_id, '_catalog_pdf_url', esc_url_raw((string) ($meta['catalog_pdf_url'] ?? '')));
+        update_post_meta($post_id, '_detail_body_ready', empty($meta['detail_body_ready']) ? '' : '1');
         foreach (['short_description', 'seo_description'] as $key) {
             update_post_meta($post_id, '_' . $key, sanitize_textarea_field($meta[$key] ?? ''));
         }

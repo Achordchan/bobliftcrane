@@ -2457,3 +2457,8 @@ body.boblift-filter-drawer-locked {
 .boblift-feedback-thumb:hover { opacity: 1; }
 .boblift-feedback-thumb.is-active { border-color: #2563eb; opacity: 1; }
 @media (min-width: 768px) { .boblift-feedback-thumb { width: 7rem; height: 5.25rem; } }
+
+/* Product page body text (正文): tighter than article prose, list in two columns on wide screens. */
+.boblift-product-body { font-size: 1rem; line-height: 1.8; }
+.boblift-product-body h3 { margin-top: 1.75rem; font-size: 1.05rem; }
+@media (min-width: 768px) { .boblift-product-body ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 2rem; row-gap: 0.4rem; } .boblift-product-body li + li { margin-top: 0; } }
