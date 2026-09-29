@@ -139,7 +139,9 @@ $hero_image = $main_image;
 $hero_is_cutout = boblift_image_fit($hero_image) === 'cutout';
 // Cut-outs stand on the floor line with only a thin margin, so they fill as much of the stage as their shape allows.
 $hero_cutout_class = 'object-contain object-bottom px-3 pt-3 pb-6 sm:px-4 sm:pt-4 sm:pb-8 lg:px-6 lg:pt-6 lg:pb-10';
-$hero_image_class = $hero_is_cutout ? $hero_cutout_class : 'object-cover';
+// Photos are never cropped: the whole photo shows on a plain mat, since their shapes (square, 3:2, portrait) vary.
+$hero_photo_class = 'object-contain bg-[#EDF1F5]';
+$hero_image_class = $hero_is_cutout ? $hero_cutout_class : $hero_photo_class;
 // Part hotspots only when an editor placed them for this product; the generic defaults do not match the image.
 $has_custom_hotspots = !empty($product['hotspots']);
 $hero_summary = trim((string) ($product['short_description'] ?? ''));

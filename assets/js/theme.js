@@ -208,13 +208,17 @@
       nextImage.offsetHeight;
       nextImage.classList.remove('transition-none');
     };
-    // Cut-outs stand whole on the stage floor; photos fill the stage. The fit comes from the thumb.
-    const cutoutFit = ['object-contain', 'object-bottom', 'px-3', 'pt-3', 'pb-6', 'sm:px-4', 'sm:pt-4', 'sm:pb-8', 'lg:px-6', 'lg:pt-6', 'lg:pb-10'];
+    // Cut-outs stand whole on the stage floor; photos show whole. The fit comes from the thumb.
+    const cutoutFit = ['object-bottom', 'px-3', 'pt-3', 'pb-6', 'sm:px-4', 'sm:pt-4', 'sm:pb-8', 'lg:px-6', 'lg:pt-6', 'lg:pb-10'];
+    const photoFit = ['bg-[#EDF1F5]'];
     const applyFit = (image, fit) => {
       if (!image?.classList) return;
       const cutout = fit === 'cutout';
       cutoutFit.forEach((className) => image.classList.toggle(className, cutout));
-      image.classList.toggle('object-cover', !cutout);
+      // Photos show whole on a plain mat instead of being cropped to the stage.
+      photoFit.forEach((className) => image.classList.toggle(className, !cutout));
+      image.classList.add('object-contain');
+      image.classList.remove('object-cover');
     };
     const switchProductImage = async (src, label = '', fit = 'photo') => {
       if (!src) return;

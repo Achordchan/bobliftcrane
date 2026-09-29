@@ -992,11 +992,11 @@ function boblift_product_card(array $product, string $extra_class = '', bool $ea
     $quick_view_label = (string) ($product_ui['quickViewLabel'] ?? 'Quick view');
     $view_details_label = (string) ($product_ui['viewDetailsLabel'] ?? 'View Details');
     $request_quote_label = (string) ($product_ui['requestQuoteLabel'] ?? 'Request Quote');
-    // Cut-outs float on the card's backdrop; site photos fill the card.
+    // Cut-outs float on the card's backdrop; site photos show whole on a plain mat, never cropped.
     $card_image = boblift_product_image($product);
     $card_image_class = boblift_image_fit($card_image) === 'cutout'
         ? 'scale-[1.08] object-contain p-4 drop-shadow-[0_6px_8px_rgba(11,27,51,0.10)] group-hover:scale-[1.12] sm:p-5'
-        : 'object-cover group-hover:scale-[1.03]';
+        : 'object-contain bg-[#EDF1F5]';
     ?>
     <article class="product-card group flex min-h-full cursor-pointer flex-col overflow-hidden rounded border border-[#E5E7EB] bg-white shadow-card transition duration-300 hover:-translate-y-1 hover:border-blue-200 <?php echo esc_attr($extra_class); ?>" data-product-id="<?php echo esc_attr($product_id); ?>" data-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-category="<?php echo esc_attr($product['category'] ?? ''); ?>" data-categories="<?php echo esc_attr(implode(',', $product_categories)); ?>" data-category-title="<?php echo esc_attr($product['category_title'] ?? 'BOB-LIFT'); ?>" data-capacity="<?php echo esc_attr((string) ($product['capacity_value'] ?? 0)); ?>" data-boom="<?php echo esc_attr($product['boom_type'] ?? ''); ?>" data-applications="<?php echo esc_attr($apps); ?>" data-status="<?php echo esc_attr($status); ?>" data-status-label="<?php echo esc_attr(boblift_product_status_label($status)); ?>" data-featured="<?php echo !empty($product['featured']) ? '1' : '0'; ?>" data-created="<?php echo esc_attr((string) ($product['created_at'] ?? '')); ?>" data-popularity="<?php echo esc_attr((string) ($product['popularity'] ?? 0)); ?>" data-title="<?php echo esc_attr($product['title']); ?>" data-image="<?php echo esc_url(boblift_product_image($product)); ?>" data-summary="<?php echo esc_attr($product['short_description'] ?? ''); ?>" data-inquiry-url="<?php echo esc_url($inquiry_url); ?>" data-detail-url="<?php echo esc_url($detail_url); ?>" data-specs="<?php echo $quick_specs; ?>">
         <div class="product-card-inner flex min-h-full flex-col">
