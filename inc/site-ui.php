@@ -148,8 +148,11 @@ function boblift_static_text_translations(): array
             'BOB-LIFT knuckle boom marine crane lifting a cargo container on a supply vessel' => '補給船でコンテナを吊り上げるBOB-LIFTのナックルブームマリンクレーン',
             'Pause slideshow' => 'スライドショーを一時停止',
             'Play slideshow' => 'スライドショーを再生',
+            'Former model' => '旧型番',
         ],
         'zh' => [
+            'Former model' => '旧型号',
+            'Specifications' => '技术参数',
             'Crane manufacturer since 1989' => '始于1989年的起重机制造商',
             'Truck Mounted Cranes' => '车载起重机',
             'Truck mounted cranes, built to lift.' => '车载起重机，为可靠吊装而造。',
@@ -469,7 +472,7 @@ function boblift_site_ui_defaults(?string $section = null): array
         'productDetail' => [
             'notFoundTitle' => 'Product not found',
             'specsHeading' => 'Specifications',
-            'formerModelLabel' => 'Former Model Name',
+            'formerModelLabel' => 'Former model',
             'sourceLabel' => 'Source',
             'drawingLabel' => 'Dimension Drawing',
             'drawingTitle' => 'Dimensions and load chart',

@@ -70,7 +70,6 @@ if (str_contains(strtolower($overview_title), 'truck-mounted') && !str_contains(
 }
 $technical_specs = array_values(array_filter(array_merge(
     $hero_model !== '' ? [['label' => (string) ($ui['specLabels']['model'] ?? 'Model'), 'value' => $hero_model]] : [],
-    trim((string) ($product['model_aliases'] ?? '')) !== '' ? [['label' => (string) ($ui['formerModelLabel'] ?? 'Former Model Name'), 'value' => (string) $product['model_aliases']]] : [],
     $specs
 ), static fn($spec): bool => is_array($spec) && trim((string) ($spec['label'] ?? '')) !== '' && trim((string) ($spec['value'] ?? '')) !== ''));
 $drawings = array_values(array_filter($product['drawings'] ?? [], static fn($drawing): bool => is_array($drawing) && ($drawing['image'] ?? '') !== ''));
@@ -145,6 +144,7 @@ $has_custom_hotspots = !empty($product['hotspots']);
 $hero_summary = trim((string) ($product['short_description'] ?? ''));
 // The specs header repeats nothing: drop the intro when it is the same sentence as the hero summary.
 $technical_intro_html = trim(wp_strip_all_tags($product_intro_html)) === $hero_summary ? '' : $product_intro_html;
+$former_models = trim((string) ($product['model_aliases'] ?? ''));
 // "2950 kg" -> ["2950", "kg"] so the hero can set the number large and the unit small.
 $hero_spec_parts = static function (string $value): array {
     $value = trim($value);
@@ -274,13 +274,22 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
     <section class="bg-[#F5F7FB] py-8 md:py-12">
         <div class="page-shell min-w-0 space-y-6 md:space-y-8">
             <article id="technical" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card">
-                <div class="flex flex-col gap-3 p-6 md:p-8 lg:flex-row lg:items-start lg:justify-between lg:gap-10">
-                    <div class="shrink-0">
-                        <p class="text-[11px] font-black uppercase tracking-[0.2em] text-[#0B3F7D]"><?php echo esc_html($ui['cinemaSpecsLabel'] ?? 'Engineering data'); ?></p>
-                        <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($ui['specsHeading'] ?? 'Specifications'); ?></h2>
+                <div class="p-6 md:p-8">
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="min-w-0">
+                            <p class="text-[11px] font-black uppercase tracking-[0.2em] text-[#0B3F7D]"><?php echo esc_html($ui['cinemaSpecsLabel'] ?? 'Engineering data'); ?></p>
+                            <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($ui['specsHeading'] ?? 'Specifications'); ?></h2>
+                        </div>
+                        <?php if ($former_models !== '') : ?>
+                            <?php // Old-site model names stay on the page so searches for them still land here. ?>
+                            <dl class="shrink-0 rounded-sm border border-[#DDE7F2] bg-[#F5F8FC] px-3 py-2 text-right sm:px-4">
+                                <dt class="text-[11px] font-semibold leading-4 text-slate-500"><?php echo esc_html($ui['formerModelLabel'] ?? 'Former model'); ?></dt>
+                                <dd class="mt-0.5 text-sm font-black leading-5 text-[#071f42]"><?php echo esc_html($former_models); ?></dd>
+                            </dl>
+                        <?php endif; ?>
                     </div>
                     <?php if ($technical_intro_html !== '') : ?>
-                        <div class="max-w-[640px] space-y-3 text-sm font-semibold leading-7 text-slate-600 md:text-[15px] [&_p]:m-0 [&_strong]:font-black [&_strong]:text-[#071f42] [&_ul]:m-0 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5"><?php echo wp_kses_post($technical_intro_html); ?></div>
+                        <div class="mt-4 max-w-[860px] space-y-3 text-sm font-semibold leading-7 text-slate-600 md:text-[15px] [&_p]:m-0 [&_strong]:font-black [&_strong]:text-[#071f42] [&_ul]:m-0 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5"><?php echo wp_kses_post($technical_intro_html); ?></div>
                     <?php endif; ?>
                 </div>
                 <dl class="-mb-px -mr-px grid grid-cols-2 border-t border-[#E6EDF5] sm:grid-cols-3 lg:grid-cols-4">
