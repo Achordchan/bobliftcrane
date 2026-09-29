@@ -333,20 +333,43 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                 </article>
             <?php break; endforeach; ?>
             <?php if ($brochure_features) : ?>
+                <?php
+                $features_series = trim((string) ($product['features_series'] ?? ''));
+                $features_image = trim((string) ($product['features_image'] ?? ''));
+                $features_odd = count($brochure_features) % 2 === 1;
+                ?>
                 <article id="features" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card">
-                    <div class="border-b border-[#DDE7F2] p-6 md:p-8">
-                        <p class="text-[11px] font-black uppercase tracking-[0.2em] text-[#0B3F7D]"><?php echo esc_html($ui['featuresLabel'] ?? 'Key Features'); ?></p>
-                        <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($ui['featuresTitle'] ?? 'Built into every crane in this series'); ?></h2>
+                    <div class="grid <?php echo $features_image !== '' ? 'lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)]' : ''; ?>">
+                        <?php if ($features_image !== '') : ?>
+                            <?php // The brochure opens each series with this photo beside its advantages list. ?>
+                            <figure class="relative m-0 aspect-[4/3] overflow-hidden bg-[#0B1B33] sm:aspect-[16/9] lg:aspect-auto lg:min-h-full">
+                                <img class="absolute inset-0 h-full w-full object-cover" src="<?php echo esc_url($features_image); ?>" alt="<?php echo esc_attr($features_series); ?>" loading="lazy" decoding="async">
+                                <?php if ($features_series !== '') : ?>
+                                    <figcaption class="absolute inset-x-0 bottom-0 bg-[linear-gradient(180deg,transparent,rgba(7,31,66,0.88))] px-6 pb-6 pt-16 text-white md:px-8 md:pb-8">
+                                        <span class="block text-[11px] font-black uppercase tracking-[0.2em] text-white/70"><?php echo esc_html($ui['featuresSeriesLabel'] ?? 'Series'); ?></span>
+                                        <span class="mt-2 block text-[clamp(1.3rem,1.8vw,1.75rem)] font-black leading-tight"><?php echo esc_html($features_series); ?></span>
+                                    </figcaption>
+                                <?php endif; ?>
+                            </figure>
+                        <?php endif; ?>
+                        <div class="min-w-0">
+                            <div class="border-b border-[#DDE7F2] p-6 md:p-8">
+                                <p class="text-[11px] font-black uppercase tracking-[0.2em] text-[#0B3F7D]"><?php echo esc_html($ui['featuresLabel'] ?? 'Key Features'); ?></p>
+                                <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($ui['featuresTitle'] ?? 'Product technical advantages'); ?></h2>
+                            </div>
+                            <ol class="-mb-px -mr-px grid sm:grid-cols-2">
+                                <?php foreach ($brochure_features as $index => $feature) : ?>
+                                    <li class="flex gap-4 border-b border-r border-[#E6EDF5] p-5 md:p-6 <?php echo $features_odd && $index === count($brochure_features) - 1 ? 'sm:col-span-2' : ''; ?>">
+                                        <span class="w-9 shrink-0 text-[28px] font-black leading-none text-[#C9D6E6] [font-variant-numeric:tabular-nums]" aria-hidden="true"><?php echo esc_html(sprintf('%02d', $index + 1)); ?></span>
+                                        <div class="min-w-0">
+                                            <h3 class="text-base font-black leading-snug text-[#071f42]"><?php echo esc_html((string) $feature['title']); ?></h3>
+                                            <p class="mt-1.5 text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html((string) ($feature['text'] ?? '')); ?></p>
+                                        </div>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ol>
+                        </div>
                     </div>
-                    <ol class="-mb-px -mr-px grid sm:grid-cols-2 xl:grid-cols-3">
-                        <?php foreach ($brochure_features as $index => $feature) : ?>
-                            <li class="border-b border-r border-[#E6EDF5] p-6 md:p-7">
-                                <span class="text-xs font-black text-[#0B3F7D] [font-variant-numeric:tabular-nums]"><?php echo esc_html(sprintf('%02d', $index + 1)); ?></span>
-                                <h3 class="mt-2 text-base font-black leading-snug text-[#071f42]"><?php echo esc_html((string) $feature['title']); ?></h3>
-                                <p class="mt-2 text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html((string) ($feature['text'] ?? '')); ?></p>
-                            </li>
-                        <?php endforeach; ?>
-                    </ol>
                 </article>
             <?php endif; ?>
             <article id="photos" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white p-5 shadow-card md:p-8" data-product-gallery-root>

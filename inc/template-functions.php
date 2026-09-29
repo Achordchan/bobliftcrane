@@ -604,6 +604,8 @@ function boblift_product_from_post(WP_Post $post): array
         'drawings' => $drawings,
         'brochure_source' => (string) get_post_meta($post->ID, '_brochure_source', true),
         'model_aliases' => (string) get_post_meta($post->ID, '_model_aliases', true),
+        'features_series' => (string) get_post_meta($post->ID, '_features_series', true),
+        'features_image' => (string) wp_get_attachment_image_url((int) get_post_meta($post->ID, '_features_image', true), 'large'),
         'hotspots' => $hotspots,
         'detail_url' => get_permalink($post),
         'inquiry_url' => boblift_url('/contact.html?product=' . rawurlencode($title) . '#inquiry'),

@@ -104,6 +104,14 @@ foreach ($plan['products'] as $p) {
         // The product page shows the features block only for brochure text, not old-site copy.
         update_post_meta($id, '_features_source', 'brochure');
     }
+    if (!empty($p['features_photo'])) {
+        // The series photo the brochure prints beside the advantages list.
+        $series_photo = $import($p['features_photo'], $id, $p['features_series'] . ' (BOB-LIFT product manual)');
+        if ($series_photo) {
+            update_post_meta($id, '_features_image', $series_photo);
+        }
+        update_post_meta($id, '_features_series', $p['features_series']);
+    }
     update_post_meta($id, '_brochure_source', $p['source']);
     // Model names the old site used, kept on the page so searches for them still land here.
     update_post_meta($id, '_model_aliases', implode(', ', $p['model_aliases'] ?? []));

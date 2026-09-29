@@ -45,6 +45,11 @@ SERIES = {  # model family -> advantages list
     'truck-knuckle': lambda m, r: r['book'] == 'truck' and r['kind'] == 'main' and r['pdf_page'] in (6, 7, 8, 9, 10, 11),
 }
 ADV_KEY = {'marine-knuckle': 'marine', 'marine-telescopic': 'marine-telescopic', 'truck-telescopic': 'truck-telescopic', 'truck-knuckle': 'truck-knuckle'}
+# The brochure opens each series with one photo beside its advantages list; the product page pairs them the same way.
+SERIES_NAME = {'marine-knuckle': 'Knuckle Boom Marine Crane', 'marine-telescopic': 'Telescopic Boom Marine Crane',
+               'truck-telescopic': 'Telescopic Boom Truck Mounted Crane', 'truck-knuckle': 'Knuckle Boom Truck Mounted Crane'}
+SERIES_PHOTO = {'marine-knuckle': 'series/marine.webp', 'marine-telescopic': 'series/marine-telescopic.webp',
+                'truck-telescopic': 'series/truck-telescopic.webp', 'truck-knuckle': 'series/truck-knuckle.webp'}
 
 out = []
 for p in products:
@@ -59,6 +64,9 @@ for p in products:
     for key, test in SERIES.items():
         if test(m, r):
             item['features'] = [{'title': t, 'text': x} for t, x in ADV[ADV_KEY[key]]]
+            item['features_series'] = SERIES_NAME[key]
+            item['features_photo'] = SERIES_PHOTO[key]
+            assert os.path.exists(item['features_photo']), item['features_photo']
             break
     if p.get('new') and not p.get('has_image') and not item['photos']:
         item['borrow_photo_from'] = by_model[BORROW[m]]
