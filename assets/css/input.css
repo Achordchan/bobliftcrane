@@ -17,8 +17,8 @@
 
 :root { --ink:#08234a; --navy:#071f42; --gold:#f59a3c; --line:#e4ebf4; --font-sans:"Barlow","Helvetica Neue",Arial,sans-serif; --radius:0.625rem; }
 * { box-sizing: border-box; }
-html { max-width: 100%; overflow-x: hidden; font-size: 16px; scroll-behavior: smooth; }
-body { max-width: 100%; overflow-x: hidden; margin: 0; color: var(--ink); background: #fff; font-family: var(--font-sans); line-height: 1.5; }
+html { max-width: 100%; overflow-x: hidden; overflow-x: clip; font-size: 16px; scroll-behavior: smooth; }
+body { max-width: 100%; overflow-x: hidden; overflow-x: clip; margin: 0; color: var(--ink); background: #fff; font-family: var(--font-sans); line-height: 1.5; }
 html.boblift-inquiry-scroll-locked,
 body.boblift-inquiry-scroll-locked {
   overflow: hidden !important;
