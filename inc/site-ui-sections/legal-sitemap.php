@@ -6,6 +6,10 @@ return [
         'contactTitle' => 'Questions about this page?',
         'contactText' => 'Write to us and we will reply by email.',
         'contactLink' => 'Contact page',
+        'documentsTitle' => 'Related documents',
+        'privacyLabel' => 'Privacy Policy',
+        'termsLabel' => 'Terms of Use',
+        'sitemapLabel' => 'Sitemap',
     ],
     'sitemapGroups' => [
         'companyTitle' => 'Company',

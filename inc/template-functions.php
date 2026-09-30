@@ -1003,8 +1003,8 @@ function boblift_page_hero(array $hero): void
         <?php endif; ?>
         <div class="boblift-page-hero-inner relative z-10 <?php echo esc_attr($inner_class); ?>">
             <p class="boblift-page-hero-label mb-3 text-xs font-black uppercase tracking-[0.18em] text-[#0B3F7D] empty:hidden" data-banner-label><?php echo esc_html(trim((string) ($hero['label'] ?? ''))); ?></p>
-            <h1 class="boblift-page-hero-title <?php echo $has_image ? '' : 'max-w-4xl'; ?> text-[clamp(2rem,3vw,3.75rem)] font-black leading-[1.02] tracking-[-0.02em] text-[#0B1B33]" data-banner-title><?php echo $title_html; ?></h1>
-            <p class="boblift-page-hero-text mt-4 <?php echo $has_image ? 'max-w-xl' : 'max-w-3xl'; ?> text-sm font-semibold leading-7 text-slate-600 empty:hidden md:text-base md:leading-8" data-banner-text><?php echo esc_html(trim((string) ($hero['text'] ?? ''))); ?></p>
+            <h1 class="boblift-page-hero-title <?php echo $has_image ? 'max-w-3xl' : 'max-w-5xl'; ?> text-[clamp(2rem,3vw,3.75rem)] font-black leading-[1.02] tracking-[-0.02em] text-[#0B1B33]" data-banner-title><?php echo $title_html; ?></h1>
+            <p class="boblift-page-hero-text mt-4 <?php echo $has_image ? 'max-w-xl' : 'max-w-[64rem]'; ?> text-sm font-semibold leading-7 text-slate-600 empty:hidden md:text-base md:leading-8" data-banner-text><?php echo esc_html(trim((string) ($hero['text'] ?? ''))); ?></p>
             <?php if ($meta !== '') : ?><p class="mt-4 text-xs font-black uppercase tracking-[0.14em] text-slate-400"><?php echo esc_html($meta); ?></p><?php endif; ?>
             <?php if ($links !== []) : ?>
                 <div class="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-bold text-navy md:mt-6">

@@ -131,6 +131,9 @@ $section_heading = static function (string $title, int $count, string $link_labe
             'title' => (string) ($sitemap_ui['title'] ?? 'Find BOB-LIFT pages quickly.'),
             'text' => (string) ($sitemap_ui['description'] ?? ''),
             'meta' => $total_links . ' ' . (string) ($sitemap_ui['links_label'] ?? 'Links'),
+            'image' => 'images/factory/aerial-site.webp',
+            'image_alt' => (string) ($sitemap_ui['title'] ?? ''),
+            'image_position' => 'center 50%',
         ]);
         ?>
     </div>
