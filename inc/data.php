@@ -484,10 +484,12 @@ function boblift_about_page_defaults(): array
             'title' => 'Intelligent Production.',
             'text' => 'Experience our state-of-the-art 37,000 sqm facility where precision engineering meets rigorous quality control.',
             'items' => [
-                ['image' => boblift_image_option('images/factory-workshop.jpg'), 'title' => 'Precision Workshop', 'text' => 'Structured production flow for crane welding, assembly and inspection.'],
-                ['image' => boblift_image_option('images/oldsite/news/enter-the-bob-lift-factory-with-professional-manufacturing.jpg'), 'title' => 'Manufacturing Process', 'text' => 'Factory operations built around stable output and repeatable quality.'],
-                ['image' => boblift_image_option('images/about/about-aerial-mid-start.webp'), 'title' => 'Factory Scale', 'text' => 'A modern manufacturing base supporting global lifting equipment demand.'],
-                ['image' => boblift_image_option('images/social-media/social-media-factory-news.webp'), 'title' => 'Quality Control', 'text' => 'Production details are documented for export-ready delivery.'],
+                ['image' => boblift_image_option('images/about/mfg-1-boom-sections.webp'), 'title' => 'Boom sections', 'text' => 'Telescopic boom sections are finished and fitted before assembly.'],
+                ['image' => boblift_image_option('images/about/mfg-2-assembly.webp'), 'title' => 'Assembly', 'text' => 'Columns, winches and control valves are assembled in our Xuzhou workshop.'],
+                ['image' => boblift_image_option('images/about/mfg-3-hydraulics.webp'), 'title' => 'Hydraulics', 'text' => 'Hoses, valves and cylinders are fitted and checked on every crane.'],
+                ['image' => boblift_image_option('images/about/mfg-4-final-check.webp'), 'title' => 'Final check', 'text' => 'Finished cranes are inspected and lined up for dispatch.'],
+                ['image' => boblift_image_option('images/about/mfg-5-packing.webp'), 'title' => 'Packing', 'text' => 'Wrapped in film and strapped to protect paint and hydraulics in transit.'],
+                ['image' => boblift_image_option('images/about/mfg-6-container-loading.webp'), 'title' => 'Container loading', 'text' => 'Loaded into containers at the factory and shipped to your port.'],
             ],
         ],
         'executives' => [

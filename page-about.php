@@ -261,12 +261,12 @@ foreach (['中国徐州', 'Xuzhou, China', '起重设备制造商', 'crane manuf
         <div class="about-gallery-track flex w-max h-full items-center gap-6 px-4 md:px-8" data-gallery-track>
             <?php foreach ($facility_gallery as $index => $item) : ?>
                 <article class="about-gallery-item group relative shrink-0 overflow-hidden rounded bg-[#E8EEF5] shadow-card" data-gallery-item>
-                    <?php echo boblift_img_from_setting($item['image'] ?? [], 'images/factory-workshop.jpg', (string) ($item['title'] ?? 'BOB-LIFT factory view'), 'absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]', ['loading' => 'lazy', 'decoding' => 'async']); ?>
+                    <?php echo boblift_img_from_setting($item['image'] ?? [], 'images/factory-workshop.jpg', boblift_localized_static_text((string) ($item['title'] ?? 'BOB-LIFT factory view')), 'absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]', ['loading' => 'lazy', 'decoding' => 'async']); ?>
                     <div class="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(11,27,51,0.02)_0%,rgba(11,27,51,0.12)_48%,rgba(11,27,51,0.72)_100%)]"></div>
                     <div class="absolute inset-x-0 bottom-0 p-5 text-white md:p-7">
                         <span class="text-xs font-black tracking-[0.22em] text-white/70"><?php echo esc_html(str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT)); ?></span>
-                        <h3 class="mt-3 text-3xl font-black leading-tight tracking-normal md:text-4xl"><?php echo esc_html($item['title'] ?? ''); ?></h3>
-                        <p class="mt-3 max-w-[620px] text-sm font-semibold leading-7 text-white/78 md:text-base"><?php echo esc_html($item['text'] ?? ''); ?></p>
+                        <h3 class="mt-3 text-3xl font-black leading-tight tracking-normal md:text-4xl"><?php echo esc_html(boblift_localized_static_text((string) ($item['title'] ?? ''))); ?></h3>
+                        <p class="mt-3 max-w-[620px] text-sm font-semibold leading-7 text-white/78 md:text-base"><?php echo esc_html(boblift_localized_static_text((string) ($item['text'] ?? ''))); ?></p>
                     </div>
                 </article>
             <?php endforeach; ?>
