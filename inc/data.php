@@ -82,8 +82,8 @@ function boblift_social_media_page_defaults(): array
     return [
         'hero' => [
             'label' => 'BOB-LIFT Social Media',
-            'image' => boblift_image_option('images/social-media/social-media-hero-factory.webp'),
-            'image_alt' => 'BOB-LIFT factory official social media updates',
+            'image' => boblift_image_option('images/social-media/social-media-hero-workshop.webp'),
+            'image_alt' => 'A phone on a tripod filming BOB-LIFT knuckle boom cranes in the workshop',
         ],
         'labels' => [
             'main_platforms_title' => 'Follow BOB-LIFT on the platforms you already use.',

@@ -8,6 +8,7 @@ function boblift_static_text_translations(): array
 {
     return [
         'ja' => [
+            'A phone on a tripod filming BOB-LIFT knuckle boom cranes in the workshop' => 'ワークショップで BOB-LIFT のナックルブームクレーンを撮影する三脚付きスマートフォン',
             'BOB-LIFT Social Media' => 'BOB-LIFT ソーシャルメディア',
             'Follow BOB-LIFT on the platforms you already use.' => 'BOB-LIFT 公式アカウント',
             'Production, container loading and cranes working on customer sites, posted by our own team.' => '生産現場、コンテナ積み込み、お客様の現場で働くクレーンを、自社チームが発信しています。',
@@ -354,6 +355,7 @@ function boblift_static_text_translations(): array
             'All customer feedback' => 'お客様の声をすべて見る',
         ],
         'zh' => [
+            'A phone on a tripod filming BOB-LIFT knuckle boom cranes in the workshop' => '车间里，三脚架上的手机正在拍摄 BOB-LIFT 折臂起重机',
             'BOB-LIFT Social Media' => 'BOB-LIFT 社交媒体',
             'Follow BOB-LIFT on the platforms you already use.' => 'BOB-LIFT 官方账号',
             'Production, container loading and cranes working on customer sites, posted by our own team.' => '生产车间、装柜发货、客户现场作业，都是我们团队自己拍、自己发的。',

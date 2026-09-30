@@ -34,13 +34,20 @@ foreach (['boblift_theme_options', 'boblift_theme_options_ja', 'boblift_theme_op
     foreach ($had as $field) {
         unset($page[$field]);
     }
+    // The AI-made factory hero was replaced by one built from a real workshop frame; only the untouched old path is swapped.
+    $old_hero = 'images/social-media/social-media-hero-factory.webp';
+    $set_hero = (int) ($page['hero']['image']['id'] ?? 0) === 0 && (string) ($page['hero']['image']['path'] ?? '') === $old_hero;
+    if ($set_hero) {
+        $page['hero']['image'] = ['id' => 0, 'path' => 'images/social-media/social-media-hero-workshop.webp'];
+        unset($page['hero']['image_alt']);
+    }
     $set_videos = $key === 'boblift_theme_options_zh' && ($page['videos'] ?? null) !== $zh_videos;
     if ($set_videos) {
         $page['videos'] = $zh_videos;
     }
-    $changes = array_merge($had ? ['cleared ' . implode(', ', $had)] : [], $set_videos ? ['set Chinese videos'] : [], $has_real_link ? ['kept (real account links found)'] : []);
+    $changes = array_merge($had ? ['cleared ' . implode(', ', $had)] : [], $set_hero ? ['new hero photo'] : [], $set_videos ? ['set Chinese videos'] : [], $has_real_link ? ['kept (real account links found)'] : []);
     echo $key . ': ' . ($changes ? implode('; ', $changes) : 'unchanged') . "\n";
-    if (($had || $set_videos) && !$dry_run) {
+    if (($had || $set_hero || $set_videos) && !$dry_run) {
         $options['social_media_page'] = $page;
         update_option($key, $options);
     }

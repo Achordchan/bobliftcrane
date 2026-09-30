@@ -93,8 +93,8 @@ $whatsapp = preg_replace('/\D+/', '', (string) ($contact['whatsapp'] ?? ($contac
         'label' => $t($hero['label'] ?? 'BOB-LIFT Social Media'),
         'title' => $t($labels['main_platforms_title'] ?? 'Follow BOB-LIFT on the platforms you already use.'),
         'text' => $t($labels['main_platforms_text'] ?? ''),
-        'image' => boblift_image_setting_url($hero['image'] ?? [], 'images/social-media/social-media-hero-factory.webp'),
-        'image_alt' => $t($hero['image_alt'] ?? 'BOB-LIFT factory official social media updates'),
+        'image' => boblift_image_setting_url($hero['image'] ?? [], 'images/social-media/social-media-hero-workshop.webp'),
+        'image_alt' => $t($hero['image_alt'] ?? 'A phone on a tripod filming BOB-LIFT knuckle boom cranes in the workshop'),
         'image_position' => 'center 40%',
     ]);
     ?>
