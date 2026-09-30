@@ -6,7 +6,11 @@ if (!defined('ABSPATH')) {
 
 function boblift_static_text_translations(): array
 {
-    return [
+    static $all = null;
+    if ($all !== null) {
+        return $all;
+    }
+    $all = [
         'ja' => [
             'Video Center' => '動画センター',
             'See the cranes move before you buy.' => 'ご購入前に、クレーンの動きをご覧ください。',
@@ -737,6 +741,14 @@ function boblift_static_text_translations(): array
             'Play slideshow' => '播放轮播',
         ],
     ];
+    // Page-specific dictionaries live in inc/translations/*.php, each returning ['ja' => [...], 'zh' => [...]].
+    foreach (glob(get_template_directory() . '/inc/translations/*.php') ?: [] as $file) {
+        $extra = include $file;
+        foreach (is_array($extra) ? $extra : [] as $language => $strings) {
+            $all[$language] = array_merge($all[$language] ?? [], is_array($strings) ? $strings : []);
+        }
+    }
+    return $all;
 }
 
 function boblift_localized_static_text(string $text, ?string $language = null): string
@@ -1352,6 +1364,11 @@ function boblift_site_ui_defaults(?string $section = null): array
         ],
     ];
 
+    // Page-specific copy lives in inc/site-ui-sections/*.php, each returning [sectionKey => [...]].
+    foreach (glob(get_template_directory() . '/inc/site-ui-sections/*.php') ?: [] as $file) {
+        $extra = include $file;
+        $ui = array_merge($ui, is_array($extra) ? $extra : []);
+    }
     return $section ? ($ui[$section] ?? []) : $ui;
 }
 
