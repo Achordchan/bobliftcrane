@@ -53,11 +53,19 @@ function boblift_home_factory_content(): array
     if ($video === '' && trim((string) ($video_setting['path'] ?? '')) !== '') {
         $video = boblift_asset((string) $video_setting['path']);
     }
+    // The built-in clip has a lighter phone cut; an uploaded video plays as is on every screen.
+    $video_mobile = (int) ($video_setting['id'] ?? 0) === 0 && (string) ($video_setting['path'] ?? '') === 'videos/about/about-aerial-mid.mp4'
+        ? boblift_asset('videos/about/about-aerial-mid-mobile.mp4')
+        : '';
+    $home_factory = (array) boblift_option('home.factory', []);
+    $saved_title = trim((string) ($home_factory['title'] ?? ''));
+    $saved_text = trim((string) ($home_factory['text'] ?? ''));
 
     return [
-        // On the home page this band closes the About chapter, so it states the factory fact rather than reusing the About page gallery heading.
-        'title' => $translate('Built in our own 37,000 m² factory in Xuzhou.'),
-        'text' => $translate('Welding, assembly and load testing all happen under one roof. Come and see the production line before you order.'),
+        // The band closes the home About chapter; its heading is edited in 首页设置 › About 区 › 工厂视频区.
+        'title' => $saved_title !== '' ? $saved_title : $translate('Built in our own 37,000 m² factory in Xuzhou.'),
+        'text' => $saved_text !== '' ? $saved_text : $translate('Welding, assembly and load testing all happen under one roof. Come and see the production line before you order.'),
+        'video_mobile' => $video_mobile,
         'poster' => $poster,
         'video' => $video,
         'cta_label' => (string) ($visits['cta_label'] ?? 'Plan a Visit'),
@@ -74,7 +82,7 @@ function boblift_render_home_factory(): void
             <div class="relative isolate flex min-h-[400px] flex-col justify-end overflow-hidden rounded bg-navy p-6 text-white sm:min-h-[440px] sm:p-10 lg:min-h-[480px] lg:justify-center lg:p-14">
                 <img class="absolute inset-0 -z-30 h-full w-full object-cover" alt="" decoding="async" data-inview-src="<?php echo esc_url($factory['poster']); ?>">
                 <?php if ($factory['video'] !== '') : ?>
-                    <video class="absolute inset-0 -z-20 h-full w-full object-cover" muted loop playsinline preload="none" aria-hidden="true" data-inview-video data-src="<?php echo esc_url($factory['video']); ?>"></video>
+                    <video class="absolute inset-0 -z-20 h-full w-full object-cover" muted loop playsinline preload="none" aria-hidden="true" data-inview-video data-src="<?php echo esc_url($factory['video']); ?>"<?php if ($factory['video_mobile'] !== '') : ?> data-src-mobile="<?php echo esc_url($factory['video_mobile']); ?>"<?php endif; ?>></video>
                 <?php endif; ?>
                 <span class="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(8,35,74,0.12)_0%,rgba(8,35,74,0.62)_36%,rgba(8,35,74,0.92)_100%)] lg:bg-[linear-gradient(90deg,rgba(8,35,74,0.92)_0%,rgba(8,35,74,0.6)_46%,rgba(8,35,74,0.08)_100%)]"></span>
                 <h3 id="home-factory-title" class="max-w-[24ch] text-[clamp(1.625rem,2.3vw,2.625rem)] font-black leading-[1.08] tracking-[-0.015em]"><?php echo esc_html($factory['title']); ?></h3>

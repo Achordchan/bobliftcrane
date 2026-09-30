@@ -2582,7 +2582,10 @@
           target.pause();
           return;
         }
-        if (!target.getAttribute('src') && target.dataset.src) target.src = target.dataset.src;
+        if (!target.getAttribute('src') && target.dataset.src) {
+          const phone = window.matchMedia('(max-width: 767px)').matches;
+          target.src = (phone && target.dataset.srcMobile) || target.dataset.src;
+        }
         target.play().catch(() => {});
       });
     }, { threshold: 0.2 });
@@ -3624,23 +3627,6 @@
     }, { passive: true });
     preload(1);
   });
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-  else init();
-})();
-
-// Short silent loops (product process steps): play only while on screen, never with reduced motion.
-(() => {
-  const init = () => {
-    const videos = document.querySelectorAll('[data-inview-video]');
-    if (!videos.length || !('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) entry.target.play().catch(() => {});
-        else entry.target.pause();
-      });
-    }, { threshold: 0.4 });
-    videos.forEach((video) => observer.observe(video));
-  };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();

@@ -1466,6 +1466,11 @@ function boblift_render_home_page_fields(array $home, string $base): void
                 boblift_admin_input("about.timeline.$i", $home, '时间线 ' . (string) ($i + 1), $base);
             }
         });
+        boblift_admin_subpanel('工厂视频区（About 区下方）', static function () use ($home, $base): void {
+            echo '<p class="boblift-admin-note">首页 About 区下方的工厂航拍视频横幅。留空时使用默认文案：Built in our own 37,000 m² factory in Xuzhou.（中文站、日文站自动显示对应译文）。</p>';
+            boblift_admin_input('factory.title', $home, '标题', $base);
+            boblift_admin_textarea('factory.text', $home, '说明文字', $base);
+        });
     });
 
     boblift_admin_panel('5. News 区', static function () use ($home, $base): void {
