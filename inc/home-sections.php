@@ -7,7 +7,6 @@ if (!defined('ABSPATH')) {
 function boblift_home_factory_content(): array
 {
     $about = boblift_about_page_options();
-    $gallery = is_array($about['manufacturing_gallery'] ?? null) ? $about['manufacturing_gallery'] : [];
     $logo = is_array($about['logo'] ?? null) ? $about['logo'] : [];
     $visits = is_array($about['customer_visits'] ?? null) ? $about['customer_visits'] : [];
     $language = function_exists('boblift_current_language_for_data') ? boblift_current_language_for_data() : '';
@@ -15,6 +14,8 @@ function boblift_home_factory_content(): array
     // The About page ships these English defaults to every language; translate them until they are edited in admin.
     $translations = [
         'zh' => [
+            'Built in our own 37,000 m² factory in Xuzhou.' => '在徐州 37,000㎡ 自有工厂制造。',
+            'Welding, assembly and load testing all happen under one roof. Come and see the production line before you order.' => '焊接、装配、负载测试都在同一座工厂里完成。下单前，欢迎来工厂看生产线。',
             'Modern Manufacturing Base' => '现代化制造基地',
             'Intelligent Production.' => '现代化生产现场',
             'Experience our state-of-the-art 37,000 sqm facility where precision engineering meets rigorous quality control.' => '占地 37,000 平方米的现代化工厂，精密制造与严格质检贯穿每一台起重机。',
@@ -28,6 +29,8 @@ function boblift_home_factory_content(): array
             'Production details are documented for export-ready delivery.' => '生产细节全程记录，满足出口交付要求。',
         ],
         'ja' => [
+            'Built in our own 37,000 m² factory in Xuzhou.' => '徐州の自社工場（37,000㎡）で製造。',
+            'Welding, assembly and load testing all happen under one roof. Come and see the production line before you order.' => '溶接・組立・荷重試験まで、すべて同じ工場で行っています。ご発注前に、ぜひ生産ラインをご覧ください。',
             'Modern Manufacturing Base' => '近代的な製造拠点',
             'Intelligent Production.' => 'スマートな生産体制。',
             'Experience our state-of-the-art 37,000 sqm facility where precision engineering meets rigorous quality control.' => '37,000㎡の最新鋭工場で、精密なエンジニアリングと厳格な品質管理を両立しています。',
@@ -51,11 +54,10 @@ function boblift_home_factory_content(): array
         $video = boblift_asset((string) $video_setting['path']);
     }
 
-    // The gallery tiles beside the video were dropped from the home page; the gallery items stay in the admin.
     return [
-        'label' => $translate((string) ($gallery['label'] ?? 'Modern Manufacturing Base')),
-        'title' => $translate((string) ($gallery['title'] ?? 'Intelligent Production.')),
-        'text' => $translate((string) ($gallery['text'] ?? '')),
+        // On the home page this band closes the About chapter, so it states the factory fact rather than reusing the About page gallery heading.
+        'title' => $translate('Built in our own 37,000 m² factory in Xuzhou.'),
+        'text' => $translate('Welding, assembly and load testing all happen under one roof. Come and see the production line before you order.'),
         'poster' => $poster,
         'video' => $video,
         'cta_label' => (string) ($visits['cta_label'] ?? 'Plan a Visit'),
@@ -67,7 +69,7 @@ function boblift_render_home_factory(): void
 {
     $factory = boblift_home_factory_content();
     ?>
-    <section id="factory" class="bg-white pb-10 md:pb-16" aria-labelledby="home-factory-title">
+    <div id="factory" class="scroll-mt-[120px]">
         <div class="page-shell">
             <div class="relative isolate flex min-h-[400px] flex-col justify-end overflow-hidden rounded bg-navy p-6 text-white sm:min-h-[440px] sm:p-10 lg:min-h-[480px] lg:justify-center lg:p-14">
                 <img class="absolute inset-0 -z-30 h-full w-full object-cover" alt="" decoding="async" data-inview-src="<?php echo esc_url($factory['poster']); ?>">
@@ -75,13 +77,12 @@ function boblift_render_home_factory(): void
                     <video class="absolute inset-0 -z-20 h-full w-full object-cover" muted loop playsinline preload="none" aria-hidden="true" data-inview-video data-src="<?php echo esc_url($factory['video']); ?>"></video>
                 <?php endif; ?>
                 <span class="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(8,35,74,0.12)_0%,rgba(8,35,74,0.62)_36%,rgba(8,35,74,0.92)_100%)] lg:bg-[linear-gradient(90deg,rgba(8,35,74,0.92)_0%,rgba(8,35,74,0.6)_46%,rgba(8,35,74,0.08)_100%)]"></span>
-                <p class="section-label mb-3"><?php echo esc_html($factory['label']); ?></p>
-                <h2 id="home-factory-title" class="max-w-[16ch] text-[clamp(1.75rem,2.8vw,3rem)] font-black leading-[1.05] tracking-[-0.015em]"><?php echo esc_html($factory['title']); ?></h2>
+                <h3 id="home-factory-title" class="max-w-[24ch] text-[clamp(1.625rem,2.3vw,2.625rem)] font-black leading-[1.08] tracking-[-0.015em]"><?php echo esc_html($factory['title']); ?></h3>
                 <?php if ($factory['text'] !== '') : ?><p class="mt-4 max-w-[520px] text-sm font-semibold leading-7 text-white/80 md:text-base"><?php echo esc_html($factory['text']); ?></p><?php endif; ?>
                 <a class="mt-7 inline-flex h-12 w-fit items-center justify-center gap-2 rounded-sm bg-white px-6 text-sm font-black text-navy shadow-card transition hover:-translate-y-0.5 hover:bg-blue-50" href="<?php echo esc_url(boblift_url($factory['cta_href'])); ?>"><?php echo esc_html($factory['cta_label']); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
             </div>
         </div>
-    </section>
+    </div>
     <?php
 }
 

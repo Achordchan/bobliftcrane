@@ -19,7 +19,7 @@ $gallery_label = (string) ($manufacturing_gallery['label'] ?? 'Modern Manufactur
 $gallery_title = (string) ($manufacturing_gallery['title'] ?? 'Intelligent Production.');
 $gallery_text = (string) ($manufacturing_gallery['text'] ?? 'Experience our state-of-the-art 37,000 sqm facility where precision engineering meets rigorous quality control.');
 $global_footprint = is_array($about_page['global_footprint'] ?? null) ? $about_page['global_footprint'] : [];
-$global_stats = is_array($global_footprint['stats'] ?? null) ? array_values(array_filter($global_footprint['stats'], static fn($item): bool => is_array($item))) : [];
+$global_stats = is_array($global_footprint['stats'] ?? null) ? array_values(array_filter($global_footprint['stats'], static fn($item): bool => is_array($item) && trim((string) ($item['number'] ?? '')) !== '')) : [];
 if ($is_zh_about) {
     $gallery_label = $gallery_label === 'Modern Manufacturing Base' ? '现代化制造基地' : $gallery_label;
     $gallery_title = $gallery_title === 'Intelligent Production.' ? '现代化生产现场' : $gallery_title;
@@ -136,7 +136,7 @@ foreach (['中国徐州', 'Xuzhou, China', '起重设备制造商', 'crane manuf
         </div>
 
         <?php if (!empty($global_stats)) : ?>
-        <div class="mx-auto mt-14 grid w-full max-w-none gap-6 md:grid-cols-3 lg:mt-20 lg:gap-8" data-about-global data-about-strength-features>
+        <div class="mx-auto mt-14 grid w-full max-w-none gap-6 <?php echo count($global_stats) >= 3 ? 'md:grid-cols-3' : 'md:grid-cols-2'; ?> lg:mt-20 lg:gap-8" data-about-global data-about-strength-features>
             <?php foreach (array_slice($global_stats, 0, 3) as $global_stat_index => $stat) :
                 $stat_number_raw = (string) ($stat['number'] ?? '0');
                 $stat_target = preg_replace('/[^0-9]/', '', $stat_number_raw) ?: '0';

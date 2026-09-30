@@ -107,7 +107,9 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
 
 <?php boblift_render_home_products(); ?>
 
-<section id="about" class="page-shell grid grid-cols-1 gap-7 overflow-hidden py-8 md:gap-10 md:py-14 lg:grid-cols-[0.95fr_1.05fr] lg:items-start lg:gap-9 lg:py-12 xl:grid-cols-[1fr_0.95fr] xl:items-stretch xl:gap-20 xl:py-14" data-about-gallery>
+<?php // About and the factory are one chapter: who we are, then the factory you can come and see. ?>
+<section id="about" class="pb-10 md:pb-16">
+<div class="page-shell grid grid-cols-1 gap-7 overflow-hidden pb-6 pt-8 md:gap-10 md:pb-10 md:pt-14 lg:grid-cols-[0.95fr_1.05fr] lg:items-start lg:gap-9 lg:pt-12 xl:grid-cols-[1fr_0.95fr] xl:items-stretch xl:gap-20 xl:pt-14" data-about-gallery>
     <div class="flex h-full min-h-0 flex-col">
         <div class="relative h-[220px] overflow-hidden rounded shadow-card sm:h-[340px] lg:h-[430px] lg:min-h-0 lg:flex-none xl:h-auto xl:min-h-[460px] xl:flex-1" data-about-active-stage>
             <?php if ($active_gallery_is_youtube) : ?>
@@ -139,11 +141,14 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
         <p class="section-label mb-3 md:mb-4 lg:mb-3 xl:mb-4"><?php echo esc_html($about['label'] ?? 'About BOB-LIFT'); ?></p>
         <h2 class="text-[clamp(1.75rem,2.8vw,3rem)] font-black leading-[1.05] tracking-[-0.015em] text-ink"><?php echo esc_html($about['title'] ?? 'Engineering Excellence. Powered by People.'); ?></h2>
         <p class="mt-4 text-sm leading-7 text-slate-600 sm:mt-6 sm:text-base sm:leading-8 lg:mt-4 lg:text-sm lg:leading-6 xl:mt-6 xl:text-base xl:leading-8"><?php echo esc_html($about['text'] ?? ''); ?></p>
-        <div class="mt-6 grid grid-cols-3 divide-x divide-line border-y border-line sm:mt-8 lg:mt-5 xl:mt-8">
-            <?php foreach (($about['stats'] ?? []) as $stat) : ?>
+        <?php $about_stats = array_values(array_filter((array) ($about['stats'] ?? []), static fn($stat): bool => is_array($stat) && trim((string) ($stat['value'] ?? '')) !== '')); ?>
+        <?php if ($about_stats) : ?>
+        <div class="mt-6 grid <?php echo count($about_stats) >= 3 ? 'grid-cols-3' : 'grid-cols-2'; ?> divide-x divide-line border-y border-line sm:mt-8 lg:mt-5 xl:mt-8">
+            <?php foreach (array_slice($about_stats, 0, 3) as $stat) : ?>
                 <p class="px-3 py-4 first:pl-0 sm:px-5 sm:py-5"><strong class="block text-2xl font-black leading-none text-ink sm:text-3xl"><?php echo esc_html($stat['value'] ?? ''); ?></strong><span class="mt-2 block text-xs font-semibold leading-4 text-slate-500"><?php echo esc_html($stat['label'] ?? ''); ?></span></p>
             <?php endforeach; ?>
         </div>
+        <?php endif; ?>
         <div class="mt-7 grid grid-cols-2 gap-4 sm:mt-10 sm:grid-cols-4 sm:gap-5 lg:mt-7 lg:gap-4 xl:mt-10 xl:gap-6">
             <?php foreach (($about['timeline'] ?? []) as $item) : $parts = explode(' ', (string) $item, 2); ?>
                 <div class="relative border-t border-line pt-6 lg:pt-5 xl:pt-6"><span class="absolute -top-2 left-0 h-4 w-4 rounded-full border-4 border-white bg-gold shadow-card"></span><strong class="block text-sm font-black text-ink"><?php echo esc_html($parts[0] ?? ''); ?></strong><p class="mt-2 text-xs font-bold leading-5 text-slate-500 lg:mt-1.5 lg:leading-4 xl:mt-2 xl:leading-5"><?php echo esc_html($parts[1] ?? ''); ?></p></div>
@@ -151,9 +156,9 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
         </div>
         <a class="mt-9 inline-flex items-center gap-2 text-base font-black text-ink md:text-lg lg:mt-6 xl:mt-9" href="<?php echo esc_url(boblift_url($about['cta_href'] ?? '/about')); ?>"><?php echo esc_html($about['cta_label'] ?? 'More About Us'); ?> <?php echo boblift_icon('arrow-right', 'h-5 w-5'); ?></a>
     </div>
-</section>
-
+</div>
 <?php boblift_render_home_factory(); ?>
+</section>
 
 <?php boblift_render_home_cases(); ?>
 

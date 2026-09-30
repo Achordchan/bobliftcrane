@@ -388,7 +388,6 @@ function boblift_about_page_defaults(): array
             'stats' => [
                 ['number' => '120', 'suffix' => '+', 'label' => 'Countries Exported'],
                 ['number' => '35', 'suffix' => '+', 'label' => 'Years Experience'],
-                ['number' => '9999', 'suffix' => '+', 'label' => 'Cranes Exported'],
             ],
         ],
         'timeline' => [
