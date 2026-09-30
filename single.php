@@ -54,8 +54,49 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
     </div>
 
     <div class="page-shell py-8 md:py-12 lg:py-14">
-        <div class="grid gap-8 lg:grid-cols-[minmax(0,17.5rem)_minmax(0,1fr)] lg:gap-12 xl:grid-cols-[19rem_minmax(0,1fr)] xl:gap-16">
+        <?php
+        // Products and contact sit in a right rail on wide screens and under the author card below that.
+        $render_products = static function () use ($products, $localize, $article_ui): void { ?>
+<?php if ($products !== []) : ?>
+                <section class="rounded border border-line bg-white p-5">
+                    <h2 class="text-xs font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html((string) ($article_ui['productsTitle'] ?? 'Products in this article')); ?></h2>
+                    <ul class="mt-3 divide-y divide-line">
+                        <?php foreach ($products as $product) :
+                            $product_title = $localize(get_the_title($product));
+                            $model = (string) get_post_meta(boblift_product_english_id($product->ID), '_model', true);
+                            // Only real model codes (letters and digits, 4+ chars) not already in the title.
+                            $model = strlen($model) >= 4 && preg_match('/\d/', $model) && preg_match('/[a-z]/i', $model) && stripos($product_title, $model) === false ? $model : '';
+                            ?>
+                            <li>
+                                <a class="group flex items-center gap-3 py-3" href="<?php echo esc_url(get_permalink($product)); ?>">
+                                    <span class="h-14 w-16 shrink-0 overflow-hidden rounded-sm border border-line bg-mist"><img class="h-full w-full object-contain p-1" src="<?php echo esc_url(boblift_post_thumbnail_url($product, boblift_asset('images/products/crane-accessories.png'))); ?>" alt="" loading="lazy" decoding="async"></span>
+                                    <span class="min-w-0">
+                                        <span class="line-clamp-2 text-sm font-black leading-snug text-ink transition group-hover:text-blue-700"><?php echo esc_html($product_title); ?></span>
+                                        <?php if ($model !== '') : ?><span class="mt-0.5 block text-xs font-bold text-slate-400"><?php echo esc_html($model); ?></span><?php endif; ?>
+                                    </span>
+                                </a>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                    <a class="mt-2 inline-flex items-center gap-2 text-sm font-bold text-navy transition hover:text-blue-700" href="<?php echo esc_url(boblift_url('/products.html')); ?>"><?php echo esc_html((string) ($article_ui['productsLink'] ?? 'View all products')); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
+                </section>
+            <?php endif; ?>
+        <?php };
+        $render_contact = static function () use ($contact, $article_ui): void { ?>
+<section class="rounded border border-navy bg-navy p-5 text-white">
+                <h2 class="text-lg font-black leading-snug"><?php echo esc_html((string) ($article_ui['contactTitle'] ?? '')); ?></h2>
+                <p class="mt-2 text-sm font-semibold leading-6 text-white/70"><?php echo esc_html((string) ($article_ui['contactText'] ?? '')); ?></p>
+                <a class="btn-white mt-4 w-full justify-center rounded-sm" href="<?php echo esc_url(boblift_url('/contact.html#inquiry')); ?>" data-inquiry-modal-open data-inquiry-source="新闻详情"><?php echo esc_html((string) ($article_ui['contactButton'] ?? 'Request a Quote')); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
+                <div class="mt-4 grid gap-2 border-t border-white/15 pt-4 text-sm font-bold">
+                    <a class="inline-flex min-w-0 items-center gap-2 text-white/85 transition hover:text-white" href="<?php echo esc_url($contact['whatsappHref']); ?>" target="_blank" rel="noreferrer"><?php echo boblift_icon('whatsapp', 'h-4 w-4 shrink-0'); ?><span class="truncate"><?php echo esc_html((string) ($article_ui['whatsappLabel'] ?? 'WhatsApp')); ?> · <?php echo esc_html($contact['whatsapp']); ?></span></a>
+                    <a class="inline-flex min-w-0 items-center gap-2 text-white/85 transition hover:text-white" href="mailto:<?php echo esc_attr($contact['email']); ?>"><?php echo boblift_icon('mail', 'h-4 w-4 shrink-0'); ?><span class="truncate"><?php echo esc_html($contact['email']); ?></span></a>
+                </div>
+            </section>
+        <?php };
+        ?>
+        <div class="grid gap-8 lg:grid-cols-[17.5rem_minmax(0,1fr)] lg:gap-12 xl:grid-cols-[16.5rem_minmax(0,1fr)_17.5rem] 2xl:gap-16">
             <div class="min-w-0 lg:order-2">
+                <div class="xl:mx-auto xl:max-w-[48rem]">
                 <?php if ($show_toc) : ?>
                     <details class="boblift-news-toc-mobile mb-6 rounded border border-line bg-mist lg:hidden">
                         <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-black text-ink">
@@ -77,6 +118,7 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
                 <div class="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6 text-sm font-bold text-slate-500">
                     <span><?php echo esc_html((string) ($article_ui['updatedLabel'] ?? 'Updated')); ?> <time datetime="<?php echo esc_attr($modified); ?>"><?php echo esc_html($modified); ?></time></span>
                     <a class="inline-flex items-center gap-2 text-navy transition hover:text-blue-700" href="<?php echo esc_url(boblift_url('/news')); ?>"><?php echo boblift_icon('chevron-left', 'h-4 w-4'); ?><?php echo esc_html((string) ($article_ui['backLabel'] ?? 'Back to News')); ?></a>
+                </div>
                 </div>
             </div>
 
@@ -103,30 +145,7 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
                         </dl>
                     </section>
 
-                    <?php if ($products !== []) : ?>
-                        <section class="rounded border border-line bg-white p-5">
-                            <h2 class="text-xs font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html((string) ($article_ui['productsTitle'] ?? 'Products in this article')); ?></h2>
-                            <ul class="mt-3 divide-y divide-line">
-                                <?php foreach ($products as $product) :
-                                    $product_title = $localize(get_the_title($product));
-                                    $model = (string) get_post_meta(boblift_product_english_id($product->ID), '_model', true);
-                                    // Only real model codes (letters and digits, 4+ chars) not already in the title.
-                                    $model = strlen($model) >= 4 && preg_match('/\d/', $model) && preg_match('/[a-z]/i', $model) && stripos($product_title, $model) === false ? $model : '';
-                                    ?>
-                                    <li>
-                                        <a class="group flex items-center gap-3 py-3" href="<?php echo esc_url(get_permalink($product)); ?>">
-                                            <span class="h-14 w-16 shrink-0 overflow-hidden rounded-sm border border-line bg-mist"><img class="h-full w-full object-contain p-1" src="<?php echo esc_url(boblift_post_thumbnail_url($product, boblift_asset('images/products/crane-accessories.png'))); ?>" alt="" loading="lazy" decoding="async"></span>
-                                            <span class="min-w-0">
-                                                <span class="line-clamp-2 text-sm font-black leading-snug text-ink transition group-hover:text-blue-700"><?php echo esc_html($product_title); ?></span>
-                                                <?php if ($model !== '') : ?><span class="mt-0.5 block text-xs font-bold text-slate-400"><?php echo esc_html($model); ?></span><?php endif; ?>
-                                            </span>
-                                        </a>
-                                    </li>
-                                <?php endforeach; ?>
-                            </ul>
-                            <a class="mt-2 inline-flex items-center gap-2 text-sm font-bold text-navy transition hover:text-blue-700" href="<?php echo esc_url(boblift_url('/products.html')); ?>"><?php echo esc_html((string) ($article_ui['productsLink'] ?? 'View all products')); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
-                        </section>
-                    <?php endif; ?>
+                    <div class="empty:hidden xl:hidden"><?php $render_products(); ?></div>
 
                     <div class="grid gap-4 sm:col-span-2 lg:sticky lg:top-6 lg:col-span-1">
                         <?php if ($show_toc) : ?>
@@ -139,17 +158,15 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
                                 </ol>
                             </nav>
                         <?php endif; ?>
-
-                        <section class="rounded border border-navy bg-navy p-5 text-white">
-                            <h2 class="text-lg font-black leading-snug"><?php echo esc_html((string) ($article_ui['contactTitle'] ?? '')); ?></h2>
-                            <p class="mt-2 text-sm font-semibold leading-6 text-white/70"><?php echo esc_html((string) ($article_ui['contactText'] ?? '')); ?></p>
-                            <a class="btn-white mt-4 w-full justify-center rounded-sm" href="<?php echo esc_url(boblift_url('/contact.html#inquiry')); ?>" data-inquiry-modal-open data-inquiry-source="新闻详情"><?php echo esc_html((string) ($article_ui['contactButton'] ?? 'Request a Quote')); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
-                            <div class="mt-4 grid gap-2 border-t border-white/15 pt-4 text-sm font-bold">
-                                <a class="inline-flex min-w-0 items-center gap-2 text-white/85 transition hover:text-white" href="<?php echo esc_url($contact['whatsappHref']); ?>" target="_blank" rel="noreferrer"><?php echo boblift_icon('whatsapp', 'h-4 w-4 shrink-0'); ?><span class="truncate"><?php echo esc_html((string) ($article_ui['whatsappLabel'] ?? 'WhatsApp')); ?> · <?php echo esc_html($contact['whatsapp']); ?></span></a>
-                                <a class="inline-flex min-w-0 items-center gap-2 text-white/85 transition hover:text-white" href="mailto:<?php echo esc_attr($contact['email']); ?>"><?php echo boblift_icon('mail', 'h-4 w-4 shrink-0'); ?><span class="truncate"><?php echo esc_html($contact['email']); ?></span></a>
-                            </div>
-                        </section>
+                        <div class="xl:hidden"><?php $render_contact(); ?></div>
                     </div>
+                </div>
+            </aside>
+
+            <aside class="hidden min-w-0 xl:order-3 xl:block" aria-label="<?php echo esc_attr((string) ($article_ui['productsTitle'] ?? 'Products in this article')); ?>">
+                <div class="grid gap-4 xl:sticky xl:top-6">
+                    <?php $render_products(); ?>
+                    <?php $render_contact(); ?>
                 </div>
             </aside>
         </div>
