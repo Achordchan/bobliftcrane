@@ -14,6 +14,7 @@ require_once get_template_directory() . '/inc/forms.php';
 require_once get_template_directory() . '/inc/brochures.php';
 require_once get_template_directory() . '/inc/news-article.php';
 require_once get_template_directory() . '/inc/legal-pages.php';
+require_once get_template_directory() . '/inc/brand-wordmark.php';
 require_once get_template_directory() . '/inc/admin.php';
 require_once get_template_directory() . '/inc/importer.php';
 require_once get_template_directory() . '/inc/setup.php';

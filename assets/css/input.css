@@ -218,6 +218,30 @@ img { max-width: 100%; }
   -webkit-text-stroke: 1.35px rgba(11,63,125,.72);
   filter: drop-shadow(0 20px 30px rgba(11,27,51,.12)) drop-shadow(0 0 1px rgba(11,63,125,.72));
 }
+/* Trademark wordmark (vector outlines) in place of the text: same box as the old 4.1em-wide lettering. */
+.about-logo-mark {
+  width: 3.9em;
+  max-width: 100%;
+  margin-inline: auto;
+  aspect-ratio: 3493 / 1180;
+}
+.about-logo-mark-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.about-logo-mark--image {
+  -webkit-text-stroke: 0;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  -webkit-mask: var(--about-logo-mask) center / contain no-repeat;
+  mask: var(--about-logo-mask) center / contain no-repeat;
+  filter: none;
+}
+/* A mask clips its own filter, so the outline that keeps the photo-filled letters readable sits on the wrapper. */
+.about-logo-fill:has(.about-logo-mark) {
+  filter: drop-shadow(0 0 1px rgba(11,63,125,.9)) drop-shadow(0 0 1px rgba(11,63,125,.9)) drop-shadow(0 18px 28px rgba(11,27,51,.16));
+}
 .about-logo-scroll-section.is-about-logo-active .about-logo-silhouette,
 .about-logo-scroll-section.is-about-logo-active .about-crane-scene,
 .about-logo-scroll-section.is-about-logo-active .about-logo-fill {

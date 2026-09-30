@@ -1334,3 +1334,28 @@ function boblift_search_posts(string $query, string $post_type, int $per_page, i
         'ignore_sticky_posts' => true,
     ]);
 }
+
+/**
+ * Line icons for the product families in the Products menu: a few strokes each on a 24px grid, drawn
+ * with the same 1.75 stroke as the other interface icons so they stay legible at 20–24px.
+ */
+function boblift_product_family_icon(string $icon, string $class = 'h-6 w-6'): string
+{
+    $wheels = '<circle cx="6.5" cy="18" r="1.75"/><circle cx="17" cy="18" r="1.75"/>';
+    $shapes = [
+        // Truck with the crane column behind the cab and the boom reaching back over the bed.
+        'truck-crane' => '<path d="M2 16h11"/><path d="M13 16v-5h4l3 3v2h-1"/><path d="M11 16v-6L4 5"/><path d="M4 5v4"/>' . $wheels,
+        // Vessel deck with a slewing crane.
+        'marine-crane' => '<path d="M2 16h20l-2.5 4h-15z"/><path d="M8 16V8"/><path d="M8 8l9-4"/><path d="M17 4v6"/>',
+        // Tracked carrier with a folded boom (spider and timber cranes).
+        'other-crane' => '<rect x="3" y="15" width="16" height="4" rx="2"/><path d="M7 15v-3h5v3"/><path d="M10 12l3-6 6 2"/><path d="M19 8v4"/>',
+        // Forklift with a fly jib on the mast.
+        'forklift-jib' => '<path d="M9 3v17h6"/><path d="M9 6h11"/><path d="M19 6v5"/><path d="M9 12H4l-1 4v2h2"/><circle cx="6.5" cy="19" r="1.5"/>',
+        // Truck with a boom and a work basket.
+        'aerial-platform' => '<path d="M2 16h11"/><path d="M13 16v-5h4l3 3v2h-1"/><path d="M10 16v-4L5 6"/><path d="M2 3h6v3H2z"/>' . $wheels,
+        // Box truck with the lift platform lowered at the rear.
+        'tail-lift' => '<path d="M7 5h11v11H7z"/><path d="M18 9h2.5L22 12v4h-4"/><path d="M1 20h7"/><path d="M4 16v4"/><circle cx="11" cy="18" r="1.75"/><circle cx="19" cy="18" r="1.75"/>',
+    ];
+    $body = $shapes[$icon] ?? $shapes['truck-crane'];
+    return '<svg class="' . esc_attr($class) . '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . $body . '</svg>';
+}

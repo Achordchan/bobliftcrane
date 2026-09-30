@@ -359,12 +359,7 @@ function boblift_about_page_defaults(): array
             ['label' => 'About Us', 'href' => '/about.html', 'slug' => 'about'],
             ['label' => 'Factory Tour', 'href' => '/factory-tour.html', 'slug' => 'factory-tour'],
             ['label' => 'Quality & Testing', 'href' => '/quality-testing.html', 'slug' => 'quality-testing'],
-            ['label' => 'Truck Mounting & Export', 'href' => '/mounting-shipping.html', 'slug' => 'mounting-shipping'],
             ['label' => 'Global Customer Visits', 'href' => '/global-customer-visits.html', 'slug' => 'global-customer-visits'],
-            ['label' => 'Video Center', 'href' => '/videos.html', 'slug' => 'videos'],
-            ['label' => 'Service & Operation', 'href' => '/service.html', 'slug' => 'service'],
-            ['label' => 'Social Media', 'href' => '/social-media.html', 'slug' => 'social-media'],
-            ['label' => 'Contact Us', 'href' => '/contact.html', 'slug' => 'contact'],
         ],
         'logo' => [
             'silhouette_image' => boblift_image_option('images/about/about-logo-1.png'),
@@ -531,7 +526,8 @@ function boblift_about_page_options(): array
 {
     $value = boblift_option('about_page', []);
     $options = boblift_array_replace_recursive(boblift_about_page_defaults(), is_array($value) ? $value : []);
-    // Saved menus in every language still list retired pages; drop them so the About menu never links to a redirect.
+    // Saved menus in every language still list retired pages and pages that now live under Services, News or the
+    // top-level Contact link; drop them so the About menu keeps to the company pages.
     if (is_array($options['secondary_nav'] ?? null)) {
         $options['secondary_nav'] = array_values(array_filter($options['secondary_nav'], static function ($item): bool {
             if (!is_array($item)) {
@@ -539,7 +535,8 @@ function boblift_about_page_options(): array
             }
             $slug = (string) ($item['slug'] ?? '');
             $path = trim((string) wp_parse_url((string) ($item['href'] ?? ''), PHP_URL_PATH), '/');
-            return !in_array($slug, boblift_retired_page_slugs(), true) && !in_array(preg_replace('/\.html$/', '', $path), boblift_retired_page_slugs(), true);
+            $skip = array_merge(boblift_retired_page_slugs(), boblift_about_nav_moved_slugs());
+            return !in_array($slug, $skip, true) && !in_array(preg_replace('/\.html$/', '', $path), $skip, true);
         }));
         // Saved menus predate newer About pages; add any default child that is missing, after the one before it.
         $saved_slugs = array_map(static fn(array $item): string => (string) ($item['slug'] ?? ''), $options['secondary_nav']);
@@ -562,6 +559,12 @@ function boblift_about_page_options(): array
 function boblift_retired_page_slugs(): array
 {
     return ['public-welfare'];
+}
+
+/** Pages that left the About menu: Services (mounting, service), News (videos, social media) and top-level Contact. */
+function boblift_about_nav_moved_slugs(): array
+{
+    return ['mounting-shipping', 'service', 'videos', 'social-media', 'contact'];
 }
 
 function boblift_options(): array
@@ -835,6 +838,32 @@ function boblift_product_menu_families(): array
                 $models[] = ['title' => (string) boblift_localize_product_text_fragments(get_the_title($post)), 'url' => (string) get_permalink($post)];
             }
         }
+        // Families split into categories also show a few models across the capacity range.
+        $featured = [];
+        if ($children !== []) {
+            $posts = get_posts([
+                'post_type' => 'product',
+                'post_status' => 'publish',
+                'numberposts' => -1,
+                'tax_query' => [['taxonomy' => 'product_category', 'terms' => $term->term_id, 'include_children' => true]],
+            ]);
+            usort($posts, static fn(WP_Post $a, WP_Post $b): int => ((float) get_post_meta($a->ID, '_capacity_value', true) <=> (float) get_post_meta($b->ID, '_capacity_value', true)) ?: strnatcasecmp($a->post_title, $b->post_title));
+            $picked = [];
+            $last = count($posts) - 1;
+            for ($i = 0; $i < 4 && $last >= 0; $i++) {
+                $picked[(int) round($i * $last / 3)] = true;
+            }
+            foreach (array_keys($picked) as $index) {
+                $post = $posts[$index];
+                $english_id = function_exists('boblift_product_english_id') ? boblift_product_english_id($post->ID) : $post->ID;
+                $title = (string) boblift_localize_product_text_fragments(get_the_title($post));
+                $model = trim((string) get_post_meta($english_id, '_model', true));
+                $capacity = function_exists('boblift_product_filter_values') ? (float) (boblift_product_filter_values($post->ID)['capacity'] ?? 0) : 0.0;
+                // Short label for the two-column list: model code and capacity, e.g. "SQ5ZA3 · 5 t".
+                $short = $model !== '' && $capacity > 0 ? $model . ' · ' . rtrim(rtrim(number_format($capacity, 2, '.', ''), '0'), '.') . ' t' : $title;
+                $featured[] = ['title' => $title, 'short' => $short, 'url' => (string) get_permalink($post), 'model' => $model];
+            }
+        }
         $icon = sanitize_key((string) ($group['category']['icon'] ?? ''));
         $families[] = [
             'slug' => $term->slug,
@@ -842,10 +871,11 @@ function boblift_product_menu_families(): array
             'title' => $term->name,
             'url' => $term_link($term),
             'count' => $total,
-            'icon' => $icon !== '' && is_readable(boblift_asset_path('images/mega-menu-icons/' . $icon . '.png')) ? $icon : 'truck-crane',
+            'icon' => $icon !== '' ? $icon : 'truck-crane',
             'photo' => boblift_product_banner_photo_url($term),
             'children' => $children,
             'models' => $models,
+            'featured' => $featured,
             'group' => boblift_product_family_group(boblift_source_term_slug($term)),
         ];
     }

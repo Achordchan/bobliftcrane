@@ -117,8 +117,9 @@ foreach (['中国徐州', 'Xuzhou, China', '起重设备制造商', 'crane manuf
         <div class="page-shell about-logo-shell relative z-10 flex h-full flex-col items-center justify-center py-8 md:py-10 lg:py-12">
             <div class="about-logo-stage pointer-events-none absolute inset-0 flex items-center justify-center" data-about-logo-stage aria-hidden="true">
                 <div class="about-logo-fill" data-about-logo-text>
-                    <span class="about-logo-layer about-logo-layer--solid" data-about-logo-solid>BOB-LIFT</span>
-                    <span class="about-logo-layer about-logo-layer--image" data-about-logo-image>BOB-LIFT</span>
+                    <?php // The trademark outlines, not a web font: a two-tone solid layer and a photo-filled layer masked by the same shape. ?>
+                    <span class="about-logo-layer about-logo-layer--solid about-logo-mark" data-about-logo-solid><?php echo boblift_brand_wordmark_svg('about-logo-mark-svg'); ?></span>
+                    <span class="about-logo-layer about-logo-layer--image about-logo-mark about-logo-mark--image" style="--about-logo-mask: url('<?php echo esc_attr(boblift_brand_wordmark_mask_uri()); ?>')" data-about-logo-image></span>
                 </div>
             </div>
 
