@@ -396,17 +396,17 @@ function boblift_about_page_defaults(): array
         'global_footprint' => [
             'stats' => [
                 ['number' => '120', 'suffix' => '+', 'label' => 'Countries Exported'],
-                ['number' => '35', 'suffix' => '+', 'label' => 'Years Experience'],
+                ['number' => '20', 'suffix' => '+', 'label' => 'Years Experience'],
             ],
         ],
         'timeline' => [
             'label' => 'Development Timeline',
             'title' => 'Built step by step for global lifting projects.',
             'items' => [
-                ['year' => '1989', 'title' => 'Company Founded', 'text' => 'BOB-LIFT started with practical lifting equipment engineering and manufacturing.', 'image' => boblift_image_option('images/truck-mounted-crane.png')],
-                ['year' => '2005', 'title' => 'Global Export Expansion', 'text' => 'Export service expanded from local projects to global distributors and buyers.', 'image' => boblift_image_option('images/marine-scene.jpg')],
-                ['year' => '2015', 'title' => 'Advanced R&D Center Established', 'text' => 'Engineering, testing and product development became a dedicated capability.', 'image' => boblift_image_option('images/factory-workshop.jpg')],
-                ['year' => '2022', 'title' => 'Smart Manufacturing Upgraded', 'text' => 'Production, inspection and delivery workflows were upgraded for global demand.', 'image' => boblift_image_option('images/aerial-platform.jpg')],
+                ['year' => '2003', 'title' => 'BOB-LIFT’s First Folding Boom Crane Takes Shape', 'text' => 'In the year BOB-LIFT was founded in Xuzhou, Jiangsu, we completed the development and field testing of our first folding boom crane.', 'image' => boblift_image_option('images/truck-mounted-crane.png')],
+                ['year' => '2014', 'title' => 'BOB-LIFT Establishes Its Foreign Trade Department', 'text' => 'BOB-LIFT formally established its Foreign Trade Department, the start of our journey toward overseas markets and global customers.', 'image' => boblift_image_option('images/marine-scene.jpg')],
+                ['year' => '2023', 'title' => 'BOB-LIFT Makes Its Canton Fair Debut', 'text' => 'BOB-LIFT took part in the Canton Fair for the first time and met customers and partners from around the world face to face.', 'image' => boblift_image_option('images/factory-workshop.jpg')],
+                ['year' => '2026', 'title' => 'Advancing Manufacturing, Serving Global Markets', 'text' => 'BOB-LIFT keeps improving product development, production capability and quality management to support customers worldwide.', 'image' => boblift_image_option('images/aerial-platform.jpg')],
             ],
         ],
         'customer_visits' => [
