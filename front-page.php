@@ -22,11 +22,11 @@ $articles = boblift_articles('', 3);
 $gallery = $about['gallery'] ?? [];
 $default_gallery_alts = is_array($home_ui['defaultGalleryAlts'] ?? null) ? $home_ui['defaultGalleryAlts'] : [];
 $default_gallery = [
-    ['src' => 'images/truck-mounted-crane.png', 'alt' => (string) ($default_gallery_alts[0] ?? 'Truck mounted crane')],
-    ['src' => 'images/page-heroes/factory-floor.webp', 'alt' => (string) ($default_gallery_alts[1] ?? 'BOB-LIFT factory video preview'), 'video' => true],
-    ['src' => 'images/page-heroes/marine-deck.webp', 'alt' => (string) ($default_gallery_alts[2] ?? 'Marine crane project')],
-    ['src' => 'images/product-banners/truck-mounted-crane.jpg', 'alt' => (string) ($default_gallery_alts[3] ?? 'Telescopic boom crane')],
-    ['src' => 'images/product-banners/default.jpg', 'alt' => (string) ($default_gallery_alts[4] ?? 'Knuckle boom crane')],
+    ['src' => 'images/about/home-workshop-floor.webp', 'alt' => (string) ($default_gallery_alts[0] ?? 'BOB-LIFT assembly workshop in Xuzhou')],
+    ['src' => 'images/about/home-technician-assembly.webp', 'alt' => (string) ($default_gallery_alts[1] ?? 'BOB-LIFT technician assembling a crane column')],
+    ['src' => 'images/about/home-boom-grinding.webp', 'alt' => (string) ($default_gallery_alts[2] ?? 'Finishing a boom section in the BOB-LIFT workshop')],
+    ['src' => 'images/about/home-team.webp', 'alt' => (string) ($default_gallery_alts[3] ?? 'The BOB-LIFT team')],
+    ['src' => 'images/about/home-customer-visit.webp', 'alt' => (string) ($default_gallery_alts[4] ?? 'Customers visiting the BOB-LIFT factory')],
 ];
 if (count($gallery) < 5) {
     $gallery = array_values(array_replace($default_gallery, $gallery));
