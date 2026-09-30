@@ -2592,6 +2592,12 @@
     qsa('[data-inview-video]').forEach((video) => videoObserver.observe(video));
   }
 
+  // Social shorts play one at a time.
+  const socialVideos = qsa('[data-social-video]');
+  socialVideos.forEach((video) => video.addEventListener('play', () => {
+    socialVideos.forEach((other) => { if (other !== video) other.pause(); });
+  }));
+
   qsa('[data-home-products]').forEach((root) => {
     const scroller = qs('[data-product-category-scroller]', root);
     const tabs = qsa('[data-product-category-tab]', root);

@@ -592,6 +592,9 @@ function boblift_cleanup_admin_options(array $options): array
             }
             $options['social_media_page']['content_cards'] = array_values($cards);
         }
+        if (isset($options['social_media_page']['videos']) && is_array($options['social_media_page']['videos'])) {
+            $options['social_media_page']['videos'] = array_values(array_filter($options['social_media_page']['videos'], static fn($row): bool => is_array($row) && boblift_admin_value_has_content($row['video'] ?? [])));
+        }
         if (isset($options['social_media_page']['panel']['items']) && is_array($options['social_media_page']['panel']['items'])) {
             $options['social_media_page']['panel']['items'] = array_values(array_filter($options['social_media_page']['panel']['items'], static fn($row): bool => is_array($row) && boblift_admin_value_has_content($row['text'] ?? '')));
         }
@@ -2341,44 +2344,45 @@ function boblift_render_social_media_page_fields(array $social, string $base): v
         <?php boblift_admin_input('hero.image_alt', $social, '照片 Alt', $base); ?>
     <?php boblift_admin_settings_panel_end(); ?>
 
-    <?php boblift_admin_settings_panel_start('频道区标题与按钮', '控制平台区小标签和访问按钮文案。'); ?>
-        <?php boblift_admin_input('labels.main_platforms_label', $social, '主平台小标签', $base); ?>
-        <?php boblift_admin_input('labels.featured_visit_label', $social, '重点平台访问按钮', $base); ?>
-        <?php boblift_admin_input('labels.major_visit_label', $social, '次重点平台访问按钮', $base); ?>
-        <?php boblift_admin_input('labels.more_channels_label', $social, '更多平台小标签', $base); ?>
-        <?php boblift_admin_input('labels.more_channels_title', $social, '更多平台标题', $base); ?>
-        <?php boblift_admin_input('labels.content_cards_label', $social, '内容卡片小标签', $base); ?>
-        <?php boblift_admin_input('labels.content_cards_title', $social, '内容卡片标题', $base); ?>
+    <?php boblift_admin_settings_panel_start('区块标题', '官方账号、最近发布两块的标题文字。'); ?>
+        <?php boblift_admin_input('labels.main_platforms_label', $social, '官方账号小标签', $base); ?>
+        <?php boblift_admin_input('labels.overseas_title', $social, '海外平台分组标题', $base); ?>
+        <?php boblift_admin_input('labels.china_title', $social, '国内平台分组标题', $base); ?>
+        <?php boblift_admin_input('labels.more_title', $social, '更多平台分组标题', $base); ?>
+        <?php boblift_admin_input('labels.posts_label', $social, '最近发布小标签', $base); ?>
+        <?php boblift_admin_input('labels.posts_title', $social, '最近发布标题', $base); ?>
+        <?php boblift_admin_textarea('labels.posts_text', $social, '最近发布说明', $base); ?>
+        <?php boblift_admin_input('labels.videos_title', $social, '短视频列标题', $base); ?>
+        <?php boblift_admin_input('labels.image_posts_title', $social, '图文帖子列标题', $base); ?>
     <?php boblift_admin_settings_panel_end(); ?>
 
-    <?php boblift_admin_settings_panel_start('Hero 右侧信息卡', '控制叠加在 Hero 图片上的卖点列表。'); ?>
-        <?php boblift_admin_input('panel.title', $social, '卡片标题', $base); ?>
-        <?php $panel_items = is_array($social['panel']['items'] ?? null) ? $social['panel']['items'] : []; ?>
-        <?php for ($i = 0; $i < max(4, count($panel_items) + 1); $i++) : ?>
-            <?php boblift_admin_subpanel('卖点 ' . (string) ($i + 1), static function () use ($social, $base, $i): void { ?>
-                <?php boblift_admin_input("panel.items.$i.text", $social, '文案', $base); ?>
-            <?php }, false, (string) ($panel_items[$i]['text'] ?? '')); ?>
+    <?php boblift_admin_social_platform_panel('海外平台', 'featured_platforms', $social, $icon_choices, 6, true, $base); ?>
+    <?php boblift_admin_social_platform_panel('国内平台', 'major_platforms', $social, $icon_choices, 6, true, $base); ?>
+    <?php boblift_admin_social_platform_panel('更多平台（可选）', 'secondary_platforms', $social, $icon_choices, 2, true, $base); ?>
+
+    <?php boblift_admin_settings_panel_start('短视频', '竖版短视频（9:16），点击才加载播放。建议 MP4、540×960、单条 5MB 以内。'); ?>
+        <?php $videos = is_array($social['videos'] ?? null) ? $social['videos'] : []; ?>
+        <?php for ($i = 0; $i < max(3, count($videos) + 1); $i++) : ?>
+            <?php boblift_admin_subpanel('短视频 ' . (string) ($i + 1), static function () use ($social, $base, $i): void { ?>
+                <?php boblift_admin_input("videos.$i.title", $social, '标题', $base); ?>
+                <?php boblift_admin_file_media("videos.$i.video", $social, '视频 MP4', $base, '留空则不显示这一条。'); ?>
+                <?php boblift_admin_media("videos.$i.poster", $social, '封面图', $base, '竖版 9:16，推荐 720×1280。'); ?>
+            <?php }, false, (string) ($videos[$i]['title'] ?? '')); ?>
         <?php endfor; ?>
     <?php boblift_admin_settings_panel_end(); ?>
 
-    <?php boblift_admin_social_platform_panel('重点平台大卡片', 'featured_platforms', $social, $icon_choices, 3, true, $base); ?>
-    <?php boblift_admin_social_platform_panel('次重点平台中卡片', 'major_platforms', $social, $icon_choices, 5, false, $base); ?>
-    <?php boblift_admin_social_platform_panel('更多平台小图标矩阵', 'secondary_platforms', $social, $icon_choices, 20, false, $base); ?>
-
-    <?php boblift_admin_settings_panel_start('可关注内容类型', '控制底部四张内容卡片和图片。'); ?>
+    <?php boblift_admin_settings_panel_start('图文帖子', '从社媒已发布的图片里挑选，正方形 1080×1080 最合适；点击可看大图。'); ?>
         <?php $cards = is_array($social['content_cards'] ?? null) ? $social['content_cards'] : []; ?>
-        <?php for ($i = 0; $i < max(4, count($cards) + 1); $i++) : ?>
-            <?php boblift_admin_subpanel('内容卡片 ' . (string) ($i + 1), static function () use ($social, $base, $i): void { ?>
+        <?php for ($i = 0; $i < max(12, count($cards) + 1); $i++) : ?>
+            <?php boblift_admin_subpanel('帖子 ' . (string) ($i + 1), static function () use ($social, $base, $i): void { ?>
                 <?php boblift_admin_checkbox("content_cards.$i.enabled", $social, '启用', $base); ?>
-                <?php boblift_admin_select("content_cards.$i.icon", $social, '线性图标', boblift_floating_contact_icon_choices(), $base); ?>
-                <?php boblift_admin_input("content_cards.$i.title", $social, '标题', $base); ?>
-                <?php boblift_admin_textarea("content_cards.$i.text", $social, '正文', $base); ?>
-                <?php boblift_admin_media("content_cards.$i.image", $social, '图片', $base, '推荐 1200×800 或 16:10，前台内容卡会 cover 裁切。'); ?>
+                <?php boblift_admin_media("content_cards.$i.image", $social, '帖子图片', $base); ?>
+                <?php boblift_admin_input("content_cards.$i.title", $social, '说明（大图下方显示，也用作图片 Alt）', $base); ?>
             <?php }, false, (string) ($cards[$i]['title'] ?? '')); ?>
         <?php endfor; ?>
     <?php boblift_admin_settings_panel_end(); ?>
 
-    <?php boblift_admin_settings_panel_start('底部 CTA', '控制联系行动区。'); ?>
+    <?php boblift_admin_settings_panel_start('底部直接沟通区', '页面最后的询盘入口；WhatsApp 按钮读取联系方式设置里的号码。'); ?>
         <?php boblift_admin_input('cta.label', $social, '标签', $base); ?>
         <?php boblift_admin_input('cta.title', $social, '标题', $base); ?>
         <?php boblift_admin_textarea('cta.text', $social, '描述', $base); ?>
@@ -2404,7 +2408,7 @@ function boblift_social_media_settings_page(): void
 function boblift_admin_social_platform_panel(string $title, string $key, array $social, array $icon_choices, int $minimum, bool $with_text = false, string $base = 'boblift_theme_options[social_media_page]'): void
 {
     $rows = is_array($social[$key] ?? null) ? $social[$key] : [];
-    boblift_admin_settings_panel_start($title, '可控制是否显示、平台名称、真实图标和跳转链接。');
+    boblift_admin_settings_panel_start($title, '填好账号主页链接后，前台卡片才可点击并在新窗口打开。');
     for ($i = 0; $i < max($minimum, count($rows) + 2); $i++) : ?>
         <?php boblift_admin_subpanel('平台 ' . (string) ($i + 1), static function () use ($key, $i, $social, $icon_choices, $base, $with_text): void { ?>
             <?php boblift_admin_checkbox("$key.$i.enabled", $social, '启用', $base); ?>
@@ -2414,10 +2418,12 @@ function boblift_admin_social_platform_panel(string $title, string $key, array $
                 <?php echo boblift_admin_social_media_icon_preview((string) boblift_admin_option_value("$key.$i.icon", $social)); ?>
             </div>
             <?php boblift_admin_select("$key.$i.icon", $social, '真实图标', $icon_choices, $base); ?>
-            <?php boblift_admin_link_input("$key.$i.href", $social, '链接地址', $base); ?>
+            <?php boblift_admin_link_input("$key.$i.href", $social, '账号主页链接（https:// 开头；留空则卡片不可点击）', $base); ?>
+            <?php boblift_admin_input("$key.$i.handle", $social, '账号名（如 @boblift，可留空）', $base); ?>
             <?php if ($with_text) : ?>
-                <?php boblift_admin_textarea("$key.$i.text", $social, '说明文案', $base); ?>
+                <?php boblift_admin_textarea("$key.$i.text", $social, '一句话说明这个账号发什么', $base); ?>
             <?php endif; ?>
+            <?php boblift_admin_media("$key.$i.qr", $social, '二维码（可选）', $base, '抖音、视频号、小红书等扫码关注的平台可上传，卡片右侧显示。'); ?>
         <?php }, false, (string) ($rows[$i]['label'] ?? '')); ?>
     <?php endfor;
     boblift_admin_settings_panel_end();
