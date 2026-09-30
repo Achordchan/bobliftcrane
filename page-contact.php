@@ -33,8 +33,6 @@ $map_links = [
 ];
 $map_labels = is_array($ui['mapLabels'] ?? null) ? $ui['mapLabels'] : [];
 
-$channel_card = 'flex min-w-0 flex-col rounded border border-line bg-white p-4 shadow-card md:p-5';
-$channel_action = 'mt-auto inline-flex h-11 w-full items-center justify-center gap-2 rounded-sm border border-line px-3 text-sm font-black text-navy transition hover:border-blue-700 hover:text-blue-700';
 $eyebrow = 'text-[11px] font-black uppercase tracking-[0.18em] text-slate-400';
 $after_steps = is_array($ui['afterSteps'] ?? null) ? $ui['afterSteps'] : [];
 $visit_links = is_array($ui['visitLinks'] ?? null) ? $ui['visitLinks'] : [];
@@ -52,76 +50,63 @@ $visit_links = is_array($ui['visitLinks'] ?? null) ? $ui['visitLinks'] : [];
     ?>
 </div>
 
-<section class="page-shell pt-6 md:pt-8" aria-label="<?php echo esc_attr($t('channelsLabel', 'Direct contact')); ?>">
-    <ul class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 lg:gap-4">
-        <li class="<?php echo esc_attr($channel_card); ?>">
-            <span class="grid h-10 w-10 place-items-center rounded-sm bg-blue-50 text-blue-700"><?php echo boblift_icon('whatsapp', 'h-5 w-5'); ?></span>
-            <p class="mt-4 <?php echo esc_attr($eyebrow); ?>"><?php echo esc_html((string) ($ui['cardLabels']['whatsapp'] ?? 'WhatsApp')); ?></p>
-            <p class="mt-1 break-words text-lg font-black leading-6 text-ink"><?php echo esc_html($whatsapp_text); ?></p>
-            <p class="mb-4 mt-2 text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html($t('channelWhatsappNote')); ?></p>
-            <a class="<?php echo esc_attr($channel_action); ?>" href="<?php echo esc_url($contact['whatsappHref']); ?>" target="_blank" rel="noreferrer"><?php echo esc_html($t('channelWhatsappAction')); ?> <?php echo boblift_icon('arrow-up-right', 'h-4 w-4'); ?></a>
-        </li>
-        <li class="<?php echo esc_attr($channel_card); ?>">
-            <div class="flex items-start justify-between gap-3">
-                <span class="grid h-10 w-10 place-items-center rounded-sm bg-blue-50 text-blue-700"><?php echo boblift_icon('message-circle', 'h-5 w-5'); ?></span>
-                <?php if ($qr_url !== '') : ?>
-                    <img class="h-[88px] w-[88px] rounded-sm border border-line bg-white object-contain p-1" src="<?php echo esc_url($qr_url); ?>" alt="<?php echo esc_attr($t('weChatQrAlt', 'BOB-LIFT WeChat QR code')); ?>" width="88" height="88" loading="lazy" decoding="async">
-                <?php endif; ?>
-            </div>
-            <p class="mt-4 <?php echo esc_attr($eyebrow); ?>"><?php echo esc_html($t('weChatTitle', 'WeChat')); ?></p>
-            <p class="mt-1 break-words text-lg font-black leading-6 text-ink"><span class="text-sm font-bold text-slate-500"><?php echo esc_html($t('channelWeChatIdLabel', 'WeChat ID')); ?></span> <?php echo esc_html($wechat_id); ?></p>
-            <p class="mb-4 mt-2 text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html($t('channelWeChatNote')); ?></p>
-            <?php if ($wechat_id !== '') : ?>
-                <button type="button" class="<?php echo esc_attr($channel_action); ?>" data-copy="<?php echo esc_attr($wechat_id); ?>" data-done="<?php echo esc_attr($t('channelWeChatCopied', 'Copied')); ?>" onclick="var b=this,l=b.textContent;navigator.clipboard&amp;&amp;navigator.clipboard.writeText(b.dataset.copy);b.textContent=b.dataset.done;setTimeout(function(){b.textContent=l;},1800);"><?php echo esc_html($t('channelWeChatAction', 'Copy WeChat ID')); ?></button>
-            <?php endif; ?>
-        </li>
-        <li class="<?php echo esc_attr($channel_card); ?>">
-            <span class="grid h-10 w-10 place-items-center rounded-sm bg-blue-50 text-blue-700"><?php echo boblift_icon('mail', 'h-5 w-5'); ?></span>
-            <p class="mt-4 <?php echo esc_attr($eyebrow); ?>"><?php echo esc_html((string) ($ui['cardLabels']['email'] ?? 'Email')); ?></p>
-            <p class="mt-1 break-words text-lg font-black leading-6 text-ink"><?php echo esc_html((string) $contact['email']); ?></p>
-            <p class="mb-4 mt-2 text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html($t('channelEmailNote')); ?></p>
-            <a class="<?php echo esc_attr($channel_action); ?>" href="<?php echo esc_url('mailto:' . $contact['email']); ?>"><?php echo esc_html($t('channelEmailAction')); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
-        </li>
-        <li class="<?php echo esc_attr($channel_card); ?>">
-            <span class="grid h-10 w-10 place-items-center rounded-sm bg-blue-50 text-blue-700"><?php echo boblift_icon('phone', 'h-5 w-5'); ?></span>
-            <p class="mt-4 <?php echo esc_attr($eyebrow); ?>"><?php echo esc_html((string) ($ui['cardLabels']['phone'] ?? 'Phone')); ?></p>
-            <p class="mt-1 break-words text-lg font-black leading-6 text-ink"><?php echo esc_html($phone_text); ?></p>
-            <p class="mb-4 mt-2 text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html($t('channelPhoneNote')); ?></p>
-            <a class="<?php echo esc_attr($channel_action); ?>" href="<?php echo esc_url((string) $contact['phoneHref']); ?>"><?php echo esc_html($t('channelPhoneAction')); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
-        </li>
-    </ul>
-    <p class="mt-4 flex items-start gap-2 text-sm font-semibold leading-6 text-slate-600">
-        <?php echo boblift_icon('clock-3', 'mt-0.5 h-4 w-4 shrink-0 text-slate-400'); ?>
-        <span><span class="font-black text-navy"><?php echo esc_html($t('hoursLabel', 'Working hours')); ?>:</span> <?php echo esc_html($t('hoursText')); ?></span>
-    </p>
-</section>
-
-<section class="page-shell py-10 md:py-14">
-    <div class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-8 xl:grid-cols-[minmax(0,1fr)_400px]">
+<section class="page-shell py-8 md:py-12">
+    <div class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-8 xl:grid-cols-[minmax(0,1fr)_380px]">
         <div class="min-w-0">
             <?php boblift_render_inquiry_form(isset($_GET['product']) ? sanitize_text_field(wp_unslash($_GET['product'])) : '', ['compact' => true, 'source' => '联系页表单']); ?>
         </div>
-        <aside class="min-w-0 space-y-4 lg:sticky lg:top-28">
-            <div class="rounded border border-line bg-white p-5 shadow-card md:p-6">
-                <p class="<?php echo esc_attr($eyebrow); ?>"><?php echo esc_html($t('afterLabel', 'After you send')); ?></p>
-                <h2 class="mt-1 text-xl font-black leading-7 text-navy"><?php echo esc_html($t('afterTitle', 'What happens next')); ?></h2>
-                <ol class="mt-5 space-y-5">
+        <aside class="min-w-0 space-y-4 lg:sticky lg:top-6">
+            <?php // One place for the direct channels: phone and WhatsApp share a number, so they share a row. ?>
+            <section class="rounded border border-line bg-white p-5 md:p-6" aria-labelledby="contact-direct-title">
+                <h2 id="contact-direct-title" class="text-lg font-black leading-7 text-navy"><?php echo esc_html($t('channelsLabel', 'Direct contact')); ?></h2>
+                <dl class="mt-4 divide-y divide-line border-y border-line">
+                    <div class="py-3.5">
+                        <dt class="<?php echo esc_attr($eyebrow); ?>"><?php echo esc_html($t('phoneWhatsappLabel', 'Phone / WhatsApp')); ?></dt>
+                        <dd class="mt-1 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+                            <a class="text-base font-black text-ink transition hover:text-blue-700" href="<?php echo esc_url((string) $contact['phoneHref']); ?>"><?php echo esc_html($phone_text); ?></a>
+                            <a class="inline-flex items-center gap-1.5 text-sm font-bold text-blue-700 transition hover:text-navy" href="<?php echo esc_url($contact['whatsappHref']); ?>" target="_blank" rel="noreferrer"><?php echo boblift_icon('whatsapp', 'h-4 w-4'); ?><?php echo esc_html((string) ($ui['cardLabels']['whatsapp'] ?? 'WhatsApp')); ?></a>
+                        </dd>
+                    </div>
+                    <div class="py-3.5">
+                        <dt class="<?php echo esc_attr($eyebrow); ?>"><?php echo esc_html((string) ($ui['cardLabels']['email'] ?? 'Email')); ?></dt>
+                        <dd class="mt-1"><a class="break-all text-base font-black text-ink transition hover:text-blue-700" href="<?php echo esc_url('mailto:' . $contact['email']); ?>"><?php echo esc_html((string) $contact['email']); ?></a></dd>
+                    </div>
+                    <?php if ($wechat_id !== '' || $qr_url !== '') : ?>
+                        <div class="flex items-center justify-between gap-4 py-3.5">
+                            <div class="min-w-0">
+                                <dt class="<?php echo esc_attr($eyebrow); ?>"><?php echo esc_html($t('weChatTitle', 'WeChat')); ?></dt>
+                                <dd class="mt-1">
+                                    <?php if ($wechat_id !== '') : ?>
+                                        <span class="block text-base font-black text-ink"><?php echo esc_html($wechat_id); ?></span>
+                                        <button type="button" class="mt-1 text-sm font-bold text-blue-700 transition hover:text-navy" data-copy="<?php echo esc_attr($wechat_id); ?>" data-done="<?php echo esc_attr($t('channelWeChatCopied', 'Copied')); ?>" onclick="var b=this,l=b.textContent;navigator.clipboard&amp;&amp;navigator.clipboard.writeText(b.dataset.copy);b.textContent=b.dataset.done;setTimeout(function(){b.textContent=l;},1800);"><?php echo esc_html($t('channelWeChatAction', 'Copy WeChat ID')); ?></button>
+                                    <?php endif; ?>
+                                </dd>
+                            </div>
+                            <?php if ($qr_url !== '') : ?>
+                                <img class="h-20 w-20 shrink-0 rounded-sm border border-line bg-white object-contain p-1" src="<?php echo esc_url($qr_url); ?>" alt="<?php echo esc_attr($t('weChatQrAlt', 'BOB-LIFT WeChat QR code')); ?>" width="80" height="80" loading="lazy" decoding="async">
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
+                </dl>
+                <p class="mt-4 flex items-start gap-2 text-sm font-semibold leading-6 text-slate-600">
+                    <?php echo boblift_icon('clock-3', 'mt-0.5 h-4 w-4 shrink-0 text-slate-400'); ?>
+                    <span><?php echo esc_html($t('hoursText')); ?></span>
+                </p>
+            </section>
+            <section class="rounded border border-line bg-mist p-5 md:p-6" aria-labelledby="contact-after-title">
+                <h2 id="contact-after-title" class="text-lg font-black leading-7 text-navy"><?php echo esc_html($t('afterTitle', 'What happens next')); ?></h2>
+                <ol class="mt-4 space-y-4">
                     <?php foreach ($after_steps as $index => $step) : ?>
-                        <li class="flex gap-4">
-                            <span class="grid h-8 w-8 shrink-0 place-items-center rounded-sm bg-navy text-sm font-black tabular-nums text-white"><?php echo esc_html((string) ($index + 1)); ?></span>
+                        <li class="flex gap-3">
+                            <span class="grid h-7 w-7 shrink-0 place-items-center rounded-sm bg-navy text-xs font-black tabular-nums text-white"><?php echo esc_html((string) ($index + 1)); ?></span>
                             <span class="min-w-0">
                                 <span class="block text-sm font-black leading-6 text-navy"><?php echo esc_html((string) ($step['title'] ?? '')); ?></span>
-                                <span class="mt-1 block text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html((string) ($step['text'] ?? '')); ?></span>
+                                <span class="block text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html((string) ($step['text'] ?? '')); ?></span>
                             </span>
                         </li>
                     <?php endforeach; ?>
                 </ol>
-            </div>
-            <div class="rounded border border-line bg-mist p-5 md:p-6">
-                <p class="text-sm font-black leading-6 text-navy"><?php echo esc_html($t('talkFirstTitle')); ?></p>
-                <p class="mt-1 text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html($t('talkFirstText')); ?></p>
-                <a class="mt-3 inline-flex items-center gap-2 text-sm font-black text-blue-700 transition hover:text-navy" href="<?php echo esc_url($contact['whatsappHref']); ?>" target="_blank" rel="noreferrer"><?php echo boblift_icon('whatsapp', 'h-4 w-4'); ?> <?php echo esc_html($t('talkFirstAction')); ?> <?php echo boblift_icon('arrow-up-right', 'h-4 w-4'); ?></a>
-            </div>
+            </section>
         </aside>
     </div>
 </section>

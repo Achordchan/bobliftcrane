@@ -506,6 +506,7 @@
       const aerialVideo = qs('[data-about-aerial-video]', section);
       const aerialStart = qs('[data-about-aerial-start]', section);
       const aerialEnd = qs('[data-about-aerial-end]', section);
+      const logoVideo = qs('[data-about-logo-video]', section);
       if (!pin || !bg || !logo) return;
 
       const mm = gsap.matchMedia();
@@ -513,12 +514,15 @@
         section.classList.add('is-gsap-ready');
         gsap.set(bg, { scale: 1.08, yPercent: 0, opacity: 0, borderRadius: '4px', overflow: 'hidden', force3D: true });
         if (silhouette) gsap.set(silhouette, { scale: 1.02, opacity: 1, force3D: true });
-        if (aerialVideo) {
-          aerialVideo.muted = true;
-          aerialVideo.playsInline = true;
-          aerialVideo.pause();
-          aerialVideo.load();
-        }
+        // The aerial clip loops while the hero is in view (it used to stop on its last frame after one play),
+        // and the letters play the same clip in step with it.
+        [aerialVideo, logoVideo].filter(Boolean).forEach((video) => {
+          video.muted = true;
+          video.playsInline = true;
+          video.loop = true;
+          video.pause();
+          video.load();
+        });
         gsap.set([aerialStart, aerialVideo, aerialEnd].filter(Boolean), { force3D: true });
         gsap.set(aerialStart, { opacity: 1 });
         gsap.set(aerialVideo, { opacity: 0 });
@@ -542,7 +546,17 @@
         const pauseAerialVideo = () => {
           if (!aerialVideo) return;
           aerialVideo.pause();
+          if (logoVideo) logoVideo.pause();
           aerialIsPlaying = false;
+        };
+        const syncLogoVideo = () => {
+          if (!logoVideo || !aerialVideo) return;
+          if (Math.abs(logoVideo.currentTime - aerialVideo.currentTime) > 0.2) {
+            try {
+              logoVideo.currentTime = aerialVideo.currentTime;
+            } catch {}
+          }
+          if (!aerialVideo.paused && logoVideo.paused) logoVideo.play().catch(() => {});
         };
         const resetAerialVideo = () => {
           if (!aerialVideo) {
@@ -552,6 +566,7 @@
           pauseAerialVideo();
           try {
             if (aerialVideo.currentTime > 0.04) aerialVideo.currentTime = 0;
+            if (logoVideo && logoVideo.currentTime > 0.04) logoVideo.currentTime = 0;
           } catch {}
           setAerialLayer('start');
         };
@@ -568,6 +583,10 @@
           setAerialLayer('playing');
           if (aerialIsPlaying && !aerialVideo.paused) return;
           const playResult = aerialVideo.play();
+          if (logoVideo) {
+            syncLogoVideo();
+            logoVideo.play().catch(() => {});
+          }
           aerialIsPlaying = true;
           if (playResult && typeof playResult.catch === 'function') {
             playResult.catch(() => {
@@ -628,6 +647,7 @@
           aerialVideo.addEventListener('loadedmetadata', handleAerialLoadedMetadata, { once: true });
           aerialVideo.addEventListener('ended', handleAerialEnded);
           aerialVideo.addEventListener('pause', handleAerialPause);
+          ['timeupdate', 'play', 'seeked'].forEach((type) => aerialVideo.addEventListener(type, syncLogoVideo));
         }
 
         return () => {
@@ -637,6 +657,7 @@
             aerialVideo.removeEventListener('loadedmetadata', handleAerialLoadedMetadata);
             aerialVideo.removeEventListener('ended', handleAerialEnded);
             aerialVideo.removeEventListener('pause', handleAerialPause);
+            ['timeupdate', 'play', 'seeked'].forEach((type) => aerialVideo.removeEventListener(type, syncLogoVideo));
             pauseAerialVideo();
           }
           tl.kill();

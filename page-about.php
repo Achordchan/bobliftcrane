@@ -119,7 +119,14 @@ foreach (['中国徐州', 'Xuzhou, China', '起重设备制造商', 'crane manuf
                 <div class="about-logo-fill" data-about-logo-text>
                     <?php // The trademark outlines, not a web font: a two-tone solid layer and a photo-filled layer masked by the same shape. ?>
                     <span class="about-logo-layer about-logo-layer--solid about-logo-mark" data-about-logo-solid><?php echo boblift_brand_wordmark_svg('about-logo-mark-svg'); ?></span>
-                    <span class="about-logo-layer about-logo-layer--image about-logo-mark about-logo-mark--image" style="--about-logo-mask: url('<?php echo esc_attr(boblift_brand_wordmark_mask_uri()); ?>')" data-about-logo-image></span>
+                    <span class="about-logo-layer about-logo-layer--image about-logo-mark about-logo-mark--image" style="--about-logo-mask: url('<?php echo esc_attr(boblift_brand_wordmark_mask_uri()); ?>')" data-about-logo-image>
+                        <?php if ($about_aerial_video !== '') : ?>
+                            <?php // The letters show the same aerial footage as the background, kept in step by theme.js. ?>
+                            <video class="about-logo-mark-video" muted playsinline loop preload="none" poster="<?php echo esc_url($about_aerial_start); ?>" data-about-logo-video>
+                                <source src="<?php echo esc_url($about_aerial_video); ?>" type="video/mp4">
+                            </video>
+                        <?php endif; ?>
+                    </span>
                 </div>
             </div>
 

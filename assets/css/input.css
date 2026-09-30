@@ -237,6 +237,16 @@ img { max-width: 100%; }
   -webkit-mask: var(--about-logo-mask) center / contain no-repeat;
   mask: var(--about-logo-mask) center / contain no-repeat;
   filter: none;
+  position: relative;
+  overflow: hidden;
+}
+.about-logo-mark-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 56%;
 }
 /* A mask clips its own filter, so the outline that keeps the photo-filled letters readable sits on the wrapper. */
 .about-logo-fill:has(.about-logo-mark) {
