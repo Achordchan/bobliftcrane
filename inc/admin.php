@@ -1229,6 +1229,7 @@ function boblift_render_customer_visit_admin_row(array $visits, string $base, in
     echo '</summary><div class="boblift-admin-subpanel-body">';
     echo '<p><button class="button button-link-delete" type="button" data-customer-visit-remove>删除这张图片</button></p>';
     boblift_admin_media('items.' . $index_string . '.image', ['items' => [$index => $item]], '图片', $base, '推荐 1200×900 或 1600×1200，展示客户来访、工厂参观、技术沟通等场景；前台仅展示图片。');
+    boblift_admin_input('items.' . $index_string . '.country', ['items' => [$index => $item]], '来访国家（同一国家的图片在前台合并成一组；留空归入“更多来访”）', $base);
     boblift_admin_input('items.' . $index_string . '.label', ['items' => [$index => $item]], '小标签（可选，仅用于后台识别）', $base);
     boblift_admin_input('items.' . $index_string . '.title', ['items' => [$index => $item]], '图片说明（可选，用于 alt）', $base);
     boblift_admin_textarea('items.' . $index_string . '.text', ['items' => [$index => $item]], '备注（可选，不在前台展示）', $base);
@@ -1253,11 +1254,45 @@ function boblift_render_customer_visits_page_fields(array $visits, string $base)
         boblift_admin_input('visit_count_suffix', $visits, '图片数量后缀', $base);
         boblift_admin_input('pagination_label', $visits, '分页辅助标签', $base);
         boblift_admin_input('empty_text', $visits, '空状态文案', $base);
+        boblift_admin_input('country_count_suffix', $visits, '顶部国家数量后缀（如 countries）', $base);
     });
 
-    boblift_admin_panel('2. 客户来访参厂图片', static function () use ($visits, $items, $base): void {
+    boblift_admin_panel('3. 来访国家与参观内容', static function () use ($visits, $base): void {
+        echo '<p class="boblift-admin-note">国家列表和国家数量根据下方图片填写的“来访国家”自动生成。{count} 会替换为国家数量。</p>';
+        boblift_admin_input('countries_label', $visits, '国家区标签', $base);
+        boblift_admin_input('countries_title', $visits, '国家区标题', $base);
+        boblift_admin_input('steps_label', $visits, '参观内容标签', $base);
+        boblift_admin_input('steps_title', $visits, '参观内容标题', $base);
+        for ($i = 0; $i < 4; $i++) {
+            boblift_admin_subpanel('第 ' . (string) ($i + 1) . ' 步', static function () use ($visits, $base, $i): void {
+                boblift_admin_media("steps.$i.image", $visits, '图片', $base, '横向照片，推荐 1600×1200（4:3）。');
+                boblift_admin_input("steps.$i.title", $visits, '标题', $base);
+                boblift_admin_textarea("steps.$i.text", $visits, '说明', $base);
+            }, false, (string) ($visits['steps'][$i]['title'] ?? ''));
+        }
+    });
+
+    boblift_admin_panel('4. 相册与预约参观', static function () use ($visits, $base): void {
+        boblift_admin_input('wall_label', $visits, '相册标签', $base);
+        boblift_admin_input('wall_title', $visits, '相册标题', $base);
+        boblift_admin_input('wall_text', $visits, '相册说明', $base);
+        boblift_admin_input('more_visits_label', $visits, '未填国家的图片分组名称', $base);
+        boblift_admin_input('photo_count_suffix', $visits, '图片数量后缀（如 photos）', $base);
+        boblift_admin_input('plan_label', $visits, '预约区标签', $base);
+        boblift_admin_input('plan_title', $visits, '预约区标题', $base);
+        boblift_admin_textarea('plan_text', $visits, '预约区说明', $base);
+        boblift_admin_input('plan_secondary_label', $visits, '第二个按钮文字（链接用上面的“按钮链接”）', $base);
+        for ($i = 0; $i < 3; $i++) {
+            boblift_admin_subpanel('到访信息 ' . (string) ($i + 1), static function () use ($visits, $base, $i): void {
+                boblift_admin_input("plan_points.$i.title", $visits, '名称', $base);
+                boblift_admin_input("plan_points.$i.text", $visits, '内容', $base);
+            }, false, (string) ($visits['plan_points'][$i]['title'] ?? ''));
+        }
+    });
+
+    boblift_admin_panel('5. 客户来访参厂图片', static function () use ($visits, $items, $base): void {
         echo '<div data-customer-visits-editor>';
-        echo '<p class="boblift-admin-note">这里维护纯图片系列。点击“添加图片”可继续追加，不限制数量；Global Customer Visits 独立页会自动分页，首页只读取前几张做展示。</p>';
+        echo '<p class="boblift-admin-note">点击“添加图片”可继续追加，不限制数量。每张图片填写“来访国家”，前台按国家合并成一张卡片，点开是这一组的相册；第一张作为卡片封面。</p>';
         echo '<div data-customer-visits-list>';
         $rows = $items !== [] ? $items : [[]];
         foreach ($rows as $i => $item) {

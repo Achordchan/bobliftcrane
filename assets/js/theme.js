@@ -3644,6 +3644,9 @@
       const stage = box.querySelector('[data-detail-stage]');
       const index = box.querySelector('[data-detail-index]');
       const alt = viewer.dataset.detailAlt || '';
+      let captions = [];
+      try { captions = JSON.parse(viewer.dataset.detailCaptions || '[]'); } catch (error) { captions = []; }
+      const caption = box.querySelector('[data-detail-caption]');
       const pad = (n) => String(n).padStart(2, '0');
       let current = 0;
       let opener = null;
@@ -3651,8 +3654,9 @@
       const show = (next) => {
         current = (next + images.length) % images.length;
         image.src = images[current];
-        image.alt = `${alt} ${current + 1}`;
+        image.alt = captions[current] || `${alt} ${current + 1}`;
         if (index) index.textContent = pad(current + 1);
+        if (caption) caption.textContent = captions[current] || '';
         stage.scrollTop = 0;
         [current + 1, current - 1].forEach((n) => { new Image().src = images[(n + images.length) % images.length]; });
       };
