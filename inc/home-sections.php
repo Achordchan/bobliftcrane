@@ -51,31 +51,7 @@ function boblift_home_factory_content(): array
         $video = boblift_asset((string) $video_setting['path']);
     }
 
-    // Skip photos the page already shows: both frames of the aerial video and the About section gallery.
-    // Old theme paths are compared after their clean replacements, as the page displays them.
-    $shown = [$poster, boblift_image_setting_url($logo['aerial_start_image'] ?? [], 'images/about/about-aerial-mid-start.webp')];
-    foreach ((array) (boblift_options()['home']['about']['gallery'] ?? []) as $item) {
-        if (is_array($item) && !empty($item['src'])) {
-            $shown[] = boblift_page_hero_image_setting($item['src'], '');
-        }
-    }
-    $tiles = [];
-    foreach ((array) ($gallery['items'] ?? []) as $item) {
-        if (!is_array($item)) {
-            continue;
-        }
-        $image = empty($item['image']) ? '' : boblift_page_hero_image_setting($item['image'], '');
-        if ($image === '' || in_array($image, $shown, true)) {
-            continue;
-        }
-        $shown[] = $image;
-        $tiles[] = [
-            'image' => $image,
-            'title' => $translate((string) ($item['title'] ?? '')),
-            'text' => $translate((string) ($item['text'] ?? '')),
-        ];
-    }
-
+    // The gallery tiles beside the video were dropped from the home page; the gallery items stay in the admin.
     return [
         'label' => $translate((string) ($gallery['label'] ?? 'Modern Manufacturing Base')),
         'title' => $translate((string) ($gallery['title'] ?? 'Intelligent Production.')),
@@ -84,7 +60,6 @@ function boblift_home_factory_content(): array
         'video' => $video,
         'cta_label' => (string) ($visits['cta_label'] ?? 'Plan a Visit'),
         'cta_href' => (string) ($visits['cta_href'] ?? '/contact.html'),
-        'tiles' => array_slice($tiles, 0, 2),
     ];
 }
 
@@ -93,8 +68,8 @@ function boblift_render_home_factory(): void
     $factory = boblift_home_factory_content();
     ?>
     <section id="factory" class="bg-white pb-10 md:pb-16" aria-labelledby="home-factory-title">
-        <div class="page-shell grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)] lg:gap-5">
-            <div class="relative isolate flex min-h-[440px] flex-col justify-end overflow-hidden rounded bg-navy p-6 text-white sm:col-span-2 sm:min-h-[500px] sm:p-10 lg:col-span-1 lg:row-span-2 lg:min-h-[600px] lg:p-12">
+        <div class="page-shell">
+            <div class="relative isolate flex min-h-[400px] flex-col justify-end overflow-hidden rounded bg-navy p-6 text-white sm:min-h-[440px] sm:p-10 lg:min-h-[480px] lg:justify-center lg:p-14">
                 <img class="absolute inset-0 -z-30 h-full w-full object-cover" alt="" decoding="async" data-inview-src="<?php echo esc_url($factory['poster']); ?>">
                 <?php if ($factory['video'] !== '') : ?>
                     <video class="absolute inset-0 -z-20 h-full w-full object-cover" muted loop playsinline preload="none" aria-hidden="true" data-inview-video data-src="<?php echo esc_url($factory['video']); ?>"></video>
@@ -105,17 +80,6 @@ function boblift_render_home_factory(): void
                 <?php if ($factory['text'] !== '') : ?><p class="mt-4 max-w-[520px] text-sm font-semibold leading-7 text-white/80 md:text-base"><?php echo esc_html($factory['text']); ?></p><?php endif; ?>
                 <a class="mt-7 inline-flex h-12 w-fit items-center justify-center gap-2 rounded-sm bg-white px-6 text-sm font-black text-navy shadow-card transition hover:-translate-y-0.5 hover:bg-blue-50" href="<?php echo esc_url(boblift_url($factory['cta_href'])); ?>"><?php echo esc_html($factory['cta_label']); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
             </div>
-            <?php foreach ($factory['tiles'] as $index => $tile) : ?>
-                <figure class="group relative min-h-[220px] overflow-hidden rounded bg-[#e8eef5] sm:min-h-[260px] lg:min-h-0 ">
-                    <img class="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]" src="<?php echo esc_url($tile['image']); ?>" alt="<?php echo esc_attr($tile['title']); ?>" loading="lazy" decoding="async">
-                    <span class="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,35,74,0)_30%,rgba(8,35,74,0.85)_100%)]"></span>
-                    <figcaption class="absolute inset-x-0 bottom-0 p-5 text-white sm:p-6">
-                        <span class="text-[11px] font-black tracking-[0.22em] text-white/65"><?php echo esc_html(str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT)); ?></span>
-                        <strong class="mt-2 block text-xl font-black leading-tight sm:text-2xl"><?php echo esc_html($tile['title']); ?></strong>
-                        <?php if ($tile['text'] !== '') : ?><span class="mt-1.5 block text-sm font-semibold leading-6 text-white/80"><?php echo esc_html($tile['text']); ?></span><?php endif; ?>
-                    </figcaption>
-                </figure>
-            <?php endforeach; ?>
         </div>
     </section>
     <?php
