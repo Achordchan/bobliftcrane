@@ -52,7 +52,6 @@ function boblift_video_library(): array
         $series('truck', 'telescopic', '5', $both, 0),
         $series('truck', 'telescopic', '10', $both, 0),
         $series('truck', 'telescopic', '12', $both, 0),
-        $series('marine', 'knuckle', '2', $both, 0),
         $series('marine', 'knuckle', '3.2', $both, 0),
         $series('marine', 'knuckle', '5', $both, 0),
         $series('marine', 'knuckle', '10', $any, 0),

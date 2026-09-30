@@ -1806,6 +1806,11 @@ function boblift_admin_site_ui_section_label(string $section): string
         'aboutPage' => 'About 页面补充',
         'homePage' => '首页通用文案',
         'common' => '通用兜底文案',
+        'videoCenter' => '视频中心 / 产品页视频',
+        'qualityTesting' => '质量与测试页面',
+        'factoryTour' => '工厂实景页面',
+        'search' => '站内搜索',
+        'siteSwitcher' => '站点切换',
     ][$section] ?? $section;
 }
 

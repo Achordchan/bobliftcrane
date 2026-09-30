@@ -32,7 +32,8 @@ VIDEOS = [
     ('truck-telescopic-5', 'truck', {'en': T + '伸缩臂/5S随车吊/5S测试 英语.mp4', 'zh': T + '伸缩臂/5S随车吊/无配音.mp4'}),
     ('truck-telescopic-10', 'truck', {'en': T + '伸缩臂/10S随车吊/10S英语.mp4', 'zh': T + '伸缩臂/10S随车吊/10S中文.mp4'}),
     ('truck-telescopic-12', 'truck', {'en': T + '伸缩臂/12S/12S英语.mp4', 'zh': T + '伸缩臂/12S/12S中文.mp4'}),
-    ('marine-knuckle-2', 'marine', {'en': M + '折叠臂船吊/2Z/2Z英语.mp4', 'zh': M + '折叠臂船吊/2Z/2Z船吊.mp4'}),
+    # 船吊/折叠臂船吊/2Z is left out: its subtitles call it a truck crane (2026-09-30).
+
     ('marine-knuckle-3.2', 'marine', {'en': M + '折叠臂船吊/3.2z船吊测试/3.2Z船吊英语.mp4', 'zh': M + '折叠臂船吊/3.2z船吊测试/3.2Z船吊中文.mp4'}),
     ('marine-knuckle-5', 'marine', {'en': M + '折叠臂船吊/5Z船吊/5Z船吊测试英语.mp4', 'zh': M + '折叠臂船吊/5Z船吊/5Z船吊测试中文.mp4'}),
     ('marine-knuckle-10', 'marine', {'any': M + '折叠臂船吊/10Z船吊/10ZA4船吊.mp4'}),
