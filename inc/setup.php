@@ -249,6 +249,12 @@ function boblift_document_title_parts(array $title): array
     } elseif (is_singular()) {
         $post = get_queried_object();
         $seo_title = $post instanceof WP_Post ? boblift_seo_post_title($post) : '';
+    } elseif (is_search()) {
+        $search_ui = boblift_site_ui('search');
+        $search_query = trim(get_search_query(false));
+        $seo_title = $search_query !== ''
+            ? str_replace('{query}', $search_query, (string) ($search_ui['seoTitleTemplate'] ?? 'Search: {query} | BOB-LIFT'))
+            : (string) ($search_ui['seoTitleEmpty'] ?? 'Search | BOB-LIFT');
     }
 
     if ($seo_title !== '') {
@@ -429,3 +435,13 @@ function boblift_deactivation(): void
     flush_rewrite_rules();
 }
 add_action('switch_theme', 'boblift_deactivation');
+
+// search.php runs its own product, news and case queries; keep the main search query to those types.
+function boblift_limit_main_search(WP_Query $query): void
+{
+    if (!is_admin() && $query->is_main_query() && $query->is_search()) {
+        $query->set('post_type', ['product', 'post', 'case']);
+        $query->set('posts_per_page', 1);
+    }
+}
+add_action('pre_get_posts', 'boblift_limit_main_search');

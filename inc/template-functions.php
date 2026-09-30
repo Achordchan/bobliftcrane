@@ -1272,3 +1272,65 @@ function boblift_product_nav_url(string $href, string $label = ''): string
 
     return boblift_url($href);
 }
+
+// Site search. Products are ranked in PHP so a model typed without its dash or spaces ("sq5za2")
+// still finds SQ5ZA2; news and cases use the normal WordPress keyword search.
+function boblift_search_key(string $text): string
+{
+    return mb_strtolower((string) preg_replace('/[^\p{L}\p{N}]+/u', '', $text));
+}
+
+function boblift_search_products(string $query): array
+{
+    $query = trim($query);
+    $key = boblift_search_key($query);
+    if ($key === '') {
+        return [];
+    }
+    $words = array_values(array_filter(array_map('boblift_search_key', preg_split('/\s+/u', $query) ?: [])));
+    $scored = [];
+    foreach (boblift_all_products() as $index => $product) {
+        $models = array_filter(array_map('boblift_search_key', array_merge([(string) ($product['model'] ?? '')], preg_split('/[,，、\/]+/u', (string) ($product['model_aliases'] ?? '')) ?: [])));
+        $score = 0;
+        foreach ($models as $model) {
+            if ($model === $key) {
+                $score = max($score, 100);
+            } elseif (str_starts_with($model, $key)) {
+                $score = max($score, 80);
+            } elseif (mb_strlen($key) >= 2 && str_contains($model, $key)) {
+                $score = max($score, 60);
+            }
+        }
+        if ($score === 0) {
+            $title = boblift_search_key((string) ($product['title'] ?? ''));
+            $haystack = boblift_search_key(implode(' ', [
+                (string) ($product['title'] ?? ''),
+                (string) ($product['category_title'] ?? ''),
+                (string) ($product['short_description'] ?? ''),
+                boblift_boom_label((string) ($product['boom_type'] ?? '')),
+            ]));
+            if (str_contains($title, $key)) {
+                $score = 40;
+            } elseif ($words && count(array_filter($words, static fn(string $word): bool => str_contains($haystack, $word))) === count($words)) {
+                $score = 20;
+            }
+        }
+        if ($score > 0) {
+            $scored[] = ['score' => $score, 'index' => $index, 'product' => $product];
+        }
+    }
+    usort($scored, static fn(array $a, array $b): int => ($b['score'] <=> $a['score']) ?: ($a['index'] <=> $b['index']));
+    return array_column($scored, 'product');
+}
+
+function boblift_search_posts(string $query, string $post_type, int $per_page, int $page = 1): WP_Query
+{
+    return new WP_Query([
+        's' => $query,
+        'post_type' => $post_type,
+        'post_status' => 'publish',
+        'posts_per_page' => $per_page,
+        'paged' => max(1, $page),
+        'ignore_sticky_posts' => true,
+    ]);
+}

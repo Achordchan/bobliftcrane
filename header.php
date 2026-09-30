@@ -27,6 +27,8 @@ $product_menu_view_all = $product_menu_view_all !== '' ? $product_menu_view_all 
 $contact = $options['contact'] ?? [];
 $header_ui = function_exists('boblift_site_ui') ? boblift_site_ui('header') : [];
 $quote_form_ui = function_exists('boblift_site_ui') ? boblift_site_ui('quoteForm') : [];
+$search_ui = function_exists('boblift_site_ui') ? boblift_site_ui('search') : [];
+$search_query = is_search() ? get_search_query() : '';
 $flag_alt_template = (string) ($header_ui['languageFlagAltTemplate'] ?? '{language} flag');
 $current_path = trim((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH), '/');
 $active_language_code = function_exists('pll_current_language') ? (string) pll_current_language('slug') : 'en';
@@ -201,7 +203,7 @@ foreach ($languages as $language) {
                     $children = is_array($item['children'] ?? null) ? array_values(array_filter($item['children'], static fn($child): bool => is_array($child) && trim((string) ($child['label'] ?? '')) !== '')) : [];
                     $has_children = $children !== [];
                     $item_path = trim(parse_url($item_url, PHP_URL_PATH) ?: '/', '/');
-                    $active = $href === '/' ? $current_path === '' : ($item_path !== '' && str_starts_with($current_path, $item_path));
+                    $active = $href === '/' ? ($current_path === '' && !is_search()) : ($item_path !== '' && str_starts_with($current_path, $item_path));
                     if ($is_product_menu_item && (is_post_type_archive('product') || is_singular('product') || get_query_var('boblift_product_category'))) {
                         $active = true;
                     }
@@ -316,6 +318,7 @@ foreach ($languages as $language) {
                 <?php endforeach; ?>
             </nav>
             <div class="flex items-center gap-2 md:gap-3 xl:gap-2 2xl:gap-3">
+                <button class="group grid h-11 w-11 shrink-0 place-items-center rounded-sm border border-line bg-white text-ink transition hover:border-ink/30 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/20 aria-expanded:border-ink/40 aria-expanded:bg-mist md:h-12 md:w-12" type="button" aria-label="<?php echo esc_attr($search_ui['openLabel'] ?? 'Search the site'); ?>" aria-expanded="false" aria-controls="site-search" data-search-toggle><?php echo boblift_icon('search', 'h-5 w-5 group-aria-expanded:hidden'); ?><?php echo boblift_icon('x', 'hidden h-5 w-5 group-aria-expanded:block'); ?></button>
                 <div class="relative" data-language-root>
                     <button class="group flex h-12 items-center gap-2.5 rounded-sm border border-line bg-white px-3 text-left transition hover:border-ink/30 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/20 aria-expanded:border-ink/40 max-[360px]:h-11 max-[360px]:w-11 max-[360px]:justify-center max-[360px]:p-0 md:min-w-[148px] md:px-4" type="button" aria-label="<?php echo esc_attr($header_ui['changeLanguageLabel'] ?? 'Change language'); ?>" aria-expanded="false" aria-controls="language-menu" data-language-toggle>
                         <img class="h-4 w-6 shrink-0 rounded-sm object-cover object-left ring-1 ring-ink/10" src="<?php echo esc_url(boblift_language_flag_url((string) ($active_language['flag'] ?? 'flags/us.svg'))); ?>" alt="<?php echo esc_attr(str_replace('{language}', (string) ($active_language['label'] ?? 'English'), $flag_alt_template)); ?>" loading="lazy">
@@ -340,7 +343,7 @@ foreach ($languages as $language) {
                     </div>
                 </div>
                 <button class="grid h-11 w-11 place-items-center rounded-sm border border-navy/10 bg-navy text-white shadow-card transition duration-300 hover:-translate-y-0.5 lg:hidden" type="button" data-mobile-toggle aria-expanded="false" aria-controls="mobile-menu" aria-label="<?php echo esc_attr($header_ui['mobileOpenLabel'] ?? 'Open mobile navigation'); ?>"><?php echo boblift_icon('menu', 'h-5 w-5', '2.4'); ?></button>
-                <button class="group hidden h-12 min-w-[6.75rem] items-center justify-center gap-1.5 whitespace-nowrap rounded-sm border border-transparent bg-navy bg-clip-padding px-4 text-sm font-black text-white shadow-card outline-none select-none transition-all hover:-translate-y-0.5 hover:bg-navy lg:inline-flex 2xl:min-w-[11.75rem] 2xl:px-5" type="button" data-inquiry-modal-open data-inquiry-source="顶部导航"><span class="2xl:hidden"><?php echo esc_html($header_ui['quoteShortLabel'] ?? 'Quote'); ?></span><span class="hidden 2xl:inline"><?php echo esc_html($header_ui['quoteLabel'] ?? ($quote_form_ui['label'] ?? 'Request Quote')); ?></span><span class="grid h-6 w-6 place-items-center rounded-sm bg-white/12 text-white transition md:h-7 md:w-7"><?php echo boblift_icon('check', 'h-4 w-4'); ?></span></button>
+                <button class="group hidden h-12 min-w-[6.75rem] items-center justify-center whitespace-nowrap rounded-sm border border-transparent bg-navy bg-clip-padding px-4 text-sm font-black text-white shadow-card outline-none select-none transition-all hover:-translate-y-0.5 hover:bg-navy lg:inline-flex 2xl:min-w-[11.75rem] 2xl:px-5" type="button" data-inquiry-modal-open data-inquiry-source="顶部导航"><span class="2xl:hidden"><?php echo esc_html($header_ui['quoteShortLabel'] ?? 'Quote'); ?></span><span class="hidden 2xl:inline"><?php echo esc_html($header_ui['quoteLabel'] ?? ($quote_form_ui['label'] ?? 'Request Quote')); ?></span></button>
             </div>
         </div>
     </div>
@@ -425,6 +428,26 @@ foreach ($languages as $language) {
                     <?php endif; ?>
                 </div>
             <?php endforeach; ?>
+        </div>
+    </div>
+    <div id="site-search" class="absolute inset-x-0 top-full z-[230] hidden border-b border-line bg-white shadow-raised" role="dialog" aria-label="<?php echo esc_attr($search_ui['panelLabel'] ?? 'Site search'); ?>" data-search-panel>
+        <div class="page-shell py-5 md:py-8">
+            <form class="flex gap-2 md:gap-3" role="search" method="get" action="<?php echo esc_url(home_url('/')); ?>">
+                <label class="relative min-w-0 flex-1">
+                    <span class="sr-only"><?php echo esc_html($search_ui['inputLabel'] ?? 'Search products and articles'); ?></span>
+                    <?php echo boblift_icon('search', 'pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 md:left-5'); ?>
+                    <input class="h-12 w-full rounded-sm border border-[#D8DEE8] bg-white pl-11 pr-4 text-base font-bold text-ink outline-none transition placeholder:font-semibold placeholder:text-slate-400 focus:border-navy focus:ring-4 focus:ring-blue-100 md:h-14 md:pl-14 md:text-lg [&::-webkit-search-cancel-button]:hidden" type="search" name="s" value="<?php echo esc_attr($search_query); ?>" placeholder="<?php echo esc_attr($search_ui['placeholder'] ?? 'Search a model, crane type or topic'); ?>" autocomplete="off" enterkeyhint="search" data-search-input>
+                </label>
+                <button class="inline-flex h-12 shrink-0 items-center justify-center rounded-sm bg-navy px-5 text-sm font-black text-white transition hover:bg-[#0b2d5b] md:h-14 md:px-8 md:text-base" type="submit"><?php echo esc_html($search_ui['submitLabel'] ?? 'Search'); ?></button>
+            </form>
+            <?php if ($product_menu_families) : ?>
+                <div class="mt-4 flex flex-wrap items-center gap-2 md:mt-5">
+                    <span class="mr-1 w-full text-xs font-black uppercase tracking-[0.14em] text-slate-400 sm:w-auto"><?php echo esc_html($search_ui['browseLabel'] ?? 'Browse by category'); ?></span>
+                    <?php foreach ($product_menu_families as $family) : ?>
+                        <a class="inline-flex h-9 items-center gap-2 rounded-sm border border-line bg-white px-3 text-sm font-bold text-navy transition hover:border-blue-300 hover:text-blue-700" href="<?php echo esc_url($family['url']); ?>"><?php echo esc_html($family['title']); ?><span class="text-xs font-bold tabular-nums text-slate-400"><?php echo esc_html((string) $family['count']); ?></span></a>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
 </header>
