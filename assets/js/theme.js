@@ -3805,3 +3805,25 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();
+
+// News article contents: mark the section being read.
+(() => {
+  const init = () => {
+    const toc = document.querySelector('[data-news-toc]');
+    if (!toc || !('IntersectionObserver' in window)) return;
+    const links = [...toc.querySelectorAll('a[href^="#"]')];
+    const headings = links.map((link) => document.getElementById(decodeURIComponent(link.hash.slice(1)))).filter(Boolean);
+    if (!headings.length) return;
+    const mark = (id) => links.forEach((link) => link.setAttribute('aria-current', decodeURIComponent(link.hash.slice(1)) === id ? 'true' : 'false'));
+    const visible = new Set();
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => (entry.isIntersecting ? visible.add(entry.target) : visible.delete(entry.target)));
+      const current = headings.filter((heading) => visible.has(heading))[0]
+        || headings.filter((heading) => heading.getBoundingClientRect().top < 0).pop();
+      if (current) mark(current.id);
+    }, { rootMargin: '0px 0px -65% 0px' });
+    headings.forEach((heading) => observer.observe(heading));
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
