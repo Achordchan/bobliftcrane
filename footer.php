@@ -12,7 +12,7 @@ if (is_page()) {
     $cta_source_id = function_exists('pll_get_post') ? (int) (pll_get_post($cta_page_id, 'en') ?: $cta_page_id) : $cta_page_id;
     $cta_page_slug = (string) get_post_field('post_name', $cta_source_id);
 }
-$show_cta = !in_array($cta_page_slug, ['about', 'quote', 'contact', 'social-media', 'public-welfare', 'global-customer-visits', 'privacy-policy', 'terms-of-use', 'sitemap'], true) && !is_page_template(['page-about.php', 'page-social-media.php', 'page-public-welfare.php', 'page-global-customer-visits.php', 'page-privacy-policy.php', 'page-terms-of-use.php', 'page-sitemap.php']) && !is_post_type_archive('product') && !is_singular('product');
+$show_cta = !in_array($cta_page_slug, ['about', 'quote', 'contact', 'social-media', 'factory-tour', 'quality-testing', 'public-welfare', 'global-customer-visits', 'privacy-policy', 'terms-of-use', 'sitemap'], true) && !is_page_template(['page-about.php', 'page-social-media.php', 'page-factory-tour.php', 'page-quality-testing.php', 'page-public-welfare.php', 'page-global-customer-visits.php', 'page-privacy-policy.php', 'page-terms-of-use.php', 'page-sitemap.php']) && !is_post_type_archive('product') && !is_singular('product');
 $email = $contact['email'] ?? 'info@bobliftcrane.com';
 $phone = $contact['phone'] ?? '+86 15852499415';
 $phone_href = $contact['phone_href'] ?? ('tel:' . preg_replace('/[^\d+]+/', '', $phone));
@@ -52,6 +52,23 @@ $footer_social_links = array_values(array_filter(is_array($footer['social_links'
 $footer_link_groups = array_map(static function (array $group): array {
     if (boblift_footer_is_product_group($group)) {
         $group['links'] = array_map(static fn(array $family): array => ['label' => $family['title'], 'url' => $family['url']], boblift_product_menu_families());
+        return $group;
+    }
+    // Saved company links predate the factory, testing and video pages; list them after About.
+    $links = array_values(array_filter((array) ($group['links'] ?? []), 'is_array'));
+    $paths = array_map(static fn(array $link): string => preg_replace('/\.html$/', '', trim((string) wp_parse_url((string) ($link['href'] ?? ''), PHP_URL_PATH), '/')), $links);
+    $about_at = array_search('about', $paths, true);
+    if ($about_at !== false) {
+        $extra = [];
+        foreach (['factory-tour', 'quality-testing', 'videos'] as $slug) {
+            $page = in_array($slug, $paths, true) ? null : get_page_by_path($slug, OBJECT, 'page');
+            if ($page instanceof WP_Post && $page->post_status === 'publish') {
+                $localized = function_exists('boblift_post_for_current_language') ? boblift_post_for_current_language($page) : $page;
+                $extra[] = ['label' => get_the_title($localized), 'url' => get_permalink($localized)];
+            }
+        }
+        array_splice($links, $about_at + 1, 0, $extra);
+        $group['links'] = $links;
     }
     return $group;
 }, array_values(array_filter(is_array($footer['groups'] ?? null) ? $footer['groups'] : [], 'is_array')));

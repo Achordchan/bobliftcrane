@@ -2592,6 +2592,75 @@
     qsa('[data-inview-video]').forEach((video) => videoObserver.observe(video));
   }
 
+  // Video library cards open one shared player: a local MP4 now, a YouTube embed once ids are set.
+  const videoDialog = qs('[data-video-dialog]');
+  if (videoDialog) {
+    const stage = qs('[data-video-stage]', videoDialog);
+    const title = qs('[data-video-dialog-title]', videoDialog);
+    let lastTrigger = null;
+    const closeVideo = () => {
+      stage.innerHTML = '';
+      videoDialog.classList.add('hidden');
+      videoDialog.classList.remove('flex');
+      videoDialog.setAttribute('aria-hidden', 'true');
+      document.documentElement.classList.remove('overflow-hidden');
+      lastTrigger?.focus();
+    };
+    const openVideo = (trigger) => {
+      lastTrigger = trigger;
+      const portrait = trigger.hasAttribute('data-video-portrait');
+      const size = portrait ? 'h-full max-h-full w-auto aspect-[9/16]' : 'w-full max-w-6xl aspect-video max-h-full';
+      stage.innerHTML = '';
+      if (trigger.dataset.videoPlayer === 'youtube' && trigger.dataset.videoYoutube) {
+        const frame = document.createElement('iframe');
+        frame.className = `${size} rounded-sm bg-black`;
+        frame.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(trigger.dataset.videoYoutube)}?autoplay=1&rel=0`;
+        frame.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+        frame.title = trigger.dataset.videoTitle || '';
+        stage.appendChild(frame);
+      } else {
+        const video = document.createElement('video');
+        video.className = `${size} rounded-sm bg-black object-contain`;
+        video.src = trigger.dataset.videoSrc;
+        video.controls = true;
+        video.autoplay = true;
+        video.playsInline = true;
+        stage.appendChild(video);
+        video.play().catch(() => {});
+      }
+      title.textContent = trigger.dataset.videoTitle || '';
+      videoDialog.setAttribute('aria-label', trigger.dataset.videoTitle || '');
+      videoDialog.classList.remove('hidden');
+      videoDialog.classList.add('flex');
+      videoDialog.setAttribute('aria-hidden', 'false');
+      document.documentElement.classList.add('overflow-hidden');
+      qs('[data-video-close]', videoDialog)?.focus();
+    };
+    document.addEventListener('click', (event) => {
+      const trigger = event.target.closest('[data-video-open]');
+      if (trigger) {
+        event.preventDefault();
+        openVideo(trigger);
+        return;
+      }
+      if (event.target.closest('[data-video-close]') || event.target === stage) closeVideo();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && !videoDialog.classList.contains('hidden')) closeVideo();
+    });
+  }
+
+  // Video center tabs filter the grid by group.
+  qsa('[data-video-filter-root]').forEach((root) => {
+    const tabs = qsa('[data-video-filter]', root);
+    const items = qsa('[data-video-group]', root);
+    tabs.forEach((tab) => tab.addEventListener('click', () => {
+      const group = tab.dataset.videoFilter;
+      tabs.forEach((other) => other.setAttribute('aria-pressed', String(other === tab)));
+      items.forEach((item) => item.classList.toggle('hidden', group !== 'all' && item.dataset.videoGroup !== group));
+    }));
+  });
+
   // Social shorts play one at a time.
   const socialVideos = qsa('[data-social-video]');
   socialVideos.forEach((video) => video.addEventListener('play', () => {

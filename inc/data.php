@@ -350,7 +350,10 @@ function boblift_about_page_defaults(): array
     return [
         'secondary_nav' => [
             ['label' => 'About Us', 'href' => '/about.html', 'slug' => 'about'],
+            ['label' => 'Factory Tour', 'href' => '/factory-tour.html', 'slug' => 'factory-tour'],
+            ['label' => 'Quality & Testing', 'href' => '/quality-testing.html', 'slug' => 'quality-testing'],
             ['label' => 'Global Customer Visits', 'href' => '/global-customer-visits.html', 'slug' => 'global-customer-visits'],
+            ['label' => 'Video Center', 'href' => '/videos.html', 'slug' => 'videos'],
             ['label' => 'Social Media', 'href' => '/social-media.html', 'slug' => 'social-media'],
             ['label' => 'Contact Us', 'href' => '/contact.html', 'slug' => 'contact'],
         ],
@@ -529,6 +532,19 @@ function boblift_about_page_options(): array
             $path = trim((string) wp_parse_url((string) ($item['href'] ?? ''), PHP_URL_PATH), '/');
             return !in_array($slug, boblift_retired_page_slugs(), true) && !in_array(preg_replace('/\.html$/', '', $path), boblift_retired_page_slugs(), true);
         }));
+        // Saved menus predate newer About pages; add any default child that is missing, after the one before it.
+        $saved_slugs = array_map(static fn(array $item): string => (string) ($item['slug'] ?? ''), $options['secondary_nav']);
+        $previous = '';
+        foreach (boblift_about_page_defaults()['secondary_nav'] as $default_child) {
+            $slug = (string) $default_child['slug'];
+            if (!in_array($slug, $saved_slugs, true)) {
+                $at = $previous !== '' ? array_search($previous, $saved_slugs, true) : false;
+                $position = $at === false ? count($options['secondary_nav']) : $at + 1;
+                array_splice($options['secondary_nav'], $position, 0, [$default_child]);
+                array_splice($saved_slugs, $position, 0, [$slug]);
+            }
+            $previous = $slug;
+        }
     }
     return $options;
 }

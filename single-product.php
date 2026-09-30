@@ -242,6 +242,11 @@ $process_sets = [
 ];
 $process_set = $process_sets[current(array_intersect(array_keys($process_sets), $process_slugs)) ?: ''] ?? '';
 $process_steps = $process_set !== '' ? array_values(array_filter((array) ($ui['processSteps'][$process_set] ?? []), static fn(mixed $step): bool => is_array($step) && trim((string) ($step['image'] ?? '')) !== '')) : [];
+$video_ui = boblift_site_ui('videoCenter');
+$series_video = boblift_product_series_video(get_the_ID());
+if ($series_video) {
+    $anchors[] = ['id' => 'video', 'label' => (string) ($video_ui['productVideoLabel'] ?? 'Product video')];
+}
 if ($process_steps) {
     $anchors[] = ['id' => 'process', 'label' => (string) ($ui['processLabel'] ?? 'Manufacturing & delivery')];
 }
@@ -484,6 +489,20 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                             <?php endforeach; ?>
                         </ul>
                     <?php endif; ?>
+                </article>
+            <?php endif; ?>
+            <?php if ($series_video) : ?>
+                <article id="video" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card">
+                    <div class="grid gap-6 p-6 md:p-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] lg:items-center lg:gap-10">
+                        <div>
+                            <p class="text-[11px] font-black uppercase tracking-[0.2em] text-[#0B3F7D]"><?php echo esc_html($video_ui['productVideoLabel'] ?? 'Product video'); ?></p>
+                            <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($video_ui['productVideoTitle'] ?? 'Watch this series in action'); ?></h2>
+                            <p class="mt-3 text-sm font-semibold leading-6 text-slate-500"><?php echo esc_html($video_ui['productVideoNote'] ?? ''); ?></p>
+                            <a class="mt-5 inline-flex items-center gap-1.5 text-sm font-black text-blue-700 hover:text-blue-900" href="<?php echo esc_url(boblift_url('/videos.html')); ?>"><?php echo esc_html($video_ui['moreVideosLabel'] ?? 'More videos'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
+                        </div>
+                        <?php boblift_render_video_card($series_video); ?>
+                    </div>
+                    <?php boblift_render_video_player(); ?>
                 </article>
             <?php endif; ?>
             <?php if ($process_steps) :

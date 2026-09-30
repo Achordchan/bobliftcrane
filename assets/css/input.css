@@ -30,6 +30,7 @@ img { max-width: 100%; }
   .section-label { @apply text-xs font-extrabold uppercase tracking-[0.2em] text-gold lg:text-sm; }
   .card-hover { @apply transition duration-300 hover:-translate-y-2; }
   .nav-icon-btn { @apply inline-flex h-14 items-center justify-center gap-2 rounded-sm border border-line bg-white px-5 text-sm font-black text-navy shadow-card transition hover:-translate-y-0.5 hover:border-blue-200; }
+  .boblift-video-tab { @apply inline-flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm border border-line bg-white px-4 text-sm font-black text-ink transition hover:border-ink/30 aria-pressed:border-navy aria-pressed:bg-navy aria-pressed:text-white; }
   .floating-contact-link { @apply relative grid size-11 shrink-0 place-items-center rounded-sm border border-line bg-white text-[11px] font-black text-navy transition hover:border-blue-200 hover:text-blue-700 min-[1780px]:size-12; }
   /* Below 1024px the contact bar is docked to the bottom edge; the quote list button sits just above it. */
   .boblift-quote-list-float { @apply fixed z-[90]; right: 16px; bottom: calc(72px + env(safe-area-inset-bottom)); }

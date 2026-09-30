@@ -29,3 +29,6 @@ var/
 
 # Customer feedback media: built by tools/feedback/build.py from the shared folder, copied to the server for apply.php.
 tools/feedback/media/
+
+# Video library MP4s: local preview only, uploaded to YouTube at launch (see inc/video-library.php).
+assets/videos/library/
