@@ -167,6 +167,7 @@ function boblift_static_text_translations(): array
             'Site photos' => '現場写真',
             'Product details' => '製品詳細',
             'Click an image to enlarge' => '画像をクリックで拡大',
+            'Moment' => 'モーメント',
             'BOB-LIFT assembly workshop in Xuzhou' => '徐州のBOB-LIFT組立工場',
             'BOB-LIFT technician assembling a crane column' => 'クレーンのコラムを組み立てるBOB-LIFTの技術者',
             'Finishing a boom section in the BOB-LIFT workshop' => 'BOB-LIFT工場でのブーム仕上げ作業',
@@ -247,6 +248,7 @@ function boblift_static_text_translations(): array
             'Site photos' => '现场照片',
             'Product details' => '产品详情',
             'Click an image to enlarge' => '点击图片查看大图',
+            'Moment' => '力矩',
             'BOB-LIFT assembly workshop in Xuzhou' => 'BOB-LIFT 徐州装配车间',
             'BOB-LIFT technician assembling a crane column' => 'BOB-LIFT 技术工人装配起重机立柱',
             'Finishing a boom section in the BOB-LIFT workshop' => 'BOB-LIFT 车间打磨吊臂',
@@ -618,6 +620,7 @@ function boblift_site_ui_defaults(?string $section = null): array
             'applicationFilterLabel' => 'Application',
             'availabilityFilterLabel' => 'Availability',
             'momentFilterLabel' => 'Lifting Moment',
+            'momentShortLabel' => 'Moment',
             'weightFilterLabel' => 'Crane Self Weight',
             // Filter bins from the brochure spec ranges; value "min-max" or "min+" (tonnes, t·m, kg).
             'capacityBins' => ['0-2' => 'Up to 2 t', '2-5' => '2–5 t', '5-10' => '5–10 t', '10-20' => '10–20 t', '20+' => 'Over 20 t'],
