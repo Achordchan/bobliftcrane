@@ -50,12 +50,42 @@ $data = array (
         'image' => 
         array (
           'id' => 0,
+          'path' => 'certifications/cert-iso-9001-marine.webp',
+        ),
+        'title' => 'ISO 9001 Quality Management · Marine',
+        'text' => 'Marine crane production · valid to 04/2029',
+      ),
+      4 => 
+      array (
+        'image' => 
+        array (
+          'id' => 0,
           'path' => 'certifications/cert-iso-14001.webp',
         ),
         'title' => 'ISO 14001 Environmental Management',
         'text' => 'Truck-mounted crane production · valid to 07/2029',
       ),
-      4 => 
+      5 => 
+      array (
+        'image' => 
+        array (
+          'id' => 0,
+          'path' => 'certifications/cert-trademark-china-boblift.webp',
+        ),
+        'title' => 'BOB-LIFT Trademark · China',
+        'text' => 'Registration No. 26579311 · valid to 04/2029',
+      ),
+      6 => 
+      array (
+        'image' => 
+        array (
+          'id' => 0,
+          'path' => 'certifications/cert-trademark-china-babu.webp',
+        ),
+        'title' => '巴布 (BABU) Trademark · China',
+        'text' => 'Registration No. 27469741, cranes · valid to 12/2028',
+      ),
+      7 => 
       array (
         'image' => 
         array (
@@ -65,7 +95,7 @@ $data = array (
         'title' => 'BOB-LIFT Trademark · Russia',
         'text' => 'Registration No. 1211725 · valid to 11/2034',
       ),
-      5 => 
+      8 => 
       array (
         'image' => 
         array (
@@ -75,7 +105,7 @@ $data = array (
         'title' => 'Support mechanism for truck-mounted cranes',
         'text' => 'Utility model patent · ZL 2019 2 1991835.2',
       ),
-      6 => 
+      9 => 
       array (
         'image' => 
         array (
@@ -85,7 +115,7 @@ $data = array (
         'title' => 'Crane for pickup trucks',
         'text' => 'Utility model patent · ZL 2020 2 0116421.1',
       ),
-      7 => 
+      10 => 
       array (
         'image' => 
         array (
@@ -95,7 +125,7 @@ $data = array (
         'title' => 'Aerial work platform for truck-mounted cranes',
         'text' => 'Utility model patent · ZL 2020 2 0005335.3',
       ),
-      8 => 
+      11 => 
       array (
         'image' => 
         array (
@@ -105,7 +135,7 @@ $data = array (
         'title' => 'Buffer device for truck-mounted brick clamps',
         'text' => 'Utility model patent · ZL 2020 2 0118784.9',
       ),
-      9 => 
+      12 => 
       array (
         'image' => 
         array (
@@ -159,12 +189,42 @@ $data = array (
         'image' => 
         array (
           'id' => 0,
+          'path' => 'certifications/cert-iso-9001-marine.webp',
+        ),
+        'title' => 'ISO 9001 品質マネジメント · マリン',
+        'text' => 'マリンクレーンの製造 · 2029年4月まで有効',
+      ),
+      4 => 
+      array (
+        'image' => 
+        array (
+          'id' => 0,
           'path' => 'certifications/cert-iso-14001.webp',
         ),
         'title' => 'ISO 14001 環境マネジメント',
         'text' => 'トラック搭載クレーンの製造 · 2029年7月まで有効',
       ),
-      4 => 
+      5 => 
+      array (
+        'image' => 
+        array (
+          'id' => 0,
+          'path' => 'certifications/cert-trademark-china-boblift.webp',
+        ),
+        'title' => 'BOB-LIFT商標 · 中国',
+        'text' => '登録番号 26579311 · 2029年4月まで有効',
+      ),
+      6 => 
+      array (
+        'image' => 
+        array (
+          'id' => 0,
+          'path' => 'certifications/cert-trademark-china-babu.webp',
+        ),
+        'title' => '「巴布」商標 · 中国',
+        'text' => '登録番号 27469741（クレーン等） · 2028年12月まで有効',
+      ),
+      7 => 
       array (
         'image' => 
         array (
@@ -174,7 +234,7 @@ $data = array (
         'title' => 'BOB-LIFT商標 · ロシア',
         'text' => '登録番号 1211725 · 2034年11月まで有効',
       ),
-      5 => 
+      8 => 
       array (
         'image' => 
         array (
@@ -184,7 +244,7 @@ $data = array (
         'title' => 'トラック搭載クレーンの支持機構',
         'text' => '実用新案特許 · ZL 2019 2 1991835.2',
       ),
-      6 => 
+      9 => 
       array (
         'image' => 
         array (
@@ -194,7 +254,7 @@ $data = array (
         'title' => 'ピックアップトラック用クレーン',
         'text' => '実用新案特許 · ZL 2020 2 0116421.1',
       ),
-      7 => 
+      10 => 
       array (
         'image' => 
         array (
@@ -204,7 +264,7 @@ $data = array (
         'title' => 'トラック搭載クレーン用高所作業台',
         'text' => '実用新案特許 · ZL 2020 2 0005335.3',
       ),
-      8 => 
+      11 => 
       array (
         'image' => 
         array (
@@ -214,7 +274,7 @@ $data = array (
         'title' => 'トラック搭載レンガクランプ用緩衝装置',
         'text' => '実用新案特許 · ZL 2020 2 0118784.9',
       ),
-      9 => 
+      12 => 
       array (
         'image' => 
         array (
@@ -268,12 +328,42 @@ $data = array (
         'image' => 
         array (
           'id' => 0,
+          'path' => 'certifications/cert-iso-9001-marine.webp',
+        ),
+        'title' => 'ISO 9001 质量管理体系 · 船用',
+        'text' => '船用起重机的生产 · 有效期至 2029 年 4 月',
+      ),
+      4 => 
+      array (
+        'image' => 
+        array (
+          'id' => 0,
           'path' => 'certifications/cert-iso-14001.webp',
         ),
         'title' => 'ISO 14001 环境管理体系',
         'text' => '随车起重机的生产 · 有效期至 2029 年 7 月',
       ),
-      4 => 
+      5 => 
+      array (
+        'image' => 
+        array (
+          'id' => 0,
+          'path' => 'certifications/cert-trademark-china-boblift.webp',
+        ),
+        'title' => 'BOB-LIFT 商标 · 中国',
+        'text' => '注册号 26579311 · 有效期至 2029 年 4 月',
+      ),
+      6 => 
+      array (
+        'image' => 
+        array (
+          'id' => 0,
+          'path' => 'certifications/cert-trademark-china-babu.webp',
+        ),
+        'title' => '“巴布”商标 · 中国',
+        'text' => '注册号 27469741，含起重机 · 有效期至 2028 年 12 月',
+      ),
+      7 => 
       array (
         'image' => 
         array (
@@ -283,7 +373,7 @@ $data = array (
         'title' => 'BOB-LIFT 商标 · 俄罗斯',
         'text' => '注册号 1211725 · 有效期至 2034 年 11 月',
       ),
-      5 => 
+      8 => 
       array (
         'image' => 
         array (
@@ -293,7 +383,7 @@ $data = array (
         'title' => '一种随车起重机的支撑机构',
         'text' => '实用新型专利 · ZL 2019 2 1991835.2',
       ),
-      6 => 
+      9 => 
       array (
         'image' => 
         array (
@@ -303,7 +393,7 @@ $data = array (
         'title' => '一种皮卡车上的随车吊',
         'text' => '实用新型专利 · ZL 2020 2 0116421.1',
       ),
-      7 => 
+      10 => 
       array (
         'image' => 
         array (
@@ -313,7 +403,7 @@ $data = array (
         'title' => '一种车载随车吊高空作业台',
         'text' => '实用新型专利 · ZL 2020 2 0005335.3',
       ),
-      8 => 
+      11 => 
       array (
         'image' => 
         array (
@@ -323,7 +413,7 @@ $data = array (
         'title' => '一种随车夹砖机上用缓冲装置',
         'text' => '实用新型专利 · ZL 2020 2 0118784.9',
       ),
-      9 => 
+      12 => 
       array (
         'image' => 
         array (
