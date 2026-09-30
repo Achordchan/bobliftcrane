@@ -90,7 +90,6 @@ $about_nav_default_children = [
     ['label' => 'About Us', 'href' => '/about.html', 'slug' => 'about'],
     ['label' => 'Global Customer Visits', 'href' => '/global-customer-visits.html', 'slug' => 'global-customer-visits'],
     ['label' => 'Social Media', 'href' => '/social-media.html', 'slug' => 'social-media'],
-    ['label' => 'Public Welfare', 'href' => '/public-welfare.html', 'slug' => 'public-welfare'],
     ['label' => 'Contact Us', 'href' => '/contact.html', 'slug' => 'contact'],
 ];
 $about_nav_source = is_array($about_page_options['secondary_nav'] ?? null) ? $about_page_options['secondary_nav'] : $about_nav_default_children;

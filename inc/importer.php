@@ -129,7 +129,6 @@ function boblift_import_current_content(): void
         ['About BOB-LIFT', 'about', 'page-about.php', '/about.html'],
         ['Global Customer Visits', 'global-customer-visits', 'page-global-customer-visits.php', '/global-customer-visits.html'],
         ['Social Media', 'social-media', 'page-social-media.php', '/social-media.html'],
-        ['Public Welfare', 'public-welfare', 'page-public-welfare.php', '/public-welfare.html'],
         ['News', 'news', 'page-news.php', '/news.html'],
         ['Contact Us', 'contact', 'page-contact.php', '/contact.html'],
         ['Privacy Policy', 'privacy-policy', 'page-privacy-policy.php', '/privacy-policy.html'],
@@ -148,7 +147,7 @@ function boblift_import_current_content(): void
         $page_ids[$slug] = $id;
     }
     if (!empty($page_ids['about']) && !is_wp_error($page_ids['about'])) {
-        foreach (['global-customer-visits', 'social-media', 'public-welfare', 'contact'] as $child_slug) {
+        foreach (['global-customer-visits', 'social-media', 'contact'] as $child_slug) {
             if (!empty($page_ids[$child_slug]) && !is_wp_error($page_ids[$child_slug])) {
                 wp_update_post([
                     'ID' => (int) $page_ids[$child_slug],

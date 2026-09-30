@@ -352,7 +352,6 @@ function boblift_about_page_defaults(): array
             ['label' => 'About Us', 'href' => '/about.html', 'slug' => 'about'],
             ['label' => 'Global Customer Visits', 'href' => '/global-customer-visits.html', 'slug' => 'global-customer-visits'],
             ['label' => 'Social Media', 'href' => '/social-media.html', 'slug' => 'social-media'],
-            ['label' => 'Public Welfare', 'href' => '/public-welfare.html', 'slug' => 'public-welfare'],
             ['label' => 'Contact Us', 'href' => '/contact.html', 'slug' => 'contact'],
         ],
         'logo' => [
@@ -519,7 +518,25 @@ function boblift_about_page_defaults(): array
 function boblift_about_page_options(): array
 {
     $value = boblift_option('about_page', []);
-    return boblift_array_replace_recursive(boblift_about_page_defaults(), is_array($value) ? $value : []);
+    $options = boblift_array_replace_recursive(boblift_about_page_defaults(), is_array($value) ? $value : []);
+    // Saved menus in every language still list retired pages; drop them so the About menu never links to a redirect.
+    if (is_array($options['secondary_nav'] ?? null)) {
+        $options['secondary_nav'] = array_values(array_filter($options['secondary_nav'], static function ($item): bool {
+            if (!is_array($item)) {
+                return false;
+            }
+            $slug = (string) ($item['slug'] ?? '');
+            $path = trim((string) wp_parse_url((string) ($item['href'] ?? ''), PHP_URL_PATH), '/');
+            return !in_array($slug, boblift_retired_page_slugs(), true) && !in_array(preg_replace('/\.html$/', '', $path), boblift_retired_page_slugs(), true);
+        }));
+    }
+    return $options;
+}
+
+// Pages taken off this site; their URLs redirect to About. Public Welfare moves to the group site boblift.com.
+function boblift_retired_page_slugs(): array
+{
+    return ['public-welfare'];
 }
 
 function boblift_options(): array

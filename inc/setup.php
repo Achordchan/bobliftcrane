@@ -300,7 +300,7 @@ add_filter('wp_sitemaps_add_provider', 'boblift_remove_public_user_sitemap', 10,
 function boblift_utility_page_ids(): array
 {
     $ids = [];
-    foreach (['success', 'quote'] as $slug) {
+    foreach (array_merge(['success', 'quote'], function_exists('boblift_retired_page_slugs') ? boblift_retired_page_slugs() : []) as $slug) {
         $page = get_page_by_path($slug, OBJECT, 'page');
         if (!$page instanceof WP_Post) {
             continue;
@@ -324,6 +324,24 @@ function boblift_noindex_utility_pages(array $robots): array
     return $robots;
 }
 add_filter('wp_robots', 'boblift_noindex_utility_pages');
+
+function boblift_redirect_retired_pages(): void
+{
+    if (is_admin() || !is_page() || !function_exists('boblift_page_is_translation_of_slug')) {
+        return;
+    }
+    $page = get_queried_object();
+    if (!$page instanceof WP_Post) {
+        return;
+    }
+    foreach (boblift_retired_page_slugs() as $slug) {
+        if (boblift_page_is_translation_of_slug($page, $slug)) {
+            wp_safe_redirect(boblift_url('/about.html'), 301);
+            exit;
+        }
+    }
+}
+add_action('template_redirect', 'boblift_redirect_retired_pages', 1);
 
 function boblift_exclude_utility_pages_from_sitemap(array $args, string $post_type): array
 {
