@@ -183,8 +183,9 @@ function boblift_render_catalog_modal(): void
     }
     $ui = function_exists('boblift_site_ui') ? boblift_site_ui('productDetail') : [];
     $catalog_ui = is_array($ui['catalogLead'] ?? null) ? $ui['catalogLead'] : [];
+    $brochure_ui = function_exists('boblift_site_ui') ? boblift_site_ui('brochures') : [];
     ?>
-    <div class="fixed inset-0 z-[270] hidden items-end justify-center bg-[#071f42]/45 p-0 backdrop-blur-sm md:items-center md:p-6" data-catalog-modal aria-hidden="true">
+    <div class="fixed inset-0 z-[270] hidden items-end justify-center bg-[#071f42]/45 p-0 backdrop-blur-sm md:items-center md:p-6" data-catalog-modal data-catalog-direct-text="<?php echo esc_attr($brochure_ui['modalDirectText'] ?? ''); ?>" aria-hidden="true">
         <button class="absolute inset-0 h-full w-full cursor-default" type="button" data-catalog-modal-close aria-label="<?php echo esc_attr($catalog_ui['closeLabel'] ?? 'Close catalog request'); ?>"></button>
         <div class="relative w-full max-w-[560px] overflow-hidden rounded-t border border-white/70 bg-white shadow-card " role="dialog" aria-modal="true" aria-labelledby="catalog-modal-title" tabindex="-1">
             <form class="p-5 md:p-7" method="post" action="<?php echo boblift_catalog_action_url(); ?>" data-catalog-form novalidate>
@@ -203,6 +204,7 @@ function boblift_render_catalog_modal(): void
                     </div>
                     <button class="grid h-10 w-10 shrink-0 place-items-center rounded-sm border border-line bg-white text-slate-500 transition hover:border-blue-200 hover:text-blue-700" type="button" data-catalog-modal-close aria-label="<?php echo esc_attr($catalog_ui['closeLabel'] ?? 'Close catalog request'); ?>"><?php echo boblift_icon('x', 'h-5 w-5'); ?></button>
                 </div>
+                <a class="mt-5 hidden h-11 items-center justify-center gap-2 rounded-sm border border-line bg-white px-5 text-sm font-black text-navy transition hover:border-blue-300" href="#" download data-catalog-direct-link><?php echo boblift_icon('download', 'h-4 w-4'); ?><?php echo esc_html($brochure_ui['modalDirectLabel'] ?? 'Download the PDF now'); ?></a>
                 <div class="mt-5 hidden rounded border border-line bg-[#f8fbff] p-3 text-sm font-semibold leading-6 text-slate-600" data-catalog-status role="status"></div>
                 <div class="mt-5 grid gap-4 sm:grid-cols-2">
                     <label class="block sm:col-span-2">
