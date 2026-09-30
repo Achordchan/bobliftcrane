@@ -216,10 +216,16 @@ foreach (['中国徐州', 'Xuzhou, China', '起重设备制造商', 'crane manuf
                     <?php foreach ($certification_items as $certification) :
                         $certification_image_url = boblift_image_setting_url($certification['image'], (string) ($certification['image']['path'] ?? ''));
                         $certification_title_text = $certification['title'] !== '' ? $certification['title'] : $certification_label;
+                        // Cards show the light "-sm" scan shipped next to theme documents; the viewer opens the full page.
+                        $certification_path = (string) ($certification['image']['path'] ?? '');
+                        $certification_small = preg_replace('/\.webp$/', '-sm.webp', $certification_path);
+                        $certification_card_url = (int) ($certification['image']['id'] ?? 0) === 0 && $certification_small !== $certification_path && is_readable(get_template_directory() . '/assets/' . $certification_small)
+                            ? boblift_image_src($certification_small)
+                            : $certification_image_url;
                     ?>
                     <button class="about-certification-card group w-[230px] shrink-0 cursor-zoom-in rounded border border-[#DDE7F2] bg-white p-2 text-left shadow-card transition hover:-translate-y-1 hover:border-[#BFD2EA] md:w-[270px]" type="button"<?php echo $track_index === 1 ? ' tabindex="-1"' : ''; ?> data-certification-open data-certification-src="<?php echo esc_url($certification_image_url); ?>" data-certification-title="<?php echo esc_attr($certification_title_text); ?>">
                         <span class="block overflow-hidden rounded bg-[#F8FAFC] ring-1 ring-[#E5E7EB]">
-                            <img class="aspect-[4/5] w-full object-contain p-3 transition duration-500 group-hover:scale-[1.02]" src="<?php echo esc_url($certification_image_url); ?>" alt="<?php echo esc_attr($certification_title_text); ?>" loading="lazy" decoding="async">
+                            <img class="aspect-[5/7] w-full object-contain p-2 transition duration-500 group-hover:scale-[1.02]" src="<?php echo esc_url($certification_card_url); ?>" alt="<?php echo esc_attr($certification_title_text); ?>" loading="lazy" decoding="async">
                         </span>
                         <span class="block px-2 pb-2 pt-4">
                             <span class="line-clamp-2 text-sm font-black leading-tight text-[#0B1B33]"><?php echo esc_html($certification_title_text); ?></span>
