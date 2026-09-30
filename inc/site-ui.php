@@ -1023,6 +1023,7 @@ function boblift_site_ui_defaults(?string $section = null): array
             'title' => 'BOB-LIFT sites',
             'mobileTitle' => 'Other BOB-LIFT sites',
             'currentLabel' => 'Current',
+            'footerNote' => 'BOB-LIFT Cranes is the lifting equipment site of the BOB-LIFT Group. Visit the group site at boblift.com, or see our loading equipment at bobliftloader.com.',
             'sites' => [
                 ['label' => 'BOB-LIFT Group', 'short' => 'Group', 'domain' => 'boblift.com', 'url' => 'https://boblift.com/'],
                 ['label' => 'Lifting Equipment', 'short' => 'Cranes', 'domain' => 'bobliftcrane.com', 'current' => true],

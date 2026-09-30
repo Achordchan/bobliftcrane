@@ -275,7 +275,7 @@ function boblift_privacy_policy_page_defaults(): array
         'title' => 'Privacy Policy',
         'description' => 'This page explains how BOB-LIFT handles contact, inquiry and website usage information submitted through this website.',
         'updated_label' => 'Last updated:',
-        'updated' => '2026-06-29',
+        'updated' => '2026-09-30',
         'side_title' => 'Scope',
         'side_text' => 'This policy applies to BOB-LIFT website forms, catalog requests, quote requests and direct business communication initiated through the site.',
         'sections' => [
@@ -283,7 +283,11 @@ function boblift_privacy_policy_page_defaults(): array
             ['title' => 'How we use information', 'text' => 'We use submitted information to respond to inquiries, prepare quotations, send requested catalog materials, provide product selection support, arrange after-sales communication and improve website service quality.'],
             ['title' => 'Sharing and disclosure', 'text' => 'BOB-LIFT does not sell personal information. We only share necessary information with internal sales, engineering, logistics or service teams when required to respond to your request. Information may also be processed by trusted website, email, analytics or security service providers.'],
             ['title' => 'Data retention', 'text' => 'Business inquiry records are kept only as long as needed for communication, quotation, project follow-up, legal compliance and legitimate business record keeping.'],
-            ['title' => 'Your choices', 'text' => 'You may contact BOB-LIFT to request access, correction or deletion of your inquiry information, subject to applicable business, legal and technical limitations.'],
+            ['title' => 'Cookies and browser storage', 'text' => 'This website does not use advertising or cross-site tracking cookies. The spam check on our forms (Cloudflare Turnstile) may set cookies it needs to tell people from bots. Your quote list and display preferences, such as grid or list view on the news page, are kept in your own browser\'s local storage and are only sent to us when you submit a form. You can clear them at any time in your browser settings.'],
+            ['title' => 'Third-party services', 'text' => 'Some features load content from other companies: the map on the contact page comes from Google Maps, videos are played through YouTube in its privacy-enhanced mode, and form protection is provided by Cloudflare Turnstile. When you use these features, those companies may receive your IP address and browser information under their own privacy policies. To pre-fill the country field in our forms, the website estimates your country from your IP address; the IP address itself is not stored with your inquiry.'],
+            ['title' => 'International transfers', 'text' => 'BOB-LIFT is based in Xuzhou, China. Information you submit is handled by our team in China and may be processed by the service providers named above in other countries. We only transfer what is needed to answer your request.'],
+            ['title' => 'Your choices', 'text' => 'You may contact BOB-LIFT to request access, correction or deletion of your inquiry information, subject to applicable business, legal and technical limitations.' . "\n\n" . 'If you are in the European Union, the United Kingdom or another region with data protection laws, you may also object to or ask us to limit how we use your information. We aim to reply to every request within 30 days.'],
+            ['title' => 'Changes to this policy', 'text' => 'We may update this policy when our website or services change. The date at the top of this page shows when it was last updated.'],
             ['title' => 'Contact', 'text' => 'For privacy questions, contact us at info@bobliftcrane.com or through the contact page on this website.'],
         ],
     ];
@@ -302,14 +306,17 @@ function boblift_terms_of_use_page_defaults(): array
         'title' => 'Terms of Use',
         'description' => 'These terms explain the basic conditions for using BOB-LIFT website information, product materials and inquiry services.',
         'updated_label' => 'Last updated:',
-        'updated' => '2026-06-29',
+        'updated' => '2026-09-30',
         'sections' => [
             ['title' => 'Website information', 'text' => 'Product images, technical descriptions, capacity references and application notes are provided for general business reference. Final specifications, configurations and quotations must be confirmed in writing by BOB-LIFT.'],
             ['title' => 'Product selection', 'text' => 'Crane model selection depends on load, working radius, chassis, installation conditions, local regulations and project requirements. Website information should not replace engineering confirmation.'],
             ['title' => 'Intellectual property', 'text' => 'BOB-LIFT names, product materials, photos, text, layout and other website content may not be copied, modified or reused for commercial purposes without written permission.'],
             ['title' => 'User submissions', 'text' => 'When submitting forms, you agree to provide accurate business contact and project information. Do not submit unlawful, misleading, abusive or unrelated content.'],
             ['title' => 'External links and services', 'text' => 'The website may link to external maps, social platforms, video platforms or service providers. Their content and policies are controlled by those third parties.'],
+            ['title' => 'Prices, quotations and orders', 'text' => 'Prices, promotions, lead times and stock information shown on the website are for reference only and may change without notice. An order is binding only when BOB-LIFT confirms it in a written quotation, proforma invoice or contract, and those documents take precedence over the website.'],
             ['title' => 'Limitation of liability', 'text' => 'BOB-LIFT works to keep website information accurate, but does not guarantee uninterrupted availability or that all content is free from errors. Business decisions should rely on confirmed quotations and technical documents.'],
+            ['title' => 'Governing law', 'text' => 'These terms are governed by the laws of the People\'s Republic of China. Any dispute about the use of this website should first be settled through friendly discussion.'],
+            ['title' => 'Changes to these terms', 'text' => 'We may update these terms from time to time. The date at the top of this page shows the current version, and continued use of the website means you accept it.'],
         ],
     ];
 }

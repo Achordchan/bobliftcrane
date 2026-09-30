@@ -1636,6 +1636,14 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
 .boblift-article-body th { background: #f8fafc; color: var(--ink); font-weight: 600; }
 .boblift-article-body pre { overflow-x: auto; border-radius: 4px; background: #0f172a; padding: 1rem; color: #e2e8f0; font-size: .875rem; }
 .boblift-article-body hr { border: 0; border-top: 1px solid var(--line, #e5e7eb); margin: 2.5em 0; }
+.boblift-legal-intro { border-bottom: 1px solid var(--line); padding-bottom: 1.5em; color: var(--ink); font-size: 1.1875rem; line-height: 1.7; }
+.boblift-legal-body h2 { display: flex; align-items: baseline; gap: .75rem; }
+.boblift-legal-body h2:first-child { margin-top: 0; }
+.boblift-legal-intro + h2 { margin-top: 1.75em; }
+.boblift-legal-number { flex: none; color: #94a3b8; font-size: .875rem; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: .04em; }
+.boblift-sitemap-group { break-inside: avoid; }
+.boblift-sitemap-link { padding: .25rem 0; line-height: 1.45; transition: color .15s; }
+.boblift-sitemap-link:hover { color: #1d4ed8; }
 .boblift-news-toc-list { counter-reset: toc; display: grid; gap: .125rem; }
 .boblift-news-toc-list li { counter-increment: toc; }
 .boblift-news-toc-list a { display: grid; grid-template-columns: 1.5rem minmax(0, 1fr); gap: .25rem; border-radius: 2px; padding: .4rem .25rem; color: #475569; font-size: .875rem; font-weight: 600; line-height: 1.4; transition: color .15s, background-color .15s; }

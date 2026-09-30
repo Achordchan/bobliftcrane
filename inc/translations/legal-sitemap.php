@@ -1,0 +1,31 @@
+<?php
+return [
+    'ja' => [
+        'On this page' => 'このページの内容',
+        'Questions about this page?' => 'このページについてのご質問',
+        'Write to us and we will reply by email.' => 'お問い合わせいただければ、メールでご返信します。',
+        'Contact page' => 'お問い合わせページ',
+        'Company' => '会社情報',
+        'Service and support' => 'サービスとサポート',
+        'Products, cases and news' => '製品・事例・ニュース',
+        'Legal' => '規約とポリシー',
+        'Customer cases' => '導入事例',
+        'All news' => 'ニュース一覧',
+        'All cases' => '事例一覧',
+        '{count} products' => '{count} 製品',
+    ],
+    'zh' => [
+        'On this page' => '本页目录',
+        'Questions about this page?' => '对本页内容有疑问？',
+        'Write to us and we will reply by email.' => '来信咨询，我们会通过邮件回复您。',
+        'Contact page' => '联系我们页面',
+        'Company' => '公司',
+        'Service and support' => '服务与支持',
+        'Products, cases and news' => '产品、案例与新闻',
+        'Legal' => '条款与政策',
+        'Customer cases' => '客户案例',
+        'All news' => '全部新闻',
+        'All cases' => '全部案例',
+        '{count} products' => '{count} 款产品',
+    ],
+];

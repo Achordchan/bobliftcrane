@@ -79,6 +79,28 @@ $footer_link_groups = array_map(static function (array $group): array {
             <div class="border-b border-line pb-8 md:border-b-0 md:pr-9 xl:pr-12 2xl:pr-16">
                 <a href="<?php echo esc_url(home_url('/')); ?>"><?php echo boblift_img_from_setting($branding['logo'] ?? 'images/bob-lift-logo.png', 'images/bob-lift-logo.png', $branding['logo_alt'] ?? 'BOB-LIFT', 'h-[52px] w-auto 2xl:h-[64px]'); ?></a>
                 <p class="mt-6 max-w-[34rem] text-sm font-medium leading-6 text-slate-500 md:max-w-[360px] md:text-base md:leading-7 2xl:max-w-[440px]"><?php echo esc_html($footer['intro'] ?? 'Engineered lifting solutions for global projects. Built to lift. Built to last.'); ?></p>
+                <?php
+                // This site is the crane vertical of the BOB-LIFT Group: say so and link the group and loader sites.
+                $network_ui = boblift_site_ui('siteSwitcher');
+                $network_sites = array_values(array_filter((array) ($network_ui['sites'] ?? []), static fn($site): bool => is_array($site) && trim((string) ($site['label'] ?? '')) !== '' && (!empty($site['current']) || trim((string) ($site['url'] ?? '')) !== '')));
+                ?>
+                <?php if ($network_sites !== []) : ?>
+                    <div class="mt-7 max-w-[34rem] border-t border-line pt-5 md:max-w-[360px] 2xl:max-w-[440px]">
+                        <h3 class="text-xs font-black uppercase tracking-[0.14em] text-navy"><?php echo esc_html((string) ($network_ui['title'] ?? 'BOB-LIFT sites')); ?></h3>
+                        <p class="mt-2 text-sm font-medium leading-6 text-slate-500"><?php echo esc_html((string) ($network_ui['footerNote'] ?? '')); ?></p>
+                        <ul class="mt-3 grid gap-1.5 text-sm">
+                            <?php foreach ($network_sites as $site) : $is_current = !empty($site['current']); ?>
+                                <li>
+                                    <?php if ($is_current) : ?>
+                                        <span class="inline-flex flex-wrap items-baseline gap-x-2 font-bold text-ink"><?php echo esc_html((string) $site['label']); ?> <span class="font-semibold text-slate-400"><?php echo esc_html((string) ($site['domain'] ?? '')); ?></span> <span class="rounded-sm border border-line bg-white px-1.5 py-px text-[11px] font-black uppercase tracking-[0.08em] text-slate-500"><?php echo esc_html((string) ($network_ui['currentLabel'] ?? 'Current')); ?></span></span>
+                                    <?php else : ?>
+                                        <a class="group inline-flex flex-wrap items-baseline gap-x-2 font-bold text-navy transition hover:text-blue-700" href="<?php echo esc_url((string) $site['url']); ?>" target="_blank" rel="noopener"><?php echo esc_html((string) $site['label']); ?> <span class="font-semibold text-slate-400 transition group-hover:text-blue-700"><?php echo esc_html((string) ($site['domain'] ?? '')); ?></span><?php echo boblift_icon('arrow-up-right', 'h-3.5 w-3.5 self-center text-slate-400 transition group-hover:text-blue-700'); ?></a>
+                                    <?php endif; ?>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                <?php endif; ?>
                 <?php if ($footer_social_links !== []) : ?>
                     <div class="mt-6 flex flex-wrap items-center gap-4">
                         <?php foreach ($footer_social_links as $link) :
