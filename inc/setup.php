@@ -139,7 +139,7 @@ function boblift_seo_default_description_for_post(WP_Post $post): string
             $ui = function_exists('boblift_site_ui') ? boblift_site_ui('quotePage') : [];
             return boblift_localize_seo_text((string) ($ui['heroDescription'] ?? 'Request a tailored BOB-LIFT quotation for your lifting requirement.'));
         }
-        foreach (['factory-tour' => 'factoryTour', 'quality-testing' => 'qualityTesting', 'videos' => 'videoCenter'] as $slug => $section) {
+        foreach (['factory-tour' => 'factoryTour', 'quality-testing' => 'qualityTesting', 'mounting-shipping' => 'mountingShipping', 'service' => 'service', 'videos' => 'videoCenter'] as $slug => $section) {
             if (function_exists('boblift_page_is_translation_of_slug') && boblift_page_is_translation_of_slug($post, $slug)) {
                 $ui = function_exists('boblift_site_ui') ? boblift_site_ui($section) : [];
                 return (string) ($ui['heroText'] ?? '');

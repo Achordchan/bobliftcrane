@@ -593,7 +593,7 @@ function boblift_cleanup_admin_options(array $options): array
             $options['social_media_page']['content_cards'] = array_values($cards);
         }
         if (isset($options['social_media_page']['videos']) && is_array($options['social_media_page']['videos'])) {
-            $options['social_media_page']['videos'] = array_values(array_filter($options['social_media_page']['videos'], static fn($row): bool => is_array($row) && boblift_admin_value_has_content($row['video'] ?? [])));
+            $options['social_media_page']['videos'] = array_values(array_filter($options['social_media_page']['videos'], static fn($row): bool => is_array($row) && (boblift_admin_value_has_content($row['video'] ?? []) || trim((string) ($row['youtube'] ?? '')) !== '')));
         }
         if (isset($options['social_media_page']['panel']['items']) && is_array($options['social_media_page']['panel']['items'])) {
             $options['social_media_page']['panel']['items'] = array_values(array_filter($options['social_media_page']['panel']['items'], static fn($row): bool => is_array($row) && boblift_admin_value_has_content($row['text'] ?? '')));
@@ -1809,6 +1809,8 @@ function boblift_admin_site_ui_section_label(string $section): string
         'videoCenter' => '视频中心 / 产品页视频',
         'qualityTesting' => '质量与测试页面',
         'factoryTour' => '工厂实景页面',
+        'mountingShipping' => '装车与出口页面',
+        'service' => '售后与操作页面',
         'search' => '站内搜索',
         'siteSwitcher' => '站点切换',
     ][$section] ?? $section;
@@ -2370,7 +2372,8 @@ function boblift_render_social_media_page_fields(array $social, string $base): v
         <?php for ($i = 0; $i < max(3, count($videos) + 1); $i++) : ?>
             <?php boblift_admin_subpanel('短视频 ' . (string) ($i + 1), static function () use ($social, $base, $i): void { ?>
                 <?php boblift_admin_input("videos.$i.title", $social, '标题', $base); ?>
-                <?php boblift_admin_file_media("videos.$i.video", $social, '视频 MP4', $base, '留空则不显示这一条。'); ?>
+                <?php boblift_admin_input("videos.$i.youtube", $social, 'YouTube 链接或视频 ID（填了就优先从 YouTube 播放）', $base); ?>
+                <?php boblift_admin_file_media("videos.$i.video", $social, '视频 MP4（本地预览用，上线后改用 YouTube）', $base, '和 YouTube 都留空则不显示这一条。'); ?>
                 <?php boblift_admin_media("videos.$i.poster", $social, '封面图', $base, '竖版 9:16，推荐 720×1280。'); ?>
             <?php }, false, (string) ($videos[$i]['title'] ?? '')); ?>
         <?php endfor; ?>

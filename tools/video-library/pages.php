@@ -11,6 +11,8 @@ $pages = [
     'factory-tour' => ['en' => 'Factory Tour', 'ja' => '工場見学', 'zh' => '工厂实景'],
     'quality-testing' => ['en' => 'Quality & Testing', 'ja' => '品質と試験', 'zh' => '质量与测试'],
     'videos' => ['en' => 'Video Center', 'ja' => '動画センター', 'zh' => '视频中心'],
+    'mounting-shipping' => ['en' => 'Truck Mounting & Export', 'ja' => 'トラック架装と輸出', 'zh' => '装车与出口'],
+    'service' => ['en' => 'Service & Operation', 'ja' => 'アフターサービスと操作', 'zh' => '售后与操作'],
 ];
 $about = get_page_by_path('about', OBJECT, 'page');
 foreach ($pages as $slug => $titles) {

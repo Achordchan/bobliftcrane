@@ -10,10 +10,11 @@ $groups = [
     'marine' => (string) ($ui['marineLabel'] ?? 'Marine cranes'),
     'test' => (string) ($ui['testLabel'] ?? 'Tests and quality'),
     'factory' => (string) ($ui['factoryLabel'] ?? 'Factory video'),
+    'service' => (string) ($ui['serviceLabel'] ?? boblift_localized_static_text('Service and operation')),
 ];
 // Aerial loops join the factory tab; the tab only lists groups that have a playable video.
 $videos = [];
-foreach (boblift_videos_in_group('truck', 'marine', 'test', 'factory', 'aerial') as $video) {
+foreach (boblift_videos_in_group('truck', 'marine', 'test', 'factory', 'service', 'aerial') as $video) {
     $video['tab'] = $video['group'] === 'aerial' ? 'factory' : $video['group'];
     $videos[] = $video;
 }

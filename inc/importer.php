@@ -130,6 +130,8 @@ function boblift_import_current_content(): void
         ['Global Customer Visits', 'global-customer-visits', 'page-global-customer-visits.php', '/global-customer-visits.html'],
         ['Factory Tour', 'factory-tour', 'page-factory-tour.php', '/factory-tour.html'],
         ['Quality & Testing', 'quality-testing', 'page-quality-testing.php', '/quality-testing.html'],
+        ['Truck Mounting & Export', 'mounting-shipping', 'page-mounting-shipping.php', '/mounting-shipping.html'],
+        ['Service & Operation', 'service', 'page-service.php', '/service.html'],
         ['Video Center', 'videos', 'page-videos.php', '/videos.html'],
         ['Social Media', 'social-media', 'page-social-media.php', '/social-media.html'],
         ['News', 'news', 'page-news.php', '/news.html'],
@@ -150,7 +152,7 @@ function boblift_import_current_content(): void
         $page_ids[$slug] = $id;
     }
     if (!empty($page_ids['about']) && !is_wp_error($page_ids['about'])) {
-        foreach (['factory-tour', 'quality-testing', 'global-customer-visits', 'videos', 'social-media', 'contact'] as $child_slug) {
+        foreach (['factory-tour', 'quality-testing', 'mounting-shipping', 'service', 'global-customer-visits', 'videos', 'social-media', 'contact'] as $child_slug) {
             if (!empty($page_ids[$child_slug]) && !is_wp_error($page_ids[$child_slug])) {
                 wp_update_post([
                     'ID' => (int) $page_ids[$child_slug],

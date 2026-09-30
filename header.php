@@ -90,8 +90,10 @@ $about_nav_default_children = [
     ['label' => 'About Us', 'href' => '/about.html', 'slug' => 'about'],
     ['label' => 'Factory Tour', 'href' => '/factory-tour.html', 'slug' => 'factory-tour'],
     ['label' => 'Quality & Testing', 'href' => '/quality-testing.html', 'slug' => 'quality-testing'],
+    ['label' => 'Truck Mounting & Export', 'href' => '/mounting-shipping.html', 'slug' => 'mounting-shipping'],
     ['label' => 'Global Customer Visits', 'href' => '/global-customer-visits.html', 'slug' => 'global-customer-visits'],
     ['label' => 'Video Center', 'href' => '/videos.html', 'slug' => 'videos'],
+    ['label' => 'Service & Operation', 'href' => '/service.html', 'slug' => 'service'],
     ['label' => 'Social Media', 'href' => '/social-media.html', 'slug' => 'social-media'],
     ['label' => 'Contact Us', 'href' => '/contact.html', 'slug' => 'contact'],
 ];
@@ -279,9 +281,12 @@ foreach ($languages as $language) {
                                 <div class="relative overflow-hidden rounded border border-line bg-white shadow-raised" data-product-nav="desktop" data-mega-families>
                                     <div class="grid grid-cols-[264px_minmax(0,1fr)] xl:grid-cols-[292px_minmax(0,1fr)]">
                                         <ul class="grid content-start gap-0.5 border-r border-line bg-mist p-3">
-                                            <?php foreach ($product_menu_families as $family) : ?>
+                                            <?php $family_group_shown = 'crane'; foreach ($product_menu_families as $family) : ?>
+                                                <?php if ($family['group'] !== $family_group_shown) : $family_group_shown = $family['group']; ?>
+                                                    <li class="mt-2 border-t border-line px-3 pb-1 pt-3 text-[11px] font-black uppercase tracking-[0.14em] text-slate-400"><?php echo esc_html(boblift_product_family_group_label($family['group'])); ?></li>
+                                                <?php endif; ?>
                                                 <li>
-                                                    <a class="relative flex min-h-14 items-center gap-2.5 rounded-sm px-3 py-2 text-slate-600 xl:gap-3 outline-none transition before:absolute before:inset-y-3 before:left-0 before:w-0.5 before:bg-gold before:opacity-0 hover:text-ink focus-visible:ring-2 focus-visible:ring-blue-300 data-[active=true]:bg-white data-[active=true]:text-ink data-[active=true]:before:opacity-100" href="<?php echo esc_url($family['url']); ?>" data-mega-family="<?php echo esc_attr($family['slug']); ?>" data-active="<?php echo $family['slug'] === $product_menu_active ? 'true' : 'false'; ?>">
+                                                    <a class="relative flex min-h-14 items-center gap-2.5 rounded-sm px-3 py-2 text-slate-600 xl:gap-3 outline-none transition hover:text-ink focus-visible:ring-2 focus-visible:ring-blue-300 data-[active=true]:bg-white data-[active=true]:text-ink data-[active=true]:shadow-card" href="<?php echo esc_url($family['url']); ?>" data-mega-family="<?php echo esc_attr($family['slug']); ?>" data-active="<?php echo $family['slug'] === $product_menu_active ? 'true' : 'false'; ?>">
                                                         <?php echo boblift_img('images/mega-menu-icons/' . $family['icon'] . '.png', '', 'h-8 w-8 shrink-0 object-contain'); ?>
                                                         <span class="min-w-0 flex-1 text-[14px] font-black leading-tight xl:text-[15px]"><?php echo esc_html($family['title']); ?></span>
                                                         <span class="shrink-0 text-xs font-bold tabular-nums text-slate-400"><?php echo esc_html((string) $family['count']); ?></span>
@@ -385,7 +390,7 @@ foreach ($languages as $language) {
                                 $language_market = (string) ($language['market'] ?? ($header_ui['regionalMarketLabel'] ?? 'Regional Market'));
                                 $selected = !empty($language['current']);
                                 ?>
-                                <a class="relative flex h-11 items-center gap-3 px-4 text-sm outline-none transition hover:bg-mist hover:text-ink focus-visible:bg-mist <?php echo $selected ? 'bg-mist font-black text-ink before:absolute before:inset-y-2 before:left-0 before:w-0.5 before:bg-gold' : 'font-semibold text-slate-600'; ?>" href="<?php echo esc_attr((string) ($language['href'] ?? '/')); ?>" hreflang="<?php echo esc_attr($language_code); ?>" title="<?php echo esc_attr($language_market); ?>" <?php echo $selected ? 'aria-current="true"' : ''; ?>>
+                                <a class="relative flex h-11 items-center gap-3 px-4 text-sm outline-none transition hover:bg-mist hover:text-ink focus-visible:bg-mist <?php echo $selected ? 'bg-mist font-black text-ink' : 'font-semibold text-slate-600'; ?>" href="<?php echo esc_attr((string) ($language['href'] ?? '/')); ?>" hreflang="<?php echo esc_attr($language_code); ?>" title="<?php echo esc_attr($language_market); ?>" <?php echo $selected ? 'aria-current="true"' : ''; ?>>
                                     <img class="h-4 w-6 shrink-0 rounded-sm object-cover object-left ring-1 ring-ink/10" src="<?php echo esc_url(boblift_language_flag_url((string) ($language['flag'] ?? 'flags/us.svg'))); ?>" alt="<?php echo esc_attr(str_replace('{language}', $language_label, $flag_alt_template)); ?>" loading="lazy">
                                     <span class="min-w-0 flex-1 truncate"><?php echo esc_html($language_label); ?></span>
                                     <span class="text-[11px] font-bold uppercase tracking-[0.12em] <?php echo $selected ? 'text-ink' : 'text-slate-400'; ?>"><?php echo esc_html(strtoupper($language_code)); ?></span>
@@ -433,7 +438,10 @@ foreach ($languages as $language) {
                         <div id="mobile-products-submenu" class="mx-1.5 mb-2 hidden rounded border border-line bg-[#f8fbff] p-2.5" data-product-nav="mobile" data-mobile-submenu-panel>
                             <p class="px-2 pb-2 text-[10px] font-black uppercase tracking-[0.18em] text-gold"><?php echo esc_html($header_ui['productCategoriesLabel'] ?? 'Product Categories'); ?></p>
                             <div class="grid gap-3">
-                                <?php foreach ($product_menu_families as $family) : ?>
+                                <?php $family_group_shown = 'crane'; foreach ($product_menu_families as $family) : ?>
+                                    <?php if ($family['group'] !== $family_group_shown) : $family_group_shown = $family['group']; ?>
+                                        <p class="px-2 pt-1 text-[10px] font-black uppercase tracking-[0.14em] text-slate-400"><?php echo esc_html(boblift_product_family_group_label($family['group'])); ?></p>
+                                    <?php endif; ?>
                                     <div>
                                         <a class="flex items-center justify-between gap-3 rounded bg-white px-3 py-2 text-[13px] font-black leading-4 text-ink shadow-card" href="<?php echo esc_url($family['url']); ?>"><span class="min-w-0"><?php echo esc_html($family['title']); ?></span><span class="shrink-0 text-[11px] font-bold tabular-nums text-slate-400"><?php echo esc_html((string) $family['count']); ?></span></a>
                                         <?php if ($family['children']) : ?>

@@ -352,8 +352,10 @@ function boblift_about_page_defaults(): array
             ['label' => 'About Us', 'href' => '/about.html', 'slug' => 'about'],
             ['label' => 'Factory Tour', 'href' => '/factory-tour.html', 'slug' => 'factory-tour'],
             ['label' => 'Quality & Testing', 'href' => '/quality-testing.html', 'slug' => 'quality-testing'],
+            ['label' => 'Truck Mounting & Export', 'href' => '/mounting-shipping.html', 'slug' => 'mounting-shipping'],
             ['label' => 'Global Customer Visits', 'href' => '/global-customer-visits.html', 'slug' => 'global-customer-visits'],
             ['label' => 'Video Center', 'href' => '/videos.html', 'slug' => 'videos'],
+            ['label' => 'Service & Operation', 'href' => '/service.html', 'slug' => 'service'],
             ['label' => 'Social Media', 'href' => '/social-media.html', 'slug' => 'social-media'],
             ['label' => 'Contact Us', 'href' => '/contact.html', 'slug' => 'contact'],
         ],
@@ -837,9 +839,28 @@ function boblift_product_menu_families(): array
             'photo' => boblift_product_banner_photo_url($term),
             'children' => $children,
             'models' => $models,
+            'group' => boblift_product_family_group(boblift_source_term_slug($term)),
         ];
     }
-    return $families;
+    // Cranes first, then the labelled related-equipment groups (fly jibs, aerial work platforms).
+    $order = ['crane' => 0, 'attachment' => 1, 'access' => 2];
+    $position = array_flip(array_keys($families));
+    uksort($families, static fn($a, $b): int => ($order[$families[$a]['group']] <=> $order[$families[$b]['group']]) ?: ($position[$a] <=> $position[$b]));
+    return array_values($families);
+}
+
+// A forklift fly jib hoists a hanging load, so it counts as a crane attachment. Aerial work platforms lift
+// people (特种设备目录 / EN 280 / OSHA 1926.1400(c)(5) keep them apart from cranes) and tail lifts raise loads
+// onto a truck bed, so both sit under their own "other lifting equipment" label.
+function boblift_product_family_group(string $source_slug): string
+{
+    return ['forklift-fly-jib-cranes' => 'attachment', 'aerial-work-platform' => 'access', 'tail-lift' => 'access'][$source_slug] ?? 'crane';
+}
+
+function boblift_product_family_group_label(string $group): string
+{
+    $label = ['attachment' => 'Crane attachments', 'access' => 'Other lifting equipment'][$group] ?? '';
+    return $label !== '' && function_exists('boblift_localized_static_text') ? boblift_localized_static_text($label) : $label;
 }
 
 /**

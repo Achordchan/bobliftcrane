@@ -210,6 +210,24 @@
   "duration": 40
  },
  {
+  "key": "service-after-sales",
+  "width": 1080,
+  "height": 1920,
+  "duration": 45
+ },
+ {
+  "key": "service-before-operation",
+  "width": 1920,
+  "height": 3414,
+  "duration": 25
+ },
+ {
+  "key": "service-during-operation",
+  "width": 2160,
+  "height": 3840,
+  "duration": 29
+ },
+ {
   "key": "factory-aerial",
   "width": 3840,
   "height": 2160,

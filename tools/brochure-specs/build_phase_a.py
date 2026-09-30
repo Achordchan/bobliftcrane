@@ -21,7 +21,8 @@ RENAME = {
 # Products without a model on the site that the brochure covers.
 BY_SLUG = {'knuckle-spider-crane': 'SQ4ZG3T', 'telescopic-spider-crane': 'BLS3.0T'}
 # Products the brochure does not have.
-REMOVE = {'25-ton-truck-crane', 'truck-tail-lift', '800-kg-pickup-crane-without-outriggers'}
+# The tail lift stays (2026-09-30: the user counts it as lifting equipment).
+REMOVE = {'25-ton-truck-crane', '800-kg-pickup-crane-without-outriggers'}
 REMOVE_MODELS = {'CC165'}
 
 updates, remove, untouched = [], [], []

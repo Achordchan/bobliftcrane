@@ -2162,7 +2162,8 @@
       const catalogUrl = trigger?.dataset?.catalogUrl || '';
       qs('[data-catalog-url-field]', form).value = catalogUrl;
       const description = qs('[data-catalog-description]', catalogModal);
-      if (description) description.textContent = catalogUrl ? catalogText('description', 'Enter your email to receive the PDF catalog. The download link will appear immediately after submission.') : catalogText('noFileDescription', 'Enter your email and our team will send the correct PDF catalog to you shortly.');
+      const directText = catalogModal.dataset.catalogDirectText || '';
+      if (description) description.textContent = catalogUrl ? (directText || catalogText('description', 'Enter your email to receive the PDF catalog. The download link will appear immediately after submission.')) : catalogText('noFileDescription', 'Enter your email and our team will send the correct PDF catalog to you shortly.');
       qs('[data-catalog-submit]', form)?.removeAttribute('disabled');
     }
     qs('[data-catalog-success]', catalogModal)?.classList.add('hidden');
@@ -2170,6 +2171,15 @@
     if (downloadLink) {
       downloadLink.classList.add('hidden');
       downloadLink.removeAttribute('href');
+    }
+    // A known PDF is offered as a direct download too; the email form stays available below it.
+    const directLink = qs('[data-catalog-direct-link]', catalogModal);
+    if (directLink) {
+      const directUrl = trigger?.dataset?.catalogUrl || '';
+      directLink.classList.toggle('hidden', !directUrl);
+      directLink.classList.toggle('inline-flex', !!directUrl);
+      if (directUrl) directLink.setAttribute('href', directUrl);
+      else directLink.removeAttribute('href');
     }
     catalogModalStatus('');
     catalogModal.classList.remove('hidden');
@@ -2196,6 +2206,25 @@
     openCatalogModal(trigger);
   });
   qsa('[data-catalog-modal-close]').forEach((button) => button.addEventListener('click', closeCatalogModal));
+  // Product archive: show the brochure for the selected category family (all of them when no category is selected).
+  const brochureBlock = qs('[data-brochures][data-brochure-map]');
+  const brochureRoot = qs('[data-product-listing]');
+  if (brochureBlock && brochureRoot) {
+    let brochureMap = {};
+    try { brochureMap = JSON.parse(brochureBlock.dataset.brochureMap || '{}'); } catch (error) { brochureMap = {}; }
+    const syncBrochures = () => {
+      const category = brochureRoot.dataset.currentCategory || '';
+      const family = category ? (brochureMap[category] || '') : '';
+      brochureBlock.classList.toggle('hidden', category !== '' && family === '');
+      qsa('[data-brochure-card]', brochureBlock).forEach((card) => {
+        const show = family === '' || card.dataset.brochureFamily === family;
+        card.classList.toggle('hidden', !show);
+        card.classList.toggle('flex', show);
+      });
+    };
+    new MutationObserver(syncBrochures).observe(brochureRoot, { attributes: true, attributeFilter: ['data-current-category'] });
+    syncBrochures();
+  }
   catalogModal?.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') closeCatalogModal();
   });

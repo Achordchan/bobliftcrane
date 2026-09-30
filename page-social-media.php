@@ -83,7 +83,25 @@ $gallery = array_map(static fn(array $post): string => boblift_image_setting_url
 $captions = array_map(static fn(array $post): string => $t($post['title'] ?? ''), $posts);
 $posts_title = $t($labels['posts_title'] ?? 'What we have been posting.');
 
-$videos = array_values(array_filter(is_array($social_page['videos'] ?? null) ? $social_page['videos'] : [], static fn($row): bool => is_array($row) && $has_media($row['video'] ?? '')));
+// A short plays from YouTube once its link is saved; until then from the MP4, which only exists on a local preview.
+$local_video = static function ($media) use ($media_url): string {
+    if (is_array($media) && (int) ($media['id'] ?? 0) > 0) {
+        return $media_url($media);
+    }
+    $path = trim(is_array($media) ? (string) ($media['path'] ?? '') : (string) $media);
+    return $path !== '' && is_readable(get_template_directory() . '/assets/' . $path) ? $media_url($media) : '';
+};
+$videos = [];
+foreach (is_array($social_page['videos'] ?? null) ? $social_page['videos'] : [] as $row) {
+    if (!is_array($row)) {
+        continue;
+    }
+    $row['youtube_id'] = boblift_youtube_id((string) ($row['youtube'] ?? ''));
+    $row['src'] = $row['youtube_id'] === '' ? $local_video($row['video'] ?? '') : '';
+    if ($row['youtube_id'] !== '' || $row['src'] !== '') {
+        $videos[] = $row;
+    }
+}
 
 $whatsapp = preg_replace('/\D+/', '', (string) ($contact['whatsapp'] ?? ($contact['phone'] ?? '')));
 ?>
@@ -164,7 +182,14 @@ $whatsapp = preg_replace('/\D+/', '', (string) ($contact['whatsapp'] ?? ($contac
                     ?>
                         <figure class="w-[62%] shrink-0 snap-start overflow-hidden rounded border border-line bg-white shadow-card sm:w-auto">
                             <div class="relative aspect-[9/16] bg-navy">
-                                <video class="absolute inset-0 h-full w-full object-cover" playsinline preload="none" controls<?php if ($poster !== '') : ?> poster="<?php echo esc_url($poster); ?>"<?php endif; ?> src="<?php echo esc_url($media_url($video['video'])); ?>" aria-label="<?php echo esc_attr($video_title); ?>" data-social-video></video>
+                                <?php if ($video['youtube_id'] !== '') : boblift_render_video_player(); ?>
+                                    <button class="group absolute inset-0 block h-full w-full" type="button" data-video-open data-video-player="youtube" data-video-src="" data-video-youtube="<?php echo esc_attr($video['youtube_id']); ?>" data-video-title="<?php echo esc_attr($video_title); ?>" data-video-portrait aria-label="<?php echo esc_attr($t($labels['play_label'] ?? 'Play video') . ' · ' . $video_title); ?>">
+                                        <?php if ($poster !== '') : ?><img class="absolute inset-0 h-full w-full object-cover" src="<?php echo esc_url($poster); ?>" alt="" loading="lazy" decoding="async"><?php endif; ?>
+                                        <span class="absolute inset-0 m-auto grid size-12 place-items-center rounded-sm bg-white/90 text-navy shadow-card transition group-hover:bg-white"><?php echo boblift_icon('play', 'h-5 w-5'); ?></span>
+                                    </button>
+                                <?php else : ?>
+                                    <video class="absolute inset-0 h-full w-full object-cover" playsinline preload="none" controls<?php if ($poster !== '') : ?> poster="<?php echo esc_url($poster); ?>"<?php endif; ?> src="<?php echo esc_url($video['src']); ?>" aria-label="<?php echo esc_attr($video_title); ?>" data-social-video></video>
+                                <?php endif; ?>
                             </div>
                             <?php if ($video_title !== '') : ?><figcaption class="truncate px-3.5 py-3 text-sm font-black text-ink"><?php echo esc_html($video_title); ?></figcaption><?php endif; ?>
                         </figure>

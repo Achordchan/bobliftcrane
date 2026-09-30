@@ -56,7 +56,7 @@ function boblift_video_library(): array
         $series('marine', 'knuckle', '5', $both, 0),
         $series('marine', 'knuckle', '10', $any, 0),
         $series('marine', 'knuckle', '12', $both, 0),
-        $series('marine', 'knuckle', '16', $both, 0),
+        $series('marine', 'knuckle', '16', ['en'], 0), // The zh cut has English subtitles, so every site plays the en file.
         $series('marine', 'knuckle', '20', $both, 0),
         $series('marine', 'telescopic', '12', $both, 0),
         $series('marine', 'telescopic', '20', $both, 0),
@@ -64,13 +64,16 @@ function boblift_video_library(): array
         $clip('test-load-10z', 'test', 'Load test · 10 t knuckle boom crane', $any, 0),
         $clip('test-load-6.3z', 'test', 'Load test · 6.3 t knuckle boom crane', $any, 0),
         $clip('test-basket-6.3z', 'test', 'Basket test · 6.3 t knuckle boom crane', $any, 0),
-        $clip('test-load-marine-6.3s', 'test', 'Load test · 6.3 t telescopic marine crane', $any, 0),
-        $clip('test-load-marine-2z', 'test', 'Load test · 2 t knuckle boom marine crane', $any, 0),
-        $clip('test-load-sq8za6', 'test', 'Function test · SQ8ZA6', $any, 0),
-        $clip('test-batch-3.2z', 'test', 'Twenty 3.2 t cranes tested for one order', $any, 0),
+        $clip('test-load-marine-6.3s', 'test', 'Load test on the test rig · 6.3 t telescopic marine crane', $any, 0),
+        $clip('test-load-marine-2z', 'test', 'Function test · 2 t knuckle boom marine crane', $any, 0),
+        $clip('test-load-sq8za6', 'test', 'Load test · SQ8ZA6 knuckle boom truck crane', $any, 0),
+        $clip('test-batch-3.2z', 'test', 'One order: twenty 3.2 t knuckle boom cranes ready to ship', $any, 0),
         $clip('test-explained', 'test', 'How we test a crane before delivery', $both, 0),
         $clip('quality-control', 'test', 'Quality control in the workshop', $both, 0),
         $clip('factory-intro', 'factory', 'Inside the BOB-LIFT factory', $both, 0),
+        $clip('service-after-sales', 'service', 'After-sales support', $both, 0),
+        $clip('service-before-operation', 'service', 'Checks before operating the crane', $both, 0),
+        $clip('service-during-operation', 'service', 'Operating the crane safely', $both, 0),
         $clip('factory-aerial', 'aerial', 'Factory aerial view', $any, 0),
         $clip('factory-hall-door', 'aerial', 'Into the assembly hall', $any, 0),
         $clip('factory-hall-cranes', 'aerial', 'Finished cranes in the hall', $any, 0),
@@ -93,6 +96,16 @@ function boblift_video_library(): array
     }
     unset($video);
     return $videos;
+}
+
+// Accepts a YouTube watch/short/embed URL or a bare 11-character id.
+function boblift_youtube_id(string $value): string
+{
+    $value = trim($value);
+    if (preg_match('/^[A-Za-z0-9_-]{11}$/', $value)) {
+        return $value;
+    }
+    return preg_match('#(?:youtu\.be/|youtube(?:-nocookie)?\.com/(?:watch\?(?:.*&)?v=|embed/|shorts/|live/))([A-Za-z0-9_-]{11})#', $value, $m) ? $m[1] : '';
 }
 
 function boblift_video_by_key(string $key): ?array

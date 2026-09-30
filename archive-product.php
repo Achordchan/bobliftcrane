@@ -116,6 +116,14 @@ foreach ($category_hierarchy as $group) {
         $category_filter_tree[] = ['slug' => $slug, 'title' => (string) ($category['title'] ?? $group['title'] ?? $slug), 'children' => [], 'child_slugs' => [$slug], 'count' => (int) ($category_counts[$slug] ?? 0)];
     }
 }
+// Same order and labels as the Products menu: cranes, then crane attachments, then aerial access equipment.
+foreach ($category_filter_tree as $index => $item) {
+    $term = get_term_by('slug', (string) $item['slug'], 'product_category');
+    $category_filter_tree[$index]['group'] = boblift_product_family_group($term instanceof WP_Term ? boblift_source_term_slug($term) : (string) $item['slug']);
+    $category_filter_tree[$index]['position'] = $index;
+}
+$group_order = ['crane' => 0, 'attachment' => 1, 'access' => 2];
+usort($category_filter_tree, static fn(array $a, array $b): int => ($group_order[$a['group']] <=> $group_order[$b['group']]) ?: ($a['position'] <=> $b['position']));
 $filter_group = static function (string $title, string $filter, array $items, array $counts): void {
     $items = array_filter($items, static fn($label, $value): bool => (int) ($counts[$value] ?? 0) > 0, ARRAY_FILTER_USE_BOTH);
     if (!$items) {
@@ -135,7 +143,10 @@ $category_filter_group = static function (array $tree) use ($category_counts, $a
     <fieldset class="border-t border-[#E5E7EB] pt-6 first:border-t-0 first:pt-0">
         <legend class="mb-4 text-base font-black text-[#0B1B33]"><?php echo esc_html($archive_ui['categoryFilterLabel'] ?? 'Product Category'); ?></legend>
         <div class="space-y-3">
-            <?php foreach ($tree as $item) : ?>
+            <?php $group_shown = 'crane'; foreach ($tree as $item) : ?>
+                <?php if (($item['group'] ?? 'crane') !== $group_shown) : $group_shown = $item['group']; ?>
+                    <p class="border-t border-line pt-3 text-[11px] font-black uppercase tracking-[0.14em] text-slate-400"><?php echo esc_html(boblift_product_family_group_label($group_shown)); ?></p>
+                <?php endif; ?>
                 <label class="product-filter-option"><span class="relative flex h-5 w-5 shrink-0 items-center justify-center"><input class="peer h-5 w-5 appearance-none rounded-sm border border-slate-300 bg-white transition checked:border-[#0B3F7D] checked:bg-[#0B3F7D] focus:outline-none focus:ring-4 focus:ring-blue-100" type="checkbox" data-filter="category" data-category-role="<?php echo !empty($item['children']) ? 'parent' : 'single'; ?>" data-category-children="<?php echo esc_attr(implode(',', $item['child_slugs'] ?? [$item['slug']])); ?>" value="<?php echo esc_attr($item['slug']); ?>"><span class="pointer-events-none absolute h-2.5 w-1.5 -translate-y-0.5 rotate-45 border-b-2 border-r-2 border-white opacity-0 peer-checked:opacity-100"></span></span><span class="min-w-0 flex-1 font-black leading-snug"><?php echo esc_html($item['title']); ?></span><span class="shrink-0 text-xs font-black text-slate-400"><?php echo esc_html((string) ($item['count'] ?? 0)); ?></span></label>
                 <?php if (!empty($item['children'])) : ?>
                     <div class="hidden space-y-3" data-category-children-panel="<?php echo esc_attr($item['slug']); ?>" data-category-children="<?php echo esc_attr(implode(',', $item['child_slugs'] ?? [])); ?>">
@@ -215,6 +226,7 @@ $filter_sidebar = static function (bool $show_close = false) use ($filter_group,
                 <nav class="mt-8 flex flex-wrap items-center justify-center gap-2" aria-label="<?php echo esc_attr($archive_ui['paginationLabel'] ?? 'Product pagination'); ?>" data-product-pagination></nav>
             </div>
         </div>
+        <?php boblift_render_brochures(['context' => 'archive', 'initial_category' => $initial_category]); ?>
     </div>
     <div class="fixed inset-0 z-[70] hidden items-center justify-center bg-[#0B1B33]/45 px-4 py-8 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="quick-view-title" data-quick-view-modal>
         <div class="max-h-[calc(100vh-4rem)] w-full max-w-5xl overflow-y-auto rounded bg-white shadow-card" data-quick-view-panel>

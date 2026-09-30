@@ -1263,6 +1263,8 @@ function boblift_public_page_archive_template(string $template): string
         'social-media' => 'page-social-media.php',
         'factory-tour' => 'page-factory-tour.php',
         'quality-testing' => 'page-quality-testing.php',
+        'mounting-shipping' => 'page-mounting-shipping.php',
+        'service' => 'page-service.php',
         'videos' => 'page-videos.php',
         'public-welfare' => 'page-public-welfare.php',
         'news' => 'page-news.php',
