@@ -4,7 +4,15 @@ $footer = $options['footer'] ?? [];
 $branding = $options['branding'] ?? [];
 $contact = $options['contact'] ?? [];
 $cta = $options['final_cta'] ?? [];
-$show_cta = !is_page(['about', 'quote', 'contact', 'social-media', 'public-welfare', 'global-customer-visits', 'privacy-policy', 'terms-of-use', 'sitemap']) && !is_page_template(['page-about.php', 'page-social-media.php', 'page-public-welfare.php', 'page-global-customer-visits.php', 'page-privacy-policy.php', 'page-terms-of-use.php', 'page-sitemap.php']) && !is_post_type_archive('product') && !is_singular('product');
+// Pages that already end in their own contact or plan-a-visit panel skip the footer CTA. Japanese and
+// Chinese copies carry suffixed slugs (about-2, about-3), so the check uses the English page's slug.
+$cta_page_slug = '';
+if (is_page()) {
+    $cta_page_id = (int) get_queried_object_id();
+    $cta_source_id = function_exists('pll_get_post') ? (int) (pll_get_post($cta_page_id, 'en') ?: $cta_page_id) : $cta_page_id;
+    $cta_page_slug = (string) get_post_field('post_name', $cta_source_id);
+}
+$show_cta = !in_array($cta_page_slug, ['about', 'quote', 'contact', 'social-media', 'public-welfare', 'global-customer-visits', 'privacy-policy', 'terms-of-use', 'sitemap'], true) && !is_page_template(['page-about.php', 'page-social-media.php', 'page-public-welfare.php', 'page-global-customer-visits.php', 'page-privacy-policy.php', 'page-terms-of-use.php', 'page-sitemap.php']) && !is_post_type_archive('product') && !is_singular('product');
 $email = $contact['email'] ?? 'info@bobliftcrane.com';
 $phone = $contact['phone'] ?? '+86 15852499415';
 $phone_href = $contact['phone_href'] ?? ('tel:' . preg_replace('/[^\d+]+/', '', $phone));
