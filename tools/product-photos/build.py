@@ -17,6 +17,8 @@ PRODUCTS = [
     ('0-8-ton-knuckle-boom-marine-crane', 'SQ08ZA3TJ+1', ZHAO + 'SQ08ZA3T', [4, 5, 9, 21, 26, 28], True),
     # Orange and blue sets are printed SQ5ZA3; the red sets have the same boom tip (1 main + 2 hydraulic booms).
     ('5-ton-knuckle-boom-truck-mounted-crane-sq5za3', 'SQ5ZA3', [NIKI + '折叠臂随车吊/SQ5ZA3_5Z红色展品', NIKI + '折叠臂随车吊/SQ5ZA3_5Z橙色', NIKI + '折叠臂随车吊/SQ5ZA3_5Z蓝色', NIKI + '折叠臂随车吊/SQ5ZA3_5Z红色1'], [(0, 1), (0, 5), (1, 2), (1, 7), (2, 1), (2, 4), (3, 1)], True),
+    # Both Niki fly jib folders show BOB-LIFT CC85 printed on the boom.
+    ('2-3-ton-forklift-fly-jib-crane', 'CC85', [NIKI + '飞臂吊/飞臂吊', NIKI + '飞臂吊/飞臂吊1'], [(0, 13), (1, 26), (1, 23), (1, 21)], False),
     # New products from the technical drawings (tools/truck-drawings), 2026-10-09.
     ('8-ton-knuckle-boom-truck-mounted-crane-sq8za4', 'SQ8ZA4', ZHAO + 'SQ8ZA4', [2, 3, 9, 10, 11, 15], True),
     ('8-ton-knuckle-boom-truck-mounted-crane-sq8za5', 'SQ8ZA5', ZHAO + 'SQ8ZA5(黑色）', [25, 26, 13, 15, 27], True),
