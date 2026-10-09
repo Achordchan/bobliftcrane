@@ -17,6 +17,14 @@ PRODUCTS = [
     ('0-8-ton-knuckle-boom-marine-crane', 'SQ08ZA3TJ+1', ZHAO + 'SQ08ZA3T', [4, 5, 9, 21, 26, 28], True),
     # Orange and blue sets are printed SQ5ZA3; the red sets have the same boom tip (1 main + 2 hydraulic booms).
     ('5-ton-knuckle-boom-truck-mounted-crane-sq5za3', 'SQ5ZA3', [NIKI + '折叠臂随车吊/5Z红色展品', NIKI + '折叠臂随车吊/5Z橙色', NIKI + '折叠臂随车吊/5Z蓝色', NIKI + '折叠臂随车吊/5Z红色1'], [(0, 1), (0, 5), (1, 2), (1, 7), (2, 1), (2, 4), (3, 1)], True),
+    # New products from the technical drawings (tools/truck-drawings), 2026-10-09.
+    ('8-ton-knuckle-boom-truck-mounted-crane-sq8za5', 'SQ8ZA5', ZHAO + 'SQ8ZA5(黑色）', [25, 26, 13, 15, 27], True),
+    ('10-ton-knuckle-boom-truck-mounted-crane-sq10za4', 'SQ10ZA4', ZHAO + 'SQ10ZA4', [9, 12, 18, 10, 22], True),
+    ('10-ton-knuckle-boom-truck-mounted-crane-sq10za5', 'SQ10ZA5', ZHAO + 'SQ10ZA5', [1, 2, 7, 8, 11], True),
+    ('4-6-ton-knuckle-boom-truck-mounted-crane-blz90k4', 'BLZ90K4', ZHAO + 'BLZ90K4', [5, 6, 7, 10, 11, 14], True),
+    ('16-ton-knuckle-boom-truck-mounted-crane-sqz350', 'SQZ350', ZHAO + 'SQZ350', [8, 17, 18, 20, 26, 30], True),
+    ('6-3-ton-knuckle-boom-truck-mounted-crane-sq6-3za3', 'SQ6.3ZA3', ZHAO + 'SQ6.3ZA3', [3, 11, 24, 26, 29], True),
+    ('3-2-ton-telescopic-boom-truck-mounted-crane-sq3-2sa3', 'SQ3.2SA3', ZHAO + 'SQ3. 2SA3', [8, 9, 10, 4, 6], True),
     ('1-ton-knuckle-boom-marine-crane', 'SQ1ZA3TJ+1', NIKI + '折叠臂船吊/1Z船吊', [1, 3, 5, 6, 8], False),
     ('4-ton-knuckle-boom-marine-crane', 'SQ4ZA3TJ', NIKI + '折叠臂船吊/4Z船吊', [1, 5, 6, 9, 14], False),
     ('8-ton-knuckle-boom-marine-crane', 'SQ8ZA6TJ', NIKI + '折叠臂船吊/8Z船吊 红色', [2, 3, 9, 10, 1], False),

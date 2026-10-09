@@ -20,6 +20,15 @@ foreach (json_decode((string) file_get_contents($dir . '/brochure.json'), true) 
     $rows[$row['model']] = $row;
 }
 $products = json_decode((string) file_get_contents($dir . '/phase-c.json'), true)['products'];
+// New truck cranes from the technical department's drawings (tools/truck-drawings), with their parameter tables.
+$drawing_rows = [];
+foreach (json_decode((string) file_get_contents($dir . '/../truck-drawings/drawings.json'), true) as $row) {
+    $drawing_rows[$row['model']] = $row + ['book' => 'truck', 'kind' => 'main'];
+}
+foreach (json_decode((string) file_get_contents($dir . '/../truck-drawings/plan.json'), true)['new'] as $new) {
+    $rows[$new['model']] = $rows[$new['model']] ?? $drawing_rows[$new['model']];
+    $products[] = ['model' => $new['model'], 'slug' => sanitize_title($new['title']), 'features_series' => $new['category'] === 'telescopic-boom-truck-mounted-cranes' ? 'Telescopic Boom Truck Mounted Crane' : 'Knuckle Boom Truck Mounted Crane', 'features' => $new['features']];
+}
 
 // Series on the CE certificate page of the truck crane brochure.
 $ce_series = ['SQ05Z', 'SQ08Z', 'SQ1Z', 'SQ2Z', 'SQ3.2Z', 'SQ4Z', 'SQ5Z', 'SQ6.3Z', 'SQ8Z', 'SQ10Z', 'SQ12Z', 'SQ14Z', 'SQ16Z', 'SQ20Z',

@@ -26,6 +26,7 @@ $labels = [
     'Self Weight' => ['ja' => '自重', 'zh' => '自重'],
     'Rotation Angle' => ['ja' => '旋回角度', 'zh' => '回转角度'],
     'Installation Space' => ['ja' => '取付スペース', 'zh' => '安装空间'],
+    'Oil Tank Capacity' => ['ja' => '作動油タンク容量', 'zh' => '液压油箱容积'],
     'Max Working Range' => ['ja' => '最大作業範囲', 'zh' => '最大工作范围'],
     'Max Lifting Height' => ['ja' => '最大揚程', 'zh' => '最大起升高度'],
     'Max Lifting Height (from ground)' => ['ja' => '最大揚程（地上から）', 'zh' => '最大起升高度（离地）'],
@@ -304,6 +305,8 @@ foreach ($english as $en) {
             $meta['_brochure_source'] = $lang === 'ja'
                 ? "BOB-LIFT {$books[$m[1]]['ja']}製品マニュアル（PDF {$m[2]}ページ）"
                 : "BOB-LIFT {$books[$m[1]]['zh']}产品手册，PDF 第 {$m[2]} 页";
+        } elseif (preg_match('/^BOB-LIFT technical drawing (\S+) \(technical department, ([\d-]+)\)$/', $en_source, $m)) {
+            $meta['_brochure_source'] = $lang === 'ja' ? "BOB-LIFT 技術図面 {$m[1]}（技術部、{$m[2]}）" : "BOB-LIFT 技术图纸 {$m[1]}（技术部，{$m[2]}）";
         } else {
             $problems[] = "{$model}: brochure source \"{$en_source}\" not recognised";
             continue;
