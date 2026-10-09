@@ -14,6 +14,7 @@ NIKI = '/Volumes/团队文件-通用空间/Niki/产品图片/'
 # slug, model, source folder, picks, own_photos_first (replace a borrowed reference photo and become the main image)
 PRODUCTS = [
     ('4-ton-knuckle-boom-truck-mounted-crane-sq4za3', 'SQ4ZA3', ZHAO + 'SQ4ZA3', [1, 6, 7, 13, 20, 25], True),
+    ('0-8-ton-knuckle-boom-marine-crane', 'SQ08ZA3TJ+1', ZHAO + 'SQ08ZA3T', [4, 5, 9, 21, 26, 28], True),
     ('1-ton-knuckle-boom-marine-crane', 'SQ1ZA3TJ+1', NIKI + '折叠臂船吊/1Z船吊', [1, 3, 5, 6, 8], False),
     ('4-ton-knuckle-boom-marine-crane', 'SQ4ZA3TJ', NIKI + '折叠臂船吊/4Z船吊', [1, 5, 6, 9, 14], False),
     ('8-ton-knuckle-boom-marine-crane', 'SQ8ZA6TJ', NIKI + '折叠臂船吊/8Z船吊 红色', [2, 3, 9, 10, 1], False),

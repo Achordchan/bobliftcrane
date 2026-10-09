@@ -41,6 +41,8 @@ VIDEOS = [
     ('marine-knuckle-12', 'marine', {'en': M + '折叠臂船吊/12Z船吊/英语.mp4', 'zh': M + '折叠臂船吊/12Z船吊/12Z船吊中文.mp4'}),
     ('marine-knuckle-16', 'marine', {'en': M + '折叠臂船吊/16Z船吊/16Z船吊 英文.mp4', 'zh': M + '折叠臂船吊/16Z船吊/16Z船吊.mp4'}),
     ('marine-knuckle-20', 'marine', {'en': M + '折叠臂船吊/20Z船吊/20Z船吊英语.mp4', 'zh': M + '折叠臂船吊/20Z船吊/20Z船吊中文.mp4'}),
+    # Filmed on a truck chassis because there was no ship to fit it to; the marine crane is the same crane on a pedestal.
+    ('marine-telescopic-6.3', 'marine', {'any': NIKI + '2026/1月/6.3S船吊/测试.mp4'}),
     ('marine-telescopic-12', 'marine', {'en': M + '伸缩臂船吊/12S/12S船吊英文.mp4', 'zh': M + '伸缩臂船吊/12S/12S船吊中文.mp4'}),
     ('marine-telescopic-20', 'marine', {'en': M + '伸缩臂船吊/20S/20S船吊测试 英语.mp4', 'zh': M + '伸缩臂船吊/20S/20S船吊测试 中文.mp4'}),
     ('test-load-5z', 'test', {'any': NIKI + '2026/1月/5Z/吊重测试.mp4'}),

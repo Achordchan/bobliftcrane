@@ -60,6 +60,7 @@ function boblift_video_library(): array
         $series('marine', 'knuckle', '12', $both, 0),
         $series('marine', 'knuckle', '16', ['en'], 0), // The zh cut has English subtitles, so every site plays the en file.
         $series('marine', 'knuckle', '20', $both, 0),
+        $series('marine', 'telescopic', '6.3', $any, 0),
         $series('marine', 'telescopic', '12', $both, 0),
         $series('marine', 'telescopic', '20', $both, 0),
         $clip('test-load-5z', 'test', 'Load test · 5 t knuckle boom crane', $any, 0),
