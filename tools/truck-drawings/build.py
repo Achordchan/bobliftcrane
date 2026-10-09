@@ -78,9 +78,8 @@ if sys.argv[1:] == ['marine']:
         'SQ4SA3T': '4-ton-telescopic-boom-marine-crane', 'SQ5SA4T': '5-ton-telescopic-boom-marine-crane',
         'SQ6.3SA4T': '6-3-ton-telescopic-boom-marine-crane', 'SQ8SA5T': '8-ton-telescopic-boom-marine-crane',
     }
-    # Old names dropped like the truck cranes' (the drawings are the model list).
-    DROP_ALIASES = {'SQZ500T': 'SQ25ZA8T', 'SQZ430T': 'SQ20ZA7TJ+1', 'SQZ330T': 'SQ16ZA5T', 'SQ8SA5T': 'SQ8SA4T',
-                    'SQ10ZA6TJ': 'SQ10ZA5TJ', 'SQ8ZA6TJ': 'SQ8ZA5TJ'}
+    # Aliases that are now products of their own. Renamed models keep their old name (SQZ330T <- SQ16ZA5T...).
+    DROP_ALIASES = {'SQ8SA5T': 'SQ8SA4T', 'SQ10ZA6TJ': 'SQ10ZA5TJ', 'SQ8ZA6TJ': 'SQ8ZA5TJ'}
     NEW = {
         'BLZ90K4TJ': 'BLZ90K5TJ', 'SQ08ZA3T+1': 'SQ08ZA3TJ+1', 'SQ1ZA3T+1': 'SQ1ZA3TJ+1', 'SQ2ZA4T': 'SQ2ZA2TJ',
         'SQ3.2ZA3T': 'SQ3.2ZA3TJ', 'SQ4ZA3T': 'SQ4ZA3TJ', 'SQ4ZA4T': 'SQ4ZA3TJ', 'SQ5ZA3T': 'SQ5ZA3TJ', 'SQ5ZA4T': 'SQ5ZA3TJ',
