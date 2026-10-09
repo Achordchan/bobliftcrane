@@ -256,4 +256,5 @@ $filter_sidebar = static function (bool $show_close = false) use ($filter_group,
     </div>
     <div class="boblift-filter-drawer fixed inset-0 z-[60] hidden bg-[#0B1B33]/40 backdrop-blur-sm lg:hidden" data-filter-drawer><div class="boblift-filter-drawer-panel ml-auto h-full w-full max-w-md overflow-y-auto bg-[#F8FAFC] p-4 shadow-raised"><?php $filter_sidebar(true); ?></div></div>
 </section>
+<?php boblift_render_model_key(); ?>
 <?php get_footer(); ?>

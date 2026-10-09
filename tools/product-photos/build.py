@@ -18,6 +18,7 @@ PRODUCTS = [
     # Orange and blue sets are printed SQ5ZA3; the red sets have the same boom tip (1 main + 2 hydraulic booms).
     ('5-ton-knuckle-boom-truck-mounted-crane-sq5za3', 'SQ5ZA3', [NIKI + '折叠臂随车吊/SQ5ZA3_5Z红色展品', NIKI + '折叠臂随车吊/SQ5ZA3_5Z橙色', NIKI + '折叠臂随车吊/SQ5ZA3_5Z蓝色', NIKI + '折叠臂随车吊/SQ5ZA3_5Z红色1'], [(0, 1), (0, 5), (1, 2), (1, 7), (2, 1), (2, 4), (3, 1)], True),
     # New products from the technical drawings (tools/truck-drawings), 2026-10-09.
+    ('8-ton-knuckle-boom-truck-mounted-crane-sq8za4', 'SQ8ZA4', ZHAO + 'SQ8ZA4', [2, 3, 9, 10, 11, 15], True),
     ('8-ton-knuckle-boom-truck-mounted-crane-sq8za5', 'SQ8ZA5', ZHAO + 'SQ8ZA5(黑色）', [25, 26, 13, 15, 27], True),
     ('10-ton-knuckle-boom-truck-mounted-crane-sq10za4', 'SQ10ZA4', ZHAO + 'SQ10ZA4', [9, 12, 18, 10, 22], True),
     ('10-ton-knuckle-boom-truck-mounted-crane-sq10za5', 'SQ10ZA5', ZHAO + 'SQ10ZA5', [1, 2, 7, 8, 11], True),
@@ -36,8 +37,13 @@ PRODUCTS = [
 
 def main():
     os.makedirs(os.path.join(DIR, 'media'), exist_ok=True)
+    # Products already planned keep their picks: the photographer renames and adds files, which would shift positions.
+    done = {p['slug']: p for p in json.load(open(os.path.join(DIR, 'plan.json')))['products']} if os.path.exists(os.path.join(DIR, 'plan.json')) else {}
     plan = []
     for slug, model, folder, picks, own in PRODUCTS:
+        if slug in done:
+            plan.append(done[slug])
+            continue
         # One folder with picks [n, ...], or several folders with picks [(folder index, n), ...].
         folders = folder if isinstance(folder, list) else [folder]
         listing = [sorted(f for f in os.listdir(d) if f.lower().endswith(('.jpg', '.jpeg', '.png')) and not f.startswith('.')) for d in folders]
@@ -47,7 +53,7 @@ def main():
             src = os.path.join(folders[k], listing[k][pick - 1])
             # NAS files carry a '<model>_' prefix since 2026-10-09; drop it so output names stay stable.
             stem = re.sub(r'^(SQ|BLZ|SL|FY|FJZ|BL-)[^_]*_', '', os.path.splitext(listing[k][pick - 1])[0])
-            name = f'{model}-{n:02d}-{stem}.webp'.replace('+', 'plus').replace('-已增强-降噪', '')
+            name = f'{model}-{n:02d}-{stem}.webp'.replace('+', 'plus').replace('-已增强-降噪', '').replace(model.replace('+', 'plus') + '-' + f'{n:02d}-' + model + '_', model.replace('+', 'plus') + '-' + f'{n:02d}-')
             dest = os.path.join(DIR, 'media', name)
             if not os.path.exists(dest):
                 subprocess.run(['magick', src, '-auto-orient', '-resize', '1800x1800>', '-strip', '-quality', '80', dest], check=True)

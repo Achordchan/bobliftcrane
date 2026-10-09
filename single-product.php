@@ -282,6 +282,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                     <?php if ($show_hero_full_name) : ?>
                         <p class="mt-3 text-[clamp(19px,1.45vw,27px)] font-black leading-tight tracking-[-0.01em] text-[#0B3F7D]"><?php echo esc_html($product_title); ?></p>
                     <?php endif; ?>
+                    <?php boblift_render_model_decode($hero_model); ?>
                     <?php if ($hero_summary !== '') : ?>
                         <p class="mt-4 max-w-[620px] text-sm font-semibold leading-7 text-slate-600 md:text-[15px]"><?php echo esc_html($hero_summary); ?></p>
                     <?php endif; ?>
