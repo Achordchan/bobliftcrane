@@ -28,6 +28,7 @@ $labels = [
     'Installation Space' => ['ja' => '取付スペース', 'zh' => '安装空间'],
     'Oil Tank Capacity' => ['ja' => '作動油タンク容量', 'zh' => '液压油箱容积'],
     'Winch' => ['ja' => 'ウインチ', 'zh' => '卷扬机'],
+    'Boom Sections' => ['ja' => 'ブーム段数', 'zh' => '吊臂节数'],
     'Max Working Range' => ['ja' => '最大作業範囲', 'zh' => '最大工作范围'],
     'Max Lifting Height' => ['ja' => '最大揚程', 'zh' => '最大起升高度'],
     'Max Lifting Height (from ground)' => ['ja' => '最大揚程（地上から）', 'zh' => '最大起升高度（离地）'],
@@ -46,6 +47,8 @@ $value_words = [
     'Custom Solution' => ['ja' => 'カスタム対応', 'zh' => '定制方案'],
     'mast' => ['ja' => 'マスト', 'zh' => '门架'],
     'Included' => ['ja' => '標準装備', 'zh' => '标配'],
+    'hydraulic' => ['ja' => '油圧', 'zh' => '液压'],
+    'manual extension' => ['ja' => '手動伸縮', 'zh' => '手拉出臂'],
 ];
 
 $features = [

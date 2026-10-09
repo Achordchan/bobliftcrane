@@ -425,10 +425,8 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                     </div>
                 </article>
             <?php endif; ?>
-            <?php foreach ($drawings as $drawing) :
-                $drawing_ratio = ($drawing['height'] ?? 0) > 0 ? $drawing['width'] / $drawing['height'] : 2;
-            ?>
-                <article id="drawing" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card" data-drawing-root>
+            <?php if ($drawings) : ?>
+                <article id="drawing" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card">
                     <div class="flex flex-col gap-2 border-b border-[#DDE7F2] p-6 md:flex-row md:items-end md:justify-between md:p-8">
                         <div>
                             <p class="text-[11px] font-black uppercase tracking-[0.2em] text-[#0B3F7D]"><?php echo esc_html($ui['drawingLabel'] ?? 'Dimension Drawing'); ?></p>
@@ -436,6 +434,12 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                         </div>
                         <p class="text-xs font-semibold text-slate-500"><?php echo esc_html($hero_model !== '' ? $hero_model : $product_title); ?></p>
                     </div>
+                    <?php // Outline drawing and load chart side by side when the technical drawings supply both. ?>
+                    <div class="grid <?php echo count($drawings) > 1 ? 'md:grid-cols-2' : ''; ?>">
+                    <?php foreach ($drawings as $drawing) :
+                        $drawing_ratio = ($drawing['height'] ?? 0) > 0 ? $drawing['width'] / $drawing['height'] : 2;
+                    ?>
+                    <div data-drawing-root>
                     <div class="p-4 sm:p-6 md:p-8">
                         <button class="block w-full cursor-zoom-in rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" type="button" data-drawing-open aria-label="<?php echo esc_attr($drawing['label']); ?>">
                             <img class="mx-auto h-auto w-full <?php echo $drawing_ratio < 1.4 ? 'max-w-[560px]' : ''; ?>" src="<?php echo esc_url($drawing['image']); ?>" width="<?php echo esc_attr((string) $drawing['width']); ?>" height="<?php echo esc_attr((string) $drawing['height']); ?>" alt="<?php echo esc_attr($drawing['label']); ?>" loading="lazy" decoding="async">
@@ -451,8 +455,11 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                             <div class="min-h-0 flex-1 overflow-auto p-4 md:p-6"><img class="mx-auto h-auto max-w-none" style="width:max(100%, <?php echo esc_attr((string) min(2000, (int) $drawing['width'])); ?>px)" src="<?php echo esc_url($drawing['image']); ?>" alt="" loading="lazy" decoding="async"></div>
                         </div>
                     </dialog>
+                    </div>
+                    <?php endforeach; ?>
+                    </div>
                 </article>
-            <?php break; endforeach; ?>
+            <?php endif; ?>
             <?php if ($brochure_features) : ?>
                 <?php
                 $features_series = trim((string) ($product['features_series'] ?? ''));

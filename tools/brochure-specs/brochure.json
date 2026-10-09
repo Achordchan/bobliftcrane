@@ -953,7 +953,7 @@
  },
  {
   "model": "CC85",
-  "cap": "2000",
+  "cap": "2300",
   "moment_knm": "50",
   "working_range_mm": "5400",
   "lift_height_mm": "8400 (3 m mast) / 9900 (4.5 m mast)",
@@ -967,9 +967,9 @@
  },
  {
   "model": "CC105",
-  "cap": "2300",
+  "cap": "2500",
   "moment_knm": "50",
-  "working_range_mm": "6500",
+  "working_range_mm": "6600",
   "lift_height_mm": "9500 (3 m mast) / 11000 (4.5 m mast)",
   "pressure": "20",
   "weight": "650",
@@ -995,7 +995,7 @@
  },
  {
   "model": "CC145",
-  "cap": "5000",
+  "cap": "4900",
   "moment_knm": "115",
   "working_range_mm": "9400",
   "lift_height_mm": "12400 (3 m mast) / 13900 (4.5 m mast)",
