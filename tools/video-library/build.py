@@ -35,6 +35,7 @@ VIDEOS = [
     # 船吊/折叠臂船吊/2Z is left out: its subtitles call it a truck crane (2026-09-30).
 
     ('marine-knuckle-3.2', 'marine', {'en': M + '折叠臂船吊/3.2z船吊测试/3.2Z船吊英语.mp4', 'zh': M + '折叠臂船吊/3.2z船吊测试/3.2Z船吊中文.mp4'}),
+    ('marine-knuckle-4', 'marine', {'en': NIKI + '2026/3月/4Z船吊/4Z船吊英语.mp4', 'zh': NIKI + '2026/3月/4Z船吊/4Z船吊中文.mp4'}),
     ('marine-knuckle-5', 'marine', {'en': M + '折叠臂船吊/5Z船吊/5Z船吊测试英语.mp4', 'zh': M + '折叠臂船吊/5Z船吊/5Z船吊测试中文.mp4'}),
     ('marine-knuckle-10', 'marine', {'any': M + '折叠臂船吊/10Z船吊/10ZA4船吊.mp4'}),
     ('marine-knuckle-12', 'marine', {'en': M + '折叠臂船吊/12Z船吊/英语.mp4', 'zh': M + '折叠臂船吊/12Z船吊/12Z船吊中文.mp4'}),

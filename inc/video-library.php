@@ -36,7 +36,8 @@ function boblift_video_library(): array
     $both = ['en', 'zh'];
     $any = ['any'];
     $videos = [
-        $series('truck', 'knuckle', '1', $any, 0),
+        // SQ1ZA3+1 is rated 1.6 t, so the 1 t file matches products by that capacity.
+        array_replace($series('truck', 'knuckle', '1', $any, 0), ['capacity' => 1.6]),
         $series('truck', 'knuckle', '2', $both, 0),
         $series('truck', 'knuckle', '3.2', $both, 0),
         $series('truck', 'knuckle', '4', $both, 0),
@@ -53,6 +54,7 @@ function boblift_video_library(): array
         $series('truck', 'telescopic', '10', $both, 0),
         $series('truck', 'telescopic', '12', $both, 0),
         $series('marine', 'knuckle', '3.2', $both, 0),
+        $series('marine', 'knuckle', '4', $both, 0),
         $series('marine', 'knuckle', '5', $both, 0),
         $series('marine', 'knuckle', '10', $any, 0),
         $series('marine', 'knuckle', '12', $both, 0),
