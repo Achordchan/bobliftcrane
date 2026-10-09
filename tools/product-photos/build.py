@@ -15,6 +15,8 @@ NIKI = '/Volumes/团队文件-通用空间/Niki/产品图片/'
 PRODUCTS = [
     ('4-ton-knuckle-boom-truck-mounted-crane-sq4za3', 'SQ4ZA3', ZHAO + 'SQ4ZA3', [1, 6, 7, 13, 20, 25], True),
     ('0-8-ton-knuckle-boom-marine-crane', 'SQ08ZA3TJ+1', ZHAO + 'SQ08ZA3T', [4, 5, 9, 21, 26, 28], True),
+    # Orange and blue sets are printed SQ5ZA3; the red sets have the same boom tip (1 main + 2 hydraulic booms).
+    ('5-ton-knuckle-boom-truck-mounted-crane-sq5za3', 'SQ5ZA3', [NIKI + '折叠臂随车吊/5Z红色展品', NIKI + '折叠臂随车吊/5Z橙色', NIKI + '折叠臂随车吊/5Z蓝色', NIKI + '折叠臂随车吊/5Z红色1'], [(0, 1), (0, 5), (1, 2), (1, 7), (2, 1), (2, 4), (3, 1)], True),
     ('1-ton-knuckle-boom-marine-crane', 'SQ1ZA3TJ+1', NIKI + '折叠臂船吊/1Z船吊', [1, 3, 5, 6, 8], False),
     ('4-ton-knuckle-boom-marine-crane', 'SQ4ZA3TJ', NIKI + '折叠臂船吊/4Z船吊', [1, 5, 6, 9, 14], False),
     ('8-ton-knuckle-boom-marine-crane', 'SQ8ZA6TJ', NIKI + '折叠臂船吊/8Z船吊 红色', [2, 3, 9, 10, 1], False),
@@ -28,11 +30,14 @@ def main():
     os.makedirs(os.path.join(DIR, 'media'), exist_ok=True)
     plan = []
     for slug, model, folder, picks, own in PRODUCTS:
-        files = sorted(f for f in os.listdir(folder) if f.lower().endswith(('.jpg', '.jpeg', '.png')) and not f.startswith('.'))
+        # One folder with picks [n, ...], or several folders with picks [(folder index, n), ...].
+        folders = folder if isinstance(folder, list) else [folder]
+        listing = [sorted(f for f in os.listdir(d) if f.lower().endswith(('.jpg', '.jpeg', '.png')) and not f.startswith('.')) for d in folders]
         photos = []
         for n, pick in enumerate(picks, 1):
-            src = os.path.join(folder, files[pick - 1])
-            name = f'{model}-{n:02d}-{os.path.splitext(files[pick - 1])[0]}.webp'.replace('+', 'plus').replace('-已增强-降噪', '')
+            k, pick = pick if isinstance(pick, tuple) else (0, pick)
+            src = os.path.join(folders[k], listing[k][pick - 1])
+            name = f'{model}-{n:02d}-{os.path.splitext(listing[k][pick - 1])[0]}.webp'.replace('+', 'plus').replace('-已增强-降噪', '')
             dest = os.path.join(DIR, 'media', name)
             if not os.path.exists(dest):
                 subprocess.run(['magick', src, '-auto-orient', '-resize', '1800x1800>', '-strip', '-quality', '80', dest], check=True)
