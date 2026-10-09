@@ -7,12 +7,14 @@ get_header();
 $ui = boblift_site_ui('mountingShipping');
 $detail_ui = boblift_site_ui('productDetail');
 $photo = static fn(string $name): array => ['full' => boblift_image_src('images/mounting/' . $name . '.webp'), 'thumb' => boblift_image_src('images/mounting/' . $name . '-sm.webp')];
-// Photos per step, taken in the workshop in July 2026 (mounted crane trucks and wrapped cranes in containers).
+// Photos per step, taken in the workshop in July 2026 (mounted crane trucks and wrapped cranes in containers);
+// the batch step uses the photographer's order photos from the shared folder (2026-10-09).
 $step_photos = [
     'lift' => ['lift-crane-hoist', 'lift-crane-chassis'],
     'fix' => ['fix-frame-side', 'fix-frame-close'],
     'support' => ['rear-support-a', 'rear-support-b'],
     'finish' => ['finished-truck-side', 'finished-truck-arm'],
+    'batch' => ['batch-row-3-2z', 'batch-row-6-3za3', 'batch-pallets', 'batch-row-6-3z'],
     'wrap' => ['pack-wrapped-row', 'pack-wrapped-close', 'pack-wrapped-hall', 'pack-wrapped-boom'],
     'load' => ['load-hoist-container', 'load-forklift-door', 'load-forklift-inside'],
 ];

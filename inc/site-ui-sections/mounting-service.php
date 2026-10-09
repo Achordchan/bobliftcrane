@@ -18,6 +18,7 @@ return [
         'packLabel' => 'Packing and loading',
         'packTitle' => 'Packing and container loading',
         'packSteps' => [
+            ['key' => 'batch', 'title' => 'Line up the order', 'text' => 'Every crane in an order is tested, set on its base or a pallet and lined up in the hall before packing.'],
             ['key' => 'wrap', 'title' => 'Wrap the crane', 'text' => 'Cranes that ship without a chassis are wrapped in stretch film before they leave the workshop.'],
             ['key' => 'load', 'title' => 'Load the container', 'text' => 'A hoist or a forklift moves each packed crane into the container.'],
         ],
