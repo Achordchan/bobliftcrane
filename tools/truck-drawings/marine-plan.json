@@ -1,0 +1,3259 @@
+{
+ "existing": [
+  {
+   "model": "BLZ90K5TJ",
+   "slug": "4-6-ton-knuckle-boom-marine-crane",
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "4600 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "9 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "15 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "25 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "28 MPa"
+    },
+    {
+     "label": "Self Weight",
+     "value": "1520 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360° continuous"
+    }
+   ],
+   "drop_alias": ""
+  },
+  {
+   "model": "SQ08ZA3TJ+1",
+   "slug": "0-8-ton-knuckle-boom-marine-crane",
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "800 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "1.3 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "3.5 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "8 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "18 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "20 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "220 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "330°"
+    }
+   ],
+   "drop_alias": ""
+  },
+  {
+   "model": "SQ10ZA6TJ",
+   "slug": "10-ton-knuckle-boom-marine-crane",
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "10000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "21 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "30 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "40 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "30 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "160 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "2920 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360° continuous"
+    }
+   ],
+   "drop_alias": "SQ10ZA5TJ"
+  },
+  {
+   "model": "SQ12ZA6T",
+   "slug": "12-ton-knuckle-boom-marine-crane",
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "12000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "27 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "30 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "55 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "28 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "160 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "4350 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360° continuous"
+    }
+   ],
+   "drop_alias": ""
+  },
+  {
+   "model": "SQ1ZA3TJ+1",
+   "slug": "1-ton-knuckle-boom-marine-crane",
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "1600 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "2.2 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "7.5 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "15 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "18 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "25 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "380 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "330°"
+    }
+   ],
+   "drop_alias": ""
+  },
+  {
+   "model": "SQ2ZA2TJ",
+   "slug": "2-ton-knuckle-boom-marine-crane",
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "2000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "4.2 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "9 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "20 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "20 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "25 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "590 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360° continuous"
+    }
+   ],
+   "drop_alias": ""
+  },
+  {
+   "model": "SQ3.2ZA3TJ",
+   "slug": "3-2-ton-knuckle-boom-marine-crane",
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "3200 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "6.8 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "15 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "25 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "25 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "60 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "1236 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360° continuous"
+    }
+   ],
+   "drop_alias": ""
+  },
+  {
+   "model": "SQ4ZA3TJ",
+   "slug": "4-ton-knuckle-boom-marine-crane",
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "4000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "8.4 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "15 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "25 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "26 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "60 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "1256 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360° continuous"
+    }
+   ],
+   "drop_alias": ""
+  },
+  {
+   "model": "SQ5ZA3TJ",
+   "slug": "5-ton-knuckle-boom-marine-crane",
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "5000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "10.5 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "22 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "35 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "28 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "100 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "2120 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360° continuous"
+    }
+   ],
+   "drop_alias": ""
+  },
+  {
+   "model": "SQ6.3ZA4TJ",
+   "slug": "6-3-ton-knuckle-boom-marine-crane",
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "6300 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "13.2 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "22 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "40 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "28 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "100 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "1740 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360° continuous"
+    }
+   ],
+   "drop_alias": ""
+  },
+  {
+   "model": "SQ8ZA6TJ",
+   "slug": "8-ton-knuckle-boom-marine-crane",
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "8000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "16.7 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "25 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "40 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "28 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "160 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "2730 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360° continuous"
+    }
+   ],
+   "drop_alias": "SQ8ZA5TJ"
+  },
+  {
+   "model": "SQZ330T",
+   "slug": "16-ton-knuckle-boom-marine-crane",
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "16000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "34.8 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "45 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "63 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "33 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "200 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "4500 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360° continuous"
+    }
+   ],
+   "drop_alias": "SQ16ZA5T"
+  },
+  {
+   "model": "SQZ430T",
+   "slug": "20-ton-knuckle-boom-marine-crane",
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "20000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "42.3 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "45 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "63 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "33 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "240 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "4900 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360° continuous"
+    }
+   ],
+   "drop_alias": "SQ20ZA7TJ+1"
+  },
+  {
+   "model": "SQZ500T",
+   "slug": "25-ton-knuckle-boom-marine-crane",
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "25000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "53 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "55 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "80 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "35 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "260 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "6474 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360° continuous"
+    }
+   ],
+   "drop_alias": "SQ25ZA8T"
+  },
+  {
+   "model": "SQ10SA4T",
+   "slug": "10-ton-telescopic-boom-marine-crane",
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "10000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "25 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "37 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "63 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "26 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "200 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "3250 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360° continuous"
+    }
+   ],
+   "drop_alias": ""
+  },
+  {
+   "model": "SQ12SA4T",
+   "slug": "12-ton-telescopic-boom-marine-crane",
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "12000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "33 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "45 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "75 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "26 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "200 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "4050 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360° continuous"
+    }
+   ],
+   "drop_alias": ""
+  },
+  {
+   "model": "SQ16SA5T",
+   "slug": "16-ton-telescopic-boom-marine-crane",
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "16000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "40 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "55 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "80 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "30 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "240 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "5800 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360° continuous"
+    }
+   ],
+   "drop_alias": ""
+  },
+  {
+   "model": "SQ20SA5T",
+   "slug": "20-ton-telescopic-boom-marine-crane",
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "20000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "50 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "55 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "80+63 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "25 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "260 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "6950 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360° continuous"
+    }
+   ],
+   "drop_alias": ""
+  },
+  {
+   "model": "SQ2SA3T",
+   "slug": "2-ton-telescopic-boom-marine-crane",
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "2000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "4.2 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "8 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "25 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "16 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "60 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "830 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360° continuous"
+    }
+   ],
+   "drop_alias": ""
+  },
+  {
+   "model": "SQ3.2SA4T",
+   "slug": "3-2-ton-telescopic-boom-marine-crane",
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "3200 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "6.8 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "14 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "25 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "20 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "60 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "1250 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360° continuous"
+    }
+   ],
+   "drop_alias": ""
+  },
+  {
+   "model": "SQ4SA3T",
+   "slug": "4-ton-telescopic-boom-marine-crane",
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "4000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "10 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "16 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "25 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "20 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "100 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "1500 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360° continuous"
+    }
+   ],
+   "drop_alias": ""
+  },
+  {
+   "model": "SQ5SA4T",
+   "slug": "5-ton-telescopic-boom-marine-crane",
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "5000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "12.5 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "18 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "32 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "21 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "100 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "2100 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360° continuous"
+    }
+   ],
+   "drop_alias": ""
+  },
+  {
+   "model": "SQ6.3SA4T",
+   "slug": "6-3-ton-telescopic-boom-marine-crane",
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "6300 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "15.75 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "22 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "40 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "20 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "100 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "2200 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360° continuous"
+    }
+   ],
+   "drop_alias": ""
+  },
+  {
+   "model": "SQ8SA5T",
+   "slug": "8-ton-telescopic-boom-marine-crane",
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "8000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "20 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "30 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "55 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "26 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "200 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "3250 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360° continuous"
+    }
+   ],
+   "drop_alias": "SQ8SA4T"
+  }
+ ],
+ "new": [
+  {
+   "model": "BLZ90K4TJ",
+   "title": "4.6 Ton Knuckle Boom Marine Crane BLZ90K4TJ",
+   "category": "knuckle-boom-marine-cranes",
+   "boom_type": "knuckle-boom",
+   "applications": "marine,logistics",
+   "capacity": "4.6 ton",
+   "capacity_value": 4.6,
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "4600 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "9 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "15 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "25 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "28 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "57 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "1420 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360°"
+    }
+   ],
+   "features": [
+    {
+     "title": "High-strength steel structure",
+     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+    },
+    {
+     "title": "Dedicated torque limiter",
+     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+    },
+    {
+     "title": "Custom installation",
+     "text": "Customizable installation methods tailored to specific operational scenarios."
+    },
+    {
+     "title": "Optional attachments",
+     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+    },
+    {
+     "title": "Operation modes",
+     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+    },
+    {
+     "title": "Dual four-bar linkage",
+     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+    },
+    {
+     "title": "Marine anti-rust treatment",
+     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+    }
+   ],
+   "short_description": "The BOB-LIFT BLZ90K4TJ knuckle boom marine crane has a maximum lifting capacity of 4600 kg, a maximum lifting moment of 9 t·m and a self weight of 1420 kg.",
+   "seo_title": "China 4.6 Ton Knuckle Boom Marine Crane BLZ90K4TJ - BOB-LIFT",
+   "sibling": "4-6-ton-knuckle-boom-marine-crane",
+   "drawings": [
+    {
+     "file": "BLZ90K4TJ-outline.webp",
+     "kind": "outline"
+    },
+    {
+     "file": "BLZ90K4TJ-chart.webp",
+     "kind": "chart"
+    }
+   ],
+   "source": "BOB-LIFT technical drawing BLZ90K4TJ (technical department, 2026-10-09)"
+  },
+  {
+   "model": "SQ08ZA3T+1",
+   "title": "0.8 Ton Knuckle Boom Marine Crane SQ08ZA3T+1",
+   "category": "knuckle-boom-marine-cranes",
+   "boom_type": "knuckle-boom",
+   "applications": "marine,logistics",
+   "capacity": "0.8 ton",
+   "capacity_value": 0.8,
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "800 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "1.3 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "3.5 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "8 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "18 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "20 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "200 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "330°"
+    }
+   ],
+   "features": [
+    {
+     "title": "High-strength steel structure",
+     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+    },
+    {
+     "title": "Dedicated torque limiter",
+     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+    },
+    {
+     "title": "Custom installation",
+     "text": "Customizable installation methods tailored to specific operational scenarios."
+    },
+    {
+     "title": "Optional attachments",
+     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+    },
+    {
+     "title": "Operation modes",
+     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+    },
+    {
+     "title": "Dual four-bar linkage",
+     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+    },
+    {
+     "title": "Marine anti-rust treatment",
+     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+    }
+   ],
+   "short_description": "The BOB-LIFT SQ08ZA3T+1 knuckle boom marine crane has a maximum lifting capacity of 800 kg, a maximum lifting moment of 1.3 t·m and a self weight of 200 kg.",
+   "seo_title": "China 0.8 Ton Knuckle Boom Marine Crane SQ08ZA3T+1 - BOB-LIFT",
+   "sibling": "0-8-ton-knuckle-boom-marine-crane",
+   "drawings": [
+    {
+     "file": "SQ08ZA3Tplus1-outline.webp",
+     "kind": "outline"
+    }
+   ],
+   "source": "BOB-LIFT technical drawing SQ08ZA3T+1 (technical department, 2026-10-09)"
+  },
+  {
+   "model": "SQ1ZA3T+1",
+   "title": "1.6 Ton Knuckle Boom Marine Crane SQ1ZA3T+1",
+   "category": "knuckle-boom-marine-cranes",
+   "boom_type": "knuckle-boom",
+   "applications": "marine,logistics",
+   "capacity": "1.6 ton",
+   "capacity_value": 1.6,
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "1600 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "2.2 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "7.5 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "15 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "18 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "25 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "350 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "330°"
+    }
+   ],
+   "features": [
+    {
+     "title": "High-strength steel structure",
+     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+    },
+    {
+     "title": "Dedicated torque limiter",
+     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+    },
+    {
+     "title": "Custom installation",
+     "text": "Customizable installation methods tailored to specific operational scenarios."
+    },
+    {
+     "title": "Optional attachments",
+     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+    },
+    {
+     "title": "Operation modes",
+     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+    },
+    {
+     "title": "Dual four-bar linkage",
+     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+    },
+    {
+     "title": "Marine anti-rust treatment",
+     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+    }
+   ],
+   "short_description": "The BOB-LIFT SQ1ZA3T+1 knuckle boom marine crane has a maximum lifting capacity of 1600 kg, a maximum lifting moment of 2.2 t·m and a self weight of 350 kg.",
+   "seo_title": "China 1.6 Ton Knuckle Boom Marine Crane SQ1ZA3T+1 - BOB-LIFT",
+   "sibling": "1-ton-knuckle-boom-marine-crane",
+   "drawings": [
+    {
+     "file": "SQ1ZA3Tplus1-outline.webp",
+     "kind": "outline"
+    },
+    {
+     "file": "SQ1ZA3Tplus1-chart.webp",
+     "kind": "chart"
+    }
+   ],
+   "source": "BOB-LIFT technical drawing SQ1ZA3T+1 (technical department, 2026-10-09)"
+  },
+  {
+   "model": "SQ2ZA4T",
+   "title": "2 Ton Knuckle Boom Marine Crane SQ2ZA4T",
+   "category": "knuckle-boom-marine-cranes",
+   "boom_type": "knuckle-boom",
+   "applications": "marine,logistics",
+   "capacity": "2 ton",
+   "capacity_value": 2.0,
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "2000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "4.2 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "9 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "20 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "20 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "25 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "630 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360°"
+    }
+   ],
+   "features": [
+    {
+     "title": "High-strength steel structure",
+     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+    },
+    {
+     "title": "Dedicated torque limiter",
+     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+    },
+    {
+     "title": "Custom installation",
+     "text": "Customizable installation methods tailored to specific operational scenarios."
+    },
+    {
+     "title": "Optional attachments",
+     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+    },
+    {
+     "title": "Operation modes",
+     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+    },
+    {
+     "title": "Dual four-bar linkage",
+     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+    },
+    {
+     "title": "Marine anti-rust treatment",
+     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+    }
+   ],
+   "short_description": "The BOB-LIFT SQ2ZA4T knuckle boom marine crane has a maximum lifting capacity of 2000 kg, a maximum lifting moment of 4.2 t·m and a self weight of 630 kg.",
+   "seo_title": "China 2 Ton Knuckle Boom Marine Crane SQ2ZA4T - BOB-LIFT",
+   "sibling": "2-ton-knuckle-boom-marine-crane",
+   "drawings": [
+    {
+     "file": "SQ2ZA4T-outline.webp",
+     "kind": "outline"
+    },
+    {
+     "file": "SQ2ZA4T-chart.webp",
+     "kind": "chart"
+    }
+   ],
+   "source": "BOB-LIFT technical drawing SQ2ZA4T (technical department, 2026-10-09)"
+  },
+  {
+   "model": "SQ3.2ZA3T",
+   "title": "3.2 Ton Knuckle Boom Marine Crane SQ3.2ZA3T",
+   "category": "knuckle-boom-marine-cranes",
+   "boom_type": "knuckle-boom",
+   "applications": "marine,logistics",
+   "capacity": "3.2 ton",
+   "capacity_value": 3.2,
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "3200 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "6.8 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "15 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "25 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "25 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "60 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "1190 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360°"
+    }
+   ],
+   "features": [
+    {
+     "title": "High-strength steel structure",
+     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+    },
+    {
+     "title": "Dedicated torque limiter",
+     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+    },
+    {
+     "title": "Custom installation",
+     "text": "Customizable installation methods tailored to specific operational scenarios."
+    },
+    {
+     "title": "Optional attachments",
+     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+    },
+    {
+     "title": "Operation modes",
+     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+    },
+    {
+     "title": "Dual four-bar linkage",
+     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+    },
+    {
+     "title": "Marine anti-rust treatment",
+     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+    }
+   ],
+   "short_description": "The BOB-LIFT SQ3.2ZA3T knuckle boom marine crane has a maximum lifting capacity of 3200 kg, a maximum lifting moment of 6.8 t·m and a self weight of 1190 kg.",
+   "seo_title": "China 3.2 Ton Knuckle Boom Marine Crane SQ3.2ZA3T - BOB-LIFT",
+   "sibling": "3-2-ton-knuckle-boom-marine-crane",
+   "drawings": [
+    {
+     "file": "SQ3.2ZA3T-outline.webp",
+     "kind": "outline"
+    },
+    {
+     "file": "SQ3.2ZA3T-chart.webp",
+     "kind": "chart"
+    }
+   ],
+   "source": "BOB-LIFT technical drawing SQ3.2ZA3T (technical department, 2026-10-09)"
+  },
+  {
+   "model": "SQ4ZA3T",
+   "title": "4 Ton Knuckle Boom Marine Crane SQ4ZA3T",
+   "category": "knuckle-boom-marine-cranes",
+   "boom_type": "knuckle-boom",
+   "applications": "marine,logistics",
+   "capacity": "4 ton",
+   "capacity_value": 4.0,
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "4000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "8.4 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "15 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "25 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "26 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "60 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "1210 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360°"
+    }
+   ],
+   "features": [
+    {
+     "title": "High-strength steel structure",
+     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+    },
+    {
+     "title": "Dedicated torque limiter",
+     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+    },
+    {
+     "title": "Custom installation",
+     "text": "Customizable installation methods tailored to specific operational scenarios."
+    },
+    {
+     "title": "Optional attachments",
+     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+    },
+    {
+     "title": "Operation modes",
+     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+    },
+    {
+     "title": "Dual four-bar linkage",
+     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+    },
+    {
+     "title": "Marine anti-rust treatment",
+     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+    }
+   ],
+   "short_description": "The BOB-LIFT SQ4ZA3T knuckle boom marine crane has a maximum lifting capacity of 4000 kg, a maximum lifting moment of 8.4 t·m and a self weight of 1210 kg.",
+   "seo_title": "China 4 Ton Knuckle Boom Marine Crane SQ4ZA3T - BOB-LIFT",
+   "sibling": "4-ton-knuckle-boom-marine-crane",
+   "drawings": [
+    {
+     "file": "SQ4ZA3T-outline.webp",
+     "kind": "outline"
+    },
+    {
+     "file": "SQ4ZA3T-chart.webp",
+     "kind": "chart"
+    }
+   ],
+   "source": "BOB-LIFT technical drawing SQ4ZA3T (technical department, 2026-10-09)"
+  },
+  {
+   "model": "SQ4ZA4T",
+   "title": "4 Ton Knuckle Boom Marine Crane SQ4ZA4T",
+   "category": "knuckle-boom-marine-cranes",
+   "boom_type": "knuckle-boom",
+   "applications": "marine,logistics",
+   "capacity": "4 ton",
+   "capacity_value": 4.0,
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "4000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "8.4 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "14 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "25 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "26 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "60 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "1260 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360°"
+    }
+   ],
+   "features": [
+    {
+     "title": "High-strength steel structure",
+     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+    },
+    {
+     "title": "Dedicated torque limiter",
+     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+    },
+    {
+     "title": "Custom installation",
+     "text": "Customizable installation methods tailored to specific operational scenarios."
+    },
+    {
+     "title": "Optional attachments",
+     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+    },
+    {
+     "title": "Operation modes",
+     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+    },
+    {
+     "title": "Dual four-bar linkage",
+     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+    },
+    {
+     "title": "Marine anti-rust treatment",
+     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+    }
+   ],
+   "short_description": "The BOB-LIFT SQ4ZA4T knuckle boom marine crane has a maximum lifting capacity of 4000 kg, a maximum lifting moment of 8.4 t·m and a self weight of 1260 kg.",
+   "seo_title": "China 4 Ton Knuckle Boom Marine Crane SQ4ZA4T - BOB-LIFT",
+   "sibling": "4-ton-knuckle-boom-marine-crane",
+   "drawings": [
+    {
+     "file": "SQ4ZA4T-outline.webp",
+     "kind": "outline"
+    },
+    {
+     "file": "SQ4ZA4T-chart.webp",
+     "kind": "chart"
+    }
+   ],
+   "source": "BOB-LIFT technical drawing SQ4ZA4T (technical department, 2026-10-09)"
+  },
+  {
+   "model": "SQ5ZA3T",
+   "title": "5 Ton Knuckle Boom Marine Crane SQ5ZA3T",
+   "category": "knuckle-boom-marine-cranes",
+   "boom_type": "knuckle-boom",
+   "applications": "marine,logistics",
+   "capacity": "5 ton",
+   "capacity_value": 5.0,
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "5000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "10.5 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "22 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "35 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "28 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "100 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "2060 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360°"
+    }
+   ],
+   "features": [
+    {
+     "title": "High-strength steel structure",
+     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+    },
+    {
+     "title": "Dedicated torque limiter",
+     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+    },
+    {
+     "title": "Custom installation",
+     "text": "Customizable installation methods tailored to specific operational scenarios."
+    },
+    {
+     "title": "Optional attachments",
+     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+    },
+    {
+     "title": "Operation modes",
+     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+    },
+    {
+     "title": "Dual four-bar linkage",
+     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+    },
+    {
+     "title": "Marine anti-rust treatment",
+     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+    }
+   ],
+   "short_description": "The BOB-LIFT SQ5ZA3T knuckle boom marine crane has a maximum lifting capacity of 5000 kg, a maximum lifting moment of 10.5 t·m and a self weight of 2060 kg.",
+   "seo_title": "China 5 Ton Knuckle Boom Marine Crane SQ5ZA3T - BOB-LIFT",
+   "sibling": "5-ton-knuckle-boom-marine-crane",
+   "drawings": [
+    {
+     "file": "SQ5ZA3T-outline.webp",
+     "kind": "outline"
+    },
+    {
+     "file": "SQ5ZA3T-chart.webp",
+     "kind": "chart"
+    }
+   ],
+   "source": "BOB-LIFT technical drawing SQ5ZA3T (technical department, 2026-10-09)"
+  },
+  {
+   "model": "SQ5ZA4T",
+   "title": "5 Ton Knuckle Boom Marine Crane SQ5ZA4T",
+   "category": "knuckle-boom-marine-cranes",
+   "boom_type": "knuckle-boom",
+   "applications": "marine,logistics",
+   "capacity": "5 ton",
+   "capacity_value": 5.0,
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "5000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "10.5 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "22 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "35 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "28 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "100 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "2120 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360°"
+    }
+   ],
+   "features": [
+    {
+     "title": "High-strength steel structure",
+     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+    },
+    {
+     "title": "Dedicated torque limiter",
+     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+    },
+    {
+     "title": "Custom installation",
+     "text": "Customizable installation methods tailored to specific operational scenarios."
+    },
+    {
+     "title": "Optional attachments",
+     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+    },
+    {
+     "title": "Operation modes",
+     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+    },
+    {
+     "title": "Dual four-bar linkage",
+     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+    },
+    {
+     "title": "Marine anti-rust treatment",
+     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+    }
+   ],
+   "short_description": "The BOB-LIFT SQ5ZA4T knuckle boom marine crane has a maximum lifting capacity of 5000 kg, a maximum lifting moment of 10.5 t·m and a self weight of 2120 kg.",
+   "seo_title": "China 5 Ton Knuckle Boom Marine Crane SQ5ZA4T - BOB-LIFT",
+   "sibling": "5-ton-knuckle-boom-marine-crane",
+   "drawings": [
+    {
+     "file": "SQ5ZA4T-outline.webp",
+     "kind": "outline"
+    },
+    {
+     "file": "SQ5ZA4T-chart.webp",
+     "kind": "chart"
+    }
+   ],
+   "source": "BOB-LIFT technical drawing SQ5ZA4T (technical department, 2026-10-09)"
+  },
+  {
+   "model": "SQ6.3ZA4T",
+   "title": "6.3 Ton Knuckle Boom Marine Crane SQ6.3ZA4T",
+   "category": "knuckle-boom-marine-cranes",
+   "boom_type": "knuckle-boom",
+   "applications": "marine,logistics",
+   "capacity": "6.3 ton",
+   "capacity_value": 6.3,
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "6300 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "13.2 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "22 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "40 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "28 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "100 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "1680 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360°"
+    }
+   ],
+   "features": [
+    {
+     "title": "High-strength steel structure",
+     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+    },
+    {
+     "title": "Dedicated torque limiter",
+     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+    },
+    {
+     "title": "Custom installation",
+     "text": "Customizable installation methods tailored to specific operational scenarios."
+    },
+    {
+     "title": "Optional attachments",
+     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+    },
+    {
+     "title": "Operation modes",
+     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+    },
+    {
+     "title": "Dual four-bar linkage",
+     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+    },
+    {
+     "title": "Marine anti-rust treatment",
+     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+    }
+   ],
+   "short_description": "The BOB-LIFT SQ6.3ZA4T knuckle boom marine crane has a maximum lifting capacity of 6300 kg, a maximum lifting moment of 13.2 t·m and a self weight of 1680 kg.",
+   "seo_title": "China 6.3 Ton Knuckle Boom Marine Crane SQ6.3ZA4T - BOB-LIFT",
+   "sibling": "6-3-ton-knuckle-boom-marine-crane",
+   "drawings": [
+    {
+     "file": "SQ6.3ZA4T-outline.webp",
+     "kind": "outline"
+    },
+    {
+     "file": "SQ6.3ZA4T-chart.webp",
+     "kind": "chart"
+    }
+   ],
+   "source": "BOB-LIFT technical drawing SQ6.3ZA4T (technical department, 2026-10-09)"
+  },
+  {
+   "model": "SQ6.3ZA5T",
+   "title": "6.3 Ton Knuckle Boom Marine Crane SQ6.3ZA5T",
+   "category": "knuckle-boom-marine-cranes",
+   "boom_type": "knuckle-boom",
+   "applications": "marine,logistics",
+   "capacity": "6.3 ton",
+   "capacity_value": 6.3,
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "6300 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "13.2 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "22 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "40 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "28 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "100 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "1730 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360°"
+    }
+   ],
+   "features": [
+    {
+     "title": "High-strength steel structure",
+     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+    },
+    {
+     "title": "Dedicated torque limiter",
+     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+    },
+    {
+     "title": "Custom installation",
+     "text": "Customizable installation methods tailored to specific operational scenarios."
+    },
+    {
+     "title": "Optional attachments",
+     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+    },
+    {
+     "title": "Operation modes",
+     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+    },
+    {
+     "title": "Dual four-bar linkage",
+     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+    },
+    {
+     "title": "Marine anti-rust treatment",
+     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+    }
+   ],
+   "short_description": "The BOB-LIFT SQ6.3ZA5T knuckle boom marine crane has a maximum lifting capacity of 6300 kg, a maximum lifting moment of 13.2 t·m and a self weight of 1730 kg.",
+   "seo_title": "China 6.3 Ton Knuckle Boom Marine Crane SQ6.3ZA5T - BOB-LIFT",
+   "sibling": "6-3-ton-knuckle-boom-marine-crane",
+   "drawings": [
+    {
+     "file": "SQ6.3ZA5T-outline.webp",
+     "kind": "outline"
+    },
+    {
+     "file": "SQ6.3ZA5T-chart.webp",
+     "kind": "chart"
+    }
+   ],
+   "source": "BOB-LIFT technical drawing SQ6.3ZA5T (technical department, 2026-10-09)"
+  },
+  {
+   "model": "SQ8ZA4T",
+   "title": "8 Ton Knuckle Boom Marine Crane SQ8ZA4T",
+   "category": "knuckle-boom-marine-cranes",
+   "boom_type": "knuckle-boom",
+   "applications": "marine,logistics",
+   "capacity": "8 ton",
+   "capacity_value": 8.0,
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "8000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "16.7 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "25 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "40 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "28 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "160 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "2470 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360°"
+    }
+   ],
+   "features": [
+    {
+     "title": "High-strength steel structure",
+     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+    },
+    {
+     "title": "Dedicated torque limiter",
+     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+    },
+    {
+     "title": "Custom installation",
+     "text": "Customizable installation methods tailored to specific operational scenarios."
+    },
+    {
+     "title": "Optional attachments",
+     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+    },
+    {
+     "title": "Operation modes",
+     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+    },
+    {
+     "title": "Dual four-bar linkage",
+     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+    },
+    {
+     "title": "Marine anti-rust treatment",
+     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+    }
+   ],
+   "short_description": "The BOB-LIFT SQ8ZA4T knuckle boom marine crane has a maximum lifting capacity of 8000 kg, a maximum lifting moment of 16.7 t·m and a self weight of 2470 kg.",
+   "seo_title": "China 8 Ton Knuckle Boom Marine Crane SQ8ZA4T - BOB-LIFT",
+   "sibling": "8-ton-knuckle-boom-marine-crane",
+   "drawings": [
+    {
+     "file": "SQ8ZA4T-outline.webp",
+     "kind": "outline"
+    },
+    {
+     "file": "SQ8ZA4T-chart.webp",
+     "kind": "chart"
+    }
+   ],
+   "source": "BOB-LIFT technical drawing SQ8ZA4T (technical department, 2026-10-09)"
+  },
+  {
+   "model": "SQ8ZA4TJ",
+   "title": "8 Ton Knuckle Boom Marine Crane SQ8ZA4TJ",
+   "category": "knuckle-boom-marine-cranes",
+   "boom_type": "knuckle-boom",
+   "applications": "marine,logistics",
+   "capacity": "8 ton",
+   "capacity_value": 8.0,
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "8000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "16.7 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "25 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "40 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "28 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "160 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "2550 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360°"
+    }
+   ],
+   "features": [
+    {
+     "title": "High-strength steel structure",
+     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+    },
+    {
+     "title": "Dedicated torque limiter",
+     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+    },
+    {
+     "title": "Custom installation",
+     "text": "Customizable installation methods tailored to specific operational scenarios."
+    },
+    {
+     "title": "Optional attachments",
+     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+    },
+    {
+     "title": "Operation modes",
+     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+    },
+    {
+     "title": "Dual four-bar linkage",
+     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+    },
+    {
+     "title": "Marine anti-rust treatment",
+     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+    }
+   ],
+   "short_description": "The BOB-LIFT SQ8ZA4TJ knuckle boom marine crane has a maximum lifting capacity of 8000 kg, a maximum lifting moment of 16.7 t·m and a self weight of 2550 kg.",
+   "seo_title": "China 8 Ton Knuckle Boom Marine Crane SQ8ZA4TJ - BOB-LIFT",
+   "sibling": "8-ton-knuckle-boom-marine-crane",
+   "drawings": [
+    {
+     "file": "SQ8ZA4TJ-outline.webp",
+     "kind": "outline"
+    },
+    {
+     "file": "SQ8ZA4TJ-chart.webp",
+     "kind": "chart"
+    }
+   ],
+   "source": "BOB-LIFT technical drawing SQ8ZA4TJ (technical department, 2026-10-09)"
+  },
+  {
+   "model": "SQ8ZA5TJ",
+   "title": "8 Ton Knuckle Boom Marine Crane SQ8ZA5TJ",
+   "category": "knuckle-boom-marine-cranes",
+   "boom_type": "knuckle-boom",
+   "applications": "marine,logistics",
+   "capacity": "8 ton",
+   "capacity_value": 8.0,
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "8000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "16.7 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "25 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "40 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "28 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "160 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "2650 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360°"
+    }
+   ],
+   "features": [
+    {
+     "title": "High-strength steel structure",
+     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+    },
+    {
+     "title": "Dedicated torque limiter",
+     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+    },
+    {
+     "title": "Custom installation",
+     "text": "Customizable installation methods tailored to specific operational scenarios."
+    },
+    {
+     "title": "Optional attachments",
+     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+    },
+    {
+     "title": "Operation modes",
+     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+    },
+    {
+     "title": "Dual four-bar linkage",
+     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+    },
+    {
+     "title": "Marine anti-rust treatment",
+     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+    }
+   ],
+   "short_description": "The BOB-LIFT SQ8ZA5TJ knuckle boom marine crane has a maximum lifting capacity of 8000 kg, a maximum lifting moment of 16.7 t·m and a self weight of 2650 kg.",
+   "seo_title": "China 8 Ton Knuckle Boom Marine Crane SQ8ZA5TJ - BOB-LIFT",
+   "sibling": "8-ton-knuckle-boom-marine-crane",
+   "drawings": [
+    {
+     "file": "SQ8ZA5TJ-outline.webp",
+     "kind": "outline"
+    },
+    {
+     "file": "SQ8ZA5TJ-chart.webp",
+     "kind": "chart"
+    }
+   ],
+   "source": "BOB-LIFT technical drawing SQ8ZA5TJ (technical department, 2026-10-09)"
+  },
+  {
+   "model": "SQ10ZA5T",
+   "title": "10 Ton Knuckle Boom Marine Crane SQ10ZA5T",
+   "category": "knuckle-boom-marine-cranes",
+   "boom_type": "knuckle-boom",
+   "applications": "marine,logistics",
+   "capacity": "10 ton",
+   "capacity_value": 10.0,
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "10000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "21 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "30 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "40 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "30 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "160 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "2780 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360°"
+    }
+   ],
+   "features": [
+    {
+     "title": "High-strength steel structure",
+     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+    },
+    {
+     "title": "Dedicated torque limiter",
+     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+    },
+    {
+     "title": "Custom installation",
+     "text": "Customizable installation methods tailored to specific operational scenarios."
+    },
+    {
+     "title": "Optional attachments",
+     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+    },
+    {
+     "title": "Operation modes",
+     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+    },
+    {
+     "title": "Dual four-bar linkage",
+     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+    },
+    {
+     "title": "Marine anti-rust treatment",
+     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+    }
+   ],
+   "short_description": "The BOB-LIFT SQ10ZA5T knuckle boom marine crane has a maximum lifting capacity of 10000 kg, a maximum lifting moment of 21 t·m and a self weight of 2780 kg.",
+   "seo_title": "China 10 Ton Knuckle Boom Marine Crane SQ10ZA5T - BOB-LIFT",
+   "sibling": "10-ton-knuckle-boom-marine-crane",
+   "drawings": [
+    {
+     "file": "SQ10ZA5T-outline.webp",
+     "kind": "outline"
+    },
+    {
+     "file": "SQ10ZA5T-chart.webp",
+     "kind": "chart"
+    }
+   ],
+   "source": "BOB-LIFT technical drawing SQ10ZA5T (technical department, 2026-10-09)"
+  },
+  {
+   "model": "SQ10ZA5TJ",
+   "title": "10 Ton Knuckle Boom Marine Crane SQ10ZA5TJ",
+   "category": "knuckle-boom-marine-cranes",
+   "boom_type": "knuckle-boom",
+   "applications": "marine,logistics",
+   "capacity": "10 ton",
+   "capacity_value": 10.0,
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "10000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "21 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "30 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "40 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "30 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "160 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "2852 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360°"
+    }
+   ],
+   "features": [
+    {
+     "title": "High-strength steel structure",
+     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+    },
+    {
+     "title": "Dedicated torque limiter",
+     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+    },
+    {
+     "title": "Custom installation",
+     "text": "Customizable installation methods tailored to specific operational scenarios."
+    },
+    {
+     "title": "Optional attachments",
+     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+    },
+    {
+     "title": "Operation modes",
+     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+    },
+    {
+     "title": "Dual four-bar linkage",
+     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+    },
+    {
+     "title": "Marine anti-rust treatment",
+     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+    }
+   ],
+   "short_description": "The BOB-LIFT SQ10ZA5TJ knuckle boom marine crane has a maximum lifting capacity of 10000 kg, a maximum lifting moment of 21 t·m and a self weight of 2852 kg.",
+   "seo_title": "China 10 Ton Knuckle Boom Marine Crane SQ10ZA5TJ - BOB-LIFT",
+   "sibling": "10-ton-knuckle-boom-marine-crane",
+   "drawings": [
+    {
+     "file": "SQ10ZA5TJ-outline.webp",
+     "kind": "outline"
+    },
+    {
+     "file": "SQ10ZA5TJ-chart.webp",
+     "kind": "chart"
+    }
+   ],
+   "source": "BOB-LIFT technical drawing SQ10ZA5TJ (technical department, 2026-10-09)"
+  },
+  {
+   "model": "SQ12ZA4T",
+   "title": "12 Ton Knuckle Boom Marine Crane SQ12ZA4T",
+   "category": "knuckle-boom-marine-cranes",
+   "boom_type": "knuckle-boom",
+   "applications": "marine,logistics",
+   "capacity": "12 ton",
+   "capacity_value": 12.0,
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "12000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "27 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "30 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "55 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "28 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "160 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "3900 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360°"
+    }
+   ],
+   "features": [
+    {
+     "title": "High-strength steel structure",
+     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+    },
+    {
+     "title": "Dedicated torque limiter",
+     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+    },
+    {
+     "title": "Custom installation",
+     "text": "Customizable installation methods tailored to specific operational scenarios."
+    },
+    {
+     "title": "Optional attachments",
+     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+    },
+    {
+     "title": "Operation modes",
+     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+    },
+    {
+     "title": "Dual four-bar linkage",
+     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+    },
+    {
+     "title": "Marine anti-rust treatment",
+     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+    }
+   ],
+   "short_description": "The BOB-LIFT SQ12ZA4T knuckle boom marine crane has a maximum lifting capacity of 12000 kg, a maximum lifting moment of 27 t·m and a self weight of 3900 kg.",
+   "seo_title": "China 12 Ton Knuckle Boom Marine Crane SQ12ZA4T - BOB-LIFT",
+   "sibling": "12-ton-knuckle-boom-marine-crane",
+   "drawings": [
+    {
+     "file": "SQ12ZA4T-outline.webp",
+     "kind": "outline"
+    },
+    {
+     "file": "SQ12ZA4T-chart.webp",
+     "kind": "chart"
+    }
+   ],
+   "source": "BOB-LIFT technical drawing SQ12ZA4T (technical department, 2026-10-09)"
+  },
+  {
+   "model": "SQ12ZA4TJ",
+   "title": "12 Ton Knuckle Boom Marine Crane SQ12ZA4TJ",
+   "category": "knuckle-boom-marine-cranes",
+   "boom_type": "knuckle-boom",
+   "applications": "marine,logistics",
+   "capacity": "12 ton",
+   "capacity_value": 12.0,
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "12000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "27 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "30 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "55 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "28 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "160 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "3950 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360°"
+    }
+   ],
+   "features": [
+    {
+     "title": "High-strength steel structure",
+     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+    },
+    {
+     "title": "Dedicated torque limiter",
+     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+    },
+    {
+     "title": "Custom installation",
+     "text": "Customizable installation methods tailored to specific operational scenarios."
+    },
+    {
+     "title": "Optional attachments",
+     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+    },
+    {
+     "title": "Operation modes",
+     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+    },
+    {
+     "title": "Dual four-bar linkage",
+     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+    },
+    {
+     "title": "Marine anti-rust treatment",
+     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+    }
+   ],
+   "short_description": "The BOB-LIFT SQ12ZA4TJ knuckle boom marine crane has a maximum lifting capacity of 12000 kg, a maximum lifting moment of 27 t·m and a self weight of 3950 kg.",
+   "seo_title": "China 12 Ton Knuckle Boom Marine Crane SQ12ZA4TJ - BOB-LIFT",
+   "sibling": "12-ton-knuckle-boom-marine-crane",
+   "drawings": [
+    {
+     "file": "SQ12ZA4TJ-outline.webp",
+     "kind": "outline"
+    },
+    {
+     "file": "SQ12ZA4TJ-chart.webp",
+     "kind": "chart"
+    }
+   ],
+   "source": "BOB-LIFT technical drawing SQ12ZA4TJ (technical department, 2026-10-09)"
+  },
+  {
+   "model": "SQ12ZA5T",
+   "title": "12 Ton Knuckle Boom Marine Crane SQ12ZA5T",
+   "category": "knuckle-boom-marine-cranes",
+   "boom_type": "knuckle-boom",
+   "applications": "marine,logistics",
+   "capacity": "12 ton",
+   "capacity_value": 12.0,
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "12000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "27 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "30 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "55 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "28 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "160 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "4200 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360°"
+    }
+   ],
+   "features": [
+    {
+     "title": "High-strength steel structure",
+     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+    },
+    {
+     "title": "Dedicated torque limiter",
+     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+    },
+    {
+     "title": "Custom installation",
+     "text": "Customizable installation methods tailored to specific operational scenarios."
+    },
+    {
+     "title": "Optional attachments",
+     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+    },
+    {
+     "title": "Operation modes",
+     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+    },
+    {
+     "title": "Dual four-bar linkage",
+     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+    },
+    {
+     "title": "Marine anti-rust treatment",
+     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+    }
+   ],
+   "short_description": "The BOB-LIFT SQ12ZA5T knuckle boom marine crane has a maximum lifting capacity of 12000 kg, a maximum lifting moment of 27 t·m and a self weight of 4200 kg.",
+   "seo_title": "China 12 Ton Knuckle Boom Marine Crane SQ12ZA5T - BOB-LIFT",
+   "sibling": "12-ton-knuckle-boom-marine-crane",
+   "drawings": [
+    {
+     "file": "SQ12ZA5T-outline.webp",
+     "kind": "outline"
+    },
+    {
+     "file": "SQ12ZA5T-chart.webp",
+     "kind": "chart"
+    }
+   ],
+   "source": "BOB-LIFT technical drawing SQ12ZA5T (technical department, 2026-10-09)"
+  },
+  {
+   "model": "SQ12ZA5TJ",
+   "title": "12 Ton Knuckle Boom Marine Crane SQ12ZA5TJ",
+   "category": "knuckle-boom-marine-cranes",
+   "boom_type": "knuckle-boom",
+   "applications": "marine,logistics",
+   "capacity": "12 ton",
+   "capacity_value": 12.0,
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "12000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "27 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "30 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "55 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "28 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "160 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "4400 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360°"
+    }
+   ],
+   "features": [
+    {
+     "title": "High-strength steel structure",
+     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+    },
+    {
+     "title": "Dedicated torque limiter",
+     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+    },
+    {
+     "title": "Custom installation",
+     "text": "Customizable installation methods tailored to specific operational scenarios."
+    },
+    {
+     "title": "Optional attachments",
+     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+    },
+    {
+     "title": "Operation modes",
+     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+    },
+    {
+     "title": "Dual four-bar linkage",
+     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+    },
+    {
+     "title": "Marine anti-rust treatment",
+     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+    }
+   ],
+   "short_description": "The BOB-LIFT SQ12ZA5TJ knuckle boom marine crane has a maximum lifting capacity of 12000 kg, a maximum lifting moment of 27 t·m and a self weight of 4400 kg.",
+   "seo_title": "China 12 Ton Knuckle Boom Marine Crane SQ12ZA5TJ - BOB-LIFT",
+   "sibling": "12-ton-knuckle-boom-marine-crane",
+   "drawings": [
+    {
+     "file": "SQ12ZA5TJ-outline.webp",
+     "kind": "outline"
+    },
+    {
+     "file": "SQ12ZA5TJ-chart.webp",
+     "kind": "chart"
+    }
+   ],
+   "source": "BOB-LIFT technical drawing SQ12ZA5TJ (technical department, 2026-10-09)"
+  },
+  {
+   "model": "SQZ350T",
+   "title": "16 Ton Knuckle Boom Marine Crane SQZ350T",
+   "category": "knuckle-boom-marine-cranes",
+   "boom_type": "knuckle-boom",
+   "applications": "marine,logistics",
+   "capacity": "16 ton",
+   "capacity_value": 16.0,
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "16000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "34.8 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "45 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "63 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "33 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "200 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "4200 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360°"
+    }
+   ],
+   "features": [
+    {
+     "title": "High-strength steel structure",
+     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+    },
+    {
+     "title": "Dedicated torque limiter",
+     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+    },
+    {
+     "title": "Custom installation",
+     "text": "Customizable installation methods tailored to specific operational scenarios."
+    },
+    {
+     "title": "Optional attachments",
+     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+    },
+    {
+     "title": "Operation modes",
+     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+    },
+    {
+     "title": "Dual four-bar linkage",
+     "text": "Dual four-bar linkage boom mechanism enables reverse angle operation, offering broad applicability and flexible performance."
+    },
+    {
+     "title": "Marine anti-rust treatment",
+     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+    }
+   ],
+   "short_description": "The BOB-LIFT SQZ350T knuckle boom marine crane has a maximum lifting capacity of 16000 kg, a maximum lifting moment of 34.8 t·m and a self weight of 4200 kg.",
+   "seo_title": "China 16 Ton Knuckle Boom Marine Crane SQZ350T - BOB-LIFT",
+   "sibling": "16-ton-knuckle-boom-marine-crane",
+   "drawings": [
+    {
+     "file": "SQZ350T-outline.webp",
+     "kind": "outline"
+    },
+    {
+     "file": "SQZ350T-chart.webp",
+     "kind": "chart"
+    }
+   ],
+   "source": "BOB-LIFT technical drawing SQZ350T (technical department, 2026-10-09)"
+  },
+  {
+   "model": "SQ3.2SA3T",
+   "title": "3.2 Ton Telescopic Boom Marine Crane SQ3.2SA3T",
+   "category": "telescopic-boom-marine-cranes",
+   "boom_type": "telescopic-boom",
+   "applications": "marine,logistics",
+   "capacity": "3.2 ton",
+   "capacity_value": 3.2,
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "3200 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "6.8 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "14 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "25 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "20 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "60 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "1050 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360°"
+    }
+   ],
+   "features": [
+    {
+     "title": "High-strength steel structure",
+     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+    },
+    {
+     "title": "Dedicated torque limiter",
+     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+    },
+    {
+     "title": "Custom installation",
+     "text": "Customizable installation methods tailored to specific operational scenarios."
+    },
+    {
+     "title": "Optional attachments",
+     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+    },
+    {
+     "title": "Operation modes",
+     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+    },
+    {
+     "title": "Marine anti-rust treatment",
+     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+    }
+   ],
+   "short_description": "The BOB-LIFT SQ3.2SA3T telescopic boom marine crane has a maximum lifting capacity of 3200 kg, a maximum lifting moment of 6.8 t·m and a self weight of 1050 kg.",
+   "seo_title": "China 3.2 Ton Telescopic Boom Marine Crane SQ3.2SA3T - BOB-LIFT",
+   "sibling": "3-2-ton-telescopic-boom-marine-crane",
+   "drawings": [
+    {
+     "file": "SQ3.2SA3T-outline.webp",
+     "kind": "outline"
+    },
+    {
+     "file": "SQ3.2SA3T-chart.webp",
+     "kind": "chart"
+    }
+   ],
+   "source": "BOB-LIFT technical drawing SQ3.2SA3T (technical department, 2026-10-09)"
+  },
+  {
+   "model": "SQ5SA3T",
+   "title": "5 Ton Telescopic Boom Marine Crane SQ5SA3T",
+   "category": "telescopic-boom-marine-cranes",
+   "boom_type": "telescopic-boom",
+   "applications": "marine,logistics",
+   "capacity": "5 ton",
+   "capacity_value": 5.0,
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "5000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "12.5 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "18 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "32 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "20 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "100 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "1850 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360°"
+    }
+   ],
+   "features": [
+    {
+     "title": "High-strength steel structure",
+     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+    },
+    {
+     "title": "Dedicated torque limiter",
+     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+    },
+    {
+     "title": "Custom installation",
+     "text": "Customizable installation methods tailored to specific operational scenarios."
+    },
+    {
+     "title": "Optional attachments",
+     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+    },
+    {
+     "title": "Operation modes",
+     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+    },
+    {
+     "title": "Marine anti-rust treatment",
+     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+    }
+   ],
+   "short_description": "The BOB-LIFT SQ5SA3T telescopic boom marine crane has a maximum lifting capacity of 5000 kg, a maximum lifting moment of 12.5 t·m and a self weight of 1850 kg.",
+   "seo_title": "China 5 Ton Telescopic Boom Marine Crane SQ5SA3T - BOB-LIFT",
+   "sibling": "5-ton-telescopic-boom-marine-crane",
+   "drawings": [
+    {
+     "file": "SQ5SA3T-outline.webp",
+     "kind": "outline"
+    },
+    {
+     "file": "SQ5SA3T-chart.webp",
+     "kind": "chart"
+    }
+   ],
+   "source": "BOB-LIFT technical drawing SQ5SA3T (technical department, 2026-10-09)"
+  },
+  {
+   "model": "SQ6.3SA3T",
+   "title": "6.3 Ton Telescopic Boom Marine Crane SQ6.3SA3T",
+   "category": "telescopic-boom-marine-cranes",
+   "boom_type": "telescopic-boom",
+   "applications": "marine,logistics",
+   "capacity": "6.3 ton",
+   "capacity_value": 6.3,
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "6300 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "15.75 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "22 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "40 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "20 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "100 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "1940 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360°"
+    }
+   ],
+   "features": [
+    {
+     "title": "High-strength steel structure",
+     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+    },
+    {
+     "title": "Dedicated torque limiter",
+     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+    },
+    {
+     "title": "Custom installation",
+     "text": "Customizable installation methods tailored to specific operational scenarios."
+    },
+    {
+     "title": "Optional attachments",
+     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+    },
+    {
+     "title": "Operation modes",
+     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+    },
+    {
+     "title": "Marine anti-rust treatment",
+     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+    }
+   ],
+   "short_description": "The BOB-LIFT SQ6.3SA3T telescopic boom marine crane has a maximum lifting capacity of 6300 kg, a maximum lifting moment of 15.75 t·m and a self weight of 1940 kg.",
+   "seo_title": "China 6.3 Ton Telescopic Boom Marine Crane SQ6.3SA3T - BOB-LIFT",
+   "sibling": "6-3-ton-telescopic-boom-marine-crane",
+   "drawings": [
+    {
+     "file": "SQ6.3SA3T-outline.webp",
+     "kind": "outline"
+    },
+    {
+     "file": "SQ6.3SA3T-chart.webp",
+     "kind": "chart"
+    }
+   ],
+   "source": "BOB-LIFT technical drawing SQ6.3SA3T (technical department, 2026-10-09)"
+  },
+  {
+   "model": "SQ8SA4T",
+   "title": "8 Ton Telescopic Boom Marine Crane SQ8SA4T",
+   "category": "telescopic-boom-marine-cranes",
+   "boom_type": "telescopic-boom",
+   "applications": "marine,logistics",
+   "capacity": "8 ton",
+   "capacity_value": 8.0,
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "8000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "20 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "30 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "55 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "26 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "160 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "3100 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360°"
+    }
+   ],
+   "features": [
+    {
+     "title": "High-strength steel structure",
+     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+    },
+    {
+     "title": "Dedicated torque limiter",
+     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+    },
+    {
+     "title": "Custom installation",
+     "text": "Customizable installation methods tailored to specific operational scenarios."
+    },
+    {
+     "title": "Optional attachments",
+     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+    },
+    {
+     "title": "Operation modes",
+     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+    },
+    {
+     "title": "Marine anti-rust treatment",
+     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+    }
+   ],
+   "short_description": "The BOB-LIFT SQ8SA4T telescopic boom marine crane has a maximum lifting capacity of 8000 kg, a maximum lifting moment of 20 t·m and a self weight of 3100 kg.",
+   "seo_title": "China 8 Ton Telescopic Boom Marine Crane SQ8SA4T - BOB-LIFT",
+   "sibling": "8-ton-telescopic-boom-marine-crane",
+   "drawings": [
+    {
+     "file": "SQ8SA4T-outline.webp",
+     "kind": "outline"
+    },
+    {
+     "file": "SQ8SA4T-chart.webp",
+     "kind": "chart"
+    }
+   ],
+   "source": "BOB-LIFT technical drawing SQ8SA4T (technical department, 2026-10-09)"
+  },
+  {
+   "model": "SQ10SA5T",
+   "title": "10 Ton Telescopic Boom Marine Crane SQ10SA5T",
+   "category": "telescopic-boom-marine-cranes",
+   "boom_type": "telescopic-boom",
+   "applications": "marine,logistics",
+   "capacity": "10 ton",
+   "capacity_value": 10.0,
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "10000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "25 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "30 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "63 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "25 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "200 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "3950 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360°"
+    }
+   ],
+   "features": [
+    {
+     "title": "High-strength steel structure",
+     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+    },
+    {
+     "title": "Dedicated torque limiter",
+     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+    },
+    {
+     "title": "Custom installation",
+     "text": "Customizable installation methods tailored to specific operational scenarios."
+    },
+    {
+     "title": "Optional attachments",
+     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+    },
+    {
+     "title": "Operation modes",
+     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+    },
+    {
+     "title": "Marine anti-rust treatment",
+     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+    }
+   ],
+   "short_description": "The BOB-LIFT SQ10SA5T telescopic boom marine crane has a maximum lifting capacity of 10000 kg, a maximum lifting moment of 25 t·m and a self weight of 3950 kg.",
+   "seo_title": "China 10 Ton Telescopic Boom Marine Crane SQ10SA5T - BOB-LIFT",
+   "sibling": "10-ton-telescopic-boom-marine-crane",
+   "drawings": [
+    {
+     "file": "SQ10SA5T-outline.webp",
+     "kind": "outline"
+    },
+    {
+     "file": "SQ10SA5T-chart.webp",
+     "kind": "chart"
+    }
+   ],
+   "source": "BOB-LIFT technical drawing SQ10SA5T (technical department, 2026-10-09)"
+  },
+  {
+   "model": "SQ12SA5T",
+   "title": "12 Ton Telescopic Boom Marine Crane SQ12SA5T",
+   "category": "telescopic-boom-marine-cranes",
+   "boom_type": "telescopic-boom",
+   "applications": "marine,logistics",
+   "capacity": "12 ton",
+   "capacity_value": 12.0,
+   "specs": [
+    {
+     "label": "Max Lifting Capacity",
+     "value": "12000 kg"
+    },
+    {
+     "label": "Max Lifting Moment",
+     "value": "30 t·m"
+    },
+    {
+     "label": "Recommended Power",
+     "value": "42 kW"
+    },
+    {
+     "label": "Hydraulic System Flow",
+     "value": "75 L/min"
+    },
+    {
+     "label": "Hydraulic System Pressure",
+     "value": "26 MPa"
+    },
+    {
+     "label": "Oil Tank Capacity",
+     "value": "200 L"
+    },
+    {
+     "label": "Self Weight",
+     "value": "4000 kg"
+    },
+    {
+     "label": "Rotation Angle",
+     "value": "360°"
+    }
+   ],
+   "features": [
+    {
+     "title": "High-strength steel structure",
+     "text": "The main structure utilizes high-strength steel plates, resulting in a compact, lighter, stronger, and more durable design."
+    },
+    {
+     "title": "Dedicated torque limiter",
+     "text": "Equipped with a dedicated torque limiter for elevated safety standards; certified by multiple safety authorities to ensure precise, secure, and reliable lifting operations."
+    },
+    {
+     "title": "Custom installation",
+     "text": "Customizable installation methods tailored to specific operational scenarios."
+    },
+    {
+     "title": "Optional attachments",
+     "text": "Multiple optional configurations, including winches, drill pipes, aerial baskets, and grapples, accommodate personalized customization needs."
+    },
+    {
+     "title": "Operation modes",
+     "text": "Multiple operation modes available, including overhead seat and wireless remote control systems, for enhanced operational convenience."
+    },
+    {
+     "title": "Marine anti-rust treatment",
+     "text": "Multiple anti-rust processes specifically designed for marine environments ensure excellent corrosion resistance under harsh marine conditions."
+    }
+   ],
+   "short_description": "The BOB-LIFT SQ12SA5T telescopic boom marine crane has a maximum lifting capacity of 12000 kg, a maximum lifting moment of 30 t·m and a self weight of 4000 kg.",
+   "seo_title": "China 12 Ton Telescopic Boom Marine Crane SQ12SA5T - BOB-LIFT",
+   "sibling": "12-ton-telescopic-boom-marine-crane",
+   "drawings": [
+    {
+     "file": "SQ12SA5T-outline.webp",
+     "kind": "outline"
+    },
+    {
+     "file": "SQ12SA5T-chart.webp",
+     "kind": "chart"
+    }
+   ],
+   "source": "BOB-LIFT technical drawing SQ12SA5T (technical department, 2026-10-09)"
+  }
+ ]
+}

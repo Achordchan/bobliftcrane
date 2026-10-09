@@ -2,7 +2,8 @@
 /**
  * Bring the truck-mounted cranes in line with the technical department's drawings (plan.json, from build.py).
  *
- * Usage (from the WordPress root): wp eval-file <path>/apply.php [dry-run]
+ * Usage (from the WordPress root): wp eval-file <path>/apply.php [marine-plan.json] [dry-run]
+ * The marine cranes use marine-plan.json (build.py marine); the default is the truck cranes' plan.json.
  * - Existing English products: spec table from the drawing; aliases that are now products of their own are dropped.
  * - New English products: created with specs, the sibling's series features and photo (labelled as a reference
  *   photo), and the outline drawing and load chart. Skipped when the slug already exists, so it can run again.
@@ -16,7 +17,8 @@ require_once ABSPATH . 'wp-admin/includes/media.php';
 
 $dir = __DIR__;
 $dry = in_array('dry-run', $args ?? [], true);
-$plan = json_decode((string) file_get_contents($dir . '/plan.json'), true);
+$plan_file = current(array_filter($args ?? [], static fn(string $a): bool => str_ends_with($a, '.json'))) ?: 'plan.json';
+$plan = json_decode((string) file_get_contents($dir . '/' . $plan_file), true);
 $json = static fn($value): string => wp_json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
 $find = static function (string $slug): ?WP_Post {
@@ -140,7 +142,7 @@ foreach ($plan['new'] as $p) {
 }
 
 // SQZ1000 lifts 50 t, so the truck crane category no longer stops at 40 t (or the 25 t the ja/zh copies still say).
-$term = get_term_by('slug', 'truck-mounted-crane', 'product_category');
+$term = $plan_file === 'plan.json' ? get_term_by('slug', 'truck-mounted-crane', 'product_category') : null;
 $terms = $term ? [$term->term_id] : [];
 foreach ($term && function_exists('pll_get_term') ? ['zh', 'ja'] : [] as $lang) {
     $terms[] = (int) pll_get_term($term->term_id, $lang);

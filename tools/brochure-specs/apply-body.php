@@ -21,13 +21,18 @@ foreach (json_decode((string) file_get_contents($dir . '/brochure.json'), true) 
 }
 $products = json_decode((string) file_get_contents($dir . '/phase-c.json'), true)['products'];
 // New truck cranes from the technical department's drawings (tools/truck-drawings), with their parameter tables.
-$drawing_rows = [];
-foreach (json_decode((string) file_get_contents($dir . '/../truck-drawings/drawings.json'), true) as $row) {
-    $drawing_rows[$row['model']] = $row + ['book' => 'truck', 'kind' => 'main'];
-}
-foreach (json_decode((string) file_get_contents($dir . '/../truck-drawings/plan.json'), true)['new'] as $new) {
-    $rows[$new['model']] = $rows[$new['model']] ?? $drawing_rows[$new['model']];
-    $products[] = ['model' => $new['model'], 'slug' => sanitize_title($new['title']), 'features_series' => $new['category'] === 'telescopic-boom-truck-mounted-cranes' ? 'Telescopic Boom Truck Mounted Crane' : 'Knuckle Boom Truck Mounted Crane', 'features' => $new['features']];
+// Marine cranes the same way (marine-drawings.json, marine-plan.json).
+$series_of = ['knuckle-boom-truck-mounted-cranes' => 'Knuckle Boom Truck Mounted Crane', 'telescopic-boom-truck-mounted-cranes' => 'Telescopic Boom Truck Mounted Crane',
+    'knuckle-boom-marine-cranes' => 'Knuckle Boom Marine Crane', 'telescopic-boom-marine-cranes' => 'Telescopic Boom Marine Crane'];
+foreach (['truck' => ['drawings.json', 'plan.json'], 'marine' => ['marine-drawings.json', 'marine-plan.json']] as $book => [$data_file, $plan_file]) {
+    $drawing_rows = [];
+    foreach (json_decode((string) file_get_contents($dir . '/../truck-drawings/' . $data_file), true) as $row) {
+        $drawing_rows[$row['model']] = $row + ['book' => $book, 'kind' => 'main'];
+    }
+    foreach (json_decode((string) file_get_contents($dir . '/../truck-drawings/' . $plan_file), true)['new'] as $new) {
+        $rows[$new['model']] = $rows[$new['model']] ?? $drawing_rows[$new['model']];
+        $products[] = ['model' => $new['model'], 'slug' => sanitize_title($new['title']), 'features_series' => $series_of[$new['category']], 'features' => $new['features']];
+    }
 }
 
 // Series on the CE certificate page of the truck crane brochure.

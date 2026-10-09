@@ -56,6 +56,40 @@ NEW = {
 }
 # SQ8ZA5F is held back: the F suffix needs the user's word on what kind of crane it is.
 HOLD = {'SQ8ZA5F'}
+DATA, PLAN = 'drawings.json', 'plan.json'
+# Marine cranes (2026-10-09): same build from ~/Desktop/工作/船吊.   python3 build.py marine
+if sys.argv[1:] == ['marine']:
+    SRC = os.path.expanduser('~/Desktop/工作/船吊')
+    KNUCKLE = ('Knuckle Boom Marine Crane', 'knuckle-boom-marine-cranes', 'knuckle-boom', 'marine')
+    TELESCOPIC = ('Telescopic Boom Marine Crane', 'telescopic-boom-marine-cranes', 'telescopic-boom', 'marine-telescopic')
+    APPS = 'marine,logistics'
+    DATA, PLAN = 'marine-drawings.json', 'marine-plan.json'
+    EXISTING = {
+        'BLZ90K5TJ': '4-6-ton-knuckle-boom-marine-crane', 'SQ08ZA3TJ+1': '0-8-ton-knuckle-boom-marine-crane',
+        'SQ10ZA6TJ': '10-ton-knuckle-boom-marine-crane', 'SQ12ZA6T': '12-ton-knuckle-boom-marine-crane',
+        'SQ1ZA3TJ+1': '1-ton-knuckle-boom-marine-crane', 'SQ2ZA2TJ': '2-ton-knuckle-boom-marine-crane',
+        'SQ3.2ZA3TJ': '3-2-ton-knuckle-boom-marine-crane', 'SQ4ZA3TJ': '4-ton-knuckle-boom-marine-crane',
+        'SQ5ZA3TJ': '5-ton-knuckle-boom-marine-crane', 'SQ6.3ZA4TJ': '6-3-ton-knuckle-boom-marine-crane',
+        'SQ8ZA6TJ': '8-ton-knuckle-boom-marine-crane', 'SQZ330T': '16-ton-knuckle-boom-marine-crane',
+        'SQZ430T': '20-ton-knuckle-boom-marine-crane', 'SQZ500T': '25-ton-knuckle-boom-marine-crane',
+        'SQ10SA4T': '10-ton-telescopic-boom-marine-crane', 'SQ12SA4T': '12-ton-telescopic-boom-marine-crane',
+        'SQ16SA5T': '16-ton-telescopic-boom-marine-crane', 'SQ20SA5T': '20-ton-telescopic-boom-marine-crane',
+        'SQ2SA3T': '2-ton-telescopic-boom-marine-crane', 'SQ3.2SA4T': '3-2-ton-telescopic-boom-marine-crane',
+        'SQ4SA3T': '4-ton-telescopic-boom-marine-crane', 'SQ5SA4T': '5-ton-telescopic-boom-marine-crane',
+        'SQ6.3SA4T': '6-3-ton-telescopic-boom-marine-crane', 'SQ8SA5T': '8-ton-telescopic-boom-marine-crane',
+    }
+    # Old names dropped like the truck cranes' (the drawings are the model list).
+    DROP_ALIASES = {'SQZ500T': 'SQ25ZA8T', 'SQZ430T': 'SQ20ZA7TJ+1', 'SQZ330T': 'SQ16ZA5T', 'SQ8SA5T': 'SQ8SA4T',
+                    'SQ10ZA6TJ': 'SQ10ZA5TJ', 'SQ8ZA6TJ': 'SQ8ZA5TJ'}
+    NEW = {
+        'BLZ90K4TJ': 'BLZ90K5TJ', 'SQ08ZA3T+1': 'SQ08ZA3TJ+1', 'SQ1ZA3T+1': 'SQ1ZA3TJ+1', 'SQ2ZA4T': 'SQ2ZA2TJ',
+        'SQ3.2ZA3T': 'SQ3.2ZA3TJ', 'SQ4ZA3T': 'SQ4ZA3TJ', 'SQ4ZA4T': 'SQ4ZA3TJ', 'SQ5ZA3T': 'SQ5ZA3TJ', 'SQ5ZA4T': 'SQ5ZA3TJ',
+        'SQ6.3ZA4T': 'SQ6.3ZA4TJ', 'SQ6.3ZA5T': 'SQ6.3ZA4TJ', 'SQ8ZA4T': 'SQ8ZA6TJ', 'SQ8ZA4TJ': 'SQ8ZA6TJ', 'SQ8ZA5TJ': 'SQ8ZA6TJ',
+        'SQ10ZA5T': 'SQ10ZA6TJ', 'SQ10ZA5TJ': 'SQ10ZA6TJ', 'SQ12ZA4T': 'SQ12ZA6T', 'SQ12ZA4TJ': 'SQ12ZA6T', 'SQ12ZA5T': 'SQ12ZA6T',
+        'SQ12ZA5TJ': 'SQ12ZA6T', 'SQZ350T': 'SQZ330T', 'SQ3.2SA3T': 'SQ3.2SA4T', 'SQ5SA3T': 'SQ5SA4T', 'SQ6.3SA3T': 'SQ6.3SA4T',
+        'SQ8SA4T': 'SQ8SA5T', 'SQ10SA5T': 'SQ10SA4T', 'SQ12SA5T': 'SQ12SA4T',
+    }
+    HOLD = set()
 # Wording kept from the brochure where the drawing only says 360°.
 FOOTER = json.load(open(os.path.join(DIR, 'footer.json')))
 BROCHURE = {r['model']: r for r in json.load(open(os.path.join(DIR, '..', 'brochure-specs', 'brochure.json')))}
@@ -96,7 +130,7 @@ def pdfs(model):
     found = {}
     for root, _, files in os.walk(SRC):
         for f in files:
-            m = re.fullmatch(re.escape(model) + r'(起升曲线图|外形尺寸及参数图|外形尺寸图)\.pdf', f)
+            m = re.fullmatch(re.escape(model) + r'(起升曲线图|外形尺寸及技术参数图|外形尺寸及参数图|外形尺寸图)\.pdf', f)
             if m:
                 found['chart' if m.group(1) == '起升曲线图' else 'outline'] = os.path.join(root, f)
     return found
@@ -104,7 +138,7 @@ def pdfs(model):
 
 def main():
     os.makedirs(os.path.join(DIR, 'media'), exist_ok=True)
-    rows = {r['model']: r for r in json.load(open(os.path.join(DIR, 'drawings.json')))}
+    rows = {r['model']: r for r in json.load(open(os.path.join(DIR, DATA)))}
     titles = {}
     plan = {'existing': [], 'new': []}
     for model, slug in EXISTING.items():
@@ -130,7 +164,7 @@ def main():
             'seo_title': f'China {title} - BOB-LIFT', 'sibling': EXISTING[sibling], 'drawings': drawings,
             'source': f'BOB-LIFT technical drawing {model} (technical department, 2026-10-09)',
         })
-    json.dump(plan, open(os.path.join(DIR, 'plan.json'), 'w'), ensure_ascii=False, indent=1)
+    json.dump(plan, open(os.path.join(DIR, PLAN), 'w'), ensure_ascii=False, indent=1)
     for p in plan['new']:
         print(f"{p['model']:<10} {p['title']:<60} {len(p['drawings'])} drawings")
     print('existing', len(plan['existing']), 'new', len(plan['new']), 'held', sorted(HOLD))
