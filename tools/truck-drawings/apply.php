@@ -72,7 +72,11 @@ foreach ($plan['new'] as $p) {
     $slug = sanitize_title($p['title']);
     $term = get_term_by('slug', $p['category'], 'product_category');
     $sibling = $find($p['sibling']);
-    if ($find($slug) || !$term || !$sibling) {
+    // Already created: keep it, but bring its spec table in line with the plan.
+    if (($existing = $find($slug)) && !$dry) {
+        update_post_meta($existing->ID, '_specs', wp_slash($json($p['specs'])));
+    }
+    if ($existing || !$term || !$sibling) {
         $skipped[] = $slug . ($term ? ($sibling ? ' (exists)' : ' (no sibling ' . $p['sibling'] . ')') : ' (no category)');
         continue;
     }

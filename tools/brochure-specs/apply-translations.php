@@ -27,6 +27,7 @@ $labels = [
     'Rotation Angle' => ['ja' => '旋回角度', 'zh' => '回转角度'],
     'Installation Space' => ['ja' => '取付スペース', 'zh' => '安装空间'],
     'Oil Tank Capacity' => ['ja' => '作動油タンク容量', 'zh' => '液压油箱容积'],
+    'Winch' => ['ja' => 'ウインチ', 'zh' => '卷扬机'],
     'Max Working Range' => ['ja' => '最大作業範囲', 'zh' => '最大工作范围'],
     'Max Lifting Height' => ['ja' => '最大揚程', 'zh' => '最大起升高度'],
     'Max Lifting Height (from ground)' => ['ja' => '最大揚程（地上から）', 'zh' => '最大起升高度（离地）'],
@@ -44,6 +45,7 @@ $value_words = [
     'continuous' => ['ja' => '連続', 'zh' => '连续'],
     'Custom Solution' => ['ja' => 'カスタム対応', 'zh' => '定制方案'],
     'mast' => ['ja' => 'マスト', 'zh' => '门架'],
+    'Included' => ['ja' => '標準装備', 'zh' => '标配'],
 ];
 
 $features = [

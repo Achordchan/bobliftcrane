@@ -103,6 +103,9 @@ def spec_rows(row):
             out.append({'label': 'Oil Tank Capacity', 'value': f"{row['tank']} L"})
     if row.get('space'):
         out.insert(len(out) - 1, {'label': 'Installation Space', 'value': f"{row['space']} mm"})
+    # T marks the marine version of a truck crane model; J adds a winch (user, 2026-10-09).
+    if re.search(r'TJ(\+1)?$', row['model']):
+        out.append({'label': 'Winch', 'value': 'Included'})
     return out
 
 

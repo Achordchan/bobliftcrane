@@ -31,6 +31,10 @@
     {
      "label": "Rotation Angle",
      "value": "360° continuous"
+    },
+    {
+     "label": "Winch",
+     "value": "Included"
     }
    ],
    "drop_alias": ""
@@ -70,6 +74,10 @@
     {
      "label": "Rotation Angle",
      "value": "330°"
+    },
+    {
+     "label": "Winch",
+     "value": "Included"
     }
    ],
    "drop_alias": ""
@@ -109,6 +117,10 @@
     {
      "label": "Rotation Angle",
      "value": "360° continuous"
+    },
+    {
+     "label": "Winch",
+     "value": "Included"
     }
    ],
    "drop_alias": "SQ10ZA5TJ"
@@ -187,6 +199,10 @@
     {
      "label": "Rotation Angle",
      "value": "330°"
+    },
+    {
+     "label": "Winch",
+     "value": "Included"
     }
    ],
    "drop_alias": ""
@@ -226,6 +242,10 @@
     {
      "label": "Rotation Angle",
      "value": "360° continuous"
+    },
+    {
+     "label": "Winch",
+     "value": "Included"
     }
    ],
    "drop_alias": ""
@@ -265,6 +285,10 @@
     {
      "label": "Rotation Angle",
      "value": "360° continuous"
+    },
+    {
+     "label": "Winch",
+     "value": "Included"
     }
    ],
    "drop_alias": ""
@@ -304,6 +328,10 @@
     {
      "label": "Rotation Angle",
      "value": "360° continuous"
+    },
+    {
+     "label": "Winch",
+     "value": "Included"
     }
    ],
    "drop_alias": ""
@@ -343,6 +371,10 @@
     {
      "label": "Rotation Angle",
      "value": "360° continuous"
+    },
+    {
+     "label": "Winch",
+     "value": "Included"
     }
    ],
    "drop_alias": ""
@@ -382,6 +414,10 @@
     {
      "label": "Rotation Angle",
      "value": "360° continuous"
+    },
+    {
+     "label": "Winch",
+     "value": "Included"
     }
    ],
    "drop_alias": ""
@@ -421,6 +457,10 @@
     {
      "label": "Rotation Angle",
      "value": "360° continuous"
+    },
+    {
+     "label": "Winch",
+     "value": "Included"
     }
    ],
    "drop_alias": "SQ8ZA5TJ"
@@ -974,6 +1014,10 @@
     {
      "label": "Rotation Angle",
      "value": "360°"
+    },
+    {
+     "label": "Winch",
+     "value": "Included"
     }
    ],
    "features": [
@@ -2014,6 +2058,10 @@
     {
      "label": "Rotation Angle",
      "value": "360°"
+    },
+    {
+     "label": "Winch",
+     "value": "Included"
     }
    ],
    "features": [
@@ -2101,6 +2149,10 @@
     {
      "label": "Rotation Angle",
      "value": "360°"
+    },
+    {
+     "label": "Winch",
+     "value": "Included"
     }
    ],
    "features": [
@@ -2275,6 +2327,10 @@
     {
      "label": "Rotation Angle",
      "value": "360°"
+    },
+    {
+     "label": "Winch",
+     "value": "Included"
     }
    ],
    "features": [
@@ -2449,6 +2505,10 @@
     {
      "label": "Rotation Angle",
      "value": "360°"
+    },
+    {
+     "label": "Winch",
+     "value": "Included"
     }
    ],
    "features": [
@@ -2623,6 +2683,10 @@
     {
      "label": "Rotation Angle",
      "value": "360°"
+    },
+    {
+     "label": "Winch",
+     "value": "Included"
     }
    ],
    "features": [
