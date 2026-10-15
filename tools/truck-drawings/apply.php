@@ -143,11 +143,14 @@ foreach ($plan['new'] as $p) {
         $gallery[] = ['image' => wp_get_attachment_url($thumb), 'label' => 'Reference photo: similar model ' . get_post_meta($sibling->ID, '_model', true)];
     }
     $drawings = [];
+    $drawing_failed = false;
     foreach ($p['drawings'] as $drawing) {
         $label = $p['model'] . ($drawing['kind'] === 'chart' ? ' load chart' : ' dimension drawing and technical parameters');
         $attachment = $import($drawing['file'], $id, $label);
         if ($attachment) {
             $drawings[] = ['id' => $attachment, 'label' => $label];
+        } else {
+            $drawing_failed = true;
         }
     }
 
@@ -175,6 +178,11 @@ foreach ($plan['new'] as $p) {
     }
     foreach ($meta as $key => $value) {
         update_post_meta($id, $key, wp_slash($value));
+    }
+    if ($drawing_failed) {
+        // A required drawing is missing: the product stays a staged draft; fix the file and run again to finish and publish it.
+        $skipped[] = $slug . ' (staged as draft: a drawing could not be imported)';
+        continue;
     }
     wp_update_post(['ID' => $id, 'post_status' => 'publish']);
     delete_post_meta($id, '_boblift_staging');

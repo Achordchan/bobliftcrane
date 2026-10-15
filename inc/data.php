@@ -893,6 +893,13 @@ function boblift_product_banner_builtin_photo(?WP_Term $term = null): string
     return is_readable(boblift_asset_path($path)) ? $path : 'images/product-banners/default.jpg';
 }
 
+/** Card pictures the importer writes into _boblift_image for every category; they are not banners an editor chose. */
+function boblift_seed_category_images(): array
+{
+    static $images = null;
+    return $images ??= array_values(array_unique(array_filter(array_map('strval', array_merge(array_column(boblift_all_seed_categories(), 'image'), ['images/products/crane-accessories.png'])))));
+}
+
 // A photo uploaded in the category's "产品页 Banner 图片" field wins over the built-in one.
 function boblift_product_banner_photo_url(?WP_Term $term = null): string
 {
@@ -906,7 +913,7 @@ function boblift_product_banner_photo_url(?WP_Term $term = null): string
         }
         // A banner saved as a theme path or URL (no attachment) still counts; the importer's seed card images (images/products/…) do not.
         $legacy = trim((string) get_term_meta($term_id, '_boblift_image', true));
-        if ($legacy !== '' && !str_starts_with($legacy, 'images/products/')) {
+        if ($legacy !== '' && !in_array($legacy, boblift_seed_category_images(), true)) {
             return boblift_image_src($legacy);
         }
     }
@@ -921,8 +928,37 @@ function boblift_product_menu_families(): array
     // Built once per request and language: the header and the footer both need it.
     static $cache = [];
     $language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
-    return $cache[$language] ??= (boblift_curated_product_menu_families() ?: boblift_build_product_menu_families());
+    return $cache[$language] ??= (boblift_curated_product_menu_families() ?: boblift_cached_product_menu_families($language));
 }
+
+/**
+ * The category-generated menu, kept in a transient per language and site address so ordinary requests do not walk the catalog.
+ * It is rebuilt after any product, category, term meta or theme option change (the version option below is bumped).
+ */
+function boblift_cached_product_menu_families(string $language): array
+{
+    $key = 'boblift_pmenu_' . md5($language . '|' . home_url() . '|' . (string) get_option('boblift_product_menu_version', '0'));
+    $cached = get_transient($key);
+    if (is_array($cached)) {
+        return $cached;
+    }
+    $families = boblift_build_product_menu_families();
+    set_transient($key, $families, DAY_IN_SECONDS);
+    return $families;
+}
+
+function boblift_bump_product_menu_version(): void
+{
+    update_option('boblift_product_menu_version', (string) microtime(true), false);
+}
+foreach (['save_post_product', 'deleted_post', 'trashed_post', 'untrashed_post', 'set_object_terms', 'created_product_category', 'edited_product_category', 'delete_product_category', 'updated_term_meta', 'added_term_meta', 'deleted_term_meta'] as $boblift_menu_hook) {
+    add_action($boblift_menu_hook, 'boblift_bump_product_menu_version');
+}
+add_action('updated_option', static function (string $option): void {
+    if (str_starts_with($option, 'boblift_theme_options') || $option === 'permalink_structure' || $option === 'rewrite_rules') {
+        boblift_bump_product_menu_version();
+    }
+});
 
 /**
  * Product menu groups an administrator curated in the saved "product_nav_groups" (anything different from the built-in
