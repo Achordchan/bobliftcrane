@@ -21,6 +21,7 @@ $cases = [
     ['www.bobliftcrane.com', '/Company-News.html', null],
     ['fr.bobliftcrane.com', '/', 'https://www.bobliftcrane.com/'],
     ['fr.bobliftcrane.com', '/Grue-camion-id46288356.html', 'https://www.bobliftcrane.com/news.html'],
+    ['fr.bobliftcrane.com', '/Grue-camion-id46288356.html/', 'https://www.bobliftcrane.com/news.html'],
     ['ru.bobliftcrane.com', '/%D0%9C%D0%B8%D0%BD%D0%B8-pl61907667.html', 'https://www.bobliftcrane.com/products.html'],
     ['es.bobliftcrane.com', '/products/Excavadora-compacta.html', 'https://www.bobliftcrane.com/products.html'],
     ['sa.bobliftcrane.com', '/Products-Marine-Cranes.html', 'https://www.bobliftcrane.com/marine-crane'],

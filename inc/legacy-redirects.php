@@ -88,7 +88,7 @@ function boblift_legacy_redirect_resolve(string $host, string $path, array $conf
             $target = $exact;
         }
         foreach ($target === null ? (array) ($config['language_host_fallbacks'] ?? []) : [] as $fallback) {
-            if (!empty($fallback['match']) && !empty($fallback['to']) && @preg_match('~' . str_replace('~', '\~', (string) $fallback['match']) . '~iu', $decoded) === 1) {
+            if (!empty($fallback['match']) && !empty($fallback['to']) && @preg_match('~' . str_replace('~', '\~', (string) $fallback['match']) . '~iu', $exact) === 1) {
                 $target = (string) $fallback['to'];
                 break;
             }
