@@ -26,6 +26,10 @@ foreach ($pages as $slug => $titles) {
         }
     }
     $translations = $en instanceof WP_Post && function_exists('pll_get_post_translations') ? pll_get_post_translations($en->ID) : [];
+    // Seed the English entry from the page found above, so it is reused (not created again) even without Polylang or a language assignment.
+    if ($en instanceof WP_Post && empty($translations['en'])) {
+        $translations['en'] = $en->ID;
+    }
     foreach ($titles as $lang => $title) {
         if (!empty($translations[$lang])) {
             echo "$slug $lang: exists (#{$translations[$lang]})\n";

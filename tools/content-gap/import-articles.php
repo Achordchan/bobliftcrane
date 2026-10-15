@@ -22,6 +22,11 @@ $link_map = [
 ];
 $lower_post_links = ['Structure-of-Marine-Cranes-id47987376', 'Types-of-Cranes-Used-on-A-Ship-id41221616'];
 
+/** Site-relative URL of an upload, built from the uploads API so custom upload locations and multisite work. */
+function bl_upload_path(int $id): string {
+    return wp_make_link_relative(trailingslashit(wp_get_upload_dir()['baseurl']) . get_post_meta($id, '_wp_attached_file', true));
+}
+
 function bl_sideload(string $path, string $alt, int $post_id = 0): array {
     $name = basename($path);
     $existing = get_posts(['post_type' => 'attachment', 'post_status' => 'any', 'meta_key' => '_bl_gap_source', 'meta_value' => $name, 'posts_per_page' => 1, 'lang' => '']);
@@ -34,7 +39,7 @@ function bl_sideload(string $path, string $alt, int $post_id = 0): array {
     }
     if ($alt !== '') { update_post_meta($id, '_wp_attachment_image_alt', $alt); }
     if (function_exists('pll_set_post_language')) { pll_set_post_language($id, 'en'); }
-    return [$id, '/wp-content/uploads/' . get_post_meta($id, '_wp_attached_file', true)];
+    return [$id, bl_upload_path($id)];
 }
 
 $articles = [
@@ -128,9 +133,9 @@ foreach ($articles as $a) {
     $schema = str_replace('https://www.bobliftcrane.com', '{{home}}', $schema);
     $schema = str_replace('{{home}}/marine-crane-buying-guide"', '{{home}}/marine-crane-buying-guide.html"', $schema);
     $schema = str_replace('{{home}}/marine-crane-buying-guide#', '{{home}}/marine-crane-buying-guide.html#', $schema);
-    $schema = str_replace('"image": "bob-lift-16-ton-telescopic-marine-crane-on-vessel.jpg"', '"image": "{{home}}' . '/wp-content/uploads/' . get_post_meta($cover_id, '_wp_attached_file', true) . '"', $schema);
+    $schema = str_replace('"image": "bob-lift-16-ton-telescopic-marine-crane-on-vessel.jpg"', '"image": "{{home}}' . bl_upload_path($cover_id) . '"', $schema);
     $schema = str_replace('"item": "{{home}}/Industry-News.html"', '"item": "{{home}}/news.html"', $schema);
-    $schema = str_replace('/wp-content/uploads/2026/09/4-ton-forklift-fly-jib-crane-301a3ed016-900x700.jpg', '/wp-content/uploads/' . get_post_meta($cover_id, '_wp_attached_file', true), $schema);
+    $schema = str_replace('/wp-content/uploads/2026/09/4-ton-forklift-fly-jib-crane-301a3ed016-900x700.jpg', bl_upload_path($cover_id), $schema);
     update_post_meta($post_id, '_article_schema_jsonld', wp_slash($schema));
     if (function_exists('pll_set_post_language')) { pll_set_post_language($post_id, 'en'); }
     $report[] = $post_id . ' ' . get_permalink($post_id);

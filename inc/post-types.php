@@ -1395,6 +1395,10 @@ add_filter('wp_generate_attachment_metadata', static function (array $metadata, 
     $fit = 'photo';
     if (preg_match('/\.png$/i', $file)) {
         $image = @imagecreatefrompng($file);
+        if ($image && !imageistruecolor($image)) {
+            // PNG-8: imagecolorat() returns palette indexes, so convert to truecolor to read the alpha of each pixel.
+            imagepalettetotruecolor($image);
+        }
         if ($image) {
             $w = imagesx($image);
             $h = imagesy($image);

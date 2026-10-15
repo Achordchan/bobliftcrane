@@ -172,6 +172,7 @@ $faqs = array_values(array_filter(array_map(static function ($faq): ?array {
     return ['question' => $question, 'answer' => $answer];
 }, $faqs)));
 // Body text (正文) from the editor, only once an editor has switched it on: old-site copy stays hidden.
+// This gate is deliberate: imported old-site copy stays hidden until a product is reviewed. The content-gap importers set both flags for the pages they create; for existing products tick them in the product editor.
 $detail_body_html = get_post_meta(get_the_ID(), '_detail_body_ready', true) === '1' ? trim((string) ($product['content'] ?? '')) : '';
 $detail_body_html = trim(wp_strip_all_tags($detail_body_html)) !== '' ? $detail_body_html : '';
 // Designed detail images (详情图), shown as a one-screen grid with a viewer, only once an editor has switched them on.
@@ -610,6 +611,10 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                 </article>
             <?php endif; ?>
             <section id="faq" class="scroll-mt-24"><h2 class="mb-5 text-3xl font-black tracking-[-0.015em] text-[#071f42] md:text-4xl"><?php echo esc_html($ui['faqLabel'] ?? 'FAQ'); ?></h2><div class="grid grid-cols-1 gap-4 lg:grid-cols-2"><?php foreach ($faqs as $faq) : ?><details class="group rounded border border-[#DDE7F2] bg-white px-5 py-4 shadow-card"><summary class="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-black text-[#071f42]"><?php echo esc_html($faq['question']); ?><?php echo boblift_icon('chevron-down', 'h-4 w-4 transition group-open:rotate-180'); ?></summary><p class="mt-3 text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html($faq['answer']); ?></p></details><?php endforeach; ?></div></section>
+            <?php // A catalog saved on this product stays downloadable next to the family brochures. ?>
+            <?php $catalog_url = function_exists('boblift_product_catalog_url') ? boblift_product_catalog_url($product) : ''; if ($catalog_url !== '') : ?>
+                <p class="boblift-product-catalog-link"><a class="inline-flex h-12 items-center justify-center gap-2 rounded-sm border border-[#D8E2EF] bg-white px-5 text-sm font-black text-[#071f42] transition hover:-translate-y-0.5 hover:border-blue-300 hover:text-blue-700" href="<?php echo esc_url($catalog_url); ?>" target="_blank" rel="noopener"><?php echo boblift_icon('file-text', 'h-4 w-4'); ?><?php echo esc_html((string) ($ui['heroPdfLabel'] ?? 'PDF Catalog')); ?></a></p>
+            <?php endif; ?>
             <?php boblift_render_brochures(['context' => 'product', 'families' => boblift_brochure_families_for_product($product), 'product' => $product_title, 'product_slug' => (string) ($product['slug'] ?? '')]); ?>
             <section id="quote" class="boblift-product-quote-section relative left-1/2 w-screen -translate-x-1/2 scroll-mt-24 overflow-hidden border-y border-[#DDE7F2] bg-[radial-gradient(circle_at_70%_28%,rgba(245,154,60,0.16),transparent_28%),linear-gradient(135deg,#ffffff_0%,#eaf2ff_100%)] py-12 text-[#071f42] shadow-card md:py-16">
                 <div class="page-shell grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_auto] xl:gap-12">

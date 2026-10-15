@@ -477,7 +477,8 @@ function boblift_clean_imported_product_text(string $text): string
     if ($text === '' || stripos($text, 'find complete details about') !== false) {
         return '';
     }
-    return ltrim($text, " ,;-–—");
+    // Unicode-aware: a byte mask would also strip the leading bytes of other punctuation such as curly quotes.
+    return (string) preg_replace('/^[\s,;\-–—]+/u', '', $text);
 }
 
 // How a product image sits on the hero stage: 'cutout' floats whole on the floor, 'photo' fills the frame.
@@ -795,7 +796,9 @@ function boblift_feedback_item(WP_Post $post): ?array
     $language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
     $pick = static function (string $key) use ($post, $language): string {
         $values = json_decode((string) get_post_meta($post->ID, $key, true), true) ?: [];
-        return trim((string) ($values[$language] ?? $values['en'] ?? ''));
+        // Use the localized text only when it has real content; an empty ja/zh slot falls back to English.
+        $local = trim((string) ($values[$language] ?? ''));
+        return $local !== '' ? $local : trim((string) ($values['en'] ?? ''));
     };
     $media = [];
     foreach (array_filter(array_map('intval', explode(',', (string) get_post_meta($post->ID, '_feedback_media', true)))) as $id) {

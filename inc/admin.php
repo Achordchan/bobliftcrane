@@ -1167,6 +1167,8 @@ function boblift_render_about_page_fields(array $about, string $base): void
         boblift_admin_input('certifications.title', $about, '标题', $base);
         boblift_admin_textarea('certifications.text', $about, '说明', $base);
         echo '<div data-about-certifications-editor>';
+        // Presence marker: when every row is deleted no certification input is posted, and the save must then clear the saved list.
+        echo '<input type="hidden" name="' . esc_attr($base) . '[certifications][items_present]" value="1">';
         echo '<div data-about-certifications-list>';
         $rows = $certification_items !== [] ? $certification_items : [[]];
         foreach ($rows as $i => $item) {
@@ -1556,6 +1558,10 @@ function boblift_save_about_page_meta_box(int $post_id, WP_Post $post): void
     }
 
     $posted = wp_unslash($_POST['boblift_about_page']);
+    if (isset($posted['certifications']['items_present'])) {
+        unset($posted['certifications']['items_present']);
+        $posted['certifications']['items'] ??= [];
+    }
     $sanitized = boblift_cleanup_admin_options(boblift_sanitize_options_recursive(['about_page' => $posted]));
     $language = function_exists('boblift_mls_post_language') ? boblift_mls_post_language($post) : 'en';
     $existing = function_exists('boblift_mls_get_raw_options') ? boblift_mls_get_raw_options($language) : get_option('boblift_theme_options', []);
