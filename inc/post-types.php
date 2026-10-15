@@ -795,7 +795,7 @@ function boblift_product_meta_box(WP_Post $post): void
     $hotspot_image = $thumbnail ?: boblift_asset('images/products/crane-accessories.png');
     ?>
     <div class="boblift-structured-admin">
-        <div class="boblift-admin-box"><h3>产品正文</h3><label><input type="checkbox" name="boblift_meta[detail_body_ready]" value="1" <?php checked(get_post_meta($post->ID, '_detail_body_ready', true), '1'); ?>> 在产品页显示正文</label><p class="boblift-admin-help">正文就是上方编辑器里的内容，显示在"技术参数"下方。勾选前请确认内容已按画册核对；未勾选时产品页不显示正文。旧网站的原文已备份在 _legacy_content。</p></div>
+        <div class="boblift-admin-box"><h3>产品正文</h3><label><input type="checkbox" name="boblift_meta[detail_body_ready]" value="1" <?php checked(boblift_product_content_ready((int) $post->ID, '_detail_body_ready')); ?>> 在产品页显示正文</label><p class="boblift-admin-help">正文就是上方编辑器里的内容，显示在"技术参数"下方。勾选前请确认内容已按画册核对；未勾选时产品页不显示正文。旧网站的原文已备份在 _legacy_content。</p></div>
         <div class="boblift-admin-box"><h3>基础信息</h3><div class="boblift-admin-fields">
             <?php boblift_render_text_field('boblift_meta[model]', '型号', boblift_meta_value($post->ID, 'model')); ?>
             <?php boblift_render_text_field('boblift_meta[capacity]', '吨位 / 起重能力', boblift_meta_value($post->ID, 'capacity')); ?>
@@ -813,7 +813,7 @@ function boblift_product_meta_box(WP_Post $post): void
         </div></div>
         <div class="boblift-admin-box"><h3>技术参数</h3><p class="boblift-admin-help">保存后仍写入原 _specs JSON，前台无需改动。</p><?php boblift_render_pair_rows('boblift_meta[specs_rows]', $specs, ['label', 'value'], ['参数名', '参数值'], 8); ?></div>
         <div class="boblift-admin-box"><h3>产品特点</h3><?php boblift_render_pair_rows('boblift_meta[features_rows]', $features, ['title', 'text'], ['标题', '说明'], 5); ?></div>
-        <div class="boblift-admin-box"><h3>产品详情图</h3><label><input type="checkbox" name="boblift_meta[detail_images_ready]" value="1" <?php checked(get_post_meta($post->ID, '_detail_images_ready', true), '1'); ?>> 在产品页显示详情图</label><p class="boblift-admin-help">详情图按下方顺序排成一行缩略图，显示在"技术参数"下方，点击可看大图；正文排在图下面。每张建议 750px 宽的切片，不要整张长图。</p><?php boblift_render_pair_rows('boblift_meta[detail_image_rows]', $detail_images, ['image', 'label'], ['详情图地址', '图片说明'], 4); ?></div>
+        <div class="boblift-admin-box"><h3>产品详情图</h3><label><input type="checkbox" name="boblift_meta[detail_images_ready]" value="1" <?php checked(boblift_product_content_ready((int) $post->ID, '_detail_images_ready')); ?>> 在产品页显示详情图</label><p class="boblift-admin-help">详情图按下方顺序排成一行缩略图，显示在"技术参数"下方，点击可看大图；正文排在图下面。每张建议 750px 宽的切片，不要整张长图。</p><?php boblift_render_pair_rows('boblift_meta[detail_image_rows]', $detail_images, ['image', 'label'], ['详情图地址', '图片说明'], 4); ?></div>
         <div class="boblift-admin-box"><h3>产品照片画廊</h3><p class="boblift-admin-help">只放产品实拍照片，不放参数表、详情长图。<strong>尺寸：横版 4:3，建议 1600×1200 像素（不小于 1200×900），JPG 或 WebP，单张 500KB 以内。</strong>画面铺满、不留白边，产品完整不被裁切，不加 Logo、水印和文字。比例不是 4:3 的照片也能完整显示，但两侧或上下会留灰底。填写图片 URL 或 assets 相对路径，例如 images/products/crane-accessories.png。</p><?php boblift_render_pair_rows('boblift_meta[gallery_rows]', $gallery, ['image', 'label'], ['照片地址', '照片标签'], 8); ?></div>
         <div class="boblift-admin-box"><h3>产品图锚点</h3><?php boblift_render_hotspot_editor('boblift_meta[hotspot_rows]', $hotspots, $hotspot_image); ?></div>
     </div>

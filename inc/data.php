@@ -880,10 +880,11 @@ function boblift_curated_product_menu_families(): array
         $path = (string) wp_parse_url($href, PHP_URL_FRAGMENT);
         return $path !== '' ? sanitize_title($path) : sanitize_title(basename(trim((string) wp_parse_url($href, PHP_URL_PATH), '/'), '.html'));
     };
-    // Compare titles, labels and destination categories (the default stores /slug, saved options /products#slug).
+    // Compare every editable field (title, description, icon, image, link labels, icons and destination categories); the default stores /slug and saved options /products#slug.
     $signature = static fn($groups): string => wp_json_encode(array_map(static fn($g): array => [
-        trim((string) ($g['title'] ?? '')), $slug_of((string) ($g['href'] ?? '')),
-        array_map(static fn($l): array => [trim((string) ($l['label'] ?? '')), $slug_of((string) ($l['href'] ?? ''))], array_values(array_filter((array) ($g['links'] ?? []), 'is_array'))),
+        trim((string) ($g['title'] ?? '')), $slug_of((string) ($g['href'] ?? '')), trim((string) ($g['description'] ?? '')), sanitize_key((string) ($g['icon'] ?? '')),
+        is_array($g['image'] ?? null) ? ((int) ($g['image']['id'] ?? 0) > 0 ? 'id:' . (int) $g['image']['id'] : (string) ($g['image']['path'] ?? '')) : (string) ($g['image'] ?? ''),
+        array_map(static fn($l): array => [trim((string) ($l['label'] ?? '')), $slug_of((string) ($l['href'] ?? '')), sanitize_key((string) ($l['icon'] ?? ''))], array_values(array_filter((array) ($g['links'] ?? []), 'is_array'))),
     ], array_values(array_filter((array) $groups, 'is_array'))));
     if (!is_array($saved) || $saved === [] || $signature($saved) === $signature($default)) {
         return [];

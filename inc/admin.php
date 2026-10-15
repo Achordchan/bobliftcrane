@@ -430,6 +430,10 @@ function boblift_handle_save_theme_settings(): void
     if (isset($_POST['boblift_nav_items_present']) && !isset($posted['nav_items'])) {
         $posted['nav_items'] = [];
     }
+    // "Reset to the generated Products menu": drop the curated groups by saving the built-in default list again.
+    if (isset($_POST['boblift_reset_product_menu'])) {
+        $posted['product_nav_groups'] = boblift_default_options()['product_nav_groups'] ?? [];
+    }
     if (isset($_POST['boblift_floating_contact_buttons_present']) && !isset($posted['floating_contact_buttons'])) {
         $posted['floating_contact_buttons'] = [];
     }
@@ -2265,6 +2269,12 @@ function boblift_admin_product_groups_editor(): void
     <div class="boblift-admin-product-groups-editor" data-product-groups-editor>
         <h3>二级菜单</h3>
         <p class="boblift-admin-note">产品下拉菜单按「产品展示 → 产品分类」自动生成：每个顶级分类一行，右侧显示它的 Banner 照片、子分类（没有两个以上子分类时显示型号）和型号数量。要调整菜单，请修改分类的名称、父级、排序或 Banner 图片。</p>
+        <?php if (function_exists('boblift_curated_product_menu_families') && boblift_curated_product_menu_families() !== []) : ?>
+            <div class="boblift-admin-note" style="border:1px solid #f0b429;padding:12px;margin:12px 0;">
+                <p><strong>这个站点保留了旧版保存的自定义产品菜单</strong>（分组、链接、图片），前台仍按它显示。要改回由产品分类自动生成的菜单，勾选下面的选项并保存；自定义的分组会被清除，无法撤销。</p>
+                <label><input type="checkbox" name="boblift_reset_product_menu" value="1"> 恢复为按产品分类自动生成的菜单</label>
+            </div>
+        <?php endif; ?>
     </div>
     <?php
 }

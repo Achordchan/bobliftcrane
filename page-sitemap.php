@@ -74,7 +74,8 @@ $products_in = static function (WP_Term $term): array {
 $product_blocks = [];
 $seen_products = [];
 $product_total = 0;
-foreach (function_exists('boblift_product_menu_families') ? boblift_product_menu_families() : [] as $family) {
+// The sitemap follows the real category tree, whatever labels or groups the navigation menu uses.
+foreach (function_exists('boblift_build_product_menu_families') ? boblift_build_product_menu_families() : [] as $family) {
     $family_term = get_term_by('slug', (string) ($family['slug'] ?? ''), 'product_category');
     if (!$family_term instanceof WP_Term) {
         continue;
