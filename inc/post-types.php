@@ -613,7 +613,7 @@ function boblift_render_pair_rows(string $base, array $rows, array $keys, array 
         $row = is_array($rows[$i] ?? null) ? $rows[$i] : [];
         echo '<div class="boblift-admin-repeat-row">';
         foreach ($keys as $index => $key) {
-            $tag = $index === 1 && in_array($key, ['text', 'body'], true) ? 'textarea' : 'input';
+            $tag = $index >= 1 && in_array($key, ['text', 'body', 'detail'], true) ? 'textarea' : 'input';
             echo '<div class="boblift-admin-field"><label>' . esc_html($labels[$index]) . '</label>';
             if ($tag === 'textarea') {
                 echo '<textarea name="' . esc_attr($base . '[' . $i . '][' . $key . ']') . '">' . esc_textarea((string) ($row[$key] ?? '')) . '</textarea>';
@@ -812,7 +812,7 @@ function boblift_product_meta_box(WP_Post $post): void
             <?php boblift_render_textarea_field('boblift_meta[tags_lines]', '标签，每行一个', boblift_lines_from_csv(boblift_meta_value($post->ID, 'tags'))); ?>
         </div></div>
         <div class="boblift-admin-box"><h3>技术参数</h3><p class="boblift-admin-help">保存后仍写入原 _specs JSON，前台无需改动。</p><?php boblift_render_pair_rows('boblift_meta[specs_rows]', $specs, ['label', 'value'], ['参数名', '参数值'], 8); ?></div>
-        <div class="boblift-admin-box"><h3>产品特点</h3><?php boblift_render_pair_rows('boblift_meta[features_rows]', $features, ['title', 'text'], ['标题', '说明'], 5); ?></div>
+        <div class="boblift-admin-box"><h3>产品特点</h3><?php boblift_render_pair_rows('boblift_meta[features_rows]', $features, ['title', 'text', 'detail', 'image'], ['标题', '说明', '详细说明（可选，品册导入的内容）', '图片地址（可选，品册导入的内容）'], 5); ?></div>
         <div class="boblift-admin-box"><h3>产品详情图</h3><label><input type="checkbox" name="boblift_meta[detail_images_ready]" value="1" <?php checked(boblift_product_content_ready((int) $post->ID, '_detail_images_ready')); ?>> 在产品页显示详情图</label><p class="boblift-admin-help">详情图按下方顺序排成一行缩略图，显示在"技术参数"下方，点击可看大图；正文排在图下面。每张建议 750px 宽的切片，不要整张长图。</p><?php boblift_render_pair_rows('boblift_meta[detail_image_rows]', $detail_images, ['image', 'label'], ['详情图地址', '图片说明'], 4); ?></div>
         <div class="boblift-admin-box"><h3>产品照片画廊</h3><p class="boblift-admin-help">只放产品实拍照片，不放参数表、详情长图。<strong>尺寸：横版 4:3，建议 1600×1200 像素（不小于 1200×900），JPG 或 WebP，单张 500KB 以内。</strong>画面铺满、不留白边，产品完整不被裁切，不加 Logo、水印和文字。比例不是 4:3 的照片也能完整显示，但两侧或上下会留灰底。填写图片 URL 或 assets 相对路径，例如 images/products/crane-accessories.png。</p><?php boblift_render_pair_rows('boblift_meta[gallery_rows]', $gallery, ['image', 'label'], ['照片地址', '照片标签'], 8); ?></div>
         <div class="boblift-admin-box"><h3>产品图锚点</h3><?php boblift_render_hotspot_editor('boblift_meta[hotspot_rows]', $hotspots, $hotspot_image); ?></div>
@@ -969,7 +969,7 @@ function boblift_save_meta_boxes(int $post_id): void
         update_post_meta($post_id, '_applications', boblift_lines_to_csv($meta['applications_lines'] ?? ''));
         update_post_meta($post_id, '_tags', boblift_lines_to_csv($meta['tags_lines'] ?? ''));
         update_post_meta($post_id, '_specs', boblift_rows_to_json(is_array($meta['specs_rows'] ?? null) ? $meta['specs_rows'] : [], ['label', 'value']));
-        update_post_meta($post_id, '_features', boblift_rows_to_json(is_array($meta['features_rows'] ?? null) ? $meta['features_rows'] : [], ['title', 'text']));
+        update_post_meta($post_id, '_features', boblift_rows_to_json(is_array($meta['features_rows'] ?? null) ? $meta['features_rows'] : [], ['title', 'text', 'detail', 'image']));
         update_post_meta($post_id, '_detail_images', boblift_rows_to_json(is_array($meta['detail_image_rows'] ?? null) ? $meta['detail_image_rows'] : [], ['image', 'label']));
         update_post_meta($post_id, '_gallery', boblift_rows_to_json(is_array($meta['gallery_rows'] ?? null) ? $meta['gallery_rows'] : [], ['image', 'label']));
         update_post_meta($post_id, '_hotspots', boblift_hotspots_to_json(is_array($meta['hotspot_rows'] ?? null) ? $meta['hotspot_rows'] : []));

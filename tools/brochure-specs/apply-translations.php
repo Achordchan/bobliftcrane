@@ -390,6 +390,10 @@ foreach ($english as $en) {
                     update_post_meta($target, $key, wp_slash($value));
                 }
             }
+            // A new translation shows what the English product shows: copy the effective visibility of body and detail images.
+            foreach (['_detail_body_ready', '_detail_images_ready'] as $flag) {
+                update_post_meta($target, $flag, boblift_product_content_ready($en->ID, $flag) ? '1' : '');
+            }
             $created++;
         }
         foreach ($meta as $key => $value) {

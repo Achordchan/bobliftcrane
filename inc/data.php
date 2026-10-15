@@ -1062,15 +1062,27 @@ function boblift_footer_is_product_group(array $group): bool
     if ($links === []) {
         return false;
     }
-    // Only the historical default group counts: every link is a /products#<category> anchor to one of the original seven
-    // categories. A group an administrator curated (any other link, or a category outside that list) is left as saved.
-    $default_anchors = ['telescopic-boom-truck-mounted-cranes', 'knuckle-boom-truck-mounted-cranes', 'pickup-cranes', 'knuckle-boom-marine-cranes', 'forklift-fly-jib-cranes', 'aerial-work-platform', 'tail-lift'];
-    foreach ($links as $link) {
-        if (!is_array($link) || !preg_match('~^/?products(?:\.html)?#([a-z0-9-]+)$~', trim((string) ($link['href'] ?? '')), $m) || !in_array($m[1], $default_anchors, true)) {
+    // Only the complete historical default counts: the original seven links with their original labels, in their original
+    // order. A group an administrator edited (relabelled, reordered, other links) is left as saved.
+    $historical = [
+        ['Telescopic Boom Truck Mounted Cranes', 'telescopic-boom-truck-mounted-cranes'],
+        ['Knuckle Boom Truck Mounted Cranes', 'knuckle-boom-truck-mounted-cranes'],
+        ['Pickup Cranes', 'pickup-cranes'],
+        ['Marine Cranes', 'knuckle-boom-marine-cranes'],
+        ['Forklift Fly Jib Cranes', 'forklift-fly-jib-cranes'],
+        ['Aerial Work Platform', 'aerial-work-platform'],
+        ['Tail Lift', 'tail-lift'],
+    ];
+    if (count($links) !== count($historical)) {
+        return false;
+    }
+    foreach (array_values($links) as $index => $link) {
+        if (!is_array($link) || !preg_match('~^/?products(?:\.html)?#([a-z0-9-]+)$~', trim((string) ($link['href'] ?? '')), $m)
+            || $m[1] !== $historical[$index][1] || trim((string) ($link['label'] ?? '')) !== $historical[$index][0]) {
             return false;
         }
     }
-    return count($links) === count($default_anchors);
+    return true;
 }
 
 function boblift_product_category_hierarchy(): array
