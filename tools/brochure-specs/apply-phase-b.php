@@ -16,10 +16,38 @@ $plan = json_decode((string) file_get_contents($dir . '/phase-b.json'), true);
 $created = [];
 $skipped = [];
 
+// Preflight: every product image must be present before anything is published (a product created without its photo would be skipped on reruns).
+$missing_images = [];
+foreach ($plan['products'] as $p) {
+    if (!empty($p['image']) && !is_file($dir . '/' . $p['image'])) {
+        $missing_images[] = $p['image'];
+    }
+}
+if ($missing_images) {
+    fwrite(STDERR, "Missing product images, nothing was created:\n  " . implode("\n  ", $missing_images) . "\n");
+    exit(1);
+}
+
 foreach ($plan['products'] as $p) {
     $slug = sanitize_title($p['title']);
     $existing = get_posts(['post_type' => 'product', 'post_name__in' => [$slug], 'post_status' => ['publish', 'draft', 'pending', 'private'], 'posts_per_page' => 1, 'lang' => '']);
     $term = get_term_by('slug', $p['category'], 'product_category');
+    if ($existing && $term && !$dry && !empty($p['image']) && !has_post_thumbnail($existing[0]->ID)) {
+        // A product created earlier without its photo (failed import): attach it now.
+        $tmp = wp_tempnam(basename($p['image']));
+        copy($dir . '/' . $p['image'], $tmp);
+        $repair = media_handle_sideload(['name' => $slug . '.webp', 'tmp_name' => $tmp], $existing[0]->ID, $p['title']);
+        if (!is_wp_error($repair)) {
+            set_post_thumbnail($existing[0]->ID, $repair);
+            update_post_meta($repair, '_wp_attachment_image_alt', $p['title']);
+            $gallery_now = json_decode((string) get_post_meta($existing[0]->ID, '_gallery', true), true) ?: [];
+            if (!$gallery_now) {
+                update_post_meta($existing[0]->ID, '_gallery', wp_slash(wp_json_encode([['image' => wp_get_attachment_url($repair), 'label' => $p['title']]], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)));
+            }
+            $skipped[] = $slug . ' (exists, photo attached)';
+            continue;
+        }
+    }
     if ($existing || !$term) {
         $skipped[] = $slug . ($term ? ' (exists)' : ' (no category ' . $p['category'] . ')');
         continue;

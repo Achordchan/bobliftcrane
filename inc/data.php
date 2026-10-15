@@ -893,11 +893,23 @@ function boblift_curated_product_menu_families(): array
         $path = (string) wp_parse_url($href, PHP_URL_FRAGMENT);
         return $path !== '' ? sanitize_title($path) : sanitize_title(basename(trim((string) wp_parse_url($href, PHP_URL_PATH), '/'), '.html'));
     };
-    // Compare every editable field (title, description, icon, image, link labels, icons and destination categories); the default stores /slug and saved options /products#slug.
+    // Destination identity for the comparison: the default stores /slug and saved options /products#slug, which are the same
+    // destination; a custom host, a query string or any other path is kept so a changed link counts as customised.
+    $site_host = strtolower((string) wp_parse_url(home_url(), PHP_URL_HOST));
+    $dest_of = static function (string $href) use ($slug_of, $site_host): string {
+        $parts = (array) wp_parse_url(trim($href));
+        $host = strtolower((string) ($parts['host'] ?? ''));
+        $query = (string) ($parts['query'] ?? '');
+        if ($host !== '' && $host !== $site_host) {
+            return 'ext:' . $host . '|' . trim((string) ($parts['path'] ?? ''), '/') . '|' . $query . '|' . (string) ($parts['fragment'] ?? '');
+        }
+        return 'int:' . $slug_of($href) . '|' . $query;
+    };
+    // Compare every editable field (title, description, icon, image, link labels, icons and destinations).
     $signature = static fn($groups): string => wp_json_encode(array_map(static fn($g): array => [
-        trim((string) ($g['title'] ?? '')), $slug_of((string) ($g['href'] ?? '')), trim((string) ($g['description'] ?? '')), sanitize_key((string) ($g['icon'] ?? '')),
+        trim((string) ($g['title'] ?? '')), $dest_of((string) ($g['href'] ?? '')), trim((string) ($g['description'] ?? '')), sanitize_key((string) ($g['icon'] ?? '')),
         is_array($g['image'] ?? null) ? ((int) ($g['image']['id'] ?? 0) > 0 ? 'id:' . (int) $g['image']['id'] : (string) ($g['image']['path'] ?? '')) : (string) ($g['image'] ?? ''),
-        array_map(static fn($l): array => [trim((string) ($l['label'] ?? '')), $slug_of((string) ($l['href'] ?? '')), sanitize_key((string) ($l['icon'] ?? ''))], array_values(array_filter((array) ($g['links'] ?? []), 'is_array'))),
+        array_map(static fn($l): array => [trim((string) ($l['label'] ?? '')), $dest_of((string) ($l['href'] ?? '')), sanitize_key((string) ($l['icon'] ?? ''))], array_values(array_filter((array) ($g['links'] ?? []), 'is_array'))),
     ], array_values(array_filter((array) $groups, 'is_array'))));
     if (!is_array($saved) || $saved === [] || $signature($saved) === $signature($default)) {
         return [];

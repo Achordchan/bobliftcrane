@@ -256,7 +256,17 @@ $whatsapp = preg_replace('/\D+/', '', (string) ($contact['whatsapp'] ?? ($contac
             <?php if (trim((string) ($cta['text'] ?? '')) !== '') : ?><p class="mt-3 text-sm font-semibold leading-7 text-white/75 md:text-base"><?php echo esc_html($t($cta['text'])); ?></p><?php endif; ?>
         </div>
         <div class="flex shrink-0 flex-wrap gap-3">
-            <button class="inline-flex h-12 items-center justify-center gap-2 rounded-sm bg-white px-6 text-sm font-black text-navy transition hover:-translate-y-0.5 hover:bg-blue-50" type="button" data-inquiry-modal-open data-inquiry-source="社媒页"><?php echo esc_html($t($cta['button_label'] ?? 'Send an Inquiry')); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
+            <?php
+            // A destination saved for this button (booking page, external channel, ...) is honoured; the default inquiry action opens the modal.
+            $cta_href = trim((string) ($cta['button_href'] ?? ''));
+            $cta_is_default = $cta_href === '' || in_array(rtrim($cta_href, '/'), ['/contact.html', '/contact', '/quote.html'], true);
+            $cta_class = 'inline-flex h-12 items-center justify-center gap-2 rounded-sm bg-white px-6 text-sm font-black text-navy transition hover:-translate-y-0.5 hover:bg-blue-50';
+            ?>
+            <?php if ($cta_is_default) : ?>
+                <button class="<?php echo esc_attr($cta_class); ?>" type="button" data-inquiry-modal-open data-inquiry-source="社媒页"><?php echo esc_html($t($cta['button_label'] ?? 'Send an Inquiry')); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
+            <?php else : ?>
+                <a class="<?php echo esc_attr($cta_class); ?>" href="<?php echo esc_url(boblift_url($cta_href)); ?>" ><?php echo esc_html($t($cta['button_label'] ?? 'Send an Inquiry')); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
+            <?php endif; ?>
             <?php if ($whatsapp !== '') : ?>
                 <a class="inline-flex h-12 items-center justify-center gap-2 rounded-sm border border-white/30 px-6 text-sm font-black text-white transition hover:border-white" href="<?php echo esc_url('https://wa.me/' . $whatsapp); ?>" target="_blank" rel="noopener">WhatsApp</a>
             <?php endif; ?>

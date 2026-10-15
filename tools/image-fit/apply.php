@@ -63,7 +63,20 @@ foreach ($plan['images'] as $item) {
         continue;
     }
     if ($dry) {
-        $map[$rel] = [$source, $item['action']];
+        // Resolve the replacement without writing: a swap uses the original attachment, a trim uses the existing cut-out or,
+        // when it has not been made yet, a planned one (-1), so the preview counts the products that would change.
+        $planned = $source;
+        if ($item['action'] === 'swap') {
+            $planned = $attachment_by_file($item['original']);
+        } elseif ($item['action'] === 'trim') {
+            $made = get_posts(['post_type' => 'attachment', 'post_status' => 'inherit', 'meta_key' => '_boblift_trimmed_from', 'meta_value' => $rel, 'posts_per_page' => 1, 'fields' => 'ids']);
+            $planned = $made ? (int) $made[0] : -1;
+        }
+        if (!$planned) {
+            $missing[] = $rel . ' (' . $item['action'] . ')';
+            continue;
+        }
+        $map[$rel] = [$planned, $item['action']];
         continue;
     }
     $target = $source;
@@ -105,8 +118,9 @@ foreach (get_posts(['post_type' => 'product', 'post_status' => ['publish', 'draf
     foreach ($gallery as $entry) {
         $entry = is_array($entry) ? $entry : ['image' => (string) $entry, 'label' => ''];
         $rel = $rel_of_url((string) ($entry['image'] ?? ''));
-        if (isset($map[$rel]) && !$dry) {
-            $url = (string) wp_get_attachment_url($map[$rel][0]);
+        if (isset($map[$rel])) {
+            // A planned (not yet created) cut-out has no URL; it still counts as a change.
+            $url = $map[$rel][0] > 0 ? (string) wp_get_attachment_url($map[$rel][0]) : '(planned cut-out)';
             if ($url !== $entry['image']) {
                 $entry['image'] = $url;
                 $dirty = true;
