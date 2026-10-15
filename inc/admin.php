@@ -545,6 +545,10 @@ function boblift_cleanup_admin_options(array $options): array
         foreach (['label', 'title', 'text'] as $key) {
             unset($options['about_page']['global_footprint'][$key]);
         }
+        // The legacy team photo moves to team_image before its old key is dropped, so a saved custom image is never lost.
+        if (!empty($options['about_page']['executives']['group_image']) && empty($options['about_page']['executives']['team_image'])) {
+            $options['about_page']['executives']['team_image'] = $options['about_page']['executives']['group_image'];
+        }
         unset($options['about_page']['executives']['group_image']);
     }
 

@@ -232,7 +232,7 @@ function boblift_post_thumbnail_url(WP_Post $post, string $fallback): string
  *   - a product that was not imported from the old site shows its content;
  *   - an imported product shows its body once the body differs from the raw old-site copy kept in _legacy_content (the
  *     brochure text and editor rewrites), so products published before these boxes existed keep their text;
- *   - imported detail images stay hidden until the box is ticked, because the old-site pictures are not marked anywhere else.
+ *   - imported detail images show once the project has redesigned them (marker meta from the detail-image tools); untouched old-site pictures stay hidden until the box is ticked.
  * Updating other fields of a post (an excerpt, a gallery) never makes the old-site body visible.
  */
 function boblift_product_content_ready(int $post_id, string $flag_key): bool
@@ -244,6 +244,13 @@ function boblift_product_content_ready(int $post_id, string $flag_key): bool
         return true;
     }
     if ($flag_key !== '_detail_body_ready') {
+        // Detail images the project has since redesigned (the redesign tools keep _detail_images_before_* / _boblift_detail_* markers)
+        // are reviewed content; untouched old-site pictures carry no such marker and stay hidden until the box is ticked.
+        foreach (array_keys((array) get_post_meta($post_id)) as $meta_key) {
+            if (str_starts_with((string) $meta_key, '_detail_images_before_') || str_starts_with((string) $meta_key, '_boblift_detail_')) {
+                return true;
+            }
+        }
         return false;
     }
     // Text plus embedded media (images, galleries, video) make up the content; a body replaced with media only still counts.
@@ -1035,8 +1042,12 @@ function boblift_page_hero_image_setting(mixed $image, string $fallback): string
  * image (URL or theme path), image_alt, image_position (CSS object-position),
  * links (list of [label, href, icon, external]), class, attrs (already escaped, for scripts).
  */
-function boblift_page_hero(array $hero): void
+function boblift_page_hero(array|string $hero, string $title = '', string $description = '', string $image = '', string $buttons = ''): void
 {
+    // Compatibility with the original positional call boblift_page_hero($label, $title, $description, $image, $buttons).
+    if (is_string($hero)) {
+        $hero = ['label' => $hero, 'title' => $title, 'text' => $description, 'image' => $image, 'buttons_html' => $buttons];
+    }
     $image = trim((string) ($hero['image'] ?? ''));
     $has_image = $image !== '';
     $title = (string) ($hero['title'] ?? '');
@@ -1062,6 +1073,9 @@ function boblift_page_hero(array $hero): void
             <h1 class="boblift-page-hero-title <?php echo $has_image ? 'max-w-3xl' : 'max-w-5xl'; ?> text-[clamp(2rem,3vw,3.75rem)] font-black leading-[1.02] tracking-[-0.02em] text-[#0B1B33]" data-banner-title><?php echo $title_html; ?></h1>
             <p class="boblift-page-hero-text mt-4 <?php echo $has_image ? 'max-w-xl' : 'max-w-[64rem]'; ?> text-sm font-semibold leading-7 text-slate-600 empty:hidden md:text-base md:leading-8" data-banner-text><?php echo esc_html(trim((string) ($hero['text'] ?? ''))); ?></p>
             <?php if ($meta !== '') : ?><p class="mt-4 text-xs font-black uppercase tracking-[0.14em] text-slate-400"><?php echo esc_html($meta); ?></p><?php endif; ?>
+            <?php if (trim((string) ($hero['buttons_html'] ?? '')) !== '') : ?>
+                <div class="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center"><?php echo $hero['buttons_html']; // Already-escaped markup from the caller, as before. ?></div>
+            <?php endif; ?>
             <?php if ($links !== []) : ?>
                 <div class="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-bold text-navy md:mt-6">
                     <?php foreach ($links as $link) : ?>

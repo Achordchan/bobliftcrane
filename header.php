@@ -334,7 +334,7 @@ foreach ($languages as $language) {
                         <div class="group/products static" data-mega-root>
                             <a class="<?php echo esc_attr($pill); ?>" href="<?php echo esc_url($item_url); ?>" aria-haspopup="true"><?php echo esc_html(function_exists('boblift_localized_static_text') ? boblift_localized_static_text((string) $item['label']) : (string) $item['label']); ?><?php echo boblift_icon('chevron-down', 'h-3.5 w-3.5 text-gold transition group-hover/products:rotate-180'); ?></a>
                             <div class="mega-menu absolute left-1/2 top-full z-[210] w-[min(1180px,calc(100vw-48px))] -translate-x-1/2">
-                                <div class="relative overflow-hidden rounded border border-line bg-white shadow-raised" data-product-nav="desktop" data-mega-families>
+                                <div class="relative max-h-[calc(100vh-132px)] overflow-y-auto overflow-x-hidden rounded border border-line bg-white shadow-raised" data-product-nav="desktop" data-mega-families>
                                     <div class="grid grid-cols-[264px_minmax(0,1fr)] xl:grid-cols-[292px_minmax(0,1fr)]">
                                         <ul class="grid content-start gap-0.5 border-r border-line bg-mist p-3">
                                             <?php $family_group_shown = 'crane'; foreach ($product_menu_families as $family) : ?>

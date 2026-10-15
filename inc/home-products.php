@@ -82,6 +82,12 @@ function boblift_home_product_catalog(array $section): array
             continue;
         }
         $child_slugs = array_values(array_filter(array_map(static fn(array $child): string => (string) ($child['slug'] ?? ''), $group['children'] ?? [])));
+        // Categories added below the listed children (grandchildren and deeper) belong to the family too.
+        $parent_term = get_term_by('slug', $parent_slug, 'product_category');
+        if ($parent_term instanceof WP_Term) {
+            $descendants = get_terms(['taxonomy' => 'product_category', 'child_of' => $parent_term->term_id, 'hide_empty' => false, 'fields' => 'id=>slug']);
+            $child_slugs = array_values(array_unique(array_merge($child_slugs, is_wp_error($descendants) ? [] : array_values($descendants))));
+        }
         $parent_products = $products_by_category[$parent_slug] ?? [];
         $total = $category_totals[$parent_slug] ?? 0;
         $buckets = [];
@@ -92,6 +98,16 @@ function boblift_home_product_catalog(array $section): array
             }
         }
         $group_products = array_merge($parent_products, ...$buckets);
+        // A product listed in more than one bucket counts once.
+        $seen_group_products = [];
+        $group_products = array_values(array_filter($group_products, static function (array $product) use (&$seen_group_products): bool {
+            $key = (string) ($product['id'] ?? $product['slug'] ?? '');
+            if ($key !== '' && isset($seen_group_products[$key])) {
+                return false;
+            }
+            $seen_group_products[$key] = true;
+            return true;
+        }));
         if ($group_products === []) {
             continue;
         }

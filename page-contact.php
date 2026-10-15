@@ -63,6 +63,12 @@ $visit_links = is_array($ui['visitLinks'] ?? null) ? $ui['visitLinks'] : [];
             <section class="rounded border border-line bg-white p-5 md:p-6" aria-labelledby="contact-direct-title">
                 <h2 id="contact-direct-title" class="text-lg font-black leading-7 text-navy"><?php echo esc_html($t('channelsLabel', 'Direct contact')); ?></h2>
                 <dl class="mt-4 divide-y divide-line border-y border-line">
+                    <?php
+                    // One row when phone and WhatsApp are the same number; two rows when the saved numbers differ.
+                    $digits = static fn(string $number): string => preg_replace('/\D+/', '', $number) ?? '';
+                    $same_number = $digits((string) $contact['whatsapp']) === '' || $digits((string) $contact['phone']) === $digits((string) $contact['whatsapp']);
+                    ?>
+                    <?php if ($same_number) : ?>
                     <div class="py-3.5">
                         <dt class="<?php echo esc_attr($eyebrow); ?>"><?php echo esc_html($t('phoneWhatsappLabel', 'Phone / WhatsApp')); ?></dt>
                         <dd class="mt-1 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
@@ -70,6 +76,19 @@ $visit_links = is_array($ui['visitLinks'] ?? null) ? $ui['visitLinks'] : [];
                             <a class="inline-flex items-center gap-1.5 text-sm font-bold text-blue-700 transition hover:text-navy" href="<?php echo esc_url($contact['whatsappHref']); ?>" target="_blank" rel="noreferrer"><?php echo boblift_icon('whatsapp', 'h-4 w-4'); ?><?php echo esc_html((string) ($ui['cardLabels']['whatsapp'] ?? 'WhatsApp')); ?></a>
                         </dd>
                     </div>
+                    <?php else : ?>
+                    <div class="py-3.5">
+                        <dt class="<?php echo esc_attr($eyebrow); ?>"><?php echo esc_html($t('phoneLabel', 'Phone')); ?></dt>
+                        <dd class="mt-1"><a class="text-base font-black text-ink transition hover:text-blue-700" href="<?php echo esc_url((string) $contact['phoneHref']); ?>"><?php echo esc_html($phone_text); ?></a></dd>
+                    </div>
+                    <div class="py-3.5">
+                        <dt class="<?php echo esc_attr($eyebrow); ?>">WhatsApp</dt>
+                        <dd class="mt-1 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+                            <span class="text-base font-black text-ink"><?php echo esc_html($whatsapp_text); ?></span>
+                            <a class="inline-flex items-center gap-1.5 text-sm font-bold text-blue-700 transition hover:text-navy" href="<?php echo esc_url($contact['whatsappHref']); ?>" target="_blank" rel="noreferrer"><?php echo boblift_icon('whatsapp', 'h-4 w-4'); ?><?php echo esc_html((string) ($ui['cardLabels']['whatsapp'] ?? 'WhatsApp')); ?></a>
+                        </dd>
+                    </div>
+                    <?php endif; ?>
                     <div class="py-3.5">
                         <dt class="<?php echo esc_attr($eyebrow); ?>"><?php echo esc_html((string) ($ui['cardLabels']['email'] ?? 'Email')); ?></dt>
                         <dd class="mt-1"><a class="break-all text-base font-black text-ink transition hover:text-blue-700" href="<?php echo esc_url('mailto:' . $contact['email']); ?>"><?php echo esc_html((string) $contact['email']); ?></a></dd>
