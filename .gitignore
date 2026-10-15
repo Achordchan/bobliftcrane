@@ -57,3 +57,5 @@ assets/videos/social/*.mp4
 /tools/**/*.ai
 
 /tools/**/*.zip
+
+/boblift-backups/

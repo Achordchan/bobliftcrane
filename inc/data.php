@@ -568,7 +568,12 @@ function boblift_about_legacy_strength(array $strength): array
     $cards = array_values(array_filter((array) ($strength['cards'] ?? []), static fn($card): bool => is_array($card) && (trim((string) ($card['title'] ?? '')) !== '' || trim((string) ($card['text'] ?? '')) !== '')));
     $pairs = array_map(static fn(array $card): array => [trim((string) ($card['title'] ?? '')), trim((string) ($card['text'] ?? ''))], $cards);
     $cta = [trim((string) ($strength['cta_label'] ?? '')), trim((string) ($strength['cta_href'] ?? ''))];
+    // An uploaded image, or a path other than the built-in prototype picture, is the editor's own.
+    $image = $strength['image'] ?? null;
+    $image_path = is_array($image) ? trim((string) ($image['path'] ?? '')) : trim((string) $image);
+    $image_custom = (is_array($image) && (int) ($image['id'] ?? 0) > 0) || ($image_path !== '' && $image_path !== 'images/about/about-logo-prototype-crane-ai.png');
     return [
+        'image' => $image_custom ? $image : null,
         'cards' => in_array($pairs, $default_card_sets, true) ? [] : $cards,
         'cta' => ($cta[0] === '' || in_array($cta, $default_ctas, true)) ? null : ['label' => $cta[0], 'href' => $cta[1] !== '' ? $cta[1] : '/contact.html'],
     ];

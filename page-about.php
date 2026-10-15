@@ -194,9 +194,12 @@ if ($legacy_headline !== '' || $legacy_paragraph !== '' || $legacy_chips !== [])
 <?php
 // Cards and call to action saved in the old Company Strength layout stay visible until an editor removes them.
 $legacy_strength = boblift_about_legacy_strength($strength);
-if ($legacy_strength['cards'] !== [] || $legacy_strength['cta'] !== null) : ?>
+if ($legacy_strength['cards'] !== [] || $legacy_strength['cta'] !== null || $legacy_strength['image'] !== null) : ?>
 <section class="bg-[#F8FAFC] pb-12 lg:pb-16" aria-label="<?php echo esc_attr((string) ($strength['label'] ?? 'Company Strength')); ?>">
     <div class="page-shell">
+        <?php if ($legacy_strength['image'] !== null) : ?>
+            <div class="mb-8 overflow-hidden rounded border border-line bg-white shadow-card"><?php echo boblift_img_from_setting($legacy_strength['image'], 'images/about/about-logo-prototype-crane-ai.png', (string) ($strength['title'] ?? ''), 'mx-auto block h-auto max-h-[520px] w-full object-contain'); ?></div>
+        <?php endif; ?>
         <?php if ($legacy_strength['cards'] !== []) : ?>
             <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <?php foreach ($legacy_strength['cards'] as $legacy_card) : ?>

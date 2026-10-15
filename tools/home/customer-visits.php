@@ -1,4 +1,5 @@
 <?php
+require_once dirname(__DIR__) . '/backup-dir.php';
 /**
  * The Global Customer Visits page now reads its photos and copy from the theme defaults (inc/data.php).
  * ja/zh may still hold the three old placeholder photos, which would override them, so this clears the saved photo
@@ -45,7 +46,7 @@ foreach (['boblift_theme_options', 'boblift_theme_options_ja', 'boblift_theme_op
     }
 }
 if ($changes) {
-    $file = __DIR__ . '/backup-customer-visits-' . gmdate('Ymd-His') . '.json';
+    $file = boblift_tools_backup_dir() . '/backup-customer-visits-' . gmdate('Ymd-His') . '.json';
     $encoded = wp_json_encode($backup, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
     $bytes = is_string($encoded) ? file_put_contents($file . '.tmp', $encoded) : false;
     if (!is_string($encoded) || $bytes !== strlen($encoded) || !rename($file . '.tmp', $file)) {

@@ -181,8 +181,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
   var navList = builder.querySelector('[data-nav-list]');
   var parking = builder.querySelector('[data-product-groups-parking]');
-  var editor = builder.querySelector('[data-product-groups-editor]');
+  // The group editor exists only while a saved custom product menu is active; without it an empty stand-in keeps the handlers inert.
+  var editor = builder.querySelector('[data-product-groups-editor]') || document.createElement('div');
   var navTemplate = builder.querySelector('template[data-template="nav-row"]');
+  var groupTemplate = builder.querySelector('template[data-template="group-row"]');
+  var linkTemplate = builder.querySelector('template[data-template="link-row"]');
 
   function setDisabled(root, disabled) {
     root.querySelectorAll('input, textarea, select, button').forEach(function (field) {
@@ -200,8 +203,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  function rowLabel(row, fallback) {
-    var input = row.querySelector('input[name$="[label]"]');
+  function rowLabel(row, type, fallback) {
+    var input = row.querySelector('input[name$="[' + (type === 'group' ? 'title' : 'label') + ']"]');
     var value = input ? input.value.trim() : '';
     return value || fallback;
   }
@@ -209,12 +212,43 @@ document.addEventListener('DOMContentLoaded', function () {
   function reindexNav() {
     navList.querySelectorAll('.boblift-admin-nav-row').forEach(function (row, index) {
       row.querySelector('[data-role="nav-index"]').textContent = String(index + 1);
-      row.querySelector('[data-role="nav-label"]').textContent = rowLabel(row, '导航项 ' + String(index + 1));
+      row.querySelector('[data-role="nav-label"]').textContent = rowLabel(row, 'nav', '导航项 ' + String(index + 1));
       row.querySelectorAll('[name]').forEach(function (field) {
         field.name = field.name.replace(/boblift_theme_options\[nav_items]\[[^\]]+]/, 'boblift_theme_options[nav_items][' + index + ']');
       });
     });
     placeProductEditor();
+  }
+
+  function reindexGroups() {
+    var groups = editor.querySelectorAll('.boblift-admin-product-group-row');
+    groups.forEach(function (row, groupIndex) {
+      row.querySelector('[data-role="group-index"]').textContent = String(groupIndex + 1);
+      var label = row.querySelector('[data-role="group-label"]');
+      var count = row.querySelectorAll('.boblift-admin-product-link-row').length;
+      label.childNodes[0].nodeValue = rowLabel(row, 'group', '二级菜单组 ' + String(groupIndex + 1));
+      row.querySelector('[data-role="link-count"]').textContent = '（子链接：' + count + ' 条）';
+      row.querySelectorAll('[name]').forEach(function (field) {
+        field.name = field.name.replace(/boblift_theme_options\[product_nav_groups]\[[^\]]+]/, 'boblift_theme_options[product_nav_groups][' + groupIndex + ']');
+      });
+      reindexLinks(row, groupIndex);
+    });
+  }
+
+  function reindexLinks(groupRow, groupIndex) {
+    groupRow.querySelectorAll('.boblift-admin-product-link-row').forEach(function (row, linkIndex) {
+      row.querySelector('[data-role="link-index"]').textContent = String(groupIndex + 1) + '.' + String(linkIndex + 1);
+      row.querySelector('[data-role="link-label"]').textContent = rowLabel(row, 'link', '子链接 ' + String(linkIndex + 1));
+      row.querySelectorAll('[name]').forEach(function (field) {
+        field.name = field.name
+          .replace(/boblift_theme_options\[product_nav_groups]\[[^\]]+]/, 'boblift_theme_options[product_nav_groups][' + groupIndex + ']')
+          .replace(/\[links]\[[^\]]+]/, '[links][' + linkIndex + ']');
+      });
+    });
+    var count = groupRow.querySelector('[data-role="link-count"]');
+    if (count) {
+      count.textContent = '（子链接：' + groupRow.querySelectorAll('.boblift-admin-product-link-row').length + ' 条）';
+    }
   }
 
   function checkedNavRows() {
@@ -263,6 +297,19 @@ document.addEventListener('DOMContentLoaded', function () {
       reindexNav();
       return;
     }
+    if (action === 'add-group') {
+      editor.querySelector('[data-group-list]').appendChild(addFromTemplate(groupTemplate, {'__GROUP_INDEX__': String(editor.querySelectorAll('.boblift-admin-product-group-row').length)}));
+      reindexGroups();
+      return;
+    }
+    if (action === 'add-link') {
+      var groupRow = button.closest('.boblift-admin-product-group-row');
+      var groupIndex = Array.from(editor.querySelectorAll('.boblift-admin-product-group-row')).indexOf(groupRow);
+      var linkIndex = groupRow.querySelectorAll('.boblift-admin-product-link-row').length;
+      groupRow.querySelector('[data-link-list]').appendChild(addFromTemplate(linkTemplate, {'__GROUP_INDEX__': String(groupIndex), '__LINK_INDEX__': String(linkIndex)}));
+      reindexLinks(groupRow, groupIndex);
+      return;
+    }
     if (!row) {
       return;
     }
@@ -274,6 +321,7 @@ document.addEventListener('DOMContentLoaded', function () {
       row.parentNode.insertBefore(row.nextElementSibling, row);
     }
     reindexNav();
+    reindexGroups();
   });
 
   builder.addEventListener('change', function (event) {
@@ -283,12 +331,14 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   builder.addEventListener('input', function (event) {
-    if (event.target.matches('input[name$="[label]"]')) {
+    if (event.target.matches('input[name$="[label]"], input[name$="[title]"]')) {
       reindexNav();
+      reindexGroups();
     }
   });
 
   reindexNav();
+  reindexGroups();
 });
 JS);
     wp_add_inline_script('jquery', <<<'JS'
@@ -434,6 +484,9 @@ function boblift_handle_save_theme_settings(): void
     if (isset($_POST['boblift_reset_product_menu'])) {
         $posted['product_nav_groups'] = boblift_default_options()['product_nav_groups'] ?? [];
     }
+    if (isset($_POST['boblift_product_nav_groups_present']) && !isset($posted['product_nav_groups'])) {
+        $posted['product_nav_groups'] = [];
+    }
     if (isset($_POST['boblift_floating_contact_buttons_present']) && !isset($posted['floating_contact_buttons'])) {
         $posted['floating_contact_buttons'] = [];
     }
@@ -484,6 +537,22 @@ function boblift_cleanup_admin_options(array $options): array
 {
     if (isset($options['nav_items']) && is_array($options['nav_items'])) {
         $options['nav_items'] = array_values(array_filter($options['nav_items'], static fn($row): bool => is_array($row) && (boblift_admin_value_has_content($row['label'] ?? '') || boblift_admin_value_has_content($row['href'] ?? ''))));
+    }
+
+    if (isset($options['product_nav_groups']) && is_array($options['product_nav_groups'])) {
+        $groups = [];
+        foreach ($options['product_nav_groups'] as $group) {
+            if (!is_array($group)) {
+                continue;
+            }
+            if (isset($group['links']) && is_array($group['links'])) {
+                $group['links'] = array_values(array_filter($group['links'], static fn($row): bool => is_array($row) && (boblift_admin_value_has_content($row['label'] ?? '') || boblift_admin_value_has_content($row['href'] ?? ''))));
+            }
+            if (boblift_admin_value_has_content($group['title'] ?? '') || boblift_admin_value_has_content($group['href'] ?? '') || boblift_admin_value_has_content($group['links'] ?? [])) {
+                $groups[] = $group;
+            }
+        }
+        $options['product_nav_groups'] = $groups;
     }
 
     if (isset($options['news_categories']) && is_array($options['news_categories'])) {
@@ -1144,9 +1213,10 @@ function boblift_render_about_page_fields(array $about, string $base): void
     }
 
     $legacy_strength = boblift_about_legacy_strength((array) ($about['strength'] ?? []));
-    if ($legacy_strength['cards'] !== [] || $legacy_strength['cta'] !== null) {
-        boblift_admin_panel('旧版实力卡片与按钮（仍在前台显示）', static function () use ($about, $base, $legacy_strength): void {
-            echo '<p class="boblift-admin-note">这是旧版 Company Strength 区保存的卡片和按钮，现在显示在新版实力区下方。清空全部内容并保存即可删除。</p>';
+    if ($legacy_strength['cards'] !== [] || $legacy_strength['cta'] !== null || $legacy_strength['image'] !== null) {
+        boblift_admin_panel('旧版实力图片、卡片与按钮（仍在前台显示）', static function () use ($about, $base, $legacy_strength): void {
+            echo '<p class="boblift-admin-note">这是旧版 Company Strength 区保存的图片、卡片和按钮，现在显示在新版实力区下方。清空全部内容并保存即可删除。</p>';
+            boblift_admin_media('strength.image', $about, '旧版实力图片', $base);
             for ($i = 0; $i < max(4, count($legacy_strength['cards']) + 1); $i++) {
                 boblift_admin_input("strength.cards.$i.title", $about, '卡片 ' . (string) ($i + 1) . ' 标题', $base);
                 boblift_admin_textarea("strength.cards.$i.text", $about, '卡片 ' . (string) ($i + 1) . ' 文字', $base);
@@ -2292,19 +2362,86 @@ function boblift_admin_nav_row(array $options, array $nav_items, int|string $ind
     <?php
 }
 
-// The Products dropdown is generated from the product category tree, so there is nothing to edit here.
-function boblift_admin_product_groups_editor(): void
+function boblift_admin_product_group_row(array $options, array $product_groups, int|string $group_index, bool $open = false): void
+{
+    $group_index_string = (string) $group_index;
+    $links = is_int($group_index) && is_array($product_groups[$group_index]['links'] ?? null) ? $product_groups[$group_index]['links'] : [];
+    $title = is_int($group_index) ? boblift_admin_nav_title($product_groups, $group_index, '二级菜单组', 'title') : '新二级菜单组';
+    ?>
+    <details class="boblift-admin-menu-row boblift-admin-product-group-row" data-reindex-item="group" <?php echo $open ? 'open' : ''; ?>>
+        <summary class="boblift-admin-menu-summary">
+            <span class="boblift-admin-menu-id" data-role="group-index"><?php echo esc_html(is_int($group_index) ? (string) ($group_index + 1) : '#'); ?></span>
+            <span class="boblift-admin-menu-label" data-role="group-label"><?php echo esc_html($title); ?><em class="boblift-admin-menu-count" data-role="link-count">（子链接：<?php echo esc_html((string) count($links)); ?> 条）</em></span>
+            <span class="boblift-admin-menu-actions">
+                <button type="button" class="button button-small" data-menu-action="up">上移</button>
+                <button type="button" class="button button-small" data-menu-action="down">下移</button>
+                <button type="button" class="button button-small button-link-delete" data-menu-action="delete">删除</button>
+            </span>
+        </summary>
+        <div class="boblift-admin-menu-body">
+            <?php boblift_admin_input("product_nav_groups.$group_index_string.title", $options, '组标题'); ?>
+            <?php boblift_admin_link_input("product_nav_groups.$group_index_string.href", $options, '组链接'); ?>
+            <?php boblift_admin_textarea("product_nav_groups.$group_index_string.description", $options, '组描述'); ?>
+            <?php boblift_admin_input("product_nav_groups.$group_index_string.icon", $options, '图标名'); ?>
+            <?php boblift_admin_media("product_nav_groups.$group_index_string.image", $options, '组背景图'); ?>
+            <div class="boblift-admin-submenu-links" data-link-list>
+                <div class="boblift-admin-menu-head"><span>ID</span><span>子链接</span><span>操作</span></div>
+                <?php foreach ($links as $link_index => $link) : ?>
+                    <?php if (is_array($link)) : ?>
+                        <?php boblift_admin_product_link_row($options, $links, $group_index_string, (int) $link_index); ?>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+            </div>
+            <p><button type="button" class="button" data-menu-action="add-link">新增子链接</button></p>
+        </div>
+    </details>
+    <?php
+}
+
+function boblift_admin_product_link_row(array $options, array $links, int|string $group_index, int|string $link_index): void
+{
+    $group_index_string = (string) $group_index;
+    $link_index_string = (string) $link_index;
+    $label = is_int($link_index) ? boblift_admin_nav_title($links, $link_index, '子链接') : '新子链接';
+    ?>
+    <details class="boblift-admin-menu-row boblift-admin-menu-child boblift-admin-product-link-row" data-reindex-item="link">
+        <summary class="boblift-admin-menu-summary">
+            <span class="boblift-admin-menu-id" data-role="link-index"><?php echo esc_html(is_int($link_index) ? (string) ($link_index + 1) : '#'); ?></span>
+            <span class="boblift-admin-menu-label" data-role="link-label"><?php echo esc_html($label); ?></span>
+            <span class="boblift-admin-menu-actions">
+                <button type="button" class="button button-small" data-menu-action="up">上移</button>
+                <button type="button" class="button button-small" data-menu-action="down">下移</button>
+                <button type="button" class="button button-small button-link-delete" data-menu-action="delete">删除</button>
+            </span>
+        </summary>
+        <div class="boblift-admin-menu-body">
+            <?php boblift_admin_input("product_nav_groups.$group_index_string.links.$link_index_string.label", $options, '显示文字'); ?>
+            <?php boblift_admin_link_input("product_nav_groups.$group_index_string.links.$link_index_string.href", $options, '链接地址'); ?>
+            <?php boblift_admin_input("product_nav_groups.$group_index_string.links.$link_index_string.icon", $options, '图标名'); ?>
+        </div>
+    </details>
+    <?php
+}
+
+function boblift_admin_product_groups_editor(array $options, array $product_groups): void
 {
     ?>
     <div class="boblift-admin-product-groups-editor" data-product-groups-editor>
         <h3>二级菜单</h3>
-        <p class="boblift-admin-note">产品下拉菜单按「产品展示 → 产品分类」自动生成：每个顶级分类一行，右侧显示它的 Banner 照片、子分类（没有两个以上子分类时显示型号）和型号数量。要调整菜单，请修改分类的名称、父级、排序或 Banner 图片。</p>
-        <?php if (function_exists('boblift_curated_product_menu_families') && boblift_curated_product_menu_families() !== []) : ?>
-            <div class="boblift-admin-note" style="border:1px solid #f0b429;padding:12px;margin:12px 0;">
-                <p><strong>这个站点保留了旧版保存的自定义产品菜单</strong>（分组、链接、图片），前台仍按它显示。要改回由产品分类自动生成的菜单，勾选下面的选项并保存；自定义的分组会被清除，无法撤销。</p>
-                <label><input type="checkbox" name="boblift_reset_product_menu" value="1"> 恢复为按产品分类自动生成的菜单</label>
-            </div>
-        <?php endif; ?>
+        <p class="boblift-admin-note">这里编辑保存的自定义产品菜单（<code>product_nav_groups</code>），前台按它显示。</p>
+        <div class="boblift-admin-note" style="border:1px solid #f0b429;padding:12px;margin:12px 0;">
+            <label><input type="checkbox" name="boblift_reset_product_menu" value="1"> 恢复为按产品分类自动生成的菜单（自定义分组会被清除，无法撤销）</label>
+        </div>
+        <input type="hidden" name="boblift_product_nav_groups_present" value="1">
+        <div class="boblift-admin-menu-table" data-group-list>
+            <div class="boblift-admin-menu-head"><span>ID</span><span>二级菜单组</span><span>操作</span></div>
+            <?php foreach ($product_groups as $group_index => $group) : ?>
+                <?php if (is_array($group)) : ?>
+                    <?php boblift_admin_product_group_row($options, $product_groups, (int) $group_index); ?>
+                <?php endif; ?>
+            <?php endforeach; ?>
+        </div>
+        <p><button type="button" class="button" data-menu-action="add-group">新增二级菜单组</button></p>
     </div>
     <?php
 }
@@ -2323,6 +2460,8 @@ function boblift_navigation_settings_page(): void
             break;
         }
     }
+    $product_groups = is_array($options['product_nav_groups'] ?? null) ? $options['product_nav_groups'] : [];
+    $curated_menu_active = function_exists('boblift_curated_product_menu_families') && boblift_curated_product_menu_families() !== [];
     boblift_admin_page_start('BOB-LIFT 导航菜单', '维护前台主导航；勾选“启用二级菜单”的导航项会显示产品下拉菜单，菜单内容按产品分类自动生成。');
     ?>
     <?php boblift_admin_settings_panel_start('主导航', '对应 Header 横向导航；这里只保留一个主导航折叠管理器。'); ?>
@@ -2332,15 +2471,26 @@ function boblift_navigation_settings_page(): void
                 <div class="boblift-admin-menu-head"><span>ID</span><span>栏目名称</span><span>操作</span></div>
                 <?php foreach ($nav_items as $i => $item) : ?>
                     <?php if (is_array($item)) : ?>
-                        <?php boblift_admin_nav_row($options, $nav_items, (int) $i, false); ?>
+                        <?php boblift_admin_nav_row($options, $nav_items, (int) $i, (int) $i === $menu_index); ?>
                     <?php endif; ?>
                 <?php endforeach; ?>
             </div>
             <p><button type="button" class="button button-primary" data-menu-action="add-nav">新增主导航</button></p>
             <div data-product-groups-parking <?php echo $menu_index === null ? '' : 'hidden'; ?>>
-                <?php boblift_admin_product_groups_editor(); ?>
+                <?php if ($curated_menu_active) : ?>
+                    <?php boblift_admin_product_groups_editor($options, $product_groups); ?>
+                <?php else : ?>
+                    <div class="boblift-admin-product-groups-editor">
+                        <h3>二级菜单</h3>
+                        <p class="boblift-admin-note">产品下拉菜单按「产品展示 → 产品分类」自动生成：每个顶级分类一行，右侧显示它的 Banner 照片、子分类（没有两个以上子分类时显示型号）和型号数量。要调整菜单，请修改产品分类的名称、层级和 Banner 图片。</p>
+                    </div>
+                <?php endif; ?>
             </div>
-            <template data-template="nav-row"><?php boblift_admin_nav_row([], [], '__NAV_INDEX__', false); ?></template>
+            <template data-template="nav-row"><?php boblift_admin_nav_row([], [], '__NAV_INDEX__', true); ?></template>
+            <?php if ($curated_menu_active) : ?>
+                <template data-template="group-row"><?php boblift_admin_product_group_row([], [], '__GROUP_INDEX__', true); ?></template>
+                <template data-template="link-row"><?php boblift_admin_product_link_row([], [], '__GROUP_INDEX__', '__LINK_INDEX__'); ?></template>
+            <?php endif; ?>
         </div>
     <?php boblift_admin_settings_panel_end(); ?>
     <?php
@@ -2438,6 +2588,7 @@ function boblift_render_social_media_page_fields(array $social, string $base): v
                 <?php boblift_admin_checkbox("content_cards.$i.enabled", $social, '启用', $base); ?>
                 <?php boblift_admin_media("content_cards.$i.image", $social, '帖子图片', $base); ?>
                 <?php boblift_admin_input("content_cards.$i.title", $social, '说明（大图下方显示，也用作图片 Alt）', $base); ?>
+                <?php boblift_admin_textarea("content_cards.$i.text", $social, '描述（可选，显示在大图说明里）', $base); ?>
             <?php }, false, (string) ($cards[$i]['title'] ?? '')); ?>
         <?php endfor; ?>
     <?php boblift_admin_settings_panel_end(); ?>

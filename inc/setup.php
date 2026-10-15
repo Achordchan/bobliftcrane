@@ -473,7 +473,7 @@ add_action('pre_get_posts', 'boblift_limit_main_search');
 // Article JSON-LD kept in _article_schema_jsonld; {{home}} stands for the site address so the markup follows the host.
 function boblift_article_schema(): void
 {
-    if (!is_singular('post')) {
+    if (!is_singular('post') || post_password_required(get_queried_object())) {
         return;
     }
     $schema = trim((string) get_post_meta(get_queried_object_id(), '_article_schema_jsonld', true));

@@ -97,6 +97,8 @@ $platform_groups = array_values(array_filter([
 $posts = array_values(array_filter(is_array($social_page['content_cards'] ?? null) ? $social_page['content_cards'] : [], static fn($card): bool => is_array($card) && (string) ($card['enabled'] ?? '1') !== '0' && $has_media($card['image'] ?? '')));
 $gallery = array_map(static fn(array $post): string => boblift_image_setting_url($post['image']), $posts);
 $captions = array_map(static fn(array $post): string => $t($post['title'] ?? ''), $posts);
+// The lightbox caption carries the saved description too ("Title — description"), so older cards keep their text.
+$lightbox_captions = array_map(static fn(array $post): string => trim($t($post['title'] ?? '') . (trim((string) ($post['text'] ?? '')) !== '' ? ' — ' . $t($post['text']) : ''), ' —'), $posts);
 $posts_title = $t($labels['posts_title'] ?? 'What we have been posting.');
 
 // A short plays from YouTube once its link is saved; until then from the MP4, which only exists on a local preview.
@@ -215,7 +217,7 @@ $whatsapp = preg_replace('/\D+/', '', (string) ($contact['whatsapp'] ?? ($contac
         <?php endif; ?>
 
         <?php if ($posts !== []) : ?>
-            <div class="min-w-0<?php echo $videos === [] ? ' lg:col-span-2' : ''; ?>" data-detail-viewer data-detail-images="<?php echo esc_attr(wp_json_encode($gallery, JSON_UNESCAPED_SLASHES)); ?>" data-detail-alt="<?php echo esc_attr($posts_title); ?>" data-detail-captions="<?php echo esc_attr(wp_json_encode($captions, JSON_UNESCAPED_UNICODE)); ?>">
+            <div class="min-w-0<?php echo $videos === [] ? ' lg:col-span-2' : ''; ?>" data-detail-viewer data-detail-images="<?php echo esc_attr(wp_json_encode($gallery, JSON_UNESCAPED_SLASHES)); ?>" data-detail-alt="<?php echo esc_attr($posts_title); ?>" data-detail-captions="<?php echo esc_attr(wp_json_encode($lightbox_captions, JSON_UNESCAPED_UNICODE)); ?>">
                 <h3 class="mb-4 text-lg font-black text-ink"><?php echo esc_html($t($labels['image_posts_title'] ?? 'Image posts')); ?></h3>
                 <ul class="grid grid-cols-3 gap-2 sm:gap-3 lg:grid-cols-4 lg:gap-4">
                     <?php foreach ($posts as $index => $post) : ?>

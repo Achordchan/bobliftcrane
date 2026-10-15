@@ -1,4 +1,5 @@
 <?php
+require_once dirname(__DIR__) . '/backup-dir.php';
 // Import the two Industry Insight articles from tmp/content-gap into the local WordPress.
 require_once ABSPATH . 'wp-admin/includes/file.php';
 require_once ABSPATH . 'wp-admin/includes/media.php';
@@ -38,7 +39,7 @@ function bl_upload_path(int $id): string {
 /** Existing posts are skipped unless "overwrite" is passed; with it, the current post and all its meta are written to a backup file first. */
 function bl_backup_post(int $id, string $slug): void {
     $snapshot = wp_json_encode(['post' => get_post($id, ARRAY_A), 'meta' => get_post_meta($id)], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
-    $file = __DIR__ . '/backup-content-gap-' . $slug . '-' . gmdate('Ymd-His') . '.json';
+    $file = boblift_tools_backup_dir() . '/backup-content-gap-' . $slug . '-' . gmdate('Ymd-His') . '.json';
     $bytes = is_string($snapshot) ? file_put_contents($file . '.tmp', $snapshot) : false;
     if (!is_string($snapshot) || $bytes !== strlen($snapshot) || !rename($file . '.tmp', $file)) {
         fwrite(STDERR, "Cannot write backup $file; {$slug} was not changed.\n");

@@ -253,13 +253,21 @@ function boblift_product_content_ready(int $post_id, string $flag_key): bool
             }
         }
         $rows = json_decode((string) get_post_meta($post_id, '_detail_images', true), true);
+        $uploads_base = trailingslashit(wp_get_upload_dir()['baseurl']);
         foreach (is_array($rows) ? $rows : [] as $row) {
             $src = html_entity_decode((string) (is_array($row) ? ($row['image'] ?? $row['url'] ?? '') : $row));
+            // Same normalisation as the product page: unwrap the WebP converter, then match on the uploads path (the stored host
+            // can be an old or language domain).
             if (preg_match('/[?&]src=([^&]+)/', $src, $found)) {
                 $src = rawurldecode($found[1]);
             }
+            if (preg_match('#/wp-content/uploads/(.+)$#', $src, $found)) {
+                $src = $uploads_base . $found[1];
+            }
             $attachment_id = $src !== '' ? attachment_url_to_postid($src) : 0;
-            if ($src !== '' && (!$attachment_id || !metadata_exists('post', $attachment_id, '_old_site_image_url'))) {
+            // Only a resolved attachment is evidence: one without the old-site import marker is an editor's own picture.
+            // A lookup that finds nothing says nothing.
+            if ($attachment_id > 0 && !metadata_exists('post', $attachment_id, '_old_site_image_url')) {
                 return true;
             }
         }

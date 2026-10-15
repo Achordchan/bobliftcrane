@@ -1,4 +1,5 @@
 <?php
+require_once dirname(__DIR__) . '/backup-dir.php';
 /**
  * Update English products to the brochure specs and trash products the brochure does not have.
  *
@@ -23,7 +24,7 @@ $find = static function (string $slug): ?WP_Post {
 
 $backup = [];
 // The backup file is rewritten and checked before every change, so an interrupted run or an unwritable directory never leaves overwritten data without it.
-$backup_file = $dir . '/backup-phase-a-' . gmdate('Ymd-His') . '.json';
+$backup_file = boblift_tools_backup_dir() . '/backup-phase-a-' . gmdate('Ymd-His') . '.json';
 $persist_backup = static function () use (&$backup, $backup_file, $dry): void {
     if ($dry) {
         return;

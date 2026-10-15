@@ -59,6 +59,8 @@ foreach ($plan['items'] as $order => $item) {
     if (!$existing || $resuming) {
         update_post_meta($post_id, '_boblift_feedback_staging', '1');
     }
+    // The identity is saved before any media work, so an interrupted run finds this draft again instead of creating another.
+    update_post_meta($post_id, '_boblift_feedback_source', $item['source']);
     $created += $existing ? 0 : 1;
     // The title's "·" once leaked into the slug as %c2%b7; the detail page URL uses the plan's clean slug.
     if ((!$existing || $resuming) && get_post_field('post_name', $post_id) !== $item['slug']) {

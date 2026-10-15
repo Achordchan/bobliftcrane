@@ -1,4 +1,5 @@
 <?php
+require_once dirname(__DIR__) . '/backup-dir.php';
 /**
  * Points the home About gallery at the company photos (workshop, technicians, team, customer visit)
  * instead of product shots, in every language. Video and YouTube slots, and any slot an editor filled with an upload or
@@ -41,7 +42,7 @@ foreach (['en' => 'boblift_theme_options', 'ja' => 'boblift_theme_options_ja', '
     $changed = $gallery !== ($options['home']['about']['gallery'] ?? null);
     echo $key . ': ' . ($changed ? 'updated' : 'unchanged') . "\n";
     if ($changed && !$dry_run) {
-        $file = __DIR__ . '/backup-about-gallery-' . $key . '-' . gmdate('Ymd-His') . '.json';
+        $file = boblift_tools_backup_dir() . '/backup-about-gallery-' . $key . '-' . gmdate('Ymd-His') . '.json';
         $encoded = wp_json_encode($options['home']['about']['gallery'] ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
         $bytes = is_string($encoded) ? file_put_contents($file . '.tmp', $encoded) : false;
         if (!is_string($encoded) || $bytes !== strlen($encoded) || !rename($file . '.tmp', $file)) {

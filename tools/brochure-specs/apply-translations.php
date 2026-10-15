@@ -9,7 +9,7 @@
  * - a missing translation is created (title from a template, same categories and photos) and linked.
  * Titles of existing translations are kept, except ones still carrying English words (timber cranes).
  * Units stay Latin (kg, t·m, kW...) so the spec cells can split number and unit.
- * Every overwritten ja/zh field is saved to backup-translations-<time>.json first. Run apply-body.php after
+ * Every overwritten ja/zh field is saved to backup-translations-<time>.json (in the private backup folder, see tools/backup-dir.php) first. Run apply-body.php after
  * this so new translations get their body text.
  */
 
@@ -200,7 +200,7 @@ $json = static fn($value): string => wp_json_encode($value, JSON_UNESCAPED_UNICO
 
 $backup = [];
 // The backup file is rewritten and checked before every overwrite, so an interrupted run or an unwritable directory never leaves changed data without it.
-$backup_file = $dir . '/backup-translations-' . gmdate('Ymd-His') . '.json';
+$backup_file = boblift_tools_backup_dir() . '/backup-translations-' . gmdate('Ymd-His') . '.json';
 $persist_backup = static function () use (&$backup, $backup_file, $json, $dry): void {
     if ($dry || !$backup) {
         return;
