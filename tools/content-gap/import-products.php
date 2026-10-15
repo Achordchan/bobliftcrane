@@ -34,7 +34,7 @@ $products = [
   'old_url' => 'https://www.bobliftcrane.com/7-ton-forklift-fly-jib-crane.html',
   'short' => 'The BOB-LIFT CC165 forklift fly jib crane has a maximum lifting capacity of 7000 kg, a maximum lifting moment of 180 kN·m, a maximum working range of 15200 mm and a self weight of 2000 kg.',
   'content' => '<p>The CC165 is a forklift fly jib crane rated at 7 t with a 180 kN·m lifting moment and a maximum working range of 15.2 m. It weighs 2000 kg and is matched to 10 t forklifts.</p>',
-  'specs' => [['Max Lifting Capacity','7000 kg'],['Max Lifting Moment','180 kN·m'],['Max Working Range','15200 mm'],['Min Working Range','2500 mm'],['Max Lifting Height','19000 mm (3 m mast) / 17500 mm (4.5 m mast)'],['Rated Working Pressure','20 MPa'],['Rated Flow','80 L/min'],['Self Weight','2000 kg'],['Matching Forklifts','10 t']],
+  'specs' => [['Max Lifting Capacity','7000 kg'],['Max Lifting Moment','180 kN·m'],['Max Working Range','15200 mm'],['Min Working Range','2500 mm'],['Max Lifting Height','17500 mm (3 m mast) / 19000 mm (4.5 m mast)'],['Rated Working Pressure','20 MPa'],['Rated Flow','80 L/min'],['Self Weight','2000 kg'],['Matching Forklifts','10 t']],
   'features' => [
     ['title'=>'Fits irregular loads','text'=>'Lifts odd-shaped objects over high spaces or onto simple platforms.'],
     ['title'=>'Compact for tight spaces','text'=>'Small enough to work in construction areas and pits.'],
