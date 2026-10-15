@@ -162,11 +162,15 @@ function boblift_legacy_redirect_is_live_path(string $path): bool
     if (function_exists('boblift_public_custom_url_routes') && isset(boblift_public_custom_url_routes()[ltrim($raw, '/')])) {
         return true;
     }
+    $post_id = url_to_postid(home_url($raw));
+    if ($post_id > 0 && get_post_status($post_id) === 'publish' && rtrim(rawurldecode((string) parse_url(get_permalink($post_id), PHP_URL_PATH)), '/') === $raw) {
+        return true; // case, feedback and other post types served under their own prefix
+    }
     $slug = sanitize_title((string) preg_replace('/\.html$/i', '', ltrim($raw, '/')));
     if ($slug === '' || str_contains($slug, '/')) {
         return false;
     }
-    foreach (['page', 'product', 'post'] as $type) {
+    foreach (['page', 'product', 'post', 'case'] as $type) {
         $post = get_page_by_path($slug, OBJECT, $type);
         if ($post instanceof WP_Post && $post->post_status === 'publish' && rtrim(rawurldecode((string) parse_url(get_permalink($post), PHP_URL_PATH)), '/') === $raw) {
             return true;
@@ -197,7 +201,8 @@ function boblift_legacy_redirects_run(): void
     $config = boblift_legacy_redirects_config();
     $host = boblift_legacy_redirect_effective_host((string) ($_SERVER['HTTP_HOST'] ?? ''), $_GET, $config);
     $target = boblift_legacy_redirect_resolve($host, $path, $config, home_url(), 'boblift_legacy_redirect_is_live_path');
-    if ($target === null || (!isset($_GET['legacy_lang']) && boblift_legacy_redirect_is_live_path($path))) {
+    // Only the new site's own host is protected; a legacy language host always redirects, even where the path exists here.
+    if ($target === null || (boblift_legacy_redirect_language_host($host, $config) === '' && boblift_legacy_redirect_is_live_path($path))) {
         return;
     }
     parse_str((string) parse_url($uri, PHP_URL_QUERY), $params);
@@ -207,7 +212,8 @@ function boblift_legacy_redirects_run(): void
     wp_redirect($target, 301, 'BOB-LIFT legacy');
     exit;
 }
-add_action('init', 'boblift_legacy_redirects_run', 1);
+// template_redirect (not init): post types and taxonomies are registered by then, which the live-path guard needs.
+add_action('template_redirect', 'boblift_legacy_redirects_run', 0);
 
 /** Returns a description of the first redirect cycle among enabled site-internal rules, or null. */
 function boblift_legacy_redirects_find_cycle(array $rules): ?string

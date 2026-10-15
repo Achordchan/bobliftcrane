@@ -1,6 +1,6 @@
 # 旧站 → 新站 301 跳转
 
-旧站是 SaaS 托管的 www.bobliftcrane.com，另有 fr / es / ru / sa 四个语言子域。新站上线后，旧链接由主题 `inc/legacy-redirects.php` 在 WordPress 最早的 `init` 阶段 301 到新地址，保留 utm、gclid 等查询参数。
+旧站是 SaaS 托管的 www.bobliftcrane.com，另有 fr / es / ru / sa 四个语言子域。新站上线后，旧链接由主题 `inc/legacy-redirects.php` 在 `template_redirect` 最前面（内容类型都注册好之后、正常路由之前）301 到新地址，保留 utm、gclid 等查询参数。
 
 ## 文件
 
