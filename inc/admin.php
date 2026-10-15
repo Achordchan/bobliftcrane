@@ -1185,7 +1185,8 @@ function boblift_render_about_page_fields(array $about, string $base): void
         boblift_admin_input('manufacturing_gallery.title', $about, '标题', $base);
         boblift_admin_textarea('manufacturing_gallery.text', $about, '说明', $base);
         echo '<p class="boblift-admin-note">前台为横向滚动画廊，建议 4 张。图片推荐 2200×1400 或更高，主体居中。</p>';
-        for ($i = 0; $i < 4; $i++) {
+        $gallery_count = max(4, count((array) ($about['manufacturing_gallery']['items'] ?? [])));
+        for ($i = 0; $i < $gallery_count; $i++) {
             boblift_admin_subpanel('画廊图片 ' . (string) ($i + 1), static function () use ($about, $base, $i): void {
                 boblift_admin_media("manufacturing_gallery.items.$i.image", $about, '图片', $base, '推荐 2200×1400 或更高；4K 下会保持足够高度。');
                 boblift_admin_input("manufacturing_gallery.items.$i.title", $about, '标题', $base);

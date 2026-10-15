@@ -98,10 +98,10 @@ function boblift_news_related_products(string $title, string $content, int $limi
     }
     // Older articles name superseded models (SQ10ZA5 is now SQ10ZA6): match on capacity + boom letter,
     // with the T/TJ suffix telling marine from truck.
-    if (preg_match_all('/(?<![a-z0-9])sq(\d+(?:\.\d+)?)([zs])a\d+(tj|t)?/', $haystack, $codes, PREG_SET_ORDER)) {
+    if (preg_match_all('/(?<![a-z0-9])sq(\d+(?:\.\d+)?)([zs])a(\d+)(tj|t)?/', $haystack, $codes, PREG_SET_ORDER)) {
         foreach ($codes as $code) {
             $prefix = 'sq' . $code[1] . $code[2] . 'a';
-            $marine = ($code[3] ?? '') !== '';
+            $marine = ($code[4] ?? '') !== '';
             foreach ($index as $product) {
                 foreach ($product['models'] as $model) {
                     $model = strtolower($model);

@@ -569,6 +569,11 @@ function boblift_about_nav_moved_slugs(): array
 
 function boblift_options(): array
 {
+    return boblift_migrate_legacy_hero_slides(boblift_merged_options());
+}
+
+function boblift_merged_options(): array
+{
     if (function_exists('boblift_mls_theme_options')) {
         $options = boblift_mls_theme_options();
         if (is_array($options) && !empty($options)) {
@@ -577,6 +582,34 @@ function boblift_options(): array
     }
     $saved = get_option('boblift_theme_options', []);
     return boblift_array_replace_recursive(boblift_default_options(), is_array($saved) ? $saved : []);
+}
+
+/**
+ * Sites saved before the hero redesign keep their photos in home.hero_slides (one image per slide). Carry those over to
+ * the new home.hero.slides by position, but only where the new slide still shows its built-in image, so photos chosen in
+ * the new editor are never overwritten.
+ */
+function boblift_migrate_legacy_hero_slides(array $options): array
+{
+    $legacy = $options['home']['hero_slides'] ?? null;
+    $slides = $options['home']['hero']['slides'] ?? null;
+    if (!is_array($legacy) || !is_array($slides)) {
+        return $options;
+    }
+    $defaults = boblift_default_options()['home']['hero']['slides'] ?? [];
+    foreach (array_values($legacy) as $index => $old) {
+        if (!isset($slides[$index]) || !is_array($old) || empty($old['image'])) {
+            continue;
+        }
+        $default_image = $defaults[$index]['image'] ?? null;
+        if ($default_image !== null && ($slides[$index]['image'] ?? $default_image) === $default_image) {
+            $options['home']['hero']['slides'][$index]['image'] = $old['image'];
+            if (!empty($old['image_alt'])) {
+                $options['home']['hero']['slides'][$index]['image_alt'] = $old['image_alt'];
+            }
+        }
+    }
+    return $options;
 }
 
 function boblift_option(string $path, mixed $default = null): mixed
@@ -785,9 +818,16 @@ function boblift_product_banner_builtin_photo(?WP_Term $term = null): string
 // A photo uploaded in the category's "产品页 Banner 图片" field wins over the built-in one.
 function boblift_product_banner_photo_url(?WP_Term $term = null): string
 {
-    $image_id = $term instanceof WP_Term ? (int) get_term_meta($term->term_id, '_boblift_image_id', true) : 0;
-    $url = $image_id > 0 ? (string) wp_get_attachment_image_url($image_id, 'full') : '';
-    return $url !== '' ? $url : boblift_asset(boblift_product_banner_builtin_photo($term));
+    // A subcategory without its own upload inherits the nearest ancestor's upload.
+    $chain = $term instanceof WP_Term ? array_merge([$term->term_id], array_map('intval', get_ancestors($term->term_id, 'product_category', 'taxonomy'))) : [];
+    foreach ($chain as $term_id) {
+        $image_id = (int) get_term_meta($term_id, '_boblift_image_id', true);
+        $url = $image_id > 0 ? (string) wp_get_attachment_image_url($image_id, 'full') : '';
+        if ($url !== '') {
+            return $url;
+        }
+    }
+    return boblift_asset(boblift_product_banner_builtin_photo($term));
 }
 
 // The Products mega menu, built from the live category tree so it always matches the catalog:

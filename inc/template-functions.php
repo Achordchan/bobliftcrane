@@ -647,6 +647,7 @@ function boblift_all_products(): array
     return array_map(static function (array $product): array {
         $product['detail_url'] = boblift_html_url((string) $product['slug']);
         $product['inquiry_url'] = boblift_url('/contact.html?product=' . rawurlencode($product['title']) . '#inquiry');
+        $product['filter_values'] ??= ['capacity' => max(0.0, (float) ($product['capacity_value'] ?? 0)), 'moment' => 0.0, 'weight' => 0.0];
         return boblift_apply_product_runtime_meta($product);
     }, boblift_products_seed());
 }
@@ -881,6 +882,10 @@ function boblift_product_filter_values(int $product_id): array
         } elseif ($label === 'Self Weight' && $m[2] === 'kg') {
             $values['weight'] = $number;
         }
+    }
+    if ($values['capacity'] <= 0) {
+        // Products without a parseable "Max Lifting Capacity" row keep their numeric capacity so they stay filterable.
+        $values['capacity'] = max(0.0, (float) get_post_meta($english_id, '_capacity_value', true));
     }
     return $cache[$english_id] = $values;
 }
