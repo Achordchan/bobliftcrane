@@ -540,9 +540,7 @@ function boblift_cleanup_admin_options(array $options): array
         foreach (['texture_image', 'label'] as $key) {
             unset($options['about_page']['logo'][$key]);
         }
-        foreach (['image', 'cta_label', 'cta_href', 'cards'] as $key) {
-            unset($options['about_page']['strength'][$key]);
-        }
+        // strength.cards and the strength call to action stay: saved custom ones are still shown (page-about.php) and editable in the settings.
         foreach (['label', 'title', 'text'] as $key) {
             unset($options['about_page']['global_footprint'][$key]);
         }
@@ -1142,6 +1140,19 @@ function boblift_render_about_page_fields(array $about, string $base): void
                 boblift_admin_input("logo.proof_chips.$i.number", $about, '要点 ' . (string) ($i + 1) . ' 编号', $base);
                 boblift_admin_input("logo.proof_chips.$i.label", $about, '要点 ' . (string) ($i + 1) . ' 文字', $base);
             }
+        });
+    }
+
+    $legacy_strength = boblift_about_legacy_strength((array) ($about['strength'] ?? []));
+    if ($legacy_strength['cards'] !== [] || $legacy_strength['cta'] !== null) {
+        boblift_admin_panel('旧版实力卡片与按钮（仍在前台显示）', static function () use ($about, $base, $legacy_strength): void {
+            echo '<p class="boblift-admin-note">这是旧版 Company Strength 区保存的卡片和按钮，现在显示在新版实力区下方。清空全部内容并保存即可删除。</p>';
+            for ($i = 0; $i < max(4, count($legacy_strength['cards']) + 1); $i++) {
+                boblift_admin_input("strength.cards.$i.title", $about, '卡片 ' . (string) ($i + 1) . ' 标题', $base);
+                boblift_admin_textarea("strength.cards.$i.text", $about, '卡片 ' . (string) ($i + 1) . ' 文字', $base);
+            }
+            boblift_admin_input('strength.cta_label', $about, '按钮文字', $base);
+            boblift_admin_link_input('strength.cta_href', $about, '按钮链接', $base);
         });
     }
 

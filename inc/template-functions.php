@@ -232,7 +232,8 @@ function boblift_post_thumbnail_url(WP_Post $post, string $fallback): string
  *   - a product that was not imported from the old site shows its content;
  *   - an imported product shows its body once the body differs from the raw old-site copy kept in _legacy_content (the
  *     brochure text and editor rewrites), so products published before these boxes existed keep their text;
- *   - imported detail images show once the project has redesigned them (marker meta from the detail-image tools); untouched old-site pictures stay hidden until the box is ticked.
+ *   - imported detail images show once they are no longer the untouched old-site pictures (redesigned by the project's tools, or
+ *     pictures an editor added: their attachments lack the _old_site_image_url marker); untouched old-site pictures stay hidden until the box is ticked.
  * Updating other fields of a post (an excerpt, a gallery) never makes the old-site body visible.
  */
 function boblift_product_content_ready(int $post_id, string $flag_key): bool
@@ -244,10 +245,21 @@ function boblift_product_content_ready(int $post_id, string $flag_key): bool
         return true;
     }
     if ($flag_key !== '_detail_body_ready') {
-        // Detail images the project has since redesigned (the redesign tools keep _detail_images_before_* / _boblift_detail_* markers)
-        // are reviewed content; untouched old-site pictures carry no such marker and stay hidden until the box is ticked.
+        // Detail images are reviewed when the project redesigned them (marker meta of the detail-image tools) or when an editor
+        // put in pictures of their own: an imported old-site picture carries _old_site_image_url, anything else does not.
         foreach (array_keys((array) get_post_meta($post_id)) as $meta_key) {
             if (str_starts_with((string) $meta_key, '_detail_images_before_') || str_starts_with((string) $meta_key, '_boblift_detail_')) {
+                return true;
+            }
+        }
+        $rows = json_decode((string) get_post_meta($post_id, '_detail_images', true), true);
+        foreach (is_array($rows) ? $rows : [] as $row) {
+            $src = html_entity_decode((string) (is_array($row) ? ($row['image'] ?? $row['url'] ?? '') : $row));
+            if (preg_match('/[?&]src=([^&]+)/', $src, $found)) {
+                $src = rawurldecode($found[1]);
+            }
+            $attachment_id = $src !== '' ? attachment_url_to_postid($src) : 0;
+            if ($src !== '' && (!$attachment_id || !metadata_exists('post', $attachment_id, '_old_site_image_url'))) {
                 return true;
             }
         }
@@ -841,6 +853,14 @@ function boblift_case_item_from_post(WP_Post $post): array
         'feedback_media_type' => (string) get_post_meta($post->ID, '_feedback_media_type', true),
         'feedback_media_url' => (string) get_post_meta($post->ID, '_feedback_media_url', true),
     ];
+    // A password-protected case shows only its title and photo in lists: the text, facts and sections wait for the password.
+    if (post_password_required($post)) {
+        foreach (['summary', 'content', 'feedback_quote', 'feedback_media_url', 'product_name', 'application', 'country'] as $private_key) {
+            $item[$private_key] = '';
+        }
+        $item['facts'] = [];
+        $item['sections'] = [];
+    }
     return boblift_normalize_case_item($item);
 }
 

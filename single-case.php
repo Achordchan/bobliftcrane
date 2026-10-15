@@ -6,6 +6,13 @@ if ($case_kind === 'customer_feedback') {
     wp_safe_redirect(add_query_arg('tab', 'customer_feedback', $cases_url));
     exit;
 }
+if (post_password_required()) {
+    // Protected case: only the standard WordPress password form, before any section, gallery or fact is read.
+    get_header();
+    echo '<section class="page-shell py-16 md:py-24"><div class="mx-auto max-w-xl">' . get_the_password_form() . '</div></section>';
+    get_footer();
+    exit;
+}
 get_header();
 $ui = boblift_site_ui('caseDetail');
 $post_id = get_the_ID();

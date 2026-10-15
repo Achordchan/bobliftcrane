@@ -555,6 +555,29 @@ function boblift_about_legacy_intro(array $logo): array
     ];
 }
 
+/**
+ * Cards and call to action an editor wrote in the old About "Company Strength" section, which the redesigned page replaced
+ * with the export statistics. Built-in copy (the historical default sets, English and the Japanese and Chinese seeds) is
+ * not returned; only content that differs is, so it can stay visible and editable.
+ */
+function boblift_about_legacy_strength(array $strength): array
+{
+    $default_card_titles = [
+        ['R&D and Engineering', 'Precision Manufacturing', 'Global Delivery', 'After-Sales Support'],
+        ['Who we are', 'What we build', 'How we develop', 'How we support buyers'],
+        ['私たちについて', '私たちが製造するもの', '私たちの開発方法', 'バイヤーへのサポート方法'],
+        ['我们是谁', '我们制造什么', '我们如何发展', '我们如何支持买家'],
+    ];
+    $default_ctas = [['Talk to Our Team', '/contact'], ['Talk to Our Team', '/contact.html'], ['当社チームにご相談ください', '/contact'], ['与我们的团队联系', '/contact']];
+    $cards = array_values(array_filter((array) ($strength['cards'] ?? []), static fn($card): bool => is_array($card) && (trim((string) ($card['title'] ?? '')) !== '' || trim((string) ($card['text'] ?? '')) !== '')));
+    $titles = array_map(static fn(array $card): string => trim((string) ($card['title'] ?? '')), $cards);
+    $cta = [trim((string) ($strength['cta_label'] ?? '')), trim((string) ($strength['cta_href'] ?? ''))];
+    return [
+        'cards' => in_array($titles, $default_card_titles, true) ? [] : $cards,
+        'cta' => ($cta[0] === '' || in_array($cta, $default_ctas, true)) ? null : ['label' => $cta[0], 'href' => $cta[1] !== '' ? $cta[1] : '/contact.html'],
+    ];
+}
+
 function boblift_about_page_options(): array
 {
     $value = boblift_option('about_page', []);
@@ -935,18 +958,41 @@ function boblift_curated_product_menu_families(): array
         return 'int:' . $path . '|' . $query . '|' . $fragment;
     };
     // Compare every editable field (title, description, icon, image, link labels, icons and destinations).
-    // On a translated site the saved menu carries translated labels while the defaults are English, so there only the structure
-    // (destinations, icons, images) is compared; on the source language the texts are compared too.
+    // Texts: the saved menu of a translated site carries translated labels while the defaults are English. A text counts as
+    // "untouched" when it equals the English default or the translated default saved for that language (by position); any
+    // other text is an edit, so a menu whose only change is a label is still treated as customised.
     $source_language = function_exists('boblift_mls_source_language') ? (string) boblift_mls_source_language() : 'en';
     $current_language = function_exists('boblift_current_language_slug') ? (string) boblift_current_language_slug() : $source_language;
-    $compare_texts = $current_language === '' || $current_language === $source_language;
-    $text = static fn($value): string => $compare_texts ? trim((string) $value) : '';
-    $signature = static fn($groups): string => wp_json_encode(array_map(static fn($g): array => [
-        $text($g['title'] ?? ''), $dest_of((string) ($g['href'] ?? '')), $text($g['description'] ?? ''), sanitize_key((string) ($g['icon'] ?? '')),
-        is_array($g['image'] ?? null) ? ((int) ($g['image']['id'] ?? 0) > 0 ? 'id:' . (int) $g['image']['id'] : (string) ($g['image']['path'] ?? '')) : (string) ($g['image'] ?? ''),
-        array_map(static fn($l): array => [$text($l['label'] ?? ''), $dest_of((string) ($l['href'] ?? '')), sanitize_key((string) ($l['icon'] ?? ''))], array_values(array_filter((array) ($g['links'] ?? []), 'is_array'))),
-    ], array_values(array_filter((array) $groups, 'is_array'))));
-    if (!is_array($saved) || $saved === [] || $signature($saved) === $signature($default)) {
+    $translated_defaults = [];
+    if ($current_language !== '' && $current_language !== $source_language) {
+        $translated_file = get_theme_file_path('inc/translations/product-nav-defaults.php');
+        $all_translated = is_file($translated_file) ? include $translated_file : [];
+        $translated_defaults = is_array($all_translated[$current_language] ?? null) ? $all_translated[$current_language] : [];
+    }
+    $default_groups = array_values(array_filter((array) $default, 'is_array'));
+    $known_text = static function (int $group, ?int $link, string $field, array $values = []) use ($default_groups, $translated_defaults): array {
+        $english = $link === null ? ($default_groups[$group][$field] ?? '') : ($default_groups[$group]['links'][$link]['label'] ?? '');
+        $local = $link === null ? ($translated_defaults[$group][$field] ?? '') : ($translated_defaults[$group]['links'][$link] ?? '');
+        return array_filter([trim((string) $english), trim((string) $local)], static fn($v): bool => $v !== '');
+    };
+    $signature = static function ($groups, bool $is_saved) use ($dest_of, $known_text): string {
+        $rows = [];
+        foreach (array_values(array_filter((array) $groups, 'is_array')) as $group_index => $g) {
+            $token = static fn(string $value, array $known): string => $is_saved && !in_array(trim($value), $known, true) ? trim($value) : 'default';
+            $links = [];
+            foreach (array_values(array_filter((array) ($g['links'] ?? []), 'is_array')) as $link_index => $l) {
+                $links[] = [$token((string) ($l['label'] ?? ''), $known_text($group_index, $link_index, 'label')), $dest_of((string) ($l['href'] ?? '')), sanitize_key((string) ($l['icon'] ?? ''))];
+            }
+            $rows[] = [
+                $token((string) ($g['title'] ?? ''), $known_text($group_index, null, 'title')), $dest_of((string) ($g['href'] ?? '')),
+                $token((string) ($g['description'] ?? ''), $known_text($group_index, null, 'description')), sanitize_key((string) ($g['icon'] ?? '')),
+                is_array($g['image'] ?? null) ? ((int) ($g['image']['id'] ?? 0) > 0 ? 'id:' . (int) $g['image']['id'] : (string) ($g['image']['path'] ?? '')) : (string) ($g['image'] ?? ''),
+                $links,
+            ];
+        }
+        return (string) wp_json_encode($rows);
+    };
+    if (!is_array($saved) || $saved === [] || $signature($saved, true) === $signature($default, false)) {
         return [];
     }
     $families = [];

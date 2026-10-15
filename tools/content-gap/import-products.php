@@ -112,7 +112,7 @@ if ($missing) { fwrite(STDERR, "Missing sources:\n  " . implode("\n  ", $missing
 foreach ($products as $p) {
     $ex = get_posts(['post_type'=>'product','name'=>$p['slug'],'post_status'=>'any','numberposts'=>1,'lang'=>'']);
     // A product left as a draft by an interrupted run is resumed; a published one is protected unless "overwrite" is passed.
-    $resuming = $ex && $ex[0]->post_status === 'draft';
+    $resuming = $ex && $ex[0]->post_status === 'draft' && get_post_meta($ex[0]->ID, '_content_gap_staging', true) === '1';
     if ($ex && !$overwrite && !$resuming) {
         $out[] = $ex[0]->ID . ' ' . get_permalink($ex[0]) . ' (exists, left unchanged; pass "overwrite" to replace it)';
         continue;
@@ -123,6 +123,7 @@ foreach ($products as $p) {
         'post_content'=>"<!-- wp:paragraph -->\n" . $p['content'] . "\n<!-- /wp:paragraph -->", 'comment_status'=>'closed','ping_status'=>'closed'];
     if ($ex) { $arr['ID'] = $ex[0]->ID; $id = wp_update_post($arr, true); } else { $id = wp_insert_post($arr, true); }
     if (is_wp_error($id)) { throw new Exception($id->get_error_message()); }
+    if (get_post_status($id) === 'draft') { update_post_meta($id, '_content_gap_staging', '1'); }
     $gallery = []; $thumb = 0;
     foreach ($p['extra_existing'] as $title) {
         $a = get_posts(['post_type'=>'attachment','title'=>$title,'post_status'=>'any','numberposts'=>1,'lang'=>'']);
@@ -154,7 +155,7 @@ foreach ($products as $p) {
     $term = get_term_by('slug', $p['cat'], 'product_category');
     wp_set_object_terms($id, [$term->term_id], 'product_category');
     if (function_exists('pll_set_post_language')) { pll_set_post_language($id, 'en'); }
-    if (get_post_status($id) === 'draft') { wp_update_post(['ID'=>$id,'post_status'=>'publish']); }
+    if (get_post_status($id) === 'draft' && get_post_meta($id, '_content_gap_staging', true) === '1') { wp_update_post(['ID'=>$id,'post_status'=>'publish']); delete_post_meta($id, '_content_gap_staging'); }
     $out[] = $id . ' ' . get_permalink($id);
 }
 echo implode("\n", $out), "\n";

@@ -191,6 +191,29 @@ if ($legacy_headline !== '' || $legacy_paragraph !== '' || $legacy_chips !== [])
     </div>
 </section>
 
+<?php
+// Cards and call to action saved in the old Company Strength layout stay visible until an editor removes them.
+$legacy_strength = boblift_about_legacy_strength($strength);
+if ($legacy_strength['cards'] !== [] || $legacy_strength['cta'] !== null) : ?>
+<section class="bg-[#F8FAFC] pb-12 lg:pb-16" aria-label="<?php echo esc_attr((string) ($strength['label'] ?? 'Company Strength')); ?>">
+    <div class="page-shell">
+        <?php if ($legacy_strength['cards'] !== []) : ?>
+            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <?php foreach ($legacy_strength['cards'] as $legacy_card) : ?>
+                    <div class="rounded border border-line bg-white p-6 shadow-card">
+                        <h3 class="text-lg font-black leading-tight text-[#0B1B33]"><?php echo esc_html((string) ($legacy_card['title'] ?? '')); ?></h3>
+                        <p class="mt-3 text-sm font-semibold leading-7 text-[#64748B]"><?php echo esc_html((string) ($legacy_card['text'] ?? '')); ?></p>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+        <?php if ($legacy_strength['cta'] !== null) : ?>
+            <p class="mt-8 text-center"><a class="inline-flex h-12 items-center justify-center gap-2 rounded-sm bg-navy px-6 text-sm font-black text-white transition hover:bg-[#0b2d5b]" href="<?php echo esc_url(boblift_url($legacy_strength['cta']['href'])); ?>"><?php echo esc_html($legacy_strength['cta']['label']); ?></a></p>
+        <?php endif; ?>
+    </div>
+</section>
+<?php endif; ?>
+
 <section class="about-timeline-section bg-[#F8FAFC] pt-16 lg:pt-24 pb-16 lg:pb-28" data-about-timeline>
     <div class="page-shell about-wide-shell">
         <div class="about-timeline-header mx-auto w-full text-center mb-16 max-w-none lg:mb-24" data-about-timeline-header>

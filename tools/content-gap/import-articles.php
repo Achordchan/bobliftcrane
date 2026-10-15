@@ -124,7 +124,7 @@ foreach ($articles as $a) {
     $post_id = 0;
     $existing = get_posts(['post_type' => 'post', 'name' => $a['slug'], 'post_status' => 'any', 'posts_per_page' => 1, 'lang' => '']);
     if ($existing) { $post_id = $existing[0]->ID; }
-    $resuming = $existing && $existing[0]->post_status === 'draft';
+    $resuming = $existing && $existing[0]->post_status === 'draft' && get_post_meta($existing[0]->ID, '_content_gap_staging', true) === '1';
     if ($existing && !$overwrite && !$resuming) {
         $report[] = $post_id . ' ' . get_permalink($post_id) . ' (exists, left unchanged; pass "overwrite" to replace it)';
         continue;
@@ -150,6 +150,7 @@ foreach ($articles as $a) {
     ];
     if ($post_id) { $postarr['ID'] = $post_id; $post_id = wp_update_post($postarr, true); } else { $post_id = wp_insert_post($postarr, true); }
     if (is_wp_error($post_id)) { throw new Exception($post_id->get_error_message()); }
+    if (get_post_status($post_id) === 'draft') { update_post_meta($post_id, '_content_gap_staging', '1'); }
     wp_set_post_tags($post_id, $a['tags']);
     [$cover_id] = bl_sideload($img_root . $a['imgdir'] . '/' . $a['cover'], $a['cover_alt'], $post_id);
     set_post_thumbnail($post_id, $cover_id);
@@ -165,7 +166,7 @@ foreach ($articles as $a) {
     $schema = str_replace('"item": "{{home}}/Industry-News.html"', '"item": "{{home}}/news.html"', $schema);
     $schema = str_replace('{{home}}/wp-content/uploads/2026/09/4-ton-forklift-fly-jib-crane-301a3ed016-900x700.jpg', (str_starts_with(bl_upload_path($cover_id), 'http') ? '' : '{{home}}') . bl_upload_path($cover_id), $schema);
     update_post_meta($post_id, '_article_schema_jsonld', wp_slash($schema));
-    if (get_post_status($post_id) === 'draft') { wp_update_post(['ID' => $post_id, 'post_status' => 'publish']); }
+    if (get_post_status($post_id) === 'draft' && get_post_meta($post_id, '_content_gap_staging', true) === '1') { wp_update_post(['ID' => $post_id, 'post_status' => 'publish']); delete_post_meta($post_id, '_content_gap_staging'); }
     if (function_exists('pll_set_post_language')) { pll_set_post_language($post_id, 'en'); }
     $report[] = $post_id . ' ' . get_permalink($post_id);
 }
