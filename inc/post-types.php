@@ -1517,7 +1517,7 @@ function boblift_render_media_picker(string $name, array $ids, array $types, str
     ?>
     <div class="boblift-media-picker" data-types="<?php echo esc_attr(implode(',', $types)); ?>">
         <input type="hidden" class="boblift-media-picker-ids" name="<?php echo esc_attr($name); ?>" value="<?php echo esc_attr(implode(',', $ids)); ?>">
-        <p><button type="button" class="button boblift-media-picker-select"><?php echo esc_html(in_array('video', $types, true) ? '选择图片 / 视频' : '选择图片'); ?></button> <span class="description"><?php echo esc_html($help); ?></span></p>
+        <p><button type="button" class="button boblift-media-picker-select"><?php echo esc_html(in_array('video', $types, true) ? '选择图片 / 视频' : '选择图片'); ?></button> <button type="button" class="button boblift-media-picker-clear">清除全部</button> <span class="description"><?php echo esc_html($help); ?></span></p>
         <div class="boblift-media-picker-preview" style="display:flex;flex-wrap:wrap;gap:6px">
             <?php foreach ($ids as $id) : $thumb = wp_attachment_is('video', $id) ? (string) get_the_post_thumbnail_url($id, 'thumbnail') : (string) wp_get_attachment_image_url($id, 'thumbnail'); ?>
                 <span style="width:72px;height:54px;border:1px solid #dcdcde;background:#f6f7f7 center/cover no-repeat;<?php echo $thumb !== '' ? 'background-image:url(' . esc_url($thumb) . ')' : ''; ?>" title="<?php echo esc_attr(get_the_title($id)); ?>"><?php echo wp_attachment_is('video', $id) ? '&#9654;' : ''; ?></span>
@@ -1528,6 +1528,13 @@ function boblift_render_media_picker(string $name, array $ids, array $types, str
     jQuery(function ($) {
       if (window.bobliftMediaPickerReady) return;
       window.bobliftMediaPickerReady = true;
+      // Empty the selection (the media modal cannot confirm an empty one): clears the stored IDs and the preview.
+      $(document).on('click', '.boblift-media-picker-clear', function (event) {
+        event.preventDefault();
+        var field = $(this).closest('.boblift-media-picker');
+        field.find('.boblift-media-picker-ids').val('');
+        field.find('.boblift-media-picker-preview').empty();
+      });
       $(document).on('click', '.boblift-media-picker-select', function (event) {
         event.preventDefault();
         var field = $(this).closest('.boblift-media-picker');

@@ -133,6 +133,37 @@ foreach (['中国徐州', 'Xuzhou, China', '起重设备制造商', 'crane manuf
         </div>
     </div>
 </section>
+<?php
+// An introduction saved in the old layout (headline, paragraph, proof chips) is still shown, as a block under the hero.
+$legacy_default_headlines = ['Engineering Strength Behind Every Lift.'];
+$legacy_default_paragraphs = ['BOB-LIFT integrates crane manufacturing, engineering expertise, quality control, and global service capability to deliver reliable lifting solutions for demanding projects worldwide.'];
+$legacy_default_chip_labels = [['Advanced Crane Manufacturing', 'Global Export Capability', 'Strict Quality Control'], ['Safety-focused crane manufacturing', 'Technology-driven product development', 'Service support for global buyers']];
+// Only text an editor changed counts; the built-in introduction copy is not repeated under the redesigned hero.
+$legacy_headline = trim((string) ($logo['headline'] ?? ''));
+$legacy_headline = in_array($legacy_headline, $legacy_default_headlines, true) ? '' : $legacy_headline;
+$legacy_paragraph = trim((string) ($logo['paragraph'] ?? ''));
+$legacy_paragraph = in_array($legacy_paragraph, $legacy_default_paragraphs, true) ? '' : $legacy_paragraph;
+$legacy_chips = array_values(array_filter((array) ($logo['proof_chips'] ?? []), static fn($chip): bool => is_array($chip) && (trim((string) ($chip['number'] ?? '')) !== '' || trim((string) ($chip['label'] ?? '')) !== '')));
+$legacy_chip_labels = array_map(static fn(array $chip): string => trim((string) ($chip['label'] ?? '')), $legacy_chips);
+$legacy_chips = in_array($legacy_chip_labels, $legacy_default_chip_labels, true) ? [] : $legacy_chips;
+if ($legacy_headline !== '' || $legacy_paragraph !== '' || $legacy_chips !== []) : ?>
+<section class="page-shell py-10 md:py-14" aria-label="<?php echo esc_attr($legacy_headline !== '' ? $legacy_headline : 'About BOB-LIFT'); ?>">
+    <div class="mx-auto max-w-[860px] text-center">
+        <?php if ($legacy_headline !== '') : ?><h2 class="text-[clamp(1.75rem,2.8vw,3rem)] font-black leading-[1.08] tracking-[-0.02em] text-[#0B1B33]"><?php echo esc_html($legacy_headline); ?></h2><?php endif; ?>
+        <?php if ($legacy_paragraph !== '') : ?><p class="mx-auto mt-5 max-w-[760px] text-sm font-semibold leading-7 text-[#64748B] md:text-base md:leading-8"><?php echo esc_html($legacy_paragraph); ?></p><?php endif; ?>
+    </div>
+    <?php if ($legacy_chips !== []) : ?>
+        <div class="mt-7 grid gap-3 md:grid-cols-3">
+            <?php foreach ($legacy_chips as $chip) : ?>
+                <div class="rounded-full border border-line bg-white px-5 py-3 text-left shadow-card">
+                    <span class="text-xs font-black tracking-[0.22em] text-[#2563EB]"><?php echo esc_html((string) ($chip['number'] ?? '')); ?></span>
+                    <span class="ml-3 text-sm font-black text-[#0B1B33]"><?php echo esc_html((string) ($chip['label'] ?? '')); ?></span>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+</section>
+<?php endif; ?>
 
 <section id="about-strength" class="about-manufacturing-section relative isolate overflow-hidden bg-[#F8FAFC] pt-14 md:pt-20 lg:pt-24 pb-16 lg:pb-24" data-about-strength>
     <div class="about-strength-bridge pointer-events-none absolute inset-x-0 top-0 h-20 lg:h-24" data-about-strength-bridge></div>

@@ -536,7 +536,8 @@ function boblift_cleanup_admin_options(array $options): array
 
 
     if (isset($options['about_page']) && is_array($options['about_page'])) {
-        foreach (['texture_image', 'label', 'headline', 'paragraph', 'proof_chips'] as $key) {
+        // headline, paragraph and proof_chips stay: a saved introduction is still shown (page-about.php) below the hero.
+        foreach (['texture_image', 'label'] as $key) {
             unset($options['about_page']['logo'][$key]);
         }
         foreach (['image', 'cta_label', 'cta_href', 'cards'] as $key) {

@@ -1,5 +1,12 @@
 <?php
 the_post();
+if (post_password_required(get_post())) {
+    // Show the standard WordPress password form instead of the entry.
+    get_header();
+    echo '<section class="page-shell py-16 md:py-24"><div class="mx-auto max-w-xl">' . get_the_password_form() . '</div></section>';
+    get_footer();
+    exit;
+}
 $feedback = boblift_feedback_item(get_post());
 if (!$feedback) {
     wp_safe_redirect(add_query_arg('tab', 'customer_feedback', boblift_case_archive_url()));

@@ -7,12 +7,16 @@ require_once ABSPATH . 'wp-admin/includes/image.php';
 /**
  * Imports the two Industry Insight articles. Run on the target site:
  *
- *   wp eval-file tools/content-gap/import-articles.php [source-dir]
+ *   wp eval-file tools/content-gap/import-articles.php [source-dir] [overwrite]
+ *
+ * An article that already exists is left alone. Pass "overwrite" to replace it; its current fields and meta are saved to a backup file first.
  *
  * source-dir (default tools/content-gap/source, or CONTENT_GAP_SOURCE) must hold the two article .html files, the two
  * .jsonld files, the two image .zip packs and forklift-charts/ (made by charts.py). Everything is checked before any post is touched.
  */
-$root = rtrim((string) ($args[0] ?? getenv('CONTENT_GAP_SOURCE') ?: __DIR__ . '/source'), '/') . '/';
+$overwrite = in_array('overwrite', $args ?? [], true);
+$source_args = array_values(array_filter($args ?? [], static fn($arg): bool => $arg !== 'overwrite'));
+$root = rtrim((string) ($source_args[0] ?? getenv('CONTENT_GAP_SOURCE') ?: __DIR__ . '/source'), '/') . '/';
 $img_root = rtrim(sys_get_temp_dir(), '/') . '/content-gap-' . wp_generate_password(8, false) . '/';
 $link_map = [
     '/contactus.html' => '/contact.html',
@@ -29,6 +33,18 @@ $lower_post_links = ['Structure-of-Marine-Cranes-id47987376', 'Types-of-Cranes-U
 function bl_upload_path(int $id): string {
     $url = trailingslashit(wp_get_upload_dir()['baseurl']) . get_post_meta($id, '_wp_attached_file', true);
     return strcasecmp((string) wp_parse_url($url, PHP_URL_HOST), (string) wp_parse_url(home_url(), PHP_URL_HOST)) === 0 ? wp_make_link_relative($url) : $url;
+}
+
+/** Existing posts are skipped unless "overwrite" is passed; with it, the current post and all its meta are written to a backup file first. */
+function bl_backup_post(int $id, string $slug): void {
+    $snapshot = wp_json_encode(['post' => get_post($id, ARRAY_A), 'meta' => get_post_meta($id)], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+    $file = __DIR__ . '/backup-content-gap-' . $slug . '-' . gmdate('Ymd-His') . '.json';
+    $bytes = is_string($snapshot) ? file_put_contents($file . '.tmp', $snapshot) : false;
+    if (!is_string($snapshot) || $bytes !== strlen($snapshot) || !rename($file . '.tmp', $file)) {
+        fwrite(STDERR, "Cannot write backup $file; {$slug} was not changed.\n");
+        exit(1);
+    }
+    echo "backup: $file\n";
 }
 
 function bl_sideload(string $path, string $alt, int $post_id = 0): array {
@@ -108,6 +124,11 @@ foreach ($articles as $a) {
     $post_id = 0;
     $existing = get_posts(['post_type' => 'post', 'name' => $a['slug'], 'post_status' => 'any', 'posts_per_page' => 1, 'lang' => '']);
     if ($existing) { $post_id = $existing[0]->ID; }
+    if ($existing && !$overwrite) {
+        $report[] = $post_id . ' ' . get_permalink($post_id) . ' (exists, left unchanged; pass "overwrite" to replace it)';
+        continue;
+    }
+    if ($existing) { bl_backup_post($post_id, $a['slug']); }
     $html = preg_replace_callback('/<img\b[^>]*>/i', function ($m) use ($a, $img_root, $post_id) {
         $tag = $m[0];
         preg_match('/src="([^"]+)"/', $tag, $s); preg_match('/alt="([^"]*)"/', $tag, $al);

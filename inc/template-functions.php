@@ -848,6 +848,10 @@ function boblift_case_item_from_post(WP_Post $post): array
 // images use a web size plus a thumbnail, videos carry their poster (the video attachment's featured image).
 function boblift_feedback_item(WP_Post $post): ?array
 {
+    // A password-protected entry exposes nothing (text, media, URLs in lists) until WordPress has accepted the password.
+    if (post_password_required($post)) {
+        return null;
+    }
     $language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
     $pick = static function (string $key) use ($post, $language): string {
         $values = json_decode((string) get_post_meta($post->ID, $key, true), true) ?: [];

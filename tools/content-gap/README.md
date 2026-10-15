@@ -18,4 +18,4 @@ wp eval-file tools/content-gap/import-articles.php
 wp eval-file tools/content-gap/import-products.php
 ```
 
-Both importers check every source file before writing anything and can be re-run safely (they update by slug).
+Both importers check every source file before writing anything. Pages that already exist are left unchanged; pass `overwrite` as an extra argument to replace them, in which case each page's current fields and meta are saved to `tools/content-gap/backup-content-gap-<slug>-<time>.json` first.

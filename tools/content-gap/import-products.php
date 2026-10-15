@@ -6,13 +6,29 @@ require_once ABSPATH . 'wp-admin/includes/image.php';
  * Imports the 7 Ton Forklift Fly Jib Crane (CC165) and 800 kg Pickup Crane Without Outriggers (SQ08ZA3) products:
  *
  *   tools/content-gap/fetch-old-images.sh [source-dir]     (once: downloads the old site's photos)
- *   wp eval-file tools/content-gap/import-products.php [source-dir]
+ *   wp eval-file tools/content-gap/import-products.php [source-dir] [overwrite]
+ *
+ * A product that already exists is left alone. Pass "overwrite" to replace it; its current fields and meta are saved to a backup file first.
  *
  * source-dir defaults to tools/content-gap/source (or CONTENT_GAP_SOURCE); its products/ folder holds the photos.
  * The 7 t CC165 article photos must already be in the media library (run import-articles.php first). All files are checked before any post is touched.
  */
-$old = rtrim((string) ($args[0] ?? getenv('CONTENT_GAP_SOURCE') ?: __DIR__ . '/source'), '/') . '/products/';
+$overwrite = in_array('overwrite', $args ?? [], true);
+$source_args = array_values(array_filter($args ?? [], static fn($arg): bool => $arg !== 'overwrite'));
+$old = rtrim((string) ($source_args[0] ?? getenv('CONTENT_GAP_SOURCE') ?: __DIR__ . '/source'), '/') . '/products/';
 $uploads = wp_get_upload_dir()['basedir'];
+
+/** Existing posts are skipped unless "overwrite" is passed; with it, the current post and all its meta are written to a backup file first. */
+function bl_backup_post(int $id, string $slug): void {
+    $snapshot = wp_json_encode(['post' => get_post($id, ARRAY_A), 'meta' => get_post_meta($id)], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+    $file = __DIR__ . '/backup-content-gap-' . $slug . '-' . gmdate('Ymd-His') . '.json';
+    $bytes = is_string($snapshot) ? file_put_contents($file . '.tmp', $snapshot) : false;
+    if (!is_string($snapshot) || $bytes !== strlen($snapshot) || !rename($file . '.tmp', $file)) {
+        fwrite(STDERR, "Cannot write backup $file; {$slug} was not changed.\n");
+        exit(1);
+    }
+    echo "backup: $file\n";
+}
 
 // Reuse an attachment already in the library when the file is byte-identical; otherwise upload it.
 function bl_media(string $path, string $name, string $alt, string $uploads, int $parent): int {
@@ -95,6 +111,11 @@ foreach ($products as $p) {
 if ($missing) { fwrite(STDERR, "Missing sources:\n  " . implode("\n  ", $missing) . "\n"); exit(1); }
 foreach ($products as $p) {
     $ex = get_posts(['post_type'=>'product','name'=>$p['slug'],'post_status'=>'any','numberposts'=>1,'lang'=>'']);
+    if ($ex && !$overwrite) {
+        $out[] = $ex[0]->ID . ' ' . get_permalink($ex[0]) . ' (exists, left unchanged; pass "overwrite" to replace it)';
+        continue;
+    }
+    if ($ex) { bl_backup_post($ex[0]->ID, $p['slug']); }
     $arr = ['post_type'=>'product','post_status'=>'publish','post_title'=>$p['title'],'post_name'=>$p['slug'],'post_author'=>0,
         'post_content'=>"<!-- wp:paragraph -->\n" . $p['content'] . "\n<!-- /wp:paragraph -->", 'comment_status'=>'closed','ping_status'=>'closed'];
     if ($ex) { $arr['ID'] = $ex[0]->ID; $id = wp_update_post($arr, true); } else { $id = wp_insert_post($arr, true); }
