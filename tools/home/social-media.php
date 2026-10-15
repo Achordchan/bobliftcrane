@@ -41,7 +41,8 @@ foreach (['boblift_theme_options', 'boblift_theme_options_ja', 'boblift_theme_op
         $page['hero']['image'] = ['id' => 0, 'path' => 'images/social-media/social-media-hero-workshop.webp'];
         unset($page['hero']['image_alt']);
     }
-    $set_videos = $key === 'boblift_theme_options_zh' && ($page['videos'] ?? null) !== $zh_videos;
+    // Only an absent or empty list is initialised; a list an editor has set up (own videos or uploads) is never replaced.
+    $set_videos = $key === 'boblift_theme_options_zh' && empty($page['videos']);
     if ($set_videos) {
         $page['videos'] = $zh_videos;
     }

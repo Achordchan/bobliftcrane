@@ -55,3 +55,5 @@ assets/videos/social/*.mp4
 /tools/**/*.png
 /tools/**/*.pdf
 /tools/**/*.ai
+
+/tools/**/*.zip

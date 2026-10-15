@@ -14,11 +14,11 @@ $dry = in_array('dry-run', $args ?? [], true);
 $force = in_array('force', $args ?? [], true);
 
 $parse = static function (string $model): ?array {
-    if (!preg_match('/^SQ(\d+(?:\.\d+)?)([ZS])[A-Z]*?(\d+)?/i', $model, $m)) {
+    if (!preg_match('/^SQ(\d+(?:\.\d+)?)([ZS])[A-Z]*(\d+)/i', $model, $m)) {
         return null;
     }
     $cap = str_starts_with($m[1], '0') && !str_contains($m[1], '.') ? (float) ('0.' . substr($m[1], 1)) : (float) $m[1];
-    return ['cap' => $cap, 'boom' => strtoupper($m[2]) === 'Z' ? 'knuckle' : 'telescopic', 'sections' => (int) ($m[3] ?? 0)];
+    return ['cap' => $cap, 'boom' => strtoupper($m[2]) === 'Z' ? 'knuckle' : 'telescopic', 'sections' => (int) $m[3]];
 };
 
 $products = [];

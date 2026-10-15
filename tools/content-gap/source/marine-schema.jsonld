@@ -1,0 +1,56 @@
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BlogPosting",
+      "@id": "https://www.bobliftcrane.com/marine-crane-buying-guide#article",
+      "headline": "Marine Crane Buying Guide: Knuckle Boom vs Telescopic Boom and How to Size One",
+      "description": "How to choose a marine crane for your vessel: knuckle boom vs telescopic boom, how to read a load chart and how to size one to your deck.",
+      "image": "bob-lift-16-ton-telescopic-marine-crane-on-vessel.jpg",
+      "datePublished": "2026-09-29",
+      "dateModified": "2026-09-29",
+      "mainEntityOfPage": "https://www.bobliftcrane.com/marine-crane-buying-guide",
+      "inLanguage": "en",
+      "author": {
+        "@type": "Person",
+        "name": "Achord",
+        "jobTitle": "Product Operations Director",
+        "worksFor": {
+          "@id": "https://www.bobliftcrane.com/#organization"
+        }
+      },
+      "publisher": {
+        "@id": "https://www.bobliftcrane.com/#organization"
+      }
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://www.bobliftcrane.com/#organization",
+      "name": "BOB-LIFT",
+      "url": "https://www.bobliftcrane.com"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://www.bobliftcrane.com"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Industry News",
+          "item": "https://www.bobliftcrane.com/Industry-News.html"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Marine Crane Buying Guide: Knuckle Boom vs Telescopic Boom and How to Size One",
+          "item": "https://www.bobliftcrane.com/marine-crane-buying-guide"
+        }
+      ]
+    }
+  ]
+}

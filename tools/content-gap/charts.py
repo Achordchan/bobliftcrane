@@ -1,4 +1,8 @@
+import os, sys
 import matplotlib; matplotlib.use('Agg')
+# usage: python3 charts.py [source-dir]  ->  <source-dir>/forklift-charts/*.png (default tools/content-gap/source)
+OUT = os.path.join(sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(os.path.abspath(__file__)), 'source'), 'forklift-charts')
+os.makedirs(OUT, exist_ok=True)
 import matplotlib.pyplot as plt, numpy as np
 models=[('2.3 t (CC85)',2.3,50,5.4,560,'#c8102e'),('2.5 t (CC105)',2.5,50,6.6,650,'#e8792b'),('3.5 t (CC125)',3.5,60,8.0,850,'#2b6cb0'),('7 t (CC165)',7.0,180,15.2,2000,'#3a8a5a')]
 ink='#1f2430';grey='#5b6270'
@@ -19,7 +23,7 @@ fig.text(0.07,0.955,'Capacity falls as the hook moves out',fontsize=25,fontweigh
 fig.text(0.07,0.915,'Estimated upper-bound load (t) vs. working distance (m), from max lifting moment',fontsize=16,color=grey)
 fig.text(0.07,0.015,'Estimate = max lifting moment ÷ distance ÷ 9.81, capped at rated capacity. Planning only; the load chart governs.',fontsize=13.5,color=grey)
 fig.subplots_adjust(left=0.07,right=0.97,top=0.87,bottom=0.15)
-fig.savefig('forklift-capacity-vs-reach.png');plt.close()
+fig.savefig(os.path.join(OUT, 'forklift-capacity-vs-reach.png'));plt.close()
 fig,ax=plt.subplots(figsize=(16,6),dpi=100)
 ys=list(range(len(models)))[::-1]
 for y,(name,cap,mom,dmax,w,c) in zip(ys,models):
@@ -33,4 +37,4 @@ for s in ['top','right','left','bottom']:ax.spines[s].set_visible(False)
 fig.text(0.03,0.93,'How far each model reaches',fontsize=25,fontweight='bold',color=ink)
 fig.text(0.03,0.855,'Maximum working distance (m) and attachment self-weight',fontsize=17,color=grey)
 fig.subplots_adjust(left=0.17,right=0.97,top=0.80,bottom=0.12)
-fig.savefig('forklift-max-working-distance.png');plt.close()
+fig.savefig(os.path.join(OUT, 'forklift-max-working-distance.png'));plt.close()

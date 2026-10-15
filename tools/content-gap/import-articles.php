@@ -4,8 +4,16 @@ require_once ABSPATH . 'wp-admin/includes/file.php';
 require_once ABSPATH . 'wp-admin/includes/media.php';
 require_once ABSPATH . 'wp-admin/includes/image.php';
 
-$root = '/Users/a1234/Desktop/项目/bobliftcrane/tmp/content-gap/';
-$img_root = '/private/tmp/claude-501/gap/';
+/**
+ * Imports the two Industry Insight articles. Run on the target site:
+ *
+ *   wp eval-file tools/content-gap/import-articles.php [source-dir]
+ *
+ * source-dir (default tools/content-gap/source, or CONTENT_GAP_SOURCE) must hold the two article .html files, the two
+ * .jsonld files, the two image .zip packs and forklift-charts/ (made by charts.py). Everything is checked before any post is touched.
+ */
+$root = rtrim((string) ($args[0] ?? getenv('CONTENT_GAP_SOURCE') ?: __DIR__ . '/source'), '/') . '/';
+$img_root = rtrim(sys_get_temp_dir(), '/') . '/content-gap-' . wp_generate_password(8, false) . '/';
 $link_map = [
     '/contactus.html' => '/contact.html',
     '/message.html' => '/contact.html#inquiry', '/quote.html' => '/contact.html#inquiry',
@@ -31,7 +39,7 @@ function bl_sideload(string $path, string $alt, int $post_id = 0): array {
 
 $articles = [
     [
-        'file' => 'marine-crane-buying-guide', 'imgdir' => 'marine',
+        'file' => 'marine-crane-buying-guide', 'imgdir' => 'marine', 'zip' => 'marine-crane-buying-guide-images.zip',
         'title' => 'Marine Crane Buying Guide: Knuckle Boom vs Telescopic Boom and How to Size One',
         'slug' => 'marine-crane-buying-guide', 'date' => '2026-09-29 09:00:00',
         'seo_title' => 'Marine Crane Buying Guide: Knuckle vs Telescopic | BOB-LIFT',
@@ -42,7 +50,7 @@ $articles = [
         'schema' => 'marine-schema.jsonld', 'keywords' => 'marine crane, ship crane, marine deck crane, knuckle boom marine crane, telescopic boom marine crane, marine crane load chart',
     ],
     [
-        'file' => 'forklift-jib-crane-guide', 'imgdir' => 'fork',
+        'file' => 'forklift-jib-crane-guide', 'imgdir' => 'fork', 'zip' => 'forklift-jib-crane-images.zip', 'extra_dir' => 'forklift-charts',
         'title' => 'Forklift Jib Crane Guide: How a Fly Jib Turns Your Forklift Into a Crane',
         'slug' => 'forklift-jib-crane-guide', 'date' => '2026-09-28 09:00:00',
         'seo_title' => 'Forklift Jib Crane Guide: Fly Jib vs Fork Jib | BOB-LIFT',
@@ -53,6 +61,35 @@ $articles = [
         'schema' => 'forklift-schema.jsonld', 'keywords' => 'forklift jib crane, forklift fly jib crane, forklift crane attachment, forklift boom attachment',
     ],
 ];
+
+// Preflight: every source file and every image the article uses must exist before anything is written.
+$missing = [];
+foreach ($articles as $a) {
+    foreach ([$a['file'] . '.html', $a['schema'], $a['zip']] as $f) {
+        if (!is_file($root . $f)) { $missing[] = $root . $f; }
+    }
+}
+if (!class_exists('ZipArchive')) { $missing[] = 'PHP ZipArchive extension'; }
+if ($missing) { fwrite(STDERR, "Missing source files:\n  " . implode("\n  ", $missing) . "\n"); exit(1); }
+foreach ($articles as $a) {
+    $dir = $img_root . $a['imgdir'] . '/';
+    wp_mkdir_p($dir);
+    $zip = new ZipArchive();
+    if ($zip->open($root . $a['zip']) !== true) { fwrite(STDERR, 'Cannot open ' . $a['zip'] . "\n"); exit(1); }
+    foreach (range(0, $zip->numFiles - 1) as $i) {
+        $entry = $zip->getNameIndex($i);
+        if (substr($entry, -1) !== '/') { file_put_contents($dir . basename($entry), $zip->getFromIndex($i)); }
+    }
+    $zip->close();
+    if (!empty($a['extra_dir']) && is_dir($root . $a['extra_dir'])) {
+        foreach (glob($root . $a['extra_dir'] . '/*') as $f) { copy($f, $dir . basename($f)); }
+    }
+    preg_match_all('/<img\b[^>]*\bsrc="([^"]+)"/i', file_get_contents($root . $a['file'] . '.html'), $srcs);
+    foreach (array_merge($srcs[1], [$a['cover']]) as $src) {
+        if (!is_file($dir . basename($src))) { $missing[] = $a['imgdir'] . ': ' . basename($src); }
+    }
+}
+if ($missing) { fwrite(STDERR, "Missing images:\n  " . implode("\n  ", $missing) . "\n"); exit(1); }
 $cat = get_term_by('slug', 'industry-insight', 'category');
 $report = [];
 foreach ($articles as $a) {
@@ -99,3 +136,7 @@ foreach ($articles as $a) {
     $report[] = $post_id . ' ' . get_permalink($post_id);
 }
 echo implode("\n", $report), "\n";
+// Remove the unpacked images.
+foreach (glob($img_root . '*/*') ?: [] as $f) { @unlink($f); }
+foreach (glob($img_root . '*', GLOB_ONLYDIR) ?: [] as $d) { @rmdir($d); }
+@rmdir($img_root);

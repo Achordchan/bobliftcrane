@@ -16,7 +16,15 @@ $pages = [
 ];
 $about = get_page_by_path('about', OBJECT, 'page');
 foreach ($pages as $slug => $titles) {
-    $en = get_page_by_path($slug, OBJECT, 'page');
+    // English pages sit under About (about/<slug>), so look them up by slug and language rather than by top-level path.
+    $en = null;
+    foreach (get_posts(['post_type' => 'page', 'post_status' => ['publish', 'draft', 'pending', 'private'], 'name' => $slug, 'posts_per_page' => -1, 'lang' => '']) as $candidate) {
+        $candidate_lang = function_exists('pll_get_post_language') ? pll_get_post_language($candidate->ID) : 'en';
+        if ($candidate_lang === 'en' || $candidate_lang === false || $candidate_lang === '') {
+            $en = $candidate;
+            break;
+        }
+    }
     $translations = $en instanceof WP_Post && function_exists('pll_get_post_translations') ? pll_get_post_translations($en->ID) : [];
     foreach ($titles as $lang => $title) {
         if (!empty($translations[$lang])) {

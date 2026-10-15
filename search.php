@@ -13,7 +13,7 @@ $product_limit = $type === 'product' ? 0 : 6;
 
 $products = $query !== '' ? boblift_search_products($query) : [];
 $news_query = $query !== '' ? boblift_search_posts($query, 'post', $news_per_page, $type === 'news' ? $page : 1) : null;
-$case_query = $query !== '' ? boblift_search_posts($query, 'case', $case_per_page) : null;
+$case_query = $query !== '' ? boblift_search_posts($query, 'case', $case_per_page, $type === 'case' ? $page : 1) : null;
 $counts = [
     'product' => count($products),
     'news' => $news_query ? (int) $news_query->found_posts : 0,
@@ -217,6 +217,13 @@ $category_links = static function () use ($families): void {
                         <div class="grid gap-3 lg:grid-cols-2 lg:gap-4">
                             <?php foreach ($case_query->posts as $post_item) : $post_result($post_item); endforeach; ?>
                         </div>
+                        <?php if ($type === 'case' && $case_query->max_num_pages > 1) : ?>
+                            <nav class="mt-8 flex flex-wrap items-center justify-center gap-2" aria-label="<?php echo esc_attr($ui['paginationLabel'] ?? 'Search pagination'); ?>">
+                                <?php for ($i = 1; $i <= (int) $case_query->max_num_pages; $i++) : ?>
+                                    <a class="inline-flex h-10 min-w-10 items-center justify-center rounded-sm border px-3 text-sm font-black tabular-nums transition <?php echo $i === $page ? 'border-navy bg-navy text-white' : 'border-[#D8DEE8] bg-white text-ink hover:border-blue-300 hover:text-blue-700'; ?>" href="<?php echo esc_url($search_url('case', $i)); ?>" <?php echo $i === $page ? 'aria-current="page"' : ''; ?>><?php echo esc_html((string) $i); ?></a>
+                                <?php endfor; ?>
+                            </nav>
+                        <?php endif; ?>
                     </section>
                 <?php endif; ?>
             </div>

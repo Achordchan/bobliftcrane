@@ -42,13 +42,29 @@ $thumb_url = static function ($image): string {
     return boblift_image_setting_url($image);
 };
 
-// A card links out only once a real account URL is saved; placeholders and old /contact fallbacks stay unlinked.
-$account_url = static function (array $platform): string {
-    $href = trim((string) ($platform['href'] ?? ''));
-    if ($href === '' || !preg_match('#^https?://#i', $href)) {
-        return '';
+// Real account URLs saved in the footer social links, keyed by lowercase label.
+$footer_social = is_array($site_options['footer']['social_links'] ?? null) ? $site_options['footer']['social_links'] : [];
+$link_map = [];
+foreach ($footer_social as $link) {
+    $label = strtolower(trim((string) (is_array($link) ? ($link['label'] ?? '') : '')));
+    $href = trim((string) (is_array($link) ? ($link['href'] ?? '') : ''));
+    if ($label !== '' && preg_match('#^https?://#i', $href)) {
+        $link_map[$label] = $href;
     }
-    return $href;
+}
+// A card links out only once a real account URL is saved (its own, or the footer's for the same platform); placeholders and old /contact fallbacks stay unlinked.
+$account_url = static function (array $platform) use ($link_map): string {
+    $href = trim((string) ($platform['href'] ?? ''));
+    if (preg_match('#^https?://#i', $href)) {
+        return $href;
+    }
+    $key = strtolower(trim((string) ($platform['label'] ?? '')));
+    foreach ($link_map as $configured_label => $configured_href) {
+        if ($key !== '' && ($key === $configured_label || str_contains($key, $configured_label) || str_contains($configured_label, $key))) {
+            return $configured_href;
+        }
+    }
+    return '';
 };
 $platforms = static function (string $key) use ($social_page): array {
     $rows = is_array($social_page[$key] ?? null) ? $social_page[$key] : [];

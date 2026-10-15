@@ -80,7 +80,7 @@ foreach (function_exists('boblift_product_menu_families') ? boblift_product_menu
         continue;
     }
     $child_order = array_flip(array_map(static fn(array $child): string => (string) ($child['title'] ?? ''), (array) ($family['children'] ?? [])));
-    $children = get_terms(['taxonomy' => 'product_category', 'parent' => $family_term->term_id, 'hide_empty' => false]);
+    $children = get_terms(['taxonomy' => 'product_category', 'child_of' => $family_term->term_id, 'hide_empty' => false]); // every descendant, so products in deeper categories are listed too
     $children = is_wp_error($children) ? [] : array_values(array_filter($children, static fn($term): bool => $term instanceof WP_Term));
     usort($children, static fn(WP_Term $a, WP_Term $b): int => ($child_order[$sitemap_label($a->name)] ?? 99) <=> ($child_order[$sitemap_label($b->name)] ?? 99));
     $family_title = (string) ($family['title'] ?? $family_term->name);

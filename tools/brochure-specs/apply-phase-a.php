@@ -22,6 +22,18 @@ $find = static function (string $slug): ?WP_Post {
 };
 
 $backup = [];
+// The backup file is rewritten and checked before every change, so an interrupted run or an unwritable directory never leaves overwritten data without it.
+$backup_file = $dir . '/backup-phase-a-' . gmdate('Ymd-His') . '.json';
+$persist_backup = static function () use (&$backup, $backup_file, $dry): void {
+    if ($dry) {
+        return;
+    }
+    $bytes = file_put_contents($backup_file, wp_json_encode($backup, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+    if ($bytes === false || $bytes === 0) {
+        fwrite(STDERR, "Cannot write backup $backup_file; nothing further was changed.\n");
+        exit(1);
+    }
+};
 $missing = [];
 foreach ($plan['updates'] as $u) {
     $post = $find($u['slug']);
@@ -35,6 +47,7 @@ foreach ($plan['updates'] as $u) {
     if ($dry) {
         continue;
     }
+    $persist_backup();
     update_post_meta($id, '_model', $u['model']);
     update_post_meta($id, '_specs', wp_slash(wp_json_encode($u['specs'], JSON_UNESCAPED_UNICODE)));
     update_post_meta($id, '_capacity', $u['capacity']);
@@ -75,9 +88,7 @@ foreach ($plan['remove'] as $r) {
     }
 }
 
-if (!$dry) {
-    file_put_contents($dir . '/backup-phase-a-' . gmdate('Ymd-His') . '.json', wp_json_encode($backup, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
-}
+$persist_backup();
 printf("%s: updated %d, trashed %d, missing %d\n", $dry ? 'DRY RUN' : 'DONE', count($backup), count($trashed), count($missing));
 foreach ($trashed as $t) echo "  trash $t\n";
 foreach ($missing as $m) echo "  missing $m\n";

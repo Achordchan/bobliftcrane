@@ -2,7 +2,16 @@
 require_once ABSPATH . 'wp-admin/includes/file.php';
 require_once ABSPATH . 'wp-admin/includes/media.php';
 require_once ABSPATH . 'wp-admin/includes/image.php';
-$old = '/private/tmp/claude-501/gap/old/';
+/**
+ * Imports the 7 Ton Forklift Fly Jib Crane (CC165) and 800 kg Pickup Crane Without Outriggers (SQ08ZA3) products:
+ *
+ *   tools/content-gap/fetch-old-images.sh [source-dir]     (once: downloads the old site's photos)
+ *   wp eval-file tools/content-gap/import-products.php [source-dir]
+ *
+ * source-dir defaults to tools/content-gap/source (or CONTENT_GAP_SOURCE); its products/ folder holds the photos.
+ * The 7 t CC165 article photos must already be in the media library (run import-articles.php first). All files are checked before any post is touched.
+ */
+$old = rtrim((string) ($args[0] ?? getenv('CONTENT_GAP_SOURCE') ?: __DIR__ . '/source'), '/') . '/products/';
 $uploads = wp_get_upload_dir()['basedir'];
 
 // Reuse an attachment already in the library when the file is byte-identical; otherwise upload it.
@@ -41,11 +50,11 @@ $products = [
     ['title'=>'Telescopic working capability','text'=>'The telescopic boom adjusts reach to the job.'],
   ],
   'main' => [ // [file, name, alt]
-    [$old.'fork/loBpiKollnSRpjnlojknjq_7-ton-forklift-fly-jib-crane-800-800.jpg','7-ton-forklift-fly-jib-crane-800-800.jpg'],
-    [$old.'fork/lqBpiKollnSRpjnlojlnjq_7-ton-forklift-fly-jib-crane-800-800.jpg','7-ton-forklift-fly-jib-crane-1-800-800.jpg'],
+    [$old.'fork-7ton-main-1.jpg','7-ton-forklift-fly-jib-crane-800-800.jpg'],
+    [$old.'fork-7ton-main-2.jpg','7-ton-forklift-fly-jib-crane-1-800-800.jpg'],
   ],
   'extra_existing' => ['7-ton-forklift-fly-jib-crane-b3d36eaa2d', '7-ton-forklift-fly-jib-crane-4a2bdf81b8'], // real photos from the article pack, already in the library
-  'details' => ['fork/liBpiKollnSRnlopmkomjm_feibeidiao_01.jpg','fork/llBpiKollnSRnloprlnijq_feibeidiao_02.jpg','fork/ljBpiKollnSRnloprljjjq_feibeidiao_03.jpg','fork/loBpiKollnSRnloprlojjq_feibeidiao_04.jpg','fork/lkBpiKollnSRnloprljkjq_feibeidiao_05.jpg','fork/lrBpiKollnSRnloprlmkjp_feibeidiao_07.jpg','fork/llBpiKollnSRnloprlinjq_feibeidiao_08.jpg','fork/lqBpiKollnSRnloprllnjq_feibeidiao_09.jpg'],
+  'details' => ['fork-7ton-detail-1.jpg','fork-7ton-detail-2.jpg','fork-7ton-detail-3.jpg','fork-7ton-detail-4.jpg','fork-7ton-detail-5.jpg','fork-7ton-detail-6.jpg','fork-7ton-detail-7.jpg','fork-7ton-detail-8.jpg'],
   'thumb_first_existing' => true,
  ],
  [
@@ -62,15 +71,27 @@ $products = [
     ['title'=>'Simple to operate','text'=>'Easy controls cut work time, and the hook rotates for easy hanging and pick-up.'],
   ],
   'main' => [
-    [$old.'pick/lpBpiKollnSRnlmqljmqjp_0-800-800.jpg','0-800-800.jpg'],[$old.'pick/lkBpiKollnSRnlmqljkpjp_1-800-800.jpg','1-800-800.jpg'],[$old.'pick/lnBpiKollnSRnlmqljnpjp_2-800-800.jpg','2-800-800.jpg'],
-    [$old.'pick/loBpiKollnSRnlmqljopjp_7-800-800.jpg','7-800-800.jpg'],[$old.'pick/llBpiKollnSRnlmqljlpjp_8-800-800.jpg','8-800-800.jpg'],
+    [$old.'pickup-main-1.jpg','0-800-800.jpg'],[$old.'pickup-main-2.jpg','1-800-800.jpg'],[$old.'pickup-main-3.jpg','2-800-800.jpg'],
+    [$old.'pickup-main-4.jpg','7-800-800.jpg'],[$old.'pickup-main-5.jpg','8-800-800.jpg'],
   ],
   'extra_existing' => [],
-  'drawing' => [$old.'pick/jmBpiKollnSRkkkipkjqjo_SQ08ZA3T.jpg','SQ08Z-dimension-drawing-and-load-chart.jpg','SQ08Z dimension drawing and load chart'],
-  'details' => ['pick/jiBpiKollnSRkkkipklqjq_xiangqing.jpg','pick/jjBpiKollnSRkkkipknqjq_xiangqing.jpg','pick/jkBpiKollnSRkkkipkoqjq_xiangqing.jpg','pick/jlBpiKollnSRkkkipkqqjq_xiangqing.jpg','pick/jnBpiKollnSRkkkipkpqjq_xiangqing.jpg','pick/jpBpiKollnSRkkkipkiqjo_xiangqing.jpg','pick/jrBpiKollnSRkkkipkkqjq_xiangqing.jpg'],
+  'drawing' => [$old.'pickup-SQ08Z-drawing.jpg','SQ08Z-dimension-drawing-and-load-chart.jpg','SQ08Z dimension drawing and load chart'],
+  'details' => ['pickup-detail-1.jpg','pickup-detail-2.jpg','pickup-detail-3.jpg','pickup-detail-4.jpg','pickup-detail-5.jpg','pickup-detail-6.jpg','pickup-detail-7.jpg'],
  ],
 ];
 $out = [];
+// Preflight: every photo must exist, and the CC165 article photos must already be imported, before any post is written.
+$missing = [];
+foreach ($products as $p) {
+    $files = array_merge(array_column($p['main'], 0), array_map(static fn(string $f): string => $old . $f, $p['details']), !empty($p['drawing']) ? [$p['drawing'][0]] : []);
+    foreach ($files as $f) {
+        if (!is_file($f)) { $missing[] = $f; }
+    }
+    foreach ($p['extra_existing'] as $title) {
+        if (!get_posts(['post_type'=>'attachment','title'=>$title,'post_status'=>'any','numberposts'=>1,'lang'=>''])) { $missing[] = 'media library item: ' . $title . ' (run import-articles.php first)'; }
+    }
+}
+if ($missing) { fwrite(STDERR, "Missing sources:\n  " . implode("\n  ", $missing) . "\n"); exit(1); }
 foreach ($products as $p) {
     $ex = get_posts(['post_type'=>'product','name'=>$p['slug'],'post_status'=>'any','numberposts'=>1,'lang'=>'']);
     $arr = ['post_type'=>'product','post_status'=>'publish','post_title'=>$p['title'],'post_name'=>$p['slug'],'post_author'=>0,
@@ -88,8 +109,8 @@ foreach ($products as $p) {
     }
     $details = [];
     foreach ($p['details'] as $f) {
-        $b = preg_replace('/^[A-Za-z]+_/', '', basename($f));
-        $mid = bl_media($old.$f, str_replace('xiangqing', 'pickup-crane-detail', $b), $p['title'] . ' detail', $uploads, $id);
+        $b = basename($f);
+        $mid = bl_media($old.$f, $b, $p['title'] . ' detail', $uploads, $id);
         $details[] = ['image'=>bl_abs($mid),'label'=>$p['title']];
     }
     $specs = array_map(fn($r)=>['label'=>$r[0],'value'=>$r[1]], $p['specs']);

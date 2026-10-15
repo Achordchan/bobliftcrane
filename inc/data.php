@@ -525,7 +525,13 @@ function boblift_about_page_defaults(): array
 function boblift_about_page_options(): array
 {
     $value = boblift_option('about_page', []);
-    $options = boblift_array_replace_recursive(boblift_about_page_defaults(), is_array($value) ? $value : []);
+    $value = is_array($value) ? $value : [];
+    // Sites saved before the team photo was renamed keep it in executives.group_image; use it until team_image is saved.
+    $legacy_team_image = $value['executives']['group_image'] ?? null;
+    if (!empty($legacy_team_image) && empty($value['executives']['team_image'])) {
+        $value['executives']['team_image'] = $legacy_team_image;
+    }
+    $options = boblift_array_replace_recursive(boblift_about_page_defaults(), $value);
     // Saved menus in every language still list retired pages and pages that now live under Services, News or the
     // top-level Contact link; drop them so the About menu keeps to the company pages.
     if (is_array($options['secondary_nav'] ?? null)) {

@@ -236,6 +236,18 @@ foreach ($option_replacements as $option => $map) {
 $json = static fn($value): string => wp_json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
 $backup = [];
+// The backup file is rewritten and checked before every overwrite, so an interrupted run or an unwritable directory never leaves changed data without it.
+$backup_file = $dir . '/backup-translations-' . gmdate('Ymd-His') . '.json';
+$persist_backup = static function () use (&$backup, $backup_file, $json, $dry): void {
+    if ($dry || !$backup) {
+        return;
+    }
+    $bytes = file_put_contents($backup_file, $json($backup));
+    if ($bytes === false || $bytes === 0) {
+        fwrite(STDERR, "Cannot write backup $backup_file; nothing further was changed.\n");
+        exit(1);
+    }
+};
 $report = [];
 $problems = [];
 $updated = 0;
@@ -334,6 +346,7 @@ foreach ($english as $en) {
                 $old[$key] = get_post_meta($target, $key, true);
             }
             $backup[$target] = $old;
+            $persist_backup();
             $post_update = ['ID' => $target, 'post_excerpt' => $summary];
             if ($retitle) {
                 $post_update['post_title'] = $title;
@@ -403,15 +416,14 @@ foreach (get_posts(['post_type' => 'product', 'post_status' => 'publish', 'posts
         if (!$dry) {
             $backup[$target]['post_title'] ??= get_the_title($target);
             $backup[$target]['_seo_title'] ??= get_post_meta($target, '_seo_title', true);
+            $persist_backup();
             wp_update_post(wp_slash(['ID' => $target, 'post_title' => $names[$lang]]));
             update_post_meta($target, '_seo_title', wp_slash($names[$lang] . ' | BOB-LIFT'));
         }
     }
 }
 
-if (!$dry && $backup) {
-    file_put_contents($dir . '/backup-translations-' . gmdate('Ymd-His') . '.json', $json($backup));
-}
+$persist_backup();
 echo implode("\n", array_merge($renamed, $report)), "\n";
 if ($problems) {
     echo "\nPROBLEMS:\n", implode("\n", $problems), "\n";

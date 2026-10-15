@@ -39,12 +39,15 @@ $visit_links = is_array($ui['visitLinks'] ?? null) ? $ui['visitLinks'] : [];
 ?>
 <div class="page-shell pt-5 md:pt-8">
     <?php
+    // A hero photo saved in the Contact page settings still wins; the built-in default of the old template is replaced by the yard-gate photo.
+    $saved_hero_image = trim((string) ($ui['heroImage'] ?? ''));
+    $custom_hero_image = $saved_hero_image !== '' && $saved_hero_image !== 'images/page-heroes/sales-team.webp';
     boblift_page_hero([
         'label' => $t('heroLabel', 'Contact Us'),
         'title' => $t('heroTitle'),
         'text' => $t('heroDescription'),
-        'image' => 'images/factory/yard-gate.webp',
-        'image_alt' => $t('heroAlt'),
+        'image' => $custom_hero_image ? $saved_hero_image : 'images/factory/yard-gate.webp',
+        'image_alt' => $custom_hero_image && trim((string) ($ui['heroImageAlt'] ?? '')) !== '' ? (string) $ui['heroImageAlt'] : $t('heroAlt'),
         'image_position' => 'center 60%',
     ]);
     ?>
