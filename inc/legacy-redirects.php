@@ -308,7 +308,7 @@ function boblift_legacy_redirects_rest_register(): void
                     return new WP_Error('invalid_rules', 'Some rules are invalid; nothing was saved.', ['status' => 400, 'rejected' => $rejected]);
                 }
                 $current = boblift_legacy_redirects_config();
-                $existing = $request->get_param('replace') ? [] : (array) $current['rules'];
+                $existing = rest_sanitize_boolean($request->get_param('replace')) ? [] : (array) $current['rules'];
                 $by_from = [];
                 foreach (array_merge($existing, $clean) as $rule) {
                     $by_from[boblift_legacy_redirect_normalize_path((string) $rule['from'])] = $rule;
@@ -325,7 +325,7 @@ function boblift_legacy_redirects_rest_register(): void
             'methods' => 'DELETE',
             'permission_callback' => $permission,
             'callback' => static function (WP_REST_Request $request) {
-                if ($request->get_param('reset')) {
+                if (rest_sanitize_boolean($request->get_param('reset'))) {
                     delete_option(BOBLIFT_LEGACY_REDIRECTS_OPTION);
                     return ['reset' => true];
                 }
