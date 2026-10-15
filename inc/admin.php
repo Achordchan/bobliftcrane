@@ -2552,9 +2552,16 @@ function boblift_render_social_media_page_fields(array $social, string $base): v
         <?php boblift_admin_textarea('labels.main_platforms_text', $social, '说明', $base); ?>
         <?php boblift_admin_media('hero.image', $social, '照片', $base, '横向实景照片，推荐 1920×640（3:1）。主体放在右半边，左侧留出浅色空间给标题；手机上照片单独显示在标题上方。'); ?>
         <?php boblift_admin_input('hero.image_alt', $social, '照片 Alt', $base); ?>
-        <?php if (trim((string) ($social['hero']['title'] ?? '')) !== '' && trim((string) $social['hero']['title']) !== trim((string) ($social['labels']['main_platforms_title'] ?? ''))) : ?>
+        <?php
+        // Each old hero field is editable while the page still shows it (same conditions as page-social-media.php).
+        $legacy_title_shown = trim((string) ($social['hero']['title'] ?? '')) !== '' && trim((string) $social['hero']['title']) !== trim((string) ($social['labels']['main_platforms_title'] ?? ''));
+        $legacy_text_shown = trim((string) ($social['hero']['text'] ?? '')) !== '' && trim((string) $social['hero']['text']) !== trim((string) ($social['labels']['main_platforms_text'] ?? ''));
+        ?>
+        <?php if ($legacy_title_shown) : ?>
             <?php boblift_admin_input('hero.title', $social, '旧版首屏标题（仍显示在首屏下方，清空即可移除）', $base); ?>
-            <?php boblift_admin_textarea('hero.text', $social, '旧版首屏说明', $base); ?>
+        <?php endif; ?>
+        <?php if ($legacy_text_shown) : ?>
+            <?php boblift_admin_textarea('hero.text', $social, '旧版首屏说明（仍显示在首屏下方，清空即可移除）', $base); ?>
         <?php endif; ?>
     <?php boblift_admin_settings_panel_end(); ?>
 

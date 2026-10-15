@@ -58,7 +58,13 @@ foreach ($plan['products'] as $p) {
 
     $drawing = $import($p['drawing'], $id, $model . ' dimension drawing and load chart');
     if ($drawing) {
-        update_post_meta($id, '_drawings', wp_slash(wp_json_encode([['id' => $drawing, 'label' => $model . ' dimension drawing and load chart']], JSON_UNESCAPED_UNICODE)));
+        // Merged by attachment ID: drawings already on the product (technical outline, load chart, an editor's own) are kept.
+        $current_drawings = json_decode((string) get_post_meta($id, '_drawings', true), true);
+        $current_drawings = is_array($current_drawings) ? $current_drawings : [];
+        if (!in_array((int) $drawing, array_map('intval', array_column($current_drawings, 'id')), true)) {
+            $current_drawings[] = ['id' => $drawing, 'label' => $model . ' dimension drawing and load chart'];
+        }
+        update_post_meta($id, '_drawings', wp_slash(wp_json_encode($current_drawings, JSON_UNESCAPED_UNICODE)));
     }
 
     $gallery = json_decode((string) get_post_meta($id, '_gallery', true), true) ?: [];

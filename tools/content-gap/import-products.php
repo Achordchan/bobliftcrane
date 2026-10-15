@@ -19,9 +19,19 @@ $source_args = array_values(array_filter($args ?? [], static fn($arg): bool => $
 $old = rtrim((string) ($source_args[0] ?? getenv('CONTENT_GAP_SOURCE') ?: __DIR__ . '/source'), '/') . '/products/';
 $uploads = wp_get_upload_dir()['basedir'];
 
+/** Term assignments of a post by taxonomy (categories, tags, ...), so a backup can restore what an import replaces. */
+function bl_post_terms(int $id): array {
+    $terms = [];
+    foreach (get_object_taxonomies(get_post_type($id)) as $taxonomy) {
+        $assigned = wp_get_object_terms($id, $taxonomy, ['fields' => 'all']);
+        $terms[$taxonomy] = is_wp_error($assigned) ? [] : array_map(static fn(WP_Term $term): array => ['term_id' => $term->term_id, 'slug' => $term->slug, 'name' => $term->name], $assigned);
+    }
+    return $terms;
+}
+
 /** Existing posts are skipped unless "overwrite" is passed; with it, the current post and all its meta are written to a backup file first. */
 function bl_backup_post(int $id, string $slug): void {
-    $snapshot = wp_json_encode(['post' => get_post($id, ARRAY_A), 'meta' => get_post_meta($id)], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+    $snapshot = wp_json_encode(['post' => get_post($id, ARRAY_A), 'meta' => get_post_meta($id), 'terms' => bl_post_terms($id)], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
     $file = boblift_tools_backup_dir() . '/backup-content-gap-' . $slug . '-' . gmdate('Ymd-His') . '.json';
     $bytes = is_string($snapshot) ? file_put_contents($file . '.tmp', $snapshot) : false;
     if (!is_string($snapshot) || $bytes !== strlen($snapshot) || !rename($file . '.tmp', $file)) {
