@@ -90,7 +90,8 @@ foreach ($plan['products'] as $p) {
             echo "  $model: replacement photos unavailable, kept the existing gallery\n";
         }
     }
-    if (!empty($p['borrow_photo_from'])) {
+    // A borrowed reference photo is installed only when the product has no real image configured, and never replaces existing entries.
+    if (!empty($p['borrow_photo_from']) && $gallery === [] && !has_post_thumbnail($id)) {
         // A new model without its own photo shows the sibling's photo, labelled as a reference.
         $sibling = $find($p['borrow_photo_from']);
         $thumb = $sibling ? (int) get_post_thumbnail_id($sibling) : 0;

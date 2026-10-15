@@ -228,21 +228,28 @@ function boblift_post_thumbnail_url(WP_Post $post, string $fallback): string
 
 /**
  * Whether a product's body text ("_detail_body_ready") or detail images ("_detail_images_ready") may be shown.
- * An editor's choice wins: a saved "1" shows it, a saved empty value hides it. Without a saved choice, content that is
- * not untouched old-site copy stays visible (the product was created natively, or saved after its old-site import), so
- * products published before these boxes existed keep their content; untouched imports stay hidden.
+ * An editor's choice wins: a saved "1" shows it, a saved empty value hides it. Without a saved choice:
+ *   - a product that was not imported from the old site shows its content;
+ *   - an imported product shows its body once the body differs from the raw old-site copy kept in _legacy_content (the
+ *     brochure text and editor rewrites), so products published before these boxes existed keep their text;
+ *   - imported detail images stay hidden until the box is ticked, because the old-site pictures are not marked anywhere else.
+ * Updating other fields of a post (an excerpt, a gallery) never makes the old-site body visible.
  */
 function boblift_product_content_ready(int $post_id, string $flag_key): bool
 {
     if (metadata_exists('post', $post_id, $flag_key)) {
         return get_post_meta($post_id, $flag_key, true) === '1';
     }
-    $imported_at = (string) get_post_meta($post_id, '_old_site_imported_at', true);
-    if ($imported_at === '') {
+    if ((string) get_post_meta($post_id, '_old_site_imported_at', true) === '') {
         return true;
     }
+    if ($flag_key !== '_detail_body_ready') {
+        return false;
+    }
+    $normalize = static fn(string $html): string => trim((string) preg_replace('/\s+/u', ' ', html_entity_decode(wp_strip_all_tags($html), ENT_QUOTES, 'UTF-8')));
     $post = get_post($post_id);
-    return $post instanceof WP_Post && strtotime($post->post_modified_gmt . ' UTC') > (strtotime($imported_at) ?: 0);
+    $body = $post instanceof WP_Post ? $normalize($post->post_content) : '';
+    return $body !== '' && $body !== $normalize((string) get_post_meta($post_id, '_legacy_content', true));
 }
 
 /**
@@ -628,7 +635,7 @@ function boblift_product_from_post(WP_Post $post): array
         'category_title' => $category['title'] ?? $category_slug,
         'capacity' => boblift_localize_product_text_fragments((string) get_post_meta($post->ID, '_capacity', true)),
         'capacity_value' => (float) get_post_meta($post->ID, '_capacity_value', true),
-        'boom_type' => (string) get_post_meta(boblift_product_english_id($post->ID), '_boom_type', true),
+        'boom_type' => (string) (get_post_meta($post->ID, '_boom_type', true) ?: get_post_meta(boblift_product_english_id($post->ID), '_boom_type', true)),
         'filter_values' => boblift_product_filter_values($post->ID),
         'catalog_pdf_url' => esc_url_raw((string) get_post_meta($post->ID, '_catalog_pdf_url', true)),
         'applications' => boblift_normalize_product_applications(boblift_csv_meta(get_post_meta($post->ID, '_applications', true))),
