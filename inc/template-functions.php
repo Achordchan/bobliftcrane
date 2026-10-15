@@ -645,12 +645,13 @@ function boblift_product_from_post(WP_Post $post): array
     if ($short_description === '') {
         $short_description = boblift_clean_imported_product_text((string) get_the_excerpt($post));
     }
-    if ($short_description === '') {
+    // The body is a fallback only when the product is not password protected.
+    if ($short_description === '' && !post_password_required($post)) {
         $short_description = wp_trim_words(wp_strip_all_tags((string) $post->post_content), 40);
     }
     $short_description = boblift_localize_product_text_fragments($short_description);
     $features = boblift_localize_product_text_fragments(boblift_decode_meta(get_post_meta($post->ID, '_features', true), []));
-    $content = boblift_localize_product_text_fragments(apply_filters('the_content', $post->post_content));
+    $content = post_password_required($post) ? '' : boblift_localize_product_text_fragments(apply_filters('the_content', $post->post_content));
     // Hide English copy left untranslated on the Japanese and Chinese sites; English pages keep it.
     $content_language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
     if (is_string($content) && !in_array($content_language, ['', 'en'], true) && boblift_text_has_untranslated_english($content)) {
@@ -781,7 +782,7 @@ function boblift_articles(string $category_slug = '', int $posts_per_page = 12):
                 'image' => boblift_post_thumbnail_url($post, boblift_asset('images/page-heroes/factory-floor.webp')),
                 'image_is_url' => true,
                 'excerpt' => boblift_article_card_excerpt(boblift_localize_product_text_fragments(get_the_excerpt($post)), boblift_localize_product_text_fragments(get_the_title($post))),
-                'content' => boblift_localize_product_text_fragments(apply_filters('the_content', $post->post_content)),
+                'content' => post_password_required($post) ? '' : boblift_localize_product_text_fragments(apply_filters('the_content', $post->post_content)),
                 'url' => get_permalink($post),
             ];
         }, $query->posts);

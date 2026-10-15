@@ -67,10 +67,12 @@ foreach ($plan['items'] as $order => $item) {
         wp_update_post(['ID' => $post_id, 'post_name' => $item['slug']]);
     }
     $ids = [];
+    $media_failed = false;
     foreach ($item['media'] as $media) {
         $id = $import($media['file'], $title);
         if (!$id) {
             $missing[] = $media['file'];
+            $media_failed = true;
             continue;
         }
         if ($media['type'] === 'video' && !empty($media['poster'])) {
@@ -93,6 +95,11 @@ foreach ($plan['items'] as $order => $item) {
     update_post_meta($post_id, '_feedback_note', $item['note'] ? wp_slash(wp_json_encode($item['note'], JSON_UNESCAPED_UNICODE)) : '');
     update_post_meta($post_id, '_feedback_model', $item['model']);
     update_post_meta($post_id, '_feedback_media', implode(',', $ids));
+    if ($media_failed) {
+        // A planned file is missing or failed to import: the entry stays a staged draft until a later run completes it.
+        $missing[] = $item['source'] . ' (kept as draft)';
+        continue;
+    }
     wp_update_post(['ID' => $post_id, 'post_status' => 'publish']);
     delete_post_meta($post_id, '_boblift_feedback_staging');
 }

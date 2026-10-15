@@ -32,7 +32,9 @@ foreach ($plan['products'] as $p) {
     $slug = sanitize_title($p['title']);
     $existing = get_posts(['post_type' => 'product', 'post_name__in' => [$slug], 'post_status' => ['publish', 'draft', 'pending', 'private'], 'posts_per_page' => 1, 'lang' => '']);
     $term = get_term_by('slug', $p['category'], 'product_category');
-    if ($existing && $term && !$dry && !empty($p['image']) && !has_post_thumbnail($existing[0]->ID)) {
+    // A draft this script staged (marker meta) is an interrupted run and is initialised again from the start.
+    $resuming = $existing && $existing[0]->post_status === 'draft' && get_post_meta($existing[0]->ID, '_boblift_staging', true) === '1';
+    if ($existing && !$resuming && $term && !$dry && !empty($p['image']) && !has_post_thumbnail($existing[0]->ID)) {
         // A product created earlier without its photo (failed import): attach it now.
         $tmp = wp_tempnam(basename($p['image']));
         copy($dir . '/' . $p['image'], $tmp);
@@ -48,7 +50,7 @@ foreach ($plan['products'] as $p) {
             continue;
         }
     }
-    if ($existing || !$term) {
+    if (($existing && !$resuming) || !$term) {
         $skipped[] = $slug . ($term ? ' (exists)' : ' (no category ' . $p['category'] . ')');
         continue;
     }
@@ -56,18 +58,26 @@ foreach ($plan['products'] as $p) {
         $created[] = $slug;
         continue;
     }
-    $id = wp_insert_post(wp_slash([
+    // Staged as a marked draft; it is published only after the image and all metadata are written.
+    $postarr = [
         'post_type' => 'product',
-        'post_status' => 'publish',
+        'post_status' => 'draft',
         'post_title' => $p['title'],
         'post_name' => $slug,
         'post_excerpt' => $p['short_description'],
         'post_content' => '<p>' . esc_html($p['short_description']) . '</p>',
-    ]), true);
+    ];
+    if ($resuming) {
+        $postarr['ID'] = $existing[0]->ID;
+        $id = wp_update_post(wp_slash($postarr), true);
+    } else {
+        $id = wp_insert_post(wp_slash($postarr), true);
+    }
     if (is_wp_error($id)) {
         $skipped[] = $slug . ' (' . $id->get_error_message() . ')';
         continue;
     }
+    update_post_meta($id, '_boblift_staging', '1');
     if (function_exists('pll_set_post_language')) {
         pll_set_post_language($id, 'en');
     }
@@ -105,6 +115,13 @@ foreach ($plan['products'] as $p) {
     foreach ($meta as $key => $value) {
         update_post_meta($id, $key, wp_slash($value));
     }
+    if (!empty($p['image']) && is_wp_error($attachment)) {
+        // The planned image could not be imported: keep the product staged; fix the file and run again to finish it.
+        $skipped[] = $slug . ' (staged as draft: the image could not be imported)';
+        continue;
+    }
+    wp_update_post(['ID' => $id, 'post_status' => 'publish']);
+    delete_post_meta($id, '_boblift_staging');
     $created[] = $id . ' ' . $slug;
 }
 
