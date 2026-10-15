@@ -469,3 +469,21 @@ function boblift_limit_main_search(WP_Query $query): void
     }
 }
 add_action('pre_get_posts', 'boblift_limit_main_search');
+
+// Article JSON-LD kept in _article_schema_jsonld; {{home}} stands for the site address so the markup follows the host.
+function boblift_article_schema(): void
+{
+    if (!is_singular('post')) {
+        return;
+    }
+    $schema = trim((string) get_post_meta(get_queried_object_id(), '_article_schema_jsonld', true));
+    if ($schema === '') {
+        return;
+    }
+    $schema = str_replace('{{home}}', untrailingslashit(home_url()), $schema);
+    if (json_decode($schema) === null) {
+        return;
+    }
+    echo '<script type="application/ld+json">' . str_replace('</', '<\/', $schema) . "</script>\n";
+}
+add_action('wp_head', 'boblift_article_schema', 5);

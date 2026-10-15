@@ -1114,15 +1114,16 @@ function boblift_site_ui_defaults(?string $section = null): array
             'closeFiltersLabel' => 'Close filters',
             'applyFiltersLabel' => 'Apply',
             'categoryFilterLabel' => 'Product Category',
-            'capacityFilterLabel' => 'Lifting Capacity',
+            'capacityFilterLabel' => 'Capacity by Ton',
             'boomFilterLabel' => 'Boom Type',
             'applicationFilterLabel' => 'Application',
             'availabilityFilterLabel' => 'Availability',
             'momentFilterLabel' => 'Lifting Moment',
             'momentShortLabel' => 'Moment',
             'weightFilterLabel' => 'Crane Self Weight',
-            // Filter bins from the brochure spec ranges; value "min-max" or "min+" (tonnes, t·m, kg).
-            'capacityBins' => ['0-2' => 'Up to 2 t', '2-5' => '2–5 t', '5-10' => '5–10 t', '10-20' => '10–20 t', '20+' => 'Over 20 t'],
+            // Filter bins; value "min-max" or "min+" (tonnes, t·m, kg), min excluded and max included.
+            // Capacity bins are the tonnage classes of the old site's "Crane by Ton" pages (1-25 t); each takes the models nearest that class (6.3 t sits in 6 t, 14 t in 16 t).
+            'capacityBins' => ['0-1.5' => '1 t', '1.5-2.5' => '2 t', '2.5-3.5' => '3 t', '3.5-4.5' => '4 t', '4.5-5.5' => '5 t', '5.5-7' => '6 t', '7-9' => '8 t', '9-11' => '10 t', '11-13' => '12 t', '13-18' => '16 t', '18-22.5' => '20 t', '22.5-27.5' => '25 t', '27.5+' => 'Over 25 t'],
             'momentBins' => ['0-5' => 'Up to 5 t·m', '5-10' => '5–10 t·m', '10-20' => '10–20 t·m', '20-40' => '20–40 t·m', '40+' => 'Over 40 t·m'],
             'weightBins' => ['0-1000' => 'Up to 1,000 kg', '1000-2500' => '1,000–2,500 kg', '2500-5000' => '2,500–5,000 kg', '5000+' => 'Over 5,000 kg'],
             'showingTemplate' => 'Showing {count} of {total} products',
