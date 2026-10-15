@@ -107,6 +107,20 @@ foreach (function_exists('boblift_build_product_menu_families') ? boblift_build_
     }
 }
 
+// Published products outside every listed category (category assignment is optional) still get their sitemap links.
+$unlisted_products = array_values(array_filter(get_posts(['post_type' => 'product', 'post_status' => 'publish', 'numberposts' => -1]), static fn(WP_Post $post): bool => !isset($seen_products[$post->ID])));
+if ($unlisted_products !== []) {
+    usort($unlisted_products, static fn(WP_Post $a, WP_Post $b): int => strnatcasecmp($a->post_title, $b->post_title));
+    $product_total += count($unlisted_products);
+    $product_blocks[] = [
+        'eyebrow' => '',
+        'eyebrow_url' => '',
+        'title' => function_exists('boblift_localized_static_text') ? boblift_localized_static_text('Other products') : 'Other products',
+        'url' => boblift_product_archive_url(),
+        'links' => array_map(static fn(WP_Post $post): array => [$sitemap_label(get_the_title($post)), get_permalink($post)], $unlisted_products),
+    ];
+}
+
 $news_categories = get_terms(['taxonomy' => 'category', 'hide_empty' => true, 'orderby' => 'count', 'order' => 'DESC']);
 $news_categories = is_wp_error($news_categories) ? [] : array_values(array_filter($news_categories, static fn($term): bool => $term instanceof WP_Term && $term->slug !== 'uncategorized'));
 $news = get_posts(['post_type' => 'post', 'post_status' => 'publish', 'numberposts' => 80, 'orderby' => 'date', 'order' => 'DESC']);

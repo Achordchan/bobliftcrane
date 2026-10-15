@@ -48,13 +48,14 @@ function boblift_home_factory_content(): array
 
     // The video opens over the lake; the factory frame reads better as its still.
     $poster = boblift_image_setting_url($logo['aerial_end_image'] ?? [], 'images/about/about-aerial-mid-end.webp');
-    $video_setting = is_array($logo['aerial_video'] ?? null) ? $logo['aerial_video'] : ['id' => 0, 'path' => 'videos/about/about-aerial-mid.mp4'];
-    $video = (int) ($video_setting['id'] ?? 0) > 0 ? (string) wp_get_attachment_url((int) $video_setting['id']) : '';
-    if ($video === '' && trim((string) ($video_setting['path'] ?? '')) !== '') {
-        $video = boblift_asset((string) $video_setting['path']);
-    }
-    // The built-in clip has a lighter phone cut; an uploaded video plays as is on every screen.
-    $video_mobile = (int) ($video_setting['id'] ?? 0) === 0 && (string) ($video_setting['path'] ?? '') === 'videos/about/about-aerial-mid.mp4'
+    $builtin_video = 'videos/about/about-aerial-mid.mp4';
+    $video_setting = $logo['aerial_video'] ?? '';
+    // Resolve the saved setting the way the About page does, so string URLs and theme paths keep working.
+    $video = boblift_media_setting_url($video_setting, $builtin_video);
+    $video_setting_path = is_array($video_setting) ? trim((string) ($video_setting['path'] ?? '')) : trim((string) $video_setting);
+    $video_setting_id = is_array($video_setting) ? (int) ($video_setting['id'] ?? 0) : 0;
+    // The built-in clip has a lighter phone cut; any other video plays as is on every screen.
+    $video_mobile = $video_setting_id === 0 && ($video_setting_path === '' || $video_setting_path === $builtin_video)
         ? boblift_asset('videos/about/about-aerial-mid-mobile.mp4')
         : '';
     $home_factory = (array) boblift_option('home.factory', []);

@@ -156,7 +156,9 @@ function boblift_social_media_page_options(): array
     foreach (['title' => 'main_platforms_title', 'text' => 'main_platforms_text'] as $legacy_key => $label_key) {
         $legacy_value = trim((string) ($value['hero'][$legacy_key] ?? ''));
         $default_label = (string) ($defaults['labels'][$label_key] ?? '');
-        if ($legacy_value !== '' && (string) ($value['labels'][$label_key] ?? $default_label) === $default_label) {
+        // Previously saved defaults of the old page count as "not customised" too.
+        $old_defaults = [$default_label, ['main_platforms_title' => 'Connect with BOB-LIFT where you work.', 'main_platforms_text' => 'Current key channels are highlighted first. More domestic and international platforms are listed below with lighter visual weight.'][$label_key] ?? ''];
+        if ($legacy_value !== '' && in_array((string) ($value['labels'][$label_key] ?? $default_label), $old_defaults, true)) {
             $value['labels'][$label_key] = $legacy_value;
         }
     }

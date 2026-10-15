@@ -70,8 +70,22 @@ foreach ($plan['products'] as $p) {
             $staged += $import($file, $id, $model . ' photo') ? 1 : 0;
         }
         if ($staged > 0) {
-            $gallery = [];
-            delete_post_thumbnail($id);
+            // Only identified stand-ins (borrowed "Reference photo: similar model …" entries) are dropped; photos an editor added stay.
+            $kept = [];
+            $removed_urls = [];
+            foreach ($gallery as $entry) {
+                $label = is_array($entry) ? (string) ($entry['label'] ?? '') : '';
+                if (str_starts_with($label, 'Reference photo')) {
+                    $removed_urls[] = is_array($entry) ? (string) ($entry['image'] ?? '') : '';
+                } else {
+                    $kept[] = $entry;
+                }
+            }
+            $gallery = $kept;
+            $thumb_url = has_post_thumbnail($id) ? (string) wp_get_attachment_url((int) get_post_thumbnail_id($id)) : '';
+            if ($thumb_url !== '' && in_array($thumb_url, $removed_urls, true)) {
+                delete_post_thumbnail($id);
+            }
         } else {
             echo "  $model: replacement photos unavailable, kept the existing gallery\n";
         }
