@@ -54,9 +54,18 @@ $eff = [
 foreach ($eff as [$h, $q, $want]) {
     if (boblift_legacy_redirect_effective_host($h, $q, $config) !== $want) { echo "FAIL effective host for " . json_encode($q) . "\n"; $fail++; }
 }
+foreach ([
+    ['/a.html', ['utm_source' => 'x'], '/a.html?utm_source=x'],
+    ['/a.html?category=marine', ['gclid' => '1'], '/a.html?category=marine&gclid=1'],
+    ['/a.html?category=marine#top', ['gclid' => '1'], '/a.html?category=marine&gclid=1#top'],
+    ['/a.html#top', [], '/a.html#top'],
+] as [$dest, $in, $want]) {
+    $got = boblift_legacy_redirect_merge_query($dest, $in);
+    if ($got !== $want) { echo "FAIL merge $dest -> $got\n"; $fail++; }
+}
 // An absolute lowercase target must not loop on its own rule; the mixed-case URL still redirects.
-$selfcfg = ['rules' => [['from' => '/Example.html', 'to' => 'https://www.bobliftcrane.com/example.html'], ['from' => '/Q.html', 'to' => '/q.html?x=1']]];
-foreach ([['/example.html', null], ['/Example.html', 'https://www.bobliftcrane.com/example.html'], ['/q.html', null]] as [$pth, $want]) {
+$selfcfg = ['rules' => [['from' => '/about.html', 'to' => 'https://www.bobliftcrane.com/about.html'], ['from' => '/Example.html', 'to' => 'https://www.bobliftcrane.com/example.html'], ['from' => '/Q.html', 'to' => '/q.html?x=1']]];
+foreach ([['/example.html', null], ['/Example.html', 'https://www.bobliftcrane.com/example.html'], ['/q.html', null], ['/about.html', null]] as [$pth, $want]) {
     $got = boblift_legacy_redirect_resolve('www.bobliftcrane.com', $pth, $selfcfg, $base);
     if ($got !== $want) { echo "FAIL self-redirect $pth -> " . var_export($got, true) . "\n"; $fail++; }
 }

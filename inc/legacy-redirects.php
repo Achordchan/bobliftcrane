@@ -126,6 +126,27 @@ function boblift_legacy_redirect_effective_host(string $host, array $query, arra
     return $host;
 }
 
+/** Adds the visitor's query parameters (utm, gclid...) to the destination; the destination's own parameters win, the fragment stays last. */
+function boblift_legacy_redirect_merge_query(string $target, array $params): string
+{
+    if (!$params) {
+        return $target;
+    }
+    $fragment = '';
+    if (($hash = strpos($target, '#')) !== false) {
+        $fragment = substr($target, $hash);
+        $target = substr($target, 0, $hash);
+    }
+    $base = $target;
+    $own = [];
+    if (($mark = strpos($target, '?')) !== false) {
+        $base = substr($target, 0, $mark);
+        parse_str(substr($target, $mark + 1), $own);
+    }
+    $query = http_build_query($own + $params);
+    return $base . ($query !== '' ? '?' . $query : '') . $fragment;
+}
+
 function boblift_legacy_redirects_run(): void
 {
     if (!in_array($_SERVER['REQUEST_METHOD'] ?? 'GET', ['GET', 'HEAD'], true) || (defined('WP_CLI') && WP_CLI)) {
@@ -144,10 +165,7 @@ function boblift_legacy_redirects_run(): void
     }
     parse_str((string) parse_url($uri, PHP_URL_QUERY), $params);
     unset($params['legacy_lang']);
-    $query = http_build_query($params);
-    if ($query !== '' && !str_contains($target, '?')) {
-        $target .= '?' . $query;
-    }
+    $target = boblift_legacy_redirect_merge_query($target, $params);
     header('X-Redirect-By: boblift-legacy-redirects');
     wp_redirect($target, 301, 'BOB-LIFT legacy');
     exit;
