@@ -44,8 +44,8 @@
 
    `concat("https://www.bobliftcrane.com", http.request.uri.path, "?legacy_lang=fr&", http.request.uri.query)`
 
-   （Cloudflare 重定向表达式不支持 `if()`，所以无条件拼接；原链接没有查询参数时结尾会多一个 `&`，主题会忽略它。）这样原路径和原查询参数（gclid、utm 等）都会带过去，不会在第一跳丢掉。保存前用规则预览确认表达式可用。主题认到 `legacy_lang` 后按语言子域的归并规则再 301 一次到最终地址，并去掉这个参数。这样是两跳；想一跳到位，可改用 Cloudflare 批量重定向列表，把 `redirect-map.csv` 对应的语言子域地址逐条导入（条数受套餐限制，先确认）。
-5. 新站没有 fr/es/ru/sa 版本，这些子域的页面统一落到英文对应页；以后要加某种语言，在 `legacy-redirects.json` 里把该语言的目标改成 `/xx/…` 即可。
+   （规则里的「保留查询字符串」必须关闭，否则查询参数会重复。Cloudflare 重定向表达式不支持 `if()`，所以无条件拼接；原链接没有查询参数时结尾会多一个 `&`，主题会忽略它。）这样原路径和原查询参数（gclid、utm 等）都会带过去，不会在第一跳丢掉。保存前用规则预览确认表达式可用。主题认到 `legacy_lang` 后按语言子域的归并规则再 301 一次到最终地址，并去掉这个参数。这样是两跳；想一跳到位，可改用 Cloudflare 批量重定向列表，把 `redirect-map.csv` 对应的语言子域地址逐条导入（条数受套餐限制，先确认）。
+5. fr/es/ru/sa 目前只是占位：这些子域的页面落到 /fr/、/es/、/ru/、/ar/ 下，语言上线前会 404；某个语言长期不做，就在 `legacy-redirects.json` 的 `language_host_prefix` 里删掉它，改落英文。
 6. 确认新站 `home` / `siteurl` 为 `https://www.bobliftcrane.com`，`/sitemap.xml`、`robots.txt`、canonical、hreflang 正常。
 7. 提前 24 小时把相关 DNS 记录 TTL 降到 300 秒。
 
