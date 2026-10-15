@@ -218,7 +218,7 @@ if (!isset($nav_by_key['services']) && isset($nav_by_key['mounting-shipping'])) 
     unset($nav_by_key['mounting-shipping']);
 }
 if (!isset($nav_by_key['services'])) {
-    $nav_by_key['services'] = [
+    $generated_services = [
         'label' => $nav_static_label('Services'),
         'href' => '/mounting-shipping.html',
         'children' => [
@@ -227,22 +227,22 @@ if (!isset($nav_by_key['services'])) {
             ['label' => $nav_static_label('Brochures'), 'href' => boblift_product_archive_path() . '#brochures'],
         ],
     ];
+    // Saved order is kept; the generated Services entry goes after Cases (or Products), else first.
+    $after = isset($nav_by_key['cases']) ? 'cases' : (isset($nav_by_key['products']) ? 'products' : '');
+    $keys = array_keys($nav_by_key);
+    $at = $after !== '' ? array_search($after, $keys, true) + 1 : 0;
+    $nav_by_key = array_slice($nav_by_key, 0, $at, true) + ['services' => $generated_services] + array_slice($nav_by_key, $at, null, true);
 }
-$nav_by_key['contact'] = [
+// Entries follow the order saved in the navigation editor. Only the untouched historical default order (About, Products,
+// Cases, News) is rearranged into Products · Cases · Services · About · News; Contact stays last as the call-to-action.
+if (array_values(array_diff(array_keys($nav_by_key), ['services'])) === ['about', 'products', 'cases', 'news']) {
+    $nav_by_key = array_replace(array_flip(['products', 'cases', 'services', 'about', 'news']), $nav_by_key);
+}
+$nav_contact_item = [
     'label' => trim((string) ($nav_saved_contact['label'] ?? '')) !== '' ? (string) $nav_saved_contact['label'] : $nav_static_label('Contact Us'),
     'href' => '/contact.html',
 ];
-$nav_order = ['products', 'cases', 'services', 'about', 'news'];
-$nav_items = [];
-foreach ($nav_order as $key) {
-    if (isset($nav_by_key[$key])) {
-        $nav_items[] = $nav_by_key[$key];
-        unset($nav_by_key[$key]);
-    }
-}
-$nav_contact_item = $nav_by_key['contact'];
-unset($nav_by_key['contact']);
-$nav_items = array_merge($nav_items, array_values($nav_by_key), [$nav_contact_item]);
+$nav_items = array_merge(array_values($nav_by_key), [$nav_contact_item]);
 // Video Center and Social Media follow the news categories, after a divider.
 $news_menu_items[] = array_merge($nav_page_child('videos', 'Video Center'), ['divider' => true, 'active' => $nav_href_matches_current('/videos.html')]);
 $news_menu_items[] = array_merge($nav_page_child('social-media', 'Social Media'), ['active' => $nav_href_matches_current('/social-media.html')]);

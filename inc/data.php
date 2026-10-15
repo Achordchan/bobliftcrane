@@ -149,7 +149,18 @@ function boblift_social_media_page_defaults(): array
 function boblift_social_media_page_options(): array
 {
     $value = boblift_option('social_media_page', []);
-    return boblift_array_replace_recursive(boblift_social_media_page_defaults(), is_array($value) ? $value : []);
+    $value = is_array($value) ? $value : [];
+    $defaults = boblift_social_media_page_defaults();
+    // Customised hero copy of the old page now lives in labels.main_platforms_title / _text; carry it over while the new
+    // field still holds its built-in default.
+    foreach (['title' => 'main_platforms_title', 'text' => 'main_platforms_text'] as $legacy_key => $label_key) {
+        $legacy_value = trim((string) ($value['hero'][$legacy_key] ?? ''));
+        $default_label = (string) ($defaults['labels'][$label_key] ?? '');
+        if ($legacy_value !== '' && (string) ($value['labels'][$label_key] ?? $default_label) === $default_label) {
+            $value['labels'][$label_key] = $legacy_value;
+        }
+    }
+    return boblift_array_replace_recursive($defaults, $value);
 }
 
 function boblift_news_category_defaults(): array

@@ -403,6 +403,7 @@ function boblift_static_text_translations(): array
             'Search pagination' => '検索結果のページ',
             'Lifting Moment' => '吊り上げモーメント',
             'Crane Self Weight' => 'クレーン自重',
+            'Up to 1 t' => '1 t以下',
             'Up to 2 t' => '2 t以下',
             '2–5 t' => '2–5 t',
             'Over 20 t' => '20 t超',
@@ -684,6 +685,7 @@ function boblift_static_text_translations(): array
             'Search pagination' => '搜索结果分页',
             'Lifting Moment' => '起重力矩',
             'Crane Self Weight' => '整机自重',
+            'Up to 1 t' => '1 t 及以下',
             'Up to 2 t' => '2 t 及以下',
             '2–5 t' => '2–5 t',
             'Over 20 t' => '20 t 以上',
@@ -1121,9 +1123,10 @@ function boblift_site_ui_defaults(?string $section = null): array
             'momentFilterLabel' => 'Lifting Moment',
             'momentShortLabel' => 'Moment',
             'weightFilterLabel' => 'Crane Self Weight',
-            // Filter bins; value "min-max" or "min+" (tonnes, t·m, kg), min excluded and max included.
-            // Capacity bins are the tonnage classes of the old site's "Crane by Ton" pages (1-25 t); each takes the models nearest that class (6.3 t sits in 6 t, 14 t in 16 t).
-            'capacityBins' => ['0-1.5' => '1 t', '1.5-2.5' => '2 t', '2.5-3.5' => '3 t', '3.5-4.5' => '4 t', '4.5-5.5' => '5 t', '5.5-7' => '6 t', '7-9' => '8 t', '9-11' => '10 t', '11-13' => '12 t', '13-18' => '16 t', '18-22.5' => '20 t', '22.5-27.5' => '25 t', '27.5+' => 'Over 25 t'],
+            // Filter bins; value "min-max" or "min+" (tonnes, t·m, kg), min excluded and max included. Keys hold no dots because the
+            // settings editor addresses fields by dotted paths. The capacity bins are the tonnage classes of the old site's
+            // "Crane by Ton" pages (1-25 t): each class holds the models above the previous class and up to its own size.
+            'capacityBins' => ['0-1' => 'Up to 1 t', '1-2' => '1–2 t', '2-3' => '2–3 t', '3-4' => '3–4 t', '4-5' => '4–5 t', '5-6' => '5–6 t', '6-8' => '6–8 t', '8-10' => '8–10 t', '10-12' => '10–12 t', '12-16' => '12–16 t', '16-20' => '16–20 t', '20-25' => '20–25 t', '25+' => 'Over 25 t'],
             'momentBins' => ['0-5' => 'Up to 5 t·m', '5-10' => '5–10 t·m', '10-20' => '10–20 t·m', '20-40' => '20–40 t·m', '40+' => 'Over 40 t·m'],
             'weightBins' => ['0-1000' => 'Up to 1,000 kg', '1000-2500' => '1,000–2,500 kg', '2500-5000' => '2,500–5,000 kg', '5000+' => 'Over 5,000 kg'],
             'showingTemplate' => 'Showing {count} of {total} products',
