@@ -1,7 +1,9 @@
 <?php
 // php tools/legacy-redirects/test.php  — checks the resolver against the shipped rules without WordPress.
 define('ABSPATH', __DIR__);
+function get_template_directory(): string { return dirname(__DIR__, 2); }
 function add_action(...$args): void {}
+function get_option(string $name, $default = false) { return $GLOBALS['saved_option'] ?? $default; }
 require __DIR__ . '/../../inc/legacy-redirects.php';
 
 $config = json_decode((string) file_get_contents(__DIR__ . '/../../inc/legacy-redirects.json'), true);
@@ -52,5 +54,16 @@ $eff = [
 foreach ($eff as [$h, $q, $want]) {
     if (boblift_legacy_redirect_effective_host($h, $q, $config) !== $want) { echo "FAIL effective host for " . json_encode($q) . "\n"; $fail++; }
 }
+// An absolute lowercase target must not loop on its own rule; the mixed-case URL still redirects.
+$selfcfg = ['rules' => [['from' => '/Example.html', 'to' => 'https://www.bobliftcrane.com/example.html'], ['from' => '/Q.html', 'to' => '/q.html?x=1']]];
+foreach ([['/example.html', null], ['/Example.html', 'https://www.bobliftcrane.com/example.html'], ['/q.html', null]] as [$pth, $want]) {
+    $got = boblift_legacy_redirect_resolve('www.bobliftcrane.com', $pth, $selfcfg, $base);
+    if ($got !== $want) { echo "FAIL self-redirect $pth -> " . var_export($got, true) . "\n"; $fail++; }
+}
+// An explicitly saved empty rule set is honoured; no option means the shipped rules.
+$GLOBALS['saved_option'] = ['rules' => []];
+if (!boblift_legacy_redirects_has_custom() || boblift_legacy_redirects_config()['rules'] !== []) { echo "FAIL empty saved rules were not honoured\n"; $fail++; }
+unset($GLOBALS['saved_option']);
+if (boblift_legacy_redirects_has_custom()) { echo "FAIL absent option reported as custom\n"; $fail++; }
 echo $fail ? "$fail FAILED\n" : "effective-host ok\n";
 exit($fail ? 1 : 0);

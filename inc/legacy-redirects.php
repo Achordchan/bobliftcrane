@@ -21,12 +21,18 @@ function boblift_legacy_redirects_default_config(): array
     return is_array($data) ? $data : ['rules' => []];
 }
 
+/** True once an administrator has saved rules, even an empty set; only the reset operation returns to the shipped file. */
+function boblift_legacy_redirects_has_custom(): bool
+{
+    $saved = get_option(BOBLIFT_LEGACY_REDIRECTS_OPTION, null);
+    return is_array($saved) && isset($saved['rules']) && is_array($saved['rules']);
+}
+
 function boblift_legacy_redirects_config(): array
 {
-    $saved = get_option(BOBLIFT_LEGACY_REDIRECTS_OPTION, []);
     $default = boblift_legacy_redirects_default_config();
-    if (is_array($saved) && !empty($saved['rules']) && is_array($saved['rules'])) {
-        return array_merge($default, $saved);
+    if (boblift_legacy_redirects_has_custom()) {
+        return array_merge($default, get_option(BOBLIFT_LEGACY_REDIRECTS_OPTION));
     }
     return $default;
 }
@@ -93,8 +99,15 @@ function boblift_legacy_redirect_resolve(string $host, string $path, array $conf
         return null;
     }
     $url = preg_match('#^https?://#i', $target) ? $target : $base . '/' . ltrim($target, '/');
-    if ($language === '' && $target[0] === '/' && rtrim(rawurldecode($path), '/') === rtrim($target, '/')) {
-        return null; // already on the exact target path (case-only rules must not loop)
+    if ($language === '') {
+        // Already on the exact target host and path (case-only rules must not loop, whatever the query says).
+        $parts = parse_url($url);
+        $request_host = strtolower(preg_replace('/:\d+$/', '', $host) ?? '');
+        $same_host = in_array(strtolower((string) ($parts['host'] ?? '')), [$request_host, strtolower((string) parse_url($site_base, PHP_URL_HOST))], true);
+        $target_path = rtrim(rawurldecode((string) ($parts['path'] ?? '/')), '/');
+        if ($same_host && $target_path === rtrim(rawurldecode($path), '/')) {
+            return null;
+        }
     }
     return $url;
 }
@@ -169,8 +182,7 @@ function boblift_legacy_redirects_rest_register(): void
             'methods' => 'GET',
             'permission_callback' => $permission,
             'callback' => static function () {
-                $custom = get_option(BOBLIFT_LEGACY_REDIRECTS_OPTION, []);
-                return ['source' => !empty($custom['rules']) ? 'custom' : 'default', 'count' => count(boblift_legacy_redirects_config()['rules']), 'config' => boblift_legacy_redirects_config()];
+                return ['source' => boblift_legacy_redirects_has_custom() ? 'custom' : 'default', 'count' => count(boblift_legacy_redirects_config()['rules']), 'config' => boblift_legacy_redirects_config()];
             },
         ],
         [
