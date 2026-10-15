@@ -252,7 +252,8 @@ function boblift_product_content_ready(int $post_id, string $flag_key): bool
                 return true;
             }
         }
-        $rows = json_decode((string) get_post_meta($post_id, '_detail_images', true), true);
+        // Stored either as a JSON string or as a native meta array; boblift_decode_meta() reads both.
+        $rows = boblift_decode_meta(get_post_meta($post_id, '_detail_images', true), []);
         $uploads_base = trailingslashit(wp_get_upload_dir()['baseurl']);
         foreach (is_array($rows) ? $rows : [] as $row) {
             $src = html_entity_decode((string) (is_array($row) ? ($row['image'] ?? $row['url'] ?? '') : $row));

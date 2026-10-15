@@ -143,6 +143,21 @@ $whatsapp = preg_replace('/\D+/', '', (string) ($contact['whatsapp'] ?? ($contac
     ?>
 </div>
 
+<?php
+// Old hero copy an editor customised, which differs from the new heading, stays visible under the hero.
+$legacy_hero_title = trim((string) ($hero['title'] ?? ''));
+$legacy_hero_text = trim((string) ($hero['text'] ?? ''));
+$shown_title = trim((string) ($labels['main_platforms_title'] ?? ''));
+$shown_text = trim((string) ($labels['main_platforms_text'] ?? ''));
+if (($legacy_hero_title !== '' && $legacy_hero_title !== $shown_title) || ($legacy_hero_text !== '' && $legacy_hero_text !== $shown_text)) : ?>
+<section class="page-shell pt-10 md:pt-12">
+    <div class="mx-auto max-w-3xl text-center">
+        <?php if ($legacy_hero_title !== '' && $legacy_hero_title !== $shown_title) : ?><h2 class="text-[clamp(1.5rem,2.4vw,2.25rem)] font-black leading-tight text-ink"><?php echo esc_html($t($legacy_hero_title)); ?></h2><?php endif; ?>
+        <?php if ($legacy_hero_text !== '' && $legacy_hero_text !== $shown_text) : ?><p class="mt-3 text-sm font-semibold leading-7 text-slate-600 md:text-base"><?php echo esc_html($t($legacy_hero_text)); ?></p><?php endif; ?>
+    </div>
+</section>
+<?php endif; ?>
+
 <?php if ($platform_groups !== []) : ?>
 <section id="official-channels" class="py-12 md:py-16" aria-labelledby="social-accounts-title">
     <div class="page-shell">

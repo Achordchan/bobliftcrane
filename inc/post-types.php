@@ -824,6 +824,13 @@ function boblift_product_meta_box(WP_Post $post): void
         <div class="boblift-admin-box"><h3>技术参数</h3><p class="boblift-admin-help">保存后仍写入原 _specs JSON，前台无需改动。</p><?php boblift_render_pair_rows('boblift_meta[specs_rows]', $specs, ['label', 'value'], ['参数名', '参数值'], 8); ?></div>
         <div class="boblift-admin-box"><h3>产品特点</h3><?php boblift_render_pair_rows('boblift_meta[features_rows]', $features, ['title', 'text', 'detail', 'image'], ['标题', '说明', '详细说明（可选，品册导入的内容）', '图片地址（可选，品册导入的内容）'], 5); ?></div>
         <div class="boblift-admin-box"><h3>产品详情图</h3><label><input type="checkbox" name="boblift_meta[detail_images_ready]" value="1" <?php checked(boblift_product_content_ready((int) $post->ID, '_detail_images_ready')); ?>> 在产品页显示详情图</label><p class="boblift-admin-help">详情图按下方顺序排成一行缩略图，显示在"技术参数"下方，点击可看大图；正文排在图下面。每张建议 750px 宽的切片，不要整张长图。</p><?php boblift_render_pair_rows('boblift_meta[detail_image_rows]', $detail_images, ['image', 'label'], ['详情图地址', '图片说明'], 4); ?></div>
+        <?php $color_variants_saved = boblift_decode_meta_rows(get_post_meta($post->ID, '_color_variants', true)); ?>
+        <?php if ($color_variants_saved !== []) : ?>
+            <div class="boblift-admin-box"><h3>旧版颜色图片（仍显示在产品画廊里）</h3><p class="boblift-admin-help">这些是旧版「颜色切换」保存的图片，现在作为产品画廊的一部分显示。可以修改、删除；全部清空并保存即可移除。</p>
+                <input type="hidden" name="boblift_meta[color_variants_present]" value="1">
+                <?php boblift_render_pair_rows('boblift_meta[color_variant_rows]', $color_variants_saved, ['label', 'image', 'color'], ['名称', '图片地址', '颜色（可选）'], 3); ?>
+            </div>
+        <?php endif; ?>
         <div class="boblift-admin-box"><h3>产品照片画廊</h3><p class="boblift-admin-help">只放产品实拍照片，不放参数表、详情长图。<strong>尺寸：横版 4:3，建议 1600×1200 像素（不小于 1200×900），JPG 或 WebP，单张 500KB 以内。</strong>画面铺满、不留白边，产品完整不被裁切，不加 Logo、水印和文字。比例不是 4:3 的照片也能完整显示，但两侧或上下会留灰底。填写图片 URL 或 assets 相对路径，例如 images/products/crane-accessories.png。</p><?php boblift_render_pair_rows('boblift_meta[gallery_rows]', $gallery, ['image', 'label'], ['照片地址', '照片标签'], 8); ?></div>
         <div class="boblift-admin-box"><h3>产品图锚点</h3><?php boblift_render_hotspot_editor('boblift_meta[hotspot_rows]', $hotspots, $hotspot_image); ?></div>
     </div>
@@ -986,6 +993,9 @@ function boblift_save_meta_boxes(int $post_id): void
         update_post_meta($post_id, '_detail_images', boblift_rows_to_json(is_array($meta['detail_image_rows'] ?? null) ? $meta['detail_image_rows'] : [], ['image', 'label']));
         update_post_meta($post_id, '_gallery', boblift_rows_to_json(is_array($meta['gallery_rows'] ?? null) ? $meta['gallery_rows'] : [], ['image', 'label']));
         update_post_meta($post_id, '_hotspots', boblift_hotspots_to_json(is_array($meta['hotspot_rows'] ?? null) ? $meta['hotspot_rows'] : []));
+        if (isset($meta['color_variants_present'])) {
+            update_post_meta($post_id, '_color_variants', boblift_rows_to_json(is_array($meta['color_variant_rows'] ?? null) ? $meta['color_variant_rows'] : [], ['label', 'image', 'color']));
+        }
         $post = get_post($post_id);
         if ($post instanceof WP_Post) {
             if (trim((string) get_post_meta($post_id, '_seo_title', true)) === '') {

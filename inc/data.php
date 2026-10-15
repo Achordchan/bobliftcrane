@@ -970,6 +970,14 @@ function boblift_bump_product_menu_version(): void
 foreach (['save_post_product', 'deleted_post', 'trashed_post', 'untrashed_post', 'set_object_terms', 'created_product_category', 'edited_product_category', 'delete_product_category', 'updated_term_meta', 'added_term_meta', 'deleted_term_meta'] as $boblift_menu_hook) {
     add_action($boblift_menu_hook, 'boblift_bump_product_menu_version');
 }
+// Product meta feeds the menu (model, capacity), so changes made without saving the post invalidate it too.
+foreach (['added_post_meta', 'updated_post_meta', 'deleted_post_meta'] as $boblift_menu_meta_hook) {
+    add_action($boblift_menu_meta_hook, static function ($meta_id, $post_id, $meta_key): void {
+        if (in_array((string) $meta_key, ['_model', '_capacity', '_capacity_value', '_specs', '_boom_type', '_thumbnail_id'], true) && get_post_type((int) $post_id) === 'product') {
+            boblift_bump_product_menu_version();
+        }
+    }, 10, 3);
+}
 add_action('updated_option', static function (string $option): void {
     if (str_starts_with($option, 'boblift_theme_options') || $option === 'permalink_structure' || $option === 'rewrite_rules') {
         boblift_bump_product_menu_version();

@@ -100,6 +100,7 @@ foreach (['中国徐州', 'Xuzhou, China', '起重设备制造商', 'crane manuf
 ?>
 <section class="about-logo-scroll-section relative isolate bg-[#F8FAFC]" data-about-logo-scroll style="--about-logo-image:url('<?php echo esc_url($about_aerial_start); ?>');">
     <div class="about-logo-pin relative overflow-hidden" data-about-logo-pin>
+        <h1 class="sr-only"><?php echo esc_html(get_the_title() ?: (string) ($logo['label'] ?? 'About BOB-LIFT')); ?></h1>
         <div class="absolute inset-0 bg-[#F8FAFC]"></div>
         <div class="about-logo-silhouette absolute inset-0" data-about-silhouette>
             <?php echo boblift_img_from_setting($logo_silhouette_image, 'images/about/about-logo-1.png', $logo_silhouette_alt, 'absolute inset-0 h-full w-full object-cover object-center', ['loading' => 'eager', 'decoding' => 'async', 'fetchpriority' => 'high']); ?>

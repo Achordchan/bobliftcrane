@@ -4,6 +4,21 @@ the_post();
 
 $ui = boblift_site_ui('newsDetail');
 $article_ui = boblift_site_ui('newsArticle');
+// Contact-card copy customised for the old article sidebar (newsDetail.ctaLabel / ctaTitle / ctaButton) still shows, until the new
+// newsArticle contact fields are customised themselves.
+$legacy_cta_ui = boblift_site_ui('newsDetail');
+$article_ui_defaults = function_exists('boblift_site_ui_defaults') ? (array) (boblift_site_ui_defaults()['newsArticle'] ?? []) : [];
+$legacy_cta_defaults = ['ctaLabel' => 'Need help choosing a crane?', 'ctaTitle' => 'Talk to BOB-LIFT before your next lifting project.', 'ctaButton' => 'Request a Quote'];
+$legacy_cta_map = ['ctaTitle' => 'contactTitle', 'ctaButton' => 'contactButton'];
+foreach ($legacy_cta_map as $legacy_key => $new_key) {
+    $legacy_value = trim((string) ($legacy_cta_ui[$legacy_key] ?? ''));
+    $new_untouched = (string) ($article_ui[$new_key] ?? '') === (string) ($article_ui_defaults[$new_key] ?? ($article_ui[$new_key] ?? ''));
+    if ($legacy_value !== '' && $legacy_value !== $legacy_cta_defaults[$legacy_key] && $new_untouched) {
+        $article_ui[$new_key] = $legacy_value;
+    }
+}
+$legacy_cta_label = trim((string) ($legacy_cta_ui['ctaLabel'] ?? ''));
+$legacy_cta_label = $legacy_cta_label !== $legacy_cta_defaults['ctaLabel'] ? $legacy_cta_label : '';
 $post_id = get_the_ID();
 $localize = static fn(string $text): string => function_exists('boblift_localize_product_text_fragments') ? (string) boblift_localize_product_text_fragments($text) : $text;
 $category_term = get_the_category($post_id)[0] ?? null;
@@ -82,8 +97,9 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
                 </section>
             <?php endif; ?>
         <?php };
-        $render_contact = static function () use ($contact, $article_ui): void { ?>
+        $render_contact = static function () use ($contact, $article_ui, $legacy_cta_label): void { ?>
 <section class="rounded border border-navy bg-navy p-5 text-white">
+                <?php if ($legacy_cta_label !== '') : ?><p class="mb-2 text-xs font-black uppercase tracking-[0.14em] text-white/70"><?php echo esc_html($legacy_cta_label); ?></p><?php endif; ?>
                 <h2 class="text-lg font-black leading-snug"><?php echo esc_html((string) ($article_ui['contactTitle'] ?? '')); ?></h2>
                 <p class="mt-2 text-sm font-semibold leading-6 text-white/70"><?php echo esc_html((string) ($article_ui['contactText'] ?? '')); ?></p>
                 <a class="btn-white mt-4 w-full justify-center rounded-sm" href="<?php echo esc_url(boblift_url('/contact.html#inquiry')); ?>" data-inquiry-modal-open data-inquiry-source="新闻详情"><?php echo esc_html((string) ($article_ui['contactButton'] ?? 'Request a Quote')); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
