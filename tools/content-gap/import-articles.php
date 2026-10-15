@@ -151,7 +151,8 @@ foreach ($articles as $a) {
     ];
     if ($post_id) { $postarr['ID'] = $post_id; $post_id = wp_update_post($postarr, true); } else { $post_id = wp_insert_post($postarr, true); }
     if (is_wp_error($post_id)) { throw new Exception($post_id->get_error_message()); }
-    if (get_post_status($post_id) === 'draft') { update_post_meta($post_id, '_content_gap_staging', '1'); }
+    // Only a new post, or one already staged by this importer, is marked for automatic publication; an editorial draft stays a draft.
+    if (get_post_status($post_id) === 'draft' && (!$existing || $resuming)) { update_post_meta($post_id, '_content_gap_staging', '1'); }
     wp_set_post_tags($post_id, $a['tags']);
     [$cover_id] = bl_sideload($img_root . $a['imgdir'] . '/' . $a['cover'], $a['cover_alt'], $post_id);
     set_post_thumbnail($post_id, $cover_id);

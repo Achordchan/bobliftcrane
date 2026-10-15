@@ -124,7 +124,8 @@ foreach ($products as $p) {
         'post_content'=>"<!-- wp:paragraph -->\n" . $p['content'] . "\n<!-- /wp:paragraph -->", 'comment_status'=>'closed','ping_status'=>'closed'];
     if ($ex) { $arr['ID'] = $ex[0]->ID; $id = wp_update_post($arr, true); } else { $id = wp_insert_post($arr, true); }
     if (is_wp_error($id)) { throw new Exception($id->get_error_message()); }
-    if (get_post_status($id) === 'draft') { update_post_meta($id, '_content_gap_staging', '1'); }
+    // Only a new post, or one already staged by this importer, is marked for automatic publication; an editorial draft stays a draft.
+    if (get_post_status($id) === 'draft' && (!$ex || $resuming)) { update_post_meta($id, '_content_gap_staging', '1'); }
     $gallery = []; $thumb = 0;
     foreach ($p['extra_existing'] as $title) {
         $a = get_posts(['post_type'=>'attachment','title'=>$title,'post_status'=>'any','numberposts'=>1,'lang'=>'']);

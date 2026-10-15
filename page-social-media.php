@@ -94,7 +94,14 @@ $platform_groups = array_values(array_filter([
     ['id' => 'more', 'title' => $t($labels['more_title'] ?? 'More platforms'), 'rows' => $platforms('secondary_platforms')],
 ], static fn(array $group): bool => $group['rows'] !== []));
 
-$posts = array_values(array_filter(is_array($social_page['content_cards'] ?? null) ? $social_page['content_cards'] : [], static fn($card): bool => is_array($card) && (string) ($card['enabled'] ?? '1') !== '0' && $has_media($card['image'] ?? '')));
+$posts = array_values(array_filter(is_array($social_page['content_cards'] ?? null) ? $social_page['content_cards'] : [], static fn($card): bool => is_array($card) && (string) ($card['enabled'] ?? '1') !== '0' && ($has_media($card['image'] ?? '') || trim((string) ($card['title'] ?? '')) !== '' || trim((string) ($card['text'] ?? '')) !== '')));
+// A saved card without a picture keeps its text and shows the built-in factory-news photo, as the old page did.
+$posts = array_map(static function (array $post) use ($has_media): array {
+    if (!$has_media($post['image'] ?? '')) {
+        $post['image'] = ['id' => 0, 'path' => 'images/social-media/social-media-factory-news.webp'];
+    }
+    return $post;
+}, $posts);
 $gallery = array_map(static fn(array $post): string => boblift_image_setting_url($post['image']), $posts);
 $captions = array_map(static fn(array $post): string => $t($post['title'] ?? ''), $posts);
 // The lightbox caption carries the saved description too ("Title — description"), so older cards keep their text.

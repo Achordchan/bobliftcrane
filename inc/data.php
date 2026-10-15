@@ -665,23 +665,39 @@ function boblift_migrate_legacy_hero_slides(array $options): array
         return $options;
     }
     $defaults = boblift_default_options()['home']['hero']['slides'] ?? [];
+    // The three photos the old seed saved for everyone are not customisations; only other photos are carried over.
+    $seed_images = ['images/marine-scene.jpg', 'images/telescopic-banner.jpg', 'images/knuckle-banner.jpg'];
+    $is_custom = static function (mixed $image) use ($seed_images): bool {
+        $path = is_array($image) ? trim((string) ($image['path'] ?? '')) : trim((string) $image);
+        return (is_array($image) && (int) ($image['id'] ?? 0) > 0) || ($path !== '' && !in_array($path, $seed_images, true));
+    };
     foreach (array_values($legacy) as $index => $old) {
-        if (!isset($slides[$index]) || !is_array($old)) {
+        if (!is_array($old)) {
+            continue;
+        }
+        // Saved slides beyond the new list (the old editor allowed three) become new slides, so no custom photo is unreachable.
+        if (!isset($slides[$index])) {
+            if ($is_custom($old['image'] ?? '')) {
+                $extra = ['image' => $old['image'], 'image_alt' => (string) ($old['image_alt'] ?? ''), 'title' => (string) (($old['title'] ?? '') ?: get_bloginfo('name')), 'tab' => (string) ($old['tab'] ?? $old['title'] ?? get_bloginfo('name'))];
+                foreach (['mobile_image', 'text', 'primary_label', 'primary_href'] as $copy_key) {
+                    if (!empty($old[$copy_key])) {
+                        $extra[$copy_key] = $old[$copy_key];
+                    }
+                }
+                $options['home']['hero']['slides'][$index] = $extra;
+            }
             continue;
         }
         // A saved mobile-specific image is carried over unless the new slide already has one.
         if (!empty($old['mobile_image']) && empty($slides[$index]['mobile_image'])) {
             $options['home']['hero']['slides'][$index]['mobile_image'] = $old['mobile_image'];
         }
-        if (empty($old['image'])) {
+        if (empty($old['image']) || !$is_custom($old['image'])) {
             continue;
         }
         $default_image = $defaults[$index]['image'] ?? null;
         if ($default_image !== null && ($slides[$index]['image'] ?? $default_image) === $default_image) {
             $options['home']['hero']['slides'][$index]['image'] = $old['image'];
-            if (!empty($old['mobile_image']) && empty($slides[$index]['mobile_image'])) {
-                $options['home']['hero']['slides'][$index]['mobile_image'] = $old['mobile_image'];
-            }
             if (!empty($old['image_alt'])) {
                 $options['home']['hero']['slides'][$index]['image_alt'] = $old['image_alt'];
             }

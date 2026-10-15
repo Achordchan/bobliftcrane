@@ -10,7 +10,7 @@ if (!defined('ABSPATH')) {
 function boblift_render_legal_page(array $options, string $inquiry_source, string $hero_image = ''): void
 {
     $ui = boblift_site_ui('legalPage');
-    $sections = array_values(array_filter(is_array($options['sections'] ?? null) ? $options['sections'] : [], static fn($item): bool => is_array($item) && trim((string) ($item['title'] ?? '')) !== ''));
+    $sections = array_values(array_filter(is_array($options['sections'] ?? null) ? $options['sections'] : [], static fn($item): bool => is_array($item) && (trim((string) ($item['title'] ?? '')) !== '' || trim((string) ($item['text'] ?? '')) !== '')));
     $intro = trim((string) ($options['side_text'] ?? ''));
     $contact = boblift_contact_settings();
     $contact_card = static function () use ($ui, $contact, $inquiry_source): void { ?>
@@ -54,7 +54,11 @@ function boblift_render_legal_page(array $options, string $inquiry_source, strin
                             <p class="boblift-legal-intro"><?php echo esc_html($intro); ?></p>
                         <?php endif; ?>
                         <?php foreach ($sections as $index => $section) : ?>
-                            <h2 id="section-<?php echo esc_attr((string) ($index + 1)); ?>"><span class="boblift-legal-number"><?php echo esc_html(sprintf('%02d', $index + 1)); ?></span><?php echo esc_html((string) $section['title']); ?></h2>
+                            <?php if (trim((string) ($section['title'] ?? '')) !== '') : ?>
+                                <h2 id="section-<?php echo esc_attr((string) ($index + 1)); ?>"><span class="boblift-legal-number"><?php echo esc_html(sprintf('%02d', $index + 1)); ?></span><?php echo esc_html((string) $section['title']); ?></h2>
+                            <?php else : ?>
+                                <span id="section-<?php echo esc_attr((string) ($index + 1)); ?>"></span>
+                            <?php endif; ?>
                             <?php foreach (preg_split('/\n\s*\n/', trim((string) ($section['text'] ?? ''))) ?: [] as $paragraph) : if (trim($paragraph) === '') continue; ?>
                                 <p><?php echo nl2br(esc_html(trim($paragraph))); ?></p>
                             <?php endforeach; ?>
@@ -68,7 +72,7 @@ function boblift_render_legal_page(array $options, string $inquiry_source, strin
                             <nav class="hidden rounded border border-line bg-white p-5 lg:block" aria-label="<?php echo esc_attr((string) ($ui['tocTitle'] ?? 'On this page')); ?>" data-news-toc>
                                 <h2 class="text-xs font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html((string) ($ui['tocTitle'] ?? 'On this page')); ?></h2>
                                 <ol class="boblift-news-toc-list mt-3">
-                                    <?php foreach ($sections as $index => $section) : ?>
+                                    <?php foreach ($sections as $index => $section) : if (trim((string) ($section['title'] ?? '')) === '') continue; ?>
                                         <li><a href="#section-<?php echo esc_attr((string) ($index + 1)); ?>"><?php echo esc_html((string) $section['title']); ?></a></li>
                                     <?php endforeach; ?>
                                 </ol>
