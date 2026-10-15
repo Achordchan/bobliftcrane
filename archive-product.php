@@ -28,13 +28,16 @@ $product_archive = boblift_product_archive_options();
 $product_ui = function_exists('boblift_site_ui') ? boblift_site_ui('productDetail') : [];
 $quote_list_ui = function_exists('boblift_site_ui') ? boblift_site_ui('quoteList') : [];
 // The default banner shows the built-in photo unless an image was uploaded in 产品页默认 Banner.
-$archive_banner_image_id = is_array($product_archive['image'] ?? null) ? (int) ($product_archive['image']['id'] ?? 0) : 0;
+$archive_banner_image = is_array($product_archive['image'] ?? null) ? $product_archive['image'] : [];
+$archive_banner_path = trim((string) ($archive_banner_image['path'] ?? ''));
+// An upload, or a custom path/URL, wins; only the retired default image falls back to the built-in photo.
+$archive_banner_custom = (int) ($archive_banner_image['id'] ?? 0) > 0 || ($archive_banner_path !== '' && $archive_banner_path !== 'images/products/truck-mounted-crane.png');
 $banner_default = [
     'label' => (string) ($product_archive['label'] ?? 'BOB-LIFT Product Range'),
     'title' => (string) ($product_archive['title'] ?? 'Cranes & Lifting Equipment'),
     'text' => (string) ($product_archive['text'] ?? 'Explore BOB-LIFT truck mounted cranes, marine cranes and lifting equipment for global projects.'),
-    'image' => $archive_banner_image_id > 0 ? boblift_image_setting_url($product_archive['image']) : boblift_product_banner_photo_url(),
-    'imageAlt' => $archive_banner_image_id > 0 ? (string) ($product_archive['image_alt'] ?? '') : 'BOB-LIFT knuckle boom crane in the factory yard',
+    'image' => $archive_banner_custom ? boblift_image_setting_url($archive_banner_image) : boblift_product_banner_photo_url(),
+    'imageAlt' => $archive_banner_custom ? (string) ($product_archive['image_alt'] ?? '') : 'BOB-LIFT knuckle boom crane in the factory yard',
 ];
 $banner_categories = [];
 foreach ($categories as $category) {

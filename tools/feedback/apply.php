@@ -4,7 +4,8 @@
  *
  * Usage (from the WordPress root): wp eval-file <path>/apply.php [dry-run]
  * Build first with build.py. Each feedback group is keyed by its source folder and each file by its path,
- * so the script can run again safely and only adds what is missing.
+ * so the script can run again safely and only adds what is missing: an existing entry keeps its slug, country, note,
+ * model and every photo an editor added; only planned media that is not attached yet is appended.
  */
 
 require_once ABSPATH . 'wp-admin/includes/image.php';
@@ -54,7 +55,7 @@ foreach ($plan['items'] as $order => $item) {
     }
     $created += $existing ? 0 : 1;
     // The title's "·" once leaked into the slug as %c2%b7; the detail page URL uses the plan's clean slug.
-    if (get_post_field('post_name', $post_id) !== $item['slug']) {
+    if (!$existing && get_post_field('post_name', $post_id) !== $item['slug']) {
         wp_update_post(['ID' => $post_id, 'post_name' => $item['slug']]);
     }
     $ids = [];
@@ -74,6 +75,12 @@ foreach ($plan['items'] as $order => $item) {
         $media_count++;
     }
     update_post_meta($post_id, '_boblift_feedback_source', $item['source']);
+    if ($existing) {
+        // Keep what the editor maintains; just attach planned media that is still missing.
+        $current = array_values(array_filter(array_map('intval', explode(',', (string) get_post_meta($post_id, '_feedback_media', true)))));
+        update_post_meta($post_id, '_feedback_media', implode(',', array_values(array_unique(array_merge($current, $ids)))));
+        continue;
+    }
     update_post_meta($post_id, '_feedback_country', wp_slash(wp_json_encode($item['country'], JSON_UNESCAPED_UNICODE)));
     update_post_meta($post_id, '_feedback_note', $item['note'] ? wp_slash(wp_json_encode($item['note'], JSON_UNESCAPED_UNICODE)) : '');
     update_post_meta($post_id, '_feedback_model', $item['model']);

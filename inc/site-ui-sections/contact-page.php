@@ -6,6 +6,9 @@ return [
         'heroTitle' => 'Talk to BOB-LIFT before choosing a crane.',
         'heroDescription' => 'Tell us the load, working radius and the truck or vessel it goes on. Our engineers recommend a crane and send a quotation.',
         'heroAlt' => 'The BOB-LIFT factory gate in Xuzhou',
+        // Editable in the site settings; a saved value replaces these defaults.
+        'heroImage' => 'images/factory/yard-gate.webp',
+        'heroImageAlt' => 'The BOB-LIFT factory gate in Xuzhou',
         'cardLabels' => ['email' => 'Email', 'phone' => 'Phone', 'whatsapp' => 'WhatsApp', 'address' => 'Address'],
         'whatsappValue' => 'Start chat',
         'weChatTitle' => 'WeChat',

@@ -156,6 +156,13 @@ $add_hero_gallery_item($hero_image, (string) ($ui['mainProductViewLabel'] ?? 'Ma
 foreach ($gallery_items as $item) {
     $add_hero_gallery_item((string) ($item['image'] ?? ''), (string) ($item['label'] ?? ($ui['productPhotoLabel'] ?? 'Product photo')));
 }
+// Photos saved as colour variants (_color_variants) join the gallery with their labels, so they stay reachable now that the colour switcher is gone.
+foreach (boblift_decode_meta(get_post_meta((int) ($product['id'] ?? 0), '_color_variants', true), []) as $variant) {
+    if (!is_array($variant)) continue;
+    $variant_image = trim((string) ($variant['image'] ?? $variant['url'] ?? ''));
+    if ($variant_image === '') continue;
+    $add_hero_gallery_item(str_starts_with($variant_image, 'http') ? $variant_image : boblift_asset($variant_image), trim((string) boblift_localize_product_text_fragments((string) ($variant['label'] ?? ''))) ?: (string) ($ui['productPhotoLabel'] ?? 'Product photo'));
+}
 $faqs = is_array($ui['faqItems'] ?? null) ? $ui['faqItems'] : [];
 $faqs = array_values(array_filter(array_map(static function ($faq): ?array {
     if (!is_array($faq)) return null;

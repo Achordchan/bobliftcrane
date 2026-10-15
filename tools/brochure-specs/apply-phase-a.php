@@ -70,6 +70,12 @@ foreach ($plan['updates'] as $u) {
 }
 
 $trashed = [];
+// wp_trash_post() deletes for good when Trash is disabled, so removal only runs where the products can be restored.
+if (!$dry && $plan['remove'] && (!defined('EMPTY_TRASH_DAYS') || (int) EMPTY_TRASH_DAYS <= 0)) {
+    fwrite(STDERR, "EMPTY_TRASH_DAYS is 0, so removed products would be deleted permanently. Enable Trash (define EMPTY_TRASH_DAYS > 0) and run again.\n");
+    $persist_backup();
+    exit(1);
+}
 foreach ($plan['remove'] as $r) {
     $post = $find($r['slug']);
     if (!$post) {
@@ -82,6 +88,9 @@ foreach ($plan['remove'] as $r) {
         if (get_post_status($id) !== 'trash') {
             $trashed[] = $id . ' ' . get_the_title($id);
             if (!$dry) {
+                // Full copy of the post (fields and every meta value) is saved and verified before it is trashed.
+                $backup['removed:' . $id] = ['post' => get_post($id, ARRAY_A), 'meta' => get_post_meta($id)];
+                $persist_backup();
                 wp_trash_post($id);
             }
         }

@@ -100,6 +100,31 @@ foreach ($products as $product) {
         $report[] = sprintf('%-12s skipped (%s)', $product['model'], $row ? 'no product' : 'no brochure row');
         continue;
     }
+    if (($row['kind'] ?? '') === 'flyjib') {
+        // The product's spec table is authoritative (tools/truck-drawings/apply-flyjib.php corrects it from the technical charts),
+        // so the body is written from it rather than from the original brochure row.
+        $live = [];
+        foreach (boblift_decode_meta(get_post_meta($post->ID, '_specs', true), []) as $spec) {
+            if (is_array($spec)) {
+                $live[(string) ($spec['label'] ?? '')] = trim((string) ($spec['value'] ?? ''));
+            }
+        }
+        if (preg_match('/^([\d.,]+)\s*kg/i', $live['Max Lifting Capacity'] ?? '', $x)) {
+            $row['cap'] = str_replace(',', '', $x[1]);
+        }
+        if (preg_match('/^([\d.,]+)\s*mm/i', $live['Max Working Range'] ?? '', $x)) {
+            $row['working_range_mm'] = str_replace(',', '', $x[1]);
+        }
+        if (!empty($live['Max Lifting Height'])) {
+            $row['lift_height_mm'] = (string) preg_replace('/(\d+)\s*mm/i', '$1', $live['Max Lifting Height']);
+        }
+        if (preg_match('/^([\d.,]+)\s*kg/i', $live['Self Weight'] ?? '', $x)) {
+            $row['weight'] = str_replace(',', '', $x[1]);
+        }
+        if (!empty($live['Matching Forklifts'])) {
+            $row['forklift'] = $live['Matching Forklifts'];
+        }
+    }
     $cats = wp_get_post_terms($post->ID, 'product_category', ['fields' => 'slugs']);
     $name = $series[$product['features_series'] ?? ''] ?? null;
     foreach (is_array($cats) ? $cats : [] as $cat) {

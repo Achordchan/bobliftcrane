@@ -87,6 +87,7 @@ foreach ($products as $p) {
     foreach ($files as $f) {
         if (!is_file($f)) { $missing[] = $f; }
     }
+    if (!get_term_by('slug', $p['cat'], 'product_category')) { $missing[] = 'product category: ' . $p['cat']; }
     foreach ($p['extra_existing'] as $title) {
         if (!get_posts(['post_type'=>'attachment','title'=>$title,'post_status'=>'any','numberposts'=>1,'lang'=>''])) { $missing[] = 'media library item: ' . $title . ' (run import-articles.php first)'; }
     }
