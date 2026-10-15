@@ -43,7 +43,11 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
 <section class="boblift-home-hero relative overflow-hidden border-b border-line bg-white" aria-labelledby="home-hero-title"<?php echo $hero_count > 1 ? ' aria-roledescription="carousel" data-home-hero' : ''; ?>>
     <div class="boblift-home-hero-media relative aspect-[16/10] w-full overflow-hidden bg-mist sm:aspect-[2/1] lg:absolute lg:inset-y-0 lg:right-0 lg:aspect-auto lg:w-[66%] lg:bg-white 2xl:w-[62%]">
         <?php foreach ($hero_slides as $index => $slide) : ?>
-            <img class="boblift-home-hero-image absolute inset-0 h-full w-full object-cover object-[72%_center] lg:object-[right_20%]" src="<?php echo esc_url(boblift_page_hero_image_setting($slide['image'] ?? [], $hero_default_images[$index] ?? $hero_default_images[0])); ?>" alt="<?php echo esc_attr((string) ($slide['image_alt'] ?? '')); ?>" decoding="async" <?php echo $index === 0 ? 'loading="eager" fetchpriority="high"' : 'fetchpriority="low" aria-hidden="true"'; ?> data-home-hero-image>
+            <?php $hero_mobile_image = boblift_image_setting_url($slide['mobile_image'] ?? '', ''); ?>
+            <picture class="contents">
+                <?php if ($hero_mobile_image !== '') : ?><source media="(max-width: 767px)" srcset="<?php echo esc_url($hero_mobile_image); ?>"><?php endif; ?>
+                <img class="boblift-home-hero-image absolute inset-0 h-full w-full object-cover object-[72%_center] lg:object-[right_20%]" src="<?php echo esc_url(boblift_page_hero_image_setting($slide['image'] ?? [], $hero_default_images[$index] ?? $hero_default_images[0])); ?>" alt="<?php echo esc_attr((string) ($slide['image_alt'] ?? '')); ?>" decoding="async" <?php echo $index === 0 ? 'loading="eager" fetchpriority="high"' : 'fetchpriority="low" aria-hidden="true"'; ?> data-home-hero-image>
+            </picture>
         <?php endforeach; ?>
     </div>
     <div class="page-shell relative z-10 py-8 sm:py-10 lg:flex lg:min-h-[540px] lg:items-center lg:py-16 xl:min-h-[600px] 2xl:min-h-[660px]">

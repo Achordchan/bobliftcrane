@@ -100,7 +100,7 @@ $related_query = new WP_Query([
         <?php endif; ?>
         <?php if ($display_facts) : ?>
             <dl class="grid grid-cols-2 overflow-hidden border-l border-t border-line <?php echo $image !== '' ? 'rounded-b border-t-0' : 'rounded'; ?> <?php echo [1 => 'lg:grid-cols-1', 2 => 'lg:grid-cols-2', 3 => 'lg:grid-cols-3'][count($display_facts)] ?? 'lg:grid-cols-4'; ?>" aria-label="<?php echo esc_attr($ui['factsTitle'] ?? 'Case Facts'); ?>">
-                <?php foreach (array_slice($display_facts, 0, 4) as $fact) : ?>
+                <?php foreach ($display_facts as $fact) : ?>
                     <div class="border-b border-r border-line px-4 py-4 md:px-6 md:py-5 [&:last-child:nth-child(odd)]:col-span-2 lg:[&:last-child:nth-child(odd)]:col-span-1">
                         <dt class="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400"><?php echo esc_html($fact['label']); ?></dt>
                         <dd class="mt-1 text-base font-black text-ink md:text-lg"><?php echo esc_html($fact['value']); ?></dd>

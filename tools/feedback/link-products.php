@@ -50,7 +50,8 @@ $match = static function (string $model) use ($products, $parse): ?array {
     if (!$want) {
         return null;
     }
-    $marine = (bool) preg_match('/T$/i', $model);
+    // Marine models end in T, with an optional winch (J) and flip-over outriggers (F) and an optional +1: SQ8ZA5T, SQ8ZA5TJ, SQ08ZA3T+1.
+    $marine = (bool) preg_match('/\dT(?:J)?(?:F)?(?:\+\d+)?$/i', $model);
     $candidates = array_values(array_filter($products, static fn(array $p): bool => $p['boom'] === $want['boom'] && $p['marine'] === $marine && abs($p['cap'] - $want['cap']) < 0.01));
     usort($candidates, static fn(array $a, array $b): int => [$b['sq'], abs($a['sections'] - $want['sections']), strlen($a['model'])] <=> [$a['sq'], abs($b['sections'] - $want['sections']), strlen($b['model'])]);
     return $candidates[0] ?? null;

@@ -1111,6 +1111,8 @@ function boblift_render_about_page_fields(array $about, string $base): void
     boblift_admin_panel('1. About 二级导航', static function () use ($about, $base): void {
         echo '<p class="boblift-admin-note">控制顶部 About 下拉二级导航。label 会进入多语言翻译；href 和 slug 保持 URL 识别，不翻译。</p>';
         $items = is_array($about['secondary_nav'] ?? null) ? $about['secondary_nav'] : [];
+        // Saving the menu records that it was reviewed, so newer default pages are no longer re-added to it on read.
+        echo '<input type="hidden" name="' . esc_attr($base) . '[secondary_nav_version]" value="1">';
         for ($i = 0; $i < max(5, count($items)); $i++) {
             boblift_admin_subpanel('二级导航 ' . (string) ($i + 1), static function () use ($about, $base, $i): void {
                 boblift_admin_input("secondary_nav.$i.label", $about, '显示文字', $base);
@@ -1429,6 +1431,7 @@ function boblift_render_home_page_fields(array $home, string $base): void
                 boblift_admin_link_input("hero.slides.$i.primary_href", $home, '主按钮链接', $base);
                 boblift_admin_media("hero.slides.$i.image", $home, '照片', $base, '横向实景照片，推荐 2:1（如 2400×1200）。主体放在右半边，左侧留出明亮、少细节的空间给标题；手机上照片单独显示在标题上方。');
                 boblift_admin_input("hero.slides.$i.image_alt", $home, '照片 Alt', $base);
+                boblift_admin_media("hero.slides.$i.mobile_image", $home, '手机端照片（可选）', $base, '手机端（宽度小于 768px）使用的照片；不上传则使用上面的照片。');
             }, $i === 0, (string) ($home['hero']['slides'][$i]['tab'] ?? ''));
         }
     });
@@ -2815,7 +2818,7 @@ function boblift_product_category_image_preview(array $meta): string
             return $url;
         }
     }
-    return boblift_asset(boblift_product_banner_builtin_photo($meta['term'] ?? null));
+    return boblift_product_banner_photo_url($meta['term'] ?? null);
 }
 
 function boblift_product_category_add_fields(): void

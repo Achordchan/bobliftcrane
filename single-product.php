@@ -195,6 +195,10 @@ if ($has_configured_detail_images && get_post_meta(get_the_ID(), '_detail_images
         if (preg_match('#/wp-content/uploads/(.+)$#', $src, $match)) {
             $src = trailingslashit(wp_get_upload_dir()['baseurl']) . $match[1];
         }
+        // Theme-relative paths (images/products/…) resolve against the theme assets, not the product page.
+        if ($src !== '' && !preg_match('#^(https?:)?//#i', $src) && !str_starts_with($src, '/')) {
+            $src = boblift_asset($src);
+        }
         $attachment_id = $src !== '' ? attachment_url_to_postid($src) : 0;
         $full = $attachment_id ? wp_get_attachment_image_src($attachment_id, 'full') : false;
         $preview = $attachment_id ? wp_get_attachment_image_src($attachment_id, 'medium_large') : false;

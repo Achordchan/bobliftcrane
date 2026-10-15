@@ -63,9 +63,18 @@ foreach ($plan['products'] as $p) {
 
     $gallery = json_decode((string) get_post_meta($id, '_gallery', true), true) ?: [];
     if (!empty($p['own_photos_first'])) {
-        // Factory photos of this exact model replace any stand-in and become the main image.
-        $gallery = [];
-        delete_post_thumbnail($id);
+        // Factory photos of this exact model replace any stand-in and become the main image. They are imported first
+        // (the importer reuses what already exists); if none can be imported, the current gallery and image stay.
+        $staged = 0;
+        foreach ($p['photos'] as $file) {
+            $staged += $import($file, $id, $model . ' photo') ? 1 : 0;
+        }
+        if ($staged > 0) {
+            $gallery = [];
+            delete_post_thumbnail($id);
+        } else {
+            echo "  $model: replacement photos unavailable, kept the existing gallery\n";
+        }
     }
     if (!empty($p['borrow_photo_from'])) {
         // A new model without its own photo shows the sibling's photo, labelled as a reference.

@@ -544,10 +544,12 @@ function boblift_about_page_options(): array
             $skip = array_merge(boblift_retired_page_slugs(), boblift_about_nav_moved_slugs());
             return !in_array($slug, $skip, true) && !in_array(preg_replace('/\.html$/', '', $path), $skip, true);
         }));
-        // Saved menus predate newer About pages; add any default child that is missing, after the one before it.
+        // Saved menus predate newer About pages; add any default child that is missing, after the one before it. Once an
+        // editor has saved the menu (secondary_nav_version), the list is theirs and a removed page stays removed.
+        $reviewed_menu = (int) ($value['secondary_nav_version'] ?? 0) >= 1;
         $saved_slugs = array_map(static fn(array $item): string => (string) ($item['slug'] ?? ''), $options['secondary_nav']);
         $previous = '';
-        foreach (boblift_about_page_defaults()['secondary_nav'] as $default_child) {
+        foreach ($reviewed_menu ? [] : boblift_about_page_defaults()['secondary_nav'] as $default_child) {
             $slug = (string) $default_child['slug'];
             if (!in_array($slug, $saved_slugs, true)) {
                 $at = $previous !== '' ? array_search($previous, $saved_slugs, true) : false;
@@ -604,12 +606,22 @@ function boblift_migrate_legacy_hero_slides(array $options): array
     }
     $defaults = boblift_default_options()['home']['hero']['slides'] ?? [];
     foreach (array_values($legacy) as $index => $old) {
-        if (!isset($slides[$index]) || !is_array($old) || empty($old['image'])) {
+        if (!isset($slides[$index]) || !is_array($old)) {
+            continue;
+        }
+        // A saved mobile-specific image is carried over unless the new slide already has one.
+        if (!empty($old['mobile_image']) && empty($slides[$index]['mobile_image'])) {
+            $options['home']['hero']['slides'][$index]['mobile_image'] = $old['mobile_image'];
+        }
+        if (empty($old['image'])) {
             continue;
         }
         $default_image = $defaults[$index]['image'] ?? null;
         if ($default_image !== null && ($slides[$index]['image'] ?? $default_image) === $default_image) {
             $options['home']['hero']['slides'][$index]['image'] = $old['image'];
+            if (!empty($old['mobile_image'])) {
+                $options['home']['hero']['slides'][$index]['mobile_image'] = $old['mobile_image'];
+            }
             if (!empty($old['image_alt'])) {
                 $options['home']['hero']['slides'][$index]['image_alt'] = $old['image_alt'];
             }
@@ -832,6 +844,11 @@ function boblift_product_banner_photo_url(?WP_Term $term = null): string
         if ($url !== '') {
             return $url;
         }
+        // A banner saved as a theme path or URL (no attachment) still counts; the importer's seed card images (images/products/…) do not.
+        $legacy = trim((string) get_term_meta($term_id, '_boblift_image', true));
+        if ($legacy !== '' && !str_starts_with($legacy, 'images/products/')) {
+            return boblift_image_src($legacy);
+        }
     }
     return boblift_asset(boblift_product_banner_builtin_photo($term));
 }
@@ -840,6 +857,14 @@ function boblift_product_banner_photo_url(?WP_Term $term = null): string
 // every top-level family with its photo and model count, plus its subcategories, or its models
 // when it has fewer than two subcategories with products.
 function boblift_product_menu_families(): array
+{
+    // Built once per request and language: the header and the footer both need it.
+    static $cache = [];
+    $language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
+    return $cache[$language] ??= boblift_build_product_menu_families();
+}
+
+function boblift_build_product_menu_families(): array
 {
     $term_link = static function (WP_Term $term): string {
         $url = get_term_link($term);
@@ -887,20 +912,24 @@ function boblift_product_menu_families(): array
         // Families split into categories also show a few models across the capacity range.
         $featured = [];
         if ($children !== []) {
+            // Only IDs are loaded; full posts are fetched for the four featured models below.
             $posts = get_posts([
                 'post_type' => 'product',
                 'post_status' => 'publish',
                 'numberposts' => -1,
+                'fields' => 'ids',
+                'update_post_term_cache' => false,
                 'tax_query' => [['taxonomy' => 'product_category', 'terms' => $term->term_id, 'include_children' => true]],
             ]);
-            usort($posts, static fn(WP_Post $a, WP_Post $b): int => ((float) get_post_meta($a->ID, '_capacity_value', true) <=> (float) get_post_meta($b->ID, '_capacity_value', true)) ?: strnatcasecmp($a->post_title, $b->post_title));
+            update_meta_cache('post', $posts);
+            usort($posts, static fn(int $a, int $b): int => ((float) get_post_meta($a, '_capacity_value', true) <=> (float) get_post_meta($b, '_capacity_value', true)) ?: strnatcasecmp(get_the_title($a), get_the_title($b)));
             $picked = [];
             $last = count($posts) - 1;
             for ($i = 0; $i < 4 && $last >= 0; $i++) {
                 $picked[(int) round($i * $last / 3)] = true;
             }
             foreach (array_keys($picked) as $index) {
-                $post = $posts[$index];
+                $post = get_post($posts[$index]);
                 $english_id = function_exists('boblift_product_english_id') ? boblift_product_english_id($post->ID) : $post->ID;
                 $title = (string) boblift_localize_product_text_fragments(get_the_title($post));
                 $model = trim((string) get_post_meta($english_id, '_model', true));

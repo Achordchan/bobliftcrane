@@ -20,6 +20,16 @@ $counts = [
     'case' => $case_query ? (int) $case_query->found_posts : 0,
 ];
 $total = array_sum($counts);
+// A selected tab with no matches (e.g. a new search from the News tab that only matches products) falls back to All results.
+if ($type !== '' && $total > 0 && ($counts[$type] ?? 0) === 0) {
+    $type = '';
+    $page = 1;
+    $product_limit = 6;
+    $news_per_page = 4;
+    $case_per_page = 3;
+    $news_query = boblift_search_posts($query, 'post', $news_per_page, 1);
+    $case_query = boblift_search_posts($query, 'case', $case_per_page, 1);
+}
 $families = function_exists('boblift_product_menu_families') ? boblift_product_menu_families() : [];
 $view_details_label = (string) ($product_detail_ui['viewDetailsLabel'] ?? 'View Details');
 
