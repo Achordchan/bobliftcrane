@@ -28,8 +28,11 @@ $persist_backup = static function () use (&$backup, $backup_file, $dry): void {
     if ($dry) {
         return;
     }
-    $bytes = file_put_contents($backup_file, wp_json_encode($backup, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
-    if ($bytes === false || $bytes === 0) {
+    $encoded = wp_json_encode($backup, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+    // Write to a temporary file, check the complete length, then rename over the snapshot: a failed write keeps the previous one.
+    $temporary = $backup_file . '.tmp';
+    $bytes = is_string($encoded) ? file_put_contents($temporary, $encoded) : false;
+    if (!is_string($encoded) || $bytes !== strlen($encoded) || !rename($temporary, $backup_file)) {
         fwrite(STDERR, "Cannot write backup $backup_file; nothing further was changed.\n");
         exit(1);
     }

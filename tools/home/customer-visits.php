@@ -46,8 +46,9 @@ foreach (['boblift_theme_options', 'boblift_theme_options_ja', 'boblift_theme_op
 }
 if ($changes) {
     $file = __DIR__ . '/backup-customer-visits-' . gmdate('Ymd-His') . '.json';
-    $bytes = file_put_contents($file, wp_json_encode($backup, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
-    if ($bytes === false || $bytes === 0) {
+    $encoded = wp_json_encode($backup, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+    $bytes = is_string($encoded) ? file_put_contents($file . '.tmp', $encoded) : false;
+    if (!is_string($encoded) || $bytes !== strlen($encoded) || !rename($file . '.tmp', $file)) {
         fwrite(STDERR, "Cannot write backup $file; nothing was changed.\n");
         exit(1);
     }

@@ -161,7 +161,7 @@ foreach (boblift_decode_meta(get_post_meta((int) ($product['id'] ?? 0), '_color_
     if (!is_array($variant)) continue;
     $variant_image = trim((string) ($variant['image'] ?? $variant['url'] ?? ''));
     if ($variant_image === '') continue;
-    $add_hero_gallery_item(str_starts_with($variant_image, 'http') ? $variant_image : boblift_asset($variant_image), trim((string) boblift_localize_product_text_fragments((string) ($variant['label'] ?? ''))) ?: (string) ($ui['productPhotoLabel'] ?? 'Product photo'));
+    $add_hero_gallery_item(preg_match('#^(https?:)?//#i', $variant_image) || str_starts_with($variant_image, '/') ? $variant_image : boblift_asset($variant_image), trim((string) boblift_localize_product_text_fragments((string) ($variant['label'] ?? ''))) ?: (string) ($ui['productPhotoLabel'] ?? 'Product photo'));
 }
 $faqs = is_array($ui['faqItems'] ?? null) ? $ui['faqItems'] : [];
 $faqs = array_values(array_filter(array_map(static function ($faq): ?array {

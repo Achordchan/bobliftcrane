@@ -896,14 +896,23 @@ function boblift_curated_product_menu_families(): array
     // Destination identity for the comparison: the default stores /slug and saved options /products#slug, which are the same
     // destination; a custom host, a query string or any other path is kept so a changed link counts as customised.
     $site_host = strtolower((string) wp_parse_url(home_url(), PHP_URL_HOST));
-    $dest_of = static function (string $href) use ($slug_of, $site_host): string {
+    $dest_of = static function (string $href) use ($site_host): string {
         $parts = (array) wp_parse_url(trim($href));
         $host = strtolower((string) ($parts['host'] ?? ''));
+        $path = strtolower(trim((string) preg_replace('/\.html$/i', '', (string) ($parts['path'] ?? '')), '/'));
         $query = (string) ($parts['query'] ?? '');
+        $fragment = strtolower((string) ($parts['fragment'] ?? ''));
         if ($host !== '' && $host !== $site_host) {
-            return 'ext:' . $host . '|' . trim((string) ($parts['path'] ?? ''), '/') . '|' . $query . '|' . (string) ($parts['fragment'] ?? '');
+            return 'ext:' . $host . '|' . $path . '|' . $query . '|' . $fragment;
         }
-        return 'int:' . $slug_of($href) . '|' . $query;
+        // The two historical spellings of a category link are the same destination: /products#slug and /slug.
+        if ($query === '' && $path === 'products' && $fragment !== '') {
+            return 'cat:' . $fragment;
+        }
+        if ($query === '' && $fragment === '' && $path !== '' && !str_contains($path, '/')) {
+            return 'cat:' . $path;
+        }
+        return 'int:' . $path . '|' . $query . '|' . $fragment;
     };
     // Compare every editable field (title, description, icon, image, link labels, icons and destinations).
     $signature = static fn($groups): string => wp_json_encode(array_map(static fn($g): array => [
