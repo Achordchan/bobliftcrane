@@ -22,7 +22,7 @@ foreach ($posts as $post) {
     if (!$reviewed) {
         continue;
     }
-    $has_body = trim(wp_strip_all_tags((string) $post->post_content)) !== '';
+    $has_body = trim(wp_strip_all_tags((string) $post->post_content)) !== '' || (bool) preg_match('/<(img|figure|video|audio|iframe|picture|embed|object)\b|wp:(image|gallery|video|embed)/i', (string) $post->post_content);
     $has_images = trim((string) get_post_meta($post->ID, '_detail_images', true)) !== '' && trim((string) get_post_meta($post->ID, '_detail_images', true)) !== '[]';
     $changes = [];
     foreach (['_detail_body_ready' => $has_body, '_detail_images_ready' => $has_images] as $key => $has_content) {

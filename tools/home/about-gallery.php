@@ -1,7 +1,9 @@
 <?php
 /**
  * Points the home About gallery at the company photos (workshop, technicians, team, customer visit)
- * instead of product shots, in every language, keeping any video or YouTube slot an editor set up. Idempotent.
+ * instead of product shots, in every language. Video and YouTube slots, and any slot an editor filled with an upload or
+ * another URL, are kept: only empty slots and slots still showing a theme image (images/…, the old product shots) change.
+ * The previous gallery of every changed language is written to a backup file first. Idempotent.
  *
  *   wp eval-file ../tools/home/about-gallery.php dry-run
  *   wp eval-file ../tools/home/about-gallery.php
@@ -24,6 +26,13 @@ foreach (['en' => 'boblift_theme_options', 'ja' => 'boblift_theme_options_ja', '
         if (in_array((string) ($item['type'] ?? ''), ['local_video', 'youtube'], true)) {
             continue;
         }
+        $current = $item['src'] ?? '';
+        $current_path = is_array($current) ? (string) ($current['path'] ?? '') : (string) $current;
+        $uploaded = is_array($current) && (int) ($current['id'] ?? 0) > 0;
+        // A custom image (upload, or a URL outside the theme) is the editor's; leave the slot alone.
+        if ($uploaded || ($current_path !== '' && !str_starts_with($current_path, 'images/'))) {
+            continue;
+        }
         $item['src'] = 'images/about/' . $file . '.webp';
         $item['alt'] = $alts[$lang][$i];
         $gallery[$i] = $item;
@@ -32,6 +41,12 @@ foreach (['en' => 'boblift_theme_options', 'ja' => 'boblift_theme_options_ja', '
     $changed = $gallery !== ($options['home']['about']['gallery'] ?? null);
     echo $key . ': ' . ($changed ? 'updated' : 'unchanged') . "\n";
     if ($changed && !$dry_run) {
+        $file = __DIR__ . '/backup-about-gallery-' . $key . '-' . gmdate('Ymd-His') . '.json';
+        $bytes = file_put_contents($file, wp_json_encode($options['home']['about']['gallery'] ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+        if ($bytes === false || $bytes === 0) {
+            fwrite(STDERR, "Cannot write backup $file; nothing was changed for $key.\n");
+            exit(1);
+        }
         $options['home']['about']['gallery'] = array_values($gallery);
         update_option($key, $options);
     }

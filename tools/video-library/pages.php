@@ -31,6 +31,11 @@ foreach ($pages as $slug => $titles) {
         $translations['en'] = $en->ID;
     }
     foreach ($titles as $lang => $title) {
+        // Without Polylang the translated copies could not be linked or told apart, so only the English page is created.
+        if ($lang !== 'en' && !(function_exists('pll_set_post_language') && function_exists('pll_save_post_translations'))) {
+            echo "$slug $lang: skipped (Polylang is not active)\n";
+            continue;
+        }
         if (!empty($translations[$lang])) {
             echo "$slug $lang: exists (#{$translations[$lang]})\n";
             continue;

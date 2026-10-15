@@ -211,15 +211,18 @@ foreach ($nav_items as $item) {
     }
     $nav_by_key[$key] = $item;
 }
-$nav_by_key['services'] = [
-    'label' => $nav_static_label('Services'),
-    'href' => '/mounting-shipping.html',
-    'children' => [
-        $nav_page_child('mounting-shipping', 'Truck Mounting & Export'),
-        $nav_page_child('service', 'Service & Operation'),
-        ['label' => $nav_static_label('Brochures'), 'href' => boblift_product_archive_path() . '#brochures'],
-    ],
-];
+// A saved Services entry keeps its own label, link and children; the generated one is added only when there is none.
+if (!isset($nav_by_key['services'])) {
+    $nav_by_key['services'] = [
+        'label' => $nav_static_label('Services'),
+        'href' => '/mounting-shipping.html',
+        'children' => [
+            $nav_page_child('mounting-shipping', 'Truck Mounting & Export'),
+            $nav_page_child('service', 'Service & Operation'),
+            ['label' => $nav_static_label('Brochures'), 'href' => boblift_product_archive_path() . '#brochures'],
+        ],
+    ];
+}
 $nav_by_key['contact'] = [
     'label' => trim((string) ($nav_saved_contact['label'] ?? '')) !== '' ? (string) $nav_saved_contact['label'] : $nav_static_label('Contact Us'),
     'href' => '/contact.html',
