@@ -246,10 +246,15 @@ function boblift_product_content_ready(int $post_id, string $flag_key): bool
     if ($flag_key !== '_detail_body_ready') {
         return false;
     }
-    $normalize = static fn(string $html): string => trim((string) preg_replace('/\s+/u', ' ', html_entity_decode(wp_strip_all_tags($html), ENT_QUOTES, 'UTF-8')));
+    // Text plus embedded media (images, galleries, video) make up the content; a body replaced with media only still counts.
+    $signature = static function (string $html): string {
+        preg_match_all('/<(?:img|video|audio|iframe|source|embed)\b[^>]*?\bsrc=["\']([^"\']+)/i', $html, $media);
+        $text = trim((string) preg_replace('/\s+/u', ' ', html_entity_decode(wp_strip_all_tags($html), ENT_QUOTES, 'UTF-8')));
+        return $text . '|' . implode(',', $media[1]);
+    };
     $post = get_post($post_id);
-    $body = $post instanceof WP_Post ? $normalize($post->post_content) : '';
-    return $body !== '' && $body !== $normalize((string) get_post_meta($post_id, '_legacy_content', true));
+    $body = $post instanceof WP_Post ? $signature($post->post_content) : '|';
+    return $body !== '|' && $body !== $signature((string) get_post_meta($post_id, '_legacy_content', true));
 }
 
 /**

@@ -800,7 +800,17 @@ function boblift_product_meta_box(WP_Post $post): void
             <?php boblift_render_text_field('boblift_meta[model]', '型号', boblift_meta_value($post->ID, 'model')); ?>
             <?php boblift_render_text_field('boblift_meta[capacity]', '吨位 / 起重能力', boblift_meta_value($post->ID, 'capacity')); ?>
             <?php boblift_render_text_field('boblift_meta[capacity_value]', '吨位数值', boblift_meta_value($post->ID, 'capacity_value'), 'number'); ?>
-            <?php boblift_render_select_field('boblift_meta[boom_type]', '吊臂类型', boblift_normalize_product_boom_type(boblift_meta_value($post->ID, 'boom_type')), boblift_product_boom_options()); ?>
+            <?php
+                $boom_raw = trim((string) boblift_meta_value($post->ID, 'boom_type'));
+                $boom_options = boblift_product_boom_options();
+                $boom_selected = boblift_normalize_product_boom_type($boom_raw);
+                // A value saved before the options were fixed stays selectable, so an unrelated save does not blank it.
+                if ($boom_raw !== '' && $boom_selected === '' && !isset($boom_options[$boom_raw])) {
+                    $boom_options[$boom_raw] = $boom_raw . '（原有值）';
+                    $boom_selected = $boom_raw;
+                }
+                boblift_render_select_field('boblift_meta[boom_type]', '吊臂类型', $boom_selected, $boom_options);
+            ?>
             <?php boblift_render_text_field('boblift_meta[catalog_pdf_url]', 'PDF目录文件URL', boblift_meta_value($post->ID, 'catalog_pdf_url'), 'url'); ?>
             <?php boblift_render_text_field('boblift_meta[status]', '状态', boblift_meta_value($post->ID, 'status')); ?>
             <?php boblift_render_text_field('boblift_meta[seo_title]', 'SEO 标题', boblift_meta_value($post->ID, 'seo_title')); ?>
@@ -959,7 +969,10 @@ function boblift_save_meta_boxes(int $post_id): void
         foreach ($plain_keys as $key) {
             update_post_meta($post_id, '_' . $key, sanitize_text_field($meta[$key] ?? ''));
         }
-        update_post_meta($post_id, '_boom_type', boblift_normalize_product_boom_type((string) ($meta['boom_type'] ?? '')));
+        $posted_boom = trim((string) ($meta['boom_type'] ?? ''));
+        $current_boom = trim((string) get_post_meta($post_id, '_boom_type', true));
+        // The unchanged "original value" option keeps whatever was saved; anything else is normalised to the known types.
+        update_post_meta($post_id, '_boom_type', ($posted_boom !== '' && $posted_boom === $current_boom) ? $current_boom : boblift_normalize_product_boom_type($posted_boom));
         update_post_meta($post_id, '_catalog_pdf_url', esc_url_raw((string) ($meta['catalog_pdf_url'] ?? '')));
         update_post_meta($post_id, '_detail_body_ready', empty($meta['detail_body_ready']) ? '' : '1');
         update_post_meta($post_id, '_detail_images_ready', empty($meta['detail_images_ready']) ? '' : '1');

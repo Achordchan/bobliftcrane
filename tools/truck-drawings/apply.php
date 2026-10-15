@@ -66,6 +66,26 @@ foreach ($plan['existing'] as $p) {
     }
 }
 
+// Drawings missing on an existing product (a failed upload on an earlier run) are imported and added; entries already there stay.
+$reconcile_drawings = static function (int $post_id, array $p) use ($import, $json): void {
+    $current = json_decode((string) get_post_meta($post_id, '_drawings', true), true);
+    $current = is_array($current) ? $current : [];
+    $have = array_map('intval', array_column($current, 'id'));
+    $changed = false;
+    foreach ($p['drawings'] ?? [] as $drawing) {
+        $label = $p['model'] . ($drawing['kind'] === 'chart' ? ' load chart' : ' dimension drawing and technical parameters');
+        $attachment = $import($drawing['file'], $post_id, $label);
+        if ($attachment && !in_array((int) $attachment, $have, true)) {
+            $current[] = ['id' => $attachment, 'label' => $label];
+            $have[] = (int) $attachment;
+            $changed = true;
+        }
+    }
+    if ($changed) {
+        update_post_meta($post_id, '_drawings', wp_slash($json($current)));
+    }
+};
+
 $created = [];
 $skipped = [];
 foreach ($plan['new'] as $p) {
@@ -75,6 +95,7 @@ foreach ($plan['new'] as $p) {
     // Already created: keep it, but bring its spec table in line with the plan.
     if (($existing = $find($slug)) && !$dry) {
         update_post_meta($existing->ID, '_specs', wp_slash($json($p['specs'])));
+        $reconcile_drawings($existing->ID, $p);
     }
     if ($existing || !$term || !$sibling) {
         $skipped[] = $slug . ($term ? ($sibling ? ' (exists)' : ' (no sibling ' . $p['sibling'] . ')') : ' (no category)');

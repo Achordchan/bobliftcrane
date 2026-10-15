@@ -47,6 +47,19 @@ $terms = [
         ],
     ],
 ];
+// Titles of the six historical clauses, in order. The positional migration below runs only when the saved list is exactly
+// that list; a customised, reordered or replaced list is left untouched.
+$historical_titles = [
+    'privacy' => [
+        'ja' => ['当社が収集する情報', '情報の利用方法', '共有および開示', 'データ保持', 'お客様の選択肢', '連絡先'],
+        'zh' => ['我们收集的信息', '我们如何使用信息', '共享与披露', '数据保留', '您的选择', '联系方式'],
+    ],
+    'terms' => [
+        'ja' => ['ウェブサイト情報', '製品選定', '知的財産', 'ユーザーによる送信内容', '外部リンクおよびサービス', '責任の制限'],
+        'zh' => ['网站信息', '产品选型', '知识产权', '用户提交内容', '外部链接和服务', '责任限制'],
+    ],
+];
+$has_historical_titles = static fn(array $list, array $titles): bool => array_map(static fn($row): string => trim((string) ($row['title'] ?? '')), $list) === $titles;
 foreach (['ja', 'zh'] as $language) {
     $key = 'boblift_theme_options_' . $language;
     $options = get_option($key);
@@ -55,7 +68,7 @@ foreach (['ja', 'zh'] as $language) {
     }
     $changes = [];
     $list = array_values((array) ($options['privacy_policy_page']['sections'] ?? []));
-    if (count($list) === 6) {
+    if (count($list) === 6 && $has_historical_titles($list, $historical_titles['privacy'][$language])) {
         $p = $privacy[$language];
         $list[4]['text'] = rtrim((string) ($list[4]['text'] ?? '')) . "\n\n" . $p['choices_extra'];
         $list = array_merge(array_slice($list, 0, 4), $p['insert_after_retention'], [$list[4], $p['insert_before_contact'], $list[5]]);
@@ -64,7 +77,7 @@ foreach (['ja', 'zh'] as $language) {
         $changes[] = 'privacy (+5 clauses)';
     }
     $list = array_values((array) ($options['terms_of_use_page']['sections'] ?? []));
-    if (count($list) === 6) {
+    if (count($list) === 6 && $has_historical_titles($list, $historical_titles['terms'][$language])) {
         $t = $terms[$language];
         $list = array_merge(array_slice($list, 0, 5), [$t['before_liability'], $list[5]], $t['after_liability']);
         $options['terms_of_use_page']['sections'] = $list;

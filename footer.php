@@ -58,7 +58,11 @@ $footer_link_groups = array_map(static function (array $group): array {
     $links = array_values(array_filter((array) ($group['links'] ?? []), 'is_array'));
     $paths = array_map(static fn(array $link): string => preg_replace('/\.html$/', '', trim((string) wp_parse_url((string) ($link['href'] ?? ''), PHP_URL_PATH), '/')), $links);
     $about_at = array_search('about', $paths, true);
-    if ($about_at !== false) {
+    // Only the untouched historical company group (About, Cases, News, Contact with their default labels) gets the new pages;
+    // a group an administrator edited keeps exactly the links they saved.
+    $labels = array_map(static fn(array $link): string => trim((string) ($link['label'] ?? '')), $links);
+    $is_default_company_group = $paths === ['about', 'cases', 'news', 'contact'] && $labels === ['About BOB-LIFT', 'Customer Cases', 'Company News', 'Contact Us'];
+    if ($about_at !== false && $is_default_company_group) {
         $extra = [];
         foreach (['factory-tour', 'quality-testing', 'mounting-shipping', 'service', 'videos'] as $slug) {
             $page = in_array($slug, $paths, true) ? null : boblift_find_page_by_slug($slug);

@@ -28,7 +28,7 @@ $product_archive = boblift_product_archive_options();
 $product_ui = function_exists('boblift_site_ui') ? boblift_site_ui('productDetail') : [];
 $quote_list_ui = function_exists('boblift_site_ui') ? boblift_site_ui('quoteList') : [];
 // The default banner shows the built-in photo unless an image was uploaded in 产品页默认 Banner.
-$archive_banner_image = is_array($product_archive['image'] ?? null) ? $product_archive['image'] : [];
+$archive_banner_image = is_array($product_archive['image'] ?? null) ? $product_archive['image'] : (is_string($product_archive['image'] ?? null) && trim($product_archive['image']) !== '' ? ['id' => 0, 'path' => trim($product_archive['image'])] : []);
 $archive_banner_path = trim((string) ($archive_banner_image['path'] ?? ''));
 // An upload, or a custom path/URL, wins; only the retired default image falls back to the built-in photo.
 $archive_banner_custom = (int) ($archive_banner_image['id'] ?? 0) > 0 || ($archive_banner_path !== '' && $archive_banner_path !== 'images/products/truck-mounted-crane.png');
