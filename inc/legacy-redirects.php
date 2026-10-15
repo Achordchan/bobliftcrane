@@ -215,13 +215,17 @@ function boblift_legacy_redirects_run(): void
 // template_redirect (not init): post types and taxonomies are registered by then, which the live-path guard needs.
 add_action('template_redirect', 'boblift_legacy_redirects_run', 0);
 
-/** Returns a description of the first redirect cycle among enabled site-internal rules, or null. */
-function boblift_legacy_redirects_find_cycle(array $rules): ?string
+/** Returns a description of the first redirect cycle among enabled rules that stay on the site (relative, or absolute on one of $site_hosts), or null. */
+function boblift_legacy_redirects_find_cycle(array $rules, array $site_hosts = []): ?string
 {
     $next = [];
     foreach ($rules as $rule) {
-        if (($rule['enabled'] ?? true) === false || empty($rule['from']) || empty($rule['to']) || ($rule['to'][0] ?? '') !== '/') {
+        if (($rule['enabled'] ?? true) === false || empty($rule['from']) || empty($rule['to'])) {
             continue;
+        }
+        $to_host = strtolower((string) parse_url((string) $rule['to'], PHP_URL_HOST));
+        if (($rule['to'][0] ?? '') !== '/' && !($to_host !== '' && in_array($to_host, array_map('strtolower', $site_hosts), true))) {
+            continue; // leaves the site (for example bobliftloader.com)
         }
         $from = boblift_legacy_redirect_normalize_path((string) $rule['from']);
         $to = boblift_legacy_redirect_normalize_path((string) (parse_url((string) $rule['to'], PHP_URL_PATH) ?? '/'));
@@ -292,7 +296,7 @@ function boblift_legacy_redirects_rest_register(): void
                 foreach (array_merge($existing, $clean) as $rule) {
                     $by_from[boblift_legacy_redirect_normalize_path((string) $rule['from'])] = $rule;
                 }
-                $cycle = boblift_legacy_redirects_find_cycle(array_values($by_from));
+                $cycle = boblift_legacy_redirects_find_cycle(array_values($by_from), array_filter([(string) ($current['canonical_host'] ?? ''), (string) parse_url(home_url(), PHP_URL_HOST)]));
                 if ($cycle !== null) {
                     return new WP_Error('redirect_cycle', 'These rules would create a redirect cycle (' . $cycle . '); nothing was saved.', ['status' => 400]);
                 }

@@ -67,6 +67,8 @@ foreach ([
 $cycle = boblift_legacy_redirects_find_cycle([['from' => '/marine-crane', 'to' => '/Products-Marine-Cranes.html'], ['from' => '/Products-Marine-Cranes.html', 'to' => '/marine-crane']]);
 if ($cycle === null) { echo "FAIL cycle not detected\n"; $fail++; }
 if (boblift_legacy_redirects_find_cycle($config['rules']) !== null) { echo "FAIL shipped rules contain a cycle\n"; $fail++; }
+if (boblift_legacy_redirects_find_cycle([['from' => '/old-a', 'to' => 'https://www.bobliftcrane.com/old-b'], ['from' => '/old-b', 'to' => '/old-a']], ['www.bobliftcrane.com']) === null) { echo "FAIL absolute internal cycle not detected\n"; $fail++; }
+if (boblift_legacy_redirects_find_cycle([['from' => '/old-a', 'to' => 'https://bobliftloader.com/old-b'], ['from' => '/old-b', 'to' => '/old-a']], ['www.bobliftcrane.com']) !== null) { echo "FAIL external target treated as cycle\n"; $fail++; }
 // An absolute lowercase target must not loop on its own rule; the mixed-case URL still redirects.
 $selfcfg = ['rules' => [['from' => '/about.html', 'to' => 'https://www.bobliftcrane.com/about.html'], ['from' => '/Example.html', 'to' => 'https://www.bobliftcrane.com/example.html'], ['from' => '/Q.html', 'to' => '/q.html?x=1']]];
 foreach ([['/example.html', null], ['/Example.html', 'https://www.bobliftcrane.com/example.html'], ['/q.html', null], ['/about.html', null]] as [$pth, $want]) {
