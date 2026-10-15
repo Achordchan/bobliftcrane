@@ -147,6 +147,41 @@ function boblift_legacy_redirect_merge_query(string $target, array $params): str
     return $base . ($query !== '' ? '?' . $query : '') . $fragment;
 }
 
+/**
+ * True when $path is a URL the new site currently serves as the canonical address of its own content,
+ * so a legacy rule must not take it over (admin-editable public URLs, products, pages, categories).
+ */
+function boblift_legacy_redirect_is_live_path(string $path): bool
+{
+    $raw = rtrim(rawurldecode($path), '/');
+    if ($raw === '') {
+        return true; // the home page
+    }
+    if (function_exists('boblift_public_custom_url_routes') && isset(boblift_public_custom_url_routes()[ltrim($raw, '/')])) {
+        return true;
+    }
+    $slug = sanitize_title((string) preg_replace('/\.html$/i', '', ltrim($raw, '/')));
+    if ($slug === '' || str_contains($slug, '/')) {
+        return false;
+    }
+    foreach (['page', 'product', 'post'] as $type) {
+        $post = get_page_by_path($slug, OBJECT, $type);
+        if ($post instanceof WP_Post && $post->post_status === 'publish' && rtrim(rawurldecode((string) parse_url(get_permalink($post), PHP_URL_PATH)), '/') === $raw) {
+            return true;
+        }
+    }
+    foreach (['product_category', 'category'] as $taxonomy) {
+        $term = get_term_by('slug', $slug, $taxonomy);
+        if ($term instanceof WP_Term) {
+            $link = get_term_link($term);
+            if (!is_wp_error($link) && rtrim(rawurldecode((string) parse_url($link, PHP_URL_PATH)), '/') === $raw) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 function boblift_legacy_redirects_run(): void
 {
     if (!in_array($_SERVER['REQUEST_METHOD'] ?? 'GET', ['GET', 'HEAD'], true) || (defined('WP_CLI') && WP_CLI)) {
@@ -160,7 +195,7 @@ function boblift_legacy_redirects_run(): void
     $config = boblift_legacy_redirects_config();
     $host = boblift_legacy_redirect_effective_host((string) ($_SERVER['HTTP_HOST'] ?? ''), $_GET, $config);
     $target = boblift_legacy_redirect_resolve($host, $path, $config, home_url());
-    if ($target === null) {
+    if ($target === null || (!isset($_GET['legacy_lang']) && boblift_legacy_redirect_is_live_path($path))) {
         return;
     }
     parse_str((string) parse_url($uri, PHP_URL_QUERY), $params);
