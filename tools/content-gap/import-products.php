@@ -111,12 +111,15 @@ foreach ($products as $p) {
 if ($missing) { fwrite(STDERR, "Missing sources:\n  " . implode("\n  ", $missing) . "\n"); exit(1); }
 foreach ($products as $p) {
     $ex = get_posts(['post_type'=>'product','name'=>$p['slug'],'post_status'=>'any','numberposts'=>1,'lang'=>'']);
-    if ($ex && !$overwrite) {
+    // A product left as a draft by an interrupted run is resumed; a published one is protected unless "overwrite" is passed.
+    $resuming = $ex && $ex[0]->post_status === 'draft';
+    if ($ex && !$overwrite && !$resuming) {
         $out[] = $ex[0]->ID . ' ' . get_permalink($ex[0]) . ' (exists, left unchanged; pass "overwrite" to replace it)';
         continue;
     }
-    if ($ex) { bl_backup_post($ex[0]->ID, $p['slug']); }
-    $arr = ['post_type'=>'product','post_status'=>'publish','post_title'=>$p['title'],'post_name'=>$p['slug'],'post_author'=>0,
+    if ($ex && !$resuming) { bl_backup_post($ex[0]->ID, $p['slug']); }
+    // New products are staged as drafts and published only after their media and meta are complete, so an interrupted run can be resumed.
+    $arr = ['post_type'=>'product','post_status'=>($ex ? $ex[0]->post_status : 'draft'),'post_title'=>$p['title'],'post_name'=>$p['slug'],'post_author'=>0,
         'post_content'=>"<!-- wp:paragraph -->\n" . $p['content'] . "\n<!-- /wp:paragraph -->", 'comment_status'=>'closed','ping_status'=>'closed'];
     if ($ex) { $arr['ID'] = $ex[0]->ID; $id = wp_update_post($arr, true); } else { $id = wp_insert_post($arr, true); }
     if (is_wp_error($id)) { throw new Exception($id->get_error_message()); }
@@ -151,6 +154,7 @@ foreach ($products as $p) {
     $term = get_term_by('slug', $p['cat'], 'product_category');
     wp_set_object_terms($id, [$term->term_id], 'product_category');
     if (function_exists('pll_set_post_language')) { pll_set_post_language($id, 'en'); }
+    if (get_post_status($id) === 'draft') { wp_update_post(['ID'=>$id,'post_status'=>'publish']); }
     $out[] = $id . ' ' . get_permalink($id);
 }
 echo implode("\n", $out), "\n";

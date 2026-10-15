@@ -124,11 +124,12 @@ foreach ($articles as $a) {
     $post_id = 0;
     $existing = get_posts(['post_type' => 'post', 'name' => $a['slug'], 'post_status' => 'any', 'posts_per_page' => 1, 'lang' => '']);
     if ($existing) { $post_id = $existing[0]->ID; }
-    if ($existing && !$overwrite) {
+    $resuming = $existing && $existing[0]->post_status === 'draft';
+    if ($existing && !$overwrite && !$resuming) {
         $report[] = $post_id . ' ' . get_permalink($post_id) . ' (exists, left unchanged; pass "overwrite" to replace it)';
         continue;
     }
-    if ($existing) { bl_backup_post($post_id, $a['slug']); }
+    if ($existing && !$resuming) { bl_backup_post($post_id, $a['slug']); }
     $html = preg_replace_callback('/<img\b[^>]*>/i', function ($m) use ($a, $img_root, $post_id) {
         $tag = $m[0];
         preg_match('/src="([^"]+)"/', $tag, $s); preg_match('/alt="([^"]*)"/', $tag, $al);
@@ -141,7 +142,8 @@ foreach ($articles as $a) {
     foreach ($link_map as $from => $to) { $html = str_replace('href="' . $from . '"', 'href="' . $to . '"', $html); }
     foreach ($lower_post_links as $l) { $html = str_replace('href="/' . $l . '.html"', 'href="/' . strtolower($l) . '.html"', $html); }
     $postarr = [
-        'post_type' => 'post', 'post_status' => 'publish', 'post_title' => $a['title'], 'post_name' => $a['slug'],
+        // New articles are staged as drafts and published after their images and meta are complete (an interrupted run resumes).
+        'post_type' => 'post', 'post_status' => ($existing ? $existing[0]->post_status : 'draft'), 'post_title' => $a['title'], 'post_name' => $a['slug'],
         'post_content' => $html, 'post_excerpt' => $a['desc'], 'post_author' => 1,
         'post_date' => $a['date'], 'post_date_gmt' => get_gmt_from_date($a['date']), 'post_category' => [$cat->term_id],
         'comment_status' => 'closed', 'ping_status' => 'closed',
@@ -163,6 +165,7 @@ foreach ($articles as $a) {
     $schema = str_replace('"item": "{{home}}/Industry-News.html"', '"item": "{{home}}/news.html"', $schema);
     $schema = str_replace('{{home}}/wp-content/uploads/2026/09/4-ton-forklift-fly-jib-crane-301a3ed016-900x700.jpg', (str_starts_with(bl_upload_path($cover_id), 'http') ? '' : '{{home}}') . bl_upload_path($cover_id), $schema);
     update_post_meta($post_id, '_article_schema_jsonld', wp_slash($schema));
+    if (get_post_status($post_id) === 'draft') { wp_update_post(['ID' => $post_id, 'post_status' => 'publish']); }
     if (function_exists('pll_set_post_language')) { pll_set_post_language($post_id, 'en'); }
     $report[] = $post_id . ' ' . get_permalink($post_id);
 }

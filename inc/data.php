@@ -535,6 +535,26 @@ function boblift_about_page_defaults(): array
     ];
 }
 
+/**
+ * The introduction an editor saved in the old About layout (headline, paragraph, proof chips) that the redesigned hero no
+ * longer prints. Built-in default copy (both historical sets) is not returned. Returns only the customised parts.
+ */
+function boblift_about_legacy_intro(array $logo): array
+{
+    $default_headlines = ['Engineering Strength Behind Every Lift.'];
+    $default_paragraphs = ['BOB-LIFT integrates crane manufacturing, engineering expertise, quality control, and global service capability to deliver reliable lifting solutions for demanding projects worldwide.'];
+    $default_chip_labels = [['Advanced Crane Manufacturing', 'Global Export Capability', 'Strict Quality Control'], ['Safety-focused crane manufacturing', 'Technology-driven product development', 'Service support for global buyers']];
+    $headline = trim((string) ($logo['headline'] ?? ''));
+    $paragraph = trim((string) ($logo['paragraph'] ?? ''));
+    $chips = array_values(array_filter((array) ($logo['proof_chips'] ?? []), static fn($chip): bool => is_array($chip) && (trim((string) ($chip['number'] ?? '')) !== '' || trim((string) ($chip['label'] ?? '')) !== '')));
+    $chip_labels = array_map(static fn(array $chip): string => trim((string) ($chip['label'] ?? '')), $chips);
+    return [
+        'headline' => in_array($headline, $default_headlines, true) ? '' : $headline,
+        'paragraph' => in_array($paragraph, $default_paragraphs, true) ? '' : $paragraph,
+        'chips' => in_array($chip_labels, $default_chip_labels, true) ? [] : $chips,
+    ];
+}
+
 function boblift_about_page_options(): array
 {
     $value = boblift_option('about_page', []);
@@ -915,10 +935,16 @@ function boblift_curated_product_menu_families(): array
         return 'int:' . $path . '|' . $query . '|' . $fragment;
     };
     // Compare every editable field (title, description, icon, image, link labels, icons and destinations).
+    // On a translated site the saved menu carries translated labels while the defaults are English, so there only the structure
+    // (destinations, icons, images) is compared; on the source language the texts are compared too.
+    $source_language = function_exists('boblift_mls_source_language') ? (string) boblift_mls_source_language() : 'en';
+    $current_language = function_exists('boblift_current_language_slug') ? (string) boblift_current_language_slug() : $source_language;
+    $compare_texts = $current_language === '' || $current_language === $source_language;
+    $text = static fn($value): string => $compare_texts ? trim((string) $value) : '';
     $signature = static fn($groups): string => wp_json_encode(array_map(static fn($g): array => [
-        trim((string) ($g['title'] ?? '')), $dest_of((string) ($g['href'] ?? '')), trim((string) ($g['description'] ?? '')), sanitize_key((string) ($g['icon'] ?? '')),
+        $text($g['title'] ?? ''), $dest_of((string) ($g['href'] ?? '')), $text($g['description'] ?? ''), sanitize_key((string) ($g['icon'] ?? '')),
         is_array($g['image'] ?? null) ? ((int) ($g['image']['id'] ?? 0) > 0 ? 'id:' . (int) $g['image']['id'] : (string) ($g['image']['path'] ?? '')) : (string) ($g['image'] ?? ''),
-        array_map(static fn($l): array => [trim((string) ($l['label'] ?? '')), $dest_of((string) ($l['href'] ?? '')), sanitize_key((string) ($l['icon'] ?? ''))], array_values(array_filter((array) ($g['links'] ?? []), 'is_array'))),
+        array_map(static fn($l): array => [$text($l['label'] ?? ''), $dest_of((string) ($l['href'] ?? '')), sanitize_key((string) ($l['icon'] ?? ''))], array_values(array_filter((array) ($g['links'] ?? []), 'is_array'))),
     ], array_values(array_filter((array) $groups, 'is_array'))));
     if (!is_array($saved) || $saved === [] || $signature($saved) === $signature($default)) {
         return [];

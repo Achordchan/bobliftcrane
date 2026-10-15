@@ -1131,6 +1131,20 @@ function boblift_render_about_page_fields(array $about, string $base): void
         }
     });
 
+    // A saved introduction from the old layout is still shown under the hero, so it stays editable (and removable) here.
+    $legacy_intro = boblift_about_legacy_intro((array) ($about['logo'] ?? []));
+    if ($legacy_intro['headline'] !== '' || $legacy_intro['paragraph'] !== '' || $legacy_intro['chips'] !== []) {
+        boblift_admin_panel('旧版介绍（仍在前台显示）', static function () use ($about, $base, $legacy_intro): void {
+            echo '<p class="boblift-admin-note">这是旧版 About 首屏保存的介绍文字，现在显示在新版首屏下方。清空全部内容并保存即可删除。</p>';
+            boblift_admin_input('logo.headline', $about, '标题', $base);
+            boblift_admin_textarea('logo.paragraph', $about, '段落', $base);
+            for ($i = 0; $i < max(3, count($legacy_intro['chips']) + 1); $i++) {
+                boblift_admin_input("logo.proof_chips.$i.number", $about, '要点 ' . (string) ($i + 1) . ' 编号', $base);
+                boblift_admin_input("logo.proof_chips.$i.label", $about, '要点 ' . (string) ($i + 1) . ' 文字', $base);
+            }
+        });
+    }
+
     boblift_admin_panel('2. 顶部大 LOGO 视觉区', static function () use ($about, $base): void {
         boblift_admin_media('logo.silhouette_image', $about, '开场剪影图', $base, '推荐与航拍图同尺寸同构图，16:9。');
         boblift_admin_input('logo.silhouette_alt', $about, '开场剪影图 Alt', $base);

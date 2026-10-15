@@ -135,17 +135,11 @@ foreach (['中国徐州', 'Xuzhou, China', '起重设备制造商', 'crane manuf
 </section>
 <?php
 // An introduction saved in the old layout (headline, paragraph, proof chips) is still shown, as a block under the hero.
-$legacy_default_headlines = ['Engineering Strength Behind Every Lift.'];
-$legacy_default_paragraphs = ['BOB-LIFT integrates crane manufacturing, engineering expertise, quality control, and global service capability to deliver reliable lifting solutions for demanding projects worldwide.'];
-$legacy_default_chip_labels = [['Advanced Crane Manufacturing', 'Global Export Capability', 'Strict Quality Control'], ['Safety-focused crane manufacturing', 'Technology-driven product development', 'Service support for global buyers']];
 // Only text an editor changed counts; the built-in introduction copy is not repeated under the redesigned hero.
-$legacy_headline = trim((string) ($logo['headline'] ?? ''));
-$legacy_headline = in_array($legacy_headline, $legacy_default_headlines, true) ? '' : $legacy_headline;
-$legacy_paragraph = trim((string) ($logo['paragraph'] ?? ''));
-$legacy_paragraph = in_array($legacy_paragraph, $legacy_default_paragraphs, true) ? '' : $legacy_paragraph;
-$legacy_chips = array_values(array_filter((array) ($logo['proof_chips'] ?? []), static fn($chip): bool => is_array($chip) && (trim((string) ($chip['number'] ?? '')) !== '' || trim((string) ($chip['label'] ?? '')) !== '')));
-$legacy_chip_labels = array_map(static fn(array $chip): string => trim((string) ($chip['label'] ?? '')), $legacy_chips);
-$legacy_chips = in_array($legacy_chip_labels, $legacy_default_chip_labels, true) ? [] : $legacy_chips;
+$legacy_intro = boblift_about_legacy_intro($logo);
+$legacy_headline = $legacy_intro['headline'];
+$legacy_paragraph = $legacy_intro['paragraph'];
+$legacy_chips = $legacy_intro['chips'];
 if ($legacy_headline !== '' || $legacy_paragraph !== '' || $legacy_chips !== []) : ?>
 <section class="page-shell py-10 md:py-14" aria-label="<?php echo esc_attr($legacy_headline !== '' ? $legacy_headline : 'About BOB-LIFT'); ?>">
     <div class="mx-auto max-w-[860px] text-center">
