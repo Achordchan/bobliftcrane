@@ -226,6 +226,23 @@ function boblift_post_thumbnail_url(WP_Post $post, string $fallback): string
     return is_string($thumbnail) && $thumbnail !== '' ? $thumbnail : $fallback;
 }
 
+/**
+ * A page by its slug alone, so pages nested under About (about/<slug>) are found too. Prefers the source-language page
+ * when translations share the slug; returns null when there is none.
+ */
+function boblift_find_page_by_slug(string $slug): ?WP_Post
+{
+    $pages = get_posts(['post_type' => 'page', 'post_status' => 'publish', 'name' => $slug, 'posts_per_page' => -1, 'lang' => '', 'suppress_filters' => false]);
+    $source = function_exists('boblift_mls_source_language') ? (string) boblift_mls_source_language() : 'en';
+    foreach ($pages as $page) {
+        $language = function_exists('pll_get_post_language') ? pll_get_post_language($page->ID) : $source;
+        if (!$language || $language === $source) {
+            return $page;
+        }
+    }
+    return $pages[0] ?? null;
+}
+
 function boblift_decode_meta(mixed $value, mixed $fallback = []): mixed
 {
     if (is_array($value)) {

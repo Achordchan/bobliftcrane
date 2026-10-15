@@ -61,7 +61,7 @@ $footer_link_groups = array_map(static function (array $group): array {
     if ($about_at !== false) {
         $extra = [];
         foreach (['factory-tour', 'quality-testing', 'mounting-shipping', 'service', 'videos'] as $slug) {
-            $page = in_array($slug, $paths, true) ? null : get_page_by_path($slug, OBJECT, 'page');
+            $page = in_array($slug, $paths, true) ? null : boblift_find_page_by_slug($slug);
             if ($page instanceof WP_Post && $page->post_status === 'publish') {
                 $localized = function_exists('boblift_post_for_current_language') ? boblift_post_for_current_language($page) : $page;
                 $extra[] = ['label' => get_the_title($localized), 'url' => get_permalink($localized)];

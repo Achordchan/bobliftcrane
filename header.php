@@ -113,7 +113,7 @@ $about_localized_page_label = static function (string $slug, string $label) use 
     if ($active_language_code === '' || $active_language_code === $about_source_language || ($about_nav_default_labels[$slug] ?? '') !== $label) {
         return $label;
     }
-    $page = get_page_by_path($slug, OBJECT, 'page');
+    $page = boblift_find_page_by_slug($slug);
     if (!$page instanceof WP_Post) {
         return $label;
     }
@@ -528,7 +528,7 @@ foreach ($languages as $language) {
                             </summary>
                             <div class="mx-1.5 mb-2 rounded border border-line bg-[#f8fbff] p-2">
                                 <?php foreach ($news_menu_items as $news_menu_item) : ?>
-                                    <a class="flex items-center justify-between rounded px-3 py-2 text-xs font-bold leading-[18px] transition hover:bg-white hover:text-blue-700 <?php echo !empty($news_menu_item['active']) ? 'bg-white text-blue-700' : 'text-slate-500'; ?>" href="<?php echo esc_url((string) $news_menu_item['href']); ?>">
+                                    <a class="flex items-center justify-between rounded px-3 py-2 text-xs font-bold leading-[18px] transition hover:bg-white hover:text-blue-700 <?php echo !empty($news_menu_item['active']) ? 'bg-white text-blue-700' : 'text-slate-500'; ?>" href="<?php echo esc_url(boblift_url((string) $news_menu_item['href'])); ?>">
                                         <span><?php echo esc_html((string) $news_menu_item['label']); ?></span>
                                         <?php if (!empty($news_menu_item['active'])) : ?><?php echo boblift_icon('check', 'h-3.5 w-3.5 text-gold'); ?><?php endif; ?>
                                     </a>

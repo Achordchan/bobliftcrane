@@ -94,6 +94,7 @@ foreach ($articles as $a) {
         if (!is_file($dir . basename($src))) { $missing[] = $a['imgdir'] . ': ' . basename($src); }
     }
 }
+if (!get_term_by('slug', 'industry-insight', 'category')) { $missing[] = 'category: industry-insight (create it first)'; }
 if ($missing) { fwrite(STDERR, "Missing images:\n  " . implode("\n  ", $missing) . "\n"); exit(1); }
 $cat = get_term_by('slug', 'industry-insight', 'category');
 $report = [];

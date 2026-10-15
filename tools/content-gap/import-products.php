@@ -34,7 +34,7 @@ function bl_media(string $path, string $name, string $alt, string $uploads, int 
     return $id;
 }
 function bl_url(int $id): string { return wp_make_link_relative(trailingslashit(wp_get_upload_dir()['baseurl']) . get_post_meta($id, '_wp_attached_file', true)); }
-function bl_abs(int $id): string { return home_url(bl_url($id)); }
+function bl_abs(int $id): string { return trailingslashit(wp_get_upload_dir()['baseurl']) . get_post_meta($id, '_wp_attached_file', true); }
 
 $products = [
  [

@@ -2209,7 +2209,9 @@ function boblift_global_settings_page(): void
         <?php boblift_admin_textarea('text', $product_archive, '描述', 'boblift_theme_options[product_archive]'); ?>
         <?php
         // Without an uploaded image the banner shows the built-in photo, so preview that one.
-        if ((int) ($product_archive['image']['id'] ?? 0) <= 0) {
+        // A saved custom path or URL is kept; only an empty path or the retired default image shows the built-in photo.
+        $saved_banner_path = trim((string) ($product_archive['image']['path'] ?? ''));
+        if ((int) ($product_archive['image']['id'] ?? 0) <= 0 && ($saved_banner_path === '' || $saved_banner_path === 'images/products/truck-mounted-crane.png')) {
             $product_archive['image'] = ['id' => 0, 'path' => 'images/product-banners/default.jpg'];
         }
         ?>
