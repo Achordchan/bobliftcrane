@@ -19,17 +19,17 @@ $cases = [
     ['www.bobliftcrane.com', '/', null],
     ['www.bobliftcrane.com', '/marine-crane-buying-guide', null], // disabled until the article is migrated
     ['www.bobliftcrane.com', '/Company-News.html', null],
-    ['fr.bobliftcrane.com', '/', 'https://www.bobliftcrane.com/'],
-    ['fr.bobliftcrane.com', '/Grue-camion-id46288356.html', 'https://www.bobliftcrane.com/news.html'],
-    ['fr.bobliftcrane.com', '/Grue-camion-id46288356.html/', 'https://www.bobliftcrane.com/news.html'],
-    ['ru.bobliftcrane.com', '/%D0%9C%D0%B8%D0%BD%D0%B8-pl61907667.html', 'https://www.bobliftcrane.com/products.html'],
-    ['es.bobliftcrane.com', '/products/Excavadora-compacta.html', 'https://www.bobliftcrane.com/products.html'],
-    ['sa.bobliftcrane.com', '/Products-Marine-Cranes.html', 'https://www.bobliftcrane.com/marine-crane'],
-    ['fr.bobliftcrane.com', '/1-ton-knuckle-boom-truck-mounted-crane.html', 'https://www.bobliftcrane.com/1-ton-knuckle-boom-truck-mounted-crane.html'],
-    ['fr.bobliftcrane.com', '/Company-News.html', 'https://www.bobliftcrane.com/Company-News.html'],
-    ['fr.bobliftcrane.com', '/real-product-pd123456.html', 'https://www.bobliftcrane.com/real-product-pd123456.html'],
-    ['fr.bobliftcrane.com', '/a-propos.html', 'https://www.bobliftcrane.com/'], // ASCII translated slug with no English page
-    ['fr.bobliftcrane.com', '/some/deep/path', 'https://www.bobliftcrane.com/'],
+    ['fr.bobliftcrane.com', '/', 'https://www.bobliftcrane.com/fr/'],
+    ['fr.bobliftcrane.com', '/Grue-camion-id46288356.html', 'https://www.bobliftcrane.com/fr/news.html'],
+    ['fr.bobliftcrane.com', '/Grue-camion-id46288356.html/', 'https://www.bobliftcrane.com/fr/news.html'],
+    ['ru.bobliftcrane.com', '/%D0%9C%D0%B8%D0%BD%D0%B8-pl61907667.html', 'https://www.bobliftcrane.com/ru/products.html'],
+    ['es.bobliftcrane.com', '/products/Excavadora-compacta.html', 'https://www.bobliftcrane.com/es/products.html'],
+    ['sa.bobliftcrane.com', '/Products-Marine-Cranes.html', 'https://www.bobliftcrane.com/ar/marine-crane'],
+    ['fr.bobliftcrane.com', '/1-ton-knuckle-boom-truck-mounted-crane.html', 'https://www.bobliftcrane.com/fr/1-ton-knuckle-boom-truck-mounted-crane.html'],
+    ['fr.bobliftcrane.com', '/Company-News.html', 'https://www.bobliftcrane.com/fr/Company-News.html'],
+    ['fr.bobliftcrane.com', '/real-product-pd123456.html', 'https://www.bobliftcrane.com/fr/real-product-pd123456.html'],
+    ['fr.bobliftcrane.com', '/a-propos.html', 'https://www.bobliftcrane.com/fr/'], // ASCII translated slug with no English page
+    ['fr.bobliftcrane.com', '/some/deep/path', 'https://www.bobliftcrane.com/fr/'],
     ['de.bobliftcrane.com', '/Products-Marine-Cranes.html', 'https://www.bobliftcrane.com/marine-crane'],
 ];
 $fail = 0;

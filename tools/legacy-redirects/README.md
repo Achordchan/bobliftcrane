@@ -28,7 +28,7 @@
 - 旧分类页（`Products-*.html`、单数命名的分类、按吨位页）统一到新站分类页或 `/products.html`。
 - 滑移装载机、迷你翻斗车、搅拌车：跳 bobliftloader.com 对应产品页（型号后缀 T/S、-H/-C 为按名称推断，待业务确认）。
 - SaaS 自动生成的关键词页（`/products/*.html`、`/news/*.html`、keywords）归到最相关的分类或首页。
-- 语言子域（fr/es/ru/sa）：译文 slug 无法逐条对应英文，按后缀归并：`-idNNN` 新闻 → `/news.html`，`-pd`/`-pl` 产品 → `/products.html`；英文 slug 的页面落到 www 同路径；其余回首页。子域请求经 Cloudflare 带 `?legacy_lang=xx` 进入主题处理。
+- 语言子域（fr/es/ru/sa）：译文 slug 无法逐条对应英文，按后缀归并：`-idNNN` 新闻 → `/news.html`，`-pd`/`-pl` 产品 → `/products.html`；英文 slug 的页面落到同路径；其余回首页。以上全部落到该语言自己的子目录（fr→/fr/、es→/es/、ru→/ru/、sa→/ar/，由 `language_host_prefix` 配置），在这些语言上线前是占位，会先 404，上线后自动生效；不上某个语言就删掉它的 prefix，改落英文。子域请求经 Cloudflare 带 `?legacy_lang=xx` 进入主题处理。
 - `/forklift-jib-crane-guide`、`/marine-crane-buying-guide` 两篇文章目前只在旧站，规则已写好但 `enabled:false`，文章迁入新站后再启用。
 
 ## 上线切换清单

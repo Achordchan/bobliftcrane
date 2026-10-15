@@ -47,6 +47,7 @@
  ],
  "language_host_same_path": "^/[a-z0-9._-]+$",
  "language_host_default": "/",
+  "language_host_prefix": {"fr": "fr", "es": "es", "ru": "ru", "sa": "ar"},
  "rules": [
   {"from": "/about-371153.html", "to": "/about.html", "note": "旧站关于我们别名"},
   {"from": "/message.html", "to": "/contact.html", "note": "旧站留言表单"},

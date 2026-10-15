@@ -102,6 +102,13 @@ function boblift_legacy_redirect_resolve(string $host, string $path, array $conf
     if ($target === null) {
         return null;
     }
+    if ($language !== '' && !preg_match('#^https?://#i', $target)) {
+        // Language subdomains land in their own language directory (placeholder until that language ships).
+        $prefix = trim((string) (((array) ($config['language_host_prefix'] ?? []))[$language] ?? ''), '/');
+        if ($prefix !== '') {
+            $target = '/' . $prefix . '/' . ltrim($target, '/');
+        }
+    }
     $url = preg_match('#^https?://#i', $target) ? $target : $base . '/' . ltrim($target, '/');
     if ($language === '') {
         // Already on the exact target host and path (case-only rules must not loop, whatever the query says).
