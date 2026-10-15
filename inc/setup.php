@@ -489,6 +489,7 @@ function boblift_article_schema(): void
 add_action('wp_head', 'boblift_article_schema', 5);
 
 // The old site's "Crane by Ton" pages (/5-ton-crane.html ...) are replaced by the tonnage filter on the product list.
+// Tonnage class => capacity bin key, independent of the bin labels shown in the filter.
 function boblift_redirect_old_tonnage_pages(): void
 {
     if (is_admin() || !is_404()) {
@@ -498,12 +499,14 @@ function boblift_redirect_old_tonnage_pages(): void
     if (!preg_match('/^(\d+)-ton-crane(?:\.html)?$/', $path, $m)) {
         return;
     }
-    $ui = function_exists('boblift_site_ui') ? boblift_site_ui('productArchive') : [];
-    $bins = array_keys(array_filter((array) ($ui['capacityBins'] ?? []), static fn($label): bool => $label === $m[1] . ' t'));
-    if (!$bins) {
+    $bins = [1 => '0-1.5', 2 => '1.5-2.5', 3 => '2.5-3.5', 4 => '3.5-4.5', 5 => '4.5-5.5', 6 => '5.5-7', 8 => '7-9', 10 => '9-11', 12 => '11-13', 16 => '13-18', 20 => '18-22.5', 25 => '22.5-27.5'];
+    $key = $bins[(int) $m[1]] ?? null;
+    if ($key === null) {
         return;
     }
-    wp_safe_redirect(add_query_arg('capacity', $bins[0], boblift_product_archive_url()), 301);
+    $ui = function_exists('boblift_site_ui') ? boblift_site_ui('productArchive') : [];
+    $target = isset($ui['capacityBins'][$key]) ? add_query_arg('capacity', $key, boblift_product_archive_url()) : boblift_product_archive_url();
+    wp_safe_redirect($target, 301);
     exit;
 }
 add_action('template_redirect', 'boblift_redirect_old_tonnage_pages', 1);

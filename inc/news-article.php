@@ -14,7 +14,9 @@ if (!defined('ABSPATH')) {
 function boblift_news_article_toc(string $content): array
 {
     $items = [];
-    $used = [];
+    // Reserve every id already in the article first, so generated ids never collide with an explicit anchor further down.
+    preg_match_all('/\sid=["\']([^"\']+)["\']/i', $content, $existing_ids);
+    $used = array_fill_keys($existing_ids[1], true);
     $content = (string) preg_replace_callback('#<h2(\s[^>]*)?>(.*?)</h2>#is', static function (array $match) use (&$items, &$used): string {
         $attributes = (string) ($match[1] ?? '');
         $text = trim(html_entity_decode(wp_strip_all_tags($match[2]), ENT_QUOTES, 'UTF-8'));
@@ -98,10 +100,10 @@ function boblift_news_related_products(string $title, string $content, int $limi
     }
     // Older articles name superseded models (SQ10ZA5 is now SQ10ZA6): match on capacity + boom letter,
     // with the T/TJ suffix telling marine from truck.
-    if (preg_match_all('/(?<![a-z0-9])sq(\d+(?:\.\d+)?)([zs])a(\d+)(tj|t)?/', $haystack, $codes, PREG_SET_ORDER)) {
+    if (preg_match_all('/(?<![a-z0-9])sq(?<capacity>\d+(?:\.\d+)?)(?<boom>[zs])a\d+(?<marine>tj|t)?/', $haystack, $codes, PREG_SET_ORDER)) {
         foreach ($codes as $code) {
-            $prefix = 'sq' . $code[1] . $code[2] . 'a';
-            $marine = ($code[4] ?? '') !== '';
+            $prefix = 'sq' . $code['capacity'] . $code['boom'] . 'a';
+            $marine = ($code['marine'] ?? '') !== '';
             foreach ($index as $product) {
                 foreach ($product['models'] as $model) {
                     $model = strtolower($model);

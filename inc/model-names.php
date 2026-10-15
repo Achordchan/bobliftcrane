@@ -12,22 +12,22 @@
 function boblift_model_parts(string $model): array
 {
     $t = static fn(string $text): string => boblift_localized_static_text($text);
-    if (preg_match('/^SQ(\d+(?:\.\d+)?)(Z|S)A(\d)(T?)(J?)(F?)$/', str_replace('+1', '', $model), $m)) {
-        $capacity = str_starts_with($m[1], '0') && !str_contains($m[1], '.') ? '0.' . substr($m[1], 1) : $m[1];
-        $hydraulic = (int) $m[3] - 1;
+    if (preg_match('/^SQ(?<capacity>\d+(?:\.\d+)?)(?<boom>Z|S)A(?<count>\d)(?<marine>T?)(?<winch>J?)(?<flip>F?)$/', str_replace('+1', '', $model), $m)) {
+        $capacity = str_starts_with($m['capacity'], '0') && !str_contains($m['capacity'], '.') ? '0.' . substr($m['capacity'], 1) : $m['capacity'];
+        $hydraulic = (int) $m['count'] - 1;
         $parts = [
             ['SQ', $t('Truck mounted crane')],
-            [$m[1], str_replace('{capacity}', $capacity, $t('{capacity} t capacity class'))],
-            [$m[2], $t($m[2] === 'Z' ? 'Knuckle boom' : 'Telescopic boom')],
-            ['A' . $m[3], str_replace('{count}', (string) $hydraulic, $t($hydraulic === 1 ? '1 main boom + 1 hydraulic boom' : '1 main boom + {count} hydraulic booms'))],
+            [$m['capacity'], str_replace('{capacity}', $capacity, $t('{capacity} t capacity class'))],
+            [$m['boom'], $t($m['boom'] === 'Z' ? 'Knuckle boom' : 'Telescopic boom')],
+            ['A' . $m['count'], str_replace('{count}', (string) $hydraulic, $t($hydraulic === 1 ? '1 main boom + 1 hydraulic boom' : '1 main boom + {count} hydraulic booms'))],
         ];
-        if ($m[4] !== '') {
+        if ($m['marine'] !== '') {
             $parts[] = ['T', $t('Marine version')];
         }
-        if ($m[5] !== '') {
+        if ($m['winch'] !== '') {
             $parts[] = ['J', $t('With winch')];
         }
-        if ($m[6] !== '') {
+        if ($m['flip'] !== '') {
             $parts[] = ['F', $t('Flip-over outriggers')];
         }
         return $parts;
