@@ -59,9 +59,11 @@ function boblift_legacy_redirect_language_host(string $host, array $config): str
 
 /**
  * Returns the absolute redirect target for a legacy request, or null when the request is not legacy.
+ * $path_exists tells whether a path is a page the new site really serves; without it the same-path
+ * fallback for language hosts is off and those requests go to the home page.
  * Pure function: no WordPress state besides the config argument.
  */
-function boblift_legacy_redirect_resolve(string $host, string $path, array $config, string $site_base): ?string
+function boblift_legacy_redirect_resolve(string $host, string $path, array $config, string $site_base, ?callable $path_exists = null): ?string
 {
     $norm = boblift_legacy_redirect_normalize_path($path);
     $language = boblift_legacy_redirect_language_host($host, $config);
@@ -86,7 +88,7 @@ function boblift_legacy_redirect_resolve(string $host, string $path, array $conf
                 break;
             }
         }
-        if ($target === null && $norm !== '/' && !empty($config['language_host_same_path']) && @preg_match('~' . str_replace('~', '\~', (string) $config['language_host_same_path']) . '~', $norm) === 1) {
+        if ($target === null && $norm !== '/' && $path_exists !== null && !empty($config['language_host_same_path']) && $path_exists($norm) && @preg_match('~' . str_replace('~', '\~', (string) $config['language_host_same_path']) . '~', $norm) === 1) {
             $target = $norm; // English-slug pages that exist under the same path on the new site
         }
         $target ??= (string) ($config['language_host_default'] ?? '/');
@@ -194,7 +196,7 @@ function boblift_legacy_redirects_run(): void
     }
     $config = boblift_legacy_redirects_config();
     $host = boblift_legacy_redirect_effective_host((string) ($_SERVER['HTTP_HOST'] ?? ''), $_GET, $config);
-    $target = boblift_legacy_redirect_resolve($host, $path, $config, home_url());
+    $target = boblift_legacy_redirect_resolve($host, $path, $config, home_url(), 'boblift_legacy_redirect_is_live_path');
     if ($target === null || (!isset($_GET['legacy_lang']) && boblift_legacy_redirect_is_live_path($path))) {
         return;
     }
@@ -206,6 +208,32 @@ function boblift_legacy_redirects_run(): void
     exit;
 }
 add_action('init', 'boblift_legacy_redirects_run', 1);
+
+/** Returns a description of the first redirect cycle among enabled site-internal rules, or null. */
+function boblift_legacy_redirects_find_cycle(array $rules): ?string
+{
+    $next = [];
+    foreach ($rules as $rule) {
+        if (($rule['enabled'] ?? true) === false || empty($rule['from']) || empty($rule['to']) || ($rule['to'][0] ?? '') !== '/') {
+            continue;
+        }
+        $from = boblift_legacy_redirect_normalize_path((string) $rule['from']);
+        $to = boblift_legacy_redirect_normalize_path((string) (parse_url((string) $rule['to'], PHP_URL_PATH) ?? '/'));
+        if ($from !== $to) { // a case-only rule maps a path onto itself; the runtime guard handles it
+            $next[$from] = $to;
+        }
+    }
+    foreach (array_keys($next) as $start) {
+        $seen = [$start => true];
+        for ($node = $next[$start]; isset($next[$node]); $node = $next[$node]) {
+            if (isset($seen[$node])) {
+                return $start . ' -> ... -> ' . $node;
+            }
+            $seen[$node] = true;
+        }
+    }
+    return null;
+}
 
 function boblift_legacy_redirects_sanitize_rule($rule): ?array
 {
@@ -257,6 +285,10 @@ function boblift_legacy_redirects_rest_register(): void
                 $by_from = [];
                 foreach (array_merge($existing, $clean) as $rule) {
                     $by_from[boblift_legacy_redirect_normalize_path((string) $rule['from'])] = $rule;
+                }
+                $cycle = boblift_legacy_redirects_find_cycle(array_values($by_from));
+                if ($cycle !== null) {
+                    return new WP_Error('redirect_cycle', 'These rules would create a redirect cycle (' . $cycle . '); nothing was saved.', ['status' => 400]);
                 }
                 update_option(BOBLIFT_LEGACY_REDIRECTS_OPTION, ['rules' => array_values($by_from)], false);
                 return ['saved' => count($clean), 'total' => count($by_from)];

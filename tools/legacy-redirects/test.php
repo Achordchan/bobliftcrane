@@ -25,12 +25,13 @@ $cases = [
     ['es.bobliftcrane.com', '/products/Excavadora-compacta.html', 'https://www.bobliftcrane.com/products.html'],
     ['sa.bobliftcrane.com', '/Products-Marine-Cranes.html', 'https://www.bobliftcrane.com/marine-crane'],
     ['fr.bobliftcrane.com', '/1-ton-knuckle-boom-truck-mounted-crane.html', 'https://www.bobliftcrane.com/1-ton-knuckle-boom-truck-mounted-crane.html'],
+    ['fr.bobliftcrane.com', '/a-propos.html', 'https://www.bobliftcrane.com/'], // ASCII translated slug with no English page
     ['fr.bobliftcrane.com', '/some/deep/path', 'https://www.bobliftcrane.com/'],
     ['de.bobliftcrane.com', '/Products-Marine-Cranes.html', 'https://www.bobliftcrane.com/marine-crane'],
 ];
 $fail = 0;
 foreach ($cases as [$host, $path, $want]) {
-    $got = boblift_legacy_redirect_resolve($host, $path, $config, $base);
+    $got = boblift_legacy_redirect_resolve($host, $path, $config, $base, static fn(string $p): bool => $p === '/1-ton-knuckle-boom-truck-mounted-crane.html');
     // de.* is not a legacy language host, so it only gets path rules.
     $ok = $got === $want;
     if (!$ok) { $fail++; }
@@ -63,6 +64,9 @@ foreach ([
     $got = boblift_legacy_redirect_merge_query($dest, $in);
     if ($got !== $want) { echo "FAIL merge $dest -> $got\n"; $fail++; }
 }
+$cycle = boblift_legacy_redirects_find_cycle([['from' => '/marine-crane', 'to' => '/Products-Marine-Cranes.html'], ['from' => '/Products-Marine-Cranes.html', 'to' => '/marine-crane']]);
+if ($cycle === null) { echo "FAIL cycle not detected\n"; $fail++; }
+if (boblift_legacy_redirects_find_cycle($config['rules']) !== null) { echo "FAIL shipped rules contain a cycle\n"; $fail++; }
 // An absolute lowercase target must not loop on its own rule; the mixed-case URL still redirects.
 $selfcfg = ['rules' => [['from' => '/about.html', 'to' => 'https://www.bobliftcrane.com/about.html'], ['from' => '/Example.html', 'to' => 'https://www.bobliftcrane.com/example.html'], ['from' => '/Q.html', 'to' => '/q.html?x=1']]];
 foreach ([['/example.html', null], ['/Example.html', 'https://www.bobliftcrane.com/example.html'], ['/q.html', null], ['/about.html', null]] as [$pth, $want]) {
