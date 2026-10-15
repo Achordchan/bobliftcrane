@@ -25,13 +25,15 @@ $cases = [
     ['es.bobliftcrane.com', '/products/Excavadora-compacta.html', 'https://www.bobliftcrane.com/products.html'],
     ['sa.bobliftcrane.com', '/Products-Marine-Cranes.html', 'https://www.bobliftcrane.com/marine-crane'],
     ['fr.bobliftcrane.com', '/1-ton-knuckle-boom-truck-mounted-crane.html', 'https://www.bobliftcrane.com/1-ton-knuckle-boom-truck-mounted-crane.html'],
+    ['fr.bobliftcrane.com', '/Company-News.html', 'https://www.bobliftcrane.com/Company-News.html'],
+    ['fr.bobliftcrane.com', '/real-product-pd123456.html', 'https://www.bobliftcrane.com/real-product-pd123456.html'],
     ['fr.bobliftcrane.com', '/a-propos.html', 'https://www.bobliftcrane.com/'], // ASCII translated slug with no English page
     ['fr.bobliftcrane.com', '/some/deep/path', 'https://www.bobliftcrane.com/'],
     ['de.bobliftcrane.com', '/Products-Marine-Cranes.html', 'https://www.bobliftcrane.com/marine-crane'],
 ];
 $fail = 0;
 foreach ($cases as [$host, $path, $want]) {
-    $got = boblift_legacy_redirect_resolve($host, $path, $config, $base, static fn(string $p): bool => $p === '/1-ton-knuckle-boom-truck-mounted-crane.html');
+    $got = boblift_legacy_redirect_resolve($host, $path, $config, $base, static fn(string $p): bool => in_array($p, ['/1-ton-knuckle-boom-truck-mounted-crane.html', '/Company-News.html', '/real-product-pd123456.html'], true));
     // de.* is not a legacy language host, so it only gets path rules.
     $ok = $got === $want;
     if (!$ok) { $fail++; }

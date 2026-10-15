@@ -82,14 +82,16 @@ function boblift_legacy_redirect_resolve(string $host, string $path, array $conf
 
     if ($target === null && $language !== '') {
         $decoded = rawurldecode($path);
-        foreach ((array) ($config['language_host_fallbacks'] ?? []) as $fallback) {
+        $exact = rtrim($decoded, '/');
+        // An English page that really exists under the same path wins over the generic suffix fallbacks.
+        if ($exact !== '' && $path_exists !== null && !empty($config['language_host_same_path']) && @preg_match('~' . str_replace('~', '\~', (string) $config['language_host_same_path']) . '~i', $exact) === 1 && $path_exists($exact)) {
+            $target = $exact;
+        }
+        foreach ($target === null ? (array) ($config['language_host_fallbacks'] ?? []) : [] as $fallback) {
             if (!empty($fallback['match']) && !empty($fallback['to']) && @preg_match('~' . str_replace('~', '\~', (string) $fallback['match']) . '~iu', $decoded) === 1) {
                 $target = (string) $fallback['to'];
                 break;
             }
-        }
-        if ($target === null && $norm !== '/' && $path_exists !== null && !empty($config['language_host_same_path']) && $path_exists($norm) && @preg_match('~' . str_replace('~', '\~', (string) $config['language_host_same_path']) . '~', $norm) === 1) {
-            $target = $norm; // English-slug pages that exist under the same path on the new site
         }
         $target ??= (string) ($config['language_host_default'] ?? '/');
         if ($norm === '/') {
