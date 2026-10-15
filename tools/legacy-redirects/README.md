@@ -28,7 +28,7 @@
 - 旧分类页（`Products-*.html`、单数命名的分类、按吨位页）统一到新站分类页或 `/products.html`。
 - 滑移装载机、迷你翻斗车、搅拌车：跳 bobliftloader.com 对应产品页（型号后缀 T/S、-H/-C 为按名称推断，待业务确认）。
 - SaaS 自动生成的关键词页（`/products/*.html`、`/news/*.html`、keywords）归到最相关的分类或首页。
-- 语言子域（fr/es/ru/sa）：译文 slug 无法逐条对应英文，按后缀归并：`-idNNN` 新闻 → `/news.html`，`-pd`/`-pl` 产品 → `/products.html`；英文 slug 的页面落到同路径；其余回首页。以上全部落到该语言自己的子目录（fr→/fr/、es→/es/、ru→/ru/、sa→/ar/，由 `language_host_prefix` 配置），在这些语言上线前是占位，会先 404，上线后自动生效；不上某个语言就删掉它的 prefix，改落英文。子域请求经 Cloudflare 带 `?legacy_lang=xx` 进入主题处理。
+- 语言子域（fr/es/ru/sa）：译文 slug 无法逐条对应英文，按后缀归并：`-idNNN` 新闻 → `/news.html`，`-pd`/`-pl` 产品 → `/products.html`；英文 slug 的页面落到同路径；其余回首页。以上全部落到该语言自己的子目录（fr→/fr/、es→/es/、ru→/ru/、sa→/ar/，由 `language_host_prefix` 配置），主题会先确认目标页在该语言下真实存在才落过去；语言还没上线时暂落英文对应页（不会 404），语言页建好后自动改落该语言，无需改规则。子域请求经 Cloudflare 带 `?legacy_lang=xx` 进入主题处理。
 - `/forklift-jib-crane-guide`、`/marine-crane-buying-guide` 两篇文章目前只在旧站，规则已写好但 `enabled:false`，文章迁入新站后再启用。
 
 ## 上线切换清单
@@ -45,7 +45,7 @@
    `concat("https://www.bobliftcrane.com", http.request.uri.path, "?legacy_lang=fr&", http.request.uri.query)`
 
    （规则里的「保留查询字符串」必须关闭，否则查询参数会重复。Cloudflare 重定向表达式不支持 `if()`，所以无条件拼接；原链接没有查询参数时结尾会多一个 `&`，主题会忽略它。）这样原路径和原查询参数（gclid、utm 等）都会带过去，不会在第一跳丢掉。保存前用规则预览确认表达式可用。主题认到 `legacy_lang` 后按语言子域的归并规则再 301 一次到最终地址，并去掉这个参数。这样是两跳；想一跳到位，可改用 Cloudflare 批量重定向列表，把 `redirect-map.csv` 对应的语言子域地址逐条导入（条数受套餐限制，先确认）。
-5. fr/es/ru/sa 目前只是占位：这些子域的页面落到 /fr/、/es/、/ru/、/ar/ 下，语言上线前会 404；某个语言长期不做，就在 `legacy-redirects.json` 的 `language_host_prefix` 里删掉它，改落英文。
+5. fr/es/ru/sa 的目标语言目录由 `language_host_prefix` 配置：该语言目录下真有对应页面时才落过去，否则暂落英文对应页；以后上线某种语言不用改规则，上线前用 `check.py` 抽查一遍。
 6. 确认新站 `home` / `siteurl` 为 `https://www.bobliftcrane.com`，`/sitemap.xml`、`robots.txt`、canonical、hreflang 正常。
 7. 提前 24 小时把相关 DNS 记录 TTL 降到 300 秒。
 

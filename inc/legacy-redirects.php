@@ -103,10 +103,15 @@ function boblift_legacy_redirect_resolve(string $host, string $path, array $conf
         return null;
     }
     if ($language !== '' && !preg_match('#^https?://#i', $target)) {
-        // Language subdomains land in their own language directory (placeholder until that language ships).
+        // Language subdomains land in their own language directory once that language is live.
         $prefix = trim((string) (((array) ($config['language_host_prefix'] ?? []))[$language] ?? ''), '/');
-        if ($prefix !== '') {
-            $target = '/' . $prefix . '/' . ltrim($target, '/');
+        if ($prefix !== '' && $path_exists !== null) {
+            // Only once that language really serves the page; until then the English target stays (no 404 on a 301).
+            $localized = '/' . $prefix . '/' . ltrim($target, '/');
+            $localized_path = rtrim((string) parse_url($localized, PHP_URL_PATH), '/');
+            if ($path_exists($localized_path)) {
+                $target = $localized;
+            }
         }
     }
     $url = preg_match('#^https?://#i', $target) ? $target : $base . '/' . ltrim($target, '/');
@@ -167,6 +172,9 @@ function boblift_legacy_redirect_is_live_path(string $path): bool
     $raw = rtrim(rawurldecode($path), '/');
     if ($raw === '') {
         return true; // the home page
+    }
+    if (function_exists('pll_languages_list') && in_array(ltrim($raw, '/'), (array) pll_languages_list(['fields' => 'slug']), true)) {
+        return true; // a language home such as /ru
     }
     if (function_exists('boblift_public_custom_url_routes') && isset(boblift_public_custom_url_routes()[ltrim($raw, '/')])) {
         return true;
