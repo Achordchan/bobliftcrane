@@ -28,28 +28,30 @@
 - 旧分类页（`Products-*.html`、单数命名的分类、按吨位页）统一到新站分类页或 `/products.html`。
 - 滑移装载机、迷你翻斗车、搅拌车：跳 bobliftloader.com 对应产品页（型号后缀 T/S、-H/-C 为按名称推断，待业务确认）。
 - SaaS 自动生成的关键词页（`/products/*.html`、`/news/*.html`、keywords）归到最相关的分类或首页。
-- 语言子域（fr/es/ru/sa）：译文 slug 无法逐条对应英文，按后缀归并：`-idNNN` 新闻 → `/news.html`，`-pd`/`-pl` 产品 → `/products.html`，其余回首页。
+- 语言子域（fr/es/ru/sa）：译文 slug 无法逐条对应英文，按后缀归并：`-idNNN` 新闻 → `/news.html`，`-pd`/`-pl` 产品 → `/products.html`；英文 slug 的页面落到 www 同路径；其余回首页。子域请求经 Cloudflare 带 `?legacy_lang=xx` 进入主题处理。
 - `/forklift-jib-crane-guide`、`/marine-crane-buying-guide` 两篇文章目前只在旧站，规则已写好但 `enabled:false`，文章迁入新站后再启用。
 
 ## 上线切换清单
 
 标 ⚠ 的步骤会影响线上，必须先得到用户确认。
 
-**一、上线前**
+**一、上线前**（定案：新站托管在 WordPress.com，多语言用子目录 `/ja/`、`/zh/`，英文在根目录）
 
 1. 补齐内容：旧站独有的文章（上面两篇，以及 10 月新发的）在新站建好同名页面，启用对应规则。
-2. 新站放到正式主机的临时地址，用 `check.py --base <临时地址> --host www.bobliftcrane.com` 跑全部规则，再抽查语言子域（`curl -I -H 'Host: fr.bobliftcrane.com' …`）。
-3. 确认新站 `home` / `siteurl` 为 `https://www.bobliftcrane.com`，固定链接刷新，`/sitemap.xml`、`robots.txt`、canonical、hreflang 正常。
-4. 提前 24 小时把相关 DNS 记录 TTL 降到 300 秒。
-5. 如果新站托管在 WordPress.com：附加域名只会整体跳主域，语言子域做不到逐路径跳转，需改用 Cloudflare 重定向规则；自建主机（Lightsail 等）可让子域直接解析到新站，由主题处理。托管方式定了再选。
+2. Polylang 从「按域名」改成「按目录」：设置里 URL 修改选「从固定链接中的目录名设置语言」，清空各语言域名，英文隐藏语言前缀，保存后刷新固定链接。改完在本地确认 `/foo.html` 与 `/ja/foo.html`、分类页、`/feedback/…` 都能打开。
+3. 新站放 WordPress.com（Premium 以上才能上传自定义主题和插件）；主题和插件 zip 上传，先在 WP.com 默认地址上测。用 `check.py --base <WP.com 临时地址> --host www.bobliftcrane.com` 跑全部规则。
+4. 语言子域 fr/es/ru/sa：WP.com 的附加域名只会整体跳主域，不能逐路径跳，所以由 Cloudflare 接管这四个子域（域名 DNS 要在 Cloudflare，免费版即可）。建一条重定向规则：主机名属于这四个之一时，301 到 `https://www.bobliftcrane.com` + 原路径 + `?legacy_lang=` + 子域前缀（如 `fr.bobliftcrane.com/x.html` → `https://www.bobliftcrane.com/x.html?legacy_lang=fr`）。主题认到 `legacy_lang` 后按语言子域的归并规则再 301 一次到最终地址，并去掉这个参数。这样是两跳；想一跳到位，可改用 Cloudflare 批量重定向列表，把 `redirect-map.csv` 对应的语言子域地址逐条导入（条数受套餐限制，先确认）。
+5. 新站没有 fr/es/ru/sa 版本，这些子域的页面统一落到英文对应页；以后要加某种语言，在 `legacy-redirects.json` 里把该语言的目标改成 `/xx/…` 即可。
+6. 确认新站 `home` / `siteurl` 为 `https://www.bobliftcrane.com`，`/sitemap.xml`、`robots.txt`、canonical、hreflang 正常。
+7. 提前 24 小时把相关 DNS 记录 TTL 降到 300 秒。
 
 **二、切换日** ⚠
 
 1. 旧站停止改内容，导出最终 sitemap，与 `redirect-map.csv` 做最后一次差异比对。
-2. 部署主题和内容，启用待迁入文章的规则。
-3. DNS：`www` 指向新站；根域 `bobliftcrane.com` 301 到 www；`fr/es/ru/sa` 子域也指向新站（或 Cloudflare 规则），保留到跳转稳定。
-4. 签发或确认 HTTPS 证书，覆盖 www 与四个子域。
-5. 跑 `check.py --base https://www.bobliftcrane.com`，再手测首页、一个产品页、一个旧分类页、旧子域首页，确认 301 且带 `X-Redirect-By: boblift-legacy-redirects`。
+2. 在 WP.com 把 `www.bobliftcrane.com` 设为主域名，按 WP.com 给出的记录改 DNS（Cloudflare 里用 A 记录、灰云，不要改名称服务器）；根域 301 到 www。
+3. 同时在 Cloudflare 启用第 4 步的子域重定向规则，子域 DNS 记录保持代理（橙云）。
+4. 等 WP.com 自动签发 HTTPS 证书，覆盖 www。
+5. 跑 `check.py --base https://www.bobliftcrane.com`，再手测首页、一个产品页、一个旧分类页、`/ja/` 页面，以及 `fr.bobliftcrane.com` 首页和一个深层页面，确认 301 且带 `X-Redirect-By: boblift-legacy-redirects`。
 
 **三、上线后** （网页点击由用户本人操作）
 

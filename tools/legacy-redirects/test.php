@@ -22,6 +22,8 @@ $cases = [
     ['ru.bobliftcrane.com', '/%D0%9C%D0%B8%D0%BD%D0%B8-pl61907667.html', 'https://www.bobliftcrane.com/products.html'],
     ['es.bobliftcrane.com', '/products/Excavadora-compacta.html', 'https://www.bobliftcrane.com/products.html'],
     ['sa.bobliftcrane.com', '/Products-Marine-Cranes.html', 'https://www.bobliftcrane.com/marine-crane'],
+    ['fr.bobliftcrane.com', '/1-ton-knuckle-boom-truck-mounted-crane.html', 'https://www.bobliftcrane.com/1-ton-knuckle-boom-truck-mounted-crane.html'],
+    ['fr.bobliftcrane.com', '/some/deep/path', 'https://www.bobliftcrane.com/'],
     ['de.bobliftcrane.com', '/Products-Marine-Cranes.html', 'https://www.bobliftcrane.com/marine-crane'],
 ];
 $fail = 0;
@@ -41,5 +43,14 @@ foreach ($config['rules'] as $r) {
     if ($got === null && rtrim($r['from'], '/') !== rtrim($r['to'], '/')) { echo "FAIL rule not applied: {$r['from']}\n"; $fail++; }
     if ($r['to'][0] === '/' && isset($sources[boblift_legacy_redirect_normalize_path($r['to'])]) && boblift_legacy_redirect_normalize_path($r['to']) !== boblift_legacy_redirect_normalize_path($r['from'])) { echo "FAIL chain: {$r['from']} -> {$r['to']}\n"; $fail++; }
 }
-echo $fail ? "$fail FAILED\n" : "all passed\n";
+
+$eff = [
+    ['www.bobliftcrane.com', ['legacy_lang' => 'fr'], 'fr.bobliftcrane.com'],
+    ['www.bobliftcrane.com', ['legacy_lang' => 'de'], 'www.bobliftcrane.com'],
+    ['www.bobliftcrane.com', [], 'www.bobliftcrane.com'],
+];
+foreach ($eff as [$h, $q, $want]) {
+    if (boblift_legacy_redirect_effective_host($h, $q, $config) !== $want) { echo "FAIL effective host for " . json_encode($q) . "\n"; $fail++; }
+}
+echo $fail ? "$fail FAILED\n" : "effective-host ok\n";
 exit($fail ? 1 : 0);

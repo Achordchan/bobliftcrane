@@ -80,6 +80,9 @@ function boblift_legacy_redirect_resolve(string $host, string $path, array $conf
                 break;
             }
         }
+        if ($target === null && $norm !== '/' && !empty($config['language_host_same_path']) && @preg_match('~' . str_replace('~', '\~', (string) $config['language_host_same_path']) . '~', $norm) === 1) {
+            $target = $norm; // English-slug pages that exist under the same path on the new site
+        }
         $target ??= (string) ($config['language_host_default'] ?? '/');
         if ($norm === '/') {
             $target = '/';
@@ -96,6 +99,20 @@ function boblift_legacy_redirect_resolve(string $host, string $path, array $conf
     return $url;
 }
 
+/**
+ * Language subdomains cannot reach WordPress when the new site is hosted on WordPress.com, so a
+ * Cloudflare rule sends fr.bobliftcrane.com/path to https://www.bobliftcrane.com/path?legacy_lang=fr.
+ * That label stands in for the original host here.
+ */
+function boblift_legacy_redirect_effective_host(string $host, array $query, array $config): string
+{
+    $label = isset($query['legacy_lang']) && is_string($query['legacy_lang']) ? strtolower($query['legacy_lang']) : '';
+    if ($label !== '' && in_array($label, (array) ($config['language_hosts'] ?? []), true) && !empty($config['legacy_domain'])) {
+        return $label . '.' . $config['legacy_domain'];
+    }
+    return $host;
+}
+
 function boblift_legacy_redirects_run(): void
 {
     if (!in_array($_SERVER['REQUEST_METHOD'] ?? 'GET', ['GET', 'HEAD'], true) || (defined('WP_CLI') && WP_CLI)) {
@@ -107,11 +124,14 @@ function boblift_legacy_redirects_run(): void
         return;
     }
     $config = boblift_legacy_redirects_config();
-    $target = boblift_legacy_redirect_resolve((string) ($_SERVER['HTTP_HOST'] ?? ''), $path, $config, home_url());
+    $host = boblift_legacy_redirect_effective_host((string) ($_SERVER['HTTP_HOST'] ?? ''), $_GET, $config);
+    $target = boblift_legacy_redirect_resolve($host, $path, $config, home_url());
     if ($target === null) {
         return;
     }
-    $query = (string) parse_url($uri, PHP_URL_QUERY);
+    parse_str((string) parse_url($uri, PHP_URL_QUERY), $params);
+    unset($params['legacy_lang']);
+    $query = http_build_query($params);
     if ($query !== '' && !str_contains($target, '?')) {
         $target .= '?' . $query;
     }
