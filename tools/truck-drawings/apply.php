@@ -92,12 +92,15 @@ foreach ($plan['new'] as $p) {
     $slug = sanitize_title($p['title']);
     $term = get_term_by('slug', $p['category'], 'product_category');
     $sibling = $find($p['sibling']);
+    $existing = $find($slug);
+    // A draft this script staged (marker meta) is an interrupted run: it is resumed below instead of being treated as finished.
+    $resuming = $existing && $existing->post_status === 'draft' && get_post_meta($existing->ID, '_boblift_staging', true) === '1';
     // Already created: keep it, but bring its spec table in line with the plan.
-    if (($existing = $find($slug)) && !$dry) {
+    if ($existing && !$resuming && !$dry) {
         update_post_meta($existing->ID, '_specs', wp_slash($json($p['specs'])));
         $reconcile_drawings($existing->ID, $p);
     }
-    if ($existing || !$term || !$sibling) {
+    if (($existing && !$resuming) || !$term || !$sibling) {
         $skipped[] = $slug . ($term ? ($sibling ? ' (exists)' : ' (no sibling ' . $p['sibling'] . ')') : ' (no category)');
         continue;
     }
@@ -105,14 +108,24 @@ foreach ($plan['new'] as $p) {
         $created[] = $slug;
         continue;
     }
-    $id = wp_insert_post(wp_slash([
+    // New products are staged as drafts and published after all their media and meta are written.
+    $postarr = [
         'post_type' => 'product',
-        'post_status' => 'publish',
+        'post_status' => 'draft',
         'post_title' => $p['title'],
         'post_name' => $slug,
         'post_excerpt' => $p['short_description'],
         'post_content' => '<p>' . esc_html($p['short_description']) . '</p>',
-    ]), true);
+    ];
+    if ($resuming) {
+        $postarr['ID'] = $existing->ID;
+        $id = wp_update_post(wp_slash($postarr), true);
+    } else {
+        $id = wp_insert_post(wp_slash($postarr), true);
+    }
+    if (!is_wp_error($id)) {
+        update_post_meta($id, '_boblift_staging', '1');
+    }
     if (is_wp_error($id)) {
         $skipped[] = $slug . ' (' . $id->get_error_message() . ')';
         continue;
@@ -163,6 +176,8 @@ foreach ($plan['new'] as $p) {
     foreach ($meta as $key => $value) {
         update_post_meta($id, $key, wp_slash($value));
     }
+    wp_update_post(['ID' => $id, 'post_status' => 'publish']);
+    delete_post_meta($id, '_boblift_staging');
     $created[] = $id . ' ' . $slug;
 }
 

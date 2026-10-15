@@ -562,18 +562,14 @@ function boblift_about_legacy_intro(array $logo): array
  */
 function boblift_about_legacy_strength(array $strength): array
 {
-    $default_card_titles = [
-        ['R&D and Engineering', 'Precision Manufacturing', 'Global Delivery', 'After-Sales Support'],
-        ['Who we are', 'What we build', 'How we develop', 'How we support buyers'],
-        ['私たちについて', '私たちが製造するもの', '私たちの開発方法', 'バイヤーへのサポート方法'],
-        ['我们是谁', '我们制造什么', '我们如何发展', '我们如何支持买家'],
-    ];
+    // Complete [title, text] pairs of the historical default card sets (original, English seed, Japanese and Chinese seeds).
+    $default_card_sets = [[['R&D and Engineering', 'Engineering teams support practical crane selection, structural design and project-specific configurations.'], ['Precision Manufacturing', 'Controlled welding, assembly and inspection workflows keep every lifting system stable and repeatable.'], ['Global Delivery', 'Export-ready documentation, packing and logistics support help projects move across international markets.'], ['After-Sales Support', 'Service guidance, spare parts coordination and technical response help customers keep equipment working.']], [['Who we are', 'A high-tech construction machinery enterprise headquartered in Xuzhou, China, focused on practical lifting equipment for global buyers.'], ['What we build', 'Truck-mounted cranes remain the core product line, supported by marine cranes, aerial work platforms, pickup cranes and spider cranes.'], ['How we develop', 'Our team keeps product development focused on safety, technology and reliable engineering while absorbing international crane design experience.'], ['How we support buyers', 'We support customers through selection, manufacturing, testing, spare parts, remote technical support, installation guidance and operator training.']], [['私たちについて', '中国・徐州に本社を置くハイテク建設機械企業で、グローバルバイヤー向けの実用的な吊り上げ機器に注力しています。'], ['私たちが製造するもの', 'トラック搭載型クレーンを中核製品ラインとし、これをマリンクレーン、高所作業車、ピックアップクレーン、スパイダークレーンが支えています。'], ['私たちの開発方法', '当社チームは、国際的なクレーン設計の経験を取り入れながら、安全性、技術、信頼できるエンジニアリングに重点を置いて製品開発を進めています。'], ['バイヤーへのサポート方法', '当社は、選定、製造、試験、スペアパーツ、リモート技術サポート、設置指導、オペレーター研修を通じてお客様を支援します。']], [['我们是谁', '一家总部位于中国徐州的高新技术工程机械企业，专注于为全球买家提供实用型起重设备。'], ['我们制造什么', '随车起重机仍是核心产品线，同时辅以船用起重机、高空作业平台、皮卡起重机和蜘蛛起重机。'], ['我们如何发展', '我们的团队始终专注于安全、技术和可靠工程，推进产品开发，同时吸收国际起重机设计经验。'], ['我们如何支持买家', '我们通过选型、制造、测试、备件、远程技术支持、安装指导和操作员培训来支持客户。']]];
     $default_ctas = [['Talk to Our Team', '/contact'], ['Talk to Our Team', '/contact.html'], ['当社チームにご相談ください', '/contact'], ['与我们的团队联系', '/contact']];
     $cards = array_values(array_filter((array) ($strength['cards'] ?? []), static fn($card): bool => is_array($card) && (trim((string) ($card['title'] ?? '')) !== '' || trim((string) ($card['text'] ?? '')) !== '')));
-    $titles = array_map(static fn(array $card): string => trim((string) ($card['title'] ?? '')), $cards);
+    $pairs = array_map(static fn(array $card): array => [trim((string) ($card['title'] ?? '')), trim((string) ($card['text'] ?? ''))], $cards);
     $cta = [trim((string) ($strength['cta_label'] ?? '')), trim((string) ($strength['cta_href'] ?? ''))];
     return [
-        'cards' => in_array($titles, $default_card_titles, true) ? [] : $cards,
+        'cards' => in_array($pairs, $default_card_sets, true) ? [] : $cards,
         'cta' => ($cta[0] === '' || in_array($cta, $default_ctas, true)) ? null : ['label' => $cta[0], 'href' => $cta[1] !== '' ? $cta[1] : '/contact.html'],
     ];
 }

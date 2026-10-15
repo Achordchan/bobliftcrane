@@ -48,14 +48,20 @@ foreach ($plan['items'] as $order => $item) {
         $media_count += count($item['media']);
         continue;
     }
-    $post_id = $existing ? (int) $existing[0] : wp_insert_post(['post_type' => 'feedback', 'post_status' => 'publish', 'post_title' => $title, 'post_name' => $item['slug'], 'menu_order' => $order], true);
+    // A draft this script staged (marker meta) is an interrupted run: it is initialised again. New entries stay drafts until
+    // country, note, model and media are all written, so a stopped run never leaves a half-initialised published page.
+    $resuming = $existing && get_post_status((int) $existing[0]) === 'draft' && get_post_meta((int) $existing[0], '_boblift_feedback_staging', true) === '1';
+    $post_id = $existing ? (int) $existing[0] : wp_insert_post(['post_type' => 'feedback', 'post_status' => 'draft', 'post_title' => $title, 'post_name' => $item['slug'], 'menu_order' => $order], true);
     if (is_wp_error($post_id)) {
         $missing[] = $item['source'] . ' (post)';
         continue;
     }
+    if (!$existing || $resuming) {
+        update_post_meta($post_id, '_boblift_feedback_staging', '1');
+    }
     $created += $existing ? 0 : 1;
     // The title's "·" once leaked into the slug as %c2%b7; the detail page URL uses the plan's clean slug.
-    if (!$existing && get_post_field('post_name', $post_id) !== $item['slug']) {
+    if ((!$existing || $resuming) && get_post_field('post_name', $post_id) !== $item['slug']) {
         wp_update_post(['ID' => $post_id, 'post_name' => $item['slug']]);
     }
     $ids = [];
@@ -75,7 +81,7 @@ foreach ($plan['items'] as $order => $item) {
         $media_count++;
     }
     update_post_meta($post_id, '_boblift_feedback_source', $item['source']);
-    if ($existing) {
+    if ($existing && !$resuming) {
         // Keep what the editor maintains; just attach planned media that is still missing.
         $current = array_values(array_filter(array_map('intval', explode(',', (string) get_post_meta($post_id, '_feedback_media', true)))));
         update_post_meta($post_id, '_feedback_media', implode(',', array_values(array_unique(array_merge($current, $ids)))));
@@ -85,6 +91,8 @@ foreach ($plan['items'] as $order => $item) {
     update_post_meta($post_id, '_feedback_note', $item['note'] ? wp_slash(wp_json_encode($item['note'], JSON_UNESCAPED_UNICODE)) : '');
     update_post_meta($post_id, '_feedback_model', $item['model']);
     update_post_meta($post_id, '_feedback_media', implode(',', $ids));
+    wp_update_post(['ID' => $post_id, 'post_status' => 'publish']);
+    delete_post_meta($post_id, '_boblift_feedback_staging');
 }
 
 printf("%s: %d groups (%d new), %d media, missing %d\n", $dry ? 'DRY RUN' : 'DONE', count($plan['items']), $created, $media_count, count($missing));
