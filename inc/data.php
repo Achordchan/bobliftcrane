@@ -980,8 +980,8 @@ function boblift_product_family_group_label(string $group): string
 
 /**
  * The footer's product column follows the product category tree, like the Products menu. It is the
- * link group saved with source "product_categories" or, in options saved before that existed, the
- * group whose links all point into the catalog.
+ * link group saved with source "product_categories" or, in options saved before that existed, the group that still
+ * holds the exact historical default product links.
  */
 function boblift_footer_is_product_group(array $group): bool
 {
@@ -992,12 +992,15 @@ function boblift_footer_is_product_group(array $group): bool
     if ($links === []) {
         return false;
     }
+    // Only the historical default group counts: every link is a /products#<category> anchor to one of the original seven
+    // categories. A group an administrator curated (any other link, or a category outside that list) is left as saved.
+    $default_anchors = ['telescopic-boom-truck-mounted-cranes', 'knuckle-boom-truck-mounted-cranes', 'pickup-cranes', 'knuckle-boom-marine-cranes', 'forklift-fly-jib-cranes', 'aerial-work-platform', 'tail-lift'];
     foreach ($links as $link) {
-        if (!is_array($link) || !preg_match('~^/?products(?:\.html)?(?:[/#?]|$)~', trim((string) ($link['href'] ?? '')))) {
+        if (!is_array($link) || !preg_match('~^/?products(?:\.html)?#([a-z0-9-]+)$~', trim((string) ($link['href'] ?? '')), $m) || !in_array($m[1], $default_anchors, true)) {
             return false;
         }
     }
-    return true;
+    return count($links) === count($default_anchors);
 }
 
 function boblift_product_category_hierarchy(): array

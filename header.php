@@ -212,6 +212,11 @@ foreach ($nav_items as $item) {
     $nav_by_key[$key] = $item;
 }
 // A saved Services entry keeps its own label, link and children; the generated one is added only when there is none.
+// A saved item for the same destination (/mounting-shipping.html) is the Services entry too.
+if (!isset($nav_by_key['services']) && isset($nav_by_key['mounting-shipping'])) {
+    $nav_by_key['services'] = $nav_by_key['mounting-shipping'];
+    unset($nav_by_key['mounting-shipping']);
+}
 if (!isset($nav_by_key['services'])) {
     $nav_by_key['services'] = [
         'label' => $nav_static_label('Services'),

@@ -216,9 +216,39 @@ if ($has_configured_detail_images && get_post_meta(get_the_ID(), '_detail_images
 }
 // Body layout: text before the first h3 is the lead (left); each h3 section stacks in the right column,
 // so a short body fills the card width instead of one narrow column.
-$detail_body_parts = $detail_body_html !== '' ? preg_split('/(?=<h3\b)/i', $detail_body_html) : [];
-$detail_body_lead = $detail_body_parts && !preg_match('/^\s*<h3\b/i', $detail_body_parts[0]) ? trim((string) array_shift($detail_body_parts)) : '';
-$detail_body_sections = implode('', $detail_body_parts);
+// Split only at top-level <h3> elements (DOM children), so headings nested inside Group or Columns blocks never cut a block in two.
+$detail_body_lead = '';
+$detail_body_sections = '';
+if ($detail_body_html !== '') {
+    $detail_body_lead = $detail_body_html;
+    if (class_exists('DOMDocument') && stripos($detail_body_html, '<h3') !== false) {
+        $detail_dom = new DOMDocument();
+        $previous_libxml = libxml_use_internal_errors(true);
+        $detail_dom->loadHTML('<?xml encoding="utf-8" ?><div id="boblift-detail-root">' . $detail_body_html . '</div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous_libxml);
+        $detail_root = $detail_dom->getElementById('boblift-detail-root');
+        if ($detail_root instanceof DOMElement) {
+            $lead_html = '';
+            $section_html = '';
+            $in_sections = false;
+            foreach (iterator_to_array($detail_root->childNodes) as $detail_node) {
+                if (!$in_sections && $detail_node instanceof DOMElement && strtolower($detail_node->tagName) === 'h3') {
+                    $in_sections = true;
+                }
+                if ($in_sections) {
+                    $section_html .= $detail_dom->saveHTML($detail_node);
+                } else {
+                    $lead_html .= $detail_dom->saveHTML($detail_node);
+                }
+            }
+            if ($section_html !== '') {
+                $detail_body_lead = trim($lead_html);
+                $detail_body_sections = $section_html;
+            }
+        }
+    }
+}
 $render_detail_body = static function (string $wrapper_class) use ($detail_body_lead, $detail_body_sections): void {
     $split = $detail_body_lead !== '' && trim($detail_body_sections) !== '';
     ?>
