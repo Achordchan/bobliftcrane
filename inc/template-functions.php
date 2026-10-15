@@ -227,6 +227,25 @@ function boblift_post_thumbnail_url(WP_Post $post, string $fallback): string
 }
 
 /**
+ * Whether a product's body text ("_detail_body_ready") or detail images ("_detail_images_ready") may be shown.
+ * An editor's choice wins: a saved "1" shows it, a saved empty value hides it. Without a saved choice, content that is
+ * not untouched old-site copy stays visible (the product was created natively, or saved after its old-site import), so
+ * products published before these boxes existed keep their content; untouched imports stay hidden.
+ */
+function boblift_product_content_ready(int $post_id, string $flag_key): bool
+{
+    if (metadata_exists('post', $post_id, $flag_key)) {
+        return get_post_meta($post_id, $flag_key, true) === '1';
+    }
+    $imported_at = (string) get_post_meta($post_id, '_old_site_imported_at', true);
+    if ($imported_at === '') {
+        return true;
+    }
+    $post = get_post($post_id);
+    return $post instanceof WP_Post && strtotime($post->post_modified_gmt . ' UTC') > (strtotime($imported_at) ?: 0);
+}
+
+/**
  * A page by its slug alone, so pages nested under About (about/<slug>) are found too. Prefers the source-language page
  * when translations share the slug; returns null when there is none.
  */

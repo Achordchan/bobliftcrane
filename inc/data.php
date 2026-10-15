@@ -864,7 +864,63 @@ function boblift_product_menu_families(): array
     // Built once per request and language: the header and the footer both need it.
     static $cache = [];
     $language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
-    return $cache[$language] ??= boblift_build_product_menu_families();
+    return $cache[$language] ??= (boblift_curated_product_menu_families() ?: boblift_build_product_menu_families());
+}
+
+/**
+ * Product menu groups an administrator curated in the saved "product_nav_groups" (anything different from the built-in
+ * default) keep driving the menu; untouched sites get the menu generated from the category tree.
+ */
+function boblift_curated_product_menu_families(): array
+{
+    $options = boblift_options();
+    $saved = $options['product_nav_groups'] ?? null;
+    $default = boblift_default_options()['product_nav_groups'] ?? null;
+    $slug_of = static function (string $href): string {
+        $path = (string) wp_parse_url($href, PHP_URL_FRAGMENT);
+        return $path !== '' ? sanitize_title($path) : sanitize_title(basename(trim((string) wp_parse_url($href, PHP_URL_PATH), '/'), '.html'));
+    };
+    // Compare titles, labels and destination categories (the default stores /slug, saved options /products#slug).
+    $signature = static fn($groups): string => wp_json_encode(array_map(static fn($g): array => [
+        trim((string) ($g['title'] ?? '')), $slug_of((string) ($g['href'] ?? '')),
+        array_map(static fn($l): array => [trim((string) ($l['label'] ?? '')), $slug_of((string) ($l['href'] ?? ''))], array_values(array_filter((array) ($g['links'] ?? []), 'is_array'))),
+    ], array_values(array_filter((array) $groups, 'is_array'))));
+    if (!is_array($saved) || $saved === [] || $signature($saved) === $signature($default)) {
+        return [];
+    }
+    $families = [];
+    foreach ($saved as $group) {
+        if (!is_array($group) || trim((string) ($group['title'] ?? '')) === '') {
+            continue;
+        }
+        $children = [];
+        $count = 0;
+        foreach ((array) ($group['links'] ?? []) as $link) {
+            if (!is_array($link) || trim((string) ($link['label'] ?? '')) === '') {
+                continue;
+            }
+            $term = get_term_by('slug', $slug_of((string) ($link['href'] ?? '')), 'product_category');
+            $link_count = $term instanceof WP_Term ? (int) $term->count : 0;
+            $count += $link_count;
+            $children[] = ['title' => (string) $link['label'], 'url' => boblift_product_nav_url((string) ($link['href'] ?? '/products')), 'count' => $link_count];
+        }
+        $group_term = get_term_by('slug', $slug_of((string) ($group['href'] ?? '')), 'product_category');
+        $icon = sanitize_key((string) ($group['icon'] ?? ''));
+        $families[] = [
+            'slug' => sanitize_title((string) $group['title']),
+            'source_slug' => $group_term instanceof WP_Term ? boblift_source_term_slug($group_term) : sanitize_title((string) $group['title']),
+            'title' => (string) $group['title'],
+            'url' => boblift_product_nav_url((string) ($group['href'] ?? '/products')),
+            'count' => $count,
+            'icon' => $icon !== '' ? $icon : 'truck-crane',
+            'photo' => boblift_image_setting_url($group['image'] ?? '', 'images/telescopic-banner.jpg'),
+            'children' => $children,
+            'models' => [],
+            'featured' => [],
+            'group' => 'crane',
+        ];
+    }
+    return $families;
 }
 
 function boblift_build_product_menu_families(): array

@@ -196,6 +196,22 @@ $localize_capacity = static function (string $capacity, string $lang): string {
     return preg_replace('/\s*\bton\b/i', $lang === 'ja' ? 'トン' : ' 吨', $capacity) ?? $capacity;
 };
 
+$json = static fn($value): string => wp_json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+$backup = [];
+// The backup file is rewritten and checked before every overwrite, so an interrupted run or an unwritable directory never leaves changed data without it.
+$backup_file = $dir . '/backup-translations-' . gmdate('Ymd-His') . '.json';
+$persist_backup = static function () use (&$backup, $backup_file, $json, $dry): void {
+    if ($dry || !$backup) {
+        return;
+    }
+    $bytes = file_put_contents($backup_file, $json($backup));
+    if ($bytes === false || $bytes === 0) {
+        fwrite(STDERR, "Cannot write backup $backup_file; nothing further was changed.\n");
+        exit(1);
+    }
+};
+
 $renamed = [];
 foreach ($category_names as $en_slug => $names) {
     $en_term = get_term_by('slug', $en_slug, 'product_category');
@@ -205,6 +221,8 @@ foreach ($category_names as $en_slug => $names) {
         if ($term && !is_wp_error($term) && $term->name !== $names[$lang]) {
             $renamed[] = "{$lang} category: {$term->name} -> {$names[$lang]}";
             if (!$dry) {
+                $backup['term:' . $term_id] = ['name' => $term->name];
+                $persist_backup();
                 wp_update_term($term_id, 'product_category', ['name' => $names[$lang]]);
             }
         }
@@ -228,26 +246,13 @@ foreach ($option_replacements as $option => $map) {
     if ($next !== $current) {
         $renamed[] = "{$option}: old names replaced";
         if (!$dry) {
+            $backup['option:' . $option] = $current;
+            $persist_backup();
             update_option($option, $next);
         }
     }
 }
 
-$json = static fn($value): string => wp_json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-
-$backup = [];
-// The backup file is rewritten and checked before every overwrite, so an interrupted run or an unwritable directory never leaves changed data without it.
-$backup_file = $dir . '/backup-translations-' . gmdate('Ymd-His') . '.json';
-$persist_backup = static function () use (&$backup, $backup_file, $json, $dry): void {
-    if ($dry || !$backup) {
-        return;
-    }
-    $bytes = file_put_contents($backup_file, $json($backup));
-    if ($bytes === false || $bytes === 0) {
-        fwrite(STDERR, "Cannot write backup $backup_file; nothing further was changed.\n");
-        exit(1);
-    }
-};
 $report = [];
 $problems = [];
 $updated = 0;

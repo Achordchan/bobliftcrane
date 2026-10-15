@@ -179,13 +179,13 @@ $faqs = array_values(array_filter(array_map(static function ($faq): ?array {
     return ['question' => $question, 'answer' => $answer];
 }, $faqs)));
 // Body text (正文) from the editor, only once an editor has switched it on: old-site copy stays hidden.
-// Imported old-site copy stays hidden until a product is reviewed. For products that already had reviewed content before these boxes existed, run tools/home/product-ready-flags.php once; the content-gap importers set both flags for the pages they create.
-$detail_body_html = get_post_meta(get_the_ID(), '_detail_body_ready', true) === '1' ? trim((string) ($product['content'] ?? '')) : '';
+// Imported old-site copy stays hidden until a product is reviewed (saved after its import, or ticked in the editor); products that already had their own content keep showing it. See boblift_product_content_ready().
+$detail_body_html = boblift_product_content_ready(get_the_ID(), '_detail_body_ready') ? trim((string) ($product['content'] ?? '')) : '';
 // Text, or media-only bodies (images, galleries, embedded video), count as content.
 $detail_body_html = trim(wp_strip_all_tags($detail_body_html)) !== '' || preg_match('/<(img|figure|video|audio|iframe|picture|embed|object)\b/i', $detail_body_html) ? $detail_body_html : '';
 // Designed detail images (详情图), shown as a one-screen grid with a viewer, only once an editor has switched them on.
 $detail_gallery = [];
-if ($has_configured_detail_images && get_post_meta(get_the_ID(), '_detail_images_ready', true) === '1') {
+if ($has_configured_detail_images && boblift_product_content_ready(get_the_ID(), '_detail_images_ready')) {
     foreach ($detail_images as $item) {
         $src = html_entity_decode((string) (is_string($item) ? $item : ($item['image'] ?? $item['url'] ?? '')));
         // Old imports point at the WebP converter ("webpc-passthru.php?src=<upload url>"): use the upload itself.
