@@ -52,9 +52,9 @@ $products = [
   'slug' => '800-kg-pickup-crane-without-outriggers', 'title' => '800 kg Pickup Crane Without Outriggers', 'model' => 'SQ08ZA3', 'cat' => 'pickup-cranes',
   'capacity' => '0.8 ton', 'cap_value' => '0.8', 'boom' => 'knuckle-boom', 'apps' => 'logistics,agriculture,construction',
   'old_url' => 'https://www.bobliftcrane.com/800-kg-pickup-crane-without-outriggers.html',
-  'short' => 'The BOB-LIFT SQ08ZA3 pickup crane has a maximum lifting capacity of 800 kg, a maximum lifting moment of 1 t·m and a self weight of 435 kg. It needs 850 mm of installation space and slews 330°.',
-  'content' => '<p>The SQ08ZA3 is an 800 kg knuckle boom pickup crane without outriggers and a maximum lifting moment of 1 t·m. It runs on a recommended 2.5 kW power supply with 8 L/min of hydraulic flow at 16 MPa, weighs 435 kg and offers 330° slewing.</p>',
-  'specs' => [['Max Lifting Capacity','800 kg'],['Max Lifting Moment','1 t·m'],['Recommended Power','2.5 kW'],['Hydraulic System Flow','8 L/min'],['Hydraulic System Pressure','16 MPa'],['Oil Tank Capacity','15 L'],['Installation Space','850 mm'],['Self Weight','435 kg'],['Rotation Angle','330°']],
+  'short' => 'The BOB-LIFT SQ08ZA3 pickup crane has a maximum lifting capacity of 800 kg, a maximum lifting moment of 1 t·m and a self weight of 280 kg. It needs 850 mm of installation space and slews 330°.',
+  'content' => '<p>The SQ08ZA3 is an 800 kg knuckle boom pickup crane without outriggers and a maximum lifting moment of 1 t·m. It runs on a recommended 2.5 kW power supply with 8 L/min of hydraulic flow at 16 MPa, weighs 280 kg and offers 330° slewing.</p>',
+  'specs' => [['Max Lifting Capacity','800 kg'],['Max Lifting Moment','1 t·m'],['Recommended Power','2.5 kW'],['Hydraulic System Flow','8 L/min'],['Hydraulic System Pressure','16 MPa'],['Oil Tank Capacity','15 L'],['Installation Space','850 mm'],['Self Weight','280 kg'],['Rotation Angle','330°']],
   'features' => [
     ['title'=>'Strong steel plate structure','text'=>'Steel plate construction improves safety in use, with a hydraulic drive.'],
     ['title'=>'Balancing valves and hydraulic locks','text'=>'Added protection when holding a load.'],
@@ -66,6 +66,7 @@ $products = [
     [$old.'pick/loBpiKollnSRnlmqljopjp_7-800-800.jpg','7-800-800.jpg'],[$old.'pick/llBpiKollnSRnlmqljlpjp_8-800-800.jpg','8-800-800.jpg'],
   ],
   'extra_existing' => [],
+  'drawing' => [$old.'pick/jmBpiKollnSRkkkipkjqjo_SQ08ZA3T.jpg','SQ08Z-dimension-drawing-and-load-chart.jpg','SQ08Z dimension drawing and load chart'],
   'details' => ['pick/jiBpiKollnSRkkkipklqjq_xiangqing.jpg','pick/jjBpiKollnSRkkkipknqjq_xiangqing.jpg','pick/jkBpiKollnSRkkkipkoqjq_xiangqing.jpg','pick/jlBpiKollnSRkkkipkqqjq_xiangqing.jpg','pick/jnBpiKollnSRkkkipkpqjq_xiangqing.jpg','pick/jpBpiKollnSRkkkipkiqjo_xiangqing.jpg','pick/jrBpiKollnSRkkkipkkqjq_xiangqing.jpg'],
  ],
 ];
@@ -98,6 +99,11 @@ foreach ($products as $p) {
         '_specs'=>wp_json_encode($specs, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),'_features'=>wp_json_encode($p['features'], JSON_UNESCAPED_UNICODE),
         '_gallery'=>wp_json_encode($gallery, JSON_UNESCAPED_SLASHES),'_detail_images'=>wp_json_encode($details, JSON_UNESCAPED_SLASHES)];
     foreach ($meta as $k => $v) { update_post_meta($id, $k, wp_slash($v)); }
+    if (!empty($p['drawing'])) {
+        $did = bl_media($p['drawing'][0], $p['drawing'][1], $p['drawing'][2], $uploads, $id);
+        update_post_meta($id, '_drawings', wp_slash(wp_json_encode([['id'=>$did,'label'=>$p['drawing'][2]]], JSON_UNESCAPED_UNICODE)));
+        update_post_meta($id, '_brochure_source', 'BOB-LIFT technical drawing SQ08Z (old site page, 2026-10-15)');
+    }
     set_post_thumbnail($id, $thumb);
     $term = get_term_by('slug', $p['cat'], 'product_category');
     wp_set_object_terms($id, [$term->term_id], 'product_category');

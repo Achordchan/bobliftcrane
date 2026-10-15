@@ -8,7 +8,7 @@ $root = '/Users/a1234/Desktop/项目/bobliftcrane/tmp/content-gap/';
 $img_root = '/private/tmp/claude-501/gap/';
 $link_map = [
     '/contactus.html' => '/contact.html',
-    '/message.html' => '/quote.html',
+    '/message.html' => '/contact.html#inquiry', '/quote.html' => '/contact.html#inquiry',
     '/knuckle-boom-marine-crane' => '/knuckle-boom-marine-cranes',
     '/telescopic-boom-marine-crane' => '/telescopic-boom-marine-cranes',
 ];
@@ -35,7 +35,7 @@ $articles = [
         'title' => 'Marine Crane Buying Guide: Knuckle Boom vs Telescopic Boom and How to Size One',
         'slug' => 'marine-crane-buying-guide', 'date' => '2026-09-29 09:00:00',
         'seo_title' => 'Marine Crane Buying Guide: Knuckle vs Telescopic | BOB-LIFT',
-        'desc' => 'How to choose a marine crane for your vessel: knuckle boom vs telescopic boom, how to read a load chart, sizing checks and certification rules.',
+        'desc' => 'How to choose a marine crane for your vessel: knuckle boom vs telescopic boom, how to read a load chart and how to size one to your deck.',
         'tags' => ['marine crane', 'ship crane', 'knuckle boom marine crane', 'telescopic boom marine crane', 'lifting equipment'],
         'cover' => 'bob-lift-16-ton-telescopic-marine-crane-on-vessel.jpg',
         'cover_alt' => 'Blue BOB-LIFT 16 ton telescopic boom marine crane mounted on a vessel deck in a harbor, with a crew member handling rope below the boom',
