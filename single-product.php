@@ -179,7 +179,7 @@ $faqs = array_values(array_filter(array_map(static function ($faq): ?array {
     return ['question' => $question, 'answer' => $answer];
 }, $faqs)));
 // Body text (正文) from the editor, only once an editor has switched it on: old-site copy stays hidden.
-// This gate is deliberate: imported old-site copy stays hidden until a product is reviewed. The content-gap importers set both flags for the pages they create; for existing products tick them in the product editor.
+// Imported old-site copy stays hidden until a product is reviewed. For products that already had reviewed content before these boxes existed, run tools/home/product-ready-flags.php once; the content-gap importers set both flags for the pages they create.
 $detail_body_html = get_post_meta(get_the_ID(), '_detail_body_ready', true) === '1' ? trim((string) ($product['content'] ?? '')) : '';
 $detail_body_html = trim(wp_strip_all_tags($detail_body_html)) !== '' ? $detail_body_html : '';
 // Designed detail images (详情图), shown as a one-screen grid with a viewer, only once an editor has switched them on.

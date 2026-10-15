@@ -619,7 +619,7 @@ function boblift_migrate_legacy_hero_slides(array $options): array
         $default_image = $defaults[$index]['image'] ?? null;
         if ($default_image !== null && ($slides[$index]['image'] ?? $default_image) === $default_image) {
             $options['home']['hero']['slides'][$index]['image'] = $old['image'];
-            if (!empty($old['mobile_image'])) {
+            if (!empty($old['mobile_image']) && empty($slides[$index]['mobile_image'])) {
                 $options['home']['hero']['slides'][$index]['mobile_image'] = $old['mobile_image'];
             }
             if (!empty($old['image_alt'])) {
@@ -921,7 +921,7 @@ function boblift_build_product_menu_families(): array
                 'update_post_term_cache' => false,
                 'tax_query' => [['taxonomy' => 'product_category', 'terms' => $term->term_id, 'include_children' => true]],
             ]);
-            update_meta_cache('post', $posts);
+            _prime_post_caches($posts, false, true);
             usort($posts, static fn(int $a, int $b): int => ((float) get_post_meta($a, '_capacity_value', true) <=> (float) get_post_meta($b, '_capacity_value', true)) ?: strnatcasecmp(get_the_title($a), get_the_title($b)));
             $picked = [];
             $last = count($posts) - 1;

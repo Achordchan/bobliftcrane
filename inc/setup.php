@@ -202,7 +202,7 @@ function boblift_seo_term_description(WP_Term $term): string
 
 function boblift_seo_page_by_slug(string $slug, string $field): string
 {
-    $page = get_page_by_path($slug, OBJECT, 'page');
+    $page = function_exists('boblift_find_page_by_slug') ? boblift_find_page_by_slug($slug) : get_page_by_path($slug, OBJECT, 'page');
     if ($page instanceof WP_Post && function_exists('pll_get_post') && function_exists('pll_current_language')) {
         $language = (string) pll_current_language('slug');
         $translated_id = $language !== '' ? (int) pll_get_post($page->ID, $language) : 0;
@@ -307,7 +307,7 @@ function boblift_utility_page_ids(): array
 {
     $ids = [];
     foreach (array_merge(['success', 'quote'], function_exists('boblift_retired_page_slugs') ? boblift_retired_page_slugs() : []) as $slug) {
-        $page = get_page_by_path($slug, OBJECT, 'page');
+        $page = function_exists('boblift_find_page_by_slug') ? boblift_find_page_by_slug($slug) : get_page_by_path($slug, OBJECT, 'page');
         if (!$page instanceof WP_Post) {
             continue;
         }
