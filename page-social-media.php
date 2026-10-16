@@ -129,6 +129,10 @@ $local_video = static function ($media) use ($media_url): string {
         return $media_url($media);
     }
     $path = trim(is_array($media) ? (string) ($media['path'] ?? '') : (string) $media);
+    // A saved video URL is used as is; only theme-relative paths must exist in assets/.
+    if (preg_match('#^https?://#i', $path)) {
+        return $media_url($media);
+    }
     return $path !== '' && is_readable(get_template_directory() . '/assets/' . $path) ? $media_url($media) : '';
 };
 $videos = [];

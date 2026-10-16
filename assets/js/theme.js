@@ -313,6 +313,47 @@
 
 
 
+  // Hotspots are placed in the editor on a square stage holding the whole image (object-contain). The product stage is
+  // wider and pads the image, so lay the hotspot layer over the image as displayed and map the editor coordinates onto it.
+  const placeHotspots = (root) => {
+    const image = qs('[data-product-hero-gallery-current]', root.parentElement || document);
+    if (!image || !image.naturalWidth || !image.naturalHeight) return;
+    const style = window.getComputedStyle(image);
+    const px = (value) => parseFloat(value) || 0;
+    const boxW = image.clientWidth - px(style.paddingLeft) - px(style.paddingRight);
+    const boxH = image.clientHeight - px(style.paddingTop) - px(style.paddingBottom);
+    if (boxW <= 0 || boxH <= 0) return;
+    const ratio = image.naturalWidth / image.naturalHeight;
+    const width = boxW / boxH > ratio ? boxH * ratio : boxW;
+    const height = width / ratio;
+    const [posX, posY] = style.objectPosition.split(' ').map((part) => (part.endsWith('%') ? parseFloat(part) / 100 : 0.5));
+    Object.assign(root.style, {
+      inset: 'auto',
+      left: `${image.offsetLeft + px(style.paddingLeft) + (boxW - width) * posX}px`,
+      top: `${image.offsetTop + px(style.paddingTop) + (boxH - height) * (Number.isFinite(posY) ? posY : 0.5)}px`,
+      width: `${width}px`,
+      height: `${height}px`,
+    });
+    qsa('[data-product-hotspot]', root).forEach((button) => {
+      const x = parseFloat(button.dataset.hotspotX || '50');
+      const y = parseFloat(button.dataset.hotspotY || '50');
+      // Editor square: a wide image spans the full width and is centred vertically; a tall one the reverse.
+      const u = ratio >= 1 ? x : (x - ((1 - ratio) / 2) * 100) / ratio;
+      const v = ratio >= 1 ? (y - ((1 - 1 / ratio) / 2) * 100) * ratio : y;
+      button.style.left = `${Math.max(0, Math.min(100, u))}%`;
+      button.style.top = `${Math.max(0, Math.min(100, v))}%`;
+    });
+  };
+  qsa('[data-product-hotspot-root]').forEach((root) => {
+    const image = qs('[data-product-hero-gallery-current]', root.parentElement || document);
+    const place = () => placeHotspots(root);
+    if (image) {
+      if (image.complete) place();
+      image.addEventListener('load', place);
+    }
+    window.addEventListener('resize', place, { passive: true });
+  });
+
   qsa('[data-product-hotspot-root]').forEach((root) => {
     const closeHotspots = () => {
       qsa('[data-product-hotspot]', root).forEach((button) => {

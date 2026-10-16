@@ -219,8 +219,15 @@ function boblift_redirect_case_to_url_language(): void
     if (!is_string($target) || $target === '') {
         return;
     }
-    $query = (string) parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_QUERY);
-    wp_safe_redirect($target . ($query !== '' ? (str_contains($target, '?') ? '&' : '?') . $query : ''), 301);
+    // Keep campaign parameters, but not WordPress routing ones: /?post_type=case&name=<slug> would resolve the English case
+    // again on the translated address and loop.
+    $query = wp_unslash($_GET);
+    $query = is_array($query) ? $query : [];
+    foreach (['p', 'page_id', 'name', 'pagename', 'post_type', 'case', 'preview', 'preview_id'] as $routing_key) {
+        unset($query[$routing_key]);
+    }
+    $query_string = http_build_query($query, '', '&', PHP_QUERY_RFC3986);
+    wp_safe_redirect($target . ($query_string !== '' ? (str_contains($target, '?') ? '&' : '?') . $query_string : ''), 301);
     exit;
 }
 add_action('template_redirect', 'boblift_redirect_case_to_url_language', 2);
