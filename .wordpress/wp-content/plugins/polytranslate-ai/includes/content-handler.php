@@ -59,6 +59,8 @@ function ptai_json_encode_block_attrs(array $attributes): string
 // phpcs:disable WordPress.PHP.DevelopmentFunctions
 function ptai_translate_content($content, $target_lang, $source_lang = '')
 {
+    // Each call reports only its own failure: an error left by an earlier document in the same request is cleared.
+    unset($GLOBALS['ptai_last_translation_error']);
 
     $log = function ($msg, $data = null) {
         if (!defined('WP_DEBUG') || !WP_DEBUG)
@@ -358,6 +360,8 @@ function ptai_translate_content($content, $target_lang, $source_lang = '')
         // Handle errors
         if (is_array($result) && isset($result['success']) && $result['success'] === false) {
             $log("ERROR batch {$batch_display}: " . ($result['error'] ?? 'Unknown'));
+            // BOB-LIFT: callers that must not publish untranslated text read this (the segments fall back to the source).
+            $GLOBALS['ptai_last_translation_error'] = (string) ($result['error'] ?? 'Unknown translation error');
             foreach ($batch['indices'] as $i => $idx) {
                 $translated_segments[$idx] = $batch['texts'][$i];
             }
@@ -366,6 +370,7 @@ function ptai_translate_content($content, $target_lang, $source_lang = '')
 
         if (empty($result)) {
             $log("ERROR batch {$batch_display}: Empty response");
+            $GLOBALS['ptai_last_translation_error'] = 'Empty translation response';
             foreach ($batch['indices'] as $i => $idx) {
                 $translated_segments[$idx] = $batch['texts'][$i];
             }
@@ -389,11 +394,13 @@ function ptai_translate_content($content, $target_lang, $source_lang = '')
                     $translated_segments[$idx] = $result[$i];
                 } else {
                     $log("WARNING: Missing index {$idx}");
+                    $GLOBALS['ptai_last_translation_error'] = 'Translation response is missing segments';
                     $translated_segments[$idx] = $batch['texts'][$i];
                 }
             }
         } else {
             $log("ERROR: Unexpected response type: " . gettype($result));
+            $GLOBALS['ptai_last_translation_error'] = 'Unexpected translation response';
             foreach ($batch['indices'] as $i => $idx) {
                 $translated_segments[$idx] = $batch['texts'][$i];
             }

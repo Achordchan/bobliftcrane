@@ -307,7 +307,7 @@ function boblift_mls_is_text_field(string|int $key, array $path, string $value):
         return false;
     }
     if (($path[0] ?? '') === 'site_ui') {
-        $site_ui_blocked_keys = ['id', 'path', 'href', 'url', 'src', 'slug', 'iconName', 'icon', 'year', 'number', 'video_file', 'youtube_url', 'heroImage', 'productLinkHref', 'relatedArticleCount', 'galleryImageCount', 'maxCategoryProducts', 'image'];
+        $site_ui_blocked_keys = ['key', 'id', 'type', 'target', 'path', 'href', 'url', 'src', 'slug', 'iconName', 'icon', 'year', 'number', 'video_file', 'youtube_url', 'heroImage', 'productLinkHref', 'relatedArticleCount', 'galleryImageCount', 'maxCategoryProducts', 'image'];
         return !in_array($key, $site_ui_blocked_keys, true);
     }
     if ($key === 'name' && count($path) >= 4 && ($path[0] ?? '') === 'home' && ($path[1] ?? '') === 'trust_bar' && ($path[2] ?? '') === 'marks') {

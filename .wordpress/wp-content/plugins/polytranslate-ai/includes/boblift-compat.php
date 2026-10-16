@@ -158,6 +158,15 @@ function ptai_boblift_post_meta_map( string $postType ): array {
             '_gallery'           => 'json',
             '_color_variants'    => 'json',
             '_hotspots'          => 'json',
+            // Product page presentation: dimension drawings, the brochure features block and the editor's show/hide choices.
+            '_drawings'            => 'json',
+            '_features_source'     => 'copy',
+            '_features_series'     => 'copy',
+            '_features_image'      => 'copy',
+            '_brochure_source'     => 'copy',
+            '_model_aliases'       => 'copy',
+            '_detail_body_ready'   => 'copy',
+            '_detail_images_ready' => 'copy',
         ] + $sharedSeo;
     }
 
