@@ -134,9 +134,12 @@ $footer_link_groups = array_map(static function (array $group): array {
             </div>
         </div>
         <?php
-        // The year follows the calendar: a saved "© 2026" or a {year} placeholder always shows the current year.
+        // The year follows the calendar: a saved "© 2026" or a {year} placeholder shows the current year, and a range
+        // ("© 2003–2026") keeps its start year and updates only the end.
         $copyright = (string) ($footer['copyright'] ?? '© {year} BOB-LIFT. All Rights Reserved.');
-        $copyright = (string) preg_replace('/(©\s*)(?:19|20)\d{2}/u', '${1}' . wp_date('Y'), str_replace('{year}', wp_date('Y'), $copyright));
+        $copyright = str_replace('{year}', wp_date('Y'), $copyright);
+        $copyright = (string) preg_replace('/(©\s*(?:19|20)\d{2}\s*[-–—]\s*)(?:19|20)\d{2}/u', '${1}' . wp_date('Y'), $copyright);
+        $copyright = (string) preg_replace('/(©\s*)(?:19|20)\d{2}(?!\s*[-–—]\s*(?:19|20)\d{2})/u', '${1}' . wp_date('Y'), $copyright);
         // This site is the crane vertical of the BOB-LIFT Group; the sister sites are linked by domain.
         $network_ui = boblift_site_ui('siteSwitcher');
         $network_links = array_values(array_filter((array) ($network_ui['sites'] ?? []), static fn($site): bool => is_array($site) && empty($site['current']) && trim((string) ($site['url'] ?? '')) !== ''));
