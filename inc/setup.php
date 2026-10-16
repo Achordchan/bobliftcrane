@@ -16,6 +16,27 @@ function boblift_setup(): void
 }
 add_action('after_setup_theme', 'boblift_setup');
 
+
+function boblift_sanitize_upload_filename(string $filename, string $filename_raw = ''): string
+{
+    $source = $filename_raw !== '' ? $filename_raw : $filename;
+    if (!preg_match('/[^\x20-\x7E]/', $source) && !preg_match('/-{2,}/', $filename)) {
+        return $filename;
+    }
+
+    $extension = strtolower((string) pathinfo($source, PATHINFO_EXTENSION));
+    if ($extension === '') {
+        $extension = strtolower((string) pathinfo($filename, PATHINFO_EXTENSION));
+    }
+    $extension = preg_replace('/[^a-z0-9]/', '', $extension) ?: 'file';
+
+    $date = function_exists('current_time') ? current_time('Ymd-His') : gmdate('Ymd-His');
+    $hash = substr(md5($source), 0, 10);
+
+    return sprintf('boblift-%s-%s.%s', $date, $hash, $extension);
+}
+add_filter('sanitize_file_name', 'boblift_sanitize_upload_filename', 20, 2);
+
 function boblift_assets(): void
 {
     $css = get_template_directory() . '/assets/css/theme.css';
@@ -49,6 +70,14 @@ function boblift_assets(): void
 }
 add_action('wp_enqueue_scripts', 'boblift_assets');
 
+function boblift_font_preload(): void
+{
+    foreach (['barlow-400-latin.woff2', 'barlow-600-latin.woff2'] as $file) {
+        echo '<link rel="preload" href="' . esc_url(get_template_directory_uri() . '/assets/fonts/barlow/' . $file) . '" as="font" type="font/woff2" crossorigin>' . "\n";
+    }
+}
+add_action('wp_head', 'boblift_font_preload', 2);
+
 
 
 function boblift_localize_seo_text(string $text): string
@@ -66,7 +95,7 @@ function boblift_seo_default_title_for_post(WP_Post $post): string
             return boblift_localize_seo_text('BOB-LIFT | Truck Mounted Cranes and Lifting Solutions');
         }
         $title = match ($post->post_name) {
-            'products' => 'Construction Equipment | BOB-LIFT',
+            'products' => 'Cranes & Lifting Equipment | BOB-LIFT',
             'cases' => 'Case Center | BOB-LIFT',
             'news' => 'News | BOB-LIFT',
             'about' => 'About BOB-LIFT | BOB-LIFT',
@@ -88,7 +117,7 @@ function boblift_seo_default_description_for_post(WP_Post $post): string
         }
         if ($post->post_name === 'products') {
             $archive = function_exists('boblift_product_archive_options') ? boblift_product_archive_options() : [];
-            return boblift_localize_seo_text((string) ($archive['text'] ?? 'Explore reliable BOB-LIFT lifting and construction machinery for global projects.'));
+            return boblift_localize_seo_text((string) ($archive['text'] ?? 'Explore BOB-LIFT truck mounted cranes, marine cranes and lifting equipment for global projects.'));
         }
         if ($post->post_name === 'cases') {
             $ui = function_exists('boblift_site_ui') ? boblift_site_ui('casesPage') : [];
@@ -100,7 +129,7 @@ function boblift_seo_default_description_for_post(WP_Post $post): string
         }
         if ($post->post_name === 'about') {
             $about = function_exists('boblift_about_page_options') ? boblift_about_page_options() : [];
-            return boblift_localize_seo_text((string) ($about['logo']['paragraph'] ?? 'BOB-LIFT integrates crane engineering, manufacturing and export support for global lifting projects.'));
+            return boblift_localize_seo_text((string) ($about['strength']['text'] ?? 'BOB-LIFT integrates crane engineering, manufacturing and export support for global lifting projects.'));
         }
         if ($post->post_name === 'contact') {
             $ui = function_exists('boblift_site_ui') ? boblift_site_ui('contactPage') : [];
@@ -110,13 +139,19 @@ function boblift_seo_default_description_for_post(WP_Post $post): string
             $ui = function_exists('boblift_site_ui') ? boblift_site_ui('quotePage') : [];
             return boblift_localize_seo_text((string) ($ui['heroDescription'] ?? 'Request a tailored BOB-LIFT quotation for your lifting requirement.'));
         }
+        foreach (['factory-tour' => 'factoryTour', 'quality-testing' => 'qualityTesting', 'mounting-shipping' => 'mountingShipping', 'service' => 'service', 'videos' => 'videoCenter'] as $slug => $section) {
+            if (function_exists('boblift_page_is_translation_of_slug') && boblift_page_is_translation_of_slug($post, $slug)) {
+                $ui = function_exists('boblift_site_ui') ? boblift_site_ui($section) : [];
+                return (string) ($ui['heroText'] ?? '');
+            }
+        }
         if ($post->post_name === 'success') {
             return boblift_localize_seo_text('Your BOB-LIFT inquiry has been submitted successfully. Our team will contact you soon.');
         }
     }
-    $description = (string) get_post_meta($post->ID, '_short_description', true);
+    $description = boblift_clean_imported_product_text((string) get_post_meta($post->ID, '_short_description', true));
     if ($description === '') {
-        $description = has_excerpt($post) ? get_the_excerpt($post) : '';
+        $description = has_excerpt($post) ? boblift_clean_imported_product_text((string) get_the_excerpt($post)) : '';
     }
     return boblift_localize_seo_text($description !== '' ? $description : wp_trim_words(wp_strip_all_tags((string) $post->post_content), 28, ''));
 }
@@ -140,12 +175,16 @@ function boblift_seo_default_description_for_term(WP_Term $term): string
 function boblift_seo_post_title(WP_Post $post): string
 {
     $value = trim((string) get_post_meta($post->ID, '_seo_title', true));
+    // Titles scraped from the old marketplace template end in "… Buy … Product on BOB-LIFT".
+    if (preg_match('/\bProduct on BOB-LIFT$/i', $value)) {
+        $value = '';
+    }
     return boblift_localize_seo_text($value !== '' ? $value : boblift_seo_default_title_for_post($post));
 }
 
 function boblift_seo_post_description(WP_Post $post): string
 {
-    $value = trim((string) get_post_meta($post->ID, '_seo_description', true));
+    $value = boblift_clean_imported_product_text((string) get_post_meta($post->ID, '_seo_description', true));
     return boblift_localize_seo_text($value !== '' ? $value : boblift_seo_default_description_for_post($post));
 }
 
@@ -163,7 +202,7 @@ function boblift_seo_term_description(WP_Term $term): string
 
 function boblift_seo_page_by_slug(string $slug, string $field): string
 {
-    $page = get_page_by_path($slug, OBJECT, 'page');
+    $page = function_exists('boblift_find_page_by_slug') ? boblift_find_page_by_slug($slug) : get_page_by_path($slug, OBJECT, 'page');
     if ($page instanceof WP_Post && function_exists('pll_get_post') && function_exists('pll_current_language')) {
         $language = (string) pll_current_language('slug');
         $translated_id = $language !== '' ? (int) pll_get_post($page->ID, $language) : 0;
@@ -205,9 +244,23 @@ function boblift_document_title_parts(array $title): array
         $seo_title = boblift_seo_page_by_slug('products', 'title');
     } elseif (is_post_type_archive('case')) {
         $seo_title = boblift_seo_page_by_slug('cases', 'title');
+    } elseif (is_singular('feedback')) {
+        // Feedback has no per-language title; build it from the model and the localized country.
+        $post = get_queried_object();
+        $item = $post instanceof WP_Post ? boblift_feedback_item($post) : null;
+        if ($item) {
+            $label = (string) (boblift_site_ui('casesPage')['customerFeedbackLabel'] ?? 'Customer Feedback');
+            $seo_title = implode(' · ', array_filter([$item['model'], $item['country']])) . ' | ' . $label . ' | BOB-LIFT';
+        }
     } elseif (is_singular()) {
         $post = get_queried_object();
         $seo_title = $post instanceof WP_Post ? boblift_seo_post_title($post) : '';
+    } elseif (is_search()) {
+        $search_ui = boblift_site_ui('search');
+        $search_query = trim(get_search_query(false));
+        $seo_title = $search_query !== ''
+            ? str_replace('{query}', $search_query, (string) ($search_ui['seoTitleTemplate'] ?? 'Search: {query} | BOB-LIFT'))
+            : (string) ($search_ui['seoTitleEmpty'] ?? 'Search | BOB-LIFT');
     }
 
     if ($seo_title !== '') {
@@ -248,19 +301,61 @@ function boblift_remove_public_user_sitemap($provider, string $name)
 }
 add_filter('wp_sitemaps_add_provider', 'boblift_remove_public_user_sitemap', 10, 2);
 
+// Pages that exist only for routing, in every language: the thank-you page after an inquiry,
+// and the old quote page that now 301s to the contact form.
+function boblift_utility_page_ids(): array
+{
+    $ids = [];
+    foreach (array_merge(['success', 'quote'], function_exists('boblift_retired_page_slugs') ? boblift_retired_page_slugs() : []) as $slug) {
+        $page = function_exists('boblift_find_page_by_slug') ? boblift_find_page_by_slug($slug) : get_page_by_path($slug, OBJECT, 'page');
+        if (!$page instanceof WP_Post) {
+            continue;
+        }
+        $ids[] = (int) $page->ID;
+        if (function_exists('pll_get_post_translations')) {
+            $ids = array_merge($ids, array_map('intval', array_values(pll_get_post_translations($page->ID))));
+        }
+    }
+
+    return array_values(array_unique(array_filter($ids)));
+}
+
+function boblift_noindex_utility_pages(array $robots): array
+{
+    if (is_page() && in_array((int) get_queried_object_id(), boblift_utility_page_ids(), true)) {
+        $robots['noindex'] = true;
+        $robots['follow'] = true;
+    }
+
+    return $robots;
+}
+add_filter('wp_robots', 'boblift_noindex_utility_pages');
+
+function boblift_redirect_retired_pages(): void
+{
+    if (is_admin() || !is_page() || !function_exists('boblift_page_is_translation_of_slug')) {
+        return;
+    }
+    $page = get_queried_object();
+    if (!$page instanceof WP_Post) {
+        return;
+    }
+    foreach (boblift_retired_page_slugs() as $slug) {
+        if (boblift_page_is_translation_of_slug($page, $slug)) {
+            wp_safe_redirect(boblift_url('/about.html'), 301);
+            exit;
+        }
+    }
+}
+add_action('template_redirect', 'boblift_redirect_retired_pages', 1);
+
 function boblift_exclude_utility_pages_from_sitemap(array $args, string $post_type): array
 {
     if ($post_type !== 'page') {
         return $args;
     }
 
-    $excluded_ids = [];
-    foreach (['success'] as $slug) {
-        $page = get_page_by_path($slug, OBJECT, 'page');
-        if ($page instanceof WP_Post) {
-            $excluded_ids[] = (int) $page->ID;
-        }
-    }
+    $excluded_ids = boblift_utility_page_ids();
 
     if ($excluded_ids) {
         $current = isset($args['post__not_in']) && is_array($args['post__not_in']) ? $args['post__not_in'] : [];
@@ -365,6 +460,16 @@ function boblift_deactivation(): void
 }
 add_action('switch_theme', 'boblift_deactivation');
 
+// search.php runs its own product, news and case queries; keep the main search query to those types.
+function boblift_limit_main_search(WP_Query $query): void
+{
+    if (!is_admin() && $query->is_main_query() && $query->is_search()) {
+        $query->set('post_type', ['product', 'post', 'case']);
+        $query->set('posts_per_page', 1);
+    }
+}
+add_action('pre_get_posts', 'boblift_limit_main_search');
+
 // Article JSON-LD kept in _article_schema_jsonld; {{home}} stands for the site address so the markup follows the host.
 function boblift_article_schema(): void
 {
@@ -382,3 +487,26 @@ function boblift_article_schema(): void
     echo '<script type="application/ld+json">' . str_replace('</', '<\/', $schema) . "</script>\n";
 }
 add_action('wp_head', 'boblift_article_schema', 5);
+
+// The old site's "Crane by Ton" pages (/5-ton-crane.html ...) are replaced by the tonnage filter on the product list.
+// Tonnage class => capacity bin key, independent of the bin labels shown in the filter.
+function boblift_redirect_old_tonnage_pages(): void
+{
+    if (is_admin() || !is_404()) {
+        return;
+    }
+    $path = strtolower(trim((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH), '/'));
+    if (!preg_match('/^(\d+)-ton-crane(?:\.html)?$/', $path, $m)) {
+        return;
+    }
+    $bins = [1 => '0-1', 2 => '1-2', 3 => '2-3', 4 => '3-4', 5 => '4-5', 6 => '5-6', 8 => '6-8', 10 => '8-10', 12 => '10-12', 16 => '12-16', 20 => '16-20', 25 => '20-25'];
+    $key = $bins[(int) $m[1]] ?? null;
+    if ($key === null) {
+        return;
+    }
+    $ui = function_exists('boblift_site_ui') ? boblift_site_ui('productArchive') : [];
+    $target = isset($ui['capacityBins'][$key]) ? add_query_arg('capacity', $key, boblift_product_archive_url()) : boblift_product_archive_url();
+    wp_safe_redirect($target, 301);
+    exit;
+}
+add_action('template_redirect', 'boblift_redirect_old_tonnage_pages', 1);

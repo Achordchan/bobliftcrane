@@ -26,6 +26,18 @@ function boblift_register_content_types(): void
         'supports' => ['title', 'editor', 'excerpt', 'thumbnail', 'revisions'],
     ]);
 
+    // Customer feedback: photos and videos customers send back. Language-neutral on purpose (only country
+    // and model are shown, stored per language in meta), so one entry serves every language of the site.
+    register_post_type('feedback', [
+        'labels' => boblift_post_type_labels('客户反馈', '客户反馈'),
+        'public' => true,
+        'has_archive' => false,
+        'rewrite' => ['slug' => 'feedback', 'with_front' => false],
+        'menu_icon' => 'dashicons-format-gallery',
+        'exclude_from_search' => true,
+        'supports' => ['title', 'page-attributes'],
+    ]);
+
     register_post_type('inquiry', [
         'labels' => boblift_post_type_labels('询盘', '询盘'),
         'public' => false,
@@ -64,6 +76,7 @@ function boblift_inquiry_columns(array $columns): array
         'inquiry_contact' => '联系方式',
         'inquiry_product' => '意向产品',
         'inquiry_country' => '国家',
+        'inquiry_source' => '来源',
         'inquiry_date' => '提交时间',
     ];
 }
@@ -85,6 +98,16 @@ function boblift_inquiry_column_content(string $column, int $post_id): void
     }
     if ($column === 'inquiry_product') {
         echo esc_html((string) get_post_meta($post_id, '_product', true));
+        return;
+    }
+    if ($column === 'inquiry_source') {
+        $entry = (string) get_post_meta($post_id, '_source_entry', true);
+        $page = (string) get_post_meta($post_id, '_source_page', true);
+        $path = $page !== '' ? (string) wp_parse_url($page, PHP_URL_PATH) : '';
+        echo esc_html($entry !== '' ? $entry : '—');
+        if ($path !== '') {
+            echo '<br><a href="' . esc_url($page) . '" target="_blank" rel="noopener">' . esc_html(rawurldecode($path)) . '</a>';
+        }
         return;
     }
     if ($column === 'inquiry_country') {
@@ -550,6 +573,16 @@ function boblift_product_html_permalink(string $link, WP_Post $post): string
 }
 add_filter('post_type_link', 'boblift_product_html_permalink', 10, 2);
 
+// Feedback is one entry for every language, so its link stays on the domain of the page showing it.
+function boblift_feedback_permalink(string $link, WP_Post $post): string
+{
+    if ($post->post_type !== 'feedback' || $post->post_status !== 'publish') {
+        return $link;
+    }
+    return trailingslashit(boblift_public_path_url('/feedback/' . $post->post_name));
+}
+add_filter('post_type_link', 'boblift_feedback_permalink', 10, 2);
+
 function boblift_product_archive_html_link(string $link, string $post_type): string
 {
     if ($post_type === 'product') {
@@ -581,7 +614,7 @@ add_filter('redirect_canonical', 'boblift_keep_public_url_canonical', 10, 2);
 
 function boblift_product_meta_keys(): array
 {
-    return ['model', 'capacity', 'capacity_value', 'boom_type', 'catalog_pdf_url', 'applications', 'status', 'short_description', 'tags', 'specs', 'features', 'detail_images', 'gallery', 'color_variants', 'hotspots', 'seo_title', 'seo_description'];
+    return ['model', 'capacity', 'capacity_value', 'boom_type', 'catalog_pdf_url', 'applications', 'status', 'short_description', 'tags', 'specs', 'features', 'detail_images', 'gallery', 'hotspots', 'seo_title', 'seo_description'];
 }
 
 function boblift_case_meta_keys(): array
@@ -594,12 +627,13 @@ function boblift_register_meta_boxes(): void
     add_meta_box('boblift_product_details', '产品参数', 'boblift_product_meta_box', 'product', 'normal', 'high');
     add_meta_box('boblift_case_details', '案例详情', 'boblift_case_meta_box', 'case', 'normal', 'high');
     add_meta_box('boblift_inquiry_details', '询盘详情', 'boblift_inquiry_meta_box', 'inquiry', 'normal', 'high');
+    add_meta_box('boblift_feedback_details', '反馈内容', 'boblift_feedback_meta_box', 'feedback', 'normal', 'high');
 }
 add_action('add_meta_boxes', 'boblift_register_meta_boxes');
 
 function boblift_admin_metabox_styles(): void
 {
-    echo '<style>.boblift-structured-admin{display:grid;gap:18px;max-width:1180px}.boblift-admin-box{border:1px solid #dcdcde;border-radius:14px;background:#fff;padding:18px}.boblift-admin-box h3{margin:0 0 14px;font-size:15px}.boblift-admin-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.boblift-admin-field{display:grid;gap:6px}.boblift-admin-field label{font-weight:700;color:#1d2327}.boblift-admin-field input,.boblift-admin-field textarea,.boblift-admin-field select{width:100%}.boblift-admin-field textarea{min-height:92px}.boblift-admin-field-full{grid-column:1/-1}.boblift-admin-repeat{display:grid;gap:10px}.boblift-admin-repeat-row{display:grid;grid-template-columns:minmax(0,0.82fr) minmax(0,1.18fr);gap:10px;align-items:start;padding:12px;border:1px solid #dcdcde;border-radius:12px;background:#fbfbfc}.boblift-admin-repeat-row textarea{min-height:74px}.boblift-admin-repeat-row-3{grid-template-columns:minmax(140px,.65fr) 120px minmax(0,1.35fr)}.boblift-hotspot-editor{display:grid;gap:14px}.boblift-hotspot-stage{position:relative;display:block;aspect-ratio:1/1;width:min(100%,620px);overflow:hidden;border:1px solid #dcdcde;border-radius:16px;background:linear-gradient(135deg,#f8fafc,#eef2f7);cursor:crosshair}.boblift-hotspot-stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:0}.boblift-hotspot-layer{position:absolute;inset:0}.boblift-hotspot-point{position:absolute;display:grid;width:32px;height:32px;place-items:center;transform:translate(-50%,-50%);border:4px solid rgba(255,255,255,.86);border-radius:999px;background:#2563eb;color:#fff;font-size:12px;font-weight:900;box-shadow:0 12px 28px rgba(37,99,235,.26);cursor:grab}.boblift-hotspot-point.is-active{outline:3px solid #f59e0b}.boblift-hotspot-list{display:grid;gap:8px;max-width:760px}.boblift-hotspot-row{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:8px;align-items:center;padding:10px;border:1px solid #dcdcde;border-radius:12px;background:#fbfbfc}.boblift-hotspot-row.is-active{border-color:#f59e0b;background:#fffbeb}.boblift-hotspot-row-index{display:grid;width:26px;height:26px;place-items:center;border-radius:999px;background:#2563eb;color:#fff;font-size:12px;font-weight:900}.boblift-admin-help{margin:6px 0 0;color:#646970;font-size:12px}.boblift-inquiry-copy{margin:0 0 12px}.boblift-inquiry-table th{width:150px}@media(max-width:782px){.boblift-admin-fields,.boblift-admin-repeat-row{grid-template-columns:1fr}.boblift-admin-field-full{grid-column:auto}}</style>';
+    echo '<style>.boblift-structured-admin{display:grid;gap:18px;max-width:1180px}.boblift-admin-box{border:1px solid #dcdcde;border-radius:14px;background:#fff;padding:18px}.boblift-admin-box h3{margin:0 0 14px;font-size:15px}.boblift-admin-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.boblift-admin-field{display:grid;gap:6px}.boblift-admin-field label{font-weight:700;color:#1d2327}.boblift-admin-field input,.boblift-admin-field textarea,.boblift-admin-field select{width:100%}.boblift-admin-field textarea{min-height:92px}.boblift-admin-field-full{grid-column:1/-1}.boblift-admin-repeat{display:grid;gap:10px}.boblift-admin-repeat-row{display:grid;grid-template-columns:minmax(0,0.82fr) minmax(0,1.18fr);gap:10px;align-items:start;padding:12px;border:1px solid #dcdcde;border-radius:12px;background:#fbfbfc}.boblift-admin-repeat-row textarea{min-height:74px}.boblift-hotspot-editor{display:grid;gap:14px}.boblift-hotspot-stage{position:relative;display:block;aspect-ratio:1/1;width:min(100%,620px);overflow:hidden;border:1px solid #dcdcde;border-radius:16px;background:linear-gradient(135deg,#f8fafc,#eef2f7);cursor:crosshair}.boblift-hotspot-stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:0}.boblift-hotspot-layer{position:absolute;inset:0}.boblift-hotspot-point{position:absolute;display:grid;width:32px;height:32px;place-items:center;transform:translate(-50%,-50%);border:4px solid rgba(255,255,255,.86);border-radius:999px;background:#2563eb;color:#fff;font-size:12px;font-weight:900;box-shadow:0 12px 28px rgba(37,99,235,.26);cursor:grab}.boblift-hotspot-point.is-active{outline:3px solid #f59e0b}.boblift-hotspot-list{display:grid;gap:8px;max-width:760px}.boblift-hotspot-row{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:8px;align-items:center;padding:10px;border:1px solid #dcdcde;border-radius:12px;background:#fbfbfc}.boblift-hotspot-row.is-active{border-color:#f59e0b;background:#fffbeb}.boblift-hotspot-row-index{display:grid;width:26px;height:26px;place-items:center;border-radius:999px;background:#2563eb;color:#fff;font-size:12px;font-weight:900}.boblift-admin-help{margin:6px 0 0;color:#646970;font-size:12px}.boblift-inquiry-copy{margin:0 0 12px}.boblift-inquiry-table th{width:150px}@media(max-width:782px){.boblift-admin-fields,.boblift-admin-repeat-row{grid-template-columns:1fr}.boblift-admin-field-full{grid-column:auto}}</style>';
 }
 
 function boblift_meta_value(int $post_id, string $key): string
@@ -627,6 +661,16 @@ function boblift_render_text_field(string $name, string $label, string $value, s
     echo '<div class="boblift-admin-field"><label>' . esc_html($label) . '</label><input type="' . esc_attr($type) . '" name="' . esc_attr($name) . '" value="' . esc_attr($value) . '"></div>';
 }
 
+function boblift_render_select_field(string $name, string $label, string $value, array $options, string $empty_label = '不适用 / 未设置'): void
+{
+    echo '<div class="boblift-admin-field"><label>' . esc_html($label) . '</label><select name="' . esc_attr($name) . '">';
+    echo '<option value=""' . selected($value, '', false) . '>' . esc_html($empty_label) . '</option>';
+    foreach ($options as $option_value => $option_label) {
+        echo '<option value="' . esc_attr((string) $option_value) . '"' . selected($value, (string) $option_value, false) . '>' . esc_html((string) $option_label) . '</option>';
+    }
+    echo '</select></div>';
+}
+
 function boblift_render_textarea_field(string $name, string $label, string $value, string $class = ''): void
 {
     echo '<div class="boblift-admin-field ' . esc_attr($class) . '"><label>' . esc_html($label) . '</label><textarea name="' . esc_attr($name) . '">' . esc_textarea($value) . '</textarea></div>';
@@ -640,7 +684,7 @@ function boblift_render_pair_rows(string $base, array $rows, array $keys, array 
         $row = is_array($rows[$i] ?? null) ? $rows[$i] : [];
         echo '<div class="boblift-admin-repeat-row">';
         foreach ($keys as $index => $key) {
-            $tag = $index === 1 && in_array($key, ['text', 'body'], true) ? 'textarea' : 'input';
+            $tag = $index >= 1 && in_array($key, ['text', 'body', 'detail'], true) ? 'textarea' : 'input';
             echo '<div class="boblift-admin-field"><label>' . esc_html($labels[$index]) . '</label>';
             if ($tag === 'textarea') {
                 echo '<textarea name="' . esc_attr($base . '[' . $i . '][' . $key . ']') . '">' . esc_textarea((string) ($row[$key] ?? '')) . '</textarea>';
@@ -650,21 +694,6 @@ function boblift_render_pair_rows(string $base, array $rows, array $keys, array 
             }
             echo '</div>';
         }
-        echo '</div>';
-    }
-    echo '</div>';
-}
-
-function boblift_render_color_variant_rows(string $base, array $rows, int $min_rows = 4): void
-{
-    $count = max($min_rows, count($rows) + 2);
-    echo '<div class="boblift-admin-repeat">';
-    for ($i = 0; $i < $count; $i++) {
-        $row = is_array($rows[$i] ?? null) ? $rows[$i] : [];
-        echo '<div class="boblift-admin-repeat-row boblift-admin-repeat-row-3">';
-        echo '<div class="boblift-admin-field"><label>颜色名称</label><input type="text" name="' . esc_attr($base . '[' . $i . '][label]') . '" value="' . esc_attr((string) ($row['label'] ?? '')) . '"></div>';
-        echo '<div class="boblift-admin-field"><label>色值</label><input type="text" name="' . esc_attr($base . '[' . $i . '][color]') . '" value="' . esc_attr((string) ($row['color'] ?? '')) . '" placeholder="#BD2F42"></div>';
-        echo '<div class="boblift-admin-field"><label>PNG 图片地址</label><input type="text" name="' . esc_attr($base . '[' . $i . '][image]') . '" value="' . esc_attr((string) ($row['image'] ?? ($row['url'] ?? ''))) . '"></div>';
         echo '</div>';
     }
     echo '</div>';
@@ -832,26 +861,27 @@ function boblift_product_meta_box(WP_Post $post): void
     $features = boblift_decode_meta_rows(get_post_meta($post->ID, '_features', true));
     $detail_images = boblift_decode_meta_rows(get_post_meta($post->ID, '_detail_images', true));
     $gallery = boblift_decode_meta_rows(get_post_meta($post->ID, '_gallery', true));
-    $color_variants = boblift_decode_meta_rows(get_post_meta($post->ID, '_color_variants', true));
     $hotspots = boblift_decode_meta_rows(get_post_meta($post->ID, '_hotspots', true));
-    $hotspot_image = '';
-    foreach ($color_variants as $variant) {
-        if (is_array($variant) && trim((string) ($variant['image'] ?? '')) !== '') {
-            $hotspot_image = boblift_admin_asset_url((string) $variant['image']);
-            break;
-        }
-    }
-    if ($hotspot_image === '') {
-        $thumbnail = get_the_post_thumbnail_url($post, 'large');
-        $hotspot_image = $thumbnail ?: boblift_asset('images/products/crane-accessories.png');
-    }
+    $thumbnail = get_the_post_thumbnail_url($post, 'large');
+    $hotspot_image = $thumbnail ?: boblift_asset('images/products/crane-accessories.png');
     ?>
     <div class="boblift-structured-admin">
+        <div class="boblift-admin-box"><h3>产品正文</h3><label><input type="checkbox" name="boblift_meta[detail_body_ready]" value="1" <?php checked(boblift_product_content_ready((int) $post->ID, '_detail_body_ready')); ?>> 在产品页显示正文</label><p class="boblift-admin-help">正文就是上方编辑器里的内容，显示在"技术参数"下方。勾选前请确认内容已按画册核对；未勾选时产品页不显示正文。旧网站的原文已备份在 _legacy_content。</p></div>
         <div class="boblift-admin-box"><h3>基础信息</h3><div class="boblift-admin-fields">
             <?php boblift_render_text_field('boblift_meta[model]', '型号', boblift_meta_value($post->ID, 'model')); ?>
             <?php boblift_render_text_field('boblift_meta[capacity]', '吨位 / 起重能力', boblift_meta_value($post->ID, 'capacity')); ?>
             <?php boblift_render_text_field('boblift_meta[capacity_value]', '吨位数值', boblift_meta_value($post->ID, 'capacity_value'), 'number'); ?>
-            <?php boblift_render_text_field('boblift_meta[boom_type]', '吊臂类型', boblift_meta_value($post->ID, 'boom_type')); ?>
+            <?php
+                $boom_raw = trim((string) boblift_meta_value($post->ID, 'boom_type'));
+                $boom_options = boblift_product_boom_options();
+                $boom_selected = boblift_normalize_product_boom_type($boom_raw);
+                // A value saved before the options were fixed stays selectable, so an unrelated save does not blank it.
+                if ($boom_raw !== '' && $boom_selected === '' && !isset($boom_options[$boom_raw])) {
+                    $boom_options[$boom_raw] = $boom_raw . '（原有值）';
+                    $boom_selected = $boom_raw;
+                }
+                boblift_render_select_field('boblift_meta[boom_type]', '吊臂类型', $boom_selected, $boom_options);
+            ?>
             <?php boblift_render_text_field('boblift_meta[catalog_pdf_url]', 'PDF目录文件URL', boblift_meta_value($post->ID, 'catalog_pdf_url'), 'url'); ?>
             <?php boblift_render_text_field('boblift_meta[status]', '状态', boblift_meta_value($post->ID, 'status')); ?>
             <?php boblift_render_text_field('boblift_meta[seo_title]', 'SEO 标题', boblift_meta_value($post->ID, 'seo_title')); ?>
@@ -863,10 +893,16 @@ function boblift_product_meta_box(WP_Post $post): void
             <?php boblift_render_textarea_field('boblift_meta[tags_lines]', '标签，每行一个', boblift_lines_from_csv(boblift_meta_value($post->ID, 'tags'))); ?>
         </div></div>
         <div class="boblift-admin-box"><h3>技术参数</h3><p class="boblift-admin-help">保存后仍写入原 _specs JSON，前台无需改动。</p><?php boblift_render_pair_rows('boblift_meta[specs_rows]', $specs, ['label', 'value'], ['参数名', '参数值'], 8); ?></div>
-        <div class="boblift-admin-box"><h3>产品特点</h3><?php boblift_render_pair_rows('boblift_meta[features_rows]', $features, ['title', 'text'], ['标题', '说明'], 5); ?></div>
-        <div class="boblift-admin-box"><h3>产品详情长图</h3><p class="boblift-admin-help">用于前台“Product Details”区块。适合上传瘦长详情图，多张会从上到下无间距拼接显示。</p><?php boblift_render_pair_rows('boblift_meta[detail_image_rows]', $detail_images, ['image', 'label'], ['详情图地址', '图片说明'], 4); ?></div>
-        <div class="boblift-admin-box"><h3>产品照片画廊</h3><p class="boblift-admin-help">只放产品照片，不放参数表、详情长图。填写图片 URL 或 assets 相对路径，例如 images/products/crane-accessories.png。</p><?php boblift_render_pair_rows('boblift_meta[gallery_rows]', $gallery, ['image', 'label'], ['照片地址', '照片标签'], 8); ?></div>
-        <div class="boblift-admin-box"><h3>颜色切换图片</h3><p class="boblift-admin-help">每个颜色上传一张同角度透明 PNG；前台切换时只做图片淡入淡出，不做运行时滤镜变色。至少填写 2 个颜色才会显示切换器。</p><?php boblift_render_color_variant_rows('boblift_meta[color_variant_rows]', $color_variants, 4); ?></div>
+        <div class="boblift-admin-box"><h3>产品特点</h3><?php boblift_render_pair_rows('boblift_meta[features_rows]', $features, ['title', 'text', 'detail', 'image'], ['标题', '说明', '详细说明（可选，品册导入的内容）', '图片地址（可选，品册导入的内容）'], 5); ?></div>
+        <div class="boblift-admin-box"><h3>产品详情图</h3><label><input type="checkbox" name="boblift_meta[detail_images_ready]" value="1" <?php checked(boblift_product_content_ready((int) $post->ID, '_detail_images_ready')); ?>> 在产品页显示详情图</label><p class="boblift-admin-help">详情图按下方顺序排成一行缩略图，显示在"技术参数"下方，点击可看大图；正文排在图下面。每张建议 750px 宽的切片，不要整张长图。</p><?php boblift_render_pair_rows('boblift_meta[detail_image_rows]', $detail_images, ['image', 'label'], ['详情图地址', '图片说明'], 4); ?></div>
+        <?php $color_variants_saved = boblift_decode_meta_rows(get_post_meta($post->ID, '_color_variants', true)); ?>
+        <?php if ($color_variants_saved !== []) : ?>
+            <div class="boblift-admin-box"><h3>旧版颜色图片（仍显示在产品画廊里）</h3><p class="boblift-admin-help">这些是旧版「颜色切换」保存的图片，现在作为产品画廊的一部分显示。可以修改、删除；全部清空并保存即可移除。</p>
+                <input type="hidden" name="boblift_meta[color_variants_present]" value="1">
+                <?php boblift_render_pair_rows('boblift_meta[color_variant_rows]', $color_variants_saved, ['label', 'image', 'color'], ['名称', '图片地址', '颜色（可选）'], 3); ?>
+            </div>
+        <?php endif; ?>
+        <div class="boblift-admin-box"><h3>产品照片画廊</h3><p class="boblift-admin-help">只放产品实拍照片，不放参数表、详情长图。<strong>尺寸：横版 4:3，建议 1600×1200 像素（不小于 1200×900），JPG 或 WebP，单张 500KB 以内。</strong>画面铺满、不留白边，产品完整不被裁切，不加 Logo、水印和文字。比例不是 4:3 的照片也能完整显示，但两侧或上下会留灰底。填写图片 URL 或 assets 相对路径，例如 images/products/crane-accessories.png。</p><?php boblift_render_pair_rows('boblift_meta[gallery_rows]', $gallery, ['image', 'label'], ['照片地址', '照片标签'], 8); ?></div>
         <div class="boblift-admin-box"><h3>产品图锚点</h3><?php boblift_render_hotspot_editor('boblift_meta[hotspot_rows]', $hotspots, $hotspot_image); ?></div>
     </div>
     <?php
@@ -904,6 +940,8 @@ function boblift_case_meta_box(WP_Post $post): void
             <?php boblift_render_textarea_field('boblift_case_meta[feedback_quote]', '客户反馈短句', boblift_meta_value($post->ID, 'feedback_quote'), 'boblift-admin-field-full'); ?>
         </div><p class="boblift-admin-help">客户反馈板块会读取这里的媒体 URL；视频支持 .mp4 / .webm 直链，也支持 YouTube 链接。图片 URL 留空时使用特色图。</p></div>
         <div class="boblift-admin-box"><h3>案例事实</h3><?php boblift_render_pair_rows('boblift_case_meta[facts_rows]', $facts, ['label', 'value'], ['标签', '值'], 4); ?></div>
+        <div class="boblift-admin-box"><h3>关联产品</h3><?php boblift_render_related_products_field('boblift_case_meta[related]', $post->ID); ?></div>
+        <div class="boblift-admin-box"><h3>现场照片</h3><p class="boblift-admin-help">按顺序配在每个内容段落旁边（第 1 张配第 1 段），多出的照片在段落下方排成照片墙。横版 4:3 或 3:2，长边 1600 像素以上；不要客户人脸、电话、公司名。</p><?php boblift_render_media_picker('boblift_case_meta[gallery]', array_filter(array_map('intval', explode(',', boblift_meta_value($post->ID, 'case_gallery')))), ['image'], '可多选，按选择顺序显示。'); ?></div>
         <div class="boblift-admin-box"><h3>内容段落</h3><?php boblift_render_pair_rows('boblift_case_meta[sections_rows]', $sections, ['heading', 'body'], ['段落标题', '段落正文'], 4); ?></div>
     </div>
     <?php
@@ -935,6 +973,8 @@ function boblift_inquiry_meta_box(WP_Post $post): void
         'contact_method' => '期望联系方式',
         'preferred_contact_time' => '期望联系时间',
         'other_requirements' => '其他需求',
+        'source_entry' => '来源入口',
+        'source_page' => '来源页面',
     ];
     $copy_lines = [];
     foreach ($labels as $key => $label) {
@@ -976,28 +1016,6 @@ function boblift_lines_to_csv(mixed $value): string
     return implode(',', array_values(array_filter(array_map('sanitize_text_field', array_map('trim', $lines ?: [])))));
 }
 
-function boblift_color_variants_to_json(array $rows): string
-{
-    $items = [];
-    foreach ($rows as $row) {
-        if (!is_array($row)) {
-            continue;
-        }
-        $label = sanitize_text_field($row['label'] ?? '');
-        $image = sanitize_text_field($row['image'] ?? ($row['url'] ?? ''));
-        if ($label === '' || $image === '') {
-            continue;
-        }
-        $color = sanitize_hex_color((string) ($row['color'] ?? '')) ?: '#BD2F42';
-        $items[] = [
-            'label' => $label,
-            'color' => $color,
-            'image' => $image,
-        ];
-    }
-    return wp_json_encode($items, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]';
-}
-
 function boblift_hotspots_to_json(array $rows): string
 {
     $items = [];
@@ -1025,22 +1043,30 @@ function boblift_save_meta_boxes(int $post_id): void
     }
     if (isset($_POST['boblift_product_meta_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['boblift_product_meta_nonce'])), 'boblift_save_product_meta')) {
         $meta = isset($_POST['boblift_meta']) && is_array($_POST['boblift_meta']) ? wp_unslash($_POST['boblift_meta']) : [];
-        $plain_keys = ['model', 'capacity', 'capacity_value', 'boom_type', 'status', 'seo_title'];
+        $plain_keys = ['model', 'capacity', 'capacity_value', 'status', 'seo_title'];
         foreach ($plain_keys as $key) {
             update_post_meta($post_id, '_' . $key, sanitize_text_field($meta[$key] ?? ''));
         }
+        $posted_boom = trim((string) ($meta['boom_type'] ?? ''));
+        $current_boom = trim((string) get_post_meta($post_id, '_boom_type', true));
+        // The unchanged "original value" option keeps whatever was saved; anything else is normalised to the known types.
+        update_post_meta($post_id, '_boom_type', ($posted_boom !== '' && $posted_boom === $current_boom) ? $current_boom : boblift_normalize_product_boom_type($posted_boom));
         update_post_meta($post_id, '_catalog_pdf_url', esc_url_raw((string) ($meta['catalog_pdf_url'] ?? '')));
+        update_post_meta($post_id, '_detail_body_ready', empty($meta['detail_body_ready']) ? '' : '1');
+        update_post_meta($post_id, '_detail_images_ready', empty($meta['detail_images_ready']) ? '' : '1');
         foreach (['short_description', 'seo_description'] as $key) {
             update_post_meta($post_id, '_' . $key, sanitize_textarea_field($meta[$key] ?? ''));
         }
         update_post_meta($post_id, '_applications', boblift_lines_to_csv($meta['applications_lines'] ?? ''));
         update_post_meta($post_id, '_tags', boblift_lines_to_csv($meta['tags_lines'] ?? ''));
         update_post_meta($post_id, '_specs', boblift_rows_to_json(is_array($meta['specs_rows'] ?? null) ? $meta['specs_rows'] : [], ['label', 'value']));
-        update_post_meta($post_id, '_features', boblift_rows_to_json(is_array($meta['features_rows'] ?? null) ? $meta['features_rows'] : [], ['title', 'text']));
+        update_post_meta($post_id, '_features', boblift_rows_to_json(is_array($meta['features_rows'] ?? null) ? $meta['features_rows'] : [], ['title', 'text', 'detail', 'image']));
         update_post_meta($post_id, '_detail_images', boblift_rows_to_json(is_array($meta['detail_image_rows'] ?? null) ? $meta['detail_image_rows'] : [], ['image', 'label']));
         update_post_meta($post_id, '_gallery', boblift_rows_to_json(is_array($meta['gallery_rows'] ?? null) ? $meta['gallery_rows'] : [], ['image', 'label']));
-        update_post_meta($post_id, '_color_variants', boblift_color_variants_to_json(is_array($meta['color_variant_rows'] ?? null) ? $meta['color_variant_rows'] : []));
         update_post_meta($post_id, '_hotspots', boblift_hotspots_to_json(is_array($meta['hotspot_rows'] ?? null) ? $meta['hotspot_rows'] : []));
+        if (isset($meta['color_variants_present'])) {
+            update_post_meta($post_id, '_color_variants', boblift_rows_to_json(is_array($meta['color_variant_rows'] ?? null) ? $meta['color_variant_rows'] : [], ['label', 'image', 'color']));
+        }
         $post = get_post($post_id);
         if ($post instanceof WP_Post) {
             if (trim((string) get_post_meta($post_id, '_seo_title', true)) === '') {
@@ -1065,6 +1091,8 @@ function boblift_save_meta_boxes(int $post_id): void
         }
         update_post_meta($post_id, '_feedback_media_url', esc_url_raw((string) ($meta['feedback_media_url'] ?? '')));
         update_post_meta($post_id, '_facts', boblift_rows_to_json(is_array($meta['facts_rows'] ?? null) ? $meta['facts_rows'] : [], ['label', 'value']));
+        boblift_save_related_products($post_id, $meta['related'] ?? null);
+        update_post_meta($post_id, '_case_gallery', implode(',', array_filter(array_map('intval', explode(',', (string) ($meta['gallery'] ?? ''))))));
         update_post_meta($post_id, '_sections', boblift_rows_to_json(is_array($meta['sections_rows'] ?? null) ? $meta['sections_rows'] : [], ['heading', 'body']));
         $post = get_post($post_id);
         if ($post instanceof WP_Post) {
@@ -1327,6 +1355,11 @@ function boblift_public_page_archive_template(string $template): string
         'about' => 'page-about.php',
         'global-customer-visits' => 'page-global-customer-visits.php',
         'social-media' => 'page-social-media.php',
+        'factory-tour' => 'page-factory-tour.php',
+        'quality-testing' => 'page-quality-testing.php',
+        'mounting-shipping' => 'page-mounting-shipping.php',
+        'service' => 'page-service.php',
+        'videos' => 'page-videos.php',
         'public-welfare' => 'page-public-welfare.php',
         'news' => 'page-news.php',
         'contact' => 'page-contact.php',
@@ -1428,3 +1461,215 @@ function boblift_legacy_html_redirects(): void
     }
 }
 add_action('template_redirect', 'boblift_legacy_html_redirects', 1);
+
+// The product featured image is the hero and card image; tell editors what the stage expects.
+add_filter('admin_post_thumbnail_html', static function (string $html, int $post_id): string {
+    if (get_post_type($post_id) === 'case') {
+        return $html . '<p class="description" style="margin-top:10px;line-height:1.6"><strong>案例封面规格</strong><br>现场实拍横版照片，3:2 或 16:9，长边 1600 像素以上，主体放在画面中间。详情页会按宽幅裁切上下边缘，所以不要把重要内容贴着上下边。不加 Logo、水印和文字。</p>';
+    }
+    if (get_post_type($post_id) !== 'product') {
+        return $html;
+    }
+    $help = '<p class="description" style="margin-top:10px;line-height:1.6">'
+        . '<strong>产品主图规格（二选一）</strong><br>'
+        . '1. 透明底抠图（推荐）：PNG，四周只留很窄的透明边（约为图片长边的 2%，不要大片留白），长边 1600 像素以上；产品会站在展示台的地面线上。<br>'
+        . '2. 实拍照片：横版 4:3，1600×1200 像素，JPG/WebP，画面铺满、不留白边。<br>'
+        . '都不要加 Logo、水印和文字。上传后前台会按图片本身判断是抠图还是照片。'
+        . '</p>';
+    return $html . $help;
+}, 10, 2);
+
+// Record whether a new upload is a cut-out (transparent edges) or a photo, so the product stage frames it
+// correctly without relying on the file name. Mirrors the rule tools/image-fit used for the existing library.
+add_filter('wp_generate_attachment_metadata', static function (array $metadata, int $attachment_id): array {
+    $file = get_attached_file($attachment_id);
+    if (!$file || !function_exists('imagecreatefromstring') || get_post_meta($attachment_id, '_boblift_image_fit', true) !== '') {
+        return $metadata;
+    }
+    $fit = 'photo';
+    if (preg_match('/\.png$/i', $file)) {
+        $image = @imagecreatefrompng($file);
+        if ($image && !imageistruecolor($image)) {
+            // PNG-8: imagecolorat() returns palette indexes, so convert to truecolor to read the alpha of each pixel.
+            imagepalettetotruecolor($image);
+        }
+        if ($image) {
+            $w = imagesx($image);
+            $h = imagesy($image);
+            $clear = 0;
+            $total = 0;
+            // Sample the outer 2% ring; a cut-out's edge is mostly transparent, a photo's is opaque.
+            $band = max(2, (int) round(min($w, $h) * 0.02));
+            $step = max(1, (int) round(max($w, $h) / 400));
+            for ($x = 0; $x < $w; $x += $step) {
+                foreach ([0, $band - 1, $h - $band, $h - 1] as $y) {
+                    $total++;
+                    $clear += ((imagecolorat($image, $x, $y) >> 24) & 0x7F) > 64 ? 1 : 0;
+                }
+            }
+            for ($y = 0; $y < $h; $y += $step) {
+                foreach ([0, $band - 1, $w - $band, $w - 1] as $x) {
+                    $total++;
+                    $clear += ((imagecolorat($image, $x, $y) >> 24) & 0x7F) > 64 ? 1 : 0;
+                }
+            }
+            if ($total > 0 && $clear / $total > 0.9) {
+                $fit = 'cutout';
+            }
+        }
+    }
+    update_post_meta($attachment_id, '_boblift_image_fit', $fit);
+    return $metadata;
+}, 10, 2);
+
+function boblift_feedback_meta_box(WP_Post $post): void
+{
+    wp_nonce_field('boblift_feedback_meta', 'boblift_feedback_nonce');
+    $country = json_decode((string) get_post_meta($post->ID, '_feedback_country', true), true) ?: [];
+    $note = json_decode((string) get_post_meta($post->ID, '_feedback_note', true), true) ?: [];
+    $body = json_decode((string) get_post_meta($post->ID, '_feedback_body', true), true) ?: [];
+    $ids = array_filter(array_map('intval', explode(',', (string) get_post_meta($post->ID, '_feedback_media', true))));
+    ?>
+    <style>.boblift-feedback-box .boblift-admin-field{display:grid;grid-template-columns:170px minmax(0,1fr);gap:12px;margin:0 0 12px}.boblift-feedback-box input[type=text]{width:100%;max-width:520px;margin-bottom:6px}</style>
+    <div class="boblift-feedback-box">
+    <p class="boblift-admin-help">前台只显示国家和型号，不显示客户信息。上传前请确认照片里没有客户人脸、电话、公司名或经销商品牌。</p>
+    <div class="boblift-admin-field"><label>国家（英文）</label><input type="text" name="boblift_feedback[country_en]" value="<?php echo esc_attr((string) ($country['en'] ?? '')); ?>" placeholder="Mexico"></div>
+    <div class="boblift-admin-field"><label>国家（日文）</label><input type="text" name="boblift_feedback[country_ja]" value="<?php echo esc_attr((string) ($country['ja'] ?? '')); ?>" placeholder="メキシコ"></div>
+    <div class="boblift-admin-field"><label>国家（中文）</label><input type="text" name="boblift_feedback[country_zh]" value="<?php echo esc_attr((string) ($country['zh'] ?? '')); ?>" placeholder="墨西哥"></div>
+    <div class="boblift-admin-field"><label>型号</label><input type="text" name="boblift_feedback[model]" value="<?php echo esc_attr((string) get_post_meta($post->ID, '_feedback_model', true)); ?>" placeholder="SQ6.3ZA4"></div>
+    <div class="boblift-admin-field"><label>配置说明（英/日/中，可空）</label><div>
+        <input type="text" name="boblift_feedback[note_en]" value="<?php echo esc_attr((string) ($note['en'] ?? '')); ?>" placeholder="with clamshell bucket">
+        <input type="text" name="boblift_feedback[note_ja]" value="<?php echo esc_attr((string) ($note['ja'] ?? '')); ?>" placeholder="クラムシェルバケット付き">
+        <input type="text" name="boblift_feedback[note_zh]" value="<?php echo esc_attr((string) ($note['zh'] ?? '')); ?>" placeholder="配贝壳斗">
+    </div></div>
+    <div class="boblift-admin-field"><label>正文（英/日/中，可空）</label><div class="boblift-feedback-body">
+        <?php foreach (['en' => '英文', 'ja' => '日文', 'zh' => '中文'] as $lang => $lang_label) : ?>
+            <p class="description" style="margin:0 0 4px"><?php echo esc_html($lang_label); ?></p>
+            <textarea name="boblift_feedback[body_<?php echo esc_attr($lang); ?>]" rows="5" style="width:100%;max-width:720px;margin-bottom:10px"><?php echo esc_textarea((string) ($body[$lang] ?? '')); ?></textarea>
+        <?php endforeach; ?>
+        <p class="description">显示在详情页图片下方，空行分段。留空时详情页只显示图片 / 视频。同样不要写客户姓名、公司名。</p>
+    </div></div>
+    <div class="boblift-admin-field"><label>关联产品</label><div><?php boblift_render_related_products_field('boblift_feedback[related]', $post->ID); ?></div></div>
+    <div class="boblift-admin-field"><label>图片 / 视频</label><?php boblift_render_media_picker('boblift_feedback[media]', $ids, ['image', 'video'], '可多选；按选择顺序显示，第一张作为封面。视频建议 60 秒以内、720p、无声。'); ?></div>
+    </div>
+    <?php
+}
+
+// Media library picker storing attachment IDs (comma-separated) in one hidden field; order follows the selection.
+// "关联产品": checkboxes of the English products, grouped by category. The product page resolves
+// the English ID for every language, so one link covers all translations.
+function boblift_render_related_products_field(string $name, int $post_id): void
+{
+    $selected = array_map('intval', get_post_meta($post_id, '_related_product'));
+    $groups = [];
+    foreach (get_posts(['post_type' => 'product', 'post_status' => 'publish', 'posts_per_page' => -1, 'lang' => 'en', 'orderby' => 'title', 'order' => 'ASC']) as $product) {
+        $terms = get_the_terms($product, 'product_category');
+        $group = $terms && !is_wp_error($terms) ? $terms[0]->name : '其他';
+        $model = trim((string) get_post_meta($product->ID, '_model', true));
+        $groups[$group][] = ['id' => $product->ID, 'label' => ($model !== '' ? $model . ' — ' : '') . $product->post_title];
+    }
+    ksort($groups);
+    echo '<input type="hidden" name="' . esc_attr($name) . '[]" value="">';
+    echo '<div style="max-height:320px;overflow:auto;border:1px solid #dcdcde;padding:8px 12px;background:#fff">';
+    foreach ($groups as $group => $items) {
+        echo '<p style="margin:10px 0 4px;font-weight:700">' . esc_html($group) . '</p>';
+        foreach ($items as $item) {
+            echo '<label style="display:block;margin:2px 0"><input type="checkbox" name="' . esc_attr($name) . '[]" value="' . esc_attr((string) $item['id']) . '"' . checked(in_array($item['id'], $selected, true), true, false) . '> ' . esc_html($item['label']) . '</label>';
+        }
+    }
+    echo '</div><p class="description">勾选后，这条内容会出现在对应产品详情页。可多选；不勾选就不在任何产品页显示。</p>';
+}
+
+function boblift_save_related_products(int $post_id, mixed $values): void
+{
+    if (!is_array($values)) {
+        return;
+    }
+    delete_post_meta($post_id, '_related_product');
+    foreach (array_unique(array_filter(array_map('intval', $values))) as $product_id) {
+        if (get_post_type($product_id) === 'product') {
+            add_post_meta($post_id, '_related_product', (string) $product_id);
+        }
+    }
+}
+
+function boblift_render_media_picker(string $name, array $ids, array $types, string $help): void
+{
+    ?>
+    <div class="boblift-media-picker" data-types="<?php echo esc_attr(implode(',', $types)); ?>">
+        <input type="hidden" class="boblift-media-picker-ids" name="<?php echo esc_attr($name); ?>" value="<?php echo esc_attr(implode(',', $ids)); ?>">
+        <p><button type="button" class="button boblift-media-picker-select"><?php echo esc_html(in_array('video', $types, true) ? '选择图片 / 视频' : '选择图片'); ?></button> <button type="button" class="button boblift-media-picker-clear">清除全部</button> <span class="description"><?php echo esc_html($help); ?></span></p>
+        <div class="boblift-media-picker-preview" style="display:flex;flex-wrap:wrap;gap:6px">
+            <?php foreach ($ids as $id) : $thumb = wp_attachment_is('video', $id) ? (string) get_the_post_thumbnail_url($id, 'thumbnail') : (string) wp_get_attachment_image_url($id, 'thumbnail'); ?>
+                <span style="width:72px;height:54px;border:1px solid #dcdcde;background:#f6f7f7 center/cover no-repeat;<?php echo $thumb !== '' ? 'background-image:url(' . esc_url($thumb) . ')' : ''; ?>" title="<?php echo esc_attr(get_the_title($id)); ?>"><?php echo wp_attachment_is('video', $id) ? '&#9654;' : ''; ?></span>
+            <?php endforeach; ?>
+        </div>
+    </div>
+    <script>
+    jQuery(function ($) {
+      if (window.bobliftMediaPickerReady) return;
+      window.bobliftMediaPickerReady = true;
+      // Empty the selection (the media modal cannot confirm an empty one): clears the stored IDs and the preview.
+      $(document).on('click', '.boblift-media-picker-clear', function (event) {
+        event.preventDefault();
+        var field = $(this).closest('.boblift-media-picker');
+        field.find('.boblift-media-picker-ids').val('');
+        field.find('.boblift-media-picker-preview').empty();
+      });
+      $(document).on('click', '.boblift-media-picker-select', function (event) {
+        event.preventDefault();
+        var field = $(this).closest('.boblift-media-picker');
+        var frame = wp.media({ title: $(this).text(), button: { text: '使用所选' }, multiple: 'add', library: { type: String(field.data('types')).split(',') } });
+        frame.on('open', function () {
+          var selection = frame.state().get('selection');
+          (field.find('.boblift-media-picker-ids').val() || '').split(',').filter(Boolean).forEach(function (id) {
+            var attachment = wp.media.attachment(id); attachment.fetch(); selection.add(attachment);
+          });
+        });
+        frame.on('select', function () {
+          var items = frame.state().get('selection').toJSON();
+          field.find('.boblift-media-picker-ids').val(items.map(function (item) { return item.id; }).join(','));
+          var preview = field.find('.boblift-media-picker-preview').empty();
+          items.forEach(function (item) {
+            var thumb = (item.sizes && item.sizes.thumbnail && item.sizes.thumbnail.url) || (item.image && item.image.src) || '';
+            $('<span>').css({ width: 72, height: 54, border: '1px solid #dcdcde', background: '#f6f7f7 center/cover no-repeat', backgroundImage: thumb ? 'url(' + thumb + ')' : '' }).text(item.type === 'video' ? '\u25B6' : '').appendTo(preview);
+          });
+        });
+        frame.open();
+      });
+    });
+    </script>
+    <?php
+}
+
+function boblift_save_feedback_meta(int $post_id): void
+{
+    if (!isset($_POST['boblift_feedback_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['boblift_feedback_nonce'])), 'boblift_feedback_meta')) {
+        return;
+    }
+    if ((defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) || !current_user_can('edit_post', $post_id)) {
+        return;
+    }
+    $data = is_array($_POST['boblift_feedback'] ?? null) ? wp_unslash($_POST['boblift_feedback']) : [];
+    $text = static fn(string $key): string => sanitize_text_field((string) ($data[$key] ?? ''));
+    update_post_meta($post_id, '_feedback_country', wp_slash(wp_json_encode(['en' => $text('country_en'), 'ja' => $text('country_ja'), 'zh' => $text('country_zh')], JSON_UNESCAPED_UNICODE)));
+    $note = ['en' => $text('note_en'), 'ja' => $text('note_ja'), 'zh' => $text('note_zh')];
+    update_post_meta($post_id, '_feedback_note', array_filter($note) ? wp_slash(wp_json_encode($note, JSON_UNESCAPED_UNICODE)) : '');
+    $body = [];
+    foreach (['en', 'ja', 'zh'] as $lang) {
+        $body[$lang] = trim(sanitize_textarea_field((string) ($data['body_' . $lang] ?? '')));
+    }
+    update_post_meta($post_id, '_feedback_body', array_filter($body) ? wp_slash(wp_json_encode($body, JSON_UNESCAPED_UNICODE)) : '');
+    update_post_meta($post_id, '_feedback_model', $text('model'));
+    boblift_save_related_products($post_id, $data['related'] ?? null);
+    update_post_meta($post_id, '_feedback_media', implode(',', array_filter(array_map('intval', explode(',', $text('media'))))));
+}
+add_action('save_post_feedback', 'boblift_save_feedback_meta');
+
+// The media picker on the feedback editor needs the media library scripts.
+add_action('admin_enqueue_scripts', static function (): void {
+    $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+    if ($screen && in_array($screen->post_type, ['feedback', 'case'], true) && $screen->base === 'post') {
+        wp_enqueue_media();
+    }
+});

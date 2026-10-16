@@ -128,8 +128,12 @@ function boblift_import_current_content(): void
         ['Cases', 'cases', '', '/cases.html'],
         ['About BOB-LIFT', 'about', 'page-about.php', '/about.html'],
         ['Global Customer Visits', 'global-customer-visits', 'page-global-customer-visits.php', '/global-customer-visits.html'],
+        ['Factory Tour', 'factory-tour', 'page-factory-tour.php', '/factory-tour.html'],
+        ['Quality & Testing', 'quality-testing', 'page-quality-testing.php', '/quality-testing.html'],
+        ['Truck Mounting & Export', 'mounting-shipping', 'page-mounting-shipping.php', '/mounting-shipping.html'],
+        ['Service & Operation', 'service', 'page-service.php', '/service.html'],
+        ['Video Center', 'videos', 'page-videos.php', '/videos.html'],
         ['Social Media', 'social-media', 'page-social-media.php', '/social-media.html'],
-        ['Public Welfare', 'public-welfare', 'page-public-welfare.php', '/public-welfare.html'],
         ['News', 'news', 'page-news.php', '/news.html'],
         ['Contact Us', 'contact', 'page-contact.php', '/contact.html'],
         ['Privacy Policy', 'privacy-policy', 'page-privacy-policy.php', '/privacy-policy.html'],
@@ -148,7 +152,7 @@ function boblift_import_current_content(): void
         $page_ids[$slug] = $id;
     }
     if (!empty($page_ids['about']) && !is_wp_error($page_ids['about'])) {
-        foreach (['global-customer-visits', 'social-media', 'public-welfare', 'contact'] as $child_slug) {
+        foreach (['factory-tour', 'quality-testing', 'mounting-shipping', 'service', 'global-customer-visits', 'videos', 'social-media', 'contact'] as $child_slug) {
             if (!empty($page_ids[$child_slug]) && !is_wp_error($page_ids[$child_slug])) {
                 wp_update_post([
                     'ID' => (int) $page_ids[$child_slug],
@@ -173,9 +177,10 @@ function boblift_import_current_content(): void
             continue;
         }
         wp_set_object_terms($id, $product['category'], 'product_category');
-        foreach (['model', 'capacity', 'capacity_value', 'boom_type', 'status', 'short_description'] as $key) {
+        foreach (['model', 'capacity', 'capacity_value', 'status', 'short_description'] as $key) {
             update_post_meta($id, '_' . $key, (string) ($product[$key] ?? ''));
         }
+        update_post_meta($id, '_boom_type', boblift_normalize_product_boom_type((string) ($product['boom_type'] ?? '')));
         update_post_meta($id, '_applications', implode(',', $product['applications'] ?? []));
         update_post_meta($id, '_tags', implode(',', $product['tags'] ?? []));
         update_post_meta($id, '_specs', wp_json_encode($product['specs'] ?? [], JSON_UNESCAPED_UNICODE));

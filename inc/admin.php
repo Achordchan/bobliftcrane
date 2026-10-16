@@ -46,6 +46,7 @@ function boblift_admin_assets(string $hook): void
     frame.on('select', function () {
       var attachment = frame.state().get('selection').first().toJSON();
       field.find('.boblift-media-id').val(attachment.id || 0);
+      field.find('.boblift-media-path-value').val(attachment.url || '');
       var preview = field.find('.boblift-media-preview');
       if (preview.is('img')) {
         preview.attr('src', attachment.url || '').removeClass('is-hidden');
@@ -60,6 +61,7 @@ function boblift_admin_assets(string $hook): void
     event.preventDefault();
     var field = $(this).closest('.boblift-media-field');
     field.find('.boblift-media-id').val('0');
+    field.find('.boblift-media-path-value').val(field.data('fallback') || '');
     var preview = field.find('.boblift-media-preview');
     if (preview.is('img')) {
       preview.attr('src', field.data('fallback') || '').removeClass('is-hidden');
@@ -119,6 +121,55 @@ document.addEventListener('DOMContentLoaded', function () {
 
     reindex();
   });
+
+  document.querySelectorAll('[data-about-certifications-editor]').forEach(function (editor) {
+    var list = editor.querySelector('[data-about-certifications-list]');
+    var template = editor.querySelector('template[data-about-certification-template]');
+    var addButton = editor.querySelector('[data-about-certification-add]');
+    if (!list || !template || !addButton) {
+      return;
+    }
+
+    function reindexCertifications() {
+      list.querySelectorAll('[data-about-certification-row]').forEach(function (row, index) {
+        row.dataset.certificationIndex = String(index);
+        var title = row.querySelector('[data-about-certification-title]');
+        if (title) {
+          title.textContent = '认证图片 ' + String(index + 1);
+        }
+        row.querySelectorAll('[name]').forEach(function (field) {
+          field.name = field.name.replace(/\[certifications\]\[items\]\[[^\]]+\]/, '[certifications][items][' + index + ']');
+        });
+      });
+    }
+
+    addButton.addEventListener('click', function () {
+      var index = list.querySelectorAll('[data-about-certification-row]').length;
+      var html = template.innerHTML.replace(/__INDEX__/g, String(index));
+      var wrapper = document.createElement('div');
+      wrapper.innerHTML = html.trim();
+      var row = wrapper.firstElementChild;
+      if (row) {
+        list.appendChild(row);
+        reindexCertifications();
+      }
+    });
+
+    list.addEventListener('click', function (event) {
+      var button = event.target.closest('[data-about-certification-remove]');
+      if (!button) {
+        return;
+      }
+      event.preventDefault();
+      var row = button.closest('[data-about-certification-row]');
+      if (row) {
+        row.remove();
+        reindexCertifications();
+      }
+    });
+
+    reindexCertifications();
+  });
 });
 JS);
     wp_add_inline_script('jquery', <<<'JS'
@@ -130,7 +181,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
   var navList = builder.querySelector('[data-nav-list]');
   var parking = builder.querySelector('[data-product-groups-parking]');
-  var editor = builder.querySelector('[data-product-groups-editor]');
+  // The group editor exists only while a saved custom product menu is active; without it an empty stand-in keeps the handlers inert.
+  var editor = builder.querySelector('[data-product-groups-editor]') || document.createElement('div');
   var navTemplate = builder.querySelector('template[data-template="nav-row"]');
   var groupTemplate = builder.querySelector('template[data-template="group-row"]');
   var linkTemplate = builder.querySelector('template[data-template="link-row"]');
@@ -428,6 +480,10 @@ function boblift_handle_save_theme_settings(): void
     if (isset($_POST['boblift_nav_items_present']) && !isset($posted['nav_items'])) {
         $posted['nav_items'] = [];
     }
+    // "Reset to the generated Products menu": drop the curated groups by saving the built-in default list again.
+    if (isset($_POST['boblift_reset_product_menu'])) {
+        $posted['product_nav_groups'] = boblift_default_options()['product_nav_groups'] ?? [];
+    }
     if (isset($_POST['boblift_product_nav_groups_present']) && !isset($posted['product_nav_groups'])) {
         $posted['product_nav_groups'] = [];
     }
@@ -547,6 +603,30 @@ function boblift_cleanup_admin_options(array $options): array
     }
 
 
+
+    if (isset($options['about_page']) && is_array($options['about_page'])) {
+        // headline, paragraph and proof_chips stay: a saved introduction is still shown (page-about.php) below the hero.
+        foreach (['texture_image', 'label'] as $key) {
+            unset($options['about_page']['logo'][$key]);
+        }
+        // strength.cards and the strength call to action stay: saved custom ones are still shown (page-about.php) and editable in the settings.
+        foreach (['label', 'title', 'text'] as $key) {
+            unset($options['about_page']['global_footprint'][$key]);
+        }
+        // The legacy team photo moves to team_image before its old key is dropped, so a saved custom image is never lost.
+        if (!empty($options['about_page']['executives']['group_image']) && empty($options['about_page']['executives']['team_image'])) {
+            $options['about_page']['executives']['team_image'] = $options['about_page']['executives']['group_image'];
+        }
+        unset($options['about_page']['executives']['group_image']);
+    }
+
+    if (isset($options['social_media_page']['hero']) && is_array($options['social_media_page']['hero'])) {
+        // hero.title and hero.text stay: a customised old hero copy that differs from the new heading is still shown under the hero.
+        foreach (['button_label', 'email_label'] as $key) {
+            unset($options['social_media_page']['hero'][$key]);
+        }
+    }
+
     if (isset($options['social_media_page']) && is_array($options['social_media_page'])) {
         foreach (['featured_platforms', 'major_platforms', 'secondary_platforms'] as $platform_group) {
             if (!isset($options['social_media_page'][$platform_group]) || !is_array($options['social_media_page'][$platform_group])) {
@@ -588,6 +668,9 @@ function boblift_cleanup_admin_options(array $options): array
                 $cards[] = $card;
             }
             $options['social_media_page']['content_cards'] = array_values($cards);
+        }
+        if (isset($options['social_media_page']['videos']) && is_array($options['social_media_page']['videos'])) {
+            $options['social_media_page']['videos'] = array_values(array_filter($options['social_media_page']['videos'], static fn($row): bool => is_array($row) && (boblift_admin_value_has_content($row['video'] ?? []) || trim((string) ($row['youtube'] ?? '')) !== '')));
         }
         if (isset($options['social_media_page']['panel']['items']) && is_array($options['social_media_page']['panel']['items'])) {
             $options['social_media_page']['panel']['items'] = array_values(array_filter($options['social_media_page']['panel']['items'], static fn($row): bool => is_array($row) && boblift_admin_value_has_content($row['text'] ?? '')));
@@ -955,7 +1038,7 @@ function boblift_legal_page_meta_box(WP_Post $post, string $section, string $bas
 
 function boblift_admin_about_page_styles(): void
 {
-    echo '<style>.boblift-admin-wrap .form-table th{width:210px}.boblift-admin-section{margin:24px 0;padding:22px;border:1px solid #dcdcde;border-radius:14px;background:#fff}.boblift-admin-section h2{margin-top:0}.boblift-admin-grid{display:flex;max-width:1180px;flex-direction:column;gap:14px}.boblift-admin-panel{overflow:hidden;border:1px solid #dcdcde;border-radius:16px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.02)}.boblift-admin-panel+.boblift-admin-panel{margin-top:16px}.boblift-admin-panel>summary{display:flex;align-items:center;gap:12px;cursor:pointer;list-style:none;padding:20px 22px;background:#f6f7f7;color:#3c434a;font-size:18px;font-weight:800;line-height:1.35}.boblift-admin-panel>summary::-webkit-details-marker{display:none}.boblift-admin-panel>summary:before{content:"";width:0;height:0;border-top:7px solid transparent;border-bottom:7px solid transparent;border-left:10px solid #3c434a;transition:transform .18s ease}.boblift-admin-panel[open]>summary{border-bottom:1px solid #dcdcde;background:#fff}.boblift-admin-panel[open]>summary:before{transform:rotate(90deg)}.boblift-admin-panel>summary:hover{background:#f0f0f1}.boblift-admin-panel>summary:focus{outline:2px solid #2271b1;outline-offset:-2px}.boblift-admin-panel-title{display:block}.boblift-admin-panel-description{display:block;margin-top:4px;color:#646970;font-size:13px;font-weight:500;line-height:1.5}.boblift-admin-panel-heading{display:block}.boblift-admin-panel-body{padding:20px 22px}.boblift-admin-card{padding:18px;border:1px solid #dcdcde;border-radius:14px;background:#fbfbfc}.boblift-admin-card+.boblift-admin-card{margin-top:14px}.boblift-admin-card h3{margin:0 0 16px;font-size:15px}.boblift-admin-field{display:grid;grid-template-columns:150px minmax(0,1fr);gap:12px;align-items:start;margin-bottom:14px}.boblift-admin-field label{margin-top:7px;font-weight:600}.boblift-admin-field input[type=text],.boblift-admin-field textarea,.boblift-admin-field select{width:100%;max-width:860px}.boblift-admin-field textarea{min-height:92px}.boblift-admin-checklist{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;max-width:920px}.boblift-admin-checkitem{display:flex;gap:9px;align-items:flex-start;padding:10px 12px;border:1px solid #dcdcde;border-radius:10px;background:#fff}.boblift-admin-checkitem span{font-weight:600;line-height:1.35}.boblift-admin-note{margin:0 0 14px;color:#646970}.boblift-media-field{grid-template-columns:150px 140px auto auto;align-items:center}.boblift-media-field label{margin:0}.boblift-media-preview{width:132px;height:82px;object-fit:cover;border:1px solid #dcdcde;border-radius:8px;background:#f6f7f7}.boblift-media-file-preview{display:flex;align-items:center;padding:8px;color:#50575e;font-size:12px;line-height:1.4;overflow:hidden}.boblift-media-help{grid-column:2/-1;margin:-6px 0 0;color:#646970;font-size:12px;line-height:1.6}.boblift-media-preview.is-hidden{display:none}.boblift-admin-link-control{display:grid;grid-template-columns:minmax(260px,520px) minmax(260px,360px);gap:10px;align-items:start;max-width:900px}.boblift-admin-link-control input,.boblift-admin-link-control select{width:100%;max-width:none}.boblift-admin-link-help{grid-column:1/-1;margin:0;color:#646970;font-size:12px}.boblift-admin-menu-table{overflow:hidden;border:1px solid #dcdcde;border-radius:14px;background:#fff}.boblift-admin-menu-head,.boblift-admin-menu-summary{display:grid;grid-template-columns:80px minmax(0,1fr);align-items:center}.boblift-admin-menu-head{background:#f6f7f7;color:#50575e;font-weight:700}.boblift-admin-menu-head span,.boblift-admin-menu-summary span{padding:14px 16px}.boblift-admin-menu-row{border-top:1px solid #f0f0f1}.boblift-admin-menu-row:first-of-type{border-top:0}.boblift-admin-menu-row>summary{display:grid;cursor:pointer;list-style:none;background:#fff}.boblift-admin-menu-row>summary::-webkit-details-marker{display:none}.boblift-admin-menu-row>summary:hover{background:#f6f7f7}.boblift-admin-menu-id{color:#646970;font-weight:700}.boblift-admin-menu-label{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;color:#1d2327}.boblift-admin-menu-label:before{content:"+";width:18px;color:#8c8f94;font-size:20px;font-weight:400;line-height:1}.boblift-admin-menu-row[open]>.boblift-admin-menu-summary .boblift-admin-menu-label:before{content:"−"}.boblift-admin-menu-count{color:#8c8f94;font-weight:500}.boblift-admin-menu-child .boblift-admin-menu-summary{grid-template-columns:80px minmax(0,1fr)}.boblift-admin-menu-child .boblift-admin-menu-label{padding-left:32px}.boblift-admin-menu-child .boblift-admin-menu-label:before{content:"└ +";width:auto}.boblift-admin-menu-child[open]>.boblift-admin-menu-summary .boblift-admin-menu-label:before{content:"└ −"}.boblift-admin-menu-body{padding:18px 22px;background:#fbfbfc;border-top:1px solid #f0f0f1}@media(max-width:782px){.boblift-admin-field,.boblift-media-field{display:block}.boblift-admin-field label{margin:0 0 6px}.boblift-media-preview{display:block;margin-bottom:10px}.boblift-media-help{margin:8px 0 0}.boblift-media-field .button{margin:0 8px 8px 0}}</style>';
+    echo '<style>.boblift-admin-wrap .form-table th{width:210px}.boblift-admin-section{margin:24px 0;padding:22px;border:1px solid #dcdcde;border-radius:14px;background:#fff}.boblift-admin-section h2{margin-top:0}.boblift-admin-grid{display:flex;max-width:1180px;flex-direction:column;gap:14px}.boblift-admin-panel{overflow:hidden;border:1px solid #dcdcde;border-radius:16px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.02)}.boblift-admin-panel+.boblift-admin-panel{margin-top:16px}.boblift-admin-panel>summary{display:flex;align-items:center;gap:12px;cursor:pointer;list-style:none;padding:20px 22px;background:#f6f7f7;color:#3c434a;font-size:18px;font-weight:800;line-height:1.35}.boblift-admin-panel>summary::-webkit-details-marker{display:none}.boblift-admin-panel>summary:before{content:"";width:0;height:0;border-top:7px solid transparent;border-bottom:7px solid transparent;border-left:10px solid #3c434a;transition:transform .18s ease}.boblift-admin-panel[open]>summary{border-bottom:1px solid #dcdcde;background:#fff}.boblift-admin-panel[open]>summary:before{transform:rotate(90deg)}.boblift-admin-panel>summary:hover{background:#f0f0f1}.boblift-admin-panel>summary:focus{outline:2px solid #2271b1;outline-offset:-2px}.boblift-admin-panel-title{display:block}.boblift-admin-panel-description{display:block;margin-top:4px;color:#646970;font-size:13px;font-weight:500;line-height:1.5}.boblift-admin-panel-heading{display:block}.boblift-admin-panel-body{padding:20px 22px}.boblift-admin-card{padding:18px;border:1px solid #dcdcde;border-radius:14px;background:#fbfbfc}.boblift-admin-card+.boblift-admin-card{margin-top:14px}.boblift-admin-card h3{margin:0 0 16px;font-size:15px}.boblift-admin-subpanel{padding:0}.boblift-admin-subpanel>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;list-style:none;padding:16px 18px}.boblift-admin-subpanel>summary::-webkit-details-marker{display:none}.boblift-admin-subpanel>summary:before{content:"+";color:#8c8f94;font-size:18px;font-weight:700}.boblift-admin-subpanel[open]>summary{border-bottom:1px solid #dcdcde;background:#fff}.boblift-admin-subpanel[open]>summary:before{content:"−"}.boblift-admin-subpanel-title{flex:1;font-size:15px;font-weight:800;color:#1d2327}.boblift-admin-subpanel-meta{color:#646970;font-size:12px;font-weight:600}.boblift-admin-subpanel-body{padding:18px}.boblift-admin-field{display:grid;grid-template-columns:150px minmax(0,1fr);gap:12px;align-items:start;margin-bottom:14px}.boblift-admin-field label{margin-top:7px;font-weight:600}.boblift-admin-field input[type=text],.boblift-admin-field textarea,.boblift-admin-field select{width:100%;max-width:860px}.boblift-admin-field textarea{min-height:92px}.boblift-admin-checklist{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;max-width:920px}.boblift-admin-checkitem{display:flex;gap:9px;align-items:flex-start;padding:10px 12px;border:1px solid #dcdcde;border-radius:10px;background:#fff}.boblift-admin-checkitem span{font-weight:600;line-height:1.35}.boblift-admin-note{margin:0 0 14px;color:#646970}.boblift-media-field{grid-template-columns:150px 140px auto auto;align-items:center}.boblift-media-field label{margin:0}.boblift-media-preview{width:132px;height:82px;object-fit:cover;border:1px solid #dcdcde;border-radius:8px;background:#f6f7f7}.boblift-media-file-preview{display:flex;align-items:center;padding:8px;color:#50575e;font-size:12px;line-height:1.4;overflow:hidden}.boblift-media-help{grid-column:2/-1;margin:-6px 0 0;color:#646970;font-size:12px;line-height:1.6}.boblift-media-preview.is-hidden{display:none}.boblift-admin-link-control{display:grid;grid-template-columns:minmax(260px,520px) minmax(260px,360px);gap:10px;align-items:start;max-width:900px}.boblift-admin-link-control input,.boblift-admin-link-control select{width:100%;max-width:none}.boblift-admin-link-help{grid-column:1/-1;margin:0;color:#646970;font-size:12px}.boblift-admin-menu-table{overflow:hidden;border:1px solid #dcdcde;border-radius:14px;background:#fff}.boblift-admin-menu-head,.boblift-admin-menu-summary{display:grid;grid-template-columns:80px minmax(0,1fr);align-items:center}.boblift-admin-menu-head{background:#f6f7f7;color:#50575e;font-weight:700}.boblift-admin-menu-head span,.boblift-admin-menu-summary span{padding:14px 16px}.boblift-admin-menu-row{border-top:1px solid #f0f0f1}.boblift-admin-menu-row:first-of-type{border-top:0}.boblift-admin-menu-row>summary{display:grid;cursor:pointer;list-style:none;background:#fff}.boblift-admin-menu-row>summary::-webkit-details-marker{display:none}.boblift-admin-menu-row>summary:hover{background:#f6f7f7}.boblift-admin-menu-id{color:#646970;font-weight:700}.boblift-admin-menu-label{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;color:#1d2327}.boblift-admin-menu-label:before{content:"+";width:18px;color:#8c8f94;font-size:20px;font-weight:400;line-height:1}.boblift-admin-menu-row[open]>.boblift-admin-menu-summary .boblift-admin-menu-label:before{content:"−"}.boblift-admin-menu-count{color:#8c8f94;font-weight:500}.boblift-admin-menu-child .boblift-admin-menu-summary{grid-template-columns:80px minmax(0,1fr)}.boblift-admin-menu-child .boblift-admin-menu-label{padding-left:32px}.boblift-admin-menu-child .boblift-admin-menu-label:before{content:"└ +";width:auto}.boblift-admin-menu-child[open]>.boblift-admin-menu-summary .boblift-admin-menu-label:before{content:"└ −"}.boblift-admin-menu-body{padding:18px 22px;background:#fbfbfc;border-top:1px solid #f0f0f1}@media(max-width:782px){.boblift-admin-field,.boblift-media-field{display:block}.boblift-admin-field label{margin:0 0 6px}.boblift-media-preview{display:block;margin-bottom:10px}.boblift-media-help{margin:8px 0 0}.boblift-media-field .button{margin:0 8px 8px 0}}</style>';
     echo '<style>.boblift-admin-language-note{max-width:1180px}.boblift-admin-nav-builder{max-width:1180px}.boblift-admin-menu-head,.boblift-admin-menu-summary,.boblift-admin-menu-child .boblift-admin-menu-summary{grid-template-columns:80px minmax(0,1fr) 190px}.boblift-admin-menu-actions{display:flex;justify-content:flex-end;gap:6px;align-items:center;padding:10px 12px}.boblift-admin-menu-actions .button-link-delete{color:#b32d2e}.boblift-admin-product-groups-editor{margin-top:18px;padding:18px;border:1px solid #c3c4c7;border-radius:14px;background:#fff}.boblift-admin-product-groups-editor h3{margin:0 0 8px}.boblift-admin-menu-inline-slot[hidden],[data-product-groups-parking][hidden]{display:none}.boblift-admin-submenu-links{overflow:hidden;margin:14px 0;border:1px solid #dcdcde;border-radius:12px;background:#fff}@media(max-width:960px){.boblift-admin-menu-head,.boblift-admin-menu-summary,.boblift-admin-menu-child .boblift-admin-menu-summary{grid-template-columns:56px minmax(0,1fr)}.boblift-admin-menu-head span:last-child{display:none}.boblift-admin-menu-actions{grid-column:1/-1;justify-content:flex-start;padding:0 16px 12px}.boblift-admin-link-control{grid-template-columns:1fr}}</style>';
     echo '<style>.boblift-floating-contact-editor{max-width:1180px;padding:16px;border:1px solid #dcdcde;border-radius:14px;background:#fff}.boblift-floating-contact-list{display:grid;gap:10px;margin-top:12px}.boblift-floating-contact-row{overflow:hidden;border:1px solid #dcdcde;border-radius:12px;background:#fff}.boblift-floating-contact-summary{display:grid;grid-template-columns:40px 38px minmax(160px,1fr) minmax(120px,180px) auto;gap:10px;align-items:center;cursor:pointer;list-style:none;padding:12px 14px}.boblift-floating-contact-summary::-webkit-details-marker{display:none}.boblift-floating-contact-summary:hover{background:#f6f7f7}.boblift-floating-contact-summary:before{content:"+";grid-column:1;grid-row:1;color:#8c8f94;font-size:18px;font-weight:700}.boblift-floating-contact-row[open] .boblift-floating-contact-summary:before{content:"−"}.boblift-floating-contact-index{display:none}.boblift-floating-contact-icon{grid-column:2;display:grid;width:32px;height:32px;place-items:center;border:1px solid #dcdcde;border-radius:999px;background:#f8fafc;color:#08234a}.boblift-floating-contact-title{font-size:14px;font-weight:800;color:#1d2327}.boblift-floating-contact-type{color:#646970;font-size:12px;font-weight:700}.boblift-floating-contact-actions{display:flex;justify-content:flex-end;gap:6px}.boblift-floating-contact-actions .button-link-delete{color:#b32d2e}.boblift-floating-contact-body{padding:14px 16px 16px;border-top:1px solid #f0f0f1;background:#fbfbfc}.boblift-floating-contact-body .boblift-admin-field{grid-template-columns:120px minmax(0,1fr);margin-bottom:10px}.boblift-floating-contact-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px}.boblift-floating-contact-toolbar span{color:#646970;font-size:12px}@media(max-width:960px){.boblift-floating-contact-summary{grid-template-columns:32px minmax(0,1fr);}.boblift-floating-contact-summary:before{grid-column:1}.boblift-floating-contact-icon{display:none}.boblift-floating-contact-title{grid-column:2}.boblift-floating-contact-type,.boblift-floating-contact-actions{grid-column:2}.boblift-floating-contact-actions{justify-content:flex-start}.boblift-floating-contact-body .boblift-admin-field{display:block}}</style>';
 }
@@ -963,6 +1046,18 @@ function boblift_admin_about_page_styles(): void
 function boblift_admin_panel(string $title, callable $render): void
 {
     echo '<details class="boblift-admin-panel"><summary>' . esc_html($title) . '</summary><div class="boblift-admin-panel-body">';
+    $render();
+    echo '</div></details>';
+}
+
+function boblift_admin_subpanel(string $title, callable $render, bool $open = false, string $meta = ''): void
+{
+    echo '<details class="boblift-admin-card boblift-admin-subpanel" ' . ($open ? 'open' : '') . '>';
+    echo '<summary><span class="boblift-admin-subpanel-title">' . esc_html($title) . '</span>';
+    if ($meta !== '') {
+        echo '<span class="boblift-admin-subpanel-meta">' . esc_html($meta) . '</span>';
+    }
+    echo '</summary><div class="boblift-admin-subpanel-body">';
     $render();
     echo '</div></details>';
 }
@@ -1062,6 +1157,30 @@ function boblift_admin_link_choices(): array
     return $choices;
 }
 
+function boblift_render_about_certification_admin_row(array $certifications, string $base, int|string $index, bool $template = false): void
+{
+    $index_string = (string) $index;
+    $items = is_array($certifications['items'] ?? null) ? $certifications['items'] : [];
+    $item = is_array($items[$index] ?? null) ? $items[$index] : [];
+    $row_attrs = 'class="boblift-admin-card boblift-admin-subpanel" data-about-certification-row data-certification-index="' . esc_attr($index_string) . '"';
+    if ($template) {
+        $row_attrs = 'class="boblift-admin-card boblift-admin-subpanel" data-about-certification-row data-certification-index="__INDEX__"';
+    }
+    $title = trim((string) ($item['title'] ?? ''));
+    echo '<details ' . $row_attrs . ($template ? '' : '') . '>';
+    echo '<summary><span class="boblift-admin-subpanel-title" data-about-certification-title>认证图片 ' . esc_html($template ? '__INDEX__' : (string) ((int) $index + 1)) . '</span>';
+    if ($title !== '') {
+        echo '<span class="boblift-admin-subpanel-meta">' . esc_html($title) . '</span>';
+    }
+    echo '</summary><div class="boblift-admin-subpanel-body">';
+    echo '<p><button class="button button-link-delete" type="button" data-about-certification-remove>删除这张证书</button></p>';
+    boblift_admin_media('certifications.items.' . $index_string . '.image', ['certifications' => ['items' => [$index => $item]]], '证书图片', $base, '上传真实证书图片。推荐竖版 1200×1600 或 1600×2200；横版也会自适应展示。');
+    boblift_admin_input('certifications.items.' . $index_string . '.title', ['certifications' => ['items' => [$index => $item]]], '证书标题', $base);
+    boblift_admin_textarea('certifications.items.' . $index_string . '.text', ['certifications' => ['items' => [$index => $item]]], '简短说明', $base);
+    echo '</div></details>';
+}
+
+
 function boblift_render_about_page_fields(array $about, string $base): void
 {
     echo '<div class="boblift-admin-grid">';
@@ -1069,50 +1188,67 @@ function boblift_render_about_page_fields(array $about, string $base): void
     boblift_admin_panel('1. About 二级导航', static function () use ($about, $base): void {
         echo '<p class="boblift-admin-note">控制顶部 About 下拉二级导航。label 会进入多语言翻译；href 和 slug 保持 URL 识别，不翻译。</p>';
         $items = is_array($about['secondary_nav'] ?? null) ? $about['secondary_nav'] : [];
+        // Saving the menu records that it was reviewed, so newer default pages are no longer re-added to it on read.
+        echo '<input type="hidden" name="' . esc_attr($base) . '[secondary_nav_version]" value="1">';
         for ($i = 0; $i < max(5, count($items)); $i++) {
-            echo '<div class="boblift-admin-card"><h3>二级导航 ' . esc_html((string) ($i + 1)) . '</h3>';
-            boblift_admin_input("secondary_nav.$i.label", $about, '显示文字', $base);
-            boblift_admin_link_input("secondary_nav.$i.href", $about, '链接', $base);
-            boblift_admin_input("secondary_nav.$i.slug", $about, '对应页面 Slug', $base);
-            echo '</div>';
+            boblift_admin_subpanel('二级导航 ' . (string) ($i + 1), static function () use ($about, $base, $i): void {
+                boblift_admin_input("secondary_nav.$i.label", $about, '显示文字', $base);
+                boblift_admin_link_input("secondary_nav.$i.href", $about, '链接', $base);
+                boblift_admin_input("secondary_nav.$i.slug", $about, '对应页面 Slug', $base);
+            }, false, (string) ($items[$i]['label'] ?? ''));
         }
     });
 
+    // A saved introduction from the old layout is still shown under the hero, so it stays editable (and removable) here.
+    $legacy_intro = boblift_about_legacy_intro((array) ($about['logo'] ?? []));
+    if ($legacy_intro['headline'] !== '' || $legacy_intro['paragraph'] !== '' || $legacy_intro['chips'] !== []) {
+        boblift_admin_panel('旧版介绍（仍在前台显示）', static function () use ($about, $base, $legacy_intro): void {
+            echo '<p class="boblift-admin-note">这是旧版 About 首屏保存的介绍文字，现在显示在新版首屏下方。清空全部内容并保存即可删除。</p>';
+            boblift_admin_input('logo.headline', $about, '标题', $base);
+            boblift_admin_textarea('logo.paragraph', $about, '段落', $base);
+            for ($i = 0; $i < max(3, count($legacy_intro['chips']) + 1); $i++) {
+                boblift_admin_input("logo.proof_chips.$i.number", $about, '要点 ' . (string) ($i + 1) . ' 编号', $base);
+                boblift_admin_input("logo.proof_chips.$i.label", $about, '要点 ' . (string) ($i + 1) . ' 文字', $base);
+            }
+        });
+    }
+
+    $legacy_strength = boblift_about_legacy_strength((array) ($about['strength'] ?? []));
+    if ($legacy_strength['cards'] !== [] || $legacy_strength['cta'] !== null || $legacy_strength['image'] !== null) {
+        boblift_admin_panel('旧版实力图片、卡片与按钮（仍在前台显示）', static function () use ($about, $base, $legacy_strength): void {
+            echo '<p class="boblift-admin-note">这是旧版 Company Strength 区保存的图片、卡片和按钮，现在显示在新版实力区下方。清空全部内容并保存即可删除。</p>';
+            boblift_admin_media('strength.image', $about, '旧版实力图片', $base);
+            for ($i = 0; $i < max(4, count($legacy_strength['cards']) + 1); $i++) {
+                boblift_admin_input("strength.cards.$i.title", $about, '卡片 ' . (string) ($i + 1) . ' 标题', $base);
+                boblift_admin_textarea("strength.cards.$i.text", $about, '卡片 ' . (string) ($i + 1) . ' 文字', $base);
+            }
+            boblift_admin_input('strength.cta_label', $about, '按钮文字', $base);
+            boblift_admin_link_input('strength.cta_href', $about, '按钮链接', $base);
+        });
+    }
+
     boblift_admin_panel('2. 顶部大 LOGO 视觉区', static function () use ($about, $base): void {
-        boblift_admin_media('logo.texture_image', $about, '大 LOGO 背景图', $base, '推荐 2400×1350 或 3200×1800，16:9；主体起重机居中偏上，LOGO 填充会裁切边缘。');
-        boblift_admin_media('logo.silhouette_image', $about, '开场剪影图', $base, '推荐与大 LOGO 背景图同尺寸同构图，16:9；这样滚动切换时位置不会错位。');
+        boblift_admin_media('logo.silhouette_image', $about, '开场剪影图', $base, '推荐与航拍图同尺寸同构图，16:9。');
         boblift_admin_input('logo.silhouette_alt', $about, '开场剪影图 Alt', $base);
         boblift_admin_media('logo.aerial_start_image', $about, '航拍开场帧', $base, '推荐与航拍视频同尺寸，作为首屏 poster 和开场图。');
         boblift_admin_media('logo.aerial_end_image', $about, '航拍结束帧', $base, '推荐与航拍视频同尺寸。');
         boblift_admin_file_media('logo.aerial_video', $about, '航拍视频 MP4', $base, '推荐 MP4/WebM，前台 preload=metadata，不会整段抢占首屏带宽。');
         boblift_admin_input('logo.aerial_start_alt', $about, '航拍开场帧 Alt', $base);
         boblift_admin_input('logo.aerial_end_alt', $about, '航拍结束帧 Alt', $base);
-        boblift_admin_input('logo.label', $about, '标签', $base);
-        boblift_admin_input('logo.headline', $about, '主标题', $base);
-        boblift_admin_textarea('logo.paragraph', $about, '段落文案', $base);
-        echo '<div class="boblift-admin-card"><h3>LOGO 下方能力标签</h3>';
-        for ($i = 0; $i < 3; $i++) {
-            echo '<div class="boblift-admin-card"><h3>标签 ' . esc_html((string) ($i + 1)) . '</h3>';
-            boblift_admin_input("logo.proof_chips.$i.number", $about, '编号', $base);
-            boblift_admin_input("logo.proof_chips.$i.label", $about, '标签', $base);
-            echo '</div>';
-        }
-        echo '</div>';
     });
 
-    boblift_admin_panel('3. 公司实力区', static function () use ($about, $base): void {
-        boblift_admin_media('strength.image', $about, '主图', $base, '推荐 1600×1200，4:3；前台左侧大图会 cover 裁切，重要主体放中间。');
+    boblift_admin_panel('3. 公司简介与出口数据', static function () use ($about, $base): void {
         boblift_admin_input('strength.label', $about, '标签', $base);
-        boblift_admin_input('strength.title', $about, '标题', $base);
+        boblift_admin_input('strength.title', $about, '大标题', $base);
         boblift_admin_textarea('strength.text', $about, '正文', $base);
-        boblift_admin_input('strength.cta_label', $about, '按钮文字', $base);
-        boblift_admin_link_input('strength.cta_href', $about, '按钮链接', $base);
-        echo '<div class="boblift-admin-card"><h3>下方能力卡片</h3>';
-        for ($i = 0; $i < 4; $i++) {
-            echo '<div class="boblift-admin-card"><h3>能力卡片 ' . esc_html((string) ($i + 1)) . '</h3>';
-            boblift_admin_input("strength.cards.$i.title", $about, '标题', $base);
-            boblift_admin_textarea("strength.cards.$i.text", $about, '正文', $base);
-            echo '</div>';
+        echo '<div class="boblift-admin-card"><h3>下方三张出口数据卡片</h3>';
+        echo '<p class="boblift-admin-note">前台使用公司简介下方原有三卡片样式展示这些数据，不再单独显示“全球出口版图”区块。</p>';
+        for ($i = 0; $i < 3; $i++) {
+            boblift_admin_subpanel('出口数据 ' . (string) ($i + 1), static function () use ($about, $base, $i): void {
+                boblift_admin_input("global_footprint.stats.$i.number", $about, '数字', $base);
+                boblift_admin_input("global_footprint.stats.$i.suffix", $about, '后缀', $base);
+                boblift_admin_input("global_footprint.stats.$i.label", $about, '说明', $base);
+            }, false, (string) ($about['global_footprint']['stats'][$i]['label'] ?? ''));
         }
         echo '</div>';
     });
@@ -1121,26 +1257,67 @@ function boblift_render_about_page_fields(array $about, string $base): void
         boblift_admin_input('timeline.label', $about, '标签', $base);
         boblift_admin_input('timeline.title', $about, '标题', $base);
         for ($i = 0; $i < 4; $i++) {
-            echo '<div class="boblift-admin-card"><h3>时间线 ' . esc_html((string) ($i + 1)) . '</h3>';
-            boblift_admin_media("timeline.items.$i.image", $about, '图片', $base, '推荐 1200×675，16:9；时间线缩略图高度较低，主体放画面中心。');
-            boblift_admin_input("timeline.items.$i.year", $about, '年份', $base);
-            boblift_admin_input("timeline.items.$i.title", $about, '标题', $base);
-            boblift_admin_textarea("timeline.items.$i.text", $about, '正文', $base);
-            echo '</div>';
+            boblift_admin_subpanel('时间线 ' . (string) ($i + 1), static function () use ($about, $base, $i): void {
+                boblift_admin_media("timeline.items.$i.image", $about, '图片', $base, '推荐 1200×675，16:9；时间线缩略图会与文字垂直居中。');
+                boblift_admin_input("timeline.items.$i.year", $about, '年份', $base);
+                boblift_admin_input("timeline.items.$i.title", $about, '标题', $base);
+                boblift_admin_textarea("timeline.items.$i.text", $about, '正文', $base);
+            }, false, (string) ($about['timeline']['items'][$i]['year'] ?? ''));
         }
     });
 
+    boblift_admin_panel('5. 国际资质认证', static function () use ($about, $base): void {
+        $certifications = is_array($about['certifications'] ?? null) ? $about['certifications'] : [];
+        $certification_items = is_array($certifications['items'] ?? null) ? array_values(array_filter($certifications['items'], static fn($item): bool => is_array($item))) : [];
+        echo '<p class="boblift-admin-note">这里维护真实证书图片。点击“添加证书图片”可继续追加；前台会横向滚动，鼠标悬停暂停，点击查看大图。</p>';
+        boblift_admin_input('certifications.label', $about, '标签', $base);
+        boblift_admin_input('certifications.title', $about, '标题', $base);
+        boblift_admin_textarea('certifications.text', $about, '说明', $base);
+        echo '<div data-about-certifications-editor>';
+        // Presence marker: when every row is deleted no certification input is posted, and the save must then clear the saved list.
+        echo '<input type="hidden" name="' . esc_attr($base) . '[certifications][items_present]" value="1">';
+        echo '<div data-about-certifications-list>';
+        $rows = $certification_items !== [] ? $certification_items : [[]];
+        foreach ($rows as $i => $item) {
+            boblift_render_about_certification_admin_row(['items' => $rows], $base, $i);
+        }
+        echo '</div>';
+        echo '<p><button class="button button-primary" type="button" data-about-certification-add>添加证书图片</button></p>';
+        echo '<template data-about-certification-template>';
+        boblift_render_about_certification_admin_row(['items' => []], $base, '__INDEX__', true);
+        echo '</template>';
+        echo '</div>';
+    });
 
-    boblift_admin_panel('5. 高管团队区', static function () use ($about, $base): void {
-        boblift_admin_input('executives.label', $about, '标签', $base);
-        boblift_admin_input('executives.title', $about, '标题', $base);
-        boblift_admin_media('executives.group_image', $about, '团队大图', $base, '推荐 3200×760 或 3840×900，超宽横图；用于翻转后的全屏展示，尽量完整保留人物队列。');
+    boblift_admin_panel('6. 现代化制造基地横向画廊', static function () use ($about, $base): void {
+        boblift_admin_input('manufacturing_gallery.label', $about, '标签', $base);
+        boblift_admin_input('manufacturing_gallery.title', $about, '标题', $base);
+        boblift_admin_textarea('manufacturing_gallery.text', $about, '说明', $base);
+        echo '<p class="boblift-admin-note">前台为横向滚动画廊，建议 4 张。图片推荐 2200×1400 或更高，主体居中。</p>';
+        $gallery_count = max(4, count((array) ($about['manufacturing_gallery']['items'] ?? [])));
+        for ($i = 0; $i < $gallery_count; $i++) {
+            boblift_admin_subpanel('画廊图片 ' . (string) ($i + 1), static function () use ($about, $base, $i): void {
+                boblift_admin_media("manufacturing_gallery.items.$i.image", $about, '图片', $base, '推荐 2200×1400 或更高；4K 下会保持足够高度。');
+                boblift_admin_input("manufacturing_gallery.items.$i.title", $about, '标题', $base);
+                boblift_admin_textarea("manufacturing_gallery.items.$i.text", $about, '说明', $base);
+            }, false, (string) ($about['manufacturing_gallery']['items'][$i]['title'] ?? ''));
+        }
+    });
+
+    boblift_admin_panel('7. 领导与全体团队区', static function () use ($about, $base): void {
+        echo '<p class="boblift-admin-note">正面展示领导成员；翻转后展示全体团队照片，两者文案分开维护。</p>';
+        boblift_admin_input('executives.label', $about, '领导区标签', $base);
+        boblift_admin_input('executives.title', $about, '领导区标题', $base);
+        boblift_admin_input('executives.team_label', $about, '全体团队照片标签', $base);
+        boblift_admin_input('executives.team_title', $about, '全体团队照片标题', $base);
+        boblift_admin_media('executives.team_image', $about, '全体团队大图', $base, '推荐 3200×760 或 3840×900，超宽横图；用于翻转后的全屏展示。');
+        boblift_admin_input('executives.team_image_alt', $about, '全体团队大图 Alt', $base);
         for ($i = 0; $i < 6; $i++) {
-            echo '<div class="boblift-admin-card"><h3>高管 ' . esc_html((string) ($i + 1)) . '</h3>';
-            boblift_admin_media("executives.members.$i.image", $about, '照片', $base, '推荐 1200×1200，正方形半身商务照；人脸居中，上方保留少量头部空间。');
-            boblift_admin_input("executives.members.$i.role", $about, '职位', $base);
-            boblift_admin_input("executives.members.$i.name", $about, '姓名', $base);
-            echo '</div>';
+            boblift_admin_subpanel('领导成员 ' . (string) ($i + 1), static function () use ($about, $base, $i): void {
+                boblift_admin_media("executives.members.$i.image", $about, '照片', $base, '推荐 1200×1200，正方形半身商务照；人脸居中，上方保留少量头部空间。');
+                boblift_admin_input("executives.members.$i.role", $about, '职位', $base);
+                boblift_admin_input("executives.members.$i.name", $about, '姓名', $base);
+            }, false, (string) ($about['executives']['members'][$i]['name'] ?? ''));
         }
     });
 
@@ -1152,21 +1329,26 @@ function boblift_render_customer_visit_admin_row(array $visits, string $base, in
 {
     $index_string = (string) $index;
     $item = is_array($visits['items'][$index] ?? null) ? $visits['items'][$index] : [];
-    $row_attrs = 'class="boblift-admin-card" data-customer-visit-row data-visit-index="' . esc_attr($index_string) . '"';
+    $row_attrs = 'class="boblift-admin-card boblift-admin-subpanel" data-customer-visit-row data-visit-index="' . esc_attr($index_string) . '"';
     if ($template) {
-        $row_attrs = 'class="boblift-admin-card" data-customer-visit-row data-visit-index="__INDEX__"';
+        $row_attrs = 'class="boblift-admin-card boblift-admin-subpanel" data-customer-visit-row data-visit-index="__INDEX__"';
     }
-    echo '<div ' . $row_attrs . '>';
-    echo '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;">';
-    echo '<h3 data-customer-visit-title style="margin:0;">客户来访图片 ' . esc_html($template ? '__INDEX__' : (string) ((int) $index + 1)) . '</h3>';
-    echo '<button class="button button-link-delete" type="button" data-customer-visit-remove>删除</button>';
-    echo '</div>';
+    $meta = trim((string) ($item['title'] ?? ($item['label'] ?? '')));
+    echo '<details ' . $row_attrs . ($template ? '' : '') . '>';
+    echo '<summary><span class="boblift-admin-subpanel-title" data-customer-visit-title>客户来访图片 ' . esc_html($template ? '__INDEX__' : (string) ((int) $index + 1)) . '</span>';
+    if ($meta !== '') {
+        echo '<span class="boblift-admin-subpanel-meta">' . esc_html($meta) . '</span>';
+    }
+    echo '</summary><div class="boblift-admin-subpanel-body">';
+    echo '<p><button class="button button-link-delete" type="button" data-customer-visit-remove>删除这张图片</button></p>';
     boblift_admin_media('items.' . $index_string . '.image', ['items' => [$index => $item]], '图片', $base, '推荐 1200×900 或 1600×1200，展示客户来访、工厂参观、技术沟通等场景；前台仅展示图片。');
+    boblift_admin_input('items.' . $index_string . '.country', ['items' => [$index => $item]], '来访国家（同一国家的图片在前台合并成一组；留空归入“更多来访”）', $base);
     boblift_admin_input('items.' . $index_string . '.label', ['items' => [$index => $item]], '小标签（可选，仅用于后台识别）', $base);
     boblift_admin_input('items.' . $index_string . '.title', ['items' => [$index => $item]], '图片说明（可选，用于 alt）', $base);
     boblift_admin_textarea('items.' . $index_string . '.text', ['items' => [$index => $item]], '备注（可选，不在前台展示）', $base);
-    echo '</div>';
+    echo '</div></details>';
 }
+
 
 function boblift_render_customer_visits_page_fields(array $visits, string $base): void
 {
@@ -1176,6 +1358,8 @@ function boblift_render_customer_visits_page_fields(array $visits, string $base)
         boblift_admin_input('label', $visits, '标签', $base);
         boblift_admin_input('title', $visits, '标题', $base);
         boblift_admin_textarea('text', $visits, '正文', $base);
+        boblift_admin_media('hero_image', $visits, '顶部照片', $base, '横向实景照片，推荐 1920×640（3:1）。主体放在右半边，左侧留出浅色空间给标题；手机上照片单独显示在标题上方。');
+        boblift_admin_input('hero_image_alt', $visits, '顶部照片 Alt', $base);
         boblift_admin_input('cta_label', $visits, '按钮文字', $base);
         boblift_admin_link_input('cta_href', $visits, '按钮链接', $base);
         boblift_admin_input('home_title', $visits, '首页展示标题', $base);
@@ -1183,11 +1367,45 @@ function boblift_render_customer_visits_page_fields(array $visits, string $base)
         boblift_admin_input('visit_count_suffix', $visits, '图片数量后缀', $base);
         boblift_admin_input('pagination_label', $visits, '分页辅助标签', $base);
         boblift_admin_input('empty_text', $visits, '空状态文案', $base);
+        boblift_admin_input('country_count_suffix', $visits, '顶部国家数量后缀（如 countries）', $base);
     });
 
-    boblift_admin_panel('2. 客户来访参厂图片', static function () use ($visits, $items, $base): void {
+    boblift_admin_panel('3. 来访国家与参观内容', static function () use ($visits, $base): void {
+        echo '<p class="boblift-admin-note">国家列表和国家数量根据下方图片填写的“来访国家”自动生成。{count} 会替换为国家数量。</p>';
+        boblift_admin_input('countries_label', $visits, '国家区标签', $base);
+        boblift_admin_input('countries_title', $visits, '国家区标题', $base);
+        boblift_admin_input('steps_label', $visits, '参观内容标签', $base);
+        boblift_admin_input('steps_title', $visits, '参观内容标题', $base);
+        for ($i = 0; $i < 4; $i++) {
+            boblift_admin_subpanel('第 ' . (string) ($i + 1) . ' 步', static function () use ($visits, $base, $i): void {
+                boblift_admin_media("steps.$i.image", $visits, '图片', $base, '横向照片，推荐 1600×1200（4:3）。');
+                boblift_admin_input("steps.$i.title", $visits, '标题', $base);
+                boblift_admin_textarea("steps.$i.text", $visits, '说明', $base);
+            }, false, (string) ($visits['steps'][$i]['title'] ?? ''));
+        }
+    });
+
+    boblift_admin_panel('4. 相册与预约参观', static function () use ($visits, $base): void {
+        boblift_admin_input('wall_label', $visits, '相册标签', $base);
+        boblift_admin_input('wall_title', $visits, '相册标题', $base);
+        boblift_admin_input('wall_text', $visits, '相册说明', $base);
+        boblift_admin_input('more_visits_label', $visits, '未填国家的图片分组名称', $base);
+        boblift_admin_input('photo_count_suffix', $visits, '图片数量后缀（如 photos）', $base);
+        boblift_admin_input('plan_label', $visits, '预约区标签', $base);
+        boblift_admin_input('plan_title', $visits, '预约区标题', $base);
+        boblift_admin_textarea('plan_text', $visits, '预约区说明', $base);
+        boblift_admin_input('plan_secondary_label', $visits, '第二个按钮文字（链接用上面的“按钮链接”）', $base);
+        for ($i = 0; $i < 3; $i++) {
+            boblift_admin_subpanel('到访信息 ' . (string) ($i + 1), static function () use ($visits, $base, $i): void {
+                boblift_admin_input("plan_points.$i.title", $visits, '名称', $base);
+                boblift_admin_input("plan_points.$i.text", $visits, '内容', $base);
+            }, false, (string) ($visits['plan_points'][$i]['title'] ?? ''));
+        }
+    });
+
+    boblift_admin_panel('5. 客户来访参厂图片', static function () use ($visits, $items, $base): void {
         echo '<div data-customer-visits-editor>';
-        echo '<p class="boblift-admin-note">这里维护纯图片系列。点击“添加图片”可继续追加，不限制数量；Global Customer Visits 独立页会自动分页，首页只读取前几张做展示。</p>';
+        echo '<p class="boblift-admin-note">点击“添加图片”可继续追加，不限制数量。每张图片填写“来访国家”，前台按国家合并成一张卡片，点开是这一组的相册；第一张作为卡片封面。</p>';
         echo '<div data-customer-visits-list>';
         $rows = $items !== [] ? $items : [[]];
         foreach ($rows as $i => $item) {
@@ -1206,29 +1424,26 @@ function boblift_render_customer_visits_page_fields(array $visits, string $base)
 function boblift_render_public_welfare_page_fields(array $options, string $base): void
 {
     echo '<div class="boblift-admin-grid">';
-    boblift_admin_panel('1. Hero Banner', static function () use ($options, $base): void {
-        boblift_admin_input('hero.aria_label', $options, '区域辅助标签', $base);
-        boblift_admin_media('hero.image', $options, 'Banner 图片', $base, '推荐 3200×1400 或 2880×1260，半屏横图。');
-        boblift_admin_input('hero.image_alt', $options, 'Banner 图片 Alt', $base);
-    });
-    boblift_admin_panel('2. 主声明', static function () use ($options, $base): void {
+    boblift_admin_panel('1. 顶部卡片', static function () use ($options, $base): void {
         boblift_admin_input('statement.label', $options, '标签', $base);
-        boblift_admin_input('statement.title', $options, '大标题', $base);
+        boblift_admin_input('statement.title', $options, '标题', $base);
         boblift_admin_input('statement.highlight', $options, '高亮词', $base);
         boblift_admin_textarea('statement.text', $options, '说明文字', $base);
+        boblift_admin_media('hero.image', $options, '照片', $base, '横向实景照片，推荐 1920×640（3:1）。主体放在右半边，左侧留出浅色空间给标题；手机上照片单独显示在标题上方。');
+        boblift_admin_input('hero.image_alt', $options, '照片 Alt', $base);
     });
-    boblift_admin_panel('3. 责任卡片', static function () use ($options, $base): void {
+    boblift_admin_panel('2. 责任卡片', static function () use ($options, $base): void {
         for ($i = 0; $i < 4; $i++) {
-            echo '<div class="boblift-admin-card"><h3>卡片 ' . esc_html((string) ($i + 1)) . '</h3>';
-            boblift_admin_input("focus_items.$i.icon", $options, '图标 key', $base);
-            boblift_admin_media("focus_items.$i.image", $options, '图片', $base, '推荐 1600×1200，4:3。');
-            boblift_admin_input("focus_items.$i.alt", $options, '图片 Alt', $base);
-            boblift_admin_input("focus_items.$i.title", $options, '标题', $base);
-            boblift_admin_textarea("focus_items.$i.text", $options, '正文', $base);
-            echo '</div>';
+            boblift_admin_subpanel('责任卡片 ' . (string) ($i + 1), static function () use ($options, $base, $i): void {
+                boblift_admin_input("focus_items.$i.icon", $options, '图标 key', $base);
+                boblift_admin_media("focus_items.$i.image", $options, '图片', $base, '推荐 1600×1200，4:3。');
+                boblift_admin_input("focus_items.$i.alt", $options, '图片 Alt', $base);
+                boblift_admin_input("focus_items.$i.title", $options, '标题', $base);
+                boblift_admin_textarea("focus_items.$i.text", $options, '正文', $base);
+            }, false, (string) ($options['focus_items'][$i]['title'] ?? ''));
         }
     });
-    boblift_admin_panel('4. 底部 CTA', static function () use ($options, $base): void {
+    boblift_admin_panel('3. 底部 CTA', static function () use ($options, $base): void {
         boblift_admin_input('cta.title', $options, '标题', $base);
         boblift_admin_textarea('cta.text', $options, '说明', $base);
         boblift_admin_input('cta.button_label', $options, '按钮文字', $base);
@@ -1256,10 +1471,10 @@ function boblift_render_legal_page_fields(array $options, string $base, bool $wi
         $rows = $sections !== [] ? $sections : array_fill(0, 6, []);
         foreach ($rows as $i => $section) {
             $section = is_array($section) ? $section : [];
-            echo '<div class="boblift-admin-card"><h3>条款 ' . esc_html((string) ($i + 1)) . '</h3>';
-            boblift_admin_input("sections.$i.title", ['sections' => [$i => $section]], '标题', $base);
-            boblift_admin_textarea("sections.$i.text", ['sections' => [$i => $section]], '正文', $base);
-            echo '</div>';
+            boblift_admin_subpanel('条款 ' . (string) ($i + 1), static function () use ($section, $base, $i): void {
+                boblift_admin_input("sections.$i.title", ['sections' => [$i => $section]], '标题', $base);
+                boblift_admin_textarea("sections.$i.text", ['sections' => [$i => $section]], '正文', $base);
+            }, false, (string) ($section['title'] ?? ''));
         }
     });
     echo '</div>';
@@ -1273,8 +1488,6 @@ function boblift_render_sitemap_page_fields(array $options, string $base): void
         boblift_admin_input('title', $options, '标题', $base);
         boblift_admin_textarea('description', $options, '说明', $base);
         boblift_admin_input('links_label', $options, '链接数量标签', $base);
-        boblift_admin_input('auto_value', $options, '自动更新数值', $base);
-        boblift_admin_input('auto_label', $options, '自动更新标签', $base);
     });
     boblift_admin_panel('2. 区块标题', static function () use ($options, $base): void {
         boblift_admin_input('core_pages_title', $options, '核心页面标题', $base);
@@ -1286,13 +1499,6 @@ function boblift_render_sitemap_page_fields(array $options, string $base): void
         boblift_admin_input('news_categories_title', $options, '新闻分类标题', $base);
         boblift_admin_input('news_title', $options, '新闻标题', $base);
         boblift_admin_input('cases_title', $options, '案例标题', $base);
-    });
-    boblift_admin_panel('3. 更新说明', static function () use ($options, $base): void {
-        boblift_admin_input('help_title', $options, '说明标题', $base);
-        boblift_admin_input('html_note_label', $options, 'HTML Sitemap 标签', $base);
-        boblift_admin_textarea('html_note', $options, 'HTML Sitemap 说明', $base);
-        boblift_admin_input('xml_note_label', $options, 'XML Sitemap 标签', $base);
-        boblift_admin_textarea('xml_note', $options, 'XML Sitemap 说明', $base);
     });
     echo '</div>';
 }
@@ -1317,13 +1523,21 @@ function boblift_render_home_page_fields(array $home, string $base): void
 {
     echo '<div class="boblift-admin-grid">';
 
-    boblift_admin_panel('1. Hero 轮播图', static function () use ($home, $base): void {
-        echo '<p class="boblift-admin-note">建议保持 3 张左右。桌面图推荐 2880×1200，接近 12:5；移动图推荐 1200×1500。</p>';
+    boblift_admin_panel('1. 首屏轮播', static function () use ($home, $base): void {
+        echo '<p class="boblift-admin-note">首页第一屏：左侧标题和按钮，右侧照片，每张约 7 秒自动切换，标题下方的切换按钮显示每张的“切换按钮文字”。填写了标题的才会显示；只剩一张时不显示切换按钮。英文默认文案已内置日文、中文翻译；在这里改成其他文字后，需要到对应语言的首页设置里分别填写。</p>';
+        boblift_admin_input('hero.label', $home, '小标签（所有幻灯片共用）', $base);
+        boblift_admin_input('hero.secondary_label', $home, '询价按钮文字（所有幻灯片共用，打开询价弹窗）', $base);
         for ($i = 0; $i < 3; $i++) {
-            echo '<div class="boblift-admin-card"><h3>轮播图 ' . esc_html((string) ($i + 1)) . '</h3>';
-            boblift_admin_media("hero_slides.$i.image", $home, '桌面图', $base, '推荐 2880×1200；主体机械居中，左右保留安全裁切。');
-            boblift_admin_media("hero_slides.$i.mobile_image", $home, '移动端图', $base, '可选。推荐 1200×1500；不设置时移动端使用桌面图。');
-            echo '</div>';
+            boblift_admin_subpanel('幻灯片 ' . (string) ($i + 1), static function () use ($home, $base, $i): void {
+                boblift_admin_input("hero.slides.$i.tab", $home, '切换按钮文字（如产品类别）', $base);
+                boblift_admin_input("hero.slides.$i.title", $home, $i === 0 ? '标题（第一张为页面 H1）' : '标题', $base);
+                boblift_admin_textarea("hero.slides.$i.text", $home, '说明文字', $base);
+                boblift_admin_input("hero.slides.$i.primary_label", $home, '主按钮文字', $base);
+                boblift_admin_link_input("hero.slides.$i.primary_href", $home, '主按钮链接', $base);
+                boblift_admin_media("hero.slides.$i.image", $home, '照片', $base, '横向实景照片，推荐 2:1（如 2400×1200）。主体放在右半边，左侧留出明亮、少细节的空间给标题；手机上照片单独显示在标题上方。');
+                boblift_admin_input("hero.slides.$i.image_alt", $home, '照片 Alt', $base);
+                boblift_admin_media("hero.slides.$i.mobile_image", $home, '手机端照片（可选）', $base, '手机端（宽度小于 768px）使用的照片；不上传则使用上面的照片。');
+            }, $i === 0, (string) ($home['hero']['slides'][$i]['tab'] ?? ''));
         }
     });
 
@@ -1333,10 +1547,10 @@ function boblift_render_home_page_fields(array $home, string $base): void
         boblift_admin_textarea('trust_bar.description', $home, '描述', $base);
         echo '<div class="boblift-admin-card"><h3>认证 Logo</h3><p class="boblift-admin-note">推荐 SVG；如果使用位图，推荐透明 PNG 600×240。</p>';
         for ($i = 0; $i < 4; $i++) {
-            echo '<div class="boblift-admin-card"><h3>认证 ' . esc_html((string) ($i + 1)) . '</h3>';
-            boblift_admin_input("trust_bar.marks.$i.name", $home, '名称', $base);
-            boblift_admin_media("trust_bar.marks.$i.logo", $home, 'Logo', $base, '推荐 SVG 或透明 PNG 600×240。');
-            echo '</div>';
+            boblift_admin_subpanel('认证 ' . (string) ($i + 1), static function () use ($home, $base, $i): void {
+                boblift_admin_input("trust_bar.marks.$i.name", $home, '名称', $base);
+                boblift_admin_media("trust_bar.marks.$i.logo", $home, 'Logo', $base, '推荐 SVG 或透明 PNG 600×240。');
+            }, false, (string) ($home['trust_bar']['marks'][$i]['name'] ?? ''));
         }
         echo '</div>';
     });
@@ -1344,28 +1558,29 @@ function boblift_render_home_page_fields(array $home, string $base): void
     boblift_admin_panel('3. 产品区', static function () use ($home, $base): void {
         boblift_admin_input('product_section.label', $home, '标签', $base);
         boblift_admin_input('product_section.title', $home, '标题', $base);
-        boblift_admin_input('product_section.find_model_title', $home, '型号区标题', $base);
+        boblift_admin_input('product_section.view_all_label', $home, '「查看全部」按钮文字（{count} 替换为该分类产品总数，留空用默认）', $base);
         boblift_admin_input('product_section.max_category_products', $home, '每个分类最多展示产品数', $base);
         boblift_admin_checkbox('product_section.show_category_scroll_buttons', $home, '显示分类左右切换按钮', $base);
         boblift_admin_checkbox('product_section.show_product_specs', $home, '产品卡片显示起重能力参数', $base);
-        echo '<div class="boblift-admin-card"><h3>按钮和字段文案</h3>';
-        boblift_admin_input('product_section.details_short_label', $home, '移动端详情按钮', $base);
-        boblift_admin_input('product_section.view_details_label', $home, '详情按钮', $base);
-        boblift_admin_input('product_section.back_to_models_label', $home, '返回型号按钮', $base);
-        boblift_admin_input('product_section.previous_categories_label', $home, '上一组分类按钮', $base);
-        boblift_admin_input('product_section.next_categories_label', $home, '下一组分类按钮', $base);
-        boblift_admin_input('product_section.product_name_label', $home, '产品名称标签', $base);
-        boblift_admin_input('product_section.model_label', $home, '型号标签', $base);
-        boblift_admin_input('product_section.model_spec_label', $home, '参数：型号', $base);
-        boblift_admin_input('product_section.capacity_spec_label', $home, '参数：起重能力', $base);
-        boblift_admin_input('product_section.type_spec_label', $home, '参数：类型', $base);
-        boblift_admin_input('product_section.system_spec_label', $home, '参数：系统', $base);
-        boblift_admin_input('product_section.system_value', $home, '系统默认值', $base);
-        boblift_admin_input('product_section.visual_watermark_label', $home, '产品图水印', $base);
-        echo '</div>';
-        echo '<div class="boblift-admin-card"><h3>首页展示产品</h3><p class="boblift-admin-note">不勾选时使用系统原来的自动推荐逻辑；勾选后首页只展示这些产品。</p>';
-        boblift_admin_product_checklist('product_section.selected_product_slugs', $home, $base);
-        echo '</div>';
+        boblift_admin_subpanel('按钮和字段文案', static function () use ($home, $base): void {
+            boblift_admin_input('product_section.details_short_label', $home, '移动端详情按钮', $base);
+            boblift_admin_input('product_section.view_details_label', $home, '详情按钮', $base);
+            boblift_admin_input('product_section.back_to_models_label', $home, '返回型号按钮', $base);
+            boblift_admin_input('product_section.previous_categories_label', $home, '上一组分类按钮', $base);
+            boblift_admin_input('product_section.next_categories_label', $home, '下一组分类按钮', $base);
+            boblift_admin_input('product_section.product_name_label', $home, '产品名称标签', $base);
+            boblift_admin_input('product_section.model_label', $home, '型号标签', $base);
+            boblift_admin_input('product_section.model_spec_label', $home, '参数：型号', $base);
+            boblift_admin_input('product_section.capacity_spec_label', $home, '参数：起重能力', $base);
+            boblift_admin_input('product_section.type_spec_label', $home, '参数：类型', $base);
+            boblift_admin_input('product_section.system_spec_label', $home, '参数：系统', $base);
+            boblift_admin_input('product_section.system_value', $home, '系统默认值', $base);
+            boblift_admin_input('product_section.visual_watermark_label', $home, '产品图水印', $base);
+        });
+        boblift_admin_subpanel('首页展示产品', static function () use ($home, $base): void {
+            echo '<p class="boblift-admin-note">不勾选时使用系统原来的自动推荐逻辑；勾选后首页只展示这些产品。</p>';
+            boblift_admin_product_checklist('product_section.selected_product_slugs', $home, $base);
+        });
     });
 
     boblift_admin_panel('4. 首页 About 区', static function () use ($home, $base): void {
@@ -1374,29 +1589,37 @@ function boblift_render_home_page_fields(array $home, string $base): void
         boblift_admin_textarea('about.text', $home, '正文', $base);
         boblift_admin_input('about.cta_label', $home, '按钮文字', $base);
         boblift_admin_link_input('about.cta_href', $home, '按钮链接', $base);
-        echo '<div class="boblift-admin-card"><h3>图库图片</h3><p class="boblift-admin-note">推荐 1600×1100 或 1600×1200；前台会 cover 裁切，主体放中间。</p>';
-        for ($i = 0; $i < 5; $i++) {
-            echo '<div class="boblift-admin-card"><h3>图库 ' . esc_html((string) ($i + 1)) . '</h3>';
-            boblift_admin_select("about.gallery.$i.type", $home, '媒体类型', ['image' => '图片', 'local_video' => '本地视频', 'youtube' => 'YouTube 外链'], $base);
-            boblift_admin_media("about.gallery.$i.src", $home, '封面 / 图片', $base, '图片类型直接作为展示图；视频类型作为封面图。推荐 1600×1100 或 1600×1200。');
-            boblift_admin_file_media("about.gallery.$i.video_file", $home, '本地视频', $base, '媒体库上传 MP4/WebM。选择“本地视频”时使用。');
-            boblift_admin_input("about.gallery.$i.youtube_url", $home, 'YouTube 链接', $base);
-            boblift_admin_input("about.gallery.$i.alt", $home, '图片说明', $base);
-            echo '</div>';
-        }
-        echo '</div><div class="boblift-admin-card"><h3>数据卡片</h3>';
-        for ($i = 0; $i < 3; $i++) {
-            echo '<div class="boblift-admin-card"><h3>数据 ' . esc_html((string) ($i + 1)) . '</h3>';
-            boblift_admin_input("about.stats.$i.value", $home, '数值', $base);
-            boblift_admin_input("about.stats.$i.label", $home, '说明', $base);
-            boblift_admin_input("about.stats.$i.iconName", $home, '图标名称', $base);
-            echo '</div>';
-        }
-        echo '</div><div class="boblift-admin-card"><h3>小时间线</h3>';
-        for ($i = 0; $i < 4; $i++) {
-            boblift_admin_input("about.timeline.$i", $home, '时间线 ' . (string) ($i + 1), $base);
-        }
-        echo '</div>';
+        boblift_admin_subpanel('图库图片', static function () use ($home, $base): void {
+            echo '<p class="boblift-admin-note">推荐 1600×1100 或 1600×1200；前台会 cover 裁切，主体放中间。</p>';
+            for ($i = 0; $i < 5; $i++) {
+                boblift_admin_subpanel('图库 ' . (string) ($i + 1), static function () use ($home, $base, $i): void {
+                    boblift_admin_select("about.gallery.$i.type", $home, '媒体类型', ['image' => '图片', 'local_video' => '本地视频', 'youtube' => 'YouTube 外链'], $base);
+                    boblift_admin_media("about.gallery.$i.src", $home, '封面 / 图片', $base, '图片类型直接作为展示图；视频类型作为封面图。推荐 1600×1100 或 1600×1200。');
+                    boblift_admin_file_media("about.gallery.$i.video_file", $home, '本地视频', $base, '媒体库上传 MP4/WebM。选择“本地视频”时使用。');
+                    boblift_admin_input("about.gallery.$i.youtube_url", $home, 'YouTube 链接', $base);
+                    boblift_admin_input("about.gallery.$i.alt", $home, '图片说明', $base);
+                }, false, (string) ($home['about']['gallery'][$i]['alt'] ?? ''));
+            }
+        });
+        boblift_admin_subpanel('数据卡片', static function () use ($home, $base): void {
+            for ($i = 0; $i < 3; $i++) {
+                boblift_admin_subpanel('数据 ' . (string) ($i + 1), static function () use ($home, $base, $i): void {
+                    boblift_admin_input("about.stats.$i.value", $home, '数值', $base);
+                    boblift_admin_input("about.stats.$i.label", $home, '说明', $base);
+                    boblift_admin_input("about.stats.$i.iconName", $home, '图标名称', $base);
+                }, false, (string) ($home['about']['stats'][$i]['label'] ?? ''));
+            }
+        });
+        boblift_admin_subpanel('小时间线', static function () use ($home, $base): void {
+            for ($i = 0; $i < 4; $i++) {
+                boblift_admin_input("about.timeline.$i", $home, '时间线 ' . (string) ($i + 1), $base);
+            }
+        });
+        boblift_admin_subpanel('工厂视频区（About 区下方）', static function () use ($home, $base): void {
+            echo '<p class="boblift-admin-note">首页 About 区下方的工厂航拍视频横幅。留空时使用默认文案：Built in our own 37,000 m² factory in Xuzhou.（中文站、日文站自动显示对应译文）。</p>';
+            boblift_admin_input('factory.title', $home, '标题', $base);
+            boblift_admin_textarea('factory.text', $home, '说明文字', $base);
+        });
     });
 
     boblift_admin_panel('5. News 区', static function () use ($home, $base): void {
@@ -1404,11 +1627,11 @@ function boblift_render_home_page_fields(array $home, string $base): void
         boblift_admin_input('news.title', $home, '标题', $base);
         boblift_admin_input('news.cta_label', $home, '按钮文字', $base);
         boblift_admin_link_input('news.cta_href', $home, '按钮链接', $base);
-        boblift_admin_input('news.background_word', $home, '背景大字', $base);
     });
 
     echo '</div>';
 }
+
 
 function boblift_admin_product_checklist(string $path, array $options, string $base): void
 {
@@ -1443,7 +1666,11 @@ function boblift_save_about_page_meta_box(int $post_id, WP_Post $post): void
     }
 
     $posted = wp_unslash($_POST['boblift_about_page']);
-    $sanitized = boblift_sanitize_options_recursive(['about_page' => $posted]);
+    if (isset($posted['certifications']['items_present'])) {
+        unset($posted['certifications']['items_present']);
+        $posted['certifications']['items'] ??= [];
+    }
+    $sanitized = boblift_cleanup_admin_options(boblift_sanitize_options_recursive(['about_page' => $posted]));
     $language = function_exists('boblift_mls_post_language') ? boblift_mls_post_language($post) : 'en';
     $existing = function_exists('boblift_mls_get_raw_options') ? boblift_mls_get_raw_options($language) : get_option('boblift_theme_options', []);
     $options = boblift_array_replace_recursive(is_array($existing) ? $existing : [], $sanitized);
@@ -1694,22 +1921,33 @@ function boblift_admin_site_ui_section_label(string $section): string
         'aboutPage' => 'About 页面补充',
         'homePage' => '首页通用文案',
         'common' => '通用兜底文案',
+        'videoCenter' => '视频中心 / 产品页视频',
+        'qualityTesting' => '质量与测试页面',
+        'factoryTour' => '工厂实景页面',
+        'mountingShipping' => '装车与出口页面',
+        'service' => '售后与操作页面',
+        'search' => '站内搜索',
+        'siteSwitcher' => '站点切换',
     ][$section] ?? $section;
 }
 
 function boblift_admin_site_ui_field_label(string $key): string
 {
+    if (ctype_digit($key)) {
+        return '选项 ' . (string) ((int) $key + 1);
+    }
     $labels = [
-        'label' => '小标签', 'title' => '标题', 'description' => '描述', 'text' => '正文', 'button' => '按钮',
+        'label' => '小标签', 'title' => '标题', 'description' => '描述', 'text' => '正文', 'button' => '按钮', 'image' => '图片',
+        'heroImage' => 'Hero 图片', 'heroImageAlt' => 'Hero 图片 Alt',
         'heroLabel' => 'Hero 小标签', 'heroTitle' => 'Hero 标题', 'heroDescription' => 'Hero 描述', 'heroAriaLabel' => 'Hero 区域无障碍标签',
         'buyerDecisionLabel' => '快速适配检查小标签', 'buyerDecisionTitle' => '快速适配检查标题', 'buyerDecisionDescription' => '快速适配检查说明',
         'modalLabel' => '弹窗小标签', 'modalTitle' => '弹窗标题', 'submitLabel' => '提交按钮', 'sideLabel' => '侧栏小标签', 'sideTitle' => '侧栏标题', 'sideDescription' => '侧栏描述',
-        'requestQuoteLabel' => '询盘按钮', 'addToQuoteListLabel' => '加入询价清单按钮', 'addedToQuoteListLabel' => '已加入询价清单按钮', 'heroQuoteListLabel' => '首屏询价清单按钮', 'heroQuoteListActiveLabel' => '首屏已加入询价清单按钮', 'heroPdfLabel' => '首屏 PDF 按钮', 'productIntroLabel' => '产品介绍小标签', 'viewDetailsLabel' => '详情按钮', 'backLabel' => '返回按钮', 'readMoreLabel' => '阅读全文按钮',
+        'requestQuoteLabel' => '询盘按钮', 'productLinkHref' => '产品入口链接', 'productLinkLabel' => '产品入口文案', 'addToQuoteListLabel' => '加入询价清单按钮', 'addedToQuoteListLabel' => '已加入询价清单按钮', 'heroQuoteListLabel' => '首屏询价清单按钮', 'heroQuoteListActiveLabel' => '首屏已加入询价清单按钮', 'heroPdfLabel' => '首屏 PDF 按钮', 'productIntroLabel' => '产品介绍小标签', 'viewDetailsLabel' => '详情按钮', 'backLabel' => '返回按钮', 'readMoreLabel' => '阅读全文按钮',
         'cinemaSpecsLabel' => '电影感参数区小标签', 'cinemaApplicationsLabel' => '电影感应用场景小标签', 'cinemaDetailsLabel' => '电影感详情长图小标签', 'cinemaGalleryLabel' => '电影感图库小标签',
         'placeholder' => '占位提示', 'messagePlaceholder' => '详情占位提示', 'successInlineText' => '成功提示', 'defaultInquiryText' => '默认询盘内容', 'inquirySubject' => '询盘邮件主题',
         'openLabel' => '打开按钮', 'closeLabel' => '关闭按钮', 'emptyText' => '空状态', 'clearLabel' => '清空按钮', 'requestLabel' => '提交询盘按钮', 'countSuffix' => '数量后缀',
         'selectedProductsLabel' => '已选产品小标签', 'selectedProductsTitle' => '已选产品标题', 'selectedProductsSummary' => '已选产品数量说明', 'selectedProductsAriaLabel' => '已选产品区域辅助标签', 'selectedProductRemoveLabelTemplate' => '移除已选产品按钮文案',
-        'previousBannerLabel' => '上一张 Banner 按钮文案', 'nextBannerLabel' => '下一张 Banner 按钮文案', 'showBannerTemplate' => '切换到第几张 Banner 文案',
+        'pauseHeroLabel' => '首屏轮播暂停按钮文案', 'playHeroLabel' => '首屏轮播播放按钮文案',
         'qualityCertificationsLabel' => '质量认证标题', 'showGalleryTemplate' => '切换图库项文案', 'galleryFallbackLabel' => '图库默认图片说明', 'videoLabel' => '视频标签',
         'detailImagesTitle' => '产品详情长图标题', 'detailImageAltTemplate' => '详情长图 Alt 模板', 'photosLabel' => '产品照片导航标签', 'photoGalleryTitle' => '产品照片区块标题', 'productPhotoLabel' => '产品照片默认说明',
         'home' => '首页', 'news' => '新闻', 'summary' => '摘要标题', 'category' => '分类', 'published' => '发布时间',
@@ -1735,11 +1973,76 @@ function boblift_admin_site_ui_is_editable_scalar(string $key, mixed $value): bo
     if (!is_scalar($value)) {
         return false;
     }
-    if (in_array($key, ['id', 'href', 'url', 'src', 'path', 'slug', 'icon', 'iconName', 'image', 'heroImage', 'productLinkHref', 'relatedArticleCount', 'galleryImageCount'], true)) {
+    if (in_array($key, ['id', 'href', 'url', 'src', 'path', 'slug', 'icon', 'iconName', 'relatedArticleCount', 'galleryImageCount'], true)) {
         return false;
     }
     $text = trim((string) $value);
     return $text !== '' && !preg_match('#^(https?:)?//#i', $text) && !preg_match('#^[\d\s.,+\-/%°×x]+$#u', $text);
+}
+
+function boblift_admin_site_ui_is_image_field(string $key, mixed $value): bool
+{
+    if (!is_scalar($value)) {
+        return false;
+    }
+    $path = trim((string) $value);
+    if ($path === '') {
+        return false;
+    }
+    return in_array($key, ['heroImage', 'image'], true) || str_ends_with($key, 'Image');
+}
+
+function boblift_admin_site_ui_media_path(string $field_path, string $key, mixed $value, mixed $default_value): void
+{
+    $path_value = trim((string) $value);
+    $default_path = trim((string) $default_value);
+    $preview = function_exists('boblift_image_src') ? boblift_image_src($path_value) : $path_value;
+    $label = boblift_admin_site_ui_field_label($key);
+    echo '<div class="boblift-admin-field boblift-site-ui-field boblift-media-field" data-site-ui-field data-site-ui-label="' . esc_attr($label) . '" data-site-ui-key="' . esc_attr($key) . '" data-site-ui-path="' . esc_attr($field_path) . '" data-fallback="' . esc_attr($default_path) . '">';
+    echo '<label><span>' . esc_html($label) . '</span><span class="boblift-site-ui-key"><code>' . esc_html($key) . '</code></span></label>';
+    echo '<img class="boblift-media-preview' . ($preview === '' ? ' is-hidden' : '') . '" src="' . esc_url($preview) . '" alt="">';
+    echo '<input class="boblift-media-path-value" type="hidden" name="' . esc_attr(boblift_admin_option_name($field_path)) . '" value="' . esc_attr($path_value) . '">';
+    echo '<button class="button boblift-media-select" type="button">选择图片</button>';
+    echo '<button class="button boblift-media-clear" type="button">使用默认图</button>';
+    echo '<p class="boblift-media-help">该字段保存为前台可直接读取的图片地址，适合 Contact / News / Quote / Cases 等通用页面 Hero 图片。</p>';
+    echo '</div>';
+}
+
+function boblift_admin_site_ui_array_meta(array $value): string
+{
+    foreach (['title', 'label', 'name', 'question', 'role', 'text'] as $key) {
+        if (isset($value[$key]) && is_scalar($value[$key])) {
+            $meta = trim((string) $value[$key]);
+            if ($meta !== '') {
+                if (function_exists('mb_strlen') && function_exists('mb_substr')) {
+                    return mb_strlen($meta) > 36 ? mb_substr($meta, 0, 36) . '…' : $meta;
+                }
+                return strlen($meta) > 72 ? substr($meta, 0, 72) . '…' : $meta;
+            }
+        }
+    }
+    return '';
+}
+
+function boblift_admin_site_ui_array_label(string $key, mixed $value): string
+{
+    if (ctype_digit($key)) {
+        return '项目 ' . (string) ((int) $key + 1);
+    }
+    return boblift_admin_site_ui_field_label($key);
+}
+
+function boblift_admin_site_ui_panel(string $label, string $key, string $field_path, callable $render, string $class = 'boblift-admin-panel boblift-site-ui-panel', string $meta = ''): void
+{
+    $panel_search = trim($label . ' ' . $key . ' ' . $field_path . ' ' . $meta);
+    echo '<details class="' . esc_attr($class) . '" style="margin:10px 0;" data-site-ui-panel data-site-ui-search="' . esc_attr($panel_search) . '">';
+    echo '<summary><span>' . esc_html($label) . '</span>';
+    if ($meta !== '') {
+        echo '<span class="boblift-admin-subpanel-meta">' . esc_html($meta) . '</span>';
+    }
+    echo '<span class="boblift-site-ui-key"><code>' . esc_html($key) . '</code></span></summary><div class="boblift-admin-panel-body">';
+    $render();
+    echo '</div></details>';
 }
 
 function boblift_admin_settings_search_controls(string $page): void
@@ -1838,19 +2141,26 @@ function boblift_admin_site_ui_fields(array $defaults, array $values, string $pa
         if (is_array($default_value)) {
             if ($depth <= 1) {
                 $panel_label = $depth === 0 ? boblift_admin_site_ui_section_label($key_string) : boblift_admin_site_ui_field_label($key_string);
-                $panel_search = trim($panel_label . ' ' . $key_string . ' ' . $field_path);
-                echo '<details class="boblift-admin-panel boblift-site-ui-panel" style="margin:10px 0;" data-site-ui-panel data-site-ui-search="' . esc_attr($panel_search) . '"><summary><span>' . esc_html($panel_label) . '</span><span class="boblift-site-ui-key"><code>' . esc_html($key_string) . '</code></span></summary><div class="boblift-admin-panel-body">';
-                boblift_admin_site_ui_fields($default_value, is_array($current) ? $current : [], $field_path, $depth + 1);
-                echo '</div></details>';
+                boblift_admin_site_ui_panel($panel_label, $key_string, $field_path, static function () use ($default_value, $current, $field_path, $depth): void {
+                    boblift_admin_site_ui_fields($default_value, is_array($current) ? $current : [], $field_path, $depth + 1);
+                });
             } else {
-                boblift_admin_site_ui_fields($default_value, is_array($current) ? $current : [], $field_path, $depth + 1);
+                $subpanel_label = boblift_admin_site_ui_array_label($key_string, $default_value);
+                $meta = boblift_admin_site_ui_array_meta(is_array($current) ? $current : $default_value);
+                boblift_admin_site_ui_panel($subpanel_label, $key_string, $field_path, static function () use ($default_value, $current, $field_path, $depth): void {
+                    boblift_admin_site_ui_fields($default_value, is_array($current) ? $current : [], $field_path, $depth + 1);
+                }, 'boblift-admin-card boblift-admin-subpanel boblift-site-ui-panel', $meta);
             }
+            continue;
+        }
+        $value = is_scalar($current) && trim((string) $current) !== '' ? $current : $default_value;
+        if (boblift_admin_site_ui_is_image_field($key_string, $value)) {
+            boblift_admin_site_ui_media_path($field_path, $key_string, $value, $default_value);
             continue;
         }
         if (!boblift_admin_site_ui_is_editable_scalar($key_string, $default_value)) {
             continue;
         }
-        $value = is_scalar($current) && trim((string) $current) !== '' ? $current : $default_value;
         $label = boblift_admin_site_ui_field_label($key_string);
         $string_value = (string) $value;
         echo '<div class="boblift-admin-field boblift-site-ui-field" data-site-ui-field data-site-ui-label="' . esc_attr($label) . '" data-site-ui-key="' . esc_attr($key_string) . '" data-site-ui-path="' . esc_attr($field_path) . '">';
@@ -1998,16 +2308,23 @@ function boblift_global_settings_page(): void
         <?php boblift_admin_input('final_cta.title', $options, '标题'); ?>
         <?php boblift_admin_input('final_cta.button_label', $options, '按钮文字'); ?>
         <?php boblift_admin_link_input('final_cta.button_href', $options, '按钮链接'); ?>
-        <?php boblift_admin_media('final_cta.image', $options, '背景图片'); ?>
+        <?php boblift_admin_media('final_cta.image', $options, '照片', 'boblift_theme_options', '横向实景照片，推荐 2172×724（3:1）。主体放在右半边，左侧会渐隐进深蓝底色放标题；色调偏冷、偏暗的照片和深蓝底色更协调。'); ?>
     <?php boblift_admin_settings_panel_end(); ?>
     <?php boblift_admin_settings_panel_start('产品页默认 Banner', '对应产品总页未选择分类时的顶部 Banner。单个分类 Banner 请到「产品展示 → 产品分类」里编辑。'); ?>
         <?php $product_archive = boblift_product_archive_options(); ?>
         <?php boblift_admin_input('label', $product_archive, '小标签', 'boblift_theme_options[product_archive]'); ?>
         <?php boblift_admin_input('title', $product_archive, '标题', 'boblift_theme_options[product_archive]'); ?>
         <?php boblift_admin_textarea('text', $product_archive, '描述', 'boblift_theme_options[product_archive]'); ?>
-        <?php boblift_admin_media('image', $product_archive, '右侧图片', 'boblift_theme_options[product_archive]', '推荐透明 PNG 或 WebP，约 900×360；前台会 object-contain 显示，避免超出外框。'); ?>
-        <?php boblift_admin_input('image_alt', $product_archive, '图片 Alt', 'boblift_theme_options[product_archive]'); ?>
-        <?php boblift_admin_input('watermark', $product_archive, '背景水印', 'boblift_theme_options[product_archive]'); ?>
+        <?php
+        // Without an uploaded image the banner shows the built-in photo, so preview that one.
+        // A saved custom path or URL is kept; only an empty path or the retired default image shows the built-in photo.
+        $saved_banner_path = trim((string) ($product_archive['image']['path'] ?? ''));
+        if ((int) ($product_archive['image']['id'] ?? 0) <= 0 && ($saved_banner_path === '' || $saved_banner_path === 'images/products/truck-mounted-crane.png')) {
+            $product_archive['image'] = ['id' => 0, 'path' => 'images/product-banners/default.jpg'];
+        }
+        ?>
+        <?php boblift_admin_media('image', $product_archive, 'Banner 照片', 'boblift_theme_options[product_archive]', '横向实景照片，推荐 1920×640（3:1）。主体放在右半边，左侧留出浅色空间给标题；手机上照片单独显示在标题上方。不上传则使用主题内置照片。'); ?>
+        <?php boblift_admin_input('image_alt', $product_archive, '照片 Alt（上传照片时使用）', 'boblift_theme_options[product_archive]'); ?>
     <?php boblift_admin_settings_panel_end(); ?>
     <?php boblift_admin_settings_panel_start('通用页面文案', '对应导航、询盘弹窗、Quote List、News/Success/详情页等模板固定文案。默认折叠；可按中文标签、英文 key 或当前内容搜索。'); ?>
         <?php $site_ui_defaults = function_exists('boblift_site_ui_defaults') ? boblift_site_ui_defaults() : []; ?>
@@ -2112,7 +2429,10 @@ function boblift_admin_product_groups_editor(array $options, array $product_grou
     ?>
     <div class="boblift-admin-product-groups-editor" data-product-groups-editor>
         <h3>二级菜单</h3>
-        <p class="boblift-admin-note">这里编辑现有 <code>product_nav_groups</code>，前台数据结构保持不变。</p>
+        <p class="boblift-admin-note">这里编辑保存的自定义产品菜单（<code>product_nav_groups</code>），前台按它显示。</p>
+        <div class="boblift-admin-note" style="border:1px solid #f0b429;padding:12px;margin:12px 0;">
+            <label><input type="checkbox" name="boblift_reset_product_menu" value="1"> 恢复为按产品分类自动生成的菜单（自定义分组会被清除，无法撤销）</label>
+        </div>
         <input type="hidden" name="boblift_product_nav_groups_present" value="1">
         <div class="boblift-admin-menu-table" data-group-list>
             <div class="boblift-admin-menu-head"><span>ID</span><span>二级菜单组</span><span>操作</span></div>
@@ -2134,7 +2454,6 @@ function boblift_navigation_settings_page(): void
     }
     $options = boblift_options();
     $nav_items = is_array($options['nav_items'] ?? null) ? $options['nav_items'] : [];
-    $product_groups = is_array($options['product_nav_groups'] ?? null) ? $options['product_nav_groups'] : [];
     $menu_index = null;
     foreach ($nav_items as $index => $item) {
         if (is_array($item) && !empty($item['has_menu'])) {
@@ -2142,9 +2461,11 @@ function boblift_navigation_settings_page(): void
             break;
         }
     }
-    boblift_admin_page_start('BOB-LIFT 导航菜单', '维护前台主导航；勾选“启用二级菜单”后，在同一导航项里编辑二级菜单。');
+    $product_groups = is_array($options['product_nav_groups'] ?? null) ? $options['product_nav_groups'] : [];
+    $curated_menu_active = function_exists('boblift_curated_product_menu_families') && boblift_curated_product_menu_families() !== [];
+    boblift_admin_page_start('BOB-LIFT 导航菜单', '维护前台主导航；勾选“启用二级菜单”的导航项会显示产品下拉菜单，菜单内容按产品分类自动生成。');
     ?>
-    <?php boblift_admin_settings_panel_start('主导航', '对应 Header 横向导航；这里只保留一个主导航折叠管理器。', true); ?>
+    <?php boblift_admin_settings_panel_start('主导航', '对应 Header 横向导航；这里只保留一个主导航折叠管理器。'); ?>
         <input type="hidden" name="boblift_nav_items_present" value="1">
         <div class="boblift-admin-nav-builder" data-nav-builder>
             <div class="boblift-admin-menu-table" data-nav-list>
@@ -2157,11 +2478,20 @@ function boblift_navigation_settings_page(): void
             </div>
             <p><button type="button" class="button button-primary" data-menu-action="add-nav">新增主导航</button></p>
             <div data-product-groups-parking <?php echo $menu_index === null ? '' : 'hidden'; ?>>
-                <?php boblift_admin_product_groups_editor($options, $product_groups); ?>
+                <?php if ($curated_menu_active) : ?>
+                    <?php boblift_admin_product_groups_editor($options, $product_groups); ?>
+                <?php else : ?>
+                    <div class="boblift-admin-product-groups-editor">
+                        <h3>二级菜单</h3>
+                        <p class="boblift-admin-note">产品下拉菜单按「产品展示 → 产品分类」自动生成：每个顶级分类一行，右侧显示它的 Banner 照片、子分类（没有两个以上子分类时显示型号）和型号数量。要调整菜单，请修改产品分类的名称、层级和 Banner 图片。</p>
+                    </div>
+                <?php endif; ?>
             </div>
             <template data-template="nav-row"><?php boblift_admin_nav_row([], [], '__NAV_INDEX__', true); ?></template>
-            <template data-template="group-row"><?php boblift_admin_product_group_row([], [], '__GROUP_INDEX__', true); ?></template>
-            <template data-template="link-row"><?php boblift_admin_product_link_row([], [], '__GROUP_INDEX__', '__LINK_INDEX__'); ?></template>
+            <?php if ($curated_menu_active) : ?>
+                <template data-template="group-row"><?php boblift_admin_product_group_row([], [], '__GROUP_INDEX__', true); ?></template>
+                <template data-template="link-row"><?php boblift_admin_product_link_row([], [], '__GROUP_INDEX__', '__LINK_INDEX__'); ?></template>
+            <?php endif; ?>
         </div>
     <?php boblift_admin_settings_panel_end(); ?>
     <?php
@@ -2216,56 +2546,66 @@ function boblift_render_social_media_page_fields(array $social, string $base): v
 {
     $icon_choices = boblift_social_media_icon_choices();
     ?>
-    <?php boblift_admin_settings_panel_start('首屏 Hero', '控制标题、文案、按钮和右侧工厂图。', true); ?>
+    <?php boblift_admin_settings_panel_start('顶部卡片', '页面顶部的标签、标题、说明和照片。'); ?>
         <?php boblift_admin_input('hero.label', $social, '标签', $base); ?>
-        <?php boblift_admin_input('hero.title', $social, '主标题', $base); ?>
-        <?php boblift_admin_textarea('hero.text', $social, '描述', $base); ?>
-        <?php boblift_admin_input('hero.button_label', $social, '主按钮文字', $base); ?>
-        <?php boblift_admin_input('hero.email_label', $social, '邮箱按钮文字', $base); ?>
-        <?php boblift_admin_media('hero.image', $social, 'Hero 图片', $base, '推荐 1800×1200 或 16:10，工厂/起重设备主体居中，前台会 cover 裁切。'); ?>
-        <?php boblift_admin_input('hero.image_alt', $social, 'Hero 图片 Alt', $base); ?>
+        <?php boblift_admin_input('labels.main_platforms_title', $social, '标题', $base); ?>
+        <?php boblift_admin_textarea('labels.main_platforms_text', $social, '说明', $base); ?>
+        <?php boblift_admin_media('hero.image', $social, '照片', $base, '横向实景照片，推荐 1920×640（3:1）。主体放在右半边，左侧留出浅色空间给标题；手机上照片单独显示在标题上方。'); ?>
+        <?php boblift_admin_input('hero.image_alt', $social, '照片 Alt', $base); ?>
+        <?php
+        // Each old hero field is editable while the page still shows it (same conditions as page-social-media.php).
+        $legacy_title_shown = trim((string) ($social['hero']['title'] ?? '')) !== '' && trim((string) $social['hero']['title']) !== trim((string) ($social['labels']['main_platforms_title'] ?? ''));
+        $legacy_text_shown = trim((string) ($social['hero']['text'] ?? '')) !== '' && trim((string) $social['hero']['text']) !== trim((string) ($social['labels']['main_platforms_text'] ?? ''));
+        ?>
+        <?php if ($legacy_title_shown) : ?>
+            <?php boblift_admin_input('hero.title', $social, '旧版首屏标题（仍显示在首屏下方，清空即可移除）', $base); ?>
+        <?php endif; ?>
+        <?php if ($legacy_text_shown) : ?>
+            <?php boblift_admin_textarea('hero.text', $social, '旧版首屏说明（仍显示在首屏下方，清空即可移除）', $base); ?>
+        <?php endif; ?>
     <?php boblift_admin_settings_panel_end(); ?>
 
-    <?php boblift_admin_settings_panel_start('频道区标题与按钮', '控制平台区标题、说明和访问按钮文案。'); ?>
-        <?php boblift_admin_input('labels.main_platforms_label', $social, '主平台小标签', $base); ?>
-        <?php boblift_admin_input('labels.main_platforms_title', $social, '主平台标题', $base); ?>
-        <?php boblift_admin_textarea('labels.main_platforms_text', $social, '主平台说明', $base); ?>
-        <?php boblift_admin_input('labels.featured_visit_label', $social, '重点平台访问按钮', $base); ?>
-        <?php boblift_admin_input('labels.major_visit_label', $social, '次重点平台访问按钮', $base); ?>
-        <?php boblift_admin_input('labels.more_channels_label', $social, '更多平台小标签', $base); ?>
-        <?php boblift_admin_input('labels.more_channels_title', $social, '更多平台标题', $base); ?>
+    <?php boblift_admin_settings_panel_start('区块标题', '官方账号、最近发布两块的标题文字。'); ?>
+        <?php boblift_admin_input('labels.main_platforms_label', $social, '官方账号小标签', $base); ?>
+        <?php boblift_admin_input('labels.overseas_title', $social, '海外平台分组标题', $base); ?>
+        <?php boblift_admin_input('labels.china_title', $social, '国内平台分组标题', $base); ?>
+        <?php boblift_admin_input('labels.more_title', $social, '更多平台分组标题', $base); ?>
+        <?php boblift_admin_input('labels.posts_label', $social, '最近发布小标签', $base); ?>
+        <?php boblift_admin_input('labels.posts_title', $social, '最近发布标题', $base); ?>
+        <?php boblift_admin_textarea('labels.posts_text', $social, '最近发布说明', $base); ?>
+        <?php boblift_admin_input('labels.videos_title', $social, '短视频列标题', $base); ?>
+        <?php boblift_admin_input('labels.image_posts_title', $social, '图文帖子列标题', $base); ?>
     <?php boblift_admin_settings_panel_end(); ?>
 
-    <?php boblift_admin_settings_panel_start('Hero 右侧信息卡', '控制叠加在 Hero 图片上的卖点列表。'); ?>
-        <?php boblift_admin_input('panel.title', $social, '卡片标题', $base); ?>
-        <?php $panel_items = is_array($social['panel']['items'] ?? null) ? $social['panel']['items'] : []; ?>
-        <?php for ($i = 0; $i < max(4, count($panel_items) + 1); $i++) : ?>
-            <div class="boblift-admin-card">
-                <h3>卖点 <?php echo esc_html((string) ($i + 1)); ?></h3>
-                <?php boblift_admin_input("panel.items.$i.text", $social, '文案', $base); ?>
-            </div>
+    <?php boblift_admin_social_platform_panel('海外平台', 'featured_platforms', $social, $icon_choices, 6, true, $base); ?>
+    <?php boblift_admin_social_platform_panel('国内平台', 'major_platforms', $social, $icon_choices, 6, true, $base); ?>
+    <?php boblift_admin_social_platform_panel('更多平台（可选）', 'secondary_platforms', $social, $icon_choices, 2, true, $base); ?>
+
+    <?php boblift_admin_settings_panel_start('短视频', '竖版短视频（9:16），点击才加载播放。建议 MP4、540×960、单条 5MB 以内。'); ?>
+        <?php $videos = is_array($social['videos'] ?? null) ? $social['videos'] : []; ?>
+        <?php for ($i = 0; $i < max(3, count($videos) + 1); $i++) : ?>
+            <?php boblift_admin_subpanel('短视频 ' . (string) ($i + 1), static function () use ($social, $base, $i): void { ?>
+                <?php boblift_admin_input("videos.$i.title", $social, '标题', $base); ?>
+                <?php boblift_admin_input("videos.$i.youtube", $social, 'YouTube 链接或视频 ID（填了就优先从 YouTube 播放）', $base); ?>
+                <?php boblift_admin_file_media("videos.$i.video", $social, '视频 MP4（本地预览用，上线后改用 YouTube）', $base, '和 YouTube 都留空则不显示这一条。'); ?>
+                <?php boblift_admin_media("videos.$i.poster", $social, '封面图', $base, '竖版 9:16，推荐 720×1280。'); ?>
+            <?php }, false, (string) ($videos[$i]['title'] ?? '')); ?>
         <?php endfor; ?>
     <?php boblift_admin_settings_panel_end(); ?>
 
-    <?php boblift_admin_social_platform_panel('重点平台大卡片', 'featured_platforms', $social, $icon_choices, 3, true, $base); ?>
-    <?php boblift_admin_social_platform_panel('次重点平台中卡片', 'major_platforms', $social, $icon_choices, 5, false, $base); ?>
-    <?php boblift_admin_social_platform_panel('更多平台小图标矩阵', 'secondary_platforms', $social, $icon_choices, 20, false, $base); ?>
-
-    <?php boblift_admin_settings_panel_start('可关注内容类型', '控制底部四张内容卡片和图片。'); ?>
+    <?php boblift_admin_settings_panel_start('图文帖子', '从社媒已发布的图片里挑选，正方形 1080×1080 最合适；点击可看大图。'); ?>
         <?php $cards = is_array($social['content_cards'] ?? null) ? $social['content_cards'] : []; ?>
-        <?php for ($i = 0; $i < max(4, count($cards) + 1); $i++) : ?>
-            <div class="boblift-admin-card">
-                <h3>内容卡片 <?php echo esc_html((string) ($i + 1)); ?></h3>
+        <?php for ($i = 0; $i < max(12, count($cards) + 1); $i++) : ?>
+            <?php boblift_admin_subpanel('帖子 ' . (string) ($i + 1), static function () use ($social, $base, $i): void { ?>
                 <?php boblift_admin_checkbox("content_cards.$i.enabled", $social, '启用', $base); ?>
-                <?php boblift_admin_select("content_cards.$i.icon", $social, '线性图标', boblift_floating_contact_icon_choices(), $base); ?>
-                <?php boblift_admin_input("content_cards.$i.title", $social, '标题', $base); ?>
-                <?php boblift_admin_textarea("content_cards.$i.text", $social, '正文', $base); ?>
-                <?php boblift_admin_media("content_cards.$i.image", $social, '图片', $base, '推荐 1200×800 或 16:10，前台内容卡会 cover 裁切。'); ?>
-            </div>
+                <?php boblift_admin_media("content_cards.$i.image", $social, '帖子图片', $base); ?>
+                <?php boblift_admin_input("content_cards.$i.title", $social, '说明（大图下方显示，也用作图片 Alt）', $base); ?>
+                <?php boblift_admin_textarea("content_cards.$i.text", $social, '描述（可选，显示在大图说明里）', $base); ?>
+            <?php }, false, (string) ($cards[$i]['title'] ?? '')); ?>
         <?php endfor; ?>
     <?php boblift_admin_settings_panel_end(); ?>
 
-    <?php boblift_admin_settings_panel_start('底部 CTA', '控制联系行动区。'); ?>
+    <?php boblift_admin_settings_panel_start('底部直接沟通区', '页面最后的询盘入口；WhatsApp 按钮读取联系方式设置里的号码。'); ?>
         <?php boblift_admin_input('cta.label', $social, '标签', $base); ?>
         <?php boblift_admin_input('cta.title', $social, '标题', $base); ?>
         <?php boblift_admin_textarea('cta.text', $social, '描述', $base); ?>
@@ -2274,6 +2614,7 @@ function boblift_render_social_media_page_fields(array $social, string $base): v
     <?php boblift_admin_settings_panel_end(); ?>
     <?php
 }
+
 
 function boblift_social_media_settings_page(): void
 {
@@ -2290,10 +2631,9 @@ function boblift_social_media_settings_page(): void
 function boblift_admin_social_platform_panel(string $title, string $key, array $social, array $icon_choices, int $minimum, bool $with_text = false, string $base = 'boblift_theme_options[social_media_page]'): void
 {
     $rows = is_array($social[$key] ?? null) ? $social[$key] : [];
-    boblift_admin_settings_panel_start($title, '可控制是否显示、平台名称、真实图标和跳转链接。');
+    boblift_admin_settings_panel_start($title, '填好账号主页链接后，前台卡片才可点击并在新窗口打开。');
     for ($i = 0; $i < max($minimum, count($rows) + 2); $i++) : ?>
-        <div class="boblift-admin-card">
-            <h3>平台 <?php echo esc_html((string) ($i + 1)); ?></h3>
+        <?php boblift_admin_subpanel('平台 ' . (string) ($i + 1), static function () use ($key, $i, $social, $icon_choices, $base, $with_text): void { ?>
             <?php boblift_admin_checkbox("$key.$i.enabled", $social, '启用', $base); ?>
             <?php boblift_admin_input("$key.$i.label", $social, '显示名称', $base); ?>
             <div class="boblift-admin-field">
@@ -2301,14 +2641,17 @@ function boblift_admin_social_platform_panel(string $title, string $key, array $
                 <?php echo boblift_admin_social_media_icon_preview((string) boblift_admin_option_value("$key.$i.icon", $social)); ?>
             </div>
             <?php boblift_admin_select("$key.$i.icon", $social, '真实图标', $icon_choices, $base); ?>
-            <?php boblift_admin_link_input("$key.$i.href", $social, '链接地址', $base); ?>
+            <?php boblift_admin_link_input("$key.$i.href", $social, '账号主页链接（https:// 开头；留空则卡片不可点击）', $base); ?>
+            <?php boblift_admin_input("$key.$i.handle", $social, '账号名（如 @boblift，可留空）', $base); ?>
             <?php if ($with_text) : ?>
-                <?php boblift_admin_textarea("$key.$i.text", $social, '说明文案', $base); ?>
+                <?php boblift_admin_textarea("$key.$i.text", $social, '一句话说明这个账号发什么', $base); ?>
             <?php endif; ?>
-        </div>
+            <?php boblift_admin_media("$key.$i.qr", $social, '二维码（可选）', $base, '抖音、视频号、小红书等扫码关注的平台可上传，卡片右侧显示。'); ?>
+        <?php }, false, (string) ($rows[$i]['label'] ?? '')); ?>
     <?php endfor;
     boblift_admin_settings_panel_end();
 }
+
 
 function boblift_footer_settings_page(): void
 {
@@ -2328,44 +2671,45 @@ function boblift_footer_settings_page(): void
         <?php boblift_admin_input('footer.copyright', $options, '版权文案'); ?>
     <?php boblift_admin_settings_panel_end(); ?>
     <?php boblift_admin_settings_panel_start('社媒链接'); ?>
+        <p class="boblift-admin-note">只有填写了外部主页地址（https://…）的社媒才会在页脚显示；指向本站页面的占位链接会自动隐藏。</p>
         <?php for ($i = 0; $i < max(5, count($social_links) + 1); $i++) : ?>
-            <div class="boblift-admin-card">
-                <h3>社媒 <?php echo esc_html((string) ($i + 1)); ?></h3>
+            <?php boblift_admin_subpanel('社媒 ' . (string) ($i + 1), static function () use ($options, $i): void { ?>
                 <?php boblift_admin_input("footer.social_links.$i.label", $options, '名称'); ?>
                 <?php boblift_admin_link_input("footer.social_links.$i.href", $options, '链接'); ?>
-            </div>
+            <?php }, false, (string) ($social_links[$i]['label'] ?? '')); ?>
         <?php endfor; ?>
     <?php boblift_admin_settings_panel_end(); ?>
     <?php boblift_admin_settings_panel_start('页脚链接组'); ?>
         <?php for ($g = 0; $g < max(4, count($groups) + 1); $g++) : ?>
-            <details class="boblift-admin-panel" <?php echo $g < count($groups) ? 'open' : ''; ?>>
-                <summary>链接组 <?php echo esc_html((string) ($g + 1)); ?></summary>
-                <div class="boblift-admin-panel-body">
-                    <?php boblift_admin_input("footer.groups.$g.title", $options, '分组标题'); ?>
-                    <?php $links = is_array($groups[$g]['links'] ?? null) ? $groups[$g]['links'] : []; ?>
-                    <?php for ($i = 0; $i < max(8, count($links) + 1); $i++) : ?>
-                        <div class="boblift-admin-card">
-                            <h3>链接 <?php echo esc_html((string) ($i + 1)); ?></h3>
-                            <?php boblift_admin_input("footer.groups.$g.links.$i.label", $options, '显示文字'); ?>
-                            <?php boblift_admin_link_input("footer.groups.$g.links.$i.href", $options, '链接地址'); ?>
-                        </div>
-                    <?php endfor; ?>
-                </div>
-            </details>
+            <?php boblift_admin_subpanel('链接组 ' . (string) ($g + 1), static function () use ($options, $groups, $g): void { ?>
+                <?php boblift_admin_input("footer.groups.$g.title", $options, '分组标题'); ?>
+                <?php if (is_array($groups[$g] ?? null) && boblift_footer_is_product_group($groups[$g])) : ?>
+                    <input type="hidden" name="<?php echo esc_attr(boblift_admin_option_name("footer.groups.$g.source", 'boblift_theme_options')); ?>" value="product_categories">
+                    <p class="boblift-admin-note">这一组的链接按「产品展示 → 产品分类」的大类自动生成，和导航的产品下拉菜单一致，这里只需维护分组标题。</p>
+                    <?php return; ?>
+                <?php endif; ?>
+                <?php $links = is_array($groups[$g]['links'] ?? null) ? $groups[$g]['links'] : []; ?>
+                <?php for ($i = 0; $i < max(8, count($links) + 1); $i++) : ?>
+                    <?php boblift_admin_subpanel('链接 ' . (string) ($i + 1), static function () use ($options, $g, $i): void { ?>
+                        <?php boblift_admin_input("footer.groups.$g.links.$i.label", $options, '显示文字'); ?>
+                        <?php boblift_admin_link_input("footer.groups.$g.links.$i.href", $options, '链接地址'); ?>
+                    <?php }, false, (string) ($links[$i]['label'] ?? '')); ?>
+                <?php endfor; ?>
+            <?php }, false, (string) ($groups[$g]['title'] ?? '')); ?>
         <?php endfor; ?>
     <?php boblift_admin_settings_panel_end(); ?>
     <?php boblift_admin_settings_panel_start('法律链接'); ?>
         <?php for ($i = 0; $i < max(4, count($legal_links) + 1); $i++) : ?>
-            <div class="boblift-admin-card">
-                <h3>法律链接 <?php echo esc_html((string) ($i + 1)); ?></h3>
+            <?php boblift_admin_subpanel('法律链接 ' . (string) ($i + 1), static function () use ($options, $i): void { ?>
                 <?php boblift_admin_input("footer.legal_links.$i.label", $options, '显示文字'); ?>
                 <?php boblift_admin_link_input("footer.legal_links.$i.href", $options, '链接地址'); ?>
-            </div>
+            <?php }, false, (string) ($legal_links[$i]['label'] ?? '')); ?>
         <?php endfor; ?>
     <?php boblift_admin_settings_panel_end(); ?>
     <?php
     boblift_admin_page_end();
 }
+
 
 function boblift_news_category_choices(): array
 {
@@ -2409,10 +2753,9 @@ function boblift_news_settings_page(): void
     ?>
     <?php boblift_admin_settings_panel_start('分类筛选', '新增语言时，只需要在「文章 → 分类」里给这些分类补译文；新增分类时，在这里新增一行即可，不需要改代码。'); ?>
         <?php for ($i = 0; $i < max(8, count($news_categories) + 1); $i++) : ?>
-            <div class="boblift-admin-card">
-                <h3>分类 <?php echo esc_html((string) ($i + 1)); ?></h3>
+            <?php boblift_admin_subpanel('分类 ' . (string) ($i + 1), static function () use ($options, $choices, $i): void { ?>
                 <?php boblift_admin_select("news_categories.$i.slug", $options, '主语言分类', $choices); ?>
-            </div>
+            <?php }, false, (string) ($news_categories[$i]['slug'] ?? '')); ?>
         <?php endfor; ?>
     <?php boblift_admin_settings_panel_end(); ?>
     <?php
@@ -2662,10 +3005,10 @@ function boblift_product_category_meta_values(?WP_Term $term = null): array
         'public_url' => $term instanceof WP_Term ? boblift_product_category_public_url_admin_value($term) : '',
         'icon' => $term_id > 0 ? (string) get_term_meta($term_id, '_boblift_icon', true) : '',
         'image_id' => $term_id > 0 ? (int) get_term_meta($term_id, '_boblift_image_id', true) : 0,
-        'image_path' => $term_id > 0 ? (string) get_term_meta($term_id, '_boblift_image', true) : '',
         'banner_label' => $term_id > 0 ? (string) get_term_meta($term_id, '_boblift_banner_label', true) : '',
         'banner_title' => $term_id > 0 ? (string) get_term_meta($term_id, '_boblift_banner_title', true) : '',
         'sort' => $term_id > 0 ? (string) get_term_meta($term_id, '_boblift_sort', true) : '',
+        'term' => $term,
     ];
 }
 
@@ -2678,8 +3021,7 @@ function boblift_product_category_image_preview(array $meta): string
             return $url;
         }
     }
-    $path = (string) ($meta['image_path'] ?? '');
-    return $path !== '' ? boblift_image_src($path) : boblift_image_src('images/products/truck-mounted-crane.png');
+    return boblift_product_banner_photo_url($meta['term'] ?? null);
 }
 
 function boblift_product_category_add_fields(): void
@@ -2696,7 +3038,7 @@ function boblift_product_category_add_fields(): void
             <button class="button boblift-media-select" type="button">选择图片</button>
             <button class="button boblift-media-clear" type="button">使用默认图</button>
         </div>
-        <p class="boblift-term-field-note">控制产品列表页顶部 Banner 右侧图片。推荐透明 PNG 或 WebP，约 900×360。</p>
+        <p class="boblift-term-field-note">产品列表页顶部 Banner 的横向实景照片，推荐 1920×640（3:1），主体放在右半边，左侧留出浅色空间给标题。不上传则使用该产品族的内置照片，子分类沿用父分类的照片。</p>
     </div>
     <div class="form-field"><label>Banner 小标签</label><input class="boblift-term-short" type="text" name="boblift_product_category_meta[banner_label]" value="BOB-LIFT Product Range"><p class="boblift-term-field-note">前台 Banner 左上角的小标签，可直接改成当前分类的营销标签。</p></div>
     <div class="form-field"><label>Banner 标题</label><input class="boblift-term-short" type="text" name="boblift_product_category_meta[banner_title]" value="" placeholder="保存后写入分类名称"><p class="boblift-term-field-note">建议与上方分类名称一致；保存时没有填写会自动写入分类名称。</p></div>
@@ -2731,7 +3073,7 @@ function boblift_product_category_edit_fields(WP_Term $term): void
                 <button class="button boblift-media-select" type="button">选择图片</button>
                 <button class="button boblift-media-clear" type="button">使用默认图</button>
             </div>
-            <p class="description">控制产品列表页顶部 Banner 右侧图片。推荐透明 PNG 或 WebP，约 900×360。</p>
+            <p class="description">产品列表页顶部 Banner 的横向实景照片，推荐 1920×640（3:1），主体放在右半边，左侧留出浅色空间给标题。不上传则使用该产品族的内置照片，子分类沿用父分类的照片。</p>
         </td>
     </tr>
     <tr class="form-field"><th scope="row"><label>Banner 小标签</label></th><td><input class="regular-text" type="text" name="boblift_product_category_meta[banner_label]" value="<?php echo esc_attr($meta['banner_label'] !== '' ? $meta['banner_label'] : 'BOB-LIFT Product Range'); ?>"><p class="description">前台 Banner 左上角的小标签，可直接改成当前分类的营销标签。</p></td></tr>
