@@ -223,6 +223,13 @@ if ($legacy_strength['cards'] !== [] || $legacy_strength['cta'] !== null || $leg
 <section class="about-timeline-section bg-[#F8FAFC] pt-16 lg:pt-24 pb-16 lg:pb-28" data-about-timeline>
     <div class="page-shell about-wide-shell">
         <div class="about-timeline-header mx-auto w-full text-center mb-16 max-w-none lg:mb-24" data-about-timeline-header>
+            <?php
+            // The redesigned section has no eyebrow; a label an editor changed from the built-in "Development Timeline" stays visible.
+            $timeline_label = trim((string) ($timeline['label'] ?? ''));
+            $timeline_label_defaults = ['Development Timeline', function_exists('boblift_localized_static_text') ? boblift_localized_static_text('Development Timeline') : 'Development Timeline'];
+            if ($timeline_label !== '' && !in_array($timeline_label, $timeline_label_defaults, true)) : ?>
+                <p class="mb-4 text-xs font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html($timeline_label); ?></p>
+            <?php endif; ?>
             <h2 class="text-[28px] font-black leading-[1.15] tracking-[-0.005em] text-[#0B1B33] md:text-[36px] xl:text-[44px]"><?php echo esc_html($timeline['title'] ?? 'Built step by step for global lifting projects.'); ?></h2>
         </div>
         <div class="about-timeline-track" data-about-timeline-track>

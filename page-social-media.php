@@ -54,6 +54,9 @@ $platform_identity = static function (string $label): string {
         '微信' => 'wechat', 'weixin' => 'wechat', '抖音' => 'douyin', '微博' => 'weibo', 'sinaweibo' => 'weibo',
         '快手' => 'kuaishou', '哔哩哔哩' => 'bilibili', 'b站' => 'bilibili', '领英' => 'linkedin',
     ];
+    // Footer labels often carry the brand ("BOB-LIFT LinkedIn", "LinkedIn Official"): drop those words, keep the platform.
+    $bare = (string) preg_replace('/boblift|official|page|account/u', '', $id);
+    $id = $bare !== '' ? $bare : $id;
     return $aliases[$id] ?? $id;
 };
 // A saved account link is honoured unless it is one of the old placeholders (empty, "#", the contact page). Protocol-relative
