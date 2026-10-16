@@ -46,7 +46,8 @@ function boblift_news_reading_minutes(string $content): int
 {
     $text = html_entity_decode(wp_strip_all_tags($content), ENT_QUOTES, 'UTF-8');
     $cjk = preg_match_all('/[\x{3040}-\x{30ff}\x{3400}-\x{9fff}]/u', $text);
-    $words = str_word_count((string) preg_replace('/[\x{3040}-\x{30ff}\x{3400}-\x{9fff}]/u', ' ', $text));
+    // Unicode-aware, so Cyrillic, Arabic and accented Latin words count too (str_word_count() sees ASCII letters only).
+    $words = preg_match_all('/[\p{L}\p{N}]+(?:[\'’-][\p{L}\p{N}]+)*/u', (string) preg_replace('/[\x{3040}-\x{30ff}\x{3400}-\x{9fff}]/u', ' ', $text));
     return max(1, (int) round($words / 220 + $cjk / 400));
 }
 
@@ -91,10 +92,22 @@ function boblift_news_product_index(): array
  * 2. the capacity, boom type and use named in the title ("8 ton knuckle boom truck crane");
  * 3. the product family the article talks about most (marine, fly jib, tail lift ...).
  */
-function boblift_news_related_products(string $title, string $content, int $limit = 3): array
+function boblift_news_related_products(string $title, string $content, int $limit = 3, int $post_id = 0): array
 {
     $text = $title . ' ' . html_entity_decode(wp_strip_all_tags($content), ENT_QUOTES, 'UTF-8');
-    $haystack = strtolower($title . ' ' . $text);
+    // A translated article is matched on its source-language text as well: the family keywords and title patterns below
+    // cover English, Chinese and Japanese, not every translation (морские краны, grúas marinas ...).
+    $source_title = '';
+    if ($post_id > 0 && function_exists('pll_get_post') && function_exists('pll_get_post_language')) {
+        $source_language = function_exists('boblift_mls_source_language') ? (string) boblift_mls_source_language() : 'en';
+        $source_id = (int) pll_get_post($post_id, $source_language);
+        $source = $source_id > 0 && $source_id !== $post_id ? get_post($source_id) : null;
+        if ($source instanceof WP_Post) {
+            $source_title = (string) $source->post_title;
+            $text .= ' ' . $source_title . ' ' . html_entity_decode(wp_strip_all_tags((string) $source->post_content), ENT_QUOTES, 'UTF-8');
+        }
+    }
+    $haystack = strtolower($title . ' ' . $source_title . ' ' . $text);
     $scores = [];
     $index = boblift_news_product_index();
 
@@ -122,7 +135,7 @@ function boblift_news_related_products(string $title, string $content, int $limi
         }
     }
 
-    $title_lower = strtolower($title);
+    $title_lower = strtolower(trim($title . ' ' . $source_title));
     $family_keywords = [
         'marine' => ['marine', 'ship', 'vessel', 'offshore', '船用', '船吊', '船舶', '船用'],
         'fly-jib' => ['fly jib', 'forklift', '叉车', 'フォークリフト'],
@@ -168,7 +181,7 @@ function boblift_news_related_products(string $title, string $content, int $limi
     $categories = array_values(array_filter($family_categories[$family], static fn(string $slug): bool => $boom === '' || !str_contains($slug, 'boom') || str_starts_with($slug, $boom)));
     $categories = $categories !== [] ? $categories : $family_categories[$family];
 
-    $capacity = preg_match('/(\d+(?:\.\d+)?)\s*-?\s*(?:tons?|tonnes?|t\b|吨|トン)/iu', $title, $capacity_match) ? (float) $capacity_match[1] : 0.0;
+    $capacity = preg_match('/(\d+(?:\.\d+)?)\s*-?\s*(?:tons?|tonnes?|t\b|吨|トン)/iu', $title . ' ' . $source_title, $capacity_match) ? (float) $capacity_match[1] : 0.0;
     if ($capacity === 0.0 && preg_match('/(\d{3,4})\s*kg/i', $title, $kg_match)) {
         $capacity = (float) $kg_match[1] / 1000;
     }

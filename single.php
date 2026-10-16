@@ -24,7 +24,7 @@ $modified = get_the_modified_date('Y-m-d');
 $minutes = boblift_news_reading_minutes($content);
 $reading = str_replace('{minutes}', (string) $minutes, (string) ($article_ui['readingTemplate'] ?? '{minutes} min read'));
 $image = get_the_post_thumbnail_url($post_id, 'full') ?: 'images/page-heroes/factory-floor.webp';
-$products = boblift_news_related_products($title, $content, 3);
+$products = boblift_news_related_products($title, $content, 3, (int) $post_id);
 $contact = boblift_contact_settings();
 
 $related_count = max(0, min(3, (int) ($ui['relatedArticleCount'] ?? 3)));
