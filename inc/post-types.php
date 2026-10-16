@@ -1372,6 +1372,7 @@ function boblift_public_page_archive_template(string $template): string
 
     $template_map = [
         'about' => 'page-about.php',
+        'why-choose-us' => 'page-why-choose-us.php',
         'global-customer-visits' => 'page-global-customer-visits.php',
         'social-media' => 'page-social-media.php',
         'factory-tour' => 'page-factory-tour.php',

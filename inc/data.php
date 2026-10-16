@@ -392,6 +392,7 @@ function boblift_about_page_defaults(): array
     return [
         'secondary_nav' => [
             ['label' => 'About Us', 'href' => '/about.html', 'slug' => 'about'],
+            ['label' => 'Why Choose BOB-LIFT', 'href' => '/why-choose-us.html', 'slug' => 'why-choose-us'],
             ['label' => 'Factory Tour', 'href' => '/factory-tour.html', 'slug' => 'factory-tour'],
             ['label' => 'Quality & Testing', 'href' => '/quality-testing.html', 'slug' => 'quality-testing'],
             ['label' => 'Global Customer Visits', 'href' => '/global-customer-visits.html', 'slug' => 'global-customer-visits'],

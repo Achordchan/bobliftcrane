@@ -49,7 +49,7 @@
  "language_host_default": "/",
   "language_host_prefix": {"fr": "fr", "es": "es", "ru": "ru", "sa": "ar"},
  "rules": [
-  {"from": "/about-371153.html", "to": "/about.html", "note": "旧站关于我们别名"},
+  {"from": "/about-371153.html", "to": "/why-choose-us.html", "note": "旧站 Why Choose Us 页，新站对应 Why Choose BOB-LIFT 页"},
   {"from": "/message.html", "to": "/contact.html", "note": "旧站留言表单"},
   {"from": "/Industry-News.html", "to": "/industry-insight.html", "note": "新闻分类改名"},
   {"from": "/Products-Truck-Mounted-Cranes.html", "to": "/truck-mounted-crane", "note": "分类"},
@@ -123,7 +123,7 @@
   {"from": "/tracked-mini-dumper.html", "to": "https://bobliftloader.com/product/500kg-tracked-mini-dumper/", "note": "装载站"},
   {"from": "/bl-360-mini-skid-steer-loader.html", "to": "https://bobliftloader.com/product/bl-t360-h-mini-skid-steer-loader/", "note": "装载站，型号 T/S 款待确认"},
   {"from": "/Tracked-Mini-Mixer-Truck-pd153788538.html", "to": "https://bobliftloader.com/product/tracked-mini-mixer-truck/", "note": "装载站"},
-  {"from": "/25-ton-truck-crane.html", "to": "/truck-mounted-crane", "note": "旧站单页，新站无同名产品，跳分类"},
+  {"from": "/25-ton-truck-crane.html", "to": "/products.html?capacity=20-25", "note": "旧站 25 吨汽车起重机单页（不是随车吊），新站无此产品，跳 20-25 吨筛选"},
   {"from": "/Company-News-ic236357.html", "to": "/Company-News.html", "note": "新闻分类"},
   {"from": "/Industry-News-ic226357.html", "to": "/industry-insight.html", "note": "新闻分类改名"},
   {"from": "/Working-Principle-and-Application-Scenarios-of-Ship-Cranes-id46701337.html", "to": "/working-principle-and-application-scenarios-of-ship-cranes-id46701337.html", "note": "仅大小写不同，新站路径统一小写"},
