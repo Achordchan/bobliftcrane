@@ -25,12 +25,19 @@ function boblift_prefixed_languages(): array
     return array_values(array_filter((array) pll_languages_list(['fields' => 'slug']), static fn($slug): bool => !$hide_default || $slug !== $default));
 }
 
+/** "language/" when Polylang keeps the /language/ base in pretty permalinks (its "rewrite" option off), otherwise "". */
+function boblift_language_path_base(): string
+{
+    $options = (array) get_option('polylang', []);
+    return array_key_exists('rewrite', $options) && empty($options['rewrite']) ? 'language/' : '';
+}
+
 add_filter('rewrite_rules_array', static function (array $rules): array {
     $slugs = boblift_prefixed_languages();
     if (!$slugs) {
         return $rules;
     }
-    $prefix = '(' . implode('|', array_map('preg_quote', $slugs)) . ')/';
+    $prefix = preg_quote(boblift_language_path_base(), '#') . '(' . implode('|', array_map('preg_quote', $slugs)) . ')/';
     $twins = [];
     foreach ($rules as $regex => $query) {
         if ($regex === '' || $regex[0] !== '^' || !str_contains($query, 'boblift_') || str_starts_with($regex, '^' . $prefix)) {
@@ -45,9 +52,10 @@ add_filter('rewrite_rules_array', static function (array $rules): array {
 /** Removes a leading /ja/, /zh/ ... from a request path when languages live in the URL directory. */
 function boblift_strip_language_prefix(string $path): string
 {
+    $base = boblift_language_path_base();
     foreach (boblift_prefixed_languages() as $slug) {
-        if (preg_match('#^/' . preg_quote($slug, '#') . '(/|$)#', $path)) {
-            return substr($path, strlen($slug) + 1) ?: '/';
+        if (preg_match('#^/' . preg_quote($base . $slug, '#') . '(/|$)#', $path)) {
+            return substr($path, strlen($base . $slug) + 1) ?: '/';
         }
     }
     return $path;

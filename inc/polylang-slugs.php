@@ -11,6 +11,12 @@ add_filter('wp_unique_post_slug', static function (string $slug, int $post_id, s
     if ($slug === $original_slug || $post_type === 'attachment' || !function_exists('pll_get_post_language') || !function_exists('pll_languages_list')) {
         return $slug;
     }
+    // Languages only have separate addresses in directory, subdomain or domain mode (force_lang 1-3); when the language comes
+    // from the content (0), a shared slug would give two posts one URL.
+    $force_lang = (int) (((array) get_option('polylang', []))['force_lang'] ?? 0);
+    if ($force_lang < 1 || $force_lang > 3) {
+        return $slug;
+    }
     $language = pll_get_post_language($post_id);
     if (!$language) {
         return $slug;
