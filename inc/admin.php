@@ -2464,7 +2464,7 @@ function boblift_navigation_settings_page(): void
         }
     }
     $product_groups = is_array($options['product_nav_groups'] ?? null) ? $options['product_nav_groups'] : [];
-    $curated_menu_active = function_exists('boblift_curated_product_menu_families') && boblift_curated_product_menu_families() !== [];
+    $curated_menu_active = function_exists('boblift_curated_product_menu_families') && boblift_curated_product_menu_families() !== null;
     boblift_admin_page_start('BOB-LIFT 导航菜单', '维护前台主导航；勾选“启用二级菜单”的导航项会显示产品下拉菜单，菜单内容按产品分类自动生成。');
     ?>
     <?php boblift_admin_settings_panel_start('主导航', '对应 Header 横向导航；这里只保留一个主导航折叠管理器。'); ?>
@@ -2569,6 +2569,16 @@ function boblift_render_social_media_page_fields(array $social, string $base): v
             <?php boblift_admin_textarea('hero.text', $social, '旧版首屏说明（仍显示在首屏下方，清空即可移除）', $base); ?>
         <?php else : ?>
             <input type="hidden" name="<?php echo esc_attr(boblift_admin_option_name('hero.text', $base)); ?>" value="">
+        <?php endif; ?>
+        <?php $legacy_panel = boblift_social_media_legacy_panel($social); ?>
+        <?php if ($legacy_panel !== []) : ?>
+            <?php boblift_admin_input('panel.title', $social, '旧版卖点卡片标题（仍显示在首屏下方，标题和卖点都清空即可移除）', $base); ?>
+            <?php for ($i = 0; $i < max(4, count($legacy_panel['items']) + 1); $i++) : ?>
+                <?php boblift_admin_input("panel.items.$i.text", $social, '旧版卖点 ' . (string) ($i + 1), $base); ?>
+            <?php endfor; ?>
+        <?php else : ?>
+            <?php // Only untouched copies of the old defaults are stored here: drop them on save. ?>
+            <input type="hidden" name="<?php echo esc_attr(boblift_admin_option_name('panel', $base)); ?>" value="">
         <?php endif; ?>
     <?php boblift_admin_settings_panel_end(); ?>
 

@@ -17,6 +17,14 @@ foreach ($legacy_cta_map as $legacy_key => $new_key) {
         $article_ui[$new_key] = $legacy_value;
     }
 }
+// A customised old source credit (newsDetail.sourceValue, e.g. an external publisher) replaces the default author card
+// until the new author fields are edited, so the article is not presented as written in-house.
+$legacy_source = trim((string) ($legacy_cta_ui['sourceValue'] ?? ''));
+$author_untouched = static fn(string $key): bool => (string) ($article_ui[$key] ?? '') === (string) ($article_ui_defaults[$key] ?? ($article_ui[$key] ?? ''));
+if ($legacy_source !== '' && $legacy_source !== 'BOB-LIFT' && $author_untouched('authorName') && $author_untouched('authorText')) {
+    $article_ui['authorName'] = $legacy_source;
+    $article_ui['authorText'] = '';
+}
 $legacy_cta_label = trim((string) ($legacy_cta_ui['ctaLabel'] ?? ''));
 $legacy_cta_label = $legacy_cta_label !== $legacy_cta_defaults['ctaLabel'] ? $legacy_cta_label : '';
 $post_id = get_the_ID();

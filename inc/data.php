@@ -165,6 +165,28 @@ function boblift_social_media_page_options(): array
     return boblift_array_replace_recursive($defaults, $value);
 }
 
+// The old social page had a "panel" card (title + selling points) that the redesign dropped. Content an editor customised
+// there stays visible (and editable) until it is cleared; untouched copies of the old defaults are ignored.
+function boblift_social_media_legacy_panel(array $social): array
+{
+    $panel = is_array($social['panel'] ?? null) ? $social['panel'] : [];
+    $title = trim((string) ($panel['title'] ?? ''));
+    $items = [];
+    foreach (is_array($panel['items'] ?? null) ? $panel['items'] : [] as $row) {
+        $text = is_array($row) ? trim((string) ($row['text'] ?? '')) : '';
+        if ($text !== '') {
+            $items[] = $text;
+        }
+    }
+    $default_items = ['Real updates', 'Factory insights', 'Project communication', 'Global support'];
+    $title_custom = $title !== '' && $title !== 'Official Channels';
+    $items_custom = $items !== [] && $items !== $default_items;
+    if (!$title_custom && !$items_custom) {
+        return [];
+    }
+    return ['title' => $title, 'items' => $items];
+}
+
 function boblift_news_category_defaults(): array
 {
     return [
@@ -957,7 +979,7 @@ function boblift_product_menu_families(): array
     // Built once per request and language: the header and the footer both need it.
     static $cache = [];
     $language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
-    return $cache[$language] ??= (boblift_curated_product_menu_families() ?: boblift_cached_product_menu_families($language));
+    return $cache[$language] ??= (boblift_curated_product_menu_families() ?? boblift_cached_product_menu_families($language));
 }
 
 /**
@@ -999,9 +1021,11 @@ add_action('updated_option', static function (string $option): void {
 
 /**
  * Product menu groups an administrator curated in the saved "product_nav_groups" (anything different from the built-in
- * default) keep driving the menu; untouched sites get the menu generated from the category tree.
+ * default) keep driving the menu; untouched sites get the menu generated from the category tree (null). A saved empty list
+ * means the administrator deleted every group: that is honoured as an empty menu, and only the explicit reset action in the
+ * settings (which saves the built-in default again) brings the generated menu back.
  */
-function boblift_curated_product_menu_families(): array
+function boblift_curated_product_menu_families(): ?array
 {
     $options = boblift_options();
     $saved = $options['product_nav_groups'] ?? null;
@@ -1066,8 +1090,14 @@ function boblift_curated_product_menu_families(): array
         }
         return (string) wp_json_encode($rows);
     };
-    if (!is_array($saved) || $saved === [] || $signature($saved, true) === $signature($default, false)) {
+    if (!is_array($saved)) {
+        return null;
+    }
+    if ($saved === []) {
         return [];
+    }
+    if ($signature($saved, true) === $signature($default, false)) {
+        return null;
     }
     $families = [];
     foreach ($saved as $group) {

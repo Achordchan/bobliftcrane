@@ -158,6 +158,23 @@ if (($legacy_hero_title !== '' && $legacy_hero_title !== $shown_title) || ($lega
 </section>
 <?php endif; ?>
 
+<?php
+$legacy_panel = function_exists('boblift_social_media_legacy_panel') ? boblift_social_media_legacy_panel($social_page) : [];
+if ($legacy_panel !== []) : ?>
+<section class="page-shell pt-10 md:pt-12">
+    <div class="mx-auto max-w-3xl border border-line bg-white p-6 text-center md:p-8">
+        <?php if ($legacy_panel['title'] !== '') : ?><h2 class="text-xl font-black leading-tight text-ink"><?php echo esc_html($t($legacy_panel['title'])); ?></h2><?php endif; ?>
+        <?php if ($legacy_panel['items'] !== []) : ?>
+            <ul class="mt-4 flex flex-wrap justify-center gap-2">
+                <?php foreach ($legacy_panel['items'] as $item) : ?>
+                    <li class="rounded-full bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700"><?php echo esc_html($t($item)); ?></li>
+                <?php endforeach; ?>
+            </ul>
+        <?php endif; ?>
+    </div>
+</section>
+<?php endif; ?>
+
 <?php if ($platform_groups !== []) : ?>
 <section id="official-channels" class="py-12 md:py-16" aria-labelledby="social-accounts-title">
     <div class="page-shell">
