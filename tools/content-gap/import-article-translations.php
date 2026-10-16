@@ -40,9 +40,10 @@ function bl_english_url(string $path): string {
 
 /** Adds a link's own query string and fragment to a resolved URL. */
 function bl_with_tail(string $url, string $query, string $fragment): string {
+    // The source query string is appended as written, so nested parameters such as filter[]=x survive unchanged.
+    $query = ltrim($query, '?');
     if ($query !== '') {
-        parse_str(ltrim($query, '?'), $args);
-        $url = add_query_arg(array_map('rawurlencode', $args), $url);
+        $url .= (str_contains($url, '?') ? '&' : '?') . $query;
     }
     return $url . $fragment;
 }
