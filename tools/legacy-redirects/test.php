@@ -18,7 +18,7 @@ $cases = [
     ['www.bobliftcrane.com', '/about.html', null],
     ['www.bobliftcrane.com', '/', null],
     ['www.bobliftcrane.com', '/marine-crane-buying-guide', 'https://www.bobliftcrane.com/marine-crane-buying-guide.html'], // article imported by tools/content-gap
-    ['www.bobliftcrane.com', '/5-ton-crane', 'https://www.bobliftcrane.com/products.html?capacity=4-5-tons'], // tonnage filter (#7)
+    ['www.bobliftcrane.com', '/5-ton-crane', 'https://www.bobliftcrane.com/products.html?capacity=4-5'], // tonnage filter (#7)
     ['www.bobliftcrane.com', '/Company-News.html', null],
     ['fr.bobliftcrane.com', '/', 'https://www.bobliftcrane.com/'],
     ['fr.bobliftcrane.com', '/Grue-camion-id46288356.html', 'https://www.bobliftcrane.com/news.html'],
@@ -97,7 +97,7 @@ if (!boblift_legacy_redirects_has_custom() || boblift_legacy_redirects_config()[
 $find = static function (array $rules, string $from): ?array { foreach ($rules as $r) { if (boblift_legacy_redirect_normalize_path($r['from']) === $from) { return $r; } } return null; };
 $GLOBALS['saved_option'] = ['format' => 2, 'overrides' => [['from' => '/message.html', 'to' => '/custom-contact.html', 'note' => 'x']], 'removed' => ['/contactus.html'], 'replace' => false];
 $rules = boblift_legacy_redirects_config()['rules'];
-if (($find($rules, '/5-ton-crane')['to'] ?? '') !== '/products.html?capacity=4-5-tons') { echo "FAIL shipped rule not followed under saved changes\n"; $fail++; }
+if (($find($rules, '/5-ton-crane')['to'] ?? '') !== '/products.html?capacity=4-5') { echo "FAIL shipped rule not followed under saved changes\n"; $fail++; }
 if (($find($rules, '/message.html')['to'] ?? '') !== '/custom-contact.html') { echo "FAIL saved override not applied\n"; $fail++; }
 if ($find($rules, '/contactus.html') !== null) { echo "FAIL removed rule came back\n"; $fail++; }
 if (count($rules) !== count($config['rules']) - 1) { echo "FAIL rule count under saved changes\n"; $fail++; }
