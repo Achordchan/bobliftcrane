@@ -55,7 +55,9 @@ function boblift_slug_is_reserved(string $slug, string $post_type, int $post_par
 }
 
 add_filter('wp_unique_post_slug', static function (string $slug, int $post_id, string $post_status, string $post_type, int $post_parent, string $original_slug): string {
-    if ($slug === $original_slug || $post_type === 'attachment' || !function_exists('pll_get_post_language') || !function_exists('pll_languages_list')) {
+    // Cases are looked up by their own post-type route, which does not pick the post by language, so each translation keeps a
+    // unique slug (Polylang's -ja/-zh style suffix) instead of sharing the English one.
+    if ($slug === $original_slug || $post_type === 'attachment' || $post_type === 'case' || !function_exists('pll_get_post_language') || !function_exists('pll_languages_list')) {
         return $slug;
     }
     // Languages only have separate addresses in directory, subdomain or domain mode (force_lang 1-3); when the language comes
@@ -111,3 +113,132 @@ add_filter('wp_unique_post_slug', static function (string $slug, int $post_id, s
     }
     return $original_slug;
 }, 10, 6);
+
+function boblift_migrate_shared_case_slugs(): void
+{
+    if (get_option('boblift_case_slug_version') === '1'
+        || !function_exists('pll_get_post_language') || !function_exists('pll_get_post')) {
+        return;
+    }
+    global $wpdb;
+    $cases = $wpdb->get_results("SELECT ID, post_name FROM {$wpdb->posts} WHERE post_type = 'case' AND post_status NOT IN ('trash', 'auto-draft')");
+    if ($cases === null || $wpdb->last_error !== '') {
+        return;
+    }
+    foreach ($cases as $case) {
+        $language = pll_get_post_language((int) $case->ID);
+        if (!$language || $language === 'en' || $case->post_name === '') {
+            continue;
+        }
+        $english_id = (int) pll_get_post((int) $case->ID, 'en');
+        $english = $english_id ? get_post($english_id) : null;
+        if (!$english instanceof WP_Post || $english->post_type !== 'case' || $english->post_name !== $case->post_name) {
+            continue;
+        }
+        $result = wp_update_post([
+            'ID' => (int) $case->ID,
+            'post_name' => $case->post_name . '-' . $language,
+        ], true);
+        if (is_wp_error($result) || !$result) {
+            return;
+        }
+    }
+    flush_rewrite_rules(false);
+    update_option('boblift_case_slug_version', '1', false);
+}
+add_action('admin_init', 'boblift_migrate_shared_case_slugs');
+
+/**
+ * The language the requested address belongs to, in every Polylang URL mode: the directory (/ja/...), the subdomain
+ * (ja.example.com) or a language domain, falling back to the default language there; in content mode only an explicit
+ * ?lang= counts. "" when the address does not say (or without Polylang).
+ */
+function boblift_request_url_language(): string
+{
+    if (!function_exists('pll_languages_list') || !function_exists('pll_default_language')) {
+        return '';
+    }
+    $options = (array) get_option('polylang', []);
+    $languages = array_map('strval', (array) pll_languages_list(['fields' => 'slug']));
+    $host = strtolower((string) parse_url('http://' . ($_SERVER['HTTP_HOST'] ?? ''), PHP_URL_HOST));
+    switch ((int) ($options['force_lang'] ?? 0)) {
+        case 1:
+            $path = '/' . ltrim((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH), '/');
+            $base = function_exists('boblift_language_path_base') ? boblift_language_path_base() : '';
+            foreach ($languages as $slug) {
+                if (preg_match('#^/' . preg_quote($base . $slug, '#') . '(/|$)#', $path)) {
+                    return $slug;
+                }
+            }
+            break;
+        case 2:
+            $label = explode('.', $host)[0] ?? '';
+            if (in_array($label, $languages, true)) {
+                return $label;
+            }
+            break;
+        case 3:
+            foreach ((array) ($options['domains'] ?? []) as $slug => $url) {
+                if ($host !== '' && strtolower((string) parse_url((string) $url, PHP_URL_HOST)) === $host && in_array((string) $slug, $languages, true)) {
+                    return (string) $slug;
+                }
+            }
+            break;
+        default:
+            // Language set from the content: the address says nothing unless it carries ?lang=.
+            $lang = isset($_GET['lang']) ? sanitize_key(wp_unslash((string) $_GET['lang'])) : '';
+            return in_array($lang, $languages, true) ? $lang : '';
+    }
+    return (string) pll_default_language();
+}
+
+/**
+ * Case URLs are language-aware: before boblift_migrate_shared_case_slugs() a translated case shared its English slug, so
+ * an old /ja/<slug>.html (or ja.<host>/<slug>.html) now matches the English case. When the URL's language differs from the language of the
+ * case it resolved to and that case has a published translation in the URL's language, send the visitor there (301).
+ */
+function boblift_redirect_case_to_url_language(): void
+{
+    if (!is_singular('case') || !function_exists('pll_get_post_language') || !function_exists('pll_get_post')) {
+        return;
+    }
+    // Until the slug migration (admin_init) has run, translations still share the English permalink: redirecting would loop.
+    if (get_option('boblift_case_slug_version') !== '1') {
+        return;
+    }
+    $post = get_queried_object();
+    if (!$post instanceof WP_Post) {
+        return;
+    }
+    $url_language = boblift_request_url_language();
+    $post_language = (string) pll_get_post_language($post->ID);
+    if ($url_language === '' || $post_language === '' || $url_language === $post_language) {
+        return;
+    }
+    $translation = (int) pll_get_post($post->ID, $url_language);
+    if ($translation <= 0 || $translation === $post->ID || get_post_status($translation) !== 'publish') {
+        return;
+    }
+    $target = get_permalink($translation);
+    if (!is_string($target) || $target === '') {
+        return;
+    }
+    // Keep campaign parameters, but not WordPress routing ones: /?post_type=case&name=<slug> would resolve the English case
+    // again on the translated address and loop.
+    $query = wp_unslash($_GET);
+    $query = is_array($query) ? $query : [];
+    foreach (['p', 'page_id', 'name', 'pagename', 'post_type', 'case', 'preview', 'preview_id'] as $routing_key) {
+        unset($query[$routing_key]);
+    }
+    // Never redirect to the address that was requested (same host and path), whatever state the slugs are in.
+    $requested_path = (string) wp_parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
+    $requested_host = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
+    $target_host = strtolower((string) wp_parse_url($target, PHP_URL_HOST)) . (wp_parse_url($target, PHP_URL_PORT) ? ':' . wp_parse_url($target, PHP_URL_PORT) : '');
+    if (untrailingslashit($requested_path) === untrailingslashit((string) wp_parse_url($target, PHP_URL_PATH)) && ($target_host === '' || $target_host === $requested_host)) {
+        return;
+    }
+    $query_string = http_build_query($query, '', '&', PHP_QUERY_RFC3986);
+    wp_safe_redirect($target . ($query_string !== '' ? (str_contains($target, '?') ? '&' : '?') . $query_string : ''), 301);
+    exit;
+}
+add_action('template_redirect', 'boblift_redirect_case_to_url_language', 2);

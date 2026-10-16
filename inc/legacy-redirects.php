@@ -16,6 +16,18 @@ if (!defined('ABSPATH')) {
  */
 const BOBLIFT_LEGACY_REDIRECTS_OPTION = 'boblift_legacy_redirects';
 
+// Old "Crane by Ton" page path (/5-ton-crane or /5-ton-crane.html) => tonnage filter bin key, independent of the bin labels
+// shown in the filter. Used by boblift_redirect_old_tonnage_pages() for whatever the redirect rules do not catch.
+function boblift_old_tonnage_bin(string $path): ?string
+{
+    $path = strtolower(trim($path, '/'));
+    if (!preg_match('/^(\d+)-ton-crane(?:\.html)?$/', $path, $m)) {
+        return null;
+    }
+    $bins = [1 => '0-1', 2 => '1-2', 3 => '2-3', 4 => '3-4', 5 => '4-5', 6 => '5-6', 8 => '6-8', 10 => '8-10', 12 => '10-12', 16 => '12-16', 20 => '16-20', 25 => '20-25'];
+    return $bins[(int) $m[1]] ?? null;
+}
+
 function boblift_legacy_redirects_default_config(): array
 {
     $file = get_template_directory() . '/inc/legacy-redirects.json';
