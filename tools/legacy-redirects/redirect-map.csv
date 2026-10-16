@@ -1,0 +1,150 @@
+﻿旧站路径,新站目标,类型,说明
+/about-371153.html,/about.html,mapped,旧站关于我们别名
+/message.html,/contact.html,mapped,旧站留言表单
+/Industry-News.html,/industry-insight.html,mapped,新闻分类改名
+/Products-Truck-Mounted-Cranes.html,/truck-mounted-crane,mapped,分类
+/Products-Marine-Cranes.html,/marine-crane,mapped,分类
+/Products-Pickup-Cranes.html,/pickup-cranes,mapped,分类
+/Products-Forklift-Fly-Jib-Cranes.html,/forklift-fly-jib-cranes,mapped,分类
+/Products-Crane-by-Ton.html,/products.html,mapped,新站无按吨位分类页
+/Products-Mini-Dumpers.html,https://bobliftloader.com/products/mini-dumpers/,mapped,装载站
+/Products-Excavator.html,/products.html,mapped,旧站已 404，挖掘机不在起重机站
+/Products-Excavator-by-Ton.html,/products.html,mapped,旧站已 404
+/Products-Other-Crane.html,/other-cranes,mapped,分类
+/Knuckle-Boom-Truck-Mounted-Cranes.html,/knuckle-boom-truck-mounted-cranes,mapped,分类
+/Telescopic-Boom-Truck-Mounted-Cranes.html,/telescopic-boom-truck-mounted-cranes,mapped,分类
+/Knuckle-Boom-Marine-Cranes.html,/knuckle-boom-marine-cranes,mapped,分类
+/Telescopic-Boom-Marine-Cranes.html,/telescopic-boom-marine-cranes,mapped,分类
+/Medium-Excavator-1.html,/products.html,mapped,旧站已 404
+/Mini-Excavator-1.html,/products.html,mapped,旧站已 404
+/Timber-Crane-1.html,/timber-cranes,mapped,分类
+/contactus.html,/contact.html,mapped,旧站联系页
+/download.html,/products.html,mapped,旧站下载页，新站画册在产品页
+/productcategory.html,/products.html,mapped,旧站全部分类
+/faqlist.html,/contact.html,mapped,旧站 FAQ 列表，旧站自身已跳 message.html
+/authority.html,/about.html,mapped,旧站资质页并入关于我们
+/article-inquire.html,/contact.html,mapped,旧站文章询盘表单
+/keywords.html,/,mapped,SaaS 自动生成的关键词页
+/keyword-index.html,/,mapped,SaaS 自动生成的关键词索引
+/gallery.html,/cases.html,mapped,旧站图库，旧站自身跳产品页；新站对应案例中心
+/video-detail.html,/videos.html,mapped,旧站视频详情
+/knuckle-boom-truck-mounted-crane,/knuckle-boom-truck-mounted-cranes,mapped,分类，旧名单数
+/telescopic-boom-truck-mounted-crane,/telescopic-boom-truck-mounted-cranes,mapped,分类，旧名单数
+/knuckle-boom-marine-crane,/knuckle-boom-marine-cranes,mapped,分类，旧名单数
+/telescopic-boom-marine-crane,/telescopic-boom-marine-cranes,mapped,分类，旧名单数
+/pickup-crane,/pickup-cranes,mapped,分类，旧名单数
+/forklift-fly-jib-crane,/forklift-fly-jib-cranes,mapped,分类，旧名单数
+/mini-dumper,https://bobliftloader.com/products/mini-dumpers/,mapped,装载站
+/crane-by-ton,/products.html,mapped,新站无按吨位分类页
+/1-ton-crane,/products.html?capacity=0-1,mapped,按吨位分类页，跳产品列表的 0-1 吨筛选
+/2-ton-crane,/products.html?capacity=1-2,mapped,按吨位分类页，跳产品列表的 1-2 吨筛选
+/3-ton-crane,/products.html?capacity=2-3,mapped,按吨位分类页，跳产品列表的 2-3 吨筛选
+/4-ton-crane,/products.html?capacity=3-4,mapped,按吨位分类页，跳产品列表的 3-4 吨筛选
+/5-ton-crane,/products.html?capacity=4-5,mapped,按吨位分类页，跳产品列表的 4-5 吨筛选
+/6-ton-crane,/products.html?capacity=5-6,mapped,按吨位分类页，跳产品列表的 5-6 吨筛选
+/8-ton-crane,/products.html?capacity=6-8,mapped,按吨位分类页，跳产品列表的 6-8 吨筛选
+/10-ton-crane,/products.html?capacity=8-10,mapped,按吨位分类页，跳产品列表的 8-10 吨筛选
+/12-ton-crane,/products.html?capacity=10-12,mapped,按吨位分类页，跳产品列表的 10-12 吨筛选
+/16-ton-crane,/products.html?capacity=12-16,mapped,按吨位分类页，跳产品列表的 12-16 吨筛选
+/20-ton-crane,/products.html?capacity=16-20,mapped,按吨位分类页，跳产品列表的 16-20 吨筛选
+/25-ton-crane,/products.html?capacity=20-25,mapped,按吨位分类页，跳产品列表的 20-25 吨筛选
+/other-crane.html,/other-cranes,mapped,分类
+/timber-crane.html,/timber-cranes,mapped,分类
+/aerial-work-platform.html,/aerial-work-platform,mapped,分类
+/Tail-Lift-pl41102097.html,/tail-lift,mapped,分类
+/Spider-Crane-pl41706186.html,/spider-cranes,mapped,分类
+/mini-skid-steer-loader.html,https://bobliftloader.com/products/skid-steer-loaders/,mapped,装载站
+/tracked-mini-mixer-truck-pl03531676.html,https://bobliftloader.com/product/tracked-mini-mixer-truck/,mapped,装载站
+/Truck-Crane-pl08431676.html,/truck-mounted-crane,mapped,分类
+/800-kg-pickup-crane-without-outriggers.html,/pickup-cranes,mapped,新页面导入前兜底到分类，导入后由新页面直接服务
+/5-ton-mini-dumper.html,https://bobliftloader.com/product/5-ton-mini-dumper/,mapped,装载站
+/4-ton-mini-dumper.html,https://bobliftloader.com/product/4-ton-mini-dumper/,mapped,装载站
+/3-ton-mini-dumper.html,https://bobliftloader.com/product/3-ton-mini-dumper/,mapped,装载站
+/2-ton-mini-dumper.html,https://bobliftloader.com/product/2-ton-mini-dumper/,mapped,装载站
+/1-5-ton-mini-dumper.html,https://bobliftloader.com/product/1-5-ton-mini-dumper/,mapped,装载站
+/1-ton-mini-dumper.html,https://bobliftloader.com/product/1-ton-mini-dumper/,mapped,装载站
+/7-ton-forklift-fly-jib-crane.html,/forklift-fly-jib-cranes,mapped,新页面导入前兜底到分类，导入后由新页面直接服务
+/truck-mounted-aerial-work-platform.html,/truck-mounted-aerial-work-platform,mapped,分类
+/Truck-Mounted-35-Meter-Aerial-Work-Platform-pd517525938.html,/truck-mounted-35-meter-aerial-work-platform-pd517525938.html,case-fix,仅大小写不同，新站路径统一小写
+/BL-390-Mini-Skid-Steer-Loader-pd195909538.html,https://bobliftloader.com/product/bl-t390-c-mini-skid-steer-loader/,mapped,装载站，型号 T/S 款待确认
+/490-mini-skid-steer-loader.html,https://bobliftloader.com/product/bl-t490-c-mini-skid-steer-loader/,mapped,装载站，型号 T/S 款待确认
+/BL-750-Mini-Skid-Steer-Loader-pd174998538.html,https://bobliftloader.com/product/bl-t750-h-mini-skid-steer-loader/,mapped,装载站，型号 T/S 款待确认
+/1000-mini-skid-steer-loader.html,https://bobliftloader.com/product/bl-t1000-h-mini-skid-steer-loader/,mapped,装载站，型号 T/S 款待确认
+/tracked-mini-dumper.html,https://bobliftloader.com/product/500kg-tracked-mini-dumper/,mapped,装载站
+/bl-360-mini-skid-steer-loader.html,https://bobliftloader.com/product/bl-t360-h-mini-skid-steer-loader/,mapped,装载站，型号 T/S 款待确认
+/Tracked-Mini-Mixer-Truck-pd153788538.html,https://bobliftloader.com/product/tracked-mini-mixer-truck/,mapped,装载站
+/25-ton-truck-crane.html,/truck-mounted-crane,mapped,旧站单页，新站无同名产品，跳分类
+/Company-News-ic236357.html,/Company-News.html,mapped,新闻分类
+/Industry-News-ic226357.html,/industry-insight.html,mapped,新闻分类改名
+/Working-Principle-and-Application-Scenarios-of-Ship-Cranes-id46701337.html,/working-principle-and-application-scenarios-of-ship-cranes-id46701337.html,case-fix,仅大小写不同，新站路径统一小写
+/Application-Cases-and-Successful-Experience-of-Ship-Cranes-id49901337.html,/application-cases-and-successful-experience-of-ship-cranes-id49901337.html,case-fix,仅大小写不同，新站路径统一小写
+/How-to-Choose-the-Right-Truck-Mounted-Crane-and-Maintain-It-id45131527.html,/how-to-choose-the-right-truck-mounted-crane-and-maintain-it-id45131527.html,case-fix,仅大小写不同，新站路径统一小写
+/The-Uses-of-Cranes-in-the-Marine-Industry-id40187376.html,/the-uses-of-cranes-in-the-marine-industry-id40187376.html,case-fix,仅大小写不同，新站路径统一小写
+/A-Guide-to-Truck-Mounted-Crane-Installation-id40087376.html,/a-guide-to-truck-mounted-crane-installation-id40087376.html,case-fix,仅大小写不同，新站路径统一小写
+/Structure-of-Marine-Cranes-id47987376.html,/structure-of-marine-cranes-id47987376.html,case-fix,仅大小写不同，新站路径统一小写
+/Best-Crane-Safety-Tips-to-Prevent-Accidents-id41777376.html,/best-crane-safety-tips-to-prevent-accidents-id41777376.html,case-fix,仅大小写不同，新站路径统一小写
+/Understanding-Spider-Cranes-Versatile-and-Efficient-Solutions-for-Complex-Lifting-Tasks-id41361456.html,/understanding-spider-cranes-versatile-and-efficient-solutions-for-complex-lifting-tasks-id41361456.html,case-fix,仅大小写不同，新站路径统一小写
+/Explore-the-Versatile-BOBLIFT-800kg-Pickup-Crane-Efficient-Lifting-Anytime-Anywhere-id49431156.html,/explore-the-versatile-boblift-800kg-pickup-crane-efficient-lifting-anytime-anywhere-id49431156.html,case-fix,仅大小写不同，新站路径统一小写
+/Trusted-by-Moldova-BOB-LIFT-Folding-Boom-Cranes-id49018546.html,/trusted-by-moldova-bob-lift-folding-boom-cranes-id49018546.html,case-fix,仅大小写不同，新站路径统一小写
+/Boost-Your-Productivity-with-the-BOBLIFT-2-ton-Dump-Truck-id49742446.html,https://bobliftloader.com/product/2-ton-mini-dumper/,mapped,旧站翻斗车文章，跳装载站同款产品
+/Heavy-Lifting-for-Global-Infrastructure-And-Industrial-Projects-id40628636.html,/heavy-lifting-for-global-infrastructure-and-industrial-projects-id40628636.html,case-fix,仅大小写不同，新站路径统一小写
+/NCCCO-Foundation-And-National-Safety-Council-Develop-Crane-Safety-Tool-id44029726.html,/nccco-foundation-and-national-safety-council-develop-crane-safety-tool-id44029726.html,case-fix,仅大小写不同，新站路径统一小写
+/The-Dublin-World-Crane-And-Transport-Summit-Will-Take-Place-on-18-19-November-id46494326.html,/the-dublin-world-crane-and-transport-summit-will-take-place-on-18-19-november-id46494326.html,case-fix,仅大小写不同，新站路径统一小写
+/BOB-LIFT-Performs-Steadily-in-Extreme-Environments-Pushing-The-Limits-And-Achieving-Extraordinary-Results-id49007126.html,/bob-lift-performs-steadily-in-extreme-environments-pushing-the-limits-and-achieving-extraordinary-results-id49007126.html,case-fix,仅大小写不同，新站路径统一小写
+/BOB-LIFT-Invites-You-To-The-137th-Canton-Fair-id41017926.html,/bob-lift-invites-you-to-the-137th-canton-fair-id41017926.html,case-fix,仅大小写不同，新站路径统一小写
+/Differences-between-Truck-Mounted-Cranes-And-Mobile-Cranes-id43478816.html,/differences-between-truck-mounted-cranes-and-mobile-cranes-id43478816.html,case-fix,仅大小写不同，新站路径统一小写
+/Lifting-Capacity-of-Knuckle-Boom-Cranes-id41303816.html,/lifting-capacity-of-knuckle-boom-cranes-id41303816.html,case-fix,仅大小写不同，新站路径统一小写
+/Top-6-Advantages-of-Truck-Mounted-Cranes-for-Transport-id45181716.html,/top-6-advantages-of-truck-mounted-cranes-for-transport-id45181716.html,case-fix,仅大小写不同，新站路径统一小写
+/Types-of-Cranes-Used-on-A-Ship-id41221616.html,/types-of-cranes-used-on-a-ship-id41221616.html,case-fix,仅大小写不同，新站路径统一小写
+/Blockbuster-New-Product-8-ton-Orange-Knuckle-Boom-Crane-The-Perfect-Combination-of-Strength-And-Aesthetics-id41994416.html,/blockbuster-new-product-8-ton-orange-knuckle-boom-crane-the-perfect-combination-of-strength-and-aesthetics-id41994416.html,case-fix,仅大小写不同，新站路径统一小写
+/A-Comprehensive-Analysis-of-6-Major-Types-Helping-You-Choose-The-Right-Device-To-Save-Both-Time-And-Money-id44259316.html,/a-comprehensive-analysis-of-6-major-types-helping-you-choose-the-right-device-to-save-both-time-and-money-id44259316.html,case-fix,仅大小写不同，新站路径统一小写
+/BOB-LIFT-Truck-mounted-Cranes-Dispatched-in-Batches-Chasing-for-The-Trust-of-Our-Customers-id47108475.html,/bob-lift-truck-mounted-cranes-dispatched-in-batches-chasing-for-the-trust-of-our-customers-id47108475.html,case-fix,仅大小写不同，新站路径统一小写
+/The-BOB-LIFT-10-ton-Knuckle-Boom-Crane-Has-Received-Praise-From-Mexican-Customers-id44521375.html,/the-bob-lift-10-ton-knuckle-boom-crane-has-received-praise-from-mexican-customers-id44521375.html,case-fix,仅大小写不同，新站路径统一小写
+/The-Meticulous-Craftsmanship-of-BOB-LIFT-Supports-Every-Entrustment-id45058175.html,/the-meticulous-craftsmanship-of-bob-lift-supports-every-entrustment-id45058175.html,case-fix,仅大小写不同，新站路径统一小写
+/BOB-LIFT-Truck-mounted-Cranes-Support-Infrastructure-Construction-in-The-United-Arab-Emirates-id44956075.html,/bob-lift-truck-mounted-cranes-support-infrastructure-construction-in-the-united-arab-emirates-id44956075.html,case-fix,仅大小写不同，新站路径统一小写
+/The-Triple-Safety-Barriers-of-The-BOB-LIFT-Crane-id40278975.html,/the-triple-safety-barriers-of-the-bob-lift-crane-id40278975.html,case-fix,仅大小写不同，新站路径统一小写
+/BOB-LIFT-Truck-mounted-Cranes-Are-about-To-Be-Shipped-Overseas-in-Large-Quantities-id49408865.html,/bob-lift-truck-mounted-cranes-are-about-to-be-shipped-overseas-in-large-quantities-id49408865.html,case-fix,仅大小写不同，新站路径统一小写
+/BOB-LIFT-Welcomes-Russian-Customers-To-Visit-The-Factory-And-Receives-Overwhelming-Praise-From-Them-id41604765.html,/bob-lift-welcomes-russian-customers-to-visit-the-factory-and-receives-overwhelming-praise-from-them-id41604765.html,case-fix,仅大小写不同，新站路径统一小写
+/BOB-LIFT-8-ton-Knuckle-Truck-mounted-Crane-A-Value-Revolution-in-Lifting-Equipment-id40892665.html,/bob-lift-8-ton-knuckle-truck-mounted-crane-a-value-revolution-in-lifting-equipment-id40892665.html,case-fix,仅大小写不同，新站路径统一小写
+/BOB-LIFT-10-ton-Knuckle-Boom-Truck-Crane-id43781565.html,/bob-lift-10-ton-knuckle-boom-truck-crane-id43781565.html,case-fix,仅大小写不同，新站路径统一小写
+/Three-tier-Premium-Benefits-And-Five-Core-Guarantees-id48993465.html,/three-tier-premium-benefits-and-five-core-guarantees-id48993465.html,case-fix,仅大小写不同，新站路径统一小写
+/Good-Luck-Starting-in-2026-BOB-LIFT-Helps-You-lift-To-New-Heights-in-The-New-Year-id08112365.html,/good-luck-starting-in-2026-bob-lift-helps-you-lift-to-new-heights-in-the-new-year-id08112365.html,case-fix,仅大小写不同，新站路径统一小写
+/The-Technological-Transformation-Trends-of-The-Truck-mounted-Crane-Industry-in-2026-id04947265.html,/the-technological-transformation-trends-of-the-truck-mounted-crane-industry-in-2026-id04947265.html,case-fix,仅大小写不同，新站路径统一小写
+/20-Units-Delivered-in-A-Batch-Setting-A-New-Standard-for-Efficient-Operations-id07709265.html,/20-units-delivered-in-a-batch-setting-a-new-standard-for-efficient-operations-id07709265.html,case-fix,仅大小写不同，新站路径统一小写
+/BOB-LIFT-Professional-Lifting-Solution-for-Ship-Operations-id03940165.html,/bob-lift-professional-lifting-solution-for-ship-operations-id03940165.html,case-fix,仅大小写不同，新站路径统一小写
+/Five-Steps-To-Select-A-fitting-Tailboard-for-Your-Truck-id03721065.html,/five-steps-to-select-a-fitting-tailboard-for-your-truck-id03721065.html,case-fix,仅大小写不同，新站路径统一小写
+/The-Advanced-Path-of-BOB-LIFT-s-Global-Strategy-id02590965.html,/the-advanced-path-of-bob-lift-s-global-strategy-id02590965.html,case-fix,仅大小写不同，新站路径统一小写
+/The-BOB-LIFT-5-ton-Telescopic-Crane-Has-Been-Recognized-by-The-Customers-in-Botswana-id42651855.html,/the-bob-lift-5-ton-telescopic-crane-has-been-recognized-by-the-customers-in-botswana-id42651855.html,case-fix,仅大小写不同，新站路径统一小写
+/What-Are-The-Differences-between-Knuckle-Boom-And-Telescopic-Boom-Truck-Cranes-id09913755.html,/what-are-the-differences-between-knuckle-boom-and-telescopic-boom-truck-cranes-id09913755.html,case-fix,仅大小写不同，新站路径统一小写
+/Strength-Speaks-Louder-Than-Words-Why-BOB-LIFT-Is-Highly-Favored-at-The-Canton-Fair-id06952655.html,/strength-speaks-louder-than-words-why-bob-lift-is-highly-favored-at-the-canton-fair-id06952655.html,case-fix,仅大小写不同，新站路径统一小写
+/BOB-LIFT-Offers-Efficient-And-Reliable-Solutions-for-Ship-Lifting-Operations-id02577455.html,/bob-lift-offers-efficient-and-reliable-solutions-for-ship-lifting-operations-id02577455.html,case-fix,仅大小写不同，新站路径统一小写
+/Artistry-Creates-Quality-Hard-Work-Earns-Trust-id06477355.html,/artistry-creates-quality-hard-work-earns-trust-id06477355.html,case-fix,仅大小写不同，新站路径统一小写
+/Enter-The-BOB-LIFT-Factory-With-Professional-Manufacturing-We-Create-More-Reliable-Lifting-Equipment-id09841355.html,/enter-the-bob-lift-factory-with-professional-manufacturing-we-create-more-reliable-lifting-equipment-id09841355.html,case-fix,仅大小写不同，新站路径统一小写
+/BOB-LIFT-Three-Models-of-Truck-mounted-Cranes-Are-Currently-on-Promotion-id06681255.html,/bob-lift-three-models-of-truck-mounted-cranes-are-currently-on-promotion-id06681255.html,case-fix,仅大小写不同，新站路径统一小写
+/BOB-LIFT-SQ10ZA5-Limited-Time-Discount-Hot-Selling-id03356155.html,/bob-lift-sq10za5-limited-time-discount-hot-selling-id03356155.html,case-fix,仅大小写不同，新站路径统一小写
+/Balancing-Efficiency-And-Practicality-The-SQ10SA5-Is-Currently-on-Sale-at-A-Discount-id08025155.html,/balancing-efficiency-and-practicality-the-sq10sa5-is-currently-on-sale-at-a-discount-id08025155.html,case-fix,仅大小写不同，新站路径统一小写
+/BOB-LIFT-14-meter-High-altitude-Work-Vehicle-Steadily-Arrives-Calmly-Operates-id09491155.html,/bob-lift-14-meter-high-altitude-work-vehicle-steadily-arrives-calmly-operates-id09491155.html,case-fix,仅大小写不同，新站路径统一小写
+/BOB-LIFT-Engages-in-Face-to-face-Communication-And-Cooperation-with-Customers-for-The-Future-id04130055.html,/bob-lift-engages-in-face-to-face-communication-and-cooperation-with-customers-for-the-future-id04130055.html,case-fix,仅大小写不同，新站路径统一小写
+/Overload-Lifting-Solution-Facilitating-Efficient-Engineering-Operations-id09867845.html,/overload-lifting-solution-facilitating-efficient-engineering-operations-id09867845.html,case-fix,仅大小写不同，新站路径统一小写
+/how-to-choose-tracked-mini-skid-steer-loader,https://bobliftloader.com/news/tracked-vs-wheeled-mini-skid-steer/,mapped,文章只发在旧站；跳装载站最接近的文章
+/forklift-jib-crane-guide,/forklift-jib-crane-guide.html,mapped,文章由 tools/content-gap 导入（PR #4）
+/marine-crane-buying-guide,/marine-crane-buying-guide.html,mapped,文章由 tools/content-gap 导入（PR #4）
+/mini-loaders-dumpers-new-website,https://bobliftloader.com/news/boblift-websites-explained/,mapped,迁站通知文章；跳装载站对应说明文章
+/products/mini-dumper.html,https://bobliftloader.com/products/mini-dumpers/,mapped,装载站
+/products/Forklift-Fly-Jib-Crane.html,/forklift-fly-jib-cranes,mapped,SaaS 关键词页
+/products/Telescopic-Boom-Crane.html,/telescopic-boom-truck-mounted-cranes,mapped,SaaS 关键词页
+/products/Truck-Mounted-Crane.html,/truck-mounted-crane,mapped,SaaS 关键词页
+/products/Heavy-duty-Crane.html,/products.html,mapped,SaaS 关键词页
+/products/Hydraulic-Crane.html,/products.html,mapped,SaaS 关键词页
+/products/Industrial-Crane.html,/products.html,mapped,SaaS 关键词页
+/products/Lifting-Equipment.html,/products.html,mapped,SaaS 关键词页
+/products/Boom-Truck-Crane.html,/knuckle-boom-truck-mounted-cranes,mapped,SaaS 关键词页
+/products/Compact-excavator.html,/products.html,mapped,SaaS 关键词页，挖掘机不在起重机站
+/products/Lightweight-construction-equipment.html,/products.html,mapped,SaaS 关键词页
+/products/Small-Scale-Excavator.html,/products.html,mapped,SaaS 关键词页
+/products/Efficient-Earthmover.html,/products.html,mapped,SaaS 关键词页
+/products/Aerial-Work-Platform.html,/aerial-work-platform,mapped,SaaS 关键词页
+/products/Mini-Skid-Steer-Loader.html,https://bobliftloader.com/products/skid-steer-loaders/,mapped,装载站
+/news/Truck-Mounted-Crane.html,/news.html,mapped,SaaS 新闻关键词页
+/news/Marine-crane.html,/news.html,mapped,SaaS 新闻关键词页
+/news/crane.html,/news.html,mapped,SaaS 新闻关键词页

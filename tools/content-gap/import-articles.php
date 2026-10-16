@@ -31,6 +31,11 @@ $lower_post_links = ['Structure-of-Marine-Cranes-id47987376', 'Types-of-Cranes-U
  * URL of an upload from the uploads API, so custom upload locations and multisite work. It is site-relative when the uploads
  * live on the site's own host, and stays absolute when they are served from another host or CDN.
  */
+/** Absolute URL of an upload, for the schema (no site path to duplicate). */
+function bl_upload_url(int $id): string {
+    return trailingslashit(wp_get_upload_dir()['baseurl']) . get_post_meta($id, '_wp_attached_file', true);
+}
+
 function bl_upload_path(int $id): string {
     $url = trailingslashit(wp_get_upload_dir()['baseurl']) . get_post_meta($id, '_wp_attached_file', true);
     return strcasecmp((string) wp_parse_url($url, PHP_URL_HOST), (string) wp_parse_url(home_url(), PHP_URL_HOST)) === 0 ? wp_make_link_relative($url) : $url;
@@ -133,7 +138,8 @@ foreach ($articles as $a) {
     $html = file_get_contents($root . $a['file'] . '.html');
     // images: collect alt by src, upload, swap
     $post_id = 0;
-    $existing = get_posts(['post_type' => 'post', 'name' => $a['slug'], 'post_status' => 'any', 'posts_per_page' => 1, 'lang' => '']);
+    // With Polylang only the English article counts as "existing"; a translation sharing the slug is never touched.
+    $existing = get_posts(['post_type' => 'post', 'name' => $a['slug'], 'post_status' => 'any', 'posts_per_page' => 1, 'lang' => function_exists('pll_default_language') ? 'en' : '']);
     if ($existing) { $post_id = $existing[0]->ID; }
     $resuming = $existing && $existing[0]->post_status === 'draft' && get_post_meta($existing[0]->ID, '_content_gap_staging', true) === '1';
     if ($existing && !$overwrite && !$resuming) {
@@ -152,6 +158,8 @@ foreach ($articles as $a) {
     }, $html);
     foreach ($link_map as $from => $to) { $html = str_replace('href="' . $from . '"', 'href="' . $to . '"', $html); }
     foreach ($lower_post_links as $l) { $html = str_replace('href="/' . $l . '.html"', 'href="/' . strtolower($l) . '.html"', $html); }
+    // Root-relative internal links are resolved against the site's own URL, so a site under a path keeps its prefix.
+    $html = preg_replace_callback('#href="(/(?!/)[^"]*)"#', static fn(array $m): string => 'href="' . esc_url(home_url($m[1])) . '"', $html);
     $postarr = [
         // New articles are staged as drafts and published after their images and meta are complete (an interrupted run resumes).
         'post_type' => 'post', 'post_status' => ($existing ? $existing[0]->post_status : 'draft'), 'post_title' => $a['title'], 'post_name' => $a['slug'],
@@ -163,6 +171,8 @@ foreach ($articles as $a) {
     if (is_wp_error($post_id)) { throw new Exception($post_id->get_error_message()); }
     // Only a new post, or one already staged by this importer, is marked for automatic publication; an editorial draft stays a draft.
     if (get_post_status($post_id) === 'draft' && (!$existing || $resuming)) { update_post_meta($post_id, '_content_gap_staging', '1'); }
+    // English is assigned before any media work, so an interrupted run's draft is found again by the English-only lookup.
+    if (function_exists('pll_set_post_language')) { pll_set_post_language($post_id, 'en'); }
     wp_set_post_tags($post_id, $a['tags']);
     [$cover_id] = bl_sideload($img_root . $a['imgdir'] . '/' . $a['cover'], $a['cover_alt'], $post_id);
     set_post_thumbnail($post_id, $cover_id);
@@ -174,11 +184,19 @@ foreach ($articles as $a) {
     $schema = str_replace('https://www.bobliftcrane.com', '{{home}}', $schema);
     $schema = str_replace('{{home}}/marine-crane-buying-guide"', '{{home}}/marine-crane-buying-guide.html"', $schema);
     $schema = str_replace('{{home}}/marine-crane-buying-guide#', '{{home}}/marine-crane-buying-guide.html#', $schema);
-    $schema = str_replace('"image": "bob-lift-16-ton-telescopic-marine-crane-on-vessel.jpg"', '"image": "' . (str_starts_with(bl_upload_path($cover_id), 'http') ? '' : '{{home}}') . bl_upload_path($cover_id) . '"', $schema);
+    $schema = str_replace('"image": "bob-lift-16-ton-telescopic-marine-crane-on-vessel.jpg"', '"image": "' . bl_upload_url($cover_id) . '"', $schema);
     $schema = str_replace('"item": "{{home}}/Industry-News.html"', '"item": "{{home}}/news.html"', $schema);
-    $schema = str_replace('{{home}}/wp-content/uploads/2026/09/4-ton-forklift-fly-jib-crane-301a3ed016-900x700.jpg', (str_starts_with(bl_upload_path($cover_id), 'http') ? '' : '{{home}}') . bl_upload_path($cover_id), $schema);
+    $schema = str_replace('{{home}}/wp-content/uploads/2026/09/4-ton-forklift-fly-jib-crane-301a3ed016-900x700.jpg', bl_upload_url($cover_id), $schema);
     update_post_meta($post_id, '_article_schema_jsonld', wp_slash($schema));
-    if (get_post_status($post_id) === 'draft' && get_post_meta($post_id, '_content_gap_staging', true) === '1') { wp_update_post(['ID' => $post_id, 'post_status' => 'publish']); delete_post_meta($post_id, '_content_gap_staging'); }
+    if (get_post_status($post_id) === 'draft' && get_post_meta($post_id, '_content_gap_staging', true) === '1') {
+        $published = wp_update_post(['ID' => $post_id, 'post_status' => 'publish'], true);
+        // The staging marker is removed only once the post really is published; otherwise a rerun retries the publication.
+        if (is_wp_error($published) || !$published || get_post_status($post_id) !== 'publish') {
+            fwrite(STDERR, "Could not publish {$a['slug']}; it stays staged and a rerun will retry.\n");
+            continue;
+        }
+        delete_post_meta($post_id, '_content_gap_staging');
+    }
     if (function_exists('pll_set_post_language')) { pll_set_post_language($post_id, 'en'); }
     $report[] = $post_id . ' ' . get_permalink($post_id);
 }

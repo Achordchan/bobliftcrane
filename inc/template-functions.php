@@ -76,6 +76,18 @@ function boblift_image_setting_url(mixed $image, string $fallback = ''): string
     return $path !== '' ? boblift_image_src($path) : '';
 }
 
+function boblift_text_direction(): string
+{
+    if (function_exists('pll_current_language')) {
+        $language = pll_current_language('OBJECT');
+        if (is_object($language) && isset($language->is_rtl)) {
+            return $language->is_rtl ? 'rtl' : 'ltr';
+        }
+    }
+
+    return is_rtl() ? 'rtl' : 'ltr';
+}
+
 function boblift_language_options(): array
 {
     if (!function_exists('pll_the_languages')) {
@@ -122,6 +134,8 @@ function boblift_language_flag_src(string $flag, string $code): string
         'es' => 'flags/es.svg',
         'zh' => 'flags/cn.svg',
         'ru' => 'flags/ru.svg',
+        'fr' => 'flags/fr.svg',
+        'ar' => 'flags/sa.svg',
         'en' => 'flags/us.svg',
     ];
 
@@ -1108,7 +1122,7 @@ function boblift_page_hero(array|string $hero, string $title = '', string $descr
     ?>
     <section class="boblift-page-hero relative overflow-hidden rounded border border-line bg-white shadow-card <?php echo esc_attr((string) ($hero['class'] ?? '')); ?>" <?php echo (string) ($hero['attrs'] ?? ''); ?>>
         <?php if ($has_image) : ?>
-            <div class="boblift-page-hero-media relative aspect-[11/5] w-full overflow-hidden bg-mist sm:aspect-[3/1] lg:absolute lg:inset-y-0 lg:right-0 lg:aspect-auto lg:w-[72%] lg:bg-white xl:w-[66%] 2xl:w-[62%] min-[1920px]:w-[56%]">
+            <div class="boblift-page-hero-media relative aspect-[11/5] w-full overflow-hidden bg-mist sm:aspect-[3/1] lg:absolute lg:inset-y-0 lg:end-0 lg:aspect-auto lg:w-[72%] lg:bg-white xl:w-[66%] 2xl:w-[62%] min-[1920px]:w-[56%]">
                 <img class="absolute inset-0 h-full w-full object-cover" style="object-position: <?php echo esc_attr((string) ($hero['image_position'] ?? 'right 30%')); ?>" src="<?php echo esc_url(boblift_page_hero_image($image)); ?>" alt="<?php echo esc_attr((string) ($hero['image_alt'] ?? '')); ?>" loading="eager" decoding="async" fetchpriority="high" data-banner-image>
             </div>
         <?php endif; ?>
@@ -1170,7 +1184,7 @@ function boblift_product_status_badge(string $status, string $class = ''): strin
         'pre-order' => ['icon' => 'clock-3', 'wrapper' => 'text-orange-700', 'icon_class' => 'text-orange-600'],
         default => ['icon' => 'wrench', 'wrapper' => 'text-indigo-700', 'icon_class' => 'text-indigo-600'],
     };
-    return '<span class="inline-flex items-center gap-2 rounded-sm bg-white/92 py-2 pl-3 pr-5 text-sm font-black leading-none shadow-card ring-1 ring-[#E5E7EB] backdrop-blur ' . esc_attr($config['wrapper'] . ' ' . $class) . '" data-status-badge="' . esc_attr($normalized) . '">' . boblift_icon($config['icon'], 'h-5 w-5 ' . $config['icon_class']) . esc_html(boblift_product_status_label($normalized)) . '</span>';
+    return '<span class="inline-flex items-center gap-2 rounded-sm bg-white/92 py-2 ps-3 pe-5 text-sm font-black leading-none shadow-card ring-1 ring-[#E5E7EB] backdrop-blur ' . esc_attr($config['wrapper'] . ' ' . $class) . '" data-status-badge="' . esc_attr($normalized) . '">' . boblift_icon($config['icon'], 'h-5 w-5 ' . $config['icon_class']) . esc_html(boblift_product_status_label($normalized)) . '</span>';
 }
 
 function boblift_boom_label(string $boom): string

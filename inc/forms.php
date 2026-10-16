@@ -126,23 +126,23 @@ function boblift_render_inquiry_form(string $product = '', array $args = []): vo
                 <span class="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html($ui['fields']['product']); ?></span>
                 <input type="hidden" name="product" data-quote-field="product" value="<?php echo esc_attr($selected_product); ?>" data-inquiry-select-input data-placeholder="<?php echo esc_attr($ui['fields']['productNotDecided']); ?>">
                 <span class="relative block">
-                    <button class="flex h-12 w-full items-center justify-between gap-3 rounded-sm border border-line bg-[#f8fbff] px-4 text-left text-sm font-bold text-ink outline-none transition hover:border-blue-200 focus:border-blue-300 focus:ring-4 focus:ring-blue-100" type="button" data-inquiry-select-toggle aria-expanded="false">
+                    <button class="flex h-12 w-full items-center justify-between gap-3 rounded-sm border border-line bg-[#f8fbff] px-4 text-start text-sm font-bold text-ink outline-none transition hover:border-blue-200 focus:border-blue-300 focus:ring-4 focus:ring-blue-100" type="button" data-inquiry-select-toggle aria-expanded="false">
                         <span class="min-w-0 truncate" data-inquiry-select-label><?php echo esc_html($ui['fields']['productNotDecided']); ?></span>
                         <?php echo boblift_icon('chevron-down', 'h-4 w-4 shrink-0 text-slate-400'); ?>
                     </button>
-                    <span class="absolute left-0 right-0 top-full z-50 mt-2 hidden max-h-72 overflow-y-auto rounded border border-blue-100 bg-white p-2 shadow-raised" data-inquiry-select-menu>
-                        <button class="flex w-full items-center justify-between gap-3 rounded px-3 py-2.5 text-left text-sm font-bold text-slate-500 transition hover:bg-blue-50 hover:text-blue-700" type="button" data-inquiry-select-option data-value="" data-product-slug="">
+                    <span class="absolute start-0 end-0 top-full z-50 mt-2 hidden max-h-72 overflow-y-auto rounded border border-blue-100 bg-white p-2 shadow-raised" data-inquiry-select-menu>
+                        <button class="flex w-full items-center justify-between gap-3 rounded px-3 py-2.5 text-start text-sm font-bold text-slate-500 transition hover:bg-blue-50 hover:text-blue-700" type="button" data-inquiry-select-option data-value="" data-product-slug="">
                             <span class="min-w-0 truncate" data-inquiry-select-option-label><?php echo esc_html($ui['fields']['productNotDecided']); ?></span>
                             <span class="hidden text-blue-600" data-inquiry-select-check aria-hidden="true"><?php echo boblift_icon('check', 'h-4 w-4'); ?></span>
                         </button>
                         <?php if (!$has_selected_option) : ?>
-                            <button class="flex w-full items-center justify-between gap-3 rounded px-3 py-2.5 text-left text-sm font-bold text-slate-700 transition hover:bg-blue-50 hover:text-blue-700" type="button" data-inquiry-select-option data-value="<?php echo esc_attr($selected_product); ?>" data-product-slug="">
+                            <button class="flex w-full items-center justify-between gap-3 rounded px-3 py-2.5 text-start text-sm font-bold text-slate-700 transition hover:bg-blue-50 hover:text-blue-700" type="button" data-inquiry-select-option data-value="<?php echo esc_attr($selected_product); ?>" data-product-slug="">
                                 <span class="min-w-0 truncate" data-inquiry-select-option-label><?php echo esc_html($selected_product); ?></span>
                                 <span class="hidden text-blue-600" data-inquiry-select-check aria-hidden="true"><?php echo boblift_icon('check', 'h-4 w-4'); ?></span>
                             </button>
                         <?php endif; ?>
                         <?php foreach ($product_options as $option) : ?>
-                            <button class="flex w-full items-center justify-between gap-3 rounded px-3 py-2.5 text-left text-sm font-bold text-slate-700 transition hover:bg-blue-50 hover:text-blue-700" type="button" data-inquiry-select-option data-value="<?php echo esc_attr($option['value']); ?>" data-product-slug="<?php echo esc_attr($option['slug'] ?? ''); ?>">
+                            <button class="flex w-full items-center justify-between gap-3 rounded px-3 py-2.5 text-start text-sm font-bold text-slate-700 transition hover:bg-blue-50 hover:text-blue-700" type="button" data-inquiry-select-option data-value="<?php echo esc_attr($option['value']); ?>" data-product-slug="<?php echo esc_attr($option['slug'] ?? ''); ?>">
                                 <span class="min-w-0 truncate" data-inquiry-select-option-label><?php echo esc_html($option['label']); ?></span>
                                 <span class="hidden text-blue-600" data-inquiry-select-check aria-hidden="true"><?php echo boblift_icon('check', 'h-4 w-4'); ?></span>
                             </button>
@@ -230,7 +230,7 @@ function boblift_render_catalog_modal(): void
                 </div>
                 <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <p class="text-xs font-semibold leading-5 text-slate-500"><?php echo esc_html($catalog_ui['privacyText'] ?? 'We only use your email to send the requested catalog and follow up professionally.'); ?></p>
-                    <button class="h-12 shrink-0 rounded-sm bg-navy px-7 text-sm font-black text-white shadow-card transition hover:-translate-y-0.5 hover:bg-[#0b2d5b] disabled:cursor-not-allowed disabled:opacity-60" type="submit" data-catalog-submit><?php echo esc_html($catalog_ui['submitLabel'] ?? 'Get PDF'); ?> <?php echo boblift_icon('send', 'ml-1 inline h-4 w-4'); ?></button>
+                    <button class="h-12 shrink-0 rounded-sm bg-navy px-7 text-sm font-black text-white shadow-card transition hover:-translate-y-0.5 hover:bg-[#0b2d5b] disabled:cursor-not-allowed disabled:opacity-60" type="submit" data-catalog-submit><?php echo esc_html($catalog_ui['submitLabel'] ?? 'Get PDF'); ?> <?php echo boblift_icon('send', 'ms-1 inline h-4 w-4'); ?></button>
                 </div>
             </form>
         </div>
@@ -251,8 +251,8 @@ function boblift_render_inquiry_modal(): void
         <div class="boblift-inquiry-dialog relative flex max-h-[94dvh] w-full max-w-5xl flex-col overflow-hidden rounded-t border border-white/70 bg-white shadow-raised md:max-h-[calc(100dvh-32px)] " role="dialog" aria-modal="true" aria-labelledby="global-inquiry-title" tabindex="-1">
             <div class="boblift-inquiry-layout grid min-h-0 md:grid-cols-[0.72fr_1.28fr]">
                 <aside class="relative hidden bg-[linear-gradient(145deg,#071f42_0%,#0b3f7d_58%,#2563eb_100%)] p-8 text-white md:block">
-                    <span class="pointer-events-none absolute -right-16 top-10 h-48 w-48 rounded-full bg-white/12 blur-2xl"></span>
-                    <span class="pointer-events-none absolute -bottom-20 left-8 h-56 w-56 rounded-full bg-gold/18 blur-3xl"></span>
+                    <span class="pointer-events-none absolute -end-16 top-10 h-48 w-48 rounded-full bg-white/12 blur-2xl"></span>
+                    <span class="pointer-events-none absolute -bottom-20 start-8 h-56 w-56 rounded-full bg-gold/18 blur-3xl"></span>
                     <div class="relative z-10 max-w-[320px]">
                         <p class="text-[11px] font-black uppercase tracking-[0.28em] text-gold"><?php echo esc_html($ui['sideLabel'] ?? 'BOB-LIFT Inquiry'); ?></p>
                         <h2 class="mt-5 text-4xl font-black leading-[0.98] tracking-[-0.02em]"><?php echo esc_html($ui['sideTitle'] ?? 'Tell us what you need to lift.'); ?></h2>
@@ -308,7 +308,7 @@ function boblift_render_inquiry_modal(): void
 
                     <div class="mt-4 rounded border border-line bg-[#f8fbff] p-3 text-sm font-semibold leading-6 text-slate-600 hidden" data-inquiry-modal-status role="status"></div>
 
-                    <div class="boblift-inquiry-fields-scroll mt-5 grid min-h-0 flex-1 gap-4 overflow-y-auto pr-1">
+                    <div class="boblift-inquiry-fields-scroll mt-5 grid min-h-0 flex-1 gap-4 overflow-y-auto pe-1">
                         <div class="boblift-inquiry-primary-fields grid gap-4 md:grid-cols-2">
                             <?php boblift_form_field('name', $ui['fields']['name']); ?>
                             <?php boblift_form_field('email', $ui['fields']['email'], 'email', true); ?>
@@ -325,17 +325,17 @@ function boblift_render_inquiry_modal(): void
                     <div class="mt-4 shrink-0 border-t border-line pt-4"><div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div class="hidden rounded border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-bold leading-6 text-emerald-800" data-inquiry-modal-success><?php echo boblift_icon('check-circle', 'mr-2 inline h-4 w-4'); ?><?php echo esc_html($ui['successInlineText'] ?? 'Inquiry sent. Our team will contact you soon.'); ?></div>
                         <?php boblift_render_turnstile_widget('mt-0 shrink-0', true); ?>
-                        <button class="h-12 rounded-sm bg-navy px-7 text-sm font-black text-white shadow-card transition hover:-translate-y-0.5 hover:bg-[#0b2d5b] disabled:cursor-not-allowed disabled:opacity-60 sm:ml-auto" type="submit" data-inquiry-modal-submit><?php echo esc_html($ui['submitLabel'] ?? 'Send Inquiry'); ?> <?php echo boblift_icon('send', 'ml-1 inline h-4 w-4'); ?></button>
+                        <button class="h-12 rounded-sm bg-navy px-7 text-sm font-black text-white shadow-card transition hover:-translate-y-0.5 hover:bg-[#0b2d5b] disabled:cursor-not-allowed disabled:opacity-60 sm:ms-auto" type="submit" data-inquiry-modal-submit><?php echo esc_html($ui['submitLabel'] ?? 'Send Inquiry'); ?> <?php echo boblift_icon('send', 'ms-1 inline h-4 w-4'); ?></button>
                     </div></div>
                 </form>
-                <aside class="boblift-inquiry-products-panel hidden min-h-0 border-t border-line bg-[#F8FBFF] p-5 md:border-l md:border-t-0 md:p-6" data-inquiry-selected-products aria-label="<?php echo esc_attr($ui['selectedProductsAriaLabel'] ?? 'Selected products'); ?>">
+                <aside class="boblift-inquiry-products-panel hidden min-h-0 border-t border-line bg-[#F8FBFF] p-5 md:border-s md:border-t-0 md:p-6" data-inquiry-selected-products aria-label="<?php echo esc_attr($ui['selectedProductsAriaLabel'] ?? 'Selected products'); ?>">
                     <div class="flex h-full min-h-0 flex-col">
                         <div class="shrink-0">
                             <p class="text-[11px] font-black uppercase tracking-[0.16em] text-blue-700"><?php echo esc_html($ui['selectedProductsLabel'] ?? 'Selected products'); ?></p>
                             <h3 class="mt-2 text-xl font-black tracking-[-0.015em] text-ink"><?php echo esc_html($ui['selectedProductsTitle'] ?? 'Products in this inquiry'); ?></h3>
                             <p class="mt-2 text-sm font-semibold leading-6 text-slate-500"><span data-inquiry-selected-products-count>0</span> <?php echo esc_html($ui['selectedProductsSummary'] ?? 'products will be included in this inquiry.'); ?></p>
                         </div>
-                        <div class="mt-4 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pr-1" data-inquiry-selected-products-list></div>
+                        <div class="mt-4 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pe-1" data-inquiry-selected-products-list></div>
                     </div>
                 </aside>
             </div>
@@ -368,17 +368,17 @@ function boblift_render_inquiry_extra_select(array $ui, string $name, string $la
         <span class="mb-2 block text-[11px] font-black uppercase tracking-[0.12em] text-slate-500"><?php echo esc_html($label); ?></span>
         <input type="hidden" name="<?php echo esc_attr($name); ?>" data-quote-field="<?php echo esc_attr($name); ?>" value="" data-inquiry-select-input data-placeholder="<?php echo esc_attr($placeholder); ?>">
         <span class="relative block">
-            <button class="flex h-11 w-full items-center justify-between gap-3 rounded-sm border border-line bg-white px-3 text-left text-sm font-bold text-ink outline-none transition hover:border-blue-200 focus:border-blue-300 focus:ring-4 focus:ring-blue-100" type="button" data-inquiry-select-toggle aria-expanded="false">
+            <button class="flex h-11 w-full items-center justify-between gap-3 rounded-sm border border-line bg-white px-3 text-start text-sm font-bold text-ink outline-none transition hover:border-blue-200 focus:border-blue-300 focus:ring-4 focus:ring-blue-100" type="button" data-inquiry-select-toggle aria-expanded="false">
                 <span class="min-w-0 truncate" data-inquiry-select-label><?php echo esc_html($placeholder); ?></span>
                 <span class="shrink-0 text-xs text-slate-400" aria-hidden="true">⌄</span>
             </button>
-            <span class="absolute left-0 right-0 top-full z-50 mt-2 hidden max-h-52 overflow-y-auto rounded border border-blue-100 bg-white p-1.5 shadow-raised" data-inquiry-select-menu>
-                <button class="flex w-full items-center justify-between rounded px-3 py-2 text-left text-sm font-bold text-slate-500 transition hover:bg-blue-50 hover:text-blue-700" type="button" data-inquiry-select-option data-value="">
+            <span class="absolute start-0 end-0 top-full z-50 mt-2 hidden max-h-52 overflow-y-auto rounded border border-blue-100 bg-white p-1.5 shadow-raised" data-inquiry-select-menu>
+                <button class="flex w-full items-center justify-between rounded px-3 py-2 text-start text-sm font-bold text-slate-500 transition hover:bg-blue-50 hover:text-blue-700" type="button" data-inquiry-select-option data-value="">
                     <span class="min-w-0 truncate" data-inquiry-select-option-label><?php echo esc_html($placeholder); ?></span>
                     <span class="hidden text-blue-600" data-inquiry-select-check aria-hidden="true">✓</span>
                 </button>
                 <?php foreach ($options as $option) : ?>
-                    <button class="flex w-full items-center justify-between rounded px-3 py-2 text-left text-sm font-bold text-slate-700 transition hover:bg-blue-50 hover:text-blue-700" type="button" data-inquiry-select-option data-value="<?php echo esc_attr($option); ?>">
+                    <button class="flex w-full items-center justify-between rounded px-3 py-2 text-start text-sm font-bold text-slate-700 transition hover:bg-blue-50 hover:text-blue-700" type="button" data-inquiry-select-option data-value="<?php echo esc_attr($option); ?>">
                         <span class="min-w-0 truncate" data-inquiry-select-option-label><?php echo esc_html($option); ?></span>
                         <span class="hidden text-blue-600" data-inquiry-select-check aria-hidden="true">✓</span>
                     </button>

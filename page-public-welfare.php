@@ -44,7 +44,7 @@ $cta = is_array($page_options['cta'] ?? null) ? $page_options['cta'] : [];
 <section class="bg-white pb-14 pt-2 lg:pb-20">
     <div class="page-shell">
         <div class="relative mx-auto max-w-[2200px] overflow-hidden rounded border border-[#0D4F94]/20 bg-[linear-gradient(135deg,#073A78_0%,#0B5AA8_58%,#084785_100%)] p-6 text-white shadow-card md:p-8 lg:p-12 2xl:p-14">
-            <div class="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/15 blur-3xl"></div>
+            <div class="pointer-events-none absolute -end-24 -top-24 h-72 w-72 rounded-full bg-white/15 blur-3xl"></div>
             <div class="pointer-events-none absolute inset-0 opacity-[0.14] [background-image:radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.9)_1px,transparent_0)] [background-size:28px_28px]"></div>
             <div class="relative z-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center 2xl:gap-16">
                 <div>

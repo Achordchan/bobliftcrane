@@ -2723,19 +2723,21 @@
     const grids = qsa('[data-product-grid-panel]', root);
     const previous = qs('[data-product-scroll="prev"]', root);
     const next = qs('[data-product-scroll="next"]', root);
+    const scrollDirection = () => (scroller && getComputedStyle(scroller).direction === 'rtl' ? -1 : 1);
     const updateScrollButtons = () => {
       if (!scroller) return;
       const max = scroller.scrollWidth - scroller.clientWidth;
-      if (previous) previous.disabled = scroller.scrollLeft <= 2;
-      if (next) next.disabled = scroller.scrollLeft >= max - 2;
+      const offset = Math.abs(scroller.scrollLeft);
+      if (previous) previous.disabled = offset <= 2;
+      if (next) next.disabled = offset >= max - 2;
     };
     const setTab = (index) => {
       tabs.forEach((tab, current) => tab.setAttribute('aria-pressed', String(current === index)));
       grids.forEach((panel, current) => panel.classList.toggle('hidden', current !== index));
     };
     tabs.forEach((tab) => tab.addEventListener('click', () => setTab(Number(tab.dataset.productCategoryTab || 0))));
-    previous?.addEventListener('click', () => scroller?.scrollBy({ left: -Math.min(scroller.clientWidth * 0.72, 620), behavior: 'smooth' }));
-    next?.addEventListener('click', () => scroller?.scrollBy({ left: Math.min(scroller.clientWidth * 0.72, 620), behavior: 'smooth' }));
+    previous?.addEventListener('click', () => scroller?.scrollBy({ left: -scrollDirection() * Math.min(scroller.clientWidth * 0.72, 620), behavior: 'smooth' }));
+    next?.addEventListener('click', () => scroller?.scrollBy({ left: scrollDirection() * Math.min(scroller.clientWidth * 0.72, 620), behavior: 'smooth' }));
     scroller?.addEventListener('scroll', updateScrollButtons, { passive: true });
     updateScrollButtons();
     window.requestAnimationFrame(updateScrollButtons);

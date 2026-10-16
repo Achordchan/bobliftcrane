@@ -110,7 +110,7 @@ $render_case_filter = static function (string $id, string $filter, string $all_l
         ?>
             <?php if ($kind === 'customer_feedback') : ?>
                 <article class="boblift-case-card group" data-cases-card data-case-kind="customer_feedback" data-country="<?php echo esc_attr($country); ?>" data-product="<?php echo esc_attr($product); ?>">
-                    <button class="block h-full w-full text-left" type="button" data-cases-media-open data-media-type="<?php echo esc_attr($media_type); ?>" data-media-src="<?php echo esc_url($media_src); ?>" data-media-title="<?php echo esc_attr($item['title']); ?>">
+                    <button class="block h-full w-full text-start" type="button" data-cases-media-open data-media-type="<?php echo esc_attr($media_type); ?>" data-media-src="<?php echo esc_url($media_src); ?>" data-media-title="<?php echo esc_attr($item['title']); ?>">
                         <span class="boblift-case-card-media relative block h-[260px] overflow-hidden rounded bg-[#eef5ff]">
                             <img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.035]" src="<?php echo esc_url($image); ?>" alt="<?php echo esc_attr($item['title']); ?>" loading="<?php echo $index === 0 ? 'eager' : 'lazy'; ?>" decoding="async">
                             <?php if ($media_type === 'video') : ?><span class="absolute inset-0 m-auto grid size-16 place-items-center rounded-sm bg-white/90 text-blue-700 shadow-card"><?php echo boblift_icon('circle-play', 'h-7 w-7'); ?></span><?php endif; ?>

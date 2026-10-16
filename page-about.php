@@ -150,9 +150,9 @@ if ($legacy_headline !== '' || $legacy_paragraph !== '' || $legacy_chips !== [])
     <?php if ($legacy_chips !== []) : ?>
         <div class="mt-7 grid gap-3 md:grid-cols-3">
             <?php foreach ($legacy_chips as $chip) : ?>
-                <div class="rounded-full border border-line bg-white px-5 py-3 text-left shadow-card">
+                <div class="rounded-full border border-line bg-white px-5 py-3 text-start shadow-card">
                     <span class="text-xs font-black tracking-[0.22em] text-[#2563EB]"><?php echo esc_html((string) ($chip['number'] ?? '')); ?></span>
-                    <span class="ml-3 text-sm font-black text-[#0B1B33]"><?php echo esc_html((string) ($chip['label'] ?? '')); ?></span>
+                    <span class="ms-3 text-sm font-black text-[#0B1B33]"><?php echo esc_html((string) ($chip['label'] ?? '')); ?></span>
                 </div>
             <?php endforeach; ?>
         </div>
@@ -176,11 +176,11 @@ if ($legacy_headline !== '' || $legacy_paragraph !== '' || $legacy_chips !== [])
                 $stat_target = preg_replace('/[^0-9]/', '', $stat_number_raw) ?: '0';
                 $stat_suffix = (string) ($stat['suffix'] ?? '+');
             ?>
-                <div class="about-stat-card relative min-h-[190px] overflow-hidden rounded border border-[#E5E7EB] bg-white p-8 text-left shadow-card transition hover:-translate-y-1 lg:p-10 xl:p-12">
-                    <span class="pointer-events-none absolute -right-4 -top-8 select-none text-[120px] font-black italic leading-none tracking-[-0.015em] text-[#F1F5F9] lg:-right-6 lg:-top-10 lg:text-[140px]"><?php echo esc_html(str_pad((string) ($global_stat_index + 1), 2, '0', STR_PAD_LEFT)); ?></span>
+                <div class="about-stat-card relative min-h-[190px] overflow-hidden rounded border border-[#E5E7EB] bg-white p-8 text-start shadow-card transition hover:-translate-y-1 lg:p-10 xl:p-12">
+                    <span class="pointer-events-none absolute -end-4 -top-8 select-none text-[120px] font-black italic leading-none tracking-[-0.015em] text-[#F1F5F9] lg:-end-6 lg:-top-10 lg:text-[140px]"><?php echo esc_html(str_pad((string) ($global_stat_index + 1), 2, '0', STR_PAD_LEFT)); ?></span>
                     <div class="relative z-10">
                         <p class="flex items-baseline font-black leading-none tracking-[-0.02em] text-[#0B3F7D]">
-                            <span class="text-[54px] lg:text-[68px]" data-global-stat="<?php echo esc_attr($stat_target); ?>"><?php echo esc_html($stat_target); ?></span><span class="ml-1 text-[28px] text-[#2563EB] lg:text-[34px]"><?php echo esc_html($stat_suffix); ?></span>
+                            <span class="text-[54px] lg:text-[68px]" data-global-stat="<?php echo esc_attr($stat_target); ?>"><?php echo esc_html($stat_target); ?></span><span class="ms-1 text-[28px] text-[#2563EB] lg:text-[34px]"><?php echo esc_html($stat_suffix); ?></span>
                         </p>
                         <h3 class="mt-6 max-w-none text-lg font-black leading-tight text-[#0B1B33] lg:text-xl"><?php echo esc_html($stat['label'] ?? ''); ?></h3>
                     </div>
@@ -283,7 +283,7 @@ if ($legacy_strength['cards'] !== [] || $legacy_strength['cta'] !== null || $leg
                             ? boblift_image_src($certification_small)
                             : $certification_image_url;
                     ?>
-                    <button class="about-certification-card group w-[230px] shrink-0 cursor-zoom-in rounded border border-[#DDE7F2] bg-white p-2 text-left shadow-card transition hover:-translate-y-1 hover:border-[#BFD2EA] md:w-[270px]" type="button"<?php echo $track_index === 1 ? ' tabindex="-1"' : ''; ?> data-certification-open data-certification-src="<?php echo esc_url($certification_image_url); ?>" data-certification-title="<?php echo esc_attr($certification_title_text); ?>">
+                    <button class="about-certification-card group w-[230px] shrink-0 cursor-zoom-in rounded border border-[#DDE7F2] bg-white p-2 text-start shadow-card transition hover:-translate-y-1 hover:border-[#BFD2EA] md:w-[270px]" type="button"<?php echo $track_index === 1 ? ' tabindex="-1"' : ''; ?> data-certification-open data-certification-src="<?php echo esc_url($certification_image_url); ?>" data-certification-title="<?php echo esc_attr($certification_title_text); ?>">
                         <span class="block overflow-hidden rounded bg-[#F8FAFC] ring-1 ring-[#E5E7EB]">
                             <img class="aspect-[5/7] w-full object-contain p-2 transition duration-500 group-hover:scale-[1.02]" src="<?php echo esc_url($certification_card_url); ?>" alt="<?php echo esc_attr($certification_title_text); ?>" loading="lazy" decoding="async">
                         </span>
@@ -302,7 +302,7 @@ if ($legacy_strength['cards'] !== [] || $legacy_strength['cta'] !== null || $leg
             <div class="fixed inset-0 z-[999] hidden items-center justify-center bg-[#0B1B33]/88 p-4 backdrop-blur-md" data-certification-lightbox aria-hidden="true">
                 <button class="absolute inset-0 cursor-zoom-out" type="button" data-certification-close aria-label="<?php echo esc_attr($is_zh_about ? '关闭证书大图' : 'Close certificate preview'); ?>"></button>
                 <figure class="relative z-10 max-h-[92vh] w-full max-w-[980px] rounded bg-white p-3 shadow-card md:p-4">
-                    <button class="absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-sm bg-[#0B1B33] text-white shadow-card transition hover:bg-[#0B3F7D]" type="button" data-certification-close aria-label="<?php echo esc_attr($is_zh_about ? '关闭' : 'Close'); ?>">×</button>
+                    <button class="absolute end-3 top-3 grid h-10 w-10 place-items-center rounded-sm bg-[#0B1B33] text-white shadow-card transition hover:bg-[#0B3F7D]" type="button" data-certification-close aria-label="<?php echo esc_attr($is_zh_about ? '关闭' : 'Close'); ?>">×</button>
                     <img class="max-h-[78vh] w-full rounded object-contain" src="" alt="" data-certification-lightbox-image>
                     <figcaption class="px-2 pb-1 pt-3 text-center text-sm font-black text-[#0B1B33]" data-certification-lightbox-title></figcaption>
                 </figure>
@@ -349,7 +349,7 @@ if ($legacy_strength['cards'] !== [] || $legacy_strength['cta'] !== null || $leg
             <div class="about-executive-flip relative" data-executive-flip>
                 <div class="about-executive-card relative overflow-hidden rounded border border-[#E5E7EB] bg-white p-5 shadow-card md:p-7 lg:p-8 2xl:p-10" data-executive-card>
                 <div class="about-executive-aura pointer-events-none absolute inset-0"></div>
-                <div class="about-executive-watermark pointer-events-none absolute -right-10 top-4 text-[clamp(72px,12vw,230px)] font-black leading-none tracking-[-0.03em] text-[#0B3F7D]/[0.055]" data-executive-watermark><?php echo esc_html($about_ui['leadershipWatermark'] ?? 'LEADERSHIP'); ?></div>
+                <div class="about-executive-watermark pointer-events-none absolute -end-10 top-4 text-[clamp(72px,12vw,230px)] font-black leading-none tracking-[-0.03em] text-[#0B3F7D]/[0.055]" data-executive-watermark><?php echo esc_html($about_ui['leadershipWatermark'] ?? 'LEADERSHIP'); ?></div>
                 <div class="relative z-10 mb-6 grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-end">
                     <div data-executive-copy-item>
                         <p class="mb-4 text-xs font-black uppercase tracking-[0.42em] text-[#0B3F7D]"><?php echo esc_html($executives['label'] ?? 'Executive Leadership'); ?></p>

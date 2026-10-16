@@ -80,7 +80,7 @@ $products = [
     [$old.'fork-7ton-main-1.jpg','7-ton-forklift-fly-jib-crane-800-800.jpg'],
     [$old.'fork-7ton-main-2.jpg','7-ton-forklift-fly-jib-crane-1-800-800.jpg'],
   ],
-  'extra_existing' => ['7-ton-forklift-fly-jib-crane-b3d36eaa2d', '7-ton-forklift-fly-jib-crane-4a2bdf81b8'], // real photos from the article pack, already in the library
+  'extra_existing' => ['7-ton-forklift-fly-jib-crane-b3d36eaa2d-900x700.jpg', '7-ton-forklift-fly-jib-crane-4a2bdf81b8-900x700.jpg'], // real photos from the article pack, already in the library
   'details' => ['fork-7ton-detail-1.jpg','fork-7ton-detail-2.jpg','fork-7ton-detail-3.jpg','fork-7ton-detail-4.jpg','fork-7ton-detail-5.jpg','fork-7ton-detail-6.jpg','fork-7ton-detail-7.jpg','fork-7ton-detail-8.jpg'],
   'thumb_first_existing' => true,
  ],
@@ -116,12 +116,13 @@ foreach ($products as $p) {
     }
     if (!get_term_by('slug', $p['cat'], 'product_category')) { $missing[] = 'product category: ' . $p['cat']; }
     foreach ($p['extra_existing'] as $title) {
-        if (!get_posts(['post_type'=>'attachment','title'=>$title,'post_status'=>'any','numberposts'=>1,'lang'=>''])) { $missing[] = 'media library item: ' . $title . ' (run import-articles.php first)'; }
+        if (!get_posts(['post_type'=>'attachment','meta_key'=>'_bl_gap_source','meta_value'=>$title,'post_status'=>'any','numberposts'=>1,'lang'=>''])) { $missing[] = 'media library item: ' . $title . ' (run import-articles.php first)'; }
     }
 }
 if ($missing) { fwrite(STDERR, "Missing sources:\n  " . implode("\n  ", $missing) . "\n"); exit(1); }
 foreach ($products as $p) {
-    $ex = get_posts(['post_type'=>'product','name'=>$p['slug'],'post_status'=>'any','numberposts'=>1,'lang'=>'']);
+    // With Polylang only the English product counts as "existing"; a translation sharing the slug is never touched.
+    $ex = get_posts(['post_type'=>'product','name'=>$p['slug'],'post_status'=>'any','numberposts'=>1,'lang'=>function_exists('pll_default_language') ? 'en' : '']);
     // A product left as a draft by an interrupted run is resumed; a published one is protected unless "overwrite" is passed.
     $resuming = $ex && $ex[0]->post_status === 'draft' && get_post_meta($ex[0]->ID, '_content_gap_staging', true) === '1';
     if ($ex && !$overwrite && !$resuming) {
@@ -136,9 +137,11 @@ foreach ($products as $p) {
     if (is_wp_error($id)) { throw new Exception($id->get_error_message()); }
     // Only a new post, or one already staged by this importer, is marked for automatic publication; an editorial draft stays a draft.
     if (get_post_status($id) === 'draft' && (!$ex || $resuming)) { update_post_meta($id, '_content_gap_staging', '1'); }
+    // English is assigned before any media work, so an interrupted run's draft is found again by the English-only lookup.
+    if (function_exists('pll_set_post_language')) { pll_set_post_language($id, 'en'); }
     $gallery = []; $thumb = 0;
     foreach ($p['extra_existing'] as $title) {
-        $a = get_posts(['post_type'=>'attachment','title'=>$title,'post_status'=>'any','numberposts'=>1,'lang'=>'']);
+        $a = get_posts(['post_type'=>'attachment','meta_key'=>'_bl_gap_source','meta_value'=>$title,'post_status'=>'any','numberposts'=>1,'lang'=>'']);
         if ($a) { $gallery[] = ['image'=>bl_abs($a[0]->ID),'label'=>$p['title']]; if (!$thumb) { $thumb = $a[0]->ID; } }
     }
     foreach ($p['main'] as [$f, $n]) {
@@ -167,7 +170,15 @@ foreach ($products as $p) {
     $term = get_term_by('slug', $p['cat'], 'product_category');
     wp_set_object_terms($id, [$term->term_id], 'product_category');
     if (function_exists('pll_set_post_language')) { pll_set_post_language($id, 'en'); }
-    if (get_post_status($id) === 'draft' && get_post_meta($id, '_content_gap_staging', true) === '1') { wp_update_post(['ID'=>$id,'post_status'=>'publish']); delete_post_meta($id, '_content_gap_staging'); }
+    if (get_post_status($id) === 'draft' && get_post_meta($id, '_content_gap_staging', true) === '1') {
+        $published = wp_update_post(['ID'=>$id,'post_status'=>'publish'], true);
+        // The staging marker is removed only once the post really is published; otherwise a rerun retries the publication.
+        if (is_wp_error($published) || !$published || get_post_status($id) !== 'publish') {
+            fwrite(STDERR, "Could not publish {$p['slug']}; it stays staged and a rerun will retry.\n");
+            continue;
+        }
+        delete_post_meta($id, '_content_gap_staging');
+    }
     $out[] = $id . ' ' . get_permalink($id);
 }
 echo implode("\n", $out), "\n";

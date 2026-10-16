@@ -144,8 +144,8 @@ $wall_alt = $t($visits['label'] ?? 'Global Customer Visits');
                         <img class="block max-h-full max-w-full object-contain" src="" alt="" data-detail-image>
                     </div>
                     <?php if (count($gallery) > 1) : ?>
-                        <button class="boblift-feedback-arrow left-2 md:left-5" type="button" data-detail-prev aria-label="<?php echo esc_attr($detail_ui['previousLabel'] ?? 'Previous'); ?>"><?php echo boblift_icon('chevron-left', 'h-5 w-5'); ?></button>
-                        <button class="boblift-feedback-arrow right-2 md:right-5" type="button" data-detail-next aria-label="<?php echo esc_attr($detail_ui['nextLabel'] ?? 'Next'); ?>"><?php echo boblift_icon('chevron-right', 'h-5 w-5'); ?></button>
+                        <button class="boblift-feedback-arrow left-2 md:start-5" type="button" data-detail-prev aria-label="<?php echo esc_attr($detail_ui['previousLabel'] ?? 'Previous'); ?>"><?php echo boblift_icon('chevron-left', 'h-5 w-5'); ?></button>
+                        <button class="boblift-feedback-arrow right-2 md:end-5" type="button" data-detail-next aria-label="<?php echo esc_attr($detail_ui['nextLabel'] ?? 'Next'); ?>"><?php echo boblift_icon('chevron-right', 'h-5 w-5'); ?></button>
                     <?php endif; ?>
                 </div>
             </div>

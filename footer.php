@@ -24,7 +24,7 @@ $quote_list_ui = function_exists('boblift_site_ui') ? boblift_site_ui('quoteList
 <?php if ($show_cta) : ?>
 <section id="quote" class="boblift-final-cta page-shell my-10 overflow-hidden rounded border border-[#d6e2ef] bg-navy shadow-card md:my-16">
     <div class="boblift-final-cta-frame relative min-h-[270px] md:min-h-[330px] 2xl:min-h-[360px]">
-        <div class="boblift-final-cta-media absolute inset-y-0 right-0 w-full md:w-[min(72%,990px)] 2xl:w-[min(66%,1080px)]">
+        <div class="boblift-final-cta-media absolute inset-y-0 end-0 w-full md:w-[min(72%,990px)] 2xl:w-[min(66%,1080px)]">
             <img class="h-full w-full object-cover object-[72%_center] md:object-right" src="<?php echo esc_url(boblift_page_hero_image_setting($cta['image'] ?? [], 'images/page-heroes/site-dusk.webp')); ?>" alt="" loading="lazy" decoding="async">
         </div>
         <div class="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,31,66,0.94)_0%,rgba(7,31,66,0.78)_45%,rgba(7,31,66,0.35)_100%)] md:hidden"></div>
@@ -35,7 +35,7 @@ $quote_list_ui = function_exists('boblift_site_ui') ? boblift_site_ui('quoteList
                 <div class="boblift-final-cta-actions mt-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8">
                     <button class="boblift-final-cta-button inline-flex h-[54px] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-sm bg-gold px-7 text-base font-black text-white outline-none transition hover:brightness-95 focus-visible:ring-2 focus-visible:ring-white/70" type="button" data-inquiry-modal-open data-inquiry-source="页脚询价横幅"><?php echo esc_html($cta['button_label'] ?? 'Request a Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
                     <span class="hidden h-10 w-px bg-white/25 sm:block"></span>
-                    <a class="boblift-final-cta-email inline-flex items-center gap-3 text-base font-semibold text-white/85 transition hover:text-white" href="mailto:<?php echo esc_attr($email); ?>"><?php echo boblift_icon('mail', 'h-5 w-5', '1.8'); ?><?php echo esc_html($email); ?></a>
+                    <a class="boblift-final-cta-email inline-flex items-center gap-3 text-base font-semibold text-white/85 transition hover:text-white" href="mailto:<?php echo esc_attr($email); ?>"><?php echo boblift_icon('mail', 'h-5 w-5', '1.8'); ?><span dir="ltr"><?php echo esc_html($email); ?></span></a>
                 </div>
             </div>
         </div>
@@ -80,7 +80,7 @@ $footer_link_groups = array_map(static function (array $group): array {
 <footer class="border-t border-line bg-mist pb-[calc(76px+env(safe-area-inset-bottom))] pt-0 lg:pb-0">
     <div class="page-shell max-w-[2200px]">
         <div class="grid grid-cols-1 gap-0 py-10 md:grid-cols-[0.92fr_1.08fr] md:gap-y-10 md:py-14 xl:grid-cols-[minmax(300px,0.95fr)_minmax(0,1.65fr)_minmax(340px,0.95fr)] xl:gap-y-0 xl:py-16 2xl:grid-cols-[minmax(360px,0.9fr)_minmax(0,1.75fr)_minmax(390px,0.95fr)] 2xl:py-20">
-            <div class="border-b border-line pb-8 md:border-b-0 md:pr-9 xl:pr-12 2xl:pr-16">
+            <div class="border-b border-line pb-8 md:border-b-0 md:pe-9 xl:pe-12 2xl:pe-16">
                 <a href="<?php echo esc_url(home_url('/')); ?>"><?php echo boblift_img_from_setting($branding['logo'] ?? 'images/bob-lift-logo.png', 'images/bob-lift-logo.png', $branding['logo_alt'] ?? 'BOB-LIFT', 'h-[52px] w-auto 2xl:h-[64px]'); ?></a>
                 <p class="mt-6 max-w-[34rem] text-sm font-medium leading-6 text-slate-500 md:max-w-[360px] md:text-base md:leading-7 2xl:max-w-[440px]"><?php echo esc_html($footer['intro'] ?? 'Engineered lifting solutions for global projects. Built to lift. Built to last.'); ?></p>
                 <?php if ($footer_social_links !== []) : ?>
@@ -96,9 +96,9 @@ $footer_link_groups = array_map(static function (array $group): array {
                     </div>
                 <?php endif; ?>
             </div>
-            <div class="grid grid-cols-2 gap-x-6 border-b border-line py-8 md:border-b-0 md:border-l md:py-0 md:pl-8 xl:pl-0 2xl:gap-x-10">
+            <div class="grid grid-cols-2 gap-x-6 border-b border-line py-8 md:border-b-0 md:border-s md:py-0 md:ps-8 xl:ps-0 2xl:gap-x-10">
                 <?php foreach ($footer_link_groups as $group) : ?>
-                    <div class="min-w-0 md:pr-8 xl:pl-12 2xl:pl-16">
+                    <div class="min-w-0 md:pe-8 xl:ps-12 2xl:ps-16">
                         <h3 class="mb-4 text-sm font-black uppercase tracking-[0.14em] text-navy md:mb-5"><?php echo esc_html((string) ($group['title'] ?? '')); ?></h3>
                         <ul class="grid gap-2 md:gap-3">
                             <?php foreach (($group['links'] ?? []) as $link) : ?><li><a class="text-sm font-medium leading-6 text-slate-500 transition hover:text-blue-700 md:text-[15px]" href="<?php echo esc_url(isset($link['url']) ? (string) $link['url'] : boblift_product_nav_url((string) ($link['href'] ?? '/'), (string) ($link['label'] ?? ''))); ?>"><?php echo esc_html((string) ($link['label'] ?? '')); ?></a></li><?php endforeach; ?>
@@ -106,11 +106,11 @@ $footer_link_groups = array_map(static function (array $group): array {
                     </div>
                 <?php endforeach; ?>
             </div>
-            <div class="pt-8 md:col-span-2 md:border-t md:border-line md:pt-10 xl:col-span-1 xl:border-l xl:border-t-0 xl:pl-12 xl:pt-0 2xl:pl-16">
+            <div class="pt-8 md:col-span-2 md:border-t md:border-line md:pt-10 xl:col-span-1 xl:border-s xl:border-t-0 xl:ps-12 xl:pt-0 2xl:ps-16">
                 <h3 class="mb-5 text-sm font-black uppercase tracking-[0.14em] text-navy"><?php echo esc_html($footer['contact_title'] ?? 'Contact Us'); ?></h3>
                 <ul class="grid gap-3 md:grid-cols-3 xl:grid-cols-1">
                     <?php foreach ([['phone', $phone, $phone_href], ['mail', $email, 'mailto:' . $email], ['map-pin', $contact['address'] ?? 'Xuzhou, China', boblift_url('/contact')]] as $row) : ?>
-                        <li><a class="inline-flex min-w-0 items-start gap-3 text-sm font-medium leading-6 text-slate-600 transition hover:text-blue-700 md:text-[15px]" href="<?php echo esc_url($row[2]); ?>"><?php echo boblift_icon($row[0], 'mt-1 h-4 w-4 shrink-0 text-slate-400', '1.9'); ?><span class="min-w-0 break-words"><?php echo esc_html($row[1]); ?></span></a></li>
+                        <li><a class="inline-flex min-w-0 items-start gap-3 text-sm font-medium leading-6 text-slate-600 transition hover:text-blue-700 md:text-[15px]" href="<?php echo esc_url($row[2]); ?>"><?php echo boblift_icon($row[0], 'mt-1 h-4 w-4 shrink-0 text-slate-400', '1.9'); ?><span class="min-w-0 break-words"><?php echo $row[0] === 'map-pin' ? esc_html($row[1]) : '<span dir="ltr">' . esc_html($row[1]) . '</span>'; ?></span></a></li>
                     <?php endforeach; ?>
                 </ul>
             </div>
@@ -129,7 +129,7 @@ $footer_link_groups = array_map(static function (array $group): array {
                 <span class="hidden text-slate-300 sm:inline" aria-hidden="true">·</span>
                 <span class="flex flex-wrap items-center gap-x-3 gap-y-1"><span><?php echo esc_html((string) ($network_ui['footerNote'] ?? 'Lifting equipment site of the BOB-LIFT Group')); ?></span><?php foreach ($network_links as $site) : ?><a class="inline-flex items-center gap-1 text-navy transition hover:text-blue-700" href="<?php echo esc_url((string) $site['url']); ?>" target="_blank" rel="noopener" title="<?php echo esc_attr((string) $site['label']); ?>"><?php echo esc_html((string) ($site['domain'] ?? '')); ?><?php echo boblift_icon('arrow-up-right', 'h-3.5 w-3.5 text-slate-400'); ?></a><?php endforeach; ?></span>
             </div>
-            <span class="flex flex-wrap gap-x-6 gap-y-2 lg:pr-24"><?php foreach ($footer['legal_links'] ?? [] as $link) : ?><a class="hover:text-blue-700" href="<?php echo esc_url(boblift_url($link['href'])); ?>"><?php echo esc_html($link['label']); ?></a><?php endforeach; ?></span>
+            <span class="flex flex-wrap gap-x-6 gap-y-2 lg:pe-24"><?php foreach ($footer['legal_links'] ?? [] as $link) : ?><a class="hover:text-blue-700" href="<?php echo esc_url(boblift_url($link['href'])); ?>"><?php echo esc_html($link['label']); ?></a><?php endforeach; ?></span>
         </div>
     </div>
 </footer>
@@ -142,7 +142,7 @@ $show_quote_list = is_post_type_archive('product') || is_singular('product') || 
 $floating_contact_buttons = function_exists('boblift_floating_contact_buttons') ? boblift_floating_contact_buttons() : [];
 ?>
 <?php if ($floating_contact_buttons !== []) : ?>
-<div class="boblift-floating-contact-bar fixed inset-x-0 bottom-0 z-40 flex items-center gap-2 border-t border-line bg-white px-4 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 lg:inset-x-auto lg:bottom-4 lg:left-1/2 lg:-translate-x-1/2 lg:gap-1.5 lg:rounded-sm lg:border lg:border-white/80 lg:bg-white/[0.88] lg:p-1.5 lg:shadow-raised lg:backdrop-blur-xl min-[1780px]:bottom-auto min-[1780px]:left-auto min-[1780px]:right-4 min-[1780px]:top-1/2 min-[1780px]:-translate-x-0 min-[1780px]:-translate-y-1/2 min-[1780px]:flex-col min-[1780px]:gap-2 min-[1780px]:p-2">
+<div class="boblift-floating-contact-bar fixed inset-x-0 bottom-0 z-40 flex items-center gap-2 border-t border-line bg-white px-4 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 lg:inset-x-auto lg:bottom-4 lg:left-1/2 lg:-translate-x-1/2 lg:gap-1.5 lg:rounded-sm lg:border lg:border-white/80 lg:bg-white/[0.88] lg:p-1.5 lg:shadow-raised lg:backdrop-blur-xl min-[1780px]:bottom-auto min-[1780px]:start-auto min-[1780px]:end-4 min-[1780px]:top-1/2 min-[1780px]:-translate-x-0 min-[1780px]:-translate-y-1/2 min-[1780px]:flex-col min-[1780px]:gap-2 min-[1780px]:p-2">
     <?php foreach ($floating_contact_buttons as $floating_contact_button) : ?>
         <?php boblift_render_floating_contact_button($floating_contact_button, $contact, $quote_list_ui); ?>
     <?php endforeach; ?>
@@ -153,14 +153,14 @@ $floating_contact_buttons = function_exists('boblift_floating_contact_buttons') 
     <button class="group relative inline-flex h-14 min-w-14 items-center justify-center gap-2 rounded-sm border border-white/80 bg-white/[0.86] px-4 text-sm font-black text-navy shadow-card ring-1 ring-slate-900/5 backdrop-blur-xl transition duration-300 hover:-translate-y-0.5 hover:bg-white hover:text-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100 md:h-16 md:min-w-16 md:px-5" type="button" data-quote-list-toggle aria-label="<?php echo esc_attr($quote_list_ui['openLabel'] ?? 'Open Quote List'); ?>" aria-expanded="false">
         <?php echo boblift_icon('package-check', 'h-5 w-5'); ?>
         <span class="hidden md:inline"><?php echo esc_html($quote_list_ui['title'] ?? 'Quote List'); ?></span>
-        <span class="absolute -right-1 -top-1 grid h-6 min-w-6 place-items-center rounded-sm bg-gold px-1.5 text-[11px] font-black leading-none text-white ring-2 ring-white" data-quote-list-count>0</span>
+        <span class="absolute -end-1 -top-1 grid h-6 min-w-6 place-items-center rounded-sm bg-gold px-1.5 text-[11px] font-black leading-none text-white ring-2 ring-white" data-quote-list-count>0</span>
     </button>
 </div>
 <?php endif; ?>
 <?php if ($show_quote_list) : ?>
 <div class="fixed inset-0 z-[240] hidden bg-[#071f42]/45 backdrop-blur-sm" data-quote-list-drawer aria-hidden="true">
     <button class="absolute inset-0 h-full w-full cursor-default" type="button" data-quote-list-close aria-label="<?php echo esc_attr($quote_list_ui['closeLabel'] ?? 'Close Quote List'); ?>"></button>
-    <aside class="absolute inset-x-0 bottom-0 flex max-h-[86dvh] flex-col overflow-hidden rounded-t border border-white/70 bg-white shadow-raised md:inset-y-0 md:left-auto md:right-0 md:h-full md:max-h-none md:w-[420px] md:rounded-tr-none" role="dialog" aria-modal="true" aria-labelledby="quote-list-title" data-quote-list-panel tabindex="-1">
+    <aside class="absolute inset-x-0 bottom-0 flex max-h-[86dvh] flex-col overflow-hidden rounded-t border border-white/70 bg-white shadow-raised md:inset-y-0 md:start-auto md:end-0 md:h-full md:max-h-none md:w-[420px] md:rounded-se-none" role="dialog" aria-modal="true" aria-labelledby="quote-list-title" data-quote-list-panel tabindex="-1">
         <div class="flex items-start justify-between gap-4 border-b border-line px-5 py-5 md:px-6">
             <div>
                 <p class="text-[11px] font-black uppercase tracking-[0.22em] text-blue-700"><?php echo esc_html($quote_list_ui['brandLabel'] ?? 'BOB-LIFT'); ?></p>
@@ -180,11 +180,11 @@ $floating_contact_buttons = function_exists('boblift_floating_contact_buttons') 
     </aside>
 </div>
 <?php endif; ?>
-<button class="fixed bottom-8 right-8 z-40 hidden size-11 translate-y-4 rounded-sm bg-navy p-0 text-white opacity-0 shadow-raised transition duration-300 hover:bg-[#0b2d5b] pointer-events-none lg:block" type="button" data-back-top aria-label="<?php echo esc_attr($quote_list_ui['backTopLabel'] ?? 'Back to top'); ?>"><?php echo boblift_icon('arrow-up', 'mx-auto h-5 w-5'); ?></button>
+<button class="fixed bottom-8 end-8 z-40 hidden size-11 translate-y-4 rounded-sm bg-navy p-0 text-white opacity-0 shadow-raised transition duration-300 hover:bg-[#0b2d5b] pointer-events-none lg:block" type="button" data-back-top aria-label="<?php echo esc_attr($quote_list_ui['backTopLabel'] ?? 'Back to top'); ?>"><?php echo boblift_icon('arrow-up', 'mx-auto h-5 w-5'); ?></button>
 <div class="fixed inset-0 z-50 hidden place-items-center bg-ink/18 p-4 backdrop-blur-[2px]" data-qr-modal>
     <div class="relative w-full max-w-[300px] rounded border border-line bg-white p-5 text-center shadow-card">
-        <button class="absolute right-3 top-3 grid size-8 place-items-center rounded-sm bg-[#f4f7fb] text-slate-500 transition hover:bg-navy hover:text-white" type="button" data-qr-close aria-label="<?php echo esc_attr($quote_list_ui['wechatCloseLabel'] ?? 'Close WeChat QR code'); ?>"><?php echo boblift_icon('x', 'h-4 w-4'); ?></button>
-        <h2 class="pr-7 text-lg font-black tracking-[-0.01em] text-ink"><?php echo esc_html($quote_list_ui['wechatTitle'] ?? 'WeChat QR Code'); ?></h2>
+        <button class="absolute end-3 top-3 grid size-8 place-items-center rounded-sm bg-[#f4f7fb] text-slate-500 transition hover:bg-navy hover:text-white" type="button" data-qr-close aria-label="<?php echo esc_attr($quote_list_ui['wechatCloseLabel'] ?? 'Close WeChat QR code'); ?>"><?php echo boblift_icon('x', 'h-4 w-4'); ?></button>
+        <h2 class="pe-7 text-lg font-black tracking-[-0.01em] text-ink"><?php echo esc_html($quote_list_ui['wechatTitle'] ?? 'WeChat QR Code'); ?></h2>
         <p class="mt-1 text-xs font-semibold text-slate-500"><?php echo esc_html(str_replace('{id}', (string) $wechat_id, (string) ($quote_list_ui['wechatScanTemplate'] ?? 'Scan or search ID: {id}'))); ?></p>
         <div class="mx-auto mt-5 w-[210px] rounded border border-line bg-white p-2 shadow-card"><?php echo boblift_img_from_setting($contact['wechat_qr'] ?? 'images/wechat-qr.png', 'images/wechat-qr.png', $quote_list_ui['wechatTitle'] ?? 'BOB-LIFT WeChat QR code', 'h-auto w-full rounded'); ?></div>
     </div>

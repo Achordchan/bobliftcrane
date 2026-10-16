@@ -208,7 +208,7 @@ function boblift_render_home_products(): void
 
                 <?php $category_count = count($catalog); $fits = $category_count <= 6; ?>
                 <div class="boblift-cat-wrap relative z-10 <?php echo $fits ? 'is-fit' : ''; ?>" style="--cat-count: <?php echo esc_attr((string) $category_count); ?>">
-                    <?php if ($section['showCategoryScrollButtons']) : ?><button class="boblift-cat-arrow group absolute -left-4 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 place-items-center rounded-sm border border-blue-100 bg-white/95 text-[#08234a] shadow-raised backdrop-blur transition duration-300 hover:scale-105 hover:border-blue-300 hover:text-blue-700 disabled:pointer-events-none disabled:opacity-30 lg:grid" type="button" data-product-scroll="prev" aria-label="<?php echo esc_attr($section['previousCategoriesLabel']); ?>" disabled><?php echo boblift_icon('chevron-left', 'h-5 w-5 drop-shadow-sm stroke-[3]'); ?></button><?php endif; ?>
+                    <?php if ($section['showCategoryScrollButtons']) : ?><button class="boblift-cat-arrow group absolute -start-4 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 place-items-center rounded-sm border border-blue-100 bg-white/95 text-[#08234a] shadow-raised backdrop-blur transition duration-300 hover:scale-105 hover:border-blue-300 hover:text-blue-700 disabled:pointer-events-none disabled:opacity-30 lg:grid" type="button" data-product-scroll="prev" aria-label="<?php echo esc_attr($section['previousCategoriesLabel']); ?>" disabled><?php echo boblift_icon('chevron-left', 'h-5 w-5 drop-shadow-sm stroke-[3] rtl:-scale-x-100'); ?></button><?php endif; ?>
                     <div class="boblift-cat-scroller" data-product-category-scroller>
                         <div class="boblift-cat-track">
                             <?php foreach ($catalog as $index => $category) : ?>
@@ -219,7 +219,7 @@ function boblift_render_home_products(): void
                             <?php endforeach; ?>
                         </div>
                     </div>
-                    <?php if ($section['showCategoryScrollButtons']) : ?><button class="boblift-cat-arrow group absolute -right-4 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 place-items-center rounded-sm border border-blue-100 bg-white/95 text-[#08234a] shadow-raised backdrop-blur transition duration-300 hover:scale-105 hover:border-blue-300 hover:text-blue-700 disabled:pointer-events-none disabled:opacity-30 lg:grid" type="button" data-product-scroll="next" aria-label="<?php echo esc_attr($section['nextCategoriesLabel']); ?>" disabled><?php echo boblift_icon('chevron-right', 'h-5 w-5 drop-shadow-sm stroke-[3]'); ?></button><?php endif; ?>
+                    <?php if ($section['showCategoryScrollButtons']) : ?><button class="boblift-cat-arrow group absolute -end-4 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 place-items-center rounded-sm border border-blue-100 bg-white/95 text-[#08234a] shadow-raised backdrop-blur transition duration-300 hover:scale-105 hover:border-blue-300 hover:text-blue-700 disabled:pointer-events-none disabled:opacity-30 lg:grid" type="button" data-product-scroll="next" aria-label="<?php echo esc_attr($section['nextCategoriesLabel']); ?>" disabled><?php echo boblift_icon('chevron-right', 'h-5 w-5 drop-shadow-sm stroke-[3] rtl:-scale-x-100'); ?></button><?php endif; ?>
                 </div>
 
                 <div class="relative z-10 mt-8 md:mt-10" data-product-stage>
@@ -247,7 +247,7 @@ function boblift_render_home_product_grid(array $category, int $index, array $se
         <?php $moment_label = (string) (boblift_site_ui('productArchive')['momentShortLabel'] ?? 'Moment'); ?>
         <div class="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4 lg:gap-5 xl:gap-7">
             <?php foreach ($category['products'] as $product_index => $product) : ?>
-                <a class="group flex min-h-[260px] flex-col overflow-hidden rounded border border-line bg-white text-left shadow-card transition duration-300 hover:-translate-y-1.5 hover:border-blue-300 sm:min-h-[410px]  lg:min-h-[360px] xl:min-h-[410px]" href="<?php echo esc_url(boblift_product_url($product)); ?>">
+                <a class="group flex min-h-[260px] flex-col overflow-hidden rounded border border-line bg-white text-start shadow-card transition duration-300 hover:-translate-y-1.5 hover:border-blue-300 sm:min-h-[410px]  lg:min-h-[360px] xl:min-h-[410px]" href="<?php echo esc_url(boblift_product_url($product)); ?>">
                     <span class="relative block h-[136px] w-full overflow-hidden bg-[radial-gradient(circle_at_48%_34%,#ffffff_0%,#f8fafc_34%,#eef2f7_64%,#e2e8f0_100%)] sm:h-auto sm:aspect-[1.3/1]"><span class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_82%,rgba(15,23,42,0.12),transparent_44%)]"></span><img class="absolute inset-0 z-10 h-full w-full object-contain p-3 drop-shadow-[0_6px_8px_rgba(11,27,51,0.10)] transition duration-300 group-hover:scale-[1.035] sm:p-5" src="<?php echo esc_url(boblift_product_image($product)); ?>" alt="<?php echo esc_attr($product['title'] ?? ''); ?>" loading="lazy" decoding="async"></span>
                     <?php
                     $card_model = trim((string) ($product['model'] ?? ''));

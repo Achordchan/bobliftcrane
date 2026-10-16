@@ -343,9 +343,9 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                         <?php foreach ($hero_specs as $index => $spec) :
                             [$spec_number, $spec_unit] = $hero_spec_parts((string) ($spec['value'] ?? ''));
                         ?>
-                            <div class="flex min-w-0 flex-col py-4 pr-3 <?php echo $index % 2 === 1 ? 'border-l border-[#D5DEE9] pl-4' : ''; ?> <?php echo $index >= 2 ? 'border-t border-[#D5DEE9] sm:border-t-0' : ''; ?> <?php echo $index === 2 ? 'sm:border-l sm:pl-4' : ''; ?>">
+                            <div class="flex min-w-0 flex-col py-4 pr-3 <?php echo $index % 2 === 1 ? 'border-l border-[#D5DEE9] ps-4' : ''; ?> <?php echo $index >= 2 ? 'border-t border-[#D5DEE9] sm:border-t-0' : ''; ?> <?php echo $index === 2 ? 'sm:border-l sm:ps-4' : ''; ?>">
                                 <dt class="text-[10px] font-black uppercase leading-4 tracking-[0.12em] text-slate-500"><?php echo esc_html($spec['label']); ?></dt>
-                                <dd class="mt-auto break-words pt-1.5 font-black leading-tight text-[#071f42] [font-variant-numeric:tabular-nums]"><span class="<?php echo ($spec_unit !== '' || mb_strlen($spec_number) <= 8) ? 'text-[clamp(22px,1.9vw,32px)]' : 'text-base'; ?>"><?php echo esc_html($spec_number); ?></span><?php if ($spec_unit !== '') : ?><span class="<?php echo $spec_unit === '°' ? '' : 'ml-1'; ?> text-sm font-bold text-slate-500"><?php echo esc_html($spec_unit); ?></span><?php endif; ?></dd>
+                                <dd class="mt-auto break-words pt-1.5 font-black leading-tight text-[#071f42] [font-variant-numeric:tabular-nums]"><span class="<?php echo ($spec_unit !== '' || mb_strlen($spec_number) <= 8) ? 'text-[clamp(22px,1.9vw,32px)]' : 'text-base'; ?>"><?php echo esc_html($spec_number); ?></span><?php if ($spec_unit !== '') : ?><span class="<?php echo $spec_unit === '°' ? '' : 'ms-1'; ?> text-sm font-bold text-slate-500"><?php echo esc_html($spec_unit); ?></span><?php endif; ?></dd>
                             </div>
                         <?php endforeach; ?>
                     </dl>
@@ -367,7 +367,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                                 $label = (string) ($hotspot['label'] ?? '');
                                 $x = max(0, min(100, (float) ($hotspot['x'] ?? 50)));
                                 $y = max(0, min(100, (float) ($hotspot['y'] ?? 50)));
-                                $label_position = $x > 58 ? 'right-full mr-3' : 'left-full ml-3';
+                                $label_position = $x > 58 ? 'end-full mr-3' : 'start-full ms-3';
                             ?>
                                 <button class="absolute grid h-7 w-7 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-sm border border-white/85 bg-[#071f42]/90 text-[11px] font-bold text-white shadow-card ring-2 ring-white/70 backdrop-blur transition hover:scale-105 hover:bg-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-200/70" style="left:<?php echo esc_attr((string) $x); ?>%;top:<?php echo esc_attr((string) $y); ?>%" type="button" data-product-hotspot aria-expanded="false" aria-label="<?php echo esc_attr($label); ?>">
                                     <span><?php echo esc_html((string) ($index + 1)); ?></span>
@@ -393,7 +393,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
             </div>
         </div>
     </section>
-    <div class="sticky top-0 z-30 border-y border-[#DDE7F2] bg-white/82 shadow-card backdrop-blur-xl"><nav class="page-shell flex min-h-14 items-center overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="<?php echo esc_attr($ui['sectionNavLabel'] ?? 'Product detail sections'); ?>"><a class="boblift-cinema-nav-link grid h-14 min-w-14 place-items-center border-x border-[#DDE7F2] text-[#0B3F7D]" href="#product-hero" data-product-section-link aria-label="<?php echo esc_attr($product['title'] ?? 'Product hero'); ?>"><?php echo boblift_icon('home', 'h-5 w-5'); ?></a><?php foreach ($anchors as $anchor) : ?><a class="boblift-cinema-nav-link flex h-14 min-w-max items-center justify-center border-r border-[#DDE7F2] px-5 text-xs font-black text-[#334155] transition hover:bg-blue-50 hover:text-[#0B3F7D] md:px-6 md:text-sm" href="#<?php echo esc_attr($anchor['id']); ?>" data-product-section-link><?php echo esc_html($anchor['label']); ?></a><?php endforeach; ?></nav></div>
+    <div class="sticky top-0 z-30 border-y border-[#DDE7F2] bg-white/82 shadow-card backdrop-blur-xl"><nav class="page-shell flex min-h-14 items-center overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="<?php echo esc_attr($ui['sectionNavLabel'] ?? 'Product detail sections'); ?>"><a class="boblift-cinema-nav-link grid h-14 min-w-14 place-items-center border-x border-[#DDE7F2] text-[#0B3F7D]" href="#product-hero" data-product-section-link aria-label="<?php echo esc_attr($product['title'] ?? 'Product hero'); ?>"><?php echo boblift_icon('home', 'h-5 w-5'); ?></a><?php foreach ($anchors as $anchor) : ?><a class="boblift-cinema-nav-link flex h-14 min-w-max items-center justify-center border-e border-[#DDE7F2] px-5 text-xs font-black text-[#334155] transition hover:bg-blue-50 hover:text-[#0B3F7D] md:px-6 md:text-sm" href="#<?php echo esc_attr($anchor['id']); ?>" data-product-section-link><?php echo esc_html($anchor['label']); ?></a><?php endforeach; ?></nav></div>
     <section class="bg-[#F5F7FB] py-8 md:py-12">
         <div class="page-shell min-w-0 space-y-6 md:space-y-8">
             <article id="technical" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card">
@@ -417,9 +417,9 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                         [$spec_number, $spec_unit] = $hero_spec_parts((string) $spec['value']);
                         $spec_wide = mb_strlen((string) $spec['value']) > 22;
                     ?>
-                        <div class="flex min-w-0 flex-col border-b border-r border-[#E6EDF5] px-4 py-4 sm:px-6 sm:py-5 <?php echo $spec_wide ? 'col-span-2' : ''; ?> <?php echo $index === 0 ? 'bg-[#F5F8FC]' : ''; ?>">
+                        <div class="flex min-w-0 flex-col border-b border-e border-[#E6EDF5] px-4 py-4 sm:px-6 sm:py-5 <?php echo $spec_wide ? 'col-span-2' : ''; ?> <?php echo $index === 0 ? 'bg-[#F5F8FC]' : ''; ?>">
                             <dt class="text-xs font-semibold leading-5 text-slate-500"><?php echo esc_html($spec['label']); ?></dt>
-                            <dd class="mt-auto break-words pt-1.5 font-black leading-tight text-[#071f42] [font-variant-numeric:tabular-nums]"><span class="<?php echo ($spec_unit !== '' || mb_strlen($spec_number) <= 12) ? 'text-lg md:text-xl' : 'text-sm md:text-base'; ?>"><?php echo esc_html($spec_number); ?></span><?php if ($spec_unit !== '') : ?><span class="<?php echo $spec_unit === '°' ? '' : 'ml-1'; ?> text-xs font-bold text-slate-500 md:text-sm"><?php echo esc_html($spec_unit); ?></span><?php endif; ?></dd>
+                            <dd class="mt-auto break-words pt-1.5 font-black leading-tight text-[#071f42] [font-variant-numeric:tabular-nums]"><span class="<?php echo ($spec_unit !== '' || mb_strlen($spec_number) <= 12) ? 'text-lg md:text-xl' : 'text-sm md:text-base'; ?>"><?php echo esc_html($spec_number); ?></span><?php if ($spec_unit !== '') : ?><span class="<?php echo $spec_unit === '°' ? '' : 'ms-1'; ?> text-xs font-bold text-slate-500 md:text-sm"><?php echo esc_html($spec_unit); ?></span><?php endif; ?></dd>
                         </div>
                     <?php endforeach; ?>
                 </dl>
@@ -441,9 +441,9 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                         </div>
                         <div class="mt-6 grid grid-cols-2 items-start gap-2 md:grid-cols-3 md:gap-3 <?php echo $detail_row ? 'lg:flex' : 'lg:grid-cols-4'; ?>">
                             <?php foreach ($detail_gallery as $index => $image) : ?>
-                                <button class="group relative block overflow-hidden rounded-sm border border-[#E6EDF5] bg-[#EDF1F5] text-left transition hover:border-blue-300 lg:min-w-0 lg:[flex:var(--detail-ratio)_1_0%]"<?php if ($detail_row) : ?> style="--detail-ratio: <?php echo esc_attr(number_format($image['width'] / $image['height'], 4, '.', '')); ?>"<?php endif; ?> type="button" data-detail-open="<?php echo esc_attr((string) $index); ?>" aria-label="<?php echo esc_attr($detail_alt . ' ' . $pad($index + 1) . ' / ' . $pad(count($detail_gallery))); ?>">
+                                <button class="group relative block overflow-hidden rounded-sm border border-[#E6EDF5] bg-[#EDF1F5] text-start transition hover:border-blue-300 lg:min-w-0 lg:[flex:var(--detail-ratio)_1_0%]"<?php if ($detail_row) : ?> style="--detail-ratio: <?php echo esc_attr(number_format($image['width'] / $image['height'], 4, '.', '')); ?>"<?php endif; ?> type="button" data-detail-open="<?php echo esc_attr((string) $index); ?>" aria-label="<?php echo esc_attr($detail_alt . ' ' . $pad($index + 1) . ' / ' . $pad(count($detail_gallery))); ?>">
                                     <img class="block h-auto w-full" src="<?php echo esc_url($image['preview']); ?>" alt="<?php echo esc_attr($detail_alt . ' ' . ($index + 1)); ?>"<?php if ($image['width'] && $image['height']) : ?> width="<?php echo esc_attr((string) $image['width']); ?>" height="<?php echo esc_attr((string) $image['height']); ?>"<?php endif; ?> loading="lazy" decoding="async">
-                                    <span class="absolute bottom-1.5 left-1.5 rounded-sm bg-[#071f42]/80 px-1.5 py-0.5 text-[10px] font-black tracking-[0.08em] text-white [font-variant-numeric:tabular-nums]"><?php echo esc_html($pad($index + 1)); ?></span>
+                                    <span class="absolute bottom-1.5 start-1.5 rounded-sm bg-[#071f42]/80 px-1.5 py-0.5 text-[10px] font-black tracking-[0.08em] text-white [font-variant-numeric:tabular-nums]"><?php echo esc_html($pad($index + 1)); ?></span>
                                     <span class="absolute inset-0 grid place-items-center bg-[#071f42]/0 text-white opacity-0 transition group-hover:bg-[#071f42]/30 group-hover:opacity-100"><?php echo boblift_icon('maximize-2', 'h-6 w-6'); ?></span>
                                 </button>
                             <?php endforeach; ?>
@@ -462,8 +462,8 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                                 <img class="mx-auto block h-auto w-full max-w-[750px] md:h-full md:w-auto md:max-w-full md:object-contain" src="" alt="" data-detail-image>
                             </div>
                             <?php if (count($detail_gallery) > 1) : ?>
-                                <button class="boblift-feedback-arrow left-2 md:left-5" type="button" data-detail-prev aria-label="<?php echo esc_attr($ui['previousLabel'] ?? 'Previous'); ?>"><?php echo boblift_icon('chevron-left', 'h-5 w-5'); ?></button>
-                                <button class="boblift-feedback-arrow right-2 md:right-5" type="button" data-detail-next aria-label="<?php echo esc_attr($ui['nextLabel'] ?? 'Next'); ?>"><?php echo boblift_icon('chevron-right', 'h-5 w-5'); ?></button>
+                                <button class="boblift-feedback-arrow left-2 md:start-5" type="button" data-detail-prev aria-label="<?php echo esc_attr($ui['previousLabel'] ?? 'Previous'); ?>"><?php echo boblift_icon('chevron-left', 'h-5 w-5'); ?></button>
+                                <button class="boblift-feedback-arrow right-2 md:end-5" type="button" data-detail-next aria-label="<?php echo esc_attr($ui['nextLabel'] ?? 'Next'); ?>"><?php echo boblift_icon('chevron-right', 'h-5 w-5'); ?></button>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -668,7 +668,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                 <p class="boblift-product-catalog-link"><a class="inline-flex h-12 items-center justify-center gap-2 rounded-sm border border-[#D8E2EF] bg-white px-5 text-sm font-black text-[#071f42] transition hover:-translate-y-0.5 hover:border-blue-300 hover:text-blue-700" href="<?php echo esc_url($catalog_url); ?>" target="_blank" rel="noopener"><?php echo boblift_icon('file-text', 'h-4 w-4'); ?><?php echo esc_html((string) ($ui['heroPdfLabel'] ?? 'PDF Catalog')); ?></a></p>
             <?php endif; ?>
             <?php boblift_render_brochures(['context' => 'product', 'families' => boblift_brochure_families_for_product($product), 'product' => $product_title, 'product_slug' => (string) ($product['slug'] ?? '')]); ?>
-            <section id="quote" class="boblift-product-quote-section relative left-1/2 w-screen -translate-x-1/2 scroll-mt-24 overflow-hidden border-y border-[#DDE7F2] bg-[radial-gradient(circle_at_70%_28%,rgba(245,154,60,0.16),transparent_28%),linear-gradient(135deg,#ffffff_0%,#eaf2ff_100%)] py-12 text-[#071f42] shadow-card md:py-16">
+            <section id="quote" class="boblift-product-quote-section relative left-1/2 w-screen -translate-x-1/2 rtl:left-auto rtl:right-1/2 rtl:translate-x-1/2 scroll-mt-24 overflow-hidden border-y border-[#DDE7F2] bg-[radial-gradient(circle_at_70%_28%,rgba(245,154,60,0.16),transparent_28%),linear-gradient(135deg,#ffffff_0%,#eaf2ff_100%)] py-12 text-[#071f42] shadow-card md:py-16">
                 <div class="page-shell grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_auto] xl:gap-12">
                     <div class="boblift-product-quote-copy flex items-start gap-5 md:gap-6">
                         <div class="hidden h-20 w-20 shrink-0 place-items-center rounded border border-blue-100 bg-white/74 text-[#0B3F7D] shadow-card md:grid"><?php echo boblift_icon('mail', 'h-10 w-10'); ?></div>

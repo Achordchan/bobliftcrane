@@ -38,11 +38,11 @@ $empty_text = (string) ($ui['emptyText'] ?? 'Choose another category to browse m
 
 <section id="news-updates" class="page-shell scroll-mt-[120px] pb-20 pt-8 md:pt-10 2xl:pb-24" data-news-filter-root data-news-max-visible="6" data-news-initial-category="<?php echo esc_attr($active_category); ?>">
     <div class="mb-14 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-        <div class="boblift-news-view-switch mr-auto" aria-label="<?php echo esc_attr((string) ($ui['viewModeLabel'] ?? 'News display mode')); ?>">
+        <div class="boblift-news-view-switch me-auto" aria-label="<?php echo esc_attr((string) ($ui['viewModeLabel'] ?? 'News display mode')); ?>">
             <button class="boblift-news-view-button is-active" type="button" data-news-view-button="grid" aria-pressed="true"><?php echo boblift_icon('grid-3x3', 'h-4 w-4'); ?><span><?php echo esc_html((string) ($ui['defaultViewLabel'] ?? 'Default')); ?></span></button>
             <button class="boblift-news-view-button" type="button" data-news-view-button="list" aria-pressed="false"><?php echo boblift_icon('list', 'h-4 w-4'); ?><span><?php echo esc_html((string) ($ui['listViewLabel'] ?? 'List')); ?></span></button>
         </div>
-        <div class="flex flex-wrap justify-start gap-4 xl:ml-auto xl:justify-end">
+        <div class="flex flex-wrap justify-start gap-4 xl:ms-auto xl:justify-end">
             <button class="boblift-news-category-pill <?php echo $active_category === '' ? 'is-active' : ''; ?>" type="button" data-news-filter-button value="" aria-pressed="<?php echo $active_category === '' ? 'true' : 'false'; ?>"><?php echo esc_html($all_label); ?></button>
             <?php foreach ($news_categories as $category) : ?>
                 <button class="boblift-news-category-pill <?php echo $active_category === $category->slug ? 'is-active' : ''; ?>" type="button" data-news-filter-button value="<?php echo esc_attr($category->slug); ?>" aria-pressed="<?php echo $active_category === $category->slug ? 'true' : 'false'; ?>"><?php echo esc_html(function_exists('boblift_localized_static_text') ? boblift_localized_static_text($category->name) : $category->name); ?></button>

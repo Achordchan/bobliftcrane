@@ -1,7 +1,8 @@
 import os, sys
 import matplotlib; matplotlib.use('Agg')
-# usage: python3 charts.py [source-dir]  ->  <source-dir>/forklift-charts/*.png (default tools/content-gap/source)
-OUT = os.path.join(sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(os.path.abspath(__file__)), 'source'), 'forklift-charts')
+# usage: python3 charts.py [source-dir]  ->  <source-dir>/forklift-charts/*.png (default: $CONTENT_GAP_SOURCE, else tools/content-gap/source)
+SOURCE = sys.argv[1] if len(sys.argv) > 1 else os.environ.get('CONTENT_GAP_SOURCE') or os.path.join(os.path.dirname(os.path.abspath(__file__)), 'source')
+OUT = os.path.join(SOURCE, 'forklift-charts')
 os.makedirs(OUT, exist_ok=True)
 import matplotlib.pyplot as plt, numpy as np
 models=[('2.3 t (CC85)',2.3,50,5.4,560,'#c8102e'),('2.5 t (CC105)',2.5,50,6.6,650,'#e8792b'),('3.5 t (CC125)',3.5,60,8.0,850,'#2b6cb0'),('7 t (CC165)',7.0,180,15.2,2000,'#3a8a5a')]

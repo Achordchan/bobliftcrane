@@ -41,7 +41,7 @@ $active_gallery_is_local_video = $active_gallery_type === 'local_video' && $acti
 $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_gallery_youtube !== '';
 ?>
 <section class="boblift-home-hero relative overflow-hidden border-b border-line bg-white" aria-labelledby="home-hero-title"<?php echo $hero_count > 1 ? ' aria-roledescription="carousel" data-home-hero' : ''; ?>>
-    <div class="boblift-home-hero-media relative aspect-[16/10] w-full overflow-hidden bg-mist sm:aspect-[2/1] lg:absolute lg:inset-y-0 lg:right-0 lg:aspect-auto lg:w-[66%] lg:bg-white 2xl:w-[62%]">
+    <div class="boblift-home-hero-media relative aspect-[16/10] w-full overflow-hidden bg-mist sm:aspect-[2/1] lg:absolute lg:inset-y-0 lg:end-0 lg:aspect-auto lg:w-[66%] lg:bg-white 2xl:w-[62%]">
         <?php foreach ($hero_slides as $index => $slide) : ?>
             <?php $hero_mobile_image = boblift_image_setting_url($slide['mobile_image'] ?? '', ''); ?>
             <picture class="contents">
@@ -72,7 +72,7 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
                 <div class="order-first mb-7 flex items-end gap-4 lg:order-none lg:mb-0 lg:mt-12">
                     <div class="grid flex-1 gap-4 <?php echo $hero_count > 2 ? 'grid-cols-3' : 'grid-cols-2'; ?>" role="tablist" aria-label="<?php echo esc_attr($home_ui['heroAriaLabel'] ?? 'Featured lifting solutions'); ?>">
                         <?php foreach ($hero_slides as $index => $slide) : ?>
-                            <button class="boblift-home-hero-tab relative flex items-baseline gap-1.5 border-t-2 border-line pt-3 text-left text-sm font-black leading-5 text-slate-500 transition-colors hover:text-navy aria-selected:text-ink" type="button" role="tab" id="home-hero-tab-<?php echo esc_attr((string) $index); ?>" aria-controls="home-hero-slide-<?php echo esc_attr((string) $index); ?>" aria-selected="<?php echo $index === 0 ? 'true' : 'false'; ?>" tabindex="<?php echo $index === 0 ? '0' : '-1'; ?>" data-home-hero-tab>
+                            <button class="boblift-home-hero-tab relative flex items-baseline gap-1.5 border-t-2 border-line pt-3 text-start text-sm font-black leading-5 text-slate-500 transition-colors hover:text-navy aria-selected:text-ink" type="button" role="tab" id="home-hero-tab-<?php echo esc_attr((string) $index); ?>" aria-controls="home-hero-slide-<?php echo esc_attr((string) $index); ?>" aria-selected="<?php echo $index === 0 ? 'true' : 'false'; ?>" tabindex="<?php echo $index === 0 ? '0' : '-1'; ?>" data-home-hero-tab>
                                 <span class="boblift-home-hero-tab-bar absolute inset-x-0 -top-0.5 h-0.5 bg-navy" aria-hidden="true"></span>
                                 <span class="tabular-nums text-slate-400"><?php echo esc_html(sprintf('%02d', $index + 1)); ?></span>
                                 <span><?php echo esc_html(trim((string) ($slide['tab'] ?? ''))); ?></span>
@@ -136,7 +136,7 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
                 ?>
                 <button class="relative h-12 overflow-hidden rounded-sm border shadow-card transition duration-200 sm:h-16 lg:h-12 xl:h-16 <?php echo $index === $active_gallery_index ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-white'; ?>" type="button" data-about-thumb data-type="<?php echo esc_attr($gallery_type); ?>" data-src="<?php echo esc_url($gallery_image); ?>" data-alt="<?php echo esc_attr($item['alt'] ?? ''); ?>" data-video-src="<?php echo esc_url($gallery_video); ?>" data-youtube-src="<?php echo esc_url($gallery_youtube); ?>" data-video="<?php echo $gallery_is_video ? 'true' : 'false'; ?>" aria-label="<?php echo esc_attr(str_replace('{item}', (string) ($item['alt'] ?? ($home_ui['galleryFallbackLabel'] ?? 'gallery image')), (string) ($home_ui['showGalleryTemplate'] ?? 'Show {item}'))); ?>">
                     <img src="<?php echo esc_url($gallery_image); ?>" alt="<?php echo esc_attr($item['alt'] ?? ''); ?>" class="h-full w-full object-cover" loading="lazy" decoding="async">
-                    <?php if ($gallery_is_video) : ?><span class="absolute bottom-1 right-1 rounded-sm bg-navy/85 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.08em] text-white shadow-card sm:bottom-1.5 sm:right-1.5 sm:px-2 sm:text-[9px]"><?php echo esc_html($home_ui['videoLabel'] ?? 'Video'); ?></span><?php endif; ?>
+                    <?php if ($gallery_is_video) : ?><span class="absolute bottom-1 end-1 rounded-sm bg-navy/85 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.08em] text-white shadow-card sm:bottom-1.5 sm:end-1.5 sm:px-2 sm:text-[9px]"><?php echo esc_html($home_ui['videoLabel'] ?? 'Video'); ?></span><?php endif; ?>
                 </button>
             <?php endforeach; ?>
         </div>
@@ -155,7 +155,7 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
         <?php endif; ?>
         <div class="mt-7 grid grid-cols-2 gap-4 sm:mt-10 sm:grid-cols-4 sm:gap-5 lg:mt-7 lg:gap-4 xl:mt-10 xl:gap-6">
             <?php foreach (($about['timeline'] ?? []) as $item) : $parts = explode(' ', (string) $item, 2); ?>
-                <div class="relative border-t border-line pt-6 lg:pt-5 xl:pt-6"><span class="absolute -top-2 left-0 h-4 w-4 rounded-full border-4 border-white bg-gold shadow-card"></span><strong class="block text-sm font-black text-ink"><?php echo esc_html($parts[0] ?? ''); ?></strong><p class="mt-2 text-xs font-bold leading-5 text-slate-500 lg:mt-1.5 lg:leading-4 xl:mt-2 xl:leading-5"><?php echo esc_html($parts[1] ?? ''); ?></p></div>
+                <div class="relative border-t border-line pt-6 lg:pt-5 xl:pt-6"><span class="absolute -top-2 start-0 h-4 w-4 rounded-full border-4 border-white bg-gold shadow-card"></span><strong class="block text-sm font-black text-ink"><?php echo esc_html($parts[0] ?? ''); ?></strong><p class="mt-2 text-xs font-bold leading-5 text-slate-500 lg:mt-1.5 lg:leading-4 xl:mt-2 xl:leading-5"><?php echo esc_html($parts[1] ?? ''); ?></p></div>
             <?php endforeach; ?>
         </div>
         <a class="mt-9 inline-flex items-center gap-2 text-base font-black text-ink md:text-lg lg:mt-6 xl:mt-9" href="<?php echo esc_url(boblift_url($about['cta_href'] ?? '/about')); ?>"><?php echo esc_html($about['cta_label'] ?? 'More About Us'); ?> <?php echo boblift_icon('arrow-right', 'h-5 w-5'); ?></a>

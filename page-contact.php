@@ -72,19 +72,19 @@ $visit_links = is_array($ui['visitLinks'] ?? null) ? $ui['visitLinks'] : [];
                     <div class="py-3.5">
                         <dt class="<?php echo esc_attr($eyebrow); ?>"><?php echo esc_html($t('phoneWhatsappLabel', 'Phone / WhatsApp')); ?></dt>
                         <dd class="mt-1 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-                            <a class="text-base font-black text-ink transition hover:text-blue-700" href="<?php echo esc_url((string) $contact['phoneHref']); ?>"><?php echo esc_html($phone_text); ?></a>
+                            <a class="text-base font-black text-ink transition hover:text-blue-700" href="<?php echo esc_url((string) $contact['phoneHref']); ?>"><span dir="ltr"><?php echo esc_html($phone_text); ?></span></a>
                             <a class="inline-flex items-center gap-1.5 text-sm font-bold text-blue-700 transition hover:text-navy" href="<?php echo esc_url($contact['whatsappHref']); ?>" target="_blank" rel="noreferrer"><?php echo boblift_icon('whatsapp', 'h-4 w-4'); ?><?php echo esc_html((string) ($ui['cardLabels']['whatsapp'] ?? 'WhatsApp')); ?></a>
                         </dd>
                     </div>
                     <?php else : ?>
                     <div class="py-3.5">
                         <dt class="<?php echo esc_attr($eyebrow); ?>"><?php echo esc_html($t('phoneLabel', 'Phone')); ?></dt>
-                        <dd class="mt-1"><a class="text-base font-black text-ink transition hover:text-blue-700" href="<?php echo esc_url((string) $contact['phoneHref']); ?>"><?php echo esc_html($phone_text); ?></a></dd>
+                        <dd class="mt-1"><a class="text-base font-black text-ink transition hover:text-blue-700" href="<?php echo esc_url((string) $contact['phoneHref']); ?>"><span dir="ltr"><?php echo esc_html($phone_text); ?></span></a></dd>
                     </div>
                     <div class="py-3.5">
                         <dt class="<?php echo esc_attr($eyebrow); ?>">WhatsApp</dt>
                         <dd class="mt-1 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-                            <span class="text-base font-black text-ink"><?php echo esc_html($whatsapp_text); ?></span>
+                            <span class="text-base font-black text-ink"><span dir="ltr"><?php echo esc_html($whatsapp_text); ?></span></span>
                             <a class="inline-flex items-center gap-1.5 text-sm font-bold text-blue-700 transition hover:text-navy" href="<?php echo esc_url($contact['whatsappHref']); ?>" target="_blank" rel="noreferrer"><?php echo boblift_icon('whatsapp', 'h-4 w-4'); ?><?php echo esc_html((string) ($ui['cardLabels']['whatsapp'] ?? 'WhatsApp')); ?></a>
                         </dd>
                     </div>

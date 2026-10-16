@@ -24,38 +24,8 @@ uploads/
 backups/
 test-results/
 tmp/
-var/
-
-# Customer feedback media: built by tools/feedback/build.py from the shared folder, copied to the server for apply.php.
-tools/feedback/media/
-
-# Site videos: local preview only, uploaded to YouTube at launch (see inc/video-library.php).
-assets/videos/library/
-assets/videos/social/*.mp4
-
-# Media (images, icons, PDFs, videos, fonts, certificates) is uploaded to the server over SSH, not kept in git.
-/assets/**/*.webp
-/assets/**/*.jpg
-/assets/**/*.jpeg
-/assets/**/*.png
-/assets/**/*.gif
-/assets/**/*.svg
-/assets/**/*.ico
-/assets/**/*.pdf
-/assets/**/*.mp4
-/assets/**/*.mov
-/assets/**/*.webm
-/assets/**/*.woff
-/assets/**/*.woff2
-/assets/**/*.ttf
-/assets/**/*.otf
-/tools/**/*.webp
-/tools/**/*.jpg
-/tools/**/*.jpeg
-/tools/**/*.png
-/tools/**/*.pdf
-/tools/**/*.ai
-
 /tools/**/*.zip
-
 /boblift-backups/
+/tools/content-gap/source/products/
+/tools/content-gap/source/forklift-charts/
+/tools/content-gap/source/*.zip
