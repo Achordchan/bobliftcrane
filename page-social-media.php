@@ -80,26 +80,69 @@ $absolute_href = static function (string $href): string {
     }
     return '';
 };
-// Real account URLs saved in the footer social links, keyed by platform identity.
+// Whole-word platform identities in a qualified label ("LinkedIn Europe" -> linkedin, europe; "Sina Weibo" -> weibo).
+// Words and adjacent word pairs are compared whole, so X still never matches inside Xiaohongshu.
+$word_identities = static function (string $label) use ($platform_identity): array {
+    $words = preg_split('/[^\p{L}\p{N}]+/u', function_exists('mb_strtolower') ? mb_strtolower($label, 'UTF-8') : strtolower($label), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+    $identities = [];
+    // Words of a compound platform name (WeChat Channels, Facebook Messenger) are not the parent platform's account.
+    $compounds = ['wechatchannels', 'facebookmessenger'];
+    $skip = [];
+    foreach ($words as $index => $word) {
+        if (isset($words[$index + 1]) && in_array($platform_identity($word . ' ' . $words[$index + 1]), $compounds, true)) {
+            $skip[$index] = $skip[$index + 1] = true;
+        }
+    }
+    foreach ($words as $index => $word) {
+        foreach (isset($words[$index + 1]) ? [$word . ' ' . $words[$index + 1], $word] : [$word] as $part) {
+            if ($part === $word && isset($skip[$index])) {
+                continue;
+            }
+            if (preg_replace('/boblift|official|page|account|bob|lift/u', '', (string) preg_replace('/[^a-z0-9\p{Han}]+/u', '', $part)) !== '') {
+                $identities[] = $platform_identity($part);
+            }
+        }
+    }
+    return array_values(array_unique(array_filter($identities)));
+};
+// Real account URLs saved in the footer social links, keyed by platform identity; qualified labels are also keyed by
+// their platform words, used only when no exact label matches.
 $footer_social = is_array($site_options['footer']['social_links'] ?? null) ? $site_options['footer']['social_links'] : [];
 $link_map = [];
+$word_link_map = [];
 foreach ($footer_social as $link) {
-    $identity = $platform_identity((string) (is_array($link) ? ($link['label'] ?? '') : ''));
+    $label = (string) (is_array($link) ? ($link['label'] ?? '') : '');
+    $identity = $platform_identity($label);
     $href = $absolute_href((string) (is_array($link) ? ($link['href'] ?? '') : ''));
     if ($identity !== '' && $href !== '') {
         $link_map[$identity] = $href;
+        foreach ($word_identities($label) as $word_identity) {
+            $word_link_map[$word_identity] ??= $href;
+        }
     }
 }
 // A card links out only once a real account URL is saved (its own, or the footer's for the same platform); placeholders and old /contact fallbacks stay unlinked.
-$account_url = static function (array $platform) use ($link_map, $platform_identity, $absolute_href): string {
+$account_url = static function (array $platform) use ($link_map, $word_link_map, $platform_identity, $word_identities, $absolute_href): string {
     $href = $absolute_href((string) ($platform['href'] ?? ''));
     if ($href !== '') {
         return $href;
     }
-    foreach ([(string) ($platform['label'] ?? ''), (string) ($platform['icon'] ?? '')] as $name) {
+    $names = [(string) ($platform['label'] ?? ''), (string) ($platform['icon'] ?? '')];
+    foreach ($names as $name) {
         $identity = $platform_identity($name);
         if ($identity !== '' && isset($link_map[$identity])) {
             return $link_map[$identity];
+        }
+    }
+    // Qualified names on either side ("LinkedIn Europe" in the footer, or on the card) still pair by whole platform words.
+    foreach ($names as $name) {
+        foreach (array_merge([$platform_identity($name)], $word_identities($name)) as $identity) {
+            if ($identity !== '' && isset($word_link_map[$identity])) {
+                return $word_link_map[$identity];
+            }
+            if ($identity !== '' && isset($link_map[$identity])) {
+                return $link_map[$identity];
+            }
         }
     }
     return '';
