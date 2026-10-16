@@ -141,12 +141,12 @@ foreach ($jobs as [$lang, $id, $data]) {
         // An existing translation keeps its own dates, so a scheduled one stays scheduled.
         $postarr['ID'] = $existing;
         if (!$staged) { update_post_meta($existing, '_news_i18n_staging', 'update'); }
-        $new_id = wp_update_post($postarr, true);
+        $new_id = wp_update_post(wp_slash($postarr), true);
     } else {
         $postarr['post_date'] = $en->post_date;
         $postarr['post_date_gmt'] = $en->post_date_gmt;
         $postarr['meta_input'] = ['_news_i18n_staging' => 'publish'];
-        $new_id = wp_insert_post($postarr, true);
+        $new_id = wp_insert_post(wp_slash($postarr), true);
     }
     if (is_wp_error($new_id)) { fwrite(STDERR, $new_id->get_error_message() . "\n"); exit(1); }
     pll_set_post_language($new_id, $lang);
@@ -155,9 +155,9 @@ foreach ($jobs as [$lang, $id, $data]) {
     pll_save_post_translations($group);
     $thumb = get_post_thumbnail_id($en->ID);
     if ($thumb) { set_post_thumbnail($new_id, $thumb); }
-    update_post_meta($new_id, '_seo_title', $data['seo_title']);
-    update_post_meta($new_id, '_seo_description', $data['seo_description']);
-    update_post_meta($new_id, '_seo_keywords', $data['seo_keywords']);
+    update_post_meta($new_id, '_seo_title', wp_slash($data['seo_title']));
+    update_post_meta($new_id, '_seo_description', wp_slash($data['seo_description']));
+    update_post_meta($new_id, '_seo_keywords', wp_slash($data['seo_keywords']));
     // Only a translation this importer created is published; an existing one keeps the status its editor gave it.
     $done[(int) $new_id] = [$lang, $data, get_post_meta($new_id, '_news_i18n_staging', true) === 'publish'];
 }
@@ -167,7 +167,7 @@ $pending = array_filter($done, static fn(array $item): bool => $item[2]);
 foreach ($done as $new_id => [$lang, $data, $publish]) {
     $update = ['ID' => $new_id, 'post_content' => bl_news_links($data['content'], $lang, $pending)];
     if ($publish && get_post_status($new_id) === 'draft') { $update['post_status'] = 'publish'; }
-    $result = wp_update_post($update, true);
+    $result = wp_update_post(wp_slash($update), true);
     if (is_wp_error($result) || !$result || ($publish && get_post_status($new_id) !== 'publish')) {
         $report['failed']++;
         fwrite(STDERR, "Could not finish translation $new_id ($lang); it stays staged and a rerun will retry.\n");
