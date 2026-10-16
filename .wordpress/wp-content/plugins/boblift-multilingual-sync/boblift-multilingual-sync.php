@@ -19,5 +19,6 @@ require_once __DIR__ . '/includes/core.php';
 require_once __DIR__ . '/includes/jobs.php';
 require_once __DIR__ . '/includes/admin.php';
 require_once __DIR__ . '/includes/cli.php';
+require_once __DIR__ . '/includes/transport.php';
 
 register_activation_hook(__FILE__, 'boblift_mls_install_jobs_schema');
