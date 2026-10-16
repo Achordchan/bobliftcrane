@@ -17,8 +17,8 @@ $map_link_url = 'https://www.google.com/maps/search/?api=1&query=' . $map_query;
             <h1 class="text-[clamp(32px,8.8vw,38px)] font-black leading-[1.04] tracking-[-0.05em] text-navy md:text-[50px] xl:text-[56px] 2xl:text-[64px]"><?php echo esc_html($ui['heroTitle']); ?></h1>
             <p class="mt-4 max-w-2xl text-base font-semibold leading-7 text-slate-600 md:mt-6 md:text-lg md:leading-8 2xl:text-xl 2xl:leading-9"><?php echo esc_html($ui['heroDescription']); ?></p>
             <div class="mt-6 grid grid-cols-2 gap-3 md:mt-8 md:flex md:flex-wrap md:gap-4">
-                <a class="boblift-contact-proof-chip" href="mailto:<?php echo esc_attr($contact['email']); ?>"><?php echo boblift_icon('mail', 'h-6 w-6 text-blue-700 md:h-7 md:w-7', '1.8'); ?><span><strong><?php echo esc_html($ui['cardLabels']['email']); ?></strong><small><?php echo esc_html($contact['email']); ?></small></span></a>
-                <a class="boblift-contact-proof-chip" href="<?php echo esc_url($contact['whatsappHref']); ?>" target="_blank" rel="noreferrer"><?php echo boblift_icon('message-circle', 'h-6 w-6 text-blue-700 md:h-7 md:w-7', '1.8'); ?><span><strong><?php echo esc_html($ui['cardLabels']['whatsapp']); ?></strong><small><?php echo esc_html($ui['whatsappValue']); ?></small></span></a>
+                <a class="boblift-contact-proof-chip" href="mailto:<?php echo esc_attr($contact['email']); ?>"><?php echo boblift_icon('mail', 'h-6 w-6 text-blue-700 md:h-7 md:w-7', '1.8'); ?><span><strong><?php echo esc_html($ui['cardLabels']['email']); ?></strong><small><span dir="ltr"><?php echo esc_html($contact['email']); ?></span></small></span></a>
+                <a class="boblift-contact-proof-chip" href="<?php echo esc_url($contact['whatsappHref']); ?>" target="_blank" rel="noreferrer"><?php echo boblift_icon('message-circle', 'h-6 w-6 text-blue-700 md:h-7 md:w-7', '1.8'); ?><span><strong><?php echo esc_html($ui['cardLabels']['whatsapp']); ?></strong><small><span dir="ltr"><?php echo esc_html($ui['whatsappValue']); ?></span></small></span></a>
             </div>
         </div>
         <div class="boblift-news-hero-image">
