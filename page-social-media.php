@@ -105,7 +105,8 @@ $posts = array_map(static function (array $post) use ($has_media): array {
 $gallery = array_map(static fn(array $post): string => boblift_image_setting_url($post['image']), $posts);
 $captions = array_map(static fn(array $post): string => $t($post['title'] ?? ''), $posts);
 // The lightbox caption carries the saved description too ("Title — description"), so older cards keep their text.
-$lightbox_captions = array_map(static fn(array $post): string => trim($t($post['title'] ?? '') . (trim((string) ($post['text'] ?? '')) !== '' ? ' — ' . $t($post['text']) : ''), ' —'), $posts);
+// Separator only between two non-empty parts (trim()'s byte mask would cut multibyte characters).
+$lightbox_captions = array_map(static fn(array $post): string => implode(' — ', array_filter([$t($post['title'] ?? ''), $t($post['text'] ?? '')], static fn(string $part): bool => $part !== '')), $posts);
 $posts_title = $t($labels['posts_title'] ?? 'What we have been posting.');
 
 // A short plays from YouTube once its link is saved; until then from the MP4, which only exists on a local preview.

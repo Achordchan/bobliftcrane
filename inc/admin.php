@@ -2169,7 +2169,9 @@ function boblift_admin_site_ui_fields(array $defaults, array $values, string $pa
             continue;
         }
         $label = boblift_admin_site_ui_field_label($key_string);
-        $string_value = (string) $value;
+        // A text saved empty stays empty in the editor, as on the front end (e.g. the author note cleared when an external
+        // source credit was carried over); only image fields fall back to the default above.
+        $string_value = is_scalar($current) ? (string) $current : (string) $value;
         echo '<div class="boblift-admin-field boblift-site-ui-field" data-site-ui-field data-site-ui-label="' . esc_attr($label) . '" data-site-ui-key="' . esc_attr($key_string) . '" data-site-ui-path="' . esc_attr($field_path) . '">';
         echo '<label><span>' . esc_html($label) . '</span><span class="boblift-site-ui-key"><code>' . esc_html($key_string) . '</code></span></label>';
         if (strlen($string_value) > 90 || str_contains($string_value, '.')) {

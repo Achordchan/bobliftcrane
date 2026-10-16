@@ -149,35 +149,64 @@ function boblift_migrate_shared_case_slugs(): void
 add_action('admin_init', 'boblift_migrate_shared_case_slugs');
 
 /**
+ * The language the requested address belongs to, in every Polylang URL mode: the directory (/ja/...), the subdomain
+ * (ja.example.com) or a language domain, falling back to the default language there; in content mode only an explicit
+ * ?lang= counts. "" when the address does not say (or without Polylang).
+ */
+function boblift_request_url_language(): string
+{
+    if (!function_exists('pll_languages_list') || !function_exists('pll_default_language')) {
+        return '';
+    }
+    $options = (array) get_option('polylang', []);
+    $languages = array_map('strval', (array) pll_languages_list(['fields' => 'slug']));
+    $host = strtolower((string) parse_url('http://' . ($_SERVER['HTTP_HOST'] ?? ''), PHP_URL_HOST));
+    switch ((int) ($options['force_lang'] ?? 0)) {
+        case 1:
+            $path = '/' . ltrim((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH), '/');
+            $base = function_exists('boblift_language_path_base') ? boblift_language_path_base() : '';
+            foreach ($languages as $slug) {
+                if (preg_match('#^/' . preg_quote($base . $slug, '#') . '(/|$)#', $path)) {
+                    return $slug;
+                }
+            }
+            break;
+        case 2:
+            $label = explode('.', $host)[0] ?? '';
+            if (in_array($label, $languages, true)) {
+                return $label;
+            }
+            break;
+        case 3:
+            foreach ((array) ($options['domains'] ?? []) as $slug => $url) {
+                if ($host !== '' && strtolower((string) parse_url((string) $url, PHP_URL_HOST)) === $host && in_array((string) $slug, $languages, true)) {
+                    return (string) $slug;
+                }
+            }
+            break;
+        default:
+            // Language set from the content: the address says nothing unless it carries ?lang=.
+            $lang = isset($_GET['lang']) ? sanitize_key(wp_unslash((string) $_GET['lang'])) : '';
+            return in_array($lang, $languages, true) ? $lang : '';
+    }
+    return (string) pll_default_language();
+}
+
+/**
  * Case URLs are language-aware: before boblift_migrate_shared_case_slugs() a translated case shared its English slug, so
- * an old /ja/<slug>.html now matches the English case. When the URL's language directory differs from the language of the
+ * an old /ja/<slug>.html (or ja.<host>/<slug>.html) now matches the English case. When the URL's language differs from the language of the
  * case it resolved to and that case has a published translation in the URL's language, send the visitor there (301).
  */
 function boblift_redirect_case_to_url_language(): void
 {
-    if (!is_singular('case') || !function_exists('pll_get_post_language') || !function_exists('pll_get_post') || !function_exists('boblift_prefixed_languages')) {
-        return;
-    }
-    // Only Polylang's directory mode carries the language in the path; with language domains or subdomains there is nothing to correct.
-    if ((int) (((array) get_option('polylang', []))['force_lang'] ?? 0) !== 1) {
+    if (!is_singular('case') || !function_exists('pll_get_post_language') || !function_exists('pll_get_post')) {
         return;
     }
     $post = get_queried_object();
     if (!$post instanceof WP_Post) {
         return;
     }
-    $path = '/' . ltrim((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH), '/');
-    $base = function_exists('boblift_language_path_base') ? boblift_language_path_base() : '';
-    $url_language = '';
-    foreach (boblift_prefixed_languages() as $slug) {
-        if (preg_match('#^/' . preg_quote($base . $slug, '#') . '(/|$)#', $path)) {
-            $url_language = (string) $slug;
-            break;
-        }
-    }
-    if ($url_language === '' && function_exists('pll_default_language')) {
-        $url_language = (string) pll_default_language();
-    }
+    $url_language = boblift_request_url_language();
     $post_language = (string) pll_get_post_language($post->ID);
     if ($url_language === '' || $post_language === '' || $url_language === $post_language) {
         return;
