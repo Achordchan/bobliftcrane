@@ -285,7 +285,12 @@ function boblift_product_content_ready(int $post_id, string $flag_key): bool
             if (preg_match('/webpc-passthru\.php\?(?:[^#]*&)?src=([^&#]+)/', $src, $found)) {
                 $src = rawurldecode($found[1]);
             }
-            $site_hosts = array_filter([strtolower((string) wp_parse_url(home_url(), PHP_URL_HOST)), strtolower((string) wp_parse_url(wp_get_upload_dir()['baseurl'], PHP_URL_HOST))]);
+            $site_hosts = [strtolower((string) wp_parse_url(home_url(), PHP_URL_HOST)), strtolower((string) wp_parse_url(wp_get_upload_dir()['baseurl'], PHP_URL_HOST))];
+            // Every language domain counts as this site, as in single-product.php.
+            foreach (function_exists('pll_languages_list') ? pll_languages_list() : [] as $language_slug) {
+                $site_hosts[] = strtolower((string) wp_parse_url((string) (function_exists('pll_home_url') ? pll_home_url($language_slug) : ''), PHP_URL_HOST));
+            }
+            $site_hosts = array_filter($site_hosts);
             $original_host = strtolower((string) wp_parse_url($src, PHP_URL_HOST));
             // Only this site's own addresses (an old or language domain) are moved onto the uploads host; another site's
             // /wp-content/uploads/ picture keeps its host, so the check below still sees it as an editor's choice.
