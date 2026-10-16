@@ -67,12 +67,14 @@ function boblift_news_product_index(): array
             [(string) get_post_meta($product->ID, '_model', true)],
             preg_split('/[,;\n]+/', (string) get_post_meta($product->ID, '_model_aliases', true)) ?: []
         )), static fn(string $model): bool => strlen($model) >= 4);
-        $terms = wp_get_post_terms($product->ID, 'product_category', ['fields' => 'slugs']);
+        // get_the_terms() reads the term cache get_posts() primed, instead of one query per product.
+        $terms = get_the_terms($product, 'product_category');
+        $terms = is_array($terms) ? wp_list_pluck($terms, 'slug') : [];
         $index[] = [
             'id' => $product->ID,
             'models' => array_values(array_unique($models)),
             'capacity' => function_exists('boblift_product_filter_values') ? (float) (boblift_product_filter_values($product->ID)['capacity'] ?? 0) : 0.0,
-            'categories' => is_array($terms) ? $terms : [],
+            'categories' => array_values($terms),
         ];
     }
     return $index;
