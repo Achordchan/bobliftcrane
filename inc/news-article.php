@@ -26,8 +26,9 @@ function boblift_news_article_toc(string $content): array
         if (preg_match('/\sid=["\']([^"\']+)["\']/i', $attributes, $id_match)) {
             $id = $id_match[1];
         } else {
-            $base = sanitize_title($text);
-            $base = $base !== '' && !preg_match('/^%/', $base) ? $base : 'section';
+            // sanitize_title() percent-encodes non-ASCII letters; decode them so the id and the TOC fragment are the same text.
+            $base = (string) preg_replace('/\s+/u', '-', rawurldecode(sanitize_title($text)));
+            $base = $base !== '' ? $base : 'section';
             $id = $base;
             for ($n = 2; isset($used[$id]); $n++) {
                 $id = $base . '-' . $n;
