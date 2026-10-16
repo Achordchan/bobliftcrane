@@ -2985,7 +2985,7 @@
 
       filterGroups.forEach((group) => {
         const filterName = group.dataset.filterGroup || '';
-        const eligibleCards = categoryCards.filter((card) => cardHasFilterValue(card, filterName) && passesOtherGroups(card, filterName));
+        const eligibleCards = categoryCards.filter((card) => passesOtherGroups(card, filterName));
         const groupTotal = categoryCards.filter((card) => cardHasFilterValue(card, filterName)).length;
         let usefulOptions = 0;
         qsa('[data-filter-option]', group).forEach((option) => {
@@ -3778,6 +3778,10 @@
       let current = 0;
       let opener = null;
       let touchX = null;
+      let background = [];
+      let previousOverflow = '';
+      const focusableControls = () => [...box.querySelectorAll('button, a[href], input, select, textarea, [tabindex]')]
+        .filter((control) => !control.disabled && control.tabIndex >= 0 && control.getClientRects().length > 0);
       const show = (next) => {
         current = (next + images.length) % images.length;
         image.src = images[current];
@@ -3791,7 +3795,9 @@
         box.classList.add('hidden');
         box.classList.remove('flex');
         box.setAttribute('aria-hidden', 'true');
-        document.documentElement.style.overflow = '';
+        background.forEach(([element, wasInert]) => { element.inert = wasInert; });
+        background = [];
+        document.documentElement.style.overflow = previousOverflow;
         if (opener) opener.focus();
       };
       const open = (n, button) => {
@@ -3800,6 +3806,10 @@
         box.classList.remove('hidden');
         box.classList.add('flex');
         box.setAttribute('aria-hidden', 'false');
+        previousOverflow = document.documentElement.style.overflow;
+        background = [...document.body.children].filter((element) => element !== box)
+          .map((element) => [element, element.inert]);
+        background.forEach(([element]) => { element.inert = true; });
         document.documentElement.style.overflow = 'hidden';
         box.querySelector('[data-detail-close]').focus();
       };
@@ -3815,6 +3825,20 @@
         if (event.key === 'Escape') close();
         else if (event.key === 'ArrowLeft') show(current - 1);
         else if (event.key === 'ArrowRight') show(current + 1);
+        else if (event.key === 'Tab') {
+          const controls = focusableControls();
+          const first = controls[0];
+          const last = controls[controls.length - 1];
+          if (!box.contains(document.activeElement) || (event.shiftKey ? document.activeElement === first : document.activeElement === last)) {
+            event.preventDefault();
+            (event.shiftKey ? last : first)?.focus();
+          }
+        }
+      });
+      document.addEventListener('focusin', (event) => {
+        if (box.getAttribute('aria-hidden') === 'false' && !box.contains(event.target)) {
+          box.querySelector('[data-detail-close]').focus();
+        }
       });
       stage.addEventListener('touchstart', (event) => { touchX = event.touches[0].clientX; }, { passive: true });
       stage.addEventListener('touchend', (event) => {

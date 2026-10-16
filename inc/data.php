@@ -659,6 +659,9 @@ function boblift_merged_options(): array
  */
 function boblift_migrate_legacy_hero_slides(array $options): array
 {
+    if (!empty($options['home']['hero']['legacy_slides_migrated'])) {
+        return $options;
+    }
     $legacy = $options['home']['hero_slides'] ?? null;
     $slides = $options['home']['hero']['slides'] ?? null;
     if (!is_array($legacy) || !is_array($slides)) {
@@ -702,6 +705,16 @@ function boblift_migrate_legacy_hero_slides(array $options): array
                 $options['home']['hero']['slides'][$index]['image_alt'] = $old['image_alt'];
             }
         }
+    }
+    $options['home']['hero']['legacy_slides_migrated'] = true;
+    $saved = function_exists('boblift_mls_get_raw_options') ? boblift_mls_get_raw_options() : get_option('boblift_theme_options', []);
+    $saved = is_array($saved) ? $saved : [];
+    $saved['home']['hero']['slides'] = $options['home']['hero']['slides'];
+    $saved['home']['hero']['legacy_slides_migrated'] = true;
+    if (function_exists('boblift_mls_update_language_options')) {
+        boblift_mls_update_language_options($saved);
+    } else {
+        update_option('boblift_theme_options', $saved);
     }
     return $options;
 }

@@ -25,6 +25,13 @@ if ($qr_id > 0 || ($qr_path !== '' && preg_match('#^https?://#i', $qr_path)) || 
 $wechat_id = trim((string) $contact['wechatId']);
 
 $address = (string) $contact['address'];
+$saved_options = function_exists('boblift_mls_get_raw_options') ? boblift_mls_get_raw_options() : get_option('boblift_theme_options', []);
+$saved_location = $saved_options['site_ui']['contactPage'] ?? [];
+$saved_location = is_array($saved_location) ? $saved_location : [];
+$location_heading = !array_key_exists('locationHeading', $saved_location) && isset($ui['locationTitle'])
+    ? (string) $ui['locationTitle'] : $t('locationHeading');
+$location_description = !array_key_exists('locationDescription', $saved_location) && isset($ui['locationDescriptionTemplate'])
+    ? str_replace('{address}', $address, (string) $ui['locationDescriptionTemplate']) : $t('locationDescription');
 $company_cn = $t('mapKeywordCn', $address);
 $map_links = [
     'google' => 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($address),
@@ -167,8 +174,8 @@ $visit_links = is_array($ui['visitLinks'] ?? null) ? $ui['visitLinks'] : [];
             </div>
             <div class="min-w-0 p-5 md:p-8">
                 <p class="<?php echo esc_attr($eyebrow); ?>"><?php echo esc_html($t('locationLabel', 'Factory location')); ?></p>
-                <h2 class="mt-1 text-2xl font-black leading-8 text-navy"><?php echo esc_html($t('locationHeading')); ?></h2>
-                <p class="mt-3 text-sm font-semibold leading-7 text-slate-600"><?php echo esc_html($t('locationDescription')); ?></p>
+                <h2 class="mt-1 text-2xl font-black leading-8 text-navy"><?php echo esc_html($location_heading); ?></h2>
+                <p class="mt-3 text-sm font-semibold leading-7 text-slate-600"><?php echo esc_html($location_description); ?></p>
                 <p class="mt-5 flex items-start gap-3 text-base font-black leading-6 text-ink">
                     <?php echo boblift_icon('map-pin', 'mt-0.5 h-5 w-5 shrink-0 text-blue-700'); ?>
                     <span class="min-w-0"><span class="block <?php echo esc_attr($eyebrow); ?>"><?php echo esc_html($t('addressLabel', 'Address')); ?></span><?php echo esc_html($address); ?></span>

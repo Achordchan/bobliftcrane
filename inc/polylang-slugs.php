@@ -55,7 +55,9 @@ function boblift_slug_is_reserved(string $slug, string $post_type, int $post_par
 }
 
 add_filter('wp_unique_post_slug', static function (string $slug, int $post_id, string $post_status, string $post_type, int $post_parent, string $original_slug): string {
-    if ($slug === $original_slug || $post_type === 'attachment' || !function_exists('pll_get_post_language') || !function_exists('pll_languages_list')) {
+    // Cases are looked up by their own post-type route, which does not pick the post by language, so each translation keeps a
+    // unique slug (Polylang's -ja/-zh style suffix) instead of sharing the English one.
+    if ($slug === $original_slug || $post_type === 'attachment' || $post_type === 'case' || !function_exists('pll_get_post_language') || !function_exists('pll_languages_list')) {
         return $slug;
     }
     // Languages only have separate addresses in directory, subdomain or domain mode (force_lang 1-3); when the language comes

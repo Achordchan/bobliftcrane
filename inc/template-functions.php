@@ -766,7 +766,10 @@ function boblift_find_product(string $slug): ?array
 // Imported posts often use their own title plus ", BOB-LIFT" as the excerpt; a card is better without it.
 function boblift_article_card_excerpt(string $excerpt, string $title): string
 {
-    $normalize = static fn(string $text): string => mb_strtolower(trim((string) preg_replace('/[^\p{L}\p{N}]+/u', ' ', $text)));
+    $normalize = static function (string $text): string {
+        $text = trim((string) preg_replace('/[^\p{L}\p{N}]+/u', ' ', $text));
+        return function_exists('mb_strtolower') ? mb_strtolower($text) : strtolower($text);
+    };
     $excerpt_key = $normalize($excerpt);
     $title_key = $normalize($title);
     if ($excerpt_key === '' || ($title_key !== '' && str_starts_with($excerpt_key, $title_key) && mb_strlen($excerpt_key) - mb_strlen($title_key) < 20)) {
@@ -1405,7 +1408,8 @@ function boblift_product_nav_url(string $href, string $label = ''): string
 // still finds SQ5ZA2; news and cases use the normal WordPress keyword search.
 function boblift_search_key(string $text): string
 {
-    return mb_strtolower((string) preg_replace('/[^\p{L}\p{N}]+/u', '', $text));
+    $text = (string) preg_replace('/[^\p{L}\p{N}]+/u', '', $text);
+    return function_exists('mb_strtolower') ? mb_strtolower($text) : strtolower($text);
 }
 
 function boblift_search_products(string $query): array
