@@ -6,8 +6,10 @@ if (!defined('ABSPATH')) {
 /**
  * Old-site (SaaS) URLs -> new-site 301 redirects.
  *
- * Rules live in the `boblift_legacy_redirects` option; while the option is empty the shipped
- * inc/legacy-redirects.json is used. Maintain them over REST (manage_options required):
+ * The shipped inc/legacy-redirects.json holds the default rules. Administrators change them over REST
+ * (manage_options required); the `boblift_legacy_redirects` option stores only those changes (rules added
+ * or edited, and paths removed), so rules the administrator never touched keep following the shipped file
+ * when a theme update changes them.
  *   GET    /wp-json/boblift/v1/legacy-redirects
  *   POST   /wp-json/boblift/v1/legacy-redirects   {"rules":[{"from","to","note","enabled"}], "replace":false}
  *   DELETE /wp-json/boblift/v1/legacy-redirects?from=/old-path.html   (or ?reset=1 to go back to the shipped file)
@@ -21,18 +23,66 @@ function boblift_legacy_redirects_default_config(): array
     return is_array($data) ? $data : ['rules' => []];
 }
 
-/** True once an administrator has saved rules, even an empty set; only the reset operation returns to the shipped file. */
-function boblift_legacy_redirects_has_custom(): bool
+/**
+ * The saved changes as ['overrides' => rules, 'removed' => normalized paths, 'replace' => bool], or null.
+ * `replace` means the saved overrides are the whole rule set (POST with replace, or an option written before
+ * changes were stored separately: that old format was a full snapshot and is read as such).
+ */
+function boblift_legacy_redirects_saved(): ?array
 {
     $saved = get_option(BOBLIFT_LEGACY_REDIRECTS_OPTION, null);
-    return is_array($saved) && isset($saved['rules']) && is_array($saved['rules']);
+    if (!is_array($saved)) {
+        return null;
+    }
+    if (($saved['format'] ?? 0) === 2) {
+        return [
+            'overrides' => array_values(array_filter((array) ($saved['overrides'] ?? []), 'is_array')),
+            'removed' => array_values(array_map('strval', (array) ($saved['removed'] ?? []))),
+            'replace' => !empty($saved['replace']),
+        ];
+    }
+    if (isset($saved['rules']) && is_array($saved['rules'])) {
+        return ['overrides' => array_values(array_filter($saved['rules'], 'is_array')), 'removed' => [], 'replace' => true];
+    }
+    return null;
+}
+
+/** True once an administrator has saved changes, even an empty replacement set; only reset returns to the shipped file. */
+function boblift_legacy_redirects_has_custom(): bool
+{
+    return boblift_legacy_redirects_saved() !== null;
+}
+
+/** Shipped rules with the saved changes applied: an override replaces the shipped rule with the same path. */
+function boblift_legacy_redirects_apply(array $default_rules, array $saved): array
+{
+    $by_from = [];
+    if (!$saved['replace']) {
+        $removed = array_flip($saved['removed']);
+        foreach ($default_rules as $rule) {
+            if (!is_array($rule) || empty($rule['from'])) {
+                continue;
+            }
+            $key = boblift_legacy_redirect_normalize_path((string) $rule['from']);
+            if (!isset($removed[$key])) {
+                $by_from[$key] = $rule;
+            }
+        }
+    }
+    foreach ($saved['overrides'] as $rule) {
+        if (!empty($rule['from'])) {
+            $by_from[boblift_legacy_redirect_normalize_path((string) $rule['from'])] = $rule;
+        }
+    }
+    return array_values($by_from);
 }
 
 function boblift_legacy_redirects_config(): array
 {
     $default = boblift_legacy_redirects_default_config();
-    if (boblift_legacy_redirects_has_custom()) {
-        return array_merge($default, get_option(BOBLIFT_LEGACY_REDIRECTS_OPTION));
+    $saved = boblift_legacy_redirects_saved();
+    if ($saved !== null) {
+        $default['rules'] = boblift_legacy_redirects_apply((array) ($default['rules'] ?? []), $saved);
     }
     return $default;
 }
@@ -308,17 +358,21 @@ function boblift_legacy_redirects_rest_register(): void
                     return new WP_Error('invalid_rules', 'Some rules are invalid; nothing was saved.', ['status' => 400, 'rejected' => $rejected]);
                 }
                 $current = boblift_legacy_redirects_config();
-                $existing = rest_sanitize_boolean($request->get_param('replace')) ? [] : (array) $current['rules'];
-                $by_from = [];
-                foreach (array_merge($existing, $clean) as $rule) {
-                    $by_from[boblift_legacy_redirect_normalize_path((string) $rule['from'])] = $rule;
+                $replace = rest_sanitize_boolean($request->get_param('replace'));
+                $saved = $replace ? ['overrides' => [], 'removed' => [], 'replace' => true] : (boblift_legacy_redirects_saved() ?? ['overrides' => [], 'removed' => [], 'replace' => false]);
+                $overrides = [];
+                foreach (array_merge($saved['overrides'], $clean) as $rule) {
+                    $overrides[boblift_legacy_redirect_normalize_path((string) $rule['from'])] = $rule;
                 }
-                $cycle = boblift_legacy_redirects_find_cycle(array_values($by_from), array_filter([(string) ($current['canonical_host'] ?? ''), (string) parse_url(home_url(), PHP_URL_HOST)]));
+                $saved['overrides'] = array_values($overrides);
+                $saved['removed'] = array_values(array_diff($saved['removed'], array_keys($overrides)));
+                $rules = boblift_legacy_redirects_apply((array) (boblift_legacy_redirects_default_config()['rules'] ?? []), $saved);
+                $cycle = boblift_legacy_redirects_find_cycle($rules, array_filter([(string) ($current['canonical_host'] ?? ''), (string) parse_url(home_url(), PHP_URL_HOST)]));
                 if ($cycle !== null) {
                     return new WP_Error('redirect_cycle', 'These rules would create a redirect cycle (' . $cycle . '); nothing was saved.', ['status' => 400]);
                 }
-                update_option(BOBLIFT_LEGACY_REDIRECTS_OPTION, ['rules' => array_values($by_from)], false);
-                return ['saved' => count($clean), 'total' => count($by_from)];
+                update_option(BOBLIFT_LEGACY_REDIRECTS_OPTION, ['format' => 2] + $saved, false);
+                return ['saved' => count($clean), 'total' => count($rules)];
             },
         ],
         [
@@ -330,8 +384,11 @@ function boblift_legacy_redirects_rest_register(): void
                     return ['reset' => true];
                 }
                 $from = boblift_legacy_redirect_normalize_path((string) $request->get_param('from'));
-                $rules = array_values(array_filter(boblift_legacy_redirects_config()['rules'], static fn($rule) => boblift_legacy_redirect_normalize_path((string) $rule['from']) !== $from));
-                update_option(BOBLIFT_LEGACY_REDIRECTS_OPTION, ['rules' => $rules], false);
+                $saved = boblift_legacy_redirects_saved() ?? ['overrides' => [], 'removed' => [], 'replace' => false];
+                $saved['overrides'] = array_values(array_filter($saved['overrides'], static fn($rule) => boblift_legacy_redirect_normalize_path((string) ($rule['from'] ?? '')) !== $from));
+                $saved['removed'] = array_values(array_unique(array_merge($saved['removed'], [$from])));
+                update_option(BOBLIFT_LEGACY_REDIRECTS_OPTION, ['format' => 2] + $saved, false);
+                $rules = boblift_legacy_redirects_config()['rules'];
                 return ['removed' => $from, 'total' => count($rules)];
             },
         ],

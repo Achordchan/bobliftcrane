@@ -36,18 +36,18 @@
 /forklift-fly-jib-crane,/forklift-fly-jib-cranes,mapped,分类，旧名单数
 /mini-dumper,https://bobliftloader.com/products/mini-dumpers/,mapped,装载站
 /crane-by-ton,/products.html,mapped,新站无按吨位分类页
-/1-ton-crane,/truck-mounted-crane,mapped,按吨位分类页，新站没有这一层，跳卡车吊分类
-/2-ton-crane,/truck-mounted-crane,mapped,按吨位分类页，新站没有这一层，跳卡车吊分类
-/3-ton-crane,/truck-mounted-crane,mapped,按吨位分类页，新站没有这一层，跳卡车吊分类
-/4-ton-crane,/truck-mounted-crane,mapped,按吨位分类页，新站没有这一层，跳卡车吊分类
-/5-ton-crane,/truck-mounted-crane,mapped,按吨位分类页，新站没有这一层，跳卡车吊分类
-/6-ton-crane,/truck-mounted-crane,mapped,按吨位分类页，新站没有这一层，跳卡车吊分类
-/8-ton-crane,/truck-mounted-crane,mapped,按吨位分类页，新站没有这一层，跳卡车吊分类
-/10-ton-crane,/truck-mounted-crane,mapped,按吨位分类页，新站没有这一层，跳卡车吊分类
-/12-ton-crane,/truck-mounted-crane,mapped,按吨位分类页，新站没有这一层，跳卡车吊分类
-/16-ton-crane,/truck-mounted-crane,mapped,按吨位分类页，新站没有这一层，跳卡车吊分类
-/20-ton-crane,/truck-mounted-crane,mapped,按吨位分类页，新站没有这一层，跳卡车吊分类
-/25-ton-crane,/truck-mounted-crane,mapped,按吨位分类页，新站没有这一层，跳卡车吊分类
+/1-ton-crane,/products.html?capacity=0-1-tons,mapped,按吨位分类页，跳产品列表的 0-1 吨筛选
+/2-ton-crane,/products.html?capacity=1-2-tons,mapped,按吨位分类页，跳产品列表的 1-2 吨筛选
+/3-ton-crane,/products.html?capacity=2-3-tons,mapped,按吨位分类页，跳产品列表的 2-3 吨筛选
+/4-ton-crane,/products.html?capacity=3-4-tons,mapped,按吨位分类页，跳产品列表的 3-4 吨筛选
+/5-ton-crane,/products.html?capacity=4-5-tons,mapped,按吨位分类页，跳产品列表的 4-5 吨筛选
+/6-ton-crane,/products.html?capacity=5-6-tons,mapped,按吨位分类页，跳产品列表的 5-6 吨筛选
+/8-ton-crane,/products.html?capacity=6-8-tons,mapped,按吨位分类页，跳产品列表的 6-8 吨筛选
+/10-ton-crane,/products.html?capacity=8-10-tons,mapped,按吨位分类页，跳产品列表的 8-10 吨筛选
+/12-ton-crane,/products.html?capacity=10-12-tons,mapped,按吨位分类页，跳产品列表的 10-12 吨筛选
+/16-ton-crane,/products.html?capacity=12-16-tons,mapped,按吨位分类页，跳产品列表的 12-16 吨筛选
+/20-ton-crane,/products.html?capacity=16-20-tons,mapped,按吨位分类页，跳产品列表的 16-20 吨筛选
+/25-ton-crane,/products.html?capacity=20-25-tons,mapped,按吨位分类页，跳产品列表的 20-25 吨筛选
 /other-crane.html,/other-cranes,mapped,分类
 /timber-crane.html,/timber-cranes,mapped,分类
 /aerial-work-platform.html,/aerial-work-platform,mapped,分类
