@@ -12,7 +12,7 @@ if (is_page()) {
     $cta_source_id = function_exists('pll_get_post') ? (int) (pll_get_post($cta_page_id, 'en') ?: $cta_page_id) : $cta_page_id;
     $cta_page_slug = (string) get_post_field('post_name', $cta_source_id);
 }
-$show_cta = !in_array($cta_page_slug, ['about', 'quote', 'contact', 'social-media', 'factory-tour', 'quality-testing', 'mounting-shipping', 'service', 'public-welfare', 'global-customer-visits', 'privacy-policy', 'terms-of-use', 'sitemap'], true) && !is_page_template(['page-about.php', 'page-social-media.php', 'page-factory-tour.php', 'page-quality-testing.php', 'page-mounting-shipping.php', 'page-service.php', 'page-public-welfare.php', 'page-global-customer-visits.php', 'page-privacy-policy.php', 'page-terms-of-use.php', 'page-sitemap.php']) && !is_post_type_archive('product') && !is_singular('product');
+$show_cta = !in_array($cta_page_slug, ['about', 'why-choose-us', 'quote', 'contact', 'social-media', 'factory-tour', 'quality-testing', 'mounting-shipping', 'service', 'public-welfare', 'global-customer-visits', 'privacy-policy', 'terms-of-use', 'sitemap'], true) && !is_page_template(['page-about.php', 'page-why-choose-us.php', 'page-social-media.php', 'page-factory-tour.php', 'page-quality-testing.php', 'page-mounting-shipping.php', 'page-service.php', 'page-public-welfare.php', 'page-global-customer-visits.php', 'page-privacy-policy.php', 'page-terms-of-use.php', 'page-sitemap.php']) && !is_post_type_archive('product') && !is_singular('product');
 $email = $contact['email'] ?? 'info@bobliftcrane.com';
 $phone = $contact['phone'] ?? '+86 15852499415';
 $phone_href = $contact['phone_href'] ?? ('tel:' . preg_replace('/[^\d+]+/', '', $phone));

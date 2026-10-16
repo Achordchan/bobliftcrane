@@ -88,6 +88,7 @@ $is_news_nav_item = static function (array $item, string $item_url = ''): bool {
 $about_page_options = function_exists('boblift_about_page_options') ? boblift_about_page_options() : [];
 $about_nav_default_children = [
     ['label' => 'About Us', 'href' => '/about.html', 'slug' => 'about'],
+    ['label' => 'Why Choose BOB-LIFT', 'href' => '/why-choose-us.html', 'slug' => 'why-choose-us'],
     ['label' => 'Factory Tour', 'href' => '/factory-tour.html', 'slug' => 'factory-tour'],
     ['label' => 'Quality & Testing', 'href' => '/quality-testing.html', 'slug' => 'quality-testing'],
     ['label' => 'Global Customer Visits', 'href' => '/global-customer-visits.html', 'slug' => 'global-customer-visits'],

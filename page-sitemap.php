@@ -66,7 +66,7 @@ $sitemap_label = static function (string $label): string {
 
 // Pages, sorted into four columns by their English slug; anything new lands under Company.
 $page_columns = [
-    'company' => ['title' => (string) ($groups_ui['companyTitle'] ?? 'Company'), 'slugs' => ['about', 'factory-tour', 'global-customer-visits', 'social-media'], 'links' => []],
+    'company' => ['title' => (string) ($groups_ui['companyTitle'] ?? 'Company'), 'slugs' => ['about', 'why-choose-us', 'factory-tour', 'global-customer-visits', 'social-media'], 'links' => []],
     'services' => ['title' => (string) ($groups_ui['servicesTitle'] ?? 'Service and support'), 'slugs' => ['quality-testing', 'mounting-shipping', 'service', 'videos', 'contact'], 'links' => []],
     'resources' => ['title' => (string) ($groups_ui['resourcesTitle'] ?? 'Products, cases and news'), 'slugs' => ['products', 'cases', 'news'], 'links' => []],
     'legal' => ['title' => (string) ($groups_ui['legalTitle'] ?? 'Legal'), 'slugs' => ['privacy-policy', 'terms-of-use', 'sitemap'], 'links' => []],
