@@ -251,7 +251,7 @@ function boblift_render_home_product_grid(array $category, int $index, array $se
                     <span class="relative block h-[136px] w-full overflow-hidden bg-[radial-gradient(circle_at_48%_34%,#ffffff_0%,#f8fafc_34%,#eef2f7_64%,#e2e8f0_100%)] sm:h-auto sm:aspect-[1.3/1]"><span class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_82%,rgba(15,23,42,0.12),transparent_44%)]"></span><img class="absolute inset-0 z-10 h-full w-full object-contain p-3 drop-shadow-[0_6px_8px_rgba(11,27,51,0.10)] transition duration-300 group-hover:scale-[1.035] sm:p-5" src="<?php echo esc_url(boblift_product_image($product)); ?>" alt="<?php echo esc_attr($product['title'] ?? ''); ?>" loading="lazy" decoding="async"></span>
                     <?php
                     $card_model = trim((string) ($product['model'] ?? ''));
-                    $product_name = trim(str_ireplace($card_model, '', (string) ($product['title'] ?? '')), " \t\n\r\0\x0B-_–—|/:");
+                    $product_name = (string) preg_replace('/^[\s\-_–—|\/:]+|[\s\-_–—|\/:]+$/u', '', str_ireplace($card_model, '', (string) ($product['title'] ?? '')));
                     ?>
                     <span class="mt-3 line-clamp-2 min-h-8 px-3 text-[11px] font-black uppercase leading-4 tracking-[0.08em] text-slate-400 sm:mt-5 sm:min-h-10 sm:px-6 sm:text-xs sm:leading-5 sm:tracking-[0.1em]"><?php echo esc_html($card_model === '' ? (string) ($product['category_title'] ?? 'BOB-LIFT') : ($product_name !== '' ? $product_name : ($product['title'] ?? 'BOB-LIFT Crane'))); ?></span>
                     <?php if ($card_model !== '') : ?>

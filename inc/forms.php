@@ -696,6 +696,10 @@ function boblift_redirect_quote_page(): void
     // Keep every incoming parameter (utm_*, gclid, ...) so campaign attribution survives the move; only `product` is cleaned.
     $query = wp_unslash($_GET);
     $query = is_array($query) ? $query : [];
+    // WordPress routing parameters (/?page_id=<quote page>) would route the contact address back to this page: drop them.
+    foreach (['page_id', 'p', 'pagename', 'name', 'preview', 'preview_id'] as $routing_key) {
+        unset($query[$routing_key]);
+    }
     if (isset($query['product'])) {
         $product = is_string($query['product']) ? sanitize_text_field($query['product']) : '';
         if ($product !== '') {

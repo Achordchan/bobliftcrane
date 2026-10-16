@@ -1244,7 +1244,7 @@ function boblift_product_card(array $product, string $extra_class = '', bool $ea
     $product_model = trim((string) ($product['model'] ?? ''));
     $product_name = $product_title;
     if ($product_model !== '') {
-        $title_without_model = trim(str_ireplace($product_model, '', $product_title), " \t\n\r\0\x0B-_–—|/:");
+        $title_without_model = (string) preg_replace('/^[\s\-_–—|\/:]+|[\s\-_–—|\/:]+$/u', '', str_ireplace($product_model, '', $product_title));
         if ($title_without_model !== '') {
             $product_name = $title_without_model;
         }

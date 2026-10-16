@@ -67,7 +67,7 @@ if ($query === '') {
 $product_result = static function (array $product) use ($highlight, $view_details_label): void {
     $title = trim((string) ($product['title'] ?? ''));
     $model = trim((string) ($product['model'] ?? ''));
-    $name = $model !== '' ? trim(str_ireplace($model, '', $title), " \t\n\r\0\x0B-_–—|/:") : '';
+    $name = $model !== '' ? (string) preg_replace('/^[\s\-_–—|\/:]+|[\s\-_–—|\/:]+$/u', '', str_ireplace($model, '', $title)) : '';
     $name = $name !== '' ? $name : (string) ($product['category_title'] ?? '');
     $image = boblift_product_image($product);
     $image_class = boblift_image_fit($image) === 'cutout' ? 'object-contain p-5 drop-shadow-[0_6px_8px_rgba(11,27,51,0.10)]' : 'object-contain bg-[#EDF1F5]';

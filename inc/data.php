@@ -1152,8 +1152,20 @@ function boblift_build_product_menu_families(): array
     $families = [];
     foreach (boblift_product_category_hierarchy() as $group) {
         $term = get_term_by('slug', (string) ($group['slug'] ?? ''), 'product_category');
+        // A family without a term of its own (a synthetic group from the group definitions) is built from its child terms.
+        $term_ids = $term instanceof WP_Term ? [(int) $term->term_id] : [];
+        $first_child_term = null;
         if (!$term instanceof WP_Term) {
-            continue;
+            foreach (($group['children'] ?? []) as $child) {
+                $child_term = get_term_by('slug', (string) ($child['slug'] ?? ''), 'product_category');
+                if ($child_term instanceof WP_Term) {
+                    $term_ids[] = (int) $child_term->term_id;
+                    $first_child_term ??= $child_term;
+                }
+            }
+            if ($term_ids === []) {
+                continue;
+            }
         }
         // Distinct products in the whole family; a product filed under both a parent and a child counts once.
         $total = (int) (new WP_Query([
@@ -1161,7 +1173,7 @@ function boblift_build_product_menu_families(): array
             'post_status' => 'publish',
             'posts_per_page' => 1,
             'fields' => 'ids',
-            'tax_query' => [['taxonomy' => 'product_category', 'terms' => $term->term_id, 'include_children' => true]],
+            'tax_query' => [['taxonomy' => 'product_category', 'terms' => $term_ids, 'include_children' => true]],
         ]))->found_posts;
         $children = [];
         foreach (($group['children'] ?? []) as $child) {
@@ -1191,7 +1203,7 @@ function boblift_build_product_menu_families(): array
                 'post_type' => 'product',
                 'post_status' => 'publish',
                 'numberposts' => 12,
-                'tax_query' => [['taxonomy' => 'product_category', 'terms' => $term->term_id, 'include_children' => true]],
+                'tax_query' => [['taxonomy' => 'product_category', 'terms' => $term_ids, 'include_children' => true]],
             ]);
             usort($posts, static fn(WP_Post $a, WP_Post $b): int => ((float) get_post_meta($a->ID, '_capacity_value', true) <=> (float) get_post_meta($b->ID, '_capacity_value', true)) ?: strnatcasecmp($a->post_title, $b->post_title));
             foreach (array_slice($posts, 0, 5) as $post) {
@@ -1208,7 +1220,7 @@ function boblift_build_product_menu_families(): array
                 'numberposts' => -1,
                 'fields' => 'ids',
                 'update_post_term_cache' => false,
-                'tax_query' => [['taxonomy' => 'product_category', 'terms' => $term->term_id, 'include_children' => true]],
+                'tax_query' => [['taxonomy' => 'product_category', 'terms' => $term_ids, 'include_children' => true]],
             ]);
             _prime_post_caches($posts, false, true);
             usort($posts, static fn(int $a, int $b): int => ((float) get_post_meta($a, '_capacity_value', true) <=> (float) get_post_meta($b, '_capacity_value', true)) ?: strnatcasecmp(get_the_title($a), get_the_title($b)));
@@ -1229,18 +1241,21 @@ function boblift_build_product_menu_families(): array
             }
         }
         $icon = sanitize_key((string) ($group['category']['icon'] ?? ''));
+        $family_slug = $term instanceof WP_Term ? $term->slug : (string) $group['slug'];
+        $family_source_slug = $term instanceof WP_Term ? boblift_source_term_slug($term) : (string) $group['slug'];
+        $family_title = $term instanceof WP_Term ? $term->name : (string) ($group['title'] ?? $family_slug);
         $families[] = [
-            'slug' => $term->slug,
-            'source_slug' => boblift_source_term_slug($term),
-            'title' => $term->name,
-            'url' => $term_link($term),
+            'slug' => $family_slug,
+            'source_slug' => $family_source_slug,
+            'title' => function_exists('boblift_localized_static_text') && !$term instanceof WP_Term ? boblift_localized_static_text($family_title) : $family_title,
+            'url' => $term instanceof WP_Term ? $term_link($term) : boblift_product_archive_url(),
             'count' => $total,
             'icon' => $icon !== '' ? $icon : 'truck-crane',
-            'photo' => boblift_product_banner_photo_url($term),
+            'photo' => boblift_product_banner_photo_url($term instanceof WP_Term ? $term : $first_child_term),
             'children' => $children,
             'models' => $models,
             'featured' => $featured,
-            'group' => boblift_product_family_group(boblift_source_term_slug($term)),
+            'group' => boblift_product_family_group($family_source_slug),
         ];
     }
     // Cranes first, then the labelled related-equipment groups (fly jibs, aerial work platforms).
