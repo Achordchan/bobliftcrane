@@ -1,24 +1,27 @@
 <?php
 /**
- * Creates the Japanese and Chinese versions of the English news posts (Polylang).
+ * Creates the translated versions of the English news posts (Polylang): Japanese and Chinese by default, or the languages
+ * named with langs= (for example langs=fr,es,ru,ar).
  *
- *   wp eval-file tools/i18n/import-news-translations.php [translations-dir] [overwrite] [partial]
+ *   wp eval-file tools/i18n/import-news-translations.php [translations-dir] [overwrite] [partial] [langs=fr,es,ru,ar]
  *
  * translations-dir (default i18n-export/translations) holds <lang>/<post-id>.json, where <post-id> is the English post's ID
  * in i18n-export/news-en.json and each file has title, excerpt, content, seo_title, seo_description, seo_keywords, tags.
  * English posts are looked up by slug, so the IDs of the target site do not matter. A translation that already exists is
  * left alone; "overwrite" replaces it (the old post and meta go to $BOBLIFT_BACKUP_DIR first).
- * Translations keep the English slug (inc/polylang-slugs.php) and live under /ja/ and /zh/ (Polylang directory mode).
+ * Translations keep the English slug (inc/polylang-slugs.php) and live under /<lang>/ (Polylang directory mode).
  */
 require_once dirname(__DIR__) . '/backup-dir.php';
 
 $overwrite = in_array('overwrite', $args ?? [], true);
 // "partial" lets the import skip translations whose English post is not on this site; without it they stop the run.
 $partial = in_array('partial', $args ?? [], true);
-$positional = array_values(array_filter($args ?? [], static fn($arg): bool => !in_array($arg, ['overwrite', 'partial'], true)));
+$lang_arg = array_values(array_filter($args ?? [], static fn($arg): bool => is_string($arg) && str_starts_with($arg, 'langs=')));
+$positional = array_values(array_filter($args ?? [], static fn($arg): bool => !in_array($arg, ['overwrite', 'partial'], true) && !(is_string($arg) && str_starts_with($arg, 'langs='))));
 $base = dirname(__DIR__, 2) . '/i18n-export/';
 $dir = rtrim((string) ($positional[0] ?? $base . 'translations'), '/') . '/';
-$langs = ['ja', 'zh'];
+$langs = $lang_arg ? array_values(array_filter(array_map('sanitize_key', explode(',', substr($lang_arg[0], 6))))) : ['ja', 'zh'];
+if (!$langs || in_array('en', $langs, true)) { fwrite(STDERR, "langs= needs one or more target languages other than en.\n"); exit(1); }
 $fields = ['title', 'excerpt', 'content', 'seo_title', 'seo_description', 'seo_keywords'];
 
 if (!function_exists('pll_get_post') || !function_exists('pll_save_post_translations')) { fwrite(STDERR, "Polylang is not active.\n"); exit(1); }
