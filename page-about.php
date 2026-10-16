@@ -173,14 +173,16 @@ if ($legacy_headline !== '' || $legacy_paragraph !== '' || $legacy_chips !== [])
         <div class="mx-auto mt-14 grid w-full max-w-none gap-6 <?php echo count($global_stats) >= 3 ? 'md:grid-cols-3' : 'md:grid-cols-2'; ?> lg:mt-20 lg:gap-8" data-about-global data-about-strength-features>
             <?php foreach (array_slice($global_stats, 0, 3) as $global_stat_index => $stat) :
                 $stat_number_raw = (string) ($stat['number'] ?? '0');
-                $stat_target = preg_replace('/[^0-9]/', '', $stat_number_raw) ?: '0';
+                // Whole numbers count up; anything else (2.5, 1,200) is shown exactly as saved, without the count-up.
+                $stat_display = trim($stat_number_raw) !== '' ? trim($stat_number_raw) : '0';
+                $stat_animates = preg_match('/^\d+$/', $stat_display) === 1;
                 $stat_suffix = (string) ($stat['suffix'] ?? '+');
             ?>
                 <div class="about-stat-card relative min-h-[190px] overflow-hidden rounded border border-[#E5E7EB] bg-white p-8 text-start shadow-card transition hover:-translate-y-1 lg:p-10 xl:p-12">
                     <span class="pointer-events-none absolute -end-4 -top-8 select-none text-[120px] font-black italic leading-none tracking-[-0.015em] text-[#F1F5F9] lg:-end-6 lg:-top-10 lg:text-[140px]"><?php echo esc_html(str_pad((string) ($global_stat_index + 1), 2, '0', STR_PAD_LEFT)); ?></span>
                     <div class="relative z-10">
                         <p class="flex items-baseline font-black leading-none tracking-[-0.02em] text-[#0B3F7D]">
-                            <span class="text-[54px] lg:text-[68px]" data-global-stat="<?php echo esc_attr($stat_target); ?>"><?php echo esc_html($stat_target); ?></span><span class="ms-1 text-[28px] text-[#2563EB] lg:text-[34px]"><?php echo esc_html($stat_suffix); ?></span>
+                            <span class="text-[54px] lg:text-[68px]"<?php if ($stat_animates) : ?> data-global-stat="<?php echo esc_attr($stat_display); ?>"<?php endif; ?>><?php echo esc_html($stat_display); ?></span><span class="ms-1 text-[28px] text-[#2563EB] lg:text-[34px]"><?php echo esc_html($stat_suffix); ?></span>
                         </p>
                         <h3 class="mt-6 max-w-none text-lg font-black leading-tight text-[#0B1B33] lg:text-xl"><?php echo esc_html($stat['label'] ?? ''); ?></h3>
                     </div>
