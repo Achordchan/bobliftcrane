@@ -92,20 +92,23 @@ function bl_news_links(string $html, string $lang, array $pending = []): string 
     // A bare origin is the home page, so it becomes "/" rather than an empty link.
     $html = preg_replace('#https?://(?:www\.)?bobliftcrane\.com(?="|\')#i', '/', $html);
     $html = preg_replace('#https?://(?:www\.)?bobliftcrane\.com(?=/)#i', '', $html);
-    return preg_replace_callback('/href="(\/[^"#?]*)(#[^"]*)?"/', static function (array $m) use ($lang, $pending): string {
+    // Old-site paths are root paths; on a site installed under a subdirectory they live below the site's home path.
+    $home_path = untrailingslashit((string) wp_parse_url(home_url('/'), PHP_URL_PATH));
+    return preg_replace_callback('/href="(\/[^"#?]*)(#[^"]*)?"/', static function (array $m) use ($lang, $pending, $home_path): string {
+        $site_link = 'href="' . esc_attr($home_path . $m[1]) . ($m[2] ?? '') . '"';
         $slug = preg_replace('/\.html$/', '', basename(rtrim($m[1], '/')));
-        if ($slug === '') { return $m[0]; }
+        if ($slug === '') { return $site_link; }
         // The link's target is the English post whose own public path is exactly this one, so a custom address that merely
         // ends in another post's slug is never swapped for an unrelated translation.
         $candidates = get_posts(['post_type' => 'any', 'name' => $slug, 'post_status' => 'publish', 'posts_per_page' => -1, 'lang' => 'en']);
         // Pages served at a saved custom address (theme meta _boblift_public_url) are candidates too, whatever their slug.
         $custom_path = function_exists('boblift_normalize_public_path') ? boblift_normalize_public_path($m[1]) : $m[1];
         $candidates = array_merge($candidates, get_posts(['post_type' => 'any', 'post_status' => 'publish', 'posts_per_page' => -1, 'lang' => 'en', 'meta_key' => '_boblift_public_url', 'meta_value' => $custom_path]));
-        $found = array_values(array_filter($candidates, static fn(WP_Post $post): bool => untrailingslashit((string) wp_parse_url(get_permalink($post), PHP_URL_PATH)) === untrailingslashit($m[1])));
+        $found = array_values(array_filter($candidates, static fn(WP_Post $post): bool => untrailingslashit((string) wp_parse_url(get_permalink($post), PHP_URL_PATH)) === untrailingslashit($home_path . $m[1])));
         $translated = $found ? pll_get_post($found[0]->ID, $lang) : 0;
         // Only a published translation replaces the link; a draft or private one would be unreachable for visitors.
         // $pending holds translations this run is about to publish.
-        if (!$translated || $translated === $found[0]->ID || (get_post_status($translated) !== 'publish' && !isset($pending[$translated]))) { return $m[0]; }
+        if (!$translated || $translated === $found[0]->ID || (get_post_status($translated) !== 'publish' && !isset($pending[$translated]))) { return $site_link; }
         return 'href="' . wp_make_link_relative(get_permalink($translated)) . ($m[2] ?? '') . '"';
     }, $html);
 }
