@@ -56,13 +56,20 @@ $platform_identity = static function (string $label): string {
     ];
     return $aliases[$id] ?? $id;
 };
-// Account URLs may be saved protocol-relative ("//www.facebook.com/..."); those count as real links over https.
+// A saved account link is honoured unless it is one of the old placeholders (empty, "#", the contact page). Protocol-relative
+// addresses ("//www.facebook.com/...") are read over https; site paths such as /go/linkedin go through boblift_url().
 $absolute_href = static function (string $href): string {
     $href = trim($href);
     if (str_starts_with($href, '//') && strlen($href) > 2) {
         $href = 'https:' . $href;
     }
-    return preg_match('#^https?://#i', $href) ? $href : '';
+    if (preg_match('#^https?://#i', $href)) {
+        return $href;
+    }
+    if (str_starts_with($href, '/') && !str_starts_with($href, '//') && !preg_match('#^/contact(?:\.html)?/?(?:[?\#].*)?$#i', $href)) {
+        return boblift_url($href);
+    }
+    return '';
 };
 // Real account URLs saved in the footer social links, keyed by platform identity.
 $footer_social = is_array($site_options['footer']['social_links'] ?? null) ? $site_options['footer']['social_links'] : [];
@@ -331,7 +338,7 @@ if ($legacy_panel !== []) : ?>
                 </ul>
                 <div class="fixed inset-0 z-[1000] hidden flex-col bg-[#040f22]" data-detail-lightbox role="dialog" aria-modal="true" aria-hidden="true" aria-label="<?php echo esc_attr($posts_title); ?>">
                     <div class="flex shrink-0 items-center justify-between px-4 py-3 text-white md:px-6">
-                        <p class="flex min-w-0 items-baseline gap-3 text-xs font-black tracking-[0.08em]" aria-live="polite"><span class="shrink-0 [font-variant-numeric:tabular-nums]"><span data-detail-index>01</span> / <?php echo esc_html(str_pad((string) count($gallery), 2, '0', STR_PAD_LEFT)); ?></span><span class="truncate text-sm tracking-normal text-white/80" data-detail-caption></span></p>
+                        <p class="flex min-w-0 items-start gap-3 text-xs font-black tracking-[0.08em]" aria-live="polite"><span class="shrink-0 leading-5 [font-variant-numeric:tabular-nums]"><span data-detail-index>01</span> / <?php echo esc_html(str_pad((string) count($gallery), 2, '0', STR_PAD_LEFT)); ?></span><?php // Title and description wrap, and scroll when long, so the whole saved text stays readable. ?><span class="min-w-0 overflow-y-auto break-words text-sm leading-5 tracking-normal text-white/80" style="max-height:5rem" data-detail-caption></span></p>
                         <button class="grid size-10 place-items-center rounded-sm bg-white/10 text-white transition hover:bg-white hover:text-[#071f42]" type="button" data-detail-close aria-label="<?php echo esc_attr($detail_ui['closeLabel'] ?? 'Close'); ?>"><?php echo boblift_icon('x', 'h-5 w-5'); ?></button>
                     </div>
                     <div class="relative min-h-0 flex-1">
