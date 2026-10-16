@@ -37,9 +37,9 @@ foreach ((array) $localize_case_fragments(boblift_decode_meta(get_post_meta($pos
 // The editor copy often repeats the sections word for word; show it only when it adds something.
 $flatten = static fn(string $text): string => preg_replace('/\s+/u', '', wp_strip_all_tags($text)) ?? '';
 $sections_text = implode('', array_map(static fn(array $section): string => $section['heading'] . $section['body'], $sections));
-// Media (photos, video, embeds) and markup the plain-text sections cannot carry (links, tables, lists) are never duplicate
-// content, so they keep the body visible.
-$content_has_media = (bool) preg_match('/<(img|figure|video|audio|iframe|picture|embed|object|table|ul|ol)\b|<a\s[^>]*href=/i', $content);
+// Media (photos, video, embeds), markup the plain-text sections cannot carry (links, tables, lists) and anchors that shared
+// links may point at (id or name attributes) are never duplicate content, so they keep the body visible.
+$content_has_media = (bool) preg_match('/<(img|figure|video|audio|iframe|picture|embed|object|table|ul|ol)\b|<a\s[^>]*href=|<[a-z][^>]*\s(?:id|name)\s*=/i', $content);
 $show_content = ($flatten($content) !== '' || $content_has_media) && ($content_has_media || !$sections || $flatten($content) !== $flatten($sections_text));
 $gallery = [];
 foreach (array_filter(array_map('intval', explode(',', (string) get_post_meta($post_id, '_case_gallery', true)))) as $attachment_id) {
