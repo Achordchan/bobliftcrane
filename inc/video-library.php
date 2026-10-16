@@ -175,8 +175,18 @@ function boblift_videos_in_group(string ...$groups): array
 function boblift_product_series_video(int $product_id): ?array
 {
     $english_id = function_exists('boblift_product_english_id') ? boblift_product_english_id($product_id) : $product_id;
-    $categories = wp_get_post_terms($english_id, 'product_category', ['fields' => 'slugs']);
-    $categories = is_array($categories) ? $categories : [];
+    // Assigned terms and their ancestors: a crane filed only under a custom child category still belongs to its family.
+    $terms = get_the_terms($english_id, 'product_category');
+    $categories = [];
+    foreach (is_array($terms) ? $terms : [] as $term) {
+        $categories[] = (string) $term->slug;
+        foreach (get_ancestors((int) $term->term_id, 'product_category', 'taxonomy') as $ancestor_id) {
+            $ancestor = get_term((int) $ancestor_id, 'product_category');
+            if ($ancestor instanceof WP_Term) {
+                $categories[] = (string) $ancestor->slug;
+            }
+        }
+    }
     $use = '';
     foreach ($categories as $slug) {
         if (str_ends_with($slug, 'truck-mounted-cranes')) {
