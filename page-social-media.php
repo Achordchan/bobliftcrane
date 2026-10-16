@@ -180,7 +180,19 @@ $captions = array_map(static fn(array $post): string => $t($post['title'] ?? '')
 // The lightbox caption carries the saved description too ("Title — description"), so older cards keep their text.
 // Separator only between two non-empty parts (trim()'s byte mask would cut multibyte characters).
 $lightbox_captions = array_map(static fn(array $post): string => implode(' — ', array_filter([$t($post['title'] ?? ''), $t($post['text'] ?? '')], static fn(string $part): bool => $part !== '')), $posts);
-$posts_title = $t($labels['posts_title'] ?? 'What we have been posting.');
+// Headings an editor saved for the old content-cards section carry over while the new posts headings are still built-in.
+$legacy_posts_heading = static function (string $new_key, string $new_default, string $old_key, string $old_default) use ($labels): string {
+    $new = trim((string) ($labels[$new_key] ?? ''));
+    $old = trim((string) ($labels[$old_key] ?? ''));
+    $old_forms = [$old_default, function_exists('boblift_localized_static_text') ? boblift_localized_static_text($old_default) : $old_default];
+    $new_forms = [$new_default, function_exists('boblift_localized_static_text') ? boblift_localized_static_text($new_default) : $new_default];
+    if ($old !== '' && !in_array($old, $old_forms, true) && ($new === '' || in_array($new, $new_forms, true))) {
+        return $old;
+    }
+    return $new !== '' ? $new : $new_default;
+};
+$posts_title = $t($legacy_posts_heading('posts_title', 'What we have been posting.', 'content_cards_title', 'Real content from real work.'));
+$posts_label = $t($legacy_posts_heading('posts_label', 'Recent posts', 'content_cards_label', 'What You Can Follow'));
 
 // A short plays from YouTube once its link is saved; until then from the MP4, which only exists on a local preview.
 $local_video = static function ($media) use ($media_url): string {
@@ -300,7 +312,7 @@ if ($legacy_panel !== []) : ?>
     <div class="page-shell">
         <div class="mb-8 flex flex-col gap-3 md:mb-10 md:flex-row md:items-end md:justify-between">
             <div>
-                <p class="section-label mb-3"><?php echo esc_html($t($labels['posts_label'] ?? 'Recent posts')); ?></p>
+                <p class="section-label mb-3"><?php echo esc_html($posts_label); ?></p>
                 <h2 id="social-posts-title" class="text-[clamp(1.75rem,2.8vw,3rem)] font-black leading-[1.05] tracking-[-0.015em] text-ink"><?php echo esc_html($posts_title); ?></h2>
             </div>
             <?php if (trim((string) ($labels['posts_text'] ?? '')) !== '') : ?><p class="max-w-md text-sm font-semibold leading-6 text-slate-500"><?php echo esc_html($t($labels['posts_text'])); ?></p><?php endif; ?>
