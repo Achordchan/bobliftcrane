@@ -3,21 +3,36 @@ get_header();
 the_post();
 
 $ui = boblift_site_ui('newsDetail');
+$article_ui = boblift_site_ui('newsArticle');
+// Customised old sidebar copy (newsDetail.ctaTitle / ctaButton / sourceValue) is carried into the newsArticle fields by
+// boblift_site_ui(); the old CTA label has no new field and is shown as it was.
+// Read from what was stored (not the merged, localised defaults) so a translated default does not count as customised.
+$stored_options = function_exists('boblift_mls_get_raw_options') ? boblift_mls_get_raw_options() : get_option('boblift_theme_options', []);
+$legacy_cta_label = trim((string) ($stored_options['site_ui']['newsDetail']['ctaLabel'] ?? ''));
+// The stored value only decides whether it was customised; the label shown is the localised one from boblift_site_ui().
+$legacy_cta_label = in_array($legacy_cta_label, ['', 'Need help choosing a crane?', function_exists('boblift_localized_static_text') ? trim((string) boblift_localized_static_text('Need help choosing a crane?')) : ''], true) ? '' : trim((string) ($ui['ctaLabel'] ?? $legacy_cta_label));
 $post_id = get_the_ID();
-$image = get_the_post_thumbnail_url($post_id, 'full') ?: boblift_asset('images/factory-workshop.jpg');
+$localize = static fn(string $text): string => function_exists('boblift_localize_product_text_fragments') ? (string) boblift_localize_product_text_fragments($text) : $text;
 $category_term = get_the_category($post_id)[0] ?? null;
 $category = $category_term instanceof WP_Term ? $category_term->name : (string) ($ui['news'] ?? 'News');
 $category = function_exists('boblift_localized_static_text') ? boblift_localized_static_text($category) : $category;
-$title = function_exists('boblift_localize_product_text_fragments') ? (string) boblift_localize_product_text_fragments(get_the_title()) : get_the_title();
-$excerpt = function_exists('boblift_localize_product_text_fragments') ? (string) boblift_localize_product_text_fragments(get_the_excerpt()) : get_the_excerpt();
-$content = apply_filters('the_content', get_the_content());
-$content = function_exists('boblift_localize_product_text_fragments') ? (string) boblift_localize_product_text_fragments($content) : $content;
-$published_date = get_the_date('Y-m-d');
-$related_count = max(0, (int) ($ui['relatedArticleCount'] ?? 2));
+$title = $localize(get_the_title());
+$excerpt = boblift_article_card_excerpt($localize(get_the_excerpt()), $title);
+[$content, $toc] = boblift_news_article_toc($localize((string) apply_filters('the_content', get_the_content())));
+$show_toc = count($toc) >= 3;
+$published = get_the_date('Y-m-d');
+$modified = get_the_modified_date('Y-m-d');
+$minutes = boblift_news_reading_minutes($content);
+$reading = str_replace('{minutes}', (string) $minutes, (string) ($article_ui['readingTemplate'] ?? '{minutes} min read'));
+$image = get_the_post_thumbnail_url($post_id, 'full') ?: 'images/page-heroes/factory-floor.webp';
+$products = boblift_news_related_products($title, $content, 3, (int) $post_id);
+$contact = boblift_contact_settings();
+
+$related_count = max(0, min(3, (int) ($ui['relatedArticleCount'] ?? 3)));
 $related_query_args = [
     'post_type' => 'post',
     'post_status' => 'publish',
-    'posts_per_page' => min(2, $related_count),
+    'posts_per_page' => $related_count,
     'post__not_in' => [$post_id],
     'orderby' => 'date',
     'order' => 'DESC',
@@ -27,113 +42,167 @@ if ($category_term instanceof WP_Term) {
     $related_query_args['cat'] = (int) $category_term->term_id;
 }
 $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
-$labels = $ui;
 ?>
 
-<article class="boblift-news-detail boblift-middle-breadcrumb-detail">
-    <header class="boblift-news-detail-hero">
-        <div class="page-shell py-12 md:py-16 2xl:py-20">
-            <div class="boblift-news-detail-frame">
-                <div class="boblift-news-detail-hero-inner">
-                    <div class="boblift-news-detail-heading">
-                        <h1 class="boblift-news-detail-title"><?php echo esc_html($title); ?></h1>
-                        <?php if ($excerpt !== '') : ?>
-                            <p class="boblift-news-detail-excerpt"><?php echo esc_html($excerpt); ?></p>
-                        <?php endif; ?>
-                    </div>
-
-                    <div class="boblift-news-detail-hero-image">
-                        <img class="h-full w-full object-cover" src="<?php echo esc_url($image); ?>" alt="<?php echo esc_attr($title); ?>" loading="eager" decoding="async" fetchpriority="high">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
-
-
-    <div class="boblift-detail-breadcrumb-band">
-        <div class="page-shell">
-            <div class="boblift-detail-breadcrumb-row">
-                <nav class="boblift-news-detail-breadcrumb boblift-detail-breadcrumb" aria-label="<?php echo esc_attr($labels['breadcrumbLabel'] ?? 'Breadcrumb'); ?>">
-                    <a href="<?php echo esc_url(home_url('/')); ?>"><?php echo esc_html($labels['home']); ?></a>
-                    <span>&gt;</span>
-                    <a href="<?php echo esc_url(boblift_url('/news')); ?>"><?php echo esc_html($labels['news']); ?></a>
-                </nav>
-                <div class="boblift-detail-breadcrumb-meta" aria-label="Article meta">
-                    <span><?php echo esc_html($category); ?></span>
-                    <span class="boblift-detail-breadcrumb-dot" aria-hidden="true"></span>
-                    <time datetime="<?php echo esc_attr($published_date); ?>"><?php echo esc_html($published_date); ?></time>
-                </div>
-            </div>
-        </div>
+<article class="boblift-news-article">
+    <div class="page-shell pt-5 md:pt-8">
+        <?php
+        boblift_page_hero([
+            'label' => $category,
+            'title' => $title,
+            'text' => $excerpt,
+            'meta' => $published . ' · ' . $reading,
+            'image' => $image,
+            'image_alt' => $title,
+            'image_position' => 'center',
+            'class' => 'boblift-news-hero',
+        ]);
+        ?>
     </div>
 
-    <div class="boblift-news-detail-body-shell page-shell py-12 md:py-16 2xl:py-20">
-        <div class="boblift-news-detail-frame">
-            <div class="boblift-news-detail-layout">
-                <div class="cms-richtext boblift-news-detail-content">
+    <div class="page-shell py-8 md:py-12 lg:py-14">
+        <?php
+        // Products and contact sit in a right rail on wide screens and under the author card below that.
+        $render_products = static function () use ($products, $localize, $article_ui): void { ?>
+<?php if ($products !== []) : ?>
+                <section class="rounded border border-line bg-white p-5">
+                    <h2 class="text-xs font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html((string) ($article_ui['productsTitle'] ?? 'Products in this article')); ?></h2>
+                    <ul class="mt-3 divide-y divide-line">
+                        <?php foreach ($products as $product) :
+                            $product_title = $localize(get_the_title($product));
+                            $model = (string) get_post_meta(boblift_product_english_id($product->ID), '_model', true);
+                            // Only real model codes (letters and digits, 4+ chars) not already in the title.
+                            $model = strlen($model) >= 4 && preg_match('/\d/', $model) && preg_match('/[a-z]/i', $model) && stripos($product_title, $model) === false ? $model : '';
+                            ?>
+                            <li>
+                                <a class="group flex items-center gap-3 py-3" href="<?php echo esc_url(get_permalink($product)); ?>">
+                                    <span class="h-14 w-16 shrink-0 overflow-hidden rounded-sm border border-line bg-mist"><img class="h-full w-full object-contain p-1" src="<?php echo esc_url(boblift_post_thumbnail_url($product, boblift_asset('images/products/crane-accessories.png'))); ?>" alt="" loading="lazy" decoding="async"></span>
+                                    <span class="min-w-0">
+                                        <span class="line-clamp-2 text-sm font-black leading-snug text-ink transition group-hover:text-blue-700"><?php echo esc_html($product_title); ?></span>
+                                        <?php if ($model !== '') : ?><span class="mt-0.5 block text-xs font-bold text-slate-400"><?php echo esc_html($model); ?></span><?php endif; ?>
+                                    </span>
+                                </a>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                    <a class="mt-2 inline-flex items-center gap-2 text-sm font-bold text-navy transition hover:text-blue-700" href="<?php echo esc_url(boblift_url('/products.html')); ?>"><?php echo esc_html((string) ($article_ui['productsLink'] ?? 'View all products')); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
+                </section>
+            <?php endif; ?>
+        <?php };
+        $render_contact = static function () use ($contact, $article_ui, $legacy_cta_label): void { ?>
+<section class="rounded border border-navy bg-navy p-5 text-white">
+                <?php if ($legacy_cta_label !== '') : ?><p class="mb-2 text-xs font-black uppercase tracking-[0.14em] text-white/70"><?php echo esc_html($legacy_cta_label); ?></p><?php endif; ?>
+                <h2 class="text-lg font-black leading-snug"><?php echo esc_html((string) ($article_ui['contactTitle'] ?? '')); ?></h2>
+                <p class="mt-2 text-sm font-semibold leading-6 text-white/70"><?php echo esc_html((string) ($article_ui['contactText'] ?? '')); ?></p>
+                <a class="btn-white mt-4 w-full justify-center rounded-sm" href="<?php echo esc_url(boblift_url('/contact.html#inquiry')); ?>" data-inquiry-modal-open data-inquiry-source="新闻详情"><?php echo esc_html((string) ($article_ui['contactButton'] ?? 'Request a Quote')); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
+                <div class="mt-4 grid gap-2 border-t border-white/15 pt-4 text-sm font-bold">
+                    <a class="inline-flex min-w-0 items-center gap-2 text-white/85 transition hover:text-white" href="<?php echo esc_url($contact['whatsappHref']); ?>" target="_blank" rel="noreferrer"><?php echo boblift_icon('whatsapp', 'h-4 w-4 shrink-0'); ?><span class="truncate"><?php echo esc_html((string) ($article_ui['whatsappLabel'] ?? 'WhatsApp')); ?> · <?php echo esc_html($contact['whatsapp']); ?></span></a>
+                    <a class="inline-flex min-w-0 items-center gap-2 text-white/85 transition hover:text-white" href="mailto:<?php echo esc_attr($contact['email']); ?>"><?php echo boblift_icon('mail', 'h-4 w-4 shrink-0'); ?><span class="truncate"><?php echo esc_html($contact['email']); ?></span></a>
+                </div>
+            </section>
+        <?php };
+        ?>
+        <div class="grid gap-8 lg:grid-cols-[17.5rem_minmax(0,1fr)] lg:gap-12 xl:grid-cols-[16.5rem_minmax(0,1fr)_17.5rem] 2xl:gap-16">
+            <div class="min-w-0 lg:order-2">
+                <div class="xl:mx-auto xl:max-w-[48rem]">
+                <?php if ($show_toc) : ?>
+                    <details class="boblift-news-toc-mobile mb-6 rounded border border-line bg-mist lg:hidden">
+                        <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-black text-ink">
+                            <span class="inline-flex items-center gap-2"><?php echo boblift_icon('list', 'h-4 w-4 text-slate-400'); ?><?php echo esc_html((string) ($article_ui['tocTitle'] ?? 'In this article')); ?></span>
+                            <?php echo boblift_icon('chevron-down', 'boblift-news-toc-chevron h-4 w-4 text-slate-400 transition'); ?>
+                        </summary>
+                        <ol class="boblift-news-toc-list border-t border-line px-4 py-3">
+                            <?php foreach ($toc as $item) : ?>
+                                <li><a href="#<?php echo esc_attr(rawurlencode((string) $item['id'])); ?>"><?php echo esc_html($item['text']); ?></a></li>
+                            <?php endforeach; ?>
+                        </ol>
+                    </details>
+                <?php endif; ?>
+
+                <div class="boblift-article-body">
                     <?php echo wp_kses_post($content); ?>
                 </div>
 
-                <aside class="boblift-news-detail-sidebar" aria-label="<?php echo esc_attr($labels['summary']); ?>">
-                    <div class="boblift-news-detail-sidebar-inner">
-                        <div class="boblift-news-detail-summary">
-                            <p class="section-label"><?php echo esc_html($labels['summary']); ?></p>
-                            <dl class="boblift-news-detail-summary-list">
-                                <div>
-                                    <dt><?php echo esc_html($labels['category']); ?></dt>
-                                    <dd><?php echo esc_html($category); ?></dd>
-                                </div>
-                                <div>
-                                    <dt><?php echo esc_html($labels['published']); ?></dt>
-                                    <dd><?php echo esc_html($published_date); ?></dd>
-                                </div>
-                                <div>
-                                    <dt><?php echo esc_html($labels['sourceLabel']); ?></dt>
-                                    <dd><?php echo esc_html($labels['sourceValue'] ?? 'BOB-LIFT'); ?></dd>
-                                </div>
-                            </dl>
-                        </div>
-
-                        <div class="boblift-news-detail-quote-card">
-                            <p class="section-label"><?php echo esc_html($labels['ctaLabel']); ?></p>
-                            <h2><?php echo esc_html($labels['ctaTitle']); ?></h2>
-                            <a class="btn-primary rounded-full" href="<?php echo esc_url(boblift_url('/quote')); ?>"><?php echo esc_html($labels['ctaButton']); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4 text-gold'); ?></a>
-                        </div>
-                    </div>
-                </aside>
+                <div class="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6 text-sm font-bold text-slate-500">
+                    <span><?php echo esc_html((string) ($article_ui['updatedLabel'] ?? 'Updated')); ?> <time datetime="<?php echo esc_attr($modified); ?>"><?php echo esc_html($modified); ?></time></span>
+                    <a class="inline-flex items-center gap-2 text-navy transition hover:text-blue-700" href="<?php echo esc_url(boblift_url('/news')); ?>"><?php echo boblift_icon('chevron-left', 'h-4 w-4'); ?><?php echo esc_html((string) ($article_ui['backLabel'] ?? 'Back to News')); ?></a>
+                </div>
+                </div>
             </div>
+
+            <aside class="min-w-0 lg:order-1" aria-label="<?php echo esc_attr((string) ($ui['summary'] ?? 'Article Summary')); ?>">
+                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+                    <section class="rounded border border-line bg-white p-5">
+                        <div class="flex items-center gap-3">
+                            <span class="grid h-11 w-11 shrink-0 place-items-center rounded-sm bg-navy text-white"><?php echo boblift_icon('building-2', 'h-5 w-5'); ?></span>
+                            <div class="min-w-0">
+                                <p class="text-sm font-black leading-tight text-ink"><?php echo esc_html((string) ($article_ui['authorName'] ?? 'BOB-LIFT Editorial Team')); ?></p>
+                                <p class="mt-1 text-xs font-semibold leading-5 text-slate-500"><?php echo esc_html((string) ($article_ui['authorText'] ?? '')); ?></p>
+                            </div>
+                        </div>
+                        <dl class="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-line pt-4 text-xs">
+                            <div>
+                                <dt class="font-bold text-slate-400"><?php echo esc_html((string) ($article_ui['publishedLabel'] ?? 'Published')); ?></dt>
+                                <dd class="mt-1 font-black text-ink"><time datetime="<?php echo esc_attr($published); ?>"><?php echo esc_html($published); ?></time></dd>
+                            </div>
+                            <div>
+                                <dt class="font-bold text-slate-400"><?php echo esc_html((string) ($ui['category'] ?? 'Category')); ?></dt>
+                                <dd class="mt-1 font-black text-ink"><?php echo esc_html($category); ?></dd>
+                            </div>
+                            <div class="col-span-2 inline-flex items-center gap-2 font-bold text-slate-500"><?php echo boblift_icon('clock-3', 'h-4 w-4 text-slate-400'); ?><?php echo esc_html($reading); ?></div>
+                        </dl>
+                    </section>
+
+                    <div class="empty:hidden xl:hidden"><?php $render_products(); ?></div>
+
+                    <div class="grid gap-4 sm:col-span-2 lg:sticky lg:top-6 lg:col-span-1">
+                        <?php if ($show_toc) : ?>
+                            <nav class="boblift-news-toc hidden rounded border border-line bg-white p-5 lg:block" aria-label="<?php echo esc_attr((string) ($article_ui['tocTitle'] ?? 'In this article')); ?>" data-news-toc>
+                                <h2 class="text-xs font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html((string) ($article_ui['tocTitle'] ?? 'In this article')); ?></h2>
+                                <ol class="boblift-news-toc-list mt-3">
+                                    <?php foreach ($toc as $item) : ?>
+                                        <li><a href="#<?php echo esc_attr(rawurlencode((string) $item['id'])); ?>"><?php echo esc_html($item['text']); ?></a></li>
+                                    <?php endforeach; ?>
+                                </ol>
+                            </nav>
+                        <?php endif; ?>
+                        <div class="xl:hidden"><?php $render_contact(); ?></div>
+                    </div>
+                </div>
+            </aside>
+
+            <aside class="hidden min-w-0 xl:order-3 xl:block" aria-label="<?php echo esc_attr((string) ($article_ui['productsTitle'] ?? 'Products in this article')); ?>">
+                <div class="grid gap-4 xl:sticky xl:top-6">
+                    <?php $render_products(); ?>
+                    <?php $render_contact(); ?>
+                </div>
+            </aside>
         </div>
     </div>
 
     <?php if ($related_query instanceof WP_Query && $related_query->have_posts()) : ?>
-        <section class="page-shell pb-12 md:pb-16 2xl:pb-20">
-            <div class="boblift-news-detail-frame">
-                <div class="boblift-news-detail-related">
-                    <div class="mb-7 flex items-center gap-4">
-                        <span class="h-9 w-1 rounded-full bg-gold"></span>
-                        <h2 class="text-3xl font-black tracking-[-0.04em] text-navy md:text-4xl"><?php echo esc_html($labels['related']); ?></h2>
-                    </div>
-                    <div class="grid gap-7 md:grid-cols-2">
-                        <?php while ($related_query->have_posts()) : $related_query->the_post();
-                            $related_title = function_exists('boblift_localize_product_text_fragments') ? (string) boblift_localize_product_text_fragments(get_the_title()) : get_the_title();
-                            ?>
-                            <article class="boblift-news-detail-related-card">
-                                <a class="boblift-news-detail-related-image" href="<?php the_permalink(); ?>">
-                                    <img class="h-full w-full object-cover transition duration-500 hover:scale-[1.04]" src="<?php echo esc_url(boblift_post_thumbnail_url(get_post(), boblift_asset('images/factory-workshop.jpg'))); ?>" alt="<?php echo esc_attr($related_title); ?>" loading="lazy" decoding="async">
-                                </a>
-                                <div class="p-7">
-                                    <div class="flex flex-wrap items-center gap-4 text-xs font-black uppercase tracking-[0.14em]">
-                                        <span class="text-blue-700"><?php $related_category = get_the_category()[0]->name ?? ($ui['news'] ?? 'News'); echo esc_html(function_exists('boblift_localized_static_text') ? boblift_localized_static_text((string) $related_category) : (string) $related_category); ?></span>
-                                        <span class="text-slate-500"><?php echo esc_html(get_the_date('Y-m-d')); ?></span>
-                                    </div>
-                                    <h3 class="mt-3 line-clamp-2 text-2xl font-black leading-tight tracking-[-0.035em] text-navy">
-                                        <a class="transition hover:text-blue-700" href="<?php the_permalink(); ?>"><?php echo esc_html($related_title); ?></a>
-                                    </h3>
-                                </div>
-                            </article>
-                        <?php endwhile; wp_reset_postdata(); ?>
-                    </div>
+        <section class="border-t border-line bg-mist py-10 md:py-14">
+            <div class="page-shell">
+                <div class="mb-6 flex items-end justify-between gap-4">
+                    <h2 class="text-[clamp(1.5rem,2.2vw,2.25rem)] font-black leading-tight tracking-[-0.015em] text-ink"><?php echo esc_html((string) ($article_ui['relatedTitle'] ?? 'More news')); ?></h2>
+                    <a class="inline-flex shrink-0 items-center gap-2 text-sm font-bold text-navy transition hover:text-blue-700" href="<?php echo esc_url(boblift_url('/news')); ?>"><?php echo esc_html((string) ($article_ui['relatedLink'] ?? 'All news')); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
+                </div>
+                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5">
+                    <?php while ($related_query->have_posts()) : $related_query->the_post();
+                        $related_title = $localize(get_the_title());
+                        $related_category = get_the_category()[0]->name ?? ($ui['news'] ?? 'News');
+                        $related_category = function_exists('boblift_localized_static_text') ? boblift_localized_static_text((string) $related_category) : (string) $related_category;
+                        ?>
+                        <article class="group overflow-hidden rounded border border-line bg-white">
+                            <a class="block aspect-[16/9] overflow-hidden bg-mist" href="<?php the_permalink(); ?>" tabindex="-1" aria-hidden="true">
+                                <img class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" src="<?php echo esc_url(boblift_post_thumbnail_url(get_post(), boblift_asset('images/page-heroes/factory-floor.webp'))); ?>" alt="" loading="lazy" decoding="async">
+                            </a>
+                            <div class="p-5">
+                                <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-bold text-slate-500"><span class="font-black uppercase tracking-[0.12em] text-blue-700"><?php echo esc_html($related_category); ?></span><time datetime="<?php echo esc_attr(get_the_date('Y-m-d')); ?>"><?php echo esc_html(get_the_date('Y-m-d')); ?></time></p>
+                                <h3 class="mt-2 line-clamp-2 text-lg font-black leading-snug text-ink"><a class="transition hover:text-blue-700" href="<?php the_permalink(); ?>"><?php echo esc_html($related_title); ?></a></h3>
+                            </div>
+                        </article>
+                    <?php endwhile; wp_reset_postdata(); ?>
                 </div>
             </div>
         </section>

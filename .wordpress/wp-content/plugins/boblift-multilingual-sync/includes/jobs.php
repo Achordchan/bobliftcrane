@@ -1204,8 +1204,17 @@ function boblift_mls_translate_post_text(string $text, string $target_language, 
         return '';
     }
     if (function_exists('ptai_translate_content')) {
+        // PolyTranslate keeps the source text for any batch that failed; a job must fail instead of saving English as a translation.
+        unset($GLOBALS['ptai_last_translation_error']);
         $translated = ptai_translate_content($text, $target_language, $source_language);
-        $translated = is_string($translated) ? $translated : $text;
+        $error = (string) ($GLOBALS['ptai_last_translation_error'] ?? '');
+        unset($GLOBALS['ptai_last_translation_error']);
+        if ($error !== '') {
+            return new WP_Error('boblift_mls_translate_failed', '翻译失败：' . $error);
+        }
+        if (!is_string($translated)) {
+            return new WP_Error('boblift_mls_translate_failed', '翻译失败：返回内容为空。');
+        }
         return boblift_mls_apply_static_title_fallback($text, $translated, $target_language, $source_language);
     }
     $result = ptai_call_translation_ai([$text], $target_language, $source_language);

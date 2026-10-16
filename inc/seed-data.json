@@ -21,7 +21,7 @@
     "top_bar": {
       "enabled": "1",
       "highlight": "Global Lifting Solutions.",
-      "text": "Exported to 80+ Countries Worldwide.",
+      "text": "Exported to 120+ Countries Worldwide.",
       "link_label": "Learn More +",
       "link_href": "/about"
     },
@@ -56,10 +56,6 @@
             "href": "/social-media.html"
           },
           {
-            "label": "Public Welfare",
-            "href": "/public-welfare.html"
-          },
-          {
             "label": "Contact Us",
             "href": "/contact.html"
           }
@@ -89,9 +85,9 @@
             "icon": "knuckle-truck"
           },
           {
-            "label": "Aerial Work Platform",
-            "href": "/other-cranes",
-            "icon": "aerial-platform"
+            "label": "Pickup Cranes",
+            "href": "/pickup-cranes",
+            "icon": "pickup-crane"
           }
         ]
       },
@@ -115,26 +111,26 @@
         ]
       },
       {
-        "title": "Compact & Attachments",
-        "href": "/pickup-cranes",
-        "description": "Smaller equipment and add-ons",
+        "title": "Special Lifting Equipment",
+        "href": "/forklift-fly-jib-cranes",
+        "description": "Jibs, platforms and tail lifts",
         "icon": "attachments",
         "image": "images/knuckle-banner.jpg",
         "links": [
-          {
-            "label": "Pickup Cranes",
-            "href": "/pickup-cranes",
-            "icon": "pickup-crane"
-          },
           {
             "label": "Forklift Fly Jib Cranes",
             "href": "/forklift-fly-jib-cranes",
             "icon": "forklift-jib"
           },
           {
-            "label": "Mini Dumpers",
-            "href": "/mini-dumpers",
-            "icon": "mini-dumper"
+            "label": "Aerial Work Platform",
+            "href": "/aerial-work-platform",
+            "icon": "aerial-platform"
+          },
+          {
+            "label": "Tail Lift",
+            "href": "/tail-lift",
+            "icon": "tail-lift"
           },
           {
             "label": "Other Cranes",
@@ -173,16 +169,24 @@
               "href": "/knuckle-boom-truck-mounted-cranes"
             },
             {
-              "label": "Marine Cranes",
-              "href": "/knuckle-boom-marine-cranes"
-            },
-            {
               "label": "Pickup Cranes",
               "href": "/pickup-cranes"
             },
             {
-              "label": "Mini Dumpers",
-              "href": "/mini-dumpers"
+              "label": "Marine Cranes",
+              "href": "/knuckle-boom-marine-cranes"
+            },
+            {
+              "label": "Forklift Fly Jib Cranes",
+              "href": "/forklift-fly-jib-cranes"
+            },
+            {
+              "label": "Aerial Work Platform",
+              "href": "/aerial-work-platform"
+            },
+            {
+              "label": "Tail Lift",
+              "href": "/tail-lift"
             }
           ]
         },
@@ -235,17 +239,30 @@
     "home": {
       "seo_title": "BOB-LIFT | Truck Mounted Cranes and Lifting Solutions",
       "seo_description": "BOB-LIFT supplies truck mounted cranes, marine cranes, aerial work platforms and lifting attachments for global projects.",
-      "hero_slides": [
-        {
-          "image": "images/marine-scene.jpg"
-        },
-        {
-          "image": "images/telescopic-banner.jpg"
-        },
-        {
-          "image": "images/knuckle-banner.jpg"
-        }
-      ],
+      "hero": {
+        "label": "Crane manufacturer since 2003",
+        "secondary_label": "Request a Quote",
+        "slides": [
+          {
+            "tab": "Marine Cranes",
+            "title": "Marine cranes, built for work at sea.",
+            "text": "Knuckle boom and telescopic marine cranes from 800 kg to 25 t for vessels, ports and offshore work, configured to your deck and lifting needs.",
+            "primary_label": "View Marine Cranes",
+            "primary_href": "/marine-crane",
+            "image": "images/page-heroes/home-marine.webp",
+            "image_alt": "BOB-LIFT knuckle boom marine crane lifting a cargo container on a supply vessel"
+          },
+          {
+            "tab": "Truck Mounted Cranes",
+            "title": "Truck mounted cranes, built to lift.",
+            "text": "Knuckle boom and telescopic truck cranes from 800 kg to 50 t, built in our 37,000 m² factory in Xuzhou and exported to 120+ countries.",
+            "primary_label": "View Truck Cranes",
+            "primary_href": "/truck-mounted-crane",
+            "image": "images/page-heroes/home-site.webp",
+            "image_alt": "BOB-LIFT knuckle boom truck crane lifting a precast concrete panel"
+          }
+        ]
+      },
       "trust_bar": {
         "label": "Certified",
         "title": "Quality Assurance",
@@ -293,14 +310,14 @@
         "visual_watermark_label": "BOB-LIFT",
         "intro": "Choose a crane family first, then compare the core boom types for your lifting task.",
         "find_model_title": "Find Your Model",
-        "max_category_products": 8,
+        "max_category_products": 4,
         "show_category_scroll_buttons": "1",
         "show_product_specs": "1"
       },
       "about": {
         "label": "About BOB-LIFT",
         "title": "Engineering Excellence. Powered by People.",
-        "text": "BOB-LIFT is a global manufacturer of advanced lifting solutions with 35+ years of experience. We combine innovation, precision and passion to deliver cranes that exceed expectations worldwide.",
+        "text": "BOB-LIFT is a global manufacturer of advanced lifting solutions with 20+ years of experience. We combine innovation, precision and passion to deliver cranes that exceed expectations worldwide.",
         "cta_label": "More About Us",
         "cta_href": "/about",
         "gallery": [
@@ -328,7 +345,7 @@
         ],
         "stats": [
           {
-            "value": "35+",
+            "value": "20+",
             "label": "Years Experience",
             "iconName": "award"
           },
@@ -344,18 +361,17 @@
           }
         ],
         "timeline": [
-          "1989 Company Founded",
-          "2005 Global Export Expansion",
-          "2015 Advanced R&D Center Established",
-          "2022 Smart Manufacturing Upgraded"
+          "2003 Company founded in Xuzhou",
+          "2014 Foreign trade department established",
+          "2023 Canton Fair debut",
+          "2026 Serving global markets"
         ]
       },
       "news": {
         "label": "News Center",
         "title": "Latest Insights from BOB-LIFT.",
         "cta_label": "View All News",
-        "cta_href": "/news",
-        "background_word": "NEWS"
+        "cta_href": "/news"
       }
     }
   },
@@ -439,19 +455,6 @@
       "banner_title": "Forklift Fly Jib Cranes"
     },
     {
-      "slug": "mini-dumpers",
-      "title": "Mini Dumpers",
-      "short_title": "Mini Dumpers",
-      "description": "Mini Dumpers from the BOB-LIFT product catalog.",
-      "image": "images/oldsite/products/2-ton-mini-dumper.png",
-      "icon": "mini-dumper",
-      "group": "Mini Dumper",
-      "menu_group": "compact-attachments",
-      "sort": 70,
-      "banner_label": "BOB-LIFT Product Range",
-      "banner_title": "Mini Dumpers"
-    },
-    {
       "slug": "aerial-work-platform",
       "title": "Aerial Work Platform",
       "short_title": "Aerial Work Platform",
@@ -525,7 +528,7 @@
       "icon": "truck-crane",
       "group": "Legacy SEO Landing",
       "menu_group": "compact-attachments",
-      "sort": 701,
+      "sort": 1,
       "banner_label": "BOB-LIFT Product Range",
       "banner_title": "Cranes for Truck | Truck Mounted Cranes"
     },
@@ -538,7 +541,7 @@
       "icon": "truck-crane",
       "group": "Legacy SEO Landing",
       "menu_group": "compact-attachments",
-      "sort": 702,
+      "sort": 4,
       "banner_label": "BOB-LIFT Product Range",
       "banner_title": "Marine Cranes | Ship Cranes"
     },
@@ -5313,7 +5316,7 @@
       "category_title": "Pickup Cranes",
       "capacity": "800 kg",
       "capacity_value": 0.8,
-      "boom_type": "custom-solution",
+      "boom_type": "",
       "applications": [
         "logistics",
         "agriculture",
@@ -5416,704 +5419,6 @@
       "popularity": 60,
       "featured": false,
       "created_at": "2026-06-01T20:39:54.351Z"
-    },
-    {
-      "slug": "5-ton-mini-dumper",
-      "title": "5 Ton Mini Dumper",
-      "model": "FY50",
-      "category": "mini-dumpers",
-      "category_title": "Mini Dumpers",
-      "capacity": "5 Ton",
-      "capacity_value": 5,
-      "boom_type": "custom-solution",
-      "applications": [
-        "construction",
-        "agriculture"
-      ],
-      "status": "customizable",
-      "image": "images/oldsite/products/5-ton-mini-dumper-bc0c9bea12-900x700.jpg",
-      "short_description": "The 5 Ton Mini Dumper has a 5000 kg rated load, 2.5 meters cubic of bucket volume, and a 390mm discharge height. The dumper has a 1700mm bucket width, a 21% maximum gradient, and a 200mm mini ground clearance.",
-      "tags": [],
-      "specs": [
-        {
-          "label": "Model No.",
-          "value": "FY50"
-        },
-        {
-          "label": "Rated Load (kg)",
-          "value": "5000"
-        },
-        {
-          "label": "Bucket Volume (m3)",
-          "value": "2.5"
-        },
-        {
-          "label": "Discharge Height (mm)",
-          "value": "390"
-        },
-        {
-          "label": "Maximum Gradient(%)",
-          "value": "21"
-        },
-        {
-          "label": "Buck Width",
-          "value": "1700"
-        },
-        {
-          "label": "Traveling Speed",
-          "value": "Ⅰforward 1gear 9 Ⅱforward 2gear 8 Ⅲforward 3gear 22 reward gear 7.5"
-        },
-        {
-          "label": "Minimum Turning Radius (mm)",
-          "value": "5000"
-        },
-        {
-          "label": "Overall Dimension (mm)",
-          "value": "5500*1700*27500"
-        },
-        {
-          "label": "Wheel Base (mm)",
-          "value": "2210"
-        },
-        {
-          "label": "Thread (mm)",
-          "value": "1400"
-        },
-        {
-          "label": "Mini Ground Clearance (mm)",
-          "value": "200"
-        },
-        {
-          "label": "Net Weight (kg)",
-          "value": "4000 Engine"
-        },
-        {
-          "label": "Engine Model",
-          "value": "JD490"
-        },
-        {
-          "label": "Rated Power(kw)",
-          "value": "41"
-        },
-        {
-          "label": "Rated Power(r/min)",
-          "value": "2400"
-        },
-        {
-          "label": "Tipping Model",
-          "value": "Hydraulic(4 wheel drive) electic starting Yes 5 Ton Mini Dumper"
-        }
-      ],
-      "features": [
-        {
-          "title": "Stable lifting structure",
-          "text": "Designed for practical jobsite operation with reliable boom movement and load control."
-        },
-        {
-          "title": "Export-ready configuration",
-          "text": "Suitable for international procurement with documentation, packing and configuration support."
-        },
-        {
-          "title": "Application matching",
-          "text": "Can be matched to working radius, chassis, vessel, yard or attachment requirements."
-        }
-      ],
-      "gallery": [
-        {
-          "image": "images/oldsite/products/5-ton-mini-dumper-bc0c9bea12-1920x1080.jpg",
-          "label": "Main product view"
-        },
-        {
-          "image": "images/oldsite/products/5-ton-mini-dumper-6407b43c10-900x700.jpg",
-          "label": "5 Ton Mini Dumper image 1"
-        },
-        {
-          "image": "images/oldsite/products/5-ton-mini-dumper-8077eb845d-900x700.jpg",
-          "label": "5 Ton Mini Dumper image 2"
-        },
-        {
-          "image": "images/oldsite/products/5-ton-mini-dumper-4c2eceb3ca-900x700.jpg",
-          "label": "5 Ton Mini Dumper image 3"
-        },
-        {
-          "image": "images/oldsite/products/5-ton-mini-dumper-83b6fe0269-900x700.jpg",
-          "label": "5 Ton Mini Dumper parameter chart 1"
-        },
-        {
-          "image": "images/oldsite/products/5-ton-mini-dumper-cd3fb4d1a7-900x700.jpg",
-          "label": "5 Ton Mini Dumper parameter chart 2"
-        }
-      ],
-      "popularity": 60,
-      "featured": false,
-      "created_at": "2026-06-01T20:39:59.650Z"
-    },
-    {
-      "slug": "4-ton-mini-dumper",
-      "title": "4 Ton Mini Dumper",
-      "model": "FY40",
-      "category": "mini-dumpers",
-      "category_title": "Mini Dumpers",
-      "capacity": "4 Ton",
-      "capacity_value": 4,
-      "boom_type": "custom-solution",
-      "applications": [
-        "construction",
-        "agriculture"
-      ],
-      "status": "customizable",
-      "image": "images/oldsite/products/4-ton-mini-dumper-bc0c9bea12-900x700.jpg",
-      "short_description": "This dumper has a 4-ton rated load with a 460mm discharge height. The 4 Ton Mini Dumper has a 21% maximum gradient and can climb slightly steep inclines. It also has an 1800mm bucket width for carrying loads and a 45mm turning radius. Lastly, the dumper has a 240mm ground clearance, and a 2130 mm wheelbase.",
-      "tags": [],
-      "specs": [
-        {
-          "label": "Model No.",
-          "value": "FY40"
-        },
-        {
-          "label": "Rated Load (kg)",
-          "value": "4000"
-        },
-        {
-          "label": "Bucket Volume (m3)",
-          "value": "3"
-        },
-        {
-          "label": "Discharge Height (mm)",
-          "value": "460"
-        },
-        {
-          "label": "Maximum Gradient(%)",
-          "value": "21"
-        },
-        {
-          "label": "Buck Width",
-          "value": "1800"
-        },
-        {
-          "label": "Traveling Speed",
-          "value": "Ⅰforward 1gear 9 Ⅱforward 2gear 8 Ⅲforward 3gear 20 reward gear 7.5"
-        },
-        {
-          "label": "Minimum Turning Radius (mm)",
-          "value": "4500"
-        },
-        {
-          "label": "Overall Dimension (mm)",
-          "value": "4700*1800*2800"
-        },
-        {
-          "label": "Wheel Base (mm)",
-          "value": "2130"
-        },
-        {
-          "label": "Thread (mm)",
-          "value": "1400"
-        },
-        {
-          "label": "Mini Ground Clearance (mm)",
-          "value": "240"
-        },
-        {
-          "label": "Net Weight (kg)",
-          "value": "2200 Engine"
-        },
-        {
-          "label": "Engine Model",
-          "value": "JD490"
-        },
-        {
-          "label": "Rated Power(kw)",
-          "value": "41"
-        },
-        {
-          "label": "Rated Power(r/min)",
-          "value": "2400"
-        },
-        {
-          "label": "Tipping Model",
-          "value": "Hydraulic(4 wheel drive) electic starting Yes 4 Ton Mini Dumper"
-        }
-      ],
-      "features": [
-        {
-          "title": "Safer lifting operation",
-          "text": "The 4 Ton Mini Dumper has a 4000KG rated load, a 41 kw rated power, and a three meter-cubed bucket capacity."
-        },
-        {
-          "title": "Reliable lifting performance",
-          "text": "The dumper's engine provides sufficient horsepower to complete various light to average tasks."
-        },
-        {
-          "title": "Safer lifting operation",
-          "text": "It has a big battery capacity that makes it easier for operators to start it in cold weather."
-        },
-        {
-          "title": "Export-oriented build quality",
-          "text": "The dumper has wider tires for working on bumpy and muddy roads and has a low walking speed suitable for transporting bulky goods over short distances."
-        }
-      ],
-      "gallery": [
-        {
-          "image": "images/oldsite/products/4-ton-mini-dumper-bc0c9bea12-1920x1080.jpg",
-          "label": "Main product view"
-        },
-        {
-          "image": "images/oldsite/products/4-ton-mini-dumper-83b6fe0269-900x700.jpg",
-          "label": "4 Ton Mini Dumper parameter chart 1"
-        },
-        {
-          "image": "images/oldsite/products/4-ton-mini-dumper-cd3fb4d1a7-900x700.jpg",
-          "label": "4 Ton Mini Dumper parameter chart 2"
-        },
-        {
-          "image": "images/oldsite/products/4-ton-mini-dumper-0cc896258f-900x700.jpg",
-          "label": "4 Ton Mini Dumper parameter chart 3"
-        },
-        {
-          "image": "images/oldsite/products/4-ton-mini-dumper-af3ea614b9-900x700.jpg",
-          "label": "4 Ton Mini Dumper parameter chart 4"
-        }
-      ],
-      "popularity": 60,
-      "featured": false,
-      "created_at": "2026-06-01T20:40:05.258Z"
-    },
-    {
-      "slug": "3-ton-mini-dumper",
-      "title": "3 Ton Mini Dumper",
-      "model": "FY30",
-      "category": "mini-dumpers",
-      "category_title": "Mini Dumpers",
-      "capacity": "3 Ton",
-      "capacity_value": 3,
-      "boom_type": "custom-solution",
-      "applications": [
-        "construction",
-        "agriculture"
-      ],
-      "status": "customizable",
-      "image": "images/oldsite/products/3-ton-mini-dumper-bc0c9bea12-900x700.jpg",
-      "short_description": "The 3 Ton Mini Dumper has a 1700 mm bucket width, a 3000 kg rated load, and a 1.5 meters cubed bucket volume. It has a 300mm discharge height, a 21% maximum gradient, and a 200m minimum ground clearance.",
-      "tags": [],
-      "specs": [
-        {
-          "label": "Buck Width",
-          "value": "1700 Package 6 units/2decks Rated load(kg) 3000 Bucket volume(m3) 1.5 Discharge height(mm) 300"
-        },
-        {
-          "label": "Maximum Gradient(%)",
-          "value": "21 Thread(mm) 1400 Mini ground clearance(mm) 200 Net weight(kg) 2000"
-        },
-        {
-          "label": "Engine Model",
-          "value": "2100"
-        },
-        {
-          "label": "Rated Power(kw)",
-          "value": "28"
-        },
-        {
-          "label": "Rated Power(r/min)",
-          "value": "2200"
-        },
-        {
-          "label": "Tipping Model",
-          "value": "Electic starting Yes Overall dimension(mm) 4350*1700*2400 Wheel base(mm) 2130"
-        },
-        {
-          "label": "Traveling Speed",
-          "value": "(Ⅰforward 1gear) 9"
-        },
-        {
-          "label": "Traveling Speed",
-          "value": "(Ⅲforward 3gear) 22"
-        },
-        {
-          "label": "Traveling Speed",
-          "value": "(reward gear) 7.5 Minimum turning radius(mm) 4500 3 Ton Mini Dumper"
-        }
-      ],
-      "features": [
-        {
-          "title": "Practical product configuration",
-          "text": "The 3 Ton Mini Dumper offers a range of features that enhance its efficiency, for tasks."
-        },
-        {
-          "title": "Reliable operating structure",
-          "text": "Firstly, it boasts a good design ensuring maneuverability and ease of operation."
-        },
-        {
-          "title": "Reliable lifting performance",
-          "text": "Additionally, this mini dumper is highly flexible equipped with a wide gear shift and a significant carrying capacity."
-        },
-        {
-          "title": "Telescopic boom design",
-          "text": "Its four cylinder power system provides transportation capabilities and reliable climbing ability."
-        }
-      ],
-      "gallery": [
-        {
-          "image": "images/oldsite/products/3-ton-mini-dumper-bc0c9bea12-1920x1080.jpg",
-          "label": "Main product view"
-        },
-        {
-          "image": "images/oldsite/products/3-ton-mini-dumper-9626b4be96-900x700.jpg",
-          "label": "3 Ton Mini Dumper image 1"
-        },
-        {
-          "image": "images/oldsite/products/3-ton-mini-dumper-277330b387-900x700.jpg",
-          "label": "3 Ton Mini Dumper image 2"
-        },
-        {
-          "image": "images/oldsite/products/3-ton-mini-dumper-8d1adf0493-900x700.jpg",
-          "label": "3 Ton Mini Dumper image 3"
-        },
-        {
-          "image": "images/oldsite/products/3-ton-mini-dumper-83b6fe0269-900x700.jpg",
-          "label": "3 Ton Mini Dumper parameter chart 1"
-        },
-        {
-          "image": "images/oldsite/products/3-ton-mini-dumper-cd3fb4d1a7-900x700.jpg",
-          "label": "3 Ton Mini Dumper parameter chart 2"
-        },
-        {
-          "image": "images/oldsite/products/3-ton-mini-dumper-37ea1127b6-900x700.jpg",
-          "label": "3 Ton Mini Dumper parameter chart 3"
-        },
-        {
-          "image": "images/oldsite/products/3-ton-mini-dumper-b08e09e53c-900x700.jpg",
-          "label": "3 Ton Mini Dumper parameter chart 4"
-        }
-      ],
-      "popularity": 60,
-      "featured": false,
-      "created_at": "2026-06-01T20:40:11.080Z"
-    },
-    {
-      "slug": "2-ton-mini-dumper",
-      "title": "2 Ton Mini Dumper",
-      "model": "FY20",
-      "category": "mini-dumpers",
-      "category_title": "Mini Dumpers",
-      "capacity": "2 Ton",
-      "capacity_value": 2,
-      "boom_type": "custom-solution",
-      "applications": [
-        "construction",
-        "agriculture"
-      ],
-      "status": "customizable",
-      "image": "images/oldsite/products/2-ton-mini-dumper-bc0c9bea12-900x700.jpg",
-      "short_description": "The 2 Ton Mini Dumper has a 1 meter-cubed rated bucket capacity, a 24 KW rated power, and a 2000 kg rated load. It has a 390mm discharge height, a 21-percent maximum gradient, and a hydraulic tipping model.",
-      "tags": [],
-      "specs": [
-        {
-          "label": "Model No.",
-          "value": "FY20 Rated Load kg 2000 Bucket Volume m3 1 Discharge Height mm 390 Maximum Gradient % 21"
-        },
-        {
-          "label": "Buck Width",
-          "value": "1580 mm"
-        },
-        {
-          "label": "Engine Model",
-          "value": "2105 Rated Power KW 24 Rated Speed r/min 2200"
-        },
-        {
-          "label": "Tipping Model",
-          "value": "Electric Starting Yes 2 Ton Mini Dumper"
-        }
-      ],
-      "features": [
-        {
-          "title": "Reliable lifting performance",
-          "text": "The 2 Ton Mini Dumper boasts an engine that delivers power while maintaining fuel efficiency."
-        },
-        {
-          "title": "Reliable operating structure",
-          "text": "Its battery is also highly capable ensuring starts, in chilly weather conditions."
-        },
-        {
-          "title": "Project-ready performance",
-          "text": "Moreover, its wide off road tires enable navigation on muddy terrains."
-        },
-        {
-          "title": "Export-oriented build quality",
-          "text": "With its walking speed this mini dumper is ideal for short distance transportation of materials."
-        }
-      ],
-      "gallery": [
-        {
-          "image": "images/oldsite/products/2-ton-mini-dumper-bc0c9bea12-1920x1080.jpg",
-          "label": "Main product view"
-        },
-        {
-          "image": "images/oldsite/products/2-ton-mini-dumper-a3b2fbfeda-900x700.jpg",
-          "label": "2 Ton Mini Dumper image 1"
-        },
-        {
-          "image": "images/oldsite/products/2-ton-mini-dumper-51b64a1451-900x700.jpg",
-          "label": "2 Ton Mini Dumper image 2"
-        },
-        {
-          "image": "images/oldsite/products/2-ton-mini-dumper-f0af1e92a6-900x700.jpg",
-          "label": "2 Ton Mini Dumper image 3"
-        },
-        {
-          "image": "images/oldsite/products/2-ton-mini-dumper-83b6fe0269-900x700.jpg",
-          "label": "2 Ton Mini Dumper parameter chart 1"
-        },
-        {
-          "image": "images/oldsite/products/2-ton-mini-dumper-cd3fb4d1a7-900x700.jpg",
-          "label": "2 Ton Mini Dumper parameter chart 2"
-        },
-        {
-          "image": "images/oldsite/products/2-ton-mini-dumper-751710f004-900x700.jpg",
-          "label": "2 Ton Mini Dumper parameter chart 3"
-        },
-        {
-          "image": "images/oldsite/products/2-ton-mini-dumper-08f4b4ed2a-900x700.jpg",
-          "label": "2 Ton Mini Dumper parameter chart 4"
-        }
-      ],
-      "popularity": 60,
-      "featured": false,
-      "created_at": "2026-06-01T20:40:16.879Z"
-    },
-    {
-      "slug": "1-5-ton-mini-dumper",
-      "title": "1.5 Ton Mini Dumper",
-      "model": "FY15",
-      "category": "mini-dumpers",
-      "category_title": "Mini Dumpers",
-      "capacity": "1.5 Ton",
-      "capacity_value": 1.5,
-      "boom_type": "custom-solution",
-      "applications": [
-        "construction",
-        "agriculture"
-      ],
-      "status": "customizable",
-      "image": "images/oldsite/products/1-5-ton-mini-dumper-bc0c9bea12-900x700.jpg",
-      "short_description": "The Mini Dumper, with a capacity of 1.5 tons, can handle loads weighing up to 1500 kg. It comes with a bucket volume of 0.75 meters and a discharge height of 240 mm. The dumper can handle slopes up to a maximum gradient of 21%. Additionally, it features a bucket width of 1580 mm, a turning radius of 4000mm. It operates",
-      "tags": [],
-      "specs": [
-        {
-          "label": "Model No.",
-          "value": "FY15"
-        },
-        {
-          "label": "Rated Load (kg)",
-          "value": "1500"
-        },
-        {
-          "label": "Bucket Volume (m3)",
-          "value": "0.75"
-        },
-        {
-          "label": "Discharge Height (mm)",
-          "value": "240"
-        },
-        {
-          "label": "Maximum Gradient(%)",
-          "value": "21"
-        },
-        {
-          "label": "Buck Width",
-          "value": "1580"
-        },
-        {
-          "label": "Traveling Speed",
-          "value": "Ⅰforward 1gear 6.8 Ⅱforward 2gear 9 Ⅲforward 3gear 22 reward gear 4.8"
-        },
-        {
-          "label": "Minimum Turning Radius (mm)",
-          "value": "4000"
-        },
-        {
-          "label": "Overall Dimension (mm)",
-          "value": "2720*1600*2040"
-        },
-        {
-          "label": "Wheel Base (mm)",
-          "value": "1500"
-        },
-        {
-          "label": "Thread (mm)",
-          "value": "1230"
-        },
-        {
-          "label": "Mini Ground Clearance (mm)",
-          "value": "200"
-        },
-        {
-          "label": "Net Weight (kg)",
-          "value": "1100 Engine"
-        },
-        {
-          "label": "Engine Model",
-          "value": "ZS1100"
-        },
-        {
-          "label": "Rated Power(kw)",
-          "value": "12.1"
-        },
-        {
-          "label": "Rated Power(r/min)",
-          "value": "2200"
-        },
-        {
-          "label": "Tipping Model",
-          "value": "electic starting Yes 1.5 Ton Mini Dumper"
-        }
-      ],
-      "features": [
-        {
-          "title": "Practical product configuration",
-          "text": "The 1.5 Ton Mini Dumper has a low-volume which makes it perfect for transportation tasks that require moving materials over short distances."
-        },
-        {
-          "title": "Reliable operating structure",
-          "text": "It has a small turning radius due to its small size and can be used in narrow work environments."
-        },
-        {
-          "title": "Project-ready performance",
-          "text": "Lastly, the dumper has a strong chassis and a heavy duty frame made from high-quality materials."
-        },
-        {
-          "title": "Export-oriented build quality",
-          "text": "The dumper can move 1.5 tons of materials which is pretty good considering its size and you can control the dumper by steering it, which is pretty convenient. 1.5 Ton Mini Dumper Specifications FY15 Mini Dumper model no."
-        }
-      ],
-      "gallery": [
-        {
-          "image": "images/oldsite/products/1-5-ton-mini-dumper-bc0c9bea12-1920x1080.jpg",
-          "label": "Main product view"
-        },
-        {
-          "image": "images/oldsite/products/1-5-ton-mini-dumper-325c0ea13b-900x700.jpg",
-          "label": "1.5 Ton Mini Dumper image 1"
-        },
-        {
-          "image": "images/oldsite/products/1-5-ton-mini-dumper-8d8d23ac4b-900x700.jpg",
-          "label": "1.5 Ton Mini Dumper image 2"
-        },
-        {
-          "image": "images/oldsite/products/1-5-ton-mini-dumper-4afd6e1e63-900x700.jpg",
-          "label": "1.5 Ton Mini Dumper image 3"
-        },
-        {
-          "image": "images/oldsite/products/1-5-ton-mini-dumper-83b6fe0269-900x700.jpg",
-          "label": "1.5 Ton Mini Dumper parameter chart 1"
-        },
-        {
-          "image": "images/oldsite/products/1-5-ton-mini-dumper-cd3fb4d1a7-900x700.jpg",
-          "label": "1.5 Ton Mini Dumper parameter chart 2"
-        },
-        {
-          "image": "images/oldsite/products/1-5-ton-mini-dumper-278ec5c1cb-900x700.jpg",
-          "label": "1.5 Ton Mini Dumper parameter chart 3"
-        },
-        {
-          "image": "images/oldsite/products/1-5-ton-mini-dumper-ff06f6cd69-900x700.jpg",
-          "label": "1.5 Ton Mini Dumper parameter chart 4"
-        }
-      ],
-      "popularity": 60,
-      "featured": false,
-      "created_at": "2026-06-01T20:40:22.687Z"
-    },
-    {
-      "slug": "1-ton-mini-dumper",
-      "title": "1 Ton Mini Dumper",
-      "model": "FC10",
-      "category": "mini-dumpers",
-      "category_title": "Mini Dumpers",
-      "capacity": "1 Ton",
-      "capacity_value": 1,
-      "boom_type": "custom-solution",
-      "applications": [
-        "construction",
-        "agriculture"
-      ],
-      "status": "customizable",
-      "image": "images/oldsite/products/1-ton-mini-dumper-bc0c9bea12-900x700.jpg",
-      "short_description": "The mini dumper has a 1000 kg rated load and a 0.5 meters cubed bucket volume. The dumper has a 1480mm bucket width, a 150mm discharge height, and a 4000mm turning radius. It has a 1500mm wheel base, a mechanical tipping model, and an electric start.",
-      "tags": [],
-      "specs": [
-        {
-          "label": "Model No.",
-          "value": "FC10 Rated Load kg 1000 Bucket Volume m3 0.5 Discharge Height mm 150 Maximum Gradient % 21"
-        },
-        {
-          "label": "Buck Width",
-          "value": "1480 mm"
-        },
-        {
-          "label": "Engine Model",
-          "value": "ZS1100 Rated Power KW 12.1 Rated Speed r/min 2200"
-        },
-        {
-          "label": "Tipping Model",
-          "value": "Electric Starting Yes 1 Ton Mini Dumper"
-        }
-      ],
-      "features": [
-        {
-          "title": "Reliable lifting performance",
-          "text": "The 1 Ton Mini Dumper has a 12.1KW engine that produces a lot of power and has a low fuel consumption."
-        },
-        {
-          "title": "Reliable lifting performance",
-          "text": "The mini dumper has a big battery capacity that starts easily even in cold weather."
-        },
-        {
-          "title": "Project-ready performance",
-          "text": "The dumper has wide off road tires that work in smooth, muddy, and bumpy surfaces."
-        },
-        {
-          "title": "Export-oriented build quality",
-          "text": "It also has a low walking speed and is great for transporting materials over short distances."
-        }
-      ],
-      "gallery": [
-        {
-          "image": "images/oldsite/products/1-ton-mini-dumper-bc0c9bea12-1920x1080.jpg",
-          "label": "Main product view"
-        },
-        {
-          "image": "images/oldsite/products/1-ton-mini-dumper-40f1291f46-900x700.jpg",
-          "label": "1 Ton Mini Dumper image 1"
-        },
-        {
-          "image": "images/oldsite/products/1-ton-mini-dumper-3765c62b93-900x700.jpg",
-          "label": "1 Ton Mini Dumper image 2"
-        },
-        {
-          "image": "images/oldsite/products/1-ton-mini-dumper-4f116c3207-900x700.jpg",
-          "label": "1 Ton Mini Dumper image 3"
-        },
-        {
-          "image": "images/oldsite/products/1-ton-mini-dumper-83b6fe0269-900x700.jpg",
-          "label": "1 Ton Mini Dumper parameter chart 1"
-        },
-        {
-          "image": "images/oldsite/products/1-ton-mini-dumper-cd3fb4d1a7-900x700.jpg",
-          "label": "1 Ton Mini Dumper parameter chart 2"
-        },
-        {
-          "image": "images/oldsite/products/1-ton-mini-dumper-87c778d5d0-900x700.jpg",
-          "label": "1 Ton Mini Dumper parameter chart 3"
-        },
-        {
-          "image": "images/oldsite/products/1-ton-mini-dumper-856180c8f4-900x700.jpg",
-          "label": "1 Ton Mini Dumper parameter chart 4"
-        }
-      ],
-      "popularity": 60,
-      "featured": false,
-      "created_at": "2026-06-01T20:40:28.428Z"
     },
     {
       "slug": "2-3-ton-forklift-fly-jib-crane",
@@ -6555,7 +5860,7 @@
       "category_title": "Pickup Cranes",
       "capacity": "800 kg",
       "capacity_value": 0.8,
-      "boom_type": "custom-solution",
+      "boom_type": "",
       "applications": [
         "logistics",
         "agriculture",
@@ -6667,7 +5972,7 @@
       "category_title": "Timber Cranes",
       "capacity": "700 kg",
       "capacity_value": 0.7,
-      "boom_type": "custom-solution",
+      "boom_type": "",
       "applications": [
         "agriculture",
         "logistics"
@@ -6770,7 +6075,7 @@
       "category_title": "Timber Cranes",
       "capacity": "700 kg",
       "capacity_value": 0.7,
-      "boom_type": "custom-solution",
+      "boom_type": "",
       "applications": [
         "agriculture",
         "logistics"
@@ -6869,7 +6174,7 @@
       "category_title": "Tail Lift",
       "capacity": "1-2 tons",
       "capacity_value": 2,
-      "boom_type": "custom-solution",
+      "boom_type": "",
       "applications": [
         "logistics"
       ],
@@ -6931,7 +6236,7 @@
       "category_title": "Aerial Work Platform",
       "capacity": "18 m",
       "capacity_value": 18,
-      "boom_type": "custom-solution",
+      "boom_type": "",
       "applications": [
         "municipal-engineering",
         "construction"
@@ -7006,7 +6311,7 @@
       "category_title": "Aerial Work Platform",
       "capacity": "28 m",
       "capacity_value": 28,
-      "boom_type": "custom-solution",
+      "boom_type": "",
       "applications": [
         "municipal-engineering",
         "construction"
@@ -7081,7 +6386,7 @@
       "category_title": "Aerial Work Platform",
       "capacity": "30 m",
       "capacity_value": 30,
-      "boom_type": "custom-solution",
+      "boom_type": "",
       "applications": [
         "municipal-engineering",
         "construction"
@@ -7156,7 +6461,7 @@
       "category_title": "Aerial Work Platform",
       "capacity": "35 m",
       "capacity_value": 35,
-      "boom_type": "custom-solution",
+      "boom_type": "",
       "applications": [
         "municipal-engineering",
         "construction"
@@ -7235,7 +6540,7 @@
       "category_title": "Aerial Work Platform",
       "capacity": "40 m",
       "capacity_value": 40,
-      "boom_type": "custom-solution",
+      "boom_type": "",
       "applications": [
         "municipal-engineering",
         "construction"

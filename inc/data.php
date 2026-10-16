@@ -66,90 +66,81 @@ function boblift_product_archive_defaults(): array
 {
     return [
         'label' => 'BOB-LIFT Product Range',
-        'title' => 'Construction Equipment',
-        'text' => 'Explore reliable BOB-LIFT lifting and construction machinery for global projects.',
-        'image' => boblift_image_option('images/products/truck-mounted-crane.png'),
-        'image_alt' => 'BOB-LIFT truck mounted crane',
-        'watermark' => 'BOB-LIFT',
+        'title' => 'Cranes & Lifting Equipment',
+        'text' => 'Explore BOB-LIFT truck mounted cranes, marine cranes and lifting equipment for global projects.',
+        'image' => boblift_image_option('images/product-banners/default.jpg'),
+        'image_alt' => 'BOB-LIFT knuckle boom crane in the factory yard',
     ];
 }
 
 function boblift_social_media_page_defaults(): array
 {
+    // Platform links stay empty until the real account URL is entered in admin; empty cards render without a link.
+    $platform = static fn(string $label, string $icon, string $tone, string $text): array => ['enabled' => '1', 'label' => $label, 'icon' => $icon, 'href' => '', 'handle' => '', 'text' => $text, 'tone' => $tone];
+    $post = static fn(string $file, string $title): array => ['enabled' => '1', 'title' => $title, 'image' => boblift_image_option('images/social-media/posts/' . $file . '.webp')];
+    $video = static fn(string $key, string $title): array => ['title' => $title, 'video' => ['id' => 0, 'path' => 'videos/social/' . $key . '.mp4'], 'poster' => boblift_image_option('videos/social/' . $key . '.webp')];
     return [
         'hero' => [
             'label' => 'BOB-LIFT Social Media',
-            'title' => 'Follow BOB-LIFT official updates.',
-            'text' => 'Stay connected with BOB-LIFT on the platforms you trust. Get product updates, factory news, project communication and export-ready lifting solution insights from official channels.',
-            'button_label' => 'Explore Channels',
-            'email_label' => 'Email Us',
-            'image' => boblift_image_option('images/social-media/social-media-hero-factory.webp'),
-            'image_alt' => 'BOB-LIFT factory official social media updates',
+            'image' => boblift_image_option('images/social-media/social-media-hero-workshop.webp'),
+            'image_alt' => 'A phone on a tripod filming BOB-LIFT knuckle boom cranes in the workshop',
         ],
         'labels' => [
-            'main_platforms_label' => 'Our Main Platforms',
-            'main_platforms_title' => 'Connect with BOB-LIFT where you work.',
-            'main_platforms_text' => 'Current key channels are highlighted first. More domestic and international platforms are listed below with lighter visual weight.',
-            'featured_visit_label' => 'Visit channel',
-            'major_visit_label' => 'Visit',
-            'more_channels_label' => 'More Channels',
-            'more_channels_title' => 'Additional platforms around the world.',
-            'content_cards_label' => 'What You Can Follow',
-            'content_cards_title' => 'Real content from real work.',
-        ],
-        'panel' => [
-            'title' => 'Official Channels',
-            'items' => [
-                ['text' => 'Real updates'],
-                ['text' => 'Factory insights'],
-                ['text' => 'Project communication'],
-                ['text' => 'Global support'],
-            ],
+            'main_platforms_title' => 'Follow BOB-LIFT on the platforms you already use.',
+            'main_platforms_text' => 'Production, container loading and cranes working on customer sites, posted by our own team.',
+            'main_platforms_label' => 'Official accounts',
+            'overseas_title' => 'Global platforms',
+            'china_title' => 'China platforms',
+            'more_title' => 'More platforms',
+            'visit_label' => 'Visit',
+            'qr_label' => 'Scan to follow',
+            'posts_label' => 'Recent posts',
+            'posts_title' => 'What we have been posting.',
+            'posts_text' => 'A selection of recent posts from our accounts. Tap a post to view it full size.',
+            'videos_title' => 'Short videos',
+            'image_posts_title' => 'Image posts',
+            'play_label' => 'Play video',
         ],
         'featured_platforms' => [
-            ['enabled' => '1', 'label' => 'LinkedIn', 'icon' => 'linkedin', 'href' => '/contact.html', 'text' => 'Professional insights and industry updates.', 'tone' => 'bg-[#0A66C2] text-white'],
-            ['enabled' => '1', 'label' => 'YouTube', 'icon' => 'youtube', 'href' => '/contact.html', 'text' => 'Product videos and factory showcases.', 'tone' => 'bg-[#FF0000] text-white'],
-            ['enabled' => '1', 'label' => 'Facebook', 'icon' => 'facebook', 'href' => '/contact.html', 'text' => 'News, events and customer stories.', 'tone' => 'bg-[#1877F2] text-white'],
+            $platform('LinkedIn', 'linkedin', 'bg-[#0A66C2]', 'Company news and industry updates.'),
+            $platform('YouTube', 'youtube', 'bg-[#FF0000]', 'Product videos and factory tours.'),
+            $platform('Facebook', 'facebook', 'bg-[#1877F2]', 'Deliveries, visits and customer stories.'),
+            $platform('TikTok', 'tiktok', 'bg-[#111827]', 'Short clips from the workshop.'),
+            $platform('Instagram', 'instagram', 'bg-[linear-gradient(135deg,#833AB4,#FD1D1D,#FCAF45)]', 'Photos from the factory and job sites.'),
+            $platform('X', 'x', 'bg-[#111827]', 'Quick updates and announcements.'),
         ],
         'major_platforms' => [
-            ['enabled' => '1', 'label' => 'TikTok', 'icon' => 'tiktok', 'href' => '/contact.html', 'tone' => 'bg-[#111827] text-white'],
-            ['enabled' => '1', 'label' => 'Douyin', 'icon' => 'douyin', 'href' => '/contact.html', 'tone' => 'bg-[#111827] text-white'],
-            ['enabled' => '1', 'label' => 'Xiaohongshu', 'icon' => 'xiaohongshu', 'href' => '/contact.html', 'tone' => 'bg-[#FF2442] text-white'],
-            ['enabled' => '1', 'label' => 'WeChat Channels', 'icon' => 'wechat', 'href' => '/contact.html', 'tone' => 'bg-[#07C160] text-white'],
-            ['enabled' => '1', 'label' => 'Weibo', 'icon' => 'weibo', 'href' => '/contact.html', 'tone' => 'bg-[#F5C04B] text-[#0B1B33]'],
+            $platform('Douyin', 'douyin', 'bg-[#111827]', 'Short videos in Chinese.'),
+            $platform('WeChat Channels', 'wechat', 'bg-[#07C160]', 'Videos inside WeChat.'),
+            $platform('Xiaohongshu', 'xiaohongshu', 'bg-[#FF2442]', 'Photo notes from the factory.'),
+            $platform('Weibo', 'weibo', 'bg-[#E6162D]', 'Company news in Chinese.'),
+            $platform('Bilibili', 'bilibili', 'bg-[#00A1D6]', 'Longer product videos.'),
+            $platform('Kuaishou', 'kuaishou', 'bg-[#FF6600]', 'Short videos in Chinese.'),
         ],
-        'secondary_platforms' => [
-            ['enabled' => '1', 'label' => 'Instagram', 'icon' => 'instagram', 'href' => '/contact.html', 'tone' => 'bg-[linear-gradient(135deg,#833AB4,#FD1D1D,#FCAF45)] text-white'],
-            ['enabled' => '1', 'label' => 'X', 'icon' => 'x', 'href' => '/contact.html', 'tone' => 'bg-[#111827] text-white'],
-            ['enabled' => '1', 'label' => 'WhatsApp', 'icon' => 'whatsapp', 'href' => '/contact.html', 'tone' => 'bg-[#25D366] text-white'],
-            ['enabled' => '1', 'label' => 'Telegram', 'icon' => 'telegram', 'href' => '/contact.html', 'tone' => 'bg-[#229ED9] text-white'],
-            ['enabled' => '1', 'label' => 'Pinterest', 'icon' => 'pinterest', 'href' => '/contact.html', 'tone' => 'bg-[#E60023] text-white'],
-            ['enabled' => '1', 'label' => 'Bilibili', 'icon' => 'bilibili', 'href' => '/contact.html', 'tone' => 'bg-[#00A1D6] text-white'],
-            ['enabled' => '1', 'label' => 'Kuaishou', 'icon' => 'kuaishou', 'href' => '/contact.html', 'tone' => 'bg-[#FF6600] text-white'],
-            ['enabled' => '1', 'label' => 'Zhihu', 'icon' => 'zhihu', 'href' => '/contact.html', 'tone' => 'bg-[#1677FF] text-white'],
-            ['enabled' => '1', 'label' => 'Baidu Baijiahao', 'icon' => 'baidu', 'href' => '/contact.html', 'tone' => 'bg-[#2F6BFF] text-white'],
-            ['enabled' => '1', 'label' => 'Toutiao', 'icon' => 'toutiao', 'href' => '/contact.html', 'tone' => 'bg-[#F04142] text-white'],
-            ['enabled' => '1', 'label' => 'Youku', 'icon' => 'youku', 'href' => '/contact.html', 'tone' => 'bg-[#2B8CFF] text-white'],
-            ['enabled' => '1', 'label' => 'QQ', 'icon' => 'qq', 'href' => '/contact.html', 'tone' => 'bg-[#111827] text-white'],
-            ['enabled' => '1', 'label' => 'LINE', 'icon' => 'line', 'href' => '/contact.html', 'tone' => 'bg-[#06C755] text-white'],
-            ['enabled' => '1', 'label' => 'VK', 'icon' => 'vk', 'href' => '/contact.html', 'tone' => 'bg-[#2787F5] text-white'],
-            ['enabled' => '1', 'label' => 'OK', 'icon' => 'ok', 'href' => '/contact.html', 'tone' => 'bg-[#EE8208] text-white'],
-            ['enabled' => '1', 'label' => 'Threads', 'icon' => 'threads', 'href' => '/contact.html', 'tone' => 'bg-[#111827] text-white'],
-            ['enabled' => '1', 'label' => 'Viber', 'icon' => 'viber', 'href' => '/contact.html', 'tone' => 'bg-[#7360F2] text-white'],
-            ['enabled' => '1', 'label' => 'Medium', 'icon' => 'medium', 'href' => '/contact.html', 'tone' => 'bg-[#111827] text-white'],
-            ['enabled' => '1', 'label' => 'Quora', 'icon' => 'quora', 'href' => '/contact.html', 'tone' => 'bg-[#B92B27] text-white'],
-        ],
+        'secondary_platforms' => [],
         'content_cards' => [
-            ['enabled' => '1', 'icon' => 'package-check', 'title' => 'Product updates', 'text' => 'New crane models, feature highlights and technical improvements.', 'image' => boblift_image_option('images/social-media/social-media-product-updates.webp')],
-            ['enabled' => '1', 'icon' => 'building-2', 'title' => 'Factory news', 'text' => 'Production progress, equipment upgrades and quality control.', 'image' => boblift_image_option('images/social-media/social-media-factory-news.webp')],
-            ['enabled' => '1', 'icon' => 'message-circle', 'title' => 'Project communication', 'text' => 'Real project discussions and BOB-LIFT delivery values.', 'image' => boblift_image_option('images/social-media/social-media-project-communication.webp')],
-            ['enabled' => '1', 'icon' => 'send', 'title' => 'Export support', 'text' => 'Export policies, shipping support and after-sales information.', 'image' => boblift_image_option('images/social-media/social-media-export-support.webp')],
+            $post('2026-8-3', 'Production and global delivery'),
+            $post('2026-8-2', 'Customer feedback from Argentina'),
+            $post('2026-8-1', '8 t truck mounted crane'),
+            $post('2026-7-13', 'Ready for shipment'),
+            $post('2026-7-9', 'Turkish customers visit the factory'),
+            $post('2026-7-8', 'Operator view'),
+            $post('2026-7-6', 'Built by our workshop team'),
+            $post('2026-7-5', '10 t crane delivered'),
+            $post('2026-7-2', 'SQ10ZA4 knuckle boom crane'),
+            $post('2026-6-9', '10 years apart, same reliability'),
+            $post('2026-6-7', 'Global delivery'),
+            $post('2026-6-1', 'Customer factory visit'),
+        ],
+        'videos' => [
+            $video('telescopic-en', 'Telescopic boom crane'),
+            $video('marine-en', 'Knuckle boom marine crane'),
         ],
         'cta' => [
-            'label' => 'Direct Consultation',
-            'title' => 'Need a direct reply from BOB-LIFT?',
-            'text' => 'Share your working radius, load, installation conditions and target model. Our team will reply through the contact channel you provide.',
-            'button_label' => 'Contact Us',
+            'label' => 'Talk to us directly',
+            'title' => 'Rather message us than follow?',
+            'text' => 'Send the load, working radius and truck or vessel details. The sales team replies on the channel you use.',
+            'button_label' => 'Send an Inquiry',
             'button_href' => '/contact.html',
         ],
     ];
@@ -158,7 +149,42 @@ function boblift_social_media_page_defaults(): array
 function boblift_social_media_page_options(): array
 {
     $value = boblift_option('social_media_page', []);
-    return boblift_array_replace_recursive(boblift_social_media_page_defaults(), is_array($value) ? $value : []);
+    $value = is_array($value) ? $value : [];
+    $defaults = boblift_social_media_page_defaults();
+    // Customised hero copy of the old page now lives in labels.main_platforms_title / _text; carry it over while the new
+    // field still holds its built-in default.
+    foreach (['title' => 'main_platforms_title', 'text' => 'main_platforms_text'] as $legacy_key => $label_key) {
+        $legacy_value = trim((string) ($value['hero'][$legacy_key] ?? ''));
+        $default_label = (string) ($defaults['labels'][$label_key] ?? '');
+        // Previously saved defaults of the old page count as "not customised" too.
+        $old_defaults = [$default_label, ['main_platforms_title' => 'Connect with BOB-LIFT where you work.', 'main_platforms_text' => 'Current key channels are highlighted first. More domestic and international platforms are listed below with lighter visual weight.'][$label_key] ?? ''];
+        if ($legacy_value !== '' && in_array((string) ($value['labels'][$label_key] ?? $default_label), $old_defaults, true)) {
+            $value['labels'][$label_key] = $legacy_value;
+        }
+    }
+    return boblift_array_replace_recursive($defaults, $value);
+}
+
+// The old social page had a "panel" card (title + selling points) that the redesign dropped. Content an editor customised
+// there stays visible (and editable) until it is cleared; untouched copies of the old defaults are ignored.
+function boblift_social_media_legacy_panel(array $social): array
+{
+    $panel = is_array($social['panel'] ?? null) ? $social['panel'] : [];
+    $title = trim((string) ($panel['title'] ?? ''));
+    $items = [];
+    foreach (is_array($panel['items'] ?? null) ? $panel['items'] : [] as $row) {
+        $text = is_array($row) ? trim((string) ($row['text'] ?? '')) : '';
+        if ($text !== '') {
+            $items[] = $text;
+        }
+    }
+    $default_items = ['Real updates', 'Factory insights', 'Project communication', 'Global support'];
+    $title_custom = $title !== '' && $title !== 'Official Channels';
+    $items_custom = $items !== [] && $items !== $default_items;
+    if (!$title_custom && !$items_custom) {
+        return [];
+    }
+    return ['title' => $title, 'items' => $items];
 }
 
 function boblift_news_category_defaults(): array
@@ -223,9 +249,8 @@ function boblift_public_welfare_page_defaults(): array
 {
     return [
         'hero' => [
-            'aria_label' => 'Public Welfare',
             'image' => boblift_image_option('images/public-welfare/public-welfare-hero-banner.webp'),
-            'image_alt' => 'BOB-LIFT public welfare factory visit banner',
+            'image_alt' => 'BOB-LIFT engineers reviewing work in the factory',
         ],
         'statement' => [
             'label' => 'Daily Responsibility',
@@ -285,7 +310,7 @@ function boblift_privacy_policy_page_defaults(): array
         'title' => 'Privacy Policy',
         'description' => 'This page explains how BOB-LIFT handles contact, inquiry and website usage information submitted through this website.',
         'updated_label' => 'Last updated:',
-        'updated' => '2026-06-29',
+        'updated' => '2026-09-30',
         'side_title' => 'Scope',
         'side_text' => 'This policy applies to BOB-LIFT website forms, catalog requests, quote requests and direct business communication initiated through the site.',
         'sections' => [
@@ -293,7 +318,11 @@ function boblift_privacy_policy_page_defaults(): array
             ['title' => 'How we use information', 'text' => 'We use submitted information to respond to inquiries, prepare quotations, send requested catalog materials, provide product selection support, arrange after-sales communication and improve website service quality.'],
             ['title' => 'Sharing and disclosure', 'text' => 'BOB-LIFT does not sell personal information. We only share necessary information with internal sales, engineering, logistics or service teams when required to respond to your request. Information may also be processed by trusted website, email, analytics or security service providers.'],
             ['title' => 'Data retention', 'text' => 'Business inquiry records are kept only as long as needed for communication, quotation, project follow-up, legal compliance and legitimate business record keeping.'],
-            ['title' => 'Your choices', 'text' => 'You may contact BOB-LIFT to request access, correction or deletion of your inquiry information, subject to applicable business, legal and technical limitations.'],
+            ['title' => 'Cookies and browser storage', 'text' => 'This website does not use advertising or cross-site tracking cookies. The spam check on our forms (Cloudflare Turnstile) may set cookies it needs to tell people from bots. Your quote list and display preferences, such as grid or list view on the news page, are kept in your own browser\'s local storage and are only sent to us when you submit a form. You can clear them at any time in your browser settings.'],
+            ['title' => 'Third-party services', 'text' => 'Some features load content from other companies: the map on the contact page comes from Google Maps, videos are played through YouTube in its privacy-enhanced mode, and form protection is provided by Cloudflare Turnstile. When you use these features, those companies may receive your IP address and browser information under their own privacy policies. To pre-fill the country field in our forms, the website estimates your country from your IP address; the IP address itself is not stored with your inquiry.'],
+            ['title' => 'International transfers', 'text' => 'BOB-LIFT is based in Xuzhou, China. Information you submit is handled by our team in China and may be processed by the service providers named above in other countries. We only transfer what is needed to answer your request.'],
+            ['title' => 'Your choices', 'text' => 'You may contact BOB-LIFT to request access, correction or deletion of your inquiry information, subject to applicable business, legal and technical limitations.' . "\n\n" . 'If you are in the European Union, the United Kingdom or another region with data protection laws, you may also object to or ask us to limit how we use your information. We aim to reply to every request within 30 days.'],
+            ['title' => 'Changes to this policy', 'text' => 'We may update this policy when our website or services change. The date at the top of this page shows when it was last updated.'],
             ['title' => 'Contact', 'text' => 'For privacy questions, contact us at info@bobliftcrane.com or through the contact page on this website.'],
         ],
     ];
@@ -312,14 +341,17 @@ function boblift_terms_of_use_page_defaults(): array
         'title' => 'Terms of Use',
         'description' => 'These terms explain the basic conditions for using BOB-LIFT website information, product materials and inquiry services.',
         'updated_label' => 'Last updated:',
-        'updated' => '2026-06-29',
+        'updated' => '2026-09-30',
         'sections' => [
             ['title' => 'Website information', 'text' => 'Product images, technical descriptions, capacity references and application notes are provided for general business reference. Final specifications, configurations and quotations must be confirmed in writing by BOB-LIFT.'],
             ['title' => 'Product selection', 'text' => 'Crane model selection depends on load, working radius, chassis, installation conditions, local regulations and project requirements. Website information should not replace engineering confirmation.'],
             ['title' => 'Intellectual property', 'text' => 'BOB-LIFT names, product materials, photos, text, layout and other website content may not be copied, modified or reused for commercial purposes without written permission.'],
             ['title' => 'User submissions', 'text' => 'When submitting forms, you agree to provide accurate business contact and project information. Do not submit unlawful, misleading, abusive or unrelated content.'],
             ['title' => 'External links and services', 'text' => 'The website may link to external maps, social platforms, video platforms or service providers. Their content and policies are controlled by those third parties.'],
+            ['title' => 'Prices, quotations and orders', 'text' => 'Prices, promotions, lead times and stock information shown on the website are for reference only and may change without notice. An order is binding only when BOB-LIFT confirms it in a written quotation, proforma invoice or contract, and those documents take precedence over the website.'],
             ['title' => 'Limitation of liability', 'text' => 'BOB-LIFT works to keep website information accurate, but does not guarantee uninterrupted availability or that all content is free from errors. Business decisions should rely on confirmed quotations and technical documents.'],
+            ['title' => 'Governing law', 'text' => 'These terms are governed by the laws of the People\'s Republic of China. Any dispute about the use of this website should first be settled through friendly discussion.'],
+            ['title' => 'Changes to these terms', 'text' => 'We may update these terms from time to time. The date at the top of this page shows the current version, and continued use of the website means you accept it.'],
         ],
     ];
 }
@@ -337,8 +369,6 @@ function boblift_sitemap_page_defaults(): array
         'title' => 'Find BOB-LIFT pages quickly.',
         'description' => 'Browse main pages, product ranges, news and customer cases from one structured index.',
         'links_label' => 'Links',
-        'auto_label' => 'Updated',
-        'auto_value' => 'Auto',
         'core_pages_title' => 'Core Pages',
         'product_range_label' => 'Product Range',
         'product_range_title' => 'Products and categories',
@@ -348,11 +378,6 @@ function boblift_sitemap_page_defaults(): array
         'news_categories_title' => 'News Categories',
         'news_title' => 'News',
         'cases_title' => 'Cases',
-        'help_title' => 'How this updates',
-        'html_note_label' => 'HTML Sitemap:',
-        'html_note' => 'generated from WordPress queries, so published pages, products, news and cases appear automatically.',
-        'xml_note_label' => 'XML Sitemap:',
-        'xml_note' => 'use WordPress Core at /sitemap.xml, or a mature SEO plugin such as Yoast SEO or Rank Math on production.',
     ];
 }
 
@@ -367,13 +392,11 @@ function boblift_about_page_defaults(): array
     return [
         'secondary_nav' => [
             ['label' => 'About Us', 'href' => '/about.html', 'slug' => 'about'],
+            ['label' => 'Factory Tour', 'href' => '/factory-tour.html', 'slug' => 'factory-tour'],
+            ['label' => 'Quality & Testing', 'href' => '/quality-testing.html', 'slug' => 'quality-testing'],
             ['label' => 'Global Customer Visits', 'href' => '/global-customer-visits.html', 'slug' => 'global-customer-visits'],
-            ['label' => 'Social Media', 'href' => '/social-media.html', 'slug' => 'social-media'],
-            ['label' => 'Public Welfare', 'href' => '/public-welfare.html', 'slug' => 'public-welfare'],
-            ['label' => 'Contact Us', 'href' => '/contact.html', 'slug' => 'contact'],
         ],
         'logo' => [
-            'texture_image' => boblift_image_option('images/about/about-logo-cranes-background-realistic-v3.png'),
             'silhouette_image' => boblift_image_option('images/about/about-logo-1.png'),
             'silhouette_alt' => 'BOB-LIFT crane silhouette background',
             'aerial_start_image' => boblift_image_option('images/about/about-aerial-mid-start.webp'),
@@ -381,60 +404,147 @@ function boblift_about_page_defaults(): array
             'aerial_video' => ['id' => 0, 'path' => 'videos/about/about-aerial-mid.mp4'],
             'aerial_start_alt' => 'BOB-LIFT factory aerial view opening frame',
             'aerial_end_alt' => 'BOB-LIFT factory aerial view ending frame',
-            'label' => 'About BOB-LIFT',
-            'headline' => 'Engineering Strength Behind Every Lift.',
-            'paragraph' => 'BOB-LIFT integrates crane manufacturing, engineering expertise, quality control, and global service capability to deliver reliable lifting solutions for demanding projects worldwide.',
-            'proof_chips' => [
-                ['number' => '01', 'label' => 'Advanced Crane Manufacturing'],
-                ['number' => '02', 'label' => 'Global Export Capability'],
-                ['number' => '03', 'label' => 'Strict Quality Control'],
-            ],
         ],
         'strength' => [
-            'image' => boblift_image_option('images/about/about-logo-prototype-crane-ai.png'),
-            'label' => 'Company Strength',
-            'title' => 'Manufacturing intelligence for global lifting projects.',
-            'text' => 'BOB-LIFT combines product engineering, precision production and responsive export service into one disciplined workflow for overseas B2B buyers.',
-            'cta_label' => 'Talk to Our Team',
-            'cta_href' => '/contact',
-            'cards' => [
-                ['title' => 'R&D and Engineering', 'text' => 'Engineering teams support practical crane selection, structural design and project-specific configurations.'],
-                ['title' => 'Precision Manufacturing', 'text' => 'Controlled welding, assembly and inspection workflows keep every lifting system stable and repeatable.'],
-                ['title' => 'Global Delivery', 'text' => 'Export-ready documentation, packing and logistics support help projects move across international markets.'],
-                ['title' => 'After-Sales Support', 'text' => 'Service guidance, spare parts coordination and technical response help customers keep equipment working.'],
+            'label' => 'Company Profile',
+            'title' => 'BOB-LIFT is a crane manufacturer based in Xuzhou, China.',
+            'text' => 'Xuzhou BOB-LIFT Construction Machinery Co., Ltd. designs, manufactures and exports truck-mounted cranes and related lifting equipment from a 37,000㎡ manufacturing base in Xuzhou, Jiangsu, China. Our core products include truck-mounted cranes, marine cranes, aerial work platforms, pickup cranes and spider cranes for overseas B2B projects.',
+        ],
+        'certifications' => [
+            'label' => 'Certificates & Patents',
+            'title' => 'Certificates and patents',
+            'text' => 'CE, EAC and ISO certificates and the patents registered to BOB-LIFT. Select a document to view it full size.',
+            'items' => [
+                ['image' => boblift_image_option('certifications/cert-ce-cranes.webp'), 'title' => 'CE Certificate · Cranes', 'text' => 'Machinery Directive 2006/42/EC · valid to 03/2031'],
+                ['image' => boblift_image_option('certifications/cert-eac.webp'), 'title' => 'EAC Certificate of Conformity', 'text' => 'EAEU TR CU 010/2011 · valid to 10/2030'],
+                ['image' => boblift_image_option('certifications/cert-iso-9001.webp'), 'title' => 'ISO 9001 Quality Management', 'text' => 'Truck-mounted crane production · valid to 04/2029'],
+                ['image' => boblift_image_option('certifications/cert-iso-9001-marine.webp'), 'title' => 'ISO 9001 Quality Management · Marine', 'text' => 'Marine crane production · valid to 04/2029'],
+                ['image' => boblift_image_option('certifications/cert-iso-14001.webp'), 'title' => 'ISO 14001 Environmental Management', 'text' => 'Truck-mounted crane production · valid to 07/2029'],
+                ['image' => boblift_image_option('certifications/cert-trademark-china-boblift.webp'), 'title' => 'BOB-LIFT Trademark · China', 'text' => 'Registration No. 26579311 · valid to 04/2029'],
+                ['image' => boblift_image_option('certifications/cert-trademark-china-babu.webp'), 'title' => '巴布 (BABU) Trademark · China', 'text' => 'Registration No. 27469741, cranes · valid to 12/2028'],
+                ['image' => boblift_image_option('certifications/cert-trademark-russia.webp'), 'title' => 'BOB-LIFT Trademark · Russia', 'text' => 'Registration No. 1211725 · valid to 11/2034'],
+                ['image' => boblift_image_option('certifications/patent-crane-support.webp'), 'title' => 'Support mechanism for truck-mounted cranes', 'text' => 'Utility model patent · ZL 2019 2 1991835.2'],
+                ['image' => boblift_image_option('certifications/patent-pickup-crane.webp'), 'title' => 'Crane for pickup trucks', 'text' => 'Utility model patent · ZL 2020 2 0116421.1'],
+                ['image' => boblift_image_option('certifications/patent-crane-aerial-platform.webp'), 'title' => 'Aerial work platform for truck-mounted cranes', 'text' => 'Utility model patent · ZL 2020 2 0005335.3'],
+                ['image' => boblift_image_option('certifications/patent-brick-clamp-buffer.webp'), 'title' => 'Buffer device for truck-mounted brick clamps', 'text' => 'Utility model patent · ZL 2020 2 0118784.9'],
+                ['image' => boblift_image_option('certifications/patent-forklift-timber-grab.webp'), 'title' => 'Timber grab for forklifts', 'text' => 'Utility model patent · ZL 2020 2 0118811.2'],
+            ],
+        ],
+        'global_footprint' => [
+            'stats' => [
+                ['number' => '120', 'suffix' => '+', 'label' => 'Countries Exported'],
+                ['number' => '20', 'suffix' => '+', 'label' => 'Years Experience'],
             ],
         ],
         'timeline' => [
             'label' => 'Development Timeline',
             'title' => 'Built step by step for global lifting projects.',
             'items' => [
-                ['year' => '1989', 'title' => 'Company Founded', 'text' => 'BOB-LIFT started with practical lifting equipment engineering and manufacturing.', 'image' => boblift_image_option('images/truck-mounted-crane.png')],
-                ['year' => '2005', 'title' => 'Global Export Expansion', 'text' => 'Export service expanded from local projects to global distributors and buyers.', 'image' => boblift_image_option('images/marine-scene.jpg')],
-                ['year' => '2015', 'title' => 'Advanced R&D Center Established', 'text' => 'Engineering, testing and product development became a dedicated capability.', 'image' => boblift_image_option('images/factory-workshop.jpg')],
-                ['year' => '2022', 'title' => 'Smart Manufacturing Upgraded', 'text' => 'Production, inspection and delivery workflows were upgraded for global demand.', 'image' => boblift_image_option('images/aerial-platform.jpg')],
+                ['year' => '2003', 'title' => 'BOB-LIFT’s First Folding Boom Crane Takes Shape', 'text' => 'In the year BOB-LIFT was founded in Xuzhou, Jiangsu, we completed the development and field testing of our first folding boom crane.', 'image' => boblift_image_option('images/truck-mounted-crane.png')],
+                ['year' => '2014', 'title' => 'BOB-LIFT Establishes Its Foreign Trade Department', 'text' => 'BOB-LIFT formally established its Foreign Trade Department, the start of our journey toward overseas markets and global customers.', 'image' => boblift_image_option('images/marine-scene.jpg')],
+                ['year' => '2023', 'title' => 'BOB-LIFT Makes Its Canton Fair Debut', 'text' => 'BOB-LIFT took part in the Canton Fair for the first time and met customers and partners from around the world face to face.', 'image' => boblift_image_option('images/factory-workshop.jpg')],
+                ['year' => '2026', 'title' => 'Advancing Manufacturing, Serving Global Markets', 'text' => 'BOB-LIFT keeps improving product development, production capability and quality management to support customers worldwide.', 'image' => boblift_image_option('images/aerial-platform.jpg')],
             ],
         ],
         'customer_visits' => [
             'label' => 'Global Customer Visits',
             'title' => 'Welcoming partners to see how BOB-LIFT builds.',
             'text' => 'Factory visits help customers review production details, discuss lifting requirements and align the right solution before cooperation moves forward.',
+            'hero_image' => boblift_image_option('images/page-heroes/factory-campus.webp'),
+            'hero_image_alt' => 'The BOB-LIFT factory campus from the air',
             'cta_label' => 'Plan a Visit',
             'cta_href' => '/contact.html',
             'home_title' => 'Customer Visit Gallery',
             'home_cta_label' => 'View More Photos',
             'visit_count_suffix' => 'Visit Photos',
+            'country_count_suffix' => 'countries',
             'pagination_label' => 'Customer visit pages',
             'empty_text' => 'No customer visit photos have been added yet.',
+            'countries_label' => 'Visitors from',
+            'countries_title' => 'Customers from {count} countries have walked our workshop.',
+            'steps_label' => 'What a visit covers',
+            'steps_title' => 'A working day in the factory, not a showroom tour.',
+            'steps' => [
+                ['image' => boblift_image_option('images/customer-visits/step-production-line.webp'), 'title' => 'Walk the production line', 'text' => 'Follow a crane from welding and assembly to the test stand, and ask questions at every station.'],
+                ['image' => boblift_image_option('images/customer-visits/step-your-model.webp'), 'title' => 'Look at the model you need', 'text' => 'Stand next to the crane you are considering and check the boom, hydraulics and finish for yourself.'],
+                ['image' => boblift_image_option('images/customer-visits/step-parts-packing.webp'), 'title' => 'Check parts and packing', 'text' => 'Open the spare-part boxes and see how cranes are wrapped and secured for the sea journey.'],
+                ['image' => boblift_image_option('images/customer-visits/step-customer-wall.webp'), 'title' => 'Join our customer wall', 'text' => 'Finish in the office in front of the customer wall, where visitors from around the world have left their photos.'],
+            ],
+            'wall_label' => 'Visit gallery',
+            'wall_title' => 'Photos from recent visits',
+            'wall_text' => 'Select a country to see the photos from that visit.',
+            'more_visits_label' => 'More factory visits',
+            'photo_count_suffix' => 'photos',
+            'plan_label' => 'Plan your visit',
+            'plan_title' => 'Come and see the crane before you order it.',
+            'plan_text' => 'Tell us your travel dates and the models you are considering, and we will plan the day around them.',
+            'plan_points' => [
+                ['title' => 'Factory', 'text' => 'Xuzhou, Jiangsu, China'],
+                ['title' => 'Nearest airport', 'text' => 'Xuzhou Guanyin International Airport'],
+                ['title' => 'High-speed rail', 'text' => 'Xuzhou East Railway Station'],
+            ],
+            'plan_secondary_label' => 'Contact us',
             'items' => [
-                ['image' => boblift_image_option('images/factory-workshop.jpg'), 'label' => 'Factory Walkthrough', 'title' => 'Production line review', 'text' => 'Customers can review workshop order, assembly workflow and product quality details with the BOB-LIFT team.'],
-                ['image' => boblift_image_option('images/about/quanyuan-compressed.jpg'), 'label' => 'Technical Discussion', 'title' => 'Project requirement meeting', 'text' => 'Our team discusses load capacity, working radius, installation conditions and export requirements with visiting partners.'],
-                ['image' => boblift_image_option('images/oldsite/news/enter-the-bob-lift-factory-with-professional-manufacturing.jpg'), 'label' => 'Product Inspection', 'title' => 'Close look at crane details', 'text' => 'Visitors can compare product structures, manufacturing details and practical configuration options before choosing a model.'],
+                ['image' => boblift_image_option('images/customer-visits/algeria-1.webp'), 'country' => 'Algeria', 'title' => 'Customers from Algeria visiting the BOB-LIFT factory'],
+                ['image' => boblift_image_option('images/customer-visits/algeria-2.webp'), 'country' => 'Algeria', 'title' => 'Customers from Algeria visiting the BOB-LIFT factory'],
+                ['image' => boblift_image_option('images/customer-visits/algeria-3.webp'), 'country' => 'Algeria', 'title' => 'Customers from Algeria visiting the BOB-LIFT factory'],
+                ['image' => boblift_image_option('images/customer-visits/azerbaijan-1.webp'), 'country' => 'Azerbaijan', 'title' => 'Customers from Azerbaijan visiting the BOB-LIFT factory'],
+                ['image' => boblift_image_option('images/customer-visits/germany-1.webp'), 'country' => 'Germany', 'title' => 'Customers from Germany visiting the BOB-LIFT factory'],
+                ['image' => boblift_image_option('images/customer-visits/india-1.webp'), 'country' => 'India', 'title' => 'Customers from India visiting the BOB-LIFT factory'],
+                ['image' => boblift_image_option('images/customer-visits/india-2.webp'), 'country' => 'India', 'title' => 'Customers from India visiting the BOB-LIFT factory'],
+                ['image' => boblift_image_option('images/customer-visits/india-3.webp'), 'country' => 'India', 'title' => 'Customers from India visiting the BOB-LIFT factory'],
+                ['image' => boblift_image_option('images/customer-visits/india-4.webp'), 'country' => 'India', 'title' => 'Customers from India visiting the BOB-LIFT factory'],
+                ['image' => boblift_image_option('images/customer-visits/ireland-1.webp'), 'country' => 'Ireland', 'title' => 'Customers from Ireland visiting the BOB-LIFT factory'],
+                ['image' => boblift_image_option('images/customer-visits/kazakhstan-1.webp'), 'country' => 'Kazakhstan', 'title' => 'Customers from Kazakhstan visiting the BOB-LIFT factory'],
+                ['image' => boblift_image_option('images/customer-visits/kenya-1.webp'), 'country' => 'Kenya', 'title' => 'Customers from Kenya visiting the BOB-LIFT factory'],
+                ['image' => boblift_image_option('images/customer-visits/kenya-2.webp'), 'country' => 'Kenya', 'title' => 'Customers from Kenya visiting the BOB-LIFT factory'],
+                ['image' => boblift_image_option('images/customer-visits/kenya-3.webp'), 'country' => 'Kenya', 'title' => 'Customers from Kenya visiting the BOB-LIFT factory'],
+                ['image' => boblift_image_option('images/customer-visits/new-zealand-1.webp'), 'country' => 'New Zealand', 'title' => 'Customers from New Zealand visiting the BOB-LIFT factory'],
+                ['image' => boblift_image_option('images/customer-visits/nigeria-1.webp'), 'country' => 'Nigeria', 'title' => 'Customers from Nigeria visiting the BOB-LIFT factory'],
+                ['image' => boblift_image_option('images/customer-visits/peru-1.webp'), 'country' => 'Peru', 'title' => 'Customers from Peru visiting the BOB-LIFT factory'],
+                ['image' => boblift_image_option('images/customer-visits/peru-2.webp'), 'country' => 'Peru', 'title' => 'Customers from Peru visiting the BOB-LIFT factory'],
+                ['image' => boblift_image_option('images/customer-visits/peru-3.webp'), 'country' => 'Peru', 'title' => 'Customers from Peru visiting the BOB-LIFT factory'],
+                ['image' => boblift_image_option('images/customer-visits/russia-1.webp'), 'country' => 'Russia', 'title' => 'Customers from Russia visiting the BOB-LIFT factory'],
+                ['image' => boblift_image_option('images/customer-visits/russia-2.webp'), 'country' => 'Russia', 'title' => 'Customers from Russia visiting the BOB-LIFT factory'],
+                ['image' => boblift_image_option('images/customer-visits/south-africa-1.webp'), 'country' => 'South Africa', 'title' => 'Customers from South Africa visiting the BOB-LIFT factory'],
+                ['image' => boblift_image_option('images/customer-visits/south-africa-2.webp'), 'country' => 'South Africa', 'title' => 'Customers from South Africa visiting the BOB-LIFT factory'],
+                ['image' => boblift_image_option('images/customer-visits/turkey-1.webp'), 'country' => 'Turkey', 'title' => 'Customers from Turkey visiting the BOB-LIFT factory'],
+                ['image' => boblift_image_option('images/customer-visits/turkey-2.webp'), 'country' => 'Turkey', 'title' => 'Customers from Turkey visiting the BOB-LIFT factory'],
+                ['image' => boblift_image_option('images/customer-visits/usa-1.webp'), 'country' => 'United States', 'title' => 'Customers from United States visiting the BOB-LIFT factory'],
+                ['image' => boblift_image_option('images/customer-visits/more-1.webp'), 'country' => '', 'title' => 'Customers touring the BOB-LIFT workshop'],
+                ['image' => boblift_image_option('images/customer-visits/more-2.webp'), 'country' => '', 'title' => 'Customers touring the BOB-LIFT workshop'],
+                ['image' => boblift_image_option('images/customer-visits/more-3.webp'), 'country' => '', 'title' => 'Customers touring the BOB-LIFT workshop'],
+                ['image' => boblift_image_option('images/customer-visits/more-4.webp'), 'country' => '', 'title' => 'Customers touring the BOB-LIFT workshop'],
+                ['image' => boblift_image_option('images/customer-visits/more-5.webp'), 'country' => '', 'title' => 'Customers touring the BOB-LIFT workshop'],
+                ['image' => boblift_image_option('images/customer-visits/more-6.webp'), 'country' => '', 'title' => 'Customers touring the BOB-LIFT workshop'],
+                ['image' => boblift_image_option('images/customer-visits/more-7.webp'), 'country' => '', 'title' => 'Customers touring the BOB-LIFT workshop'],
+                ['image' => boblift_image_option('images/customer-visits/more-8.webp'), 'country' => '', 'title' => 'Customers touring the BOB-LIFT workshop'],
+                ['image' => boblift_image_option('images/customer-visits/more-9.webp'), 'country' => '', 'title' => 'Customers touring the BOB-LIFT workshop'],
+                ['image' => boblift_image_option('images/customer-visits/more-10.webp'), 'country' => '', 'title' => 'Customers touring the BOB-LIFT workshop'],
+                ['image' => boblift_image_option('images/customer-visits/more-11.webp'), 'country' => '', 'title' => 'Customers touring the BOB-LIFT workshop'],
+                ['image' => boblift_image_option('images/customer-visits/more-12.webp'), 'country' => '', 'title' => 'Customers touring the BOB-LIFT workshop'],
+            ],
+        ],
+        'manufacturing_gallery' => [
+            'label' => 'Modern Manufacturing Base',
+            'title' => 'Intelligent Production.',
+            'text' => 'Experience our state-of-the-art 37,000 sqm facility where precision engineering meets rigorous quality control.',
+            'items' => [
+                ['image' => boblift_image_option('images/about/mfg-1-boom-sections.webp'), 'title' => 'Boom sections', 'text' => 'Telescopic boom sections are finished and fitted before assembly.'],
+                ['image' => boblift_image_option('images/about/mfg-2-assembly.webp'), 'title' => 'Assembly', 'text' => 'Columns, winches and control valves are assembled in our Xuzhou workshop.'],
+                ['image' => boblift_image_option('images/about/mfg-3-hydraulics.webp'), 'title' => 'Hydraulics', 'text' => 'Hoses, valves and cylinders are fitted and checked on every crane.'],
+                ['image' => boblift_image_option('images/about/mfg-4-final-check.webp'), 'title' => 'Final check', 'text' => 'Finished cranes are inspected and lined up for dispatch.'],
+                ['image' => boblift_image_option('images/about/mfg-5-packing.webp'), 'title' => 'Packing', 'text' => 'Wrapped in film and strapped to protect paint and hydraulics in transit.'],
+                ['image' => boblift_image_option('images/about/mfg-6-container-loading.webp'), 'title' => 'Container loading', 'text' => 'Loaded into containers at the factory and shipped to your port.'],
             ],
         ],
         'executives' => [
             'label' => 'Executive Leadership',
             'title' => 'Leadership Team',
-            'group_image' => boblift_image_option('images/about/quanyuan-compressed.jpg'),
+            'team_label' => 'Whole Team',
+            'team_title' => 'BOB-LIFT Team',
+            'team_image' => boblift_image_option('images/about/quanyuan-compressed.jpg'),
+            'team_image_alt' => 'BOB-LIFT full team group photo',
             'members' => [
                 ['image' => boblift_image_option('images/about/executives/executive-01-square.png'), 'name' => 'Daniel Chen', 'role' => 'Chief Executive Officer'],
                 ['image' => boblift_image_option('images/about/executives/executive-02-square.png'), 'name' => 'Sophia Lin', 'role' => 'Chief Operating Officer'],
@@ -447,13 +557,199 @@ function boblift_about_page_defaults(): array
     ];
 }
 
+/**
+ * The introduction an editor saved in the old About layout (headline, paragraph, proof chips) that the redesigned hero no
+ * longer prints. Built-in default copy (both historical sets) is not returned. Returns only the customised parts.
+ */
+/** A saved legacy text that differs from its built-in default (English or translated), else ''. */
+function boblift_customised_legacy_text($value, string $default): string
+{
+    $value = trim((string) $value);
+    $forms = [$default, function_exists('boblift_localized_static_text') ? (string) boblift_localized_static_text($default) : $default];
+    return $value !== '' && !in_array($value, $forms, true) ? $value : '';
+}
+
+/** Social page headings that replaced old ones: [new key, new default, old key, old default]. */
+function boblift_social_legacy_heading_pairs(): array
+{
+    return [
+        ['more_title', 'More platforms', 'more_channels_title', 'Additional platforms around the world.'],
+        ['posts_title', 'What we have been posting.', 'content_cards_title', 'Real content from real work.'],
+        ['posts_label', 'Recent posts', 'content_cards_label', 'What You Can Follow'],
+    ];
+}
+
+/**
+ * A heading an editor customised in the old field carries over while the new field is still empty or built-in. The
+ * settings editor prefills the new field with this value and retires the old key on save, so later edits stick.
+ */
+function boblift_social_legacy_heading(array $labels, string $new_key, string $new_default, string $old_key, string $old_default): string
+{
+    $new = trim((string) ($labels[$new_key] ?? ''));
+    $old = boblift_customised_legacy_text($labels[$old_key] ?? '', $old_default);
+    if ($old !== '' && ($new === '' || boblift_customised_legacy_text($new, $new_default) === '')) {
+        return $old;
+    }
+    return $new !== '' ? $new : $new_default;
+}
+
+function boblift_about_legacy_intro(array $logo): array
+{
+    $default_headlines = ['Engineering Strength Behind Every Lift.'];
+    $default_paragraphs = ['BOB-LIFT integrates crane manufacturing, engineering expertise, quality control, and global service capability to deliver reliable lifting solutions for demanding projects worldwide.'];
+    $default_chip_labels = [['Advanced Crane Manufacturing', 'Global Export Capability', 'Strict Quality Control'], ['Safety-focused crane manufacturing', 'Technology-driven product development', 'Service support for global buyers']];
+    $headline = trim((string) ($logo['headline'] ?? ''));
+    $paragraph = trim((string) ($logo['paragraph'] ?? ''));
+    $chips = array_values(array_filter((array) ($logo['proof_chips'] ?? []), static fn($chip): bool => is_array($chip) && (trim((string) ($chip['number'] ?? '')) !== '' || trim((string) ($chip['label'] ?? '')) !== '')));
+    $chip_labels = array_map(static fn(array $chip): string => trim((string) ($chip['label'] ?? '')), $chips);
+    // The built-in chips were numbered in order (01, 02, 03); changed numbers are the editor's own even with default labels.
+    $chip_numbers = array_map(static fn(array $chip): string => trim((string) ($chip['number'] ?? '')), $chips);
+    $default_numbers = array_map(static fn(int $i): array => [sprintf('%02d', $i + 1), (string) ($i + 1), ''], array_keys($chips));
+    $numbers_untouched = true;
+    foreach ($chip_numbers as $i => $number) {
+        $numbers_untouched = $numbers_untouched && in_array($number, $default_numbers[$i], true);
+    }
+    return [
+        'headline' => in_array($headline, $default_headlines, true) ? '' : $headline,
+        'paragraph' => in_array($paragraph, $default_paragraphs, true) ? '' : $paragraph,
+        'chips' => $numbers_untouched && in_array($chip_labels, $default_chip_labels, true) ? [] : $chips,
+    ];
+}
+
+/**
+ * Cards and call to action an editor wrote in the old About "Company Strength" section, which the redesigned page replaced
+ * with the export statistics. Built-in copy (the historical default sets, English and the Japanese and Chinese seeds) is
+ * not returned; only content that differs is, so it can stay visible and editable.
+ */
+function boblift_about_legacy_strength(array $strength): array
+{
+    // Complete [title, text] pairs of the historical default card sets (original, English seed, Japanese and Chinese seeds).
+    $default_card_sets = [[['R&D and Engineering', 'Engineering teams support practical crane selection, structural design and project-specific configurations.'], ['Precision Manufacturing', 'Controlled welding, assembly and inspection workflows keep every lifting system stable and repeatable.'], ['Global Delivery', 'Export-ready documentation, packing and logistics support help projects move across international markets.'], ['After-Sales Support', 'Service guidance, spare parts coordination and technical response help customers keep equipment working.']], [['Who we are', 'A high-tech construction machinery enterprise headquartered in Xuzhou, China, focused on practical lifting equipment for global buyers.'], ['What we build', 'Truck-mounted cranes remain the core product line, supported by marine cranes, aerial work platforms, pickup cranes and spider cranes.'], ['How we develop', 'Our team keeps product development focused on safety, technology and reliable engineering while absorbing international crane design experience.'], ['How we support buyers', 'We support customers through selection, manufacturing, testing, spare parts, remote technical support, installation guidance and operator training.']], [['私たちについて', '中国・徐州に本社を置くハイテク建設機械企業で、グローバルバイヤー向けの実用的な吊り上げ機器に注力しています。'], ['私たちが製造するもの', 'トラック搭載型クレーンを中核製品ラインとし、これをマリンクレーン、高所作業車、ピックアップクレーン、スパイダークレーンが支えています。'], ['私たちの開発方法', '当社チームは、国際的なクレーン設計の経験を取り入れながら、安全性、技術、信頼できるエンジニアリングに重点を置いて製品開発を進めています。'], ['バイヤーへのサポート方法', '当社は、選定、製造、試験、スペアパーツ、リモート技術サポート、設置指導、オペレーター研修を通じてお客様を支援します。']], [['我们是谁', '一家总部位于中国徐州的高新技术工程机械企业，专注于为全球买家提供实用型起重设备。'], ['我们制造什么', '随车起重机仍是核心产品线，同时辅以船用起重机、高空作业平台、皮卡起重机和蜘蛛起重机。'], ['我们如何发展', '我们的团队始终专注于安全、技术和可靠工程，推进产品开发，同时吸收国际起重机设计经验。'], ['我们如何支持买家', '我们通过选型、制造、测试、备件、远程技术支持、安装指导和操作员培训来支持客户。']]];
+    $default_ctas = [['Talk to Our Team', '/contact'], ['Talk to Our Team', '/contact.html'], ['当社チームにご相談ください', '/contact'], ['与我们的团队联系', '/contact']];
+    $cards = array_values(array_filter((array) ($strength['cards'] ?? []), static fn($card): bool => is_array($card) && (trim((string) ($card['title'] ?? '')) !== '' || trim((string) ($card['text'] ?? '')) !== '')));
+    $pairs = array_map(static fn(array $card): array => [trim((string) ($card['title'] ?? '')), trim((string) ($card['text'] ?? ''))], $cards);
+    $cta = [trim((string) ($strength['cta_label'] ?? '')), trim((string) ($strength['cta_href'] ?? ''))];
+    // An uploaded image, or a path other than the built-in prototype picture, is the editor's own.
+    $image = $strength['image'] ?? null;
+    $image_path = is_array($image) ? trim((string) ($image['path'] ?? '')) : trim((string) $image);
+    $image_custom = (is_array($image) && (int) ($image['id'] ?? 0) > 0) || ($image_path !== '' && $image_path !== 'images/about/about-logo-prototype-crane-ai.png');
+    return [
+        'image' => $image_custom ? $image : null,
+        'cards' => in_array($pairs, $default_card_sets, true) ? [] : $cards,
+        'cta' => ($cta[0] === '' || in_array($cta, $default_ctas, true)) ? null : ['label' => $cta[0], 'href' => $cta[1] !== '' ? $cta[1] : '/contact.html'],
+    ];
+}
+
+/**
+ * Sites saved before the team photo was renamed keep it in executives.group_image; use it until team_image is saved.
+ * Applied to the front end and to the About editors, so a first save does not replace the old photo with the default.
+ */
+function boblift_about_apply_legacy_team_image(array $value): array
+{
+    $legacy_team_image = $value['executives']['group_image'] ?? null;
+    // Options merged with the defaults count as "not saved" when team_image is empty or still the built-in default.
+    $default_team_image = boblift_about_page_defaults()['executives']['team_image'] ?? null;
+    $saved_team_image = $value['executives']['team_image'] ?? null;
+    if (!empty($legacy_team_image) && (empty($saved_team_image) || wp_json_encode($saved_team_image) === wp_json_encode($default_team_image))) {
+        $value['executives']['team_image'] = $legacy_team_image;
+    }
+    return $value;
+}
+
 function boblift_about_page_options(): array
 {
     $value = boblift_option('about_page', []);
-    return boblift_array_replace_recursive(boblift_about_page_defaults(), is_array($value) ? $value : []);
+    $value = boblift_about_apply_legacy_team_image(is_array($value) ? $value : []);
+    $options = boblift_array_replace_recursive(boblift_about_page_defaults(), $value);
+    return boblift_about_apply_nav_migration($options, $value);
+}
+
+/**
+ * The About menu as the front end shows it: retired pages dropped and, until an editor has saved the menu, untouched
+ * entries for pages that moved to Services, News or the top-level Contact link dropped and newer default pages added.
+ * $saved is what was stored (secondary_nav_version lives there). The About editor uses the same list, so saving it
+ * keeps what visitors already see.
+ */
+function boblift_about_apply_nav_migration(array $options, array $saved): array
+{
+    if (!is_array($options['secondary_nav'] ?? null)) {
+        return $options;
+    }
+    $retired = boblift_retired_page_slugs();
+    // A customised Public Welfare page stays published (boblift_redirect_retired_pages()), so its menu link stays too.
+    if (function_exists('boblift_public_welfare_customized') && boblift_public_welfare_customized()) {
+        $retired = array_values(array_diff($retired, ['public-welfare']));
+    }
+    // Once an editor has saved the menu (secondary_nav_version), the list is theirs: a moved page they added back
+    // stays, and a removed default page is not added again.
+    $reviewed_menu = (int) ($saved['secondary_nav_version'] ?? 0) >= 1;
+    $moved = $reviewed_menu ? [] : boblift_about_nav_moved_defaults();
+    $options['secondary_nav'] = array_values(array_filter($options['secondary_nav'], static function ($item) use ($retired, $moved): bool {
+        if (!is_array($item)) {
+            return false;
+        }
+        $path = (string) preg_replace('/\.html$/', '', trim((string) wp_parse_url((string) ($item['href'] ?? ''), PHP_URL_PATH), '/'));
+        $slug = (string) ($item['slug'] ?? '');
+        if (in_array($slug, $retired, true) || in_array($path, $retired, true)) {
+            return false;
+        }
+        // A moved page's entry goes only while it is still the historical default (label and destination); one an
+        // editor relabelled or pointed elsewhere stays in the menu as saved.
+        $key = isset($moved[$slug]) ? $slug : (isset($moved[$path]) ? $path : '');
+        if ($key === '') {
+            return true;
+        }
+        $label = trim((string) ($item['label'] ?? ''));
+        $default_label = $moved[$key];
+        $untouched_label = $label === '' || boblift_customised_legacy_text($label, $default_label) === '';
+        return !($untouched_label && ($path === '' || $path === $key));
+    }));
+    // Saved menus predate newer About pages; add any default child that is missing, after the one before it.
+    $saved_slugs = array_map(static fn(array $item): string => (string) ($item['slug'] ?? ''), $options['secondary_nav']);
+    $previous = '';
+    foreach ($reviewed_menu ? [] : boblift_about_page_defaults()['secondary_nav'] as $default_child) {
+        $slug = (string) $default_child['slug'];
+        if (!in_array($slug, $saved_slugs, true)) {
+            $at = $previous !== '' ? array_search($previous, $saved_slugs, true) : false;
+            $position = $at === false ? count($options['secondary_nav']) : $at + 1;
+            array_splice($options['secondary_nav'], $position, 0, [$default_child]);
+            array_splice($saved_slugs, $position, 0, [$slug]);
+        }
+        $previous = $slug;
+    }
+    return $options;
+}
+
+// Pages taken off this site; their URLs redirect to About. Public Welfare moves to the group site boblift.com.
+function boblift_retired_page_slugs(): array
+{
+    return ['public-welfare'];
+}
+
+/** Pages that left the About menu: Services (mounting, service), News (videos, social media) and top-level Contact. */
+function boblift_about_nav_moved_slugs(): array
+{
+    return array_keys(boblift_about_nav_moved_defaults());
+}
+
+/** The moved pages' historical About-menu labels, keyed by slug (their default link is /<slug>.html). */
+function boblift_about_nav_moved_defaults(): array
+{
+    return [
+        'mounting-shipping' => 'Truck Mounting & Export',
+        'service' => 'Service & Operation',
+        'videos' => 'Video Center',
+        'social-media' => 'Social Media',
+        'contact' => 'Contact Us',
+    ];
 }
 
 function boblift_options(): array
+{
+    return boblift_migrate_legacy_hero_slides(boblift_merged_options());
+}
+
+function boblift_merged_options(): array
 {
     if (function_exists('boblift_mls_theme_options')) {
         $options = boblift_mls_theme_options();
@@ -463,6 +759,72 @@ function boblift_options(): array
     }
     $saved = get_option('boblift_theme_options', []);
     return boblift_array_replace_recursive(boblift_default_options(), is_array($saved) ? $saved : []);
+}
+
+/**
+ * Sites saved before the hero redesign keep their photos in home.hero_slides (one image per slide). Carry those over to
+ * the new home.hero.slides by position, but only where the new slide still shows its built-in image, so photos chosen in
+ * the new editor are never overwritten.
+ */
+function boblift_migrate_legacy_hero_slides(array $options): array
+{
+    if (!empty($options['home']['hero']['legacy_slides_migrated'])) {
+        return $options;
+    }
+    // Applied on every read and never written from here: reads do not write the options record (a concurrent settings save
+    // would be lost). The editor shows the migrated slides, and saving them stores the marker (boblift_cleanup_admin_options()).
+    return boblift_apply_legacy_hero_slides($options) ?? $options;
+}
+
+/** The options with the legacy hero photos carried into home.hero.slides (marker set); null when there is nothing to migrate. */
+function boblift_apply_legacy_hero_slides(array $options): ?array
+{
+    $legacy = $options['home']['hero_slides'] ?? null;
+    $slides = $options['home']['hero']['slides'] ?? null;
+    if (!is_array($legacy) || !is_array($slides)) {
+        return null;
+    }
+    $defaults = boblift_default_options()['home']['hero']['slides'] ?? [];
+    // The three photos the old seed saved for everyone are not customisations; only other photos are carried over.
+    $seed_images = ['images/marine-scene.jpg', 'images/telescopic-banner.jpg', 'images/knuckle-banner.jpg'];
+    $is_custom = static function (mixed $image) use ($seed_images): bool {
+        $path = is_array($image) ? trim((string) ($image['path'] ?? '')) : trim((string) $image);
+        return (is_array($image) && (int) ($image['id'] ?? 0) > 0) || ($path !== '' && !in_array($path, $seed_images, true));
+    };
+    foreach (array_values($legacy) as $index => $old) {
+        if (!is_array($old)) {
+            continue;
+        }
+        // Saved slides beyond the new list (the old editor allowed three) become new slides, so no custom photo is unreachable.
+        if (!isset($slides[$index])) {
+            if ($is_custom($old['image'] ?? '') || $is_custom($old['mobile_image'] ?? '')) {
+                $extra = ['image' => $old['image'] ?? '', 'image_alt' => (string) ($old['image_alt'] ?? ''), 'title' => (string) (($old['title'] ?? '') ?: get_bloginfo('name')), 'tab' => (string) ($old['tab'] ?? $old['title'] ?? get_bloginfo('name'))];
+                foreach (['mobile_image', 'text', 'primary_label', 'primary_href'] as $copy_key) {
+                    if (!empty($old[$copy_key])) {
+                        $extra[$copy_key] = $old[$copy_key];
+                    }
+                }
+                $options['home']['hero']['slides'][$index] = $extra;
+            }
+            continue;
+        }
+        // A saved mobile-specific image is carried over unless the new slide already has one.
+        if (!empty($old['mobile_image']) && empty($slides[$index]['mobile_image'])) {
+            $options['home']['hero']['slides'][$index]['mobile_image'] = $old['mobile_image'];
+        }
+        if (empty($old['image']) || !$is_custom($old['image'])) {
+            continue;
+        }
+        $default_image = $defaults[$index]['image'] ?? null;
+        if ($default_image !== null && ($slides[$index]['image'] ?? $default_image) === $default_image) {
+            $options['home']['hero']['slides'][$index]['image'] = $old['image'];
+            if (!empty($old['image_alt'])) {
+                $options['home']['hero']['slides'][$index]['image_alt'] = $old['image_alt'];
+            }
+        }
+    }
+    $options['home']['hero']['legacy_slides_migrated'] = true;
+    return $options;
 }
 
 function boblift_option(string $path, mixed $default = null): mixed
@@ -632,14 +994,414 @@ function boblift_product_category_group_definitions(): array
         [
             'slug' => 'truck-mounted-crane',
             'title' => 'Truck Mounted Crane',
-            'children' => ['telescopic-boom-truck-mounted-cranes', 'knuckle-boom-truck-mounted-cranes'],
+            'children' => ['telescopic-boom-truck-mounted-cranes', 'knuckle-boom-truck-mounted-cranes', 'pickup-cranes'],
         ],
         [
             'slug' => 'marine-crane',
             'title' => 'Marine Crane',
             'children' => ['knuckle-boom-marine-cranes', 'telescopic-boom-marine-cranes'],
         ],
+        [
+            'slug' => 'aerial-work-platform',
+            'title' => 'Aerial Work Platform',
+            'children' => ['truck-mounted-aerial-work-platform'],
+        ],
+        [
+            'slug' => 'other-cranes',
+            'title' => 'Other Cranes',
+            'children' => ['spider-cranes', 'timber-cranes'],
+        ],
     ];
+}
+
+// Product list banner photos. Each top-level product family has a built-in photo in
+// assets/images/product-banners/ named after its English slug; a subcategory uses its family's photo.
+function boblift_product_banner_builtin_photo(?WP_Term $term = null): string
+{
+    $family = 'default';
+    if ($term instanceof WP_Term) {
+        $ancestors = get_ancestors($term->term_id, 'product_category', 'taxonomy');
+        $top = $ancestors ? get_term((int) end($ancestors), 'product_category') : $term;
+        if ($top instanceof WP_Term) {
+            $family = sanitize_key(boblift_source_term_slug($top));
+        }
+    }
+    $path = 'images/product-banners/' . $family . '.jpg';
+    return is_readable(boblift_asset_path($path)) ? $path : 'images/product-banners/default.jpg';
+}
+
+/** Card pictures the importer writes into _boblift_image for every category; they are not banners an editor chose. */
+function boblift_seed_category_images(): array
+{
+    static $images = null;
+    return $images ??= array_values(array_unique(array_filter(array_map('strval', array_merge(array_column(boblift_all_seed_categories(), 'image'), ['images/products/crane-accessories.png'])))));
+}
+
+// A photo uploaded in the category's "产品页 Banner 图片" field wins over the built-in one.
+function boblift_product_banner_photo_url(?WP_Term $term = null): string
+{
+    // A subcategory without its own upload inherits the nearest ancestor's upload.
+    $chain = $term instanceof WP_Term ? array_merge([$term->term_id], array_map('intval', get_ancestors($term->term_id, 'product_category', 'taxonomy'))) : [];
+    foreach ($chain as $term_id) {
+        $image_id = (int) get_term_meta($term_id, '_boblift_image_id', true);
+        $url = $image_id > 0 ? (string) wp_get_attachment_image_url($image_id, 'full') : '';
+        if ($url !== '') {
+            return $url;
+        }
+        // A banner saved as a theme path or URL (no attachment) still counts; the importer's seed card images (images/products/…) do not.
+        $legacy = trim((string) get_term_meta($term_id, '_boblift_image', true));
+        if ($legacy !== '' && !in_array($legacy, boblift_seed_category_images(), true)) {
+            return boblift_image_src($legacy);
+        }
+    }
+    return boblift_asset(boblift_product_banner_builtin_photo($term));
+}
+
+// The Products mega menu, built from the live category tree so it always matches the catalog:
+// every top-level family with its photo and model count, plus its subcategories, or its models
+// when it has fewer than two subcategories with products.
+function boblift_product_menu_families(): array
+{
+    // Built once per request and language: the header and the footer both need it.
+    static $cache = [];
+    $language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
+    return $cache[$language] ??= (boblift_curated_product_menu_families() ?? boblift_cached_product_menu_families($language));
+}
+
+/**
+ * The category-generated menu, kept in a transient per language and site address so ordinary requests do not walk the catalog.
+ * It is rebuilt after any product, category, term meta or theme option change (the version option below is bumped).
+ */
+function boblift_cached_product_menu_families(string $language): array
+{
+    $key = 'boblift_pmenu_' . md5($language . '|' . home_url() . '|' . (string) get_option('boblift_product_menu_version', '0'));
+    $cached = get_transient($key);
+    if (is_array($cached)) {
+        return $cached;
+    }
+    $families = boblift_build_product_menu_families();
+    set_transient($key, $families, DAY_IN_SECONDS);
+    return $families;
+}
+
+function boblift_bump_product_menu_version(): void
+{
+    update_option('boblift_product_menu_version', (string) microtime(true), false);
+}
+foreach (['save_post_product', 'deleted_post', 'trashed_post', 'untrashed_post', 'set_object_terms', 'created_product_category', 'edited_product_category', 'delete_product_category', 'updated_term_meta', 'added_term_meta', 'deleted_term_meta'] as $boblift_menu_hook) {
+    add_action($boblift_menu_hook, 'boblift_bump_product_menu_version');
+}
+// Product meta feeds the menu (model, capacity), so changes made without saving the post invalidate it too.
+foreach (['added_post_meta', 'updated_post_meta', 'deleted_post_meta'] as $boblift_menu_meta_hook) {
+    add_action($boblift_menu_meta_hook, static function ($meta_id, $post_id, $meta_key): void {
+        if (in_array((string) $meta_key, ['_model', '_capacity', '_capacity_value', '_specs', '_boom_type', '_thumbnail_id'], true) && get_post_type((int) $post_id) === 'product') {
+            boblift_bump_product_menu_version();
+        }
+    }, 10, 3);
+}
+add_action('updated_option', static function (string $option): void {
+    if (str_starts_with($option, 'boblift_theme_options') || $option === 'permalink_structure' || $option === 'rewrite_rules') {
+        boblift_bump_product_menu_version();
+    }
+});
+
+/**
+ * Product menu groups an administrator curated in the saved "product_nav_groups" (anything different from the built-in
+ * default) keep driving the menu; untouched sites get the menu generated from the category tree (null). A saved empty list
+ * means the administrator deleted every group: that is honoured as an empty menu, and only the explicit reset action in the
+ * settings (which saves the built-in default again) brings the generated menu back.
+ */
+function boblift_curated_product_menu_families(): ?array
+{
+    $options = boblift_options();
+    $saved = $options['product_nav_groups'] ?? null;
+    $default = boblift_default_options()['product_nav_groups'] ?? null;
+    $slug_of = static function (string $href): string {
+        $path = (string) wp_parse_url($href, PHP_URL_FRAGMENT);
+        return $path !== '' ? sanitize_title($path) : sanitize_title(basename(trim((string) wp_parse_url($href, PHP_URL_PATH), '/'), '.html'));
+    };
+    // Destination identity for the comparison: the default stores /slug and saved options /products#slug, which are the same
+    // destination; a custom host, a query string or any other path is kept so a changed link counts as customised.
+    $site_host = strtolower((string) wp_parse_url(home_url(), PHP_URL_HOST));
+    $dest_of = static function (string $href) use ($site_host): string {
+        $parts = (array) wp_parse_url(trim($href));
+        $host = strtolower((string) ($parts['host'] ?? ''));
+        $path = strtolower(trim((string) preg_replace('/\.html$/i', '', (string) ($parts['path'] ?? '')), '/'));
+        $query = (string) ($parts['query'] ?? '');
+        $fragment = strtolower((string) ($parts['fragment'] ?? ''));
+        if ($host !== '' && $host !== $site_host) {
+            return 'ext:' . $host . '|' . $path . '|' . $query . '|' . $fragment;
+        }
+        // The two historical spellings of a category link are the same destination: /products#slug and /slug.
+        if ($query === '' && $path === 'products' && $fragment !== '') {
+            return 'cat:' . $fragment;
+        }
+        if ($query === '' && $fragment === '' && $path !== '' && !str_contains($path, '/')) {
+            return 'cat:' . $path;
+        }
+        return 'int:' . $path . '|' . $query . '|' . $fragment;
+    };
+    // Compare every editable field (title, description, icon, image, link labels, icons and destinations).
+    // Texts: the saved menu of a translated site carries translated labels while the defaults are English. A text counts as
+    // "untouched" when it equals the English default or the translated default saved for that language (by position); any
+    // other text is an edit, so a menu whose only change is a label is still treated as customised.
+    $source_language = function_exists('boblift_mls_source_language') ? (string) boblift_mls_source_language() : 'en';
+    $current_language = function_exists('boblift_current_language_slug') ? (string) boblift_current_language_slug() : $source_language;
+    $translated_defaults = [];
+    if ($current_language !== '' && $current_language !== $source_language) {
+        $translated_file = get_theme_file_path('inc/translations/product-nav-defaults.php');
+        $all_translated = is_file($translated_file) ? include $translated_file : [];
+        $translated_defaults = is_array($all_translated[$current_language] ?? null) ? $all_translated[$current_language] : [];
+    }
+    $default_groups = array_values(array_filter((array) $default, 'is_array'));
+    $known_text = static function (int $group, ?int $link, string $field, array $values = []) use ($default_groups, $translated_defaults): array {
+        $english = $link === null ? ($default_groups[$group][$field] ?? '') : ($default_groups[$group]['links'][$link]['label'] ?? '');
+        $local = $link === null ? ($translated_defaults[$group][$field] ?? '') : ($translated_defaults[$group]['links'][$link] ?? '');
+        return array_filter([trim((string) $english), trim((string) $local)], static fn($v): bool => $v !== '');
+    };
+    $signature = static function ($groups, bool $is_saved) use ($dest_of, $known_text): string {
+        $rows = [];
+        foreach (array_values(array_filter((array) $groups, 'is_array')) as $group_index => $g) {
+            $token = static fn(string $value, array $known): string => $is_saved && !in_array(trim($value), $known, true) ? trim($value) : 'default';
+            $links = [];
+            foreach (array_values(array_filter((array) ($g['links'] ?? []), 'is_array')) as $link_index => $l) {
+                $links[] = [$token((string) ($l['label'] ?? ''), $known_text($group_index, $link_index, 'label')), $dest_of((string) ($l['href'] ?? '')), sanitize_key((string) ($l['icon'] ?? ''))];
+            }
+            $rows[] = [
+                $token((string) ($g['title'] ?? ''), $known_text($group_index, null, 'title')), $dest_of((string) ($g['href'] ?? '')),
+                $token((string) ($g['description'] ?? ''), $known_text($group_index, null, 'description')), sanitize_key((string) ($g['icon'] ?? '')),
+                is_array($g['image'] ?? null) ? ((int) ($g['image']['id'] ?? 0) > 0 ? 'id:' . (int) $g['image']['id'] : (string) ($g['image']['path'] ?? '')) : (string) ($g['image'] ?? ''),
+                $links,
+            ];
+        }
+        return (string) wp_json_encode($rows);
+    };
+    if (!is_array($saved)) {
+        return null;
+    }
+    if ($saved === []) {
+        return [];
+    }
+    if ($signature($saved, true) === $signature($default, false)) {
+        return null;
+    }
+    $families = [];
+    $used_slugs = [];
+    foreach ($saved as $group) {
+        if (!is_array($group) || trim((string) ($group['title'] ?? '')) === '') {
+            continue;
+        }
+        // Panel identifier (data-mega-family / data-mega-panel): unique even when two groups share a title.
+        $base_slug = sanitize_title((string) $group['title']) ?: 'group';
+        $family_slug = $base_slug;
+        for ($n = 2; isset($used_slugs[$family_slug]); $n++) {
+            $family_slug = $base_slug . '-' . $n;
+        }
+        $used_slugs[$family_slug] = true;
+        $children = [];
+        $count = 0;
+        foreach ((array) ($group['links'] ?? []) as $link) {
+            if (!is_array($link) || trim((string) ($link['label'] ?? '')) === '') {
+                continue;
+            }
+            $term = get_term_by('slug', $slug_of((string) ($link['href'] ?? '')), 'product_category');
+            $link_count = $term instanceof WP_Term ? (int) $term->count : 0;
+            $count += $link_count;
+            $children[] = ['title' => (string) $link['label'], 'url' => boblift_product_nav_url((string) ($link['href'] ?? '/products')), 'count' => $link_count];
+        }
+        $group_term = get_term_by('slug', $slug_of((string) ($group['href'] ?? '')), 'product_category');
+        $icon = sanitize_key((string) ($group['icon'] ?? ''));
+        $families[] = [
+            'slug' => $family_slug,
+            'source_slug' => $group_term instanceof WP_Term ? boblift_source_term_slug($group_term) : sanitize_title((string) $group['title']),
+            'title' => (string) $group['title'],
+            'description' => (string) ($group['description'] ?? ''),
+            'url' => boblift_product_nav_url((string) ($group['href'] ?? '/products')),
+            'count' => $count,
+            'icon' => $icon !== '' ? $icon : 'truck-crane',
+            'photo' => boblift_image_setting_url($group['image'] ?? '', 'images/telescopic-banner.jpg'),
+            'children' => $children,
+            'models' => [],
+            'featured' => [],
+            'group' => 'crane',
+        ];
+    }
+    return $families;
+}
+
+function boblift_build_product_menu_families(): array
+{
+    $term_link = static function (WP_Term $term): string {
+        $url = get_term_link($term);
+        return is_string($url) ? $url : boblift_url('/' . $term->slug);
+    };
+    $families = [];
+    foreach (boblift_product_category_hierarchy() as $group) {
+        $term = get_term_by('slug', (string) ($group['slug'] ?? ''), 'product_category');
+        // A family without a term of its own (a synthetic group from the group definitions) is built from its child terms.
+        $term_ids = $term instanceof WP_Term ? [(int) $term->term_id] : [];
+        $first_child_term = null;
+        if (!$term instanceof WP_Term) {
+            foreach (($group['children'] ?? []) as $child) {
+                $child_term = get_term_by('slug', (string) ($child['slug'] ?? ''), 'product_category');
+                if ($child_term instanceof WP_Term) {
+                    $term_ids[] = (int) $child_term->term_id;
+                    $first_child_term ??= $child_term;
+                }
+            }
+            if ($term_ids === []) {
+                continue;
+            }
+        }
+        // Distinct products in the whole family; a product filed under both a parent and a child counts once.
+        $total = (int) (new WP_Query([
+            'post_type' => 'product',
+            'post_status' => 'publish',
+            'posts_per_page' => 1,
+            'fields' => 'ids',
+            'tax_query' => [['taxonomy' => 'product_category', 'terms' => $term_ids, 'include_children' => true]],
+        ]))->found_posts;
+        $children = [];
+        foreach (($group['children'] ?? []) as $child) {
+            $child_term = get_term_by('slug', (string) ($child['slug'] ?? ''), 'product_category');
+            if (!$child_term instanceof WP_Term) {
+                continue;
+            }
+            $child_count = (int) (new WP_Query([
+                'post_type' => 'product',
+                'post_status' => 'publish',
+                'posts_per_page' => 1,
+                'fields' => 'ids',
+                'tax_query' => [['taxonomy' => 'product_category', 'terms' => $child_term->term_id, 'include_children' => true]],
+            ]))->found_posts;
+            if ($child_count === 0) {
+                continue;
+            }
+            $children[] = ['title' => $child_term->name, 'url' => $term_link($child_term), 'count' => $child_count];
+        }
+        if ($total === 0) {
+            continue;
+        }
+        $models = [];
+        if (count($children) < 2) {
+            $children = [];
+            $posts = get_posts([
+                'post_type' => 'product',
+                'post_status' => 'publish',
+                'numberposts' => 12,
+                'tax_query' => [['taxonomy' => 'product_category', 'terms' => $term_ids, 'include_children' => true]],
+            ]);
+            usort($posts, static fn(WP_Post $a, WP_Post $b): int => ((float) get_post_meta($a->ID, '_capacity_value', true) <=> (float) get_post_meta($b->ID, '_capacity_value', true)) ?: strnatcasecmp($a->post_title, $b->post_title));
+            foreach (array_slice($posts, 0, 5) as $post) {
+                $models[] = ['title' => (string) boblift_localize_product_text_fragments(get_the_title($post)), 'url' => (string) get_permalink($post)];
+            }
+        }
+        // Families split into categories also show a few models across the capacity range.
+        $featured = [];
+        if ($children !== []) {
+            // Only IDs are loaded; full posts are fetched for the four featured models below.
+            $posts = get_posts([
+                'post_type' => 'product',
+                'post_status' => 'publish',
+                'numberposts' => -1,
+                'fields' => 'ids',
+                'update_post_term_cache' => false,
+                'tax_query' => [['taxonomy' => 'product_category', 'terms' => $term_ids, 'include_children' => true]],
+            ]);
+            _prime_post_caches($posts, false, true);
+            usort($posts, static fn(int $a, int $b): int => ((float) get_post_meta($a, '_capacity_value', true) <=> (float) get_post_meta($b, '_capacity_value', true)) ?: strnatcasecmp(get_the_title($a), get_the_title($b)));
+            $picked = [];
+            $last = count($posts) - 1;
+            for ($i = 0; $i < 4 && $last >= 0; $i++) {
+                $picked[(int) round($i * $last / 3)] = true;
+            }
+            foreach (array_keys($picked) as $index) {
+                $post = get_post($posts[$index]);
+                $english_id = function_exists('boblift_product_english_id') ? boblift_product_english_id($post->ID) : $post->ID;
+                $title = (string) boblift_localize_product_text_fragments(get_the_title($post));
+                $model = trim((string) get_post_meta($english_id, '_model', true));
+                $capacity = function_exists('boblift_product_filter_values') ? (float) (boblift_product_filter_values($post->ID)['capacity'] ?? 0) : 0.0;
+                // Short label for the two-column list: model code and capacity, e.g. "SQ5ZA3 · 5 t".
+                $short = $model !== '' && $capacity > 0 ? $model . ' · ' . rtrim(rtrim(number_format($capacity, 2, '.', ''), '0'), '.') . ' t' : $title;
+                $featured[] = ['title' => $title, 'short' => $short, 'url' => (string) get_permalink($post), 'model' => $model];
+            }
+        }
+        $icon = sanitize_key((string) ($group['category']['icon'] ?? ''));
+        $family_slug = $term instanceof WP_Term ? $term->slug : (string) $group['slug'];
+        $family_source_slug = $term instanceof WP_Term ? boblift_source_term_slug($term) : (string) $group['slug'];
+        $family_title = $term instanceof WP_Term ? $term->name : (string) ($group['title'] ?? $family_slug);
+        $families[] = [
+            'slug' => $family_slug,
+            'source_slug' => $family_source_slug,
+            'title' => function_exists('boblift_localized_static_text') && !$term instanceof WP_Term ? boblift_localized_static_text($family_title) : $family_title,
+            // A synthetic family opens the archive with its group filter ticked, which selects its child categories.
+            'url' => $term instanceof WP_Term ? $term_link($term) : add_query_arg('category', rawurlencode((string) $group['slug']), boblift_product_archive_url()),
+            'count' => $total,
+            'icon' => $icon !== '' ? $icon : 'truck-crane',
+            'photo' => boblift_product_banner_photo_url($term instanceof WP_Term ? $term : $first_child_term),
+            'children' => $children,
+            'models' => $models,
+            'featured' => $featured,
+            'group' => boblift_product_family_group($family_source_slug),
+        ];
+    }
+    // Cranes first, then the labelled related-equipment groups (fly jibs, aerial work platforms).
+    $order = ['crane' => 0, 'attachment' => 1, 'access' => 2];
+    $position = array_flip(array_keys($families));
+    uksort($families, static fn($a, $b): int => ($order[$families[$a]['group']] <=> $order[$families[$b]['group']]) ?: ($position[$a] <=> $position[$b]));
+    return array_values($families);
+}
+
+// A forklift fly jib hoists a hanging load, so it counts as a crane attachment. Aerial work platforms lift
+// people (特种设备目录 / EN 280 / OSHA 1926.1400(c)(5) keep them apart from cranes) and tail lifts raise loads
+// onto a truck bed, so both sit under their own "other lifting equipment" label.
+function boblift_product_family_group(string $source_slug): string
+{
+    return ['forklift-fly-jib-cranes' => 'attachment', 'aerial-work-platform' => 'access', 'tail-lift' => 'access'][$source_slug] ?? 'crane';
+}
+
+function boblift_product_family_group_label(string $group): string
+{
+    $label = ['attachment' => 'Crane attachments', 'access' => 'Other lifting equipment'][$group] ?? '';
+    return $label !== '' && function_exists('boblift_localized_static_text') ? boblift_localized_static_text($label) : $label;
+}
+
+/**
+ * The footer's product column follows the product category tree, like the Products menu. It is the
+ * link group saved with source "product_categories" or, in options saved before that existed, the group that still
+ * holds the exact historical default product links.
+ */
+function boblift_footer_is_product_group(array $group): bool
+{
+    if (($group['source'] ?? '') === 'product_categories') {
+        return true;
+    }
+    $links = is_array($group['links'] ?? null) ? $group['links'] : [];
+    if ($links === []) {
+        return false;
+    }
+    // Only the complete historical default counts: the original seven links with their original labels, in their original
+    // order. A group an administrator edited (relabelled, reordered, other links) is left as saved. Both historical URL
+    // forms count: `/products#slug` and the root-relative `/slug` shipped in seed-data.json.
+    $historical = [
+        ['Telescopic Boom Truck Mounted Cranes', 'telescopic-boom-truck-mounted-cranes'],
+        ['Knuckle Boom Truck Mounted Cranes', 'knuckle-boom-truck-mounted-cranes'],
+        ['Pickup Cranes', 'pickup-cranes'],
+        ['Marine Cranes', 'knuckle-boom-marine-cranes'],
+        ['Forklift Fly Jib Cranes', 'forklift-fly-jib-cranes'],
+        ['Aerial Work Platform', 'aerial-work-platform'],
+        ['Tail Lift', 'tail-lift'],
+    ];
+    if (count($links) !== count($historical)) {
+        return false;
+    }
+    foreach (array_values($links) as $index => $link) {
+        if (!is_array($link) || !preg_match('~^/?(?:products(?:\.html)?#)?([a-z0-9-]+)/?$~', trim((string) ($link['href'] ?? '')), $m)
+            || $m[1] !== $historical[$index][1] || trim((string) ($link['label'] ?? '')) !== $historical[$index][0]) {
+            return false;
+        }
+    }
+    return true;
 }
 
 function boblift_product_category_hierarchy(): array
