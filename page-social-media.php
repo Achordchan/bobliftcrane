@@ -144,8 +144,10 @@ foreach (['overseas' => 'china', 'china' => 'overseas'] as $from => $to) {
             $kept[] = $row;
             continue;
         }
+        // Only a true duplicate (same platform and same destination) is dropped; a second account of the platform is kept.
         $identity = $row_identity($row);
-        $taken = array_filter($group_rows[$to], static fn(array $other): bool => $row_identity($other) === $identity);
+        $destination = $account_url($row);
+        $taken = array_filter($group_rows[$to], static fn(array $other): bool => $row_identity($other) === $identity && $account_url($other) === $destination);
         if ($taken === []) {
             $group_rows[$to][] = $row;
         }
