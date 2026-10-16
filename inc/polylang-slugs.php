@@ -147,3 +147,47 @@ function boblift_migrate_shared_case_slugs(): void
     update_option('boblift_case_slug_version', '1', false);
 }
 add_action('admin_init', 'boblift_migrate_shared_case_slugs');
+
+/**
+ * Case URLs are language-aware: before boblift_migrate_shared_case_slugs() a translated case shared its English slug, so
+ * an old /ja/<slug>.html now matches the English case. When the URL's language directory differs from the language of the
+ * case it resolved to and that case has a published translation in the URL's language, send the visitor there (301).
+ */
+function boblift_redirect_case_to_url_language(): void
+{
+    if (!is_singular('case') || !function_exists('pll_get_post_language') || !function_exists('pll_get_post') || !function_exists('boblift_prefixed_languages')) {
+        return;
+    }
+    $post = get_queried_object();
+    if (!$post instanceof WP_Post) {
+        return;
+    }
+    $path = '/' . ltrim((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH), '/');
+    $base = function_exists('boblift_language_path_base') ? boblift_language_path_base() : '';
+    $url_language = '';
+    foreach (boblift_prefixed_languages() as $slug) {
+        if (preg_match('#^/' . preg_quote($base . $slug, '#') . '(/|$)#', $path)) {
+            $url_language = (string) $slug;
+            break;
+        }
+    }
+    if ($url_language === '' && function_exists('pll_default_language')) {
+        $url_language = (string) pll_default_language();
+    }
+    $post_language = (string) pll_get_post_language($post->ID);
+    if ($url_language === '' || $post_language === '' || $url_language === $post_language) {
+        return;
+    }
+    $translation = (int) pll_get_post($post->ID, $url_language);
+    if ($translation <= 0 || $translation === $post->ID || get_post_status($translation) !== 'publish') {
+        return;
+    }
+    $target = get_permalink($translation);
+    if (!is_string($target) || $target === '') {
+        return;
+    }
+    $query = (string) parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_QUERY);
+    wp_safe_redirect($target . ($query !== '' ? (str_contains($target, '?') ? '&' : '?') . $query : ''), 301);
+    exit;
+}
+add_action('template_redirect', 'boblift_redirect_case_to_url_language', 2);

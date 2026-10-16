@@ -1100,10 +1100,18 @@ function boblift_curated_product_menu_families(): ?array
         return null;
     }
     $families = [];
+    $used_slugs = [];
     foreach ($saved as $group) {
         if (!is_array($group) || trim((string) ($group['title'] ?? '')) === '') {
             continue;
         }
+        // Panel identifier (data-mega-family / data-mega-panel): unique even when two groups share a title.
+        $base_slug = sanitize_title((string) $group['title']) ?: 'group';
+        $family_slug = $base_slug;
+        for ($n = 2; isset($used_slugs[$family_slug]); $n++) {
+            $family_slug = $base_slug . '-' . $n;
+        }
+        $used_slugs[$family_slug] = true;
         $children = [];
         $count = 0;
         foreach ((array) ($group['links'] ?? []) as $link) {
@@ -1118,7 +1126,7 @@ function boblift_curated_product_menu_families(): ?array
         $group_term = get_term_by('slug', $slug_of((string) ($group['href'] ?? '')), 'product_category');
         $icon = sanitize_key((string) ($group['icon'] ?? ''));
         $families[] = [
-            'slug' => sanitize_title((string) $group['title']),
+            'slug' => $family_slug,
             'source_slug' => $group_term instanceof WP_Term ? boblift_source_term_slug($group_term) : sanitize_title((string) $group['title']),
             'title' => (string) $group['title'],
             'description' => (string) ($group['description'] ?? ''),

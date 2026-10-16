@@ -9,6 +9,7 @@
  * Domain Path: /languages
  * Author URI: https://github.com/almhdy
  * Requires Plugins: polylang
+ * Update URI: false
  * License: GPLv3
  * License URI: https://opensource.org/licenses/GPL-3.0
  */
@@ -16,6 +17,16 @@ if ( !defined( 'ABSPATH' ) ) {
     exit;
 }
 // Exit if accessed directly
+// BOB-LIFT customised build (OpenAI-compatible base URL): never replace it with the upstream release.
+add_filter( 'site_transient_update_plugins', function ( $value ) {
+    if ( is_object( $value ) && isset( $value->response['polytranslate-ai/polytranslate-ai.php'] ) ) {
+        unset( $value->response['polytranslate-ai/polytranslate-ai.php'] );
+    }
+    return $value;
+}, 999 );
+add_filter( 'auto_update_plugin', function ( $update, $item ) {
+    return ( isset( $item->plugin ) && 'polytranslate-ai/polytranslate-ai.php' === $item->plugin ) ? false : $update;
+}, 999, 2 );
 if ( function_exists( 'ptai_fs' ) ) {
     ptai_fs()->set_basename( false, __FILE__ );
 } else {
