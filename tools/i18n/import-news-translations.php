@@ -63,6 +63,8 @@ foreach ($langs as $lang) {
         foreach ($fields as $field) {
             if (!is_string($data[$field] ?? null)) { $problems[] = "$file: field $field"; }
         }
+        $tags = $data['tags'] ?? null;
+        if (!is_array($tags) || array_filter($tags, static fn($tag): bool => !is_string($tag) || trim($tag) === '')) { $problems[] = "$file: field tags (a list of names, may be empty)"; }
         if (preg_match('#https?://(?:localhost|127\.0\.0\.1)(?::\d+)?/(?!wp-content/uploads/)#i', (string) ($data['content'] ?? ''))) { $problems[] = "$file: link to a local development address"; }
         if (trim((string) ($data['title'] ?? '')) === '' || trim((string) ($data['content'] ?? '')) === '') { $problems[] = "$file: empty title or content"; }
         $english_links = preg_match_all('/<a\b/i', $by_id[$id]['content']);
@@ -123,6 +125,29 @@ function bl_news_terms(int $id): array {
     return $terms;
 }
 
+/** The tag with this name in this language, created (and assigned the language) when it does not exist yet. */
+function bl_news_tag(string $name, string $lang): int {
+    $terms = get_terms(['taxonomy' => 'post_tag', 'name' => $name, 'hide_empty' => false, 'lang' => $lang]);
+    foreach (is_array($terms) ? $terms : [] as $term) {
+        if (pll_get_term_language($term->term_id) === $lang) { return (int) $term->term_id; }
+    }
+    $inserted = wp_insert_term($name, 'post_tag');
+    if (is_wp_error($inserted)) {
+        // The name (or its slug) is taken by another language's tag: create this language's own term beside it.
+        $inserted = wp_insert_term($name, 'post_tag', ['slug' => sanitize_title($name) . '-' . $lang]);
+    }
+    if (is_wp_error($inserted)) { fwrite(STDERR, "tag $name ($lang): " . $inserted->get_error_message() . "\n"); exit(1); }
+    pll_set_term_language((int) $inserted['term_id'], $lang);
+    return (int) $inserted['term_id'];
+}
+
+/** A draft an interrupted run inserted for this English post and language before linking it into the translation group. */
+function bl_news_unlinked_staged(int $en_id, string $lang): int {
+    $found = get_posts(['post_type' => 'post', 'post_status' => 'any', 'posts_per_page' => 1, 'fields' => 'ids', 'lang' => '',
+        'meta_query' => [['key' => '_news_i18n_source', 'value' => $en_id . ':' . $lang], ['key' => '_news_i18n_staging', 'compare' => 'EXISTS']]]);
+    return $found ? (int) $found[0] : 0;
+}
+
 function bl_news_backup(int $id, string $slug, string $lang): void {
     $snapshot = wp_json_encode(['post' => get_post($id, ARRAY_A), 'meta' => get_post_meta($id), 'terms' => bl_news_terms($id)], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
     $file = boblift_tools_backup_dir() . '/backup-news-i18n-' . $lang . '-' . $slug . '-' . gmdate('Ymd-His') . '.json';
@@ -137,6 +162,9 @@ foreach ($jobs as [$lang, $id, $data]) {
     $en = bl_news_english($row);
     if (!$en) { $report['missing_english']++; fwrite(STDERR, "English post {$row['slug']} is not on this site; skipped for $lang.\n"); continue; }
     $existing = (int) pll_get_post($en->ID, $lang);
+    // pll_get_post returns the English post itself when the language has none.
+    if ($existing === $en->ID) { $existing = 0; }
+    if (!$existing) { $existing = bl_news_unlinked_staged($en->ID, $lang); }
     // A translation an earlier run created but did not finish publishing carries the staging marker and is resumed.
     // The marker is "publish" for a translation the importer created, "update" for an overwritten one.
     $marker = $existing ? (string) get_post_meta($existing, '_news_i18n_staging', true) : '';
@@ -164,7 +192,8 @@ foreach ($jobs as [$lang, $id, $data]) {
     } else {
         $postarr['post_date'] = $en->post_date;
         $postarr['post_date_gmt'] = $en->post_date_gmt;
-        $postarr['meta_input'] = ['_news_i18n_staging' => 'publish'];
+        // The source marker lets a rerun find this draft even if the run stops before it joins the translation group.
+        $postarr['meta_input'] = ['_news_i18n_staging' => 'publish', '_news_i18n_source' => $en->ID . ':' . $lang];
         $new_id = wp_insert_post(wp_slash($postarr), true);
     }
     if (is_wp_error($new_id)) { fwrite(STDERR, $new_id->get_error_message() . "\n"); exit(1); }
@@ -172,6 +201,9 @@ foreach ($jobs as [$lang, $id, $data]) {
     $group = pll_get_post_translations($en->ID);
     $group[$lang] = $new_id;
     pll_save_post_translations($group);
+    // The file's tag list replaces the post's tags in its own language; an empty list clears them.
+    $tag_ids = wp_set_post_terms($new_id, array_map(static fn(string $name): int => bl_news_tag(trim($name), $lang), $data['tags']), 'post_tag');
+    if (is_wp_error($tag_ids)) { fwrite(STDERR, "tags of $new_id ($lang): " . $tag_ids->get_error_message() . "\n"); exit(1); }
     $thumb = get_post_thumbnail_id($en->ID);
     if ($thumb) { set_post_thumbnail($new_id, $thumb); }
     update_post_meta($new_id, '_seo_title', wp_slash($data['seo_title']));
@@ -193,6 +225,7 @@ foreach ($done as $new_id => [$lang, $data, $publish]) {
         continue;
     }
     delete_post_meta($new_id, '_news_i18n_staging');
+    delete_post_meta($new_id, '_news_i18n_source');
     $publish ? $report['created']++ : $report['updated']++;
 }
 echo json_encode($report), "\n";
