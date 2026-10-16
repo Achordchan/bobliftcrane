@@ -21,6 +21,17 @@ $language = function_exists('boblift_current_language_slug') ? boblift_current_l
 $all_label = function_exists('boblift_localized_static_text') ? boblift_localized_static_text((string) ($ui['allLabel'] ?? 'All')) : (string) ($ui['allLabel'] ?? 'All');
 $empty_title = (string) ($ui['emptyTitle'] ?? 'No matching news found');
 $empty_text = (string) ($ui['emptyText'] ?? 'Choose another category to browse more BOB-LIFT updates.');
+// The old hero carried two proof chips. Figures an editor changed from the built-in ones stay visible under the new hero.
+$news_static = static fn(string $text): string => function_exists('boblift_localized_static_text') ? boblift_localized_static_text($text) : $text;
+$news_proof_chips = array_values(array_filter(array_map(static function (array $chip) use ($ui, $news_static): ?array {
+    $value = trim((string) ($ui[$chip[0]] ?? ''));
+    $label = trim((string) ($ui[$chip[1]] ?? ''));
+    $customised = ($value !== '' && $value !== $chip[2]) || ($label !== '' && !in_array($label, [$chip[3], $news_static($chip[3])], true));
+    return $customised && $value !== '' ? ['value' => $value, 'label' => $label !== '' ? $label : $news_static($chip[3]), 'icon' => $chip[4]] : null;
+}, [
+    ['countriesValue', 'countriesLabel', '80+', 'Countries Served', 'globe'],
+    ['yearsValue', 'yearsLabel', '20+', 'Years of Expertise', 'building-2'],
+])));
 ?>
 
 <div class="page-shell pt-5 md:pt-8">
@@ -34,6 +45,13 @@ $empty_text = (string) ($ui['emptyText'] ?? 'Choose another category to browse m
         'image_position' => 'center 45%',
     ]);
     ?>
+    <?php if ($news_proof_chips !== []) : ?>
+        <ul class="mt-5 flex flex-wrap gap-3">
+            <?php foreach ($news_proof_chips as $chip) : ?>
+                <li class="flex items-center gap-3 rounded border border-line bg-white px-4 py-3"><?php echo boblift_icon($chip['icon'], 'h-6 w-6 text-gold', '1.8'); ?><span><strong class="block text-xl font-black text-navy"><?php echo esc_html($chip['value']); ?></strong><small class="block text-sm font-semibold text-slate-600"><?php echo esc_html($chip['label']); ?></small></span></li>
+            <?php endforeach; ?>
+        </ul>
+    <?php endif; ?>
 </div>
 
 <section id="news-updates" class="page-shell scroll-mt-[120px] pb-20 pt-8 md:pt-10 2xl:pb-24" data-news-filter-root data-news-max-visible="6" data-news-initial-category="<?php echo esc_attr($active_category); ?>">

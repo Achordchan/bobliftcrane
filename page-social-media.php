@@ -156,10 +156,24 @@ foreach (['overseas' => 'china', 'china' => 'overseas'] as $from => $to) {
     }
     $group_rows[$from] = $kept;
 }
+// Headings an editor saved for the old page (content cards, more channels) carry over while the new headings are still built-in.
+$legacy_posts_heading = static function (string $new_key, string $new_default, string $old_key, string $old_default) use ($labels): string {
+    $new = trim((string) ($labels[$new_key] ?? ''));
+    $old = trim((string) ($labels[$old_key] ?? ''));
+    $old_forms = [$old_default, function_exists('boblift_localized_static_text') ? boblift_localized_static_text($old_default) : $old_default];
+    $new_forms = [$new_default, function_exists('boblift_localized_static_text') ? boblift_localized_static_text($new_default) : $new_default];
+    if ($old !== '' && !in_array($old, $old_forms, true) && ($new === '' || in_array($new, $new_forms, true))) {
+        return $old;
+    }
+    return $new !== '' ? $new : $new_default;
+};
+// The old "More Channels" eyebrow shows above the group only when an editor customised it.
+$more_label = trim((string) ($labels['more_channels_label'] ?? ''));
+$more_label = $more_label !== '' && !in_array($more_label, ['More Channels', function_exists('boblift_localized_static_text') ? boblift_localized_static_text('More Channels') : 'More Channels'], true) ? $t($more_label) : '';
 $platform_groups = array_values(array_filter([
     ['id' => 'overseas', 'title' => $t($labels['overseas_title'] ?? 'Global platforms'), 'rows' => $group_rows['overseas']],
     ['id' => 'china', 'title' => $t($labels['china_title'] ?? 'China platforms'), 'rows' => $group_rows['china']],
-    ['id' => 'more', 'title' => $t($labels['more_title'] ?? 'More platforms'), 'rows' => $group_rows['more']],
+    ['id' => 'more', 'label' => $more_label, 'title' => $t($legacy_posts_heading('more_title', 'More platforms', 'more_channels_title', 'Additional platforms around the world.')), 'rows' => $group_rows['more']],
 ], static fn(array $group): bool => $group['rows'] !== []));
 
 $posts = array_values(array_filter(is_array($social_page['content_cards'] ?? null) ? $social_page['content_cards'] : [], static fn($card): bool => is_array($card) && (string) ($card['enabled'] ?? '1') !== '0' && ($has_media($card['image'] ?? '') || trim((string) ($card['title'] ?? '')) !== '' || trim((string) ($card['text'] ?? '')) !== '')));
@@ -175,17 +189,6 @@ $captions = array_map(static fn(array $post): string => $t($post['title'] ?? '')
 // The lightbox caption carries the saved description too ("Title — description"), so older cards keep their text.
 // Separator only between two non-empty parts (trim()'s byte mask would cut multibyte characters).
 $lightbox_captions = array_map(static fn(array $post): string => implode(' — ', array_filter([$t($post['title'] ?? ''), $t($post['text'] ?? '')], static fn(string $part): bool => $part !== '')), $posts);
-// Headings an editor saved for the old content-cards section carry over while the new posts headings are still built-in.
-$legacy_posts_heading = static function (string $new_key, string $new_default, string $old_key, string $old_default) use ($labels): string {
-    $new = trim((string) ($labels[$new_key] ?? ''));
-    $old = trim((string) ($labels[$old_key] ?? ''));
-    $old_forms = [$old_default, function_exists('boblift_localized_static_text') ? boblift_localized_static_text($old_default) : $old_default];
-    $new_forms = [$new_default, function_exists('boblift_localized_static_text') ? boblift_localized_static_text($new_default) : $new_default];
-    if ($old !== '' && !in_array($old, $old_forms, true) && ($new === '' || in_array($new, $new_forms, true))) {
-        return $old;
-    }
-    return $new !== '' ? $new : $new_default;
-};
 $posts_title = $t($legacy_posts_heading('posts_title', 'What we have been posting.', 'content_cards_title', 'Real content from real work.'));
 $posts_label = $t($legacy_posts_heading('posts_label', 'Recent posts', 'content_cards_label', 'What You Can Follow'));
 
@@ -268,6 +271,9 @@ if ($legacy_panel !== []) : ?>
         <div class="grid gap-10 md:gap-12">
             <?php foreach ($platform_groups as $group) : ?>
                 <div>
+                    <?php if (($group['label'] ?? '') !== '') : ?>
+                        <p class="section-label mb-2"><?php echo esc_html($group['label']); ?></p>
+                    <?php endif; ?>
                     <h3 id="social-group-<?php echo esc_attr($group['id']); ?>" class="mb-4 text-xl font-black tracking-[-0.01em] text-ink md:text-2xl"><?php echo esc_html($group['title']); ?></h3>
                     <ul class="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-3 lg:gap-4">
                         <?php foreach ($group['rows'] as $platform) :
