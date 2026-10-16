@@ -801,13 +801,6 @@ function boblift_site_ui_defaults(?string $section = null): array
             'weChatTitle' => 'WeChat',
             'weChatDescriptionTemplate' => 'Scan the QR code or search ID {wechatId}. The QR block is kept as a compact card so it does not dominate mobile screens.',
             'weChatQrAlt' => 'BOB-LIFT WeChat QR code',
-            'supportTitle' => 'Global Support',
-            'supportDescription' => 'Use the form to share your project details. Our team will help turn it into a practical crane selection and export plan.',
-            'supportItems' => [
-                ['iconName' => 'truck', 'title' => 'Crane model selection', 'text' => 'Match load, working radius, chassis and site access.'],
-                ['iconName' => 'file-text', 'title' => 'Export documents', 'text' => 'Support documents, shipping notes and destination requirements.'],
-                ['iconName' => 'shield-check', 'title' => 'After-sales communication', 'text' => 'Keep installation, operation and parts questions traceable.'],
-            ],
             'locationTitle' => 'Factory contact point',
             'locationDescriptionTemplate' => 'BOB-LIFT is based in {address}. For quick China-side communication, use WeChat or submit the structured inquiry form.',
             'mapTitle' => 'BOB-LIFT factory location map',

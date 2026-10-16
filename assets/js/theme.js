@@ -44,11 +44,10 @@
   const searchInput = qs('[data-search-input]', searchPanel || document);
   const setSearchOpen = (open, restoreFocus = false) => {
     if (!searchToggle || !searchPanel) return;
+    if (open && qs('#mobile-menu:not(.hidden)')) qs('[data-mobile-toggle]')?.click();
     searchPanel.classList.toggle('hidden', !open);
     searchToggle.setAttribute('aria-expanded', String(open));
     if (open) {
-      const openMobileMenu = qs('#mobile-menu:not(.hidden)');
-      if (openMobileMenu) qs('[data-mobile-toggle]')?.click();
       qsa('[data-language-root]').forEach((root) => {
         qs('[data-language-menu]', root)?.classList.add('hidden');
         qs('[data-language-toggle]', root)?.setAttribute('aria-expanded', 'false');
@@ -2908,6 +2907,7 @@
     const optionLabel = (input) => qs('span', input.closest('label') || input.parentElement)?.textContent?.trim() || input.value;
     const paramValues = (params, key) => params.getAll(key).flatMap((value) => value.split(',')).map((value) => value.trim()).filter(Boolean);
     const optionMatchesParam = (input, value) => {
+      if (input.dataset.filter === 'capacity') value = value.replace(/-tons$/i, '');
       const normalized = slugifyFilter(value);
       return value === input.value || normalized === slugifyFilter(input.value) || normalized === slugifyFilter(optionLabel(input));
     };

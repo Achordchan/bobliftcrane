@@ -29,6 +29,13 @@ return [
         'hoursLabel' => 'Working hours',
         'hoursText' => 'Monday to Friday, 8:30 AM–6:00 PM Beijing time (UTC+8). Messages sent outside these hours are answered the next working day.',
         'formLabel' => 'Send an inquiry',
+        'supportTitle' => 'Global Support',
+        'supportDescription' => 'Use the form to share your project details. Our team will help turn it into a practical crane selection and export plan.',
+        'supportItems' => [
+            ['iconName' => 'truck', 'title' => 'Crane model selection', 'text' => 'Match load, working radius, chassis and site access.'],
+            ['iconName' => 'file-text', 'title' => 'Export documents', 'text' => 'Support documents, shipping notes and destination requirements.'],
+            ['iconName' => 'shield-check', 'title' => 'After-sales communication', 'text' => 'Keep installation, operation and parts questions traceable.'],
+        ],
         'afterLabel' => 'After you send',
         'afterTitle' => 'What happens next',
         'afterSteps' => [

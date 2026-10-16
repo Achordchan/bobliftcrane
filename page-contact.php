@@ -35,6 +35,15 @@ $map_labels = is_array($ui['mapLabels'] ?? null) ? $ui['mapLabels'] : [];
 
 $eyebrow = 'text-[11px] font-black uppercase tracking-[0.18em] text-slate-400';
 $after_steps = is_array($ui['afterSteps'] ?? null) ? $ui['afterSteps'] : [];
+$support_defaults = boblift_localize_static_value(boblift_site_ui_defaults('contactPage'));
+$has_custom_support = false;
+foreach (['supportTitle', 'supportDescription', 'supportItems'] as $support_key) {
+    if (($ui[$support_key] ?? null) !== ($support_defaults[$support_key] ?? null)) {
+        $has_custom_support = true;
+        break;
+    }
+}
+$support_items = is_array($ui['supportItems'] ?? null) ? $ui['supportItems'] : [];
 $visit_links = is_array($ui['visitLinks'] ?? null) ? $ui['visitLinks'] : [];
 ?>
 <div class="page-shell pt-5 md:pt-8">
@@ -129,6 +138,23 @@ $visit_links = is_array($ui['visitLinks'] ?? null) ? $ui['visitLinks'] : [];
                     <?php endforeach; ?>
                 </ol>
             </section>
+            <?php if ($has_custom_support) : ?>
+                <section class="rounded border border-line bg-mist p-5 md:p-6" aria-labelledby="contact-support-title">
+                    <h2 id="contact-support-title" class="text-lg font-black leading-7 text-navy"><?php echo esc_html($t('supportTitle')); ?></h2>
+                    <p class="mt-3 text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html($t('supportDescription')); ?></p>
+                    <ul class="mt-4 space-y-4">
+                        <?php foreach ($support_items as $item) : ?>
+                            <li class="flex gap-3">
+                                <?php echo boblift_icon((string) ($item['iconName'] ?? 'shield-check'), 'mt-0.5 h-4 w-4 shrink-0 text-slate-400'); ?>
+                                <span class="min-w-0">
+                                    <span class="block text-sm font-black leading-6 text-navy"><?php echo esc_html((string) ($item['title'] ?? '')); ?></span>
+                                    <span class="block text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html((string) ($item['text'] ?? '')); ?></span>
+                                </span>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                </section>
+            <?php endif; ?>
         </aside>
     </div>
 </section>

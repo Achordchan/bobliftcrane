@@ -677,8 +677,8 @@ function boblift_migrate_legacy_hero_slides(array $options): array
         }
         // Saved slides beyond the new list (the old editor allowed three) become new slides, so no custom photo is unreachable.
         if (!isset($slides[$index])) {
-            if ($is_custom($old['image'] ?? '')) {
-                $extra = ['image' => $old['image'], 'image_alt' => (string) ($old['image_alt'] ?? ''), 'title' => (string) (($old['title'] ?? '') ?: get_bloginfo('name')), 'tab' => (string) ($old['tab'] ?? $old['title'] ?? get_bloginfo('name'))];
+            if ($is_custom($old['image'] ?? '') || $is_custom($old['mobile_image'] ?? '')) {
+                $extra = ['image' => $old['image'] ?? '', 'image_alt' => (string) ($old['image_alt'] ?? ''), 'title' => (string) (($old['title'] ?? '') ?: get_bloginfo('name')), 'tab' => (string) ($old['tab'] ?? $old['title'] ?? get_bloginfo('name'))];
                 foreach (['mobile_image', 'text', 'primary_label', 'primary_href'] as $copy_key) {
                     if (!empty($old[$copy_key])) {
                         $extra[$copy_key] = $old[$copy_key];
