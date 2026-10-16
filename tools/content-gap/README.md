@@ -9,6 +9,8 @@ Source folder (default `tools/content-gap/source/`, or pass a path / set `CONTEN
 - tracked: the two article `.html` files and two `.jsonld` files;
 - not tracked (binary): `marine-crane-buying-guide-images.zip`, `forklift-jib-crane-images.zip`, and `forklift-charts/` (made by `python3 charts.py`, needs matplotlib), `products/` (made by `fetch-old-images.sh`).
 
+Backups: set `BOBLIFT_BACKUP_DIR` to a private folder outside the web root (the importers refuse to run `overwrite` without it).
+
 Run order on the target site (back up the database first):
 
 ```bash
