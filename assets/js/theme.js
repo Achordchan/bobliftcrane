@@ -659,7 +659,12 @@
             anticipatePin: 1,
             invalidateOnRefresh: true,
             markers: false,
-            onToggle: (self) => section.classList.toggle('is-about-logo-active', self.isActive),
+            onToggle: (self) => {
+              section.classList.toggle('is-about-logo-active', self.isActive);
+              // Looping clips stop once the hero scrolls away; scrolling back resumes them through onUpdate.
+              if (self.isActive) updateAerialMedia(self.progress);
+              else pauseAerialVideo();
+            },
             onUpdate: (self) => updateAerialMedia(self.progress),
           },
         });
@@ -3085,7 +3090,9 @@
       return clearedSelection;
     };
     const matchesSpec = (card, filterName) => {
-      const ranges = activeValues(filterName);
+      let ranges = activeValues(filterName);
+      // The capacity dropdown, where an archive renders one, applies while no capacity box is ticked.
+      if (!ranges.length && filterName === 'capacity' && capacitySelect?.value) ranges = [capacitySelect.value];
       return !ranges.length || inAnyRange(cardNumber(card, filterName), ranges);
     };
     const hasAny = (source, values) => !values.length || values.some((value) => source.includes(value));
@@ -3810,8 +3817,9 @@
     thumbs.forEach((thumb) => thumb.addEventListener('click', () => show(Number(thumb.dataset.feedbackThumb), true)));
     root.querySelector('[data-feedback-prev]')?.addEventListener('click', () => show(current - 1, false));
     root.querySelector('[data-feedback-next]')?.addEventListener('click', () => show(current + 1, false));
-    window.addEventListener('keydown', (event) => {
-      if (event.target.closest?.('input, textarea, select, [contenteditable]')) return;
+    // Arrow keys page the gallery only while focus is on its own controls; a focused video keeps them for seeking.
+    root.addEventListener('keydown', (event) => {
+      if (event.target.closest?.('input, textarea, select, video, audio, [contenteditable]')) return;
       if (event.key === 'ArrowLeft') show(current - 1, false);
       if (event.key === 'ArrowRight') show(current + 1, false);
     });
