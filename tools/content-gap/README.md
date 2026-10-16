@@ -18,6 +18,10 @@ tools/content-gap/fetch-old-images.sh
 python3 tools/content-gap/charts.py
 wp eval-file tools/content-gap/import-articles.php
 wp eval-file tools/content-gap/import-products.php
+# Japanese and Chinese versions of the two articles (Polylang must be active; run after import-articles.php)
+wp eval-file tools/content-gap/import-article-translations.php
 ```
 
-Both importers check every source file before writing anything. Pages that already exist are left unchanged; pass `overwrite` as an extra argument to replace them, in which case each page's current fields and meta are saved to `tools/content-gap/backup-content-gap-<slug>-<time>.json` first.
+The translated articles come from `source/i18n/<article>.json` (title, SEO fields, tags, body and JSON-LD for `ja` and `zh`); the page translations are skipped when they already exist and replaced with `overwrite`. Links inside them are pointed at the translated page where one exists.
+
+The importers check every source file before writing anything. Pages that already exist are left unchanged; pass `overwrite` as an extra argument to replace them, in which case each page's current fields and meta are saved to `tools/content-gap/backup-content-gap-<slug>-<time>.json` first.
