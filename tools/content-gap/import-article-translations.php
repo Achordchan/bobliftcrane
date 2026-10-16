@@ -18,13 +18,15 @@ $source_args = array_values(array_filter($args ?? [], static fn($arg): bool => $
 $root = rtrim((string) ($source_args[0] ?? getenv('CONTENT_GAP_SOURCE') ?: __DIR__ . '/source'), '/') . '/';
 $articles = ['forklift-jib-crane-guide', 'marine-crane-buying-guide'];
 $langs = ['ja', 'zh'];
+// import-articles.php assigns the originals to English, whatever Polylang's default language is.
+const BL_SOURCE_LANG = 'en';
 
 if (!function_exists('pll_get_post') || !function_exists('pll_set_post_language')) { fwrite(STDERR, "Polylang is not active.\n"); exit(1); }
 
-/** Base URL of the English site (the default language), used for links that have no translation. */
+/** Base URL of the English site, used for links that have no translation. */
 function bl_english_base(): string {
-    $base = function_exists('pll_home_url') && function_exists('pll_default_language') ? pll_home_url(pll_default_language()) : home_url('/');
-    return untrailingslashit((string) $base);
+    $base = function_exists('pll_home_url') ? pll_home_url(BL_SOURCE_LANG) : home_url('/');
+    return untrailingslashit((string) ($base ?: home_url('/')));
 }
 
 /** The attachment the English import uploaded for an image file name (it records the source file name in _bl_gap_source). */
@@ -44,9 +46,9 @@ function bl_public_permalink(int $id): string {
     return (string) get_permalink($post);
 }
 
-/** Published post or page in the default language with this slug. */
+/** Published English post or page with this slug. */
 function bl_english_post(string $slug): ?WP_Post {
-    $found = get_posts(['post_type' => 'any', 'name' => $slug, 'post_status' => 'publish', 'posts_per_page' => 1, 'lang' => pll_default_language()]);
+    $found = get_posts(['post_type' => 'any', 'name' => $slug, 'post_status' => 'publish', 'posts_per_page' => 1, 'lang' => BL_SOURCE_LANG]);
     return $found ? $found[0] : null;
 }
 
@@ -170,11 +172,23 @@ foreach ($articles as $slug) {
     $data = is_file($file) ? json_decode((string) file_get_contents($file), true) : null;
     if (!is_array($data)) { $missing[] = $file; continue; }
     $sources[$slug] = $data;
-    $en = get_posts(['post_type' => 'post', 'name' => $slug, 'post_status' => 'publish', 'posts_per_page' => 1, 'lang' => pll_default_language()]);
+    $en = get_posts(['post_type' => 'post', 'name' => $slug, 'post_status' => 'publish', 'posts_per_page' => 1, 'lang' => BL_SOURCE_LANG]);
     if (!$en) { $missing[] = 'English article: ' . $slug . ' (run import-articles.php first)'; }
     foreach ($langs as $lang) {
         $t = $data[$lang] ?? null;
-        if (!is_array($t) || empty($t['body']) || empty($t['schema']['@graph'])) { $missing[] = "$slug: no complete $lang block"; continue; }
+        if (!is_array($t)) { $missing[] = "$slug: no $lang block"; continue; }
+        // Every field the import writes is checked here, so an incomplete source never leaves a half-applied post.
+        foreach (['title', 'seo_title', 'desc', 'keywords', 'body'] as $field) {
+            if (!is_string($t[$field] ?? null) || trim($t[$field]) === '') { $missing[] = "$slug ($lang): field $field"; }
+        }
+        foreach (['home', 'news', 'section'] as $field) {
+            if (isset($t[$field]) && !is_string($t[$field])) { $missing[] = "$slug ($lang): field $field must be text"; }
+        }
+        if (!is_string($t['news'] ?? $t['section'] ?? null)) { $missing[] = "$slug ($lang): field news"; }
+        $tags = $t['tags'] ?? null;
+        if (!is_array($tags) || !$tags || array_filter($tags, static fn($tag): bool => !is_string($tag) || trim($tag) === '')) { $missing[] = "$slug ($lang): field tags (a list of names)"; }
+        if (!is_array($t['schema']['@graph'] ?? null)) { $missing[] = "$slug ($lang): field schema.@graph"; }
+        if (!is_string($t['body'] ?? null)) { continue; }
         preg_match_all('/<img\b[^>]*\bsrc="([^"]+)"/i', $t['body'], $srcs);
         foreach (array_unique($srcs[1]) as $src) {
             if (!bl_attachment_for($src)) { $missing[] = "$slug ($lang) image: " . basename($src) . ' (run import-articles.php first)'; }
@@ -186,13 +200,14 @@ if ($missing) { fwrite(STDERR, "Missing:\n  " . implode("\n  ", $missing) . "\n"
 $report = [];
 foreach ($articles as $slug) {
     $data = $sources[$slug];
-    $en = get_posts(['post_type' => 'post', 'name' => $slug, 'post_status' => 'publish', 'posts_per_page' => 1, 'lang' => pll_default_language()])[0];
+    $en = get_posts(['post_type' => 'post', 'name' => $slug, 'post_status' => 'publish', 'posts_per_page' => 1, 'lang' => BL_SOURCE_LANG])[0];
     $cover_id = (int) get_post_thumbnail_id($en->ID);
     foreach ($langs as $lang) {
         $t = $data[$lang];
         $existing_id = (int) pll_get_post($en->ID, $lang);
         if ($existing_id === $en->ID) { $existing_id = 0; }
-        $resuming = $existing_id && get_post_status($existing_id) === 'draft' && get_post_meta($existing_id, '_content_gap_staging', true) === '1';
+        // A post this importer staged (draft, or published but not yet given its schema) resumes on a rerun.
+        $resuming = $existing_id && get_post_meta($existing_id, '_content_gap_staging', true) === '1';
         if ($existing_id && !$overwrite && !$resuming) { $report[] = "$lang $slug: $existing_id (exists, left unchanged; pass \"overwrite\" to replace it)"; continue; }
         if ($existing_id && !$resuming) { bl_backup_translation($existing_id, $slug . '-' . $lang); }
         $postarr = [
@@ -223,15 +238,16 @@ foreach ($articles as $slug) {
         update_post_meta($id, '_seo_keywords', $t['keywords']);
         if (get_post_status($id) === 'draft' && get_post_meta($id, '_content_gap_staging', true) === '1') {
             $published = wp_update_post(['ID' => $id, 'post_status' => 'publish'], true);
-            // The staging marker is removed only once the post really is published; otherwise a rerun retries the publication.
+            // A failed publication keeps the staging marker, so a rerun retries it.
             if (is_wp_error($published) || !$published || get_post_status($id) !== 'publish') {
                 fwrite(STDERR, "Could not publish $lang $slug; it stays staged and a rerun will retry.\n");
                 continue;
             }
-            delete_post_meta($id, '_content_gap_staging');
         }
         // Written after publication so @id, mainEntityOfPage and the breadcrumb carry the address the post really has.
+        // The staging marker is removed only once the schema is stored, so an interrupted run resumes this post.
         update_post_meta($id, '_article_schema_jsonld', wp_slash(bl_translation_schema($t['schema'], $id, $lang, $t['title'], $t['news'] ?? $t['section'], $t['home'] ?? 'Home', $cover_id)));
+        delete_post_meta($id, '_content_gap_staging');
         $report[] = "$lang $slug: $id " . get_permalink($id);
     }
 }
