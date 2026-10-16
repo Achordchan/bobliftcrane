@@ -9,7 +9,8 @@ $article_ui = boblift_site_ui('newsArticle');
 // Read from what was stored (not the merged, localised defaults) so a translated default does not count as customised.
 $stored_options = function_exists('boblift_mls_get_raw_options') ? boblift_mls_get_raw_options() : get_option('boblift_theme_options', []);
 $legacy_cta_label = trim((string) ($stored_options['site_ui']['newsDetail']['ctaLabel'] ?? ''));
-$legacy_cta_label = in_array($legacy_cta_label, ['Need help choosing a crane?', function_exists('boblift_localized_static_text') ? trim((string) boblift_localized_static_text('Need help choosing a crane?')) : ''], true) ? '' : $legacy_cta_label;
+// The stored value only decides whether it was customised; the label shown is the localised one from boblift_site_ui().
+$legacy_cta_label = in_array($legacy_cta_label, ['', 'Need help choosing a crane?', function_exists('boblift_localized_static_text') ? trim((string) boblift_localized_static_text('Need help choosing a crane?')) : ''], true) ? '' : trim((string) ($ui['ctaLabel'] ?? $legacy_cta_label));
 $post_id = get_the_ID();
 $localize = static fn(string $text): string => function_exists('boblift_localize_product_text_fragments') ? (string) boblift_localize_product_text_fragments($text) : $text;
 $category_term = get_the_category($post_id)[0] ?? null;
