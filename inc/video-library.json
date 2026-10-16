@@ -1,0 +1,263 @@
+[
+ {
+  "key": "truck-knuckle-1",
+  "width": 1920,
+  "height": 1080,
+  "duration": 41
+ },
+ {
+  "key": "truck-knuckle-2",
+  "width": 1920,
+  "height": 1080,
+  "duration": 26
+ },
+ {
+  "key": "truck-knuckle-3.2",
+  "width": 1920,
+  "height": 1080,
+  "duration": 40
+ },
+ {
+  "key": "truck-knuckle-4",
+  "width": 1920,
+  "height": 1080,
+  "duration": 46
+ },
+ {
+  "key": "truck-knuckle-5",
+  "width": 1920,
+  "height": 1080,
+  "duration": 40
+ },
+ {
+  "key": "truck-knuckle-6.3",
+  "width": 1920,
+  "height": 1080,
+  "duration": 40
+ },
+ {
+  "key": "truck-knuckle-8",
+  "width": 1920,
+  "height": 1080,
+  "duration": 44
+ },
+ {
+  "key": "truck-knuckle-10",
+  "width": 1920,
+  "height": 1080,
+  "duration": 51
+ },
+ {
+  "key": "truck-knuckle-12",
+  "width": 1920,
+  "height": 1080,
+  "duration": 45
+ },
+ {
+  "key": "truck-knuckle-20",
+  "width": 1920,
+  "height": 1080,
+  "duration": 34
+ },
+ {
+  "key": "truck-knuckle-25",
+  "width": 1920,
+  "height": 1080,
+  "duration": 41
+ },
+ {
+  "key": "truck-telescopic-3.2",
+  "width": 1920,
+  "height": 1080,
+  "duration": 42
+ },
+ {
+  "key": "truck-telescopic-4",
+  "width": 1920,
+  "height": 1080,
+  "duration": 42
+ },
+ {
+  "key": "truck-telescopic-5",
+  "width": 1920,
+  "height": 1080,
+  "duration": 55
+ },
+ {
+  "key": "truck-telescopic-10",
+  "width": 1920,
+  "height": 1080,
+  "duration": 78
+ },
+ {
+  "key": "truck-telescopic-12",
+  "width": 1920,
+  "height": 1080,
+  "duration": 44
+ },
+ {
+  "key": "marine-knuckle-3.2",
+  "width": 1920,
+  "height": 1080,
+  "duration": 42
+ },
+ {
+  "key": "marine-knuckle-4",
+  "width": 1920,
+  "height": 1080,
+  "duration": 31
+ },
+ {
+  "key": "marine-knuckle-5",
+  "width": 1920,
+  "height": 1080,
+  "duration": 39
+ },
+ {
+  "key": "marine-knuckle-10",
+  "width": 1920,
+  "height": 1080,
+  "duration": 45
+ },
+ {
+  "key": "marine-knuckle-12",
+  "width": 1920,
+  "height": 1080,
+  "duration": 43
+ },
+ {
+  "key": "marine-knuckle-16",
+  "width": 1920,
+  "height": 1080,
+  "duration": 43
+ },
+ {
+  "key": "marine-knuckle-20",
+  "width": 1920,
+  "height": 1080,
+  "duration": 48
+ },
+ {
+  "key": "marine-telescopic-6.3",
+  "width": 1920,
+  "height": 1080,
+  "duration": 32
+ },
+ {
+  "key": "marine-telescopic-12",
+  "width": 1920,
+  "height": 1080,
+  "duration": 46
+ },
+ {
+  "key": "marine-telescopic-20",
+  "width": 1920,
+  "height": 1080,
+  "duration": 60
+ },
+ {
+  "key": "test-load-5z",
+  "width": 1920,
+  "height": 1080,
+  "duration": 19
+ },
+ {
+  "key": "test-load-10z",
+  "width": 1920,
+  "height": 1080,
+  "duration": 27
+ },
+ {
+  "key": "test-load-6.3z",
+  "width": 1920,
+  "height": 1080,
+  "duration": 25
+ },
+ {
+  "key": "test-basket-6.3z",
+  "width": 1920,
+  "height": 1080,
+  "duration": 27
+ },
+ {
+  "key": "test-load-marine-6.3s",
+  "width": 1080,
+  "height": 1920,
+  "duration": 25
+ },
+ {
+  "key": "test-load-marine-2z",
+  "width": 1920,
+  "height": 1080,
+  "duration": 27
+ },
+ {
+  "key": "test-load-sq8za6",
+  "width": 1512,
+  "height": 2688,
+  "duration": 38
+ },
+ {
+  "key": "test-batch-3.2z",
+  "width": 1920,
+  "height": 1080,
+  "duration": 22
+ },
+ {
+  "key": "test-explained",
+  "width": 1080,
+  "height": 1920,
+  "duration": 51
+ },
+ {
+  "key": "quality-control",
+  "width": 2160,
+  "height": 3840,
+  "duration": 27
+ },
+ {
+  "key": "factory-intro",
+  "width": 2160,
+  "height": 3840,
+  "duration": 40
+ },
+ {
+  "key": "service-after-sales",
+  "width": 1080,
+  "height": 1920,
+  "duration": 45
+ },
+ {
+  "key": "service-before-operation",
+  "width": 1920,
+  "height": 3414,
+  "duration": 25
+ },
+ {
+  "key": "service-during-operation",
+  "width": 2160,
+  "height": 3840,
+  "duration": 29
+ },
+ {
+  "key": "factory-aerial",
+  "width": 3840,
+  "height": 2160,
+  "duration": 26,
+  "mobile": "videos/library/factory-aerial-mobile.mp4"
+ },
+ {
+  "key": "factory-hall-door",
+  "width": 3840,
+  "height": 2160,
+  "duration": 20,
+  "mobile": "videos/library/factory-hall-door-mobile.mp4"
+ },
+ {
+  "key": "factory-hall-cranes",
+  "width": 3840,
+  "height": 2160,
+  "duration": 22,
+  "mobile": "videos/library/factory-hall-cranes-mobile.mp4"
+ }
+]
