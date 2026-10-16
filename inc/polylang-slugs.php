@@ -21,6 +21,13 @@ add_filter('wp_unique_post_slug', static function (string $slug, int $post_id, s
     if (!$language) {
         return $slug;
     }
+    // While a save changes the post's language (classic editor field or REST "lang"), the stored language is stale, so the
+    // shared slug is only allowed when the incoming language is the stored one.
+    foreach ([$_POST['post_lang_choice'] ?? null, $_REQUEST['lang'] ?? null] as $incoming) {
+        if (is_string($incoming) && !in_array($incoming, ['', 'all'], true) && sanitize_key($incoming) !== $language) {
+            return $slug;
+        }
+    }
     global $wpdb;
     // WordPress keeps hierarchical slugs unique per parent and other slugs unique across the whole post type.
     $holders = is_post_type_hierarchical($post_type)

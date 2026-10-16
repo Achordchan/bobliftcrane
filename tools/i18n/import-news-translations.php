@@ -67,11 +67,16 @@ foreach ($langs as $lang) {
         if (trim((string) ($data['title'] ?? '')) === '' || trim((string) ($data['content'] ?? '')) === '') { $problems[] = "$file: empty title or content"; }
         $english_links = preg_match_all('/<a\b/i', $by_id[$id]['content']);
         if ($english_links !== preg_match_all('/<a\b/i', (string) ($data['content'] ?? ''))) { $problems[] = "$file: link count differs from the English post"; }
-        if (!$partial && !bl_news_english($by_id[$id])) { $problems[] = "$file: English post {$by_id[$id]['slug']} is not published on this site (pass \"partial\" to skip it)"; continue; }
+        $en_post = bl_news_english($by_id[$id]);
+        if (!$partial && !$en_post) { $problems[] = "$file: English post {$by_id[$id]['slug']} is not published on this site (pass \"partial\" to skip it)"; continue; }
+        // Each English category needs its own translation in this language; an English term is never put on a translation.
+        foreach ($en_post ? wp_get_post_categories($en_post->ID) : [] as $cat_id) {
+            if (!pll_get_term($cat_id, $lang)) { $problems[] = "category " . get_cat_name($cat_id) . " (ID $cat_id) has no $lang translation; add it in Polylang before importing"; }
+        }
         $jobs[] = [$lang, $id, $data];
     }
 }
-if ($problems) { fwrite(STDERR, "Problems:\n  " . implode("\n  ", $problems) . "\n"); exit(1); }
+if ($problems) { fwrite(STDERR, "Problems:\n  " . implode("\n  ", array_unique($problems)) . "\n"); exit(1); }
 
 /** The English post for a source row on the target site, found by slug. */
 function bl_news_english(array $row): ?WP_Post {
@@ -134,7 +139,7 @@ foreach ($jobs as [$lang, $id, $data]) {
     if ($existing && !$staged) { bl_news_backup($existing, $row['slug'], $lang); }
     $cats = [];
     foreach (wp_get_post_categories($en->ID) as $cat_id) {
-        $cats[] = (int) (pll_get_term($cat_id, $lang) ?: $cat_id);
+        $cats[] = (int) pll_get_term($cat_id, $lang);
     }
     $postarr = [
         'post_type' => 'post', 'post_status' => $existing ? get_post_status($existing) : 'draft', 'post_title' => $data['title'], 'post_name' => $en->post_name,
