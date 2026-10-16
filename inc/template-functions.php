@@ -772,7 +772,10 @@ function boblift_article_card_excerpt(string $excerpt, string $title): string
     };
     $excerpt_key = $normalize($excerpt);
     $title_key = $normalize($title);
-    if ($excerpt_key === '' || ($title_key !== '' && str_starts_with($excerpt_key, $title_key) && mb_strlen($excerpt_key) - mb_strlen($title_key) < 20)) {
+    $length = static function (string $text): int {
+        return function_exists('mb_strlen') ? mb_strlen($text) : (int) preg_match_all('/./us', $text);
+    };
+    if ($excerpt_key === '' || ($title_key !== '' && str_starts_with($excerpt_key, $title_key) && $length($excerpt_key) - $length($title_key) < 20)) {
         return '';
     }
     return $excerpt;

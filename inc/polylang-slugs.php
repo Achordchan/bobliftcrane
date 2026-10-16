@@ -113,3 +113,37 @@ add_filter('wp_unique_post_slug', static function (string $slug, int $post_id, s
     }
     return $original_slug;
 }, 10, 6);
+
+function boblift_migrate_shared_case_slugs(): void
+{
+    if (get_option('boblift_case_slug_version') === '1'
+        || !function_exists('pll_get_post_language') || !function_exists('pll_get_post')) {
+        return;
+    }
+    global $wpdb;
+    $cases = $wpdb->get_results("SELECT ID, post_name FROM {$wpdb->posts} WHERE post_type = 'case' AND post_status NOT IN ('trash', 'auto-draft')");
+    if ($cases === null || $wpdb->last_error !== '') {
+        return;
+    }
+    foreach ($cases as $case) {
+        $language = pll_get_post_language((int) $case->ID);
+        if (!$language || $language === 'en' || $case->post_name === '') {
+            continue;
+        }
+        $english_id = (int) pll_get_post((int) $case->ID, 'en');
+        $english = $english_id ? get_post($english_id) : null;
+        if (!$english instanceof WP_Post || $english->post_type !== 'case' || $english->post_name !== $case->post_name) {
+            continue;
+        }
+        $result = wp_update_post([
+            'ID' => (int) $case->ID,
+            'post_name' => $case->post_name . '-' . $language,
+        ], true);
+        if (is_wp_error($result) || !$result) {
+            return;
+        }
+    }
+    flush_rewrite_rules(false);
+    update_option('boblift_case_slug_version', '1', false);
+}
+add_action('admin_init', 'boblift_migrate_shared_case_slugs');

@@ -52,6 +52,16 @@ function boblift_register_content_types(): void
 }
 add_action('init', 'boblift_register_content_types');
 
+function boblift_upgrade_feedback_rewrites(): void
+{
+    if (get_option('boblift_feedback_rewrite_version') === '1') {
+        return;
+    }
+    flush_rewrite_rules(false);
+    update_option('boblift_feedback_rewrite_version', '1', false);
+}
+add_action('admin_init', 'boblift_upgrade_feedback_rewrites');
+
 function boblift_inquiry_use_classic_editor(bool $use_block_editor, string $post_type): bool
 {
     return $post_type === 'inquiry' ? false : $use_block_editor;
