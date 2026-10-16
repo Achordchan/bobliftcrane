@@ -44,11 +44,25 @@ $quote_list_ui = function_exists('boblift_site_ui') ? boblift_site_ui('quoteList
 <?php endif; ?>
 <?php
 $site_host = (string) wp_parse_url(home_url('/'), PHP_URL_HOST);
-// Social links still pointing back to this site are placeholders; they stay hidden until a real profile URL is saved.
-$footer_social_links = array_values(array_filter(is_array($footer['social_links'] ?? null) ? $footer['social_links'] : [], static function ($link) use ($site_host): bool {
-    $host = is_array($link) ? (string) wp_parse_url(trim((string) ($link['href'] ?? '')), PHP_URL_HOST) : '';
-    return $host !== '' && strcasecmp($host, $site_host) !== 0;
-}));
+// The old defaults pointed every social icon at the contact page (or "#"); those placeholders stay hidden until a real
+// destination is saved. Any other saved link is kept: profile URLs, //host addresses (read over https) and site paths
+// such as /go/linkedin, including absolute URLs on this site's own domain.
+$footer_social_links = [];
+foreach (is_array($footer['social_links'] ?? null) ? $footer['social_links'] : [] as $link) {
+    $href = is_array($link) ? trim((string) ($link['href'] ?? '')) : '';
+    if (str_starts_with($href, '//') && strlen($href) > 2) {
+        $href = 'https:' . $href;
+    }
+    $host = (string) wp_parse_url($href, PHP_URL_HOST);
+    $path = (string) wp_parse_url($href, PHP_URL_PATH);
+    $own = $host === '' || strcasecmp($host, $site_host) === 0;
+    $placeholder = $href === '' || str_starts_with($href, '#') || ($own && preg_match('#^/?contact(?:\.html)?/?$#i', $path));
+    if ($placeholder || ($host === '' && !str_starts_with($href, '/'))) {
+        continue;
+    }
+    $link['href'] = $host === '' ? boblift_url($href) : $href;
+    $footer_social_links[] = $link;
+}
 $footer_link_groups = array_map(static function (array $group): array {
     if (boblift_footer_is_product_group($group)) {
         $group['links'] = array_map(static fn(array $family): array => ['label' => $family['title'], 'url' => $family['url']], boblift_product_menu_families());
