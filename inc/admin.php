@@ -1545,7 +1545,9 @@ function boblift_render_home_page_fields(array $home, string $base): void
         echo '<p class="boblift-admin-note">首页第一屏：左侧标题和按钮，右侧照片，每张约 7 秒自动切换，标题下方的切换按钮显示每张的“切换按钮文字”。填写了标题的才会显示；只剩一张时不显示切换按钮。英文默认文案已内置日文、中文翻译；在这里改成其他文字后，需要到对应语言的首页设置里分别填写。</p>';
         boblift_admin_input('hero.label', $home, '小标签（所有幻灯片共用）', $base);
         boblift_admin_input('hero.secondary_label', $home, '询价按钮文字（所有幻灯片共用，打开询价弹窗）', $base);
-        for ($i = 0; $i < 3; $i++) {
+        // At least three slots, and one per saved slide so migrated extra photos stay editable and survive a save.
+        $slide_count = max(3, is_array($home['hero']['slides'] ?? null) ? count($home['hero']['slides']) : 0);
+        for ($i = 0; $i < $slide_count; $i++) {
             boblift_admin_subpanel('幻灯片 ' . (string) ($i + 1), static function () use ($home, $base, $i): void {
                 boblift_admin_input("hero.slides.$i.tab", $home, '切换按钮文字（如产品类别）', $base);
                 boblift_admin_input("hero.slides.$i.title", $home, $i === 0 ? '标题（第一张为页面 H1）' : '标题', $base);
