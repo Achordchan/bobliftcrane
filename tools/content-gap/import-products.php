@@ -137,6 +137,8 @@ foreach ($products as $p) {
     if (is_wp_error($id)) { throw new Exception($id->get_error_message()); }
     // Only a new post, or one already staged by this importer, is marked for automatic publication; an editorial draft stays a draft.
     if (get_post_status($id) === 'draft' && (!$ex || $resuming)) { update_post_meta($id, '_content_gap_staging', '1'); }
+    // English is assigned before any media work, so an interrupted run's draft is found again by the English-only lookup.
+    if (function_exists('pll_set_post_language')) { pll_set_post_language($id, 'en'); }
     $gallery = []; $thumb = 0;
     foreach ($p['extra_existing'] as $title) {
         $a = get_posts(['post_type'=>'attachment','meta_key'=>'_bl_gap_source','meta_value'=>$title,'post_status'=>'any','numberposts'=>1,'lang'=>'']);
@@ -168,7 +170,15 @@ foreach ($products as $p) {
     $term = get_term_by('slug', $p['cat'], 'product_category');
     wp_set_object_terms($id, [$term->term_id], 'product_category');
     if (function_exists('pll_set_post_language')) { pll_set_post_language($id, 'en'); }
-    if (get_post_status($id) === 'draft' && get_post_meta($id, '_content_gap_staging', true) === '1') { wp_update_post(['ID'=>$id,'post_status'=>'publish']); delete_post_meta($id, '_content_gap_staging'); }
+    if (get_post_status($id) === 'draft' && get_post_meta($id, '_content_gap_staging', true) === '1') {
+        $published = wp_update_post(['ID'=>$id,'post_status'=>'publish'], true);
+        // The staging marker is removed only once the post really is published; otherwise a rerun retries the publication.
+        if (is_wp_error($published) || !$published || get_post_status($id) !== 'publish') {
+            fwrite(STDERR, "Could not publish {$p['slug']}; it stays staged and a rerun will retry.\n");
+            continue;
+        }
+        delete_post_meta($id, '_content_gap_staging');
+    }
     $out[] = $id . ' ' . get_permalink($id);
 }
 echo implode("\n", $out), "\n";

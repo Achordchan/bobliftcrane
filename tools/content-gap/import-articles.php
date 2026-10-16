@@ -158,9 +158,8 @@ foreach ($articles as $a) {
     }, $html);
     foreach ($link_map as $from => $to) { $html = str_replace('href="' . $from . '"', 'href="' . $to . '"', $html); }
     foreach ($lower_post_links as $l) { $html = str_replace('href="/' . $l . '.html"', 'href="/' . strtolower($l) . '.html"', $html); }
-    // Root-relative internal links are resolved against the site's own URL (a site under a path, https://example.com/site, keeps its prefix).
-    $home_path = rtrim((string) wp_parse_url(home_url(), PHP_URL_PATH), '/');
-    $html = preg_replace_callback('#href="(/(?!/)[^"]*)"#', static fn(array $m): string => 'href="' . $home_path . $m[1] . '"', $html);
+    // Root-relative internal links are resolved against the site's own URL, so a site under a path keeps its prefix.
+    $html = preg_replace_callback('#href="(/(?!/)[^"]*)"#', static fn(array $m): string => 'href="' . esc_url(home_url($m[1])) . '"', $html);
     $postarr = [
         // New articles are staged as drafts and published after their images and meta are complete (an interrupted run resumes).
         'post_type' => 'post', 'post_status' => ($existing ? $existing[0]->post_status : 'draft'), 'post_title' => $a['title'], 'post_name' => $a['slug'],
@@ -172,6 +171,8 @@ foreach ($articles as $a) {
     if (is_wp_error($post_id)) { throw new Exception($post_id->get_error_message()); }
     // Only a new post, or one already staged by this importer, is marked for automatic publication; an editorial draft stays a draft.
     if (get_post_status($post_id) === 'draft' && (!$existing || $resuming)) { update_post_meta($post_id, '_content_gap_staging', '1'); }
+    // English is assigned before any media work, so an interrupted run's draft is found again by the English-only lookup.
+    if (function_exists('pll_set_post_language')) { pll_set_post_language($post_id, 'en'); }
     wp_set_post_tags($post_id, $a['tags']);
     [$cover_id] = bl_sideload($img_root . $a['imgdir'] . '/' . $a['cover'], $a['cover_alt'], $post_id);
     set_post_thumbnail($post_id, $cover_id);
@@ -187,7 +188,15 @@ foreach ($articles as $a) {
     $schema = str_replace('"item": "{{home}}/Industry-News.html"', '"item": "{{home}}/news.html"', $schema);
     $schema = str_replace('{{home}}/wp-content/uploads/2026/09/4-ton-forklift-fly-jib-crane-301a3ed016-900x700.jpg', bl_upload_url($cover_id), $schema);
     update_post_meta($post_id, '_article_schema_jsonld', wp_slash($schema));
-    if (get_post_status($post_id) === 'draft' && get_post_meta($post_id, '_content_gap_staging', true) === '1') { wp_update_post(['ID' => $post_id, 'post_status' => 'publish']); delete_post_meta($post_id, '_content_gap_staging'); }
+    if (get_post_status($post_id) === 'draft' && get_post_meta($post_id, '_content_gap_staging', true) === '1') {
+        $published = wp_update_post(['ID' => $post_id, 'post_status' => 'publish'], true);
+        // The staging marker is removed only once the post really is published; otherwise a rerun retries the publication.
+        if (is_wp_error($published) || !$published || get_post_status($post_id) !== 'publish') {
+            fwrite(STDERR, "Could not publish {$a['slug']}; it stays staged and a rerun will retry.\n");
+            continue;
+        }
+        delete_post_meta($post_id, '_content_gap_staging');
+    }
     if (function_exists('pll_set_post_language')) { pll_set_post_language($post_id, 'en'); }
     $report[] = $post_id . ' ' . get_permalink($post_id);
 }
