@@ -93,6 +93,16 @@ foreach ([['/example.html', null], ['/Example.html', 'https://www.bobliftcrane.c
 // An explicitly saved empty rule set is honoured; no option means the shipped rules.
 $GLOBALS['saved_option'] = ['rules' => []];
 if (!boblift_legacy_redirects_has_custom() || boblift_legacy_redirects_config()['rules'] !== []) { echo "FAIL empty saved rules were not honoured\n"; $fail++; }
+// Saved changes are stored apart from the shipped rules: untouched rules keep following the shipped file.
+$find = static function (array $rules, string $from): ?array { foreach ($rules as $r) { if (boblift_legacy_redirect_normalize_path($r['from']) === $from) { return $r; } } return null; };
+$GLOBALS['saved_option'] = ['format' => 2, 'overrides' => [['from' => '/message.html', 'to' => '/custom-contact.html', 'note' => 'x']], 'removed' => ['/contactus.html'], 'replace' => false];
+$rules = boblift_legacy_redirects_config()['rules'];
+if (($find($rules, '/5-ton-crane')['to'] ?? '') !== '/products.html?capacity=4-5-tons') { echo "FAIL shipped rule not followed under saved changes\n"; $fail++; }
+if (($find($rules, '/message.html')['to'] ?? '') !== '/custom-contact.html') { echo "FAIL saved override not applied\n"; $fail++; }
+if ($find($rules, '/contactus.html') !== null) { echo "FAIL removed rule came back\n"; $fail++; }
+if (count($rules) !== count($config['rules']) - 1) { echo "FAIL rule count under saved changes\n"; $fail++; }
+$GLOBALS['saved_option'] = ['format' => 2, 'overrides' => [['from' => '/a', 'to' => '/b']], 'removed' => [], 'replace' => true];
+if (count(boblift_legacy_redirects_config()['rules']) !== 1) { echo "FAIL replace mode not honoured\n"; $fail++; }
 unset($GLOBALS['saved_option']);
 if (boblift_legacy_redirects_has_custom()) { echo "FAIL absent option reported as custom\n"; $fail++; }
 echo $fail ? "$fail FAILED\n" : "effective-host ok\n";
