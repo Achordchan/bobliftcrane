@@ -204,19 +204,10 @@ foreach (['overseas' => 'china', 'china' => 'overseas'] as $from => $to) {
     $group_rows[$from] = $kept;
 }
 // Headings an editor saved for the old page (content cards, more channels) carry over while the new headings are still built-in.
-$legacy_posts_heading = static function (string $new_key, string $new_default, string $old_key, string $old_default) use ($labels): string {
-    $new = trim((string) ($labels[$new_key] ?? ''));
-    $old = trim((string) ($labels[$old_key] ?? ''));
-    $old_forms = [$old_default, function_exists('boblift_localized_static_text') ? boblift_localized_static_text($old_default) : $old_default];
-    $new_forms = [$new_default, function_exists('boblift_localized_static_text') ? boblift_localized_static_text($new_default) : $new_default];
-    if ($old !== '' && !in_array($old, $old_forms, true) && ($new === '' || in_array($new, $new_forms, true))) {
-        return $old;
-    }
-    return $new !== '' ? $new : $new_default;
-};
+$legacy_posts_heading = static fn(string $new_key, string $new_default, string $old_key, string $old_default): string => boblift_social_legacy_heading($labels, $new_key, $new_default, $old_key, $old_default);
 // The old "More Channels" eyebrow shows above the group only when an editor customised it.
-$more_label = trim((string) ($labels['more_channels_label'] ?? ''));
-$more_label = $more_label !== '' && !in_array($more_label, ['More Channels', function_exists('boblift_localized_static_text') ? boblift_localized_static_text('More Channels') : 'More Channels'], true) ? $t($more_label) : '';
+$more_label = boblift_customised_legacy_text($labels['more_channels_label'] ?? '', 'More Channels');
+$more_label = $more_label !== '' ? $t($more_label) : '';
 $platform_groups = array_values(array_filter([
     ['id' => 'overseas', 'title' => $t($labels['overseas_title'] ?? 'Global platforms'), 'rows' => $group_rows['overseas']],
     ['id' => 'china', 'title' => $t($labels['china_title'] ?? 'China platforms'), 'rows' => $group_rows['china']],

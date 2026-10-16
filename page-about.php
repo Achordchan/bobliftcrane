@@ -142,8 +142,7 @@ $legacy_headline = $legacy_intro['headline'];
 $legacy_paragraph = $legacy_intro['paragraph'];
 $legacy_chips = $legacy_intro['chips'];
 // The old introduction's eyebrow label, when an editor changed it from the built-in "About BOB-LIFT".
-$legacy_label = trim((string) ($logo['label'] ?? ''));
-$legacy_label = in_array($legacy_label, ['', 'About BOB-LIFT', function_exists('boblift_localized_static_text') ? boblift_localized_static_text('About BOB-LIFT') : 'About BOB-LIFT'], true) ? '' : $legacy_label;
+$legacy_label = boblift_customised_legacy_text($logo['label'] ?? '', 'About BOB-LIFT');
 if ($legacy_label !== '' || $legacy_headline !== '' || $legacy_paragraph !== '' || $legacy_chips !== []) : ?>
 <section class="page-shell py-10 md:py-14" aria-label="<?php echo esc_attr($legacy_headline !== '' ? $legacy_headline : ($legacy_label !== '' ? $legacy_label : 'About BOB-LIFT')); ?>">
     <div class="mx-auto max-w-[860px] text-center">

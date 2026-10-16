@@ -561,6 +561,38 @@ function boblift_about_page_defaults(): array
  * The introduction an editor saved in the old About layout (headline, paragraph, proof chips) that the redesigned hero no
  * longer prints. Built-in default copy (both historical sets) is not returned. Returns only the customised parts.
  */
+/** A saved legacy text that differs from its built-in default (English or translated), else ''. */
+function boblift_customised_legacy_text($value, string $default): string
+{
+    $value = trim((string) $value);
+    $forms = [$default, function_exists('boblift_localized_static_text') ? (string) boblift_localized_static_text($default) : $default];
+    return $value !== '' && !in_array($value, $forms, true) ? $value : '';
+}
+
+/** Social page headings that replaced old ones: [new key, new default, old key, old default]. */
+function boblift_social_legacy_heading_pairs(): array
+{
+    return [
+        ['more_title', 'More platforms', 'more_channels_title', 'Additional platforms around the world.'],
+        ['posts_title', 'What we have been posting.', 'content_cards_title', 'Real content from real work.'],
+        ['posts_label', 'Recent posts', 'content_cards_label', 'What You Can Follow'],
+    ];
+}
+
+/**
+ * A heading an editor customised in the old field carries over while the new field is still empty or built-in. The
+ * settings editor prefills the new field with this value and retires the old key on save, so later edits stick.
+ */
+function boblift_social_legacy_heading(array $labels, string $new_key, string $new_default, string $old_key, string $old_default): string
+{
+    $new = trim((string) ($labels[$new_key] ?? ''));
+    $old = boblift_customised_legacy_text($labels[$old_key] ?? '', $old_default);
+    if ($old !== '' && ($new === '' || boblift_customised_legacy_text($new, $new_default) === '')) {
+        return $old;
+    }
+    return $new !== '' ? $new : $new_default;
+}
+
 function boblift_about_legacy_intro(array $logo): array
 {
     $default_headlines = ['Engineering Strength Behind Every Lift.'];

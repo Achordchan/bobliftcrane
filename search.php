@@ -14,6 +14,22 @@ $product_limit = $type === 'product' ? 0 : 6;
 $products = $query !== '' ? boblift_search_products($query) : [];
 $news_query = $query !== '' ? boblift_search_posts($query, 'post', $news_per_page, $type === 'news' ? $page : 1) : null;
 $case_query = $query !== '' ? boblift_search_posts($query, 'case', $case_per_page, $type === 'case' ? $page : 1) : null;
+// WP_Query reports no total for a page past the end (a bookmark after posts were removed): count from page 1 and
+// show the last page that still has results.
+foreach (['news' => ['post', $news_per_page], 'case' => ['case', $case_per_page]] as $tab => [$post_type, $per_page]) {
+    $tab_query = $tab === 'news' ? $news_query : $case_query;
+    if ($type !== $tab || $page <= 1 || !$tab_query instanceof WP_Query || $tab_query->have_posts()) {
+        continue;
+    }
+    $first = boblift_search_posts($query, $post_type, $per_page, 1);
+    $page = max(1, (int) $first->max_num_pages);
+    $tab_query = $page > 1 ? boblift_search_posts($query, $post_type, $per_page, $page) : $first;
+    if ($tab === 'news') {
+        $news_query = $tab_query;
+    } else {
+        $case_query = $tab_query;
+    }
+}
 $counts = [
     'product' => count($products),
     'news' => $news_query ? (int) $news_query->found_posts : 0,

@@ -616,10 +616,9 @@ function boblift_cleanup_admin_options(array $options): array
 
 
     if (isset($options['about_page']) && is_array($options['about_page'])) {
-        // headline, paragraph and proof_chips stay: a saved introduction is still shown (page-about.php) below the hero.
-        foreach (['texture_image', 'label'] as $key) {
-            unset($options['about_page']['logo'][$key]);
-        }
+        // headline, paragraph, proof_chips and label stay: a saved introduction is still shown (page-about.php) below the hero.
+        // logo.label stays too: a customised old label is shown with that introduction and edited in the same panel.
+        unset($options['about_page']['logo']['texture_image']);
         // strength.cards and the strength call to action stay: saved custom ones are still shown (page-about.php) and editable in the settings.
         foreach (['label', 'title', 'text'] as $key) {
             unset($options['about_page']['global_footprint'][$key]);
@@ -1217,9 +1216,11 @@ function boblift_render_about_page_fields(array $about, string $base): void
 
     // A saved introduction from the old layout is still shown under the hero, so it stays editable (and removable) here.
     $legacy_intro = boblift_about_legacy_intro((array) ($about['logo'] ?? []));
-    if ($legacy_intro['headline'] !== '' || $legacy_intro['paragraph'] !== '' || $legacy_intro['chips'] !== []) {
+    $legacy_label = boblift_customised_legacy_text($about['logo']['label'] ?? '', 'About BOB-LIFT');
+    if ($legacy_label !== '' || $legacy_intro['headline'] !== '' || $legacy_intro['paragraph'] !== '' || $legacy_intro['chips'] !== []) {
         boblift_admin_panel('旧版介绍（仍在前台显示）', static function () use ($about, $base, $legacy_intro): void {
             echo '<p class="boblift-admin-note">这是旧版 About 首屏保存的介绍文字，现在显示在新版首屏下方。清空全部内容并保存即可删除。</p>';
+            boblift_admin_input('logo.label', $about, '小标签', $base);
             boblift_admin_input('logo.headline', $about, '标题', $base);
             boblift_admin_textarea('logo.paragraph', $about, '段落', $base);
             for ($i = 0; $i < max(3, count($legacy_intro['chips']) + 1); $i++) {
@@ -2619,7 +2620,22 @@ function boblift_render_social_media_page_fields(array $social, string $base): v
         <?php endif; ?>
     <?php boblift_admin_settings_panel_end(); ?>
 
+    <?php
+    // Headings customised in the old fields are shown in the new ones; the old keys are cleared on save so they never
+    // come back after an editor changes, clears or resets the new heading.
+    foreach (boblift_social_legacy_heading_pairs() as [$new_key, $new_default, $old_key, $old_default]) {
+        $social['labels'][$new_key] = boblift_social_legacy_heading(is_array($social['labels'] ?? null) ? $social['labels'] : [], $new_key, $new_default, $old_key, $old_default);
+    }
+    ?>
     <?php boblift_admin_settings_panel_start('区块标题', '官方账号、最近发布两块的标题文字。'); ?>
+        <?php foreach (boblift_social_legacy_heading_pairs() as $pair) : ?>
+            <input type="hidden" name="<?php echo esc_attr(boblift_admin_option_name('labels.' . $pair[2], $base)); ?>" value="">
+        <?php endforeach; ?>
+        <?php if (boblift_customised_legacy_text($social['labels']['more_channels_label'] ?? '', 'More Channels') !== '') : ?>
+            <?php boblift_admin_input('labels.more_channels_label', $social, '旧版更多平台小标签（仍显示在分组标题上方，清空即可移除）', $base); ?>
+        <?php else : ?>
+            <input type="hidden" name="<?php echo esc_attr(boblift_admin_option_name('labels.more_channels_label', $base)); ?>" value="">
+        <?php endif; ?>
         <?php boblift_admin_input('labels.main_platforms_label', $social, '官方账号小标签', $base); ?>
         <?php boblift_admin_input('labels.overseas_title', $social, '海外平台分组标题', $base); ?>
         <?php boblift_admin_input('labels.china_title', $social, '国内平台分组标题', $base); ?>
