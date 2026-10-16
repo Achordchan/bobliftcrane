@@ -349,8 +349,66 @@ function boblift_post_public_path(int|WP_Post $post, string $default = ''): stri
     if ($post->post_type === 'page' && (int) get_option('page_on_front') === $post->ID) {
         return '/';
     }
-    return boblift_normalize_public_path($default !== '' ? $default : '/' . $post->post_name . '.html');
+    return boblift_normalize_public_path($default !== '' ? $default : '/' . boblift_post_shared_slug($post) . '.html');
 }
+
+/**
+ * Translations share the default-language slug in their address (/ja/slug.html), because Polylang
+ * (free) stores them with a numbered slug such as slug-2. The .html resolver finds the default-language
+ * post by that slug and swaps in the current language's translation.
+ */
+function boblift_post_shared_slug(WP_Post $post): string
+{
+    if (!function_exists('pll_get_post_language') || !function_exists('pll_default_language') || !function_exists('pll_get_post')) {
+        return $post->post_name;
+    }
+    $language = (string) pll_get_post_language($post->ID, 'slug');
+    $default = (string) pll_default_language('slug');
+    if ($language === '' || $default === '' || $language === $default) {
+        return $post->post_name;
+    }
+    $source_id = (int) pll_get_post($post->ID, $default);
+    $source = $source_id > 0 ? get_post($source_id) : null;
+    if (!$source instanceof WP_Post || $source->post_name === '' || $source->post_type !== $post->post_type) {
+        return $post->post_name;
+    }
+    return $source->post_name;
+}
+
+/** Old numbered translation addresses (/ja/slug-2.html) answer with a 301 to the shared-slug address. */
+function boblift_redirect_numbered_translation_slug(): void
+{
+    if (!is_singular(['post', 'page', 'product'])) {
+        return;
+    }
+    $post = get_queried_object();
+    if (!$post instanceof WP_Post) {
+        return;
+    }
+    // A post with its own public URL keeps it; its numbered address is not redirected.
+    if (boblift_normalize_public_path((string) get_post_meta($post->ID, '_boblift_public_url', true)) !== '') {
+        return;
+    }
+    $shared = boblift_post_shared_slug($post);
+    if ($shared === $post->post_name) {
+        return;
+    }
+    $path = (string) parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
+    if (!preg_match('#/([^/]+)\.html$#', $path, $m) || sanitize_title(rawurldecode($m[1])) !== $post->post_name) {
+        return;
+    }
+    $target = (string) get_permalink($post);
+    if ($target === '' || untrailingslashit((string) parse_url($target, PHP_URL_PATH)) === untrailingslashit($path)) {
+        return;
+    }
+    $query = (string) parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_QUERY);
+    if ($query !== '') {
+        $target .= (str_contains($target, '?') ? '&' : '?') . $query;
+    }
+    wp_safe_redirect($target, 301);
+    exit;
+}
+add_action('template_redirect', 'boblift_redirect_numbered_translation_slug', 5);
 
 function boblift_page_public_path_by_slug(string $slug, string $fallback): string
 {
