@@ -582,7 +582,7 @@ function boblift_clean_imported_product_text(string $text): string
 }
 
 // How a product image sits on the hero stage: 'cutout' floats whole on the floor, 'photo' fills the frame.
-// tools/image-fit records the fit from the pixels; images without it fall back to the file name.
+// The one-off image-fit script (archive/pr3-oneoff-tools branch) recorded the fit from the pixels; images without it fall back to the file name.
 function boblift_image_fit(string $url): string
 {
     static $cache = [];

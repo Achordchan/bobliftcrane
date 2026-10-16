@@ -1480,7 +1480,7 @@ add_filter('admin_post_thumbnail_html', static function (string $html, int $post
 }, 10, 2);
 
 // Record whether a new upload is a cut-out (transparent edges) or a photo, so the product stage frames it
-// correctly without relying on the file name. Mirrors the rule tools/image-fit used for the existing library.
+// correctly without relying on the file name. Mirrors the rule the one-off image-fit script (archive/pr3-oneoff-tools branch) used for the existing library.
 add_filter('wp_generate_attachment_metadata', static function (array $metadata, int $attachment_id): array {
     $file = get_attached_file($attachment_id);
     if (!$file || !function_exists('imagecreatefromstring') || get_post_meta($attachment_id, '_boblift_image_fit', true) !== '') {
