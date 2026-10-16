@@ -8,6 +8,18 @@
 get_header();
 $sitemap_ui = function_exists('boblift_sitemap_page_options') ? boblift_sitemap_page_options() : [];
 $groups_ui = boblift_site_ui('sitemapGroups');
+// Section headings an editor saved on the old Sitemap settings (products_title, news_title, cases_title) still win over the new labels.
+$saved_sitemap = boblift_option('sitemap_page', []);
+$saved_sitemap = is_array($saved_sitemap) ? $saved_sitemap : [];
+$sitemap_defaults = function_exists('boblift_sitemap_page_defaults') ? boblift_sitemap_page_defaults() : [];
+foreach (['products_title' => 'productsTitle', 'news_title' => 'newsTitle', 'cases_title' => 'casesTitle'] as $legacy_key => $ui_key) {
+    $saved_title = trim((string) ($saved_sitemap[$legacy_key] ?? ''));
+    $default_title = (string) ($sitemap_defaults[$legacy_key] ?? '');
+    $default_forms = [$default_title, function_exists('boblift_localized_static_text') ? boblift_localized_static_text($default_title) : $default_title];
+    if ($saved_title !== '' && !in_array($saved_title, $default_forms, true)) {
+        $groups_ui[$ui_key] = $saved_title;
+    }
+}
 
 $sitemap_label = static function (string $label): string {
     if (function_exists('boblift_localize_product_text_fragments')) {
