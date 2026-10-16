@@ -14,17 +14,18 @@ $case_search_product_label = $ui['searchProductLabel'] ?? 'Search product';
 $case_no_results_label = $ui['noResultsLabel'] ?? 'No results';
 $case_close_feedback_label = $ui['closeFeedbackMediaLabel'] ?? 'Close feedback media';
 $case_tabs_aria_label = $ui['tabsAriaLabel'] ?? 'Case sections';
+$feedback_items = function_exists('boblift_feedback_items') ? boblift_feedback_items() : [];
 $country_options = [];
 $product_options = [];
-$scene_count = 0;
-$feedback_count = 0;
-foreach ($cases as $case) {
-    $case_kind = boblift_normalize_case_kind((string) ($case['case_kind'] ?? 'scene_case'));
-    if ($case_kind === 'customer_feedback') {
-        $feedback_count++;
-    } else {
-        $scene_count++;
+foreach ($feedback_items as $feedback) {
+    if ($feedback['country'] !== '') {
+        $country_options[$feedback['country']] = $feedback['country'];
     }
+    if ($feedback['model'] !== '') {
+        $product_options[$feedback['model']] = $feedback['model'];
+    }
+}
+foreach ($cases as $case) {
     $country = trim((string) ($case['country'] ?? ''));
     $product = trim((string) ($case['product_name'] ?? ''));
     if ($country !== '') {
@@ -71,22 +72,17 @@ $render_case_filter = static function (string $id, string $filter, string $all_l
     <?php
 };
 ?>
-<section class="boblift-news-hero">
-    <div class="page-shell boblift-news-hero-shell grid items-center gap-7 py-8 md:gap-10 md:py-16 lg:grid-cols-[0.92fr_1.08fr] lg:gap-16 2xl:py-20">
-        <div class="max-w-3xl">
-            <p class="section-label mb-4 md:mb-5"><?php echo esc_html($ui['heroLabel'] ?? 'Case Center'); ?></p>
-            <h1 class="text-[clamp(32px,8.8vw,38px)] font-black leading-[1.04] tracking-[-0.05em] text-navy md:text-[50px] xl:text-[56px] 2xl:text-[64px]"><?php echo esc_html($ui['heroTitle'] ?? 'Project stories and customer feedback.'); ?></h1>
-            <p class="mt-4 max-w-2xl text-base font-semibold leading-7 text-slate-600 md:mt-6 md:text-lg md:leading-8 2xl:text-xl 2xl:leading-9"><?php echo esc_html($ui['heroDescription'] ?? 'Browse real working conditions and customer feedback to find a BOB-LIFT reference close to your project.'); ?></p>
-            <div class="mt-6 grid grid-cols-2 gap-3 md:mt-8 md:flex md:flex-wrap md:gap-4">
-                <div class="boblift-news-proof-chip"><?php echo boblift_icon('building-2', 'h-6 w-6 text-gold md:h-8 md:w-8', '1.8'); ?><span><strong><?php echo esc_html((string) $scene_count); ?></strong><small><?php echo esc_html($scene_label); ?></small></span></div>
-                <div class="boblift-news-proof-chip"><?php echo boblift_icon('circle-play', 'h-6 w-6 text-gold md:h-8 md:w-8', '1.8'); ?><span><strong><?php echo esc_html((string) $feedback_count); ?></strong><small><?php echo esc_html($feedback_label); ?></small></span></div>
-            </div>
-        </div>
-        <div class="boblift-news-hero-image">
-            <?php if (!empty($ui['heroImage'])) : ?><img class="h-full w-full object-cover" src="<?php echo esc_url(boblift_image_src((string) $ui['heroImage'])); ?>" alt="<?php echo esc_attr((string) ($ui['heroImageAlt'] ?? 'BOB-LIFT customer cases')); ?>" loading="eager" decoding="async" fetchpriority="high"><?php endif; ?>
-        </div>
-    </div>
-</section>
+<div class="page-shell pt-5 md:pt-8">
+    <?php
+    boblift_page_hero([
+        'label' => $ui['heroLabel'] ?? 'Case Center',
+        'title' => $ui['heroTitle'] ?? 'Project stories and customer feedback.',
+        'text' => $ui['heroDescription'] ?? 'Browse real working conditions and customer feedback to find a BOB-LIFT reference close to your project.',
+        'image' => (string) ($ui['heroImage'] ?? ''),
+        'image_alt' => (string) ($ui['heroImageAlt'] ?? 'BOB-LIFT customer cases'),
+    ]);
+    ?>
+</div>
 
 <section id="case-list" class="boblift-cases-center page-shell pb-20 pt-8 md:pt-10 2xl:pb-24" data-cases-root data-cases-empty-title="<?php echo esc_attr($empty_title); ?>">
     <div class="mb-12 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
@@ -94,7 +90,7 @@ $render_case_filter = static function (string $id, string $filter, string $all_l
                 <button class="boblift-cases-tab is-active" type="button" data-cases-tab-button="scene_case" aria-pressed="true"><?php echo esc_html($scene_label); ?></button>
                 <button class="boblift-cases-tab" type="button" data-cases-tab-button="customer_feedback" aria-pressed="false"><?php echo esc_html($feedback_label); ?></button>
             </div>
-            <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_48px] gap-3 xl:min-w-[680px] xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+            <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] gap-3 xl:min-w-[680px]">
                 <?php $render_case_filter('case-country-filter', 'country', $all_countries_label, $country_options); ?>
                 <?php $render_case_filter('case-product-filter', 'product', $all_products_label, $product_options); ?>
                 <button class="boblift-cases-reset-button" type="button" data-cases-reset aria-label="<?php echo esc_attr($reset_label); ?>"><?php echo boblift_icon('rotate-cw', 'h-4 w-4'); ?><span><?php echo esc_html($reset_label); ?></span></button>
@@ -115,16 +111,16 @@ $render_case_filter = static function (string $id, string $filter, string $all_l
             <?php if ($kind === 'customer_feedback') : ?>
                 <article class="boblift-case-card group" data-cases-card data-case-kind="customer_feedback" data-country="<?php echo esc_attr($country); ?>" data-product="<?php echo esc_attr($product); ?>">
                     <button class="block h-full w-full text-start" type="button" data-cases-media-open data-media-type="<?php echo esc_attr($media_type); ?>" data-media-src="<?php echo esc_url($media_src); ?>" data-media-title="<?php echo esc_attr($item['title']); ?>">
-                        <span class="boblift-case-card-media relative block h-[260px] overflow-hidden rounded-[14px] bg-[#eef5ff]">
+                        <span class="boblift-case-card-media relative block h-[260px] overflow-hidden rounded bg-[#eef5ff]">
                             <img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.035]" src="<?php echo esc_url($image); ?>" alt="<?php echo esc_attr($item['title']); ?>" loading="<?php echo $index === 0 ? 'eager' : 'lazy'; ?>" decoding="async">
-                            <?php if ($media_type === 'video') : ?><span class="absolute inset-0 m-auto grid size-16 place-items-center rounded-full bg-white/90 text-blue-700 shadow-[0_18px_45px_rgba(8,35,74,0.18)]"><?php echo boblift_icon('circle-play', 'h-7 w-7'); ?></span><?php endif; ?>
+                            <?php if ($media_type === 'video') : ?><span class="absolute inset-0 m-auto grid size-16 place-items-center rounded-sm bg-white/90 text-blue-700 shadow-card"><?php echo boblift_icon('circle-play', 'h-7 w-7'); ?></span><?php endif; ?>
                         </span>
                         <span class="boblift-case-card-content block p-5">
                             <span class="boblift-case-card-meta flex flex-wrap gap-2 text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">
                                 <?php if ($country !== '') : ?><span><?php echo esc_html($country); ?></span><?php endif; ?>
                                 <?php if ($product !== '') : ?><span><?php echo esc_html($product); ?></span><?php endif; ?>
                             </span>
-                            <span class="boblift-case-card-title mt-3 block text-xl font-black leading-tight tracking-[-0.04em] text-ink"><?php echo esc_html($item['title']); ?></span>
+                            <span class="boblift-case-card-title mt-3 block text-xl font-black leading-tight tracking-[-0.015em] text-ink"><?php echo esc_html($item['title']); ?></span>
                             <span class="boblift-case-card-summary mt-3 block text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html($feedback_quote !== '' ? $feedback_quote : $item['summary']); ?></span>
                         </span>
                     </button>
@@ -132,7 +128,7 @@ $render_case_filter = static function (string $id, string $filter, string $all_l
             <?php else : ?>
                 <article class="boblift-case-card group" data-cases-card data-case-kind="scene_case" data-country="<?php echo esc_attr($country); ?>" data-product="<?php echo esc_attr($product); ?>">
                     <a class="block h-full" href="<?php echo esc_url($item['url']); ?>">
-                        <span class="boblift-case-card-media relative block h-[260px] overflow-hidden rounded-[14px] bg-[#eef5ff] md:h-[300px]">
+                        <span class="boblift-case-card-media relative block h-[260px] overflow-hidden rounded bg-[#eef5ff] md:h-[300px]">
                             <img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.035]" src="<?php echo esc_url($image); ?>" alt="<?php echo esc_attr($item['title']); ?>" loading="<?php echo $index === 0 ? 'eager' : 'lazy'; ?>" decoding="async">
                         </span>
                         <span class="boblift-case-card-content block p-5">
@@ -140,7 +136,7 @@ $render_case_filter = static function (string $id, string $filter, string $all_l
                                 <?php if ($country !== '') : ?><span><?php echo esc_html($country); ?></span><?php endif; ?>
                                 <?php if ($product !== '') : ?><span><?php echo esc_html($product); ?></span><?php endif; ?>
                             </span>
-                            <span class="boblift-case-card-title mt-3 block text-xl font-black leading-tight tracking-[-0.04em] text-ink"><?php echo esc_html($item['title']); ?></span>
+                            <span class="boblift-case-card-title mt-3 block text-xl font-black leading-tight tracking-[-0.015em] text-ink"><?php echo esc_html($item['title']); ?></span>
                             <span class="boblift-case-card-summary mt-3 block text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html($item['summary']); ?></span>
                             <span class="boblift-case-card-action mt-5 inline-flex items-center gap-2 text-sm font-black text-blue-600"><?php echo esc_html($ui['viewCaseLabel'] ?? 'View Case'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4 transition group-hover:translate-x-1'); ?></span>
                         </span>
@@ -148,22 +144,49 @@ $render_case_filter = static function (string $id, string $filter, string $all_l
                 </article>
             <?php endif; ?>
         <?php endforeach; ?>
+        <?php foreach ($feedback_items as $feedback) :
+            $feedback_title = trim($feedback['model'] . ($feedback['note'] !== '' ? ' ' . $feedback['note'] : ''));
+            $feedback_caption = implode(' · ', array_filter([$feedback['model'], $feedback['country']]));
+            $feedback_counts = boblift_feedback_counts_text($feedback);
+        ?>
+            <article class="boblift-case-card group" data-cases-card data-case-kind="customer_feedback" data-country="<?php echo esc_attr($feedback['country']); ?>" data-product="<?php echo esc_attr($feedback['model']); ?>">
+                <a class="block h-full" href="<?php echo esc_url($feedback['url']); ?>">
+                    <span class="boblift-case-card-media relative block h-[260px] overflow-hidden rounded bg-[#eef5ff]">
+                        <?php if ($feedback['cover'] !== '') : ?><img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.035]" src="<?php echo esc_url($feedback['cover']); ?>" alt="<?php echo esc_attr($feedback_caption); ?>" loading="lazy" decoding="async"><?php endif; ?>
+                        <?php if ($feedback['media'][0]['type'] === 'video') : ?><span class="absolute inset-0 m-auto grid size-16 place-items-center rounded-sm bg-white/90 text-blue-700 shadow-card"><?php echo boblift_icon('circle-play', 'h-7 w-7'); ?></span><?php endif; ?>
+                        <?php if (count($feedback['media']) > 1) : ?><span class="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-sm bg-[#071f42]/80 px-2 py-1 text-xs font-black text-white"><?php echo boblift_icon('images', 'h-3.5 w-3.5'); ?><?php echo esc_html((string) count($feedback['media'])); ?></span><?php endif; ?>
+                    </span>
+                    <span class="boblift-case-card-content block p-5">
+                        <span class="boblift-case-card-meta flex flex-wrap gap-2 text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">
+                            <?php if ($feedback['country'] !== '') : ?><span><?php echo esc_html($feedback['country']); ?></span><?php endif; ?>
+                        </span>
+                        <span class="boblift-case-card-title mt-3 block text-xl font-black leading-tight tracking-[-0.015em] text-ink"><?php echo esc_html($feedback_title); ?></span>
+                        <?php if ($feedback_counts !== '') : ?><span class="boblift-case-card-summary mt-2 block text-sm font-semibold leading-6 text-slate-500"><?php echo esc_html($feedback_counts); ?></span><?php endif; ?>
+                    </span>
+                </a>
+            </article>
+        <?php endforeach; ?>
     </div>
 
-    <div class="hidden rounded-[28px] border border-dashed border-blue-200 bg-blue-50/45 p-8 text-center" data-cases-empty>
-        <h2 class="text-2xl font-black tracking-[-0.04em] text-ink"><?php echo esc_html($empty_title); ?></h2>
+    <div class="hidden rounded border border-dashed border-blue-200 bg-blue-50/45 p-8 text-center" data-cases-empty>
+        <h2 class="text-2xl font-black tracking-[-0.015em] text-ink"><?php echo esc_html($empty_title); ?></h2>
         <p class="mx-auto mt-3 max-w-[560px] text-sm font-semibold leading-7 text-slate-600"><?php echo esc_html($empty_text); ?></p>
-        <button class="mt-5 inline-flex h-12 items-center justify-center rounded-full bg-navy px-6 text-sm font-black text-white" type="button" data-cases-reset><?php echo esc_html($reset_label); ?></button>
+        <button class="mt-5 inline-flex h-12 items-center justify-center rounded-sm bg-navy px-6 text-sm font-black text-white" type="button" data-cases-reset><?php echo esc_html($reset_label); ?></button>
     </div>
 
     <div class="boblift-cases-media-modal fixed inset-0 z-[120] hidden items-center justify-center bg-[#071f42]/70 p-4 backdrop-blur-md" data-cases-modal hidden>
         <button class="absolute inset-0 h-full w-full cursor-default" type="button" data-cases-modal-close aria-label="<?php echo esc_attr($case_close_feedback_label); ?>"></button>
-        <div class="relative z-10 w-full max-w-[1120px] overflow-hidden rounded-[30px] bg-white p-3 shadow-[0_34px_110px_rgba(0,0,0,0.28)]">
+        <div class="relative z-10 w-full max-w-[1120px] overflow-hidden rounded bg-white p-3 shadow-card">
             <div class="flex items-center justify-between gap-4 px-2 pb-3">
                 <h2 class="text-base font-black text-ink" data-cases-modal-title></h2>
-                <button class="grid size-10 place-items-center rounded-full bg-[#f3f6fb] text-ink transition hover:bg-navy hover:text-white" type="button" data-cases-modal-close aria-label="<?php echo esc_attr($case_close_feedback_label); ?>"><?php echo boblift_icon('x', 'h-5 w-5'); ?></button>
+                <button class="grid size-10 place-items-center rounded-sm bg-[#f3f6fb] text-ink transition hover:bg-navy hover:text-white" type="button" data-cases-modal-close aria-label="<?php echo esc_attr($case_close_feedback_label); ?>"><?php echo boblift_icon('x', 'h-5 w-5'); ?></button>
             </div>
-            <div class="relative min-h-[260px] overflow-hidden rounded-[24px] bg-[#eef5ff] md:min-h-[620px]" data-cases-modal-media></div>
+            <div class="relative min-h-[260px] overflow-hidden rounded bg-[#eef5ff] md:min-h-[620px]" data-cases-modal-media></div>
+            <div class="hidden items-center justify-between gap-3 px-2 pt-3" data-cases-modal-nav>
+                <button class="grid size-10 place-items-center rounded-sm border border-[#DDE7F2] bg-white text-ink transition hover:border-blue-300" type="button" data-cases-modal-prev aria-label="<?php echo esc_attr($ui['previousLabel'] ?? 'Previous'); ?>"><?php echo boblift_icon('chevron-left', 'h-5 w-5'); ?></button>
+                <span class="text-sm font-black text-slate-500 [font-variant-numeric:tabular-nums]" data-cases-modal-counter></span>
+                <button class="grid size-10 place-items-center rounded-sm border border-[#DDE7F2] bg-white text-ink transition hover:border-blue-300" type="button" data-cases-modal-next aria-label="<?php echo esc_attr($ui['nextLabel'] ?? 'Next'); ?>"><?php echo boblift_icon('chevron-right', 'h-5 w-5'); ?></button>
+            </div>
         </div>
     </div>
 </section>
