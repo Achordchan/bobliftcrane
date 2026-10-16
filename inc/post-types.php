@@ -385,6 +385,10 @@ function boblift_redirect_numbered_translation_slug(): void
     if (!$post instanceof WP_Post) {
         return;
     }
+    // A post with its own public URL keeps it; its numbered address is not redirected.
+    if (boblift_normalize_public_path((string) get_post_meta($post->ID, '_boblift_public_url', true)) !== '') {
+        return;
+    }
     $shared = boblift_post_shared_slug($post);
     if ($shared === $post->post_name) {
         return;
@@ -393,7 +397,10 @@ function boblift_redirect_numbered_translation_slug(): void
     if (!preg_match('#/([^/]+)\.html$#', $path, $m) || sanitize_title(rawurldecode($m[1])) !== $post->post_name) {
         return;
     }
-    $target = get_permalink($post);
+    $target = (string) get_permalink($post);
+    if ($target === '' || untrailingslashit((string) parse_url($target, PHP_URL_PATH)) === untrailingslashit($path)) {
+        return;
+    }
     $query = (string) parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_QUERY);
     if ($query !== '') {
         $target .= (str_contains($target, '?') ? '&' : '?') . $query;
