@@ -2,7 +2,7 @@
 /**
  * Creates the Japanese and Chinese versions of the English news posts (Polylang).
  *
- *   wp eval-file tools/i18n/import-news-translations.php [translations-dir] [overwrite]
+ *   wp eval-file tools/i18n/import-news-translations.php [translations-dir] [overwrite] [partial]
  *
  * translations-dir (default i18n-export/translations) holds <lang>/<post-id>.json, where <post-id> is the English post's ID
  * in i18n-export/news-en.json and each file has title, excerpt, content, seo_title, seo_description, seo_keywords, tags.
@@ -13,7 +13,9 @@
 require_once dirname(__DIR__) . '/backup-dir.php';
 
 $overwrite = in_array('overwrite', $args ?? [], true);
-$positional = array_values(array_filter($args ?? [], static fn($arg): bool => $arg !== 'overwrite'));
+// "partial" lets the import skip translations whose English post is not on this site; without it they stop the run.
+$partial = in_array('partial', $args ?? [], true);
+$positional = array_values(array_filter($args ?? [], static fn($arg): bool => !in_array($arg, ['overwrite', 'partial'], true)));
 $base = dirname(__DIR__, 2) . '/i18n-export/';
 $dir = rtrim((string) ($positional[0] ?? $base . 'translations'), '/') . '/';
 $langs = ['ja', 'zh'];
@@ -65,6 +67,7 @@ foreach ($langs as $lang) {
         if (trim((string) ($data['title'] ?? '')) === '' || trim((string) ($data['content'] ?? '')) === '') { $problems[] = "$file: empty title or content"; }
         $english_links = preg_match_all('/<a\b/i', $by_id[$id]['content']);
         if ($english_links !== preg_match_all('/<a\b/i', (string) ($data['content'] ?? ''))) { $problems[] = "$file: link count differs from the English post"; }
+        if (!$partial && !bl_news_english($by_id[$id])) { $problems[] = "$file: English post {$by_id[$id]['slug']} is not published on this site (pass \"partial\" to skip it)"; continue; }
         $jobs[] = [$lang, $id, $data];
     }
 }

@@ -16,6 +16,10 @@ function boblift_prefixed_languages(): array
         return [];
     }
     $options = (array) get_option('polylang', []);
+    // Only directory mode (force_lang 1) puts the language in the path; subdomain, domain and query modes add no prefix.
+    if ((int) ($options['force_lang'] ?? 0) !== 1) {
+        return [];
+    }
     $hide_default = !array_key_exists('hide_default', $options) || !empty($options['hide_default']);
     $default = (string) pll_default_language();
     return array_values(array_filter((array) pll_languages_list(['fields' => 'slug']), static fn($slug): bool => !$hide_default || $slug !== $default));
