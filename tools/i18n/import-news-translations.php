@@ -90,7 +90,10 @@ function bl_news_links(string $html, string $lang, array $pending = []): string 
     return preg_replace_callback('/href="(\/[^"#?]*)(#[^"]*)?"/', static function (array $m) use ($lang, $pending): string {
         $slug = preg_replace('/\.html$/', '', basename(rtrim($m[1], '/')));
         if ($slug === '') { return $m[0]; }
-        $found = get_posts(['post_type' => 'any', 'name' => $slug, 'post_status' => 'publish', 'posts_per_page' => 1, 'lang' => 'en']);
+        // The link's target is the English post whose own public path is exactly this one, so a custom address that merely
+        // ends in another post's slug is never swapped for an unrelated translation.
+        $candidates = get_posts(['post_type' => 'any', 'name' => $slug, 'post_status' => 'publish', 'posts_per_page' => -1, 'lang' => 'en']);
+        $found = array_values(array_filter($candidates, static fn(WP_Post $post): bool => untrailingslashit((string) wp_parse_url(get_permalink($post), PHP_URL_PATH)) === untrailingslashit($m[1])));
         $translated = $found ? pll_get_post($found[0]->ID, $lang) : 0;
         // Only a published translation replaces the link; a draft or private one would be unreachable for visitors.
         // $pending holds translations this run is about to publish.

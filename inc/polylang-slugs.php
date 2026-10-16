@@ -16,10 +16,16 @@ add_filter('wp_unique_post_slug', static function (string $slug, int $post_id, s
         return $slug;
     }
     global $wpdb;
-    $holders = $wpdb->get_col($wpdb->prepare(
-        "SELECT ID FROM {$wpdb->posts} WHERE post_name = %s AND post_type = %s AND post_parent = %d AND ID <> %d AND post_status NOT IN ('trash', 'auto-draft')",
-        $original_slug, $post_type, $post_parent, $post_id
-    ));
+    // WordPress keeps hierarchical slugs unique per parent and other slugs unique across the whole post type.
+    $holders = is_post_type_hierarchical($post_type)
+        ? $wpdb->get_col($wpdb->prepare(
+            "SELECT ID FROM {$wpdb->posts} WHERE post_name = %s AND post_type = %s AND post_parent = %d AND ID <> %d AND post_status NOT IN ('trash', 'auto-draft')",
+            $original_slug, $post_type, $post_parent, $post_id
+        ))
+        : $wpdb->get_col($wpdb->prepare(
+            "SELECT ID FROM {$wpdb->posts} WHERE post_name = %s AND post_type = %s AND ID <> %d AND post_status NOT IN ('trash', 'auto-draft')",
+            $original_slug, $post_type, $post_id
+        ));
     // An attachment holding the slug keeps WordPress's suffix, so attachment and post URLs never coincide.
     $attachment = $wpdb->get_var($wpdb->prepare(
         "SELECT ID FROM {$wpdb->posts} WHERE post_name = %s AND post_type = 'attachment' AND ID <> %d LIMIT 1",
