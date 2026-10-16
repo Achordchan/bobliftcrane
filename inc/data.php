@@ -684,53 +684,9 @@ function boblift_migrate_legacy_hero_slides(array $options): array
     if (!empty($options['home']['hero']['legacy_slides_migrated'])) {
         return $options;
     }
-    $migrated = boblift_apply_legacy_hero_slides($options);
-    if ($migrated === null) {
-        return $options;
-    }
-    boblift_persist_legacy_hero_migration();
-    return $migrated;
-}
-
-/**
- * Stores the migration once. A lock (add_option is atomic) keeps concurrent first requests from migrating twice, and the
- * migration is recomputed from the options as stored right now, writing back only the slides and the marker, so a settings
- * save made since this request read the options is not overwritten with an older snapshot.
- */
-function boblift_persist_legacy_hero_migration(): void
-{
-    $language = function_exists('boblift_mls_current_language') ? (string) boblift_mls_current_language() : '';
-    $lock = 'boblift_hero_migration_lock_' . sanitize_key($language !== '' ? $language : 'default');
-    if (!add_option($lock, (string) time(), '', false)) {
-        // Another request holds it; a lock left by a request that died is released after a minute.
-        if ((int) get_option($lock, 0) > time() - MINUTE_IN_SECONDS) {
-            return;
-        }
-        update_option($lock, (string) time(), false);
-    }
-    try {
-        $option_key = function_exists('boblift_mls_option_key') ? boblift_mls_option_key() : 'boblift_theme_options';
-        wp_cache_delete($option_key, 'options');
-        wp_cache_delete('alloptions', 'options');
-        $saved = function_exists('boblift_mls_get_raw_options') ? boblift_mls_get_raw_options() : get_option('boblift_theme_options', []);
-        $saved = is_array($saved) ? $saved : [];
-        if (!empty($saved['home']['hero']['legacy_slides_migrated'])) {
-            return;
-        }
-        $fresh = boblift_apply_legacy_hero_slides(boblift_array_replace_recursive(boblift_default_options(), $saved));
-        if ($fresh === null) {
-            return;
-        }
-        $saved['home']['hero']['slides'] = $fresh['home']['hero']['slides'];
-        $saved['home']['hero']['legacy_slides_migrated'] = true;
-        if (function_exists('boblift_mls_update_language_options')) {
-            boblift_mls_update_language_options($saved);
-        } else {
-            update_option('boblift_theme_options', $saved);
-        }
-    } finally {
-        delete_option($lock);
-    }
+    // Applied on every read and never written from here: reads do not write the options record (a concurrent settings save
+    // would be lost). The editor shows the migrated slides, and saving them stores the marker (boblift_cleanup_admin_options()).
+    return boblift_apply_legacy_hero_slides($options) ?? $options;
 }
 
 /** The options with the legacy hero photos carried into home.hero.slides (marker set); null when there is nothing to migrate. */

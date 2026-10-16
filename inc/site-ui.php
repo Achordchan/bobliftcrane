@@ -1395,7 +1395,8 @@ function boblift_site_ui_defaults(?string $section = null): array
  * Copy an administrator customised in fields the redesign replaced, carried into the new fields until those are saved
  * themselves. "Saved" means present in the stored site_ui (any settings save stores the whole editor), so the check does not
  * depend on the language the defaults are shown in. The settings editor is prefilled with the same values, so the first save
- * moves the old copy into the new fields instead of replacing it with defaults.
+ * moves the old copy into the new fields instead of replacing it with defaults. Covered: the contact page location copy,
+ * and the old article sidebar's CTA, source credit and related-articles heading.
  * Returns [section => [key => value]] for the new keys only.
  */
 function boblift_site_ui_legacy_overrides(array $saved): array
@@ -1428,7 +1429,8 @@ function boblift_site_ui_legacy_overrides(array $saved): array
         'ctaTitle' => ['contactTitle', ['Talk to BOB-LIFT before your next lifting project.']],
         'ctaButton' => ['contactButton', ['Request a Quote']],
     ];
-    foreach ($map as $legacy_key => [$new_key, $old_defaults]) {
+    $map_related = ['related' => ['relatedTitle', ['Related Updates']]];
+    foreach ($map + $map_related as $legacy_key => [$new_key, $old_defaults]) {
         $value = $legacy_text($detail, $legacy_key, $old_defaults);
         if ($value !== '' && !array_key_exists($new_key, $article)) {
             $overrides['newsArticle'][$new_key] = $value;

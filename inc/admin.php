@@ -535,6 +535,11 @@ function boblift_admin_value_has_content(mixed $value): bool
 
 function boblift_cleanup_admin_options(array $options): array
 {
+    // Saving the hero slides stores the slides the editor showed, legacy photos already carried in, so the migration is done.
+    if (isset($options['home']['hero']['slides']) && is_array($options['home']['hero']['slides'])) {
+        $options['home']['hero']['legacy_slides_migrated'] = true;
+    }
+
     // Certifications presence marker (About settings and About page metabox): no posted items means the editor cleared the list.
     if (isset($options['about_page']['certifications']) && is_array($options['about_page']['certifications']) && array_key_exists('items_present', $options['about_page']['certifications'])) {
         unset($options['about_page']['certifications']['items_present']);
@@ -1526,6 +1531,8 @@ function boblift_home_page_meta_box(WP_Post $post): void
     }
     $language = function_exists('boblift_mls_post_language') ? boblift_mls_post_language($post) : '';
     $home = function_exists('boblift_mls_section_options') ? boblift_mls_section_options('home', $language) : (boblift_options()['home'] ?? []);
+    // Show the slides with legacy photos carried in, so saving them keeps those photos (and stores the migration marker).
+    $home = function_exists('boblift_migrate_legacy_hero_slides') ? (boblift_migrate_legacy_hero_slides(['home' => $home])['home'] ?? $home) : $home;
     boblift_render_home_page_fields($home, 'boblift_home_page');
     echo '</div>';
 }
@@ -1771,6 +1778,9 @@ function boblift_save_home_page_meta_box(int $post_id, WP_Post $post): void
 
     $posted = wp_unslash($_POST['boblift_home_page']);
     $sanitized = boblift_sanitize_options_recursive(['home' => $posted]);
+    if (isset($sanitized['home']['hero']['slides']) && is_array($sanitized['home']['hero']['slides'])) {
+        $sanitized['home']['hero']['legacy_slides_migrated'] = true;
+    }
     if (isset($sanitized['home']['product_section']['selected_product_slugs']) && is_array($sanitized['home']['product_section']['selected_product_slugs'])) {
         $sanitized['home']['product_section']['selected_product_slugs'] = array_values(array_filter(array_map('sanitize_title', $sanitized['home']['product_section']['selected_product_slugs'])));
     }

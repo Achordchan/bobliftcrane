@@ -1012,8 +1012,8 @@ function boblift_product_filter_values(int $product_id): array
             $values['capacity'] = $m[2] === 'kg' ? $number / 1000 : ($m[2] === 't' ? $number : 0.0);
         } elseif ($label === 'Max Lifting Moment') {
             $values['moment'] = $m[2] === 'kN·m' ? round($number / 9.81, 1) : ($m[2] === 't·m' ? $number : 0.0);
-        } elseif ($label === 'Self Weight' && $m[2] === 'kg') {
-            $values['weight'] = $number;
+        } elseif ($label === 'Self Weight') {
+            $values['weight'] = $m[2] === 'kg' ? $number : ($m[2] === 't' ? $number * 1000 : 0.0);
         }
     }
     if ($values['capacity'] <= 0) {
