@@ -1076,7 +1076,8 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
     flex: 0 0 auto !important;
     grid-template-columns: 40px minmax(0, 1fr);
     gap: 8px;
-    padding: 8px 42px 8px 8px;
+    padding-block: 8px;
+    padding-inline: 8px 42px;
   }
   .boblift-inquiry-modal.has-selected-products [data-inquiry-selected-products-list] > article > div:first-child {
     width: 40px;
