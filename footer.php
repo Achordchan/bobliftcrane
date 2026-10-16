@@ -46,7 +46,7 @@ $quote_list_ui = function_exists('boblift_site_ui') ? boblift_site_ui('quoteList
 $site_host = (string) wp_parse_url(home_url('/'), PHP_URL_HOST);
 // The old defaults pointed every social icon at the contact page (or "#"); those placeholders stay hidden until a real
 // destination is saved. Any other saved link is kept: profile URLs, //host addresses (read over https) and site paths
-// such as /go/linkedin, including absolute URLs on this site's own domain.
+// such as /go/linkedin or go/linkedin, including absolute URLs on this site's own domain.
 $footer_social_links = [];
 foreach (is_array($footer['social_links'] ?? null) ? $footer['social_links'] : [] as $link) {
     $href = is_array($link) ? trim((string) ($link['href'] ?? '')) : '';
@@ -59,7 +59,9 @@ foreach (is_array($footer['social_links'] ?? null) ? $footer['social_links'] : [
     $placeholder = $href === '' || str_starts_with($href, '#') || ($own && preg_match('#^/?contact(?:\.html)?/?$#i', $path));
     // mailto:, tel: and the other schemes WordPress allows in links carry no host and are kept as saved.
     $allowed_scheme = $host === '' && preg_match('/^([a-z][a-z0-9+.-]*):./i', $href, $scheme) && in_array(strtolower($scheme[1]), wp_allowed_protocols(), true);
-    if ($placeholder || ($host === '' && !$allowed_scheme && !str_starts_with($href, '/'))) {
+    // A relative route such as go/linkedin still resolves through boblift_url(); only a scheme WordPress does not allow is dropped.
+    $other_scheme = !$allowed_scheme && preg_match('/^[a-z][a-z0-9+.-]*:/i', $href);
+    if ($placeholder || ($host === '' && $other_scheme)) {
         continue;
     }
     $link['href'] = $host === '' && !$allowed_scheme ? boblift_url($href) : $href;

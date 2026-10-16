@@ -218,8 +218,16 @@ if (!isset($nav_by_key['services']) && isset($nav_by_key['mounting-shipping'])) 
     unset($nav_by_key['mounting-shipping']);
 }
 if (!isset($nav_by_key['services'])) {
-    $services_mounting_page = boblift_find_page_by_slug('mounting-shipping');
-    $services_operation_page = boblift_find_page_by_slug('service');
+    // Links go to the visitor's language version when one exists, as the footer's page links do.
+    $services_localize = static function ($page) {
+        if (!$page instanceof WP_Post || !function_exists('boblift_post_for_current_language')) {
+            return $page;
+        }
+        $localized = boblift_post_for_current_language($page);
+        return $localized->post_status === 'publish' ? $localized : $page;
+    };
+    $services_mounting_page = $services_localize(boblift_find_page_by_slug('mounting-shipping'));
+    $services_operation_page = $services_localize(boblift_find_page_by_slug('service'));
 }
 if (!isset($nav_by_key['services']) && $services_mounting_page instanceof WP_Post) {
     $services_children = [$nav_page_child('mounting-shipping', 'Truck Mounting & Export', get_permalink($services_mounting_page))];
