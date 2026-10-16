@@ -326,7 +326,7 @@ function boblift_site_ui_defaults(?string $section = null): array
             'collapseProductCategoriesLabel' => 'Collapse product categories',
             'quoteShortLabel' => 'Quote',
             'quoteLabel' => 'Request Quote',
-            'languageMarkets' => ['en' => 'Global Market', 'es' => 'Spanish Market', 'ja' => 'Japanese Market', 'zh' => 'Chinese Market', 'ru' => 'Russian Market'],
+            'languageMarkets' => ['en' => 'Global Market', 'es' => 'Spanish Market', 'ja' => 'Japanese Market', 'zh' => 'Chinese Market', 'ru' => 'Russian Market', 'fr' => 'French Market', 'ar' => 'Arabic Market'],
             'regionalMarketLabel' => 'Regional Market',
             'languageFlagAltTemplate' => '{language} flag',
             'megaTitle' => 'Explore All Products',

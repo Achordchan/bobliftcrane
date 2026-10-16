@@ -17,8 +17,8 @@ $map_link_url = 'https://www.google.com/maps/search/?api=1&query=' . $map_query;
             <h1 class="text-[clamp(32px,8.8vw,38px)] font-black leading-[1.04] tracking-[-0.05em] text-navy md:text-[50px] xl:text-[56px] 2xl:text-[64px]"><?php echo esc_html($ui['heroTitle']); ?></h1>
             <p class="mt-4 max-w-2xl text-base font-semibold leading-7 text-slate-600 md:mt-6 md:text-lg md:leading-8 2xl:text-xl 2xl:leading-9"><?php echo esc_html($ui['heroDescription']); ?></p>
             <div class="mt-6 grid grid-cols-2 gap-3 md:mt-8 md:flex md:flex-wrap md:gap-4">
-                <a class="boblift-contact-proof-chip" href="mailto:<?php echo esc_attr($contact['email']); ?>"><?php echo boblift_icon('mail', 'h-6 w-6 text-blue-700 md:h-7 md:w-7', '1.8'); ?><span><strong><?php echo esc_html($ui['cardLabels']['email']); ?></strong><small><?php echo esc_html($contact['email']); ?></small></span></a>
-                <a class="boblift-contact-proof-chip" href="<?php echo esc_url($contact['whatsappHref']); ?>" target="_blank" rel="noreferrer"><?php echo boblift_icon('message-circle', 'h-6 w-6 text-blue-700 md:h-7 md:w-7', '1.8'); ?><span><strong><?php echo esc_html($ui['cardLabels']['whatsapp']); ?></strong><small><?php echo esc_html($ui['whatsappValue']); ?></small></span></a>
+                <a class="boblift-contact-proof-chip" href="mailto:<?php echo esc_attr($contact['email']); ?>"><?php echo boblift_icon('mail', 'h-6 w-6 text-blue-700 md:h-7 md:w-7', '1.8'); ?><span><strong><?php echo esc_html($ui['cardLabels']['email']); ?></strong><small><span dir="ltr"><?php echo esc_html($contact['email']); ?></span></small></span></a>
+                <a class="boblift-contact-proof-chip" href="<?php echo esc_url($contact['whatsappHref']); ?>" target="_blank" rel="noreferrer"><?php echo boblift_icon('message-circle', 'h-6 w-6 text-blue-700 md:h-7 md:w-7', '1.8'); ?><span><strong><?php echo esc_html($ui['cardLabels']['whatsapp']); ?></strong><small><span dir="ltr"><?php echo esc_html($ui['whatsappValue']); ?></span></small></span></a>
             </div>
         </div>
         <div class="boblift-news-hero-image">
@@ -61,7 +61,7 @@ $map_link_url = 'https://www.google.com/maps/search/?api=1&query=' . $map_query;
         </div>
         <div class="relative mt-6 overflow-hidden rounded-[28px] border border-blue-100 bg-[#eef5ff]">
             <iframe class="w-full bg-[#eef5ff]" style="height:min(430px,62vw);min-height:300px" src="about:blank" data-lazy-iframe-src="<?php echo esc_url($map_embed_url); ?>" title="<?php echo esc_attr((string) ($ui['mapTitle'] ?? 'BOB-LIFT factory location map')); ?>" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-            <a class="absolute bottom-4 left-4 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-white/95 px-4 text-xs font-black text-navy shadow-[0_14px_36px_rgba(8,35,74,0.14)] backdrop-blur transition hover:-translate-y-0.5 hover:text-blue-700" href="<?php echo esc_url($map_link_url); ?>" target="_blank" rel="noreferrer"><?php echo boblift_icon('map-pin', 'h-4 w-4'); ?> <?php echo esc_html((string) ($ui['viewMapLabel'] ?? 'View on map')); ?></a>
+            <a class="absolute bottom-4 start-4 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-white/95 px-4 text-xs font-black text-navy shadow-[0_14px_36px_rgba(8,35,74,0.14)] backdrop-blur transition hover:-translate-y-0.5 hover:text-blue-700" href="<?php echo esc_url($map_link_url); ?>" target="_blank" rel="noreferrer"><?php echo boblift_icon('map-pin', 'h-4 w-4'); ?> <?php echo esc_html((string) ($ui['viewMapLabel'] ?? 'View on map')); ?></a>
         </div>
     </article>
 </section>

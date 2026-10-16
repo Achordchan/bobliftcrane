@@ -143,7 +143,7 @@ img { max-width: 100%; }
     height: 20px;
   }
   .boblift-quote-list-float [data-quote-list-count] {
-    right: -5px;
+    inset-inline-end: -5px;
     top: -7px;
   }
 }
@@ -436,7 +436,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
 .cms-richtext h1 { font-size: clamp(2rem, 4vw, 3.5rem); }
 .cms-richtext h2 { font-size: clamp(1.5rem, 3vw, 2.25rem); }
 .cms-richtext h3 { font-size: 1.25rem; }
-.cms-richtext ul, .cms-richtext ol { padding-left: 1.35rem; }
+.cms-richtext ul, .cms-richtext ol { padding-inline-start: 1.35rem; }
 .cms-richtext ul { list-style: disc; }
 .cms-richtext ol { list-style: decimal; }
 .cms-richtext a { color: #2563eb; font-weight: 900; text-decoration: underline; text-underline-offset: 3px; }
@@ -526,8 +526,8 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   .boblift-product-listing .product-card-media img {
     padding: 12px;
   }
-  .boblift-product-listing .product-card .absolute.left-5.top-5 {
-    left: 8px;
+  .boblift-product-listing .product-card .absolute.start-5.top-5 {
+    inset-inline-start: 8px;
     top: 8px;
     max-width: calc(100% - 52px);
     gap: 5px;
@@ -535,12 +535,12 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
     font-size: 11px;
     line-height: 1;
   }
-  .boblift-product-listing .product-card .absolute.left-5.top-5 svg {
+  .boblift-product-listing .product-card .absolute.start-5.top-5 svg {
     width: 14px;
     height: 14px;
   }
   .boblift-product-listing .product-card-overlay-actions {
-    right: 8px;
+    inset-inline-end: 8px;
     top: 8px;
     gap: 8px;
   }
@@ -602,11 +602,11 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
 .boblift-product-listing[data-view="list"] .product-card-overlay-actions { display: none; }
 .boblift-product-listing[data-view="list"] .product-card-body { justify-content: space-between; gap: 1.25rem; padding: .25rem 0; }
 .boblift-product-listing[data-view="list"] .product-card-meta { justify-content: flex-start; flex-wrap: wrap; gap: .75rem; margin-bottom: 0; }
-.boblift-product-listing[data-view="list"] .product-card-meta span + span::before { content: ""; display: inline-block; width: .25rem; height: .25rem; margin-right: .75rem; border-radius: 9999px; background: #cbd5e1; vertical-align: middle; }
+.boblift-product-listing[data-view="list"] .product-card-meta span + span::before { content: ""; display: inline-block; width: .25rem; height: .25rem; margin-inline-end: .75rem; border-radius: 9999px; background: #cbd5e1; vertical-align: middle; }
 .boblift-product-listing[data-view="list"] .product-card-title { margin-top: .75rem; font-size: clamp(1.5rem,2.4vw,1.875rem); line-height: 1.08; letter-spacing: -.04em; }
 .boblift-product-listing[data-view="list"] .product-card-summary { display: block; }
 .boblift-product-listing[data-view="list"] .product-card-spec-grid { max-width: 48rem; grid-template-columns: repeat(1,minmax(0,1fr)); gap: .5rem; margin-top: 1rem; padding-top: 0; border-top: 0; }
-.boblift-product-listing[data-view="list"] .product-card-spec { min-height: 0; align-items: flex-start; justify-content: flex-start; border-color: #E5E7EB; border-radius: 16px; background: #F8FAFC; padding: .75rem 1rem; text-align: left; box-shadow: none; }
+.boblift-product-listing[data-view="list"] .product-card-spec { min-height: 0; align-items: flex-start; justify-content: flex-start; border-color: #E5E7EB; border-radius: 16px; background: #F8FAFC; padding: .75rem 1rem; text-align: start; box-shadow: none; }
 .boblift-product-listing[data-view="list"] .product-card-spec svg { display: none; }
 .boblift-product-listing[data-view="list"] .product-card-spec-label { font-size: 10px; letter-spacing: .12em; color: #94a3b8; }
 .boblift-product-listing[data-view="list"] .product-card-spec-value { margin-top: .25rem; font-size: 1rem; letter-spacing: 0; }
@@ -969,7 +969,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
     margin-top: 14px;
     gap: 10px;
     overflow-y: visible;
-    padding-right: 4px;
+    padding-inline-end: 4px;
   }
   .boblift-inquiry-primary-fields {
     align-content: start;
@@ -1076,7 +1076,8 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
     flex: 0 0 auto !important;
     grid-template-columns: 40px minmax(0, 1fr);
     gap: 8px;
-    padding: 8px 42px 8px 8px;
+    padding-block: 8px;
+    padding-inline: 8px 42px;
   }
   .boblift-inquiry-modal.has-selected-products [data-inquiry-selected-products-list] > article > div:first-child {
     width: 40px;
@@ -1098,7 +1099,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
     line-height: 1.25;
   }
   .boblift-inquiry-modal.has-selected-products [data-inquiry-product-remove] {
-    right: 8px;
+    inset-inline-end: 8px;
     width: 30px;
     height: 30px;
   }
@@ -1133,7 +1134,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
 }
 .boblift-news-hero::before {
   content: "";
-  @apply pointer-events-none absolute inset-y-0 left-0 w-[48%] opacity-70;
+  @apply pointer-events-none absolute inset-y-0 start-0 w-[48%] opacity-70;
   background:
     linear-gradient(135deg, rgba(245, 154, 60, .08), transparent 38%),
     linear-gradient(120deg, rgba(8, 35, 74, .035) 0 1px, transparent 1px 88px);
@@ -1381,7 +1382,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   @apply text-xs font-black uppercase tracking-[0.24em] text-gold;
 }
 .boblift-news-detail-heading {
-  @apply text-left lg:col-start-1 lg:row-start-2 lg:self-start;
+  @apply text-start lg:col-start-1 lg:row-start-2 lg:self-start;
   max-width: clamp(620px, 42vw, 920px);
 }
 .boblift-news-detail-title {
@@ -1591,10 +1592,10 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 .boblift-technical-spec-item {
-  border-right: 1px solid #DDE7F2;
+  border-inline-end: 1px solid #DDE7F2;
 }
 .boblift-technical-spec-item:nth-child(2n) {
-  border-right: 0;
+  border-inline-end: 0;
 }
 .boblift-technical-spec-label {
   font-size: clamp(7.5px, 2.05vw, 10px);
@@ -1609,10 +1610,10 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
 }
 @media (min-width: 1280px) {
   .boblift-technical-spec-item:nth-child(2n) {
-    border-right: 1px solid #DDE7F2;
+    border-inline-end: 1px solid #DDE7F2;
   }
   .boblift-technical-spec-item:nth-child(3n) {
-    border-right: 0;
+    border-inline-end: 0;
   }
   .boblift-technical-spec-label {
     font-size: 10px;
@@ -1778,7 +1779,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  text-align: left;
+  text-align: start;
   box-shadow: 0 10px 28px rgba(8,35,74,.045);
 }
 .boblift-cases-select-trigger span:first-child {
@@ -1833,7 +1834,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
 .boblift-cases-select-options {
   max-height: 252px;
   overflow-y: auto;
-  padding-right: 2px;
+  padding-inline-end: 2px;
 }
 .boblift-cases-select-option {
   display: flex;
@@ -1844,7 +1845,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
   gap: 12px;
   border-radius: 16px;
   padding: 9px 12px;
-  text-align: left;
+  text-align: start;
   color: #08234a;
   font-size: 13px;
   font-weight: 900;
@@ -1949,8 +1950,8 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
     width: min(calc(100vw - 48px), 320px);
   }
   .boblift-cases-filter:nth-child(2) .boblift-cases-select-menu {
-    left: auto;
-    right: 0;
+    inset-inline-start: auto;
+    inset-inline-end: 0;
   }
   .boblift-cases-reset-button {
     height: 46px;

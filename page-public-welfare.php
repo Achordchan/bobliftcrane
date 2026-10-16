@@ -19,8 +19,8 @@ if ($statement_highlight !== '' && str_contains($statement_title, $statement_hig
 </section>
 
 <section class="relative overflow-hidden bg-white py-12 md:py-16 lg:py-24">
-    <div class="pointer-events-none absolute -left-24 top-1/2 h-72 w-72 -translate-y-1/2 rounded-full bg-blue-500/10 blur-3xl"></div>
-    <div class="pointer-events-none absolute -right-24 top-1/3 h-80 w-80 rounded-full bg-blue-500/8 blur-3xl"></div>
+    <div class="pointer-events-none absolute -start-24 top-1/2 h-72 w-72 -translate-y-1/2 rounded-full bg-blue-500/10 blur-3xl"></div>
+    <div class="pointer-events-none absolute -end-24 top-1/3 h-80 w-80 rounded-full bg-blue-500/8 blur-3xl"></div>
     <div class="page-shell relative">
         <div class="mx-auto max-w-[1600px] py-8 text-center md:py-10 lg:py-14">
             <p class="section-label mb-8 justify-center"><?php echo esc_html((string) ($statement['label'] ?? 'Daily Responsibility')); ?></p>
@@ -59,7 +59,7 @@ if ($statement_highlight !== '' && str_contains($statement_title, $statement_hig
 <section class="bg-white pb-14 pt-2 lg:pb-20">
     <div class="page-shell">
         <div class="relative mx-auto max-w-[2200px] overflow-hidden rounded-[34px] border border-[#0D4F94]/20 bg-[linear-gradient(135deg,#073A78_0%,#0B5AA8_58%,#084785_100%)] p-6 text-white shadow-[0_28px_90px_rgba(11,63,125,0.22)] md:p-8 lg:rounded-[38px] lg:p-12 2xl:p-14">
-            <div class="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/15 blur-3xl"></div>
+            <div class="pointer-events-none absolute -end-24 -top-24 h-72 w-72 rounded-full bg-white/15 blur-3xl"></div>
             <div class="pointer-events-none absolute inset-0 opacity-[0.14] [background-image:radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.9)_1px,transparent_0)] [background-size:28px_28px]"></div>
             <div class="relative z-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center 2xl:gap-16">
                 <div>
