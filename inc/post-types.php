@@ -1575,12 +1575,12 @@ function boblift_render_related_products_field(string $name, int $post_id): void
     $selected = array_map('intval', get_post_meta($post_id, '_related_product'));
     $groups = [];
     $products = get_posts(['post_type' => 'product', 'post_status' => 'publish', 'posts_per_page' => -1, 'lang' => 'en', 'orderby' => 'title', 'order' => 'ASC']);
-    // Linked products that are unpublished for now (draft, pending, private) stay listed and ticked, so saving this entry
+    // Linked products that are unpublished for now (draft, pending, private, trashed) stay listed and ticked, so saving this entry
     // keeps their link for when they are published again.
     $listed = array_map(static fn(WP_Post $product): int => $product->ID, $products);
     $unlisted = array_values(array_diff($selected, $listed));
     if ($unlisted !== []) {
-        $products = array_merge($products, get_posts(['post_type' => 'product', 'post_status' => 'any', 'posts_per_page' => -1, 'lang' => '', 'post__in' => $unlisted, 'orderby' => 'title', 'order' => 'ASC']));
+        $products = array_merge($products, get_posts(['post_type' => 'product', 'post_status' => ['draft', 'pending', 'private', 'future', 'trash'], 'posts_per_page' => -1, 'lang' => '', 'post__in' => $unlisted, 'orderby' => 'title', 'order' => 'ASC']));
     }
     foreach ($products as $product) {
         $terms = get_the_terms($product, 'product_category');
