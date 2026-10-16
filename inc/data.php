@@ -661,37 +661,60 @@ function boblift_about_page_options(): array
     $value = boblift_option('about_page', []);
     $value = boblift_about_apply_legacy_team_image(is_array($value) ? $value : []);
     $options = boblift_array_replace_recursive(boblift_about_page_defaults(), $value);
-    // Saved menus in every language still list retired pages and pages that now live under Services, News or the
-    // top-level Contact link; drop them so the About menu keeps to the company pages.
-    if (is_array($options['secondary_nav'] ?? null)) {
-        $skip = array_merge(boblift_retired_page_slugs(), boblift_about_nav_moved_slugs());
-        // A customised Public Welfare page stays published (boblift_redirect_retired_pages()), so its menu link stays too.
-        if (function_exists('boblift_public_welfare_customized') && boblift_public_welfare_customized()) {
-            $skip = array_values(array_diff($skip, ['public-welfare']));
+    return boblift_about_apply_nav_migration($options, $value);
+}
+
+/**
+ * The About menu as the front end shows it: retired pages dropped, untouched entries for pages that moved to Services,
+ * News or the top-level Contact link dropped, and newer default pages added until an editor has saved the menu.
+ * $saved is what was stored (secondary_nav_version lives there). The About editor uses the same list, so saving it
+ * keeps what visitors already see.
+ */
+function boblift_about_apply_nav_migration(array $options, array $saved): array
+{
+    if (!is_array($options['secondary_nav'] ?? null)) {
+        return $options;
+    }
+    $retired = boblift_retired_page_slugs();
+    // A customised Public Welfare page stays published (boblift_redirect_retired_pages()), so its menu link stays too.
+    if (function_exists('boblift_public_welfare_customized') && boblift_public_welfare_customized()) {
+        $retired = array_values(array_diff($retired, ['public-welfare']));
+    }
+    $moved = boblift_about_nav_moved_defaults();
+    $options['secondary_nav'] = array_values(array_filter($options['secondary_nav'], static function ($item) use ($retired, $moved): bool {
+        if (!is_array($item)) {
+            return false;
         }
-        $options['secondary_nav'] = array_values(array_filter($options['secondary_nav'], static function ($item) use ($skip): bool {
-            if (!is_array($item)) {
-                return false;
-            }
-            $slug = (string) ($item['slug'] ?? '');
-            $path = trim((string) wp_parse_url((string) ($item['href'] ?? ''), PHP_URL_PATH), '/');
-            return !in_array($slug, $skip, true) && !in_array(preg_replace('/\.html$/', '', $path), $skip, true);
-        }));
-        // Saved menus predate newer About pages; add any default child that is missing, after the one before it. Once an
-        // editor has saved the menu (secondary_nav_version), the list is theirs and a removed page stays removed.
-        $reviewed_menu = (int) ($value['secondary_nav_version'] ?? 0) >= 1;
-        $saved_slugs = array_map(static fn(array $item): string => (string) ($item['slug'] ?? ''), $options['secondary_nav']);
-        $previous = '';
-        foreach ($reviewed_menu ? [] : boblift_about_page_defaults()['secondary_nav'] as $default_child) {
-            $slug = (string) $default_child['slug'];
-            if (!in_array($slug, $saved_slugs, true)) {
-                $at = $previous !== '' ? array_search($previous, $saved_slugs, true) : false;
-                $position = $at === false ? count($options['secondary_nav']) : $at + 1;
-                array_splice($options['secondary_nav'], $position, 0, [$default_child]);
-                array_splice($saved_slugs, $position, 0, [$slug]);
-            }
-            $previous = $slug;
+        $path = (string) preg_replace('/\.html$/', '', trim((string) wp_parse_url((string) ($item['href'] ?? ''), PHP_URL_PATH), '/'));
+        $slug = (string) ($item['slug'] ?? '');
+        if (in_array($slug, $retired, true) || in_array($path, $retired, true)) {
+            return false;
         }
+        // A moved page's entry goes only while it is still the historical default (label and destination); one an
+        // editor relabelled or pointed elsewhere stays in the menu as saved.
+        $key = isset($moved[$slug]) ? $slug : (isset($moved[$path]) ? $path : '');
+        if ($key === '') {
+            return true;
+        }
+        $label = trim((string) ($item['label'] ?? ''));
+        $default_label = $moved[$key];
+        $untouched_label = $label === '' || boblift_customised_legacy_text($label, $default_label) === '';
+        return !($untouched_label && ($path === '' || $path === $key));
+    }));
+    // Saved menus predate newer About pages; add any default child that is missing, after the one before it. Once an
+    // editor has saved the menu (secondary_nav_version), the list is theirs and a removed page stays removed.
+    $reviewed_menu = (int) ($saved['secondary_nav_version'] ?? 0) >= 1;
+    $saved_slugs = array_map(static fn(array $item): string => (string) ($item['slug'] ?? ''), $options['secondary_nav']);
+    $previous = '';
+    foreach ($reviewed_menu ? [] : boblift_about_page_defaults()['secondary_nav'] as $default_child) {
+        $slug = (string) $default_child['slug'];
+        if (!in_array($slug, $saved_slugs, true)) {
+            $at = $previous !== '' ? array_search($previous, $saved_slugs, true) : false;
+            $position = $at === false ? count($options['secondary_nav']) : $at + 1;
+            array_splice($options['secondary_nav'], $position, 0, [$default_child]);
+            array_splice($saved_slugs, $position, 0, [$slug]);
+        }
+        $previous = $slug;
     }
     return $options;
 }
@@ -705,7 +728,19 @@ function boblift_retired_page_slugs(): array
 /** Pages that left the About menu: Services (mounting, service), News (videos, social media) and top-level Contact. */
 function boblift_about_nav_moved_slugs(): array
 {
-    return ['mounting-shipping', 'service', 'videos', 'social-media', 'contact'];
+    return array_keys(boblift_about_nav_moved_defaults());
+}
+
+/** The moved pages' historical About-menu labels, keyed by slug (their default link is /<slug>.html). */
+function boblift_about_nav_moved_defaults(): array
+{
+    return [
+        'mounting-shipping' => 'Truck Mounting & Export',
+        'service' => 'Service & Operation',
+        'videos' => 'Video Center',
+        'social-media' => 'Social Media',
+        'contact' => 'Contact Us',
+    ];
 }
 
 function boblift_options(): array
