@@ -26,16 +26,20 @@ add_filter('rest_request_before_callbacks', static function ($response, $handler
     return $response;
 }, 10, 3);
 
-/** WordPress's own reasons to refuse a slug apart from another post holding it: feeds, "embed", page numbers, date archives. */
+/** WordPress's own reasons to refuse a slug apart from another post holding it: feeds, "embed", page numbers (hierarchical types), date archives (posts). */
 function boblift_slug_is_reserved(string $slug, string $post_type, int $post_parent, bool $hierarchical): bool
 {
     global $wp_rewrite;
     $feeds = is_array($wp_rewrite->feeds ?? null) ? $wp_rewrite->feeds : [];
     $pagination = $wp_rewrite->pagination_base ?? 'page';
-    if (in_array($slug, $feeds, true) || $slug === 'embed' || preg_match('@^(' . preg_quote($pagination, '@') . ')?\\d+$@', $slug)) {
+    if (in_array($slug, $feeds, true) || $slug === 'embed') {
         return true;
     }
     if ($hierarchical) {
+        // Page-number shaped slugs ("2", "page2") are only reserved for hierarchical types, as in core.
+        if (preg_match('@^(' . preg_quote($pagination, '@') . ')?\\d+$@', $slug)) {
+            return true;
+        }
         return (bool) apply_filters('wp_unique_post_slug_is_bad_hierarchical_slug', false, $slug, $post_type, $post_parent);
     }
     // Same date-archive clash core checks for posts: a two-digit month or day slug under a /%year%/ or /%monthnum%/ structure.

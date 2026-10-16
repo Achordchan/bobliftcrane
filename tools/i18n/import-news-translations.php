@@ -100,6 +100,10 @@ function bl_news_links(string $html, string $lang, array $pending = []): string 
     return preg_replace_callback('#href=(["\'])(/(?!/)[^"\'\#?]*)((?:\?[^"\'\#]*)?(?:\#[^"\']*)?)\1#', static function (array $m) use ($lang, $pending, $home_path): string {
         [, $q, $path, $tail] = $m;
         $site_link = 'href=' . $q . esc_attr($home_path . $path) . $tail . $q;
+        // The home page goes to this language's home page.
+        if ($path === '/' && function_exists('pll_home_url')) {
+            return 'href=' . $q . esc_attr(wp_make_link_relative(pll_home_url($lang))) . $tail . $q;
+        }
         $slug = preg_replace('/\.html$/', '', basename(rtrim($path, '/')));
         if ($slug === '') { return $site_link; }
         // The link's target is the English post whose own public path is exactly this one, so a custom address that merely
