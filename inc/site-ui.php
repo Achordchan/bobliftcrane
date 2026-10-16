@@ -1624,9 +1624,11 @@ function boblift_product_interest_options(): array
     $group_titles = [];
     $items = [];
     $groups = function_exists('boblift_product_category_group_definitions') ? boblift_product_category_group_definitions() : [];
+    $group_of_child = [];
     foreach ($groups as $group) {
         foreach (($group['children'] ?? []) as $child_slug) {
             $skip_slugs[(string) $child_slug] = true;
+            $group_of_child[(string) $child_slug] = (string) ($group['slug'] ?? '');
         }
         $group_titles[(string) ($group['slug'] ?? '')] = (string) ($group['title'] ?? '');
     }
@@ -1634,6 +1636,15 @@ function boblift_product_interest_options(): array
     usort($categories, static fn(array $a, array $b): int => ((int) ($a['sort'] ?? 100)) <=> ((int) ($b['sort'] ?? 100)));
     foreach ($categories as $category) {
         $slug = (string) ($category['slug'] ?? '');
+        // Catalogs with the child categories but no parent category of their own (the synthetic grouping) still offer the
+        // family once, from the group definition, where its first child would have been.
+        $group_slug = $group_of_child[$slug] ?? '';
+        if ($group_slug !== '' && !isset($category_map[$group_slug]) && !isset($items[$group_slug])) {
+            $group_title = $localized_category_title($group_slug, $group_titles[$group_slug] ?? '');
+            if ($group_title !== '') {
+                $items[$group_slug] = ['key' => $group_slug, 'label' => $group_title, 'value' => $group_title, 'slug' => $group_slug];
+            }
+        }
         $title = $localized_category_title($slug, (string) (($group_titles[$slug] ?? '') ?: ($category['title'] ?? '')));
         if ($slug === '' || $title === '' || isset($skip_slugs[$slug]) || isset($items[$slug])) {
             continue;

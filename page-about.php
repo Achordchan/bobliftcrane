@@ -299,19 +299,22 @@ if ($legacy_strength['cards'] !== [] || $legacy_strength['cta'] !== null || $leg
                 <?php endfor; ?>
             </div>
 
-            <div class="fixed inset-0 z-[999] hidden items-center justify-center bg-[#0B1B33]/88 p-4 backdrop-blur-md" data-certification-lightbox aria-hidden="true">
-                <button class="absolute inset-0 cursor-zoom-out" type="button" data-certification-close aria-label="<?php echo esc_attr($is_zh_about ? '关闭证书大图' : 'Close certificate preview'); ?>"></button>
-                <figure class="relative z-10 max-h-[92vh] w-full max-w-[980px] rounded bg-white p-3 shadow-card md:p-4">
-                    <button class="absolute end-3 top-3 grid h-10 w-10 place-items-center rounded-sm bg-[#0B1B33] text-white shadow-card transition hover:bg-[#0B3F7D]" type="button" data-certification-close aria-label="<?php echo esc_attr($is_zh_about ? '关闭' : 'Close'); ?>">×</button>
-                    <img class="max-h-[78vh] w-full rounded object-contain" src="" alt="" data-certification-lightbox-image>
-                    <figcaption class="px-2 pb-1 pt-3 text-center text-sm font-black text-[#0B1B33]" data-certification-lightbox-title></figcaption>
-                </figure>
-            </div>
         </div>
         <?php endif; ?>
 
     </div>
 </section>
+<?php if ($certification_items !== []) : ?>
+<?php // Outside the section's stacking context so it covers the header and the floating contact bar. ?>
+<div class="fixed inset-0 z-[999] hidden items-center justify-center bg-[#0B1B33]/88 p-4 backdrop-blur-md" data-certification-lightbox aria-hidden="true">
+    <button class="absolute inset-0 cursor-zoom-out" type="button" data-certification-close aria-label="<?php echo esc_attr($is_zh_about ? '关闭证书大图' : 'Close certificate preview'); ?>"></button>
+    <figure class="relative z-10 max-h-[92vh] w-full max-w-[980px] rounded bg-white p-3 shadow-card md:p-4">
+        <button class="absolute end-3 top-3 grid h-10 w-10 place-items-center rounded-sm bg-[#0B1B33] text-white shadow-card transition hover:bg-[#0B3F7D]" type="button" data-certification-close aria-label="<?php echo esc_attr($is_zh_about ? '关闭' : 'Close'); ?>">×</button>
+        <img class="max-h-[78vh] w-full rounded object-contain" src="" alt="" data-certification-lightbox-image>
+        <figcaption class="px-2 pb-1 pt-3 text-center text-sm font-black text-[#0B1B33]" data-certification-lightbox-title></figcaption>
+    </figure>
+</div>
+<?php endif; ?>
 
 <section id="about-manufacturing-gallery" class="relative bg-white py-8 lg:py-12" data-about-gallery>
     <div class="page-shell about-wide-shell mb-5 md:mb-6">

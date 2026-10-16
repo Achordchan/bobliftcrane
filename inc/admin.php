@@ -624,6 +624,11 @@ function boblift_cleanup_admin_options(array $options): array
             $options['about_page']['executives']['team_image'] = $options['about_page']['executives']['group_image'];
         }
         unset($options['about_page']['executives']['group_image']);
+        // Saving the team photo field retires the legacy key in the stored options too (the save merges into them, so an
+        // unset alone would leave the old photo there to reappear when team_image is reset to the built-in default).
+        if (is_array($options['about_page']['executives'] ?? null) && array_key_exists('team_image', $options['about_page']['executives'])) {
+            $options['about_page']['executives']['group_image'] = '';
+        }
     }
 
     if (isset($options['social_media_page']['hero']) && is_array($options['social_media_page']['hero'])) {

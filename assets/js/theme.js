@@ -1010,11 +1010,12 @@
         section.addEventListener('mouseleave', () => marqueeTween?.resume());
       }
 
-      const lightbox = qs('[data-certification-lightbox]', section);
-      const lightboxImage = qs('[data-certification-lightbox-image]', section);
-      const lightboxTitle = qs('[data-certification-lightbox-title]', section);
+      // The viewer is rendered after the section (outside its stacking context); older markup kept it inside.
+      const lightbox = qs('[data-certification-lightbox]', section) || qs('[data-certification-lightbox]');
+      const lightboxImage = lightbox ? qs('[data-certification-lightbox-image]', lightbox) : null;
+      const lightboxTitle = lightbox ? qs('[data-certification-lightbox-title]', lightbox) : null;
       const openButtons = qsa('[data-certification-open]', section);
-      const closeButtons = qsa('[data-certification-close]', section);
+      const closeButtons = lightbox ? qsa('[data-certification-close]', lightbox) : [];
       if (!lightbox || !lightboxImage || !openButtons.length) return;
       if (lightbox.parentElement !== document.body) {
         document.body.appendChild(lightbox);
