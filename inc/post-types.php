@@ -245,6 +245,55 @@ function boblift_register_product_category_intro_meta(): void
 }
 add_action('init', 'boblift_register_product_category_intro_meta');
 
+/**
+ * One-time move of introductions saved in the retired site-UI section categoryIntros (per language theme options) into
+ * the term meta above. Terms that already have an introduction are left alone. Keys may be the language term's slug or
+ * the English source slug.
+ */
+function boblift_migrate_category_intros_to_term_meta(): void
+{
+    if (get_option('boblift_category_intro_meta_migrated') || !taxonomy_exists('product_category')) {
+        return;
+    }
+    $languages = function_exists('pll_languages_list') ? array_values(array_filter((array) pll_languages_list(['fields' => 'slug']))) : [];
+    foreach ($languages ?: [null] as $language) {
+        if (function_exists('boblift_mls_get_raw_options') && $language !== null) {
+            $raw = boblift_mls_get_raw_options($language);
+        } else {
+            $raw = get_option('boblift_theme_options', []);
+        }
+        $intros = is_array($raw['site_ui']['categoryIntros'] ?? null) ? $raw['site_ui']['categoryIntros'] : [];
+        foreach ($intros as $slug => $intro) {
+            if (!is_array($intro)) {
+                continue;
+            }
+            $term = get_term_by('slug', sanitize_title((string) $slug), 'product_category');
+            if (!$term instanceof WP_Term) {
+                continue;
+            }
+            if ($language !== null && function_exists('pll_get_term')) {
+                $term_id = (int) pll_get_term($term->term_id, $language);
+                if ($term_id <= 0) {
+                    continue;
+                }
+            } else {
+                $term_id = (int) $term->term_id;
+            }
+            $paragraphs = array_values(array_filter(array_map(static fn($text): string => trim((string) $text), (array) ($intro['paragraphs'] ?? [])), static fn(string $text): bool => $text !== ''));
+            if ($paragraphs === [] || trim((string) get_term_meta($term_id, '_boblift_intro_text', true)) !== '') {
+                continue;
+            }
+            update_term_meta($term_id, '_boblift_intro_text', sanitize_textarea_field(implode("\n\n", $paragraphs)));
+            $title = sanitize_text_field((string) ($intro['title'] ?? ''));
+            if ($title !== '' && trim((string) get_term_meta($term_id, '_boblift_intro_title', true)) === '') {
+                update_term_meta($term_id, '_boblift_intro_title', $title);
+            }
+        }
+    }
+    update_option('boblift_category_intro_meta_migrated', 1, false);
+}
+add_action('init', 'boblift_migrate_category_intros_to_term_meta', 30);
+
 /** Paragraphs of a category introduction, split on blank lines. */
 function boblift_product_category_intro_paragraphs(string $text): array
 {
