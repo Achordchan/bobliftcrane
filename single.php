@@ -112,7 +112,7 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
                         </summary>
                         <ol class="boblift-news-toc-list border-t border-line px-4 py-3">
                             <?php foreach ($toc as $item) : ?>
-                                <li><a href="#<?php echo esc_attr($item['id']); ?>"><?php echo esc_html($item['text']); ?></a></li>
+                                <li><a href="#<?php echo esc_attr(rawurlencode((string) $item['id'])); ?>"><?php echo esc_html($item['text']); ?></a></li>
                             <?php endforeach; ?>
                         </ol>
                     </details>
@@ -160,7 +160,7 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
                                 <h2 class="text-xs font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html((string) ($article_ui['tocTitle'] ?? 'In this article')); ?></h2>
                                 <ol class="boblift-news-toc-list mt-3">
                                     <?php foreach ($toc as $item) : ?>
-                                        <li><a href="#<?php echo esc_attr($item['id']); ?>"><?php echo esc_html($item['text']); ?></a></li>
+                                        <li><a href="#<?php echo esc_attr(rawurlencode((string) $item['id'])); ?>"><?php echo esc_html($item['text']); ?></a></li>
                                     <?php endforeach; ?>
                                 </ol>
                             </nav>
