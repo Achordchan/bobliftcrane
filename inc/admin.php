@@ -1990,7 +1990,8 @@ function boblift_admin_site_ui_is_editable_scalar(string $key, mixed $value): bo
     if (!is_scalar($value)) {
         return false;
     }
-    if (in_array($key, ['id', 'href', 'url', 'src', 'path', 'slug', 'icon', 'iconName', 'relatedArticleCount', 'galleryImageCount'], true)) {
+    // `key` fields are lookup keys (factory tour stops, service guides ...), not copy: editing one would break the lookup.
+    if (in_array($key, ['id', 'key', 'href', 'url', 'src', 'path', 'slug', 'icon', 'iconName', 'relatedArticleCount', 'galleryImageCount'], true)) {
         return false;
     }
     $text = trim((string) $value);
@@ -2339,6 +2340,10 @@ function boblift_global_settings_page(): void
         <?php
         // Without an uploaded image the banner shows the built-in photo, so preview that one.
         // A saved custom path or URL is kept; only an empty path or the retired default image shows the built-in photo.
+        // A string setting (custom URL or theme path) is the same as an image setting with that path.
+        if (is_string($product_archive['image'] ?? null)) {
+            $product_archive['image'] = ['id' => 0, 'path' => trim($product_archive['image'])];
+        }
         $saved_banner_path = trim((string) ($product_archive['image']['path'] ?? ''));
         if ((int) ($product_archive['image']['id'] ?? 0) <= 0 && ($saved_banner_path === '' || $saved_banner_path === 'images/products/truck-mounted-crane.png')) {
             $product_archive['image'] = ['id' => 0, 'path' => 'images/product-banners/default.jpg'];
