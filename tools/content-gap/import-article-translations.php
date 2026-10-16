@@ -168,7 +168,7 @@ function bl_translation_schema(array $schema, int $id, string $lang, string $tit
         }
         if (($node['@type'] ?? '') === 'BreadcrumbList') {
             $node['itemListElement'] = [
-                ['@type' => 'ListItem', 'position' => 1, 'name' => $home_label, 'item' => trailingslashit((string) pll_home_url($lang))],
+                ['@type' => 'ListItem', 'position' => 1, 'name' => $home_label, 'item' => (string) pll_home_url($lang)],
                 ['@type' => 'ListItem', 'position' => 2, 'name' => $news_label, 'item' => $news_url],
                 ['@type' => 'ListItem', 'position' => 3, 'name' => $title, 'item' => $url],
             ];
