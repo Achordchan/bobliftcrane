@@ -17,7 +17,7 @@ $cases = [
     ['www.bobliftcrane.com', '/truck-mounted-35-meter-aerial-work-platform-pd517525938.html', null],
     ['www.bobliftcrane.com', '/about.html', null],
     ['www.bobliftcrane.com', '/', null],
-    ['www.bobliftcrane.com', '/marine-crane-buying-guide', null], // disabled until the article is migrated
+    ['www.bobliftcrane.com', '/marine-crane-buying-guide', 'https://www.bobliftcrane.com/marine-crane-buying-guide.html'], // article imported by tools/content-gap
     ['www.bobliftcrane.com', '/Company-News.html', null],
     ['fr.bobliftcrane.com', '/', 'https://www.bobliftcrane.com/'],
     ['fr.bobliftcrane.com', '/Grue-camion-id46288356.html', 'https://www.bobliftcrane.com/news.html'],

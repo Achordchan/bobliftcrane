@@ -5,6 +5,8 @@
   python3 tools/legacy-redirects/check.py --base https://203.0.113.10 --host www.bobliftcrane.com   # before DNS is switched
 
 Expects each enabled rule to answer 301 with a Location whose path matches the rule's target, and follows the target on the new site once to make sure it returns 200.
+Rules marked "expect_live" are fallbacks for pages imported by tools/content-gap: once imported, the page itself
+is served, so the source path must answer 200 directly (a 301 means the import is missing).
 """
 import argparse, http.client, json, ssl, sys
 from pathlib import Path
@@ -32,6 +34,11 @@ for rule in cfg['rules']:
         continue
     status, loc = get(rule['from'].replace(' ', '%20'))
     want = rule['to']
+    if rule.get('expect_live'):
+        if status != 200:
+            bad += 1
+            print(f"FAIL {rule['from']} -> {status} {loc} (want 200: imported page)")
+        continue
     ok = status == 301 and (loc.endswith(want) if want.startswith('/') else loc.rstrip('/') == want.rstrip('/'))
     if ok and want.startswith('/'):
         final, _ = get(want)
