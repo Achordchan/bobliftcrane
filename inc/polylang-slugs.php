@@ -7,6 +7,25 @@
  * is in a different language than the post being saved, the original slug is kept. Works on posts, pages and custom
  * post types.
  */
+/**
+ * The "lang" a REST request carries, wherever it was sent (query string, form or JSON body); null outside REST.
+ * $_REQUEST misses a JSON body, so the parsed request is remembered before the post is saved.
+ */
+function boblift_rest_incoming_language(?WP_REST_Request $request = null, bool $store = false): ?string
+{
+    static $language = null;
+    if ($store) {
+        $value = $request ? $request->get_param('lang') : null;
+        $language = is_string($value) ? $value : null;
+    }
+    return $language;
+}
+
+add_filter('rest_request_before_callbacks', static function ($response, $handler, WP_REST_Request $request) {
+    boblift_rest_incoming_language($request, true);
+    return $response;
+}, 10, 3);
+
 add_filter('wp_unique_post_slug', static function (string $slug, int $post_id, string $post_status, string $post_type, int $post_parent, string $original_slug): string {
     if ($slug === $original_slug || $post_type === 'attachment' || !function_exists('pll_get_post_language') || !function_exists('pll_languages_list')) {
         return $slug;
@@ -23,7 +42,7 @@ add_filter('wp_unique_post_slug', static function (string $slug, int $post_id, s
     }
     // While a save changes the post's language (classic editor field or REST "lang"), the stored language is stale, so the
     // shared slug is only allowed when the incoming language is the stored one.
-    foreach ([$_POST['post_lang_choice'] ?? null, $_REQUEST['lang'] ?? null] as $incoming) {
+    foreach ([$_POST['post_lang_choice'] ?? null, $_REQUEST['lang'] ?? null, boblift_rest_incoming_language()] as $incoming) {
         if (is_string($incoming) && !in_array($incoming, ['', 'all'], true) && sanitize_key($incoming) !== $language) {
             return $slug;
         }
