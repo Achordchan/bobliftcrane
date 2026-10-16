@@ -26,6 +26,30 @@ add_filter('rest_request_before_callbacks', static function ($response, $handler
     return $response;
 }, 10, 3);
 
+/** WordPress's own reasons to refuse a slug apart from another post holding it: feeds, "embed", page numbers, date archives. */
+function boblift_slug_is_reserved(string $slug, string $post_type, int $post_parent, bool $hierarchical): bool
+{
+    global $wp_rewrite;
+    $feeds = is_array($wp_rewrite->feeds ?? null) ? $wp_rewrite->feeds : [];
+    $pagination = $wp_rewrite->pagination_base ?? 'page';
+    if (in_array($slug, $feeds, true) || $slug === 'embed' || preg_match('@^(' . preg_quote($pagination, '@') . ')?\\d+$@', $slug)) {
+        return true;
+    }
+    if ($hierarchical) {
+        return (bool) apply_filters('wp_unique_post_slug_is_bad_hierarchical_slug', false, $slug, $post_type, $post_parent);
+    }
+    // Same date-archive clash core checks for posts: a two-digit month or day slug under a /%year%/ or /%monthnum%/ structure.
+    if ($post_type === 'post' && preg_match('/^\\d+$/', $slug)) {
+        $structure = (string) get_option('permalink_structure');
+        $number = (int) $slug;
+        if ((str_contains($structure, '%year%/%postname%') && $number >= 1 && $number <= 12)
+            || (str_contains($structure, '%monthnum%/%postname%') && $number >= 1 && $number <= 31)) {
+            return true;
+        }
+    }
+    return (bool) apply_filters('wp_unique_post_slug_is_bad_flat_slug', false, $slug, $post_type);
+}
+
 add_filter('wp_unique_post_slug', static function (string $slug, int $post_id, string $post_status, string $post_type, int $post_parent, string $original_slug): string {
     if ($slug === $original_slug || $post_type === 'attachment' || !function_exists('pll_get_post_language') || !function_exists('pll_languages_list')) {
         return $slug;
@@ -68,6 +92,10 @@ add_filter('wp_unique_post_slug', static function (string $slug, int $post_id, s
     }
     // No same-type holder means WordPress changed the slug for another reason (reserved word, feed or date clash): keep its choice.
     if (!$holders) {
+        return $slug;
+    }
+    // A holder in another language does not rule out WordPress's other reasons for a suffix, so check them on their own.
+    if (boblift_slug_is_reserved($original_slug, $post_type, $post_parent, is_post_type_hierarchical($post_type))) {
         return $slug;
     }
     foreach ($holders as $holder) {
