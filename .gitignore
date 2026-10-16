@@ -24,3 +24,8 @@ uploads/
 backups/
 test-results/
 tmp/
+/tools/**/*.zip
+/boblift-backups/
+/tools/content-gap/source/products/
+/tools/content-gap/source/forklift-charts/
+/tools/content-gap/source/*.zip

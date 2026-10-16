@@ -1,0 +1,118 @@
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BlogPosting",
+      "@id": "https://www.bobliftcrane.com/forklift-jib-crane-guide.html#article",
+      "headline": "Forklift Jib Crane Guide: How a Fly Jib Turns Your Forklift Into a Crane",
+      "description": "What a forklift jib crane is, how hydraulic fly jibs differ from simple fork jibs, how capacity falls with reach, and how to match one to your forklift.",
+      "image": {
+        "@type": "ImageObject",
+        "url": "https://www.bobliftcrane.com/wp-content/uploads/2026/09/4-ton-forklift-fly-jib-crane-301a3ed016-900x700.jpg",
+        "width": 900,
+        "height": 700
+      },
+      "datePublished": "2026-09-28",
+      "dateModified": "2026-09-28",
+      "author": {
+        "@id": "https://www.bobliftcrane.com/#achord"
+      },
+      "publisher": {
+        "@id": "https://www.bobliftcrane.com/#organization"
+      },
+      "mainEntityOfPage": "https://www.bobliftcrane.com/forklift-jib-crane-guide.html",
+      "keywords": "forklift jib crane, forklift fly jib crane, forklift crane attachment, forklift boom attachment",
+      "articleSection": "Industry Insight",
+      "inLanguage": "en"
+    },
+    {
+      "@type": "Person",
+      "@id": "https://www.bobliftcrane.com/#achord",
+      "name": "Achord",
+      "jobTitle": "Product Operations Director",
+      "worksFor": {
+        "@id": "https://www.bobliftcrane.com/#organization"
+      },
+      "knowsAbout": [
+        "construction machinery",
+        "forklift attachments",
+        "hydraulic cranes"
+      ]
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://www.bobliftcrane.com/#organization",
+      "name": "BOB-LIFT",
+      "url": "https://www.bobliftcrane.com/",
+      "email": "info@bobliftcrane.com"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://www.bobliftcrane.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "News",
+          "item": "https://www.bobliftcrane.com/news.html"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Forklift Jib Crane Guide: How a Fly Jib Turns Your Forklift Into a Crane",
+          "item": "https://www.bobliftcrane.com/forklift-jib-crane-guide.html"
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is the difference between a forklift jib and a forklift fly jib crane?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "A forklift jib is usually a fixed or manually extended steel boom that slips over the forks and has no hydraulics. A forklift fly jib crane is a hydraulic crane with its own cylinders and a folding, telescopic boom, powered by the forklift's hydraulic circuit. The fly jib can change boom angle and reach while loaded, so it can lift over obstacles and into pits."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can any forklift use a jib crane attachment?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. The forklift must have enough rated capacity, a suitable carriage and, for hydraulic models, an auxiliary hydraulic supply. Each BOB-LIFT model lists its matched forklift class, from 3 t trucks for the smallest model to a 10 t truck for the 7 t model. The forklift manufacturer should confirm residual capacity with the attachment fitted."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How far can a forklift jib crane reach?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "BOB-LIFT fly jib cranes have maximum working distances from 5.4 m on the 2.3 ton model to 15.2 m on the 7 ton model. Capacity at full reach is much lower than the rated maximum, so always check the load chart for the distance you need."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do I need approval to fit a jib crane to my forklift?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "In the United States, yes. OSHA 29 CFR 1910.178(a)(4) requires the forklift manufacturer's prior written approval for additions that affect capacity or safe operation, and the capacity plate must be updated. Other regions have comparable rules, so check with your local authority."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is a forklift jib crane cheaper than a truck-mounted crane?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "It is usually a lower investment because it uses a forklift you already own for travel, lift and counterweight. The total cost depends on the model size, whether the forklift needs an added auxiliary hydraulic circuit or a larger truck, mounting work, and freight. It suits on-site and indoor lifting. For a price on your configuration, request a quote with your forklift model and lifting requirement. For road travel between sites or heavier lifts at long reach, a truck mounted crane remains the better choice."
+          }
+        }
+      ]
+    }
+  ]
+}
