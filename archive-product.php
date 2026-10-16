@@ -18,7 +18,8 @@ $spec_filters = [
 // Boom type only separates knuckle and telescopic cranes; fly jibs and platforms are their own categories.
 $boom_options = array_intersect_key(function_exists('boblift_product_boom_options') ? boblift_product_boom_options() : [], ['knuckle-boom' => true, 'telescopic-boom' => true]);
 $in_bin = static function (float $number, string $bin): bool {
-    preg_match_all('/\d+(?:\.\d+)?/', $bin, $matches);
+    // Bin keys write decimals with "_" (no dots in settings paths).
+    preg_match_all('/\d+(?:\.\d+)?/', str_replace('_', '.', $bin), $matches);
     $min = (float) ($matches[0][0] ?? 0);
     $max = isset($matches[0][1]) ? (float) $matches[0][1] : null;
     return $number > 0 && $number > $min && ($max === null || $number <= $max);

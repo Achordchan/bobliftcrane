@@ -1443,6 +1443,28 @@ function boblift_site_ui_legacy_overrides(array $saved): array
         $overrides['newsArticle']['authorName'] = $source;
         $overrides['newsArticle']['authorText'] = '';
     }
+
+    // Saved capacity ranges ("1 - 2 tons" => label) become capacity bins ("1-2" => label) until the bins themselves are saved.
+    $archive = $section('productArchive');
+    if (!array_key_exists('capacityBins', $archive) && is_array($archive['capacityRanges'] ?? null)) {
+        $bins = [];
+        foreach ($archive['capacityRanges'] as $range) {
+            if (!is_array($range)) {
+                continue;
+            }
+            $label = trim((string) ($range['label'] ?? ''));
+            if (!preg_match('/^\s*(\d+(?:\.\d+)?)\s*(?:(?:-|–|—|to)\s*(\d+(?:\.\d+)?)|(\+))/u', (string) ($range['value'] ?? ''), $match)) {
+                continue;
+            }
+            // Bin keys hold no dots (the settings editor addresses fields by dotted paths), so decimals use "_".
+            $min = str_replace('.', '_', $match[1]);
+            $key = ($match[3] ?? '') === '+' ? $min . '+' : $min . '-' . str_replace('.', '_', $match[2]);
+            $bins[$key] = $label !== '' ? $label : $key;
+        }
+        if ($bins !== []) {
+            $overrides['productArchive']['capacityBins'] = $bins;
+        }
+    }
     return $overrides;
 }
 
@@ -1458,7 +1480,16 @@ function boblift_site_ui(?string $section = null): array
         // boblift_option() already merges the defaults in; the legacy carry-over needs what was actually stored.
         $raw = function_exists('boblift_mls_get_raw_options') ? boblift_mls_get_raw_options($language !== 'default' ? $language : null) : get_option('boblift_theme_options', []);
         $raw_site_ui = is_array($raw['site_ui'] ?? null) ? $raw['site_ui'] : [];
-        $merged = array_replace_recursive($merged, boblift_site_ui_legacy_overrides($raw_site_ui));
+        $overrides = boblift_site_ui_legacy_overrides($raw_site_ui);
+        $merged = array_replace_recursive($merged, $overrides);
+        // Saved (or migrated) filter bins replace the default list rather than merging into it: their keys are the ranges.
+        $raw_archive = is_array($raw_site_ui['productArchive'] ?? null) ? $raw_site_ui['productArchive'] : [];
+        foreach (['capacityBins', 'momentBins', 'weightBins'] as $bins_key) {
+            $bins = $overrides['productArchive'][$bins_key] ?? $raw_archive[$bins_key] ?? null;
+            if (is_array($bins) && $bins !== []) {
+                $merged['productArchive'][$bins_key] = $bins;
+            }
+        }
         $cache[$language] = boblift_localize_static_value($merged, $language);
     }
     return $section ? ($cache[$language][$section] ?? []) : $cache[$language];

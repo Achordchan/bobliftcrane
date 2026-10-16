@@ -2164,8 +2164,10 @@ function boblift_admin_site_ui_fields(array $defaults, array $values, string $pa
             } else {
                 $subpanel_label = boblift_admin_site_ui_array_label($key_string, $default_value);
                 $meta = boblift_admin_site_ui_array_meta(is_array($current) ? $current : $default_value);
-                boblift_admin_site_ui_panel($subpanel_label, $key_string, $field_path, static function () use ($default_value, $current, $field_path, $depth): void {
-                    boblift_admin_site_ui_fields($default_value, is_array($current) ? $current : [], $field_path, $depth + 1);
+                // Filter bins are edited as saved (their keys are the ranges), so ranges other than the defaults stay editable.
+                $fields = str_ends_with($key_string, 'Bins') && is_array($current) && $current !== [] ? $current : $default_value;
+                boblift_admin_site_ui_panel($subpanel_label, $key_string, $field_path, static function () use ($fields, $current, $field_path, $depth): void {
+                    boblift_admin_site_ui_fields($fields, is_array($current) ? $current : [], $field_path, $depth + 1);
                 }, 'boblift-admin-card boblift-admin-subpanel boblift-site-ui-panel', $meta);
             }
             continue;
@@ -2350,7 +2352,10 @@ function boblift_global_settings_page(): void
         <?php $site_ui_values = is_array($options['site_ui'] ?? null) ? $options['site_ui'] : []; ?>
         <?php // Prefill the fields that replaced customised old copy, so a save keeps that copy (see boblift_site_ui_legacy_overrides()). ?>
         <?php $raw_site_ui = boblift_admin_raw_options_for_language(boblift_admin_current_language())['site_ui'] ?? []; ?>
-        <?php $site_ui_values = function_exists('boblift_site_ui_legacy_overrides') ? array_replace_recursive($site_ui_values, boblift_site_ui_legacy_overrides(is_array($raw_site_ui) ? $raw_site_ui : [])) : $site_ui_values; ?>
+        <?php $site_ui_overrides = function_exists('boblift_site_ui_legacy_overrides') ? boblift_site_ui_legacy_overrides(is_array($raw_site_ui) ? $raw_site_ui : []) : []; ?>
+        <?php $site_ui_values = array_replace_recursive($site_ui_values, $site_ui_overrides); ?>
+        <?php // Capacity bins migrated from the old ranges replace the default list rather than merging into it. ?>
+        <?php if (isset($site_ui_overrides['productArchive']['capacityBins'])) { $site_ui_values['productArchive']['capacityBins'] = $site_ui_overrides['productArchive']['capacityBins']; } ?>
         <div class="boblift-site-ui-editor">
             <?php boblift_admin_site_ui_fields($site_ui_defaults, $site_ui_values); ?>
         </div>

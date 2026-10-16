@@ -617,13 +617,17 @@ function boblift_about_page_options(): array
     // Saved menus in every language still list retired pages and pages that now live under Services, News or the
     // top-level Contact link; drop them so the About menu keeps to the company pages.
     if (is_array($options['secondary_nav'] ?? null)) {
-        $options['secondary_nav'] = array_values(array_filter($options['secondary_nav'], static function ($item): bool {
+        $skip = array_merge(boblift_retired_page_slugs(), boblift_about_nav_moved_slugs());
+        // A customised Public Welfare page stays published (boblift_redirect_retired_pages()), so its menu link stays too.
+        if (function_exists('boblift_public_welfare_customized') && boblift_public_welfare_customized()) {
+            $skip = array_values(array_diff($skip, ['public-welfare']));
+        }
+        $options['secondary_nav'] = array_values(array_filter($options['secondary_nav'], static function ($item) use ($skip): bool {
             if (!is_array($item)) {
                 return false;
             }
             $slug = (string) ($item['slug'] ?? '');
             $path = trim((string) wp_parse_url((string) ($item['href'] ?? ''), PHP_URL_PATH), '/');
-            $skip = array_merge(boblift_retired_page_slugs(), boblift_about_nav_moved_slugs());
             return !in_array($slug, $skip, true) && !in_array(preg_replace('/\.html$/', '', $path), $skip, true);
         }));
         // Saved menus predate newer About pages; add any default child that is missing, after the one before it. Once an
@@ -1247,7 +1251,8 @@ function boblift_build_product_menu_families(): array
             'slug' => $family_slug,
             'source_slug' => $family_source_slug,
             'title' => function_exists('boblift_localized_static_text') && !$term instanceof WP_Term ? boblift_localized_static_text($family_title) : $family_title,
-            'url' => $term instanceof WP_Term ? $term_link($term) : boblift_product_archive_url(),
+            // A synthetic family opens the archive with its group filter ticked, which selects its child categories.
+            'url' => $term instanceof WP_Term ? $term_link($term) : add_query_arg('category', rawurlencode((string) $group['slug']), boblift_product_archive_url()),
             'count' => $total,
             'icon' => $icon !== '' ? $icon : 'truck-crane',
             'photo' => boblift_product_banner_photo_url($term instanceof WP_Term ? $term : $first_child_term),

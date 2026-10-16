@@ -2979,7 +2979,7 @@
       else window.history.pushState(null, '', nextUrl);
     };
     const inAnyRange = (numberValue, ranges) => ranges.some((range) => {
-      const parts = String(range).match(/\d+(?:\.\d+)?/g) || [];
+      const parts = String(range).replace(/_/g, '.').match(/\d+(?:\.\d+)?/g) || [];
       const min = Number(parts[0] || 0);
       const max = parts[1] === undefined ? null : Number(parts[1]);
       if (max === null) return numberValue > min;

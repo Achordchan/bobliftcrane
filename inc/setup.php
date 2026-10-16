@@ -373,6 +373,16 @@ function boblift_public_welfare_customized(?string $language = null): bool
     if ($saved === []) {
         return false;
     }
+    // Settings saved untouched before this theme version still hold the old hero defaults; those are not customisations.
+    // aria_label is no longer a setting at all, so whatever it holds does not show on the page.
+    if (is_array($saved['hero'] ?? null)) {
+        unset($saved['hero']['aria_label']);
+    }
+    $old_image_alt = 'BOB-LIFT public welfare factory visit banner';
+    $old_image_alts = [$old_image_alt, function_exists('boblift_localized_static_text') ? trim(boblift_localized_static_text($old_image_alt, $language)) : $old_image_alt];
+    if (is_array($saved['hero'] ?? null) && isset($saved['hero']['image_alt']) && in_array(trim((string) $saved['hero']['image_alt']), $old_image_alts, true)) {
+        unset($saved['hero']['image_alt']);
+    }
     $defaults = boblift_public_welfare_page_defaults();
     $current = wp_json_encode(boblift_array_replace_recursive($defaults, $saved));
     $localized = function_exists('boblift_localize_static_value') ? boblift_localize_static_value($defaults, $language) : $defaults;
