@@ -21,7 +21,9 @@ function boblift_news_article_toc(string $content): array
     $decode_id = static fn(array $m): string => html_entity_decode((string) ($m[1] ?? '') . (string) ($m[2] ?? '') . (string) ($m[3] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8');
     preg_match_all($id_pattern, $content, $existing_ids, PREG_SET_ORDER);
     $used = array_fill_keys(array_map($decode_id, $existing_ids), true);
-    $content = (string) preg_replace_callback('#<h2(\s[^>]*)?>(.*?)</h2>#is', static function (array $match) use (&$items, &$used, $decode_id, $id_pattern): string {
+    // The opening tag's attributes are matched value by value, so a ">" inside a quoted value does not end the tag.
+    $h2_pattern = '#<h2((?:\s+[^\s=>/"\']+(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s"\'>]+))?)*)\s*>(.*?)</h2>#is';
+    $content = (string) preg_replace_callback($h2_pattern, static function (array $match) use (&$items, &$used, $decode_id, $id_pattern): string {
         $attributes = (string) ($match[1] ?? '');
         $text = trim(html_entity_decode(wp_strip_all_tags($match[2]), ENT_QUOTES, 'UTF-8'));
         if ($text === '') {
@@ -37,7 +39,8 @@ function boblift_news_article_toc(string $content): array
             for ($n = 2; isset($used[$id]); $n++) {
                 $id = $base . '-' . $n;
             }
-            $attributes .= ' id="' . esc_attr($id) . '"';
+            // An empty id attribute is replaced, not left in front of the generated one.
+            $attributes = (string) preg_replace($id_pattern, '', $attributes) . ' id="' . esc_attr($id) . '"';
         }
         $used[$id] = true;
         $items[] = ['id' => $id, 'text' => $text];
