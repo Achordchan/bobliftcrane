@@ -26,8 +26,8 @@ $grid_total = count($paged_items);
 $pagination_base = function_exists('boblift_url') ? boblift_url('/global-customer-visits.html') : home_url('/global-customer-visits.html');
 ?>
 <section class="relative overflow-hidden bg-[linear-gradient(180deg,#F8FAFC_0%,#FFFFFF_62%,#F8FAFC_100%)] py-12 md:py-16 lg:py-20">
-    <div class="pointer-events-none absolute -left-28 top-20 h-80 w-80 rounded-full bg-blue-500/10 blur-3xl"></div>
-    <div class="pointer-events-none absolute -right-28 bottom-8 h-80 w-80 rounded-full bg-blue-500/8 blur-3xl"></div>
+    <div class="pointer-events-none absolute -start-28 top-20 h-80 w-80 rounded-full bg-blue-500/10 blur-3xl"></div>
+    <div class="pointer-events-none absolute -end-28 bottom-8 h-80 w-80 rounded-full bg-blue-500/8 blur-3xl"></div>
     <div class="page-shell relative">
         <div class="mx-auto max-w-[2200px] py-6 text-center md:py-8 lg:py-10">
             <p class="section-label mb-6 justify-center"><?php echo esc_html((string) ($visits['label'] ?? 'Global Customer Visits')); ?></p>

@@ -61,7 +61,7 @@ $map_link_url = 'https://www.google.com/maps/search/?api=1&query=' . $map_query;
         </div>
         <div class="relative mt-6 overflow-hidden rounded-[28px] border border-blue-100 bg-[#eef5ff]">
             <iframe class="w-full bg-[#eef5ff]" style="height:min(430px,62vw);min-height:300px" src="about:blank" data-lazy-iframe-src="<?php echo esc_url($map_embed_url); ?>" title="<?php echo esc_attr((string) ($ui['mapTitle'] ?? 'BOB-LIFT factory location map')); ?>" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-            <a class="absolute bottom-4 left-4 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-white/95 px-4 text-xs font-black text-navy shadow-[0_14px_36px_rgba(8,35,74,0.14)] backdrop-blur transition hover:-translate-y-0.5 hover:text-blue-700" href="<?php echo esc_url($map_link_url); ?>" target="_blank" rel="noreferrer"><?php echo boblift_icon('map-pin', 'h-4 w-4'); ?> <?php echo esc_html((string) ($ui['viewMapLabel'] ?? 'View on map')); ?></a>
+            <a class="absolute bottom-4 start-4 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-white/95 px-4 text-xs font-black text-navy shadow-[0_14px_36px_rgba(8,35,74,0.14)] backdrop-blur transition hover:-translate-y-0.5 hover:text-blue-700" href="<?php echo esc_url($map_link_url); ?>" target="_blank" rel="noreferrer"><?php echo boblift_icon('map-pin', 'h-4 w-4'); ?> <?php echo esc_html((string) ($ui['viewMapLabel'] ?? 'View on map')); ?></a>
         </div>
     </article>
 </section>

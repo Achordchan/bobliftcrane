@@ -5,6 +5,8 @@ module.exports = {
     './template-parts/**/*.php',
     './assets/js/**/*.js'
   ],
+  // Used by stored page content outside the scanned templates.
+  safelist: ['inline-block'],
   theme: {
     extend: {
       colors: {

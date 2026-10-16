@@ -97,7 +97,7 @@ $total_links = count($core_pages) + count($product_categories) + count($products
                     <p class="mt-6 max-w-3xl text-base font-semibold leading-8 text-slate-600 md:text-lg"><?php echo esc_html((string) ($sitemap_ui['description'] ?? 'Browse main pages, product ranges, news and customer cases from one structured index.')); ?></p>
                 </div>
                 <div class="grid w-fit grid-cols-2 overflow-hidden rounded-[26px] border border-blue-100 bg-white shadow-[0_16px_42px_rgba(8,35,74,0.06)]">
-                    <div class="border-r border-blue-100 px-6 py-5 text-center">
+                    <div class="border-e border-blue-100 px-6 py-5 text-center">
                         <span class="block text-3xl font-black text-navy"><?php echo esc_html((string) $total_links); ?></span>
                         <span class="mt-1 block text-[11px] font-black uppercase tracking-[0.16em] text-slate-400"><?php echo esc_html((string) ($sitemap_ui['links_label'] ?? 'Links')); ?></span>
                     </div>

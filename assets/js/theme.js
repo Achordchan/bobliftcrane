@@ -1485,7 +1485,7 @@
         <div class="min-w-0 self-center">
           <h3 class="line-clamp-2 text-xs font-black leading-4 text-ink">${escapeInquiryText(item.title)}</h3>
         </div>
-        <button class="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full border border-line bg-white/95 text-slate-500 opacity-100 shadow-sm backdrop-blur transition hover:border-red-100 hover:bg-red-50 hover:text-red-600 focus:opacity-100 focus:outline-none focus:ring-4 focus:ring-red-100 md:opacity-0 md:group-hover:opacity-100" type="button" data-inquiry-product-remove="${index}" aria-label="${escapeInquiryText(removeLabelTemplate.replace('{product}', item.title || ''))}">
+        <button class="absolute end-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full border border-line bg-white/95 text-slate-500 opacity-100 shadow-sm backdrop-blur transition hover:border-red-100 hover:bg-red-50 hover:text-red-600 focus:opacity-100 focus:outline-none focus:ring-4 focus:ring-red-100 md:opacity-0 md:group-hover:opacity-100" type="button" data-inquiry-product-remove="${index}" aria-label="${escapeInquiryText(removeLabelTemplate.replace('{product}', item.title || ''))}">
           <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </button>
       `;
@@ -2144,11 +2144,14 @@
     const grids = qsa('[data-product-grid-panel]', root);
     const previous = qs('[data-product-scroll="prev"]', root);
     const next = qs('[data-product-scroll="next"]', root);
+    // In RTL pages scrollLeft runs from 0 towards negative values, so work with the distance and flip the step.
+    const scrollDirection = () => (scroller && getComputedStyle(scroller).direction === 'rtl' ? -1 : 1);
     const updateScrollButtons = () => {
       if (!scroller) return;
       const max = scroller.scrollWidth - scroller.clientWidth;
-      if (previous) previous.disabled = scroller.scrollLeft <= 2;
-      if (next) next.disabled = scroller.scrollLeft >= max - 2;
+      const offset = Math.abs(scroller.scrollLeft);
+      if (previous) previous.disabled = offset <= 2;
+      if (next) next.disabled = offset >= max - 2;
     };
     const setTab = (index) => {
       tabs.forEach((tab, current) => {
@@ -2166,8 +2169,8 @@
       grids.forEach((panel, current) => panel.classList.toggle('hidden', current !== index));
     };
     tabs.forEach((tab) => tab.addEventListener('click', () => setTab(Number(tab.dataset.productCategoryTab || 0))));
-    previous?.addEventListener('click', () => scroller?.scrollBy({ left: -Math.min(scroller.clientWidth * 0.72, 620), behavior: 'smooth' }));
-    next?.addEventListener('click', () => scroller?.scrollBy({ left: Math.min(scroller.clientWidth * 0.72, 620), behavior: 'smooth' }));
+    previous?.addEventListener('click', () => scroller?.scrollBy({ left: -scrollDirection() * Math.min(scroller.clientWidth * 0.72, 620), behavior: 'smooth' }));
+    next?.addEventListener('click', () => scroller?.scrollBy({ left: scrollDirection() * Math.min(scroller.clientWidth * 0.72, 620), behavior: 'smooth' }));
     scroller?.addEventListener('scroll', updateScrollButtons, { passive: true });
     updateScrollButtons();
     window.requestAnimationFrame(updateScrollButtons);
@@ -2595,7 +2598,7 @@
     const updateQuickStatusBadge = (status) => {
       if (!quickStatusBadge) return;
       const normalizedStatus = ['in-stock', 'best-seller', 'customizable', 'pre-order'].includes(status) ? status : 'customizable';
-      quickStatusBadge.className = `absolute left-6 top-6 z-20 inline-flex items-center gap-2 rounded-full bg-white/92 py-2 pl-3 pr-5 text-sm font-black leading-none ${statusBadgeClass(normalizedStatus)} shadow-[0_14px_32px_rgba(8,35,74,0.12)] ring-1 ring-[#E5E7EB] backdrop-blur`;
+      quickStatusBadge.className = `absolute start-6 top-6 z-20 inline-flex items-center gap-2 rounded-full bg-white/92 py-2 ps-3 pe-5 text-sm font-black leading-none ${statusBadgeClass(normalizedStatus)} shadow-[0_14px_32px_rgba(8,35,74,0.12)] ring-1 ring-[#E5E7EB] backdrop-blur`;
       const template = qs(`[data-quick-status-template="${normalizedStatus}"]`, root);
       if (quickStatusIcon && template) quickStatusIcon.innerHTML = template.innerHTML;
     };

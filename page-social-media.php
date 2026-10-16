@@ -61,7 +61,7 @@ $content_cards = array_values(array_filter(is_array($social_page['content_cards'
 $panel_items = array_values(array_filter(is_array($panel['items'] ?? null) ? $panel['items'] : [], static fn($row): bool => is_array($row) && trim((string) ($row['text'] ?? '')) !== ''));
 ?>
 <section class="relative overflow-hidden bg-[linear-gradient(180deg,#F8FAFC_0%,#FFFFFF_68%,#F8FAFC_100%)] py-10 md:py-14 lg:py-20">
-    <div class="pointer-events-none absolute -left-28 top-16 h-80 w-80 rounded-full bg-blue-500/10 blur-3xl"></div>
+    <div class="pointer-events-none absolute -start-28 top-16 h-80 w-80 rounded-full bg-blue-500/10 blur-3xl"></div>
     <div class="page-shell relative">
         <div class="grid gap-8 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)] lg:items-center xl:gap-12">
             <div>
@@ -79,7 +79,7 @@ $panel_items = array_values(array_filter(is_array($panel['items'] ?? null) ? $pa
             <div class="relative min-h-[360px] overflow-hidden rounded-[34px] border border-[#DDE7F2] bg-white shadow-[0_28px_90px_rgba(11,27,51,0.10)] lg:min-h-[560px]">
                 <?php echo boblift_img_from_setting($hero['image'] ?? boblift_image_option('images/social-media/social-media-hero-factory.webp'), 'images/social-media/social-media-hero-factory.webp', (string) ($hero['image_alt'] ?? 'BOB-LIFT factory official social media updates'), 'absolute inset-0 h-full w-full object-cover object-center', ['loading' => 'eager', 'decoding' => 'async', 'fetchpriority' => 'high']); ?>
                 <div class="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.04)_0%,rgba(11,27,51,0.20)_56%,rgba(11,27,51,0.48)_100%)]"></div>
-                <div class="absolute bottom-5 right-5 w-[min(360px,calc(100%-40px))] rounded-[26px] border border-white/35 bg-[#08234A]/86 p-5 text-white shadow-[0_20px_54px_rgba(8,35,74,0.22)] backdrop-blur-xl md:p-6">
+                <div class="absolute bottom-5 end-5 w-[min(360px,calc(100%-40px))] rounded-[26px] border border-white/35 bg-[#08234A]/86 p-5 text-white shadow-[0_20px_54px_rgba(8,35,74,0.22)] backdrop-blur-xl md:p-6">
                     <p class="text-xl font-black tracking-[-0.04em]"><?php echo esc_html((string) ($panel['title'] ?? 'Official Channels')); ?></p>
                     <?php if ($panel_items !== []) : ?>
                         <div class="mt-4 grid gap-3 text-sm font-semibold text-white/86">
@@ -182,7 +182,7 @@ $panel_items = array_values(array_filter(is_array($panel['items'] ?? null) ? $pa
 <section class="bg-white pb-14 lg:pb-20">
     <div class="page-shell">
         <div class="relative overflow-hidden rounded-[34px] border border-[#0D4F94]/20 bg-[linear-gradient(135deg,#073A78_0%,#0B5AA8_58%,#084785_100%)] p-6 text-white shadow-[0_26px_80px_rgba(11,63,125,0.18)] md:p-8 lg:p-10">
-            <div class="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/15 blur-3xl"></div>
+            <div class="pointer-events-none absolute -end-24 -top-24 h-72 w-72 rounded-full bg-white/15 blur-3xl"></div>
             <div class="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                     <span class="mb-5 block h-1 w-16 rounded-full bg-[#F5A23A]"></span>

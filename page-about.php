@@ -58,9 +58,9 @@ $about_aerial_end_alt = (string) ($logo['aerial_end_alt'] ?? 'BOB-LIFT factory a
                 <p class="mx-auto mt-5 max-w-[760px] text-sm font-semibold leading-7 text-[#64748B] md:text-base md:leading-8"><?php echo esc_html($logo['paragraph'] ?? 'BOB-LIFT integrates crane manufacturing, engineering expertise, quality control, and global service capability to deliver reliable lifting solutions for demanding projects worldwide.'); ?></p>
                 <div class="about-proof-chips mt-7 grid gap-3 md:grid-cols-3" data-about-chips>
                     <?php foreach ($proof_chips as $chip) : ?>
-                        <div class="about-proof-chip rounded-full border border-white/70 bg-white/72 px-5 py-3 text-left shadow-[0_18px_50px_rgba(11,27,51,0.08)] backdrop-blur-xl">
+                        <div class="about-proof-chip rounded-full border border-white/70 bg-white/72 px-5 py-3 text-start shadow-[0_18px_50px_rgba(11,27,51,0.08)] backdrop-blur-xl">
                             <span class="text-xs font-black tracking-[0.22em] text-[#2563EB]"><?php echo esc_html($chip['number'] ?? ''); ?></span>
-                            <span class="ml-3 text-sm font-black text-[#0B1B33]"><?php echo esc_html($chip['label'] ?? ''); ?></span>
+                            <span class="ms-3 text-sm font-black text-[#0B1B33]"><?php echo esc_html($chip['label'] ?? ''); ?></span>
                         </div>
                     <?php endforeach; ?>
                 </div>
@@ -86,7 +86,7 @@ $about_aerial_end_alt = (string) ($logo['aerial_end_alt'] ?? 'BOB-LIFT factory a
             </div>
             <div class="grid border-t border-[#E5E7EB] md:grid-cols-2 xl:grid-cols-4">
                 <?php foreach ($manufacturing_cards as $index => $card) : ?>
-                    <article class="about-manufacturing-capability border-b border-[#E5E7EB] p-6 last:border-b-0 md:[&:nth-child(2n)]:border-r-0 md:border-r xl:border-b-0 xl:[&:nth-child(2n)]:border-r xl:last:border-r-0 lg:p-8">
+                    <article class="about-manufacturing-capability border-b border-[#E5E7EB] p-6 last:border-b-0 md:[&:nth-child(2n)]:border-e-0 md:border-e xl:border-b-0 xl:[&:nth-child(2n)]:border-e xl:last:border-e-0 lg:p-8">
                         <span class="text-xs font-black tracking-[0.22em] text-[#2563EB]"><?php echo esc_html(str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT)); ?></span>
                         <h3 class="mt-5 text-xl font-black tracking-[-0.04em] text-[#0B1B33]"><?php echo esc_html($card['title'] ?? ''); ?></h3>
                         <p class="mt-3 text-sm font-semibold leading-6 text-[#64748B]"><?php echo esc_html($card['text'] ?? ''); ?></p>
@@ -100,7 +100,7 @@ $about_aerial_end_alt = (string) ($logo['aerial_end_alt'] ?? 'BOB-LIFT factory a
 <section class="bg-[#fbfdff] pb-4 lg:pb-6">
     <div class="page-shell">
         <div class="relative overflow-hidden rounded-[34px] border border-line/80 bg-white p-5 shadow-[0_24px_90px_rgba(8,35,74,0.07)] lg:p-8">
-            <div class="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-blue-500/8 blur-3xl"></div>
+            <div class="pointer-events-none absolute -end-24 -top-24 h-72 w-72 rounded-full bg-blue-500/8 blur-3xl"></div>
             <div class="relative z-10 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
                 <div>
                     <p class="section-label mb-4"><?php echo esc_html($timeline['label'] ?? 'Development Timeline'); ?></p>
@@ -108,16 +108,16 @@ $about_aerial_end_alt = (string) ($logo['aerial_end_alt'] ?? 'BOB-LIFT factory a
                 </div>
             </div>
             <div class="relative z-10 mt-9">
-                <div class="absolute left-[8%] right-[8%] top-5 hidden h-px bg-[linear-gradient(90deg,transparent,#c9d6e8_12%,#c9d6e8_88%,transparent)] lg:block"></div>
+                <div class="absolute start-[8%] end-[8%] top-5 hidden h-px bg-[linear-gradient(90deg,transparent,#c9d6e8_12%,#c9d6e8_88%,transparent)] lg:block"></div>
                 <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
                     <?php foreach ($timeline_items as $index => $item) : $year = (string) ($item['year'] ?? ''); $title = (string) ($item['title'] ?? ''); ?>
                         <article class="relative pt-12">
-                            <span class="absolute left-5 top-0 hidden size-10 place-items-center rounded-full border border-gold/35 bg-white text-sm font-black text-gold shadow-[0_14px_36px_rgba(8,35,74,0.08)] lg:grid"><?php echo esc_html(str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT)); ?></span>
+                            <span class="absolute start-5 top-0 hidden size-10 place-items-center rounded-full border border-gold/35 bg-white text-sm font-black text-gold shadow-[0_14px_36px_rgba(8,35,74,0.08)] lg:grid"><?php echo esc_html(str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT)); ?></span>
                             <div class="h-full overflow-hidden rounded-[26px] border border-line/80 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] shadow-[0_18px_60px_rgba(8,35,74,0.055)]">
                                 <div class="relative h-32 overflow-hidden bg-[#eef5ff]">
                                     <?php echo boblift_img_from_setting($item['image'] ?? [], 'images/factory-workshop.jpg', $title, 'absolute inset-0 h-full w-full object-cover'); ?>
                                     <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0)_42%,rgba(8,35,74,0.18)_100%)]"></div>
-                                    <span class="absolute left-4 top-4 rounded-full bg-white/88 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-gold shadow-[0_10px_24px_rgba(8,35,74,0.08)] lg:hidden"><?php echo esc_html($about_ui['stepLabel'] ?? 'Step'); ?> <?php echo esc_html((string) ($index + 1)); ?></span>
+                                    <span class="absolute start-4 top-4 rounded-full bg-white/88 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-gold shadow-[0_10px_24px_rgba(8,35,74,0.08)] lg:hidden"><?php echo esc_html($about_ui['stepLabel'] ?? 'Step'); ?> <?php echo esc_html((string) ($index + 1)); ?></span>
                                 </div>
                                 <div class="p-5">
                                     <strong class="block text-[34px] font-black leading-[1.02] tracking-[-0.035em] text-ink"><?php echo esc_html($year); ?></strong>
@@ -140,7 +140,7 @@ $about_aerial_end_alt = (string) ($logo['aerial_end_alt'] ?? 'BOB-LIFT factory a
             <div class="about-executive-flip relative" data-executive-flip>
                 <div class="about-executive-card relative overflow-hidden rounded-[42px] border border-[#E5E7EB] bg-white p-5 shadow-[0_34px_120px_rgba(11,27,51,0.10)] md:p-7 lg:p-8 2xl:p-10" data-executive-card>
                 <div class="about-executive-aura pointer-events-none absolute inset-0"></div>
-                <div class="about-executive-watermark pointer-events-none absolute -right-10 top-4 text-[clamp(72px,12vw,230px)] font-black leading-none tracking-[-0.11em] text-[#0B3F7D]/[0.055]" data-executive-watermark><?php echo esc_html($about_ui['leadershipWatermark'] ?? 'LEADERSHIP'); ?></div>
+                <div class="about-executive-watermark pointer-events-none absolute -end-10 top-4 text-[clamp(72px,12vw,230px)] font-black leading-none tracking-[-0.11em] text-[#0B3F7D]/[0.055]" data-executive-watermark><?php echo esc_html($about_ui['leadershipWatermark'] ?? 'LEADERSHIP'); ?></div>
                 <div class="relative z-10 mb-6 grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-end">
                     <div data-executive-copy-item>
                         <p class="mb-4 text-xs font-black uppercase tracking-[0.42em] text-[#0B3F7D]"><?php echo esc_html($executives['label'] ?? 'Executive Leadership'); ?></p>
