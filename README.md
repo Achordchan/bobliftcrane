@@ -24,6 +24,24 @@ npm run build:css
 
 WordPress 运行时只加载 `assets/css/theme.css` 和 `assets/js/theme.js`，不依赖 Node 或 React 运行服务。
 
+## 本地启动
+
+先确保 Homebrew MySQL 已运行，再从任意目录执行启动脚本：
+
+```bash
+brew services start mysql
+./start.sh
+```
+
+默认访问 `http://localhost:8080`。可以传入端口，或使用 `PORT` 和 `HOST` 环境变量：
+
+```bash
+./start.sh 8081
+PORT=8082 HOST=127.0.0.1 ./start.sh
+```
+
+日志直接显示在当前终端；按 `Ctrl+C` 或关闭终端即可停止。`npm run start:wp` 使用同一启动脚本。
+
 ## 内容结构
 
 - Products：自定义文章类型 `product`，归档路径 `/products`，详情路径 `/products/{slug}`。

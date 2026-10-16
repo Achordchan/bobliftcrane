@@ -46,6 +46,15 @@ add_filter('rewrite_rules_array', static function (array $rules): array {
         $shifted = preg_replace_callback('/\$matches\[(\d+)\]/', static fn(array $m): string => '$matches[' . ((int) $m[1] + 1) . ']', $query);
         $twins['^' . $prefix . substr($regex, 1)] = $shifted . '&lang=$matches[1]';
     }
+    // Customer feedback is language-neutral (not translated), but translated pages link to it as /ja/feedback/<slug>/.
+    // Its standard CPT rules get a prefixed twin too, without a `lang` query var so the untranslated post still matches.
+    foreach ($rules as $regex => $query) {
+        if (!str_starts_with($regex, 'feedback/') || !str_contains($query, 'feedback=')) {
+            continue;
+        }
+        $shifted = preg_replace_callback('/\$matches\[(\d+)\]/', static fn(array $m): string => '$matches[' . ((int) $m[1] + 1) . ']', $query);
+        $twins['^' . $prefix . $regex] = $shifted;
+    }
     return $twins + $rules;
 }, 20);
 

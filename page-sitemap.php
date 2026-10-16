@@ -1,148 +1,245 @@
 <?php
 /**
  * Template Name: HTML Sitemap
+ *
+ * Pages grouped by purpose, products grouped like the Products menu (family > category > product),
+ * then news and customer cases. Empty categories are left out.
  */
 get_header();
 $sitemap_ui = function_exists('boblift_sitemap_page_options') ? boblift_sitemap_page_options() : [];
+$groups_ui = boblift_site_ui('sitemapGroups');
 
-
-function boblift_sitemap_label(string $label): string
-{
+$sitemap_label = static function (string $label): string {
     if (function_exists('boblift_localize_product_text_fragments')) {
         $label = (string) boblift_localize_product_text_fragments($label);
     }
     return function_exists('boblift_localized_static_text') ? boblift_localized_static_text($label) : $label;
-}
+};
 
-function boblift_sitemap_pages(): array
-{
-    $pages = get_pages([
-        'sort_column' => 'menu_order,post_title',
-        'sort_order' => 'ASC',
-        'post_status' => 'publish',
-    ]);
-    return array_values(array_filter($pages, static fn($page): bool => $page instanceof WP_Post));
+// Pages, sorted into four columns by their English slug; anything new lands under Company.
+$page_columns = [
+    'company' => ['title' => (string) ($groups_ui['companyTitle'] ?? 'Company'), 'slugs' => ['about', 'factory-tour', 'global-customer-visits', 'social-media'], 'links' => []],
+    'services' => ['title' => (string) ($groups_ui['servicesTitle'] ?? 'Service and support'), 'slugs' => ['quality-testing', 'mounting-shipping', 'service', 'videos', 'contact'], 'links' => []],
+    'resources' => ['title' => (string) ($groups_ui['resourcesTitle'] ?? 'Products, cases and news'), 'slugs' => ['products', 'cases', 'news'], 'links' => []],
+    'legal' => ['title' => (string) ($groups_ui['legalTitle'] ?? 'Legal'), 'slugs' => ['privacy-policy', 'terms-of-use', 'sitemap'], 'links' => []],
+];
+$front_id = (int) get_option('page_on_front');
+if ($front_id > 0 && function_exists('pll_get_post')) {
+    $front_id = (int) (pll_get_post($front_id) ?: $front_id);
 }
-
-function boblift_sitemap_posts(string $post_type, int $limit = 120): array
-{
-    return get_posts([
-        'post_type' => $post_type,
-        'post_status' => 'publish',
-        'numberposts' => $limit,
-        'orderby' => 'date',
-        'order' => 'DESC',
-    ]);
-}
-
-function boblift_sitemap_terms(string $taxonomy): array
-{
-    $terms = get_terms([
-        'taxonomy' => $taxonomy,
-        'hide_empty' => false,
-        'orderby' => 'name',
-        'order' => 'ASC',
-    ]);
-    return is_wp_error($terms) ? [] : array_values(array_filter($terms, static fn($term): bool => $term instanceof WP_Term));
-}
-
-function boblift_sitemap_link_rows(array $items): array
-{
-    return array_values(array_filter($items, static function (array $item): bool {
-        return trim((string) ($item[0] ?? '')) !== '' && !is_wp_error($item[1] ?? '');
-    }));
-}
-
-function boblift_render_sitemap_block(string $title, array $links, string $columns = 'md:grid-cols-2'): void
-{
-    $links = boblift_sitemap_link_rows($links);
-    if (!$links) {
-        return;
+$pages = get_pages([
+    'sort_column' => 'menu_order,post_title',
+    'post_status' => 'publish',
+    'exclude' => function_exists('boblift_utility_page_ids') ? boblift_utility_page_ids() : [],
+]);
+$page_rows = [];
+foreach ($pages as $page) {
+    if (!$page instanceof WP_Post) {
+        continue;
     }
-    ?>
-    <section class="rounded-[30px] border border-line bg-white p-6 shadow-[0_16px_42px_rgba(8,35,74,0.055)] md:p-8">
-        <div class="mb-5 flex items-center justify-between gap-4">
-            <h2 class="text-2xl font-black tracking-[-0.035em] text-navy"><?php echo esc_html($title); ?></h2>
-            <span class="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-black text-blue-700"><?php echo esc_html((string) count($links)); ?></span>
-        </div>
-        <ul class="grid gap-2 <?php echo esc_attr($columns); ?>">
-            <?php foreach ($links as [$label, $url]) : ?>
-                <li>
-                    <a class="group flex min-h-11 items-center justify-between gap-4 rounded-2xl px-3 py-2 text-sm font-bold leading-6 text-slate-600 transition hover:bg-blue-50 hover:text-blue-700" href="<?php echo esc_url((string) $url); ?>">
-                        <span class="min-w-0"><?php echo esc_html((string) $label); ?></span>
-                        <span class="shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-blue-600" aria-hidden="true">›</span>
-                    </a>
-                </li>
-            <?php endforeach; ?>
-        </ul>
-    </section>
-    <?php
+    $english_id = function_exists('pll_get_post') ? (int) (pll_get_post($page->ID, 'en') ?: $page->ID) : $page->ID;
+    $slug = (string) get_post_field('post_name', $english_id);
+    $column = 'company';
+    $order = 99;
+    foreach ($page_columns as $key => $definition) {
+        $position = array_search($slug, $definition['slugs'], true);
+        if ($position !== false) {
+            $column = $key;
+            $order = (int) $position;
+            break;
+        }
+    }
+    if ($page->ID === $front_id) {
+        $order = -1;
+    }
+    $page_rows[] = [$column, $order, $sitemap_label(get_the_title($page)), get_permalink($page)];
+}
+usort($page_rows, static fn(array $a, array $b): int => $a[1] <=> $b[1]);
+foreach ($page_rows as [$column, , $label, $url]) {
+    $page_columns[$column]['links'][] = [$label, $url];
+}
+$page_columns = array_filter($page_columns, static fn(array $column): bool => $column['links'] !== []);
+
+// Products: one block per category that holds products, labelled with its family.
+$products_in = static function (WP_Term $term): array {
+    $posts = get_posts([
+        'post_type' => 'product',
+        'post_status' => 'publish',
+        'numberposts' => -1,
+        'tax_query' => [['taxonomy' => 'product_category', 'field' => 'term_id', 'terms' => $term->term_id, 'include_children' => false]],
+    ]);
+    usort($posts, static fn(WP_Post $a, WP_Post $b): int => strnatcasecmp($a->post_title, $b->post_title));
+    return $posts;
+};
+$product_blocks = [];
+$seen_products = [];
+$product_total = 0;
+// The sitemap follows the real category tree, whatever labels or groups the navigation menu uses.
+foreach (function_exists('boblift_build_product_menu_families') ? boblift_build_product_menu_families() : [] as $family) {
+    $family_term = get_term_by('slug', (string) ($family['slug'] ?? ''), 'product_category');
+    $family_term = $family_term instanceof WP_Term ? $family_term : null;
+    // A synthetic family (a group with no term of its own) lists the child categories of its group definition.
+    $root_terms = [];
+    if ($family_term === null && function_exists('boblift_product_category_hierarchy')) {
+        foreach (boblift_product_category_hierarchy() as $group) {
+            if ((string) ($group['slug'] ?? '') !== (string) ($family['slug'] ?? '')) {
+                continue;
+            }
+            foreach ((array) ($group['children'] ?? []) as $child) {
+                $child_term = get_term_by('slug', (string) ($child['slug'] ?? ''), 'product_category');
+                if ($child_term instanceof WP_Term) {
+                    $root_terms[] = $child_term;
+                }
+            }
+        }
+        if ($root_terms === []) {
+            continue;
+        }
+    }
+    $child_order = array_flip(array_map(static fn(array $child): string => (string) ($child['title'] ?? ''), (array) ($family['children'] ?? [])));
+    $children = $root_terms;
+    foreach ($family_term ? [$family_term] : $root_terms as $root_term) {
+        $descendants = get_terms(['taxonomy' => 'product_category', 'child_of' => $root_term->term_id, 'hide_empty' => false]); // every descendant, so products in deeper categories are listed too
+        $children = array_merge($children, is_wp_error($descendants) ? [] : array_values(array_filter($descendants, static fn($term): bool => $term instanceof WP_Term)));
+    }
+    usort($children, static fn(WP_Term $a, WP_Term $b): int => ($child_order[$sitemap_label($a->name)] ?? 99) <=> ($child_order[$sitemap_label($b->name)] ?? 99));
+    $family_title = (string) ($family['title'] ?? ($family_term ? $family_term->name : ''));
+    $family_url = (string) ($family['url'] ?? ($family_term ? get_term_link($family_term) : boblift_product_archive_url()));
+    foreach (array_merge($children, $family_term ? [$family_term] : []) as $term) {
+        $posts = array_values(array_filter($products_in($term), static fn(WP_Post $post): bool => !isset($seen_products[$post->ID])));
+        if ($posts === []) {
+            continue;
+        }
+        foreach ($posts as $post) {
+            $seen_products[$post->ID] = true;
+        }
+        $product_total += count($posts);
+        $is_family = $family_term !== null && $term->term_id === $family_term->term_id;
+        $term_url = get_term_link($term);
+        $product_blocks[] = [
+            'eyebrow' => $children !== [] || !$is_family ? $family_title : (function_exists('boblift_product_family_group_label') ? boblift_product_family_group_label((string) ($family['group'] ?? '')) : ''),
+            'eyebrow_url' => $children !== [] || !$is_family ? $family_url : '',
+            'title' => $is_family && $children !== [] ? $family_title : $sitemap_label($term->name),
+            'url' => is_string($term_url) ? $term_url : $family_url,
+            'links' => array_map(static fn(WP_Post $post): array => [$sitemap_label(get_the_title($post)), get_permalink($post)], $posts),
+        ];
+    }
 }
 
-$core_pages = boblift_sitemap_link_rows(array_map(static fn(WP_Post $page): array => [boblift_sitemap_label(get_the_title($page)), get_permalink($page)], boblift_sitemap_pages()));
-$product_categories = boblift_sitemap_link_rows(array_map(static fn(WP_Term $term): array => [boblift_sitemap_label($term->name), get_term_link($term)], boblift_sitemap_terms('product_category')));
-$products = boblift_sitemap_link_rows(array_map(static fn(WP_Post $post): array => [boblift_sitemap_label(get_the_title($post)), get_permalink($post)], boblift_sitemap_posts('product', 160)));
-$news_categories = boblift_sitemap_link_rows(array_map(static fn(WP_Term $term): array => [boblift_sitemap_label($term->name), get_term_link($term)], boblift_sitemap_terms('category')));
-$news = boblift_sitemap_link_rows(array_map(static fn(WP_Post $post): array => [boblift_sitemap_label(get_the_title($post)), get_permalink($post)], boblift_sitemap_posts('post', 80)));
-$cases = boblift_sitemap_link_rows(array_map(static fn(WP_Post $post): array => [boblift_sitemap_label(get_the_title($post)), get_permalink($post)], boblift_sitemap_posts('case', 80)));
-$total_links = count($core_pages) + count($product_categories) + count($products) + count($news_categories) + count($news) + count($cases);
+// Published products outside every listed category (category assignment is optional) still get their sitemap links.
+$unlisted_products = array_values(array_filter(get_posts(['post_type' => 'product', 'post_status' => 'publish', 'numberposts' => -1]), static fn(WP_Post $post): bool => !isset($seen_products[$post->ID])));
+if ($unlisted_products !== []) {
+    usort($unlisted_products, static fn(WP_Post $a, WP_Post $b): int => strnatcasecmp($a->post_title, $b->post_title));
+    $product_total += count($unlisted_products);
+    $product_blocks[] = [
+        'eyebrow' => '',
+        'eyebrow_url' => '',
+        'title' => function_exists('boblift_localized_static_text') ? boblift_localized_static_text('Other products') : 'Other products',
+        'url' => boblift_product_archive_url(),
+        'links' => array_map(static fn(WP_Post $post): array => [$sitemap_label(get_the_title($post)), get_permalink($post)], $unlisted_products),
+    ];
+}
+
+$news_categories = get_terms(['taxonomy' => 'category', 'hide_empty' => true, 'orderby' => 'count', 'order' => 'DESC']);
+$news_categories = is_wp_error($news_categories) ? [] : array_values(array_filter($news_categories, static fn($term): bool => $term instanceof WP_Term && $term->slug !== 'uncategorized'));
+$news = get_posts(['post_type' => 'post', 'post_status' => 'publish', 'numberposts' => 80, 'orderby' => 'date', 'order' => 'DESC']);
+$cases = get_posts(['post_type' => 'case', 'post_status' => 'publish', 'numberposts' => 80, 'orderby' => 'date', 'order' => 'DESC']);
+
+$total_links = array_sum(array_map(static fn(array $column): int => count($column['links']), $page_columns))
+    + $product_total + count($product_blocks) + count($news_categories) + count($news) + count($cases);
+
+$section_heading = static function (string $title, int $count, string $link_label = '', string $link_url = ''): void { ?>
+    <div class="mb-6 flex flex-wrap items-end justify-between gap-x-6 gap-y-2 border-b border-line pb-4">
+        <h2 class="text-[clamp(1.5rem,2.2vw,2.25rem)] font-black leading-tight tracking-[-0.015em] text-ink"><?php echo esc_html($title); ?> <span class="ml-1 align-middle text-sm font-bold tabular-nums text-slate-400"><?php echo esc_html((string) $count); ?></span></h2>
+        <?php if ($link_label !== '') : ?>
+            <a class="inline-flex items-center gap-2 text-sm font-bold text-navy transition hover:text-blue-700" href="<?php echo esc_url($link_url); ?>"><?php echo esc_html($link_label); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
+        <?php endif; ?>
+    </div>
+<?php };
 ?>
 <div class="bg-white text-ink">
-    <section class="relative overflow-hidden border-b border-line bg-[linear-gradient(135deg,#f8fbff_0%,#ffffff_58%,#edf5ff_100%)]">
-        <div class="page-shell py-14 md:py-20 2xl:py-24">
-            <p class="section-label mb-5"><?php echo esc_html((string) ($sitemap_ui['label'] ?? 'HTML Sitemap')); ?></p>
-            <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
-                <div>
-                    <h1 class="max-w-5xl text-[clamp(38px,6vw,78px)] font-black leading-[1.02] tracking-[-0.06em] text-navy"><?php echo esc_html((string) ($sitemap_ui['title'] ?? 'Find BOB-LIFT pages quickly.')); ?></h1>
-                    <p class="mt-6 max-w-3xl text-base font-semibold leading-8 text-slate-600 md:text-lg"><?php echo esc_html((string) ($sitemap_ui['description'] ?? 'Browse main pages, product ranges, news and customer cases from one structured index.')); ?></p>
-                </div>
-                <div class="grid w-fit grid-cols-2 overflow-hidden rounded-[26px] border border-blue-100 bg-white shadow-[0_16px_42px_rgba(8,35,74,0.06)]">
-                    <div class="border-e border-blue-100 px-6 py-5 text-center">
-                        <span class="block text-3xl font-black text-navy"><?php echo esc_html((string) $total_links); ?></span>
-                        <span class="mt-1 block text-[11px] font-black uppercase tracking-[0.16em] text-slate-400"><?php echo esc_html((string) ($sitemap_ui['links_label'] ?? 'Links')); ?></span>
-                    </div>
-                    <div class="px-6 py-5 text-center">
-                        <span class="block text-3xl font-black text-navy"><?php echo esc_html((string) ($sitemap_ui['auto_value'] ?? 'Auto')); ?></span>
-                        <span class="mt-1 block text-[11px] font-black uppercase tracking-[0.16em] text-slate-400"><?php echo esc_html((string) ($sitemap_ui['auto_label'] ?? 'Updated')); ?></span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+    <div class="page-shell pt-5 md:pt-8">
+        <?php
+        boblift_page_hero([
+            'label' => (string) ($sitemap_ui['label'] ?? 'HTML Sitemap'),
+            'title' => (string) ($sitemap_ui['title'] ?? 'Find BOB-LIFT pages quickly.'),
+            'text' => (string) ($sitemap_ui['description'] ?? ''),
+            'meta' => $total_links . ' ' . (string) ($sitemap_ui['links_label'] ?? 'Links'),
+            'image' => 'images/factory/aerial-site.webp',
+            'image_alt' => (string) ($sitemap_ui['title'] ?? ''),
+            'image_position' => 'center 50%',
+        ]);
+        ?>
+    </div>
 
-    <section class="page-shell py-12 md:py-16 2xl:py-20">
-        <div class="grid gap-8">
-            <?php boblift_render_sitemap_block((string) ($sitemap_ui['core_pages_title'] ?? 'Core Pages'), $core_pages, 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'); ?>
-
-            <section class="rounded-[34px] border border-blue-100 bg-[linear-gradient(135deg,#ffffff_0%,#f8fbff_100%)] p-6 shadow-[0_18px_48px_rgba(8,35,74,0.06)] md:p-8">
-                <div class="mb-7 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+    <div class="page-shell grid gap-12 py-10 md:gap-16 md:py-14">
+        <section aria-labelledby="sitemap-pages">
+            <h2 id="sitemap-pages" class="sr-only"><?php echo esc_html((string) ($sitemap_ui['core_pages_title'] ?? 'Core Pages')); ?></h2>
+            <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-10">
+                <?php foreach ($page_columns as $column) : ?>
                     <div>
-                        <p class="section-label mb-3"><?php echo esc_html((string) ($sitemap_ui['product_range_label'] ?? 'Product Range')); ?></p>
-                        <h2 class="text-3xl font-black tracking-[-0.045em] text-navy md:text-4xl"><?php echo esc_html((string) ($sitemap_ui['product_range_title'] ?? 'Products and categories')); ?></h2>
+                        <h3 class="border-b border-line pb-3 text-xs font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html($column['title']); ?></h3>
+                        <ul class="mt-3 grid gap-1">
+                            <?php foreach ($column['links'] as [$label, $url]) : ?>
+                                <li><a class="boblift-sitemap-link inline-block text-base font-bold text-ink" href="<?php echo esc_url((string) $url); ?>"><?php echo esc_html((string) $label); ?></a></li>
+                            <?php endforeach; ?>
+                        </ul>
                     </div>
-                    <a class="inline-flex w-fit rounded-full border border-blue-100 bg-white px-5 py-3 text-sm font-black text-navy transition hover:bg-blue-50 hover:text-blue-700" href="<?php echo esc_url(boblift_url('/products.html')); ?>"><?php echo esc_html((string) ($sitemap_ui['view_products_label'] ?? 'View Products')); ?></a>
-                </div>
-                <div class="grid gap-6">
-                    <?php boblift_render_sitemap_block((string) ($sitemap_ui['product_categories_title'] ?? 'Product Categories'), $product_categories, 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'); ?>
-                    <?php boblift_render_sitemap_block((string) ($sitemap_ui['products_title'] ?? 'Products'), $products, 'sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4'); ?>
+                <?php endforeach; ?>
+            </div>
+        </section>
+
+        <?php if ($product_blocks !== []) : ?>
+            <section aria-labelledby="sitemap-products">
+                <div id="sitemap-products"><?php $section_heading((string) ($groups_ui['productsTitle'] ?? 'Products'), $product_total, (string) ($sitemap_ui['view_products_label'] ?? 'View Products'), boblift_url('/products.html')); ?></div>
+                <div class="gap-10 sm:columns-2 lg:columns-3 2xl:columns-4">
+                    <?php foreach ($product_blocks as $block) : ?>
+                        <div class="boblift-sitemap-group mb-8">
+                            <?php if ($block['eyebrow'] !== '') : ?>
+                                <p class="text-xs font-black uppercase tracking-[0.14em] text-slate-400"><?php if ($block['eyebrow_url'] !== '') : ?><a class="transition hover:text-blue-700" href="<?php echo esc_url($block['eyebrow_url']); ?>"><?php echo esc_html($block['eyebrow']); ?></a><?php else : echo esc_html($block['eyebrow']); endif; ?></p>
+                            <?php endif; ?>
+                            <h3 class="mt-1 text-lg font-black leading-snug"><a class="text-ink transition hover:text-blue-700" href="<?php echo esc_url($block['url']); ?>"><?php echo esc_html($block['title']); ?></a> <span class="text-sm font-bold tabular-nums text-slate-400"><?php echo esc_html((string) count($block['links'])); ?></span></h3>
+                            <ul class="mt-2 grid gap-0.5">
+                                <?php foreach ($block['links'] as [$label, $url]) : ?>
+                                    <li><a class="boblift-sitemap-link inline-block text-sm font-semibold text-slate-600" href="<?php echo esc_url((string) $url); ?>"><?php echo esc_html((string) $label); ?></a></li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
             </section>
+        <?php endif; ?>
 
-            <div class="grid gap-8 lg:grid-cols-2">
-                <?php boblift_render_sitemap_block((string) ($sitemap_ui['news_categories_title'] ?? 'News Categories'), $news_categories, 'grid-cols-1'); ?>
-                <?php boblift_render_sitemap_block((string) ($sitemap_ui['news_title'] ?? 'News'), $news, 'grid-cols-1'); ?>
-            </div>
+        <div class="grid gap-12 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] lg:gap-16">
+            <?php if ($news !== []) : ?>
+                <section aria-labelledby="sitemap-news">
+                    <div id="sitemap-news"><?php $section_heading((string) ($groups_ui['newsTitle'] ?? 'News'), count($news), (string) ($groups_ui['allNewsLabel'] ?? 'All news'), boblift_url('/news')); ?></div>
+                    <?php if ($news_categories !== []) : ?>
+                        <p class="mb-5 flex flex-wrap gap-x-5 gap-y-2 text-sm font-bold">
+                            <?php foreach ($news_categories as $term) : $url = get_term_link($term); if (!is_string($url)) continue; ?>
+                                <a class="text-navy transition hover:text-blue-700" href="<?php echo esc_url($url); ?>"><?php echo esc_html($sitemap_label($term->name)); ?> <span class="font-semibold tabular-nums text-slate-400"><?php echo esc_html((string) $term->count); ?></span></a>
+                            <?php endforeach; ?>
+                        </p>
+                    <?php endif; ?>
+                    <ul class="grid gap-x-10 md:grid-cols-2">
+                        <?php foreach ($news as $post) : ?>
+                            <li class="border-b border-line/70"><a class="boblift-sitemap-link flex items-baseline gap-3 py-2 text-sm font-semibold text-slate-600" href="<?php echo esc_url(get_permalink($post)); ?>"><time class="shrink-0 text-xs font-bold tabular-nums text-slate-400" datetime="<?php echo esc_attr(get_the_date('Y-m-d', $post)); ?>"><?php echo esc_html(get_the_date('Y-m', $post)); ?></time><span class="min-w-0"><?php echo esc_html($sitemap_label(get_the_title($post))); ?></span></a></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </section>
+            <?php endif; ?>
 
-            <?php boblift_render_sitemap_block((string) ($sitemap_ui['cases_title'] ?? 'Cases'), $cases, 'sm:grid-cols-2 lg:grid-cols-3'); ?>
-
-            <aside class="rounded-[30px] border border-blue-100 bg-blue-50/55 p-6 text-sm font-semibold leading-7 text-slate-600 md:p-8">
-                <h2 class="text-xl font-black tracking-[-0.03em] text-navy"><?php echo esc_html((string) ($sitemap_ui['help_title'] ?? 'How this updates')); ?></h2>
-                <div class="mt-3 grid gap-3 md:grid-cols-2">
-                    <p><strong class="text-navy"><?php echo esc_html((string) ($sitemap_ui['html_note_label'] ?? 'HTML Sitemap:')); ?></strong> <?php echo esc_html((string) ($sitemap_ui['html_note'] ?? 'generated from WordPress queries, so published pages, products, news and cases appear automatically.')); ?></p>
-                    <p><strong class="text-navy"><?php echo esc_html((string) ($sitemap_ui['xml_note_label'] ?? 'XML Sitemap:')); ?></strong> <a class="font-black text-blue-700 hover:text-blue-800" href="<?php echo esc_url(home_url('/sitemap.xml')); ?>">/sitemap.xml</a> <?php echo esc_html((string) ($sitemap_ui['xml_note'] ?? 'uses WordPress Core, or a mature SEO plugin such as Yoast SEO or Rank Math on production.')); ?></p>
-                </div>
-            </aside>
+            <?php if ($cases !== []) : ?>
+                <section aria-labelledby="sitemap-cases">
+                    <div id="sitemap-cases"><?php $section_heading((string) ($groups_ui['casesTitle'] ?? 'Customer cases'), count($cases), (string) ($groups_ui['allCasesLabel'] ?? 'All cases'), boblift_url('/cases.html')); ?></div>
+                    <ul class="grid">
+                        <?php foreach ($cases as $post) : ?>
+                            <li class="border-b border-line/70"><a class="boblift-sitemap-link block py-2 text-sm font-semibold text-slate-600" href="<?php echo esc_url(get_permalink($post)); ?>"><?php echo esc_html($sitemap_label(get_the_title($post))); ?></a></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </section>
+            <?php endif; ?>
         </div>
-    </section>
+    </div>
 </div>
 <?php get_footer(); ?>
