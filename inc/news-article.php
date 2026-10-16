@@ -63,10 +63,15 @@ function boblift_news_product_index(): array
         $args['lang'] = 'en';
     }
     foreach (get_posts($args) as $product) {
-        $models = array_filter(array_map('trim', array_merge(
-            [(string) get_post_meta($product->ID, '_model', true)],
-            preg_split('/[,;\n]+/', (string) get_post_meta($product->ID, '_model_aliases', true)) ?: []
-        )), static fn(string $model): bool => strlen($model) >= 4);
+        // Placeholder models of imported products (TRUCK-MOUNTED, Z1, a repeated product name) are not model codes.
+        $title = (string) $product->post_title;
+        $models = array_filter(array_map(
+            static fn(string $model): string => function_exists('boblift_clean_product_model') ? boblift_clean_product_model($model, $title) : trim($model),
+            array_merge(
+                [(string) get_post_meta($product->ID, '_model', true)],
+                preg_split('/[,;\n]+/', (string) get_post_meta($product->ID, '_model_aliases', true)) ?: []
+            )
+        ), static fn(string $model): bool => strlen($model) >= 4);
         // get_the_terms() reads the term cache get_posts() primed, instead of one query per product.
         $terms = get_the_terms($product, 'product_category');
         $terms = is_array($terms) ? wp_list_pluck($terms, 'slug') : [];
