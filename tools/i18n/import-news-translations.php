@@ -94,8 +94,18 @@ function bl_news_links(string $html, string $lang, array $pending = []): string 
     }, $html);
 }
 
+/** Term assignments of a post by taxonomy, so a backup can restore what an overwrite replaces. */
+function bl_news_terms(int $id): array {
+    $terms = [];
+    foreach (get_object_taxonomies(get_post_type($id)) as $taxonomy) {
+        $assigned = wp_get_object_terms($id, $taxonomy, ['fields' => 'all']);
+        $terms[$taxonomy] = is_wp_error($assigned) ? [] : array_map(static fn(WP_Term $term): array => ['term_id' => $term->term_id, 'slug' => $term->slug, 'name' => $term->name], $assigned);
+    }
+    return $terms;
+}
+
 function bl_news_backup(int $id, string $slug, string $lang): void {
-    $snapshot = wp_json_encode(['post' => get_post($id, ARRAY_A), 'meta' => get_post_meta($id)], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+    $snapshot = wp_json_encode(['post' => get_post($id, ARRAY_A), 'meta' => get_post_meta($id), 'terms' => bl_news_terms($id)], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
     $file = boblift_tools_backup_dir() . '/backup-news-i18n-' . $lang . '-' . $slug . '-' . gmdate('Ymd-His') . '.json';
     if (!is_string($snapshot) || file_put_contents($file, $snapshot) !== strlen($snapshot)) { fwrite(STDERR, "Cannot write backup $file; $slug was not changed.\n"); exit(1); }
 }
@@ -122,16 +132,19 @@ foreach ($jobs as [$lang, $id, $data]) {
         'post_type' => 'post', 'post_status' => $existing ? get_post_status($existing) : 'draft', 'post_title' => $data['title'], 'post_name' => $en->post_name,
         // Upload URLs and links are normalized now, so even a published post never shows the raw export; pass 2 re-resolves links.
         'post_content' => bl_news_links($data['content'], $lang), 'post_excerpt' => $data['excerpt'], 'post_author' => $en->post_author,
-        'post_date' => $en->post_date, 'post_date_gmt' => $en->post_date_gmt, 'post_category' => $cats,
+        'post_category' => $cats,
         'comment_status' => $en->comment_status, 'ping_status' => $en->ping_status,
         // A password-protected English post keeps its protection in every language.
         'post_password' => $en->post_password !== '' ? $en->post_password : ($existing ? (string) get_post($existing)->post_password : ''),
     ];
     if ($existing) {
+        // An existing translation keeps its own dates, so a scheduled one stays scheduled.
         $postarr['ID'] = $existing;
         if (!$staged) { update_post_meta($existing, '_news_i18n_staging', 'update'); }
         $new_id = wp_update_post($postarr, true);
     } else {
+        $postarr['post_date'] = $en->post_date;
+        $postarr['post_date_gmt'] = $en->post_date_gmt;
         $postarr['meta_input'] = ['_news_i18n_staging' => 'publish'];
         $new_id = wp_insert_post($postarr, true);
     }
