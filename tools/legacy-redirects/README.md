@@ -37,7 +37,8 @@
 
 **一、上线前**（定案：新站托管在 WordPress.com，多语言用子目录 `/ja/`、`/zh/`，英文在根目录）
 
-1. 补齐内容：在目标站运行 `tools/content-gap` 的导入脚本（两篇指南 + 两个产品），再用 `check.py` 确认四个地址都是 200。
+1. 补齐内容：在目标站运行 `tools/content-gap` 的导入脚本（两篇指南 + 两个产品），然后直接请求这四个地址，都必须是 200：`/marine-crane-buying-guide.html`、`/forklift-jib-crane-guide.html`、`/7-ton-forklift-fly-jib-crane.html`、`/800-kg-pickup-crane-without-outriggers.html`。`check.py` 对标了 `expect_live` 的两条产品规则也要求原路径直接 200（返回 301 说明产品没导入）。
+   如果之前用 REST 保存过自定义规则（`GET /wp-json/boblift/v1/legacy-redirects` 返回 `source: custom`），站点用的是保存的那份，不会自动拿到主题里新启用的两条指南规则。这时用 POST（不带 `replace`，按 `from` 合并，其他自定义规则不动）补上：`{"rules":[{"from":"/forklift-jib-crane-guide","to":"/forklift-jib-crane-guide.html","note":"文章由 tools/content-gap 导入"},{"from":"/marine-crane-buying-guide","to":"/marine-crane-buying-guide.html","note":"文章由 tools/content-gap 导入"}]}`，再 GET 一次确认这两条没有 `enabled:false`。
 2. Polylang 从「按域名」改成「按目录」：设置里 URL 修改选「从固定链接中的目录名设置语言」，清空各语言域名，英文隐藏语言前缀，保存后刷新固定链接。改完在本地确认 `/foo.html` 与 `/ja/foo.html`、分类页、`/feedback/…` 都能打开。
 3. 新站放 WordPress.com（Premium 以上才能上传自定义主题和插件）；主题和插件 zip 上传，先在 WP.com 默认地址上测。用 `check.py --base <WP.com 临时地址> --host www.bobliftcrane.com` 跑全部规则。
 4. 语言子域 fr/es/ru/sa：WP.com 的附加域名只会整体跳主域，不能逐路径跳，所以由 Cloudflare 接管这四个子域（域名 DNS 要在 Cloudflare，免费版即可）。每个子域建一条重定向规则（共 4 条，把 `fr` 换成对应前缀）：条件是主机名等于 `fr.bobliftcrane.com`，类型选动态，状态码 301，目标表达式：
