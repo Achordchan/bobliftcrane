@@ -56,14 +56,14 @@
 /mini-skid-steer-loader.html,https://bobliftloader.com/products/skid-steer-loaders/,mapped,装载站
 /tracked-mini-mixer-truck-pl03531676.html,https://bobliftloader.com/product/tracked-mini-mixer-truck/,mapped,装载站
 /Truck-Crane-pl08431676.html,/truck-mounted-crane,mapped,分类
-/800-kg-pickup-crane-without-outriggers.html,/pickup-cranes,mapped,新站只有带支腿款，跳分类
+/800-kg-pickup-crane-without-outriggers.html,/pickup-cranes,mapped,新页面导入前兜底到分类，导入后由新页面直接服务
 /5-ton-mini-dumper.html,https://bobliftloader.com/product/5-ton-mini-dumper/,mapped,装载站
 /4-ton-mini-dumper.html,https://bobliftloader.com/product/4-ton-mini-dumper/,mapped,装载站
 /3-ton-mini-dumper.html,https://bobliftloader.com/product/3-ton-mini-dumper/,mapped,装载站
 /2-ton-mini-dumper.html,https://bobliftloader.com/product/2-ton-mini-dumper/,mapped,装载站
 /1-5-ton-mini-dumper.html,https://bobliftloader.com/product/1-5-ton-mini-dumper/,mapped,装载站
 /1-ton-mini-dumper.html,https://bobliftloader.com/product/1-ton-mini-dumper/,mapped,装载站
-/7-ton-forklift-fly-jib-crane.html,/forklift-fly-jib-cranes,mapped,新站无 7 吨款，跳分类
+/7-ton-forklift-fly-jib-crane.html,/forklift-fly-jib-cranes,mapped,新页面导入前兜底到分类，导入后由新页面直接服务
 /truck-mounted-aerial-work-platform.html,/truck-mounted-aerial-work-platform,mapped,分类
 /Truck-Mounted-35-Meter-Aerial-Work-Platform-pd517525938.html,/truck-mounted-35-meter-aerial-work-platform-pd517525938.html,case-fix,仅大小写不同，新站路径统一小写
 /BL-390-Mini-Skid-Steer-Loader-pd195909538.html,https://bobliftloader.com/product/bl-t390-c-mini-skid-steer-loader/,mapped,装载站，型号 T/S 款待确认
@@ -127,8 +127,8 @@
 /BOB-LIFT-Engages-in-Face-to-face-Communication-And-Cooperation-with-Customers-for-The-Future-id04130055.html,/bob-lift-engages-in-face-to-face-communication-and-cooperation-with-customers-for-the-future-id04130055.html,case-fix,仅大小写不同，新站路径统一小写
 /Overload-Lifting-Solution-Facilitating-Efficient-Engineering-Operations-id09867845.html,/overload-lifting-solution-facilitating-efficient-engineering-operations-id09867845.html,case-fix,仅大小写不同，新站路径统一小写
 /how-to-choose-tracked-mini-skid-steer-loader,https://bobliftloader.com/news/tracked-vs-wheeled-mini-skid-steer/,mapped,文章只发在旧站；跳装载站最接近的文章
-/forklift-jib-crane-guide,/forklift-jib-crane-guide.html,mapped,待文章迁入新站后生效
-/marine-crane-buying-guide,/marine-crane-buying-guide.html,mapped,待文章迁入新站后生效
+/forklift-jib-crane-guide,/forklift-jib-crane-guide.html,mapped,文章由 tools/content-gap 导入（PR #4）
+/marine-crane-buying-guide,/marine-crane-buying-guide.html,mapped,文章由 tools/content-gap 导入（PR #4）
 /mini-loaders-dumpers-new-website,https://bobliftloader.com/news/boblift-websites-explained/,mapped,迁站通知文章；跳装载站对应说明文章
 /products/mini-dumper.html,https://bobliftloader.com/products/mini-dumpers/,mapped,装载站
 /products/Forklift-Fly-Jib-Crane.html,/forklift-fly-jib-cranes,mapped,SaaS 关键词页
