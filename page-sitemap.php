@@ -8,37 +8,54 @@
 get_header();
 $sitemap_ui = function_exists('boblift_sitemap_page_options') ? boblift_sitemap_page_options() : [];
 $groups_ui = boblift_site_ui('sitemapGroups');
-// Section headings an editor saved on the old Sitemap settings (products_title, news_title, cases_title) still win over the new labels.
+// Copy an editor saved on the old Sitemap settings stays on the page; values equal to the old built-in copy (English or
+// localized) are not customisations. Fields the redesign dropped are mapped to the nearest new place.
 $saved_sitemap = boblift_option('sitemap_page', []);
 $saved_sitemap = is_array($saved_sitemap) ? $saved_sitemap : [];
-$sitemap_defaults = function_exists('boblift_sitemap_page_defaults') ? boblift_sitemap_page_defaults() : [];
-// The old page ended with a "How this updates" note. Text an editor wrote there (not the built-in note) stays on the page.
-$legacy_help_defaults = [
+$legacy_sitemap_defaults = [
+    'products_title' => ['Products'],
+    'product_range_title' => ['Products and categories'],
+    'product_categories_title' => ['Product Categories'],
+    'product_range_label' => ['Product Range'],
+    'news_title' => ['News'],
+    'news_categories_title' => ['News Categories'],
+    'cases_title' => ['Cases'],
+    'auto_label' => ['Updated'],
+    'auto_value' => ['Auto'],
     'help_title' => ['How this updates'],
     'html_note_label' => ['HTML Sitemap:'],
     'html_note' => ['generated from WordPress queries, so published pages, products, news and cases appear automatically.'],
     'xml_note_label' => ['XML Sitemap:'],
     'xml_note' => ['use WordPress Core at /sitemap.xml, or a mature SEO plugin such as Yoast SEO or Rank Math on production.', 'uses WordPress Core, or a mature SEO plugin such as Yoast SEO or Rank Math on production.'],
 ];
-$legacy_help = [];
-foreach ($legacy_help_defaults as $help_key => $help_defaults) {
-    $help_value = trim((string) ($saved_sitemap[$help_key] ?? ''));
-    $help_forms = array_merge($help_defaults, function_exists('boblift_localized_static_text') ? array_map('boblift_localized_static_text', $help_defaults) : []);
-    $legacy_help[$help_key] = in_array($help_value, $help_forms, true) ? '' : $help_value;
+$legacy = [];
+foreach ($legacy_sitemap_defaults as $legacy_key => $legacy_defaults) {
+    $value = trim((string) ($saved_sitemap[$legacy_key] ?? ''));
+    $forms = array_merge($legacy_defaults, function_exists('boblift_localized_static_text') ? array_map('boblift_localized_static_text', $legacy_defaults) : []);
+    $legacy[$legacy_key] = in_array($value, $forms, true) ? '' : $value;
 }
-$legacy_help_notes = array_values(array_filter([
-    ['label' => $legacy_help['html_note_label'], 'text' => $legacy_help['html_note']],
-    ['label' => $legacy_help['xml_note_label'], 'text' => $legacy_help['xml_note']],
-], static fn(array $note): bool => $note['text'] !== ''));
-$show_legacy_help = $legacy_help['help_title'] !== '' || $legacy_help_notes !== [];
-foreach (['products_title' => 'productsTitle', 'news_title' => 'newsTitle', 'cases_title' => 'casesTitle'] as $legacy_key => $ui_key) {
-    $saved_title = trim((string) ($saved_sitemap[$legacy_key] ?? ''));
-    $default_title = (string) ($sitemap_defaults[$legacy_key] ?? '');
-    $default_forms = [$default_title, function_exists('boblift_localized_static_text') ? boblift_localized_static_text($default_title) : $default_title];
-    if ($saved_title !== '' && !in_array($saved_title, $default_forms, true)) {
-        $groups_ui[$ui_key] = $saved_title;
+// Section headings: the old product and news headings (section, range and category titles) feed the single new heading.
+foreach ([
+    'productsTitle' => ['products_title', 'product_range_title', 'product_categories_title'],
+    'newsTitle' => ['news_title', 'news_categories_title'],
+    'casesTitle' => ['cases_title'],
+] as $ui_key => $legacy_keys) {
+    foreach ($legacy_keys as $legacy_key) {
+        if ($legacy[$legacy_key] !== '') {
+            $groups_ui[$ui_key] = $legacy[$legacy_key];
+            break;
+        }
     }
 }
+$legacy_products_label = $legacy['product_range_label'];
+// The old page ended with a "How this updates" note (and showed an "Updated: Auto" figure); customised text stays as notes.
+$legacy_help = ['help_title' => $legacy['help_title']];
+$legacy_help_notes = array_values(array_filter([
+    ['label' => $legacy['auto_label'], 'text' => $legacy['auto_value']],
+    ['label' => $legacy['html_note_label'], 'text' => $legacy['html_note']],
+    ['label' => $legacy['xml_note_label'], 'text' => $legacy['xml_note']],
+], static fn(array $note): bool => $note['text'] !== '' || $note['label'] !== ''));
+$show_legacy_help = $legacy_help['help_title'] !== '' || $legacy_help_notes !== [];
 
 $sitemap_label = static function (string $label): string {
     if (function_exists('boblift_localize_product_text_fragments')) {
@@ -222,6 +239,7 @@ $section_heading = static function (string $title, int $count, string $link_labe
 
         <?php if ($product_blocks !== []) : ?>
             <section aria-labelledby="sitemap-products">
+                <?php if ($legacy_products_label !== '') : ?><p class="mb-3 text-xs font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html($legacy_products_label); ?></p><?php endif; ?>
                 <div id="sitemap-products"><?php $section_heading((string) ($groups_ui['productsTitle'] ?? 'Products'), $product_total, (string) ($sitemap_ui['view_products_label'] ?? 'View Products'), boblift_url('/products.html')); ?></div>
                 <div class="gap-10 sm:columns-2 lg:columns-3 2xl:columns-4">
                     <?php foreach ($product_blocks as $block) : ?>
