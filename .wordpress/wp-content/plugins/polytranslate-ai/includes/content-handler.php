@@ -59,6 +59,8 @@ function ptai_json_encode_block_attrs(array $attributes): string
 // phpcs:disable WordPress.PHP.DevelopmentFunctions
 function ptai_translate_content($content, $target_lang, $source_lang = '')
 {
+    // Each call reports only its own failure: an error left by an earlier document in the same request is cleared.
+    unset($GLOBALS['ptai_last_translation_error']);
 
     $log = function ($msg, $data = null) {
         if (!defined('WP_DEBUG') || !WP_DEBUG)

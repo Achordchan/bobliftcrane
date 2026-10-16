@@ -45,13 +45,21 @@ $search_url = static function (string $tab = '', int $pg = 1) use ($query): stri
 };
 // Wraps the searched words in the escaped text so readers can see why each result matched.
 $highlight = static function (string $text) use ($query): string {
-    $html = esc_html($text);
     $words = array_filter(preg_split('/\s+/u', $query) ?: [], static fn(string $word): bool => mb_strlen($word) >= 2);
     if (!$words) {
-        return $html;
+        return esc_html($text);
     }
-    $pattern = '/(' . implode('|', array_map(static fn(string $word): string => preg_quote(esc_html($word), '/'), $words)) . ')/iu';
-    return (string) preg_replace($pattern, '<mark class="bg-transparent text-blue-700">$1</mark>', $html);
+    // Match the plain text and escape each piece, so a word never matches inside an HTML entity (&amp; ...).
+    $pattern = '/(' . implode('|', array_map(static fn(string $word): string => preg_quote($word, '/'), $words)) . ')/iu';
+    $parts = preg_split($pattern, $text, -1, PREG_SPLIT_DELIM_CAPTURE);
+    if ($parts === false) {
+        return esc_html($text);
+    }
+    $html = '';
+    foreach ($parts as $index => $part) {
+        $html .= $index % 2 === 1 ? '<mark class="bg-transparent text-blue-700">' . esc_html($part) . '</mark>' : esc_html($part);
+    }
+    return $html;
 };
 $format = static fn(string $template, array $values): string => strtr($template, $values);
 $example_model = '';
