@@ -12,6 +12,25 @@ $groups_ui = boblift_site_ui('sitemapGroups');
 $saved_sitemap = boblift_option('sitemap_page', []);
 $saved_sitemap = is_array($saved_sitemap) ? $saved_sitemap : [];
 $sitemap_defaults = function_exists('boblift_sitemap_page_defaults') ? boblift_sitemap_page_defaults() : [];
+// The old page ended with a "How this updates" note. Text an editor wrote there (not the built-in note) stays on the page.
+$legacy_help_defaults = [
+    'help_title' => ['How this updates'],
+    'html_note_label' => ['HTML Sitemap:'],
+    'html_note' => ['generated from WordPress queries, so published pages, products, news and cases appear automatically.'],
+    'xml_note_label' => ['XML Sitemap:'],
+    'xml_note' => ['use WordPress Core at /sitemap.xml, or a mature SEO plugin such as Yoast SEO or Rank Math on production.', 'uses WordPress Core, or a mature SEO plugin such as Yoast SEO or Rank Math on production.'],
+];
+$legacy_help = [];
+foreach ($legacy_help_defaults as $help_key => $help_defaults) {
+    $help_value = trim((string) ($saved_sitemap[$help_key] ?? ''));
+    $help_forms = array_merge($help_defaults, function_exists('boblift_localized_static_text') ? array_map('boblift_localized_static_text', $help_defaults) : []);
+    $legacy_help[$help_key] = in_array($help_value, $help_forms, true) ? '' : $help_value;
+}
+$legacy_help_notes = array_values(array_filter([
+    ['label' => $legacy_help['html_note_label'], 'text' => $legacy_help['html_note']],
+    ['label' => $legacy_help['xml_note_label'], 'text' => $legacy_help['xml_note']],
+], static fn(array $note): bool => $note['text'] !== ''));
+$show_legacy_help = $legacy_help['help_title'] !== '' || $legacy_help_notes !== [];
 foreach (['products_title' => 'productsTitle', 'news_title' => 'newsTitle', 'cases_title' => 'casesTitle'] as $legacy_key => $ui_key) {
     $saved_title = trim((string) ($saved_sitemap[$legacy_key] ?? ''));
     $default_title = (string) ($sitemap_defaults[$legacy_key] ?? '');
@@ -249,6 +268,16 @@ $section_heading = static function (string $title, int $count, string $link_labe
                             <li class="border-b border-line/70"><a class="boblift-sitemap-link block py-2 text-sm font-semibold text-slate-600" href="<?php echo esc_url(get_permalink($post)); ?>"><?php echo esc_html($sitemap_label(get_the_title($post))); ?></a></li>
                         <?php endforeach; ?>
                     </ul>
+                </section>
+            <?php endif; ?>
+            <?php if ($show_legacy_help) : ?>
+                <section aria-label="<?php echo esc_attr($legacy_help['help_title'] !== '' ? $legacy_help['help_title'] : 'Sitemap notes'); ?>">
+                    <?php if ($legacy_help['help_title'] !== '') : ?>
+                        <h2 class="mb-4 border-b border-line pb-4 text-xl font-black leading-tight text-ink"><?php echo esc_html($legacy_help['help_title']); ?></h2>
+                    <?php endif; ?>
+                    <?php foreach ($legacy_help_notes as $note) : ?>
+                        <p class="py-2 text-sm font-semibold text-slate-600"><?php if ($note['label'] !== '') : ?><strong class="text-navy"><?php echo esc_html($note['label']); ?></strong> <?php endif; ?><?php echo esc_html($note['text']); ?></p>
+                    <?php endforeach; ?>
                 </section>
             <?php endif; ?>
         </div>
