@@ -81,7 +81,9 @@ function bl_news_links(string $html, string $lang, array $pending = []): string 
     // Upload URLs from the export (local development host or the old domain) point at this site's own uploads.
     $uploads = trailingslashit(wp_get_upload_dir()['baseurl']);
     $html = preg_replace('#https?://(?:localhost|127\.0\.0\.1|(?:www\.)?bobliftcrane\.com)(?::\d+)?/wp-content/uploads/#i', $uploads, $html);
-    $html = preg_replace('#https?://(?:www\.)?bobliftcrane\.com(?=/|"|\')#i', '', $html);
+    // A bare origin is the home page, so it becomes "/" rather than an empty link.
+    $html = preg_replace('#https?://(?:www\.)?bobliftcrane\.com(?="|\')#i', '/', $html);
+    $html = preg_replace('#https?://(?:www\.)?bobliftcrane\.com(?=/)#i', '', $html);
     return preg_replace_callback('/href="(\/[^"#?]*)(#[^"]*)?"/', static function (array $m) use ($lang, $pending): string {
         $slug = preg_replace('/\.html$/', '', basename(rtrim($m[1], '/')));
         if ($slug === '') { return $m[0]; }
