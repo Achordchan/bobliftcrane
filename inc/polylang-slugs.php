@@ -120,6 +120,11 @@ function boblift_migrate_shared_case_slugs(): void
         || !function_exists('pll_get_post_language') || !function_exists('pll_get_post')) {
         return;
     }
+    // Run only on a request that submits nothing (and with the metabox saver unhooked), so a case edit form posted as
+    // the first admin request after deployment is never written onto the translated cases being renamed.
+    if (!empty($_POST) || (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') || wp_doing_ajax()) {
+        return;
+    }
     global $wpdb;
     $cases = $wpdb->get_results("SELECT ID, post_name FROM {$wpdb->posts} WHERE post_type = 'case' AND post_status NOT IN ('trash', 'auto-draft')");
     if ($cases === null || $wpdb->last_error !== '') {
@@ -135,10 +140,17 @@ function boblift_migrate_shared_case_slugs(): void
         if (!$english instanceof WP_Post || $english->post_type !== 'case' || $english->post_name !== $case->post_name) {
             continue;
         }
+        $meta_saver = has_action('save_post', 'boblift_save_meta_boxes');
+        if ($meta_saver !== false) {
+            remove_action('save_post', 'boblift_save_meta_boxes', $meta_saver);
+        }
         $result = wp_update_post([
             'ID' => (int) $case->ID,
             'post_name' => $case->post_name . '-' . $language,
         ], true);
+        if ($meta_saver !== false) {
+            add_action('save_post', 'boblift_save_meta_boxes', $meta_saver);
+        }
         if (is_wp_error($result) || !$result) {
             return;
         }

@@ -610,10 +610,16 @@ function boblift_image_fit(string $url): string
         return 'photo';
     }
     if (!isset($cache[$url])) {
-        $id = attachment_url_to_postid($url);
-        if (!$id) {
-            // Resized copies ("-768x768.png") belong to the full-size attachment.
-            $id = attachment_url_to_postid((string) preg_replace('/-\d+x\d+(\.[a-z]+)$/i', '$1', strtok($url, '?')));
+        // Theme assets are not media-library attachments, so only uploads are looked up.
+        $theme_asset = str_starts_with($url, trailingslashit(get_template_directory_uri()))
+            || str_starts_with($url, trailingslashit(get_stylesheet_directory_uri()));
+        $id = $theme_asset ? 0 : attachment_url_to_postid($url);
+        if (!$id && !$theme_asset) {
+            // Resized copies ("-768x768.png") belong to the full-size attachment; retry only when that changes the URL.
+            $full_size = (string) preg_replace('/-\d+x\d+(\.[a-z]+)$/i', '$1', (string) strtok($url, '?'));
+            if ($full_size !== $url) {
+                $id = attachment_url_to_postid($full_size);
+            }
         }
         $fit = $id ? (string) get_post_meta($id, '_boblift_image_fit', true) : '';
         if ($fit !== 'cutout' && $fit !== 'photo') {

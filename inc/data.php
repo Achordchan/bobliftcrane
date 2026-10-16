@@ -665,8 +665,8 @@ function boblift_about_page_options(): array
 }
 
 /**
- * The About menu as the front end shows it: retired pages dropped, untouched entries for pages that moved to Services,
- * News or the top-level Contact link dropped, and newer default pages added until an editor has saved the menu.
+ * The About menu as the front end shows it: retired pages dropped and, until an editor has saved the menu, untouched
+ * entries for pages that moved to Services, News or the top-level Contact link dropped and newer default pages added.
  * $saved is what was stored (secondary_nav_version lives there). The About editor uses the same list, so saving it
  * keeps what visitors already see.
  */
@@ -680,7 +680,10 @@ function boblift_about_apply_nav_migration(array $options, array $saved): array
     if (function_exists('boblift_public_welfare_customized') && boblift_public_welfare_customized()) {
         $retired = array_values(array_diff($retired, ['public-welfare']));
     }
-    $moved = boblift_about_nav_moved_defaults();
+    // Once an editor has saved the menu (secondary_nav_version), the list is theirs: a moved page they added back
+    // stays, and a removed default page is not added again.
+    $reviewed_menu = (int) ($saved['secondary_nav_version'] ?? 0) >= 1;
+    $moved = $reviewed_menu ? [] : boblift_about_nav_moved_defaults();
     $options['secondary_nav'] = array_values(array_filter($options['secondary_nav'], static function ($item) use ($retired, $moved): bool {
         if (!is_array($item)) {
             return false;
@@ -701,9 +704,7 @@ function boblift_about_apply_nav_migration(array $options, array $saved): array
         $untouched_label = $label === '' || boblift_customised_legacy_text($label, $default_label) === '';
         return !($untouched_label && ($path === '' || $path === $key));
     }));
-    // Saved menus predate newer About pages; add any default child that is missing, after the one before it. Once an
-    // editor has saved the menu (secondary_nav_version), the list is theirs and a removed page stays removed.
-    $reviewed_menu = (int) ($saved['secondary_nav_version'] ?? 0) >= 1;
+    // Saved menus predate newer About pages; add any default child that is missing, after the one before it.
     $saved_slugs = array_map(static fn(array $item): string => (string) ($item['slug'] ?? ''), $options['secondary_nav']);
     $previous = '';
     foreach ($reviewed_menu ? [] : boblift_about_page_defaults()['secondary_nav'] as $default_child) {
