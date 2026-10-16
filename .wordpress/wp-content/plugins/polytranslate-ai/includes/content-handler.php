@@ -59,6 +59,8 @@ function ptai_json_encode_block_attrs(array $attributes): string
 // phpcs:disable WordPress.PHP.DevelopmentFunctions
 function ptai_translate_content($content, $target_lang, $source_lang = '')
 {
+    // Each call reports only its own failure: an error left by an earlier document in the same request is cleared.
+    unset($GLOBALS['ptai_last_translation_error']);
 
     $log = function ($msg, $data = null) {
         if (!defined('WP_DEBUG') || !WP_DEBUG)
@@ -358,6 +360,8 @@ function ptai_translate_content($content, $target_lang, $source_lang = '')
         // Handle errors
         if (is_array($result) && isset($result['success']) && $result['success'] === false) {
             $log("ERROR batch {$batch_display}: " . ($result['error'] ?? 'Unknown'));
+            // BOB-LIFT: callers that must not publish untranslated text read this (the segments fall back to the source).
+            $GLOBALS['ptai_last_translation_error'] = (string) ($result['error'] ?? 'Unknown translation error');
             foreach ($batch['indices'] as $i => $idx) {
                 $translated_segments[$idx] = $batch['texts'][$i];
             }
@@ -366,6 +370,7 @@ function ptai_translate_content($content, $target_lang, $source_lang = '')
 
         if (empty($result)) {
             $log("ERROR batch {$batch_display}: Empty response");
+            $GLOBALS['ptai_last_translation_error'] = 'Empty translation response';
             foreach ($batch['indices'] as $i => $idx) {
                 $translated_segments[$idx] = $batch['texts'][$i];
             }
@@ -389,11 +394,13 @@ function ptai_translate_content($content, $target_lang, $source_lang = '')
                     $translated_segments[$idx] = $result[$i];
                 } else {
                     $log("WARNING: Missing index {$idx}");
+                    $GLOBALS['ptai_last_translation_error'] = 'Translation response is missing segments';
                     $translated_segments[$idx] = $batch['texts'][$i];
                 }
             }
         } else {
             $log("ERROR: Unexpected response type: " . gettype($result));
+            $GLOBALS['ptai_last_translation_error'] = 'Unexpected translation response';
             foreach ($batch['indices'] as $i => $idx) {
                 $translated_segments[$idx] = $batch['texts'][$i];
             }
@@ -741,6 +748,7 @@ function ptai_translate_block_attributes($content, $target_lang, $source_lang, $
 
     if (!function_exists('ptai_call_translation_ai')) {
         $log('ERROR: ptai_call_translation_ai() not found!');
+        $GLOBALS['ptai_last_translation_error'] = 'Translation function is unavailable';
         return array('content' => $content, 'translated_strings' => array());
     }
 
@@ -751,10 +759,17 @@ function ptai_translate_block_attributes($content, $target_lang, $source_lang, $
 
     if (empty($translated_unique) || (is_array($translated_unique) && isset($translated_unique['success']) && $translated_unique['success'] === false)) {
         $log('ERROR: Block attribute translation failed');
+        // BOB-LIFT: report the failure like the segment batches do, so callers do not publish untranslated attributes.
+        $GLOBALS['ptai_last_translation_error'] = is_array($translated_unique) && !empty($translated_unique['error'])
+            ? (string) $translated_unique['error']
+            : 'Block attribute translation failed';
         return array('content' => $content, 'translated_strings' => array());
     }
 
     // Handle API response format
+    if (is_string($translated_unique)) {
+        $translated_unique = json_decode($translated_unique, true);
+    }
     if (isset($translated_unique['translations'])) {
         $translated_unique = $translated_unique['translations'];
     } elseif (isset($translated_unique['texts'])) {
@@ -763,7 +778,15 @@ function ptai_translate_block_attributes($content, $target_lang, $source_lang, $
 
     // Map unique translations back to all original indices
     $translated = [];
+    if (!is_array($translated_unique)) {
+        $log('ERROR: Unexpected block attribute translation response');
+        $GLOBALS['ptai_last_translation_error'] = 'Unexpected translation response';
+        return array('content' => $content, 'translated_strings' => array());
+    }
     foreach ($text_to_unique as $orig_idx => $unique_idx) {
+        if (!isset($translated_unique[$unique_idx])) {
+            $GLOBALS['ptai_last_translation_error'] = 'Translation response is missing block attributes';
+        }
         $translated[$orig_idx] = $translated_unique[$unique_idx] ?? $all_translatables[$orig_idx];
     }
 
