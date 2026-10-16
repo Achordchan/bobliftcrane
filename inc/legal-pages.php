@@ -11,6 +11,7 @@ function boblift_render_legal_page(array $options, string $inquiry_source, strin
 {
     $ui = boblift_site_ui('legalPage');
     $sections = array_values(array_filter(is_array($options['sections'] ?? null) ? $options['sections'] : [], static fn($item): bool => is_array($item) && (trim((string) ($item['title'] ?? '')) !== '' || trim((string) ($item['text'] ?? '')) !== '')));
+    $intro_title = trim((string) ($options['side_title'] ?? ''));
     $intro = trim((string) ($options['side_text'] ?? ''));
     $contact = boblift_contact_settings();
     $contact_card = static function () use ($ui, $contact, $inquiry_source): void { ?>
@@ -51,6 +52,9 @@ function boblift_render_legal_page(array $options, string $inquiry_source, strin
                 <div class="min-w-0 lg:order-2">
                     <div class="boblift-article-body boblift-legal-body xl:mx-auto">
                         <?php if ($intro !== '') : ?>
+                            <?php if ($intro_title !== '') : ?>
+                                <p class="text-xs font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html($intro_title); ?></p>
+                            <?php endif; ?>
                             <p class="boblift-legal-intro"><?php echo esc_html($intro); ?></p>
                         <?php endif; ?>
                         <?php foreach ($sections as $index => $section) : ?>
