@@ -24,7 +24,24 @@ function boblift_brochure_family_of_slug(string $slug): string
         return '';
     }
     $term = function_exists('get_term_by') ? get_term_by('slug', $slug, 'product_category') : false;
-    $source = $term instanceof WP_Term && function_exists('boblift_source_term_slug') ? boblift_source_term_slug($term) : $slug;
+    $family = boblift_brochure_family_of_source_slug($term instanceof WP_Term && function_exists('boblift_source_term_slug') ? boblift_source_term_slug($term) : $slug);
+    // A subcategory an editor added under a covered category (e.g. heavy-duty under truck cranes) takes its ancestor's brochure.
+    if ($family === '' && $term instanceof WP_Term && function_exists('get_ancestors')) {
+        foreach (get_ancestors($term->term_id, 'product_category', 'taxonomy') as $ancestor_id) {
+            $ancestor = get_term($ancestor_id, 'product_category');
+            if ($ancestor instanceof WP_Term) {
+                $family = boblift_brochure_family_of_source_slug(function_exists('boblift_source_term_slug') ? boblift_source_term_slug($ancestor) : $ancestor->slug);
+                if ($family !== '') {
+                    break;
+                }
+            }
+        }
+    }
+    return $family;
+}
+
+function boblift_brochure_family_of_source_slug(string $source): string
+{
     if ($source === 'marine-crane' || str_ends_with($source, 'marine-cranes')) {
         return 'marine';
     }

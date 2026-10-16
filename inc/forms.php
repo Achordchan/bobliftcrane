@@ -693,6 +693,10 @@ function boblift_redirect_quote_page(): void
     if (!$page instanceof WP_Post || !function_exists('boblift_page_is_translation_of_slug') || !boblift_page_is_translation_of_slug($page, 'quote')) {
         return;
     }
+    // A quote page whose copy an editor customised stays reachable (page-quote.php still prints it).
+    if (boblift_quote_page_customized()) {
+        return;
+    }
     // Keep every incoming parameter (utm_*, gclid, ...) so campaign attribution survives the move; only `product` is cleaned.
     $query = wp_unslash($_GET);
     $query = is_array($query) ? $query : [];
@@ -714,6 +718,39 @@ function boblift_redirect_quote_page(): void
     exit;
 }
 add_action('template_redirect', 'boblift_redirect_quote_page', 1);
+
+/** Whether the stored Quote page copy (site_ui.quotePage) differs from the built-in copy, current or historical, in any language form. */
+function boblift_quote_page_customized(?string $language = null): bool
+{
+    $language ??= function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
+    $raw = function_exists('boblift_mls_get_raw_options') ? boblift_mls_get_raw_options($language !== '' ? $language : null) : get_option('boblift_theme_options', []);
+    $saved = is_array($raw['site_ui']['quotePage'] ?? null) ? $raw['site_ui']['quotePage'] : [];
+    if ($saved === [] || !function_exists('boblift_site_ui_defaults')) {
+        return false;
+    }
+    $defaults = boblift_site_ui_defaults()['quotePage'] ?? [];
+    // Copy shipped by earlier theme versions, keyed by the same paths as the defaults.
+    $historical = ['workflowItems.1.title' => ['Create inquiry draft']];
+    $flatten = static function (array $values, string $prefix = '') use (&$flatten): array {
+        $flat = [];
+        foreach ($values as $key => $value) {
+            $path = $prefix . (string) $key;
+            $flat += is_array($value) ? $flatten($value, $path . '.') : [$path => is_scalar($value) ? trim((string) $value) : ''];
+        }
+        return $flat;
+    };
+    $default_flat = $flatten($defaults);
+    foreach ($flatten($saved) as $path => $value) {
+        $known = array_merge([(string) ($default_flat[$path] ?? '')], $historical[$path] ?? []);
+        foreach ($known as $known_value) {
+            $known[] = function_exists('boblift_localized_static_text') ? trim(boblift_localized_static_text($known_value, $language !== '' ? $language : null)) : $known_value;
+        }
+        if ($value !== '' && !in_array($value, $known, true)) {
+            return true;
+        }
+    }
+    return false;
+}
 
 function boblift_handle_inquiry_front_controller(): void
 {

@@ -1544,17 +1544,18 @@ function boblift_feedback_meta_box(WP_Post $post): void
     <style>.boblift-feedback-box .boblift-admin-field{display:grid;grid-template-columns:170px minmax(0,1fr);gap:12px;margin:0 0 12px}.boblift-feedback-box input[type=text]{width:100%;max-width:520px;margin-bottom:6px}</style>
     <div class="boblift-feedback-box">
     <p class="boblift-admin-help">前台只显示国家和型号，不显示客户信息。上传前请确认照片里没有客户人脸、电话、公司名或经销商品牌。</p>
-    <div class="boblift-admin-field"><label>国家（英文）</label><input type="text" name="boblift_feedback[country_en]" value="<?php echo esc_attr((string) ($country['en'] ?? '')); ?>" placeholder="Mexico"></div>
-    <div class="boblift-admin-field"><label>国家（日文）</label><input type="text" name="boblift_feedback[country_ja]" value="<?php echo esc_attr((string) ($country['ja'] ?? '')); ?>" placeholder="メキシコ"></div>
-    <div class="boblift-admin-field"><label>国家（中文）</label><input type="text" name="boblift_feedback[country_zh]" value="<?php echo esc_attr((string) ($country['zh'] ?? '')); ?>" placeholder="墨西哥"></div>
+    <?php $languages = boblift_feedback_languages(); ?>
+    <?php foreach ($languages as $lang => $lang_label) : ?>
+        <div class="boblift-admin-field"><label>国家（<?php echo esc_html($lang_label); ?>）</label><input type="text" name="boblift_feedback[country_<?php echo esc_attr($lang); ?>]" value="<?php echo esc_attr((string) ($country[$lang] ?? '')); ?>"<?php echo $lang === 'en' ? ' placeholder="Mexico"' : ''; ?>></div>
+    <?php endforeach; ?>
     <div class="boblift-admin-field"><label>型号</label><input type="text" name="boblift_feedback[model]" value="<?php echo esc_attr((string) get_post_meta($post->ID, '_feedback_model', true)); ?>" placeholder="SQ6.3ZA4"></div>
-    <div class="boblift-admin-field"><label>配置说明（英/日/中，可空）</label><div>
-        <input type="text" name="boblift_feedback[note_en]" value="<?php echo esc_attr((string) ($note['en'] ?? '')); ?>" placeholder="with clamshell bucket">
-        <input type="text" name="boblift_feedback[note_ja]" value="<?php echo esc_attr((string) ($note['ja'] ?? '')); ?>" placeholder="クラムシェルバケット付き">
-        <input type="text" name="boblift_feedback[note_zh]" value="<?php echo esc_attr((string) ($note['zh'] ?? '')); ?>" placeholder="配贝壳斗">
+    <div class="boblift-admin-field"><label>配置说明（各语言，可空）</label><div>
+        <?php foreach ($languages as $lang => $lang_label) : ?>
+            <input type="text" name="boblift_feedback[note_<?php echo esc_attr($lang); ?>]" value="<?php echo esc_attr((string) ($note[$lang] ?? '')); ?>" placeholder="<?php echo esc_attr($lang === 'en' ? 'with clamshell bucket' : $lang_label); ?>">
+        <?php endforeach; ?>
     </div></div>
-    <div class="boblift-admin-field"><label>正文（英/日/中，可空）</label><div class="boblift-feedback-body">
-        <?php foreach (['en' => '英文', 'ja' => '日文', 'zh' => '中文'] as $lang => $lang_label) : ?>
+    <div class="boblift-admin-field"><label>正文（各语言，可空）</label><div class="boblift-feedback-body">
+        <?php foreach ($languages as $lang => $lang_label) : ?>
             <p class="description" style="margin:0 0 4px"><?php echo esc_html($lang_label); ?></p>
             <textarea name="boblift_feedback[body_<?php echo esc_attr($lang); ?>]" rows="5" style="width:100%;max-width:720px;margin-bottom:10px"><?php echo esc_textarea((string) ($body[$lang] ?? '')); ?></textarea>
         <?php endforeach; ?>
@@ -1653,6 +1654,23 @@ function boblift_render_media_picker(string $name, array $ids, array $types, str
     <?php
 }
 
+/** Languages the feedback editor offers: English, Japanese, Chinese and every other configured site language. */
+function boblift_feedback_languages(): array
+{
+    $languages = ['en' => '英文', 'ja' => '日文', 'zh' => '中文'];
+    if (function_exists('pll_languages_list')) {
+        $slugs = (array) pll_languages_list(['fields' => 'slug']);
+        $names = (array) pll_languages_list(['fields' => 'name']);
+        foreach ($slugs as $i => $slug) {
+            $slug = sanitize_key((string) $slug);
+            if ($slug !== '' && !isset($languages[$slug])) {
+                $languages[$slug] = (string) ($names[$i] ?? $slug);
+            }
+        }
+    }
+    return $languages;
+}
+
 function boblift_save_feedback_meta(int $post_id): void
 {
     if (!isset($_POST['boblift_feedback_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['boblift_feedback_nonce'])), 'boblift_feedback_meta')) {
@@ -1663,13 +1681,23 @@ function boblift_save_feedback_meta(int $post_id): void
     }
     $data = is_array($_POST['boblift_feedback'] ?? null) ? wp_unslash($_POST['boblift_feedback']) : [];
     $text = static fn(string $key): string => sanitize_text_field((string) ($data[$key] ?? ''));
-    update_post_meta($post_id, '_feedback_country', wp_slash(wp_json_encode(['en' => $text('country_en'), 'ja' => $text('country_ja'), 'zh' => $text('country_zh')], JSON_UNESCAPED_UNICODE)));
-    $note = ['en' => $text('note_en'), 'ja' => $text('note_ja'), 'zh' => $text('note_zh')];
+    // Each language is saved from its own field; languages the form did not post (e.g. added by an import) are kept.
+    $save_languages = static function (string $meta_key, string $prefix, bool $textarea) use ($post_id, $data): array {
+        $values = json_decode((string) get_post_meta($post_id, $meta_key, true), true);
+        $values = is_array($values) ? $values : [];
+        foreach (array_keys(boblift_feedback_languages()) as $lang) {
+            if (array_key_exists($prefix . $lang, $data)) {
+                $raw = (string) $data[$prefix . $lang];
+                $values[$lang] = trim($textarea ? sanitize_textarea_field($raw) : sanitize_text_field($raw));
+            }
+        }
+        return $values;
+    };
+    $country = $save_languages('_feedback_country', 'country_', false);
+    update_post_meta($post_id, '_feedback_country', wp_slash(wp_json_encode($country, JSON_UNESCAPED_UNICODE)));
+    $note = $save_languages('_feedback_note', 'note_', false);
     update_post_meta($post_id, '_feedback_note', array_filter($note) ? wp_slash(wp_json_encode($note, JSON_UNESCAPED_UNICODE)) : '');
-    $body = [];
-    foreach (['en', 'ja', 'zh'] as $lang) {
-        $body[$lang] = trim(sanitize_textarea_field((string) ($data['body_' . $lang] ?? '')));
-    }
+    $body = $save_languages('_feedback_body', 'body_', true);
     update_post_meta($post_id, '_feedback_body', array_filter($body) ? wp_slash(wp_json_encode($body, JSON_UNESCAPED_UNICODE)) : '');
     update_post_meta($post_id, '_feedback_model', $text('model'));
     boblift_save_related_products($post_id, $data['related'] ?? null);

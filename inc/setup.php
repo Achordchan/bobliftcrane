@@ -316,9 +316,13 @@ function boblift_utility_page_ids(): array
         foreach (array_unique($page_ids) as $page_id) {
             // A customised Public Welfare page stays published (see boblift_redirect_retired_pages()), so it stays indexable
             // too; each translation is judged by its own language's settings.
-            if ($slug === 'public-welfare') {
+            // A customised quote page likewise stays reachable (boblift_redirect_quote_page()).
+            if ($slug === 'public-welfare' || $slug === 'quote') {
                 $page_language = function_exists('pll_get_post_language') ? (string) pll_get_post_language($page_id) : '';
-                if (boblift_public_welfare_customized($page_language !== '' ? $page_language : null)) {
+                $customized = $slug === 'quote'
+                    ? function_exists('boblift_quote_page_customized') && boblift_quote_page_customized($page_language)
+                    : boblift_public_welfare_customized($page_language !== '' ? $page_language : null);
+                if ($customized) {
                     continue;
                 }
             }

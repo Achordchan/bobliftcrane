@@ -77,7 +77,7 @@ $footer_link_groups = array_map(static function (array $group): array {
     return $group;
 }, array_values(array_filter(is_array($footer['groups'] ?? null) ? $footer['groups'] : [], 'is_array')));
 ?>
-<footer class="border-t border-line bg-mist pb-[calc(76px+env(safe-area-inset-bottom))] pt-0 lg:pb-0">
+<footer class="border-t border-line bg-mist pb-[calc(76px+env(safe-area-inset-bottom))] pt-0 lg:pb-24 min-[1780px]:pb-0">
     <div class="page-shell max-w-[2200px]">
         <div class="grid grid-cols-1 gap-0 py-10 md:grid-cols-[0.92fr_1.08fr] md:gap-y-10 md:py-14 xl:grid-cols-[minmax(300px,0.95fr)_minmax(0,1.65fr)_minmax(340px,0.95fr)] xl:gap-y-0 xl:py-16 2xl:grid-cols-[minmax(360px,0.9fr)_minmax(0,1.75fr)_minmax(390px,0.95fr)] 2xl:py-20">
             <div class="border-b border-line pb-8 md:border-b-0 md:pe-9 xl:pe-12 2xl:pe-16">
