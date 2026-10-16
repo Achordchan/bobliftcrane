@@ -77,16 +77,35 @@ $product_total = 0;
 // The sitemap follows the real category tree, whatever labels or groups the navigation menu uses.
 foreach (function_exists('boblift_build_product_menu_families') ? boblift_build_product_menu_families() : [] as $family) {
     $family_term = get_term_by('slug', (string) ($family['slug'] ?? ''), 'product_category');
-    if (!$family_term instanceof WP_Term) {
-        continue;
+    $family_term = $family_term instanceof WP_Term ? $family_term : null;
+    // A synthetic family (a group with no term of its own) lists the child categories of its group definition.
+    $root_terms = [];
+    if ($family_term === null && function_exists('boblift_product_category_hierarchy')) {
+        foreach (boblift_product_category_hierarchy() as $group) {
+            if ((string) ($group['slug'] ?? '') !== (string) ($family['slug'] ?? '')) {
+                continue;
+            }
+            foreach ((array) ($group['children'] ?? []) as $child) {
+                $child_term = get_term_by('slug', (string) ($child['slug'] ?? ''), 'product_category');
+                if ($child_term instanceof WP_Term) {
+                    $root_terms[] = $child_term;
+                }
+            }
+        }
+        if ($root_terms === []) {
+            continue;
+        }
     }
     $child_order = array_flip(array_map(static fn(array $child): string => (string) ($child['title'] ?? ''), (array) ($family['children'] ?? [])));
-    $children = get_terms(['taxonomy' => 'product_category', 'child_of' => $family_term->term_id, 'hide_empty' => false]); // every descendant, so products in deeper categories are listed too
-    $children = is_wp_error($children) ? [] : array_values(array_filter($children, static fn($term): bool => $term instanceof WP_Term));
+    $children = $root_terms;
+    foreach ($family_term ? [$family_term] : $root_terms as $root_term) {
+        $descendants = get_terms(['taxonomy' => 'product_category', 'child_of' => $root_term->term_id, 'hide_empty' => false]); // every descendant, so products in deeper categories are listed too
+        $children = array_merge($children, is_wp_error($descendants) ? [] : array_values(array_filter($descendants, static fn($term): bool => $term instanceof WP_Term)));
+    }
     usort($children, static fn(WP_Term $a, WP_Term $b): int => ($child_order[$sitemap_label($a->name)] ?? 99) <=> ($child_order[$sitemap_label($b->name)] ?? 99));
-    $family_title = (string) ($family['title'] ?? $family_term->name);
-    $family_url = (string) ($family['url'] ?? get_term_link($family_term));
-    foreach (array_merge($children, [$family_term]) as $term) {
+    $family_title = (string) ($family['title'] ?? ($family_term ? $family_term->name : ''));
+    $family_url = (string) ($family['url'] ?? ($family_term ? get_term_link($family_term) : boblift_product_archive_url()));
+    foreach (array_merge($children, $family_term ? [$family_term] : []) as $term) {
         $posts = array_values(array_filter($products_in($term), static fn(WP_Post $post): bool => !isset($seen_products[$post->ID])));
         if ($posts === []) {
             continue;
@@ -95,7 +114,7 @@ foreach (function_exists('boblift_build_product_menu_families') ? boblift_build_
             $seen_products[$post->ID] = true;
         }
         $product_total += count($posts);
-        $is_family = $term->term_id === $family_term->term_id;
+        $is_family = $family_term !== null && $term->term_id === $family_term->term_id;
         $term_url = get_term_link($term);
         $product_blocks[] = [
             'eyebrow' => $children !== [] || !$is_family ? $family_title : (function_exists('boblift_product_family_group_label') ? boblift_product_family_group_label((string) ($family['group'] ?? '')) : ''),
