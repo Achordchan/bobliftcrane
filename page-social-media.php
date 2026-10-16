@@ -26,7 +26,7 @@ $media_url = static function ($media): string {
         return (string) wp_get_attachment_url($id);
     }
     $path = trim(is_array($media) ? (string) ($media['path'] ?? '') : (string) $media);
-    return $path === '' ? '' : (preg_match('#^https?://#', $path) ? $path : boblift_asset($path));
+    return $path === '' ? '' : (preg_match('#^https?://#i', $path) ? $path : boblift_asset($path));
 };
 // Grid tiles use the light "-sm" cut shipped next to theme photos, or the medium_large size of an upload.
 $thumb_url = static function ($image): string {
@@ -42,10 +42,10 @@ $thumb_url = static function ($image): string {
     return boblift_image_setting_url($image);
 };
 
-// Platform identity from a label: lowercase letters, digits and Han characters only, with the usual aliases folded in.
+// Platform identity from a label: lowercase letters and digits of any script, with the usual aliases folded in.
 // Matching is exact, so short names (X) never match inside longer ones (Xiaohongshu).
 $platform_identity = static function (string $label): string {
-    $id = (string) preg_replace('/[^a-z0-9\p{Han}]+/u', '', function_exists('mb_strtolower') ? mb_strtolower(trim($label), 'UTF-8') : strtolower(trim($label)));
+    $id = (string) preg_replace('/[^\p{L}\p{N}]+/u', '', function_exists('mb_strtolower') ? mb_strtolower(trim($label), 'UTF-8') : strtolower(trim($label)));
     $aliases = [
         'twitter' => 'x', 'xtwitter' => 'x', 'twitterx' => 'x', 'xformerlytwitter' => 'x',
         'fb' => 'facebook', 'ig' => 'instagram', 'yt' => 'youtube',
@@ -100,7 +100,7 @@ $word_identities = static function (string $label) use ($platform_identity, $kno
             if ($part === $word && isset($skip[$index])) {
                 continue;
             }
-            if (preg_replace('/boblift|official|page|account|bob|lift/u', '', (string) preg_replace('/[^a-z0-9\p{Han}]+/u', '', $part)) !== '') {
+            if (preg_replace('/boblift|official|page|account|bob|lift/u', '', (string) preg_replace('/[^\p{L}\p{N}]+/u', '', $part)) !== '') {
                 $identities[] = in_array($platform_identity($part), $known_platforms, true) ? $platform_identity($part) : '';
             }
         }
