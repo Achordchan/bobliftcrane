@@ -22,6 +22,6 @@ wp eval-file tools/content-gap/import-products.php
 wp eval-file tools/content-gap/import-article-translations.php
 ```
 
-The translated articles come from `source/i18n/<article>.json` (title, SEO fields, tags, body and JSON-LD for `ja` and `zh`); the page translations are skipped when they already exist and replaced with `overwrite`. Links inside them are pointed at the translated page where one exists.
+The translated articles come from `source/i18n/<article>.json` (title, SEO fields, tags, body and JSON-LD for `ja` and `zh`); the page translations are skipped when they already exist and replaced with `overwrite`. An existing translation keeps its slug and status, and its fields, meta and terms are backed up first. Links inside them point at the published translation where one exists and otherwise at the English page; images reuse the attachments `import-articles.php` uploaded, so run that first. The JSON-LD addresses are taken from each translation's own permalink.
 
 The importers check every source file before writing anything. Pages that already exist are left unchanged; pass `overwrite` as an extra argument to replace them, in which case each page's current fields and meta are saved to `tools/content-gap/backup-content-gap-<slug>-<time>.json` first.
