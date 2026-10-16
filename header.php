@@ -358,6 +358,9 @@ foreach ($languages as $language) {
                                                     </a>
                                                     <div class="flex min-w-0 flex-col">
                                                         <a class="text-2xl font-black leading-tight tracking-[-0.015em] text-navy transition hover:text-blue-700" href="<?php echo esc_url($family['url']); ?>"><?php echo esc_html($family['title']); ?></a>
+                                                        <?php if (!empty($family['description'])) : ?>
+                                                            <p class="mt-2 text-sm leading-6 text-slate-500"><?php echo esc_html($family['description']); ?></p>
+                                                        <?php endif; ?>
                                                         <ul class="mt-4 border-t border-line">
                                                             <?php foreach ($family_links as $family_link) : ?>
                                                                 <li>

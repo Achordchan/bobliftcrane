@@ -2644,18 +2644,27 @@
   // Video library cards open one shared player: a local MP4 now, a YouTube embed once ids are set.
   const videoDialog = qs('[data-video-dialog]');
   if (videoDialog) {
+    document.body.appendChild(videoDialog);
     const stage = qs('[data-video-stage]', videoDialog);
     const title = qs('[data-video-dialog-title]', videoDialog);
     let lastTrigger = null;
+    let background = [];
+    let wasScrollLocked = false;
+    const focusableControls = () => qsa('button, a[href], input, select, textarea, iframe, video[controls], [tabindex]', videoDialog)
+      .filter((control) => !control.disabled && control.tabIndex >= 0 && control.getClientRects().length > 0);
     const closeVideo = () => {
+      if (videoDialog.classList.contains('hidden')) return;
       stage.innerHTML = '';
       videoDialog.classList.add('hidden');
       videoDialog.classList.remove('flex');
       videoDialog.setAttribute('aria-hidden', 'true');
-      document.documentElement.classList.remove('overflow-hidden');
+      background.forEach(([element, wasInert]) => { element.inert = wasInert; });
+      background = [];
+      document.documentElement.classList.toggle('overflow-hidden', wasScrollLocked);
       lastTrigger?.focus();
     };
     const openVideo = (trigger) => {
+      if (!videoDialog.classList.contains('hidden')) return;
       lastTrigger = trigger;
       const portrait = trigger.hasAttribute('data-video-portrait');
       const size = portrait ? 'h-full max-h-full w-auto aspect-[9/16]' : 'w-full max-w-6xl aspect-video max-h-full';
@@ -2682,6 +2691,10 @@
       videoDialog.classList.remove('hidden');
       videoDialog.classList.add('flex');
       videoDialog.setAttribute('aria-hidden', 'false');
+      wasScrollLocked = document.documentElement.classList.contains('overflow-hidden');
+      background = [...document.body.children].filter((element) => element !== videoDialog)
+        .map((element) => [element, element.inert]);
+      background.forEach(([element]) => { element.inert = true; });
       document.documentElement.classList.add('overflow-hidden');
       qs('[data-video-close]', videoDialog)?.focus();
     };
@@ -2695,7 +2708,22 @@
       if (event.target.closest('[data-video-close]') || event.target === stage) closeVideo();
     });
     document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && !videoDialog.classList.contains('hidden')) closeVideo();
+      if (videoDialog.classList.contains('hidden')) return;
+      if (event.key === 'Escape') closeVideo();
+      else if (event.key === 'Tab') {
+        const controls = focusableControls();
+        const first = controls[0];
+        const last = controls[controls.length - 1];
+        if (!videoDialog.contains(document.activeElement) || (event.shiftKey ? document.activeElement === first : document.activeElement === last)) {
+          event.preventDefault();
+          (event.shiftKey ? last : first)?.focus();
+        }
+      }
+    });
+    document.addEventListener('focusin', (event) => {
+      if (!videoDialog.classList.contains('hidden') && !videoDialog.contains(event.target)) {
+        qs('[data-video-close]', videoDialog)?.focus();
+      }
     });
   }
 
@@ -2993,7 +3021,8 @@
           if (!input) return;
           const optionCount = eligibleCards.filter((card) => cardMatchesFilterOption(card, filterName, input.value)).length;
           // A category switch can leave a selection that no product in the new category has: drop it.
-          if (input.checked && !categoryCards.some((card) => cardMatchesFilterOption(card, filterName, input.value))) {
+          if (input.checked && !categoryCards.some((card) => cardMatchesFilterOption(card, filterName, input.value))
+            && (filterName !== 'capacity' || cards.some((card) => cardMatchesFilterOption(card, filterName, input.value)))) {
             input.checked = false;
             clearedSelection = true;
           }

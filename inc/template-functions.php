@@ -563,7 +563,9 @@ function boblift_apply_product_runtime_meta(array $product, ?WP_Post $post = nul
 function boblift_clean_product_model(string $model, string $title): string
 {
     $model = trim($model);
-    if ($model === '' || in_array(strtolower($model), ['z1', 'truck-mounted', 'truck-tail'], true) || strcasecmp($model, trim($title)) === 0) {
+    $repeated_name = strcasecmp($model, trim($title)) === 0
+        && !preg_match('/^(?=.*[a-z])(?=.*\d)[a-z0-9.+\/_-]+$/i', $model);
+    if ($model === '' || in_array(strtolower($model), ['z1', 'truck-mounted', 'truck-tail'], true) || $repeated_name) {
         return '';
     }
     return $model;

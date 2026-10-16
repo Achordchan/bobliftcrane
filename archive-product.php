@@ -128,7 +128,7 @@ foreach ($category_filter_tree as $index => $item) {
 $group_order = ['crane' => 0, 'attachment' => 1, 'access' => 2];
 usort($category_filter_tree, static fn(array $a, array $b): int => ($group_order[$a['group']] <=> $group_order[$b['group']]) ?: ($a['position'] <=> $b['position']));
 $filter_group = static function (string $title, string $filter, array $items, array $counts): void {
-    $items = array_filter($items, static fn($label, $value): bool => (int) ($counts[$value] ?? 0) > 0, ARRAY_FILTER_USE_BOTH);
+    $items = array_filter($items, static fn($label, $value): bool => $filter === 'capacity' || (int) ($counts[$value] ?? 0) > 0, ARRAY_FILTER_USE_BOTH);
     if (!$items) {
         return;
     }

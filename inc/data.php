@@ -1091,6 +1091,7 @@ function boblift_curated_product_menu_families(): array
             'slug' => sanitize_title((string) $group['title']),
             'source_slug' => $group_term instanceof WP_Term ? boblift_source_term_slug($group_term) : sanitize_title((string) $group['title']),
             'title' => (string) $group['title'],
+            'description' => (string) ($group['description'] ?? ''),
             'url' => boblift_product_nav_url((string) ($group['href'] ?? '/products')),
             'count' => $count,
             'icon' => $icon !== '' ? $icon : 'truck-crane',
@@ -1127,10 +1128,20 @@ function boblift_build_product_menu_families(): array
         $children = [];
         foreach (($group['children'] ?? []) as $child) {
             $child_term = get_term_by('slug', (string) ($child['slug'] ?? ''), 'product_category');
-            if (!$child_term instanceof WP_Term || (int) $child_term->count === 0) {
+            if (!$child_term instanceof WP_Term) {
                 continue;
             }
-            $children[] = ['title' => $child_term->name, 'url' => $term_link($child_term), 'count' => (int) $child_term->count];
+            $child_count = (int) (new WP_Query([
+                'post_type' => 'product',
+                'post_status' => 'publish',
+                'posts_per_page' => 1,
+                'fields' => 'ids',
+                'tax_query' => [['taxonomy' => 'product_category', 'terms' => $child_term->term_id, 'include_children' => true]],
+            ]))->found_posts;
+            if ($child_count === 0) {
+                continue;
+            }
+            $children[] = ['title' => $child_term->name, 'url' => $term_link($child_term), 'count' => $child_count];
         }
         if ($total === 0) {
             continue;
