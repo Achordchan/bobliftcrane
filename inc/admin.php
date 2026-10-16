@@ -2156,16 +2156,16 @@ function boblift_admin_site_ui_fields(array $defaults, array $values, string $pa
         $current = is_array($values) && array_key_exists($key, $values) ? $values[$key] : $default_value;
         $field_path = $path . '.' . $key_string;
         if (is_array($default_value)) {
+            // Filter bins are edited as saved (their keys are the ranges), so ranges other than the defaults stay editable.
+            $fields = str_ends_with($key_string, 'Bins') && is_array($current) && $current !== [] ? $current : $default_value;
             if ($depth <= 1) {
                 $panel_label = $depth === 0 ? boblift_admin_site_ui_section_label($key_string) : boblift_admin_site_ui_field_label($key_string);
-                boblift_admin_site_ui_panel($panel_label, $key_string, $field_path, static function () use ($default_value, $current, $field_path, $depth): void {
-                    boblift_admin_site_ui_fields($default_value, is_array($current) ? $current : [], $field_path, $depth + 1);
+                boblift_admin_site_ui_panel($panel_label, $key_string, $field_path, static function () use ($fields, $current, $field_path, $depth): void {
+                    boblift_admin_site_ui_fields($fields, is_array($current) ? $current : [], $field_path, $depth + 1);
                 });
             } else {
                 $subpanel_label = boblift_admin_site_ui_array_label($key_string, $default_value);
                 $meta = boblift_admin_site_ui_array_meta(is_array($current) ? $current : $default_value);
-                // Filter bins are edited as saved (their keys are the ranges), so ranges other than the defaults stay editable.
-                $fields = str_ends_with($key_string, 'Bins') && is_array($current) && $current !== [] ? $current : $default_value;
                 boblift_admin_site_ui_panel($subpanel_label, $key_string, $field_path, static function () use ($fields, $current, $field_path, $depth): void {
                     boblift_admin_site_ui_fields($fields, is_array($current) ? $current : [], $field_path, $depth + 1);
                 }, 'boblift-admin-card boblift-admin-subpanel boblift-site-ui-panel', $meta);
@@ -2354,8 +2354,13 @@ function boblift_global_settings_page(): void
         <?php $raw_site_ui = boblift_admin_raw_options_for_language(boblift_admin_current_language())['site_ui'] ?? []; ?>
         <?php $site_ui_overrides = function_exists('boblift_site_ui_legacy_overrides') ? boblift_site_ui_legacy_overrides(is_array($raw_site_ui) ? $raw_site_ui : []) : []; ?>
         <?php $site_ui_values = array_replace_recursive($site_ui_values, $site_ui_overrides); ?>
-        <?php // Capacity bins migrated from the old ranges replace the default list rather than merging into it. ?>
-        <?php if (isset($site_ui_overrides['productArchive']['capacityBins'])) { $site_ui_values['productArchive']['capacityBins'] = $site_ui_overrides['productArchive']['capacityBins']; } ?>
+        <?php // Saved (or migrated) filter bins replace the default list rather than merging into it, as on the front end. ?>
+        <?php foreach (['capacityBins', 'momentBins', 'weightBins'] as $bins_key) {
+            $bins = $site_ui_overrides['productArchive'][$bins_key] ?? $raw_site_ui['productArchive'][$bins_key] ?? null;
+            if (is_array($bins) && $bins !== []) {
+                $site_ui_values['productArchive'][$bins_key] = $bins;
+            }
+        } ?>
         <div class="boblift-site-ui-editor">
             <?php boblift_admin_site_ui_fields($site_ui_defaults, $site_ui_values); ?>
         </div>

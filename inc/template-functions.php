@@ -1023,14 +1023,22 @@ function boblift_product_filter_values(int $product_id): array
     return $cache[$english_id] = $values;
 }
 
+/** Every displayable feedback entry linked to the product: protected entries and entries without media are left out first. */
+function boblift_product_feedback_all(int $product_id): array
+{
+    static $cache = [];
+    $english_id = boblift_product_english_id($product_id);
+    return $cache[$english_id] ??= boblift_feedback_items(['meta_key' => '_related_product', 'meta_value' => (string) $english_id]);
+}
+
 function boblift_product_feedback(int $product_id, int $limit = 8): array
 {
-    return boblift_feedback_items(['posts_per_page' => $limit, 'meta_key' => '_related_product', 'meta_value' => (string) boblift_product_english_id($product_id)]);
+    return array_slice(boblift_product_feedback_all($product_id), 0, $limit);
 }
 
 function boblift_product_feedback_count(int $product_id): int
 {
-    return count(get_posts(['post_type' => 'feedback', 'post_status' => 'publish', 'posts_per_page' => -1, 'fields' => 'ids', 'lang' => '', 'meta_key' => '_related_product', 'meta_value' => (string) boblift_product_english_id($product_id)]));
+    return count(boblift_product_feedback_all($product_id));
 }
 
 function boblift_product_cases(int $product_id, int $limit = 3): array

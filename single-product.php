@@ -334,6 +334,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
 ?>
 <div class="boblift-product-cinema bg-[#F5F7FB] text-[#0B1B33]">
     <section id="product-hero" class="boblift-cinema-hero relative overflow-hidden border-b border-[#DDE7F2]">
+        <?php // Old shared links to #photos land on the photos, now in the hero. ?><span id="photos" class="block scroll-mt-24" aria-hidden="true"></span>
         <div class="pointer-events-none absolute inset-0 boblift-cinema-grid opacity-40"></div>
         <div class="page-shell relative z-10 py-6 md:py-8 lg:py-10">
             <div class="grid grid-cols-1 items-center gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-10 xl:gap-14">
@@ -439,6 +440,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                 $detail_row = count($detail_gallery) <= 7 && !in_array(0, array_column($detail_gallery, 'height'), true);
                 ?>
                 <article id="overview" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card" data-detail-viewer data-detail-images="<?php echo esc_attr(wp_json_encode(array_column($detail_gallery, 'full'), JSON_UNESCAPED_SLASHES)); ?>" data-detail-alt="<?php echo esc_attr($detail_alt); ?>">
+                    <?php // Old shared links to #details land on the product details. ?><span id="details" class="block scroll-mt-24" aria-hidden="true"></span>
                     <div class="p-6 md:p-8">
                         <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
                             <div>
@@ -478,6 +480,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                 </article>
             <?php elseif ($detail_body_html !== '') : ?>
                 <article id="overview" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card">
+                    <?php // Old shared links to #details land on the product details. ?><span id="details" class="block scroll-mt-24" aria-hidden="true"></span>
                     <div class="grid gap-6 p-6 md:p-8 lg:grid-cols-[minmax(0,280px)_minmax(0,1fr)] lg:gap-12">
                         <div>
                             <p class="text-[11px] font-black uppercase tracking-[0.2em] text-[#0B3F7D]"><?php echo esc_html($ui['detailBodyLabel'] ?? 'Product details'); ?></p>

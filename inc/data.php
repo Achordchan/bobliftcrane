@@ -570,10 +570,17 @@ function boblift_about_legacy_intro(array $logo): array
     $paragraph = trim((string) ($logo['paragraph'] ?? ''));
     $chips = array_values(array_filter((array) ($logo['proof_chips'] ?? []), static fn($chip): bool => is_array($chip) && (trim((string) ($chip['number'] ?? '')) !== '' || trim((string) ($chip['label'] ?? '')) !== '')));
     $chip_labels = array_map(static fn(array $chip): string => trim((string) ($chip['label'] ?? '')), $chips);
+    // The built-in chips were numbered in order (01, 02, 03); changed numbers are the editor's own even with default labels.
+    $chip_numbers = array_map(static fn(array $chip): string => trim((string) ($chip['number'] ?? '')), $chips);
+    $default_numbers = array_map(static fn(int $i): array => [sprintf('%02d', $i + 1), (string) ($i + 1), ''], array_keys($chips));
+    $numbers_untouched = true;
+    foreach ($chip_numbers as $i => $number) {
+        $numbers_untouched = $numbers_untouched && in_array($number, $default_numbers[$i], true);
+    }
     return [
         'headline' => in_array($headline, $default_headlines, true) ? '' : $headline,
         'paragraph' => in_array($paragraph, $default_paragraphs, true) ? '' : $paragraph,
-        'chips' => in_array($chip_labels, $default_chip_labels, true) ? [] : $chips,
+        'chips' => $numbers_untouched && in_array($chip_labels, $default_chip_labels, true) ? [] : $chips,
     ];
 }
 
