@@ -230,6 +230,23 @@ $filter_sidebar = static function (bool $show_close = false) use ($filter_group,
                 <nav class="mt-8 flex flex-wrap items-center justify-center gap-2" aria-label="<?php echo esc_attr($archive_ui['paginationLabel'] ?? 'Product pagination'); ?>" data-product-pagination></nav>
             </div>
         </div>
+        <?php
+        // Intro copy per category (site-UI section categoryIntros), shown under the list for the selected category only.
+        $category_intros = boblift_site_ui('categoryIntros');
+        foreach ($banner_categories as $intro_slug => $intro_banner) :
+            $intro = is_array($category_intros[$intro_slug] ?? null) ? $category_intros[$intro_slug] : [];
+            $intro_paragraphs = array_values(array_filter(array_map('strval', (array) ($intro['paragraphs'] ?? [])), static fn(string $text): bool => trim($text) !== ''));
+            if ($intro_paragraphs === []) {
+                continue;
+            }
+        ?>
+            <section class="mt-10 max-w-[880px] md:mt-12" data-category-intro="<?php echo esc_attr($intro_slug); ?>" aria-labelledby="category-intro-<?php echo esc_attr($intro_slug); ?>"<?php echo $intro_slug === $initial_category ? '' : ' hidden'; ?>>
+                <h2 id="category-intro-<?php echo esc_attr($intro_slug); ?>" class="text-[clamp(1.4rem,2vw,2rem)] font-black leading-tight tracking-[-0.01em] text-[#0B1B33]"><?php echo esc_html((string) ($intro['title'] ?? $intro_banner['title'])); ?></h2>
+                <?php foreach ($intro_paragraphs as $paragraph) : ?>
+                    <p class="mt-4 text-sm font-semibold leading-7 text-slate-600 md:text-base md:leading-8"><?php echo esc_html($paragraph); ?></p>
+                <?php endforeach; ?>
+            </section>
+        <?php endforeach; ?>
         <?php boblift_render_brochures(['context' => 'archive', 'initial_category' => $initial_category]); ?>
     </div>
     <div class="fixed inset-0 z-[70] hidden items-center justify-center bg-[#0B1B33]/45 px-4 py-8 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="quick-view-title" data-quick-view-modal>
