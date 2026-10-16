@@ -127,6 +127,10 @@ function bl_tag_in_language(string $name, string $lang): int {
 
 /** Article JSON-LD with this translation's own addresses and the cover image. */
 function bl_translation_schema(array $schema, int $id, string $lang, string $title, string $news_label, string $home_label, int $cover_id): string {
+    // Site-wide nodes (organization, author) in the source still name the old domain; {{home}} follows whichever host serves
+    // the site. This runs on the source alone, before resolved permalinks and upload URLs are put in, so those stay as they are.
+    $legacy = (string) wp_json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $schema = json_decode(str_replace(['https://www.bobliftcrane.com/', 'https://www.bobliftcrane.com"'], ['{{home}}/', '{{home}}"'], $legacy), true);
     $url = bl_public_permalink($id);
     $news = get_page_by_path('news');
     $news_tr = $news ? (int) pll_get_post($news->ID, $lang) : 0;
@@ -152,9 +156,7 @@ function bl_translation_schema(array $schema, int $id, string $lang, string $tit
         }
     }
     unset($node);
-    $json = wp_json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
-    // Site-wide nodes (organization, author) still name the old domain; {{home}} follows whichever host serves the site.
-    return str_replace(['https://www.bobliftcrane.com/', 'https://www.bobliftcrane.com"'], ['{{home}}/', '{{home}}"'], (string) $json);
+    return (string) wp_json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
 }
 
 // Preflight: sources, English articles, translated categories and every image, before any post is written.
