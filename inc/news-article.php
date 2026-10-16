@@ -15,23 +15,40 @@ function boblift_news_article_toc(string $content): array
 {
     $items = [];
     // Reserve every id already in the article first, so generated ids never collide with an explicit anchor further down.
-    // id attributes in every valid form: quoted or not, with or without spaces around "=".
-    $id_pattern = '/\sid\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s"\'>]+))/i';
     // Attribute values are HTML-encoded (care&amp;maintenance); ids are compared and linked in their decoded DOM form.
     $decode_id = static fn(array $m): string => html_entity_decode((string) ($m[1] ?? '') . (string) ($m[2] ?? '') . (string) ($m[3] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8');
-    preg_match_all($id_pattern, $content, $existing_ids, PREG_SET_ORDER);
-    $used = array_fill_keys(array_map($decode_id, $existing_ids), true);
+    // Opening tags are read attribute by attribute, so "id=" inside another attribute's value or in the text is not reserved.
+    $attribute_pattern = '/\s+([^\s=>\/"\']+)(?:\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s"\'>]+)))?/';
+    $used = [];
+    preg_match_all('#<[a-z][^\s/>]*((?:\s+[^\s=>/"\']+(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s"\'>]+))?)*)\s*/?>#i', $content, $tags);
+    foreach ($tags[1] as $tag_attributes) {
+        preg_match_all($attribute_pattern, $tag_attributes, $tag_tokens, PREG_SET_ORDER);
+        foreach ($tag_tokens as $token) {
+            if (strtolower($token[1]) === 'id' && ($existing = $decode_id(array_slice($token, 1))) !== '') {
+                $used[$existing] = true;
+            }
+        }
+    }
     // The opening tag's attributes are matched value by value, so a ">" inside a quoted value does not end the tag.
     $h2_pattern = '#<h2((?:\s+[^\s=>/"\']+(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s"\'>]+))?)*)\s*>(.*?)</h2>#is';
-    $content = (string) preg_replace_callback($h2_pattern, static function (array $match) use (&$items, &$used, $decode_id, $id_pattern): string {
+    $content = (string) preg_replace_callback($h2_pattern, static function (array $match) use (&$items, &$used, $decode_id, $attribute_pattern): string {
         $attributes = (string) ($match[1] ?? '');
         $text = trim(html_entity_decode(wp_strip_all_tags($match[2]), ENT_QUOTES, 'UTF-8'));
         if ($text === '') {
             return $match[0];
         }
-        if (preg_match($id_pattern, $attributes, $id_match) && $decode_id($id_match) !== '') {
-            $id = $decode_id($id_match);
-        } else {
+        // Attributes are read token by token, so "id=" inside another attribute's quoted value is not taken for the id.
+        preg_match_all($attribute_pattern, $attributes, $tokens, PREG_SET_ORDER);
+        $id = '';
+        $kept = '';
+        foreach ($tokens as $token) {
+            if (strtolower($token[1]) === 'id') {
+                $id = $id !== '' ? $id : $decode_id(array_slice($token, 1));
+                continue;
+            }
+            $kept .= $token[0];
+        }
+        if ($id === '') {
             // sanitize_title() percent-encodes non-ASCII letters; decode them so the id and the TOC fragment are the same text.
             $base = (string) preg_replace('/\s+/u', '-', rawurldecode(sanitize_title($text)));
             $base = $base !== '' ? $base : 'section';
@@ -40,7 +57,7 @@ function boblift_news_article_toc(string $content): array
                 $id = $base . '-' . $n;
             }
             // An empty id attribute is replaced, not left in front of the generated one.
-            $attributes = (string) preg_replace($id_pattern, '', $attributes) . ' id="' . esc_attr($id) . '"';
+            $attributes = $kept . ' id="' . esc_attr($id) . '"';
         }
         $used[$id] = true;
         $items[] = ['id' => $id, 'text' => $text];
