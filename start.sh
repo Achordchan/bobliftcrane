@@ -44,7 +44,8 @@ if command -v wp >/dev/null 2>&1; then
         fail "The local WordPress database is unavailable. Start MySQL with: brew services start mysql"
     fi
 elif ! lsof -nP -iTCP:3306 -sTCP:LISTEN >/dev/null 2>&1; then
-    fail "MySQL is unavailable. Start it with: brew services start mysql"
+    # Without WP-CLI only the default TCP port can be probed; a socket or another port may still work, so warn and let WordPress decide.
+    printf 'Note: nothing listens on TCP 3306. If WordPress cannot reach its database, start MySQL with: brew services start mysql\n' >&2
 fi
 
 if [[ "${RUNTIME_HOST}" == "0.0.0.0" ]]; then
