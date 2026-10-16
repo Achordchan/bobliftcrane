@@ -13,3 +13,5 @@ require_once get_template_directory() . '/inc/admin.php';
 require_once get_template_directory() . '/inc/importer.php';
 require_once get_template_directory() . '/inc/setup.php';
 require_once get_template_directory() . '/inc/legacy-redirects.php';
+require_once get_template_directory() . '/inc/polylang-slugs.php';
+require_once get_template_directory() . '/inc/polylang-rewrites.php';

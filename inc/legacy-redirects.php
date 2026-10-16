@@ -237,10 +237,13 @@ function boblift_legacy_redirect_is_live_path(string $path): bool
     if ($slug === '' || str_contains($slug, '/')) {
         return false;
     }
+    // Translations can share a slug across languages, so every published holder of the slug is checked, in any language.
     foreach (['page', 'product', 'post', 'case'] as $type) {
-        $post = get_page_by_path($slug, OBJECT, $type);
-        if ($post instanceof WP_Post && $post->post_status === 'publish' && rtrim(rawurldecode((string) parse_url(get_permalink($post), PHP_URL_PATH)), '/') === $raw) {
-            return true;
+        $posts = get_posts(['post_type' => $type, 'name' => $slug, 'post_status' => 'publish', 'posts_per_page' => -1, 'lang' => '']);
+        foreach ($posts as $post) {
+            if (rtrim(rawurldecode((string) parse_url(get_permalink($post), PHP_URL_PATH)), '/') === $raw) {
+                return true;
+            }
         }
     }
     foreach (['product_category', 'category'] as $taxonomy) {

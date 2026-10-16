@@ -336,6 +336,19 @@ function boblift_html_url(string $slug): string
     return boblift_public_path_url('/' . sanitize_title($slug) . '.html');
 }
 
+/** True for the static front page and for its translations. */
+function boblift_is_front_page_or_translation(int $post_id): bool
+{
+    $front = (int) get_option('page_on_front');
+    if ($front === 0) {
+        return false;
+    }
+    if ($front === $post_id) {
+        return true;
+    }
+    return function_exists('pll_get_post_translations') && in_array($post_id, array_map('intval', pll_get_post_translations($front)), true);
+}
+
 function boblift_post_public_path(int|WP_Post $post, string $default = ''): string
 {
     $post = $post instanceof WP_Post ? $post : get_post($post);
@@ -346,7 +359,7 @@ function boblift_post_public_path(int|WP_Post $post, string $default = ''): stri
     if ($custom !== '') {
         return $custom;
     }
-    if ($post->post_type === 'page' && (int) get_option('page_on_front') === $post->ID) {
+    if ($post->post_type === 'page' && boblift_is_front_page_or_translation($post->ID)) {
         return '/';
     }
     return boblift_normalize_public_path($default !== '' ? $default : '/' . boblift_post_shared_slug($post) . '.html');
@@ -551,7 +564,7 @@ add_filter('post_type_archive_link', 'boblift_product_archive_html_link', 10, 2)
 
 function boblift_keep_public_url_canonical(string|false $redirect_url, string $requested_url): string|false
 {
-    $path = boblift_normalize_public_path((string) parse_url($requested_url, PHP_URL_PATH));
+    $path = boblift_normalize_public_path(boblift_strip_language_prefix((string) parse_url($requested_url, PHP_URL_PATH)));
     if ($path === '') {
         return $redirect_url;
     }
@@ -1365,7 +1378,7 @@ function boblift_legacy_html_redirects(): void
         return;
     }
 
-    $path = boblift_normalize_public_path((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH));
+    $path = boblift_normalize_public_path(boblift_strip_language_prefix((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH)));
     if ($path === '') {
         return;
     }
@@ -1408,7 +1421,7 @@ function boblift_legacy_html_redirects(): void
     }
 
     if (is_singular('product') || (is_single() && get_post_type() === 'post') || (is_page() && !is_front_page())) {
-        $canonical_path = boblift_normalize_public_path((string) parse_url(get_permalink(), PHP_URL_PATH));
+        $canonical_path = boblift_normalize_public_path(boblift_strip_language_prefix((string) parse_url(get_permalink(), PHP_URL_PATH)));
         if ($canonical_path !== '' && $path !== $canonical_path) {
             boblift_redirect_with_query(get_permalink());
         }
