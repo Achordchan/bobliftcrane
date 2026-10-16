@@ -56,18 +56,19 @@ function bl_news_english(array $row): ?WP_Post {
 }
 
 /** Old-site absolute links become site-relative, and point at the translated page where there is one. */
-function bl_news_links(string $html, string $lang): string {
+function bl_news_links(string $html, string $lang, array $pending = []): string {
     // Upload URLs from the export (local development host or the old domain) point at this site's own uploads.
     $uploads = trailingslashit(wp_get_upload_dir()['baseurl']);
     $html = preg_replace('#https?://(?:localhost|127\.0\.0\.1|(?:www\.)?bobliftcrane\.com)(?::\d+)?/wp-content/uploads/#i', $uploads, $html);
     $html = preg_replace('#https?://(?:www\.)?bobliftcrane\.com(?=/|"|\')#i', '', $html);
-    return preg_replace_callback('/href="(\/[^"#?]*)(#[^"]*)?"/', static function (array $m) use ($lang): string {
+    return preg_replace_callback('/href="(\/[^"#?]*)(#[^"]*)?"/', static function (array $m) use ($lang, $pending): string {
         $slug = preg_replace('/\.html$/', '', basename(rtrim($m[1], '/')));
         if ($slug === '') { return $m[0]; }
         $found = get_posts(['post_type' => 'any', 'name' => $slug, 'post_status' => 'publish', 'posts_per_page' => 1, 'lang' => 'en']);
         $translated = $found ? pll_get_post($found[0]->ID, $lang) : 0;
         // Only a published translation replaces the link; a draft or private one would be unreachable for visitors.
-        if (!$translated || $translated === $found[0]->ID || get_post_status($translated) !== 'publish') { return $m[0]; }
+        // $pending holds translations this run is about to publish.
+        if (!$translated || $translated === $found[0]->ID || (get_post_status($translated) !== 'publish' && !isset($pending[$translated]))) { return $m[0]; }
         return 'href="' . wp_make_link_relative(get_permalink($translated)) . ($m[2] ?? '') . '"';
     }, $html);
 }
@@ -78,26 +79,35 @@ function bl_news_backup(int $id, string $slug, string $lang): void {
     if (!is_string($snapshot) || file_put_contents($file, $snapshot) !== strlen($snapshot)) { fwrite(STDERR, "Cannot write backup $file; $slug was not changed.\n"); exit(1); }
 }
 
-$report = ['created' => 0, 'kept' => 0, 'missing_english' => 0];
+$report = ['created' => 0, 'updated' => 0, 'kept' => 0, 'missing_english' => 0, 'failed' => 0];
+// Pass 1 creates or updates every translation; links are resolved in pass 2, once all of them exist.
+$done = [];
 foreach ($jobs as [$lang, $id, $data]) {
     $row = $by_id[$id];
     $en = bl_news_english($row);
     if (!$en) { $report['missing_english']++; fwrite(STDERR, "English post {$row['slug']} is not on this site; skipped for $lang.\n"); continue; }
     $existing = (int) pll_get_post($en->ID, $lang);
-    if ($existing && !$overwrite) { $report['kept']++; continue; }
-    if ($existing) { bl_news_backup($existing, $row['slug'], $lang); }
+    // A translation an earlier run created but did not finish publishing carries the staging marker and is resumed.
+    $staged = $existing && get_post_meta($existing, '_news_i18n_staging', true) === '1';
+    if ($existing && !$overwrite && !$staged) { $report['kept']++; continue; }
+    if ($existing && !$staged) { bl_news_backup($existing, $row['slug'], $lang); }
     $cats = [];
     foreach (wp_get_post_categories($en->ID) as $cat_id) {
         $cats[] = (int) (pll_get_term($cat_id, $lang) ?: $cat_id);
     }
     $postarr = [
         'post_type' => 'post', 'post_status' => $existing ? get_post_status($existing) : 'draft', 'post_title' => $data['title'], 'post_name' => $en->post_name,
-        'post_content' => bl_news_links($data['content'], $lang), 'post_excerpt' => $data['excerpt'], 'post_author' => $en->post_author,
+        'post_content' => $data['content'], 'post_excerpt' => $data['excerpt'], 'post_author' => $en->post_author,
         'post_date' => $en->post_date, 'post_date_gmt' => $en->post_date_gmt, 'post_category' => $cats,
         'comment_status' => $en->comment_status, 'ping_status' => $en->ping_status,
     ];
-    $created = !$existing;
-    if ($existing) { $postarr['ID'] = $existing; $new_id = wp_update_post($postarr, true); } else { $new_id = wp_insert_post($postarr, true); }
+    if ($existing) {
+        $postarr['ID'] = $existing;
+        $new_id = wp_update_post($postarr, true);
+    } else {
+        $postarr['meta_input'] = ['_news_i18n_staging' => '1'];
+        $new_id = wp_insert_post($postarr, true);
+    }
     if (is_wp_error($new_id)) { fwrite(STDERR, $new_id->get_error_message() . "\n"); exit(1); }
     pll_set_post_language($new_id, $lang);
     $group = pll_get_post_translations($en->ID);
@@ -108,8 +118,22 @@ foreach ($jobs as [$lang, $id, $data]) {
     update_post_meta($new_id, '_seo_title', $data['seo_title']);
     update_post_meta($new_id, '_seo_description', $data['seo_description']);
     update_post_meta($new_id, '_seo_keywords', $data['seo_keywords']);
-    // Only a translation this run created is published; an existing one keeps the status its editor gave it.
-    if ($created && get_post_status($new_id) === 'draft') { wp_update_post(['ID' => $new_id, 'post_status' => 'publish']); }
-    $report['created']++;
+    // Only a translation this importer created is published; an existing one keeps the status its editor gave it.
+    $done[(int) $new_id] = [$lang, $data, !$existing || $staged];
+}
+
+// Pass 2: localize links (every translation now exists) and publish the ones this importer created.
+$pending = array_filter($done, static fn(array $item): bool => $item[2]);
+foreach ($done as $new_id => [$lang, $data, $publish]) {
+    $update = ['ID' => $new_id, 'post_content' => bl_news_links($data['content'], $lang, $pending)];
+    if ($publish && get_post_status($new_id) === 'draft') { $update['post_status'] = 'publish'; }
+    $result = wp_update_post($update, true);
+    if (is_wp_error($result) || !$result || ($publish && get_post_status($new_id) !== 'publish')) {
+        $report['failed']++;
+        fwrite(STDERR, "Could not finish translation $new_id ($lang); it stays staged and a rerun will retry.\n");
+        continue;
+    }
+    if ($publish) { delete_post_meta($new_id, '_news_i18n_staging'); $report['created']++; } else { $report['updated']++; }
 }
 echo json_encode($report), "\n";
+exit($report['failed'] ? 1 : 0);
