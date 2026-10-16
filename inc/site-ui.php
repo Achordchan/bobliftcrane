@@ -747,7 +747,11 @@ function boblift_static_text_translations(): array
     foreach (glob(get_template_directory() . '/inc/translations/*.php') ?: [] as $file) {
         $extra = include $file;
         foreach (is_array($extra) ? $extra : [] as $language => $strings) {
-            $all[$language] = array_merge($all[$language] ?? [], is_array($strings) ? $strings : []);
+            foreach (is_array($strings) ? $strings : [] as $source => $translation) {
+                if (is_string($source) && is_string($translation)) {
+                    $all[$language][$source] = $translation;
+                }
+            }
         }
     }
     return $all;

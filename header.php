@@ -218,14 +218,21 @@ if (!isset($nav_by_key['services']) && isset($nav_by_key['mounting-shipping'])) 
     unset($nav_by_key['mounting-shipping']);
 }
 if (!isset($nav_by_key['services'])) {
+    $services_mounting_page = boblift_find_page_by_slug('mounting-shipping');
+    $services_operation_page = boblift_find_page_by_slug('service');
+}
+if (!isset($nav_by_key['services']) && $services_mounting_page instanceof WP_Post) {
+    $services_children = [$nav_page_child('mounting-shipping', 'Truck Mounting & Export', get_permalink($services_mounting_page))];
+    if ($services_operation_page instanceof WP_Post) {
+        $services_children[] = $nav_page_child('service', 'Service & Operation', get_permalink($services_operation_page));
+    }
+    if (boblift_find_page_by_slug('products') instanceof WP_Post) {
+        $services_children[] = ['label' => $nav_static_label('Brochures'), 'href' => boblift_product_archive_path() . '#brochures'];
+    }
     $generated_services = [
         'label' => $nav_static_label('Services'),
-        'href' => '/mounting-shipping.html',
-        'children' => [
-            $nav_page_child('mounting-shipping', 'Truck Mounting & Export'),
-            $nav_page_child('service', 'Service & Operation'),
-            ['label' => $nav_static_label('Brochures'), 'href' => boblift_product_archive_path() . '#brochures'],
-        ],
+        'href' => get_permalink($services_mounting_page),
+        'children' => $services_children,
     ];
     // Saved order is kept; the generated Services entry goes after Cases (or Products), else first.
     $after = isset($nav_by_key['cases']) ? 'cases' : (isset($nav_by_key['products']) ? 'products' : '');
@@ -236,7 +243,7 @@ if (!isset($nav_by_key['services'])) {
 // Entries follow the order saved in the navigation editor. Only the untouched historical default order (About, Products,
 // Cases, News) is rearranged into Products · Cases · Services · About · News; Contact stays last as the call-to-action.
 if (array_values(array_diff(array_keys($nav_by_key), ['services'])) === ['about', 'products', 'cases', 'news']) {
-    $nav_by_key = array_replace(array_flip(['products', 'cases', 'services', 'about', 'news']), $nav_by_key);
+    $nav_by_key = array_replace(array_intersect_key(array_flip(['products', 'cases', 'services', 'about', 'news']), $nav_by_key), $nav_by_key);
 }
 $nav_contact_item = [
     'label' => trim((string) ($nav_saved_contact['label'] ?? '')) !== '' ? (string) $nav_saved_contact['label'] : $nav_static_label('Contact Us'),
