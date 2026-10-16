@@ -206,6 +206,12 @@ foreach ($articles as $slug) {
         $t = $data[$lang];
         $existing_id = (int) pll_get_post($en->ID, $lang);
         if ($existing_id === $en->ID) { $existing_id = 0; }
+        $stage_key = $en->ID . ':' . $lang;
+        if (!$existing_id) {
+            // A draft staged by an earlier run that stopped before Polylang linked it is found by its source marker and resumed.
+            $staged = get_posts(['post_type' => 'post', 'post_status' => 'any', 'meta_key' => '_content_gap_staging_source', 'meta_value' => $stage_key, 'posts_per_page' => 1, 'fields' => 'ids', 'lang' => '']);
+            $existing_id = $staged ? (int) $staged[0] : 0;
+        }
         // A post this importer staged (draft, or published but not yet given its schema) resumes on a rerun.
         $resuming = $existing_id && get_post_meta($existing_id, '_content_gap_staging', true) === '1';
         if ($existing_id && !$overwrite && !$resuming) { $report[] = "$lang $slug: $existing_id (exists, left unchanged; pass \"overwrite\" to replace it)"; continue; }
@@ -226,10 +232,11 @@ foreach ($articles as $slug) {
             $postarr['post_name'] = $slug;
             $postarr['post_date'] = $en->post_date;
             $postarr['post_date_gmt'] = $en->post_date_gmt;
+            // The markers are written by the insert itself, so a run cut short right after it can still find this draft.
+            $postarr['meta_input'] = ['_content_gap_staging' => '1', '_content_gap_staging_source' => $stage_key];
             $id = wp_insert_post($postarr, true);
         }
         if (is_wp_error($id)) { throw new Exception($id->get_error_message()); }
-        if (!$existing_id) { update_post_meta($id, '_content_gap_staging', '1'); }
         pll_set_post_language($id, $lang);
         $group = pll_get_post_translations($en->ID);
         $group[$lang] = $id;
@@ -251,6 +258,7 @@ foreach ($articles as $slug) {
         // The staging marker is removed only once the schema is stored, so an interrupted run resumes this post.
         update_post_meta($id, '_article_schema_jsonld', wp_slash(bl_translation_schema($t['schema'], $id, $lang, $t['title'], $t['news'] ?? $t['section'], $t['home'] ?? 'Home', $cover_id)));
         delete_post_meta($id, '_content_gap_staging');
+        delete_post_meta($id, '_content_gap_staging_source');
         $report[] = "$lang $slug: $id " . get_permalink($id);
     }
 }
