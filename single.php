@@ -4,29 +4,12 @@ the_post();
 
 $ui = boblift_site_ui('newsDetail');
 $article_ui = boblift_site_ui('newsArticle');
-// Contact-card copy customised for the old article sidebar (newsDetail.ctaLabel / ctaTitle / ctaButton) still shows, until the new
-// newsArticle contact fields are customised themselves.
-$legacy_cta_ui = boblift_site_ui('newsDetail');
-$article_ui_defaults = function_exists('boblift_site_ui_defaults') ? (array) (boblift_site_ui_defaults()['newsArticle'] ?? []) : [];
-$legacy_cta_defaults = ['ctaLabel' => 'Need help choosing a crane?', 'ctaTitle' => 'Talk to BOB-LIFT before your next lifting project.', 'ctaButton' => 'Request a Quote'];
-$legacy_cta_map = ['ctaTitle' => 'contactTitle', 'ctaButton' => 'contactButton'];
-foreach ($legacy_cta_map as $legacy_key => $new_key) {
-    $legacy_value = trim((string) ($legacy_cta_ui[$legacy_key] ?? ''));
-    $new_untouched = (string) ($article_ui[$new_key] ?? '') === (string) ($article_ui_defaults[$new_key] ?? ($article_ui[$new_key] ?? ''));
-    if ($legacy_value !== '' && $legacy_value !== $legacy_cta_defaults[$legacy_key] && $new_untouched) {
-        $article_ui[$new_key] = $legacy_value;
-    }
-}
-// A customised old source credit (newsDetail.sourceValue, e.g. an external publisher) replaces the default author card
-// until the new author fields are edited, so the article is not presented as written in-house.
-$legacy_source = trim((string) ($legacy_cta_ui['sourceValue'] ?? ''));
-$author_untouched = static fn(string $key): bool => (string) ($article_ui[$key] ?? '') === (string) ($article_ui_defaults[$key] ?? ($article_ui[$key] ?? ''));
-if ($legacy_source !== '' && $legacy_source !== 'BOB-LIFT' && $author_untouched('authorName') && $author_untouched('authorText')) {
-    $article_ui['authorName'] = $legacy_source;
-    $article_ui['authorText'] = '';
-}
-$legacy_cta_label = trim((string) ($legacy_cta_ui['ctaLabel'] ?? ''));
-$legacy_cta_label = $legacy_cta_label !== $legacy_cta_defaults['ctaLabel'] ? $legacy_cta_label : '';
+// Customised old sidebar copy (newsDetail.ctaTitle / ctaButton / sourceValue) is carried into the newsArticle fields by
+// boblift_site_ui(); the old CTA label has no new field and is shown as it was.
+// Read from what was stored (not the merged, localised defaults) so a translated default does not count as customised.
+$stored_options = function_exists('boblift_mls_get_raw_options') ? boblift_mls_get_raw_options() : get_option('boblift_theme_options', []);
+$legacy_cta_label = trim((string) ($stored_options['site_ui']['newsDetail']['ctaLabel'] ?? ''));
+$legacy_cta_label = in_array($legacy_cta_label, ['Need help choosing a crane?', function_exists('boblift_localized_static_text') ? trim((string) boblift_localized_static_text('Need help choosing a crane?')) : ''], true) ? '' : $legacy_cta_label;
 $post_id = get_the_ID();
 $localize = static fn(string $text): string => function_exists('boblift_localize_product_text_fragments') ? (string) boblift_localize_product_text_fragments($text) : $text;
 $category_term = get_the_category($post_id)[0] ?? null;

@@ -25,13 +25,9 @@ if ($qr_id > 0 || ($qr_path !== '' && preg_match('#^https?://#i', $qr_path)) || 
 $wechat_id = trim((string) $contact['wechatId']);
 
 $address = (string) $contact['address'];
-$saved_options = function_exists('boblift_mls_get_raw_options') ? boblift_mls_get_raw_options() : get_option('boblift_theme_options', []);
-$saved_location = $saved_options['site_ui']['contactPage'] ?? [];
-$saved_location = is_array($saved_location) ? $saved_location : [];
-$location_heading = !array_key_exists('locationHeading', $saved_location) && isset($ui['locationTitle'])
-    ? (string) $ui['locationTitle'] : $t('locationHeading');
-$location_description = !array_key_exists('locationDescription', $saved_location) && isset($ui['locationDescriptionTemplate'])
-    ? str_replace('{address}', $address, (string) $ui['locationDescriptionTemplate']) : $t('locationDescription');
+// Customised old location copy (locationTitle / locationDescriptionTemplate) is carried into these fields by boblift_site_ui().
+$location_heading = $t('locationHeading');
+$location_description = str_replace('{address}', $address, $t('locationDescription'));
 $company_cn = $t('mapKeywordCn', $address);
 $map_links = [
     'google' => 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($address),

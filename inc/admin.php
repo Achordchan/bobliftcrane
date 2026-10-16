@@ -2336,6 +2336,9 @@ function boblift_global_settings_page(): void
     <?php boblift_admin_settings_panel_start('通用页面文案', '对应导航、询盘弹窗、Quote List、News/Success/详情页等模板固定文案。默认折叠；可按中文标签、英文 key 或当前内容搜索。'); ?>
         <?php $site_ui_defaults = function_exists('boblift_site_ui_defaults') ? boblift_site_ui_defaults() : []; ?>
         <?php $site_ui_values = is_array($options['site_ui'] ?? null) ? $options['site_ui'] : []; ?>
+        <?php // Prefill the fields that replaced customised old copy, so a save keeps that copy (see boblift_site_ui_legacy_overrides()). ?>
+        <?php $raw_site_ui = boblift_admin_raw_options_for_language(boblift_admin_current_language())['site_ui'] ?? []; ?>
+        <?php $site_ui_values = function_exists('boblift_site_ui_legacy_overrides') ? array_replace_recursive($site_ui_values, boblift_site_ui_legacy_overrides(is_array($raw_site_ui) ? $raw_site_ui : [])) : $site_ui_values; ?>
         <div class="boblift-site-ui-editor">
             <?php boblift_admin_site_ui_fields($site_ui_defaults, $site_ui_values); ?>
         </div>

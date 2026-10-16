@@ -158,6 +158,10 @@ function boblift_redirect_case_to_url_language(): void
     if (!is_singular('case') || !function_exists('pll_get_post_language') || !function_exists('pll_get_post') || !function_exists('boblift_prefixed_languages')) {
         return;
     }
+    // Only Polylang's directory mode carries the language in the path; with language domains or subdomains there is nothing to correct.
+    if ((int) (((array) get_option('polylang', []))['force_lang'] ?? 0) !== 1) {
+        return;
+    }
     $post = get_queried_object();
     if (!$post instanceof WP_Post) {
         return;

@@ -1391,6 +1391,59 @@ function boblift_site_ui_defaults(?string $section = null): array
     return $section ? ($ui[$section] ?? []) : $ui;
 }
 
+/**
+ * Copy an administrator customised in fields the redesign replaced, carried into the new fields until those are saved
+ * themselves. "Saved" means present in the stored site_ui (any settings save stores the whole editor), so the check does not
+ * depend on the language the defaults are shown in. The settings editor is prefilled with the same values, so the first save
+ * moves the old copy into the new fields instead of replacing it with defaults.
+ * Returns [section => [key => value]] for the new keys only.
+ */
+function boblift_site_ui_legacy_overrides(array $saved): array
+{
+    $overrides = [];
+    $section = static fn(string $name): array => is_array($saved[$name] ?? null) ? $saved[$name] : [];
+    $legacy_text = static function (array $values, string $key, array $old_defaults): string {
+        // A translated site stores the old defaults translated: those are not customisations either.
+        foreach ($old_defaults as $old_default) {
+            if (function_exists('boblift_localized_static_text')) {
+                $old_defaults[] = trim((string) boblift_localized_static_text($old_default));
+            }
+        }
+        $value = trim((string) ($values[$key] ?? ''));
+        return $value !== '' && !in_array($value, $old_defaults, true) ? $value : '';
+    };
+
+    $contact = $section('contactPage');
+    $map = ['locationTitle' => 'locationHeading', 'locationDescriptionTemplate' => 'locationDescription'];
+    foreach ($map as $legacy_key => $new_key) {
+        $value = $legacy_text($contact, $legacy_key, []);
+        if ($value !== '' && !array_key_exists($new_key, $contact)) {
+            $overrides['contactPage'][$new_key] = $value;
+        }
+    }
+
+    $detail = $section('newsDetail');
+    $article = $section('newsArticle');
+    $map = [
+        'ctaTitle' => ['contactTitle', ['Talk to BOB-LIFT before your next lifting project.']],
+        'ctaButton' => ['contactButton', ['Request a Quote']],
+    ];
+    foreach ($map as $legacy_key => [$new_key, $old_defaults]) {
+        $value = $legacy_text($detail, $legacy_key, $old_defaults);
+        if ($value !== '' && !array_key_exists($new_key, $article)) {
+            $overrides['newsArticle'][$new_key] = $value;
+        }
+    }
+    // A customised old source credit (e.g. an external publisher) becomes the author card, so the article is not presented
+    // as written in-house.
+    $source = $legacy_text($detail, 'sourceValue', ['BOB-LIFT']);
+    if ($source !== '' && !array_key_exists('authorName', $article) && !array_key_exists('authorText', $article)) {
+        $overrides['newsArticle']['authorName'] = $source;
+        $overrides['newsArticle']['authorText'] = '';
+    }
+    return $overrides;
+}
+
 function boblift_site_ui(?string $section = null): array
 {
     static $cache = [];
@@ -1400,6 +1453,10 @@ function boblift_site_ui(?string $section = null): array
         $defaults = boblift_site_ui_defaults();
         $saved = function_exists('boblift_option') ? boblift_option('site_ui', []) : [];
         $merged = function_exists('boblift_array_replace_recursive') ? boblift_array_replace_recursive($defaults, is_array($saved) ? $saved : []) : array_replace_recursive($defaults, is_array($saved) ? $saved : []);
+        // boblift_option() already merges the defaults in; the legacy carry-over needs what was actually stored.
+        $raw = function_exists('boblift_mls_get_raw_options') ? boblift_mls_get_raw_options($language !== 'default' ? $language : null) : get_option('boblift_theme_options', []);
+        $raw_site_ui = is_array($raw['site_ui'] ?? null) ? $raw['site_ui'] : [];
+        $merged = array_replace_recursive($merged, boblift_site_ui_legacy_overrides($raw_site_ui));
         $cache[$language] = boblift_localize_static_value($merged, $language);
     }
     return $section ? ($cache[$language][$section] ?? []) : $cache[$language];

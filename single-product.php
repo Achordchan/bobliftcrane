@@ -1,4 +1,12 @@
 <?php
+$queried_product = get_queried_object();
+if ($queried_product instanceof WP_Post && $queried_product->post_type === 'product' && post_password_required($queried_product)) {
+    // Protected product: only the standard WordPress password form, before any specification, drawing or image is read.
+    get_header();
+    echo '<section class="page-shell py-16 md:py-24"><div class="mx-auto max-w-xl">' . get_the_password_form($queried_product) . '</div></section>';
+    get_footer();
+    return;
+}
 get_header();
 $product = boblift_find_product(get_post_field('post_name', get_queried_object_id()) ?: get_query_var('product'));
 if (!$product && have_posts()) {

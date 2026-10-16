@@ -255,6 +255,15 @@ function boblift_product_content_ready(int $post_id, string $flag_key): bool
     if (metadata_exists('post', $post_id, $flag_key)) {
         return get_post_meta($post_id, $flag_key, true) === '1';
     }
+    // A translation without its own choice follows the source product: translating the body is not an editorial review, and
+    // the translated body always differs from the untranslated _legacy_content backup.
+    if (function_exists('pll_get_post') && function_exists('pll_get_post_language')) {
+        $source_language = function_exists('boblift_mls_source_language') ? (string) boblift_mls_source_language() : 'en';
+        $source_id = (int) pll_get_post($post_id, $source_language);
+        if ($source_id > 0 && $source_id !== $post_id && (string) pll_get_post_language($post_id) !== $source_language) {
+            return boblift_product_content_ready($source_id, $flag_key);
+        }
+    }
     if ((string) get_post_meta($post_id, '_old_site_imported_at', true) === '') {
         return true;
     }
