@@ -207,7 +207,10 @@ foreach ($nav_items as $item) {
     }
     // Keep every saved entry: a second entry that maps to the same key (two submenus, say) is listed after the ordered ones instead of replacing the first.
     if (isset($nav_by_key[$key])) {
-        $key .= '-' . count($nav_by_key);
+        $base_key = $key;
+        for ($n = 2; isset($nav_by_key[$key]); $n++) {
+            $key = $base_key . '-' . $n;
+        }
     }
     $nav_by_key[$key] = $item;
 }
