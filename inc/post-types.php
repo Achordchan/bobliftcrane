@@ -218,6 +218,40 @@ function boblift_register_taxonomies(): void
 }
 add_action('init', 'boblift_register_taxonomies');
 
+/**
+ * Category introduction shown under the product list when one category is selected. Editable on the category screen
+ * and through REST: POST /wp/v2/product_category/<id> with {"meta": {"_boblift_intro_title": "...", "_boblift_intro_text": "..."}}.
+ * Paragraphs in _boblift_intro_text are separated by a blank line. Each Polylang language term holds its own copy.
+ */
+function boblift_register_product_category_intro_meta(): void
+{
+    $auth = static fn(): bool => current_user_can('manage_categories');
+    register_term_meta('product_category', '_boblift_intro_title', [
+        'type' => 'string',
+        'single' => true,
+        'default' => '',
+        'show_in_rest' => true,
+        'sanitize_callback' => 'sanitize_text_field',
+        'auth_callback' => $auth,
+    ]);
+    register_term_meta('product_category', '_boblift_intro_text', [
+        'type' => 'string',
+        'single' => true,
+        'default' => '',
+        'show_in_rest' => true,
+        'sanitize_callback' => 'sanitize_textarea_field',
+        'auth_callback' => $auth,
+    ]);
+}
+add_action('init', 'boblift_register_product_category_intro_meta');
+
+/** Paragraphs of a category introduction, split on blank lines. */
+function boblift_product_category_intro_paragraphs(string $text): array
+{
+    $parts = preg_split('/\R\s*\R/u', trim(str_replace("\r\n", "\n", $text))) ?: [];
+    return array_values(array_filter(array_map(static fn(string $part): string => trim(preg_replace('/\s+/u', ' ', $part) ?? ''), $parts), static fn(string $part): bool => $part !== ''));
+}
+
 function boblift_register_news_rewrite(): void
 {
     add_rewrite_rule('^news/([^/]+)/?$', 'index.php?name=$matches[1]', 'top');

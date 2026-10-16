@@ -972,6 +972,8 @@ function boblift_categories(): array
         $sort = get_term_meta($term->term_id, '_boblift_sort', true);
         $banner_label = (string) get_term_meta($term->term_id, '_boblift_banner_label', true);
         $banner_title = (string) get_term_meta($term->term_id, '_boblift_banner_title', true);
+        $intro_title = trim((string) get_term_meta($term->term_id, '_boblift_intro_title', true));
+        $intro_text = (string) get_term_meta($term->term_id, '_boblift_intro_text', true);
         $category_map[$term->slug] = array_merge($fallback, [
             'slug' => $term->slug,
             'source_slug' => $source_slug,
@@ -982,6 +984,8 @@ function boblift_categories(): array
             'sort' => $sort !== '' ? (int) $sort : (int) ($fallback['sort'] ?? 100),
             'banner_label' => $banner_label !== '' ? $banner_label : (string) ($fallback['banner_label'] ?? 'BOB-LIFT Product Range'),
             'banner_title' => $banner_title !== '' ? $banner_title : $term->name,
+            'intro_title' => $intro_title,
+            'intro_paragraphs' => function_exists('boblift_product_category_intro_paragraphs') ? boblift_product_category_intro_paragraphs($intro_text) : [],
         ]);
     }
 
