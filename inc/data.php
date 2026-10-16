@@ -1241,7 +1241,8 @@ function boblift_footer_is_product_group(array $group): bool
         return false;
     }
     // Only the complete historical default counts: the original seven links with their original labels, in their original
-    // order. A group an administrator edited (relabelled, reordered, other links) is left as saved.
+    // order. A group an administrator edited (relabelled, reordered, other links) is left as saved. Both historical URL
+    // forms count: `/products#slug` and the root-relative `/slug` shipped in seed-data.json.
     $historical = [
         ['Telescopic Boom Truck Mounted Cranes', 'telescopic-boom-truck-mounted-cranes'],
         ['Knuckle Boom Truck Mounted Cranes', 'knuckle-boom-truck-mounted-cranes'],
@@ -1255,7 +1256,7 @@ function boblift_footer_is_product_group(array $group): bool
         return false;
     }
     foreach (array_values($links) as $index => $link) {
-        if (!is_array($link) || !preg_match('~^/?products(?:\.html)?#([a-z0-9-]+)$~', trim((string) ($link['href'] ?? '')), $m)
+        if (!is_array($link) || !preg_match('~^/?(?:products(?:\.html)?#)?([a-z0-9-]+)/?$~', trim((string) ($link['href'] ?? '')), $m)
             || $m[1] !== $historical[$index][1] || trim((string) ($link['label'] ?? '')) !== $historical[$index][0]) {
             return false;
         }

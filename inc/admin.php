@@ -535,6 +535,12 @@ function boblift_admin_value_has_content(mixed $value): bool
 
 function boblift_cleanup_admin_options(array $options): array
 {
+    // Certifications presence marker (About settings and About page metabox): no posted items means the editor cleared the list.
+    if (isset($options['about_page']['certifications']) && is_array($options['about_page']['certifications']) && array_key_exists('items_present', $options['about_page']['certifications'])) {
+        unset($options['about_page']['certifications']['items_present']);
+        $options['about_page']['certifications']['items'] ??= [];
+    }
+
     if (isset($options['nav_items']) && is_array($options['nav_items'])) {
         $options['nav_items'] = array_values(array_filter($options['nav_items'], static fn($row): bool => is_array($row) && (boblift_admin_value_has_content($row['label'] ?? '') || boblift_admin_value_has_content($row['href'] ?? ''))));
     }
@@ -1666,10 +1672,6 @@ function boblift_save_about_page_meta_box(int $post_id, WP_Post $post): void
     }
 
     $posted = wp_unslash($_POST['boblift_about_page']);
-    if (isset($posted['certifications']['items_present'])) {
-        unset($posted['certifications']['items_present']);
-        $posted['certifications']['items'] ??= [];
-    }
     $sanitized = boblift_cleanup_admin_options(boblift_sanitize_options_recursive(['about_page' => $posted]));
     $language = function_exists('boblift_mls_post_language') ? boblift_mls_post_language($post) : 'en';
     $existing = function_exists('boblift_mls_get_raw_options') ? boblift_mls_get_raw_options($language) : get_option('boblift_theme_options', []);
@@ -2559,9 +2561,14 @@ function boblift_render_social_media_page_fields(array $social, string $base): v
         ?>
         <?php if ($legacy_title_shown) : ?>
             <?php boblift_admin_input('hero.title', $social, '旧版首屏标题（仍显示在首屏下方，清空即可移除）', $base); ?>
+        <?php else : ?>
+            <?php // Already migrated into the new heading (or empty): retire it on save so later edits cannot bring the old copy back. ?>
+            <input type="hidden" name="<?php echo esc_attr(boblift_admin_option_name('hero.title', $base)); ?>" value="">
         <?php endif; ?>
         <?php if ($legacy_text_shown) : ?>
             <?php boblift_admin_textarea('hero.text', $social, '旧版首屏说明（仍显示在首屏下方，清空即可移除）', $base); ?>
+        <?php else : ?>
+            <input type="hidden" name="<?php echo esc_attr(boblift_admin_option_name('hero.text', $base)); ?>" value="">
         <?php endif; ?>
     <?php boblift_admin_settings_panel_end(); ?>
 

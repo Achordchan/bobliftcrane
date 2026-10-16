@@ -693,8 +693,19 @@ function boblift_redirect_quote_page(): void
     if (!$page instanceof WP_Post || !function_exists('boblift_page_is_translation_of_slug') || !boblift_page_is_translation_of_slug($page, 'quote')) {
         return;
     }
-    $product = isset($_GET['product']) ? sanitize_text_field(wp_unslash($_GET['product'])) : '';
-    $target = boblift_url($product !== '' ? '/contact.html?product=' . rawurlencode($product) . '#inquiry' : '/contact.html#inquiry');
+    // Keep every incoming parameter (utm_*, gclid, ...) so campaign attribution survives the move; only `product` is cleaned.
+    $query = wp_unslash($_GET);
+    $query = is_array($query) ? $query : [];
+    if (isset($query['product'])) {
+        $product = is_string($query['product']) ? sanitize_text_field($query['product']) : '';
+        if ($product !== '') {
+            $query['product'] = $product;
+        } else {
+            unset($query['product']);
+        }
+    }
+    $query_string = http_build_query($query, '', '&', PHP_QUERY_RFC3986);
+    $target = boblift_url('/contact.html' . ($query_string !== '' ? '?' . $query_string : '') . '#inquiry');
     wp_safe_redirect($target, 301);
     exit;
 }
