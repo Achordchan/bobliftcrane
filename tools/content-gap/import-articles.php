@@ -138,7 +138,8 @@ foreach ($articles as $a) {
     $html = file_get_contents($root . $a['file'] . '.html');
     // images: collect alt by src, upload, swap
     $post_id = 0;
-    $existing = get_posts(['post_type' => 'post', 'name' => $a['slug'], 'post_status' => 'any', 'posts_per_page' => 1, 'lang' => '']);
+    // With Polylang only the English article counts as "existing"; a translation sharing the slug is never touched.
+    $existing = get_posts(['post_type' => 'post', 'name' => $a['slug'], 'post_status' => 'any', 'posts_per_page' => 1, 'lang' => function_exists('pll_default_language') ? 'en' : '']);
     if ($existing) { $post_id = $existing[0]->ID; }
     $resuming = $existing && $existing[0]->post_status === 'draft' && get_post_meta($existing[0]->ID, '_content_gap_staging', true) === '1';
     if ($existing && !$overwrite && !$resuming) {
@@ -157,9 +158,9 @@ foreach ($articles as $a) {
     }, $html);
     foreach ($link_map as $from => $to) { $html = str_replace('href="' . $from . '"', 'href="' . $to . '"', $html); }
     foreach ($lower_post_links as $l) { $html = str_replace('href="/' . $l . '.html"', 'href="/' . strtolower($l) . '.html"', $html); }
-    // A site installed under a path (https://example.com/site) needs that path in front of root-relative internal links.
+    // Root-relative internal links are resolved against the site's own URL (a site under a path, https://example.com/site, keeps its prefix).
     $home_path = rtrim((string) wp_parse_url(home_url(), PHP_URL_PATH), '/');
-    if ($home_path !== '') { $html = preg_replace('#href="/(?!/)#', 'href="' . $home_path . '/', $html); }
+    $html = preg_replace_callback('#href="(/(?!/)[^"]*)"#', static fn(array $m): string => 'href="' . $home_path . $m[1] . '"', $html);
     $postarr = [
         // New articles are staged as drafts and published after their images and meta are complete (an interrupted run resumes).
         'post_type' => 'post', 'post_status' => ($existing ? $existing[0]->post_status : 'draft'), 'post_title' => $a['title'], 'post_name' => $a['slug'],
