@@ -37,6 +37,7 @@ foreach ($langs as $lang) {
         foreach ($fields as $field) {
             if (!is_string($data[$field] ?? null)) { $problems[] = "$file: field $field"; }
         }
+        if (preg_match('#https?://(?:localhost|127\.0\.0\.1)(?::\d+)?/(?!wp-content/uploads/)#i', (string) ($data['content'] ?? ''))) { $problems[] = "$file: link to a local development address"; }
         if (trim((string) ($data['title'] ?? '')) === '' || trim((string) ($data['content'] ?? '')) === '') { $problems[] = "$file: empty title or content"; }
         $english_links = preg_match_all('/<a\b/i', $by_id[$id]['content']);
         if ($english_links !== preg_match_all('/<a\b/i', (string) ($data['content'] ?? ''))) { $problems[] = "$file: link count differs from the English post"; }
@@ -53,6 +54,9 @@ function bl_news_english(array $row): ?WP_Post {
 
 /** Old-site absolute links become site-relative, and point at the translated page where there is one. */
 function bl_news_links(string $html, string $lang): string {
+    // Upload URLs from the export (local development host or the old domain) point at this site's own uploads.
+    $uploads = trailingslashit(wp_get_upload_dir()['baseurl']);
+    $html = preg_replace('#https?://(?:localhost|127\.0\.0\.1|(?:www\.)?bobliftcrane\.com)(?::\d+)?/wp-content/uploads/#i', $uploads, $html);
     $html = preg_replace('#https?://(?:www\.)?bobliftcrane\.com(?=/|"|\')#i', '', $html);
     return preg_replace_callback('/href="(\/[^"#?]*)(#[^"]*)?"/', static function (array $m) use ($lang): string {
         $slug = preg_replace('/\.html$/', '', basename(rtrim($m[1], '/')));
@@ -88,6 +92,7 @@ foreach ($jobs as [$lang, $id, $data]) {
         'post_date' => $en->post_date, 'post_date_gmt' => $en->post_date_gmt, 'post_category' => $cats,
         'comment_status' => $en->comment_status, 'ping_status' => $en->ping_status,
     ];
+    $created = !$existing;
     if ($existing) { $postarr['ID'] = $existing; $new_id = wp_update_post($postarr, true); } else { $new_id = wp_insert_post($postarr, true); }
     if (is_wp_error($new_id)) { fwrite(STDERR, $new_id->get_error_message() . "\n"); exit(1); }
     pll_set_post_language($new_id, $lang);
@@ -99,7 +104,8 @@ foreach ($jobs as [$lang, $id, $data]) {
     update_post_meta($new_id, '_seo_title', $data['seo_title']);
     update_post_meta($new_id, '_seo_description', $data['seo_description']);
     update_post_meta($new_id, '_seo_keywords', $data['seo_keywords']);
-    if (get_post_status($new_id) === 'draft') { wp_update_post(['ID' => $new_id, 'post_status' => 'publish']); }
+    // Only a translation this run created is published; an existing one keeps the status its editor gave it.
+    if ($created && get_post_status($new_id) === 'draft') { wp_update_post(['ID' => $new_id, 'post_status' => 'publish']); }
     $report['created']++;
 }
 echo json_encode($report), "\n";

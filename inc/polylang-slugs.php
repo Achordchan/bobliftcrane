@@ -8,7 +8,7 @@
  * post types.
  */
 add_filter('wp_unique_post_slug', static function (string $slug, int $post_id, string $post_status, string $post_type, int $post_parent, string $original_slug): string {
-    if ($slug === $original_slug || !function_exists('pll_get_post_language') || !function_exists('pll_languages_list')) {
+    if ($slug === $original_slug || $post_type === 'attachment' || !function_exists('pll_get_post_language') || !function_exists('pll_languages_list')) {
         return $slug;
     }
     $language = pll_get_post_language($post_id);
@@ -20,6 +20,10 @@ add_filter('wp_unique_post_slug', static function (string $slug, int $post_id, s
         "SELECT ID FROM {$wpdb->posts} WHERE post_name = %s AND post_type = %s AND post_parent = %d AND ID <> %d AND post_status NOT IN ('trash', 'auto-draft')",
         $original_slug, $post_type, $post_parent, $post_id
     ));
+    // No same-type holder means WordPress changed the slug for another reason (reserved word, feed or date clash): keep its choice.
+    if (!$holders) {
+        return $slug;
+    }
     foreach ($holders as $holder) {
         if (pll_get_post_language((int) $holder) === $language) {
             return $slug;
