@@ -56,20 +56,28 @@ $platform_identity = static function (string $label): string {
     ];
     return $aliases[$id] ?? $id;
 };
+// Account URLs may be saved protocol-relative ("//www.facebook.com/..."); those count as real links over https.
+$absolute_href = static function (string $href): string {
+    $href = trim($href);
+    if (str_starts_with($href, '//') && strlen($href) > 2) {
+        $href = 'https:' . $href;
+    }
+    return preg_match('#^https?://#i', $href) ? $href : '';
+};
 // Real account URLs saved in the footer social links, keyed by platform identity.
 $footer_social = is_array($site_options['footer']['social_links'] ?? null) ? $site_options['footer']['social_links'] : [];
 $link_map = [];
 foreach ($footer_social as $link) {
     $identity = $platform_identity((string) (is_array($link) ? ($link['label'] ?? '') : ''));
-    $href = trim((string) (is_array($link) ? ($link['href'] ?? '') : ''));
-    if ($identity !== '' && preg_match('#^https?://#i', $href)) {
+    $href = $absolute_href((string) (is_array($link) ? ($link['href'] ?? '') : ''));
+    if ($identity !== '' && $href !== '') {
         $link_map[$identity] = $href;
     }
 }
 // A card links out only once a real account URL is saved (its own, or the footer's for the same platform); placeholders and old /contact fallbacks stay unlinked.
-$account_url = static function (array $platform) use ($link_map, $platform_identity): string {
-    $href = trim((string) ($platform['href'] ?? ''));
-    if (preg_match('#^https?://#i', $href)) {
+$account_url = static function (array $platform) use ($link_map, $platform_identity, $absolute_href): string {
+    $href = $absolute_href((string) ($platform['href'] ?? ''));
+    if ($href !== '') {
         return $href;
     }
     foreach ([(string) ($platform['label'] ?? ''), (string) ($platform['icon'] ?? '')] as $name) {
@@ -102,10 +110,45 @@ $platform_tone = static function (array $platform): string {
     $tones = ['linkedin' => 'bg-[#0A66C2]', 'youtube' => 'bg-[#FF0000]', 'facebook' => 'bg-[#1877F2]', 'instagram' => 'bg-[linear-gradient(135deg,#833AB4,#FD1D1D,#FCAF45)]', 'whatsapp' => 'bg-[#25D366]', 'telegram' => 'bg-[#229ED9]', 'pinterest' => 'bg-[#E60023]', 'wechat' => 'bg-[#07C160]', 'xiaohongshu' => 'bg-[#FF2442]', 'weibo' => 'bg-[#E6162D]', 'bilibili' => 'bg-[#00A1D6]', 'kuaishou' => 'bg-[#FF6600]', 'zhihu' => 'bg-[#1677FF]', 'baidu' => 'bg-[#2F6BFF]', 'toutiao' => 'bg-[#F04142]', 'youku' => 'bg-[#2B8CFF]', 'line' => 'bg-[#06C755]', 'vk' => 'bg-[#2787F5]', 'ok' => 'bg-[#EE8208]', 'viber' => 'bg-[#7360F2]', 'quora' => 'bg-[#B92B27]'];
     return $tones[sanitize_key((string) ($platform['icon'] ?? ''))] ?? 'bg-[#111827]';
 };
+// The old page grouped by weight ("major" held TikTok, Instagram and X next to Douyin), the new headings are geographic.
+// A known platform saved in the other region's list moves to its own region; unknown and "more" rows stay where saved.
+$group_rows = ['overseas' => $platforms('featured_platforms'), 'china' => $platforms('major_platforms'), 'more' => $platforms('secondary_platforms')];
+$platform_regions = [
+    'overseas' => ['linkedin', 'youtube', 'facebook', 'tiktok', 'instagram', 'x', 'whatsapp', 'telegram', 'pinterest', 'line', 'vk', 'ok', 'viber', 'quora'],
+    'china' => ['douyin', 'wechat', 'wechatchannels', 'xiaohongshu', 'weibo', 'bilibili', 'kuaishou', 'zhihu', 'baidu', 'baidubaijiahao', 'toutiao', 'youku', 'qq'],
+];
+$row_identity = static function (array $row) use ($platform_identity): string {
+    $identity = $platform_identity((string) ($row['label'] ?? ''));
+    return $identity !== '' ? $identity : $platform_identity((string) ($row['icon'] ?? ''));
+};
+$row_region = static function (array $row) use ($row_identity, $platform_regions): string {
+    $identity = $row_identity($row);
+    foreach ($platform_regions as $region => $identities) {
+        if (in_array($identity, $identities, true)) {
+            return $region;
+        }
+    }
+    return '';
+};
+foreach (['overseas' => 'china', 'china' => 'overseas'] as $from => $to) {
+    $kept = [];
+    foreach ($group_rows[$from] as $row) {
+        if ($row_region($row) !== $to) {
+            $kept[] = $row;
+            continue;
+        }
+        $identity = $row_identity($row);
+        $taken = array_filter($group_rows[$to], static fn(array $other): bool => $row_identity($other) === $identity);
+        if ($taken === []) {
+            $group_rows[$to][] = $row;
+        }
+    }
+    $group_rows[$from] = $kept;
+}
 $platform_groups = array_values(array_filter([
-    ['id' => 'overseas', 'title' => $t($labels['overseas_title'] ?? 'Global platforms'), 'rows' => $platforms('featured_platforms')],
-    ['id' => 'china', 'title' => $t($labels['china_title'] ?? 'China platforms'), 'rows' => $platforms('major_platforms')],
-    ['id' => 'more', 'title' => $t($labels['more_title'] ?? 'More platforms'), 'rows' => $platforms('secondary_platforms')],
+    ['id' => 'overseas', 'title' => $t($labels['overseas_title'] ?? 'Global platforms'), 'rows' => $group_rows['overseas']],
+    ['id' => 'china', 'title' => $t($labels['china_title'] ?? 'China platforms'), 'rows' => $group_rows['china']],
+    ['id' => 'more', 'title' => $t($labels['more_title'] ?? 'More platforms'), 'rows' => $group_rows['more']],
 ], static fn(array $group): bool => $group['rows'] !== []));
 
 $posts = array_values(array_filter(is_array($social_page['content_cards'] ?? null) ? $social_page['content_cards'] : [], static fn($card): bool => is_array($card) && (string) ($card['enabled'] ?? '1') !== '0' && ($has_media($card['image'] ?? '') || trim((string) ($card['title'] ?? '')) !== '' || trim((string) ($card['text'] ?? '')) !== '')));
