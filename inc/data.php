@@ -608,18 +608,26 @@ function boblift_about_legacy_strength(array $strength): array
     ];
 }
 
-function boblift_about_page_options(): array
+/**
+ * Sites saved before the team photo was renamed keep it in executives.group_image; use it until team_image is saved.
+ * Applied to the front end and to the About editors, so a first save does not replace the old photo with the default.
+ */
+function boblift_about_apply_legacy_team_image(array $value): array
 {
-    $value = boblift_option('about_page', []);
-    $value = is_array($value) ? $value : [];
-    // Sites saved before the team photo was renamed keep it in executives.group_image; use it until team_image is saved.
     $legacy_team_image = $value['executives']['group_image'] ?? null;
-    // boblift_option() already merges the defaults, so "not saved" means empty or still equal to the built-in default.
+    // Options merged with the defaults count as "not saved" when team_image is empty or still the built-in default.
     $default_team_image = boblift_about_page_defaults()['executives']['team_image'] ?? null;
     $saved_team_image = $value['executives']['team_image'] ?? null;
     if (!empty($legacy_team_image) && (empty($saved_team_image) || wp_json_encode($saved_team_image) === wp_json_encode($default_team_image))) {
         $value['executives']['team_image'] = $legacy_team_image;
     }
+    return $value;
+}
+
+function boblift_about_page_options(): array
+{
+    $value = boblift_option('about_page', []);
+    $value = boblift_about_apply_legacy_team_image(is_array($value) ? $value : []);
     $options = boblift_array_replace_recursive(boblift_about_page_defaults(), $value);
     // Saved menus in every language still list retired pages and pages that now live under Services, News or the
     // top-level Contact link; drop them so the About menu keeps to the company pages.

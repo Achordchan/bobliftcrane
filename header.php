@@ -5,10 +5,51 @@ $branding = $options['branding'] ?? [];
 $top_bar = is_array($options['top_bar'] ?? null) ? $options['top_bar'] : [];
 $show_top_bar = !array_key_exists('enabled', $top_bar) || (string) ($top_bar['enabled'] ?? '1') === '1';
 $nav_items = $options['nav_items'] ?? [];
-$product_groups = $options['product_nav_groups'] ?? [];
+$product_menu_families = function_exists('boblift_product_menu_families') ? boblift_product_menu_families() : [];
+// The Products menu opens on the family of the category or product being viewed, otherwise the first one.
+$product_menu_active = (string) ($product_menu_families[0]['slug'] ?? '');
+$product_menu_term = null;
+if (is_singular('product')) {
+    $product_menu_terms = get_the_terms(get_queried_object_id(), 'product_category');
+    $product_menu_term = is_array($product_menu_terms) ? ($product_menu_terms[0] ?? null) : null;
+} elseif (function_exists('boblift_current_product_category_term')) {
+    $product_menu_term = boblift_current_product_category_term();
+}
+if ($product_menu_term instanceof WP_Term) {
+    $product_menu_ancestors = get_ancestors($product_menu_term->term_id, 'product_category', 'taxonomy');
+    $product_menu_top = $product_menu_ancestors ? get_term((int) end($product_menu_ancestors), 'product_category') : $product_menu_term;
+    if ($product_menu_top instanceof WP_Term && in_array($product_menu_top->slug, array_column($product_menu_families, 'slug'), true)) {
+        $product_menu_active = $product_menu_top->slug;
+    }
+}
+$product_menu_view_all = function_exists('boblift_home_product_section_config') ? (string) (boblift_home_product_section_config()['viewAllLabel'] ?? '') : '';
+$product_menu_view_all = $product_menu_view_all !== '' ? $product_menu_view_all : 'View All {count} Models';
 $contact = $options['contact'] ?? [];
 $header_ui = function_exists('boblift_site_ui') ? boblift_site_ui('header') : [];
 $quote_form_ui = function_exists('boblift_site_ui') ? boblift_site_ui('quoteForm') : [];
+$search_ui = function_exists('boblift_site_ui') ? boblift_site_ui('search') : [];
+// Sister sites sit next to the logo; this site is the crane one, so its entry always links home in the current language.
+$site_switcher_ui = function_exists('boblift_site_ui') ? boblift_site_ui('siteSwitcher') : [];
+$site_switcher_items = [];
+foreach ((array) ($site_switcher_ui['sites'] ?? []) as $site) {
+    if (!is_array($site) || trim((string) ($site['label'] ?? '')) === '') {
+        continue;
+    }
+    $site_current = !empty($site['current']);
+    $site_url = $site_current ? home_url('/') : trim((string) ($site['url'] ?? ''));
+    if ($site_url === '') {
+        continue;
+    }
+    $site_switcher_items[] = [
+        'label' => (string) $site['label'],
+        'short' => (string) ($site['short'] ?? $site['label']),
+        'domain' => (string) ($site['domain'] ?? preg_replace('#^https?://(www\.)?|/$#', '', $site_url)),
+        'url' => $site_url,
+        'current' => $site_current,
+    ];
+}
+$site_switcher_current = array_values(array_filter($site_switcher_items, static fn(array $site): bool => $site['current']))[0] ?? [];
+$search_query = is_search() ? get_search_query() : '';
 $flag_alt_template = (string) ($header_ui['languageFlagAltTemplate'] ?? '{language} flag');
 $current_path = trim((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH), '/');
 $active_language_code = function_exists('pll_current_language') ? (string) pll_current_language('slug') : 'en';
@@ -47,10 +88,9 @@ $is_news_nav_item = static function (array $item, string $item_url = ''): bool {
 $about_page_options = function_exists('boblift_about_page_options') ? boblift_about_page_options() : [];
 $about_nav_default_children = [
     ['label' => 'About Us', 'href' => '/about.html', 'slug' => 'about'],
+    ['label' => 'Factory Tour', 'href' => '/factory-tour.html', 'slug' => 'factory-tour'],
+    ['label' => 'Quality & Testing', 'href' => '/quality-testing.html', 'slug' => 'quality-testing'],
     ['label' => 'Global Customer Visits', 'href' => '/global-customer-visits.html', 'slug' => 'global-customer-visits'],
-    ['label' => 'Social Media', 'href' => '/social-media.html', 'slug' => 'social-media'],
-    ['label' => 'Public Welfare', 'href' => '/public-welfare.html', 'slug' => 'public-welfare'],
-    ['label' => 'Contact Us', 'href' => '/contact.html', 'slug' => 'contact'],
 ];
 $about_nav_source = is_array($about_page_options['secondary_nav'] ?? null) ? $about_page_options['secondary_nav'] : $about_nav_default_children;
 $about_contact_nav_label = '';
@@ -73,7 +113,7 @@ $about_localized_page_label = static function (string $slug, string $label) use 
     if ($active_language_code === '' || $active_language_code === $about_source_language || ($about_nav_default_labels[$slug] ?? '') !== $label) {
         return $label;
     }
-    $page = get_page_by_path($slug, OBJECT, 'page');
+    $page = boblift_find_page_by_slug($slug);
     if (!$page instanceof WP_Post) {
         return $label;
     }
@@ -133,18 +173,97 @@ $is_contact_nav_item = static function (array $item) use ($nav_path_key): bool {
     $label = strtolower(trim((string) ($item['label'] ?? '')));
     return str_contains($label, 'contact') || $nav_path_key((string) ($item['href'] ?? '')) === 'contact';
 };
-$nav_items = array_values(array_filter(array_map(static function (mixed $item) use ($about_nav_children, $is_about_nav_item, $is_contact_nav_item): ?array {
+// Top level: Products · Cases · Services · About · News · Contact. Home is left out (the logo links home),
+// Services gathers the mounting and after-sales pages, and News also carries the video and social pages.
+$nav_page_child = static function (string $slug, string $label, string $href = '') use ($about_localized_page_label): array {
+    $about_nav_label = $about_localized_page_label($slug, $label);
+    if ($about_nav_label === $label && function_exists('boblift_localized_static_text')) {
+        $about_nav_label = boblift_localized_static_text($label);
+    }
+    return ['label' => $about_nav_label, 'href' => $href !== '' ? $href : '/' . $slug . '.html'];
+};
+$nav_static_label = static fn(string $label): string => function_exists('boblift_localized_static_text') ? boblift_localized_static_text($label) : $label;
+$nav_saved_contact = null;
+$nav_by_key = [];
+foreach ($nav_items as $item) {
     if (!is_array($item)) {
-        return null;
+        continue;
+    }
+    $key = $nav_path_key((string) ($item['href'] ?? ''));
+    if ($key === '/') {
+        continue;
     }
     if ($is_contact_nav_item($item)) {
-        return null;
+        $nav_saved_contact = $item;
+        continue;
     }
     if ($is_about_nav_item($item)) {
         $item['children'] = $about_nav_children;
+        $key = 'about';
+    } elseif (!empty($item['has_menu']) && !$is_news_nav_item($item)) {
+        $key = 'products';
+    } elseif ($is_news_nav_item($item)) {
+        $key = 'news';
     }
-    return $item;
-}, $nav_items)));
+    // Keep every saved entry: a second entry that maps to the same key (two submenus, say) is listed after the ordered ones instead of replacing the first.
+    if (isset($nav_by_key[$key])) {
+        $base_key = $key;
+        for ($n = 2; isset($nav_by_key[$key]); $n++) {
+            $key = $base_key . '-' . $n;
+        }
+    }
+    $nav_by_key[$key] = $item;
+}
+// A saved Services entry keeps its own label, link and children; the generated one is added only when there is none.
+// A saved item for the same destination (/mounting-shipping.html) is the Services entry too.
+if (!isset($nav_by_key['services']) && isset($nav_by_key['mounting-shipping'])) {
+    $nav_by_key['services'] = $nav_by_key['mounting-shipping'];
+    unset($nav_by_key['mounting-shipping']);
+}
+if (!isset($nav_by_key['services'])) {
+    // Links go to the visitor's language version when one exists, as the footer's page links do.
+    $services_localize = static function ($page) {
+        if (!$page instanceof WP_Post || !function_exists('boblift_post_for_current_language')) {
+            return $page;
+        }
+        $localized = boblift_post_for_current_language($page);
+        return $localized->post_status === 'publish' ? $localized : $page;
+    };
+    $services_mounting_page = $services_localize(boblift_find_page_by_slug('mounting-shipping'));
+    $services_operation_page = $services_localize(boblift_find_page_by_slug('service'));
+}
+if (!isset($nav_by_key['services']) && $services_mounting_page instanceof WP_Post) {
+    $services_children = [$nav_page_child('mounting-shipping', 'Truck Mounting & Export', get_permalink($services_mounting_page))];
+    if ($services_operation_page instanceof WP_Post) {
+        $services_children[] = $nav_page_child('service', 'Service & Operation', get_permalink($services_operation_page));
+    }
+    if (boblift_find_page_by_slug('products') instanceof WP_Post) {
+        $services_children[] = ['label' => $nav_static_label('Brochures'), 'href' => boblift_product_archive_path() . '#brochures'];
+    }
+    $generated_services = [
+        'label' => $nav_static_label('Services'),
+        'href' => get_permalink($services_mounting_page),
+        'children' => $services_children,
+    ];
+    // Saved order is kept; the generated Services entry goes after Cases (or Products), else first.
+    $after = isset($nav_by_key['cases']) ? 'cases' : (isset($nav_by_key['products']) ? 'products' : '');
+    $keys = array_keys($nav_by_key);
+    $at = $after !== '' ? array_search($after, $keys, true) + 1 : 0;
+    $nav_by_key = array_slice($nav_by_key, 0, $at, true) + ['services' => $generated_services] + array_slice($nav_by_key, $at, null, true);
+}
+// Entries follow the order saved in the navigation editor. Only the untouched historical default order (About, Products,
+// Cases, News) is rearranged into Products · Cases · Services · About · News; Contact stays last as the call-to-action.
+if (array_values(array_diff(array_keys($nav_by_key), ['services'])) === ['about', 'products', 'cases', 'news']) {
+    $nav_by_key = array_replace(array_intersect_key(array_flip(['products', 'cases', 'services', 'about', 'news']), $nav_by_key), $nav_by_key);
+}
+$nav_contact_item = [
+    'label' => trim((string) ($nav_saved_contact['label'] ?? '')) !== '' ? (string) $nav_saved_contact['label'] : $nav_static_label('Contact Us'),
+    'href' => '/contact.html',
+];
+$nav_items = array_merge(array_values($nav_by_key), [$nav_contact_item]);
+// Video Center and Social Media follow the news categories, after a divider.
+$news_menu_items[] = array_merge($nav_page_child('videos', 'Video Center'), ['divider' => true, 'active' => $nav_href_matches_current('/videos.html')]);
+$news_menu_items[] = array_merge($nav_page_child('social-media', 'Social Media'), ['active' => $nav_href_matches_current('/social-media.html')]);
 ?><!doctype html>
 <html lang="<?php echo esc_attr($active_language_code); ?>" dir="<?php echo esc_attr(function_exists('boblift_text_direction') ? boblift_text_direction() : 'ltr'); ?>" class="font-sans">
 <head>
@@ -166,13 +285,42 @@ foreach ($languages as $language) {
 ?>
 <header id="top" class="relative z-[200]">
     <?php if ($show_top_bar) : ?>
-        <div class="bg-navy px-4 py-3 text-center text-[11px] font-semibold leading-5 text-white/85 md:text-xs"><span class="text-gold"><?php echo esc_html($top_bar['highlight'] ?? 'Global Lifting Solutions.'); ?></span> <?php echo esc_html($top_bar['text'] ?? 'Exported to 80+ Countries Worldwide.'); ?><a class="ms-3 text-gold md:ms-5" href="<?php echo esc_url(boblift_url($top_bar['link_href'] ?? '/about')); ?>"><?php echo esc_html($top_bar['link_label'] ?? 'Learn More +'); ?></a></div>
+        <div class="bg-navy px-4 py-3 text-center text-[11px] font-semibold leading-5 text-white/85 md:text-xs"><span class="text-gold"><?php echo esc_html($top_bar['highlight'] ?? 'Global Lifting Solutions.'); ?></span> <?php echo esc_html($top_bar['text'] ?? 'Exported to 120+ Countries Worldwide.'); ?><a class="ms-3 text-gold md:ms-5" href="<?php echo esc_url(boblift_url($top_bar['link_href'] ?? '/about')); ?>"><?php echo esc_html($top_bar['link_label'] ?? 'Learn More +'); ?></a></div>
     <?php endif; ?>
-    <div class="relative border-b border-line bg-white/96 shadow-[0_10px_34px_rgba(8,35,74,0.05)] backdrop-blur">
-        <div class="page-shell flex h-[78px] items-center justify-between gap-3 lg:h-[92px] lg:gap-4 2xl:gap-8">
-            <a class="flex shrink-0 items-center" href="<?php echo esc_url(home_url('/')); ?>" aria-label="<?php echo esc_attr($header_ui['homeAriaLabel'] ?? 'BOB-LIFT Home'); ?>">
-                <?php echo boblift_img_from_setting($branding['logo'] ?? 'images/bob-lift-logo.png', 'images/bob-lift-logo.png', $branding['logo_alt'] ?? 'BOB-LIFT Cranes', 'h-[52px] w-auto object-contain lg:h-[58px]'); ?>
-            </a>
+    <div class="relative border-b border-line bg-white/96 shadow-card backdrop-blur">
+        <div class="page-shell flex h-[78px] items-center justify-between gap-3 lg:h-[92px] lg:gap-4 min-[1380px]:grid min-[1380px]:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] 2xl:gap-8">
+            <div class="flex min-w-0 items-center gap-3 lg:gap-2 xl:gap-4">
+                <a class="flex shrink-0 items-center" href="<?php echo esc_url(home_url('/')); ?>" aria-label="<?php echo esc_attr($header_ui['homeAriaLabel'] ?? 'BOB-LIFT Home'); ?>">
+                    <?php echo boblift_img_from_setting($branding['logo'] ?? 'images/bob-lift-logo.png', 'images/bob-lift-logo.png', $branding['logo_alt'] ?? 'BOB-LIFT Cranes', 'h-[52px] w-auto object-contain lg:h-[58px]'); ?>
+                </a>
+                <?php if ($site_switcher_items !== []) : ?>
+                    <span class="hidden h-8 w-px shrink-0 bg-line md:block" aria-hidden="true"></span>
+                    <div class="relative hidden md:block" data-language-root>
+                        <button class="group flex h-10 items-center gap-1.5 whitespace-nowrap rounded-sm px-2 text-sm font-black text-ink transition hover:bg-mist focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/20 aria-expanded:bg-mist" type="button" aria-label="<?php echo esc_attr($site_switcher_ui['openLabel'] ?? 'Switch BOB-LIFT site'); ?>" aria-expanded="false" aria-controls="site-switcher-menu" data-language-toggle>
+                            <span><?php echo esc_html($site_switcher_current['short'] ?? 'Cranes'); ?></span>
+                            <?php echo boblift_icon('chevron-down', 'h-4 w-4 shrink-0 text-slate-400 transition group-aria-expanded:rotate-180'); ?>
+                        </button>
+                        <div id="site-switcher-menu" class="absolute start-0 top-full z-[220] hidden pt-3" data-language-menu>
+                            <div class="w-[300px] overflow-hidden rounded border border-line bg-white p-1.5 shadow-raised">
+                                <p class="px-3 pb-1.5 pt-2 text-[11px] font-black uppercase tracking-[0.14em] text-slate-400"><?php echo esc_html($site_switcher_ui['title'] ?? 'BOB-LIFT sites'); ?></p>
+                                <?php foreach ($site_switcher_items as $site) : ?>
+                                    <a class="flex items-center gap-3 rounded-sm px-3 py-2.5 outline-none transition hover:bg-mist focus-visible:bg-mist <?php echo $site['current'] ? 'bg-mist' : ''; ?>" href="<?php echo esc_url($site['url']); ?>"<?php echo $site['current'] ? ' aria-current="true"' : ''; ?>>
+                                        <span class="min-w-0 flex-1">
+                                            <span class="block truncate text-sm font-black text-ink"><?php echo esc_html($site['label']); ?></span>
+                                            <span class="block truncate text-xs font-semibold text-slate-500"><?php echo esc_html($site['domain']); ?></span>
+                                        </span>
+                                        <?php if ($site['current']) : ?>
+                                            <span class="shrink-0 rounded-sm bg-navy px-1.5 py-0.5 text-[10px] font-black text-white"><?php echo esc_html($site_switcher_ui['currentLabel'] ?? 'Current'); ?></span>
+                                        <?php else : ?>
+                                            <?php echo boblift_icon('arrow-up-right', 'h-4 w-4 shrink-0 text-slate-400'); ?>
+                                        <?php endif; ?>
+                                    </a>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
+            </div>
             <nav class="hidden min-w-0 items-center gap-1 lg:flex 2xl:gap-2" aria-label="<?php echo esc_attr($header_ui['mainNavigationLabel'] ?? 'Main navigation'); ?>">
                 <?php foreach ($nav_items as $nav_index => $item) :
                     $href = (string) ($item['href'] ?? '/');
@@ -183,11 +331,11 @@ foreach ($languages as $language) {
                     $children = is_array($item['children'] ?? null) ? array_values(array_filter($item['children'], static fn($child): bool => is_array($child) && trim((string) ($child['label'] ?? '')) !== '')) : [];
                     $has_children = $children !== [];
                     $item_path = trim(parse_url($item_url, PHP_URL_PATH) ?: '/', '/');
-                    $active = $href === '/' ? $current_path === '' : ($item_path !== '' && str_starts_with($current_path, $item_path));
+                    $active = $href === '/' ? ($current_path === '' && !is_search()) : ($item_path !== '' && str_starts_with($current_path, $item_path));
                     if ($is_product_menu_item && (is_post_type_archive('product') || is_singular('product') || get_query_var('boblift_product_category'))) {
                         $active = true;
                     }
-                    if ($is_news_item && ($current_path === 'news' || $current_path === 'news.html' || is_page_template('page-news.php') || is_singular('post'))) {
+                    if ($is_news_item && ($current_path === 'news' || $current_path === 'news.html' || is_page_template('page-news.php') || is_singular('post') || $nav_href_matches_current('/videos.html') || $nav_href_matches_current('/social-media.html'))) {
                         $active = true;
                     }
                     if ($has_children) {
@@ -203,40 +351,72 @@ foreach ($languages as $language) {
                     <?php if ($is_product_menu_item) : ?>
                         <div class="group/products static" data-mega-root>
                             <a class="<?php echo esc_attr($pill); ?>" href="<?php echo esc_url($item_url); ?>" aria-haspopup="true"><?php echo esc_html(function_exists('boblift_localized_static_text') ? boblift_localized_static_text((string) $item['label']) : (string) $item['label']); ?><?php echo boblift_icon('chevron-down', 'h-3.5 w-3.5 text-gold transition group-hover/products:rotate-180'); ?></a>
-                            <div class="mega-menu absolute left-1/2 top-full z-[210] w-[min(1560px,calc(100vw-80px))] -translate-x-1/2">
-                                <div class="relative max-h-[calc(100vh-132px)] overflow-hidden rounded-[30px] border border-[#d8e7f7] bg-white shadow-[0_30px_80px_rgba(8,35,74,0.14)] ring-1 ring-white/80" data-product-nav="desktop">
-                                    <div class="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.98)_0%,rgba(247,251,255,0.94)_100%)]"></div>
-                                    <div class="relative grid max-h-[calc(100vh-280px)] grid-cols-3 items-stretch gap-4 overflow-y-auto p-4 pe-3 2xl:max-h-[calc(100vh-250px)] 2xl:gap-6 2xl:p-6 2xl:pe-5">
-                                        <?php foreach ($product_groups as $group_index => $group) : $featured = $group_index < 2; ?>
-                                            <div class="relative flex h-full min-h-[500px] flex-col overflow-hidden rounded-[26px] border border-[#dbe8f5] bg-white/92 shadow-[0_18px_48px_rgba(8,35,74,0.08)] 2xl:min-h-[590px] <?php echo $featured ? 'p-0' : 'p-5 2xl:p-6'; ?>">
-                                                <?php if ($featured) : ?>
-                                                    <a class="group/title relative block h-[clamp(260px,19vw,310px)] w-full shrink-0 overflow-hidden border-b border-[#dbe8f5] bg-[#f4f8fd] 2xl:h-[clamp(300px,17vw,340px)]" href="<?php echo esc_url(boblift_product_nav_url((string) ($group['href'] ?? '/products'), (string) ($group['title'] ?? ''))); ?>">
-                                                        <?php echo boblift_img_from_setting($group['image'] ?? 'images/telescopic-banner.jpg', 'images/telescopic-banner.jpg', '', 'h-full w-full object-cover object-center'); ?>
-                                                        <span class="absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.96)_0%,rgba(255,255,255,0.78)_42%,rgba(255,255,255,0.18)_100%)]"></span>
-                                                        <span class="absolute start-4 top-4 flex items-start gap-3 2xl:start-6 2xl:top-6 2xl:gap-4"><span class="grid h-[52px] w-[52px] shrink-0 place-items-center rounded-[18px] bg-blue-700 shadow-[0_16px_34px_rgba(37,99,235,0.26)] min-[1700px]:h-16 min-[1700px]:w-16 2xl:h-[68px] 2xl:w-[68px]"><?php echo boblift_img('images/mega-menu-icons/' . ($group['iconName'] ?? $group['icon'] ?? 'attachments') . '.png', '', 'h-8 w-8 object-contain brightness-0 invert min-[1700px]:h-11 min-[1700px]:w-11'); ?></span><span class="min-w-0 max-w-[300px] pt-1"><strong class="block text-[clamp(18px,1.12vw,26px)] font-black leading-tight tracking-[-0.045em] text-navy"><?php echo esc_html($group['title']); ?></strong><span class="mt-1.5 block text-[clamp(12px,0.72vw,15px)] font-semibold leading-5 text-slate-600"><?php echo esc_html($group['description']); ?></span><span class="mt-3 block h-1 w-12 rounded-full bg-blue-600"></span></span></span>
-                                                    </a>
-                                                <?php else : ?>
-                                                    <a class="group/title flex items-center gap-4" href="<?php echo esc_url(boblift_product_nav_url((string) ($group['href'] ?? '/products'), (string) ($group['title'] ?? ''))); ?>"><span class="grid h-14 w-14 shrink-0 place-items-center rounded-[18px] bg-blue-700 shadow-[0_16px_34px_rgba(37,99,235,0.24)]"><?php echo boblift_img('images/mega-menu-icons/' . ($group['iconName'] ?? $group['icon'] ?? 'attachments') . '.png', '', 'h-9 w-9 object-contain brightness-0 invert'); ?></span><span class="min-w-0"><strong class="block text-[clamp(18px,1vw,22px)] font-black leading-tight tracking-[-0.04em] text-navy"><?php echo esc_html($group['title']); ?></strong><span class="mt-1.5 block text-[clamp(13px,0.76vw,15px)] font-semibold leading-5 text-slate-500"><?php echo esc_html($group['description']); ?></span><span class="mt-3 block h-1 w-10 rounded-full bg-blue-600"></span></span></a>
+                            <div class="mega-menu absolute left-1/2 top-full z-[210] w-[min(1180px,calc(100vw-48px))] -translate-x-1/2">
+                                <div class="relative max-h-[calc(100vh-132px)] overflow-y-auto overflow-x-hidden rounded border border-line bg-white shadow-raised" data-product-nav="desktop" data-mega-families>
+                                    <div class="grid grid-cols-[264px_minmax(0,1fr)] xl:grid-cols-[292px_minmax(0,1fr)]">
+                                        <ul class="grid content-start gap-0.5 border-r border-line bg-mist p-3">
+                                            <?php $family_group_shown = 'crane'; foreach ($product_menu_families as $family) : ?>
+                                                <?php if ($family['group'] !== $family_group_shown) : $family_group_shown = $family['group']; ?>
+                                                    <li class="mt-1.5 border-t border-line px-3 pb-0.5 pt-2.5 text-[11px] font-black uppercase tracking-[0.14em] text-slate-400"><?php echo esc_html(boblift_product_family_group_label($family['group'])); ?></li>
                                                 <?php endif; ?>
-                                                <div class="grid flex-1 content-start gap-0 <?php echo $featured ? 'p-3.5 2xl:p-5' : 'mt-4 2xl:mt-5'; ?>">
-                                                    <?php foreach (($group['links'] ?? []) as $link_index => $link) : ?>
-                                                        <a class="group/item relative flex min-h-[50px] items-center gap-3 border-b border-[#e2ebf5] px-1 py-2 text-navy transition duration-200 ease-out last:border-b-0 hover:text-blue-700 2xl:min-h-[58px] 2xl:gap-4 2xl:py-2.5 <?php echo $group_index === 0 && $link_index === 0 ? 'text-blue-700' : ''; ?>" href="<?php echo esc_url(boblift_product_nav_url((string) ($link['href'] ?? '/products'), (string) ($link['label'] ?? ''))); ?>"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-[#f3f7fc] text-navy/75 transition duration-200 group-hover/item:bg-blue-50 2xl:h-12 2xl:w-12 2xl:rounded-[14px]"><?php echo boblift_img('images/mega-menu-icons/' . ($link['iconName'] ?? $link['icon'] ?? 'truck-crane') . '.png', '', 'h-7 w-7 object-contain 2xl:h-8 2xl:w-8'); ?></span><span class="min-w-0 flex-1 text-[clamp(13px,0.8vw,16px)] font-black leading-[1.16] tracking-[-0.025em]"><?php echo esc_html($link['label']); ?></span><span class="shrink-0 -rotate-90 text-blue-600 transition duration-200 group-hover/item:translate-x-1"><?php echo boblift_icon('chevron-down', 'h-4 w-4'); ?></span></a>
-                                                    <?php endforeach; ?>
-                                                </div>
-                                            </div>
-                                        <?php endforeach; ?>
+                                                <li>
+                                                    <a class="group/fam relative flex min-h-12 items-center gap-3 rounded-sm px-3 py-2 text-slate-600 xl:gap-3 outline-none transition hover:text-ink focus-visible:ring-2 focus-visible:ring-blue-300 data-[active=true]:bg-white data-[active=true]:text-ink data-[active=true]:shadow-card" href="<?php echo esc_url($family['url']); ?>" data-mega-family="<?php echo esc_attr($family['slug']); ?>" data-active="<?php echo $family['slug'] === $product_menu_active ? 'true' : 'false'; ?>">
+                                                        <?php echo boblift_product_family_icon((string) $family['icon'], 'h-6 w-6 shrink-0 text-slate-400 transition group-data-[active=true]/fam:text-navy'); ?>
+                                                        <span class="min-w-0 flex-1 text-[14px] font-black leading-tight xl:text-[15px]"><?php echo esc_html($family['title']); ?></span>
+                                                        <span class="shrink-0 text-xs font-bold tabular-nums text-slate-400"><?php echo esc_html((string) $family['count']); ?></span>
+                                                    </a>
+                                                </li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                        <div class="min-w-0 p-5 xl:p-6">
+                                            <?php foreach ($product_menu_families as $family) : $family_links = $family['children'] ?: $family['models']; ?>
+                                                <section class="grid min-h-[260px] grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] gap-6 xl:gap-8 [&[hidden]]:hidden" data-mega-panel="<?php echo esc_attr($family['slug']); ?>" <?php echo $family['slug'] === $product_menu_active ? '' : 'hidden'; ?>>
+                                                    <a class="relative block overflow-hidden rounded bg-mist" href="<?php echo esc_url($family['url']); ?>" tabindex="-1" aria-hidden="true">
+                                                        <img class="absolute inset-0 h-full w-full object-cover object-[89%_center]" src="<?php echo esc_url($family['photo']); ?>" alt="" loading="lazy" decoding="async">
+                                                    </a>
+                                                    <div class="flex min-w-0 flex-col">
+                                                        <a class="text-2xl font-black leading-tight tracking-[-0.015em] text-navy transition hover:text-blue-700" href="<?php echo esc_url($family['url']); ?>"><?php echo esc_html($family['title']); ?></a>
+                                                        <?php if (!empty($family['description'])) : ?>
+                                                            <p class="mt-2 text-sm leading-6 text-slate-500"><?php echo esc_html($family['description']); ?></p>
+                                                        <?php endif; ?>
+                                                        <ul class="mt-4 border-t border-line">
+                                                            <?php foreach ($family_links as $family_link) : ?>
+                                                                <li>
+                                                                    <a class="group/row flex min-h-[44px] items-center gap-3 border-b border-line py-2 text-[15px] font-bold leading-snug text-navy transition hover:text-blue-700" href="<?php echo esc_url($family_link['url']); ?>">
+                                                                        <span class="min-w-0 flex-1"><?php echo esc_html($family_link['title']); ?></span>
+                                                                        <?php if (isset($family_link['count'])) : ?><span class="shrink-0 text-xs font-bold tabular-nums text-slate-400"><?php echo esc_html((string) $family_link['count']); ?></span><?php endif; ?>
+                                                                        <?php echo boblift_icon('chevron-down', 'h-4 w-4 shrink-0 -rotate-90 text-blue-600 transition group-hover/row:translate-x-0.5'); ?>
+                                                                    </a>
+                                                                </li>
+                                                            <?php endforeach; ?>
+                                                        </ul>
+                                                        <?php if (!empty($family['featured'])) : ?>
+                                                            <p class="mt-5 text-[11px] font-black uppercase tracking-[0.14em] text-slate-400"><?php echo esc_html($header_ui['popularModelsLabel'] ?? (function_exists('boblift_localized_static_text') ? boblift_localized_static_text('Popular models') : 'Popular models')); ?></p>
+                                                            <ul class="mt-2 grid grid-cols-2 gap-x-4 gap-y-1">
+                                                                <?php foreach ($family['featured'] as $featured_model) : ?>
+                                                                    <li class="min-w-0"><a class="block truncate py-1 text-sm font-semibold text-slate-600 transition hover:text-blue-700" href="<?php echo esc_url($featured_model['url']); ?>" title="<?php echo esc_attr($featured_model['title']); ?>"><?php echo esc_html($featured_model['short'] ?? $featured_model['title']); ?></a></li>
+                                                                <?php endforeach; ?>
+                                                            </ul>
+                                                        <?php endif; ?>
+                                                        <?php if ($family['count'] > 1) : ?>
+                                                        <a class="mt-5 inline-flex h-11 w-fit items-center gap-2 rounded-sm border border-navy/20 bg-white px-5 text-sm font-black text-navy transition hover:border-blue-300 hover:text-blue-700" href="<?php echo esc_url($family['url']); ?>"><?php echo esc_html(str_replace('{count}', (string) $family['count'], $product_menu_view_all)); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </section>
+                                            <?php endforeach; ?>
+                                        </div>
                                     </div>
-                                    <div class="relative border-t border-[#dbe8f5] bg-[#f4f8fd]/94 px-5 py-3.5 2xl:px-7">
+                                    <div class="relative border-t border-line bg-mist px-5 py-3.5 xl:px-6">
                                         <div class="flex flex-wrap items-center justify-between gap-4">
-                                            <div class="flex min-w-[260px] items-center gap-4">
-                                                <span class="grid h-12 w-12 shrink-0 place-items-center rounded-[16px] bg-white text-navy"><?php echo boblift_img('images/mega-menu-icons/catalog.png', '', 'h-8 w-8 object-contain'); ?></span>
+                                            <div class="flex min-w-[260px] items-center gap-3">
+                                                <?php echo boblift_icon('book-open', 'h-6 w-6 shrink-0 text-slate-400'); ?>
                                                 <span><span class="block text-[17px] font-black leading-tight text-navy"><?php echo esc_html($header_ui['megaTitle'] ?? 'Explore All Products'); ?></span><span class="mt-1 block text-sm font-semibold text-slate-500"><?php echo esc_html($header_ui['megaDescription'] ?? 'Discover our full range of lifting solutions.'); ?></span></span>
                                             </div>
-                                            <div class="flex flex-wrap items-center gap-x-5 gap-y-3 text-sm font-black text-navy 2xl:text-base">
-                                                <a class="inline-flex items-center gap-4 text-navy transition hover:text-blue-700" href="mailto:<?php echo esc_attr($contact['email'] ?? 'info@bobliftcrane.com'); ?>"><span class="grid h-10 w-10 place-items-center rounded-full border border-[#d8e7f7] bg-white text-navy"><?php echo boblift_icon('mail', 'h-5 w-5'); ?></span><span dir="ltr"><?php echo esc_html($contact['email'] ?? 'info@bobliftcrane.com'); ?></span></a>
-                                                <a class="inline-flex items-center gap-4 text-navy transition hover:text-blue-700" href="https://wa.me/<?php echo esc_attr(preg_replace('/\D+/', '', $contact['whatsapp'] ?? $contact['phone'] ?? '8615852499415')); ?>"><span class="grid h-10 w-10 place-items-center rounded-full border border-[#d8e7f7] bg-white text-navy"><?php echo boblift_icon('phone', 'h-5 w-5'); ?></span><span dir="ltr"><?php echo esc_html($contact['phone'] ?? '+86 15852499415'); ?></span></a>
+                                            <div class="hidden flex-wrap items-center gap-x-6 gap-y-3 text-sm font-bold text-navy xl:flex">
+                                                <a class="inline-flex items-center gap-2 text-navy transition hover:text-blue-700" href="mailto:<?php echo esc_attr($contact['email'] ?? 'info@bobliftcrane.com'); ?>"><?php echo boblift_icon('mail', 'h-4 w-4 text-slate-400'); ?><span dir="ltr"><?php echo esc_html($contact['email'] ?? 'info@bobliftcrane.com'); ?></span></a>
+                                                <a class="inline-flex items-center gap-2 text-navy transition hover:text-blue-700" href="https://wa.me/<?php echo esc_attr(preg_replace('/\D+/', '', $contact['whatsapp'] ?? $contact['phone'] ?? '8615852499415')); ?>"><?php echo boblift_icon('phone', 'h-4 w-4 text-slate-400'); ?><span dir="ltr"><?php echo esc_html($contact['phone'] ?? '+86 15852499415'); ?></span></a>
                                             </div>
-                                            <a class="group/catalog inline-flex h-12 shrink-0 items-center gap-3 rounded-[14px] bg-blue-700 px-6 text-sm font-black text-white shadow-[0_14px_30px_rgba(37,99,235,0.18)] transition hover:-translate-y-0.5 hover:bg-blue-800 2xl:text-base" href="<?php echo esc_url(boblift_product_archive_url()); ?>"><?php echo esc_html($header_ui['megaButtonLabel'] ?? 'View Product Catalog'); ?><span class="grid h-7 w-7 place-items-center rounded-full border border-white/60 text-white transition group-hover/catalog:translate-x-0.5"><?php echo boblift_icon('arrow-right', 'h-4 w-4 -rotate-45'); ?></span></a>
+                                            <a class="inline-flex h-11 shrink-0 items-center gap-2 rounded-sm bg-navy px-5 text-sm font-black text-white transition hover:bg-[#0b2d5b]" href="<?php echo esc_url(boblift_product_archive_url()); ?>"><?php echo esc_html($header_ui['megaButtonLabel'] ?? 'View Product Catalog'); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
                                         </div>
                                     </div>
                                 </div>
@@ -246,7 +426,7 @@ foreach ($languages as $language) {
                         <div class="group static" data-secondary-nav-root>
                             <a class="<?php echo esc_attr($pill); ?>" href="<?php echo esc_url($item_url); ?>" aria-haspopup="true" aria-expanded="false" data-secondary-nav-trigger><?php echo esc_html(function_exists('boblift_localized_static_text') ? boblift_localized_static_text((string) $item['label']) : (string) $item['label']); ?><?php echo boblift_icon('chevron-down', 'h-3.5 w-3.5 text-gold transition group-hover:rotate-180 group-focus-within:rotate-180'); ?></a>
                             <div class="pointer-events-none invisible absolute start-0 end-0 top-full z-[214] opacity-0 transition duration-200 group-hover:pointer-events-auto group-hover:visible group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:visible group-focus-within:opacity-100" data-secondary-nav-bar data-secondary-nav-menu>
-                                <div class="relative border-y border-blue-100 bg-[linear-gradient(180deg,#f8fbff_0%,#ffffff_100%)] shadow-[0_14px_30px_rgba(8,35,74,0.07)]">
+                                <div class="relative border-y border-blue-100 bg-[linear-gradient(180deg,#f8fbff_0%,#ffffff_100%)] shadow-raised">
                                     <div class="page-shell flex h-[68px] items-center justify-center overflow-x-auto">
                                         <nav class="flex min-w-max items-center justify-center whitespace-nowrap" aria-label="<?php echo esc_attr(function_exists('boblift_localized_static_text') ? boblift_localized_static_text((string) ($item['label'] ?? 'Secondary')) : (string) ($item['label'] ?? 'Secondary')); ?> secondary navigation">
                                             <?php foreach ($children as $child_index => $child) : $child_href = (string) ($child['href'] ?? '#'); $child_active = $nav_href_matches_current($child_href); ?>
@@ -262,12 +442,12 @@ foreach ($languages as $language) {
                         <div class="group static" data-secondary-nav-root>
                             <a class="<?php echo esc_attr($pill); ?>" href="<?php echo esc_url($item_url); ?>" aria-haspopup="true" aria-expanded="false" data-secondary-nav-trigger><?php echo esc_html(function_exists('boblift_localized_static_text') ? boblift_localized_static_text((string) $item['label']) : (string) $item['label']); ?><?php echo boblift_icon('chevron-down', 'h-3.5 w-3.5 text-gold transition group-hover:rotate-180 group-focus-within:rotate-180'); ?></a>
                             <div class="pointer-events-none invisible absolute start-0 end-0 top-full z-[214] opacity-0 transition duration-200 group-hover:pointer-events-auto group-hover:visible group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:visible group-focus-within:opacity-100" data-secondary-nav-bar data-secondary-nav-menu>
-                                <div class="relative border-y border-blue-100 bg-[linear-gradient(180deg,#f8fbff_0%,#ffffff_100%)] shadow-[0_14px_30px_rgba(8,35,74,0.07)]">
+                                <div class="relative border-y border-blue-100 bg-[linear-gradient(180deg,#f8fbff_0%,#ffffff_100%)] shadow-raised">
                                     <div class="page-shell flex h-[68px] items-center justify-center overflow-x-auto">
                                         <nav class="flex min-w-max items-center justify-center whitespace-nowrap" aria-label="News secondary navigation">
                                             <?php foreach ($news_menu_items as $news_index => $news_menu_item) : ?>
-                                                <?php if ($news_index === 1) : ?><span class="mx-7 h-7 w-px bg-slate-300" aria-hidden="true"></span><?php elseif ($news_index > 1) : ?><span class="mx-5" aria-hidden="true"></span><?php endif; ?>
-                                                <a class="text-[16px] font-semibold leading-none transition hover:text-blue-700 <?php echo !empty($news_menu_item['active']) ? 'font-black text-ink' : 'text-slate-600'; ?>" href="<?php echo esc_url((string) $news_menu_item['href']); ?>"><?php echo esc_html((string) $news_menu_item['label']); ?></a>
+                                                <?php if ($news_index === 1 || !empty($news_menu_item['divider'])) : ?><span class="mx-7 h-7 w-px bg-slate-300" aria-hidden="true"></span><?php elseif ($news_index > 1) : ?><span class="mx-5" aria-hidden="true"></span><?php endif; ?>
+                                                <a class="text-[16px] font-semibold leading-none transition hover:text-blue-700 <?php echo !empty($news_menu_item['active']) ? 'font-black text-ink' : 'text-slate-600'; ?>" href="<?php echo esc_url(boblift_url((string) $news_menu_item['href'])); ?>"><?php echo esc_html((string) $news_menu_item['label']); ?></a>
                                             <?php endforeach; ?>
                                         </nav>
                                     </div>
@@ -279,38 +459,38 @@ foreach ($languages as $language) {
                     <?php endif; ?>
                 <?php endforeach; ?>
             </nav>
-            <div class="flex items-center gap-2 md:gap-3 xl:gap-2 2xl:gap-3">
+            <div class="flex items-center gap-2 md:gap-3 xl:gap-2 min-[1380px]:justify-self-end 2xl:gap-3">
+                <button class="group grid h-11 w-11 shrink-0 place-items-center rounded-sm border border-line bg-white text-ink transition hover:border-ink/30 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/20 aria-expanded:border-ink/40 aria-expanded:bg-mist md:h-12 md:w-12" type="button" aria-label="<?php echo esc_attr($search_ui['openLabel'] ?? 'Search the site'); ?>" aria-expanded="false" aria-controls="site-search" data-search-toggle><?php echo boblift_icon('search', 'h-5 w-5 group-aria-expanded:hidden'); ?><?php echo boblift_icon('x', 'hidden h-5 w-5 group-aria-expanded:block'); ?></button>
                 <div class="relative" data-language-root>
-                    <button class="group flex h-12 min-w-[132px] items-center justify-start gap-2 rounded-full border border-line bg-white px-3 text-start shadow-[0_10px_28px_rgba(8,35,74,0.07)] transition duration-300 hover:-translate-y-0.5 hover:border-gold/50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/20 max-[360px]:h-11 max-[360px]:w-11 max-[360px]:min-w-0 max-[360px]:justify-center max-[360px]:gap-0 max-[360px]:p-0 md:w-[164px] md:gap-3 md:px-4" type="button" aria-label="<?php echo esc_attr($header_ui['changeLanguageLabel'] ?? 'Change language'); ?>" aria-expanded="false" aria-controls="language-menu" data-language-toggle>
-                        <span class="block size-8 shrink-0 overflow-hidden rounded-full bg-[#eef4fb] shadow-inner ring-1 ring-line transition group-hover:bg-white max-[360px]:size-7"><img src="<?php echo esc_url(boblift_language_flag_url((string) ($active_language['flag'] ?? 'flags/us.svg'))); ?>" alt="<?php echo esc_attr(str_replace('{language}', (string) ($active_language['label'] ?? 'English'), $flag_alt_template)); ?>" class="h-full w-full object-cover" loading="lazy"></span>
-                        <strong class="block min-w-0 flex-1 truncate whitespace-nowrap text-sm font-black text-ink max-[360px]:hidden"><?php echo esc_html($active_language['label'] ?? 'English'); ?></strong>
+                    <button class="group flex h-12 items-center gap-2.5 rounded-sm border border-line bg-white px-3 text-start transition hover:border-ink/30 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/20 aria-expanded:border-ink/40 max-[360px]:h-11 max-[360px]:w-11 max-[360px]:justify-center max-[360px]:p-0 md:min-w-[148px] md:px-4 lg:min-w-0 lg:px-3 xl:min-w-[148px] xl:px-4" type="button" aria-label="<?php echo esc_attr($header_ui['changeLanguageLabel'] ?? 'Change language'); ?>" aria-expanded="false" aria-controls="language-menu" data-language-toggle>
+                        <img class="h-4 w-6 shrink-0 rounded-sm object-cover object-left ring-1 ring-ink/10" src="<?php echo esc_url(boblift_language_flag_url((string) ($active_language['flag'] ?? 'flags/us.svg'))); ?>" alt="<?php echo esc_attr(str_replace('{language}', (string) ($active_language['label'] ?? 'English'), $flag_alt_template)); ?>" loading="lazy">
+                        <strong class="block min-w-0 flex-1 truncate whitespace-nowrap text-sm font-black text-ink max-[360px]:hidden lg:max-xl:hidden"><?php echo esc_html($active_language['label'] ?? 'English'); ?></strong>
+                        <?php echo boblift_icon('chevron-down', 'h-4 w-4 shrink-0 text-slate-400 transition group-aria-expanded:rotate-180 max-[360px]:hidden'); ?>
                     </button>
-                    <div id="language-menu" class="absolute end-0 top-full z-[220] hidden pt-[14px]" data-language-menu>
-                        <div class="w-[min(640px,calc(100vw-32px))] origin-top-right overflow-hidden rounded-[28px] border border-line bg-[linear-gradient(145deg,#ffffff_0%,#f6f9ff_100%)] p-2 shadow-[0_28px_80px_rgba(8,35,74,0.18)] outline-none transition duration-200">
-                            <div class="grid grid-cols-1 gap-1 sm:grid-cols-2">
-                                <?php foreach ($languages as $language_index => $language) :
-                                    $language_label = (string) ($language['label'] ?? 'English');
-                                    $language_code = (string) ($language['code'] ?? 'en');
-                                    $language_market = (string) ($language['market'] ?? ($header_ui['regionalMarketLabel'] ?? 'Regional Market'));
-                                    $selected = !empty($language['current']);
-                                    ?>
-                                    <a class="group/item flex cursor-pointer items-center gap-3 rounded-[20px] px-3 py-3 text-start outline-none transition duration-200 hover:bg-white hover:shadow-[0_12px_34px_rgba(8,35,74,0.08)] <?php echo $selected ? 'bg-white shadow-[0_10px_28px_rgba(8,35,74,0.07)] ring-1 ring-gold/35' : ''; ?>" href="<?php echo esc_attr((string) ($language['href'] ?? '/')); ?>" hreflang="<?php echo esc_attr($language_code); ?>" <?php echo $selected ? 'aria-current="true"' : ''; ?>>
-                                        <span class="block size-11 shrink-0 overflow-hidden rounded-full bg-[#edf4ff] shadow-inner ring-1 ring-line transition group-hover/item:bg-white"><img src="<?php echo esc_url(boblift_language_flag_url((string) ($language['flag'] ?? 'flags/us.svg'))); ?>" alt="<?php echo esc_attr(str_replace('{language}', $language_label, $flag_alt_template)); ?>" class="h-full w-full object-cover" loading="lazy"></span>
-                                        <span class="min-w-0 flex-1"><span class="block text-sm font-black text-ink"><?php echo esc_html($language_label); ?></span><span class="mt-0.5 block truncate text-xs font-semibold text-slate-500"><?php echo esc_html($language_market); ?></span></span>
-                                        <?php echo boblift_icon('check', 'h-4 w-4 transition ' . ($selected ? 'text-gold' : 'text-transparent group-hover/item:text-gold')); ?>
-                                    </a>
-                                <?php endforeach; ?>
-                            </div>
+                    <div id="language-menu" class="absolute end-0 top-full z-[220] hidden pt-2" data-language-menu>
+                        <div class="w-60 overflow-hidden rounded border border-line bg-white py-1.5 shadow-raised">
+                            <?php foreach ($languages as $language) :
+                                $language_label = (string) ($language['label'] ?? 'English');
+                                $language_code = (string) ($language['code'] ?? 'en');
+                                $language_market = (string) ($language['market'] ?? ($header_ui['regionalMarketLabel'] ?? 'Regional Market'));
+                                $selected = !empty($language['current']);
+                                ?>
+                                <a class="relative flex h-11 items-center gap-3 px-4 text-sm outline-none transition hover:bg-mist hover:text-ink focus-visible:bg-mist <?php echo $selected ? 'bg-mist font-black text-ink' : 'font-semibold text-slate-600'; ?>" href="<?php echo esc_attr((string) ($language['href'] ?? '/')); ?>" hreflang="<?php echo esc_attr($language_code); ?>" title="<?php echo esc_attr($language_market); ?>" <?php echo $selected ? 'aria-current="true"' : ''; ?>>
+                                    <img class="h-4 w-6 shrink-0 rounded-sm object-cover object-left ring-1 ring-ink/10" src="<?php echo esc_url(boblift_language_flag_url((string) ($language['flag'] ?? 'flags/us.svg'))); ?>" alt="<?php echo esc_attr(str_replace('{language}', $language_label, $flag_alt_template)); ?>" loading="lazy">
+                                    <span class="min-w-0 flex-1 truncate"><?php echo esc_html($language_label); ?></span>
+                                    <span class="text-[11px] font-bold uppercase tracking-[0.12em] <?php echo $selected ? 'text-ink' : 'text-slate-400'; ?>"><?php echo esc_html(strtoupper($language_code)); ?></span>
+                                </a>
+                            <?php endforeach; ?>
                         </div>
                     </div>
                 </div>
-                <button class="grid h-11 w-11 place-items-center rounded-full border border-navy/10 bg-navy text-white shadow-[0_16px_34px_rgba(8,35,74,0.22)] transition duration-300 hover:-translate-y-0.5 lg:hidden" type="button" data-mobile-toggle aria-expanded="false" aria-controls="mobile-menu" aria-label="<?php echo esc_attr($header_ui['mobileOpenLabel'] ?? 'Open mobile navigation'); ?>"><?php echo boblift_icon('menu', 'h-5 w-5', '2.4'); ?></button>
-                <button class="group hidden h-12 min-w-[6.75rem] items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-transparent bg-navy bg-clip-padding px-4 text-sm font-black text-white shadow-[0_16px_34px_rgba(8,35,74,0.24)] outline-none select-none transition-all hover:-translate-y-0.5 hover:bg-navy lg:inline-flex 2xl:min-w-[11.75rem] 2xl:px-5" type="button" data-inquiry-modal-open><span class="2xl:hidden"><?php echo esc_html($header_ui['quoteShortLabel'] ?? 'Quote'); ?></span><span class="hidden 2xl:inline"><?php echo esc_html($header_ui['quoteLabel'] ?? ($quote_form_ui['label'] ?? 'Request Quote')); ?></span><span class="grid h-6 w-6 place-items-center rounded-full bg-white/12 text-white transition md:h-7 md:w-7"><?php echo boblift_icon('check', 'h-4 w-4'); ?></span></button>
+                <button class="grid h-11 w-11 place-items-center rounded-sm border border-navy/10 bg-navy text-white shadow-card transition duration-300 hover:-translate-y-0.5 lg:hidden" type="button" data-mobile-toggle aria-expanded="false" aria-controls="mobile-menu" aria-label="<?php echo esc_attr($header_ui['mobileOpenLabel'] ?? 'Open mobile navigation'); ?>"><?php echo boblift_icon('menu', 'h-5 w-5', '2.4'); ?></button>
+                <button class="group hidden h-12 items-center justify-center whitespace-nowrap rounded-sm border border-transparent bg-navy bg-clip-padding px-4 text-sm font-black text-white shadow-card outline-none select-none transition-all hover:-translate-y-0.5 hover:bg-navy lg:inline-flex" type="button" data-inquiry-modal-open data-inquiry-source="顶部导航"><span class="2xl:hidden"><?php echo esc_html($header_ui['quoteShortLabel'] ?? 'Quote'); ?></span><span class="hidden 2xl:inline"><?php echo esc_html($header_ui['quoteLabel'] ?? ($quote_form_ui['label'] ?? 'Request Quote')); ?></span></button>
             </div>
         </div>
     </div>
-    <div id="mobile-menu" class="mobile-menu absolute end-3 top-[calc(100%+10px)] z-50 hidden max-h-[min(calc(100dvh-164px),680px)] w-[min(350px,calc(100vw-24px))] overflow-y-auto overscroll-contain rounded-[24px] border border-line bg-white p-1.5 shadow-[0_28px_80px_rgba(8,35,74,0.18)] sm:end-4 sm:w-[min(360px,calc(100vw-32px))] lg:hidden">
-        <div class="rounded-[19px] bg-[linear-gradient(135deg,#0a2f62_0%,#155aa2_100%)] px-4 py-2.5 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]">
+    <div id="mobile-menu" class="mobile-menu absolute end-3 top-[calc(100%+10px)] z-50 hidden max-h-[min(calc(100dvh-164px),680px)] w-[min(350px,calc(100vw-24px))] overflow-y-auto overscroll-contain rounded border border-line bg-white p-1.5 shadow-raised sm:end-4 sm:w-[min(360px,calc(100vw-32px))] lg:hidden">
+        <div class="rounded bg-[linear-gradient(135deg,#0a2f62_0%,#155aa2_100%)] px-4 py-2.5 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]">
             <p class="text-[9px] font-extrabold uppercase tracking-[0.2em] text-gold"><?php echo esc_html($header_ui['mobileLabel'] ?? 'Navigation'); ?></p>
             <p class="mt-0.5 text-base font-extrabold leading-6"><?php echo esc_html($header_ui['mobileTitle'] ?? 'BOB-LIFT Menu'); ?></p>
         </div>
@@ -334,34 +514,39 @@ foreach ($languages as $language) {
                 ?>
                 <div>
                     <?php if ($mobile_is_product_menu_item) : ?>
-                        <div class="flex cursor-pointer items-center rounded-[16px] px-4 py-3 transition duration-200 hover:bg-[#f7fbff] hover:text-blue-700" data-mobile-submenu-row>
+                        <div class="flex cursor-pointer items-center rounded px-4 py-3 transition duration-200 hover:bg-[#f7fbff] hover:text-blue-700" data-mobile-submenu-row>
                             <a class="min-w-0 shrink-0 text-[15px] font-black leading-5 text-ink outline-none hover:text-blue-700" href="<?php echo esc_url(boblift_product_archive_url()); ?>" data-mobile-submenu-link><?php echo esc_html(function_exists('boblift_localized_static_text') ? boblift_localized_static_text((string) ($item['label'] ?? '')) : (string) ($item['label'] ?? '')); ?></a>
                             <button class="group -my-3 -me-4 ms-auto grid h-11 w-12 shrink-0 place-items-center text-slate-300 transition hover:text-blue-600" type="button" aria-expanded="false" aria-controls="mobile-products-submenu" aria-label="<?php echo esc_attr($header_ui['expandProductCategoriesLabel'] ?? 'Expand product categories'); ?>" data-mobile-submenu-toggle>
                                 <?php echo boblift_icon('chevron-down', 'h-4 w-4 transition group-aria-expanded:rotate-180'); ?>
                             </button>
                         </div>
-                        <div id="mobile-products-submenu" class="mx-1.5 mb-2 hidden rounded-[18px] border border-line bg-[#f8fbff] p-2.5" data-product-nav="mobile" data-mobile-submenu-panel>
+                        <div id="mobile-products-submenu" class="mx-1.5 mb-2 hidden rounded border border-line bg-[#f8fbff] p-2.5" data-product-nav="mobile" data-mobile-submenu-panel>
                             <p class="px-2 pb-2 text-[10px] font-black uppercase tracking-[0.18em] text-gold"><?php echo esc_html($header_ui['productCategoriesLabel'] ?? 'Product Categories'); ?></p>
                             <div class="grid gap-3">
-                                <?php foreach ($product_groups as $group_index => $group) : ?>
+                                <?php $family_group_shown = 'crane'; foreach ($product_menu_families as $family) : ?>
+                                    <?php if ($family['group'] !== $family_group_shown) : $family_group_shown = $family['group']; ?>
+                                        <p class="px-2 pt-1 text-[10px] font-black uppercase tracking-[0.14em] text-slate-400"><?php echo esc_html(boblift_product_family_group_label($family['group'])); ?></p>
+                                    <?php endif; ?>
                                     <div>
-                                        <a class="block rounded-2xl bg-white px-3 py-2 text-[13px] font-black leading-4 text-ink shadow-[0_8px_20px_rgba(8,35,74,0.05)]" href="<?php echo esc_url(boblift_product_nav_url((string) ($group['href'] ?? '/products'), (string) ($group['title'] ?? ''))); ?>"><?php echo esc_html($group['title'] ?? 'Products'); ?></a>
-                                        <div class="mt-1 grid gap-1 ps-2">
-                                            <?php foreach (($group['links'] ?? []) as $link) : ?><a class="rounded-xl px-3 py-1.5 text-xs font-bold leading-[18px] text-slate-500 hover:bg-white hover:text-blue-700" href="<?php echo esc_url(boblift_product_nav_url((string) ($link['href'] ?? '/products'), (string) ($link['label'] ?? ''))); ?>"><?php echo esc_html($link['label'] ?? 'Product'); ?></a><?php endforeach; ?>
-                                        </div>
+                                        <a class="flex items-center justify-between gap-3 rounded bg-white px-3 py-2 text-[13px] font-black leading-4 text-ink shadow-card" href="<?php echo esc_url($family['url']); ?>"><span class="min-w-0"><?php echo esc_html($family['title']); ?></span><span class="shrink-0 text-[11px] font-bold tabular-nums text-slate-400"><?php echo esc_html((string) $family['count']); ?></span></a>
+                                        <?php if ($family['children']) : ?>
+                                            <div class="mt-1 grid gap-1 ps-2">
+                                                <?php foreach ($family['children'] as $family_child) : ?><a class="rounded px-3 py-1.5 text-xs font-bold leading-[18px] text-slate-500 hover:bg-white hover:text-blue-700" href="<?php echo esc_url($family_child['url']); ?>"><?php echo esc_html($family_child['title']); ?></a><?php endforeach; ?>
+                                            </div>
+                                        <?php endif; ?>
                                     </div>
                                 <?php endforeach; ?>
                             </div>
                         </div>
                     <?php elseif ($mobile_has_children) : ?>
-                        <details class="group rounded-[16px]" <?php echo $mobile_children_open ? 'open' : ''; ?>>
-                            <summary class="flex cursor-pointer list-none items-center justify-between rounded-[16px] px-4 py-3 text-[15px] font-black leading-5 text-ink outline-none transition duration-200 hover:bg-[#f7fbff] hover:text-blue-700 [&::-webkit-details-marker]:hidden">
+                        <details class="group rounded" <?php echo $mobile_children_open ? 'open' : ''; ?>>
+                            <summary class="flex cursor-pointer list-none items-center justify-between rounded px-4 py-3 text-[15px] font-black leading-5 text-ink outline-none transition duration-200 hover:bg-[#f7fbff] hover:text-blue-700 [&::-webkit-details-marker]:hidden">
                                 <span><?php echo esc_html(function_exists('boblift_localized_static_text') ? boblift_localized_static_text((string) ($item['label'] ?? '')) : (string) ($item['label'] ?? '')); ?></span>
                                 <?php echo boblift_icon('chevron-down', 'h-4 w-4 text-slate-300 transition group-open:rotate-180 group-open:text-blue-600'); ?>
                             </summary>
-                            <div class="mx-1.5 mb-2 rounded-[18px] border border-line bg-[#f8fbff] p-2">
+                            <div class="mx-1.5 mb-2 rounded border border-line bg-[#f8fbff] p-2">
                                 <?php foreach ($mobile_children as $mobile_child) : $mobile_child_href = (string) ($mobile_child['href'] ?? '#'); $mobile_child_active = $nav_href_matches_current($mobile_child_href); ?>
-                                    <a class="flex items-center justify-between rounded-xl px-3 py-2 text-xs font-bold leading-[18px] transition hover:bg-white hover:text-blue-700 <?php echo $mobile_child_active ? 'bg-white text-blue-700' : 'text-slate-500'; ?>" href="<?php echo esc_url(boblift_url($mobile_child_href)); ?>">
+                                    <a class="flex items-center justify-between rounded px-3 py-2 text-xs font-bold leading-[18px] transition hover:bg-white hover:text-blue-700 <?php echo $mobile_child_active ? 'bg-white text-blue-700' : 'text-slate-500'; ?>" href="<?php echo esc_url(boblift_url($mobile_child_href)); ?>">
                                         <span><?php echo esc_html(function_exists('boblift_localized_static_text') ? boblift_localized_static_text((string) ($mobile_child['label'] ?? '')) : (string) ($mobile_child['label'] ?? '')); ?></span>
                                         <?php if ($mobile_child_active) : ?><?php echo boblift_icon('check', 'h-3.5 w-3.5 text-gold'); ?><?php endif; ?>
                                     </a>
@@ -369,14 +554,14 @@ foreach ($languages as $language) {
                             </div>
                         </details>
                     <?php elseif ($mobile_is_news_item && $news_menu_items !== []) : ?>
-                        <details class="group rounded-[16px]" <?php echo $mobile_news_open ? 'open' : ''; ?>>
-                            <summary class="flex cursor-pointer list-none items-center justify-between rounded-[16px] px-4 py-3 text-[15px] font-black leading-5 text-ink outline-none transition duration-200 hover:bg-[#f7fbff] hover:text-blue-700 [&::-webkit-details-marker]:hidden">
+                        <details class="group rounded" <?php echo $mobile_news_open ? 'open' : ''; ?>>
+                            <summary class="flex cursor-pointer list-none items-center justify-between rounded px-4 py-3 text-[15px] font-black leading-5 text-ink outline-none transition duration-200 hover:bg-[#f7fbff] hover:text-blue-700 [&::-webkit-details-marker]:hidden">
                                 <span><?php echo esc_html(function_exists('boblift_localized_static_text') ? boblift_localized_static_text((string) ($item['label'] ?? '')) : (string) ($item['label'] ?? '')); ?></span>
                                 <?php echo boblift_icon('chevron-down', 'h-4 w-4 text-slate-300 transition group-open:rotate-180 group-open:text-blue-600'); ?>
                             </summary>
-                            <div class="mx-1.5 mb-2 rounded-[18px] border border-line bg-[#f8fbff] p-2">
+                            <div class="mx-1.5 mb-2 rounded border border-line bg-[#f8fbff] p-2">
                                 <?php foreach ($news_menu_items as $news_menu_item) : ?>
-                                    <a class="flex items-center justify-between rounded-xl px-3 py-2 text-xs font-bold leading-[18px] transition hover:bg-white hover:text-blue-700 <?php echo !empty($news_menu_item['active']) ? 'bg-white text-blue-700' : 'text-slate-500'; ?>" href="<?php echo esc_url((string) $news_menu_item['href']); ?>">
+                                    <a class="flex items-center justify-between rounded px-3 py-2 text-xs font-bold leading-[18px] transition hover:bg-white hover:text-blue-700 <?php echo !empty($news_menu_item['active']) ? 'bg-white text-blue-700' : 'text-slate-500'; ?>" href="<?php echo esc_url(boblift_url((string) $news_menu_item['href'])); ?>">
                                         <span><?php echo esc_html((string) $news_menu_item['label']); ?></span>
                                         <?php if (!empty($news_menu_item['active'])) : ?><?php echo boblift_icon('check', 'h-3.5 w-3.5 text-gold'); ?><?php endif; ?>
                                     </a>
@@ -384,10 +569,42 @@ foreach ($languages as $language) {
                             </div>
                         </details>
                     <?php else : ?>
-                        <a class="group flex cursor-pointer items-center justify-between rounded-[16px] px-4 py-3 text-[15px] font-black leading-5 text-ink outline-none transition duration-200 hover:bg-[#f7fbff] hover:text-blue-700" href="<?php echo esc_url($mobile_item_url); ?>"><?php echo esc_html(function_exists('boblift_localized_static_text') ? boblift_localized_static_text((string) ($item['label'] ?? '')) : (string) ($item['label'] ?? '')); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-blue-600'); ?></a>
+                        <a class="group flex cursor-pointer items-center justify-between rounded px-4 py-3 text-[15px] font-black leading-5 text-ink outline-none transition duration-200 hover:bg-[#f7fbff] hover:text-blue-700" href="<?php echo esc_url($mobile_item_url); ?>"><?php echo esc_html(function_exists('boblift_localized_static_text') ? boblift_localized_static_text((string) ($item['label'] ?? '')) : (string) ($item['label'] ?? '')); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-blue-600'); ?></a>
                     <?php endif; ?>
                 </div>
             <?php endforeach; ?>
+        </div>
+        <?php $site_switcher_others = array_values(array_filter($site_switcher_items, static fn(array $site): bool => !$site['current'])); ?>
+        <?php if ($site_switcher_others !== []) : ?>
+            <div class="mt-1.5 border-t border-line px-2 pb-1 pt-3">
+                <p class="px-2 pb-1.5 text-[11px] font-black uppercase tracking-[0.14em] text-slate-400"><?php echo esc_html($site_switcher_ui['mobileTitle'] ?? 'Other BOB-LIFT sites'); ?></p>
+                <?php foreach ($site_switcher_others as $site) : ?>
+                    <a class="flex items-center justify-between gap-3 rounded px-2 py-2.5 transition hover:bg-[#f7fbff]" href="<?php echo esc_url($site['url']); ?>">
+                        <span class="min-w-0"><span class="block text-sm font-black text-ink"><?php echo esc_html($site['label']); ?></span><span class="block text-xs font-semibold text-slate-500"><?php echo esc_html($site['domain']); ?></span></span>
+                        <?php echo boblift_icon('arrow-up-right', 'h-4 w-4 shrink-0 text-slate-400'); ?>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </div>
+    <div id="site-search" class="absolute inset-x-0 top-full z-[230] hidden border-b border-line bg-white shadow-raised" role="dialog" aria-label="<?php echo esc_attr($search_ui['panelLabel'] ?? 'Site search'); ?>" data-search-panel>
+        <div class="page-shell py-5 md:py-8">
+            <form class="flex gap-2 md:gap-3" role="search" method="get" action="<?php echo esc_url(home_url('/')); ?>">
+                <label class="relative min-w-0 flex-1">
+                    <span class="sr-only"><?php echo esc_html($search_ui['inputLabel'] ?? 'Search products and articles'); ?></span>
+                    <?php echo boblift_icon('search', 'pointer-events-none absolute start-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 md:start-5'); ?>
+                    <input class="h-12 w-full rounded-sm border border-[#D8DEE8] bg-white ps-11 pe-4 text-base font-bold text-ink outline-none transition placeholder:font-semibold placeholder:text-slate-400 focus:border-navy focus:ring-4 focus:ring-blue-100 md:h-14 md:ps-14 md:text-lg [&::-webkit-search-cancel-button]:hidden" type="search" name="s" value="<?php echo esc_attr($search_query); ?>" placeholder="<?php echo esc_attr($search_ui['placeholder'] ?? 'Search a model, crane type or topic'); ?>" autocomplete="off" enterkeyhint="search" data-search-input>
+                </label>
+                <button class="inline-flex h-12 shrink-0 items-center justify-center rounded-sm bg-navy px-5 text-sm font-black text-white transition hover:bg-[#0b2d5b] md:h-14 md:px-8 md:text-base" type="submit"><?php echo esc_html($search_ui['submitLabel'] ?? 'Search'); ?></button>
+            </form>
+            <?php if ($product_menu_families) : ?>
+                <div class="mt-4 flex flex-wrap items-center gap-2 md:mt-5">
+                    <span class="me-1 w-full text-xs font-black uppercase tracking-[0.14em] text-slate-400 sm:w-auto"><?php echo esc_html($search_ui['browseLabel'] ?? 'Browse by category'); ?></span>
+                    <?php foreach ($product_menu_families as $family) : ?>
+                        <a class="inline-flex h-9 items-center gap-2 rounded-sm border border-line bg-white px-3 text-sm font-bold text-navy transition hover:border-blue-300 hover:text-blue-700" href="<?php echo esc_url($family['url']); ?>"><?php echo esc_html($family['title']); ?><span class="text-xs font-bold tabular-nums text-slate-400"><?php echo esc_html((string) $family['count']); ?></span></a>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
 </header>
