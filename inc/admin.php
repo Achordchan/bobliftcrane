@@ -3102,6 +3102,8 @@ function boblift_product_category_meta_values(?WP_Term $term = null): array
         'banner_label' => $term_id > 0 ? (string) get_term_meta($term_id, '_boblift_banner_label', true) : '',
         'banner_title' => $term_id > 0 ? (string) get_term_meta($term_id, '_boblift_banner_title', true) : '',
         'sort' => $term_id > 0 ? (string) get_term_meta($term_id, '_boblift_sort', true) : '',
+        'intro_title' => $term_id > 0 ? (string) get_term_meta($term_id, '_boblift_intro_title', true) : '',
+        'intro_text' => $term_id > 0 ? (string) get_term_meta($term_id, '_boblift_intro_text', true) : '',
         'term' => $term,
     ];
 }
@@ -3138,6 +3140,8 @@ function boblift_product_category_add_fields(): void
     <div class="form-field"><label>Banner 标题</label><input class="boblift-term-short" type="text" name="boblift_product_category_meta[banner_title]" value="" placeholder="保存后写入分类名称"><p class="boblift-term-field-note">建议与上方分类名称一致；保存时没有填写会自动写入分类名称。</p></div>
     <div class="form-field"><label>SEO 标题</label><input class="boblift-term-short" type="text" name="boblift_product_category_meta[seo_title]" value="" placeholder="保存后写入 分类名称 | BOB-LIFT"><p class="boblift-term-field-note">前台 title 就读取这里保存的值。</p></div>
     <div class="form-field"><label>SEO 描述</label><textarea name="boblift_product_category_meta[seo_description]" rows="4"></textarea><p class="boblift-term-field-note">前台 description 就读取这里保存的值。</p></div>
+    <div class="form-field"><label>分类介绍标题</label><input class="boblift-term-short" type="text" name="boblift_product_category_meta[intro_title]" value="" placeholder="留空则用 Banner 标题"></div>
+    <div class="form-field"><label>分类介绍正文</label><textarea name="boblift_product_category_meta[intro_text]" rows="8"></textarea><p class="boblift-term-field-note">用在产品列表只选中这个分类时，显示在产品列表下方。正文段落之间空一行；正文留空则不显示。</p></div>
     <div class="form-field"><label>排序</label><input class="small-text" type="number" name="boblift_product_category_meta[sort]" value="100"></div>
     <?php
 }
@@ -3174,6 +3178,8 @@ function boblift_product_category_edit_fields(WP_Term $term): void
     <tr class="form-field"><th scope="row"><label>Banner 标题</label></th><td><input class="regular-text" type="text" name="boblift_product_category_meta[banner_title]" value="<?php echo esc_attr($meta['banner_title'] !== '' ? $meta['banner_title'] : $term->name); ?>"><p class="description">前台 Banner 主标题，通常与产品分类名称一致。</p></td></tr>
     <tr class="form-field"><th scope="row"><label>SEO 标题</label></th><td><input class="regular-text" type="text" name="boblift_product_category_meta[seo_title]" value="<?php echo esc_attr($seo_title); ?>"><p class="description">前台 title 就读取这里保存的值。</p></td></tr>
     <tr class="form-field"><th scope="row"><label>SEO 描述</label></th><td><textarea class="large-text" rows="4" name="boblift_product_category_meta[seo_description]"><?php echo esc_textarea($seo_description); ?></textarea><p class="description">前台 description 就读取这里保存的值。</p></td></tr>
+    <tr class="form-field"><th scope="row"><label>分类介绍标题</label></th><td><input class="regular-text" type="text" name="boblift_product_category_meta[intro_title]" value="<?php echo esc_attr($meta['intro_title']); ?>" placeholder="留空则用 Banner 标题"></td></tr>
+    <tr class="form-field"><th scope="row"><label>分类介绍正文</label></th><td><textarea class="large-text" rows="8" name="boblift_product_category_meta[intro_text]"><?php echo esc_textarea($meta['intro_text']); ?></textarea><p class="description">用在产品列表只选中这个分类时，显示在产品列表下方。正文段落之间空一行；正文留空则不显示。</p></td></tr>
     <tr class="form-field"><th scope="row"><label>排序</label></th><td><input class="small-text" type="number" name="boblift_product_category_meta[sort]" value="<?php echo esc_attr($meta['sort'] !== '' ? $meta['sort'] : '100'); ?>"></td></tr>
     <?php
 }
@@ -3206,6 +3212,8 @@ function boblift_save_product_category_meta(int $term_id): void
     update_term_meta($term_id, '_boblift_seo_title', $seo_title !== '' ? $seo_title : boblift_seo_default_title_for_term($term));
     update_term_meta($term_id, '_boblift_seo_description', $seo_description !== '' ? $seo_description : boblift_seo_default_description_for_term($term));
     update_term_meta($term_id, '_boblift_sort', (int) ($meta['sort'] ?? 100));
+    update_term_meta($term_id, '_boblift_intro_title', sanitize_text_field((string) ($meta['intro_title'] ?? '')));
+    update_term_meta($term_id, '_boblift_intro_text', sanitize_textarea_field((string) ($meta['intro_text'] ?? '')));
 }
 add_action('created_product_category', 'boblift_save_product_category_meta');
 add_action('edited_product_category', 'boblift_save_product_category_meta');
