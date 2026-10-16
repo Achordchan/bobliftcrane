@@ -1536,6 +1536,7 @@ function boblift_contact_settings(): array
         'wechatId' => $contact['wechat_id'] ?? $whatsapp_number,
         'wechatQr' => $contact['wechat_qr'] ?? 'images/wechat-qr.png',
         'address' => $contact['address'] ?? 'Xuzhou, China',
+        'landline' => trim((string) ($contact['landline'] ?? '')),
         'inquirySubject' => (string) ((boblift_site_ui('quoteForm')['inquirySubject'] ?? 'BOB-LIFT quotation request')),
         'defaultInquiryText' => (string) ((boblift_site_ui('quoteForm')['defaultInquiryText'] ?? 'Hello BOB-LIFT, I would like to request a quotation.')),
     ];

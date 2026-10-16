@@ -101,6 +101,12 @@ $visit_links = is_array($ui['visitLinks'] ?? null) ? $ui['visitLinks'] : [];
                         </dd>
                     </div>
                     <?php endif; ?>
+                    <?php if ($contact['landline'] !== '') : ?>
+                    <div class="py-3.5">
+                        <dt class="<?php echo esc_attr($eyebrow); ?>"><?php echo esc_html($t('landlineLabel', 'Office phone')); ?></dt>
+                        <dd class="mt-1"><a class="text-base font-black text-ink transition hover:text-blue-700" href="<?php echo esc_url('tel:' . preg_replace('/[^\d+]+/', '', $contact['landline'])); ?>"><span dir="ltr"><?php echo esc_html($contact['landline']); ?></span></a></dd>
+                    </div>
+                    <?php endif; ?>
                     <div class="py-3.5">
                         <dt class="<?php echo esc_attr($eyebrow); ?>"><?php echo esc_html((string) ($ui['cardLabels']['email'] ?? 'Email')); ?></dt>
                         <dd class="mt-1"><a class="break-all text-base font-black text-ink transition hover:text-blue-700" href="<?php echo esc_url('mailto:' . $contact['email']); ?>"><?php echo esc_html((string) $contact['email']); ?></a></dd>
