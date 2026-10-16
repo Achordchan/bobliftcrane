@@ -31,6 +31,17 @@ foreach ($source as $row) { $by_id[(int) $row['id']] = $row; }
 // Preflight: every translation file must parse and hold every field before anything is written.
 $jobs = [];
 $problems = [];
+// Every language needs its directory and the same, non-empty set of files, so a wrong path or partial copy fails here.
+$ids_by_lang = [];
+foreach ($langs as $lang) {
+    $files = is_dir($dir . $lang) ? glob($dir . $lang . '/*.json') : false;
+    if (!$files) { $problems[] = "{$dir}{$lang}/: missing or has no translation files"; continue; }
+    $ids_by_lang[$lang] = array_map(static fn(string $file): int => (int) basename($file, '.json'), $files);
+    sort($ids_by_lang[$lang]);
+}
+if (count($ids_by_lang) === count($langs) && count(array_unique(array_map('serialize', $ids_by_lang))) > 1) {
+    $problems[] = 'the language directories hold different sets of posts: ' . implode(', ', array_map(static fn(string $lang, array $ids): string => "$lang " . count($ids), array_keys($ids_by_lang), $ids_by_lang));
+}
 foreach ($langs as $lang) {
     foreach (glob($dir . $lang . '/*.json') ?: [] as $file) {
         $id = (int) basename($file, '.json');
