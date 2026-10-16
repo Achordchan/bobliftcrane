@@ -285,7 +285,12 @@ function boblift_product_content_ready(int $post_id, string $flag_key): bool
             if (preg_match('/webpc-passthru\.php\?(?:[^#]*&)?src=([^&#]+)/', $src, $found)) {
                 $src = rawurldecode($found[1]);
             }
-            if (preg_match('#/wp-content/uploads/(.+)$#', $src, $found)) {
+            $site_hosts = array_filter([strtolower((string) wp_parse_url(home_url(), PHP_URL_HOST)), strtolower((string) wp_parse_url(wp_get_upload_dir()['baseurl'], PHP_URL_HOST))]);
+            $original_host = strtolower((string) wp_parse_url($src, PHP_URL_HOST));
+            // Only this site's own addresses (an old or language domain) are moved onto the uploads host; another site's
+            // /wp-content/uploads/ picture keeps its host, so the check below still sees it as an editor's choice.
+            $own_host = $original_host === '' || in_array($original_host, $site_hosts, true) || str_contains($original_host, 'bobliftcrane.com');
+            if ($own_host && preg_match('#/wp-content/uploads/(.+)$#', $src, $found)) {
                 $src = $uploads_base . $found[1];
             }
             $attachment_id = $src !== '' ? attachment_url_to_postid($src) : 0;
@@ -299,7 +304,6 @@ function boblift_product_content_ready(int $post_id, string $flag_key): bool
                 // address on a host that is neither this site nor the old site's image CDN.
                 $src_host = strtolower((string) wp_parse_url($src, PHP_URL_HOST));
                 $is_theme_path = $src_host === '' && !str_starts_with($src, '/') && !str_starts_with($src, '//');
-                $site_hosts = array_filter([strtolower((string) wp_parse_url(home_url(), PHP_URL_HOST)), strtolower((string) wp_parse_url(wp_get_upload_dir()['baseurl'], PHP_URL_HOST))]);
                 if ($is_theme_path || ($src_host !== '' && !in_array($src_host, $site_hosts, true) && !str_contains($src_host, 'ldycdn.com') && !str_contains($src_host, 'bobliftcrane.com'))) {
                     return true;
                 }
