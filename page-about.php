@@ -141,9 +141,13 @@ $legacy_intro = boblift_about_legacy_intro($logo);
 $legacy_headline = $legacy_intro['headline'];
 $legacy_paragraph = $legacy_intro['paragraph'];
 $legacy_chips = $legacy_intro['chips'];
-if ($legacy_headline !== '' || $legacy_paragraph !== '' || $legacy_chips !== []) : ?>
-<section class="page-shell py-10 md:py-14" aria-label="<?php echo esc_attr($legacy_headline !== '' ? $legacy_headline : 'About BOB-LIFT'); ?>">
+// The old introduction's eyebrow label, when an editor changed it from the built-in "About BOB-LIFT".
+$legacy_label = trim((string) ($logo['label'] ?? ''));
+$legacy_label = in_array($legacy_label, ['', 'About BOB-LIFT', function_exists('boblift_localized_static_text') ? boblift_localized_static_text('About BOB-LIFT') : 'About BOB-LIFT'], true) ? '' : $legacy_label;
+if ($legacy_label !== '' || $legacy_headline !== '' || $legacy_paragraph !== '' || $legacy_chips !== []) : ?>
+<section class="page-shell py-10 md:py-14" aria-label="<?php echo esc_attr($legacy_headline !== '' ? $legacy_headline : ($legacy_label !== '' ? $legacy_label : 'About BOB-LIFT')); ?>">
     <div class="mx-auto max-w-[860px] text-center">
+        <?php if ($legacy_label !== '') : ?><p class="section-label mb-4 justify-center"><?php echo esc_html($legacy_label); ?></p><?php endif; ?>
         <?php if ($legacy_headline !== '') : ?><h2 class="text-[clamp(1.75rem,2.8vw,3rem)] font-black leading-[1.08] tracking-[-0.02em] text-[#0B1B33]"><?php echo esc_html($legacy_headline); ?></h2><?php endif; ?>
         <?php if ($legacy_paragraph !== '') : ?><p class="mx-auto mt-5 max-w-[760px] text-sm font-semibold leading-7 text-[#64748B] md:text-base md:leading-8"><?php echo esc_html($legacy_paragraph); ?></p><?php endif; ?>
     </div>
