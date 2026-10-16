@@ -25,7 +25,9 @@ add_filter('wp_unique_post_slug', static function (string $slug, int $post_id, s
         return $slug;
     }
     foreach ($holders as $holder) {
-        if (pll_get_post_language((int) $holder) === $language) {
+        // A holder with no language (or the same one) shares this namespace, so WordPress's suffix stays.
+        $holder_language = pll_get_post_language((int) $holder);
+        if (!$holder_language || $holder_language === $language) {
             return $slug;
         }
     }

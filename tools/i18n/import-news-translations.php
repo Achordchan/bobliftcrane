@@ -20,6 +20,9 @@ $langs = ['ja', 'zh'];
 $fields = ['title', 'excerpt', 'content', 'seo_title', 'seo_description', 'seo_keywords'];
 
 if (!function_exists('pll_get_post') || !function_exists('pll_save_post_translations')) { fwrite(STDERR, "Polylang is not active.\n"); exit(1); }
+$configured = function_exists('pll_languages_list') ? pll_languages_list(['fields' => 'slug']) : [];
+$unknown = array_diff(array_merge(['en'], $langs), $configured);
+if ($unknown) { fwrite(STDERR, 'Polylang has no language ' . implode(', ', $unknown) . "; add it before importing.\n"); exit(1); }
 $source = json_decode((string) file_get_contents($base . 'news-en.json'), true);
 if (!is_array($source)) { fwrite(STDERR, "Cannot read {$base}news-en.json\n"); exit(1); }
 $by_id = [];
@@ -63,7 +66,8 @@ function bl_news_links(string $html, string $lang): string {
         if ($slug === '') { return $m[0]; }
         $found = get_posts(['post_type' => 'any', 'name' => $slug, 'post_status' => 'publish', 'posts_per_page' => 1, 'lang' => 'en']);
         $translated = $found ? pll_get_post($found[0]->ID, $lang) : 0;
-        if (!$translated || $translated === $found[0]->ID) { return $m[0]; }
+        // Only a published translation replaces the link; a draft or private one would be unreachable for visitors.
+        if (!$translated || $translated === $found[0]->ID || get_post_status($translated) !== 'publish') { return $m[0]; }
         return 'href="' . wp_make_link_relative(get_permalink($translated)) . ($m[2] ?? '') . '"';
     }, $html);
 }
