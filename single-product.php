@@ -201,8 +201,8 @@ if ($has_configured_detail_images && boblift_product_content_ready(get_the_ID(),
             $src = rawurldecode($match[1]);
         }
         // Match on the uploads path: the stored host can differ from this language's domain.
-        // Only this site's own addresses (any language domain, relative or the uploads host) are rewritten; an image on another
-        // host stays as saved unless the same file exists in this site's media library.
+        // Only this site's own addresses (any language domain, the old bobliftcrane.com domains, relative or the uploads host)
+        // are rewritten; an image on another host stays as saved even when a local upload happens to share its path.
         if (preg_match('#/wp-content/uploads/(.+)$#', $src, $match)) {
             $local_src = trailingslashit(wp_get_upload_dir()['baseurl']) . $match[1];
             $src_host = strtolower((string) wp_parse_url($src, PHP_URL_HOST));
@@ -210,7 +210,7 @@ if ($has_configured_detail_images && boblift_product_content_ready(get_the_ID(),
             foreach (function_exists('pll_languages_list') ? pll_languages_list() : [] as $language_slug) {
                 $own_hosts[] = strtolower((string) wp_parse_url((string) (function_exists('pll_home_url') ? pll_home_url($language_slug) : ''), PHP_URL_HOST));
             }
-            if ($src_host === '' || in_array($src_host, $own_hosts, true) || attachment_url_to_postid($local_src) > 0) {
+            if ($src_host === '' || in_array($src_host, $own_hosts, true) || str_contains($src_host, 'bobliftcrane.com')) {
                 $src = $local_src;
             }
         }
