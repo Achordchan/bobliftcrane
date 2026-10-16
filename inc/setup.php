@@ -342,12 +342,33 @@ function boblift_redirect_retired_pages(): void
     }
     foreach (boblift_retired_page_slugs() as $slug) {
         if (boblift_page_is_translation_of_slug($page, $slug)) {
+            // A page an administrator filled with their own content stays published; only the untouched built-in page retires.
+            if ($slug === 'public-welfare' && boblift_public_welfare_customized()) {
+                return;
+            }
             wp_safe_redirect(boblift_url('/about.html'), 301);
             exit;
         }
     }
 }
 add_action('template_redirect', 'boblift_redirect_retired_pages', 1);
+
+/**
+ * Whether the Public Welfare settings stored for the current language hold content of the administrator's own: anything
+ * other than the built-in defaults (in English or as translated for that language).
+ */
+function boblift_public_welfare_customized(): bool
+{
+    $raw = function_exists('boblift_mls_get_raw_options') ? boblift_mls_get_raw_options() : get_option('boblift_theme_options', []);
+    $saved = is_array($raw['public_welfare_page'] ?? null) ? $raw['public_welfare_page'] : [];
+    if ($saved === []) {
+        return false;
+    }
+    $defaults = boblift_public_welfare_page_defaults();
+    $current = wp_json_encode(boblift_array_replace_recursive($defaults, $saved));
+    $localized = function_exists('boblift_localize_static_value') ? boblift_localize_static_value($defaults) : $defaults;
+    return $current !== wp_json_encode($defaults) && $current !== wp_json_encode($localized);
+}
 
 function boblift_exclude_utility_pages_from_sitemap(array $args, string $post_type): array
 {
