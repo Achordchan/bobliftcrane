@@ -311,9 +311,18 @@ function boblift_utility_page_ids(): array
         if (!$page instanceof WP_Post) {
             continue;
         }
-        $ids[] = (int) $page->ID;
-        if (function_exists('pll_get_post_translations')) {
-            $ids = array_merge($ids, array_map('intval', array_values(pll_get_post_translations($page->ID))));
+        $page_ids = function_exists('pll_get_post_translations') ? array_map('intval', array_values(pll_get_post_translations($page->ID))) : [];
+        $page_ids[] = (int) $page->ID;
+        foreach (array_unique($page_ids) as $page_id) {
+            // A customised Public Welfare page stays published (see boblift_redirect_retired_pages()), so it stays indexable
+            // too; each translation is judged by its own language's settings.
+            if ($slug === 'public-welfare') {
+                $page_language = function_exists('pll_get_post_language') ? (string) pll_get_post_language($page_id) : '';
+                if (boblift_public_welfare_customized($page_language !== '' ? $page_language : null)) {
+                    continue;
+                }
+            }
+            $ids[] = $page_id;
         }
     }
 
@@ -354,19 +363,19 @@ function boblift_redirect_retired_pages(): void
 add_action('template_redirect', 'boblift_redirect_retired_pages', 1);
 
 /**
- * Whether the Public Welfare settings stored for the current language hold content of the administrator's own: anything
+ * Whether the Public Welfare settings stored for a language (default: the current one) hold content of the administrator's own: anything
  * other than the built-in defaults (in English or as translated for that language).
  */
-function boblift_public_welfare_customized(): bool
+function boblift_public_welfare_customized(?string $language = null): bool
 {
-    $raw = function_exists('boblift_mls_get_raw_options') ? boblift_mls_get_raw_options() : get_option('boblift_theme_options', []);
+    $raw = function_exists('boblift_mls_get_raw_options') ? boblift_mls_get_raw_options($language) : get_option('boblift_theme_options', []);
     $saved = is_array($raw['public_welfare_page'] ?? null) ? $raw['public_welfare_page'] : [];
     if ($saved === []) {
         return false;
     }
     $defaults = boblift_public_welfare_page_defaults();
     $current = wp_json_encode(boblift_array_replace_recursive($defaults, $saved));
-    $localized = function_exists('boblift_localize_static_value') ? boblift_localize_static_value($defaults) : $defaults;
+    $localized = function_exists('boblift_localize_static_value') ? boblift_localize_static_value($defaults, $language) : $defaults;
     return $current !== wp_json_encode($defaults) && $current !== wp_json_encode($localized);
 }
 

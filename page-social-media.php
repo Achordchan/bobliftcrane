@@ -42,26 +42,40 @@ $thumb_url = static function ($image): string {
     return boblift_image_setting_url($image);
 };
 
-// Real account URLs saved in the footer social links, keyed by lowercase label.
+// Platform identity from a label: lowercase letters, digits and Han characters only, with the usual aliases folded in.
+// Matching is exact, so short names (X) never match inside longer ones (Xiaohongshu).
+$platform_identity = static function (string $label): string {
+    $id = (string) preg_replace('/[^a-z0-9\p{Han}]+/u', '', function_exists('mb_strtolower') ? mb_strtolower(trim($label), 'UTF-8') : strtolower(trim($label)));
+    $aliases = [
+        'twitter' => 'x', 'xtwitter' => 'x', 'twitterx' => 'x', 'xformerlytwitter' => 'x',
+        'fb' => 'facebook', 'ig' => 'instagram', 'yt' => 'youtube',
+        'rednote' => 'xiaohongshu', 'redbook' => 'xiaohongshu', '小红书' => 'xiaohongshu',
+        '视频号' => 'wechatchannels', '微信视频号' => 'wechatchannels', 'weixinchannels' => 'wechatchannels',
+        '微信' => 'wechat', 'weixin' => 'wechat', '抖音' => 'douyin', '微博' => 'weibo', 'sinaweibo' => 'weibo',
+        '快手' => 'kuaishou', '哔哩哔哩' => 'bilibili', 'b站' => 'bilibili', '领英' => 'linkedin',
+    ];
+    return $aliases[$id] ?? $id;
+};
+// Real account URLs saved in the footer social links, keyed by platform identity.
 $footer_social = is_array($site_options['footer']['social_links'] ?? null) ? $site_options['footer']['social_links'] : [];
 $link_map = [];
 foreach ($footer_social as $link) {
-    $label = strtolower(trim((string) (is_array($link) ? ($link['label'] ?? '') : '')));
+    $identity = $platform_identity((string) (is_array($link) ? ($link['label'] ?? '') : ''));
     $href = trim((string) (is_array($link) ? ($link['href'] ?? '') : ''));
-    if ($label !== '' && preg_match('#^https?://#i', $href)) {
-        $link_map[$label] = $href;
+    if ($identity !== '' && preg_match('#^https?://#i', $href)) {
+        $link_map[$identity] = $href;
     }
 }
 // A card links out only once a real account URL is saved (its own, or the footer's for the same platform); placeholders and old /contact fallbacks stay unlinked.
-$account_url = static function (array $platform) use ($link_map): string {
+$account_url = static function (array $platform) use ($link_map, $platform_identity): string {
     $href = trim((string) ($platform['href'] ?? ''));
     if (preg_match('#^https?://#i', $href)) {
         return $href;
     }
-    $key = strtolower(trim((string) ($platform['label'] ?? '')));
-    foreach ($link_map as $configured_label => $configured_href) {
-        if ($key !== '' && ($key === $configured_label || str_contains($key, $configured_label) || str_contains($configured_label, $key))) {
-            return $configured_href;
+    foreach ([(string) ($platform['label'] ?? ''), (string) ($platform['icon'] ?? '')] as $name) {
+        $identity = $platform_identity($name);
+        if ($identity !== '' && isset($link_map[$identity])) {
+            return $link_map[$identity];
         }
     }
     return '';

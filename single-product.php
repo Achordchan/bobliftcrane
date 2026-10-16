@@ -197,7 +197,7 @@ if ($has_configured_detail_images && boblift_product_content_ready(get_the_ID(),
     foreach ($detail_images as $item) {
         $src = html_entity_decode((string) (is_string($item) ? $item : ($item['image'] ?? $item['url'] ?? '')));
         // Old imports point at the WebP converter ("webpc-passthru.php?src=<upload url>"): use the upload itself.
-        if (preg_match('/[?&]src=([^&]+)/', $src, $match)) {
+        if (preg_match('/webpc-passthru\.php\?(?:[^#]*&)?src=([^&#]+)/', $src, $match)) {
             $src = rawurldecode($match[1]);
         }
         // Match on the uploads path: the stored host can differ from this language's domain.

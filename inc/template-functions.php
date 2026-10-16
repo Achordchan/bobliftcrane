@@ -282,7 +282,7 @@ function boblift_product_content_ready(int $post_id, string $flag_key): bool
             $src = html_entity_decode((string) (is_array($row) ? ($row['image'] ?? $row['url'] ?? '') : $row));
             // Same normalisation as the product page: unwrap the WebP converter, then match on the uploads path (the stored host
             // can be an old or language domain).
-            if (preg_match('/[?&]src=([^&]+)/', $src, $found)) {
+            if (preg_match('/webpc-passthru\.php\?(?:[^#]*&)?src=([^&#]+)/', $src, $found)) {
                 $src = rawurldecode($found[1]);
             }
             if (preg_match('#/wp-content/uploads/(.+)$#', $src, $found)) {
