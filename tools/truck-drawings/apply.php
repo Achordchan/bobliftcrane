@@ -89,7 +89,7 @@ $reconcile_drawings = static function (int $post_id, array $p) use ($import, $js
 $created = [];
 $skipped = [];
 foreach ($plan['new'] as $p) {
-    $slug = sanitize_title($p['title']);
+    $slug = $p['slug'];
     $term = get_term_by('slug', $p['category'], 'product_category');
     $sibling = $find($p['sibling']);
     $existing = $find($slug);

@@ -14,11 +14,7 @@ B = {r['model']: r for r in json.load(open('brochure.json'))}
 a = json.load(open('phase-a.json'))['updates']
 b = json.load(open('phase-b.json'))['products']
 
-def slug(title):
-    import re
-    return re.sub(r'-+', '-', re.sub(r'[^a-z0-9]+', '-', title.lower())).strip('-')
-
-products = [{'slug': u['slug'], 'model': u['model'], 'category': u.get('category', ''), 'aliases': [u['old_model']] if u['old_model'] and u['old_model'] != u['model'] else []} for u in a] + [{'slug': slug(p['title']), 'model': p['model'], 'new': True, 'has_image': bool(p['image']), 'category': p['category']} for p in b]
+products = [{'slug': u['slug'], 'model': u['model'], 'category': u.get('category', ''), 'aliases': [u['old_model']] if u['old_model'] and u['old_model'] != u['model'] else []} for u in a] + [{'slug': p['slug'], 'model': p['model'], 'new': True, 'has_image': bool(p['image']), 'category': p['category']} for p in b]
 by_model = {p['model']: p['slug'] for p in products}
 
 # Factory photos (photographer's archive) for models the brochure has no photo of; they lead the gallery.

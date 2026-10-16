@@ -139,6 +139,12 @@ def pdfs(model):
 
 
 def main():
+    if not os.path.isdir(SRC):
+        raise SystemExit(f'Drawing source directory not found: {SRC}')
+    sources = {model: pdfs(model) for model in NEW}
+    missing = [f'{model}: {kind}' for model, files in sources.items() for kind in ('outline', 'chart') if kind not in files]
+    if missing:
+        raise SystemExit('Missing required drawings; plan unchanged: ' + ', '.join(missing))
     os.makedirs(os.path.join(DIR, 'media'), exist_ok=True)
     rows = {r['model']: r for r in json.load(open(os.path.join(DIR, DATA)))}
     titles = {}
@@ -156,10 +162,11 @@ def main():
         tons = specs.capacity_tons(row)
         same_tonnage = bool(titles.get((tons, row['boom']))) or sum(1 for m in NEW if specs.capacity_tons(rows[m]) == tons and rows[m]['boom'] == row['boom']) > 1
         title = f'{tons:g} Ton {noun}' + (f' {model}' if same_tonnage else '')
-        files = pdfs(model)
+        files = sources[model]
         drawings = [{'file': f, 'kind': kind} for kind in ('outline', 'chart') if kind in files and (f := render(model, kind, files[kind]))]
         plan['new'].append({
-            'model': model, 'title': title, 'category': category, 'boom_type': boom, 'applications': APPS,
+            'model': model, 'title': title, 'slug': re.sub(r'[^a-z0-9]+', '-', title.lower()).strip('-'),
+            'category': category, 'boom_type': boom, 'applications': APPS,
             'capacity': specs.capacity_label(row), 'capacity_value': tons, 'specs': spec_rows(row),
             'features': [{'title': t, 'text': x} for t, x in ADV[adv]],
             'short_description': specs.short_description(dict(row, kind='main'), noun.lower()),

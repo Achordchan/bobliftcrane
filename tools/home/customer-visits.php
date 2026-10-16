@@ -11,25 +11,11 @@ require_once dirname(__DIR__) . '/backup-dir.php';
  *   wp eval-file ../tools/home/customer-visits.php
  */
 $dry_run = in_array('dry-run', $args ?? [], true);
-$placeholder_paths = [
-    'images/factory-workshop.jpg',
-    'images/about/quanyuan-compressed.jpg',
-    'images/oldsite/news/enter-the-bob-lift-factory-with-professional-manufacturing.jpg',
+$placeholder_items = [
+    ['image' => ['id' => 0, 'path' => 'images/factory-workshop.jpg'], 'label' => 'Factory Walkthrough', 'title' => 'Production line review', 'text' => 'Customers can review workshop order, assembly workflow and product quality details with the BOB-LIFT team.'],
+    ['image' => ['id' => 0, 'path' => 'images/about/quanyuan-compressed.jpg'], 'label' => 'Technical Discussion', 'title' => 'Project requirement meeting', 'text' => 'Our team discusses load capacity, working radius, installation conditions and export requirements with visiting partners.'],
+    ['image' => ['id' => 0, 'path' => 'images/oldsite/news/enter-the-bob-lift-factory-with-professional-manufacturing.jpg'], 'label' => 'Product Inspection', 'title' => 'Close look at crane details', 'text' => 'Visitors can compare product structures, manufacturing details and practical configuration options before choosing a model.'],
 ];
-$is_placeholder_list = static function (array $items) use ($placeholder_paths): bool {
-    if ($items === []) {
-        return false;
-    }
-    foreach ($items as $item) {
-        $image = is_array($item) ? ($item['image'] ?? null) : null;
-        $id = is_array($image) ? (int) ($image['id'] ?? 0) : 0;
-        $path = is_array($image) ? (string) ($image['path'] ?? '') : (string) $image;
-        if ($id > 0 || !in_array($path, $placeholder_paths, true)) {
-            return false;
-        }
-    }
-    return true;
-};
 $backup = [];
 $changes = [];
 foreach (['boblift_theme_options', 'boblift_theme_options_ja', 'boblift_theme_options_zh', 'boblift_theme_options_es', 'boblift_theme_options_ru'] as $key) {
@@ -38,7 +24,7 @@ foreach (['boblift_theme_options', 'boblift_theme_options_ja', 'boblift_theme_op
         continue;
     }
     $visits = $options['about_page']['customer_visits'];
-    $clear = is_array($visits['items'] ?? null) && $is_placeholder_list($visits['items']);
+    $clear = ($visits['items'] ?? null) === $placeholder_items;
     echo $key . ': ' . ($clear ? 'cleared placeholder items' : 'unchanged') . "\n";
     if ($clear && !$dry_run) {
         $backup[$key] = $visits;

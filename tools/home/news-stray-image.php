@@ -19,7 +19,7 @@ foreach ($ids as $id) {
         continue;
     }
     if (!$dry_run) {
-        wp_update_post(['ID' => $post->ID, 'post_content' => $content]);
+        wp_update_post(wp_slash(['ID' => $post->ID, 'post_content' => $content]));
     }
     WP_CLI::log(($dry_run ? '[dry-run] ' : '') . "#$id {$post->post_title}: removed $count image block(s)");
 }

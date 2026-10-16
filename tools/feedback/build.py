@@ -10,6 +10,7 @@ Privacy rules (the site shows only country and model, never who the customer is)
 - Images are re-encoded without EXIF, so GPS and camera data never reach the site.
 - Videos lose their audio track: voices can carry names, and the site plays them muted anyway.
 """
+import hashlib
 import json
 import os
 import re
@@ -126,18 +127,19 @@ for (country, folder), files in sorted(groups.items()):
             'country': dict(zip(('en', 'ja', 'zh'), COUNTRIES[country])),
             'note': dict(zip(('en', 'ja', 'zh'), notes[0])) if notes else None, 'media': []}
     os.makedirs(os.path.join(OUT, slug), exist_ok=True)
-    for i, rel in enumerate(sorted(files, key=lambda r: (r.rsplit('.', 1)[-1].lower() in VIDEO_EXT, r))):
+    for rel in sorted(files, key=lambda r: (r.rsplit('.', 1)[-1].lower() in VIDEO_EXT, r)):
         if rel in EXCLUDE:
             excluded.append(rel)
             continue
         ext = rel.rsplit('.', 1)[-1].lower()
         src = os.path.join(SRC, rel)
+        identity = hashlib.sha256(rel.encode('utf-8')).hexdigest()[:16]
         if ext in VIDEO_EXT:
-            dest, poster = f'{slug}/{slug}-{i + 1}.mp4', f'{slug}/{slug}-{i + 1}-poster.webp'
+            dest, poster = f'{slug}/{slug}-{identity}.mp4', f'{slug}/{slug}-{identity}-poster.webp'
             size = (0, 0) if DRY else process_video(src, os.path.join(OUT, dest), os.path.join(OUT, poster))
             item['media'].append({'type': 'video', 'file': dest, 'poster': poster, 'width': size[0], 'height': size[1]})
         else:
-            dest = f'{slug}/{slug}-{i + 1}.webp'
+            dest = f'{slug}/{slug}-{identity}.webp'
             size = (0, 0) if DRY else process_image(src, os.path.join(OUT, dest), any(rel == c or (c.endswith('/') and rel.startswith(c)) for c in CROP))
             item['media'].append({'type': 'image', 'file': dest, 'width': size[0], 'height': size[1]})
     if item['media']:

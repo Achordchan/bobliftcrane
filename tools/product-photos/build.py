@@ -44,6 +44,10 @@ def main():
     plan = []
     for slug, model, folder, picks, own in PRODUCTS:
         if slug in done:
+            for photo in done[slug]['photos']:
+                dest = os.path.join(DIR, 'media', photo['file'])
+                if not os.path.exists(dest):
+                    subprocess.run(['magick', photo['source'], '-auto-orient', '-resize', '1800x1800>', '-strip', '-quality', '80', dest], check=True)
             plan.append(done[slug])
             continue
         # One folder with picks [n, ...], or several folders with picks [(folder index, n), ...].

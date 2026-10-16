@@ -20,7 +20,7 @@ foreach (json_decode((string) file_get_contents($dir . '/brochure.json'), true) 
     $rows[$row['model']] = $row;
 }
 $products = json_decode((string) file_get_contents($dir . '/phase-c.json'), true)['products'];
-// New truck cranes from the technical department's drawings (tools/truck-drawings), with their parameter tables.
+// Technical drawing values override brochure values for both existing and new models.
 // Marine cranes the same way (marine-drawings.json, marine-plan.json).
 $series_of = ['knuckle-boom-truck-mounted-cranes' => 'Knuckle Boom Truck Mounted Crane', 'telescopic-boom-truck-mounted-cranes' => 'Telescopic Boom Truck Mounted Crane',
     'knuckle-boom-marine-cranes' => 'Knuckle Boom Marine Crane', 'telescopic-boom-marine-cranes' => 'Telescopic Boom Marine Crane'];
@@ -29,9 +29,18 @@ foreach (['truck' => ['drawings.json', 'plan.json'], 'marine' => ['marine-drawin
     foreach (json_decode((string) file_get_contents($dir . '/../truck-drawings/' . $data_file), true) as $row) {
         $drawing_rows[$row['model']] = $row + ['book' => $book, 'kind' => 'main'];
     }
-    foreach (json_decode((string) file_get_contents($dir . '/../truck-drawings/' . $plan_file), true)['new'] as $new) {
-        $rows[$new['model']] = $rows[$new['model']] ?? $drawing_rows[$new['model']];
-        $products[] = ['model' => $new['model'], 'slug' => sanitize_title($new['title']), 'features_series' => $series_of[$new['category']], 'features' => $new['features']];
+    $drawing_plan = json_decode((string) file_get_contents($dir . '/../truck-drawings/' . $plan_file), true);
+    foreach (array_merge($drawing_plan['existing'], $drawing_plan['new']) as $product) {
+        $model = $product['model'];
+        $drawing_row = $drawing_rows[$model];
+        $brochure_rotation = $rows[$model]['rotation'] ?? '';
+        if (str_starts_with($brochure_rotation, $drawing_row['rotation'])) {
+            $drawing_row['rotation'] = $brochure_rotation;
+        }
+        $rows[$model] = array_replace($rows[$model] ?? [], $drawing_row);
+    }
+    foreach ($drawing_plan['new'] as $new) {
+        $products[] = ['model' => $new['model'], 'slug' => $new['slug'], 'features_series' => $series_of[$new['category']], 'features' => $new['features']];
     }
 }
 

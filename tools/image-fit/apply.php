@@ -117,6 +117,7 @@ foreach (get_posts(['post_type' => 'product', 'post_status' => ['publish', 'draf
     $seen = [];
     foreach ($gallery as $entry) {
         $entry = is_array($entry) ? $entry : ['image' => (string) $entry, 'label' => ''];
+        $entry['image'] = $entry['image'] ?? $entry['url'] ?? '';
         $rel = $rel_of_url((string) ($entry['image'] ?? ''));
         if (isset($map[$rel])) {
             // A planned (not yet created) cut-out has no URL; it still counts as a change.

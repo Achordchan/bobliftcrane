@@ -19,6 +19,7 @@ SLUGS = {'CC85': '2-3-ton-forklift-fly-jib-crane', 'CC105': '3-ton-forklift-fly-
 BOOM = {'CC85': (4, 2), 'CC105': (4, 2), 'CC125': (5, 3), 'CC145': (6, 4)}
 
 rows = {r['model']: r for r in json.load(open(os.path.join(build.DIR, '..', 'brochure-specs', 'brochure.json')))}
+os.makedirs(os.path.join(build.DIR, 'media'), exist_ok=True)
 plan = []
 for model, slug in SLUGS.items():
     row = rows[model]

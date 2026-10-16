@@ -29,7 +29,7 @@ if ($missing_images) {
 }
 
 foreach ($plan['products'] as $p) {
-    $slug = sanitize_title($p['title']);
+    $slug = $p['slug'];
     $existing = get_posts(['post_type' => 'product', 'post_name__in' => [$slug], 'post_status' => ['publish', 'draft', 'pending', 'private'], 'posts_per_page' => 1, 'lang' => '']);
     $term = get_term_by('slug', $p['category'], 'product_category');
     // A draft this script staged (marker meta) is an interrupted run and is initialised again from the start.

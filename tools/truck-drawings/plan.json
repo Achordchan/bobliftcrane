@@ -1423,6 +1423,7 @@
   {
    "model": "BLZ90K4",
    "title": "4.6 Ton Knuckle Boom Truck Mounted Crane BLZ90K4",
+   "slug": "4-6-ton-knuckle-boom-truck-mounted-crane-blz90k4",
    "category": "knuckle-boom-truck-mounted-cranes",
    "boom_type": "knuckle-boom",
    "applications": "construction,logistics,municipal-engineering",
@@ -1510,6 +1511,7 @@
   {
    "model": "SQ1ZA4",
    "title": "1.6 Ton Knuckle Boom Truck Mounted Crane SQ1ZA4",
+   "slug": "1-6-ton-knuckle-boom-truck-mounted-crane-sq1za4",
    "category": "knuckle-boom-truck-mounted-cranes",
    "boom_type": "knuckle-boom",
    "applications": "construction,logistics,municipal-engineering",
@@ -1601,6 +1603,7 @@
   {
    "model": "SQ2ZA2",
    "title": "2 Ton Knuckle Boom Truck Mounted Crane SQ2ZA2",
+   "slug": "2-ton-knuckle-boom-truck-mounted-crane-sq2za2",
    "category": "knuckle-boom-truck-mounted-cranes",
    "boom_type": "knuckle-boom",
    "applications": "construction,logistics,municipal-engineering",
@@ -1692,6 +1695,7 @@
   {
    "model": "SQ2ZA3",
    "title": "2 Ton Knuckle Boom Truck Mounted Crane SQ2ZA3",
+   "slug": "2-ton-knuckle-boom-truck-mounted-crane-sq2za3",
    "category": "knuckle-boom-truck-mounted-cranes",
    "boom_type": "knuckle-boom",
    "applications": "construction,logistics,municipal-engineering",
@@ -1783,6 +1787,7 @@
   {
    "model": "SQ6.3ZA3",
    "title": "6.3 Ton Knuckle Boom Truck Mounted Crane SQ6.3ZA3",
+   "slug": "6-3-ton-knuckle-boom-truck-mounted-crane-sq6-3za3",
    "category": "knuckle-boom-truck-mounted-cranes",
    "boom_type": "knuckle-boom",
    "applications": "construction,logistics,municipal-engineering",
@@ -1870,6 +1875,7 @@
   {
    "model": "SQ6.3ZA4",
    "title": "6.3 Ton Knuckle Boom Truck Mounted Crane SQ6.3ZA4",
+   "slug": "6-3-ton-knuckle-boom-truck-mounted-crane-sq6-3za4",
    "category": "knuckle-boom-truck-mounted-cranes",
    "boom_type": "knuckle-boom",
    "applications": "construction,logistics,municipal-engineering",
@@ -1957,6 +1963,7 @@
   {
    "model": "SQ8ZA4",
    "title": "8 Ton Knuckle Boom Truck Mounted Crane SQ8ZA4",
+   "slug": "8-ton-knuckle-boom-truck-mounted-crane-sq8za4",
    "category": "knuckle-boom-truck-mounted-cranes",
    "boom_type": "knuckle-boom",
    "applications": "construction,logistics,municipal-engineering",
@@ -2044,6 +2051,7 @@
   {
    "model": "SQ8ZA5",
    "title": "8 Ton Knuckle Boom Truck Mounted Crane SQ8ZA5",
+   "slug": "8-ton-knuckle-boom-truck-mounted-crane-sq8za5",
    "category": "knuckle-boom-truck-mounted-cranes",
    "boom_type": "knuckle-boom",
    "applications": "construction,logistics,municipal-engineering",
@@ -2131,6 +2139,7 @@
   {
    "model": "SQ10ZA4",
    "title": "10 Ton Knuckle Boom Truck Mounted Crane SQ10ZA4",
+   "slug": "10-ton-knuckle-boom-truck-mounted-crane-sq10za4",
    "category": "knuckle-boom-truck-mounted-cranes",
    "boom_type": "knuckle-boom",
    "applications": "construction,logistics,municipal-engineering",
@@ -2218,6 +2227,7 @@
   {
    "model": "SQ10ZA5",
    "title": "10 Ton Knuckle Boom Truck Mounted Crane SQ10ZA5",
+   "slug": "10-ton-knuckle-boom-truck-mounted-crane-sq10za5",
    "category": "knuckle-boom-truck-mounted-cranes",
    "boom_type": "knuckle-boom",
    "applications": "construction,logistics,municipal-engineering",
@@ -2305,6 +2315,7 @@
   {
    "model": "SQ12ZA4",
    "title": "12 Ton Knuckle Boom Truck Mounted Crane SQ12ZA4",
+   "slug": "12-ton-knuckle-boom-truck-mounted-crane-sq12za4",
    "category": "knuckle-boom-truck-mounted-cranes",
    "boom_type": "knuckle-boom",
    "applications": "construction,logistics,municipal-engineering",
@@ -2396,6 +2407,7 @@
   {
    "model": "SQ12ZA5",
    "title": "12 Ton Knuckle Boom Truck Mounted Crane SQ12ZA5",
+   "slug": "12-ton-knuckle-boom-truck-mounted-crane-sq12za5",
    "category": "knuckle-boom-truck-mounted-cranes",
    "boom_type": "knuckle-boom",
    "applications": "construction,logistics,municipal-engineering",
@@ -2483,6 +2495,7 @@
   {
    "model": "SQZ350",
    "title": "16 Ton Knuckle Boom Truck Mounted Crane SQZ350",
+   "slug": "16-ton-knuckle-boom-truck-mounted-crane-sqz350",
    "category": "knuckle-boom-truck-mounted-cranes",
    "boom_type": "knuckle-boom",
    "applications": "construction,logistics,municipal-engineering",
@@ -2570,6 +2583,7 @@
   {
    "model": "SQZ1000",
    "title": "50 Ton Knuckle Boom Truck Mounted Crane",
+   "slug": "50-ton-knuckle-boom-truck-mounted-crane",
    "category": "knuckle-boom-truck-mounted-cranes",
    "boom_type": "knuckle-boom",
    "applications": "construction,logistics,municipal-engineering",
@@ -2661,6 +2675,7 @@
   {
    "model": "SQ3.2SA3",
    "title": "3.2 Ton Telescopic Boom Truck Mounted Crane SQ3.2SA3",
+   "slug": "3-2-ton-telescopic-boom-truck-mounted-crane-sq3-2sa3",
    "category": "telescopic-boom-truck-mounted-cranes",
    "boom_type": "telescopic-boom",
    "applications": "construction,logistics,municipal-engineering",
@@ -2748,6 +2763,7 @@
   {
    "model": "SQ6.3SA3",
    "title": "6.3 Ton Telescopic Boom Truck Mounted Crane SQ6.3SA3",
+   "slug": "6-3-ton-telescopic-boom-truck-mounted-crane-sq6-3sa3",
    "category": "telescopic-boom-truck-mounted-cranes",
    "boom_type": "telescopic-boom",
    "applications": "construction,logistics,municipal-engineering",
@@ -2835,6 +2851,7 @@
   {
    "model": "SQ8SA4",
    "title": "8 Ton Telescopic Boom Truck Mounted Crane SQ8SA4",
+   "slug": "8-ton-telescopic-boom-truck-mounted-crane-sq8sa4",
    "category": "telescopic-boom-truck-mounted-cranes",
    "boom_type": "telescopic-boom",
    "applications": "construction,logistics,municipal-engineering",
@@ -2922,6 +2939,7 @@
   {
    "model": "SQ10SA5",
    "title": "10 Ton Telescopic Boom Truck Mounted Crane SQ10SA5",
+   "slug": "10-ton-telescopic-boom-truck-mounted-crane-sq10sa5",
    "category": "telescopic-boom-truck-mounted-cranes",
    "boom_type": "telescopic-boom",
    "applications": "construction,logistics,municipal-engineering",
@@ -3009,6 +3027,7 @@
   {
    "model": "SQ12SA5",
    "title": "12 Ton Telescopic Boom Truck Mounted Crane SQ12SA5",
+   "slug": "12-ton-telescopic-boom-truck-mounted-crane-sq12sa5",
    "category": "telescopic-boom-truck-mounted-cranes",
    "boom_type": "telescopic-boom",
    "applications": "construction,logistics,municipal-engineering",
@@ -3096,6 +3115,7 @@
   {
    "model": "SQ14SA4",
    "title": "14 Ton Telescopic Boom Truck Mounted Crane SQ14SA4",
+   "slug": "14-ton-telescopic-boom-truck-mounted-crane-sq14sa4",
    "category": "telescopic-boom-truck-mounted-cranes",
    "boom_type": "telescopic-boom",
    "applications": "construction,logistics,municipal-engineering",

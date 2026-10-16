@@ -977,6 +977,7 @@
   {
    "model": "BLZ90K4TJ",
    "title": "4.6 Ton Knuckle Boom Marine Crane BLZ90K4TJ",
+   "slug": "4-6-ton-knuckle-boom-marine-crane-blz90k4tj",
    "category": "knuckle-boom-marine-cranes",
    "boom_type": "knuckle-boom",
    "applications": "marine,logistics",
@@ -1068,6 +1069,7 @@
   {
    "model": "SQ08ZA3T+1",
    "title": "0.8 Ton Knuckle Boom Marine Crane SQ08ZA3T+1",
+   "slug": "0-8-ton-knuckle-boom-marine-crane-sq08za3t-1",
    "category": "knuckle-boom-marine-cranes",
    "boom_type": "knuckle-boom",
    "applications": "marine,logistics",
@@ -1151,6 +1153,7 @@
   {
    "model": "SQ1ZA3T+1",
    "title": "1.6 Ton Knuckle Boom Marine Crane SQ1ZA3T+1",
+   "slug": "1-6-ton-knuckle-boom-marine-crane-sq1za3t-1",
    "category": "knuckle-boom-marine-cranes",
    "boom_type": "knuckle-boom",
    "applications": "marine,logistics",
@@ -1238,6 +1241,7 @@
   {
    "model": "SQ2ZA4T",
    "title": "2 Ton Knuckle Boom Marine Crane SQ2ZA4T",
+   "slug": "2-ton-knuckle-boom-marine-crane-sq2za4t",
    "category": "knuckle-boom-marine-cranes",
    "boom_type": "knuckle-boom",
    "applications": "marine,logistics",
@@ -1325,6 +1329,7 @@
   {
    "model": "SQ3.2ZA3T",
    "title": "3.2 Ton Knuckle Boom Marine Crane SQ3.2ZA3T",
+   "slug": "3-2-ton-knuckle-boom-marine-crane-sq3-2za3t",
    "category": "knuckle-boom-marine-cranes",
    "boom_type": "knuckle-boom",
    "applications": "marine,logistics",
@@ -1412,6 +1417,7 @@
   {
    "model": "SQ4ZA3T",
    "title": "4 Ton Knuckle Boom Marine Crane SQ4ZA3T",
+   "slug": "4-ton-knuckle-boom-marine-crane-sq4za3t",
    "category": "knuckle-boom-marine-cranes",
    "boom_type": "knuckle-boom",
    "applications": "marine,logistics",
@@ -1499,6 +1505,7 @@
   {
    "model": "SQ4ZA4T",
    "title": "4 Ton Knuckle Boom Marine Crane SQ4ZA4T",
+   "slug": "4-ton-knuckle-boom-marine-crane-sq4za4t",
    "category": "knuckle-boom-marine-cranes",
    "boom_type": "knuckle-boom",
    "applications": "marine,logistics",
@@ -1586,6 +1593,7 @@
   {
    "model": "SQ5ZA3T",
    "title": "5 Ton Knuckle Boom Marine Crane SQ5ZA3T",
+   "slug": "5-ton-knuckle-boom-marine-crane-sq5za3t",
    "category": "knuckle-boom-marine-cranes",
    "boom_type": "knuckle-boom",
    "applications": "marine,logistics",
@@ -1673,6 +1681,7 @@
   {
    "model": "SQ5ZA4T",
    "title": "5 Ton Knuckle Boom Marine Crane SQ5ZA4T",
+   "slug": "5-ton-knuckle-boom-marine-crane-sq5za4t",
    "category": "knuckle-boom-marine-cranes",
    "boom_type": "knuckle-boom",
    "applications": "marine,logistics",
@@ -1760,6 +1769,7 @@
   {
    "model": "SQ6.3ZA4T",
    "title": "6.3 Ton Knuckle Boom Marine Crane SQ6.3ZA4T",
+   "slug": "6-3-ton-knuckle-boom-marine-crane-sq6-3za4t",
    "category": "knuckle-boom-marine-cranes",
    "boom_type": "knuckle-boom",
    "applications": "marine,logistics",
@@ -1847,6 +1857,7 @@
   {
    "model": "SQ6.3ZA5T",
    "title": "6.3 Ton Knuckle Boom Marine Crane SQ6.3ZA5T",
+   "slug": "6-3-ton-knuckle-boom-marine-crane-sq6-3za5t",
    "category": "knuckle-boom-marine-cranes",
    "boom_type": "knuckle-boom",
    "applications": "marine,logistics",
@@ -1934,6 +1945,7 @@
   {
    "model": "SQ8ZA4T",
    "title": "8 Ton Knuckle Boom Marine Crane SQ8ZA4T",
+   "slug": "8-ton-knuckle-boom-marine-crane-sq8za4t",
    "category": "knuckle-boom-marine-cranes",
    "boom_type": "knuckle-boom",
    "applications": "marine,logistics",
@@ -2021,6 +2033,7 @@
   {
    "model": "SQ8ZA4TJ",
    "title": "8 Ton Knuckle Boom Marine Crane SQ8ZA4TJ",
+   "slug": "8-ton-knuckle-boom-marine-crane-sq8za4tj",
    "category": "knuckle-boom-marine-cranes",
    "boom_type": "knuckle-boom",
    "applications": "marine,logistics",
@@ -2112,6 +2125,7 @@
   {
    "model": "SQ8ZA5TJ",
    "title": "8 Ton Knuckle Boom Marine Crane SQ8ZA5TJ",
+   "slug": "8-ton-knuckle-boom-marine-crane-sq8za5tj",
    "category": "knuckle-boom-marine-cranes",
    "boom_type": "knuckle-boom",
    "applications": "marine,logistics",
@@ -2203,6 +2217,7 @@
   {
    "model": "SQ10ZA5T",
    "title": "10 Ton Knuckle Boom Marine Crane SQ10ZA5T",
+   "slug": "10-ton-knuckle-boom-marine-crane-sq10za5t",
    "category": "knuckle-boom-marine-cranes",
    "boom_type": "knuckle-boom",
    "applications": "marine,logistics",
@@ -2290,6 +2305,7 @@
   {
    "model": "SQ10ZA5TJ",
    "title": "10 Ton Knuckle Boom Marine Crane SQ10ZA5TJ",
+   "slug": "10-ton-knuckle-boom-marine-crane-sq10za5tj",
    "category": "knuckle-boom-marine-cranes",
    "boom_type": "knuckle-boom",
    "applications": "marine,logistics",
@@ -2381,6 +2397,7 @@
   {
    "model": "SQ12ZA4T",
    "title": "12 Ton Knuckle Boom Marine Crane SQ12ZA4T",
+   "slug": "12-ton-knuckle-boom-marine-crane-sq12za4t",
    "category": "knuckle-boom-marine-cranes",
    "boom_type": "knuckle-boom",
    "applications": "marine,logistics",
@@ -2468,6 +2485,7 @@
   {
    "model": "SQ12ZA4TJ",
    "title": "12 Ton Knuckle Boom Marine Crane SQ12ZA4TJ",
+   "slug": "12-ton-knuckle-boom-marine-crane-sq12za4tj",
    "category": "knuckle-boom-marine-cranes",
    "boom_type": "knuckle-boom",
    "applications": "marine,logistics",
@@ -2559,6 +2577,7 @@
   {
    "model": "SQ12ZA5T",
    "title": "12 Ton Knuckle Boom Marine Crane SQ12ZA5T",
+   "slug": "12-ton-knuckle-boom-marine-crane-sq12za5t",
    "category": "knuckle-boom-marine-cranes",
    "boom_type": "knuckle-boom",
    "applications": "marine,logistics",
@@ -2646,6 +2665,7 @@
   {
    "model": "SQ12ZA5TJ",
    "title": "12 Ton Knuckle Boom Marine Crane SQ12ZA5TJ",
+   "slug": "12-ton-knuckle-boom-marine-crane-sq12za5tj",
    "category": "knuckle-boom-marine-cranes",
    "boom_type": "knuckle-boom",
    "applications": "marine,logistics",
@@ -2737,6 +2757,7 @@
   {
    "model": "SQZ350T",
    "title": "16 Ton Knuckle Boom Marine Crane SQZ350T",
+   "slug": "16-ton-knuckle-boom-marine-crane-sqz350t",
    "category": "knuckle-boom-marine-cranes",
    "boom_type": "knuckle-boom",
    "applications": "marine,logistics",
@@ -2824,6 +2845,7 @@
   {
    "model": "SQ3.2SA3T",
    "title": "3.2 Ton Telescopic Boom Marine Crane SQ3.2SA3T",
+   "slug": "3-2-ton-telescopic-boom-marine-crane-sq3-2sa3t",
    "category": "telescopic-boom-marine-cranes",
    "boom_type": "telescopic-boom",
    "applications": "marine,logistics",
@@ -2907,6 +2929,7 @@
   {
    "model": "SQ5SA3T",
    "title": "5 Ton Telescopic Boom Marine Crane SQ5SA3T",
+   "slug": "5-ton-telescopic-boom-marine-crane-sq5sa3t",
    "category": "telescopic-boom-marine-cranes",
    "boom_type": "telescopic-boom",
    "applications": "marine,logistics",
@@ -2990,6 +3013,7 @@
   {
    "model": "SQ6.3SA3T",
    "title": "6.3 Ton Telescopic Boom Marine Crane SQ6.3SA3T",
+   "slug": "6-3-ton-telescopic-boom-marine-crane-sq6-3sa3t",
    "category": "telescopic-boom-marine-cranes",
    "boom_type": "telescopic-boom",
    "applications": "marine,logistics",
@@ -3073,6 +3097,7 @@
   {
    "model": "SQ8SA4T",
    "title": "8 Ton Telescopic Boom Marine Crane SQ8SA4T",
+   "slug": "8-ton-telescopic-boom-marine-crane-sq8sa4t",
    "category": "telescopic-boom-marine-cranes",
    "boom_type": "telescopic-boom",
    "applications": "marine,logistics",
@@ -3156,6 +3181,7 @@
   {
    "model": "SQ10SA5T",
    "title": "10 Ton Telescopic Boom Marine Crane SQ10SA5T",
+   "slug": "10-ton-telescopic-boom-marine-crane-sq10sa5t",
    "category": "telescopic-boom-marine-cranes",
    "boom_type": "telescopic-boom",
    "applications": "marine,logistics",
@@ -3239,6 +3265,7 @@
   {
    "model": "SQ12SA5T",
    "title": "12 Ton Telescopic Boom Marine Crane SQ12SA5T",
+   "slug": "12-ton-telescopic-boom-marine-crane-sq12sa5t",
    "category": "telescopic-boom-marine-cranes",
    "boom_type": "telescopic-boom",
    "applications": "marine,logistics",

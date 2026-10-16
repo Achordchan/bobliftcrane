@@ -78,12 +78,22 @@ def probe(path):
     return w, h, float((data.get('format') or {}).get('duration', 0) or 0)
 
 
+def publish_encode(cmd, dest):
+    temporary = dest + '.part.mp4'
+    try:
+        subprocess.run(cmd + [temporary], check=True, stdin=subprocess.DEVNULL)
+        os.replace(temporary, dest)
+    finally:
+        if os.path.exists(temporary):
+            os.remove(temporary)
+
+
 def encode(src, dest, muted, width, height):
     portrait = height > width
     scale = 'scale=540:-2' if portrait else ('scale=1280:-2' if muted else 'scale=-2:720')
     cmd = ['ffmpeg', '-nostdin', '-loglevel', 'error', '-y', '-i', src, '-vf', scale, '-c:v', 'libx264', '-preset', 'medium', '-crf', '30' if muted else '28', '-pix_fmt', 'yuv420p', '-movflags', '+faststart']
     cmd += ['-an'] if muted else ['-c:a', 'aac', '-b:a', '96k', '-ac', '2']
-    subprocess.run(cmd + [dest], check=True, stdin=subprocess.DEVNULL)
+    publish_encode(cmd, dest)
 
 
 def main():
@@ -108,7 +118,7 @@ def main():
         if muted and entry['sources']:
             mobile = os.path.join(OUT, f'{key}-mobile.mp4')
             if not os.path.exists(mobile):
-                subprocess.run(['ffmpeg', '-nostdin', '-loglevel', 'error', '-y', '-i', os.path.join(OUT, f'{key}-any.mp4'), '-vf', 'scale=854:-2', '-c:v', 'libx264', '-preset', 'medium', '-crf', '31', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-an', mobile], check=True, stdin=subprocess.DEVNULL)
+                publish_encode(['ffmpeg', '-nostdin', '-loglevel', 'error', '-y', '-i', os.path.join(OUT, f'{key}-any.mp4'), '-vf', 'scale=854:-2', '-c:v', 'libx264', '-preset', 'medium', '-crf', '31', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-an'], mobile)
             entry['mobile'] = 'videos/library/' + f'{key}-mobile.mp4'
         if entry['sources']:
             first = os.path.join(ROOT, 'assets', next(iter(entry['sources'].values()))['file'])

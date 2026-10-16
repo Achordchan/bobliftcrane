@@ -13,6 +13,8 @@
  * this so new translations get their body text.
  */
 
+require_once dirname(__DIR__) . '/backup-dir.php';
+
 $dir = __DIR__;
 $dry = in_array('dry-run', $args ?? [], true);
 $langs = ['ja', 'zh'];
@@ -297,6 +299,7 @@ foreach ($english as $en) {
         $meta['_model'] = $model;
         $meta['_model_aliases'] = implode(', ', $aliases);
         $meta['_capacity'] = $localize_capacity((string) get_post_meta($en->ID, '_capacity', true), $lang);
+        $meta['_capacity_value'] = get_post_meta($en->ID, '_capacity_value', true);
         $spec_rows = [];
         foreach ($specs as $row) {
             if (!isset($labels[$row['label']])) {
@@ -325,7 +328,7 @@ foreach ($english as $en) {
             'id' => $d['id'],
             'label' => $model . ($lang === 'ja' ? ' 寸法図・荷重表' : ' 尺寸图与载荷图'),
         ], $en_drawings));
-        $meta['_gallery'] = $json(array_map(static fn(array $g): array => ['image' => $g['image'] ?? '', 'label' => $title], $en_gallery));
+        $meta['_gallery'] = $json(array_map(static fn($g): array => ['image' => is_string($g) ? $g : ($g['image'] ?? $g['url'] ?? ''), 'label' => $title], $en_gallery));
         if (preg_match('/^BOB-LIFT (.+) Product Manual, PDF page (\d+)$/', $en_source, $m) && isset($books[$m[1]])) {
             $meta['_brochure_source'] = $lang === 'ja'
                 ? "BOB-LIFT {$books[$m[1]]['ja']}製品マニュアル（PDF {$m[2]}ページ）"
@@ -387,7 +390,7 @@ foreach ($english as $en) {
                 }
             }
             wp_set_object_terms($target, $terms, 'product_category');
-            foreach (['_boom_type', '_status', '_catalog_pdf_url', '_capacity_value', '_detail_images'] as $key) {
+            foreach (['_boom_type', '_status', '_catalog_pdf_url', '_detail_images'] as $key) {
                 $value = get_post_meta($en->ID, $key, true);
                 if ($value !== '') {
                     update_post_meta($target, $key, wp_slash($value));

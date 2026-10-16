@@ -3,6 +3,7 @@
   {
    "model": "SQ3.2ZA4",
    "title": "3.2 Ton Knuckle Boom Truck Mounted Crane SQ3.2ZA4",
+   "slug": "3-2-ton-knuckle-boom-truck-mounted-crane-sq3-2za4",
    "category": "knuckle-boom-truck-mounted-cranes",
    "boom_type": "knuckle-boom",
    "applications": "construction,logistics,municipal-engineering",
@@ -76,6 +77,7 @@
   {
    "model": "SQ4ZA3",
    "title": "4 Ton Knuckle Boom Truck Mounted Crane SQ4ZA3",
+   "slug": "4-ton-knuckle-boom-truck-mounted-crane-sq4za3",
    "category": "knuckle-boom-truck-mounted-cranes",
    "boom_type": "knuckle-boom",
    "applications": "construction,logistics,municipal-engineering",
@@ -149,6 +151,7 @@
   {
    "model": "BLZ90K5",
    "title": "4.6 Ton Knuckle Boom Truck Mounted Crane",
+   "slug": "4-6-ton-knuckle-boom-truck-mounted-crane",
    "category": "knuckle-boom-truck-mounted-cranes",
    "boom_type": "knuckle-boom",
    "applications": "construction,logistics,municipal-engineering",
@@ -222,6 +225,7 @@
   {
    "model": "SQ5ZA3",
    "title": "5 Ton Knuckle Boom Truck Mounted Crane SQ5ZA3",
+   "slug": "5-ton-knuckle-boom-truck-mounted-crane-sq5za3",
    "category": "knuckle-boom-truck-mounted-cranes",
    "boom_type": "knuckle-boom",
    "applications": "construction,logistics,municipal-engineering",
@@ -295,6 +299,7 @@
   {
    "model": "BLZ129K4",
    "title": "6.3 Ton Knuckle Boom Truck Mounted Crane BLZ129K4",
+   "slug": "6-3-ton-knuckle-boom-truck-mounted-crane-blz129k4",
    "category": "knuckle-boom-truck-mounted-cranes",
    "boom_type": "knuckle-boom",
    "applications": "construction,logistics,municipal-engineering",
@@ -368,6 +373,7 @@
   {
    "model": "SQZ560",
    "title": "28 Ton Knuckle Boom Truck Mounted Crane",
+   "slug": "28-ton-knuckle-boom-truck-mounted-crane",
    "category": "knuckle-boom-truck-mounted-cranes",
    "boom_type": "knuckle-boom",
    "applications": "construction,logistics,municipal-engineering",
@@ -441,6 +447,7 @@
   {
    "model": "SQZ600",
    "title": "30 Ton Knuckle Boom Truck Mounted Crane",
+   "slug": "30-ton-knuckle-boom-truck-mounted-crane",
    "category": "knuckle-boom-truck-mounted-cranes",
    "boom_type": "knuckle-boom",
    "applications": "construction,logistics,municipal-engineering",
@@ -514,6 +521,7 @@
   {
    "model": "SQZ700",
    "title": "34 Ton Knuckle Boom Truck Mounted Crane",
+   "slug": "34-ton-knuckle-boom-truck-mounted-crane",
    "category": "knuckle-boom-truck-mounted-cranes",
    "boom_type": "knuckle-boom",
    "applications": "construction,logistics,municipal-engineering",
@@ -587,6 +595,7 @@
   {
    "model": "SQZ800",
    "title": "40 Ton Knuckle Boom Truck Mounted Crane",
+   "slug": "40-ton-knuckle-boom-truck-mounted-crane",
    "category": "knuckle-boom-truck-mounted-cranes",
    "boom_type": "knuckle-boom",
    "applications": "construction,logistics,municipal-engineering",
@@ -660,6 +669,7 @@
   {
    "model": "SQ5SA3",
    "title": "5 Ton Telescopic Boom Truck Mounted Crane SQ5SA3",
+   "slug": "5-ton-telescopic-boom-truck-mounted-crane-sq5sa3",
    "category": "telescopic-boom-truck-mounted-cranes",
    "boom_type": "telescopic-boom",
    "applications": "construction,logistics,municipal-engineering",
@@ -729,6 +739,7 @@
   {
    "model": "SQ14SA5",
    "title": "14 Ton Telescopic Boom Truck Mounted Crane",
+   "slug": "14-ton-telescopic-boom-truck-mounted-crane",
    "category": "telescopic-boom-truck-mounted-cranes",
    "boom_type": "telescopic-boom",
    "applications": "construction,logistics,municipal-engineering",
@@ -798,6 +809,7 @@
   {
    "model": "SL70",
    "title": "SL70 Timber Crane",
+   "slug": "sl70-timber-crane",
    "category": "timber-cranes",
    "boom_type": "custom-solution",
    "applications": "agriculture,logistics",
@@ -842,6 +854,7 @@
   {
    "model": "SL150-2A",
    "title": "SL150-2A Timber Crane",
+   "slug": "sl150-2a-timber-crane",
    "category": "timber-cranes",
    "boom_type": "custom-solution",
    "applications": "agriculture,logistics",
@@ -886,6 +899,7 @@
   {
    "model": "ZT120Z-2A",
    "title": "ZT120Z-2A Timber Crane",
+   "slug": "zt120z-2a-timber-crane",
    "category": "timber-cranes",
    "boom_type": "custom-solution",
    "applications": "agriculture,logistics",
@@ -930,6 +944,7 @@
   {
    "model": "ZT160Z-2A",
    "title": "ZT160Z-2A Timber Crane",
+   "slug": "zt160z-2a-timber-crane",
    "category": "timber-cranes",
    "boom_type": "custom-solution",
    "applications": "agriculture,logistics",
@@ -974,6 +989,7 @@
   {
    "model": "CC145",
    "title": "5 Ton Forklift Fly Jib Crane",
+   "slug": "5-ton-forklift-fly-jib-crane",
    "category": "forklift-fly-jib-cranes",
    "boom_type": "fly-jib",
    "applications": "logistics,construction",
@@ -1018,6 +1034,7 @@
   {
    "model": "SQ5SA2F",
    "title": "5.15 Ton Tow Truck Crane",
+   "slug": "5-15-ton-tow-truck-crane",
    "category": "other-cranes",
    "boom_type": "telescopic-boom",
    "applications": "logistics",
@@ -1062,6 +1079,7 @@
   {
    "model": "F100Z-2E",
    "title": "2.45 Ton Garbage Crane",
+   "slug": "2-45-ton-garbage-crane",
    "category": "other-cranes",
    "boom_type": "knuckle-boom",
    "applications": "municipal-engineering",
@@ -1106,6 +1124,7 @@
   {
    "model": "SQ08ZA3TJ+1",
    "title": "0.8 Ton Knuckle Boom Marine Crane",
+   "slug": "0-8-ton-knuckle-boom-marine-crane",
    "category": "knuckle-boom-marine-cranes",
    "boom_type": "knuckle-boom",
    "applications": "marine,logistics",
@@ -1179,6 +1198,7 @@
   {
    "model": "BLZ90K5TJ",
    "title": "4.6 Ton Knuckle Boom Marine Crane",
+   "slug": "4-6-ton-knuckle-boom-marine-crane",
    "category": "knuckle-boom-marine-cranes",
    "boom_type": "knuckle-boom",
    "applications": "marine,logistics",
@@ -1252,6 +1272,7 @@
   {
    "model": "SQ4SA3T",
    "title": "4 Ton Telescopic Boom Marine Crane",
+   "slug": "4-ton-telescopic-boom-marine-crane",
    "category": "telescopic-boom-marine-cranes",
    "boom_type": "telescopic-boom",
    "applications": "marine,logistics",

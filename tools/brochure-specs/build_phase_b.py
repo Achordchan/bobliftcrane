@@ -3,7 +3,7 @@
 Features are the brochure's own "Product technical advantages" text for each series.
 Only the tow truck and garbage cranes get a brochure photo here; phase C adds drawings and photos.
 """
-import json
+import json, re
 import specs
 from specs import ADV
 
@@ -42,7 +42,8 @@ for model, ((noun, category, boom, apps, adv), with_model) in NEW.items():
     # Brochure photo where the brochure has one; otherwise phase C borrows a sibling model's photo.
     image = f"photos/{model}.webp" if model in PHOTOS else None
     products.append({
-        'model': model, 'title': title, 'category': category, 'boom_type': boom, 'applications': apps,
+        'model': model, 'title': title, 'slug': re.sub(r'[^a-z0-9]+', '-', title.lower()).strip('-'),
+        'category': category, 'boom_type': boom, 'applications': apps,
         'capacity': specs.capacity_label(row), 'capacity_value': tons,
         'specs': [{'label': l, 'value': v} for l, v in specs.specs(row)],
         'features': [{'title': t, 'text': x} for t, x in ADV.get(adv, [])] if adv else [],
