@@ -16,15 +16,17 @@ function boblift_news_article_toc(string $content): array
     $items = [];
     // Reserve every id already in the article first, so generated ids never collide with an explicit anchor further down.
     preg_match_all('/\sid=["\']([^"\']+)["\']/i', $content, $existing_ids);
-    $used = array_fill_keys($existing_ids[1], true);
-    $content = (string) preg_replace_callback('#<h2(\s[^>]*)?>(.*?)</h2>#is', static function (array $match) use (&$items, &$used): string {
+    // Attribute values are HTML-encoded (care&amp;maintenance); ids are compared and linked in their decoded DOM form.
+    $decode_id = static fn(string $id): string => html_entity_decode($id, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    $used = array_fill_keys(array_map($decode_id, $existing_ids[1]), true);
+    $content = (string) preg_replace_callback('#<h2(\s[^>]*)?>(.*?)</h2>#is', static function (array $match) use (&$items, &$used, $decode_id): string {
         $attributes = (string) ($match[1] ?? '');
         $text = trim(html_entity_decode(wp_strip_all_tags($match[2]), ENT_QUOTES, 'UTF-8'));
         if ($text === '') {
             return $match[0];
         }
         if (preg_match('/\sid=["\']([^"\']+)["\']/i', $attributes, $id_match)) {
-            $id = $id_match[1];
+            $id = $decode_id($id_match[1]);
         } else {
             // sanitize_title() percent-encodes non-ASCII letters; decode them so the id and the TOC fragment are the same text.
             $base = (string) preg_replace('/\s+/u', '-', rawurldecode(sanitize_title($text)));
@@ -183,8 +185,10 @@ function boblift_news_related_products(string $title, string $content, int $limi
     $categories = $categories !== [] ? $categories : $family_categories[$family];
 
     $capacity = preg_match('/(\d+(?:\.\d+)?)\s*-?\s*(?:tons?|tonnes?|t\b|吨|トン)/iu', $title . ' ' . $source_title, $capacity_match) ? (float) $capacity_match[1] : 0.0;
-    if ($capacity === 0.0 && preg_match('/(\d{3,4})\s*kg/i', $title, $kg_match)) {
-        $capacity = (float) $kg_match[1] / 1000;
+    // Whole kilogram figures only (12500 kg, 12,500 kg), never the tail of a longer number.
+    if ($capacity === 0.0 && preg_match('/(?<![\d.,])(\d{1,3}(?:,\d{3})+|\d+)\s*kg\b/i', $title . ' ' . $source_title, $kg_match)) {
+        $kilograms = (float) str_replace(',', '', $kg_match[1]);
+        $capacity = $kilograms >= 100 ? $kilograms / 1000 : 0.0;
     }
 
     foreach ($index as $order => $product) {
