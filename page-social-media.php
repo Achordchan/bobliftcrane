@@ -80,9 +80,11 @@ $absolute_href = static function (string $href): string {
     }
     return '';
 };
-// Whole-word platform identities in a qualified label ("LinkedIn Europe" -> linkedin, europe; "Sina Weibo" -> weibo).
+// Whole-word platform identities in a qualified label ("LinkedIn Europe" -> linkedin; "Sina Weibo" -> weibo).
 // Words and adjacent word pairs are compared whole, so X still never matches inside Xiaohongshu.
-$word_identities = static function (string $label) use ($platform_identity): array {
+// Only recognised platform names count as words to pair by, so a shared qualifier ("Europe") never links two platforms.
+$known_platforms = ['facebook', 'facebookmessenger', 'instagram', 'youtube', 'linkedin', 'x', 'tiktok', 'whatsapp', 'telegram', 'wechat', 'wechatchannels', 'weibo', 'douyin', 'xiaohongshu', 'kuaishou', 'bilibili', 'pinterest', 'threads', 'vk', 'snapchat', 'reddit', 'line', 'zalo', 'viber', 'messenger'];
+$word_identities = static function (string $label) use ($platform_identity, $known_platforms): array {
     $words = preg_split('/[^\p{L}\p{N}]+/u', function_exists('mb_strtolower') ? mb_strtolower($label, 'UTF-8') : strtolower($label), -1, PREG_SPLIT_NO_EMPTY) ?: [];
     $identities = [];
     // Words of a compound platform name (WeChat Channels, Facebook Messenger) are not the parent platform's account.
@@ -99,7 +101,7 @@ $word_identities = static function (string $label) use ($platform_identity): arr
                 continue;
             }
             if (preg_replace('/boblift|official|page|account|bob|lift/u', '', (string) preg_replace('/[^a-z0-9\p{Han}]+/u', '', $part)) !== '') {
-                $identities[] = $platform_identity($part);
+                $identities[] = in_array($platform_identity($part), $known_platforms, true) ? $platform_identity($part) : '';
             }
         }
     }
