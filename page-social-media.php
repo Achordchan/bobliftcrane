@@ -73,7 +73,9 @@ $absolute_href = static function (string $href): string {
     if (preg_match('/^([a-z][a-z0-9+.-]*):./i', $href, $scheme) && in_array(strtolower($scheme[1]), wp_allowed_protocols(), true)) {
         return $href;
     }
-    if (str_starts_with($href, '/') && !str_starts_with($href, '//') && !preg_match('#^/contact(?:\.html)?/?(?:[?\#].*)?$#i', $href)) {
+    // Site routes, with or without the leading slash (/go/linkedin, go/linkedin), resolve through boblift_url(); the old
+    // contact-page and "#" placeholders, and schemes WordPress does not allow, stay unlinked.
+    if ($href !== '' && !str_starts_with($href, '#') && !str_starts_with($href, '//') && !preg_match('/^[a-z][a-z0-9+.-]*:/i', $href) && !preg_match('#^/?contact(?:\.html)?/?(?:[?\#].*)?$#i', $href)) {
         return boblift_url($href);
     }
     return '';
