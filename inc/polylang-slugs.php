@@ -20,6 +20,14 @@ add_filter('wp_unique_post_slug', static function (string $slug, int $post_id, s
         "SELECT ID FROM {$wpdb->posts} WHERE post_name = %s AND post_type = %s AND post_parent = %d AND ID <> %d AND post_status NOT IN ('trash', 'auto-draft')",
         $original_slug, $post_type, $post_parent, $post_id
     ));
+    // An attachment holding the slug keeps WordPress's suffix, so attachment and post URLs never coincide.
+    $attachment = $wpdb->get_var($wpdb->prepare(
+        "SELECT ID FROM {$wpdb->posts} WHERE post_name = %s AND post_type = 'attachment' AND ID <> %d LIMIT 1",
+        $original_slug, $post_id
+    ));
+    if ($attachment) {
+        return $slug;
+    }
     // No same-type holder means WordPress changed the slug for another reason (reserved word, feed or date clash): keep its choice.
     if (!$holders) {
         return $slug;

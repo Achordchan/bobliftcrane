@@ -39,8 +39,11 @@ foreach ($langs as $lang) {
     $ids_by_lang[$lang] = array_map(static fn(string $file): int => (int) basename($file, '.json'), $files);
     sort($ids_by_lang[$lang]);
 }
-if (count($ids_by_lang) === count($langs) && count(array_unique(array_map('serialize', $ids_by_lang))) > 1) {
-    $problems[] = 'the language directories hold different sets of posts: ' . implode(', ', array_map(static fn(string $lang, array $ids): string => "$lang " . count($ids), array_keys($ids_by_lang), $ids_by_lang));
+// Every English post the export lists without a translation in a language must have a file for it.
+foreach ($ids_by_lang as $lang => $ids) {
+    $expected = array_keys(array_filter($by_id, static fn(array $row): bool => empty($row['translations'][$lang])));
+    $absent = array_diff($expected, $ids);
+    if ($absent) { $problems[] = "{$dir}{$lang}/: no translation for English post ID " . implode(', ', $absent); }
 }
 foreach ($langs as $lang) {
     foreach (glob($dir . $lang . '/*.json') ?: [] as $file) {
@@ -99,7 +102,9 @@ foreach ($jobs as [$lang, $id, $data]) {
     if (!$en) { $report['missing_english']++; fwrite(STDERR, "English post {$row['slug']} is not on this site; skipped for $lang.\n"); continue; }
     $existing = (int) pll_get_post($en->ID, $lang);
     // A translation an earlier run created but did not finish publishing carries the staging marker and is resumed.
-    $staged = $existing && get_post_meta($existing, '_news_i18n_staging', true) === '1';
+    // The marker is "publish" for a translation the importer created, "update" for an overwritten one.
+    $marker = $existing ? (string) get_post_meta($existing, '_news_i18n_staging', true) : '';
+    $staged = $marker !== '';
     if ($existing && !$overwrite && !$staged) { $report['kept']++; continue; }
     if ($existing && !$staged) { bl_news_backup($existing, $row['slug'], $lang); }
     $cats = [];
@@ -108,15 +113,17 @@ foreach ($jobs as [$lang, $id, $data]) {
     }
     $postarr = [
         'post_type' => 'post', 'post_status' => $existing ? get_post_status($existing) : 'draft', 'post_title' => $data['title'], 'post_name' => $en->post_name,
-        'post_content' => $data['content'], 'post_excerpt' => $data['excerpt'], 'post_author' => $en->post_author,
+        // Upload URLs and links are normalized now, so even a published post never shows the raw export; pass 2 re-resolves links.
+        'post_content' => bl_news_links($data['content'], $lang), 'post_excerpt' => $data['excerpt'], 'post_author' => $en->post_author,
         'post_date' => $en->post_date, 'post_date_gmt' => $en->post_date_gmt, 'post_category' => $cats,
         'comment_status' => $en->comment_status, 'ping_status' => $en->ping_status,
     ];
     if ($existing) {
         $postarr['ID'] = $existing;
+        if (!$staged) { update_post_meta($existing, '_news_i18n_staging', 'update'); }
         $new_id = wp_update_post($postarr, true);
     } else {
-        $postarr['meta_input'] = ['_news_i18n_staging' => '1'];
+        $postarr['meta_input'] = ['_news_i18n_staging' => 'publish'];
         $new_id = wp_insert_post($postarr, true);
     }
     if (is_wp_error($new_id)) { fwrite(STDERR, $new_id->get_error_message() . "\n"); exit(1); }
@@ -130,7 +137,7 @@ foreach ($jobs as [$lang, $id, $data]) {
     update_post_meta($new_id, '_seo_description', $data['seo_description']);
     update_post_meta($new_id, '_seo_keywords', $data['seo_keywords']);
     // Only a translation this importer created is published; an existing one keeps the status its editor gave it.
-    $done[(int) $new_id] = [$lang, $data, !$existing || $staged];
+    $done[(int) $new_id] = [$lang, $data, get_post_meta($new_id, '_news_i18n_staging', true) === 'publish'];
 }
 
 // Pass 2: localize links (every translation now exists) and publish the ones this importer created.
@@ -144,7 +151,8 @@ foreach ($done as $new_id => [$lang, $data, $publish]) {
         fwrite(STDERR, "Could not finish translation $new_id ($lang); it stays staged and a rerun will retry.\n");
         continue;
     }
-    if ($publish) { delete_post_meta($new_id, '_news_i18n_staging'); $report['created']++; } else { $report['updated']++; }
+    delete_post_meta($new_id, '_news_i18n_staging');
+    $publish ? $report['created']++ : $report['updated']++;
 }
 echo json_encode($report), "\n";
 exit($report['failed'] ? 1 : 0);
