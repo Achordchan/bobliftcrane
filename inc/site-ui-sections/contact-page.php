@@ -17,6 +17,7 @@ return [
         'channelsLabel' => 'Direct contact',
         'channelWeChatIdLabel' => 'WeChat ID',
         'phoneWhatsappLabel' => 'Phone / WhatsApp',
+        'landlineLabel' => 'Office phone',
         'channelWhatsappNote' => 'Usually replies within 24 hours.',
         'channelWeChatNote' => 'Scan the code or search the ID. Best for China-side contact.',
         'channelEmailNote' => 'Send drawings, photos or a full requirement list.',

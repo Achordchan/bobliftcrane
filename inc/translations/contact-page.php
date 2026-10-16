@@ -2,6 +2,7 @@
 return [
     'ja' => [
         'Phone / WhatsApp' => '電話 / WhatsApp',
+        'Office phone' => '代表電話',
         'Talk to BOB-LIFT before choosing a crane.' => 'クレーンを選ぶ前に、BOB-LIFT へご相談ください。',
         'Start chat' => 'チャットを始める',
         'Tell us the load, working radius and the truck or vessel it goes on. Our engineers recommend a crane and send a quotation.' => '吊り上げ荷重、作業半径、搭載するトラックまたは船舶をお知らせください。エンジニアが最適なクレーンをご提案し、お見積もりをお送りします。',
@@ -48,6 +49,7 @@ return [
     ],
     'zh' => [
         'Phone / WhatsApp' => '电话 / WhatsApp',
+        'Office phone' => '座机',
         'Contact Us' => '联系我们',
         'Talk to BOB-LIFT before choosing a crane.' => '选购起重机之前，先和 BOB-LIFT 聊聊。',
         'Start chat' => '开始聊天',
