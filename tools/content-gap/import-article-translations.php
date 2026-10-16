@@ -214,7 +214,7 @@ foreach ($articles as $slug) {
             // New translations are staged as drafts and published once terms and meta are complete (an interrupted run resumes).
             'post_type' => 'post', 'post_status' => $existing_id ? get_post_status($existing_id) : 'draft', 'post_title' => $t['title'],
             'post_content' => bl_localize_images(bl_localize_links($t['body'], $lang)), 'post_excerpt' => $t['desc'], 'post_author' => $en->post_author,
-            'post_date' => $en->post_date, 'post_date_gmt' => $en->post_date_gmt, 'post_category' => [$cats[$lang]],
+            'post_category' => [$cats[$lang]],
             'comment_status' => 'closed', 'ping_status' => 'closed',
         ];
         if ($existing_id) {
@@ -222,7 +222,10 @@ foreach ($articles as $slug) {
             $postarr['ID'] = $existing_id;
             $id = wp_update_post($postarr, true);
         } else {
+            // Only a new translation takes the English dates; an existing one keeps its own, so a scheduled post stays scheduled.
             $postarr['post_name'] = $slug;
+            $postarr['post_date'] = $en->post_date;
+            $postarr['post_date_gmt'] = $en->post_date_gmt;
             $id = wp_insert_post($postarr, true);
         }
         if (is_wp_error($id)) { throw new Exception($id->get_error_message()); }
