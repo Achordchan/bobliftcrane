@@ -202,6 +202,10 @@ function boblift_redirect_case_to_url_language(): void
     if (!is_singular('case') || !function_exists('pll_get_post_language') || !function_exists('pll_get_post')) {
         return;
     }
+    // Until the slug migration (admin_init) has run, translations still share the English permalink: redirecting would loop.
+    if (get_option('boblift_case_slug_version') !== '1') {
+        return;
+    }
     $post = get_queried_object();
     if (!$post instanceof WP_Post) {
         return;
@@ -225,6 +229,13 @@ function boblift_redirect_case_to_url_language(): void
     $query = is_array($query) ? $query : [];
     foreach (['p', 'page_id', 'name', 'pagename', 'post_type', 'case', 'preview', 'preview_id'] as $routing_key) {
         unset($query[$routing_key]);
+    }
+    // Never redirect to the address that was requested (same host and path), whatever state the slugs are in.
+    $requested_path = (string) wp_parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
+    $requested_host = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
+    $target_host = strtolower((string) wp_parse_url($target, PHP_URL_HOST)) . (wp_parse_url($target, PHP_URL_PORT) ? ':' . wp_parse_url($target, PHP_URL_PORT) : '');
+    if (untrailingslashit($requested_path) === untrailingslashit((string) wp_parse_url($target, PHP_URL_PATH)) && ($target_host === '' || $target_host === $requested_host)) {
+        return;
     }
     $query_string = http_build_query($query, '', '&', PHP_QUERY_RFC3986);
     wp_safe_redirect($target . ($query_string !== '' ? (str_contains($target, '?') ? '&' : '?') . $query_string : ''), 301);
