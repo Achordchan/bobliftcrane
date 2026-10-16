@@ -23,10 +23,28 @@ const BL_SOURCE_LANG = 'en';
 
 if (!function_exists('pll_get_post') || !function_exists('pll_set_post_language')) { fwrite(STDERR, "Polylang is not active.\n"); exit(1); }
 
-/** Base URL of the English site, used for links that have no translation. */
-function bl_english_base(): string {
-    $base = function_exists('pll_home_url') ? pll_home_url(BL_SOURCE_LANG) : home_url('/');
-    return untrailingslashit((string) ($base ?: home_url('/')));
+/**
+ * English URL for a site path that has no post or term behind it. The path is joined to the English home URL's path, and any
+ * query that home URL carries (Polylang's ?lang=en mode) is added afterwards, so it never lands in front of the path.
+ */
+function bl_english_url(string $path): string {
+    $home = (string) (function_exists('pll_home_url') ? pll_home_url(BL_SOURCE_LANG) : '') ?: home_url('/');
+    $parts = wp_parse_url($home);
+    $url = ($parts['scheme'] ?? 'https') . '://' . ($parts['host'] ?? '') . (isset($parts['port']) ? ':' . $parts['port'] : '') . untrailingslashit($parts['path'] ?? '') . '/' . ltrim($path, '/');
+    if (!empty($parts['query'])) {
+        parse_str($parts['query'], $query);
+        $url = add_query_arg($query, $url);
+    }
+    return $url;
+}
+
+/** Adds a link's own query string and fragment to a resolved URL. */
+function bl_with_tail(string $url, string $query, string $fragment): string {
+    if ($query !== '') {
+        parse_str(ltrim($query, '?'), $args);
+        $url = add_query_arg(array_map('rawurlencode', $args), $url);
+    }
+    return $url . $fragment;
 }
 
 /** The attachment the English import uploaded for an image file name (it records the source file name in _bl_gap_source). */
@@ -55,27 +73,28 @@ function bl_english_post(string $slug): ?WP_Post {
 /** Points internal links at the published translation in $lang when there is one, otherwise at the English page (absolute URLs). */
 function bl_localize_links(string $html, string $lang): string {
     return preg_replace_callback('#href="(/(?!/)[^"\#?]*)(\?[^"\#]*)?(\#[^"]*)?"#', static function (array $m) use ($lang): string {
-        $tail = ($m[2] ?? '') . ($m[3] ?? '');
+        $query = $m[2] ?? '';
+        $fragment = $m[3] ?? '';
         $slug = preg_replace('/\.html$/', '', basename(rtrim($m[1], '/')));
         if ($slug !== '') {
             $en = bl_english_post($slug);
             $translated = $en ? (int) pll_get_post($en->ID, $lang) : 0;
             if ($translated && $translated !== $en->ID && get_post_status($translated) === 'publish') {
-                return 'href="' . esc_url(get_permalink($translated) . $tail) . '"';
+                return 'href="' . esc_url(bl_with_tail((string) get_permalink($translated), $query, $fragment)) . '"';
             }
-            if (!$en && function_exists('pll_get_term')) {
-                foreach (get_taxonomies(['public' => true]) as $taxonomy) {
-                    $term = get_term_by('slug', $slug, $taxonomy);
-                    $term_tr = $term ? (int) pll_get_term($term->term_id, $lang) : 0;
-                    if ($term_tr && $term_tr !== $term->term_id) {
-                        $link = get_term_link($term_tr, $taxonomy);
-                        if (!is_wp_error($link)) { return 'href="' . esc_url($link . $tail) . '"'; }
-                    }
-                }
+            if ($en) {
+                return 'href="' . esc_url(bl_with_tail((string) get_permalink($en), $query, $fragment)) . '"';
+            }
+            // Category archives: the translated term when there is one, otherwise the English term's own link.
+            foreach (get_taxonomies(['public' => true]) as $taxonomy) {
+                $term = get_term_by('slug', $slug, $taxonomy);
+                if (!$term) { continue; }
+                $term_tr = function_exists('pll_get_term') ? (int) pll_get_term($term->term_id, $lang) : 0;
+                $link = get_term_link($term_tr ?: $term->term_id, $taxonomy);
+                if (!is_wp_error($link)) { return 'href="' . esc_url(bl_with_tail($link, $query, $fragment)) . '"'; }
             }
         }
-        $en = $slug !== '' ? bl_english_post($slug) : null;
-        return 'href="' . esc_url(($en ? get_permalink($en) : bl_english_base() . $m[1]) . $tail) . '"';
+        return 'href="' . esc_url(bl_with_tail(bl_english_url($m[1]), $query, $fragment)) . '"';
     }, $html);
 }
 
@@ -134,7 +153,7 @@ function bl_translation_schema(array $schema, int $id, string $lang, string $tit
     $url = bl_public_permalink($id);
     $news = get_page_by_path('news');
     $news_tr = $news ? (int) pll_get_post($news->ID, $lang) : 0;
-    $news_url = $news_tr && get_post_status($news_tr) === 'publish' ? get_permalink($news_tr) : ($news ? get_permalink($news) : bl_english_base() . '/news.html');
+    $news_url = $news_tr && get_post_status($news_tr) === 'publish' ? get_permalink($news_tr) : ($news ? get_permalink($news) : bl_english_url('/news.html'));
     $image = '';
     if ($cover_id) {
         $meta = wp_get_attachment_metadata($cover_id);
