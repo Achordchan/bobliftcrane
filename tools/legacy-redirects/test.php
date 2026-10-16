@@ -18,6 +18,7 @@ $cases = [
     ['www.bobliftcrane.com', '/about.html', null],
     ['www.bobliftcrane.com', '/', null],
     ['www.bobliftcrane.com', '/marine-crane-buying-guide', 'https://www.bobliftcrane.com/marine-crane-buying-guide.html'], // article imported by tools/content-gap
+    ['www.bobliftcrane.com', '/5-ton-crane', 'https://www.bobliftcrane.com/products.html?capacity=4-5-tons'], // tonnage filter (#7)
     ['www.bobliftcrane.com', '/Company-News.html', null],
     ['fr.bobliftcrane.com', '/', 'https://www.bobliftcrane.com/'],
     ['fr.bobliftcrane.com', '/Grue-camion-id46288356.html', 'https://www.bobliftcrane.com/news.html'],

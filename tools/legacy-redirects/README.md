@@ -25,7 +25,7 @@
 ## 映射原则
 
 - 新站沿用了旧站 `/slug.html` 的结构，产品、新闻 140 条路径一致或只差大小写，无需也无法再「映射」，大小写差异的 50 条已列入规则。
-- 旧分类页（`Products-*.html`、单数命名的分类、按吨位页）统一到新站分类页或 `/products.html`。
+- 旧分类页（`Products-*.html`、单数命名的分类）统一到新站分类页或 `/products.html`；老的按吨位页 `/N-ton-crane` 跳到产品列表对应的吨位筛选 `/products.html?capacity=…`（档位见 `inc/site-ui.php` 的 `capacityRanges`，参数值是档位名转小写连字符，如 `4-5-tons`）。
 - 滑移装载机、迷你翻斗车、搅拌车：跳 bobliftloader.com 对应产品页（型号后缀 T/S、-H/-C 为按名称推断，待业务确认）。
 - SaaS 自动生成的关键词页（`/products/*.html`、`/news/*.html`、keywords）归到最相关的分类或首页。
 - 语言子域（fr/es/ru/sa）：译文 slug 无法逐条对应英文，按后缀归并：`-idNNN` 新闻 → `/news.html`，`-pd`/`-pl` 产品 → `/products.html`；英文 slug 的页面落到同路径；其余回首页。以上全部落到该语言自己的子目录（fr→/fr/、es→/es/、ru→/ru/、sa→/ar/，由 `language_host_prefix` 配置），主题会先确认目标页在该语言下真实存在才落过去；语言还没上线时暂落英文对应页（不会 404），语言页建好后自动改落该语言，无需改规则。子域请求经 Cloudflare 带 `?legacy_lang=xx` 进入主题处理。
