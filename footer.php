@@ -57,10 +57,12 @@ foreach (is_array($footer['social_links'] ?? null) ? $footer['social_links'] : [
     $path = (string) wp_parse_url($href, PHP_URL_PATH);
     $own = $host === '' || strcasecmp($host, $site_host) === 0;
     $placeholder = $href === '' || str_starts_with($href, '#') || ($own && preg_match('#^/?contact(?:\.html)?/?$#i', $path));
-    if ($placeholder || ($host === '' && !str_starts_with($href, '/'))) {
+    // mailto:, tel: and the other schemes WordPress allows in links carry no host and are kept as saved.
+    $allowed_scheme = $host === '' && preg_match('/^([a-z][a-z0-9+.-]*):./i', $href, $scheme) && in_array(strtolower($scheme[1]), wp_allowed_protocols(), true);
+    if ($placeholder || ($host === '' && !$allowed_scheme && !str_starts_with($href, '/'))) {
         continue;
     }
-    $link['href'] = $host === '' ? boblift_url($href) : $href;
+    $link['href'] = $host === '' && !$allowed_scheme ? boblift_url($href) : $href;
     $footer_social_links[] = $link;
 }
 $footer_link_groups = array_map(static function (array $group): array {

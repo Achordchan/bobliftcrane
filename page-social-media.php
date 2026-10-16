@@ -69,6 +69,10 @@ $absolute_href = static function (string $href): string {
     if (preg_match('#^https?://#i', $href)) {
         return $href;
     }
+    // Other schemes WordPress allows in links (mailto:, tel:, skype:, ...) are kept as saved.
+    if (preg_match('/^([a-z][a-z0-9+.-]*):./i', $href, $scheme) && in_array(strtolower($scheme[1]), wp_allowed_protocols(), true)) {
+        return $href;
+    }
     if (str_starts_with($href, '/') && !str_starts_with($href, '//') && !preg_match('#^/contact(?:\.html)?/?(?:[?\#].*)?$#i', $href)) {
         return boblift_url($href);
     }
