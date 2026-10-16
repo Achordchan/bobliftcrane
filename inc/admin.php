@@ -960,7 +960,7 @@ function boblift_about_page_meta_box(WP_Post $post): void
         boblift_mls_render_page_controller($post, 'about_page');
     }
     $language = function_exists('boblift_mls_post_language') ? boblift_mls_post_language($post) : '';
-    $about = function_exists('boblift_mls_section_options') ? boblift_mls_section_options('about_page', $language) : boblift_about_page_options();
+    $about = function_exists('boblift_mls_section_options') ? boblift_about_apply_legacy_team_image((array) boblift_mls_section_options('about_page', $language)) : boblift_about_page_options();
     boblift_render_about_page_fields($about, 'boblift_about_page');
     echo '</div>';
 }
