@@ -44,6 +44,13 @@ foreach ($ids_by_lang as $lang => $ids) {
     $expected = array_keys(array_filter($by_id, static fn(array $row): bool => empty($row['translations'][$lang])));
     $absent = array_diff($expected, $ids);
     if ($absent) { $problems[] = "{$dir}{$lang}/: no translation for English post ID " . implode(', ', $absent); }
+    // On the target site, an English post that has no translation in this language must also have a file, even if the export
+    // records one from the source site.
+    foreach (array_diff(array_keys($by_id), $ids) as $source_id) {
+        $found = get_posts(['post_type' => 'post', 'name' => $by_id[$source_id]['slug'], 'post_status' => 'publish', 'posts_per_page' => 1, 'lang' => 'en']);
+        $translated = $found ? (int) pll_get_post($found[0]->ID, $lang) : 0;
+        if ($found && (!$translated || $translated === $found[0]->ID)) { $problems[] = "{$by_id[$source_id]['slug']}: no $lang translation on this site and no file in {$dir}{$lang}/"; }
+    }
 }
 foreach ($langs as $lang) {
     foreach (glob($dir . $lang . '/*.json') ?: [] as $file) {
@@ -117,6 +124,8 @@ foreach ($jobs as [$lang, $id, $data]) {
         'post_content' => bl_news_links($data['content'], $lang), 'post_excerpt' => $data['excerpt'], 'post_author' => $en->post_author,
         'post_date' => $en->post_date, 'post_date_gmt' => $en->post_date_gmt, 'post_category' => $cats,
         'comment_status' => $en->comment_status, 'ping_status' => $en->ping_status,
+        // A password-protected English post keeps its protection in every language.
+        'post_password' => $en->post_password !== '' ? $en->post_password : ($existing ? (string) get_post($existing)->post_password : ''),
     ];
     if ($existing) {
         $postarr['ID'] = $existing;
