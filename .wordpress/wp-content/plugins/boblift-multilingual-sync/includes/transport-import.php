@@ -90,9 +90,10 @@ function boblift_mls_transport_import_post(array $post, string $lang, array $arg
         return;
     }
     $created = $target_id === 0;
-    // A new translation takes the source slug; an existing one keeps its own slug, so updates never move deployed URLs.
+    // A new translation takes the exported slug (else the source slug); an existing one keeps its own, so updates never move URLs.
     $existing_slug = $created ? '' : (string) get_post($target_id)->post_name;
-    $slug = $existing_slug !== '' ? $existing_slug : $source->post_name;
+    $package_slug = trim((string) ($post['slug'] ?? ''));
+    $slug = $existing_slug !== '' ? $existing_slug : ($package_slug !== '' ? $package_slug : $source->post_name);
     if (!$args['dry_run']) {
         $data = ['post_type' => $post['type'], 'post_title' => $post['title'], 'post_content' => $post['content'] ?? '',
             'post_excerpt' => $post['excerpt'] ?? '', 'post_status' => $args['publish'] ? ($post['status'] ?? 'draft') : 'draft',

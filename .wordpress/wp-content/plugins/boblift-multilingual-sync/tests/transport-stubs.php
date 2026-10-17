@@ -130,6 +130,7 @@ function get_post_meta(int $id, string $key = '', bool $single = false): mixed
 function update_post_meta(int $id, string $key, mixed $value): bool
 {
     $GLOBALS['fixture']['writes']++;
+    if (($GLOBALS['fixture']['fail_meta'] ?? '') === $key) { return false; }
     // Like WordPress: without a previous value every existing row is updated in place.
     $rows = count($GLOBALS['fixture']['meta'][$id][$key] ?? []);
     $GLOBALS['fixture']['meta'][$id][$key] = array_fill(0, max(1, $rows), wp_unslash($value));
@@ -138,6 +139,7 @@ function update_post_meta(int $id, string $key, mixed $value): bool
 function add_post_meta(int $id, string $key, mixed $value): bool
 {
     $GLOBALS['fixture']['writes']++;
+    if (($GLOBALS['fixture']['fail_meta'] ?? '') === $key) { return false; }
     $GLOBALS['fixture']['meta'][$id][$key][] = wp_unslash($value);
     return true;
 }

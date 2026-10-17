@@ -31,7 +31,8 @@ function boblift_mls_transport_import_term(array $term, string $taxonomy, string
         return $target_id;
     }
     if (!$args['dry_run']) {
-        $data = ['slug' => $term['slug']];
+        // Only a new translation takes the package slug; an existing one keeps its deployed slug (terms get no old-slug redirects).
+        $data = $created ? ['slug' => $term['slug']] : [];
         if (array_key_exists('description', $term)) {
             $data['description'] = $term['description'];
         }
@@ -110,17 +111,19 @@ function boblift_mls_transport_post_meta(array $post, int $target_id, bool $dry_
             continue;
         }
         if (!$dry_run) {
-            if (isset($post['meta_rows'][$key])) {
+            $expected = isset($post['meta_rows'][$key]) ? array_values((array) $post['meta_rows'][$key]) : [$value];
+            if (isset($post['meta_rows'][$key]) || count((array) get_post_meta($target_id, $key)) > 1) {
+                // Multiple rows, or a single value over several existing rows: replace every row.
                 delete_post_meta($target_id, $key);
-                foreach ($post['meta_rows'][$key] as $row) {
+                foreach ($expected as $row) {
                     add_post_meta($target_id, $key, wp_slash($row));
                 }
-            } elseif (count((array) get_post_meta($target_id, $key)) > 1) {
-                // A single incoming value replaces every existing row, not each row in place.
-                delete_post_meta($target_id, $key);
-                add_post_meta($target_id, $key, wp_slash($value));
             } else {
                 update_post_meta($target_id, $key, wp_slash($value));
+            }
+            // Write calls return false for unchanged values too, so the stored rows decide whether the write landed.
+            if (array_values((array) get_post_meta($target_id, $key)) != $expected) {
+                $report['errors'][] = '元数据写入失败：' . $target_id . ':' . $key;
             }
         }
     }

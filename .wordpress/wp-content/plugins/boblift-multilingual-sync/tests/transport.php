@@ -170,6 +170,24 @@ $GLOBALS['fixture']['fail_options'] = false;
 check($report['errors'] !== [] && boblift_mls_language_status('ja') === 'ready', 'failed option write is reported and blocks publishing');
 $report = boblift_mls_import_language(package_fixture(), ['only' => ['options']]);
 check($report['errors'] === [], 'unchanged option write is not treated as a failure');
+$ja_term = pll_get_term(1, 'ja');
+$GLOBALS['fixture']['terms'][$ja_term]->slug = 'deployed-ja-child';
+boblift_mls_import_language(package_fixture(), ['only' => ['terms']]);
+check(get_term($ja_term, 'category')->slug === 'deployed-ja-child', 'update keeps the existing translated term slug');
+$GLOBALS['fixture']['posts'][20] = new WP_Post(20, 'case', 'project');
+$GLOBALS['fixture']['post_lang'][20] = 'en';
+$GLOBALS['fixture']['post_links'][20] = ['en' => 20];
+boblift_mls_import_language(['format' => 1, 'source_language' => 'en', 'language' => 'ja', 'posts' => [
+    ['type' => 'case', 'source_slug' => 'project', 'slug' => 'project-ja', 'title' => '事例']]], ['only' => ['posts']]);
+check(get_post(pll_get_post(20, 'ja'))->post_name === 'project-ja', 'new translation takes the exported slug');
+$GLOBALS['fixture']['fail_meta'] = 'json';
+$failing = package_fixture();
+$failing['posts'][0]['meta']['json'] = '{"changed":true}';
+$report = boblift_mls_import_language($failing, ['only' => ['posts'], 'publish' => true]);
+$GLOBALS['fixture']['fail_meta'] = '';
+check(count(array_filter($report['errors'], static fn($error) => str_contains($error, 'json'))) === 1, 'failed post meta write is reported');
+$report = boblift_mls_import_language(package_fixture(), ['only' => ['posts']]);
+check($report['errors'] === [], 'unchanged post meta is not a failure');
 $GLOBALS['fixture']['authorized'] = false;
 foreach ($GLOBALS['fixture']['routes'] as $route) { check(!$route['permission_callback'](), 'REST requires manage_options'); }
 echo 'OK: ' . $checks . " transport checks\n";
