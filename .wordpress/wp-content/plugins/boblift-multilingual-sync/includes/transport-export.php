@@ -24,6 +24,9 @@ function boblift_mls_export_language(string $lang, array $args = []): array|WP_E
             $record = boblift_mls_transport_export_term($term, $lang);
             if ($record !== null) {
                 $package['terms'][] = $record;
+                if (!array_key_exists('parent_source_slug', $record)) {
+                    $package['warnings'][] = '父分类没有源语言对应分类，导入时保留目标父分类：' . $term->slug;
+                }
             }
         }
     }
@@ -40,12 +43,17 @@ function boblift_mls_export_language(string $lang, array $args = []): array|WP_E
                 || boblift_mls_post_language($source) !== boblift_mls_source_language()) {
                 continue;
             }
-            $parent = $source->post_parent ? get_post($source->post_parent) : null;
             $record = ['type' => $post->post_type, 'source_slug' => $source->post_name, 'source_title' => $source->post_title,
                 'slug' => $post->post_name, 'status' => $post->post_status, 'title' => $post->post_title,
                 'excerpt' => $post->post_excerpt, 'content' => $post->post_content, 'date' => $post->post_date,
-                'date_gmt' => $post->post_date_gmt, 'parent_source_slug' => $parent instanceof WP_Post ? $parent->post_name : '',
-                'menu_order' => (int) $post->menu_order, 'meta' => [], 'thumbnail' => null, 'terms' => []];
+                'date_gmt' => $post->post_date_gmt, 'menu_order' => (int) $post->menu_order, 'meta' => [], 'thumbnail' => null, 'terms' => []];
+            $parent_slug = boblift_mls_transport_post_parent_source_slug($post);
+            if ($parent_slug !== null) {
+                $record['parent_source_slug'] = $parent_slug;
+            } else {
+                // Without a source-language counterpart the import keeps the destination parent.
+                $package['warnings'][] = '父页面没有源语言对应页，导入时保留目标父页面：' . $post->post_name;
+            }
             if ($post->post_password !== '') {
                 $record['protected'] = true;
             }
@@ -109,10 +117,17 @@ function boblift_mls_transport_export_term(WP_Term $term, string $lang): ?array
     if (!$source instanceof WP_Term || pll_get_term_language($source->term_id, 'slug') !== boblift_mls_source_language()) {
         return null;
     }
-    $parent = $source->parent ? get_term($source->parent, $source->taxonomy) : null;
     $record = ['taxonomy' => $term->taxonomy, 'source_slug' => $source->slug, 'slug' => $term->slug,
-        'name' => $term->name, 'description' => $term->description,
-        'parent_source_slug' => $parent instanceof WP_Term ? $parent->slug : ''];
+        'name' => $term->name, 'description' => $term->description];
+    // The translated term's own parent, mapped to its source counterpart; left out when unmapped so import keeps it.
+    $parent_slug = '';
+    if ($term->parent) {
+        $parent = get_term((int) pll_get_term($term->parent, boblift_mls_source_language()), $term->taxonomy);
+        $parent_slug = $parent instanceof WP_Term ? $parent->slug : null;
+    }
+    if ($parent_slug !== null) {
+        $record['parent_source_slug'] = $parent_slug;
+    }
     if ($term->taxonomy === 'product_category') {
         foreach (BOBLIFT_MLS_TRANSPORT_TERM_META_KEYS as $key) {
             if (metadata_exists('term', $term->term_id, $key)) {
@@ -121,4 +136,13 @@ function boblift_mls_transport_export_term(WP_Term $term, string $lang): ?array
         }
     }
     return $record;
+}
+
+function boblift_mls_transport_post_parent_source_slug(WP_Post $post): ?string
+{
+    if (!$post->post_parent) {
+        return '';
+    }
+    $parent = get_post((int) pll_get_post($post->post_parent, boblift_mls_source_language()));
+    return $parent instanceof WP_Post && $parent->post_type === $post->post_type ? $parent->post_name : null;
 }

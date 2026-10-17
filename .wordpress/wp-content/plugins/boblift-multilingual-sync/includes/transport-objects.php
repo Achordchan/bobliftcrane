@@ -84,7 +84,10 @@ function boblift_mls_transport_term_parent(array $term, string $lang, array $map
     if (!$target || !$target['write'] || $target['id'] === 0) {
         return;
     }
-    $slug = $term['parent_source_slug'] ?? '';
+    if (!array_key_exists('parent_source_slug', $term)) {
+        return;
+    }
+    $slug = (string) $term['parent_source_slug'];
     $parent = $slug !== '' ? boblift_mls_transport_source_term($term['taxonomy'], $slug) : null;
     $parent_id = $parent ? (int) pll_get_term($parent->term_id, $lang) : 0;
     if (!$parent_id && $dry_run && $parent) {

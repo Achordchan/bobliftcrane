@@ -222,6 +222,33 @@ $report = boblift_mls_import_language(['format' => 1, 'source_language' => 'en',
     ['type' => 'page', 'source_slug' => 'team', 'title' => 'チーム', 'parent_source_slug' => 'about'],
     ['type' => 'page', 'source_slug' => 'about', 'slug' => 'about-ja', 'title' => '会社概要']]], ['only' => ['posts'], 'dry_run' => true]);
 check(count(array_filter($report['warnings'], static fn($warning) => str_contains($warning, '父页面'))) === 0, 'dry run finds a planned parent by source slug');
+unset($GLOBALS['fixture']['assignments'][$child]['category']);
+$find_post = static fn(array $export, string $slug): ?array => array_values(array_filter($export['posts'], static fn($p) => $p['source_slug'] === $slug))[0] ?? null;
+$find_term = static fn(array $export, string $slug): ?array => array_values(array_filter($export['terms'], static fn($t) => $t['source_slug'] === $slug))[0] ?? null;
+check(get_post(1)->post_parent === 0 && $find_post(boblift_mls_export_language('ja'), 'child')['parent_source_slug'] === 'parent', 'export uses the translated page parent, not the source parent');
+$GLOBALS['fixture']['posts'][32] = new WP_Post(32, 'page', 'about-ja');
+$GLOBALS['fixture']['post_lang'][32] = 'ja';
+$GLOBALS['fixture']['post_links'][30] = $GLOBALS['fixture']['post_links'][32] = ['en' => 30, 'ja' => 32];
+get_post($child)->post_parent = 32;
+check($find_post(boblift_mls_export_language('ja'), 'child')['parent_source_slug'] === 'about', 'export maps an edited translated parent to its source slug');
+$GLOBALS['fixture']['posts'][33] = new WP_Post(33, 'page', 'orphan-ja');
+$GLOBALS['fixture']['post_lang'][33] = 'ja';
+get_post($child)->post_parent = 33;
+$export = boblift_mls_export_language('ja');
+check(!array_key_exists('parent_source_slug', $find_post($export, 'child'))
+    && count(array_filter($export['warnings'], static fn($w) => str_contains($w, '父页面'))) === 1, 'unmapped translated parent is reported and left out');
+boblift_mls_import_language($export, ['only' => ['posts']]);
+check(get_post($child)->post_parent === 33, 'import keeps the destination parent when the package has none');
+$ja_child_term = pll_get_term(1, 'ja');
+check($find_term($export, 'child-category')['parent_source_slug'] === 'parent-category', 'export maps the translated term parent');
+$GLOBALS['fixture']['terms'][50] = new WP_Term(50, 'category', 'orphan-ja', 'Orphan');
+$GLOBALS['fixture']['term_lang'][50] = 'ja';
+get_term($ja_child_term, 'category')->parent = 50;
+$export = boblift_mls_export_language('ja');
+check(!array_key_exists('parent_source_slug', $find_term($export, 'child-category'))
+    && count(array_filter($export['warnings'], static fn($w) => str_contains($w, '父分类'))) === 1, 'unmapped translated term parent is reported and left out');
+boblift_mls_import_language($export, ['only' => ['terms']]);
+check(get_term($ja_child_term, 'category')->parent === 50, 'import keeps the destination term parent when the package has none');
 $GLOBALS['fixture']['authorized'] = false;
 foreach ($GLOBALS['fixture']['routes'] as $route) { check(!$route['permission_callback'](), 'REST requires manage_options'); }
 echo 'OK: ' . $checks . " transport checks\n";

@@ -82,6 +82,16 @@ function boblift_mls_import_language_unlocked(array $package, array $args): arra
         }
         $planned_pages = array_fill_keys(array_column($parents, 3), true);
         foreach ($parents as [$target_id, $target_slug, $parent_slug]) {
+            if ($parent_slug === null) {
+                // The package has no mapped parent, so keep the destination parent and only settle the slug.
+                if (!$args['dry_run']) {
+                    $result = wp_update_post(wp_slash(['ID' => $target_id, 'post_name' => $target_slug]), true);
+                    if (is_wp_error($result)) {
+                        $report['errors'][] = $result->get_error_message();
+                    }
+                }
+                continue;
+            }
             $parent = $parent_slug !== '' ? boblift_mls_transport_source_post('page', $parent_slug) : null;
             $parent_id = $parent ? (int) pll_get_post($parent->ID, $lang) : 0;
             if (!$parent_id && $args['dry_run'] && $parent && isset($planned_pages[$parent_slug])) {
@@ -184,7 +194,7 @@ function boblift_mls_transport_import_post(array $post, string $lang, array $arg
     }
     $report[$created ? 'created' : 'updated']++;
     if ($post['type'] === 'page') {
-        $parents[] = [$target_id, $slug, $post['parent_source_slug'] ?? '', $source->post_name];
+        $parents[] = [$target_id, $slug, $post['parent_source_slug'] ?? null, $source->post_name];
     } elseif (!$args['dry_run'] && $created) {
         $result = wp_update_post(wp_slash(['ID' => $target_id, 'post_name' => $slug]), true);
         if (is_wp_error($result)) {
