@@ -91,7 +91,7 @@ function boblift_mls_transport_validate(array $package, array &$warnings): true|
             || !is_string($post['source_slug'] ?? null) || $post['source_slug'] === '' || !is_string($post['title'] ?? null)) {
             return boblift_mls_transport_error('每篇内容必须包含有效的 type、source_slug 和 title。');
         }
-        boblift_mls_transport_unknown($post, ['type', 'source_slug', 'source_title', 'slug', 'status', 'title', 'excerpt', 'content', 'date', 'date_gmt', 'parent_source_slug', 'menu_order', 'meta', 'meta_rows', 'thumbnail', 'terms'], 'posts', $warnings);
+        boblift_mls_transport_unknown($post, ['type', 'source_slug', 'source_title', 'slug', 'status', 'title', 'excerpt', 'content', 'date', 'date_gmt', 'parent_source_slug', 'menu_order', 'meta', 'meta_rows', 'thumbnail', 'terms', 'terms_incomplete', 'protected'], 'posts', $warnings);
         foreach (['source_title', 'slug', 'status', 'excerpt', 'content', 'date', 'date_gmt', 'parent_source_slug'] as $key) {
             if (isset($post[$key]) && !is_string($post[$key])) {
                 return boblift_mls_transport_error('内容字段 ' . $key . ' 必须是字符串。');
@@ -99,6 +99,13 @@ function boblift_mls_transport_validate(array $package, array &$warnings): true|
         }
         if (isset($post['status']) && !in_array($post['status'], ['publish', 'draft'], true)) {
             return boblift_mls_transport_error('内容状态只能是 publish 或 draft。');
+        }
+        if (isset($post['protected']) && !is_bool($post['protected'])) {
+            return boblift_mls_transport_error('protected 必须是布尔值。');
+        }
+        if (isset($post['terms_incomplete']) && (!is_array($post['terms_incomplete']) || !array_is_list($post['terms_incomplete'])
+            || array_filter($post['terms_incomplete'], static fn($taxonomy): bool => !is_string($taxonomy)) !== [])) {
+            return boblift_mls_transport_error('terms_incomplete 必须是分类名列表。');
         }
         if (isset($post['menu_order']) && !is_int($post['menu_order'])) {
             return boblift_mls_transport_error('menu_order 必须是整数。');

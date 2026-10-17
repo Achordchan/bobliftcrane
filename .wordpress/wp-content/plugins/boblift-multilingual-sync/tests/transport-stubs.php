@@ -18,8 +18,26 @@ class WP_Post
     public function __construct(public int $ID, public string $post_type = 'page', public string $post_name = '',
         public string $post_title = '', public string $post_content = '', public string $post_excerpt = '',
         public string $post_status = 'draft', public int $post_parent = 0, public int $menu_order = 0,
-        public string $post_date = '2026-10-17 00:00:00', public string $post_date_gmt = '2026-10-17 00:00:00') {}
+        public string $post_date = '2026-10-17 00:00:00', public string $post_date_gmt = '2026-10-17 00:00:00', public string $post_password = '') {}
 }
+class Stub_WPDB
+{
+    public string $prefix = 'wp_';
+    public function prepare(string $query, ...$args): string { return vsprintf(str_replace('%s', "'%s'", $query), $args); }
+    public function get_var(string $query): ?string
+    {
+        if (!str_contains($query, 'GET_LOCK')) { return null; }
+        if (!empty($GLOBALS['stub_db_lock'])) { return '0'; }
+        $GLOBALS['stub_db_lock'] = true;
+        return '1';
+    }
+    public function query(string $query): int
+    {
+        if (str_contains($query, 'RELEASE_LOCK')) { $GLOBALS['stub_db_lock'] = false; }
+        return 1;
+    }
+}
+$GLOBALS['wpdb'] = new Stub_WPDB();
 class WP_Term
 {
     public function __construct(public int $term_id, public string $taxonomy = 'category', public string $slug = '',

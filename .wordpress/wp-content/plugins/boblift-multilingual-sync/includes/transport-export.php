@@ -46,6 +46,9 @@ function boblift_mls_export_language(string $lang, array $args = []): array|WP_E
                 'excerpt' => $post->post_excerpt, 'content' => $post->post_content, 'date' => $post->post_date,
                 'date_gmt' => $post->post_date_gmt, 'parent_source_slug' => $parent instanceof WP_Post ? $parent->post_name : '',
                 'menu_order' => (int) $post->menu_order, 'meta' => [], 'thumbnail' => null, 'terms' => []];
+            if ($post->post_password !== '') {
+                $record['protected'] = true;
+            }
             foreach (get_post_meta($post->ID) as $key => $values) {
                 if (!boblift_mls_transport_meta_allowed($key)) {
                     continue;
@@ -78,6 +81,9 @@ function boblift_mls_export_language(string $lang, array $args = []): array|WP_E
                     $term_record = boblift_mls_transport_export_term($term, $lang);
                     if ($term_record !== null) {
                         $record['terms'][$taxonomy][] = array_intersect_key($term_record, array_flip(['source_slug', 'slug', 'name']));
+                    } else {
+                        // A term without a source-language link cannot be matched on import, so the list is partial.
+                        $record['terms_incomplete'][] = $taxonomy;
                     }
                 }
             }

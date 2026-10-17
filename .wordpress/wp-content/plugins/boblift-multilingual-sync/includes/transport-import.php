@@ -16,8 +16,6 @@ function boblift_mls_import_language(array $package, array $args = []): array|WP
     if (is_wp_error($token)) {
         return $token;
     }
-    // A fatal error or timeout skips finally but still runs shutdown functions, so the lock never outlives its import.
-    register_shutdown_function('boblift_mls_transport_unlock', $token);
     try {
         return boblift_mls_import_language_unlocked($package, $args);
     } finally {
@@ -25,28 +23,31 @@ function boblift_mls_import_language(array $package, array $args = []): array|WP
     }
 }
 
-const BOBLIFT_MLS_TRANSPORT_LOCK = 'boblift_mls_transport_lock';
-
 /**
- * add_option() inserts only when the row does not exist, so taking the lock is atomic. The lock holds the owner's token and
- * has no expiry, so no other import can take it over while its owner still runs; a lock left by a killed process is cleared
- * with `wp boblift-mls unlock`.
+ * MySQL GET_LOCK is atomic and held by the database connection, so it is never shared by two imports and is released
+ * automatically if the import process dies.
  */
-function boblift_mls_transport_lock(): string|WP_Error
+function boblift_mls_transport_lock_name(): string
 {
-    $token = wp_generate_password(32, false);
-    if (add_option(BOBLIFT_MLS_TRANSPORT_LOCK, $token, '', 'no')) {
-        return $token;
-    }
-    return boblift_mls_transport_error('另一个导入正在进行，请等它结束后重试。若确认没有导入在运行，可执行 wp boblift-mls unlock。', 409);
+    global $wpdb;
+    return 'boblift_mls_transport_' . $wpdb->prefix;
 }
 
-/** Releases the lock only when the current import still owns it. */
-function boblift_mls_transport_unlock(string $token): void
+function boblift_mls_transport_lock(): string|WP_Error
 {
-    if ($token !== '' && get_option(BOBLIFT_MLS_TRANSPORT_LOCK) === $token) {
-        delete_option(BOBLIFT_MLS_TRANSPORT_LOCK);
+    global $wpdb;
+    $name = boblift_mls_transport_lock_name();
+    if ((string) $wpdb->get_var($wpdb->prepare('SELECT GET_LOCK(%s, 0)', $name)) === '1') {
+        return $name;
     }
+    return boblift_mls_transport_error('另一个导入正在进行，请等它结束后重试。', 409);
+}
+
+/** RELEASE_LOCK only releases a lock this connection holds. */
+function boblift_mls_transport_unlock(string $name): void
+{
+    global $wpdb;
+    $wpdb->query($wpdb->prepare('SELECT RELEASE_LOCK(%s)', $name));
 }
 
 function boblift_mls_import_language_unlocked(array $package, array $args): array|WP_Error
@@ -138,9 +139,15 @@ function boblift_mls_transport_import_post(array $post, string $lang, array $arg
     $existing_slug = $created ? '' : (string) get_post($target_id)->post_name;
     $package_slug = trim((string) ($post['slug'] ?? ''));
     $slug = $existing_slug !== '' ? $existing_slug : ($package_slug !== '' ? $package_slug : $source->post_name);
+    $status = $args['publish'] ? ($post['status'] ?? 'draft') : 'draft';
+    // The password is never exported. A protected record is published only onto a target that already has its own password.
+    if (!empty($post['protected']) && $status === 'publish' && ($created || (string) get_post($target_id)->post_password === '')) {
+        $status = 'draft';
+        $report['warnings'][] = '受密码保护的内容已按草稿导入，请先在目标站设置密码再发布：' . $post['source_slug'];
+    }
     if (!$args['dry_run']) {
         $data = ['post_type' => $post['type'], 'post_title' => $post['title'], 'post_content' => $post['content'] ?? '',
-            'post_excerpt' => $post['excerpt'] ?? '', 'post_status' => $args['publish'] ? ($post['status'] ?? 'draft') : 'draft',
+            'post_excerpt' => $post['excerpt'] ?? '', 'post_status' => $status,
             'post_name' => $slug, 'menu_order' => $post['menu_order'] ?? 0];
         foreach (['date' => 'post_date', 'date_gmt' => 'post_date_gmt'] as $key => $field) {
             if (!empty($post[$key])) {
@@ -209,6 +216,10 @@ function boblift_mls_transport_import_post(array $post, string $lang, array $arg
                 $complete = false;
                 $report['warnings'][] = '未能关联分类：' . $taxonomy . ':' . $term['source_slug'];
             }
+        }
+        if (in_array($taxonomy, (array) ($post['terms_incomplete'] ?? []), true)) {
+            $complete = false;
+            $report['warnings'][] = '分类列表不完整，保留目标站原有分类：' . $post['source_slug'] . ':' . $taxonomy;
         }
         if (!$args['dry_run'] && $complete) {
             $result = wp_set_object_terms($target_id, $ids, $taxonomy, false);
