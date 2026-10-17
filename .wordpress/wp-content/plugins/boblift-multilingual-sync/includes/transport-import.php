@@ -11,43 +11,42 @@ function boblift_mls_import_language(array $package, array $args = []): array|WP
     if (is_wp_error($parsed) || $parsed['dry_run'] || !is_string($package['language'] ?? null)) {
         return boblift_mls_import_language_unlocked($package, $args);
     }
-    // One import per language at a time, so an overlapping retry cannot create duplicate translations.
-    $lock = boblift_mls_transport_lock($package['language']);
-    if (is_wp_error($lock)) {
-        return $lock;
+    // One real import at a time across all languages: imports create translations and rewrite the shared language state.
+    $token = boblift_mls_transport_lock();
+    if (is_wp_error($token)) {
+        return $token;
     }
+    // A fatal error or timeout skips finally but still runs shutdown functions, so the lock never outlives its import.
+    register_shutdown_function('boblift_mls_transport_unlock', $token);
     try {
         return boblift_mls_import_language_unlocked($package, $args);
     } finally {
-        boblift_mls_transport_unlock($package['language']);
+        boblift_mls_transport_unlock($token);
     }
 }
 
-function boblift_mls_transport_lock_key(string $lang): string
+const BOBLIFT_MLS_TRANSPORT_LOCK = 'boblift_mls_transport_lock';
+
+/**
+ * add_option() inserts only when the row does not exist, so taking the lock is atomic. The lock holds the owner's token and
+ * has no expiry, so no other import can take it over while its owner still runs; a lock left by a killed process is cleared
+ * with `wp boblift-mls unlock`.
+ */
+function boblift_mls_transport_lock(): string|WP_Error
 {
-    return 'boblift_mls_transport_lock_' . sanitize_key($lang);
+    $token = wp_generate_password(32, false);
+    if (add_option(BOBLIFT_MLS_TRANSPORT_LOCK, $token, '', 'no')) {
+        return $token;
+    }
+    return boblift_mls_transport_error('另一个导入正在进行，请等它结束后重试。若确认没有导入在运行，可执行 wp boblift-mls unlock。', 409);
 }
 
-/** add_option() only succeeds when the row does not exist yet, which makes it an atomic lock. Locks older than 15 minutes are stale. */
-function boblift_mls_transport_lock(string $lang): true|WP_Error
+/** Releases the lock only when the current import still owns it. */
+function boblift_mls_transport_unlock(string $token): void
 {
-    $key = boblift_mls_transport_lock_key($lang);
-    if (add_option($key, time(), '', 'no')) {
-        return true;
+    if ($token !== '' && get_option(BOBLIFT_MLS_TRANSPORT_LOCK) === $token) {
+        delete_option(BOBLIFT_MLS_TRANSPORT_LOCK);
     }
-    $since = (int) get_option($key, 0);
-    if ($since > 0 && time() - $since > 15 * MINUTE_IN_SECONDS) {
-        delete_option($key);
-        if (add_option($key, time(), '', 'no')) {
-            return true;
-        }
-    }
-    return boblift_mls_transport_error('该语言正在导入，请稍后重试。', 409);
-}
-
-function boblift_mls_transport_unlock(string $lang): void
-{
-    delete_option(boblift_mls_transport_lock_key($lang));
 }
 
 function boblift_mls_import_language_unlocked(array $package, array $args): array|WP_Error

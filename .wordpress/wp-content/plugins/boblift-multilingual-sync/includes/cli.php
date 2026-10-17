@@ -108,6 +108,19 @@ class BOBLIFT_MLS_CLI_Command
     }
 
     /**
+     * Clear a transport import lock left by an import process that was killed.
+     *
+     * ## EXAMPLES
+     *
+     *     wp boblift-mls unlock
+     */
+    public function unlock(array $args, array $assoc_args): void
+    {
+        delete_option(BOBLIFT_MLS_TRANSPORT_LOCK);
+        WP_CLI::success('已解除导入锁。');
+    }
+
+    /**
      * Run a translation job outside web requests.
      *
      * ## OPTIONS

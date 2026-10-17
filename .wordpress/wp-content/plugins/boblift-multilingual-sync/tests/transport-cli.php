@@ -59,5 +59,8 @@ namespace {
     } finally {
         unlink($file);
     }
+    $GLOBALS['fixture']['options']['boblift_mls_transport_lock'] = 'stuck';
+    $command->unlock([], []);
+    check(!array_key_exists('boblift_mls_transport_lock', $GLOBALS['fixture']['options']), 'CLI unlock clears a stuck lock');
     echo 'OK: ' . $checks . " CLI transport checks\n";
 }

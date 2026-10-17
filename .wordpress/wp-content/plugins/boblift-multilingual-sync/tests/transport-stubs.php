@@ -69,7 +69,7 @@ function home_url(): string { return 'https://local.invalid'; }
 function wp_json_encode(mixed $value, int $flags = 0): string|false { return json_encode($value, $flags); }
 function sanitize_key(string $key): string { return strtolower($key); }
 function pll_languages_list(array $args): array { return ['en', 'ja', 'fr']; }
-if (!defined('MINUTE_IN_SECONDS')) { define('MINUTE_IN_SECONDS', 60); }
+function wp_generate_password(int $length = 12, bool $special = true): string { return bin2hex(random_bytes(intdiv($length, 2))); }
 function add_option(string $key, mixed $value = '', string $deprecated = '', string $autoload = 'yes'): bool
 {
     if (array_key_exists($key, $GLOBALS['fixture']['options'] ?? [])) { return false; }
