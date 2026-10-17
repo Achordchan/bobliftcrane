@@ -7,6 +7,51 @@ require_once __DIR__ . '/transport-objects.php';
 
 function boblift_mls_import_language(array $package, array $args = []): array|WP_Error
 {
+    $parsed = boblift_mls_transport_args($args);
+    if (is_wp_error($parsed) || $parsed['dry_run'] || !is_string($package['language'] ?? null)) {
+        return boblift_mls_import_language_unlocked($package, $args);
+    }
+    // One import per language at a time, so an overlapping retry cannot create duplicate translations.
+    $lock = boblift_mls_transport_lock($package['language']);
+    if (is_wp_error($lock)) {
+        return $lock;
+    }
+    try {
+        return boblift_mls_import_language_unlocked($package, $args);
+    } finally {
+        boblift_mls_transport_unlock($package['language']);
+    }
+}
+
+function boblift_mls_transport_lock_key(string $lang): string
+{
+    return 'boblift_mls_transport_lock_' . sanitize_key($lang);
+}
+
+/** add_option() only succeeds when the row does not exist yet, which makes it an atomic lock. Locks older than 15 minutes are stale. */
+function boblift_mls_transport_lock(string $lang): true|WP_Error
+{
+    $key = boblift_mls_transport_lock_key($lang);
+    if (add_option($key, time(), '', 'no')) {
+        return true;
+    }
+    $since = (int) get_option($key, 0);
+    if ($since > 0 && time() - $since > 15 * MINUTE_IN_SECONDS) {
+        delete_option($key);
+        if (add_option($key, time(), '', 'no')) {
+            return true;
+        }
+    }
+    return boblift_mls_transport_error('该语言正在导入，请稍后重试。', 409);
+}
+
+function boblift_mls_transport_unlock(string $lang): void
+{
+    delete_option(boblift_mls_transport_lock_key($lang));
+}
+
+function boblift_mls_import_language_unlocked(array $package, array $args): array|WP_Error
+{
     $args = boblift_mls_transport_args($args);
     if (is_wp_error($args)) {
         return $args;
@@ -35,7 +80,7 @@ function boblift_mls_import_language(array $package, array $args = []): array|WP
         foreach ($package['posts'] ?? [] as $post) {
             boblift_mls_transport_import_post($post, $lang, $args, $term_map, $parents, $report);
         }
-        $planned_pages = array_fill_keys(array_column($parents, 1), true);
+        $planned_pages = array_fill_keys(array_column($parents, 3), true);
         foreach ($parents as [$target_id, $target_slug, $parent_slug]) {
             $parent = $parent_slug !== '' ? boblift_mls_transport_source_post('page', $parent_slug) : null;
             $parent_id = $parent ? (int) pll_get_post($parent->ID, $lang) : 0;
@@ -133,7 +178,7 @@ function boblift_mls_transport_import_post(array $post, string $lang, array $arg
     }
     $report[$created ? 'created' : 'updated']++;
     if ($post['type'] === 'page') {
-        $parents[] = [$target_id, $slug, $post['parent_source_slug'] ?? ''];
+        $parents[] = [$target_id, $slug, $post['parent_source_slug'] ?? '', $source->post_name];
     } elseif (!$args['dry_run'] && $created) {
         $result = wp_update_post(wp_slash(['ID' => $target_id, 'post_name' => $slug]), true);
         if (is_wp_error($result)) {

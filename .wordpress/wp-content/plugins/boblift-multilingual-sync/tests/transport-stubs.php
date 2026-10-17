@@ -69,6 +69,14 @@ function home_url(): string { return 'https://local.invalid'; }
 function wp_json_encode(mixed $value, int $flags = 0): string|false { return json_encode($value, $flags); }
 function sanitize_key(string $key): string { return strtolower($key); }
 function pll_languages_list(array $args): array { return ['en', 'ja', 'fr']; }
+if (!defined('MINUTE_IN_SECONDS')) { define('MINUTE_IN_SECONDS', 60); }
+function add_option(string $key, mixed $value = '', string $deprecated = '', string $autoload = 'yes'): bool
+{
+    if (array_key_exists($key, $GLOBALS['fixture']['options'] ?? [])) { return false; }
+    $GLOBALS['fixture']['options'][$key] = $value;
+    return true;
+}
+function delete_option(string $key): bool { unset($GLOBALS['fixture']['options'][$key]); return true; }
 function get_option(string $key, mixed $default = false): mixed { return $GLOBALS['fixture']['options'][$key] ?? $default; }
 function update_option(string $key, mixed $value, bool $autoload = false): bool
 {

@@ -188,6 +188,21 @@ $GLOBALS['fixture']['fail_meta'] = '';
 check(count(array_filter($report['errors'], static fn($error) => str_contains($error, 'json'))) === 1, 'failed post meta write is reported');
 $report = boblift_mls_import_language(package_fixture(), ['only' => ['posts']]);
 check($report['errors'] === [], 'unchanged post meta is not a failure');
+$GLOBALS['fixture']['options']['boblift_mls_transport_lock_ja'] = time();
+$locked = boblift_mls_import_language(package_fixture(), ['only' => ['posts']]);
+check(is_wp_error($locked) && $locked->get_error_data()['status'] === 409, 'overlapping import for the same language is refused');
+check(!is_wp_error(boblift_mls_import_language(package_fixture(), ['dry_run' => true])), 'dry run does not need the lock');
+$GLOBALS['fixture']['options']['boblift_mls_transport_lock_ja'] = time() - 3600;
+check(!is_wp_error(boblift_mls_import_language(package_fixture(), ['only' => ['posts']])), 'stale lock is replaced');
+check(!array_key_exists('boblift_mls_transport_lock_ja', $GLOBALS['fixture']['options']), 'lock is released after import');
+$GLOBALS['fixture']['posts'][30] = new WP_Post(30, 'page', 'about');
+$GLOBALS['fixture']['posts'][31] = new WP_Post(31, 'page', 'team');
+$GLOBALS['fixture']['post_lang'] += [30 => 'en', 31 => 'en'];
+$GLOBALS['fixture']['post_links'] += [30 => ['en' => 30], 31 => ['en' => 31]];
+$report = boblift_mls_import_language(['format' => 1, 'source_language' => 'en', 'language' => 'ja', 'posts' => [
+    ['type' => 'page', 'source_slug' => 'team', 'title' => 'チーム', 'parent_source_slug' => 'about'],
+    ['type' => 'page', 'source_slug' => 'about', 'slug' => 'about-ja', 'title' => '会社概要']]], ['only' => ['posts'], 'dry_run' => true]);
+check(count(array_filter($report['warnings'], static fn($warning) => str_contains($warning, '父页面'))) === 0, 'dry run finds a planned parent by source slug');
 $GLOBALS['fixture']['authorized'] = false;
 foreach ($GLOBALS['fixture']['routes'] as $route) { check(!$route['permission_callback'](), 'REST requires manage_options'); }
 echo 'OK: ' . $checks . " transport checks\n";
