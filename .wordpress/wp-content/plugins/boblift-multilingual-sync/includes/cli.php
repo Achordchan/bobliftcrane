@@ -13,6 +13,101 @@ if (!defined('WP_CLI') || !WP_CLI) {
 class BOBLIFT_MLS_CLI_Command
 {
     /**
+     * Export a translated language.
+     *
+     * ## OPTIONS
+     *
+     * <lang>
+     * : Polylang language slug.
+     *
+     * [--file=<path>]
+     * : Write JSON to a file instead of stdout.
+     */
+    public function export(array $args, array $assoc_args): void
+    {
+        $package = boblift_mls_export_language((string) ($args[0] ?? ''));
+        if (is_wp_error($package)) {
+            WP_CLI::error($package->get_error_message());
+        }
+        $json = wp_json_encode($package, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+        if ($json === false) {
+            WP_CLI::error('JSON 编码失败。');
+        }
+        if (!isset($assoc_args['file'])) {
+            WP_CLI::line($json);
+            return;
+        }
+        if (file_put_contents((string) $assoc_args['file'], $json . "\n") === false) {
+            WP_CLI::error('无法写入导出文件。');
+        }
+        WP_CLI::success('已导出到 ' . $assoc_args['file']);
+    }
+
+    /**
+     * Import a translation package.
+     *
+     * ## OPTIONS
+     *
+     * <file>
+     * : JSON package path.
+     *
+     * [--dry-run]
+     * : Validate and report without writes.
+     *
+     * [--no-overwrite]
+     * : Protect existing translations and option sections.
+     *
+     * [--publish]
+     * : Preserve package post statuses and publish the language.
+     *
+     * [--only=<parts>]
+     * : Comma-separated posts,terms,options.
+     */
+    public function import(array $args, array $assoc_args): void
+    {
+        $file = (string) ($args[0] ?? '');
+        $stream = $file !== '' ? @fopen($file, 'rb') : false;
+        if ($stream === false) {
+            WP_CLI::error('无法读取导入文件。');
+        }
+        $json = stream_get_contents($stream, BOBLIFT_MLS_TRANSPORT_MAX_BYTES + 1);
+        fclose($stream);
+        if ($json === false || strlen($json) > BOBLIFT_MLS_TRANSPORT_MAX_BYTES) {
+            WP_CLI::error('读取失败或数据包超过 32 MB。');
+        }
+        $package = json_decode($json, true);
+        unset($json);
+        if (!is_array($package) || json_last_error() !== JSON_ERROR_NONE) {
+            WP_CLI::error('导入文件不是有效 JSON 数据包。');
+        }
+        $options = ['dry_run' => $assoc_args['dry-run'] ?? false,
+            'overwrite' => \WP_CLI\Utils\get_flag_value($assoc_args, 'overwrite', true),
+            'publish' => $assoc_args['publish'] ?? false];
+        if (isset($assoc_args['only'])) {
+            $options['only'] = $assoc_args['only'];
+        }
+        $report = boblift_mls_import_language($package, $options);
+        if (is_wp_error($report)) {
+            WP_CLI::error($report->get_error_message());
+        }
+        WP_CLI::log(sprintf('%s创建 %d，更新 %d，跳过 %d，错误 %d。',
+            !empty($options['dry_run']) ? '预演：' : '', $report['created'], $report['updated'], $report['skipped'], count($report['errors'])));
+        foreach ($report['warnings'] as $warning) {
+            WP_CLI::warning($warning);
+        }
+        foreach ($report['missing_sources'] as $missing) {
+            WP_CLI::warning('缺少源内容：' . $missing);
+        }
+        foreach ($report['errors'] as $error) {
+            WP_CLI::warning($error);
+        }
+        if ($report['errors'] !== [] || $report['missing_sources'] !== []) {
+            WP_CLI::error('导入存在未完成项目。');
+        }
+        WP_CLI::success(!empty($options['dry_run']) ? '预演完成，未写入。' : '导入完成。');
+    }
+
+    /**
      * Run a translation job outside web requests.
      *
      * ## OPTIONS
