@@ -415,6 +415,37 @@
   });
   window.addEventListener('resize', () => languageRoots.forEach(positionLanguageMenu));
 
+  const header = qs('#top');
+  const desktopNav = qs('[data-desktop-nav]');
+  const fitDesktopNav = () => {
+    if (!header || !desktopNav) return;
+    const wasCollapsed = header.classList.contains('boblift-nav-collapsed');
+    header.classList.remove('boblift-nav-collapsed');
+    let collapse = false;
+    if (getComputedStyle(desktopNav).display !== 'none') {
+      const items = [...desktopNav.children].filter((item) => item.getClientRects().length);
+      const before = desktopNav.previousElementSibling?.getBoundingClientRect();
+      const after = desktopNav.nextElementSibling?.getBoundingClientRect();
+      const rtl = getComputedStyle(desktopNav).direction === 'rtl';
+      const left = Math.min(...items.map((item) => item.getBoundingClientRect().left));
+      const right = Math.max(...items.map((item) => item.getBoundingClientRect().right));
+      const startEdge = rtl ? before?.left : before?.right;
+      const endEdge = rtl ? after?.right : after?.left;
+      const overlapsStart = startEdge !== undefined && (rtl ? right > startEdge + 1 : left < startEdge - 1);
+      const overlapsEnd = endEdge !== undefined && (rtl ? left < endEdge - 1 : right > endEdge + 1);
+      collapse = desktopNav.scrollWidth > desktopNav.clientWidth + 1 || (items.length > 0 && (overlapsStart || overlapsEnd));
+    }
+    header.classList.toggle('boblift-nav-collapsed', collapse);
+    if (wasCollapsed && !collapse) setMobileMenuOpen(false);
+  };
+  fitDesktopNav();
+  document.fonts?.ready.then(fitDesktopNav);
+  let fitNavFrame = 0;
+  window.addEventListener('resize', () => {
+    cancelAnimationFrame(fitNavFrame);
+    fitNavFrame = requestAnimationFrame(fitDesktopNav);
+  });
+
   if (mobileToggle && mobileMenu) {
     mobileToggle.addEventListener('click', (event) => {
       event.stopPropagation();

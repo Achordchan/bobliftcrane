@@ -123,7 +123,7 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        sans: ['Barlow', '"Helvetica Neue"', 'Arial', 'sans-serif']
+        sans: ['Barlow', '"Barlow Cyrillic"', '"Helvetica Neue"', 'Arial', 'sans-serif']
       },
       colors: {
         ink: '#08234a',
