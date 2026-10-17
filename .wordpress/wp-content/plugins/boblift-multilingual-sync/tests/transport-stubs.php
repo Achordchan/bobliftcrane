@@ -73,6 +73,8 @@ function get_option(string $key, mixed $default = false): mixed { return $GLOBAL
 function update_option(string $key, mixed $value, bool $autoload = false): bool
 {
     $GLOBALS['fixture']['writes']++;
+    if (!empty($GLOBALS['fixture']['fail_options'])) { return false; }
+    if (array_key_exists($key, $GLOBALS['fixture']['options']) && $GLOBALS['fixture']['options'][$key] === $value) { return false; }
     $GLOBALS['fixture']['options'][$key] = $value;
     return true;
 }
@@ -128,7 +130,9 @@ function get_post_meta(int $id, string $key = '', bool $single = false): mixed
 function update_post_meta(int $id, string $key, mixed $value): bool
 {
     $GLOBALS['fixture']['writes']++;
-    $GLOBALS['fixture']['meta'][$id][$key] = [wp_unslash($value)];
+    // Like WordPress: without a previous value every existing row is updated in place.
+    $rows = count($GLOBALS['fixture']['meta'][$id][$key] ?? []);
+    $GLOBALS['fixture']['meta'][$id][$key] = array_fill(0, max(1, $rows), wp_unslash($value));
     return true;
 }
 function add_post_meta(int $id, string $key, mixed $value): bool

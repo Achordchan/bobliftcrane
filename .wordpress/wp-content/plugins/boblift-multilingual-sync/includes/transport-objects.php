@@ -115,6 +115,10 @@ function boblift_mls_transport_post_meta(array $post, int $target_id, bool $dry_
                 foreach ($post['meta_rows'][$key] as $row) {
                     add_post_meta($target_id, $key, wp_slash($row));
                 }
+            } elseif (count((array) get_post_meta($target_id, $key)) > 1) {
+                // A single incoming value replaces every existing row, not each row in place.
+                delete_post_meta($target_id, $key);
+                add_post_meta($target_id, $key, wp_slash($value));
             } else {
                 update_post_meta($target_id, $key, wp_slash($value));
             }

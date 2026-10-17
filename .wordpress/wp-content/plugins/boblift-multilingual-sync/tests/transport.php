@@ -138,7 +138,7 @@ check(boblift_mls_transport_rest_import($large)->get_error_data()['status'] === 
 $guard = $GLOBALS['fixture']['hooks']['rest_pre_dispatch'][0];
 check($guard(null, null, $large)->get_error_data()['status'] === 413, 'size guard runs before REST JSON parsing');
 foreach ($GLOBALS['fixture']['hooks']['rest_api_init'] as $callback) { $callback(); }
-$export_route = $GLOBALS['fixture']['routes']['/export/(?P<lang>[a-z]{2,3})'];
+$export_route = $GLOBALS['fixture']['routes']['/export/(?P<lang>[a-z0-9_-]+)'];
 $route_result = $export_route['callback'](new WP_REST_Request(query: ['lang' => 'ja']));
 check(isset($route_result['format']) && !isset($route_result['data']), 'REST export returns package directly');
 foreach (['post', 'product', 'case'] as $index => $type) {
@@ -152,6 +152,24 @@ foreach (['post', 'product', 'case'] as $index => $type) {
     $translated = get_post(pll_get_post($source_id, 'ja'));
     check($report['created'] === 1 && $translated instanceof WP_Post && $translated->post_type === $type, 'imports supported type ' . $type);
 }
+check(preg_match('#^/export/(?P<lang>[a-z0-9_-]+)$#', '/export/pt-br') === 1, 'REST export route accepts regional language slugs');
+$GLOBALS['fixture']['posts'][$child]->post_name = 'child-ja';
+$report = boblift_mls_import_language(package_fixture(), ['publish' => true]);
+check($report['errors'] === [] && get_post($child)->post_name === 'child-ja', 'update keeps the existing translated slug');
+$GLOBALS['fixture']['meta'][$child]['number'] = ['old1', 'old2'];
+boblift_mls_import_language(package_fixture(), ['only' => ['posts']]);
+check(get_post_meta($child, 'number') === ['000123'], 'single-value import replaces multiple existing rows');
+$state = boblift_mls_state();
+$state['languages']['ja']['status'] = 'ready';
+boblift_mls_update_state($state);
+$failing = package_fixture();
+$failing['options']['boblift_theme_options_ja']['home']['title'] = '新しいホーム';
+$GLOBALS['fixture']['fail_options'] = true;
+$report = boblift_mls_import_language($failing, ['publish' => true]);
+$GLOBALS['fixture']['fail_options'] = false;
+check($report['errors'] !== [] && boblift_mls_language_status('ja') === 'ready', 'failed option write is reported and blocks publishing');
+$report = boblift_mls_import_language(package_fixture(), ['only' => ['options']]);
+check($report['errors'] === [], 'unchanged option write is not treated as a failure');
 $GLOBALS['fixture']['authorized'] = false;
 foreach ($GLOBALS['fixture']['routes'] as $route) { check(!$route['permission_callback'](), 'REST requires manage_options'); }
 echo 'OK: ' . $checks . " transport checks\n";

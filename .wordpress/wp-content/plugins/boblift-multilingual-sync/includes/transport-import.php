@@ -36,7 +36,7 @@ function boblift_mls_import_language(array $package, array $args = []): array|WP
             boblift_mls_transport_import_post($post, $lang, $args, $term_map, $parents, $report);
         }
         $planned_pages = array_fill_keys(array_column($parents, 1), true);
-        foreach ($parents as [$target_id, $source_slug, $parent_slug]) {
+        foreach ($parents as [$target_id, $target_slug, $parent_slug]) {
             $parent = $parent_slug !== '' ? boblift_mls_transport_source_post('page', $parent_slug) : null;
             $parent_id = $parent ? (int) pll_get_post($parent->ID, $lang) : 0;
             if (!$parent_id && $args['dry_run'] && $parent && isset($planned_pages[$parent_slug])) {
@@ -48,7 +48,7 @@ function boblift_mls_import_language(array $package, array $args = []): array|WP
             }
             if (!$args['dry_run']) {
                 $result = wp_update_post(wp_slash(['ID' => $target_id, 'post_parent' => $parent_id,
-                    'post_name' => $source_slug]), true);
+                    'post_name' => $target_slug]), true);
                 if (is_wp_error($result)) {
                     $report['errors'][] = $result->get_error_message();
                 }
@@ -90,10 +90,13 @@ function boblift_mls_transport_import_post(array $post, string $lang, array $arg
         return;
     }
     $created = $target_id === 0;
+    // A new translation takes the source slug; an existing one keeps its own slug, so updates never move deployed URLs.
+    $existing_slug = $created ? '' : (string) get_post($target_id)->post_name;
+    $slug = $existing_slug !== '' ? $existing_slug : $source->post_name;
     if (!$args['dry_run']) {
         $data = ['post_type' => $post['type'], 'post_title' => $post['title'], 'post_content' => $post['content'] ?? '',
             'post_excerpt' => $post['excerpt'] ?? '', 'post_status' => $args['publish'] ? ($post['status'] ?? 'draft') : 'draft',
-            'post_name' => $source->post_name, 'menu_order' => $post['menu_order'] ?? 0];
+            'post_name' => $slug, 'menu_order' => $post['menu_order'] ?? 0];
         foreach (['date' => 'post_date', 'date_gmt' => 'post_date_gmt'] as $key => $field) {
             if (!empty($post[$key])) {
                 $data[$field] = $post[$key];
@@ -129,9 +132,9 @@ function boblift_mls_transport_import_post(array $post, string $lang, array $arg
     }
     $report[$created ? 'created' : 'updated']++;
     if ($post['type'] === 'page') {
-        $parents[] = [$target_id, $source->post_name, $post['parent_source_slug'] ?? ''];
-    } elseif (!$args['dry_run']) {
-        $result = wp_update_post(wp_slash(['ID' => $target_id, 'post_name' => $source->post_name]), true);
+        $parents[] = [$target_id, $slug, $post['parent_source_slug'] ?? ''];
+    } elseif (!$args['dry_run'] && $created) {
+        $result = wp_update_post(wp_slash(['ID' => $target_id, 'post_name' => $slug]), true);
         if (is_wp_error($result)) {
             $report['errors'][] = $result->get_error_message();
         }
@@ -203,7 +206,11 @@ function boblift_mls_transport_import_options(array $options, string $lang, arra
         $write_options = true;
     }
     if (!$args['dry_run'] && $write_options) {
-        boblift_mls_update_language_options($existing, $lang);
+        // update_option() also returns false for an unchanged value, so a read-back decides whether the write landed.
+        if (!boblift_mls_update_language_options($existing, $lang) && boblift_mls_get_raw_options($lang) !== $existing) {
+            $report['errors'][] = '语言选项写入失败：' . $lang;
+            return;
+        }
     }
     if (isset($options['languages'][$lang])) {
         $state = boblift_mls_state();
@@ -218,7 +225,9 @@ function boblift_mls_transport_import_options(array $options, string $lang, arra
         }
         if (!$args['dry_run']) {
             $state['languages'][$lang] = array_merge($state['languages'][$lang] ?? [], $record);
-            boblift_mls_update_state($state);
+            if (!boblift_mls_update_state($state) && boblift_mls_state() !== $state) {
+                $report['errors'][] = '语言状态写入失败：' . $lang;
+            }
         }
     }
 }

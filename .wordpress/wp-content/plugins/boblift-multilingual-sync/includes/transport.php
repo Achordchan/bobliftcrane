@@ -70,7 +70,7 @@ function boblift_mls_transport_rest_import(WP_REST_Request $request): array|WP_E
 
 add_action('rest_api_init', static function (): void {
     $permission = static fn(): bool => current_user_can('manage_options');
-    register_rest_route('boblift-mls/v1', '/export/(?P<lang>[a-z]{2,3})', [
+    register_rest_route('boblift-mls/v1', '/export/(?P<lang>[a-z0-9_-]+)', [
         'methods' => 'GET', 'permission_callback' => $permission,
         'callback' => static fn(WP_REST_Request $request): array|WP_Error => boblift_mls_export_language($request['lang']),
     ]);
