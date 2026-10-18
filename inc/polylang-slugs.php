@@ -189,11 +189,24 @@ add_filter('pre_term_slug', static function ($slug, $taxonomy) {
     return $given;
 }, 11, 2);
 
-// wp_update_term()'s duplicate check (get_term_by) then only looks in the term's own language.
+// wp_update_term() applies this filter right before its duplicate check, after every early return, so only that lookup is armed.
+add_filter('wp_update_term_parent', static function ($parent, $term_id) {
+    $state = boblift_term_slug_state();
+    if (isset($state['slug']) && (int) $term_id === $state['term_id']) {
+        $state['armed'] = true;
+        boblift_term_slug_state($state);
+    } else {
+        boblift_term_slug_state([]);
+    }
+    return $parent;
+}, 10, 2);
+
+// The duplicate check (get_term_by) then only looks in the term's own language; the state is spent on that one lookup.
 add_filter('get_terms_args', static function (array $args) {
     $state = boblift_term_slug_state();
-    if (isset($state['slug']) && ($args['slug'] ?? null) === $state['slug'] && (int) ($args['number'] ?? 0) === 1 && ($args['get'] ?? '') === 'all') {
+    if (!empty($state['armed']) && ($args['slug'] ?? null) === $state['slug'] && (int) ($args['number'] ?? 0) === 1 && ($args['get'] ?? '') === 'all') {
         $args['lang'] = $state['language'];
+        boblift_term_slug_state([]);
     }
     return $args;
 }, 5);
@@ -201,6 +214,43 @@ add_filter('get_terms_args', static function (array $args) {
 add_action('edit_terms', static function () {
     boblift_term_slug_state([]);
 });
+
+/**
+ * A category address with a generated slug (/ru/marine-crane-ru-61, /fr/company-news-fr-11.html) answers with a 301 to the
+ * category that now holds the plain slug in that language, so links saved before the rename keep working.
+ */
+function boblift_redirect_generated_term_slug(): void
+{
+    if (!is_404() || !function_exists('pll_languages_list') || !function_exists('boblift_request_url_language')) {
+        return;
+    }
+    $language = boblift_request_url_language();
+    if ($language === '' || $language === (string) pll_default_language()) {
+        return;
+    }
+    $segment = basename((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH));
+    if (!preg_match('/^(.+)-' . preg_quote($language, '/') . '(?:-\d+)?(?:\.html)?$/', $segment, $matches)) {
+        return;
+    }
+    foreach (['product_category', 'category'] as $taxonomy) {
+        $terms = taxonomy_exists($taxonomy) ? get_terms(['taxonomy' => $taxonomy, 'slug' => $matches[1], 'hide_empty' => false, 'number' => 1, 'lang' => $language]) : [];
+        if (is_array($terms) && $terms && $terms[0] instanceof WP_Term) {
+            $link = get_term_link($terms[0]);
+            if (!is_wp_error($link)) {
+                $query = (string) parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_QUERY);
+                wp_safe_redirect($link . ($query !== '' ? (str_contains($link, '?') ? '&' : '?') . $query : ''), 301);
+                exit;
+            }
+        }
+    }
+}
+add_action('template_redirect', 'boblift_redirect_generated_term_slug', 1);
+
+/** A news filter saved with a generated category slug (company-news-ru-11) means the category now called company-news. */
+function boblift_plain_term_slug(string $slug, string $language): string
+{
+    return $language !== '' ? (string) preg_replace('/-' . preg_quote($language, '/') . '(?:-\d+)?$/', '', $slug) : $slug;
+}
 
 function boblift_migrate_shared_case_slugs(): void
 {
