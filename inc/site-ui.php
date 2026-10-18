@@ -757,6 +757,49 @@ function boblift_static_text_translations(): array
     return $all;
 }
 
+/**
+ * The built-in strings above, as editable theme options: static_text.strings holds one entry per English original,
+ * stored per language like every other option section, so translations can be imported and synced through the
+ * multilingual plugin instead of code. A language's entry wins over the dictionary when its text differs from the original.
+ */
+function boblift_static_text_key(string $original): string
+{
+    return substr(md5($original), 0, 12);
+}
+
+function boblift_static_text_defaults(): array
+{
+    static $defaults = null;
+    if ($defaults !== null) {
+        return $defaults;
+    }
+    $strings = [];
+    foreach (boblift_static_text_translations() as $dictionary) {
+        foreach ($dictionary as $original => $translation) {
+            $strings[boblift_static_text_key((string) $original)] ??= ['original' => (string) $original, 'text' => (string) $original];
+        }
+    }
+    return $defaults = ['strings' => $strings];
+}
+
+function boblift_static_text_overrides(string $language): array
+{
+    static $cache = [];
+    if (isset($cache[$language])) {
+        return $cache[$language];
+    }
+    $section = function_exists('boblift_mls_section_options') ? boblift_mls_section_options('static_text', $language) : [];
+    $overrides = [];
+    foreach (is_array($section['strings'] ?? null) ? $section['strings'] : [] as $entry) {
+        $original = is_array($entry) ? trim((string) ($entry['original'] ?? '')) : '';
+        $text = is_array($entry) ? (string) ($entry['text'] ?? '') : '';
+        if ($original !== '' && trim($text) !== '' && $text !== $original) {
+            $overrides[$original] = $text;
+        }
+    }
+    return $cache[$language] = $overrides;
+}
+
 function boblift_localized_static_text(string $text, ?string $language = null): string
 {
     $trimmed = trim($text);
@@ -768,6 +811,11 @@ function boblift_localized_static_text(string $text, ?string $language = null): 
     $source_language = function_exists('boblift_mls_source_language') ? boblift_mls_source_language() : 'en';
     if ($language === '' || $language === $source_language) {
         return $text;
+    }
+
+    $overrides = boblift_static_text_overrides($language);
+    if (isset($overrides[$trimmed])) {
+        return $overrides[$trimmed];
     }
 
     $translations = boblift_static_text_translations()[$language] ?? [];
