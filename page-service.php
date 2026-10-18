@@ -83,7 +83,7 @@ $channels = array_values(array_filter([
 <?php if ($channels !== []) : ?>
 <section class="page-shell py-12 md:py-16" aria-labelledby="service-support-title">
     <div class="grid gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,2fr)] lg:gap-10">
-        <div>
+        <div class="lg:sticky lg:top-24 lg:self-start">
             <p class="section-label mb-3"><?php echo esc_html((string) ($ui['supportLabel'] ?? '')); ?></p>
             <h2 id="service-support-title" class="text-[clamp(1.5rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-ink"><?php echo esc_html((string) ($ui['supportTitle'] ?? '')); ?></h2>
             <p class="mt-3 max-w-md text-sm font-semibold leading-7 text-slate-600 md:text-base"><?php echo esc_html((string) ($ui['supportText'] ?? '')); ?></p>
