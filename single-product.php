@@ -438,7 +438,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                                     <div class="boblift-story-prose boblift-product-body boblift-product-lead"><?php echo wp_kses_post($detail_body_lead); ?></div>
                                 <?php endif; ?>
                                 <?php if ($detail_has_sections) : ?>
-                                    <div class="boblift-story-prose boblift-product-body boblift-product-sections <?php echo $detail_body_lead !== '' ? 'mt-6 border-t border-[#E6EDF5] pt-6' : ''; ?>"><?php echo wp_kses_post($detail_body_sections); ?></div>
+                                    <div class="boblift-story-prose boblift-product-body boblift-product-sections <?php echo $detail_body_lead !== '' ? 'mt-7' : ''; ?>"><?php echo wp_kses_post($detail_body_sections); ?></div>
                                 <?php endif; ?>
                             </div>
                         <?php elseif ($detail_has_sections) : ?>
