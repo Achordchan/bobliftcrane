@@ -169,7 +169,7 @@ function boblift_legacy_redirect_resolve(string $host, string $path, array $conf
         $prefix = trim((string) (((array) ($config['language_host_prefix'] ?? []))[$language] ?? ''), '/');
         if ($prefix !== '' && $path_exists !== null) {
             // Only once that language really serves the page; until then the English target stays (no 404 on a 301).
-            $localized = '/' . $prefix . '/' . ltrim($target, '/');
+            $localized = '/' . (function_exists('boblift_language_path_base') ? boblift_language_path_base() : '') . $prefix . '/' . ltrim($target, '/');
             $localized_path = rtrim((string) parse_url($localized, PHP_URL_PATH), '/');
             if ($path_exists($localized_path)) {
                 $target = $localized;
@@ -229,23 +229,38 @@ function boblift_legacy_redirect_merge_query(string $target, array $params): str
  * True when $path is a URL the new site currently serves as the canonical address of its own content,
  * so a legacy rule must not take it over (admin-editable public URLs, products, pages, categories).
  */
+/**
+ * [language slug, rest of the path] when $path starts with a language directory as Polylang is configured to
+ * serve it (directory mode, optional /language/ base, hidden default language), else ['', $path].
+ */
+function boblift_legacy_redirect_split_language(string $path): array
+{
+    if (!function_exists('boblift_prefixed_languages') || !function_exists('boblift_language_path_base')) {
+        return ['', $path];
+    }
+    $base = boblift_language_path_base();
+    foreach (boblift_prefixed_languages() as $slug) {
+        if (preg_match('#^/' . preg_quote($base . $slug, '#') . '(/.*)?$#', $path, $m)) {
+            return [(string) $slug, ($m[1] ?? '') === '' ? '/' : $m[1]];
+        }
+    }
+    return ['', $path];
+}
+
 function boblift_legacy_redirect_is_live_path(string $path): bool
 {
     $raw = rtrim(rawurldecode($path), '/');
     if ($raw === '') {
         return true; // the home page
     }
-    if (function_exists('pll_languages_list') && in_array(ltrim($raw, '/'), (array) pll_languages_list(['fields' => 'slug']), true)) {
+    [$lang, $rest] = boblift_legacy_redirect_split_language($raw);
+    $rest = rtrim($rest, '/');
+    if ($lang !== '' && $rest === '') {
         return true; // a language home such as /ru
     }
     // A language directory (/fr/contact.html): the remainder names the English route, which is live in that
     // language only when a published translation of its page or term exists there.
-    $rest = $raw;
-    $lang = '';
-    if (function_exists('pll_languages_list') && preg_match('#^/([^/]+)(/.+)$#', $raw, $m) && in_array($m[1], (array) pll_languages_list(['fields' => 'slug']), true)) {
-        $lang = $m[1];
-        $rest = $m[2];
-    }
+
     if (function_exists('boblift_public_custom_url_routes')) {
         $route = boblift_public_custom_url_routes()[ltrim($rest, '/')] ?? null;
         if (is_string($route) && $lang === '') {
@@ -297,13 +312,14 @@ function boblift_legacy_redirect_is_live_path(string $path): bool
  */
 function boblift_legacy_redirect_resolve_in_language_directory(string $host, string $path, array $config): ?string
 {
-    if (!function_exists('pll_languages_list') || boblift_legacy_redirect_language_host($host, $config) !== '') {
+    if (boblift_legacy_redirect_language_host($host, $config) !== '') {
         return null;
     }
-    if (!preg_match('#^/([^/]+)(/.+)$#', $path, $m) || !in_array($m[1], (array) pll_languages_list(['fields' => 'slug']), true) || boblift_legacy_redirect_is_live_path($path)) {
+    [$lang, $rest] = boblift_legacy_redirect_split_language($path);
+    if ($lang === '' || $rest === '/' || boblift_legacy_redirect_is_live_path($path)) {
         return null;
     }
-    $target = boblift_legacy_redirect_resolve($host, $m[2], $config, home_url(), 'boblift_legacy_redirect_is_live_path');
+    $target = boblift_legacy_redirect_resolve($host, $rest, $config, home_url(), 'boblift_legacy_redirect_is_live_path');
     if ($target === null) {
         return null;
     }
@@ -311,7 +327,8 @@ function boblift_legacy_redirect_resolve_in_language_directory(string $host, str
     if (strtolower((string) ($parts['host'] ?? '')) !== strtolower((string) parse_url(home_url(), PHP_URL_HOST))) {
         return $target; // another site, such as bobliftloader.com
     }
-    $localized = '/' . $m[1] . '/' . ltrim((string) ($parts['path'] ?? '/'), '/');
+    $base = function_exists('boblift_language_path_base') ? boblift_language_path_base() : '';
+    $localized = '/' . $base . $lang . '/' . ltrim((string) ($parts['path'] ?? '/'), '/');
     if (!boblift_legacy_redirect_is_live_path($localized)) {
         return $target;
     }
