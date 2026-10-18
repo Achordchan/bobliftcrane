@@ -396,7 +396,9 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                         <?php endif; ?>
                     </div>
                 </div>
-                <dl class="-mb-px -mr-px grid grid-cols-2 border-t border-[#E6EDF5] sm:grid-cols-3 lg:grid-cols-4">
+                <?php // With drawings, the specs take the left half and the drawings the right, as on the loader site, so a wide drawing is not blown up to the full card width. ?>
+                <?php if ($drawings) : ?><div class="grid border-t border-[#E6EDF5] lg:grid-cols-2"><?php endif; ?>
+                <dl class="-mb-px grid grid-cols-2 <?php echo $drawings ? '-mr-px content-start sm:grid-cols-3 lg:mr-0 lg:grid-cols-2' : '-mr-px border-t border-[#E6EDF5] sm:grid-cols-3 lg:grid-cols-4'; ?>">
                     <?php foreach ($technical_specs as $index => $spec) :
                         [$spec_number, $spec_unit] = $hero_spec_parts((string) $spec['value']);
                         $spec_wide = mb_strlen((string) $spec['value']) > 22;
@@ -407,6 +409,34 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                         </div>
                     <?php endforeach; ?>
                 </dl>
+                <?php if ($drawings) : ?>
+                    <div id="drawing" class="flex scroll-mt-24 flex-col justify-center gap-6 border-t border-[#E6EDF5] p-6 md:p-8 lg:-ms-px lg:border-s lg:border-t-0">
+                        <p class="text-[11px] font-black uppercase tracking-[0.2em] text-[#0B3F7D]"><?php echo esc_html($ui['drawingTitle'] ?? 'Dimensions and load chart'); ?></p>
+                        <?php // Two drawings sit side by side; every drawing is capped in height, so a portrait sheet stays a preview and opens full size on click. ?>
+                        <div class="grid items-center gap-4 <?php echo count($drawings) > 1 ? 'grid-cols-2' : ''; ?>">
+                        <?php foreach ($drawings as $drawing) : ?>
+                        <div data-drawing-root>
+                        <div>
+                            <button class="block w-full cursor-zoom-in rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" type="button" data-drawing-open aria-label="<?php echo esc_attr($drawing['label']); ?>">
+                                <img class="mx-auto h-auto max-h-[460px] w-auto max-w-full" src="<?php echo esc_url($drawing['image']); ?>" <?php if (($drawing['width'] ?? 0) > 0 && ($drawing['height'] ?? 0) > 0) : ?>width="<?php echo esc_attr((string) $drawing['width']); ?>" height="<?php echo esc_attr((string) $drawing['height']); ?>"<?php endif; ?> alt="<?php echo esc_attr($drawing['label']); ?>" loading="lazy" decoding="async">
+                            </button>
+                        </div>
+                        <dialog class="boblift-drawing-dialog m-auto h-[92vh] w-[96vw] max-w-none overflow-hidden rounded border border-[#DDE7F2] bg-white p-0 shadow-raised" data-drawing-dialog aria-label="<?php echo esc_attr($drawing['label']); ?>">
+                            <div class="flex h-full flex-col">
+                                <div class="flex items-center justify-between gap-4 border-b border-[#DDE7F2] px-4 py-3 md:px-6">
+                                    <p class="truncate text-sm font-black text-[#071f42]"><?php echo esc_html($drawing['label']); ?></p>
+                                    <button class="grid size-9 shrink-0 place-items-center rounded-sm border border-[#DDE7F2] text-[#071f42] transition hover:border-blue-300" type="button" data-drawing-close aria-label="<?php echo esc_attr($ui['drawingCloseLabel'] ?? 'Close drawing'); ?>"><?php echo boblift_icon('x', 'h-4 w-4'); ?></button>
+                                </div>
+                                <div class="min-h-0 flex-1 overflow-auto p-4 md:p-6"><img class="mx-auto h-auto max-w-none" style="width:max(100%, <?php echo esc_attr((string) min(2000, (int) $drawing['width'])); ?>px)" src="<?php echo esc_url($drawing['image']); ?>" alt="" loading="lazy" decoding="async"></div>
+                            </div>
+                        </dialog>
+                        </div>
+                        <?php endforeach; ?>
+                        </div>
+                        <p class="text-center text-xs font-semibold text-slate-500"><?php echo esc_html($ui['drawingHint'] ?? 'Select the drawing to view it full size.'); ?></p>
+                    </div>
+                </div>
+                <?php endif; ?>
             </article>
             <?php if ($detail_body_html !== '' || $product_videos) : ?>
                 <?php // overflow-clip, not hidden: a hidden overflow would trap the sticky video column. ?>
@@ -476,41 +506,6 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                         <?php elseif ($detail_has_sections) : ?>
                             <div class="boblift-story-prose boblift-product-body boblift-product-sections <?php echo $detail_split ? 'lg:col-span-7' : ''; ?>"><?php echo wp_kses_post($detail_body_sections); ?></div>
                         <?php endif; ?>
-                    </div>
-                </article>
-            <?php endif; ?>
-            <?php if ($drawings) : ?>
-                <article id="drawing" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card">
-                    <div class="flex flex-col gap-2 border-b border-[#DDE7F2] p-6 md:flex-row md:items-end md:justify-between md:p-8">
-                        <div>
-                            <p class="text-[11px] font-black uppercase tracking-[0.2em] text-[#0B3F7D]"><?php echo esc_html($ui['drawingLabel'] ?? 'Dimension Drawing'); ?></p>
-                            <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($ui['drawingTitle'] ?? 'Dimensions and load chart'); ?></h2>
-                        </div>
-                        <p class="text-xs font-semibold text-slate-500"><?php echo esc_html($hero_model !== '' ? $hero_model : $product_title); ?></p>
-                    </div>
-                    <?php // Outline drawing and load chart side by side when the technical drawings supply both. ?>
-                    <div class="grid <?php echo count($drawings) > 1 ? 'md:grid-cols-2' : ''; ?>">
-                    <?php foreach ($drawings as $drawing) :
-                        $drawing_ratio = ($drawing['height'] ?? 0) > 0 ? $drawing['width'] / $drawing['height'] : 2;
-                    ?>
-                    <div data-drawing-root>
-                    <div class="p-4 sm:p-6 md:p-8">
-                        <button class="block w-full cursor-zoom-in rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" type="button" data-drawing-open aria-label="<?php echo esc_attr($drawing['label']); ?>">
-                            <img class="mx-auto h-auto w-full <?php echo $drawing_ratio < 1.4 ? 'max-w-[560px]' : ''; ?>" src="<?php echo esc_url($drawing['image']); ?>" <?php if (($drawing['width'] ?? 0) > 0 && ($drawing['height'] ?? 0) > 0) : ?>width="<?php echo esc_attr((string) $drawing['width']); ?>" height="<?php echo esc_attr((string) $drawing['height']); ?>"<?php endif; ?> alt="<?php echo esc_attr($drawing['label']); ?>" loading="lazy" decoding="async">
-                        </button>
-                        <p class="mt-4 text-center text-xs font-semibold text-slate-500"><?php echo esc_html($ui['drawingHint'] ?? 'Select the drawing to view it full size.'); ?></p>
-                    </div>
-                    <dialog class="boblift-drawing-dialog m-auto h-[92vh] w-[96vw] max-w-none overflow-hidden rounded border border-[#DDE7F2] bg-white p-0 shadow-raised" data-drawing-dialog aria-label="<?php echo esc_attr($drawing['label']); ?>">
-                        <div class="flex h-full flex-col">
-                            <div class="flex items-center justify-between gap-4 border-b border-[#DDE7F2] px-4 py-3 md:px-6">
-                                <p class="truncate text-sm font-black text-[#071f42]"><?php echo esc_html($drawing['label']); ?></p>
-                                <button class="grid size-9 shrink-0 place-items-center rounded-sm border border-[#DDE7F2] text-[#071f42] transition hover:border-blue-300" type="button" data-drawing-close aria-label="<?php echo esc_attr($ui['drawingCloseLabel'] ?? 'Close drawing'); ?>"><?php echo boblift_icon('x', 'h-4 w-4'); ?></button>
-                            </div>
-                            <div class="min-h-0 flex-1 overflow-auto p-4 md:p-6"><img class="mx-auto h-auto max-w-none" style="width:max(100%, <?php echo esc_attr((string) min(2000, (int) $drawing['width'])); ?>px)" src="<?php echo esc_url($drawing['image']); ?>" alt="" loading="lazy" decoding="async"></div>
-                        </div>
-                    </dialog>
-                    </div>
-                    <?php endforeach; ?>
                     </div>
                 </article>
             <?php endif; ?>
