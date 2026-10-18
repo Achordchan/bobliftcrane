@@ -409,7 +409,8 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                 </dl>
             </article>
             <?php if ($detail_body_html !== '' || $series_video) : ?>
-                <article id="overview" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card">
+                <?php // overflow-clip, not hidden: a hidden overflow would trap the sticky video column. ?>
+                <article id="overview" class="scroll-mt-24 overflow-clip rounded border border-[#DDE7F2] bg-white shadow-card">
                     <?php // Old shared links to #details land on the product details. ?><span id="details" class="block scroll-mt-24" aria-hidden="true"></span>
                     <?php
                     // With a series video the heading and film fill the left column and the copy the right, as on the loader site;
