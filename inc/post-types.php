@@ -988,7 +988,7 @@ function boblift_product_meta_box(WP_Post $post): void
         </div></div>
         <div class="boblift-admin-box"><h3>技术参数</h3><p class="boblift-admin-help">保存后仍写入原 _specs JSON，前台无需改动。</p><?php boblift_render_pair_rows('boblift_meta[specs_rows]', $specs, ['label', 'value'], ['参数名', '参数值'], 8); ?></div>
         <div class="boblift-admin-box"><h3>产品特点</h3><?php boblift_render_pair_rows('boblift_meta[features_rows]', $features, ['title', 'text', 'detail', 'image'], ['标题', '说明', '详细说明（可选，品册导入的内容）', '图片地址（可选，品册导入的内容）'], 5); ?></div>
-        <div class="boblift-admin-box"><h3>产品详情图</h3><label><input type="checkbox" name="boblift_meta[detail_images_ready]" value="1" <?php checked(boblift_product_content_ready((int) $post->ID, '_detail_images_ready')); ?>> 在产品页显示详情图</label><p class="boblift-admin-help">详情图按下方顺序排成一行缩略图，显示在"技术参数"下方，点击可看大图；正文排在图下面。每张建议 750px 宽的切片，不要整张长图。</p><?php boblift_render_pair_rows('boblift_meta[detail_image_rows]', $detail_images, ['image', 'label'], ['详情图地址', '图片说明'], 4); ?></div>
+        <div class="boblift-admin-box"><h3>产品详情图（已停用）</h3><p class="boblift-admin-help">产品页不再显示详情图，这里的数据仅作保留。</p><?php boblift_render_pair_rows('boblift_meta[detail_image_rows]', $detail_images, ['image', 'label'], ['详情图地址', '图片说明'], 4); ?></div>
         <?php
         // Older rows keep their photo under "url"; show it as the image so a save does not drop it.
         $color_variants_saved = array_map(static function ($row) {

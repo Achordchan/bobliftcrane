@@ -137,8 +137,8 @@ function boblift_render_brochures(array $args = []): void
     ?>
     <section id="brochures" class="<?php echo esc_attr($wrapper); ?>" data-brochures<?php echo $is_archive ? ' data-brochure-map="' . esc_attr(wp_json_encode($map, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)) . '"' : ''; ?> aria-labelledby="brochures-title">
         <div class="max-w-3xl">
-            <p class="section-label"><?php echo esc_html((string) ($ui['label'] ?? 'Brochures')); ?></p>
-            <h2 id="brochures-title" class="mt-2 text-2xl font-black leading-tight tracking-[-0.015em] text-ink md:text-3xl"><?php echo esc_html($title); ?></h2>
+            <p class="<?php echo $is_archive ? 'section-label' : 'text-[11px] font-black uppercase tracking-[0.2em] text-[#0B3F7D]'; ?>"><?php echo esc_html((string) ($ui['label'] ?? 'Brochures')); ?></p>
+            <h2 id="brochures-title" class="<?php echo $is_archive ? 'mt-2 text-2xl font-black leading-tight tracking-[-0.015em] text-ink md:text-3xl' : 'mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]'; ?>"><?php echo esc_html($title); ?></h2>
             <p class="mt-3 text-sm font-semibold leading-7 text-slate-600 md:text-base"><?php echo esc_html((string) ($ui['text'] ?? '')); ?></p>
         </div>
         <div class="mt-6 grid gap-4 <?php echo esc_attr($is_archive || count($items) > 1 ? 'md:grid-cols-2 xl:grid-cols-3' : 'max-w-2xl'); ?>">
