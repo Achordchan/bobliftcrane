@@ -143,7 +143,7 @@ function boblift_render_brochures(array $args = []): void
             <h2 id="brochures-title" class="<?php echo $is_archive ? 'mt-2 text-2xl font-black leading-tight tracking-[-0.015em] text-ink md:text-3xl' : 'mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]'; ?>"><?php echo esc_html($title); ?></h2>
             <p class="mt-3 text-sm font-semibold leading-7 text-slate-600 md:text-base"><?php echo esc_html((string) ($ui['text'] ?? '')); ?></p>
         </div>
-        <div class="grid gap-4 <?php echo esc_attr($is_archive || count($items) > 1 ? 'mt-6 md:grid-cols-2 xl:grid-cols-3' : 'lg:max-w-2xl'); ?>">
+        <div class="grid gap-4 <?php echo esc_attr($is_archive || count($items) > 1 ? 'mt-6 md:grid-cols-2 xl:grid-cols-3' : ''); ?>">
             <?php foreach ($items as $item) :
                 $hidden = $is_archive && $initial_family !== '' && $initial_family !== $item['key'];
                 $download_title = str_replace('{title}', $item['title'], (string) ($ui['downloadTitleTemplate'] ?? 'Download {title} as PDF'));
