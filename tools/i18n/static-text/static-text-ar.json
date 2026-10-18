@@ -1,0 +1,2591 @@
+{
+ "format": 1,
+ "source_language": "en",
+ "language": "ar",
+ "options": {
+  "static_text": {
+   "strings": {
+    "df86934b0f26": {
+     "original": "Video Center",
+     "text": "مركز الفيديو"
+    },
+    "c47fd2a70fd3": {
+     "original": "See the cranes move before you buy.",
+     "text": "شاهد الرافعات أثناء العمل قبل أن تشتري."
+    },
+    "705ce8fbb370": {
+     "original": "Product walk-arounds, load tests and factory footage, filmed in our own workshop in Xuzhou.",
+     "text": "جولات تعريفية بالمنتجات واختبارات تحميل ولقطات من المصنع، صُوِّرت كلها في ورشتنا في شوتشو."
+    },
+    "c39cf48a8909": {
+     "original": "Knuckle boom cranes lined up in the BOB-LIFT assembly hall",
+     "text": "رافعات بذراع مفصلية مصطفّة في صالة التجميع لدى BOB-LIFT"
+    },
+    "22b79e4afa28": {
+     "original": "All videos",
+     "text": "جميع الفيديوهات"
+    },
+    "2e07f8a965ea": {
+     "original": "Truck mounted cranes",
+     "text": "الرافعات المحمولة على شاحنات"
+    },
+    "ae38ed9e2c52": {
+     "original": "Marine cranes",
+     "text": "الرافعات البحرية"
+    },
+    "d48b3233c3c3": {
+     "original": "Tests and quality",
+     "text": "الاختبارات والجودة"
+    },
+    "5329f68959b1": {
+     "original": "Product video",
+     "text": "فيديو المنتج"
+    },
+    "e793f7e1ea34": {
+     "original": "Watch this series in action",
+     "text": "شاهد هذه السلسلة أثناء العمل"
+    },
+    "a1c4545a78e2": {
+     "original": "Series video: it shows a crane of the same capacity and boom type, so paint and options can differ from this model.",
+     "text": "فيديو السلسلة: يعرض رافعة بنفس الحمولة ونوع الذراع، لذا قد يختلف الطلاء والتجهيزات عن هذا الطراز."
+    },
+    "15942e238424": {
+     "original": "More videos",
+     "text": "مزيد من الفيديوهات"
+    },
+    "b23648d9e12a": {
+     "original": "Videos are being added.",
+     "text": "تتم إضافة الفيديوهات تباعًا."
+    },
+    "4fe659ee384a": {
+     "original": "{capacity} t knuckle boom truck mounted crane",
+     "text": "رافعة محمولة على شاحنة بذراع مفصلية {capacity} t"
+    },
+    "63088e8192b1": {
+     "original": "{capacity} t telescopic boom truck mounted crane",
+     "text": "رافعة محمولة على شاحنة بذراع تلسكوبية {capacity} t"
+    },
+    "29f84500be16": {
+     "original": "{capacity} t knuckle boom marine crane",
+     "text": "رافعة بحرية بذراع مفصلية {capacity} t"
+    },
+    "352105175cf1": {
+     "original": "{capacity} t telescopic boom marine crane",
+     "text": "رافعة بحرية بذراع تلسكوبية {capacity} t"
+    },
+    "24ef30057e54": {
+     "original": "{capacity} t crane",
+     "text": "رافعة {capacity} t"
+    },
+    "8054d0ee17da": {
+     "original": "Load test · 5 t knuckle boom crane",
+     "text": "اختبار تحميل · رافعة بذراع مفصلية 5 t"
+    },
+    "ad805d7fcdcf": {
+     "original": "Load test · 10 t knuckle boom crane",
+     "text": "اختبار تحميل · رافعة بذراع مفصلية 10 t"
+    },
+    "1852bf92c73e": {
+     "original": "Load test · 6.3 t knuckle boom crane",
+     "text": "اختبار تحميل · رافعة بذراع مفصلية 6.3 t"
+    },
+    "1aa893964f84": {
+     "original": "Basket test · 6.3 t knuckle boom crane",
+     "text": "اختبار السلة · رافعة بذراع مفصلية 6.3 t"
+    },
+    "92edf36f94a9": {
+     "original": "Load test on the test rig · 6.3 t telescopic marine crane",
+     "text": "اختبار تحميل على منصة الاختبار · رافعة بحرية تلسكوبية 6.3 t"
+    },
+    "38063d29df24": {
+     "original": "Function test · 2 t knuckle boom marine crane",
+     "text": "اختبار وظيفي · رافعة بحرية بذراع مفصلية 2 t"
+    },
+    "a47b1e9dd4f6": {
+     "original": "Load test · SQ8ZA6 knuckle boom truck crane",
+     "text": "اختبار تحميل · رافعة شاحنة بذراع مفصلية SQ8ZA6"
+    },
+    "92ba4c2c1673": {
+     "original": "One order: twenty 3.2 t knuckle boom cranes ready to ship",
+     "text": "طلبية واحدة: عشرون رافعة بذراع مفصلية 3.2 t جاهزة للشحن"
+    },
+    "56647d2d1780": {
+     "original": "How we test a crane before delivery",
+     "text": "كيف نختبر الرافعة قبل التسليم"
+    },
+    "a2a5120f1c41": {
+     "original": "Quality control in the workshop",
+     "text": "مراقبة الجودة في الورشة"
+    },
+    "f1774f780471": {
+     "original": "Inside the BOB-LIFT factory",
+     "text": "داخل مصنع BOB-LIFT"
+    },
+    "540a820b4388": {
+     "original": "Factory aerial view",
+     "text": "لقطة جوية للمصنع"
+    },
+    "73a035497062": {
+     "original": "Into the assembly hall",
+     "text": "إلى داخل صالة التجميع"
+    },
+    "b167cb10735f": {
+     "original": "Finished cranes in the hall",
+     "text": "رافعات جاهزة في الصالة"
+    },
+    "fc023bd571db": {
+     "original": "Quality & Testing",
+     "text": "الجودة والاختبار"
+    },
+    "cce61a2bd4ba": {
+     "original": "Tested on our own test bay before it ships.",
+     "text": "تُختبر على منصة الاختبار الخاصة بنا قبل الشحن."
+    },
+    "61e3b652de6f": {
+     "original": "Watch the load, basket and function tests our cranes go through in the factory, and how the workshop checks parts along the way.",
+     "text": "شاهد اختبارات التحميل والسلة والاختبارات الوظيفية التي تخضع لها رافعاتنا في المصنع، وكيف تفحص الورشة القطع في كل مرحلة."
+    },
+    "fd0301342080": {
+     "original": "A knuckle boom crane on the BOB-LIFT test bay",
+     "text": "رافعة بذراع مفصلية على منصة الاختبار لدى BOB-LIFT"
+    },
+    "a0f4a9165406": {
+     "original": "Before delivery",
+     "text": "قبل التسليم"
+    },
+    "a64b7a346f4e": {
+     "original": "Three checks between the assembly line and the container.",
+     "text": "ثلاث مراحل فحص بين خط التجميع والحاوية."
+    },
+    "3ec9fd1e4d4c": {
+     "original": "Parts and welds",
+     "text": "القطع واللحامات"
+    },
+    "58a503931bb4": {
+     "original": "Boom sections, cylinders and hydraulic parts are checked in the workshop before and during assembly.",
+     "text": "تُفحص أقسام الذراع والأسطوانات والقطع الهيدروليكية في الورشة قبل التجميع وأثناءه."
+    },
+    "cacc0822a57a": {
+     "original": "Load and function test",
+     "text": "اختبار التحميل والاختبار الوظيفي"
+    },
+    "9d7d98af0816": {
+     "original": "The finished crane is mounted on the test bay and runs through lifting, slewing and outrigger functions under load.",
+     "text": "تُركَّب الرافعة المكتملة على منصة الاختبار وتُجرَّب تحت الحمل في وظائف الرفع والدوران وأرجل التثبيت."
+    },
+    "5147e0eb5413": {
+     "original": "Final check and packing",
+     "text": "الفحص النهائي والتغليف"
+    },
+    "bb62c04e29fd": {
+     "original": "After the test the crane is inspected again, then packed and loaded for export.",
+     "text": "بعد الاختبار تُفحص الرافعة مرة أخرى، ثم تُغلَّف وتُحمَّل للتصدير."
+    },
+    "d2318bdc57c3": {
+     "original": "In the workshop",
+     "text": "في الورشة"
+    },
+    "e1281284f09e": {
+     "original": "Test videos",
+     "text": "فيديوهات الاختبار"
+    },
+    "a4ee30ffafad": {
+     "original": "Load tests filmed on the test bay",
+     "text": "اختبارات تحميل مصوّرة على منصة الاختبار"
+    },
+    "2c6a7dfa560b": {
+     "original": "Batch orders, built and checked in one run",
+     "text": "طلبيات بالجملة تُصنَّع وتُفحص دفعة واحدة"
+    },
+    "444ce0bfdcfa": {
+     "original": "Twenty 3.2 t knuckle boom cranes for one order, finished in the workshop and lined up for shipping.",
+     "text": "عشرون رافعة بذراع مفصلية 3.2 t لطلبية واحدة، اكتمل تصنيعها في الورشة واصطفّت استعدادًا للشحن."
+    },
+    "5a6c0d2579b3": {
+     "original": "Certificates",
+     "text": "الشهادات"
+    },
+    "ec0f7a6e78f5": {
+     "original": "CE, EAC, ISO 9001 and ISO 14001 certificates and our crane patents are shown on the About page.",
+     "text": "شهادات CE وEAC وISO 9001 وISO 14001 وبراءات اختراع رافعاتنا معروضة في صفحة «من نحن»."
+    },
+    "6577f92f6d3e": {
+     "original": "View certificates",
+     "text": "عرض الشهادات"
+    },
+    "4d47713089a0": {
+     "original": "Want to see your crane tested?",
+     "text": "هل تريد مشاهدة اختبار رافعتك؟"
+    },
+    "31b1cc254466": {
+     "original": "Ask for a test video of your order before it ships, or visit the factory and watch the test yourself.",
+     "text": "اطلب فيديو اختبار لطلبيتك قبل شحنها، أو زر المصنع وشاهد الاختبار بنفسك."
+    },
+    "1fdb4156219e": {
+     "original": "Ask for a Test Video",
+     "text": "اطلب فيديو الاختبار"
+    },
+    "e76eeef774cf": {
+     "original": "Plan a factory visit",
+     "text": "رتّب زيارة للمصنع"
+    },
+    "85aaf68681b7": {
+     "original": "Factory Tour",
+     "text": "جولة في المصنع"
+    },
+    "89df5eb14ccc": {
+     "original": "Walk through our crane factory in Xuzhou.",
+     "text": "تجوّل في مصنع رافعاتنا في شوتشو."
+    },
+    "4336e40cc6eb": {
+     "original": "From the gate to the test bay: where BOB-LIFT cranes are assembled, tested and packed for export.",
+     "text": "من البوابة إلى منصة الاختبار: هنا تُجمَّع رافعات BOB-LIFT وتُختبر وتُغلَّف للتصدير."
+    },
+    "3e7314a2af51": {
+     "original": "Aerial view of the BOB-LIFT factory in Xuzhou",
+     "text": "منظر جوي لمصنع BOB-LIFT في شوتشو"
+    },
+    "4e6b9363a582": {
+     "original": "Factory area",
+     "text": "مساحة المصنع"
+    },
+    "b56a164bc4c3": {
+     "original": "Xuzhou, Jiangsu",
+     "text": "شوتشو، جيانغسو"
+    },
+    "ce5bf5513794": {
+     "original": "Location",
+     "text": "الموقع"
+    },
+    "885b3c534ec9": {
+     "original": "Arrival",
+     "text": "الوصول"
+    },
+    "0946fedd9758": {
+     "original": "Trucks with mounted cranes wait in the yard for delivery or collection.",
+     "text": "شاحنات مزوّدة برافعات تنتظر في الساحة للتسليم أو الاستلام."
+    },
+    "f235defcb2ce": {
+     "original": "Assembly halls",
+     "text": "صالات التجميع"
+    },
+    "cea506b4bdaa": {
+     "original": "Knuckle and telescopic booms are assembled in long rows under overhead cranes.",
+     "text": "تُجمَّع الأذرع المفصلية والتلسكوبية في صفوف طويلة تحت الرافعات العلوية."
+    },
+    "53d835cdea8f": {
+     "original": "Parts and hydraulics",
+     "text": "القطع والأنظمة الهيدروليكية"
+    },
+    "cd48e361ff53": {
+     "original": "Boom sections, cylinders, frames and hydraulic parts are staged next to the assembly line.",
+     "text": "تُجهَّز أقسام الذراع والأسطوانات والهياكل والقطع الهيدروليكية بجوار خط التجميع."
+    },
+    "af5efc357301": {
+     "original": "Truck mounting and testing",
+     "text": "التركيب على الشاحنة والاختبار"
+    },
+    "5f4648b3af4e": {
+     "original": "Cranes are mounted on truck chassis and tested before they leave.",
+     "text": "تُركَّب الرافعات على هياكل الشاحنات وتُختبر قبل خروجها من المصنع."
+    },
+    "07e64876961d": {
+     "original": "Stop {number}",
+     "text": "المحطة {number}"
+    },
+    "4871934a5860": {
+     "original": "Factory video",
+     "text": "فيديو المصنع"
+    },
+    "fcdba5f39aca": {
+     "original": "From the air",
+     "text": "من الجو"
+    },
+    "9ba9abb4f30f": {
+     "original": "See how cranes are tested",
+     "text": "شاهد كيف تُختبر الرافعات"
+    },
+    "04e5fc96cce8": {
+     "original": "See it in person.",
+     "text": "شاهدها بنفسك."
+    },
+    "a673194bbf6e": {
+     "original": "Customers from many countries visit the factory before ordering. Tell us your dates and we will arrange the tour.",
+     "text": "يزور المصنعَ عملاءُ من دول عديدة قبل الطلب. أخبرنا بمواعيدك وسنرتّب الجولة."
+    },
+    "d57d0ccedbb1": {
+     "original": "Customer visits",
+     "text": "زيارات العملاء"
+    },
+    "7bcdc7d5fb94": {
+     "original": "A phone on a tripod filming BOB-LIFT knuckle boom cranes in the workshop",
+     "text": "هاتف على حامل ثلاثي يصوّر رافعات BOB-LIFT ذات الذراع المفصلية في الورشة"
+    },
+    "a421de043dc1": {
+     "original": "BOB-LIFT Social Media",
+     "text": "BOB-LIFT على وسائل التواصل الاجتماعي"
+    },
+    "488dfc8b7f5b": {
+     "original": "Follow BOB-LIFT on the platforms you already use.",
+     "text": "تابع BOB-LIFT على المنصات التي تستخدمها."
+    },
+    "3d5f2d6b0845": {
+     "original": "Production, container loading and cranes working on customer sites, posted by our own team.",
+     "text": "الإنتاج وتحميل الحاويات والرافعات أثناء العمل في مواقع العملاء، ينشرها فريقنا بنفسه."
+    },
+    "c35bb5aff881": {
+     "original": "BOB-LIFT factory official social media updates",
+     "text": "آخر أخبار مصنع BOB-LIFT على حساباته الرسمية في وسائل التواصل الاجتماعي"
+    },
+    "bc48773e9e6b": {
+     "original": "Official accounts",
+     "text": "الحسابات الرسمية"
+    },
+    "53d20da4be6e": {
+     "original": "Global platforms",
+     "text": "المنصات العالمية"
+    },
+    "f13fffa401c8": {
+     "original": "China platforms",
+     "text": "المنصات الصينية"
+    },
+    "abdb4677e4de": {
+     "original": "More platforms",
+     "text": "منصات أخرى"
+    },
+    "a1c1747415d8": {
+     "original": "Scan to follow",
+     "text": "امسح الرمز للمتابعة"
+    },
+    "39fd7f2ac3aa": {
+     "original": "Recent posts",
+     "text": "أحدث المنشورات"
+    },
+    "2013d58c4dee": {
+     "original": "What we have been posting.",
+     "text": "ما نشرناه مؤخرًا."
+    },
+    "84d1d11b3bb5": {
+     "original": "A selection of recent posts from our accounts. Tap a post to view it full size.",
+     "text": "مختارات من أحدث منشورات حساباتنا. انقر على المنشور لعرضه بالحجم الكامل."
+    },
+    "f8efac20663d": {
+     "original": "Short videos",
+     "text": "فيديوهات قصيرة"
+    },
+    "0e084f933ad8": {
+     "original": "Image posts",
+     "text": "منشورات مصوّرة"
+    },
+    "60e2133e47e8": {
+     "original": "Company news and industry updates.",
+     "text": "أخبار الشركة ومستجدات القطاع."
+    },
+    "5045adcf6201": {
+     "original": "Product videos and factory tours.",
+     "text": "فيديوهات المنتجات وجولات المصنع."
+    },
+    "5986376259c2": {
+     "original": "Deliveries, visits and customer stories.",
+     "text": "عمليات التسليم والزيارات وقصص العملاء."
+    },
+    "667b24c59d79": {
+     "original": "Short clips from the workshop.",
+     "text": "مقاطع قصيرة من الورشة."
+    },
+    "dcf6732f562a": {
+     "original": "Photos from the factory and job sites.",
+     "text": "صور من المصنع ومواقع العمل."
+    },
+    "458610cf5985": {
+     "original": "Quick updates and announcements.",
+     "text": "تحديثات وإعلانات سريعة."
+    },
+    "3b6d4be9eb70": {
+     "original": "Douyin",
+     "text": "Douyin"
+    },
+    "661bbb644f36": {
+     "original": "WeChat Channels",
+     "text": "WeChat Channels"
+    },
+    "e9e006a4b168": {
+     "original": "Xiaohongshu",
+     "text": "Xiaohongshu"
+    },
+    "0b6b3d86d489": {
+     "original": "Weibo",
+     "text": "Weibo"
+    },
+    "fb5bebe1b7df": {
+     "original": "Bilibili",
+     "text": "Bilibili"
+    },
+    "21ba09d85ce7": {
+     "original": "Kuaishou",
+     "text": "Kuaishou"
+    },
+    "ae5ed2d904b0": {
+     "original": "Short videos in Chinese.",
+     "text": "فيديوهات قصيرة باللغة الصينية."
+    },
+    "a3ccc8a2495b": {
+     "original": "Videos inside WeChat.",
+     "text": "فيديوهات داخل WeChat."
+    },
+    "473696aa7906": {
+     "original": "Photo notes from the factory.",
+     "text": "ملاحظات مصوّرة من المصنع."
+    },
+    "8b7efb18a555": {
+     "original": "Company news in Chinese.",
+     "text": "أخبار الشركة باللغة الصينية."
+    },
+    "b37597eb0e6c": {
+     "original": "Longer product videos.",
+     "text": "فيديوهات أطول عن المنتجات."
+    },
+    "329c5a9a9acc": {
+     "original": "Production and global delivery",
+     "text": "الإنتاج والتسليم حول العالم"
+    },
+    "101c82b0acd9": {
+     "original": "Customer feedback from Argentina",
+     "text": "آراء عميل من الأرجنتين"
+    },
+    "ecf93ffa37c9": {
+     "original": "8 t truck mounted crane",
+     "text": "رافعة محمولة على شاحنة 8 t"
+    },
+    "5559e92b01aa": {
+     "original": "Ready for shipment",
+     "text": "جاهزة للشحن"
+    },
+    "6e986b7c9322": {
+     "original": "Turkish customers visit the factory",
+     "text": "عملاء من تركيا يزورون المصنع"
+    },
+    "9b01d12b8d82": {
+     "original": "Operator view",
+     "text": "من منظور المشغّل"
+    },
+    "18a0f4cc3bd8": {
+     "original": "Built by our workshop team",
+     "text": "من صنع فريق ورشتنا"
+    },
+    "1c762eb3764d": {
+     "original": "10 t crane delivered",
+     "text": "تسليم رافعة 10 t"
+    },
+    "74cd6c81fb61": {
+     "original": "SQ10ZA4 knuckle boom crane",
+     "text": "رافعة بذراع مفصلية SQ10ZA4"
+    },
+    "4cbf2ef15bf8": {
+     "original": "10 years apart, same reliability",
+     "text": "عشر سنوات بينهما، والموثوقية نفسها"
+    },
+    "8aa13201f604": {
+     "original": "Global delivery",
+     "text": "التسليم حول العالم"
+    },
+    "fba96689df09": {
+     "original": "Customer factory visit",
+     "text": "زيارة عميل للمصنع"
+    },
+    "674dddd9b200": {
+     "original": "Telescopic boom crane",
+     "text": "رافعة بذراع تلسكوبية"
+    },
+    "48dc96965c5d": {
+     "original": "Knuckle boom marine crane",
+     "text": "رافعة بحرية بذراع مفصلية"
+    },
+    "978b21c07577": {
+     "original": "Knuckle boom truck crane",
+     "text": "رافعة شاحنة بذراع مفصلية"
+    },
+    "b957963846ad": {
+     "original": "Talk to us directly",
+     "text": "تواصل معنا مباشرة"
+    },
+    "05c3f4b2bf07": {
+     "original": "Rather message us than follow?",
+     "text": "تفضّل مراسلتنا بدلًا من المتابعة؟"
+    },
+    "693bc5bea40f": {
+     "original": "Send the load, working radius and truck or vessel details. The sales team replies on the channel you use.",
+     "text": "أرسل الحمولة ونصف قطر العمل وبيانات الشاحنة أو السفينة، وسيرد فريق المبيعات عبر القناة التي تستخدمها."
+    },
+    "14fcaaf31d8b": {
+     "original": "Send an Inquiry",
+     "text": "أرسل استفسارًا"
+    },
+    "882786b5a123": {
+     "original": "Switch BOB-LIFT site",
+     "text": "التبديل بين مواقع BOB-LIFT"
+    },
+    "9913b6ae9ec3": {
+     "original": "BOB-LIFT sites",
+     "text": "مواقع BOB-LIFT"
+    },
+    "dc7a164459ee": {
+     "original": "Other BOB-LIFT sites",
+     "text": "مواقع BOB-LIFT الأخرى"
+    },
+    "222a267cc577": {
+     "original": "Current",
+     "text": "الحالي"
+    },
+    "52d0197af131": {
+     "original": "BOB-LIFT Group",
+     "text": "مجموعة BOB-LIFT"
+    },
+    "03937134ceda": {
+     "original": "Group",
+     "text": "المجموعة"
+    },
+    "93571a61b34b": {
+     "original": "Lifting Equipment",
+     "text": "معدات الرفع"
+    },
+    "0e4e98bc3a62": {
+     "original": "Cranes",
+     "text": "الرافعات"
+    },
+    "0fbaaa896cc0": {
+     "original": "Loading Equipment",
+     "text": "معدات التحميل"
+    },
+    "cac8ce8b2719": {
+     "original": "Loaders",
+     "text": "اللوادر"
+    },
+    "8cf04a973413": {
+     "original": "Home",
+     "text": "الرئيسية"
+    },
+    "710533dd879d": {
+     "original": "HOME",
+     "text": "الرئيسية"
+    },
+    "dd1ba1872df9": {
+     "original": "News",
+     "text": "الأخبار"
+    },
+    "ff4e2dc4962d": {
+     "original": "NEWS",
+     "text": "الأخبار"
+    },
+    "b1f0b866ff1e": {
+     "original": "Cases",
+     "text": "دراسات الحالة"
+    },
+    "3c8e30e60d63": {
+     "original": "CASES",
+     "text": "دراسات الحالة"
+    },
+    "b1c94ca2fbc3": {
+     "original": "All",
+     "text": "الكل"
+    },
+    "9e66e6bd4069": {
+     "original": "About Us",
+     "text": "من نحن"
+    },
+    "8207dbce90c9": {
+     "original": "Global Customer Visits",
+     "text": "زيارات العملاء من حول العالم"
+    },
+    "3ce446e5cb3c": {
+     "original": "Social Media",
+     "text": "وسائل التواصل الاجتماعي"
+    },
+    "a9281d11d822": {
+     "original": "Public Welfare",
+     "text": "العمل الخيري"
+    },
+    "9cfc9b74983d": {
+     "original": "Contact Us",
+     "text": "اتصل بنا"
+    },
+    "2654dcb39814": {
+     "original": "Company News",
+     "text": "أخبار الشركة"
+    },
+    "ec2f9ed6c5f4": {
+     "original": "Product News",
+     "text": "أخبار المنتجات"
+    },
+    "97f6bc203758": {
+     "original": "Industry Insight",
+     "text": "رؤى القطاع"
+    },
+    "af37e4952d8d": {
+     "original": "Marine Solution",
+     "text": "حلول بحرية"
+    },
+    "ae0143167797": {
+     "original": "Customer Case",
+     "text": "دراسة حالة"
+    },
+    "d3017c5bbef1": {
+     "original": "Customer Case · Marine Operations",
+     "text": "دراسة حالة · العمليات البحرية"
+    },
+    "784be72e9251": {
+     "original": "CUSTOMER CASE · MARINE OPERATIONS",
+     "text": "دراسة حالة · العمليات البحرية"
+    },
+    "db7300531696": {
+     "original": "Marine Operations",
+     "text": "العمليات البحرية"
+    },
+    "7e9c80bb8120": {
+     "original": "Customer Case · Complex Working Conditions",
+     "text": "دراسة حالة · ظروف العمل المعقدة"
+    },
+    "25b23918e973": {
+     "original": "CUSTOMER CASE · COMPLEX WORKING CONDITIONS",
+     "text": "دراسة حالة · ظروف العمل المعقدة"
+    },
+    "432a7bf5ab3a": {
+     "original": "Complex Working Conditions",
+     "text": "ظروف العمل المعقدة"
+    },
+    "21a546ca74c6": {
+     "original": "Customer Case · Aerial Work Platform",
+     "text": "دراسة حالة · منصة العمل الهوائية"
+    },
+    "b2cd0cbd2812": {
+     "original": "CUSTOMER CASE · AERIAL WORK PLATFORM",
+     "text": "دراسة حالة · منصة العمل الهوائية"
+    },
+    "72ec28065ad4": {
+     "original": "Case Facts",
+     "text": "حقائق المشروع"
+    },
+    "d2c1902ca812": {
+     "original": "Project Support",
+     "text": "دعم المشروع"
+    },
+    "7b68ae651671": {
+     "original": "Discuss Similar Project",
+     "text": "ناقش مشروعًا مماثلًا"
+    },
+    "4d8393e8a9a9": {
+     "original": "Related Cases",
+     "text": "دراسات حالة ذات صلة"
+    },
+    "54861efdd06f": {
+     "original": "Scenario",
+     "text": "التطبيق"
+    },
+    "deb10517653c": {
+     "original": "Product",
+     "text": "المنتج"
+    },
+    "59716c97497e": {
+     "original": "Country",
+     "text": "الدولة"
+    },
+    "1cdb526d06b3": {
+     "original": "Breadcrumb",
+     "text": "مسار التنقل"
+    },
+    "13eb2ee40e4a": {
+     "original": "Article Summary",
+     "text": "ملخص المقال"
+    },
+    "3adbdb3ac060": {
+     "original": "Category",
+     "text": "الفئة"
+    },
+    "9b9d8a976b42": {
+     "original": "Published",
+     "text": "تاريخ النشر"
+    },
+    "f31bbdd1b3e8": {
+     "original": "Source",
+     "text": "المصدر"
+    },
+    "d9bc09909d1b": {
+     "original": "Related Updates",
+     "text": "مستجدات ذات صلة"
+    },
+    "49f739ab9cdc": {
+     "original": "Need help choosing a crane?",
+     "text": "تحتاج مساعدة في اختيار رافعة؟"
+    },
+    "096241dfed9f": {
+     "original": "Talk to BOB-LIFT before your next lifting project.",
+     "text": "تحدّث إلى BOB-LIFT قبل مشروع الرفع القادم."
+    },
+    "7f11cb1197d8": {
+     "original": "Request a Quote",
+     "text": "اطلب عرض سعر"
+    },
+    "7a2db46f1826": {
+     "original": "Back to News",
+     "text": "العودة إلى الأخبار"
+    },
+    "9780790c790d": {
+     "original": "Related",
+     "text": "ذو صلة"
+    },
+    "5e65eadaf734": {
+     "original": "Ask for solution",
+     "text": "اطلب حلًا"
+    },
+    "e8048ed4a34a": {
+     "original": "BOB-LIFT Newsroom",
+     "text": "غرفة أخبار BOB-LIFT"
+    },
+    "93cba07454f0": {
+     "original": "Yes",
+     "text": "نعم"
+    },
+    "bafd7322c6e9": {
+     "original": "No",
+     "text": "لا"
+    },
+    "ae4ee4593a1e": {
+     "original": "Not sure",
+     "text": "غير متأكد"
+    },
+    "f352c0d46a68": {
+     "original": "Need support",
+     "text": "أحتاج إلى دعم"
+    },
+    "9e70a5d3dab1": {
+     "original": "Either",
+     "text": "أيٌّ منهما"
+    },
+    "fdb3a70d5b68": {
+     "original": "All Rights Reserved.",
+     "text": "جميع الحقوق محفوظة."
+    },
+    "4ed10e37148c": {
+     "original": "© 2026 BOB-LIFT. All Rights Reserved.",
+     "text": "© 2026 BOB-LIFT. جميع الحقوق محفوظة."
+    },
+    "96ac8f3505ce": {
+     "original": "What You Can Follow",
+     "text": "ما يمكنك متابعته"
+    },
+    "30420f4c1da1": {
+     "original": "Real content from real work.",
+     "text": "محتوى حقيقي من عمل حقيقي."
+    },
+    "2a0d30cb1153": {
+     "original": "Construction",
+     "text": "البناء"
+    },
+    "68c16c941c3f": {
+     "original": "Logistics",
+     "text": "الخدمات اللوجستية"
+    },
+    "49b0f70fb4f3": {
+     "original": "Municipal Engineering",
+     "text": "الهندسة البلدية"
+    },
+    "801a61583a73": {
+     "original": "Marine",
+     "text": "القطاع البحري"
+    },
+    "8e54e9aa508e": {
+     "original": "Agriculture",
+     "text": "الزراعة"
+    },
+    "efdd60c5f199": {
+     "original": "Mining",
+     "text": "التعدين"
+    },
+    "da19170a8c04": {
+     "original": "Truck Mounted Crane",
+     "text": "رافعة محمولة على شاحنة"
+    },
+    "17902e240859": {
+     "original": "Truck Mounted Cranes",
+     "text": "رافعات محمولة على شاحنات"
+    },
+    "4d68ab7290ed": {
+     "original": "Knuckle Boom Truck Mounted Crane",
+     "text": "رافعة محمولة على شاحنة بذراع مفصلية"
+    },
+    "8a1c998d1cfd": {
+     "original": "Knuckle Boom Truck Mounted Cranes",
+     "text": "رافعات محمولة على شاحنات بذراع مفصلية"
+    },
+    "38cedc80fd43": {
+     "original": "Telescopic Boom Truck Mounted Crane",
+     "text": "رافعة محمولة على شاحنة بذراع تلسكوبية"
+    },
+    "aedfc0797069": {
+     "original": "Telescopic Boom Truck Mounted Cranes",
+     "text": "رافعات محمولة على شاحنات بذراع تلسكوبية"
+    },
+    "1998975f4463": {
+     "original": "Marine Crane",
+     "text": "رافعة بحرية"
+    },
+    "ec2d4fd7b87d": {
+     "original": "Marine Cranes",
+     "text": "رافعات بحرية"
+    },
+    "37ed7d855332": {
+     "original": "Ship Crane",
+     "text": "رافعة سفن"
+    },
+    "5b1215a67374": {
+     "original": "Ship Cranes",
+     "text": "رافعات سفن"
+    },
+    "b5a97e77c9a5": {
+     "original": "Knuckle Boom Marine Crane",
+     "text": "رافعة بحرية بذراع مفصلية"
+    },
+    "fa93aec27fe6": {
+     "original": "Knuckle Boom Marine Cranes",
+     "text": "رافعات بحرية بذراع مفصلية"
+    },
+    "c18fe3142bb3": {
+     "original": "Telescopic Boom Marine Crane",
+     "text": "رافعة بحرية بذراع تلسكوبية"
+    },
+    "a3a5820f72db": {
+     "original": "Telescopic Boom Marine Cranes",
+     "text": "رافعات بحرية بذراع تلسكوبية"
+    },
+    "4062ac5bb5f7": {
+     "original": "Pickup Crane",
+     "text": "رافعة بيك أب"
+    },
+    "954627037065": {
+     "original": "Pickup Cranes",
+     "text": "رافعات بيك أب"
+    },
+    "8baab058b08c": {
+     "original": "Forklift Fly Jib Crane",
+     "text": "رافعة ذراع تطويل للرافعة الشوكية"
+    },
+    "fc99cc20d8ec": {
+     "original": "Forklift Fly Jib Cranes",
+     "text": "رافعات ذراع تطويل للرافعات الشوكية"
+    },
+    "cd52dd1f1704": {
+     "original": "Mini Dumper",
+     "text": "قلاب صغير"
+    },
+    "d2c6184a9815": {
+     "original": "Mini Dumpers",
+     "text": "قلابات صغيرة"
+    },
+    "dbdacdda17ea": {
+     "original": "Timber Crane",
+     "text": "رافعة أخشاب"
+    },
+    "038378ef9d8e": {
+     "original": "Timber Cranes",
+     "text": "رافعات أخشاب"
+    },
+    "646aa710a976": {
+     "original": "Spider Crane",
+     "text": "رافعة عنكبوتية"
+    },
+    "034374693892": {
+     "original": "Spider Cranes",
+     "text": "رافعات عنكبوتية"
+    },
+    "ef2d924b78e1": {
+     "original": "Tail Lift",
+     "text": "منصة رفع خلفية"
+    },
+    "28444ff61f97": {
+     "original": "Aerial Work Platform",
+     "text": "منصة عمل هوائية"
+    },
+    "9968d931da21": {
+     "original": "Truck Mounted",
+     "text": "محمولة على شاحنة"
+    },
+    "1b905fd4ca54": {
+     "original": "Meter Aerial Work Platform",
+     "text": "متر منصة عمل هوائية"
+    },
+    "3c7becd64cd6": {
+     "original": "Knuckle Spider Crane",
+     "text": "رافعة عنكبوتية بذراع مفصلية"
+    },
+    "7613279f0203": {
+     "original": "Telescopic Spider Crane",
+     "text": "رافعة عنكبوتية بذراع تلسكوبية"
+    },
+    "e753666fb31d": {
+     "original": "Pickup Crane With Outriggers",
+     "text": "رافعة بيك أب مع أرجل تثبيت"
+    },
+    "1cabda62faa2": {
+     "original": "Pickup Crane Without Outriggers",
+     "text": "رافعة بيك أب بدون أرجل تثبيت"
+    },
+    "4d49285cea2e": {
+     "original": "With Outriggers",
+     "text": "مع أرجل تثبيت"
+    },
+    "d5687bb1b248": {
+     "original": "Without Outriggers",
+     "text": "بدون أرجل تثبيت"
+    },
+    "c33c1473ffb5": {
+     "original": "Arm Length",
+     "text": "طول الذراع"
+    },
+    "93d52ec4fac5": {
+     "original": "Ton Mini Dumper",
+     "text": "طن قلاب صغير"
+    },
+    "02bdb3228da0": {
+     "original": "Ton",
+     "text": " طن"
+    },
+    "b036d85dbd8b": {
+     "original": "tons",
+     "text": "طن"
+    },
+    "28a42a2183a5": {
+     "original": "timely delivery",
+     "text": "تسليم في الموعد"
+    },
+    "98a67e425f20": {
+     "original": "Project-specific configuration",
+     "text": "تهيئة مخصصة لكل مشروع"
+    },
+    "3b88c0772d93": {
+     "original": "Quality Management",
+     "text": "إدارة الجودة"
+    },
+    "89aa656b21ee": {
+     "original": "European Conformity",
+     "text": "المطابقة الأوروبية"
+    },
+    "4ae66ad207ce": {
+     "original": "Russia / EAEU Conformity Inspection",
+     "text": "فحص المطابقة لروسيا / الاتحاد الاقتصادي الأوراسي"
+    },
+    "548b33d454cf": {
+     "original": "Russia / EAEU Conformity",
+     "text": "المطابقة لروسيا / الاتحاد الاقتصادي الأوراسي"
+    },
+    "c92a3a472564": {
+     "original": "Inspection & Certification",
+     "text": "الفحص والاعتماد"
+    },
+    "9bff558ba0e3": {
+     "original": "Main product view",
+     "text": "العرض الرئيسي للمنتج"
+    },
+    "2227cc1dfa80": {
+     "original": "Product photo",
+     "text": "صورة المنتج"
+    },
+    "c7c8998e1dd7": {
+     "original": "Product Photos",
+     "text": "صور المنتج"
+    },
+    "b8900d8adf59": {
+     "original": "Product Details",
+     "text": "تفاصيل المنتج"
+    },
+    "a17d91c40b4a": {
+     "original": "Product detail image",
+     "text": "صورة تفاصيل المنتج"
+    },
+    "5b02de6da7e4": {
+     "original": "Product stage",
+     "text": "عرض المنتج"
+    },
+    "fb9213770dc4": {
+     "original": "Detail scroll",
+     "text": "تصفح التفاصيل"
+    },
+    "f5271f9cca6a": {
+     "original": "Product detail sections",
+     "text": "أقسام تفاصيل المنتج"
+    },
+    "9ef8ee4fa97a": {
+     "original": "Product page navigation",
+     "text": "التنقل في صفحة المنتج"
+    },
+    "3e6e5e67314f": {
+     "original": "Technical Specifications",
+     "text": "المواصفات الفنية"
+    },
+    "335ecb7a02b8": {
+     "original": "Quick Specs",
+     "text": "مواصفات سريعة"
+    },
+    "219927b224df": {
+     "original": "Key Features",
+     "text": "المزايا الرئيسية"
+    },
+    "78805a221a98": {
+     "original": "image",
+     "text": "صورة"
+    },
+    "7690835d4820": {
+     "original": "parameter chart",
+     "text": "جدول المواصفات"
+    },
+    "b36d2184563e": {
+     "original": "Specifications",
+     "text": "المواصفات"
+    },
+    "ad0363403d2d": {
+     "original": "model no",
+     "text": "رقم الطراز"
+    },
+    "0160a5f30a85": {
+     "original": "Electic starting Yes",
+     "text": "تشغيل كهربائي: نعم"
+    },
+    "659aa5795e6c": {
+     "original": "Stable lifting structure",
+     "text": "هيكل رفع مستقر"
+    },
+    "ac1cb2f4c304": {
+     "original": "Designed for practical jobsite operation with reliable boom movement and load control",
+     "text": "مصمَّمة للعمل الفعلي في مواقع العمل مع حركة ذراع موثوقة وتحكم دقيق بالحمل"
+    },
+    "13718de2d272": {
+     "original": "Export-ready configuration",
+     "text": "تهيئة جاهزة للتصدير"
+    },
+    "7576eb083e3f": {
+     "original": "Suitable for international procurement with documentation, packing and configuration support",
+     "text": "مناسبة للشراء الدولي مع دعم في المستندات والتغليف والتهيئة"
+    },
+    "7ea4f41ffca1": {
+     "original": "Application matching",
+     "text": "مطابقة التطبيق"
+    },
+    "12d9524bc128": {
+     "original": "Can be matched to working radius, yard or attachment requirements",
+     "text": "يمكن مواءمتها مع متطلبات نصف قطر العمل أو الساحة أو الملحقات"
+    },
+    "bf0823e74c27": {
+     "original": "Crane manufacturer since 2003",
+     "text": "مصنّع رافعات منذ 2003"
+    },
+    "c27a93ef20c8": {
+     "original": "Truck mounted cranes, built to lift.",
+     "text": "رافعات محمولة على شاحنات، صُنعت للرفع."
+    },
+    "cb9ecbd2d658": {
+     "original": "Knuckle boom and telescopic truck cranes from 800 kg to 50 t, built in our 37,000 m² factory in Xuzhou and exported to 120+ countries.",
+     "text": "رافعات شاحنات بذراع مفصلية وتلسكوبية من 800 kg إلى 50 t، تُصنع في مصنعنا بمساحة 37,000 m² في شوتشو وتُصدَّر إلى أكثر من 120 دولة."
+    },
+    "68fc2ebd4e59": {
+     "original": "View Products",
+     "text": "عرض المنتجات"
+    },
+    "17628fbbc0a4": {
+     "original": "View Truck Cranes",
+     "text": "عرض رافعات الشاحنات"
+    },
+    "728cddb90d1f": {
+     "original": "BOB-LIFT knuckle boom truck crane lifting a precast concrete panel",
+     "text": "رافعة شاحنة بذراع مفصلية من BOB-LIFT ترفع لوحًا خرسانيًا مسبق الصب"
+    },
+    "6d9eecaae52a": {
+     "original": "Marine cranes, built for work at sea.",
+     "text": "رافعات بحرية، صُنعت للعمل في البحر."
+    },
+    "dbc3cb0da714": {
+     "original": "Knuckle boom and telescopic marine cranes from 800 kg to 25 t for vessels, ports and offshore work, configured to your deck and lifting needs.",
+     "text": "رافعات بحرية بذراع مفصلية وتلسكوبية من 800 kg إلى 25 t للسفن والموانئ والعمليات البحرية، تُهيَّأ وفق سطح سفينتك واحتياجات الرفع لديك."
+    },
+    "ddd73404c585": {
+     "original": "View Marine Cranes",
+     "text": "عرض الرافعات البحرية"
+    },
+    "74322a34474f": {
+     "original": "BOB-LIFT knuckle boom marine crane lifting a cargo container on a supply vessel",
+     "text": "رافعة بحرية بذراع مفصلية من BOB-LIFT ترفع حاوية شحن على سفينة إمداد"
+    },
+    "f30a5a0a150b": {
+     "original": "Pause slideshow",
+     "text": "إيقاف العرض"
+    },
+    "8064603280ab": {
+     "original": "Play slideshow",
+     "text": "تشغيل العرض"
+    },
+    "d234ef04b8a2": {
+     "original": "Former model",
+     "text": "الطراز السابق"
+    },
+    "eccea4e94042": {
+     "original": "Product technical advantages",
+     "text": "المزايا التقنية للمنتج"
+    },
+    "9d948e617b08": {
+     "original": "Series",
+     "text": "السلسلة"
+    },
+    "d68f0b43acf6": {
+     "original": "photos",
+     "text": "صور"
+    },
+    "cce3df80f07d": {
+     "original": "videos",
+     "text": "فيديوهات"
+    },
+    "dd1f775e443f": {
+     "original": "Previous",
+     "text": "السابق"
+    },
+    "10ac3d04253e": {
+     "original": "Next",
+     "text": "التالي"
+    },
+    "965e22e7201d": {
+     "original": "Customer Feedback",
+     "text": "آراء العملاء"
+    },
+    "a051ce32e6aa": {
+     "original": "Application Cases",
+     "text": "حالات التطبيق"
+    },
+    "2b25e6e3cfac": {
+     "original": "Planning a similar project?",
+     "text": "تخطط لمشروع مماثل؟"
+    },
+    "0b4db271fc46": {
+     "original": "View all",
+     "text": "عرض الكل"
+    },
+    "3b563524fdb1": {
+     "original": "Media",
+     "text": "الصور والفيديو"
+    },
+    "7aca58029a5a": {
+     "original": "More customer feedback",
+     "text": "مزيد من آراء العملاء"
+    },
+    "06744c69abc3": {
+     "original": "Interested in the {model}?",
+     "text": "مهتم بـ {model}؟"
+    },
+    "ee9acf6c3103": {
+     "original": "Get a Quote",
+     "text": "احصل على عرض سعر"
+    },
+    "502996d97903": {
+     "original": "Priority",
+     "text": "الأولوية"
+    },
+    "900918c90bcd": {
+     "original": "Site photos",
+     "text": "صور من الموقع"
+    },
+    "78e454064a7d": {
+     "original": "Product details",
+     "text": "تفاصيل المنتج"
+    },
+    "f4d933b20b0b": {
+     "original": "Click an image to enlarge",
+     "text": "انقر على الصورة لتكبيرها"
+    },
+    "1de58ed39cdd": {
+     "original": "Hydraulics",
+     "text": "الأنظمة الهيدروليكية"
+    },
+    "295b72abefe6": {
+     "original": "Hoses, valves and cylinders are fitted and checked on every crane.",
+     "text": "تُركَّب الخراطيم والصمامات والأسطوانات وتُفحص في كل رافعة."
+    },
+    "71bee43a7a93": {
+     "original": "countries",
+     "text": "دولة"
+    },
+    "7c43262beaf6": {
+     "original": "Visitors from",
+     "text": "الزوار من"
+    },
+    "c41d27ca8a1b": {
+     "original": "Customers from {count} countries have walked our workshop.",
+     "text": "زار ورشتنا عملاء من {count} دولة."
+    },
+    "b3b58a2b2321": {
+     "original": "What a visit covers",
+     "text": "ما تشمله الزيارة"
+    },
+    "47f453970c87": {
+     "original": "A working day in the factory, not a showroom tour.",
+     "text": "يوم عمل حقيقي في المصنع، لا جولة في صالة عرض."
+    },
+    "23e873a8aa62": {
+     "original": "Walk the production line",
+     "text": "تجوّل في خط الإنتاج"
+    },
+    "8e7fa1082864": {
+     "original": "Follow a crane from welding and assembly to the test stand, and ask questions at every station.",
+     "text": "تابع الرافعة من اللحام والتجميع حتى منصة الاختبار، واطرح أسئلتك في كل محطة."
+    },
+    "c1fee4927165": {
+     "original": "Look at the model you need",
+     "text": "عاين الطراز الذي تحتاجه"
+    },
+    "9d93e60beb14": {
+     "original": "Stand next to the crane you are considering and check the boom, hydraulics and finish for yourself.",
+     "text": "قف بجوار الرافعة التي تفكر فيها وافحص الذراع والأنظمة الهيدروليكية والتشطيب بنفسك."
+    },
+    "751275e52f1d": {
+     "original": "Check parts and packing",
+     "text": "افحص القطع والتغليف"
+    },
+    "1d615e66bb9c": {
+     "original": "Open the spare-part boxes and see how cranes are wrapped and secured for the sea journey.",
+     "text": "افتح صناديق قطع الغيار وشاهد كيف تُغلَّف الرافعات وتُثبَّت للرحلة البحرية."
+    },
+    "4b4f703b9067": {
+     "original": "Join our customer wall",
+     "text": "انضم إلى جدار عملائنا"
+    },
+    "1daea423b236": {
+     "original": "Finish in the office in front of the customer wall, where visitors from around the world have left their photos.",
+     "text": "اختتم زيارتك في المكتب أمام جدار العملاء، حيث ترك زوار من حول العالم صورهم."
+    },
+    "266d45944f9b": {
+     "original": "Visit gallery",
+     "text": "معرض الزيارات"
+    },
+    "4162744d14a6": {
+     "original": "Photos from recent visits",
+     "text": "صور من الزيارات الأخيرة"
+    },
+    "785df98f2a33": {
+     "original": "Select a country to see the photos from that visit.",
+     "text": "اختر دولة لمشاهدة صور تلك الزيارة."
+    },
+    "722b77d003d8": {
+     "original": "More factory visits",
+     "text": "مزيد من زيارات المصنع"
+    },
+    "886a655fe9c4": {
+     "original": "Plan your visit",
+     "text": "خطّط لزيارتك"
+    },
+    "181742878fcb": {
+     "original": "Come and see the crane before you order it.",
+     "text": "تعال وشاهد الرافعة قبل أن تطلبها."
+    },
+    "b4789d719c2c": {
+     "original": "Tell us your travel dates and the models you are considering, and we will plan the day around them.",
+     "text": "أخبرنا بمواعيد سفرك والطرازات التي تفكر فيها، وسنرتّب برنامج اليوم بناءً عليها."
+    },
+    "1c6e980e0eee": {
+     "original": "Factory",
+     "text": "المصنع"
+    },
+    "8d9c1b693683": {
+     "original": "Xuzhou, Jiangsu, China",
+     "text": "شوتشو، جيانغسو، الصين"
+    },
+    "7b1212df9662": {
+     "original": "Nearest airport",
+     "text": "أقرب مطار"
+    },
+    "3f21b812f31e": {
+     "original": "Xuzhou Guanyin International Airport",
+     "text": "مطار شوتشو قوانيين الدولي"
+    },
+    "5e297e6e906f": {
+     "original": "High-speed rail",
+     "text": "القطار فائق السرعة"
+    },
+    "a3e490e9a542": {
+     "original": "Xuzhou East Railway Station",
+     "text": "محطة شوتشو الشرقية للقطارات"
+    },
+    "02d4482d332e": {
+     "original": "Contact us",
+     "text": "اتصل بنا"
+    },
+    "b883674c0298": {
+     "original": "Plan a Visit",
+     "text": "رتّب زيارة"
+    },
+    "86499f11409e": {
+     "original": "Customers touring the BOB-LIFT workshop",
+     "text": "عملاء يتجولون في ورشة BOB-LIFT"
+    },
+    "c9862fce930b": {
+     "original": "No customer visit photos have been added yet.",
+     "text": "لم تُضف صور لزيارات العملاء بعد."
+    },
+    "575b9408b6da": {
+     "original": "Algeria",
+     "text": "الجزائر"
+    },
+    "b2802e969f51": {
+     "original": "Customers from Algeria visiting the BOB-LIFT factory",
+     "text": "عملاء من الجزائر يزورون مصنع BOB-LIFT"
+    },
+    "7176f8c3bccf": {
+     "original": "Azerbaijan",
+     "text": "أذربيجان"
+    },
+    "18b4406f4bc0": {
+     "original": "Customers from Azerbaijan visiting the BOB-LIFT factory",
+     "text": "عملاء من أذربيجان يزورون مصنع BOB-LIFT"
+    },
+    "d8b00929dec6": {
+     "original": "Germany",
+     "text": "ألمانيا"
+    },
+    "76d1035db2a8": {
+     "original": "Customers from Germany visiting the BOB-LIFT factory",
+     "text": "عملاء من ألمانيا يزورون مصنع BOB-LIFT"
+    },
+    "7d31e0da1ab9": {
+     "original": "India",
+     "text": "الهند"
+    },
+    "bf048118ebf9": {
+     "original": "Customers from India visiting the BOB-LIFT factory",
+     "text": "عملاء من الهند يزورون مصنع BOB-LIFT"
+    },
+    "06e415f918c5": {
+     "original": "Ireland",
+     "text": "أيرلندا"
+    },
+    "cc6451c99379": {
+     "original": "Customers from Ireland visiting the BOB-LIFT factory",
+     "text": "عملاء من أيرلندا يزورون مصنع BOB-LIFT"
+    },
+    "7c1a943bf29d": {
+     "original": "Kazakhstan",
+     "text": "كازاخستان"
+    },
+    "66c0014e74b0": {
+     "original": "Customers from Kazakhstan visiting the BOB-LIFT factory",
+     "text": "عملاء من كازاخستان يزورون مصنع BOB-LIFT"
+    },
+    "94984a8c4896": {
+     "original": "Kenya",
+     "text": "كينيا"
+    },
+    "03b2e05cdc5f": {
+     "original": "Customers from Kenya visiting the BOB-LIFT factory",
+     "text": "عملاء من كينيا يزورون مصنع BOB-LIFT"
+    },
+    "c51ed580ea5e": {
+     "original": "New Zealand",
+     "text": "نيوزيلندا"
+    },
+    "7b76a33ae61e": {
+     "original": "Customers from New Zealand visiting the BOB-LIFT factory",
+     "text": "عملاء من نيوزيلندا يزورون مصنع BOB-LIFT"
+    },
+    "5d839147c83e": {
+     "original": "Nigeria",
+     "text": "نيجيريا"
+    },
+    "3cde56bf662d": {
+     "original": "Customers from Nigeria visiting the BOB-LIFT factory",
+     "text": "عملاء من نيجيريا يزورون مصنع BOB-LIFT"
+    },
+    "84c8fa2341f7": {
+     "original": "Peru",
+     "text": "بيرو"
+    },
+    "204ff299b4d6": {
+     "original": "Customers from Peru visiting the BOB-LIFT factory",
+     "text": "عملاء من بيرو يزورون مصنع BOB-LIFT"
+    },
+    "5feb168ca8fb": {
+     "original": "Russia",
+     "text": "روسيا"
+    },
+    "f44a3e439143": {
+     "original": "Customers from Russia visiting the BOB-LIFT factory",
+     "text": "عملاء من روسيا يزورون مصنع BOB-LIFT"
+    },
+    "c89bc418c38d": {
+     "original": "South Africa",
+     "text": "جنوب أفريقيا"
+    },
+    "9936b46574ff": {
+     "original": "Customers from South Africa visiting the BOB-LIFT factory",
+     "text": "عملاء من جنوب أفريقيا يزورون مصنع BOB-LIFT"
+    },
+    "221cdfb73049": {
+     "original": "Turkey",
+     "text": "تركيا"
+    },
+    "3ee8336ac029": {
+     "original": "Customers from Turkey visiting the BOB-LIFT factory",
+     "text": "عملاء من تركيا يزورون مصنع BOB-LIFT"
+    },
+    "f253efe302d3": {
+     "original": "United States",
+     "text": "الولايات المتحدة"
+    },
+    "78428e5c858a": {
+     "original": "Customers from United States visiting the BOB-LIFT factory",
+     "text": "عملاء من الولايات المتحدة يزورون مصنع BOB-LIFT"
+    },
+    "9cbb6f79af08": {
+     "original": "Moment",
+     "text": "العزم"
+    },
+    "202274ee2510": {
+     "original": "BOB-LIFT assembly workshop in Xuzhou",
+     "text": "ورشة التجميع لدى BOB-LIFT في شوتشو"
+    },
+    "b567b164facc": {
+     "original": "BOB-LIFT technician assembling a crane column",
+     "text": "فني من BOB-LIFT يجمّع عمود رافعة"
+    },
+    "699976e6c2a2": {
+     "original": "Finishing a boom section in the BOB-LIFT workshop",
+     "text": "تشطيب قسم من الذراع في ورشة BOB-LIFT"
+    },
+    "d41fb7494e6f": {
+     "original": "The BOB-LIFT team",
+     "text": "فريق BOB-LIFT"
+    },
+    "fc23dd781c8f": {
+     "original": "Customers visiting the BOB-LIFT factory",
+     "text": "عملاء يزورون مصنع BOB-LIFT"
+    },
+    "27eb94947d38": {
+     "original": "Site search",
+     "text": "البحث في الموقع"
+    },
+    "9d69a22e63cd": {
+     "original": "Search the site",
+     "text": "ابحث في الموقع"
+    },
+    "9c0441ba711b": {
+     "original": "Search products and articles",
+     "text": "ابحث في المنتجات والمقالات"
+    },
+    "fec2c023e805": {
+     "original": "Search a model, crane type or topic",
+     "text": "ابحث عن طراز أو نوع رافعة أو موضوع"
+    },
+    "13348442cc6a": {
+     "original": "Search",
+     "text": "بحث"
+    },
+    "709790dfcc95": {
+     "original": "Browse by category",
+     "text": "تصفح حسب الفئة"
+    },
+    "eb6b06cab0dd": {
+     "original": "Search results",
+     "text": "نتائج البحث"
+    },
+    "75152db39be4": {
+     "original": "Results for “{query}”",
+     "text": "نتائج البحث عن “{query}”"
+    },
+    "06eceff938af": {
+     "original": "{count} results",
+     "text": "{count} نتيجة"
+    },
+    "a22425b39b96": {
+     "original": "Search BOB-LIFT",
+     "text": "ابحث في BOB-LIFT"
+    },
+    "9072ad5c494e": {
+     "original": "Enter a model number such as {example}, a crane type or a topic.",
+     "text": "أدخل رقم طراز مثل {example}، أو نوع رافعة، أو موضوعًا."
+    },
+    "f60f2bf8117c": {
+     "original": "All results",
+     "text": "جميع النتائج"
+    },
+    "068f80c7519d": {
+     "original": "Products",
+     "text": "المنتجات"
+    },
+    "c89acba311be": {
+     "original": "View all {count}",
+     "text": "عرض الكل ({count})"
+    },
+    "d1a64d45b5de": {
+     "original": "No results for “{query}”",
+     "text": "لا توجد نتائج لـ “{query}”"
+    },
+    "1ec2b9cfb953": {
+     "original": "Check the model number or try a shorter keyword. You can also browse the categories below.",
+     "text": "تحقق من رقم الطراز أو جرّب كلمة بحث أقصر. يمكنك أيضًا تصفح الفئات أدناه."
+    },
+    "71b47f7d2a4b": {
+     "original": "Not sure which crane fits?",
+     "text": "لست متأكدًا من الرافعة المناسبة؟"
+    },
+    "b7499573cf1e": {
+     "original": "Tell us the load, reach and vehicle or vessel, and our engineers will recommend a model.",
+     "text": "أخبرنا بالحمولة والمدى والمركبة أو السفينة، وسيوصي مهندسونا بالطراز المناسب."
+    },
+    "46b1e7cb4d4a": {
+     "original": "Ask an engineer",
+     "text": "اسأل مهندسًا"
+    },
+    "60d583f28deb": {
+     "original": "Search: {query} | BOB-LIFT",
+     "text": "بحث: {query} | BOB-LIFT"
+    },
+    "d0ba22526f88": {
+     "original": "Search | BOB-LIFT",
+     "text": "بحث | BOB-LIFT"
+    },
+    "66d5ec0ff983": {
+     "original": "Search pagination",
+     "text": "ترقيم صفحات نتائج البحث"
+    },
+    "2cee66826607": {
+     "original": "Lifting Moment",
+     "text": "عزم الرفع"
+    },
+    "3842800adc65": {
+     "original": "Crane Self Weight",
+     "text": "الوزن الذاتي للرافعة"
+    },
+    "9e1c0eb78356": {
+     "original": "Up to 1 t",
+     "text": "حتى 1 t"
+    },
+    "0e3865348796": {
+     "original": "Up to 2 t",
+     "text": "حتى 2 t"
+    },
+    "9280ab833896": {
+     "original": "2–5 t",
+     "text": "2–5 t"
+    },
+    "6f984878274e": {
+     "original": "Over 20 t",
+     "text": "أكثر من 20 t"
+    },
+    "9876d382ab37": {
+     "original": "Up to 5 t·m",
+     "text": "حتى 5 t·m"
+    },
+    "61eeb887989f": {
+     "original": "Over 40 t·m",
+     "text": "أكثر من 40 t·m"
+    },
+    "662583479228": {
+     "original": "Up to 1,000 kg",
+     "text": "حتى 1,000 kg"
+    },
+    "916f3b505b1e": {
+     "original": "Over 5,000 kg",
+     "text": "أكثر من 5,000 kg"
+    },
+    "5cd2695539f3": {
+     "original": "Dimension Drawing",
+     "text": "الرسم البعدي"
+    },
+    "0ffe60a58ef3": {
+     "original": "Dimensions and load chart",
+     "text": "الأبعاد وجدول الأحمال"
+    },
+    "6c508cf81b5e": {
+     "original": "Select the drawing to view it full size.",
+     "text": "اختر الرسم لعرضه بالحجم الكامل."
+    },
+    "cd64bf8d49ce": {
+     "original": "Manufacturing & delivery",
+     "text": "التصنيع والتسليم"
+    },
+    "1c24240f62e4": {
+     "original": "From our workshop to your port",
+     "text": "من ورشتنا إلى مينائك"
+    },
+    "d75c45e11c8a": {
+     "original": "Assembly",
+     "text": "التجميع"
+    },
+    "5da06c031e57": {
+     "original": "Load test",
+     "text": "اختبار التحميل"
+    },
+    "c68a829d01b4": {
+     "original": "Final check",
+     "text": "الفحص النهائي"
+    },
+    "c46192253e84": {
+     "original": "Packing",
+     "text": "التغليف"
+    },
+    "8e117e0294de": {
+     "original": "Container loading",
+     "text": "التحميل في الحاويات"
+    },
+    "4aec7eeecd8a": {
+     "original": "Marine test stand",
+     "text": "منصة اختبار الرافعات البحرية"
+    },
+    "9f22af945b67": {
+     "original": "Mounted on a deck-style stand, the crane runs every boom and slewing motion before release.",
+     "text": "تُركَّب الرافعة على منصة تحاكي سطح السفينة، وتؤدي جميع حركات الذراع والدوران قبل اعتمادها."
+    },
+    "cae82416a8d3": {
+     "original": "Boom sections",
+     "text": "أقسام الذراع"
+    },
+    "8d90545b8308": {
+     "original": "Slewing base, column and booms are assembled by hand in our Xuzhou workshop.",
+     "text": "تُجمَّع قاعدة الدوران والعمود والأذرع يدويًا في ورشتنا في شوتشو."
+    },
+    "c8ea8726457f": {
+     "original": "The crane lifts test weights through its working range before release.",
+     "text": "ترفع الرافعة أوزان الاختبار عبر كامل نطاق عملها قبل اعتمادها."
+    },
+    "ae53590a32be": {
+     "original": "Finished cranes are inspected and lined up for dispatch.",
+     "text": "تُفحص الرافعات المكتملة وتُصفّ استعدادًا للشحن."
+    },
+    "68932986f227": {
+     "original": "Wrapped in film and strapped to protect paint and hydraulics in transit.",
+     "text": "تُلف بغشاء وتُربط لحماية الطلاء والأنظمة الهيدروليكية أثناء النقل."
+    },
+    "727755a4a5be": {
+     "original": "Loaded into containers at the factory and shipped to your port.",
+     "text": "تُحمَّل في الحاويات داخل المصنع وتُشحن إلى مينائك."
+    },
+    "2d28a7c4eda7": {
+     "original": "Telescopic boom sections are finished and fitted before assembly.",
+     "text": "تُشطَّب أقسام الذراع التلسكوبية وتُركَّب قبل التجميع."
+    },
+    "0abb6306e764": {
+     "original": "Columns, winches and control valves are assembled in our Xuzhou workshop.",
+     "text": "تُجمَّع الأعمدة والونشات وصمامات التحكم في ورشتنا في شوتشو."
+    },
+    "5ae0c1c8a526": {
+     "original": "photo",
+     "text": "صورة"
+    },
+    "421b47ffd946": {
+     "original": "video",
+     "text": "فيديو"
+    },
+    "4d5259366fe0": {
+     "original": "Where this crane works",
+     "text": "أين تعمل هذه الرافعة"
+    },
+    "f206e4be4b33": {
+     "original": "Photos and videos from customers",
+     "text": "صور وفيديوهات من العملاء"
+    },
+    "e6386513ed8d": {
+     "original": "All customer feedback",
+     "text": "جميع آراء العملاء"
+    },
+    "eccaad13d49e": {
+     "original": "Brochures",
+     "text": "الكتيّبات"
+    },
+    "ff4b156bb065": {
+     "original": "Download the BOB-LIFT brochures",
+     "text": "حمّل كتيّبات BOB-LIFT"
+    },
+    "a7f124ca84ef": {
+     "original": "Download the brochure for this range",
+     "text": "حمّل كتيّب هذه الفئة"
+    },
+    "f255ea22a877": {
+     "original": "Load charts, dimension drawings and specification tables for each crane family, as a PDF you can save, print or forward.",
+     "text": "جداول الأحمال والرسومات البعدية وجداول المواصفات لكل عائلة رافعات، في ملف PDF يمكنك حفظه أو طباعته أو إعادة إرساله."
+    },
+    "2607298669ac": {
+     "original": "Download PDF",
+     "text": "تنزيل PDF"
+    },
+    "f90b45dfc84e": {
+     "original": "Email me a copy",
+     "text": "أرسل لي نسخة بالبريد الإلكتروني"
+    },
+    "2c2c1629af42": {
+     "original": "{count} pages",
+     "text": "{count} صفحة"
+    },
+    "5b6dbc1ada7c": {
+     "original": "{title} cover",
+     "text": "غلاف {title}"
+    },
+    "6d54f21ed192": {
+     "original": "Download {title} as PDF",
+     "text": "تنزيل {title} بصيغة PDF"
+    },
+    "92e4bf7cbaa7": {
+     "original": "Download the PDF now",
+     "text": "نزّل ملف PDF الآن"
+    },
+    "11718f188cc2": {
+     "original": "No email needed. The file opens straight away, or leave your email below and we will also send you the link.",
+     "text": "لا حاجة إلى بريد إلكتروني. يُفتح الملف مباشرة، أو اترك بريدك أدناه وسنرسل إليك الرابط أيضًا."
+    },
+    "57484c9294fa": {
+     "original": "Truck Mounted Cranes Brochure",
+     "text": "كتيّب الرافعات المحمولة على شاحنات"
+    },
+    "7892e1ff1206": {
+     "original": "Knuckle boom and telescopic truck mounted cranes, timber cranes, fly jibs and attachments, with load charts and dimensions.",
+     "text": "رافعات محمولة على شاحنات بذراع مفصلية وتلسكوبية، ورافعات أخشاب، وأذرع تطويل وملحقات، مع جداول الأحمال والأبعاد."
+    },
+    "bdb3b9497245": {
+     "original": "Marine Cranes Brochure",
+     "text": "كتيّب الرافعات البحرية"
+    },
+    "e39e5dd59203": {
+     "original": "Knuckle boom and telescopic marine cranes with load charts, dimension drawings, power systems and project cases.",
+     "text": "رافعات بحرية بذراع مفصلية وتلسكوبية مع جداول الأحمال والرسومات البعدية وأنظمة الطاقة ودراسات حالة المشاريع."
+    },
+    "7c6e8443a16f": {
+     "original": "Spider Cranes Brochure",
+     "text": "كتيّب الرافعات العنكبوتية"
+    },
+    "b1c5abba5944": {
+     "original": "Compact crawler spider cranes from the BLS and BLZ series, with working radius, lifting height and weight.",
+     "text": "رافعات عنكبوتية مدمجة على جنازير من سلسلتي BLS وBLZ، مع نصف قطر العمل وارتفاع الرفع والوزن."
+    },
+    "6a5ff35a3623": {
+     "original": "Phone / WhatsApp",
+     "text": "الهاتف / WhatsApp"
+    },
+    "09c70bc98d0a": {
+     "original": "Office phone",
+     "text": "هاتف المكتب"
+    },
+    "8690a3da6423": {
+     "original": "Talk to BOB-LIFT before choosing a crane.",
+     "text": "تحدّث إلى BOB-LIFT قبل اختيار الرافعة."
+    },
+    "5bca6d3bbb91": {
+     "original": "Start chat",
+     "text": "ابدأ المحادثة"
+    },
+    "caa086750367": {
+     "original": "Tell us the load, working radius and the truck or vessel it goes on. Our engineers recommend a crane and send a quotation.",
+     "text": "أخبرنا بالحمولة ونصف قطر العمل والشاحنة أو السفينة التي ستُركَّب عليها الرافعة. سيوصي مهندسونا برافعة مناسبة ويرسلون عرض سعر."
+    },
+    "69fc190da3da": {
+     "original": "The BOB-LIFT factory gate in Xuzhou",
+     "text": "بوابة مصنع BOB-LIFT في شوتشو"
+    },
+    "f11b6a3aa395": {
+     "original": "Direct contact",
+     "text": "تواصل مباشر"
+    },
+    "01c3c4d5f153": {
+     "original": "WeChat ID",
+     "text": "معرّف WeChat"
+    },
+    "04fe80542e3e": {
+     "original": "Usually replies within 24 hours.",
+     "text": "نرد عادةً خلال 24 ساعة."
+    },
+    "187f0423cb4d": {
+     "original": "Scan the code or search the ID. Best for China-side contact.",
+     "text": "امسح الرمز أو ابحث عن المعرّف. الأنسب للتواصل من داخل الصين."
+    },
+    "5a40a9fd01b6": {
+     "original": "Send drawings, photos or a full requirement list.",
+     "text": "أرسل الرسومات أو الصور أو قائمة متطلبات كاملة."
+    },
+    "7073181bcc47": {
+     "original": "Call during our working hours.",
+     "text": "اتصل بنا خلال ساعات العمل."
+    },
+    "25c6654094a8": {
+     "original": "Chat on WhatsApp",
+     "text": "تحدّث عبر WhatsApp"
+    },
+    "42ef0cd7669d": {
+     "original": "Copy WeChat ID",
+     "text": "نسخ معرّف WeChat"
+    },
+    "a588b1abc58b": {
+     "original": "Copied",
+     "text": "تم النسخ"
+    },
+    "0af250377d49": {
+     "original": "Send an email",
+     "text": "أرسل بريدًا إلكترونيًا"
+    },
+    "f5b2524042a6": {
+     "original": "Call now",
+     "text": "اتصل الآن"
+    },
+    "23a5151445e0": {
+     "original": "Working hours",
+     "text": "ساعات العمل"
+    },
+    "a7eb082e5bd8": {
+     "original": "Monday to Friday, 8:30 AM–6:00 PM Beijing time (UTC+8). Messages sent outside these hours are answered the next working day.",
+     "text": "من الاثنين إلى الجمعة، 8:30 صباحًا – 6:00 مساءً بتوقيت بكين (UTC+8). يُرد على الرسائل المرسلة خارج هذه الساعات في يوم العمل التالي."
+    },
+    "3180ec855b21": {
+     "original": "Send an inquiry",
+     "text": "أرسل استفسارًا"
+    },
+    "f6cfbe825bc1": {
+     "original": "After you send",
+     "text": "بعد الإرسال"
+    },
+    "a273f1bc1864": {
+     "original": "What happens next",
+     "text": "ماذا يحدث بعد ذلك"
+    },
+    "ff01debddcca": {
+     "original": "We reply within 24 hours",
+     "text": "نرد خلال 24 ساعة"
+    },
+    "e14aa5552620": {
+     "original": "A sales engineer reads your inquiry and answers the way you contacted us.",
+     "text": "يقرأ مهندس مبيعات استفسارك ويرد عليك بالوسيلة التي تواصلت بها معنا."
+    },
+    "23dd7090c380": {
+     "original": "Our engineer confirms the details",
+     "text": "يؤكد مهندسنا التفاصيل"
+    },
+    "1783886e10ff": {
+     "original": "Load, working radius, and the truck chassis or vessel the crane will be fitted to.",
+     "text": "الحمولة ونصف قطر العمل وهيكل الشاحنة أو السفينة التي ستُركَّب عليها الرافعة."
+    },
+    "c7a68452f02f": {
+     "original": "You receive a quotation",
+     "text": "تتلقى عرض السعر"
+    },
+    "175b0c80aa58": {
+     "original": "With drawings and the delivery time for your order.",
+     "text": "مع الرسومات ومدة التسليم لطلبيتك."
+    },
+    "df2886634dd2": {
+     "original": "Prefer to talk first?",
+     "text": "تفضّل التحدث أولًا؟"
+    },
+    "7566bc0e31b0": {
+     "original": "Message us on WhatsApp and describe your job in a few lines.",
+     "text": "راسلنا عبر WhatsApp وصف عملك في بضعة أسطر."
+    },
+    "5be5914bbe0f": {
+     "original": "Open WhatsApp",
+     "text": "افتح WhatsApp"
+    },
+    "68cc47c28153": {
+     "original": "Factory location",
+     "text": "موقع المصنع"
+    },
+    "3bc334228d3b": {
+     "original": "Visit our factory in Xuzhou",
+     "text": "زر مصنعنا في شوتشو"
+    },
+    "e1b785a698d6": {
+     "original": "Aerial view of the BOB-LIFT factory site in Xuzhou",
+     "text": "منظر جوي لموقع مصنع BOB-LIFT في شوتشو"
+    },
+    "e7af338c57e5": {
+     "original": "BOB-LIFT builds its cranes in Xuzhou, Jiangsu, China. Buyers are welcome to see production and testing in person. Please tell us your dates in advance so we can arrange a visit.",
+     "text": "تُصنِّع BOB-LIFT رافعاتها في شوتشو بمقاطعة جيانغسو في الصين. يسعدنا أن يطّلع المشترون على الإنتاج والاختبار بأنفسهم. يُرجى إبلاغنا بمواعيدك مسبقًا لنرتّب الزيارة."
+    },
+    "dd7bf230fde8": {
+     "original": "Address",
+     "text": "العنوان"
+    },
+    "4d60ab2c6d11": {
+     "original": "Google Maps",
+     "text": "خرائط Google"
+    },
+    "85470e8ddea6": {
+     "original": "Amap",
+     "text": "Amap"
+    },
+    "1241d82bd9e7": {
+     "original": "Baidu Maps",
+     "text": "خرائط Baidu"
+    },
+    "e6b1575bd484": {
+     "original": "See the factory before you visit",
+     "text": "تعرّف على المصنع قبل زيارتك"
+    },
+    "b81f1674c097": {
+     "original": "Factory tour",
+     "text": "جولة في المصنع"
+    },
+    "4327ce0b73ce": {
+     "original": "Global customer visits",
+     "text": "زيارات العملاء من حول العالم"
+    },
+    "22db73c4bd0f": {
+     "original": "Follow BOB-LIFT",
+     "text": "تابع BOB-LIFT"
+    },
+    "c366c3f8e47c": {
+     "original": "Factory updates, deliveries and customer visits on our social channels.",
+     "text": "أخبار المصنع وعمليات التسليم وزيارات العملاء على قنواتنا في وسائل التواصل الاجتماعي."
+    },
+    "d79f21ca9187": {
+     "original": "All social media",
+     "text": "جميع وسائل التواصل الاجتماعي"
+    },
+    "23bc9bf3689d": {
+     "original": "On this page",
+     "text": "في هذه الصفحة"
+    },
+    "93811724b85c": {
+     "original": "Questions about this page?",
+     "text": "لديك أسئلة حول هذه الصفحة؟"
+    },
+    "da663734573e": {
+     "original": "Write to us and we will reply by email.",
+     "text": "راسلنا وسنرد عليك عبر البريد الإلكتروني."
+    },
+    "2c5a9165c71e": {
+     "original": "Contact page",
+     "text": "صفحة الاتصال"
+    },
+    "a52f60aff1e1": {
+     "original": "Related documents",
+     "text": "مستندات ذات صلة"
+    },
+    "fa2ead697d99": {
+     "original": "Privacy Policy",
+     "text": "سياسة الخصوصية"
+    },
+    "985a4b720f9b": {
+     "original": "Terms of Use",
+     "text": "شروط الاستخدام"
+    },
+    "5813ce0ec719": {
+     "original": "Sitemap",
+     "text": "خريطة الموقع"
+    },
+    "1c76cbfe21c6": {
+     "original": "Company",
+     "text": "الشركة"
+    },
+    "8daa1b693e01": {
+     "original": "Service and support",
+     "text": "الخدمة والدعم"
+    },
+    "7f9e0fe786dd": {
+     "original": "Products, cases and news",
+     "text": "المنتجات ودراسات الحالة والأخبار"
+    },
+    "a10a9bcd4500": {
+     "original": "Legal",
+     "text": "الشؤون القانونية"
+    },
+    "074d46f7459b": {
+     "original": "Customer cases",
+     "text": "دراسات حالة العملاء"
+    },
+    "386e86eccef7": {
+     "original": "All news",
+     "text": "جميع الأخبار"
+    },
+    "f49b99c912d0": {
+     "original": "All cases",
+     "text": "جميع دراسات الحالة"
+    },
+    "039525b3bda0": {
+     "original": "{count} products",
+     "text": "{count} منتج"
+    },
+    "5b3ca3301f08": {
+     "original": "Truck mounted crane",
+     "text": "رافعة محمولة على شاحنة"
+    },
+    "12cbed5f8d99": {
+     "original": "{capacity} t capacity class",
+     "text": "فئة الحمولة {capacity} t"
+    },
+    "fc3136dd73f0": {
+     "original": "Knuckle boom",
+     "text": "ذراع مفصلية"
+    },
+    "63ee0e62b93f": {
+     "original": "Telescopic boom",
+     "text": "ذراع تلسكوبية"
+    },
+    "5670d3a85541": {
+     "original": "1 main boom + 1 hydraulic boom",
+     "text": "ذراع رئيسية واحدة + ذراع هيدروليكية واحدة"
+    },
+    "813cc0c2f028": {
+     "original": "1 main boom + {count} hydraulic booms",
+     "text": "ذراع رئيسية واحدة + {count} أذرع هيدروليكية"
+    },
+    "408013ee31d2": {
+     "original": "Marine version",
+     "text": "النسخة البحرية"
+    },
+    "0c144a6f95c6": {
+     "original": "With winch",
+     "text": "مع ونش"
+    },
+    "d99e08dda700": {
+     "original": "Flip-over outriggers",
+     "text": "أرجل تثبيت قابلة للقلب"
+    },
+    "8a74f362d82c": {
+     "original": "Forklift fly jib crane",
+     "text": "رافعة ذراع تطويل للرافعة الشوكية"
+    },
+    "f1570a695da2": {
+     "original": "Maximum lifting height class",
+     "text": "فئة أقصى ارتفاع رفع"
+    },
+    "937ed93c2850": {
+     "original": "How model names work",
+     "text": "كيف تُسمّى الطرازات"
+    },
+    "98107abbc2dc": {
+     "original": "How to read a model name",
+     "text": "كيف تقرأ اسم الطراز"
+    },
+    "5580c07790c4": {
+     "original": "The name tells you what the crane is.",
+     "text": "يخبرك الاسم بنوع الرافعة."
+    },
+    "d042d1735da1": {
+     "original": "SQ8ZA5 is an 8 t class knuckle boom truck crane with one main boom and four hydraulic booms. SQ8ZA6TJ is the marine version with a winch.",
+     "text": "SQ8ZA5 رافعة شاحنة بذراع مفصلية من فئة 8 t، بذراع رئيسية واحدة وأربع أذرع هيدروليكية. أما SQ8ZA6TJ فهي النسخة البحرية المزوّدة بونش."
+    },
+    "b966a8db6e59": {
+     "original": "Forklift fly jib cranes",
+     "text": "رافعات ذراع تطويل للرافعات الشوكية"
+    },
+    "82d1965569cc": {
+     "original": "Capacity class in tons (08 = 0.8 t)",
+     "text": "فئة الحمولة بالطن (08 = 0.8 t)"
+    },
+    "2f155915f0c3": {
+     "original": "Z knuckle boom, S telescopic boom",
+     "text": "Z ذراع مفصلية، S ذراع تلسكوبية"
+    },
+    "379da8a4050b": {
+     "original": "Boom count: 1 main boom + 4 hydraulic booms",
+     "text": "عدد الأذرع: ذراع رئيسية واحدة + 4 أذرع هيدروليكية"
+    },
+    "8920f4fc8eac": {
+     "original": "Marine version of the truck crane model",
+     "text": "النسخة البحرية من طراز رافعة الشاحنة"
+    },
+    "4adb3b43b1c7": {
+     "original": "Truck Mounting & Export",
+     "text": "التركيب على الشاحنات والتصدير"
+    },
+    "d93c32c3a71f": {
+     "original": "From chassis to container",
+     "text": "من الهيكل إلى الحاوية"
+    },
+    "5ba7f07b3c3f": {
+     "original": "See how a BOB-LIFT crane is mounted on a truck chassis in our workshop, and how cranes are wrapped and loaded for export.",
+     "text": "شاهد كيف تُركَّب رافعة BOB-LIFT على هيكل شاحنة في ورشتنا، وكيف تُغلَّف الرافعات وتُحمَّل للتصدير."
+    },
+    "a4994d25c12f": {
+     "original": "BOB-LIFT knuckle boom crane mounted on a white truck chassis in the workshop",
+     "text": "رافعة BOB-LIFT بذراع مفصلية مركّبة على هيكل شاحنة أبيض في الورشة"
+    },
+    "ce5bca129266": {
+     "original": "Step {number}",
+     "text": "الخطوة {number}"
+    },
+    "98fa4719c219": {
+     "original": "Truck mounting",
+     "text": "التركيب على الشاحنة"
+    },
+    "98250b440ca3": {
+     "original": "Mounting a crane on a truck chassis",
+     "text": "تركيب رافعة على هيكل شاحنة"
+    },
+    "16ab461f84a0": {
+     "original": "Lift the crane onto the chassis",
+     "text": "رفع الرافعة إلى الهيكل"
+    },
+    "d46733ada32d": {
+     "original": "An overhead hoist holds the crane while it is placed on the truck frame in the workshop.",
+     "text": "تحمل رافعة علوية الرافعةَ أثناء وضعها على إطار الشاحنة في الورشة."
+    },
+    "cfa4a57171bd": {
+     "original": "Fix the crane to the frame",
+     "text": "تثبيت الرافعة على الإطار"
+    },
+    "1fa419d0a6a3": {
+     "original": "Technicians work under the cab to secure the crane base to the chassis.",
+     "text": "يعمل الفنيون أسفل المقصورة لتثبيت قاعدة الرافعة على الهيكل."
+    },
+    "93901b64645d": {
+     "original": "Fit the support frame",
+     "text": "تركيب إطار الدعم"
+    },
+    "703fd85bac09": {
+     "original": "The support frame and its fittings are installed underneath the cargo body.",
+     "text": "يُركَّب إطار الدعم وملحقاته أسفل صندوق الشحن."
+    },
+    "a642e6ac25d4": {
+     "original": "Check the finished truck",
+     "text": "فحص الشاحنة المكتملة"
+    },
+    "dc6a082c2300": {
+     "original": "The crane stands complete on the truck with its boom raised for inspection.",
+     "text": "تقف الرافعة مكتملة على الشاحنة وذراعها مرفوعة للفحص."
+    },
+    "67e569a94ae6": {
+     "original": "Packing and loading",
+     "text": "التغليف والتحميل"
+    },
+    "50100fef749a": {
+     "original": "Packing and container loading",
+     "text": "التغليف والتحميل في الحاويات"
+    },
+    "e7fd2dcd4cd0": {
+     "original": "Line up the order",
+     "text": "تجهيز الطلبية"
+    },
+    "58885912161b": {
+     "original": "Every crane in an order is tested, set on its base or a pallet and lined up in the hall before packing.",
+     "text": "تُختبر كل رافعة في الطلبية وتُثبَّت على قاعدتها أو على منصة نقالة وتُصفّ في الصالة قبل التغليف."
+    },
+    "581c5b285dc6": {
+     "original": "Wrap the crane",
+     "text": "تغليف الرافعة"
+    },
+    "225070844eeb": {
+     "original": "Cranes that ship without a chassis are wrapped in stretch film before they leave the workshop.",
+     "text": "تُلف الرافعات التي تُشحن بدون هيكل شاحنة بغشاء مطاطي قبل مغادرة الورشة."
+    },
+    "e3d001ca3d2d": {
+     "original": "Load the container",
+     "text": "تحميل الحاوية"
+    },
+    "d47cb9390e3c": {
+     "original": "A hoist or a forklift moves each packed crane into the container.",
+     "text": "تنقل رافعة علوية أو رافعة شوكية كل رافعة مغلّفة إلى داخل الحاوية."
+    },
+    "f5f87c32e6e3": {
+     "original": "Before we quote",
+     "text": "قبل تقديم عرض السعر"
+    },
+    "aae24dfa5b45": {
+     "original": "What our sales team will ask you",
+     "text": "ما سيسألك عنه فريق المبيعات"
+    },
+    "4129cad2ace2": {
+     "original": "Answer these questions in your inquiry and our sales team will go through the options with you.",
+     "text": "أجب عن هذه الأسئلة في استفسارك، وسيستعرض فريق المبيعات الخيارات معك."
+    },
+    "b0044046fad6": {
+     "original": "Which truck or chassis will carry the crane?",
+     "text": "ما الشاحنة أو الهيكل الذي سيحمل الرافعة؟"
+    },
+    "2ca9643fade2": {
+     "original": "Which port or country is it going to?",
+     "text": "إلى أي ميناء أو دولة ستُشحن؟"
+    },
+    "4789d7d2cc52": {
+     "original": "Will the crane ship on its own or mounted on a chassis?",
+     "text": "هل ستُشحن الرافعة منفردة أم مركّبة على هيكل؟"
+    },
+    "e16637258ffb": {
+     "original": "Which crane model and lifting capacity do you need?",
+     "text": "ما طراز الرافعة وقدرة الرفع التي تحتاجها؟"
+    },
+    "1499147e96b9": {
+     "original": "Planning a truck-mounted order?",
+     "text": "تخطط لطلب رافعة محمولة على شاحنة؟"
+    },
+    "7a6ced04c06a": {
+     "original": "Tell us the chassis, the destination and the crane model. Our sales team will get back to you.",
+     "text": "أخبرنا بالهيكل والوجهة وطراز الرافعة، وسيتواصل معك فريق المبيعات."
+    },
+    "b5527e797294": {
+     "original": "Service & Operation",
+     "text": "الخدمة والتشغيل"
+    },
+    "6c851d837ab7": {
+     "original": "Support and operation guidance",
+     "text": "الدعم وإرشادات التشغيل"
+    },
+    "b73aae121c23": {
+     "original": "Hear from our after-sales team, then follow two short guides on checking and operating a BOB-LIFT crane.",
+     "text": "استمع إلى فريق ما بعد البيع، ثم تابع دليلين قصيرين حول فحص رافعة BOB-LIFT وتشغيلها."
+    },
+    "9847a0953dd0": {
+     "original": "Finished BOB-LIFT cranes in a row in the assembly hall",
+     "text": "رافعات BOB-LIFT مكتملة مصطفّة في صالة التجميع"
+    },
+    "581c926530e4": {
+     "original": "After-sales",
+     "text": "ما بعد البيع"
+    },
+    "bd4a32d09bec": {
+     "original": "After-sales support",
+     "text": "دعم ما بعد البيع"
+    },
+    "0c99d92f5e2a": {
+     "original": "Our after-sales team talks about long-term use, basic checks, maintenance needs and common parts.",
+     "text": "يتحدث فريق ما بعد البيع عن الاستخدام طويل الأمد والفحوصات الأساسية ومتطلبات الصيانة وقطع الغيار الشائعة."
+    },
+    "03955d5c23cf": {
+     "original": "Operation guide",
+     "text": "دليل التشغيل"
+    },
+    "acf1d8a3c74e": {
+     "original": "Check first, then lift",
+     "text": "افحص أولًا، ثم ارفع"
+    },
+    "1a2487ce77f1": {
+     "original": "Two short videos from our team on what to check before a lift and what to watch during it.",
+     "text": "فيديوهان قصيران من فريقنا حول ما يجب فحصه قبل الرفع وما يجب مراقبته أثناءه."
+    },
+    "783c70310289": {
+     "original": "Before operation",
+     "text": "قبل التشغيل"
+    },
+    "5acf0a9fd25a": {
+     "original": "During operation",
+     "text": "أثناء التشغيل"
+    },
+    "60d8e634d425": {
+     "original": "Make sure the ground is flat and solid",
+     "text": "تأكد من أن الأرض مستوية وصلبة"
+    },
+    "ee028e41cd17": {
+     "original": "Outriggers in place and stable",
+     "text": "أرجل التثبيت في مكانها ومستقرة"
+    },
+    "4c216bc9db2e": {
+     "original": "Check hydraulic pipes and connections",
+     "text": "افحص الأنابيب والوصلات الهيدروليكية"
+    },
+    "f4b7ead38e48": {
+     "original": "Check that the controls respond normally",
+     "text": "تأكد من استجابة أدوات التحكم بشكل طبيعي"
+    },
+    "d2e6685a585a": {
+     "original": "Do not lift before the outriggers are stable",
+     "text": "لا ترفع قبل أن تستقر أرجل التثبيت"
+    },
+    "5c4831fed2d0": {
+     "original": "Keep the work area clear during lifting",
+     "text": "أبقِ منطقة العمل خالية أثناء الرفع"
+    },
+    "9fc520df6b8e": {
+     "original": "Overloading affects stability and safety",
+     "text": "التحميل الزائد يؤثر في الثبات والسلامة"
+    },
+    "cd5856a186f8": {
+     "original": "Do not pull sideways or let people near danger zones",
+     "text": "لا تسحب الحمل جانبيًا ولا تسمح للأشخاص بالاقتراب من مناطق الخطر"
+    },
+    "8d09fdd99b28": {
+     "original": "Support channels",
+     "text": "قنوات الدعم"
+    },
+    "cc2c7bd5ebd9": {
+     "original": "Talk to our team",
+     "text": "تحدّث إلى فريقنا"
+    },
+    "b9960cf8f44b": {
+     "original": "Send us your crane model and a short description of your question.",
+     "text": "أرسل إلينا طراز رافعتك ووصفًا موجزًا لسؤالك."
+    },
+    "8b777ebcc503": {
+     "original": "WhatsApp",
+     "text": "WhatsApp"
+    },
+    "e5b152ed6b46": {
+     "original": "WeChat",
+     "text": "WeChat"
+    },
+    "ce8ae9da5b7c": {
+     "original": "Email",
+     "text": "البريد الإلكتروني"
+    },
+    "bcc254b55c4a": {
+     "original": "Phone",
+     "text": "الهاتف"
+    },
+    "bdae31e02a2b": {
+     "original": "Need help with your crane?",
+     "text": "تحتاج مساعدة بخصوص رافعتك؟"
+    },
+    "e520fa8e54ff": {
+     "original": "Tell us the model and what you need, and our team will get back to you.",
+     "text": "أخبرنا بالطراز وما تحتاجه، وسيتواصل معك فريقنا."
+    },
+    "d769c12ff82c": {
+     "original": "Checks before operating the crane",
+     "text": "الفحوصات قبل تشغيل الرافعة"
+    },
+    "bc184b900b6c": {
+     "original": "Operating the crane safely",
+     "text": "تشغيل الرافعة بأمان"
+    },
+    "45629605a716": {
+     "original": "Service and operation",
+     "text": "الخدمة والتشغيل"
+    },
+    "992a0f054238": {
+     "original": "Services",
+     "text": "الخدمات"
+    },
+    "6cc3d3125e57": {
+     "original": "Popular models",
+     "text": "الطرازات الأكثر طلبًا"
+    },
+    "1369182680ad": {
+     "original": "BOB-LIFT Editorial Team",
+     "text": "فريق تحرير BOB-LIFT"
+    },
+    "e5e25207f1ee": {
+     "original": "Written by our engineering and sales teams in Xuzhou, China.",
+     "text": "بقلم فريقي الهندسة والمبيعات لدينا في شوتشو، الصين."
+    },
+    "ff0a3b7f3dae": {
+     "original": "Updated",
+     "text": "آخر تحديث"
+    },
+    "9f3f7a0e0e2d": {
+     "original": "{minutes} min read",
+     "text": "قراءة في {minutes} دقيقة"
+    },
+    "9ef3325f6cfd": {
+     "original": "In this article",
+     "text": "في هذا المقال"
+    },
+    "4a71d6b0f382": {
+     "original": "Products in this article",
+     "text": "المنتجات الواردة في هذا المقال"
+    },
+    "bca54823c9ea": {
+     "original": "View all products",
+     "text": "عرض جميع المنتجات"
+    },
+    "b5c2c519d635": {
+     "original": "Questions about this topic?",
+     "text": "لديك أسئلة حول هذا الموضوع؟"
+    },
+    "ad86029c757d": {
+     "original": "Tell us your truck, vessel or job site and our team will recommend a crane.",
+     "text": "أخبرنا بشاحنتك أو سفينتك أو موقع عملك، وسيوصي فريقنا بالرافعة المناسبة."
+    },
+    "c69dff324e81": {
+     "original": "More news",
+     "text": "مزيد من الأخبار"
+    },
+    "3a696eb77d12": {
+     "original": "Crane attachments",
+     "text": "ملحقات الرافعات"
+    },
+    "b538e0980ff6": {
+     "original": "Other lifting equipment",
+     "text": "معدات رفع أخرى"
+    },
+    "44fe028b3c5d": {
+     "original": "Lifting equipment site of the BOB-LIFT Group",
+     "text": "موقع معدات الرفع التابع لمجموعة BOB-LIFT"
+    },
+    "14b1da5c1614": {
+     "original": "Meet us at trade shows",
+     "text": "قابلنا في المعارض التجارية"
+    },
+    "76761ccf3805": {
+     "original": "You can also see BOB-LIFT cranes at international trade shows. Upcoming shows are announced on our group site.",
+     "text": "يمكنك أيضًا مشاهدة رافعات BOB-LIFT في المعارض التجارية الدولية. نعلن عن المعارض القادمة على موقع المجموعة."
+    },
+    "4b46bdc3ec94": {
+     "original": "Canton Fair",
+     "text": "معرض كانتون"
+    },
+    "02474f51aff5": {
+     "original": "Guangzhou · Booth 4.0G18 · April 2026",
+     "text": "قوانغتشو · الجناح 4.0G18 · أبريل 2026"
+    },
+    "a5272c2417ed": {
+     "original": "Construction Indonesia",
+     "text": "معرض Construction Indonesia"
+    },
+    "5c7b2dc6363b": {
+     "original": "Jakarta · September 2026",
+     "text": "جاكرتا · سبتمبر 2026"
+    },
+    "74b3f839aead": {
+     "original": "Trade shows on boblift.com",
+     "text": "المعارض التجارية على boblift.com"
+    },
+    "5b884056dc40": {
+     "original": "Why Choose BOB-LIFT",
+     "text": "لماذا تختار BOB-LIFT"
+    },
+    "4389f1742669": {
+     "original": "Why customers choose BOB-LIFT cranes",
+     "text": "لماذا يختار العملاء رافعات BOB-LIFT"
+    },
+    "e53e3d500fa2": {
+     "original": "A crane factory in Xuzhou with its own production line, test bay and export team. Here is what stands behind every BOB-LIFT crane.",
+     "text": "مصنع رافعات في شوتشو يمتلك خط إنتاج ومنصة اختبار وفريق تصدير خاصًا به. إليك ما يقف وراء كل رافعة من BOB-LIFT."
+    },
+    "d691182eb95f": {
+     "original": "Finished BOB-LIFT cranes lined up in the assembly hall",
+     "text": "رافعات BOB-LIFT مكتملة مصطفّة في صالة التجميع"
+    },
+    "97f5ce4a27e3": {
+     "original": "Product Application",
+     "text": "تطبيقات المنتج"
+    },
+    "640b5bb2ab57": {
+     "original": "Built for jobs that lift and move materials",
+     "text": "مصمَّمة لأعمال رفع المواد ونقلها"
+    },
+    "2cf0ae4fcd0c": {
+     "original": "BOB-LIFT cranes work wherever materials need to be lifted and moved.",
+     "text": "تعمل رافعات BOB-LIFT في كل مكان يحتاج إلى رفع المواد ونقلها."
+    },
+    "779d4054288b": {
+     "original": "Urban construction",
+     "text": "البناء الحضري"
+    },
+    "004afc51e78e": {
+     "original": "Advertising installation",
+     "text": "تركيب اللوحات الإعلانية"
+    },
+    "7fb937035581": {
+     "original": "Electrical maintenance",
+     "text": "صيانة الشبكات الكهربائية"
+    },
+    "5f0dc45b510b": {
+     "original": "Working at height",
+     "text": "العمل على ارتفاعات"
+    },
+    "1e71217fb5fe": {
+     "original": "Port terminals",
+     "text": "محطات الموانئ"
+    },
+    "42faabf7330f": {
+     "original": "Factory workshops",
+     "text": "ورش المصانع"
+    },
+    "5fe7ee95057a": {
+     "original": "Construction sites",
+     "text": "مواقع البناء"
+    },
+    "f4456f0e2d35": {
+     "original": "See customer cases",
+     "text": "شاهد دراسات حالة العملاء"
+    },
+    "3dd36ef8de80": {
+     "original": "Our Certificate",
+     "text": "شهاداتنا"
+    },
+    "b44a55d70bb4": {
+     "original": "Certificates and patents",
+     "text": "الشهادات وبراءات الاختراع"
+    },
+    "2ce761334f37": {
+     "original": "CE, EAC, ISO 9001 and ISO 14001 certificates, our trademarks and our crane patents. Select a document to view it full size.",
+     "text": "شهادات CE وEAC وISO 9001 وISO 14001، وعلاماتنا التجارية وبراءات اختراع رافعاتنا. اختر مستندًا لعرضه بالحجم الكامل."
+    },
+    "c3cc9d3a7206": {
+     "original": "More on the About page",
+     "text": "المزيد في صفحة «من نحن»"
+    },
+    "d6e4150ed5a1": {
+     "original": "Close certificate preview",
+     "text": "إغلاق معاينة الشهادة"
+    },
+    "7837a348c471": {
+     "original": "Production Equipment",
+     "text": "معدات الإنتاج"
+    },
+    "eaa5eceb49df": {
+     "original": "Cutting, forming and machining in our own factory",
+     "text": "القص والتشكيل والتشغيل الآلي في مصنعنا"
+    },
+    "5e9144b68b22": {
+     "original": "Plasma and laser cutting, bending machines, drilling machines, boring machines and shot blasting machines prepare the steel before our assembly line builds and tests each crane.",
+     "text": "آلات القص بالبلازما والليزر، ومكابس الثني، وآلات الثقب، وآلات التجويف، وآلات السفع بالخردق تُجهّز الفولاذ قبل أن يُجمّع خط التجميع كل رافعة ويختبرها."
+    },
+    "e0d422d683a3": {
+     "original": "Workstations in the BOB-LIFT assembly hall",
+     "text": "محطات العمل في صالة التجميع لدى BOB-LIFT"
+    },
+    "21d0fcb17550": {
+     "original": "Take the factory tour",
+     "text": "قم بجولة في المصنع"
+    },
+    "efc011b89e70": {
+     "original": "Production Market",
+     "text": "أسواقنا"
+    },
+    "0afc65324569": {
+     "original": "Cranes at work around the world",
+     "text": "رافعات تعمل حول العالم"
+    },
+    "9cb50c66dec6": {
+     "original": "Our cranes are exported mainly to Asia, the Americas, Europe and Africa. Russia is one of our strongest markets, with more than 200 cranes delivered there.",
+     "text": "تُصدَّر رافعاتنا أساسًا إلى آسيا والأمريكتين وأوروبا وأفريقيا. وتُعد روسيا من أقوى أسواقنا، إذ سُلِّمت إليها أكثر من 200 رافعة."
+    },
+    "e17d85d0ae12": {
+     "original": "Customer visits to our factory",
+     "text": "زيارات العملاء لمصنعنا"
+    },
+    "9b74a7c9fd5f": {
+     "original": "Our Service",
+     "text": "خدماتنا"
+    },
+    "07be05d8f036": {
+     "original": "With you before, during and after the order",
+     "text": "معك قبل الطلب وأثناءه وبعده"
+    },
+    "1221a48a32b4": {
+     "original": "Pre-sales",
+     "text": "ما قبل البيع"
+    },
+    "030e4867a5f3": {
+     "original": "Our team uses its product knowledge to help you choose the right crane for your job and chassis.",
+     "text": "يوظّف فريقنا خبرته في المنتجات لمساعدتك على اختيار الرافعة المناسبة لعملك وهيكل شاحنتك."
+    },
+    "4797dafd700e": {
+     "original": "In-sales",
+     "text": "أثناء البيع"
+    },
+    "23758fa50f3f": {
+     "original": "We keep you updated on the progress of your order while it is built and tested.",
+     "text": "نُطلعك على تقدّم طلبيتك أثناء تصنيعها واختبارها."
+    },
+    "adf4b5865241": {
+     "original": "Technical guidance and after-sales support for installation and operation.",
+     "text": "إرشاد فني ودعم ما بعد البيع للتركيب والتشغيل."
+    },
+    "1c0fa97e2948": {
+     "original": "Service and operation guides",
+     "text": "أدلة الخدمة والتشغيل"
+    },
+    "979d50426920": {
+     "original": "Tell us about your lifting job.",
+     "text": "أخبرنا عن مهمة الرفع لديك."
+    },
+    "122375d406db": {
+     "original": "Send the load, the reach and your truck or vessel, and our sales team will suggest a crane.",
+     "text": "أرسل الحمولة والمدى وشاحنتك أو سفينتك، وسيقترح فريق المبيعات الرافعة المناسبة."
+    },
+    "c61ab4204f57": {
+     "original": "View products",
+     "text": "عرض المنتجات"
+    }
+   }
+  }
+ }
+}
