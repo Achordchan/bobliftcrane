@@ -366,9 +366,9 @@ if ($legacy_strength['cards'] !== [] || $legacy_strength['cta'] !== null || $leg
                 <div class="about-executive-aura pointer-events-none absolute inset-0"></div>
                 <div class="about-executive-watermark pointer-events-none absolute -end-10 top-4 text-[clamp(72px,12vw,230px)] font-black leading-none tracking-[-0.03em] text-[#0B3F7D]/[0.055]" data-executive-watermark><?php echo esc_html($about_ui['leadershipWatermark'] ?? 'LEADERSHIP'); ?></div>
                 <div class="relative z-10 mb-6 grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-end">
-                    <div data-executive-copy-item>
+                    <div class="lg:col-span-2" data-executive-copy-item>
                         <p class="mb-4 text-xs font-black uppercase tracking-[0.42em] text-[#0B3F7D]"><?php echo esc_html($executives['label'] ?? 'Executive Leadership'); ?></p>
-                        <h2 class="max-w-none whitespace-nowrap text-[clamp(34px,4.2vw,72px)] font-black leading-[1.02] tracking-[-0.015em] text-[#0B1B33]"><?php echo esc_html($executives['title'] ?? 'Leadership Team'); ?></h2>
+                        <h2 class="max-w-none text-[clamp(34px,4.2vw,72px)] [text-wrap:balance] font-black leading-[1.02] tracking-[-0.015em] text-[#0B1B33]"><?php echo esc_html($executives['title'] ?? 'Leadership Team'); ?></h2>
                     </div>
                 </div>
                 <div class="about-executive-grid relative z-10 grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:gap-5" data-executive-grid>
@@ -388,7 +388,7 @@ if ($legacy_strength['cards'] !== [] || $legacy_strength['cta'] !== null || $leg
                 <div class="about-executive-photo absolute inset-0 flex flex-col overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card" data-executive-photo aria-hidden="true">
                     <div class="relative z-10 shrink-0 px-5 pb-4 pt-5 md:px-7 md:pt-7 lg:px-8 lg:pt-8 2xl:px-10 2xl:pt-10">
                         <p class="mb-4 text-xs font-black uppercase tracking-[0.42em] text-[#0B3F7D]"><?php echo esc_html($executive_team_label); ?></p>
-                        <h2 class="max-w-none whitespace-nowrap text-[clamp(34px,4.2vw,72px)] font-black leading-[1.02] tracking-[-0.015em] text-[#0B1B33]"><?php echo esc_html($executive_team_title); ?></h2>
+                        <h2 class="max-w-none text-[clamp(34px,4.2vw,72px)] [text-wrap:balance] font-black leading-[1.02] tracking-[-0.015em] text-[#0B1B33]"><?php echo esc_html($executive_team_title); ?></h2>
                     </div>
                     <div class="relative min-h-0 flex-1 bg-[#F8FAFC] px-4 pb-5 md:px-7 md:pb-7 lg:px-8 lg:pb-8 2xl:px-10 2xl:pb-10">
                         <?php echo boblift_img_from_setting($executive_team_image, 'images/about/quanyuan-compressed.jpg', $executive_team_alt, 'h-full w-full object-contain object-center', ['loading' => 'lazy', 'decoding' => 'async']); ?>

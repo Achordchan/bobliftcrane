@@ -5,7 +5,7 @@ if (!defined('ABSPATH')) {
 
 function boblift_mls_default_sections(): array
 {
-    return ['branding', 'contact', 'floating_contact_buttons', 'top_bar', 'nav_items', 'product_nav_groups', 'footer', 'final_cta', 'home', 'about_page', 'social_media_page', 'public_welfare_page', 'privacy_policy_page', 'terms_of_use_page', 'sitemap_page', 'product_archive', 'news_categories', 'site_ui', 'seo_meta'];
+    return ['branding', 'contact', 'floating_contact_buttons', 'top_bar', 'nav_items', 'product_nav_groups', 'footer', 'final_cta', 'home', 'about_page', 'social_media_page', 'public_welfare_page', 'privacy_policy_page', 'terms_of_use_page', 'sitemap_page', 'product_archive', 'news_categories', 'site_ui', 'static_text', 'seo_meta'];
 }
 
 function boblift_mls_settings(): array

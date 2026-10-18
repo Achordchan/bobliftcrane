@@ -249,6 +249,13 @@ check(!array_key_exists('parent_source_slug', $find_term($export, 'child-categor
     && count(array_filter($export['warnings'], static fn($w) => str_contains($w, '父分类'))) === 1, 'unmapped translated term parent is reported and left out');
 boblift_mls_import_language($export, ['only' => ['terms']]);
 check(get_term($ja_child_term, 'category')->parent === 50, 'import keeps the destination term parent when the package has none');
+$ja_before_static = boblift_mls_get_raw_options('ja');
+$static_package = ['format' => 1, 'source_language' => 'en', 'language' => 'ja', 'options' => ['static_text' => ['strings' => ['a1b2c3d4e5f6' => ['original' => 'Contact Us', 'text' => 'お問い合わせ']]]]];
+$static_report = boblift_mls_import_language($static_package, ['only' => ['options']]);
+$ja_after_static = boblift_mls_get_raw_options('ja');
+check($static_report['errors'] === [] && $ja_after_static['static_text']['strings']['a1b2c3d4e5f6'] === ['original' => 'Contact Us', 'text' => 'お問い合わせ'], 'static_text section imports through the transport');
+unset($ja_after_static['static_text'], $ja_before_static['static_text']);
+check($ja_after_static === $ja_before_static, 'a static_text-only package leaves the other option sections untouched');
 $GLOBALS['fixture']['authorized'] = false;
 foreach ($GLOBALS['fixture']['routes'] as $route) { check(!$route['permission_callback'](), 'REST requires manage_options'); }
 echo 'OK: ' . $checks . " transport checks\n";

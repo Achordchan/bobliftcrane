@@ -35,6 +35,7 @@ function boblift_default_options(): array
         'news_categories' => boblift_news_category_defaults(),
         'social_media_page' => boblift_social_media_page_defaults(),
         'site_ui' => function_exists('boblift_site_ui_defaults') ? boblift_site_ui_defaults() : [],
+        'static_text' => function_exists('boblift_static_text_defaults') ? boblift_static_text_defaults() : [],
         'floating_contact_buttons' => boblift_floating_contact_button_defaults(),
         'form_security' => boblift_form_security_defaults(),
     ], boblift_seed('settings', []));
