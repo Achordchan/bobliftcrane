@@ -227,10 +227,10 @@ if ($detail_body_html !== '') {
     }
 }
 $video_ui = boblift_site_ui('videoCenter');
-$series_video = boblift_product_series_video(get_the_ID());
+$product_videos = boblift_product_videos(get_the_ID());
 $anchors = [];
 $anchors[] = ['id' => 'technical', 'label' => (string) ($ui['technicalLabel'] ?? 'Technical Specifications')];
-if ($detail_body_html !== '' || $series_video) {
+if ($detail_body_html !== '' || $product_videos) {
     $anchors[] = ['id' => 'overview', 'label' => (string) ($ui['detailBodyLabel'] ?? 'Product details')];
 }
 if ($drawings) {
@@ -408,7 +408,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                     <?php endforeach; ?>
                 </dl>
             </article>
-            <?php if ($detail_body_html !== '' || $series_video) : ?>
+            <?php if ($detail_body_html !== '' || $product_videos) : ?>
                 <?php // overflow-clip, not hidden: a hidden overflow would trap the sticky video column. ?>
                 <article id="overview" class="scroll-mt-24 overflow-clip rounded border border-[#DDE7F2] bg-white shadow-card">
                     <?php // Old shared links to #details land on the product details. ?><span id="details" class="block scroll-mt-24" aria-hidden="true"></span>
@@ -416,23 +416,55 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                     // With a series video the heading and film fill the left column and the copy the right, as on the loader site;
                     // without one the heading and lead share the left column, so the sections beside them leave no empty title column.
                     $detail_has_sections = trim($detail_body_sections) !== '';
-                    $detail_split = $series_video ? $detail_body_html !== '' : $detail_body_lead !== '' && $detail_has_sections;
+                    $detail_split = $product_videos ? $detail_body_html !== '' : $detail_body_lead !== '' && $detail_has_sections;
                     ?>
-                    <div class="grid gap-8 p-6 md:p-8 <?php echo $detail_split ? ($series_video ? 'lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-12' : 'lg:grid-cols-12 lg:gap-12') : ''; ?>">
-                        <div class="min-w-0 <?php echo $detail_split ? ($series_video ? 'lg:sticky lg:top-24 lg:self-start' : 'lg:col-span-5') : ''; ?>">
+                    <div class="grid gap-8 p-6 md:p-8 <?php echo $detail_split ? ($product_videos ? 'lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-12' : 'lg:grid-cols-12 lg:gap-12') : ''; ?>">
+                        <div class="min-w-0 <?php echo $detail_split ? ($product_videos ? 'lg:sticky lg:top-24 lg:self-start' : 'lg:col-span-5') : ''; ?>">
                             <p class="text-[11px] font-black uppercase tracking-[0.2em] text-[#0B3F7D]"><?php echo esc_html($ui['detailBodyLabel'] ?? 'Product details'); ?></p>
                             <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($hero_model !== '' ? $hero_model : $product_title); ?></h2>
-                            <?php if ($series_video) : ?>
-                                <?php // Old shared links to #video land on the film. ?>
-                                <div id="video" class="mt-6 scroll-mt-24 <?php echo $detail_split ? '' : 'max-w-[720px]'; ?>">
-                                    <?php boblift_render_video_card($series_video); ?>
-                                    <a class="mt-4 inline-flex items-center gap-1.5 text-sm font-black text-blue-700 hover:text-blue-900" href="<?php echo esc_url(boblift_url('/videos.html')); ?>"><?php echo esc_html($video_ui['moreVideosLabel'] ?? 'More videos'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
+                            <?php if ($product_videos) :
+                                $first_video = $product_videos[0];
+                                $video_attrs = static fn(array $video): string => sprintf(
+                                    'data-video-player="%s" data-video-src="%s" data-video-youtube="%s" data-video-title="%s" data-video-poster="%s"',
+                                    esc_attr($video['player']),
+                                    esc_url($video['src']),
+                                    esc_attr($video['youtube']),
+                                    esc_attr((string) $video['label']),
+                                    esc_url(boblift_asset($video['poster']))
+                                );
+                            ?>
+                                <?php // Films play in place; a list below switches between them. Old shared links to #video land here. ?>
+                                <div id="video" class="mt-6 scroll-mt-24 <?php echo $detail_split ? '' : 'max-w-[720px]'; ?>" data-inline-videos>
+                                    <div class="relative aspect-video overflow-hidden rounded-sm bg-[#071f42]" data-inline-video-stage>
+                                        <button class="group absolute inset-0 block w-full focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-200" type="button" data-inline-video-play <?php echo $video_attrs($first_video); ?> aria-label="<?php echo esc_attr((string) $first_video['label']); ?>">
+                                            <img class="absolute inset-0 h-full w-full object-cover" src="<?php echo esc_url(boblift_asset($first_video['poster'])); ?>" alt="" loading="lazy" decoding="async" data-inline-video-poster>
+                                            <span class="absolute inset-0 m-auto grid size-14 place-items-center rounded-sm bg-white/90 text-[#071f42] shadow-card transition group-hover:bg-white"><?php echo boblift_icon('play', 'h-6 w-6'); ?></span>
+                                        </button>
+                                    </div>
+                                    <p class="mt-3 text-sm font-black leading-5 text-[#071f42]" data-inline-video-caption><?php echo esc_html((string) $first_video['label']); ?></p>
+                                    <?php if (count($product_videos) > 1) : ?>
+                                        <ul class="mt-4 grid grid-cols-3 gap-3">
+                                            <?php foreach ($product_videos as $index => $video) : ?>
+                                                <li class="min-w-0">
+                                                    <button class="group block w-full text-start focus-visible:outline-none" type="button" data-inline-video-item <?php echo $video_attrs($video); ?> aria-pressed="<?php echo $index === 0 ? 'true' : 'false'; ?>">
+                                                        <span class="relative block aspect-video overflow-hidden rounded-sm bg-[#071f42] ring-2 ring-transparent transition group-hover:ring-blue-300 group-focus-visible:ring-blue-400 group-aria-pressed:ring-[#0B3F7D]">
+                                                            <img class="absolute inset-0 h-full w-full object-cover" src="<?php echo esc_url(boblift_asset($video['poster'])); ?>" alt="" loading="lazy" decoding="async">
+                                                            <span class="absolute inset-0 m-auto grid size-7 place-items-center rounded-sm bg-white/90 text-[#071f42]"><?php echo boblift_icon('play', 'h-3.5 w-3.5'); ?></span>
+                                                        </span>
+                                                        <span class="mt-1.5 line-clamp-2 text-xs font-bold leading-4 text-slate-600 group-aria-pressed:text-[#071f42]"><?php echo esc_html((string) $video['label']); ?></span>
+                                                    </button>
+                                                </li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                    <?php endif; ?>
+                                    <p class="mt-4 text-xs font-semibold leading-5 text-slate-500"><?php echo esc_html($video_ui['productVideoNote'] ?? ''); ?></p>
+                                    <a class="mt-3 inline-flex items-center gap-1.5 text-sm font-black text-blue-700 hover:text-blue-900" href="<?php echo esc_url(boblift_url('/videos.html')); ?>"><?php echo esc_html($video_ui['moreVideosLabel'] ?? 'More videos'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
                                 </div>
                             <?php elseif ($detail_body_lead !== '') : ?>
                                 <div class="boblift-story-prose boblift-product-body boblift-product-lead mt-5 max-w-[900px]"><?php echo wp_kses_post($detail_body_lead); ?></div>
                             <?php endif; ?>
                         </div>
-                        <?php if ($series_video && $detail_body_html !== '') : ?>
+                        <?php if ($product_videos && $detail_body_html !== '') : ?>
                             <div class="min-w-0">
                                 <?php if ($detail_body_lead !== '') : ?>
                                     <div class="boblift-story-prose boblift-product-body boblift-product-lead"><?php echo wp_kses_post($detail_body_lead); ?></div>
@@ -445,7 +477,6 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                             <div class="boblift-story-prose boblift-product-body boblift-product-sections <?php echo $detail_split ? 'lg:col-span-7' : ''; ?>"><?php echo wp_kses_post($detail_body_sections); ?></div>
                         <?php endif; ?>
                     </div>
-                    <?php if ($series_video) { boblift_render_video_player(); } ?>
                 </article>
             <?php endif; ?>
             <?php if ($drawings) : ?>
