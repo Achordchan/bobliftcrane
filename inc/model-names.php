@@ -79,7 +79,7 @@ function boblift_render_model_key(): void
     ?>
     <section id="model-names" class="scroll-mt-24 border-t border-line bg-white py-12 md:py-16" aria-labelledby="model-names-title">
         <div class="page-shell grid gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,2fr)] lg:gap-12">
-            <div>
+            <div class="lg:sticky lg:top-24 lg:self-start">
                 <p class="section-label mb-3"><?php echo esc_html($t('How to read a model name')); ?></p>
                 <h2 id="model-names-title" class="text-[clamp(1.75rem,2.8vw,3rem)] font-black leading-[1.05] tracking-[-0.015em] text-ink"><?php echo esc_html($t('The name tells you what the crane is.')); ?></h2>
                 <p class="mt-4 max-w-md text-sm font-semibold leading-7 text-slate-600"><?php echo esc_html($t('SQ8ZA5 is an 8 t class knuckle boom truck crane with one main boom and four hydraulic booms. SQ8ZA6TJ is the marine version with a winch.')); ?></p>

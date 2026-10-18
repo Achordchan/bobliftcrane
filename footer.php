@@ -95,7 +95,7 @@ $footer_link_groups = array_map(static function (array $group): array {
     return $group;
 }, array_values(array_filter(is_array($footer['groups'] ?? null) ? $footer['groups'] : [], 'is_array')));
 ?>
-<footer class="border-t border-line bg-mist pb-[calc(76px+env(safe-area-inset-bottom))] pt-0 lg:pb-24 min-[1780px]:pb-0">
+<footer class="border-t border-line bg-mist pb-[calc(76px+env(safe-area-inset-bottom))] pt-0 lg:pb-24 min-[1440px]:pb-0">
     <div class="page-shell max-w-[2200px]">
         <div class="grid grid-cols-1 gap-0 py-10 md:grid-cols-[0.92fr_1.08fr] md:gap-y-10 md:py-14 xl:grid-cols-[minmax(300px,0.95fr)_minmax(0,1.65fr)_minmax(340px,0.95fr)] xl:gap-y-0 xl:py-16 2xl:grid-cols-[minmax(360px,0.9fr)_minmax(0,1.75fr)_minmax(390px,0.95fr)] 2xl:py-20">
             <div class="border-b border-line pb-8 md:border-b-0 md:pe-9 xl:pe-12 2xl:pe-16">
@@ -163,7 +163,7 @@ $show_quote_list = is_post_type_archive('product') || is_singular('product') || 
 $floating_contact_buttons = function_exists('boblift_floating_contact_buttons') ? boblift_floating_contact_buttons() : [];
 ?>
 <?php if ($floating_contact_buttons !== []) : ?>
-<div class="boblift-floating-contact-bar fixed inset-x-0 bottom-0 z-40 flex items-center gap-2 border-t border-line bg-white px-4 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 lg:inset-x-auto lg:bottom-4 lg:left-1/2 lg:-translate-x-1/2 lg:gap-1.5 lg:rounded-sm lg:border lg:border-white/80 lg:bg-white/[0.88] lg:p-1.5 lg:shadow-raised lg:backdrop-blur-xl min-[1780px]:bottom-auto min-[1780px]:start-auto min-[1780px]:end-4 min-[1780px]:top-1/2 min-[1780px]:-translate-x-0 min-[1780px]:-translate-y-1/2 min-[1780px]:flex-col min-[1780px]:gap-2 min-[1780px]:p-2">
+<div class="boblift-floating-contact-bar fixed inset-x-0 bottom-0 z-40 flex items-center gap-2 border-t border-line bg-white px-4 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 lg:inset-x-auto lg:bottom-4 lg:left-1/2 lg:-translate-x-1/2 lg:gap-1.5 lg:rounded-sm lg:border lg:border-white/80 lg:bg-white/[0.88] lg:p-1.5 lg:shadow-raised lg:backdrop-blur-xl min-[1440px]:bottom-auto min-[1440px]:start-auto min-[1440px]:end-2 min-[1440px]:top-1/2 min-[1440px]:-translate-x-0 min-[1440px]:-translate-y-1/2 min-[1440px]:flex-col min-[1440px]:gap-2 min-[1440px]:p-1.5">
     <?php foreach ($floating_contact_buttons as $floating_contact_button) : ?>
         <?php boblift_render_floating_contact_button($floating_contact_button, $contact, $quote_list_ui); ?>
     <?php endforeach; ?>
