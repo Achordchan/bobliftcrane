@@ -1,0 +1,2591 @@
+{
+ "format": 1,
+ "source_language": "en",
+ "language": "fr",
+ "options": {
+  "static_text": {
+   "strings": {
+    "df86934b0f26": {
+     "original": "Video Center",
+     "text": "Vidéothèque"
+    },
+    "c47fd2a70fd3": {
+     "original": "See the cranes move before you buy.",
+     "text": "Voyez les grues en action avant d'acheter."
+    },
+    "705ce8fbb370": {
+     "original": "Product walk-arounds, load tests and factory footage, filmed in our own workshop in Xuzhou.",
+     "text": "Présentations produits, essais de charge et images de l'usine, tournés dans notre propre atelier à Xuzhou."
+    },
+    "c39cf48a8909": {
+     "original": "Knuckle boom cranes lined up in the BOB-LIFT assembly hall",
+     "text": "Grues à flèche articulée alignées dans le hall d'assemblage BOB-LIFT"
+    },
+    "22b79e4afa28": {
+     "original": "All videos",
+     "text": "Toutes les vidéos"
+    },
+    "2e07f8a965ea": {
+     "original": "Truck mounted cranes",
+     "text": "Grues sur camion"
+    },
+    "ae38ed9e2c52": {
+     "original": "Marine cranes",
+     "text": "Grues marines"
+    },
+    "d48b3233c3c3": {
+     "original": "Tests and quality",
+     "text": "Essais et qualité"
+    },
+    "5329f68959b1": {
+     "original": "Product video",
+     "text": "Vidéo produit"
+    },
+    "e793f7e1ea34": {
+     "original": "Watch this series in action",
+     "text": "Voir cette série en action"
+    },
+    "a1c4545a78e2": {
+     "original": "Series video: it shows a crane of the same capacity and boom type, so paint and options can differ from this model.",
+     "text": "Vidéo de la série : elle montre une grue de même capacité et de même type de flèche ; la peinture et les options peuvent différer de ce modèle."
+    },
+    "15942e238424": {
+     "original": "More videos",
+     "text": "Plus de vidéos"
+    },
+    "b23648d9e12a": {
+     "original": "Videos are being added.",
+     "text": "Les vidéos sont en cours d'ajout."
+    },
+    "4fe659ee384a": {
+     "original": "{capacity} t knuckle boom truck mounted crane",
+     "text": "Grue sur camion à flèche articulée {capacity} t"
+    },
+    "63088e8192b1": {
+     "original": "{capacity} t telescopic boom truck mounted crane",
+     "text": "Grue sur camion à flèche télescopique {capacity} t"
+    },
+    "29f84500be16": {
+     "original": "{capacity} t knuckle boom marine crane",
+     "text": "Grue marine à flèche articulée {capacity} t"
+    },
+    "352105175cf1": {
+     "original": "{capacity} t telescopic boom marine crane",
+     "text": "Grue marine à flèche télescopique {capacity} t"
+    },
+    "24ef30057e54": {
+     "original": "{capacity} t crane",
+     "text": "Grue {capacity} t"
+    },
+    "8054d0ee17da": {
+     "original": "Load test · 5 t knuckle boom crane",
+     "text": "Essai de charge · grue à flèche articulée 5 t"
+    },
+    "ad805d7fcdcf": {
+     "original": "Load test · 10 t knuckle boom crane",
+     "text": "Essai de charge · grue à flèche articulée 10 t"
+    },
+    "1852bf92c73e": {
+     "original": "Load test · 6.3 t knuckle boom crane",
+     "text": "Essai de charge · grue à flèche articulée 6.3 t"
+    },
+    "1aa893964f84": {
+     "original": "Basket test · 6.3 t knuckle boom crane",
+     "text": "Essai avec nacelle · grue à flèche articulée 6.3 t"
+    },
+    "92edf36f94a9": {
+     "original": "Load test on the test rig · 6.3 t telescopic marine crane",
+     "text": "Essai de charge sur banc d'essai · grue marine télescopique 6.3 t"
+    },
+    "38063d29df24": {
+     "original": "Function test · 2 t knuckle boom marine crane",
+     "text": "Essai fonctionnel · grue marine à flèche articulée 2 t"
+    },
+    "a47b1e9dd4f6": {
+     "original": "Load test · SQ8ZA6 knuckle boom truck crane",
+     "text": "Essai de charge · grue sur camion à flèche articulée SQ8ZA6"
+    },
+    "92ba4c2c1673": {
+     "original": "One order: twenty 3.2 t knuckle boom cranes ready to ship",
+     "text": "Une seule commande : vingt grues à flèche articulée 3.2 t prêtes à l'expédition"
+    },
+    "56647d2d1780": {
+     "original": "How we test a crane before delivery",
+     "text": "Comment nous testons une grue avant livraison"
+    },
+    "a2a5120f1c41": {
+     "original": "Quality control in the workshop",
+     "text": "Contrôle qualité en atelier"
+    },
+    "f1774f780471": {
+     "original": "Inside the BOB-LIFT factory",
+     "text": "Au cœur de l'usine BOB-LIFT"
+    },
+    "540a820b4388": {
+     "original": "Factory aerial view",
+     "text": "Vue aérienne de l'usine"
+    },
+    "73a035497062": {
+     "original": "Into the assembly hall",
+     "text": "Dans le hall d'assemblage"
+    },
+    "b167cb10735f": {
+     "original": "Finished cranes in the hall",
+     "text": "Grues terminées dans le hall"
+    },
+    "fc023bd571db": {
+     "original": "Quality & Testing",
+     "text": "Qualité et essais"
+    },
+    "cce61a2bd4ba": {
+     "original": "Tested on our own test bay before it ships.",
+     "text": "Testée sur notre propre banc d'essai avant expédition."
+    },
+    "61e3b652de6f": {
+     "original": "Watch the load, basket and function tests our cranes go through in the factory, and how the workshop checks parts along the way.",
+     "text": "Découvrez les essais de charge, de nacelle et de fonctionnement que nos grues passent en usine, et comment l'atelier contrôle les pièces à chaque étape."
+    },
+    "fd0301342080": {
+     "original": "A knuckle boom crane on the BOB-LIFT test bay",
+     "text": "Une grue à flèche articulée sur le banc d'essai BOB-LIFT"
+    },
+    "a0f4a9165406": {
+     "original": "Before delivery",
+     "text": "Avant livraison"
+    },
+    "a64b7a346f4e": {
+     "original": "Three checks between the assembly line and the container.",
+     "text": "Trois contrôles entre la chaîne d'assemblage et le conteneur."
+    },
+    "3ec9fd1e4d4c": {
+     "original": "Parts and welds",
+     "text": "Pièces et soudures"
+    },
+    "58a503931bb4": {
+     "original": "Boom sections, cylinders and hydraulic parts are checked in the workshop before and during assembly.",
+     "text": "Éléments de flèche, vérins et composants hydrauliques sont contrôlés en atelier avant et pendant l'assemblage."
+    },
+    "cacc0822a57a": {
+     "original": "Load and function test",
+     "text": "Essai de charge et de fonctionnement"
+    },
+    "9d7d98af0816": {
+     "original": "The finished crane is mounted on the test bay and runs through lifting, slewing and outrigger functions under load.",
+     "text": "La grue terminée est installée sur le banc d'essai et effectue les mouvements de levage, de rotation et de stabilisateurs sous charge."
+    },
+    "5147e0eb5413": {
+     "original": "Final check and packing",
+     "text": "Contrôle final et emballage"
+    },
+    "bb62c04e29fd": {
+     "original": "After the test the crane is inspected again, then packed and loaded for export.",
+     "text": "Après l'essai, la grue est de nouveau inspectée, puis emballée et chargée pour l'export."
+    },
+    "d2318bdc57c3": {
+     "original": "In the workshop",
+     "text": "En atelier"
+    },
+    "e1281284f09e": {
+     "original": "Test videos",
+     "text": "Vidéos d'essais"
+    },
+    "a4ee30ffafad": {
+     "original": "Load tests filmed on the test bay",
+     "text": "Essais de charge filmés sur le banc d'essai"
+    },
+    "2c6a7dfa560b": {
+     "original": "Batch orders, built and checked in one run",
+     "text": "Commandes groupées, fabriquées et contrôlées en une seule série"
+    },
+    "444ce0bfdcfa": {
+     "original": "Twenty 3.2 t knuckle boom cranes for one order, finished in the workshop and lined up for shipping.",
+     "text": "Vingt grues à flèche articulée 3.2 t pour une seule commande, terminées en atelier et alignées pour l'expédition."
+    },
+    "5a6c0d2579b3": {
+     "original": "Certificates",
+     "text": "Certificats"
+    },
+    "ec0f7a6e78f5": {
+     "original": "CE, EAC, ISO 9001 and ISO 14001 certificates and our crane patents are shown on the About page.",
+     "text": "Les certificats CE, EAC, ISO 9001 et ISO 14001 ainsi que nos brevets de grues sont présentés sur la page À propos."
+    },
+    "6577f92f6d3e": {
+     "original": "View certificates",
+     "text": "Voir les certificats"
+    },
+    "4d47713089a0": {
+     "original": "Want to see your crane tested?",
+     "text": "Vous voulez voir votre grue testée ?"
+    },
+    "31b1cc254466": {
+     "original": "Ask for a test video of your order before it ships, or visit the factory and watch the test yourself.",
+     "text": "Demandez une vidéo d'essai de votre commande avant l'expédition, ou venez à l'usine assister vous-même à l'essai."
+    },
+    "1fdb4156219e": {
+     "original": "Ask for a Test Video",
+     "text": "Demander une vidéo d'essai"
+    },
+    "e76eeef774cf": {
+     "original": "Plan a factory visit",
+     "text": "Planifier une visite d'usine"
+    },
+    "85aaf68681b7": {
+     "original": "Factory Tour",
+     "text": "Visite de l'usine"
+    },
+    "89df5eb14ccc": {
+     "original": "Walk through our crane factory in Xuzhou.",
+     "text": "Visitez notre usine de grues à Xuzhou."
+    },
+    "4336e40cc6eb": {
+     "original": "From the gate to the test bay: where BOB-LIFT cranes are assembled, tested and packed for export.",
+     "text": "Du portail au banc d'essai : là où les grues BOB-LIFT sont assemblées, testées et emballées pour l'export."
+    },
+    "3e7314a2af51": {
+     "original": "Aerial view of the BOB-LIFT factory in Xuzhou",
+     "text": "Vue aérienne de l'usine BOB-LIFT à Xuzhou"
+    },
+    "4e6b9363a582": {
+     "original": "Factory area",
+     "text": "Surface de l'usine"
+    },
+    "b56a164bc4c3": {
+     "original": "Xuzhou, Jiangsu",
+     "text": "Xuzhou, Jiangsu"
+    },
+    "ce5bf5513794": {
+     "original": "Location",
+     "text": "Localisation"
+    },
+    "885b3c534ec9": {
+     "original": "Arrival",
+     "text": "Arrivée"
+    },
+    "0946fedd9758": {
+     "original": "Trucks with mounted cranes wait in the yard for delivery or collection.",
+     "text": "Des camions équipés de grues attendent dans la cour leur livraison ou leur enlèvement."
+    },
+    "f235defcb2ce": {
+     "original": "Assembly halls",
+     "text": "Halls d'assemblage"
+    },
+    "cea506b4bdaa": {
+     "original": "Knuckle and telescopic booms are assembled in long rows under overhead cranes.",
+     "text": "Les grues à flèche articulée et télescopique sont assemblées en longues rangées sous les ponts roulants."
+    },
+    "53d835cdea8f": {
+     "original": "Parts and hydraulics",
+     "text": "Pièces et hydraulique"
+    },
+    "cd48e361ff53": {
+     "original": "Boom sections, cylinders, frames and hydraulic parts are staged next to the assembly line.",
+     "text": "Éléments de flèche, vérins, châssis et composants hydrauliques sont préparés à côté de la chaîne d'assemblage."
+    },
+    "af5efc357301": {
+     "original": "Truck mounting and testing",
+     "text": "Montage sur camion et essais"
+    },
+    "5f4648b3af4e": {
+     "original": "Cranes are mounted on truck chassis and tested before they leave.",
+     "text": "Les grues sont montées sur châssis de camion et testées avant de quitter l'usine."
+    },
+    "07e64876961d": {
+     "original": "Stop {number}",
+     "text": "Étape {number}"
+    },
+    "4871934a5860": {
+     "original": "Factory video",
+     "text": "Vidéo de l'usine"
+    },
+    "fcdba5f39aca": {
+     "original": "From the air",
+     "text": "Vue du ciel"
+    },
+    "9ba9abb4f30f": {
+     "original": "See how cranes are tested",
+     "text": "Voir comment les grues sont testées"
+    },
+    "04e5fc96cce8": {
+     "original": "See it in person.",
+     "text": "Venez voir par vous-même."
+    },
+    "a673194bbf6e": {
+     "original": "Customers from many countries visit the factory before ordering. Tell us your dates and we will arrange the tour.",
+     "text": "Des clients de nombreux pays visitent l'usine avant de commander. Indiquez-nous vos dates et nous organiserons la visite."
+    },
+    "d57d0ccedbb1": {
+     "original": "Customer visits",
+     "text": "Visites clients"
+    },
+    "7bcdc7d5fb94": {
+     "original": "A phone on a tripod filming BOB-LIFT knuckle boom cranes in the workshop",
+     "text": "Un téléphone sur trépied filme des grues à flèche articulée BOB-LIFT en atelier"
+    },
+    "a421de043dc1": {
+     "original": "BOB-LIFT Social Media",
+     "text": "BOB-LIFT sur les réseaux sociaux"
+    },
+    "488dfc8b7f5b": {
+     "original": "Follow BOB-LIFT on the platforms you already use.",
+     "text": "Suivez BOB-LIFT sur les plateformes que vous utilisez déjà."
+    },
+    "3d5f2d6b0845": {
+     "original": "Production, container loading and cranes working on customer sites, posted by our own team.",
+     "text": "Production, chargement de conteneurs et grues au travail chez nos clients, publiés par notre propre équipe."
+    },
+    "c35bb5aff881": {
+     "original": "BOB-LIFT factory official social media updates",
+     "text": "Actualités officielles de l'usine BOB-LIFT sur les réseaux sociaux"
+    },
+    "bc48773e9e6b": {
+     "original": "Official accounts",
+     "text": "Comptes officiels"
+    },
+    "53d20da4be6e": {
+     "original": "Global platforms",
+     "text": "Plateformes internationales"
+    },
+    "f13fffa401c8": {
+     "original": "China platforms",
+     "text": "Plateformes chinoises"
+    },
+    "abdb4677e4de": {
+     "original": "More platforms",
+     "text": "Autres plateformes"
+    },
+    "a1c1747415d8": {
+     "original": "Scan to follow",
+     "text": "Scannez pour nous suivre"
+    },
+    "39fd7f2ac3aa": {
+     "original": "Recent posts",
+     "text": "Publications récentes"
+    },
+    "2013d58c4dee": {
+     "original": "What we have been posting.",
+     "text": "Nos dernières publications."
+    },
+    "84d1d11b3bb5": {
+     "original": "A selection of recent posts from our accounts. Tap a post to view it full size.",
+     "text": "Une sélection de publications récentes de nos comptes. Touchez une publication pour l'afficher en grand."
+    },
+    "f8efac20663d": {
+     "original": "Short videos",
+     "text": "Vidéos courtes"
+    },
+    "0e084f933ad8": {
+     "original": "Image posts",
+     "text": "Publications photo"
+    },
+    "60e2133e47e8": {
+     "original": "Company news and industry updates.",
+     "text": "Actualités de l'entreprise et du secteur."
+    },
+    "5045adcf6201": {
+     "original": "Product videos and factory tours.",
+     "text": "Vidéos produits et visites d'usine."
+    },
+    "5986376259c2": {
+     "original": "Deliveries, visits and customer stories.",
+     "text": "Livraisons, visites et témoignages clients."
+    },
+    "667b24c59d79": {
+     "original": "Short clips from the workshop.",
+     "text": "Courtes vidéos de l'atelier."
+    },
+    "dcf6732f562a": {
+     "original": "Photos from the factory and job sites.",
+     "text": "Photos de l'usine et des chantiers."
+    },
+    "458610cf5985": {
+     "original": "Quick updates and announcements.",
+     "text": "Brèves et annonces."
+    },
+    "3b6d4be9eb70": {
+     "original": "Douyin",
+     "text": "Douyin"
+    },
+    "661bbb644f36": {
+     "original": "WeChat Channels",
+     "text": "WeChat Channels"
+    },
+    "e9e006a4b168": {
+     "original": "Xiaohongshu",
+     "text": "Xiaohongshu"
+    },
+    "0b6b3d86d489": {
+     "original": "Weibo",
+     "text": "Weibo"
+    },
+    "fb5bebe1b7df": {
+     "original": "Bilibili",
+     "text": "Bilibili"
+    },
+    "21ba09d85ce7": {
+     "original": "Kuaishou",
+     "text": "Kuaishou"
+    },
+    "ae5ed2d904b0": {
+     "original": "Short videos in Chinese.",
+     "text": "Vidéos courtes en chinois."
+    },
+    "a3ccc8a2495b": {
+     "original": "Videos inside WeChat.",
+     "text": "Vidéos dans WeChat."
+    },
+    "473696aa7906": {
+     "original": "Photo notes from the factory.",
+     "text": "Notes photo depuis l'usine."
+    },
+    "8b7efb18a555": {
+     "original": "Company news in Chinese.",
+     "text": "Actualités de l'entreprise en chinois."
+    },
+    "b37597eb0e6c": {
+     "original": "Longer product videos.",
+     "text": "Vidéos produits plus longues."
+    },
+    "329c5a9a9acc": {
+     "original": "Production and global delivery",
+     "text": "Production et livraisons dans le monde"
+    },
+    "101c82b0acd9": {
+     "original": "Customer feedback from Argentina",
+     "text": "Retour d'un client en Argentine"
+    },
+    "ecf93ffa37c9": {
+     "original": "8 t truck mounted crane",
+     "text": "Grue sur camion 8 t"
+    },
+    "5559e92b01aa": {
+     "original": "Ready for shipment",
+     "text": "Prêtes à l'expédition"
+    },
+    "6e986b7c9322": {
+     "original": "Turkish customers visit the factory",
+     "text": "Des clients turcs visitent l'usine"
+    },
+    "9b01d12b8d82": {
+     "original": "Operator view",
+     "text": "Vue de l'opérateur"
+    },
+    "18a0f4cc3bd8": {
+     "original": "Built by our workshop team",
+     "text": "Fabriquée par notre équipe d'atelier"
+    },
+    "1c762eb3764d": {
+     "original": "10 t crane delivered",
+     "text": "Grue 10 t livrée"
+    },
+    "74cd6c81fb61": {
+     "original": "SQ10ZA4 knuckle boom crane",
+     "text": "Grue à flèche articulée SQ10ZA4"
+    },
+    "4cbf2ef15bf8": {
+     "original": "10 years apart, same reliability",
+     "text": "10 ans d'écart, la même fiabilité"
+    },
+    "8aa13201f604": {
+     "original": "Global delivery",
+     "text": "Livraisons dans le monde"
+    },
+    "fba96689df09": {
+     "original": "Customer factory visit",
+     "text": "Visite d'usine d'un client"
+    },
+    "674dddd9b200": {
+     "original": "Telescopic boom crane",
+     "text": "Grue à flèche télescopique"
+    },
+    "48dc96965c5d": {
+     "original": "Knuckle boom marine crane",
+     "text": "Grue marine à flèche articulée"
+    },
+    "978b21c07577": {
+     "original": "Knuckle boom truck crane",
+     "text": "Grue sur camion à flèche articulée"
+    },
+    "b957963846ad": {
+     "original": "Talk to us directly",
+     "text": "Échangez directement avec nous"
+    },
+    "05c3f4b2bf07": {
+     "original": "Rather message us than follow?",
+     "text": "Vous préférez nous écrire plutôt que nous suivre ?"
+    },
+    "693bc5bea40f": {
+     "original": "Send the load, working radius and truck or vessel details. The sales team replies on the channel you use.",
+     "text": "Indiquez la charge, la portée et les caractéristiques du camion ou du navire. Notre équipe commerciale vous répond sur le canal que vous utilisez."
+    },
+    "14fcaaf31d8b": {
+     "original": "Send an Inquiry",
+     "text": "Envoyer une demande"
+    },
+    "882786b5a123": {
+     "original": "Switch BOB-LIFT site",
+     "text": "Changer de site BOB-LIFT"
+    },
+    "9913b6ae9ec3": {
+     "original": "BOB-LIFT sites",
+     "text": "Sites BOB-LIFT"
+    },
+    "dc7a164459ee": {
+     "original": "Other BOB-LIFT sites",
+     "text": "Autres sites BOB-LIFT"
+    },
+    "222a267cc577": {
+     "original": "Current",
+     "text": "Actuel"
+    },
+    "52d0197af131": {
+     "original": "BOB-LIFT Group",
+     "text": "Groupe BOB-LIFT"
+    },
+    "03937134ceda": {
+     "original": "Group",
+     "text": "Groupe"
+    },
+    "93571a61b34b": {
+     "original": "Lifting Equipment",
+     "text": "Équipements de levage"
+    },
+    "0e4e98bc3a62": {
+     "original": "Cranes",
+     "text": "Grues"
+    },
+    "0fbaaa896cc0": {
+     "original": "Loading Equipment",
+     "text": "Équipements de chargement"
+    },
+    "cac8ce8b2719": {
+     "original": "Loaders",
+     "text": "Chargeuses"
+    },
+    "8cf04a973413": {
+     "original": "Home",
+     "text": "Accueil"
+    },
+    "710533dd879d": {
+     "original": "HOME",
+     "text": "ACCUEIL"
+    },
+    "dd1ba1872df9": {
+     "original": "News",
+     "text": "Actualités"
+    },
+    "ff4e2dc4962d": {
+     "original": "NEWS",
+     "text": "ACTUALITÉS"
+    },
+    "b1f0b866ff1e": {
+     "original": "Cases",
+     "text": "Cas clients"
+    },
+    "3c8e30e60d63": {
+     "original": "CASES",
+     "text": "CAS CLIENTS"
+    },
+    "b1c94ca2fbc3": {
+     "original": "All",
+     "text": "Tous"
+    },
+    "9e66e6bd4069": {
+     "original": "About Us",
+     "text": "À propos"
+    },
+    "8207dbce90c9": {
+     "original": "Global Customer Visits",
+     "text": "Visites clients du monde entier"
+    },
+    "3ce446e5cb3c": {
+     "original": "Social Media",
+     "text": "Réseaux sociaux"
+    },
+    "a9281d11d822": {
+     "original": "Public Welfare",
+     "text": "Engagement solidaire"
+    },
+    "9cfc9b74983d": {
+     "original": "Contact Us",
+     "text": "Contact"
+    },
+    "2654dcb39814": {
+     "original": "Company News",
+     "text": "Actualités de l'entreprise"
+    },
+    "ec2f9ed6c5f4": {
+     "original": "Product News",
+     "text": "Actualités produits"
+    },
+    "97f6bc203758": {
+     "original": "Industry Insight",
+     "text": "Analyses du secteur"
+    },
+    "af37e4952d8d": {
+     "original": "Marine Solution",
+     "text": "Solutions marines"
+    },
+    "ae0143167797": {
+     "original": "Customer Case",
+     "text": "Cas client"
+    },
+    "d3017c5bbef1": {
+     "original": "Customer Case · Marine Operations",
+     "text": "Cas client · Opérations en mer"
+    },
+    "784be72e9251": {
+     "original": "CUSTOMER CASE · MARINE OPERATIONS",
+     "text": "CAS CLIENT · OPÉRATIONS EN MER"
+    },
+    "db7300531696": {
+     "original": "Marine Operations",
+     "text": "Opérations en mer"
+    },
+    "7e9c80bb8120": {
+     "original": "Customer Case · Complex Working Conditions",
+     "text": "Cas client · Conditions de travail complexes"
+    },
+    "25b23918e973": {
+     "original": "CUSTOMER CASE · COMPLEX WORKING CONDITIONS",
+     "text": "CAS CLIENT · CONDITIONS DE TRAVAIL COMPLEXES"
+    },
+    "432a7bf5ab3a": {
+     "original": "Complex Working Conditions",
+     "text": "Conditions de travail complexes"
+    },
+    "21a546ca74c6": {
+     "original": "Customer Case · Aerial Work Platform",
+     "text": "Cas client · Nacelle élévatrice"
+    },
+    "b2cd0cbd2812": {
+     "original": "CUSTOMER CASE · AERIAL WORK PLATFORM",
+     "text": "CAS CLIENT · NACELLE ÉLÉVATRICE"
+    },
+    "72ec28065ad4": {
+     "original": "Case Facts",
+     "text": "Le projet en bref"
+    },
+    "d2c1902ca812": {
+     "original": "Project Support",
+     "text": "Accompagnement projet"
+    },
+    "7b68ae651671": {
+     "original": "Discuss Similar Project",
+     "text": "Parler d'un projet similaire"
+    },
+    "4d8393e8a9a9": {
+     "original": "Related Cases",
+     "text": "Cas similaires"
+    },
+    "54861efdd06f": {
+     "original": "Scenario",
+     "text": "Application"
+    },
+    "deb10517653c": {
+     "original": "Product",
+     "text": "Produit"
+    },
+    "59716c97497e": {
+     "original": "Country",
+     "text": "Pays"
+    },
+    "1cdb526d06b3": {
+     "original": "Breadcrumb",
+     "text": "Fil d'Ariane"
+    },
+    "13eb2ee40e4a": {
+     "original": "Article Summary",
+     "text": "Résumé de l'article"
+    },
+    "3adbdb3ac060": {
+     "original": "Category",
+     "text": "Catégorie"
+    },
+    "9b9d8a976b42": {
+     "original": "Published",
+     "text": "Publié le"
+    },
+    "f31bbdd1b3e8": {
+     "original": "Source",
+     "text": "Source"
+    },
+    "d9bc09909d1b": {
+     "original": "Related Updates",
+     "text": "Actualités liées"
+    },
+    "49f739ab9cdc": {
+     "original": "Need help choosing a crane?",
+     "text": "Besoin d'aide pour choisir une grue ?"
+    },
+    "096241dfed9f": {
+     "original": "Talk to BOB-LIFT before your next lifting project.",
+     "text": "Parlez à BOB-LIFT avant votre prochain projet de levage."
+    },
+    "7f11cb1197d8": {
+     "original": "Request a Quote",
+     "text": "Demander un devis"
+    },
+    "7a2db46f1826": {
+     "original": "Back to News",
+     "text": "Retour aux actualités"
+    },
+    "9780790c790d": {
+     "original": "Related",
+     "text": "À voir aussi"
+    },
+    "5e65eadaf734": {
+     "original": "Ask for solution",
+     "text": "Demander une solution"
+    },
+    "e8048ed4a34a": {
+     "original": "BOB-LIFT Newsroom",
+     "text": "Salle de presse BOB-LIFT"
+    },
+    "93cba07454f0": {
+     "original": "Yes",
+     "text": "Oui"
+    },
+    "bafd7322c6e9": {
+     "original": "No",
+     "text": "Non"
+    },
+    "ae4ee4593a1e": {
+     "original": "Not sure",
+     "text": "Je ne sais pas"
+    },
+    "f352c0d46a68": {
+     "original": "Need support",
+     "text": "Besoin d'assistance"
+    },
+    "9e70a5d3dab1": {
+     "original": "Either",
+     "text": "Indifférent"
+    },
+    "fdb3a70d5b68": {
+     "original": "All Rights Reserved.",
+     "text": "Tous droits réservés."
+    },
+    "4ed10e37148c": {
+     "original": "© 2026 BOB-LIFT. All Rights Reserved.",
+     "text": "© 2026 BOB-LIFT. Tous droits réservés."
+    },
+    "96ac8f3505ce": {
+     "original": "What You Can Follow",
+     "text": "Ce que vous pouvez suivre"
+    },
+    "30420f4c1da1": {
+     "original": "Real content from real work.",
+     "text": "Du vrai contenu, tiré du vrai travail."
+    },
+    "2a0d30cb1153": {
+     "original": "Construction",
+     "text": "Construction"
+    },
+    "68c16c941c3f": {
+     "original": "Logistics",
+     "text": "Logistique"
+    },
+    "49b0f70fb4f3": {
+     "original": "Municipal Engineering",
+     "text": "Travaux publics"
+    },
+    "801a61583a73": {
+     "original": "Marine",
+     "text": "Maritime"
+    },
+    "8e54e9aa508e": {
+     "original": "Agriculture",
+     "text": "Agriculture"
+    },
+    "efdd60c5f199": {
+     "original": "Mining",
+     "text": "Mines"
+    },
+    "da19170a8c04": {
+     "original": "Truck Mounted Crane",
+     "text": "Grue sur camion"
+    },
+    "17902e240859": {
+     "original": "Truck Mounted Cranes",
+     "text": "Grues sur camion"
+    },
+    "4d68ab7290ed": {
+     "original": "Knuckle Boom Truck Mounted Crane",
+     "text": "Grue sur camion à flèche articulée"
+    },
+    "8a1c998d1cfd": {
+     "original": "Knuckle Boom Truck Mounted Cranes",
+     "text": "Grues sur camion à flèche articulée"
+    },
+    "38cedc80fd43": {
+     "original": "Telescopic Boom Truck Mounted Crane",
+     "text": "Grue sur camion à flèche télescopique"
+    },
+    "aedfc0797069": {
+     "original": "Telescopic Boom Truck Mounted Cranes",
+     "text": "Grues sur camion à flèche télescopique"
+    },
+    "1998975f4463": {
+     "original": "Marine Crane",
+     "text": "Grue marine"
+    },
+    "ec2d4fd7b87d": {
+     "original": "Marine Cranes",
+     "text": "Grues marines"
+    },
+    "37ed7d855332": {
+     "original": "Ship Crane",
+     "text": "Grue de navire"
+    },
+    "5b1215a67374": {
+     "original": "Ship Cranes",
+     "text": "Grues de navire"
+    },
+    "b5a97e77c9a5": {
+     "original": "Knuckle Boom Marine Crane",
+     "text": "Grue marine à flèche articulée"
+    },
+    "fa93aec27fe6": {
+     "original": "Knuckle Boom Marine Cranes",
+     "text": "Grues marines à flèche articulée"
+    },
+    "c18fe3142bb3": {
+     "original": "Telescopic Boom Marine Crane",
+     "text": "Grue marine à flèche télescopique"
+    },
+    "a3a5820f72db": {
+     "original": "Telescopic Boom Marine Cranes",
+     "text": "Grues marines à flèche télescopique"
+    },
+    "4062ac5bb5f7": {
+     "original": "Pickup Crane",
+     "text": "Grue pour pick-up"
+    },
+    "954627037065": {
+     "original": "Pickup Cranes",
+     "text": "Grues pour pick-up"
+    },
+    "8baab058b08c": {
+     "original": "Forklift Fly Jib Crane",
+     "text": "Potence pour chariot élévateur"
+    },
+    "fc99cc20d8ec": {
+     "original": "Forklift Fly Jib Cranes",
+     "text": "Potences pour chariot élévateur"
+    },
+    "cd52dd1f1704": {
+     "original": "Mini Dumper",
+     "text": "Mini-dumper"
+    },
+    "d2c6184a9815": {
+     "original": "Mini Dumpers",
+     "text": "Mini-dumpers"
+    },
+    "dbdacdda17ea": {
+     "original": "Timber Crane",
+     "text": "Grue forestière"
+    },
+    "038378ef9d8e": {
+     "original": "Timber Cranes",
+     "text": "Grues forestières"
+    },
+    "646aa710a976": {
+     "original": "Spider Crane",
+     "text": "Grue araignée"
+    },
+    "034374693892": {
+     "original": "Spider Cranes",
+     "text": "Grues araignées"
+    },
+    "ef2d924b78e1": {
+     "original": "Tail Lift",
+     "text": "Hayon élévateur"
+    },
+    "28444ff61f97": {
+     "original": "Aerial Work Platform",
+     "text": "Nacelle élévatrice"
+    },
+    "9968d931da21": {
+     "original": "Truck Mounted",
+     "text": "Sur camion"
+    },
+    "1b905fd4ca54": {
+     "original": "Meter Aerial Work Platform",
+     "text": "m – nacelle élévatrice"
+    },
+    "3c7becd64cd6": {
+     "original": "Knuckle Spider Crane",
+     "text": "Grue araignée à flèche articulée"
+    },
+    "7613279f0203": {
+     "original": "Telescopic Spider Crane",
+     "text": "Grue araignée télescopique"
+    },
+    "e753666fb31d": {
+     "original": "Pickup Crane With Outriggers",
+     "text": "Grue pour pick-up avec stabilisateurs"
+    },
+    "1cabda62faa2": {
+     "original": "Pickup Crane Without Outriggers",
+     "text": "Grue pour pick-up sans stabilisateurs"
+    },
+    "4d49285cea2e": {
+     "original": "With Outriggers",
+     "text": "Avec stabilisateurs"
+    },
+    "d5687bb1b248": {
+     "original": "Without Outriggers",
+     "text": "Sans stabilisateurs"
+    },
+    "c33c1473ffb5": {
+     "original": "Arm Length",
+     "text": "Longueur de bras"
+    },
+    "93d52ec4fac5": {
+     "original": "Ton Mini Dumper",
+     "text": "t – mini-dumper"
+    },
+    "02bdb3228da0": {
+     "original": "Ton",
+     "text": " t"
+    },
+    "b036d85dbd8b": {
+     "original": "tons",
+     "text": "tonnes"
+    },
+    "28a42a2183a5": {
+     "original": "timely delivery",
+     "text": "livraison rapide"
+    },
+    "98a67e425f20": {
+     "original": "Project-specific configuration",
+     "text": "Configuration adaptée au projet"
+    },
+    "3b88c0772d93": {
+     "original": "Quality Management",
+     "text": "Management de la qualité"
+    },
+    "89aa656b21ee": {
+     "original": "European Conformity",
+     "text": "Conformité européenne"
+    },
+    "4ae66ad207ce": {
+     "original": "Russia / EAEU Conformity Inspection",
+     "text": "Contrôle de conformité Russie / UEEA"
+    },
+    "548b33d454cf": {
+     "original": "Russia / EAEU Conformity",
+     "text": "Conformité Russie / UEEA"
+    },
+    "c92a3a472564": {
+     "original": "Inspection & Certification",
+     "text": "Contrôle et certification"
+    },
+    "9bff558ba0e3": {
+     "original": "Main product view",
+     "text": "Vue principale du produit"
+    },
+    "2227cc1dfa80": {
+     "original": "Product photo",
+     "text": "Photo du produit"
+    },
+    "c7c8998e1dd7": {
+     "original": "Product Photos",
+     "text": "Photos du produit"
+    },
+    "b8900d8adf59": {
+     "original": "Product Details",
+     "text": "Détails du produit"
+    },
+    "a17d91c40b4a": {
+     "original": "Product detail image",
+     "text": "Image de détail du produit"
+    },
+    "5b02de6da7e4": {
+     "original": "Product stage",
+     "text": "Présentation du produit"
+    },
+    "fb9213770dc4": {
+     "original": "Detail scroll",
+     "text": "Défilement des détails"
+    },
+    "f5271f9cca6a": {
+     "original": "Product detail sections",
+     "text": "Sections de détail du produit"
+    },
+    "9ef8ee4fa97a": {
+     "original": "Product page navigation",
+     "text": "Navigation de la page produit"
+    },
+    "3e6e5e67314f": {
+     "original": "Technical Specifications",
+     "text": "Caractéristiques techniques"
+    },
+    "335ecb7a02b8": {
+     "original": "Quick Specs",
+     "text": "Fiche express"
+    },
+    "219927b224df": {
+     "original": "Key Features",
+     "text": "Points forts"
+    },
+    "78805a221a98": {
+     "original": "image",
+     "text": "image"
+    },
+    "7690835d4820": {
+     "original": "parameter chart",
+     "text": "tableau des caractéristiques"
+    },
+    "b36d2184563e": {
+     "original": "Specifications",
+     "text": "Caractéristiques"
+    },
+    "ad0363403d2d": {
+     "original": "model no",
+     "text": "modèle"
+    },
+    "0160a5f30a85": {
+     "original": "Electic starting Yes",
+     "text": "Démarrage électrique : oui"
+    },
+    "659aa5795e6c": {
+     "original": "Stable lifting structure",
+     "text": "Structure de levage stable"
+    },
+    "ac1cb2f4c304": {
+     "original": "Designed for practical jobsite operation with reliable boom movement and load control",
+     "text": "Conçue pour le travail réel sur chantier, avec des mouvements de flèche fiables et une bonne maîtrise de la charge"
+    },
+    "13718de2d272": {
+     "original": "Export-ready configuration",
+     "text": "Configuration prête pour l'export"
+    },
+    "7576eb083e3f": {
+     "original": "Suitable for international procurement with documentation, packing and configuration support",
+     "text": "Adaptée aux achats internationaux, avec documentation, emballage et aide à la configuration"
+    },
+    "7ea4f41ffca1": {
+     "original": "Application matching",
+     "text": "Adaptation à l'application"
+    },
+    "12d9524bc128": {
+     "original": "Can be matched to working radius, yard or attachment requirements",
+     "text": "Peut être adaptée à la portée, au site ou aux accessoires requis"
+    },
+    "bf0823e74c27": {
+     "original": "Crane manufacturer since 2003",
+     "text": "Fabricant de grues depuis 2003"
+    },
+    "c27a93ef20c8": {
+     "original": "Truck mounted cranes, built to lift.",
+     "text": "Grues sur camion, conçues pour lever."
+    },
+    "cb9ecbd2d658": {
+     "original": "Knuckle boom and telescopic truck cranes from 800 kg to 50 t, built in our 37,000 m² factory in Xuzhou and exported to 120+ countries.",
+     "text": "Grues sur camion à flèche articulée et télescopique de 800 kg à 50 t, fabriquées dans notre usine de 37 000 m² à Xuzhou et exportées dans plus de 120 pays."
+    },
+    "68fc2ebd4e59": {
+     "original": "View Products",
+     "text": "Voir les produits"
+    },
+    "17628fbbc0a4": {
+     "original": "View Truck Cranes",
+     "text": "Voir les grues sur camion"
+    },
+    "728cddb90d1f": {
+     "original": "BOB-LIFT knuckle boom truck crane lifting a precast concrete panel",
+     "text": "Grue sur camion à flèche articulée BOB-LIFT levant un panneau de béton préfabriqué"
+    },
+    "6d9eecaae52a": {
+     "original": "Marine cranes, built for work at sea.",
+     "text": "Grues marines, conçues pour le travail en mer."
+    },
+    "dbc3cb0da714": {
+     "original": "Knuckle boom and telescopic marine cranes from 800 kg to 25 t for vessels, ports and offshore work, configured to your deck and lifting needs.",
+     "text": "Grues marines à flèche articulée et télescopique de 800 kg à 25 t pour navires, ports et offshore, configurées selon votre pont et vos besoins de levage."
+    },
+    "ddd73404c585": {
+     "original": "View Marine Cranes",
+     "text": "Voir les grues marines"
+    },
+    "74322a34474f": {
+     "original": "BOB-LIFT knuckle boom marine crane lifting a cargo container on a supply vessel",
+     "text": "Grue marine à flèche articulée BOB-LIFT levant un conteneur sur un navire de ravitaillement"
+    },
+    "f30a5a0a150b": {
+     "original": "Pause slideshow",
+     "text": "Mettre le diaporama en pause"
+    },
+    "8064603280ab": {
+     "original": "Play slideshow",
+     "text": "Lancer le diaporama"
+    },
+    "d234ef04b8a2": {
+     "original": "Former model",
+     "text": "Ancien modèle"
+    },
+    "eccea4e94042": {
+     "original": "Product technical advantages",
+     "text": "Avantages techniques du produit"
+    },
+    "9d948e617b08": {
+     "original": "Series",
+     "text": "Série"
+    },
+    "d68f0b43acf6": {
+     "original": "photos",
+     "text": "photos"
+    },
+    "cce3df80f07d": {
+     "original": "videos",
+     "text": "vidéos"
+    },
+    "dd1f775e443f": {
+     "original": "Previous",
+     "text": "Précédent"
+    },
+    "10ac3d04253e": {
+     "original": "Next",
+     "text": "Suivant"
+    },
+    "965e22e7201d": {
+     "original": "Customer Feedback",
+     "text": "Avis clients"
+    },
+    "a051ce32e6aa": {
+     "original": "Application Cases",
+     "text": "Cas d'application"
+    },
+    "2b25e6e3cfac": {
+     "original": "Planning a similar project?",
+     "text": "Vous préparez un projet similaire ?"
+    },
+    "0b4db271fc46": {
+     "original": "View all",
+     "text": "Tout voir"
+    },
+    "3b563524fdb1": {
+     "original": "Media",
+     "text": "Photos et vidéos"
+    },
+    "7aca58029a5a": {
+     "original": "More customer feedback",
+     "text": "Plus d'avis clients"
+    },
+    "06744c69abc3": {
+     "original": "Interested in the {model}?",
+     "text": "Le {model} vous intéresse ?"
+    },
+    "ee9acf6c3103": {
+     "original": "Get a Quote",
+     "text": "Obtenir un devis"
+    },
+    "502996d97903": {
+     "original": "Priority",
+     "text": "Priorité"
+    },
+    "900918c90bcd": {
+     "original": "Site photos",
+     "text": "Photos de terrain"
+    },
+    "78e454064a7d": {
+     "original": "Product details",
+     "text": "Détails du produit"
+    },
+    "f4d933b20b0b": {
+     "original": "Click an image to enlarge",
+     "text": "Cliquez sur une image pour l'agrandir"
+    },
+    "1de58ed39cdd": {
+     "original": "Hydraulics",
+     "text": "Hydraulique"
+    },
+    "295b72abefe6": {
+     "original": "Hoses, valves and cylinders are fitted and checked on every crane.",
+     "text": "Flexibles, distributeurs et vérins sont montés et contrôlés sur chaque grue."
+    },
+    "71bee43a7a93": {
+     "original": "countries",
+     "text": "pays"
+    },
+    "7c43262beaf6": {
+     "original": "Visitors from",
+     "text": "Visiteurs venus de"
+    },
+    "c41d27ca8a1b": {
+     "original": "Customers from {count} countries have walked our workshop.",
+     "text": "Des clients de {count} pays ont visité notre atelier."
+    },
+    "b3b58a2b2321": {
+     "original": "What a visit covers",
+     "text": "Au programme de la visite"
+    },
+    "47f453970c87": {
+     "original": "A working day in the factory, not a showroom tour.",
+     "text": "Une vraie journée de production, pas une visite de showroom."
+    },
+    "23e873a8aa62": {
+     "original": "Walk the production line",
+     "text": "Parcourir la chaîne de production"
+    },
+    "8e7fa1082864": {
+     "original": "Follow a crane from welding and assembly to the test stand, and ask questions at every station.",
+     "text": "Suivez une grue du soudage et de l'assemblage jusqu'au banc d'essai, et posez vos questions à chaque poste."
+    },
+    "c1fee4927165": {
+     "original": "Look at the model you need",
+     "text": "Voir le modèle qui vous intéresse"
+    },
+    "9d93e60beb14": {
+     "original": "Stand next to the crane you are considering and check the boom, hydraulics and finish for yourself.",
+     "text": "Approchez-vous de la grue que vous envisagez et vérifiez vous-même la flèche, l'hydraulique et les finitions."
+    },
+    "751275e52f1d": {
+     "original": "Check parts and packing",
+     "text": "Contrôler les pièces et l'emballage"
+    },
+    "1d615e66bb9c": {
+     "original": "Open the spare-part boxes and see how cranes are wrapped and secured for the sea journey.",
+     "text": "Ouvrez les caisses de pièces détachées et voyez comment les grues sont filmées et arrimées pour le transport maritime."
+    },
+    "4b4f703b9067": {
+     "original": "Join our customer wall",
+     "text": "Rejoignez notre mur clients"
+    },
+    "1daea423b236": {
+     "original": "Finish in the office in front of the customer wall, where visitors from around the world have left their photos.",
+     "text": "La visite se termine au bureau devant le mur clients, où des visiteurs du monde entier ont laissé leur photo."
+    },
+    "266d45944f9b": {
+     "original": "Visit gallery",
+     "text": "Galerie des visites"
+    },
+    "4162744d14a6": {
+     "original": "Photos from recent visits",
+     "text": "Photos des visites récentes"
+    },
+    "785df98f2a33": {
+     "original": "Select a country to see the photos from that visit.",
+     "text": "Sélectionnez un pays pour voir les photos de cette visite."
+    },
+    "722b77d003d8": {
+     "original": "More factory visits",
+     "text": "Autres visites d'usine"
+    },
+    "886a655fe9c4": {
+     "original": "Plan your visit",
+     "text": "Planifier votre visite"
+    },
+    "181742878fcb": {
+     "original": "Come and see the crane before you order it.",
+     "text": "Venez voir la grue avant de la commander."
+    },
+    "b4789d719c2c": {
+     "original": "Tell us your travel dates and the models you are considering, and we will plan the day around them.",
+     "text": "Indiquez-nous vos dates de voyage et les modèles que vous envisagez, et nous organiserons la journée en conséquence."
+    },
+    "1c6e980e0eee": {
+     "original": "Factory",
+     "text": "Usine"
+    },
+    "8d9c1b693683": {
+     "original": "Xuzhou, Jiangsu, China",
+     "text": "Xuzhou, Jiangsu, Chine"
+    },
+    "7b1212df9662": {
+     "original": "Nearest airport",
+     "text": "Aéroport le plus proche"
+    },
+    "3f21b812f31e": {
+     "original": "Xuzhou Guanyin International Airport",
+     "text": "Aéroport international de Xuzhou Guanyin"
+    },
+    "5e297e6e906f": {
+     "original": "High-speed rail",
+     "text": "Train à grande vitesse"
+    },
+    "a3e490e9a542": {
+     "original": "Xuzhou East Railway Station",
+     "text": "Gare de Xuzhou-Est"
+    },
+    "02d4482d332e": {
+     "original": "Contact us",
+     "text": "Nous contacter"
+    },
+    "b883674c0298": {
+     "original": "Plan a Visit",
+     "text": "Planifier une visite"
+    },
+    "86499f11409e": {
+     "original": "Customers touring the BOB-LIFT workshop",
+     "text": "Clients visitant l'atelier BOB-LIFT"
+    },
+    "c9862fce930b": {
+     "original": "No customer visit photos have been added yet.",
+     "text": "Aucune photo de visite client n'a encore été ajoutée."
+    },
+    "575b9408b6da": {
+     "original": "Algeria",
+     "text": "Algérie"
+    },
+    "b2802e969f51": {
+     "original": "Customers from Algeria visiting the BOB-LIFT factory",
+     "text": "Clients venus d'Algérie en visite à l'usine BOB-LIFT"
+    },
+    "7176f8c3bccf": {
+     "original": "Azerbaijan",
+     "text": "Azerbaïdjan"
+    },
+    "18b4406f4bc0": {
+     "original": "Customers from Azerbaijan visiting the BOB-LIFT factory",
+     "text": "Clients venus d'Azerbaïdjan en visite à l'usine BOB-LIFT"
+    },
+    "d8b00929dec6": {
+     "original": "Germany",
+     "text": "Allemagne"
+    },
+    "76d1035db2a8": {
+     "original": "Customers from Germany visiting the BOB-LIFT factory",
+     "text": "Clients venus d'Allemagne en visite à l'usine BOB-LIFT"
+    },
+    "7d31e0da1ab9": {
+     "original": "India",
+     "text": "Inde"
+    },
+    "bf048118ebf9": {
+     "original": "Customers from India visiting the BOB-LIFT factory",
+     "text": "Clients venus d'Inde en visite à l'usine BOB-LIFT"
+    },
+    "06e415f918c5": {
+     "original": "Ireland",
+     "text": "Irlande"
+    },
+    "cc6451c99379": {
+     "original": "Customers from Ireland visiting the BOB-LIFT factory",
+     "text": "Clients venus d'Irlande en visite à l'usine BOB-LIFT"
+    },
+    "7c1a943bf29d": {
+     "original": "Kazakhstan",
+     "text": "Kazakhstan"
+    },
+    "66c0014e74b0": {
+     "original": "Customers from Kazakhstan visiting the BOB-LIFT factory",
+     "text": "Clients venus du Kazakhstan en visite à l'usine BOB-LIFT"
+    },
+    "94984a8c4896": {
+     "original": "Kenya",
+     "text": "Kenya"
+    },
+    "03b2e05cdc5f": {
+     "original": "Customers from Kenya visiting the BOB-LIFT factory",
+     "text": "Clients venus du Kenya en visite à l'usine BOB-LIFT"
+    },
+    "c51ed580ea5e": {
+     "original": "New Zealand",
+     "text": "Nouvelle-Zélande"
+    },
+    "7b76a33ae61e": {
+     "original": "Customers from New Zealand visiting the BOB-LIFT factory",
+     "text": "Clients venus de Nouvelle-Zélande en visite à l'usine BOB-LIFT"
+    },
+    "5d839147c83e": {
+     "original": "Nigeria",
+     "text": "Nigeria"
+    },
+    "3cde56bf662d": {
+     "original": "Customers from Nigeria visiting the BOB-LIFT factory",
+     "text": "Clients venus du Nigeria en visite à l'usine BOB-LIFT"
+    },
+    "84c8fa2341f7": {
+     "original": "Peru",
+     "text": "Pérou"
+    },
+    "204ff299b4d6": {
+     "original": "Customers from Peru visiting the BOB-LIFT factory",
+     "text": "Clients venus du Pérou en visite à l'usine BOB-LIFT"
+    },
+    "5feb168ca8fb": {
+     "original": "Russia",
+     "text": "Russie"
+    },
+    "f44a3e439143": {
+     "original": "Customers from Russia visiting the BOB-LIFT factory",
+     "text": "Clients venus de Russie en visite à l'usine BOB-LIFT"
+    },
+    "c89bc418c38d": {
+     "original": "South Africa",
+     "text": "Afrique du Sud"
+    },
+    "9936b46574ff": {
+     "original": "Customers from South Africa visiting the BOB-LIFT factory",
+     "text": "Clients venus d'Afrique du Sud en visite à l'usine BOB-LIFT"
+    },
+    "221cdfb73049": {
+     "original": "Turkey",
+     "text": "Turquie"
+    },
+    "3ee8336ac029": {
+     "original": "Customers from Turkey visiting the BOB-LIFT factory",
+     "text": "Clients venus de Turquie en visite à l'usine BOB-LIFT"
+    },
+    "f253efe302d3": {
+     "original": "United States",
+     "text": "États-Unis"
+    },
+    "78428e5c858a": {
+     "original": "Customers from United States visiting the BOB-LIFT factory",
+     "text": "Clients venus des États-Unis en visite à l'usine BOB-LIFT"
+    },
+    "9cbb6f79af08": {
+     "original": "Moment",
+     "text": "Moment"
+    },
+    "202274ee2510": {
+     "original": "BOB-LIFT assembly workshop in Xuzhou",
+     "text": "Atelier d'assemblage BOB-LIFT à Xuzhou"
+    },
+    "b567b164facc": {
+     "original": "BOB-LIFT technician assembling a crane column",
+     "text": "Technicien BOB-LIFT assemblant une colonne de grue"
+    },
+    "699976e6c2a2": {
+     "original": "Finishing a boom section in the BOB-LIFT workshop",
+     "text": "Finition d'un élément de flèche dans l'atelier BOB-LIFT"
+    },
+    "d41fb7494e6f": {
+     "original": "The BOB-LIFT team",
+     "text": "L'équipe BOB-LIFT"
+    },
+    "fc23dd781c8f": {
+     "original": "Customers visiting the BOB-LIFT factory",
+     "text": "Clients en visite à l'usine BOB-LIFT"
+    },
+    "27eb94947d38": {
+     "original": "Site search",
+     "text": "Recherche sur le site"
+    },
+    "9d69a22e63cd": {
+     "original": "Search the site",
+     "text": "Rechercher sur le site"
+    },
+    "9c0441ba711b": {
+     "original": "Search products and articles",
+     "text": "Rechercher des produits et des articles"
+    },
+    "fec2c023e805": {
+     "original": "Search a model, crane type or topic",
+     "text": "Recherchez un modèle, un type de grue ou un sujet"
+    },
+    "13348442cc6a": {
+     "original": "Search",
+     "text": "Rechercher"
+    },
+    "709790dfcc95": {
+     "original": "Browse by category",
+     "text": "Parcourir par catégorie"
+    },
+    "eb6b06cab0dd": {
+     "original": "Search results",
+     "text": "Résultats de recherche"
+    },
+    "75152db39be4": {
+     "original": "Results for “{query}”",
+     "text": "Résultats pour « {query} »"
+    },
+    "06eceff938af": {
+     "original": "{count} results",
+     "text": "{count} résultats"
+    },
+    "a22425b39b96": {
+     "original": "Search BOB-LIFT",
+     "text": "Rechercher sur BOB-LIFT"
+    },
+    "9072ad5c494e": {
+     "original": "Enter a model number such as {example}, a crane type or a topic.",
+     "text": "Saisissez un modèle (par exemple {example}), un type de grue ou un sujet."
+    },
+    "f60f2bf8117c": {
+     "original": "All results",
+     "text": "Tous les résultats"
+    },
+    "068f80c7519d": {
+     "original": "Products",
+     "text": "Produits"
+    },
+    "c89acba311be": {
+     "original": "View all {count}",
+     "text": "Voir les {count}"
+    },
+    "d1a64d45b5de": {
+     "original": "No results for “{query}”",
+     "text": "Aucun résultat pour « {query} »"
+    },
+    "1ec2b9cfb953": {
+     "original": "Check the model number or try a shorter keyword. You can also browse the categories below.",
+     "text": "Vérifiez la référence du modèle ou essayez un mot-clé plus court. Vous pouvez aussi parcourir les catégories ci-dessous."
+    },
+    "71b47f7d2a4b": {
+     "original": "Not sure which crane fits?",
+     "text": "Vous ne savez pas quelle grue choisir ?"
+    },
+    "b7499573cf1e": {
+     "original": "Tell us the load, reach and vehicle or vessel, and our engineers will recommend a model.",
+     "text": "Indiquez-nous la charge, la portée et le véhicule ou le navire : nos ingénieurs vous recommanderont un modèle."
+    },
+    "46b1e7cb4d4a": {
+     "original": "Ask an engineer",
+     "text": "Demander à un ingénieur"
+    },
+    "60d583f28deb": {
+     "original": "Search: {query} | BOB-LIFT",
+     "text": "Recherche : {query} | BOB-LIFT"
+    },
+    "d0ba22526f88": {
+     "original": "Search | BOB-LIFT",
+     "text": "Recherche | BOB-LIFT"
+    },
+    "66d5ec0ff983": {
+     "original": "Search pagination",
+     "text": "Pagination des résultats de recherche"
+    },
+    "2cee66826607": {
+     "original": "Lifting Moment",
+     "text": "Moment de levage"
+    },
+    "3842800adc65": {
+     "original": "Crane Self Weight",
+     "text": "Poids propre de la grue"
+    },
+    "9e1c0eb78356": {
+     "original": "Up to 1 t",
+     "text": "Jusqu'à 1 t"
+    },
+    "0e3865348796": {
+     "original": "Up to 2 t",
+     "text": "Jusqu'à 2 t"
+    },
+    "9280ab833896": {
+     "original": "2–5 t",
+     "text": "2–5 t"
+    },
+    "6f984878274e": {
+     "original": "Over 20 t",
+     "text": "Plus de 20 t"
+    },
+    "9876d382ab37": {
+     "original": "Up to 5 t·m",
+     "text": "Jusqu'à 5 t·m"
+    },
+    "61eeb887989f": {
+     "original": "Over 40 t·m",
+     "text": "Plus de 40 t·m"
+    },
+    "662583479228": {
+     "original": "Up to 1,000 kg",
+     "text": "Jusqu'à 1 000 kg"
+    },
+    "916f3b505b1e": {
+     "original": "Over 5,000 kg",
+     "text": "Plus de 5 000 kg"
+    },
+    "5cd2695539f3": {
+     "original": "Dimension Drawing",
+     "text": "Plan d'encombrement"
+    },
+    "0ffe60a58ef3": {
+     "original": "Dimensions and load chart",
+     "text": "Dimensions et abaque de charge"
+    },
+    "6c508cf81b5e": {
+     "original": "Select the drawing to view it full size.",
+     "text": "Sélectionnez le plan pour l'afficher en grand."
+    },
+    "cd64bf8d49ce": {
+     "original": "Manufacturing & delivery",
+     "text": "Fabrication et livraison"
+    },
+    "1c24240f62e4": {
+     "original": "From our workshop to your port",
+     "text": "De notre atelier à votre port"
+    },
+    "d75c45e11c8a": {
+     "original": "Assembly",
+     "text": "Assemblage"
+    },
+    "5da06c031e57": {
+     "original": "Load test",
+     "text": "Essai de charge"
+    },
+    "c68a829d01b4": {
+     "original": "Final check",
+     "text": "Contrôle final"
+    },
+    "c46192253e84": {
+     "original": "Packing",
+     "text": "Emballage"
+    },
+    "8e117e0294de": {
+     "original": "Container loading",
+     "text": "Chargement en conteneur"
+    },
+    "4aec7eeecd8a": {
+     "original": "Marine test stand",
+     "text": "Banc d'essai marine"
+    },
+    "9f22af945b67": {
+     "original": "Mounted on a deck-style stand, the crane runs every boom and slewing motion before release.",
+     "text": "Montée sur un banc imitant un pont de navire, la grue effectue tous les mouvements de flèche et de rotation avant sa mise en service."
+    },
+    "cae82416a8d3": {
+     "original": "Boom sections",
+     "text": "Éléments de flèche"
+    },
+    "8d90545b8308": {
+     "original": "Slewing base, column and booms are assembled by hand in our Xuzhou workshop.",
+     "text": "Base de rotation, colonne et flèches sont assemblées à la main dans notre atelier de Xuzhou."
+    },
+    "c8ea8726457f": {
+     "original": "The crane lifts test weights through its working range before release.",
+     "text": "La grue lève des charges d'essai sur toute sa plage de travail avant sa mise en service."
+    },
+    "ae53590a32be": {
+     "original": "Finished cranes are inspected and lined up for dispatch.",
+     "text": "Les grues terminées sont inspectées et alignées pour l'expédition."
+    },
+    "68932986f227": {
+     "original": "Wrapped in film and strapped to protect paint and hydraulics in transit.",
+     "text": "Filmées et sanglées pour protéger la peinture et l'hydraulique pendant le transport."
+    },
+    "727755a4a5be": {
+     "original": "Loaded into containers at the factory and shipped to your port.",
+     "text": "Chargées en conteneur à l'usine et expédiées vers votre port."
+    },
+    "2d28a7c4eda7": {
+     "original": "Telescopic boom sections are finished and fitted before assembly.",
+     "text": "Les éléments de flèche télescopique sont finis et ajustés avant l'assemblage."
+    },
+    "0abb6306e764": {
+     "original": "Columns, winches and control valves are assembled in our Xuzhou workshop.",
+     "text": "Colonnes, treuils et distributeurs sont assemblés dans notre atelier de Xuzhou."
+    },
+    "5ae0c1c8a526": {
+     "original": "photo",
+     "text": "photo"
+    },
+    "421b47ffd946": {
+     "original": "video",
+     "text": "vidéo"
+    },
+    "4d5259366fe0": {
+     "original": "Where this crane works",
+     "text": "Où cette grue travaille"
+    },
+    "f206e4be4b33": {
+     "original": "Photos and videos from customers",
+     "text": "Photos et vidéos de nos clients"
+    },
+    "e6386513ed8d": {
+     "original": "All customer feedback",
+     "text": "Tous les avis clients"
+    },
+    "eccaad13d49e": {
+     "original": "Brochures",
+     "text": "Brochures"
+    },
+    "ff4b156bb065": {
+     "original": "Download the BOB-LIFT brochures",
+     "text": "Téléchargez les brochures BOB-LIFT"
+    },
+    "a7f124ca84ef": {
+     "original": "Download the brochure for this range",
+     "text": "Téléchargez la brochure de cette gamme"
+    },
+    "f255ea22a877": {
+     "original": "Load charts, dimension drawings and specification tables for each crane family, as a PDF you can save, print or forward.",
+     "text": "Abaques de charge, plans d'encombrement et tableaux de caractéristiques pour chaque famille de grues, dans un PDF à enregistrer, imprimer ou transférer."
+    },
+    "2607298669ac": {
+     "original": "Download PDF",
+     "text": "Télécharger le PDF"
+    },
+    "f90b45dfc84e": {
+     "original": "Email me a copy",
+     "text": "Recevoir une copie par e-mail"
+    },
+    "2c2c1629af42": {
+     "original": "{count} pages",
+     "text": "{count} pages"
+    },
+    "5b6dbc1ada7c": {
+     "original": "{title} cover",
+     "text": "Couverture de {title}"
+    },
+    "6d54f21ed192": {
+     "original": "Download {title} as PDF",
+     "text": "Télécharger {title} en PDF"
+    },
+    "92e4bf7cbaa7": {
+     "original": "Download the PDF now",
+     "text": "Télécharger le PDF maintenant"
+    },
+    "11718f188cc2": {
+     "original": "No email needed. The file opens straight away, or leave your email below and we will also send you the link.",
+     "text": "Aucun e-mail requis. Le fichier s'ouvre immédiatement ; vous pouvez aussi laisser votre e-mail ci-dessous pour recevoir le lien."
+    },
+    "57484c9294fa": {
+     "original": "Truck Mounted Cranes Brochure",
+     "text": "Brochure grues sur camion"
+    },
+    "7892e1ff1206": {
+     "original": "Knuckle boom and telescopic truck mounted cranes, timber cranes, fly jibs and attachments, with load charts and dimensions.",
+     "text": "Grues sur camion à flèche articulée et télescopique, grues forestières, potences pour chariot élévateur et accessoires, avec abaques de charge et dimensions."
+    },
+    "bdb3b9497245": {
+     "original": "Marine Cranes Brochure",
+     "text": "Brochure grues marines"
+    },
+    "e39e5dd59203": {
+     "original": "Knuckle boom and telescopic marine cranes with load charts, dimension drawings, power systems and project cases.",
+     "text": "Grues marines à flèche articulée et télescopique, avec abaques de charge, plans d'encombrement, groupes de puissance et cas de projets."
+    },
+    "7c6e8443a16f": {
+     "original": "Spider Cranes Brochure",
+     "text": "Brochure grues araignées"
+    },
+    "b1c5abba5944": {
+     "original": "Compact crawler spider cranes from the BLS and BLZ series, with working radius, lifting height and weight.",
+     "text": "Grues araignées compactes sur chenilles des séries BLS et BLZ, avec portée, hauteur de levage et poids."
+    },
+    "6a5ff35a3623": {
+     "original": "Phone / WhatsApp",
+     "text": "Téléphone / WhatsApp"
+    },
+    "09c70bc98d0a": {
+     "original": "Office phone",
+     "text": "Téléphone fixe"
+    },
+    "8690a3da6423": {
+     "original": "Talk to BOB-LIFT before choosing a crane.",
+     "text": "Parlez à BOB-LIFT avant de choisir une grue."
+    },
+    "5bca6d3bbb91": {
+     "original": "Start chat",
+     "text": "Démarrer la discussion"
+    },
+    "caa086750367": {
+     "original": "Tell us the load, working radius and the truck or vessel it goes on. Our engineers recommend a crane and send a quotation.",
+     "text": "Indiquez-nous la charge, la portée et le camion ou le navire sur lequel la grue sera montée. Nos ingénieurs vous recommandent une grue et vous envoient un devis."
+    },
+    "69fc190da3da": {
+     "original": "The BOB-LIFT factory gate in Xuzhou",
+     "text": "Le portail de l'usine BOB-LIFT à Xuzhou"
+    },
+    "f11b6a3aa395": {
+     "original": "Direct contact",
+     "text": "Contact direct"
+    },
+    "01c3c4d5f153": {
+     "original": "WeChat ID",
+     "text": "ID WeChat"
+    },
+    "04fe80542e3e": {
+     "original": "Usually replies within 24 hours.",
+     "text": "Réponse généralement sous 24 heures."
+    },
+    "187f0423cb4d": {
+     "original": "Scan the code or search the ID. Best for China-side contact.",
+     "text": "Scannez le code ou recherchez l'ID. Idéal pour un contact côté Chine."
+    },
+    "5a40a9fd01b6": {
+     "original": "Send drawings, photos or a full requirement list.",
+     "text": "Envoyez plans, photos ou cahier des charges complet."
+    },
+    "7073181bcc47": {
+     "original": "Call during our working hours.",
+     "text": "Appelez-nous pendant nos heures d'ouverture."
+    },
+    "25c6654094a8": {
+     "original": "Chat on WhatsApp",
+     "text": "Discuter sur WhatsApp"
+    },
+    "42ef0cd7669d": {
+     "original": "Copy WeChat ID",
+     "text": "Copier l'ID WeChat"
+    },
+    "a588b1abc58b": {
+     "original": "Copied",
+     "text": "Copié"
+    },
+    "0af250377d49": {
+     "original": "Send an email",
+     "text": "Envoyer un e-mail"
+    },
+    "f5b2524042a6": {
+     "original": "Call now",
+     "text": "Appeler"
+    },
+    "23a5151445e0": {
+     "original": "Working hours",
+     "text": "Horaires"
+    },
+    "a7eb082e5bd8": {
+     "original": "Monday to Friday, 8:30 AM–6:00 PM Beijing time (UTC+8). Messages sent outside these hours are answered the next working day.",
+     "text": "Du lundi au vendredi, de 8 h 30 à 18 h 00, heure de Pékin (UTC+8). Les messages reçus en dehors de ces horaires sont traités le jour ouvré suivant."
+    },
+    "3180ec855b21": {
+     "original": "Send an inquiry",
+     "text": "Envoyer une demande"
+    },
+    "f6cfbe825bc1": {
+     "original": "After you send",
+     "text": "Après votre envoi"
+    },
+    "a273f1bc1864": {
+     "original": "What happens next",
+     "text": "La suite"
+    },
+    "ff01debddcca": {
+     "original": "We reply within 24 hours",
+     "text": "Réponse sous 24 heures"
+    },
+    "e14aa5552620": {
+     "original": "A sales engineer reads your inquiry and answers the way you contacted us.",
+     "text": "Un ingénieur commercial lit votre demande et vous répond par le moyen que vous avez utilisé pour nous contacter."
+    },
+    "23dd7090c380": {
+     "original": "Our engineer confirms the details",
+     "text": "Notre ingénieur confirme les détails"
+    },
+    "1783886e10ff": {
+     "original": "Load, working radius, and the truck chassis or vessel the crane will be fitted to.",
+     "text": "Charge, portée, et châssis de camion ou navire sur lequel la grue sera montée."
+    },
+    "c7a68452f02f": {
+     "original": "You receive a quotation",
+     "text": "Vous recevez un devis"
+    },
+    "175b0c80aa58": {
+     "original": "With drawings and the delivery time for your order.",
+     "text": "Avec plans et délai de livraison de votre commande."
+    },
+    "df2886634dd2": {
+     "original": "Prefer to talk first?",
+     "text": "Vous préférez en parler d'abord ?"
+    },
+    "7566bc0e31b0": {
+     "original": "Message us on WhatsApp and describe your job in a few lines.",
+     "text": "Écrivez-nous sur WhatsApp et décrivez votre besoin en quelques lignes."
+    },
+    "5be5914bbe0f": {
+     "original": "Open WhatsApp",
+     "text": "Ouvrir WhatsApp"
+    },
+    "68cc47c28153": {
+     "original": "Factory location",
+     "text": "Localisation de l'usine"
+    },
+    "3bc334228d3b": {
+     "original": "Visit our factory in Xuzhou",
+     "text": "Visitez notre usine à Xuzhou"
+    },
+    "e1b785a698d6": {
+     "original": "Aerial view of the BOB-LIFT factory site in Xuzhou",
+     "text": "Vue aérienne du site de l'usine BOB-LIFT à Xuzhou"
+    },
+    "e7af338c57e5": {
+     "original": "BOB-LIFT builds its cranes in Xuzhou, Jiangsu, China. Buyers are welcome to see production and testing in person. Please tell us your dates in advance so we can arrange a visit.",
+     "text": "BOB-LIFT fabrique ses grues à Xuzhou, dans le Jiangsu, en Chine. Les acheteurs sont les bienvenus pour voir la production et les essais sur place. Merci de nous indiquer vos dates à l'avance afin que nous organisions la visite."
+    },
+    "dd7bf230fde8": {
+     "original": "Address",
+     "text": "Adresse"
+    },
+    "4d60ab2c6d11": {
+     "original": "Google Maps",
+     "text": "Google Maps"
+    },
+    "85470e8ddea6": {
+     "original": "Amap",
+     "text": "Amap"
+    },
+    "1241d82bd9e7": {
+     "original": "Baidu Maps",
+     "text": "Baidu Maps"
+    },
+    "e6b1575bd484": {
+     "original": "See the factory before you visit",
+     "text": "Découvrez l'usine avant votre visite"
+    },
+    "b81f1674c097": {
+     "original": "Factory tour",
+     "text": "Visite de l'usine"
+    },
+    "4327ce0b73ce": {
+     "original": "Global customer visits",
+     "text": "Visites clients du monde entier"
+    },
+    "22db73c4bd0f": {
+     "original": "Follow BOB-LIFT",
+     "text": "Suivre BOB-LIFT"
+    },
+    "c366c3f8e47c": {
+     "original": "Factory updates, deliveries and customer visits on our social channels.",
+     "text": "Actualités de l'usine, livraisons et visites clients sur nos réseaux sociaux."
+    },
+    "d79f21ca9187": {
+     "original": "All social media",
+     "text": "Tous nos réseaux sociaux"
+    },
+    "23bc9bf3689d": {
+     "original": "On this page",
+     "text": "Sur cette page"
+    },
+    "93811724b85c": {
+     "original": "Questions about this page?",
+     "text": "Une question sur cette page ?"
+    },
+    "da663734573e": {
+     "original": "Write to us and we will reply by email.",
+     "text": "Écrivez-nous, nous vous répondrons par e-mail."
+    },
+    "2c5a9165c71e": {
+     "original": "Contact page",
+     "text": "Page Contact"
+    },
+    "a52f60aff1e1": {
+     "original": "Related documents",
+     "text": "Documents associés"
+    },
+    "fa2ead697d99": {
+     "original": "Privacy Policy",
+     "text": "Politique de confidentialité"
+    },
+    "985a4b720f9b": {
+     "original": "Terms of Use",
+     "text": "Conditions d'utilisation"
+    },
+    "5813ce0ec719": {
+     "original": "Sitemap",
+     "text": "Plan du site"
+    },
+    "1c76cbfe21c6": {
+     "original": "Company",
+     "text": "Entreprise"
+    },
+    "8daa1b693e01": {
+     "original": "Service and support",
+     "text": "Service et assistance"
+    },
+    "7f9e0fe786dd": {
+     "original": "Products, cases and news",
+     "text": "Produits, cas clients et actualités"
+    },
+    "a10a9bcd4500": {
+     "original": "Legal",
+     "text": "Mentions légales"
+    },
+    "074d46f7459b": {
+     "original": "Customer cases",
+     "text": "Cas clients"
+    },
+    "386e86eccef7": {
+     "original": "All news",
+     "text": "Toutes les actualités"
+    },
+    "f49b99c912d0": {
+     "original": "All cases",
+     "text": "Tous les cas clients"
+    },
+    "039525b3bda0": {
+     "original": "{count} products",
+     "text": "{count} produits"
+    },
+    "5b3ca3301f08": {
+     "original": "Truck mounted crane",
+     "text": "Grue sur camion"
+    },
+    "12cbed5f8d99": {
+     "original": "{capacity} t capacity class",
+     "text": "Classe de capacité {capacity} t"
+    },
+    "fc3136dd73f0": {
+     "original": "Knuckle boom",
+     "text": "Flèche articulée"
+    },
+    "63ee0e62b93f": {
+     "original": "Telescopic boom",
+     "text": "Flèche télescopique"
+    },
+    "5670d3a85541": {
+     "original": "1 main boom + 1 hydraulic boom",
+     "text": "1 flèche principale + 1 flèche hydraulique"
+    },
+    "813cc0c2f028": {
+     "original": "1 main boom + {count} hydraulic booms",
+     "text": "1 flèche principale + {count} flèches hydrauliques"
+    },
+    "408013ee31d2": {
+     "original": "Marine version",
+     "text": "Version marine"
+    },
+    "0c144a6f95c6": {
+     "original": "With winch",
+     "text": "Avec treuil"
+    },
+    "d99e08dda700": {
+     "original": "Flip-over outriggers",
+     "text": "Stabilisateurs rabattables"
+    },
+    "8a74f362d82c": {
+     "original": "Forklift fly jib crane",
+     "text": "Potence pour chariot élévateur"
+    },
+    "f1570a695da2": {
+     "original": "Maximum lifting height class",
+     "text": "Classe de hauteur de levage maximale"
+    },
+    "937ed93c2850": {
+     "original": "How model names work",
+     "text": "Comprendre les références"
+    },
+    "98107abbc2dc": {
+     "original": "How to read a model name",
+     "text": "Comment lire une référence de modèle"
+    },
+    "5580c07790c4": {
+     "original": "The name tells you what the crane is.",
+     "text": "La référence vous dit de quelle grue il s'agit."
+    },
+    "d042d1735da1": {
+     "original": "SQ8ZA5 is an 8 t class knuckle boom truck crane with one main boom and four hydraulic booms. SQ8ZA6TJ is the marine version with a winch.",
+     "text": "La SQ8ZA5 est une grue sur camion à flèche articulée de classe 8 t, avec une flèche principale et quatre flèches hydrauliques. La SQ8ZA6TJ est la version marine avec treuil."
+    },
+    "b966a8db6e59": {
+     "original": "Forklift fly jib cranes",
+     "text": "Potences pour chariot élévateur"
+    },
+    "82d1965569cc": {
+     "original": "Capacity class in tons (08 = 0.8 t)",
+     "text": "Classe de capacité en tonnes (08 = 0.8 t)"
+    },
+    "2f155915f0c3": {
+     "original": "Z knuckle boom, S telescopic boom",
+     "text": "Z flèche articulée, S flèche télescopique"
+    },
+    "379da8a4050b": {
+     "original": "Boom count: 1 main boom + 4 hydraulic booms",
+     "text": "Nombre de flèches : 1 flèche principale + 4 flèches hydrauliques"
+    },
+    "8920f4fc8eac": {
+     "original": "Marine version of the truck crane model",
+     "text": "Version marine du modèle de grue sur camion"
+    },
+    "4adb3b43b1c7": {
+     "original": "Truck Mounting & Export",
+     "text": "Montage sur camion et export"
+    },
+    "d93c32c3a71f": {
+     "original": "From chassis to container",
+     "text": "Du châssis au conteneur"
+    },
+    "5ba7f07b3c3f": {
+     "original": "See how a BOB-LIFT crane is mounted on a truck chassis in our workshop, and how cranes are wrapped and loaded for export.",
+     "text": "Découvrez comment une grue BOB-LIFT est montée sur un châssis de camion dans notre atelier, et comment les grues sont emballées et chargées pour l'export."
+    },
+    "a4994d25c12f": {
+     "original": "BOB-LIFT knuckle boom crane mounted on a white truck chassis in the workshop",
+     "text": "Grue à flèche articulée BOB-LIFT montée sur un châssis de camion blanc en atelier"
+    },
+    "ce5bca129266": {
+     "original": "Step {number}",
+     "text": "Étape {number}"
+    },
+    "98fa4719c219": {
+     "original": "Truck mounting",
+     "text": "Montage sur camion"
+    },
+    "98250b440ca3": {
+     "original": "Mounting a crane on a truck chassis",
+     "text": "Monter une grue sur un châssis de camion"
+    },
+    "16ab461f84a0": {
+     "original": "Lift the crane onto the chassis",
+     "text": "Lever la grue sur le châssis"
+    },
+    "d46733ada32d": {
+     "original": "An overhead hoist holds the crane while it is placed on the truck frame in the workshop.",
+     "text": "Un palan suspend la grue pendant qu'elle est posée sur le cadre du camion, dans l'atelier."
+    },
+    "cfa4a57171bd": {
+     "original": "Fix the crane to the frame",
+     "text": "Fixer la grue au châssis"
+    },
+    "1fa419d0a6a3": {
+     "original": "Technicians work under the cab to secure the crane base to the chassis.",
+     "text": "Les techniciens travaillent sous la cabine pour fixer l'embase de la grue au châssis."
+    },
+    "93901b64645d": {
+     "original": "Fit the support frame",
+     "text": "Monter le faux-châssis"
+    },
+    "703fd85bac09": {
+     "original": "The support frame and its fittings are installed underneath the cargo body.",
+     "text": "Le faux-châssis et ses fixations sont installés sous la benne."
+    },
+    "a642e6ac25d4": {
+     "original": "Check the finished truck",
+     "text": "Contrôler le camion terminé"
+    },
+    "dc6a082c2300": {
+     "original": "The crane stands complete on the truck with its boom raised for inspection.",
+     "text": "La grue est entièrement montée sur le camion, flèche levée pour l'inspection."
+    },
+    "67e569a94ae6": {
+     "original": "Packing and loading",
+     "text": "Emballage et chargement"
+    },
+    "50100fef749a": {
+     "original": "Packing and container loading",
+     "text": "Emballage et chargement en conteneur"
+    },
+    "e7fd2dcd4cd0": {
+     "original": "Line up the order",
+     "text": "Regrouper la commande"
+    },
+    "58885912161b": {
+     "original": "Every crane in an order is tested, set on its base or a pallet and lined up in the hall before packing.",
+     "text": "Chaque grue d'une commande est testée, posée sur son embase ou une palette et alignée dans le hall avant l'emballage."
+    },
+    "581c5b285dc6": {
+     "original": "Wrap the crane",
+     "text": "Filmer la grue"
+    },
+    "225070844eeb": {
+     "original": "Cranes that ship without a chassis are wrapped in stretch film before they leave the workshop.",
+     "text": "Les grues expédiées sans châssis sont emballées sous film étirable avant de quitter l'atelier."
+    },
+    "e3d001ca3d2d": {
+     "original": "Load the container",
+     "text": "Charger le conteneur"
+    },
+    "d47cb9390e3c": {
+     "original": "A hoist or a forklift moves each packed crane into the container.",
+     "text": "Un palan ou un chariot élévateur place chaque grue emballée dans le conteneur."
+    },
+    "f5f87c32e6e3": {
+     "original": "Before we quote",
+     "text": "Avant le devis"
+    },
+    "aae24dfa5b45": {
+     "original": "What our sales team will ask you",
+     "text": "Ce que notre équipe commerciale vous demandera"
+    },
+    "4129cad2ace2": {
+     "original": "Answer these questions in your inquiry and our sales team will go through the options with you.",
+     "text": "Répondez à ces questions dans votre demande et notre équipe commerciale étudiera les options avec vous."
+    },
+    "b0044046fad6": {
+     "original": "Which truck or chassis will carry the crane?",
+     "text": "Sur quel camion ou châssis la grue sera-t-elle montée ?"
+    },
+    "2ca9643fade2": {
+     "original": "Which port or country is it going to?",
+     "text": "Vers quel port ou quel pays est-elle destinée ?"
+    },
+    "4789d7d2cc52": {
+     "original": "Will the crane ship on its own or mounted on a chassis?",
+     "text": "La grue sera-t-elle expédiée seule ou montée sur un châssis ?"
+    },
+    "e16637258ffb": {
+     "original": "Which crane model and lifting capacity do you need?",
+     "text": "Quel modèle de grue et quelle capacité de levage vous faut-il ?"
+    },
+    "1499147e96b9": {
+     "original": "Planning a truck-mounted order?",
+     "text": "Vous prévoyez une commande de grues sur camion ?"
+    },
+    "7a6ced04c06a": {
+     "original": "Tell us the chassis, the destination and the crane model. Our sales team will get back to you.",
+     "text": "Indiquez-nous le châssis, la destination et le modèle de grue. Notre équipe commerciale vous recontactera."
+    },
+    "b5527e797294": {
+     "original": "Service & Operation",
+     "text": "Service et utilisation"
+    },
+    "6c851d837ab7": {
+     "original": "Support and operation guidance",
+     "text": "Assistance et conseils d'utilisation"
+    },
+    "b73aae121c23": {
+     "original": "Hear from our after-sales team, then follow two short guides on checking and operating a BOB-LIFT crane.",
+     "text": "Écoutez notre équipe après-vente, puis suivez deux courts guides pour contrôler et utiliser une grue BOB-LIFT."
+    },
+    "9847a0953dd0": {
+     "original": "Finished BOB-LIFT cranes in a row in the assembly hall",
+     "text": "Grues BOB-LIFT terminées alignées dans le hall d'assemblage"
+    },
+    "581c926530e4": {
+     "original": "After-sales",
+     "text": "Après-vente"
+    },
+    "bd4a32d09bec": {
+     "original": "After-sales support",
+     "text": "Service après-vente"
+    },
+    "0c99d92f5e2a": {
+     "original": "Our after-sales team talks about long-term use, basic checks, maintenance needs and common parts.",
+     "text": "Notre équipe après-vente évoque l'utilisation à long terme, les contrôles de base, l'entretien et les pièces courantes."
+    },
+    "03955d5c23cf": {
+     "original": "Operation guide",
+     "text": "Guide d'utilisation"
+    },
+    "acf1d8a3c74e": {
+     "original": "Check first, then lift",
+     "text": "Contrôler d'abord, lever ensuite"
+    },
+    "1a2487ce77f1": {
+     "original": "Two short videos from our team on what to check before a lift and what to watch during it.",
+     "text": "Deux courtes vidéos de notre équipe : ce qu'il faut vérifier avant un levage et ce qu'il faut surveiller pendant."
+    },
+    "783c70310289": {
+     "original": "Before operation",
+     "text": "Avant l'utilisation"
+    },
+    "5acf0a9fd25a": {
+     "original": "During operation",
+     "text": "Pendant l'utilisation"
+    },
+    "60d8e634d425": {
+     "original": "Make sure the ground is flat and solid",
+     "text": "Vérifiez que le sol est plat et stable"
+    },
+    "ee028e41cd17": {
+     "original": "Outriggers in place and stable",
+     "text": "Stabilisateurs en place et stables"
+    },
+    "4c216bc9db2e": {
+     "original": "Check hydraulic pipes and connections",
+     "text": "Vérifiez les flexibles et raccords hydrauliques"
+    },
+    "f4b7ead38e48": {
+     "original": "Check that the controls respond normally",
+     "text": "Vérifiez que les commandes répondent normalement"
+    },
+    "d2e6685a585a": {
+     "original": "Do not lift before the outriggers are stable",
+     "text": "Ne levez pas avant que les stabilisateurs soient stables"
+    },
+    "5c4831fed2d0": {
+     "original": "Keep the work area clear during lifting",
+     "text": "Dégagez la zone de travail pendant le levage"
+    },
+    "9fc520df6b8e": {
+     "original": "Overloading affects stability and safety",
+     "text": "La surcharge compromet la stabilité et la sécurité"
+    },
+    "cd5856a186f8": {
+     "original": "Do not pull sideways or let people near danger zones",
+     "text": "Ne tirez pas en biais et éloignez les personnes des zones dangereuses"
+    },
+    "8d09fdd99b28": {
+     "original": "Support channels",
+     "text": "Canaux d'assistance"
+    },
+    "cc2c7bd5ebd9": {
+     "original": "Talk to our team",
+     "text": "Parlez à notre équipe"
+    },
+    "b9960cf8f44b": {
+     "original": "Send us your crane model and a short description of your question.",
+     "text": "Envoyez-nous le modèle de votre grue et une brève description de votre question."
+    },
+    "8b777ebcc503": {
+     "original": "WhatsApp",
+     "text": "WhatsApp"
+    },
+    "e5b152ed6b46": {
+     "original": "WeChat",
+     "text": "WeChat"
+    },
+    "ce8ae9da5b7c": {
+     "original": "Email",
+     "text": "E-mail"
+    },
+    "bcc254b55c4a": {
+     "original": "Phone",
+     "text": "Téléphone"
+    },
+    "bdae31e02a2b": {
+     "original": "Need help with your crane?",
+     "text": "Besoin d'aide avec votre grue ?"
+    },
+    "e520fa8e54ff": {
+     "original": "Tell us the model and what you need, and our team will get back to you.",
+     "text": "Indiquez-nous le modèle et votre besoin, notre équipe vous recontactera."
+    },
+    "d769c12ff82c": {
+     "original": "Checks before operating the crane",
+     "text": "Contrôles avant d'utiliser la grue"
+    },
+    "bc184b900b6c": {
+     "original": "Operating the crane safely",
+     "text": "Utiliser la grue en toute sécurité"
+    },
+    "45629605a716": {
+     "original": "Service and operation",
+     "text": "Service et utilisation"
+    },
+    "992a0f054238": {
+     "original": "Services",
+     "text": "Services"
+    },
+    "6cc3d3125e57": {
+     "original": "Popular models",
+     "text": "Modèles populaires"
+    },
+    "1369182680ad": {
+     "original": "BOB-LIFT Editorial Team",
+     "text": "Rédaction BOB-LIFT"
+    },
+    "e5e25207f1ee": {
+     "original": "Written by our engineering and sales teams in Xuzhou, China.",
+     "text": "Rédigé par nos équipes techniques et commerciales à Xuzhou, en Chine."
+    },
+    "ff0a3b7f3dae": {
+     "original": "Updated",
+     "text": "Mis à jour le"
+    },
+    "9f3f7a0e0e2d": {
+     "original": "{minutes} min read",
+     "text": "{minutes} min de lecture"
+    },
+    "9ef3325f6cfd": {
+     "original": "In this article",
+     "text": "Dans cet article"
+    },
+    "4a71d6b0f382": {
+     "original": "Products in this article",
+     "text": "Produits cités dans cet article"
+    },
+    "bca54823c9ea": {
+     "original": "View all products",
+     "text": "Voir tous les produits"
+    },
+    "b5c2c519d635": {
+     "original": "Questions about this topic?",
+     "text": "Une question sur ce sujet ?"
+    },
+    "ad86029c757d": {
+     "original": "Tell us your truck, vessel or job site and our team will recommend a crane.",
+     "text": "Indiquez-nous votre camion, votre navire ou votre chantier, et notre équipe vous recommandera une grue."
+    },
+    "c69dff324e81": {
+     "original": "More news",
+     "text": "Plus d'actualités"
+    },
+    "3a696eb77d12": {
+     "original": "Crane attachments",
+     "text": "Accessoires de grue"
+    },
+    "b538e0980ff6": {
+     "original": "Other lifting equipment",
+     "text": "Autres équipements de levage"
+    },
+    "44fe028b3c5d": {
+     "original": "Lifting equipment site of the BOB-LIFT Group",
+     "text": "Site équipements de levage du groupe BOB-LIFT"
+    },
+    "14b1da5c1614": {
+     "original": "Meet us at trade shows",
+     "text": "Retrouvez-nous sur les salons"
+    },
+    "76761ccf3805": {
+     "original": "You can also see BOB-LIFT cranes at international trade shows. Upcoming shows are announced on our group site.",
+     "text": "Vous pouvez aussi découvrir les grues BOB-LIFT sur les salons internationaux. Les prochains salons sont annoncés sur le site du groupe."
+    },
+    "4b46bdc3ec94": {
+     "original": "Canton Fair",
+     "text": "Foire de Canton"
+    },
+    "02474f51aff5": {
+     "original": "Guangzhou · Booth 4.0G18 · April 2026",
+     "text": "Canton · Stand 4.0G18 · avril 2026"
+    },
+    "a5272c2417ed": {
+     "original": "Construction Indonesia",
+     "text": "Construction Indonesia"
+    },
+    "5c7b2dc6363b": {
+     "original": "Jakarta · September 2026",
+     "text": "Jakarta · septembre 2026"
+    },
+    "74b3f839aead": {
+     "original": "Trade shows on boblift.com",
+     "text": "Salons sur boblift.com"
+    },
+    "5b884056dc40": {
+     "original": "Why Choose BOB-LIFT",
+     "text": "Pourquoi choisir BOB-LIFT"
+    },
+    "4389f1742669": {
+     "original": "Why customers choose BOB-LIFT cranes",
+     "text": "Pourquoi nos clients choisissent les grues BOB-LIFT"
+    },
+    "e53e3d500fa2": {
+     "original": "A crane factory in Xuzhou with its own production line, test bay and export team. Here is what stands behind every BOB-LIFT crane.",
+     "text": "Une usine de grues à Xuzhou, avec sa propre chaîne de production, son banc d'essai et son équipe export. Voici ce qui se cache derrière chaque grue BOB-LIFT."
+    },
+    "d691182eb95f": {
+     "original": "Finished BOB-LIFT cranes lined up in the assembly hall",
+     "text": "Grues BOB-LIFT terminées alignées dans le hall d'assemblage"
+    },
+    "97f5ce4a27e3": {
+     "original": "Product Application",
+     "text": "Applications"
+    },
+    "640b5bb2ab57": {
+     "original": "Built for jobs that lift and move materials",
+     "text": "Conçues pour lever et déplacer des matériaux"
+    },
+    "2cf0ae4fcd0c": {
+     "original": "BOB-LIFT cranes work wherever materials need to be lifted and moved.",
+     "text": "Les grues BOB-LIFT travaillent partout où il faut lever et déplacer des matériaux."
+    },
+    "779d4054288b": {
+     "original": "Urban construction",
+     "text": "Construction urbaine"
+    },
+    "004afc51e78e": {
+     "original": "Advertising installation",
+     "text": "Pose de panneaux publicitaires"
+    },
+    "7fb937035581": {
+     "original": "Electrical maintenance",
+     "text": "Maintenance électrique"
+    },
+    "5f0dc45b510b": {
+     "original": "Working at height",
+     "text": "Travaux en hauteur"
+    },
+    "1e71217fb5fe": {
+     "original": "Port terminals",
+     "text": "Terminaux portuaires"
+    },
+    "42faabf7330f": {
+     "original": "Factory workshops",
+     "text": "Ateliers d'usine"
+    },
+    "5fe7ee95057a": {
+     "original": "Construction sites",
+     "text": "Chantiers de construction"
+    },
+    "f4456f0e2d35": {
+     "original": "See customer cases",
+     "text": "Voir les cas clients"
+    },
+    "3dd36ef8de80": {
+     "original": "Our Certificate",
+     "text": "Nos certificats"
+    },
+    "b44a55d70bb4": {
+     "original": "Certificates and patents",
+     "text": "Certificats et brevets"
+    },
+    "2ce761334f37": {
+     "original": "CE, EAC, ISO 9001 and ISO 14001 certificates, our trademarks and our crane patents. Select a document to view it full size.",
+     "text": "Certificats CE, EAC, ISO 9001 et ISO 14001, nos marques déposées et nos brevets de grues. Sélectionnez un document pour l'afficher en grand."
+    },
+    "c3cc9d3a7206": {
+     "original": "More on the About page",
+     "text": "En savoir plus sur la page À propos"
+    },
+    "d6e4150ed5a1": {
+     "original": "Close certificate preview",
+     "text": "Fermer l'aperçu du certificat"
+    },
+    "7837a348c471": {
+     "original": "Production Equipment",
+     "text": "Équipements de production"
+    },
+    "eaa5eceb49df": {
+     "original": "Cutting, forming and machining in our own factory",
+     "text": "Découpe, formage et usinage dans notre propre usine"
+    },
+    "5e9144b68b22": {
+     "original": "Plasma and laser cutting, bending machines, drilling machines, boring machines and shot blasting machines prepare the steel before our assembly line builds and tests each crane.",
+     "text": "Découpe plasma et laser, presses plieuses, perceuses, aléseuses et grenailleuses préparent l'acier avant que notre chaîne d'assemblage ne construise et teste chaque grue."
+    },
+    "e0d422d683a3": {
+     "original": "Workstations in the BOB-LIFT assembly hall",
+     "text": "Postes de travail dans le hall d'assemblage BOB-LIFT"
+    },
+    "21d0fcb17550": {
+     "original": "Take the factory tour",
+     "text": "Faire la visite de l'usine"
+    },
+    "efc011b89e70": {
+     "original": "Production Market",
+     "text": "Nos marchés"
+    },
+    "0afc65324569": {
+     "original": "Cranes at work around the world",
+     "text": "Des grues au travail dans le monde entier"
+    },
+    "9cb50c66dec6": {
+     "original": "Our cranes are exported mainly to Asia, the Americas, Europe and Africa. Russia is one of our strongest markets, with more than 200 cranes delivered there.",
+     "text": "Nos grues sont principalement exportées vers l'Asie, les Amériques, l'Europe et l'Afrique. La Russie est l'un de nos marchés les plus forts, avec plus de 200 grues livrées."
+    },
+    "e17d85d0ae12": {
+     "original": "Customer visits to our factory",
+     "text": "Visites clients dans notre usine"
+    },
+    "9b74a7c9fd5f": {
+     "original": "Our Service",
+     "text": "Nos services"
+    },
+    "07be05d8f036": {
+     "original": "With you before, during and after the order",
+     "text": "À vos côtés avant, pendant et après la commande"
+    },
+    "1221a48a32b4": {
+     "original": "Pre-sales",
+     "text": "Avant-vente"
+    },
+    "030e4867a5f3": {
+     "original": "Our team uses its product knowledge to help you choose the right crane for your job and chassis.",
+     "text": "Notre équipe met sa connaissance des produits à votre service pour choisir la grue adaptée à votre travail et à votre châssis."
+    },
+    "4797dafd700e": {
+     "original": "In-sales",
+     "text": "Pendant la commande"
+    },
+    "23758fa50f3f": {
+     "original": "We keep you updated on the progress of your order while it is built and tested.",
+     "text": "Nous vous tenons informé de l'avancement de votre commande pendant sa fabrication et ses essais."
+    },
+    "adf4b5865241": {
+     "original": "Technical guidance and after-sales support for installation and operation.",
+     "text": "Conseils techniques et service après-vente pour l'installation et l'utilisation."
+    },
+    "1c0fa97e2948": {
+     "original": "Service and operation guides",
+     "text": "Guides de service et d'utilisation"
+    },
+    "979d50426920": {
+     "original": "Tell us about your lifting job.",
+     "text": "Parlez-nous de votre besoin de levage."
+    },
+    "122375d406db": {
+     "original": "Send the load, the reach and your truck or vessel, and our sales team will suggest a crane.",
+     "text": "Indiquez la charge, la portée et votre camion ou navire, et notre équipe commerciale vous proposera une grue."
+    },
+    "c61ab4204f57": {
+     "original": "View products",
+     "text": "Voir les produits"
+    }
+   }
+  }
+ }
+}
