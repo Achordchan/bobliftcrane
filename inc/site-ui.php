@@ -743,7 +743,7 @@ function boblift_static_text_translations(): array
             'Play slideshow' => '播放轮播',
         ],
     ];
-    // Page-specific dictionaries live in inc/translations/*.php, each returning ['ja' => [...], 'zh' => [...]].
+    // Page-specific dictionaries live in inc/translations/*.php, each returning a map of language code => [English text => translation].
     foreach (glob(get_template_directory() . '/inc/translations/*.php') ?: [] as $file) {
         $extra = include $file;
         foreach (is_array($extra) ? $extra : [] as $language => $strings) {
