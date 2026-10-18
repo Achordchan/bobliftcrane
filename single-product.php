@@ -92,12 +92,21 @@ $gallery_items = array_map(static function ($item, $index) use ($image_url, $pro
     $default_label = $index === 0 ? (string) ($ui['mainProductViewLabel'] ?? 'Main product view') : (string) ($ui['productPhotoLabel'] ?? 'Product photo');
     return ['image' => $image_url((string) $src), 'label' => is_array($item) && !empty($item['label']) ? (string) $item['label'] : $default_label];
 }, $gallery, array_keys($gallery));
-// Chart and parameter images belong to the drawings, not to the photo gallery.
+// Chart and parameter images belong with the drawings, not in the photo gallery.
 $photo_items = [];
+$drawing_images = array_column($drawings, 'image');
 foreach ($gallery_items as $item) {
     if (!preg_match('/\b(parameter|chart|dimension|specification)\b/', strtolower((string) ($item['label'] ?? '')))) {
         $photo_items[] = $item;
+        continue;
     }
+    if ($item['image'] === '' || in_array($item['image'], $drawing_images, true)) {
+        continue;
+    }
+    $chart_id = attachment_url_to_postid($item['image']);
+    $chart_size = $chart_id ? wp_get_attachment_image_src($chart_id, 'full') : false;
+    $drawings[] = ['image' => $item['image'], 'label' => $item['label'], 'width' => $chart_size ? (int) $chart_size[1] : 0, 'height' => $chart_size ? (int) $chart_size[2] : 0];
+    $drawing_images[] = $item['image'];
 }
 $gallery_items = $photo_items;
 if (!$gallery_items) {
@@ -411,7 +420,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                     <div data-drawing-root>
                     <div class="p-4 sm:p-6 md:p-8">
                         <button class="block w-full cursor-zoom-in rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" type="button" data-drawing-open aria-label="<?php echo esc_attr($drawing['label']); ?>">
-                            <img class="mx-auto h-auto w-full <?php echo $drawing_ratio < 1.4 ? 'max-w-[560px]' : ''; ?>" src="<?php echo esc_url($drawing['image']); ?>" width="<?php echo esc_attr((string) $drawing['width']); ?>" height="<?php echo esc_attr((string) $drawing['height']); ?>" alt="<?php echo esc_attr($drawing['label']); ?>" loading="lazy" decoding="async">
+                            <img class="mx-auto h-auto w-full <?php echo $drawing_ratio < 1.4 ? 'max-w-[560px]' : ''; ?>" src="<?php echo esc_url($drawing['image']); ?>" <?php if (($drawing['width'] ?? 0) > 0 && ($drawing['height'] ?? 0) > 0) : ?>width="<?php echo esc_attr((string) $drawing['width']); ?>" height="<?php echo esc_attr((string) $drawing['height']); ?>"<?php endif; ?> alt="<?php echo esc_attr($drawing['label']); ?>" loading="lazy" decoding="async">
                         </button>
                         <p class="mt-4 text-center text-xs font-semibold text-slate-500"><?php echo esc_html($ui['drawingHint'] ?? 'Select the drawing to view it full size.'); ?></p>
                     </div>
