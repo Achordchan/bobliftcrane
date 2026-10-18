@@ -2719,6 +2719,46 @@
     qsa('[data-inview-video]').forEach((video) => videoObserver.observe(video));
   }
 
+  // Product page films play in place; the list below the player switches which one is loaded.
+  qsa('[data-inline-videos]').forEach((root) => {
+    const stage = qs('[data-inline-video-stage]', root);
+    const caption = qs('[data-inline-video-caption]', root);
+    const items = qsa('[data-inline-video-item]', root);
+    let current = qs('[data-inline-video-play]', stage);
+    const play = (source) => {
+      stage.innerHTML = '';
+      if (source.dataset.videoPlayer === 'youtube' && source.dataset.videoYoutube) {
+        const frame = document.createElement('iframe');
+        frame.className = 'absolute inset-0 h-full w-full';
+        frame.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(source.dataset.videoYoutube)}?autoplay=1&rel=0`;
+        frame.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+        frame.allowFullscreen = true;
+        frame.title = source.dataset.videoTitle || '';
+        stage.appendChild(frame);
+      } else {
+        const video = document.createElement('video');
+        video.className = 'absolute inset-0 h-full w-full bg-black object-contain';
+        video.src = source.dataset.videoSrc;
+        video.poster = source.dataset.videoPoster || '';
+        video.controls = true;
+        video.playsInline = true;
+        video.setAttribute('aria-label', source.dataset.videoTitle || '');
+        stage.appendChild(video);
+        video.play().catch(() => {});
+      }
+    };
+    stage.addEventListener('click', (event) => {
+      if (event.target.closest('[data-inline-video-play]')) play(current);
+    });
+    items.forEach((item) => item.addEventListener('click', () => {
+      items.forEach((other) => other.setAttribute('aria-pressed', String(other === item)));
+      if (caption) caption.textContent = item.dataset.videoTitle || '';
+      // Picking from the list starts that film at once.
+      current = item;
+      play(item);
+    }));
+  });
+
   // Video library cards open one shared player: a local MP4 now, a YouTube embed once ids are set.
   const videoDialog = qs('[data-video-dialog]');
   if (videoDialog) {

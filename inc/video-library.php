@@ -63,14 +63,14 @@ function boblift_video_library(): array
         $series('marine', 'telescopic', '6.3', $any, 0),
         $series('marine', 'telescopic', '12', $both, 0),
         $series('marine', 'telescopic', '20', $both, 0),
-        $clip('test-load-5z', 'test', 'Load test · 5 t knuckle boom crane', $any, 0),
-        $clip('test-load-10z', 'test', 'Load test · 10 t knuckle boom crane', $any, 0),
-        $clip('test-load-6.3z', 'test', 'Load test · 6.3 t knuckle boom crane', $any, 0),
-        $clip('test-basket-6.3z', 'test', 'Basket test · 6.3 t knuckle boom crane', $any, 0),
-        $clip('test-load-marine-6.3s', 'test', 'Load test on the test rig · 6.3 t telescopic marine crane', $any, 0),
-        $clip('test-load-marine-2z', 'test', 'Function test · 2 t knuckle boom marine crane', $any, 0),
-        $clip('test-load-sq8za6', 'test', 'Load test · SQ8ZA6 knuckle boom truck crane', $any, 0),
-        $clip('test-batch-3.2z', 'test', 'One order: twenty 3.2 t knuckle boom cranes ready to ship', $any, 0),
+        array_replace($clip('test-load-5z', 'test', 'Load test · 5 t knuckle boom crane', $any, 0), ['shows' => ['truck', 'knuckle-boom', 5.0]]),
+        array_replace($clip('test-load-10z', 'test', 'Load test · 10 t knuckle boom crane', $any, 0), ['shows' => ['truck', 'knuckle-boom', 10.0]]),
+        array_replace($clip('test-load-6.3z', 'test', 'Load test · 6.3 t knuckle boom crane', $any, 0), ['shows' => ['truck', 'knuckle-boom', 6.3]]),
+        array_replace($clip('test-basket-6.3z', 'test', 'Basket test · 6.3 t knuckle boom crane', $any, 0), ['shows' => ['truck', 'knuckle-boom', 6.3]]),
+        array_replace($clip('test-load-marine-6.3s', 'test', 'Load test on the test rig · 6.3 t telescopic marine crane', $any, 0), ['shows' => ['marine', 'telescopic-boom', 6.3]]),
+        array_replace($clip('test-load-marine-2z', 'test', 'Function test · 2 t knuckle boom marine crane', $any, 0), ['shows' => ['marine', 'knuckle-boom', 2.0]]),
+        array_replace($clip('test-load-sq8za6', 'test', 'Load test · SQ8ZA6 knuckle boom truck crane', $any, 0), ['shows' => ['truck', 'knuckle-boom', 8.0]]),
+        array_replace($clip('test-batch-3.2z', 'test', 'One order: twenty 3.2 t knuckle boom cranes ready to ship', $any, 0), ['shows' => ['truck', 'knuckle-boom', 3.2]]),
         $clip('test-explained', 'test', 'How we test a crane before delivery', $both, 0),
         $clip('quality-control', 'test', 'Quality control in the workshop', $both, 0),
         $clip('factory-intro', 'factory', 'Inside the BOB-LIFT factory', $both, 0),
@@ -171,8 +171,8 @@ function boblift_videos_in_group(string ...$groups): array
     return $items;
 }
 
-// The series video for a truck or marine crane with the same boom type and max lifting capacity.
-function boblift_product_series_video(int $product_id): ?array
+// What a product is for matching videos: truck or marine, boom type and max lifting capacity.
+function boblift_product_video_match(int $product_id): ?array
 {
     $english_id = function_exists('boblift_product_english_id') ? boblift_product_english_id($product_id) : $product_id;
     // Assigned terms and their ancestors: a crane filed only under a custom child category still belongs to its family.
@@ -197,15 +197,46 @@ function boblift_product_series_video(int $product_id): ?array
     }
     $boom = (string) get_post_meta($english_id, '_boom_type', true);
     $capacity = (float) (boblift_product_filter_values($english_id)['capacity'] ?? 0);
-    if ($use === '' || $capacity <= 0) {
+    return $use === '' || $capacity <= 0 ? null : ['use' => $use, 'boom' => $boom, 'capacity' => $capacity];
+}
+
+// The series video for a truck or marine crane with the same boom type and max lifting capacity.
+function boblift_product_series_video(int $product_id): ?array
+{
+    $match = boblift_product_video_match($product_id);
+    if (!$match) {
         return null;
     }
     foreach (boblift_video_library() as $video) {
-        if (($video['use'] ?? '') === $use && ($video['boom'] ?? '') === $boom && abs((float) $video['capacity'] - $capacity) < 0.05) {
+        if (($video['use'] ?? '') === $match['use'] && ($video['boom'] ?? '') === $match['boom'] && abs((float) ($video['capacity'] ?? 0) - $match['capacity']) < 0.05) {
             return boblift_video_resolve($video);
         }
     }
     return null;
+}
+
+// Every film for a product page: its series video, then the factory tests filmed on the same crane type.
+// When there is any, the general "how we test" film closes the list.
+function boblift_product_videos(int $product_id): array
+{
+    $match = boblift_product_video_match($product_id);
+    if (!$match) {
+        return [];
+    }
+    $videos = [];
+    if ($series = boblift_product_series_video($product_id)) {
+        $videos[] = $series;
+    }
+    foreach (boblift_video_library() as $video) {
+        $shows = $video['shows'] ?? null;
+        if (is_array($shows) && $shows[0] === $match['use'] && $shows[1] === $match['boom'] && abs((float) $shows[2] - $match['capacity']) < 0.05 && ($resolved = boblift_video_resolve($video))) {
+            $videos[] = $resolved;
+        }
+    }
+    if ($videos && ($general = boblift_video_by_key('test-explained'))) {
+        $videos[] = $general;
+    }
+    return $videos;
 }
 
 function boblift_video_duration_label(array $video): string
