@@ -238,14 +238,35 @@ function boblift_legacy_redirect_is_live_path(string $path): bool
     if (function_exists('pll_languages_list') && in_array(ltrim($raw, '/'), (array) pll_languages_list(['fields' => 'slug']), true)) {
         return true; // a language home such as /ru
     }
-    if (function_exists('boblift_public_custom_url_routes') && isset(boblift_public_custom_url_routes()[ltrim($raw, '/')])) {
-        return true;
+    // A language directory (/fr/contact.html): the remainder names the English route, which is live in that
+    // language only when a published translation of its page or term exists there.
+    $rest = $raw;
+    $lang = '';
+    if (function_exists('pll_languages_list') && preg_match('#^/([^/]+)(/.+)$#', $raw, $m) && in_array($m[1], (array) pll_languages_list(['fields' => 'slug']), true)) {
+        $lang = $m[1];
+        $rest = $m[2];
+    }
+    if (function_exists('boblift_public_custom_url_routes')) {
+        $route = boblift_public_custom_url_routes()[ltrim($rest, '/')] ?? null;
+        if (is_string($route) && $lang === '') {
+            return true;
+        }
+        if (is_string($route) && preg_match('/^(page|category|product_category):(\d+)$/', $route, $r)) {
+            if ($r[1] === 'page') {
+                $id = function_exists('pll_get_post') ? (int) pll_get_post((int) $r[2], $lang) : 0;
+                if ($id > 0 && get_post_status($id) === 'publish') {
+                    return true;
+                }
+            } elseif (function_exists('pll_get_term') && (int) pll_get_term((int) $r[2], $lang) > 0) {
+                return true;
+            }
+        }
     }
     $post_id = url_to_postid(home_url($raw));
     if ($post_id > 0 && get_post_status($post_id) === 'publish' && rtrim(rawurldecode((string) parse_url(get_permalink($post_id), PHP_URL_PATH)), '/') === $raw) {
         return true; // case, feedback and other post types served under their own prefix
     }
-    $slug = sanitize_title((string) preg_replace('/\.html$/i', '', ltrim($raw, '/')));
+    $slug = sanitize_title((string) preg_replace('/\.html$/i', '', ltrim($rest, '/')));
     if ($slug === '' || str_contains($slug, '/')) {
         return false;
     }
@@ -259,10 +280,10 @@ function boblift_legacy_redirect_is_live_path(string $path): bool
         }
     }
     foreach (['product_category', 'category'] as $taxonomy) {
-        $term = get_term_by('slug', $slug, $taxonomy);
-        if ($term instanceof WP_Term) {
-            $link = get_term_link($term);
-            if (!is_wp_error($link) && rtrim(rawurldecode((string) parse_url($link, PHP_URL_PATH)), '/') === $raw) {
+        $terms = get_terms(['taxonomy' => $taxonomy, 'slug' => $slug, 'hide_empty' => false, 'lang' => '']);
+        foreach (is_array($terms) ? $terms : [] as $term) {
+            $link = $term instanceof WP_Term ? get_term_link($term) : '';
+            if ($link && !is_wp_error($link) && rtrim(rawurldecode((string) parse_url($link, PHP_URL_PATH)), '/') === $raw) {
                 return true;
             }
         }
