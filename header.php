@@ -50,7 +50,6 @@ foreach ((array) ($site_switcher_ui['sites'] ?? []) as $site) {
 }
 $site_switcher_current = array_values(array_filter($site_switcher_items, static fn(array $site): bool => $site['current']))[0] ?? [];
 $search_query = is_search() ? get_search_query() : '';
-$flag_alt_template = (string) ($header_ui['languageFlagAltTemplate'] ?? '{language} flag');
 $current_path = trim((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH), '/');
 $active_language_code = function_exists('pll_current_language') ? (string) pll_current_language('slug') : 'en';
 if ($active_language_code === '') {
@@ -463,13 +462,13 @@ foreach ($languages as $language) {
             <div class="flex items-center gap-2 md:gap-3 xl:gap-2 min-[1380px]:justify-self-end min-[1680px]:gap-3">
                 <button class="group grid h-11 w-11 shrink-0 place-items-center rounded-sm border border-line bg-white text-ink transition hover:border-ink/30 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/20 aria-expanded:border-ink/40 aria-expanded:bg-mist md:h-12 md:w-12" type="button" aria-label="<?php echo esc_attr($search_ui['openLabel'] ?? 'Search the site'); ?>" aria-expanded="false" aria-controls="site-search" data-search-toggle><?php echo boblift_icon('search', 'h-5 w-5 group-aria-expanded:hidden'); ?><?php echo boblift_icon('x', 'hidden h-5 w-5 group-aria-expanded:block'); ?></button>
                 <div class="relative" data-language-root>
-                    <button class="group flex h-12 items-center gap-2.5 rounded-sm border border-line bg-white px-3 text-start transition hover:border-ink/30 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/20 aria-expanded:border-ink/40 max-[360px]:h-11 max-[360px]:w-11 max-[360px]:justify-center max-[360px]:p-0 max-md:max-w-[8.25rem] md:min-w-[148px] md:px-4 lg:min-w-0 lg:px-3 xl:min-w-[148px] xl:px-4" type="button" aria-label="<?php echo esc_attr($header_ui['changeLanguageLabel'] ?? 'Change language'); ?>" aria-expanded="false" aria-controls="language-menu" data-language-toggle>
-                        <img class="h-4 w-6 shrink-0 rounded-sm object-cover object-left ring-1 ring-ink/10" src="<?php echo esc_url(boblift_language_flag_url((string) ($active_language['flag'] ?? 'flags/us.svg'))); ?>" alt="<?php echo esc_attr(str_replace('{language}', (string) ($active_language['label'] ?? 'English'), $flag_alt_template)); ?>" loading="lazy">
-                        <strong class="block min-w-0 flex-1 truncate whitespace-nowrap text-sm font-black text-ink max-[360px]:hidden lg:max-xl:hidden"><?php echo esc_html($active_language['label'] ?? 'English'); ?></strong>
-                        <?php echo boblift_icon('chevron-down', 'h-4 w-4 shrink-0 text-slate-400 transition group-aria-expanded:rotate-180 max-[360px]:hidden'); ?>
+                    <button class="group flex h-11 items-center gap-1.5 rounded-sm border border-line bg-white px-3 text-start transition hover:border-ink/30 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/20 aria-expanded:border-ink/40 md:h-12" type="button" aria-label="<?php echo esc_attr(($header_ui['changeLanguageLabel'] ?? 'Change language') . ': ' . ($active_language['label'] ?? 'English')); ?>" aria-expanded="false" aria-controls="language-menu" data-language-toggle>
+                        <?php echo boblift_icon('globe', 'h-4 w-4 shrink-0 text-slate-500'); ?>
+                        <strong class="text-sm font-black uppercase tracking-[0.06em] text-ink"><?php echo esc_html(strtoupper((string) ($active_language['code'] ?? 'en'))); ?></strong>
+                        <?php echo boblift_icon('chevron-down', 'h-4 w-4 shrink-0 text-slate-400 transition group-aria-expanded:rotate-180'); ?>
                     </button>
                     <div id="language-menu" class="absolute end-0 top-full z-[220] hidden pt-2" data-language-menu>
-                        <div class="w-60 overflow-hidden rounded border border-line bg-white py-1.5 shadow-raised">
+                        <div class="w-52 overflow-hidden rounded border border-line bg-white py-1.5 shadow-raised">
                             <?php foreach ($languages as $language) :
                                 $language_label = (string) ($language['label'] ?? 'English');
                                 $language_code = (string) ($language['code'] ?? 'en');
@@ -477,7 +476,6 @@ foreach ($languages as $language) {
                                 $selected = !empty($language['current']);
                                 ?>
                                 <a class="relative flex h-11 items-center gap-3 px-4 text-sm outline-none transition hover:bg-mist hover:text-ink focus-visible:bg-mist <?php echo $selected ? 'bg-mist font-black text-ink' : 'font-semibold text-slate-600'; ?>" href="<?php echo esc_attr((string) ($language['href'] ?? '/')); ?>" hreflang="<?php echo esc_attr($language_code); ?>" title="<?php echo esc_attr($language_market); ?>" <?php echo $selected ? 'aria-current="true"' : ''; ?>>
-                                    <img class="h-4 w-6 shrink-0 rounded-sm object-cover object-left ring-1 ring-ink/10" src="<?php echo esc_url(boblift_language_flag_url((string) ($language['flag'] ?? 'flags/us.svg'))); ?>" alt="<?php echo esc_attr(str_replace('{language}', $language_label, $flag_alt_template)); ?>" loading="lazy">
                                     <span class="min-w-0 flex-1 truncate"><?php echo esc_html($language_label); ?></span>
                                     <span class="text-[11px] font-bold uppercase tracking-[0.12em] <?php echo $selected ? 'text-ink' : 'text-slate-400'; ?>"><?php echo esc_html(strtoupper($language_code)); ?></span>
                                 </a>
