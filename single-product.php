@@ -280,6 +280,32 @@ if ($product_feedback) {
     $anchors[] = ['id' => 'feedback', 'label' => (string) ($cases_ui['customerFeedbackLabel'] ?? 'Customer Feedback')];
 }
 $anchors[] = ['id' => 'faq', 'label' => (string) ($ui['faqLabel'] ?? 'FAQ')];
+// Other models from this product's most specific category, nearest in capacity first, shown in capacity order.
+$related_products = [];
+$related_term = null;
+$related_terms = get_the_terms(get_the_ID(), 'product_category');
+if (is_array($related_terms) && $related_terms) {
+    usort($related_terms, static fn(WP_Term $a, WP_Term $b): int => ((int) $b->parent <=> (int) $a->parent) ?: strcasecmp($a->name, $b->name));
+    $related_term = $related_terms[0];
+    $related_ids = get_posts([
+        'post_type' => 'product',
+        'post_status' => 'publish',
+        'numberposts' => -1,
+        'fields' => 'ids',
+        'post__not_in' => [get_the_ID()],
+        'tax_query' => [['taxonomy' => 'product_category', 'field' => 'term_id', 'terms' => $related_term->term_id]],
+    ]);
+    $capacity_of = static fn(int $id): float => (float) get_post_meta($id, '_capacity_value', true);
+    $own_capacity = $capacity_of(get_the_ID());
+    usort($related_ids, static fn(int $a, int $b): int => (abs($capacity_of($a) - $own_capacity) <=> abs($capacity_of($b) - $own_capacity)) ?: ($a <=> $b));
+    $related_ids = array_slice($related_ids, 0, 4);
+    usort($related_ids, static fn(int $a, int $b): int => ($capacity_of($a) <=> $capacity_of($b)) ?: ($a <=> $b));
+    foreach ($related_ids as $related_id) {
+        $related_products[] = boblift_product_from_post(get_post($related_id));
+    }
+}
+$related_ui = boblift_site_ui('newsDetail');
+$case_detail_ui = boblift_site_ui('caseDetail');
 $anchors[] = ['id' => 'quote', 'label' => (string) ($ui['quoteAnchorLabel'] ?? 'Request Quote')];
 $quote_title = (string) ($ui['quoteTitle'] ?? 'Need a crane matched to your site and lifting task?');
 if (str_contains(strtolower($quote_title), 'truck crane')) {
@@ -368,7 +394,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                     <div class="flex items-start justify-between gap-4">
                         <div class="min-w-0">
                             <p class="text-[11px] font-black uppercase tracking-[0.2em] text-[#0B3F7D]"><?php echo esc_html($ui['cinemaSpecsLabel'] ?? 'Engineering data'); ?></p>
-                            <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($ui['specsHeading'] ?? 'Specifications'); ?></h2>
+                            <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html(trim($hero_model . ' ' . ($ui['specsHeading'] ?? 'Specifications'))); ?></h2>
                         </div>
                         <?php if ($former_models !== '') : ?>
                             <?php // Old-site model names stay on the page so searches for them still land here. ?>
@@ -394,7 +420,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
             <?php if ($detail_body_html !== '') : ?>
                 <article id="overview" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card">
                     <?php // Old shared links to #details land on the product details. ?><span id="details" class="block scroll-mt-24" aria-hidden="true"></span>
-                    <div class="grid gap-6 p-6 md:p-8 lg:grid-cols-[minmax(0,280px)_minmax(0,1fr)] lg:gap-12">
+                    <div class="grid gap-6 p-6 md:p-8 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)] lg:gap-12">
                         <div>
                             <p class="text-[11px] font-black uppercase tracking-[0.2em] text-[#0B3F7D]"><?php echo esc_html($ui['detailBodyLabel'] ?? 'Product details'); ?></p>
                             <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($hero_model !== '' ? $hero_model : $product_title); ?></h2>
@@ -587,13 +613,13 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                 </article>
             <?php endif; ?>
             <section id="faq" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card">
-                <div class="p-6 md:p-8">
-                    <h2 class="text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($ui['faqLabel'] ?? 'FAQ'); ?></h2>
-                    <div class="mt-6 grid grid-cols-1 gap-3 lg:grid-cols-2">
+                <div class="grid gap-6 p-6 md:p-8 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)] lg:gap-12">
+                    <h2 class="text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42] lg:sticky lg:top-24 lg:self-start"><?php echo esc_html(trim($hero_model . ' ' . ($ui['faqLabel'] ?? 'FAQ'))); ?></h2>
+                    <div class="divide-y divide-[#E6EDF5] border-y border-[#E6EDF5]">
                         <?php foreach ($faqs as $faq) : ?>
-                            <details class="group rounded-sm border border-[#E6EDF5] bg-[#F8FAFD] px-5 py-4 open:bg-white">
-                                <summary class="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-black text-[#071f42]"><?php echo esc_html($faq['question']); ?><?php echo boblift_icon('chevron-down', 'h-4 w-4 shrink-0 transition group-open:rotate-180'); ?></summary>
-                                <p class="mt-3 text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html($faq['answer']); ?></p>
+                            <details class="group py-4 md:py-5">
+                                <summary class="flex cursor-pointer list-none items-center justify-between gap-4 text-base font-black leading-snug text-[#071f42] transition hover:text-blue-700"><?php echo esc_html($faq['question']); ?><?php echo boblift_icon('chevron-down', 'h-4 w-4 shrink-0 transition group-open:rotate-180'); ?></summary>
+                                <p class="mt-3 max-w-3xl text-sm font-semibold leading-7 text-slate-600 md:text-base"><?php echo esc_html($faq['answer']); ?></p>
                             </details>
                         <?php endforeach; ?>
                     </div>
@@ -604,6 +630,36 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                 <p class="boblift-product-catalog-link"><a class="inline-flex h-12 items-center justify-center gap-2 rounded-sm border border-[#D8E2EF] bg-white px-5 text-sm font-black text-[#071f42] transition hover:-translate-y-0.5 hover:border-blue-300 hover:text-blue-700" href="<?php echo esc_url($catalog_url); ?>" target="_blank" rel="noopener"><?php echo boblift_icon('file-text', 'h-4 w-4'); ?><?php echo esc_html((string) ($ui['heroPdfLabel'] ?? 'PDF Catalog')); ?></a></p>
             <?php endif; ?>
             <?php boblift_render_brochures(['context' => 'product', 'families' => boblift_brochure_families_for_product($product), 'product' => $product_title, 'product_slug' => (string) ($product['slug'] ?? '')]); ?>
+            <?php if ($related_products && $related_term instanceof WP_Term) :
+                $related_link = get_term_link($related_term);
+                ?>
+                <section id="related" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card" aria-labelledby="related-title">
+                    <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 p-6 pb-0 md:p-8 md:pb-0">
+                        <div>
+                            <p class="text-[11px] font-black uppercase tracking-[0.2em] text-[#0B3F7D]"><?php echo esc_html($related_ui['relatedLabel'] ?? 'Related'); ?></p>
+                            <h2 id="related-title" class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($related_term->name); ?></h2>
+                        </div>
+                        <?php if (!is_wp_error($related_link)) : ?>
+                            <a class="inline-flex items-center gap-1.5 text-sm font-black text-blue-700 transition hover:text-[#071f42]" href="<?php echo esc_url($related_link); ?>"><?php echo esc_html($case_detail_ui['viewAllLabel'] ?? 'View all'); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></a>
+                        <?php endif; ?>
+                    </div>
+                    <ul class="grid grid-cols-2 gap-x-4 gap-y-6 p-6 md:gap-x-5 md:p-8 lg:grid-cols-4">
+                        <?php foreach ($related_products as $related) :
+                            $related_model = trim((string) ($related['model'] ?? ''));
+                            $related_image = boblift_product_image($related);
+                            $related_fit = boblift_image_fit($related_image) === 'cutout' ? 'object-contain p-4' : 'object-cover';
+                            ?>
+                            <li class="min-w-0">
+                                <a class="group block" href="<?php echo esc_url(boblift_product_url($related)); ?>">
+                                    <span class="block aspect-[4/3] overflow-hidden rounded-sm bg-[#EDF1F5]"><img class="h-full w-full transition duration-500 group-hover:scale-[1.03] <?php echo esc_attr($related_fit); ?>" src="<?php echo esc_url($related_image); ?>" alt="<?php echo esc_attr((string) $related['title']); ?>" loading="lazy" decoding="async"></span>
+                                    <?php if ($related_model !== '') : ?><span class="mt-3 block text-lg font-black uppercase leading-none tracking-[0.02em] text-[#0B3F7D] md:text-xl"><?php echo esc_html($related_model); ?></span><?php endif; ?>
+                                    <span class="mt-1.5 line-clamp-2 block text-sm font-black leading-snug text-[#071f42] transition group-hover:text-blue-700 md:text-base"><?php echo esc_html((string) $related['title']); ?></span>
+                                </a>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                </section>
+            <?php endif; ?>
             <section id="quote" class="boblift-product-quote-section relative left-1/2 w-screen -translate-x-1/2 rtl:left-auto rtl:right-1/2 rtl:translate-x-1/2 scroll-mt-24 overflow-hidden border-y border-[#DDE7F2] bg-[radial-gradient(circle_at_70%_28%,rgba(245,154,60,0.16),transparent_28%),linear-gradient(135deg,#ffffff_0%,#eaf2ff_100%)] py-12 text-[#071f42] shadow-card md:py-16">
                 <div class="page-shell grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_auto] xl:gap-12">
                     <div class="boblift-product-quote-copy flex items-start gap-5 md:gap-6">
