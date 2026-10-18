@@ -1707,7 +1707,7 @@ function boblift_render_floating_contact_button(array $button, array $contact, a
             ];
             $inquiry_attrs = ' data-inquiry-product="' . esc_attr($product_title) . '" data-inquiry-product-slug="' . esc_attr($product_slug) . '" data-inquiry-products="' . esc_attr((string) wp_json_encode([$product_item], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) . '"';
         }
-        echo '<button class="inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-sm bg-navy px-4 text-sm font-black text-white transition hover:bg-[#0b2d5b] lg:flex-none min-[1440px]:size-12 min-[1440px]:px-0" type="button" data-inquiry-modal-open data-inquiry-source="浮动联系按钮"' . $inquiry_attrs . ' aria-label="' . esc_attr($aria_label) . '"><span class="min-[1440px]:hidden">' . esc_html($label) . '</span>' . boblift_floating_contact_icon($button, 'h-4 w-4') . '</button>';
+        echo '<button class="inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-sm bg-navy px-4 text-sm font-black text-white transition hover:bg-[#0b2d5b] lg:size-[40px] lg:flex-none lg:px-0 min-[1780px]:size-12" type="button" data-inquiry-modal-open data-inquiry-source="浮动联系按钮"' . $inquiry_attrs . ' aria-label="' . esc_attr($aria_label) . '"><span class="lg:hidden">' . esc_html($label) . '</span>' . boblift_floating_contact_icon($button, 'h-4 w-4') . '</button>';
         return;
     }
 

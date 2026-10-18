@@ -73,7 +73,7 @@ $pad = static fn(int $n): string => str_pad((string) $n, 2, '0', STR_PAD_LEFT);
     <div class="page-shell grid gap-12 md:gap-16">
         <?php foreach ($stops as $number => $stop) : $photos = $stop['photos']; $lead = array_shift($photos); ?>
             <article class="grid gap-5 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,2fr)] lg:gap-10" aria-labelledby="factory-stop-<?php echo esc_attr((string) $stop['key']); ?>">
-                <div class="lg:sticky lg:top-24 lg:self-start lg:pt-2">
+                <div class="lg:self-center">
                     <p class="text-xs font-black uppercase tracking-[0.14em] text-blue-700"><?php echo esc_html(str_replace('{number}', $pad($number + 1), (string) ($ui['stopLabel'] ?? 'Stop {number}'))); ?></p>
                     <h2 id="factory-stop-<?php echo esc_attr((string) $stop['key']); ?>" class="mt-2 text-[clamp(1.5rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-ink"><?php echo esc_html((string) $stop['title']); ?></h2>
                     <p class="mt-3 max-w-md text-sm font-semibold leading-7 text-slate-600 md:text-base"><?php echo esc_html((string) ($stop['text'] ?? '')); ?></p>

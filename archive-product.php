@@ -188,7 +188,7 @@ $filter_sidebar = static function (bool $show_close = false) use ($filter_group,
 <?php };
 ?>
 <section class="boblift-product-listing bg-[#F8FAFC] py-8 md:py-12 lg:py-14" data-product-listing data-view="grid" data-current-category="<?php echo esc_attr($initial_category); ?>" data-product-archive-url="<?php echo esc_url(boblift_product_archive_url()); ?>" data-category-urls="<?php echo esc_attr(wp_json_encode($category_url_map, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)); ?>">
-    <div class="mx-auto max-w-[2320px] px-4 sm:px-6 xl:px-10 2xl:px-12 min-[1780px]:px-32">
+    <div class="mx-auto max-w-[2320px] px-4 sm:px-6 lg:px-12 min-[1780px]:px-32">
         <?php
         boblift_page_hero([
             'label' => $banner_initial['label'],
