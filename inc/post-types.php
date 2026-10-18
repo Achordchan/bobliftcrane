@@ -1243,7 +1243,7 @@ function boblift_public_custom_url_routes(): array
     }
 
     foreach (['category', 'product_category'] as $taxonomy) {
-        $terms = get_terms(['taxonomy' => $taxonomy, 'hide_empty' => false]);
+        $terms = get_terms(['taxonomy' => $taxonomy, 'hide_empty' => false, 'lang' => '']);
         if (is_wp_error($terms)) {
             continue;
         }
@@ -1272,6 +1272,7 @@ function boblift_public_custom_url_route_target(string $path): string
 
     $language = boblift_current_language_slug();
     $fallback = '';
+    $translation_fallback = '';
     $pages = get_posts(['post_type' => 'page', 'post_status' => 'any', 'numberposts' => -1, 'fields' => 'ids', 'meta_key' => '_boblift_public_url']);
     foreach ($pages as $page_id) {
         $page_path = ltrim(boblift_normalize_public_path((string) get_post_meta((int) $page_id, '_boblift_public_url', true)), '/');
@@ -1288,7 +1289,9 @@ function boblift_public_custom_url_route_target(string $path): string
     }
 
     foreach (['category', 'product_category'] as $taxonomy) {
-        $terms = get_terms(['taxonomy' => $taxonomy, 'hide_empty' => false]);
+        // Every language: a translation may not carry the address itself (ru/fr/ar categories have none), so the page's
+        // own language must not hide the term that does.
+        $terms = get_terms(['taxonomy' => $taxonomy, 'hide_empty' => false, 'lang' => '']);
         if (is_wp_error($terms)) {
             continue;
         }
@@ -1301,16 +1304,21 @@ function boblift_public_custom_url_route_target(string $path): string
                 continue;
             }
             $target = $taxonomy . ':' . (int) $term->term_id;
-            if ($fallback === '') {
-                $fallback = $target;
-            }
             if ($language !== '' && function_exists('pll_get_term_language') && (string) pll_get_term_language($term->term_id, 'slug') === $language) {
                 return $target;
+            }
+            // Otherwise the current language's translation of the term holding the address serves it.
+            $translated = $language !== '' && function_exists('pll_get_term') ? (int) pll_get_term($term->term_id, $language) : 0;
+            if ($translated > 0 && $translation_fallback === '') {
+                $translation_fallback = $taxonomy . ':' . $translated;
+            }
+            if ($fallback === '') {
+                $fallback = $target;
             }
         }
     }
 
-    return $fallback;
+    return $translation_fallback !== '' && !str_starts_with($fallback, 'page:') ? $translation_fallback : $fallback;
 }
 
 function boblift_register_public_url_rewrites(): void
