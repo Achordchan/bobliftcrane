@@ -285,7 +285,9 @@ $related_products = [];
 $related_term = null;
 $related_terms = get_the_terms(get_the_ID(), 'product_category');
 if (is_array($related_terms) && $related_terms) {
-    usort($related_terms, static fn(WP_Term $a, WP_Term $b): int => ((int) $b->parent <=> (int) $a->parent) ?: strcasecmp($a->name, $b->name));
+    // Deepest category first, by ancestor count rather than parent id.
+    $term_depth = static fn(WP_Term $term): int => count(get_ancestors($term->term_id, 'product_category', 'taxonomy'));
+    usort($related_terms, static fn(WP_Term $a, WP_Term $b): int => ($term_depth($b) <=> $term_depth($a)) ?: strcasecmp($a->name, $b->name) ?: ($a->term_id <=> $b->term_id));
     $related_term = $related_terms[0];
     $related_ids = get_posts([
         'post_type' => 'product',
@@ -295,11 +297,16 @@ if (is_array($related_terms) && $related_terms) {
         'post__not_in' => [get_the_ID()],
         'tax_query' => [['taxonomy' => 'product_category', 'field' => 'term_id', 'terms' => $related_term->term_id]],
     ]);
-    $capacity_of = static fn(int $id): float => (float) get_post_meta($id, '_capacity_value', true);
-    $own_capacity = $capacity_of(get_the_ID());
-    usort($related_ids, static fn(int $a, int $b): int => (abs($capacity_of($a) - $own_capacity) <=> abs($capacity_of($b) - $own_capacity)) ?: ($a <=> $b));
+    // One meta query for all candidates, then sort on the loaded capacities.
+    update_meta_cache('post', $related_ids);
+    $capacities = [];
+    foreach ($related_ids as $related_id) {
+        $capacities[$related_id] = (float) get_post_meta($related_id, '_capacity_value', true);
+    }
+    $own_capacity = (float) get_post_meta(get_the_ID(), '_capacity_value', true);
+    usort($related_ids, static fn(int $a, int $b): int => (abs($capacities[$a] - $own_capacity) <=> abs($capacities[$b] - $own_capacity)) ?: ($a <=> $b));
     $related_ids = array_slice($related_ids, 0, 4);
-    usort($related_ids, static fn(int $a, int $b): int => ($capacity_of($a) <=> $capacity_of($b)) ?: ($a <=> $b));
+    usort($related_ids, static fn(int $a, int $b): int => ($capacities[$a] <=> $capacities[$b]) ?: ($a <=> $b));
     foreach ($related_ids as $related_id) {
         $related_products[] = boblift_product_from_post(get_post($related_id));
     }
