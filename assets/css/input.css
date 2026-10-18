@@ -2323,6 +2323,8 @@ body.boblift-filter-drawer-locked {
 
 /* Long languages: break long words with hyphens where the browser can, and never let a word run out of its box. */
 html:is(:lang(ru), :lang(uk), :lang(fr), :lang(es), :lang(de), :lang(it), :lang(pt)) body { -webkit-hyphens: auto; hyphens: auto; hyphenate-limit-chars: 8 4 3; overflow-wrap: anywhere; }
+/* Timeline years are digits only, which Barlow covers; Roboto's heavier figures would overflow the year column. */
+:root:is(:lang(ru), :lang(uk), :lang(be), :lang(bg), :lang(kk)) .about-timeline-year { font-family: "Barlow", var(--font-sans); }
 /* Cyrillic menu labels run longer than English; between 1200px and 1400px they keep a 15px size so the full menu still fits on common laptop widths. */
 @media (min-width: 1200px) and (max-width: 1399.98px) {
   :root:is(:lang(ru), :lang(uk), :lang(be), :lang(bg), :lang(kk)) :is([data-desktop-nav] > a, [data-desktop-nav] > * > a) { font-size: 15px; }
