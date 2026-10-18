@@ -1123,6 +1123,7 @@ function boblift_mls_clone_term_item(array $item, string $target_language): true
     update_term_meta($target_id, '_boblift_mls_clone_source_id', $source->term_id);
     update_term_meta($target_id, '_boblift_mls_clone_hash', boblift_mls_stable_hash(['name' => $source->name, 'description' => $source->description]));
     boblift_mls_link_term_translation($source->term_id, $target_id, $target_language);
+    boblift_mls_share_term_slug($target_id, $taxonomy, $source->slug);
     boblift_mls_force_term_display_name($target_id, $taxonomy, $source->name);
     boblift_mls_sync_translated_child_term_parents($source, $target_id, $target_language);
     return true;
@@ -1399,6 +1400,13 @@ function boblift_mls_copy_term_base_meta(int $source_id, int $target_id): void
             add_term_meta($target_id, $key, maybe_unserialize($value));
         }
     }
+}
+
+// Once the clone has its language, Polylang lets it share the English slug, so its archive is /ru/marine-crane, not /ru/marine-crane-ru-61.
+// If the slug is already taken in that language, WordPress refuses it and the numbered slug stays.
+function boblift_mls_share_term_slug(int $target_id, string $taxonomy, string $slug): void
+{
+    wp_update_term($target_id, $taxonomy, ['slug' => $slug]);
 }
 
 function boblift_mls_link_term_translation(int $source_id, int $target_id, string $target_language): void

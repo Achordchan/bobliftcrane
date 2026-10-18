@@ -919,6 +919,25 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
 }
 
 
+/* Right-to-left pages put these photos on the left, so each fade runs toward the text on their right. */
+@media (min-width: 1024px) {
+  [dir="rtl"] .boblift-home-hero-media img {
+    -webkit-mask-image: linear-gradient(to left, transparent 0, rgba(0, 0, 0, .25) 18%, #000 42%);
+    mask-image: linear-gradient(to left, transparent 0, rgba(0, 0, 0, .25) 18%, #000 42%);
+  }
+  [dir="rtl"] .boblift-page-hero-media img {
+    -webkit-mask-image: linear-gradient(to left, transparent 0, rgba(0, 0, 0, .2) calc(var(--banner-fade) / 2), #000 var(--banner-fade));
+    mask-image: linear-gradient(to left, transparent 0, rgba(0, 0, 0, .2) calc(var(--banner-fade) / 2), #000 var(--banner-fade));
+  }
+}
+@media (min-width: 768px) {
+  [dir="rtl"] .boblift-final-cta-media img {
+    -webkit-mask-image: linear-gradient(to left, transparent 0, rgba(0, 0, 0, .25) 22%, #000 50%);
+    mask-image: linear-gradient(to left, transparent 0, rgba(0, 0, 0, .25) 22%, #000 50%);
+  }
+}
+[dir="rtl"] .boblift-home-hero-tab-bar { transform-origin: right; }
+
 @media (max-width: 767px) {
   .boblift-product-listing .products-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

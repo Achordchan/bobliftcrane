@@ -114,6 +114,94 @@ add_filter('wp_unique_post_slug', static function (string $slug, int $post_id, s
     return $original_slug;
 }, 10, 6);
 
+/**
+ * Lets a category translation keep the English category's slug too (/ru/marine-crane next to /marine-crane), as ja and zh
+ * already do. Free Polylang suffixes such a slug (-ru) on every save, and wp_update_term() refuses a slug that a term in any
+ * language holds, so while a translated term is updated both checks are limited to the term's own language. A new term has
+ * no ID yet and keeps the usual checks; the multilingual plugin gives a new translation the shared slug right after linking it.
+ */
+function boblift_term_slug_state(?array $state = null): array
+{
+    static $current = [];
+    if ($state !== null) {
+        $current = $state;
+    }
+    return $current;
+}
+
+// wp_update_term() sanitizes the term ID before the slug, so the term being saved is known when the slug is checked.
+add_filter('pre_term_term_id', static function ($term_id) {
+    $state = [];
+    $force_lang = (int) (((array) get_option('polylang', []))['force_lang'] ?? 0);
+    if (is_numeric($term_id) && (int) $term_id > 0 && $force_lang >= 1 && $force_lang <= 3 && function_exists('pll_get_term_language')) {
+        $language = (string) pll_get_term_language((int) $term_id, 'slug');
+        // A save that also changes the term's language (the edit form's language field) keeps the usual checks.
+        foreach ([$_POST['term_lang_choice'] ?? null, $_POST['inline_lang_choice'] ?? null] as $incoming) {
+            if (is_string($incoming) && $incoming !== '' && sanitize_key($incoming) !== $language) {
+                $language = '';
+            }
+        }
+        if ($language !== '') {
+            $state = ['term_id' => (int) $term_id, 'language' => $language];
+        }
+    }
+    boblift_term_slug_state($state);
+    return $term_id;
+}, 5);
+
+/** True when the other terms of $taxonomy holding $slug all have a language and none of them has $language. */
+function boblift_term_slug_free_in_language(string $slug, string $taxonomy, string $language, int $term_id): bool
+{
+    global $wpdb;
+    $holders = $wpdb->get_col($wpdb->prepare(
+        "SELECT t.term_id FROM {$wpdb->terms} t JOIN {$wpdb->term_taxonomy} tt ON tt.term_id = t.term_id WHERE t.slug = %s AND tt.taxonomy = %s AND t.term_id <> %d",
+        $slug, $taxonomy, $term_id
+    ));
+    foreach ($holders as $holder) {
+        $holder_language = (string) pll_get_term_language((int) $holder, 'slug');
+        if ($holder_language === '' || $holder_language === $language) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Remembers the slug as given, before Polylang (priority 10) may add its language suffix.
+add_filter('pre_term_slug', static function ($slug) {
+    $state = boblift_term_slug_state();
+    if ($state !== []) {
+        $state['given'] = is_string($slug) ? $slug : '';
+        boblift_term_slug_state($state);
+    }
+    return $slug;
+}, 9);
+
+// Keeps the given slug (dropping Polylang's suffix, if added) when only other languages hold it.
+add_filter('pre_term_slug', static function ($slug, $taxonomy) {
+    $state = boblift_term_slug_state();
+    $given = (string) ($state['given'] ?? '');
+    if ($given === '' || !is_string($slug) || !in_array($slug, [$given, $given . '-' . $state['language']], true)
+        || !boblift_term_slug_free_in_language($given, (string) $taxonomy, $state['language'], $state['term_id'])) {
+        return $slug;
+    }
+    $state['slug'] = $given;
+    boblift_term_slug_state($state);
+    return $given;
+}, 11, 2);
+
+// wp_update_term()'s duplicate check (get_term_by) then only looks in the term's own language.
+add_filter('get_terms_args', static function (array $args) {
+    $state = boblift_term_slug_state();
+    if (isset($state['slug']) && ($args['slug'] ?? null) === $state['slug'] && (int) ($args['number'] ?? 0) === 1 && ($args['get'] ?? '') === 'all') {
+        $args['lang'] = $state['language'];
+    }
+    return $args;
+}, 5);
+
+add_action('edit_terms', static function () {
+    boblift_term_slug_state([]);
+});
+
 function boblift_migrate_shared_case_slugs(): void
 {
     if (get_option('boblift_case_slug_version') === '1'
