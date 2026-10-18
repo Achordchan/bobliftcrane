@@ -291,6 +291,33 @@ function boblift_legacy_redirect_is_live_path(string $path): bool
     return false;
 }
 
+/**
+ * An old path typed under a language directory (/fr/Products-Marine-Cranes.html): apply the rules to the
+ * remainder and keep the language when that language serves the target, else use the English target.
+ */
+function boblift_legacy_redirect_resolve_in_language_directory(string $host, string $path, array $config): ?string
+{
+    if (!function_exists('pll_languages_list') || boblift_legacy_redirect_language_host($host, $config) !== '') {
+        return null;
+    }
+    if (!preg_match('#^/([^/]+)(/.+)$#', $path, $m) || !in_array($m[1], (array) pll_languages_list(['fields' => 'slug']), true) || boblift_legacy_redirect_is_live_path($path)) {
+        return null;
+    }
+    $target = boblift_legacy_redirect_resolve($host, $m[2], $config, home_url(), 'boblift_legacy_redirect_is_live_path');
+    if ($target === null) {
+        return null;
+    }
+    $parts = parse_url($target);
+    if (strtolower((string) ($parts['host'] ?? '')) !== strtolower((string) parse_url(home_url(), PHP_URL_HOST))) {
+        return $target; // another site, such as bobliftloader.com
+    }
+    $localized = '/' . $m[1] . '/' . ltrim((string) ($parts['path'] ?? '/'), '/');
+    if (!boblift_legacy_redirect_is_live_path($localized)) {
+        return $target;
+    }
+    return home_url($localized) . (isset($parts['query']) ? '?' . $parts['query'] : '');
+}
+
 function boblift_legacy_redirects_run(): void
 {
     if (!in_array($_SERVER['REQUEST_METHOD'] ?? 'GET', ['GET', 'HEAD'], true) || (defined('WP_CLI') && WP_CLI)) {
@@ -304,6 +331,9 @@ function boblift_legacy_redirects_run(): void
     $config = boblift_legacy_redirects_config();
     $host = boblift_legacy_redirect_effective_host((string) ($_SERVER['HTTP_HOST'] ?? ''), $_GET, $config);
     $target = boblift_legacy_redirect_resolve($host, $path, $config, home_url(), 'boblift_legacy_redirect_is_live_path');
+    if ($target === null) {
+        $target = boblift_legacy_redirect_resolve_in_language_directory($host, $path, $config);
+    }
     // Only the new site's own host is protected; a legacy language host always redirects, even where the path exists here.
     if ($target === null || (boblift_legacy_redirect_language_host($host, $config) === '' && boblift_legacy_redirect_is_live_path($path))) {
         return;
