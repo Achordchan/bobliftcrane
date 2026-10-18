@@ -226,19 +226,6 @@ if ($detail_body_html !== '') {
         }
     }
 }
-$render_detail_body = static function (string $wrapper_class) use ($detail_body_lead, $detail_body_sections): void {
-    $split = $detail_body_lead !== '' && trim($detail_body_sections) !== '';
-    ?>
-    <div class="<?php echo esc_attr($wrapper_class . ($split ? ' grid gap-8 lg:grid-cols-12 lg:gap-12' : '')); ?>">
-        <?php if ($detail_body_lead !== '') : ?>
-            <div class="boblift-story-prose boblift-product-body boblift-product-lead <?php echo $split ? 'lg:col-span-5' : 'max-w-[900px]'; ?>"><?php echo wp_kses_post($detail_body_lead); ?></div>
-        <?php endif; ?>
-        <?php if (trim($detail_body_sections) !== '') : ?>
-            <div class="boblift-story-prose boblift-product-body boblift-product-sections <?php echo $split ? 'lg:col-span-7' : ''; ?>"><?php echo wp_kses_post($detail_body_sections); ?></div>
-        <?php endif; ?>
-    </div>
-    <?php
-};
 $anchors = [];
 $anchors[] = ['id' => 'technical', 'label' => (string) ($ui['technicalLabel'] ?? 'Technical Specifications')];
 if ($detail_body_html !== '') {
@@ -427,12 +414,19 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
             <?php if ($detail_body_html !== '') : ?>
                 <article id="overview" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card">
                     <?php // Old shared links to #details land on the product details. ?><span id="details" class="block scroll-mt-24" aria-hidden="true"></span>
-                    <div class="grid gap-6 p-6 md:p-8 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)] lg:gap-12">
-                        <div>
+                    <?php // The heading and lead share the left column, so the sections beside them leave no empty title column. ?>
+                    <?php $detail_split = $detail_body_lead !== '' && trim($detail_body_sections) !== ''; ?>
+                    <div class="grid gap-8 p-6 md:p-8 <?php echo $detail_split ? 'lg:grid-cols-12 lg:gap-12' : ''; ?>">
+                        <div class="<?php echo $detail_split ? 'lg:col-span-5' : ''; ?>">
                             <p class="text-[11px] font-black uppercase tracking-[0.2em] text-[#0B3F7D]"><?php echo esc_html($ui['detailBodyLabel'] ?? 'Product details'); ?></p>
                             <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($hero_model !== '' ? $hero_model : $product_title); ?></h2>
+                            <?php if ($detail_body_lead !== '') : ?>
+                                <div class="boblift-story-prose boblift-product-body boblift-product-lead mt-5 max-w-[900px]"><?php echo wp_kses_post($detail_body_lead); ?></div>
+                            <?php endif; ?>
                         </div>
-                        <?php $render_detail_body(''); ?>
+                        <?php if (trim($detail_body_sections) !== '') : ?>
+                            <div class="boblift-story-prose boblift-product-body boblift-product-sections <?php echo $detail_split ? 'lg:col-span-7' : ''; ?>"><?php echo wp_kses_post($detail_body_sections); ?></div>
+                        <?php endif; ?>
                     </div>
                 </article>
             <?php endif; ?>
