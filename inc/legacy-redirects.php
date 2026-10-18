@@ -332,7 +332,7 @@ function boblift_legacy_redirect_resolve_in_language_directory(string $host, str
     if (!boblift_legacy_redirect_is_live_path($localized)) {
         return $target;
     }
-    return home_url($localized) . (isset($parts['query']) ? '?' . $parts['query'] : '');
+    return home_url($localized) . (isset($parts['query']) ? '?' . $parts['query'] : '') . (isset($parts['fragment']) ? '#' . $parts['fragment'] : '');
 }
 
 function boblift_legacy_redirects_run(): void
