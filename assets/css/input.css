@@ -2328,11 +2328,15 @@ body.boblift-filter-drawer-locked {
 @media (min-width: 768px) { .boblift-feedback-thumb { width: 7rem; height: 5.25rem; } }
 
 /* Product page body text (正文): tighter than article prose, list in two columns on wide screens. */
-.boblift-product-body { font-size: 1rem; line-height: 1.8; }
-.boblift-product-body h3 { margin-top: 1.75rem; font-size: 1.05rem; }
-.boblift-product-lead p { font-size: 1.0625rem; line-height: 1.85; color: #1e293b; }
+/* Product details copy reads as plain running text, like the loader site's overview: one size, muted grey, no accents. */
+.boblift-product-body { color: #56616b; font-size: 1rem; font-weight: 400; line-height: 1.9; }
+.boblift-product-body h3 { margin-top: 1.75rem; color: #1e293b; font-size: 1rem; font-weight: 700; letter-spacing: 0; line-height: 1.6; }
+.boblift-product-body h3 + * { margin-top: 0.5rem; }
+.boblift-product-body strong { color: #1e293b; font-weight: 600; }
+.boblift-product-body ul { padding-inline-start: 1.15rem; }
+.boblift-product-body li + li { margin-top: 0.25rem; }
+.boblift-product-body li::marker { color: #94a3b8; }
 .boblift-product-sections > h3:first-child { margin-top: 0; }
-@media (min-width: 768px) { .boblift-product-body ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 2rem; row-gap: 0.4rem; } .boblift-product-body li + li { margin-top: 0; } }
 
 /* Header: when the desktop menu does not fit (long languages such as Russian), theme.js sets this class and the header uses the mobile menu. */
 .boblift-nav-collapsed [data-desktop-nav] { display: none !important; }
