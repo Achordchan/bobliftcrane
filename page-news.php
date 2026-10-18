@@ -10,6 +10,9 @@ $news_categories = array_values(array_filter(array_map(static function (string $
 }, $news_category_slugs)));
 $allowed_category_slugs = array_map(static fn(WP_Term $term): string => $term->slug, $news_categories);
 $active_category = isset($_GET['news_category']) ? sanitize_title(wp_unslash((string) $_GET['news_category'])) : '';
+if ($active_category !== '' && !in_array($active_category, $allowed_category_slugs, true) && function_exists('boblift_plain_term_slug')) {
+    $active_category = boblift_plain_term_slug($active_category, function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '');
+}
 if ($active_category !== '' && !in_array($active_category, $allowed_category_slugs, true)) {
     $active_category = '';
 }
