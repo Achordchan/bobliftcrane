@@ -8,7 +8,10 @@ if ($queried_product instanceof WP_Post && $queried_product->post_type === 'prod
     return;
 }
 get_header();
-$product = boblift_find_product(get_post_field('post_name', get_queried_object_id()) ?: get_query_var('product'));
+// The routed product is already the one for this language; a slug lookup could return the English product it shares a slug with.
+$product = $queried_product instanceof WP_Post && $queried_product->post_type === 'product' && $queried_product->post_status === 'publish'
+    ? boblift_product_from_post($queried_product)
+    : boblift_find_product(get_post_field('post_name', get_queried_object_id()) ?: get_query_var('product'));
 if (!$product && have_posts()) {
     the_post();
     $product = boblift_product_from_post(get_post());

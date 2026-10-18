@@ -783,6 +783,11 @@ function boblift_all_products(): array
 function boblift_find_product(string $slug): ?array
 {
     $post = get_page_by_path($slug, OBJECT, 'product');
+    // Translations share the English slug, so the slug alone may find another language's product.
+    if ($post instanceof WP_Post && function_exists('boblift_post_translation_for_current_language')) {
+        $translation = boblift_post_translation_for_current_language($post);
+        $post = $translation->post_status === 'publish' ? $translation : $post;
+    }
     if ($post instanceof WP_Post && $post->post_status === 'publish') {
         return boblift_product_from_post($post);
     }
