@@ -3587,7 +3587,9 @@
           text.className = 'hidden sm:inline';
           text.textContent = label;
           const icon = document.createElement('span');
-          icon.className = 'text-lg leading-none sm:hidden';
+          // Kept left-to-right so the browser never mirrors the glyph itself; the rtl: flip then points it the right way.
+          icon.className = 'inline-block text-lg leading-none rtl:-scale-x-100 sm:hidden';
+          icon.dir = 'ltr';
           icon.setAttribute('aria-hidden', 'true');
           icon.textContent = arrow;
           button.append(text, icon);
