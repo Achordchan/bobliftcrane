@@ -933,6 +933,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                     </ul>
                 </section>
             <?php endif; ?>
+            <?php if ($related_term instanceof WP_Term) boblift_render_product_articles($related_term); ?>
             <section id="quote" class="boblift-product-quote-section relative left-1/2 w-screen -translate-x-1/2 rtl:left-auto rtl:right-1/2 rtl:translate-x-1/2 scroll-mt-24 overflow-hidden border-y border-[#DDE7F2] bg-[radial-gradient(circle_at_70%_28%,rgba(245,154,60,0.16),transparent_28%),linear-gradient(135deg,#ffffff_0%,#eaf2ff_100%)] py-12 text-[#071f42] shadow-card md:py-16">
                 <div class="page-shell grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_auto] xl:gap-12">
                     <div class="boblift-product-quote-copy flex items-start gap-5 md:gap-6">

@@ -303,3 +303,41 @@ function boblift_render_archive_extras(array $categories, string $initial_catego
     boblift_render_archive_made();
     $blocks(static fn(array $term, string $slug) => boblift_render_archive_articles($term['family'], $slug));
 }
+
+/** Product page: up to three articles about the product's family, in the page's card style, after the related models. */
+function boblift_render_product_articles(WP_Term $term): void
+{
+    $posts = boblift_archive_family_articles(boblift_source_term_slug($term));
+    if (!$posts) {
+        return;
+    }
+    $t = static fn(string $text): string => boblift_localized_static_text($text);
+    $article_ui = boblift_site_ui('newsArticle');
+    // One article lies beside its photo, so it does not sit alone in a three-column row.
+    $single = count($posts) === 1;
+    ?>
+    <section id="articles" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card" aria-labelledby="articles-title">
+        <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 p-6 pb-0 md:p-8 md:pb-0">
+            <div>
+                <p class="boblift-kicker"><?php echo esc_html($t('Guides and news')); ?></p>
+                <h2 id="articles-title" class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($t('Read before you buy')); ?></h2>
+            </div>
+            <a class="inline-flex items-center gap-1.5 text-sm font-black text-blue-700 transition hover:text-[#071f42]" href="<?php echo esc_url(boblift_url('/news')); ?>"><?php echo esc_html((string) ($article_ui['relatedLink'] ?? 'All news')); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></a>
+        </div>
+        <ul class="grid gap-x-5 gap-y-6 p-6 md:p-8 <?php echo $single ? '' : 'sm:grid-cols-2 lg:grid-cols-3'; ?>">
+            <?php foreach ($posts as $post) : ?>
+                <li class="min-w-0">
+                    <a class="group <?php echo $single ? 'grid items-center gap-x-8 gap-y-3 sm:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]' : 'block'; ?>" href="<?php echo esc_url(get_permalink($post)); ?>">
+                        <span class="block aspect-[16/9] overflow-hidden rounded-sm bg-[#EDF1F5]"><img class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" src="<?php echo esc_url(boblift_post_thumbnail_url($post, boblift_asset('images/page-heroes/factory-floor.webp'))); ?>" alt="" loading="lazy" decoding="async"></span>
+                        <span class="block min-w-0">
+                            <time class="mt-3 block text-xs font-bold text-slate-500 <?php echo $single ? 'sm:mt-0' : ''; ?>" datetime="<?php echo esc_attr(get_the_date('Y-m-d', $post)); ?>"><?php echo esc_html(get_the_date('Y-m-d', $post)); ?></time>
+                            <span class="mt-1.5 line-clamp-2 block font-black leading-snug text-[#071f42] transition group-hover:text-blue-700 <?php echo $single ? 'text-[clamp(1.125rem,1.6vw,1.5rem)]' : 'text-base'; ?>"><?php echo esc_html(get_the_title($post)); ?></span>
+                            <?php if ($single) : ?><span class="mt-4 inline-flex items-center gap-2 text-sm font-black text-blue-700"><?php echo esc_html($t('Read the article')); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></span><?php endif; ?>
+                        </span>
+                    </a>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    </section>
+    <?php
+}
