@@ -92,10 +92,14 @@ $others = array_slice($others, 0, 4);
         <?php endif; ?>
     </section>
 
-    <?php // The article body from the editor, shared by every language. ?>
+    <?php // The article body from the editor, shared by every language; older entries keep their per-language plain-text body until it is moved into the editor. ?>
     <?php if (trim((string) get_post_field('post_content', get_the_ID())) !== '') : ?>
         <div class="boblift-story-prose mx-auto mt-12 max-w-[760px] md:mt-16">
             <?php the_content(); ?>
+        </div>
+    <?php elseif ($feedback['legacy_body'] !== '') : ?>
+        <div class="boblift-story-prose mx-auto mt-12 max-w-[760px] md:mt-16">
+            <?php echo wp_kses_post(wpautop(esc_html($feedback['legacy_body']))); ?>
         </div>
     <?php endif; ?>
 

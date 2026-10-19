@@ -142,9 +142,14 @@ $pad = static fn(int $n): string => str_pad((string) $n, 2, '0', STR_PAD_LEFT);
                 <h2 id="mounting-needs-title" class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em]"><?php echo esc_html((string) ($ui['needsTitle'] ?? '')); ?></h2>
                 <p class="mt-3 max-w-md text-sm font-normal leading-7 text-white/75 md:text-base"><?php echo esc_html((string) ($ui['needsText'] ?? '')); ?></p>
             </div>
-            <div class="flex flex-wrap gap-3">
+            <?php // The saved closing copy (ctaTitle / ctaText) stays above the buttons, so an edited version keeps showing. ?>
+            <div class="border-t border-white/10 pt-6">
+                <?php if (trim((string) ($ui['ctaTitle'] ?? '')) !== '') : ?><p class="text-lg font-black leading-snug"><?php echo esc_html((string) $ui['ctaTitle']); ?></p><?php endif; ?>
+                <?php if (trim((string) ($ui['ctaText'] ?? '')) !== '') : ?><p class="mt-1.5 max-w-md text-sm font-normal leading-6 text-white/70"><?php echo esc_html((string) $ui['ctaText']); ?></p><?php endif; ?>
+            <div class="mt-5 flex flex-wrap gap-3">
                 <button class="inline-flex h-12 items-center justify-center gap-2 rounded-sm bg-white px-6 text-sm font-black text-navy transition hover:bg-blue-50" type="button" data-inquiry-modal-open data-inquiry-source="装车出口页"><?php echo esc_html((string) ($ui['ctaButton'] ?? 'Send an Inquiry')); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
                 <a class="inline-flex h-12 items-center justify-center rounded-sm border border-white/30 px-6 text-sm font-black text-white transition hover:border-white" href="<?php echo esc_url(boblift_url('/contact.html')); ?>"><?php echo esc_html((string) ($ui['ctaLink'] ?? 'Contact us')); ?></a>
+            </div>
             </div>
         </div>
         <?php if ($needs !== []) : ?>

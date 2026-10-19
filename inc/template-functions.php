@@ -987,6 +987,8 @@ function boblift_feedback_item(WP_Post $post): ?array
         'model' => trim((string) get_post_meta($post->ID, '_feedback_model', true)),
         'note' => $pick('_feedback_note'),
         'excerpt' => trim($post->post_excerpt),
+        // Plain-text body per language from before the editor body; shown only while the editor body is empty.
+        'legacy_body' => $pick('_feedback_body'),
         'media' => $media,
         'cover' => $cover,
         'photos' => count(array_filter($media, static fn(array $m): bool => $m['type'] === 'image')),

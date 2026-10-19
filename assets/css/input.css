@@ -43,6 +43,8 @@ img { max-width: 100%; }
   .btn-white { @apply inline-flex items-center justify-center gap-3 rounded-sm border border-line bg-white px-7 py-4 text-base font-bold text-ink shadow-card transition duration-300 hover:-translate-y-0.5; }
   /* The one small uppercase section label. Barlow ships 400/500/600 only, so 600 is the heaviest it draws. */
   .section-label, .boblift-kicker { @apply text-[11px] font-semibold uppercase leading-[1.4] tracking-[0.18em] text-[#0B3F7D]; }
+  /* On navy panels the label keeps the gold it had, so it stays legible. */
+  .bg-navy .section-label, .bg-navy .boblift-kicker { @apply text-gold; }
   .card-hover { @apply transition duration-300 hover:-translate-y-2; }
   .nav-icon-btn { @apply inline-flex h-14 items-center justify-center gap-2 rounded-sm border border-line bg-white px-5 text-sm font-black text-navy shadow-card transition hover:-translate-y-0.5 hover:border-blue-200; }
   .boblift-video-tab { @apply inline-flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm border border-line bg-white px-4 text-sm font-black text-ink transition hover:border-ink/30 aria-pressed:border-navy aria-pressed:bg-navy aria-pressed:text-white; }
@@ -58,7 +60,9 @@ img { max-width: 100%; }
   .boblift-category-subtab { @apply inline-flex h-9 items-center gap-2 rounded-sm border border-[#D8DEE8] bg-white px-3 text-sm font-black text-slate-600 transition hover:border-blue-300 hover:text-blue-700; }
   .boblift-category-subtab[aria-pressed="true"] { @apply border-[#0B3F7D] bg-[#0B3F7D] text-white; }
   .boblift-category-tab [data-tab-count], .boblift-category-subtab [data-tab-count] { @apply text-xs font-black text-slate-400; }
-  .boblift-category-tab [data-tab-count] { @apply hidden xl:inline; }
+  /* Plain declarations: @apply hidden would copy every selector that uses .hidden (the mobile-menu toggle among them). */
+  .boblift-category-tab [data-tab-count] { display: none; }
+  @media (min-width: 1280px) { .boblift-category-tab [data-tab-count] { display: inline; } }
   .boblift-category-subtab[aria-pressed="true"] [data-tab-count] { @apply text-white/70; }
   .boblift-filter-dropdown-trigger { @apply inline-flex h-11 items-center gap-2 rounded-sm border border-[#D8DEE8] bg-white px-4 text-sm font-black text-[#0B1B33] transition hover:border-blue-300; }
   .boblift-filter-dropdown-trigger[aria-expanded="true"] { @apply border-[#0B3F7D]; }

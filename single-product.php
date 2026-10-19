@@ -285,10 +285,13 @@ $process_slugs = is_array($process_slugs) ? $process_slugs : [];
 $crane_family = boblift_product_crane_family($process_slugs);
 $product_guide = boblift_product_guide($product, $crane_family, $related_term);
 $has_product_guide = $product_guide['intro'] !== '' || $product_guide['cards'] || $product_guide['compare'] || $product_guide['steps'] !== '' || $product_guide['supply'] !== '';
+// The editor's short summary opens Product details when there is no body text to carry it.
+$product_summary = $detail_body_html === '' ? trim((string) ($product['short_description'] ?? '')) : '';
+$has_overview_copy = $has_product_guide || $product_summary !== '';
 $spec_groups = boblift_product_spec_groups(get_the_ID(), $technical_specs, $hero_model !== '');
 $anchors = [];
 $anchors[] = ['id' => 'technical', 'label' => (string) ($ui['technicalLabel'] ?? 'Technical Specifications')];
-if ($detail_body_html !== '' || $product_videos || $has_product_guide) {
+if ($detail_body_html !== '' || $product_videos || $has_overview_copy) {
     $anchors[] = ['id' => 'overview', 'label' => (string) ($ui['detailBodyLabel'] ?? 'Product details')];
 }
 if ($drawings) {
@@ -515,7 +518,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                 </div>
                 <?php endif; ?>
             </article>
-            <?php if ($detail_body_html !== '' || $product_videos || $has_product_guide) : ?>
+            <?php if ($detail_body_html !== '' || $product_videos || $has_overview_copy) : ?>
                 <?php // overflow-clip, not hidden: a hidden overflow would trap the sticky video column. ?>
                 <article id="overview" class="scroll-mt-24 overflow-clip rounded border border-[#DDE7F2] bg-white shadow-card">
                     <?php // Old shared links to #details land on the product details. ?><span id="details" class="block scroll-mt-24" aria-hidden="true"></span>
@@ -524,8 +527,8 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                     // without one the heading and lead share the left column, so the sections beside them leave no empty title column.
                     $detail_has_sections = trim($detail_body_sections) !== '';
                     // Every crane gets the film column; one without a film yet shows a placeholder until it is filmed.
-                    $detail_video_column = $product_videos || $detail_body_html !== '' || $has_product_guide;
-                    $detail_split = $detail_video_column ? ($detail_body_html !== '' || $has_product_guide) : $detail_body_lead !== '' && $detail_has_sections;
+                    $detail_video_column = $product_videos || $detail_body_html !== '' || $has_overview_copy;
+                    $detail_split = $detail_video_column ? ($detail_body_html !== '' || $has_overview_copy) : $detail_body_lead !== '' && $detail_has_sections;
                     ?>
                     <div class="grid gap-8 p-6 md:p-8 <?php echo $detail_split ? ($detail_video_column ? 'lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-12' : 'lg:grid-cols-12 lg:gap-12') : ''; ?>">
                         <div class="min-w-0 <?php echo $detail_split ? ($detail_video_column ? 'lg:sticky lg:top-24 lg:self-start' : 'lg:col-span-5') : ''; ?>">
@@ -583,11 +586,14 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                                 <div class="boblift-story-prose boblift-product-body boblift-product-lead mt-5 max-w-[900px]"><?php echo wp_kses_post($detail_body_lead); ?></div>
                             <?php endif; ?>
                         </div>
-                        <?php if ($detail_video_column && ($detail_body_html !== '' || $has_product_guide)) : ?>
+                        <?php if ($detail_video_column && ($detail_body_html !== '' || $has_overview_copy)) : ?>
                             <div class="min-w-0">
+                                <?php if ($product_summary !== '') : ?>
+                                    <p class="text-base font-normal leading-7 text-slate-700 md:text-lg md:leading-8"><?php echo esc_html($product_summary); ?></p>
+                                <?php endif; ?>
                                 <?php if ($has_product_guide) : ?>
                                     <?php // The generated range guide (inc/product-guide.php) comes first; the editor's body follows it. ?>
-                                    <div class="boblift-product-guide">
+                                    <div class="boblift-product-guide <?php echo $product_summary !== '' ? 'mt-6' : ''; ?>">
                                         <?php if ($product_guide['intro'] !== '') : ?>
                                             <p class="text-base font-normal leading-7 text-slate-700 md:text-lg md:leading-8 [&_strong]:font-black [&_strong]:text-[#071f42]"><?php echo wp_kses_post($product_guide['intro']); ?></p>
                                         <?php endif; ?>
