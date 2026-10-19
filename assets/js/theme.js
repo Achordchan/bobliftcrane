@@ -3552,22 +3552,53 @@
       window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
     };
 
+    // Phones show only the current page between the first and last; wider screens add one page either side.
+    const newsPagerWide = window.matchMedia('(min-width: 640px)');
+    const newsPageNumbers = (totalPages) => {
+      const radius = newsPagerWide.matches ? 1 : 0;
+      const pages = [];
+      for (let page = 1; page <= totalPages; page += 1) {
+        if (page === 1 || page === totalPages || Math.abs(page - currentPage) <= radius) pages.push(page);
+      }
+      const items = [];
+      pages.forEach((page, index) => {
+        const gap = index > 0 ? page - pages[index - 1] : 1;
+        // A gap of one page shows that page rather than an ellipsis standing in for it.
+        if (gap === 2) items.push(page - 1);
+        else if (gap > 2) items.push(null);
+        items.push(page);
+      });
+      return items;
+    };
+
     const renderNewsPagination = (totalPages) => {
       if (!pagination) return;
       pagination.replaceChildren();
       pagination.classList.toggle('hidden', totalPages <= 1);
       if (totalPages <= 1) return;
-      const makeButton = (label, page, active = false, disabled = false) => {
+      const makeButton = (label, page, active = false, disabled = false, arrow = '') => {
         const button = document.createElement('button');
         button.type = 'button';
-        button.textContent = label;
         button.disabled = disabled;
-        const numeric = /^\d+$/.test(label);
+        if (arrow) {
+          // Previous and Next shrink to an arrow on phones so the whole pager fits one row.
+          button.setAttribute('aria-label', label);
+          const text = document.createElement('span');
+          text.className = 'hidden sm:inline';
+          text.textContent = label;
+          const icon = document.createElement('span');
+          icon.className = 'text-lg leading-none sm:hidden';
+          icon.setAttribute('aria-hidden', 'true');
+          icon.textContent = arrow;
+          button.append(text, icon);
+        } else {
+          button.textContent = label;
+        }
         button.className = active
           ? 'h-11 min-w-11 rounded-sm bg-[#0B1B33] px-4 text-sm font-black text-white transition'
-          : (numeric
-            ? 'h-11 min-w-11 rounded-sm border border-[#D8DEE8] bg-white px-4 text-sm font-black text-[#0B1B33] transition hover:border-blue-300'
-            : 'h-11 rounded-sm border border-[#D8DEE8] bg-white px-5 text-sm font-black text-[#0B1B33] transition hover:border-blue-300 disabled:cursor-not-allowed disabled:opacity-40');
+          : (arrow
+            ? 'h-11 min-w-11 rounded-sm border border-[#D8DEE8] bg-white px-3 text-sm font-black text-[#0B1B33] transition hover:border-blue-300 disabled:cursor-not-allowed disabled:opacity-40 sm:px-5'
+            : 'h-11 min-w-11 rounded-sm border border-[#D8DEE8] bg-white px-4 text-sm font-black text-[#0B1B33] transition hover:border-blue-300');
         button.addEventListener('click', () => {
           applyNewsFilter(activeCategory, { page });
           // The pager is rebuilt, so move focus to the first article of the new page.
@@ -3577,12 +3608,21 @@
         if (active) button.setAttribute('aria-current', 'page');
         return button;
       };
-      pagination.appendChild(makeButton(pagination.dataset.previousLabel || 'Previous', currentPage - 1, false, currentPage === 1));
-      for (let page = 1; page <= totalPages; page += 1) {
+      pagination.appendChild(makeButton(pagination.dataset.previousLabel || 'Previous', currentPage - 1, false, currentPage === 1, '\u2039'));
+      newsPageNumbers(totalPages).forEach((page) => {
+        if (page === null) {
+          const ellipsis = document.createElement('span');
+          ellipsis.className = 'inline-flex h-11 min-w-6 items-center justify-center text-sm font-black text-slate-400';
+          ellipsis.setAttribute('aria-hidden', 'true');
+          ellipsis.textContent = '\u2026';
+          pagination.appendChild(ellipsis);
+          return;
+        }
         pagination.appendChild(makeButton(String(page), page, page === currentPage));
-      }
-      pagination.appendChild(makeButton(pagination.dataset.nextLabel || 'Next', currentPage + 1, false, currentPage === totalPages));
+      });
+      pagination.appendChild(makeButton(pagination.dataset.nextLabel || 'Next', currentPage + 1, false, currentPage === totalPages, '\u203A'));
     };
+    newsPagerWide.addEventListener('change', () => applyNewsFilter(activeCategory, { page: currentPage, updateUrl: false }));
 
     const applyNewsFilter = (category, options = {}) => {
       activeCategory = allowedCategories.includes(category) ? category : '';

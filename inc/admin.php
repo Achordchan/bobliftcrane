@@ -2380,22 +2380,6 @@ function boblift_global_settings_page(): void
         <div class="boblift-site-ui-editor">
             <?php boblift_admin_site_ui_fields($site_ui_defaults, $site_ui_values); ?>
         </div>
-        <?php
-        // Old newsroom proof chips an editor customised are still shown under the News hero (page-news.php); keep their
-        // fields here while they are, so the figures can be corrected or cleared (clearing a value hides its chip).
-        $raw_news = is_array($raw_site_ui['newsPage'] ?? null) ? $raw_site_ui['newsPage'] : [];
-        $legacy_chips = array_filter([
-            ['countriesValue', 'countriesLabel', '80+', 'Countries Served', '旧版新闻页数字 1'],
-            ['yearsValue', 'yearsLabel', '20+', 'Years of Expertise', '旧版新闻页数字 2'],
-        ], static fn(array $chip): bool => function_exists('boblift_customised_legacy_text') && (boblift_customised_legacy_text($raw_news[$chip[0]] ?? '', $chip[2]) !== '' || boblift_customised_legacy_text($raw_news[$chip[1]] ?? '', $chip[3]) !== ''));
-        foreach ($legacy_chips as $chip) :
-            ?>
-            <div class="boblift-admin-field">
-                <label><?php echo esc_html($chip[4] . '（仍显示在新闻页首屏下方，清空数字即可移除）'); ?></label>
-                <input class="regular-text" type="text" name="<?php echo esc_attr(boblift_admin_option_name('site_ui.newsPage.' . $chip[0])); ?>" value="<?php echo esc_attr((string) ($raw_news[$chip[0]] ?? '')); ?>">
-                <input class="regular-text" type="text" name="<?php echo esc_attr(boblift_admin_option_name('site_ui.newsPage.' . $chip[1])); ?>" value="<?php echo esc_attr((string) ($raw_news[$chip[1]] ?? '')); ?>">
-            </div>
-        <?php endforeach; ?>
     <?php boblift_admin_settings_panel_end(); ?>
     <?php
     boblift_admin_page_end();

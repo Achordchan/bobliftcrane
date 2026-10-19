@@ -192,10 +192,39 @@ function boblift_news_category_defaults(): array
 {
     return [
         ['slug' => 'company-news'],
-        ['slug' => 'product-news'],
         ['slug' => 'industry-insight'],
-        ['slug' => 'marine-solution'],
     ];
+}
+
+/**
+ * The newsroom filters by the old site's two groups. Posts (and saved filter links) for the two retired
+ * categories go to the group they belong to; any other category is left as it is.
+ */
+function boblift_news_filter_category(string $slug, array $allowed): string
+{
+    if ($slug === '' || in_array($slug, $allowed, true)) {
+        return $slug;
+    }
+    $language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
+    $plain = static fn(string $value): string => function_exists('boblift_plain_term_slug') ? boblift_plain_term_slug($value, $language) : $value;
+    // The translated term's own slug, so a translation an editor renamed is still recognised.
+    $translated = static function (string $source): string {
+        $term = function_exists('boblift_term_by_slug_for_current_language') ? boblift_term_by_slug_for_current_language($source, 'category') : null;
+        return $term instanceof WP_Term ? $term->slug : '';
+    };
+    foreach (['product-news' => 'company-news', 'marine-solution' => 'industry-insight'] as $retired => $target) {
+        if ($plain($slug) !== $retired && $translated($retired) !== $slug) {
+            continue;
+        }
+        $target_translation = $translated($target);
+        foreach ($allowed as $candidate) {
+            if ($plain((string) $candidate) === $target || ($target_translation !== '' && $candidate === $target_translation)) {
+                return (string) $candidate;
+            }
+        }
+        break;
+    }
+    return $slug;
 }
 
 function boblift_news_category_options(): array
@@ -214,6 +243,11 @@ function boblift_news_category_options(): array
         if ($slug !== '') {
             $items[] = ['slug' => $slug];
         }
+    }
+
+    // A list saved before the newsroom moved to two groups is the old four-category default, not an editor's choice.
+    if (array_column($items, 'slug') === ['company-news', 'product-news', 'industry-insight', 'marine-solution']) {
+        return boblift_news_category_defaults();
     }
 
     return $items !== [] ? $items : boblift_news_category_defaults();
