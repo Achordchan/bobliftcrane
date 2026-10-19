@@ -1673,7 +1673,7 @@ img { max-width: 100%; }
 .boblift-news-hero .boblift-page-hero-text { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .boblift-article-body {
   --article-font: 'Source Sans 3', 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
-  max-width: none;
+  max-width: 48rem;
   color: #334155;
   font-family: var(--article-font);
   font-size: 1.125rem;
@@ -1686,8 +1686,10 @@ img { max-width: 100%; }
 .boblift-article-body > :first-child { margin-top: 0; }
 /* Stories imported from the old site wrap their paragraphs in a plain <div>; space those the same way, and drop the empty
    paragraphs the import left between blocks. */
-.boblift-article-body :where(div, section) > * + * { margin-top: 1.25em; }
-.boblift-article-body :where(div, section) > :first-child { margin-top: 0; }
+.boblift-article-body :where(div:not([class]), section:not([class])) > * + * { margin-top: 1.25em; }
+.boblift-article-body :where(div:not([class]), section:not([class])) > :first-child { margin-top: 0; }
+/* News stories use the whole text column, as on the loader site; other pages keep the reading width. */
+.boblift-news-article .boblift-article-body { max-width: none; }
 .boblift-article-body p:empty { display: none; }
 .boblift-article-body h2, .boblift-article-body h3, .boblift-article-body h4 { color: var(--ink); font-family: var(--font-sans); font-weight: 800; letter-spacing: -.01em; scroll-margin-top: 1.5rem; }
 .boblift-article-body h2 { margin-top: 2.25em; font-size: clamp(1.5rem, 2vw, 1.875rem); line-height: 1.2; }

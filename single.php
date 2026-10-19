@@ -26,8 +26,9 @@ $minutes = boblift_news_reading_minutes($content);
 $reading = str_replace('{minutes}', (string) $minutes, (string) ($article_ui['readingTemplate'] ?? '{minutes} min read'));
 // The featured image leads the story unless the text already shows the same picture (most imported stories open with it).
 $image = (string) get_the_post_thumbnail_url($post_id, 'full');
-$image_name = $image !== '' ? preg_replace('/-\d+x\d+(?=\.[a-z]+$)|\.[a-z]+$/i', '', wp_basename((string) wp_parse_url($image, PHP_URL_PATH))) : '';
-$lead_image = $image !== '' && $image_name !== '' && stripos($content, $image_name) === false ? $image : '';
+$image_stem = static fn(string $url): string => strtolower((string) preg_replace('/(?:-\d+x\d+|-scaled)?\.[a-z0-9]+$/i', '', wp_basename((string) wp_parse_url($url, PHP_URL_PATH))));
+preg_match_all('/<img\b[^>]*\bsrc=["\']([^"\']+)["\']/i', $content, $content_images);
+$lead_image = $image !== '' && !in_array($image_stem($image), array_map($image_stem, $content_images[1]), true) ? $image : '';
 $news_url = boblift_url('/news');
 $products = boblift_news_related_products($title, $content, 3, (int) $post_id);
 $contact = boblift_contact_settings();
