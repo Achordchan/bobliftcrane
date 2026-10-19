@@ -86,7 +86,9 @@ function boblift_render_model_key(): void
     // Phones: one row per part. From sm up the codes join into one name, each caption hanging under its code.
     $strip = static function (array $parts, bool $large) : void { ?>
         <ol class="grid gap-2 sm:auto-cols-fr sm:grid-flow-col sm:gap-0">
-            <?php foreach ($parts as $index => [$code, $meaning, $kind]) :
+            <?php foreach ($parts as $index => $part) :
+                // A part without a kind is a plain code.
+                [$code, $meaning, $kind] = $part + [0 => '', 1 => '', 2 => ''];
                 $box = 'flex items-center justify-center border font-black tracking-[-0.01em] [font-variant-numeric:tabular-nums] sm:rounded-none';
                 // The long base name gets a smaller size on phones so it clears the narrow code box.
                 $box .= $kind === 'base' ? ' h-14 text-lg' : ' h-14 text-2xl';

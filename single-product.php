@@ -725,7 +725,9 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                 </article>
             <?php endif; ?>
             <?php if ($buying_terms) :
-                $buying_brochure = current(boblift_brochure_items(boblift_brochure_families_for_product($product)));
+                // Every brochure of the product's families, as the brochure card this column replaces showed them.
+                $buying_brochures = boblift_brochure_items(boblift_brochure_families_for_product($product));
+                $brochure_ui = boblift_site_ui('brochures');
                 // Placeholder figures carry a mark for signed-in editors only, so they are replaced before launch.
                 $buying_flag = $buying_terms['pending'] && current_user_can('edit_posts') ? '<span class="ms-2 inline-flex rounded-sm border border-amber-300 bg-amber-50 px-1.5 py-0.5 align-middle text-[10px] font-black uppercase tracking-[0.08em] text-amber-700">Placeholder</span>' : '';
                 $buying_units = static fn(int $count): string => str_replace('{count}', (string) $count, boblift_localized_static_text($count === 1 ? '{count} unit' : '{count} units'));
@@ -760,10 +762,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                             <?php // Links to #brochures (the brochure card this column replaces on crane pages) land here. ?><span id="brochures" class="block scroll-mt-24" aria-hidden="true"></span>
                             <h3 id="buying-documents" class="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(boblift_localized_static_text('Documents')); ?></h3>
                             <ul class="mt-4 grid gap-3 text-sm">
-                                <?php if ($buying_brochure) :
-                                    // The family brochure lives here on crane pages, in place of the separate brochure card further down.
-                                    $brochure_ui = boblift_site_ui('brochures');
-                                    ?>
+                                <?php foreach ($buying_brochures as $buying_brochure) : ?>
                                     <li class="mb-2 grid grid-cols-[64px_minmax(0,1fr)] items-start gap-4 border-b border-[#E6EDF5] pb-5">
                                         <a class="block" href="<?php echo esc_url($buying_brochure['url']); ?>" download="<?php echo esc_attr($buying_brochure['file']); ?>" tabindex="-1" aria-hidden="true"><img class="aspect-[520/711] w-full rounded-sm border border-[#DDE7F2] bg-white object-cover" src="<?php echo esc_url($buying_brochure['cover']); ?>" width="520" height="711" alt="" loading="lazy" decoding="async"></a>
                                         <div class="min-w-0">
@@ -775,7 +774,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                                             </div>
                                         </div>
                                     </li>
-                                <?php endif; ?>
+                                <?php endforeach; ?>
                                 <?php if ($drawings) : ?>
                                     <li><a class="inline-flex items-start gap-2 font-black text-[#071f42] transition hover:text-blue-700" href="#drawing"><?php echo boblift_icon('maximize-2', 'mt-0.5 h-4 w-4 shrink-0 text-[#0B3F7D]'); ?><?php echo esc_html($ui['drawingTitle'] ?? 'Dimensions and load chart'); ?></a></li>
                                 <?php endif; ?>
