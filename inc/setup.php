@@ -559,3 +559,8 @@ function boblift_redirect_old_tonnage_pages(): void
     exit;
 }
 add_action('template_redirect', 'boblift_redirect_old_tonnage_pages', 1);
+
+// WordPress.com adds Jetpack "Share this" and "Like this" blocks under every post's text. The theme's own article layout
+// has no place for them (and the likes need a WordPress.com login), so they are switched off.
+add_filter('sharing_show', '__return_false');
+add_filter('wpl_is_likes_visible', '__return_false');
