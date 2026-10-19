@@ -192,10 +192,27 @@ function boblift_news_category_defaults(): array
 {
     return [
         ['slug' => 'company-news'],
-        ['slug' => 'product-news'],
         ['slug' => 'industry-insight'],
-        ['slug' => 'marine-solution'],
     ];
+}
+
+/**
+ * The newsroom filters by the old site's two groups. Posts filed under a category that is no longer a filter
+ * (product news, marine solutions) are listed with the group they belong to.
+ */
+function boblift_news_filter_category(string $slug, array $allowed): string
+{
+    if ($allowed === [] || in_array($slug, $allowed, true)) {
+        return $slug;
+    }
+    $plain = function_exists('boblift_plain_term_slug') ? boblift_plain_term_slug($slug, function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '') : $slug;
+    $group = str_starts_with($plain, 'product-news') || str_starts_with($plain, 'company-news') ? 'company-news' : 'industry-insight';
+    foreach ($allowed as $candidate) {
+        if (str_starts_with($candidate, $group)) {
+            return $candidate;
+        }
+    }
+    return $allowed[0];
 }
 
 function boblift_news_category_options(): array
@@ -214,6 +231,11 @@ function boblift_news_category_options(): array
         if ($slug !== '') {
             $items[] = ['slug' => $slug];
         }
+    }
+
+    // A list saved before the newsroom moved to two groups is the old four-category default, not an editor's choice.
+    if (array_column($items, 'slug') === ['company-news', 'product-news', 'industry-insight', 'marine-solution']) {
+        return boblift_news_category_defaults();
     }
 
     return $items !== [] ? $items : boblift_news_category_defaults();

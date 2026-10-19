@@ -63,7 +63,7 @@ if ($active_language_code === '') {
     $active_language_code = 'en';
 }
 $news_ui = function_exists('boblift_site_ui') ? boblift_site_ui('newsPage') : [];
-$news_category_slugs = function_exists('boblift_news_category_source_slugs') ? boblift_news_category_source_slugs() : ['company-news', 'product-news', 'industry-insight', 'marine-solution'];
+$news_category_slugs = function_exists('boblift_news_category_source_slugs') ? boblift_news_category_source_slugs() : ['company-news', 'industry-insight'];
 $news_categories = array_values(array_filter(array_map(static function (string $slug): ?WP_Term {
     return function_exists('boblift_term_by_slug_for_current_language') ? boblift_term_by_slug_for_current_language($slug, 'category') : get_category_by_slug($slug);
 }, $news_category_slugs)));
