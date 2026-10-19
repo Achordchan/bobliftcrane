@@ -26,7 +26,13 @@ $minutes = boblift_news_reading_minutes($content);
 $reading = str_replace('{minutes}', (string) $minutes, (string) ($article_ui['readingTemplate'] ?? '{minutes} min read'));
 // The featured image leads the story unless the text already shows the same picture (most imported stories open with it).
 $image = (string) get_the_post_thumbnail_url($post_id, 'full');
-$image_stem = static fn(string $url): string => strtolower((string) preg_replace('/(?:-\d+x\d+|-scaled)?\.[a-z0-9]+$/i', '', wp_basename((string) wp_parse_url($url, PHP_URL_PATH))));
+// Same picture = same upload path (year/month folder and file name), whatever the host, CDN query or size variant.
+$image_stem = static function (string $url): string {
+    $path = strtolower((string) wp_parse_url($url, PHP_URL_PATH));
+    $uploads = strpos($path, '/uploads/');
+    $path = $uploads !== false ? substr($path, $uploads) : $path;
+    return (string) preg_replace('/(?:-\d+x\d+|-scaled)?\.[a-z0-9]+$/', '', $path);
+};
 preg_match_all('/<img\b[^>]*\bsrc=["\']([^"\']+)["\']/i', $content, $content_images);
 $lead_image = $image !== '' && !in_array($image_stem($image), array_map($image_stem, $content_images[1]), true) ? $image : '';
 $news_url = boblift_url('/news');
