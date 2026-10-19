@@ -564,3 +564,29 @@ add_action('template_redirect', 'boblift_redirect_old_tonnage_pages', 1);
 // has no place for them (and the likes need a WordPress.com login), so they are switched off.
 add_filter('sharing_show', '__return_false');
 add_filter('wpl_is_likes_visible', '__return_false');
+
+/**
+ * Some translated articles reached the site with bare image file names (src="chart.png") instead of upload URLs, so the
+ * browser looked for the picture next to the article address and showed a broken image. Each bare name is pointed at the
+ * uploaded attachment with that file name; names with no matching upload are left as they are.
+ */
+function boblift_resolve_bare_image_sources(string $content): string {
+    if (stripos($content, '<img') === false) {
+        return $content;
+    }
+    return (string) preg_replace_callback('/(<img\b[^>]*?\bsrc=)(["\'])([^"\'\/:?#]+\.(?:jpe?g|png|gif|webp|avif|svg))\2/i', static function (array $m): string {
+        static $found = [];
+        $name = $m[3];
+        if (!array_key_exists($name, $found)) {
+            global $wpdb;
+            $id = (int) $wpdb->get_var($wpdb->prepare(
+                "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_wp_attached_file' AND (meta_value = %s OR meta_value LIKE %s) ORDER BY post_id LIMIT 1",
+                $name,
+                '%/' . $wpdb->esc_like($name)
+            ));
+            $found[$name] = $id ? (string) wp_get_attachment_url($id) : '';
+        }
+        return $found[$name] !== '' ? $m[1] . $m[2] . esc_url($found[$name]) . $m[2] : $m[0];
+    }, $content);
+}
+add_filter('the_content', 'boblift_resolve_bare_image_sources', 5);
