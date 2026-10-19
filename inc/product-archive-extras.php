@@ -280,20 +280,26 @@ function boblift_render_archive_made(): void
  */
 function boblift_render_archive_extras(array $categories, string $initial_category): void
 {
+    $found = [];
     foreach ($categories as $category) {
         $slug = (string) ($category['slug'] ?? '');
-        $found = $slug !== '' ? boblift_archive_term($slug) : null;
-        if (!$found) {
-            continue;
+        $term = $slug !== '' ? boblift_archive_term($slug) : null;
+        if ($term) {
+            $found[$slug] = $term;
         }
-        ob_start();
-        boblift_render_archive_compare($found['term']);
-        boblift_render_archive_articles($found['family'], $slug);
-        $html = trim((string) ob_get_clean());
-        if ($html === '') {
-            continue;
-        }
-        printf('<div data-category-extra="%s"%s>%s</div>', esc_attr($slug), $slug === $initial_category ? '' : ' hidden', $html); // phpcs:ignore WordPress.Security.EscapeOutput -- built from escaped parts above.
     }
+    // The comparison sits right under the listing, the factory steps next, and the articles close the page.
+    $blocks = static function (callable $render) use ($found, $initial_category): void {
+        foreach ($found as $slug => $term) {
+            ob_start();
+            $render($term, (string) $slug);
+            $html = trim((string) ob_get_clean());
+            if ($html !== '') {
+                printf('<div data-category-extra="%s"%s>%s</div>', esc_attr((string) $slug), $slug === $initial_category ? '' : ' hidden', $html); // phpcs:ignore WordPress.Security.EscapeOutput -- built from escaped parts.
+            }
+        }
+    };
+    $blocks(static fn(array $term) => boblift_render_archive_compare($term['term']));
     boblift_render_archive_made();
+    $blocks(static fn(array $term, string $slug) => boblift_render_archive_articles($term['family'], $slug));
 }
