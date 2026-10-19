@@ -11,7 +11,7 @@ $workflow_items = is_array($ui['workflowItems'] ?? null) ? array_values(array_fi
     <?php boblift_page_hero(['label' => $ui['heroLabel'] ?? '', 'title' => $ui['heroTitle'] ?? '', 'text' => $ui['heroDescription'] ?? '', 'image' => (string) ($ui['heroImage'] ?? '')]); ?>
 </div>
 <section class="page-shell grid grid-cols-1 gap-8 py-10 md:py-16 lg:grid-cols-[0.72fr_1.28fr] lg:gap-12">
-    <aside class="rounded border border-line bg-[linear-gradient(180deg,#071f42_0%,#0b3a78_100%)] p-6 text-white shadow-card md:p-8 lg:sticky lg:top-8 lg:h-fit">
+    <aside class="rounded border border-line bg-[linear-gradient(180deg,#071f42_0%,#0b3a78_100%)] p-6 text-white shadow-card md:p-8 lg:sticky lg:top-[calc(var(--boblift-header-h)+2rem)] lg:h-fit">
         <p class="text-[11px] font-black uppercase tracking-[0.24em] text-gold"><?php echo esc_html($ui['workflowLabel']); ?></p>
         <h2 class="mt-4 text-3xl font-black leading-tight tracking-[-0.015em] md:text-4xl"><?php echo esc_html($ui['workflowTitle']); ?></h2>
         <div class="mt-7 grid gap-4">

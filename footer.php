@@ -203,7 +203,7 @@ $floating_contact_buttons = function_exists('boblift_floating_contact_buttons') 
 </div>
 <?php endif; ?>
 <button class="fixed bottom-8 end-8 z-40 hidden size-11 translate-y-4 rounded-sm bg-navy p-0 text-white opacity-0 shadow-raised transition duration-300 hover:bg-[#0b2d5b] pointer-events-none lg:block" type="button" data-back-top aria-label="<?php echo esc_attr($quote_list_ui['backTopLabel'] ?? 'Back to top'); ?>"><?php echo boblift_icon('arrow-up', 'mx-auto h-5 w-5'); ?></button>
-<div class="fixed inset-0 z-50 hidden place-items-center bg-ink/18 p-4 backdrop-blur-[2px]" data-qr-modal>
+<div class="fixed inset-0 z-[250] hidden place-items-center bg-ink/18 p-4 backdrop-blur-[2px]" data-qr-modal>
     <div class="relative w-full max-w-[300px] rounded border border-line bg-white p-5 text-center shadow-card">
         <button class="absolute end-3 top-3 grid size-8 place-items-center rounded-sm bg-[#f4f7fb] text-slate-500 transition hover:bg-navy hover:text-white" type="button" data-qr-close aria-label="<?php echo esc_attr($quote_list_ui['wechatCloseLabel'] ?? 'Close WeChat QR code'); ?>"><?php echo boblift_icon('x', 'h-4 w-4'); ?></button>
         <h2 class="pe-7 text-lg font-black tracking-[-0.01em] text-ink"><?php echo esc_html($quote_list_ui['wechatTitle'] ?? 'WeChat QR Code'); ?></h2>

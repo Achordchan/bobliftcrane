@@ -71,7 +71,7 @@ $visit_links = is_array($ui['visitLinks'] ?? null) ? $ui['visitLinks'] : [];
             <?php boblift_render_inquiry_form(isset($_GET['product']) ? sanitize_text_field(wp_unslash($_GET['product'])) : '', ['compact' => true, 'source' => '联系页表单']); ?>
         </div>
         <?php // The direct channels span both rows on desktop (sticky beside the form); on phones they follow the form directly. ?>
-        <aside class="min-w-0 space-y-4 lg:sticky lg:top-6 lg:col-start-2 lg:row-span-2 lg:row-start-1">
+        <aside class="min-w-0 space-y-4 lg:sticky lg:top-[calc(var(--boblift-header-h)+1.5rem)] lg:col-start-2 lg:row-span-2 lg:row-start-1">
             <?php // One place for the direct channels: phone and WhatsApp share a number, so they share a row. ?>
             <section class="rounded border border-line bg-white p-5 md:p-6" aria-labelledby="contact-direct-title">
                 <h2 id="contact-direct-title" class="text-lg font-black leading-7 text-navy"><?php echo esc_html($t('channelsLabel', 'Direct contact')); ?></h2>

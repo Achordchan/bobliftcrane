@@ -4128,14 +4128,29 @@
     const links = [...toc.querySelectorAll('a[href^="#"]')];
     const headings = links.map((link) => document.getElementById(decodeURIComponent(link.hash.slice(1)))).filter(Boolean);
     if (!headings.length) return;
-    const mark = (id) => links.forEach((link) => link.setAttribute('aria-current', decodeURIComponent(link.hash.slice(1)) === id ? 'true' : 'false'));
+    const list = toc.querySelector('[data-news-toc-list]');
+    const mark = (id) => {
+      links.forEach((link) => link.setAttribute('aria-current', decodeURIComponent(link.hash.slice(1)) === id ? 'true' : 'false'));
+      // A list that scrolls inside its card keeps the current entry in view (the list only, never the page).
+      const active = links.find((link) => link.getAttribute('aria-current') === 'true');
+      if (!list || !active || list.scrollHeight <= list.clientHeight) return;
+      const top = active.offsetTop;
+      if (top < list.scrollTop) list.scrollTop = top;
+      else if (top + active.offsetHeight > list.scrollTop + list.clientHeight) list.scrollTop = top + active.offsetHeight - list.clientHeight;
+    };
+    // The navigation stays over the top of the window (below an editor's toolbar), so reading starts below it: its sticky
+    // offset plus its height, not its current position, which is lower while the announcement bar is still in view.
+    const header = document.getElementById('top');
+    const headerHeight = header ? Math.round((parseFloat(getComputedStyle(header).top) || 0) + header.getBoundingClientRect().height) : 0;
+    // The reading band is the top 35% of the window below the navigation, and never less than 40px tall.
+    const bandBottom = Math.max(0, Math.min(Math.round(window.innerHeight * 0.65), window.innerHeight - headerHeight - 40));
     const visible = new Set();
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => (entry.isIntersecting ? visible.add(entry.target) : visible.delete(entry.target)));
       const current = headings.filter((heading) => visible.has(heading))[0]
-        || headings.filter((heading) => heading.getBoundingClientRect().top < 0).pop();
+        || headings.filter((heading) => heading.getBoundingClientRect().top < headerHeight).pop();
       if (current) mark(current.id);
-    }, { rootMargin: `0px 0px -${Math.round(window.innerHeight * 0.65)}px 0px` }); // the top 35% of the viewport, in pixels: a percentage here may resolve against the width
+    }, { rootMargin: `-${headerHeight}px 0px -${bandBottom}px 0px` }); // in pixels: a percentage here may resolve against the width
     headings.forEach((heading) => observer.observe(heading));
     return observer;
   };
@@ -4161,7 +4176,8 @@
 })();
 
 // Product list, "how cranes are made": mark the last step whose photo has reached the top of the screen (just below
-// where its link scrolls it, scroll-mt-28). By position rather than intersection: the staggered photos sit 6rem apart.
+// where its link scrolls it: under the sticky navigation, plus scroll-mt-5). By position rather than intersection: the
+// staggered photos sit 6rem apart.
 (() => {
   const init = () => {
     document.querySelectorAll('[data-scroll-steps]').forEach((list) => {
@@ -4171,7 +4187,9 @@
       let frame = 0;
       const update = () => {
         frame = 0;
-        const line = 160;
+        const header = document.getElementById('top');
+        const headerBottom = header ? (parseFloat(getComputedStyle(header).top) || 0) + header.getBoundingClientRect().height : 0;
+        const line = headerBottom + 68;
         let current = 0;
         steps.forEach((step, index) => { if (step.getBoundingClientRect().top <= line) current = index; });
         links.forEach((link, index) => link.setAttribute('aria-current', index === current ? 'true' : 'false'));

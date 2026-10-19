@@ -175,7 +175,7 @@ $render_case_filter = static function (string $id, string $filter, string $all_l
         <button class="mt-5 inline-flex h-12 items-center justify-center rounded-sm bg-navy px-6 text-sm font-black text-white" type="button" data-cases-reset><?php echo esc_html($reset_label); ?></button>
     </div>
 
-    <div class="boblift-cases-media-modal fixed inset-0 z-[120] hidden items-center justify-center bg-[#071f42]/70 p-4 backdrop-blur-md" data-cases-modal hidden>
+    <div class="boblift-cases-media-modal fixed inset-0 z-[250] hidden items-center justify-center bg-[#071f42]/70 p-4 backdrop-blur-md" data-cases-modal hidden>
         <button class="absolute inset-0 h-full w-full cursor-default" type="button" data-cases-modal-close aria-label="<?php echo esc_attr($case_close_feedback_label); ?>"></button>
         <div class="relative z-10 w-full max-w-[1120px] overflow-hidden rounded bg-white p-3 shadow-card">
             <div class="flex items-center justify-between gap-4 px-2 pb-3">

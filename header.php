@@ -290,11 +290,12 @@ foreach ($languages as $language) {
     }
 }
 ?>
-<header id="top" class="relative z-[200]">
-    <?php if ($show_top_bar) : ?>
-        <div class="bg-navy px-4 py-3 text-center text-[11px] font-normal leading-5 text-white/85 md:text-xs"><span class="text-gold"><?php echo esc_html($top_bar['highlight'] ?? 'Global Lifting Solutions.'); ?></span> <?php echo esc_html($top_bar['text'] ?? 'Exported to 120+ Countries Worldwide.'); ?><a class="ms-3 text-gold md:ms-5" href="<?php echo esc_url(boblift_url($top_bar['link_href'] ?? '/about')); ?>"><?php echo esc_html($top_bar['link_label'] ?? 'Learn More +'); ?></a></div>
-    <?php endif; ?>
-    <div class="relative border-b border-line bg-white/96 shadow-card backdrop-blur">
+<?php if ($show_top_bar) : ?>
+    <div class="bg-navy px-4 py-3 text-center text-[11px] font-normal leading-5 text-white/85 md:text-xs"><span class="text-gold"><?php echo esc_html($top_bar['highlight'] ?? 'Global Lifting Solutions.'); ?></span> <?php echo esc_html($top_bar['text'] ?? 'Exported to 120+ Countries Worldwide.'); ?><a class="ms-3 text-gold md:ms-5" href="<?php echo esc_url(boblift_url($top_bar['link_href'] ?? '/about')); ?>"><?php echo esc_html($top_bar['link_label'] ?? 'Learn More +'); ?></a></div>
+<?php endif; ?>
+<?php // The announcement bar scrolls away; the navigation below stays at the top of the window. ?>
+<header id="top" class="sticky top-0 z-[200]">
+    <div class="relative border-b border-line bg-white shadow-card">
         <div data-header-row class="page-shell flex h-[78px] items-center justify-between gap-3 lg:h-[92px] lg:gap-4 min-[1380px]:grid min-[1380px]:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] min-[1680px]:gap-8">
             <div class="flex min-w-0 items-center gap-3 lg:gap-2 xl:gap-4">
                 <a class="flex shrink-0 items-center" href="<?php echo esc_url(home_url('/')); ?>" aria-label="<?php echo esc_attr($header_ui['homeAriaLabel'] ?? 'BOB-LIFT Home'); ?>">
