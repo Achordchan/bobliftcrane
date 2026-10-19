@@ -153,7 +153,7 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
             </div>
         </div>
 
-        <aside class="grid min-w-0 content-start gap-4" aria-label="<?php echo esc_attr((string) ($ui['summary'] ?? 'Article Summary')); ?>">
+        <aside class="flex min-w-0 flex-col gap-4" aria-label="<?php echo esc_attr((string) ($ui['summary'] ?? 'Article Summary')); ?>">
                     <section class="hidden rounded border border-line bg-white p-5 lg:block">
                         <div class="flex items-center gap-3">
                             <span class="grid h-11 w-11 shrink-0 place-items-center rounded-sm bg-navy text-white"><?php echo boblift_icon('building-2', 'h-5 w-5'); ?></span>
