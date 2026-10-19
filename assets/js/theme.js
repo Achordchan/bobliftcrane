@@ -4124,9 +4124,7 @@
 
 // News article contents: mark the section being read.
 (() => {
-  const init = () => {
-    const toc = document.querySelector('[data-news-toc]');
-    if (!toc || !('IntersectionObserver' in window)) return;
+  const watch = (toc) => {
     const links = [...toc.querySelectorAll('a[href^="#"]')];
     const headings = links.map((link) => document.getElementById(decodeURIComponent(link.hash.slice(1)))).filter(Boolean);
     if (!headings.length) return;
@@ -4137,8 +4135,52 @@
       const current = headings.filter((heading) => visible.has(heading))[0]
         || headings.filter((heading) => heading.getBoundingClientRect().top < 0).pop();
       if (current) mark(current.id);
-    }, { rootMargin: '0px 0px -65% 0px' });
+    }, { rootMargin: `0px 0px -${Math.round(window.innerHeight * 0.65)}px 0px` }); // the top 35% of the viewport, in pixels: a percentage here may resolve against the width
     headings.forEach((heading) => observer.observe(heading));
+    return observer;
+  };
+  const init = () => {
+    if (!('IntersectionObserver' in window)) return;
+    const lists = [...document.querySelectorAll('[data-news-toc]')];
+    if (!lists.length) return;
+    let observers = lists.map(watch);
+    let height = window.innerHeight;
+    let timer = 0;
+    window.addEventListener('resize', () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        if (window.innerHeight === height) return;
+        height = window.innerHeight;
+        observers.forEach((observer) => observer?.disconnect());
+        observers = lists.map(watch);
+      }, 200);
+    }, { passive: true });
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+
+// Product list, "how cranes are made": mark the last step whose photo has reached the top of the screen (just below
+// where its link scrolls it, scroll-mt-28). By position rather than intersection: the staggered photos sit 6rem apart.
+(() => {
+  const init = () => {
+    document.querySelectorAll('[data-scroll-steps]').forEach((list) => {
+      const links = [...list.querySelectorAll('a[href^="#"]')];
+      const steps = links.map((link) => document.getElementById(decodeURIComponent(link.hash.slice(1))));
+      if (!links.length || steps.some((step) => !step)) return;
+      let frame = 0;
+      const update = () => {
+        frame = 0;
+        const line = 160;
+        let current = 0;
+        steps.forEach((step, index) => { if (step.getBoundingClientRect().top <= line) current = index; });
+        links.forEach((link, index) => link.setAttribute('aria-current', index === current ? 'true' : 'false'));
+      };
+      const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
+      window.addEventListener('scroll', schedule, { passive: true });
+      window.addEventListener('resize', schedule, { passive: true });
+      update();
+    });
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
