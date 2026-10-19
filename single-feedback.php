@@ -21,7 +21,7 @@ $media = $feedback['media'];
 $total = count($media);
 $caption = implode(' · ', array_filter([$feedback['model'], $feedback['country']]));
 $counts = boblift_feedback_counts_text($feedback);
-$first = $media[0];
+$first = $media[0] ?? null;
 $pad = static fn(int $n): string => str_pad((string) $n, 2, '0', STR_PAD_LEFT);
 
 // More feedback: same model first, then same country, then the rest in list order.
@@ -44,9 +44,9 @@ $others = array_slice($others, 0, 4);
 
     <header class="mt-5 flex flex-col gap-5 border-b border-line pb-5 md:mt-6 md:flex-row md:items-end md:justify-between md:pb-6">
         <div class="min-w-0">
-            <p class="text-xs font-black uppercase tracking-[0.18em] text-blue-700"><?php echo esc_html($feedback_label); ?></p>
+            <p class="boblift-kicker"><?php echo esc_html($feedback_label); ?></p>
             <h1 class="mt-3 text-4xl font-black leading-none tracking-[-0.02em] text-ink md:text-[3.25rem]"><?php echo esc_html($feedback['model']); ?></h1>
-            <?php if ($feedback['note'] !== '') : ?><p class="mt-3 text-base font-semibold text-slate-600 md:text-lg"><?php echo esc_html($feedback['note']); ?></p><?php endif; ?>
+            <?php if ($feedback['note'] !== '') : ?><p class="mt-3 text-base font-normal text-slate-600 md:text-lg"><?php echo esc_html($feedback['note']); ?></p><?php endif; ?>
         </div>
         <dl class="grid shrink-0 grid-cols-2 gap-x-10 gap-y-1 text-sm md:text-right">
             <?php if ($feedback['country'] !== '') : ?>
@@ -64,6 +64,8 @@ $others = array_slice($others, 0, 4);
         </dl>
     </header>
 
+    <?php // An article without photos or videos goes straight to its body. ?>
+    <?php if ($first) : ?>
     <section class="mt-5 md:mt-6" data-feedback-gallery data-feedback-media="<?php echo esc_attr(wp_json_encode($media, JSON_UNESCAPED_SLASHES)); ?>" data-feedback-title="<?php echo esc_attr($caption); ?>" aria-label="<?php echo esc_attr($caption); ?>">
         <div class="relative aspect-[4/3] overflow-hidden rounded bg-[#EDF1F5] md:aspect-auto md:h-[clamp(380px,56vh,720px)]" data-feedback-stage>
             <div class="absolute inset-0" data-feedback-stage-media>
@@ -91,10 +93,16 @@ $others = array_slice($others, 0, 4);
             </div>
         <?php endif; ?>
     </section>
+    <?php endif; ?>
 
-    <?php if ($feedback['body'] !== '') : ?>
+    <?php // The article body from the editor, shared by every language; older entries keep their per-language plain-text body until it is moved into the editor. ?>
+    <?php if (trim((string) get_post_field('post_content', get_the_ID())) !== '') : ?>
         <div class="boblift-story-prose mx-auto mt-12 max-w-[760px] md:mt-16">
-            <?php echo wp_kses_post(wpautop(esc_html($feedback['body']))); ?>
+            <?php the_content(); ?>
+        </div>
+    <?php elseif ($feedback['legacy_body'] !== '') : ?>
+        <div class="boblift-story-prose mx-auto mt-12 max-w-[760px] md:mt-16">
+            <?php echo wp_kses_post(wpautop(esc_html($feedback['legacy_body']))); ?>
         </div>
     <?php endif; ?>
 

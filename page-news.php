@@ -51,7 +51,7 @@ $news_proof_chips = array_values(array_filter(array_map(static function (array $
     <?php if ($news_proof_chips !== []) : ?>
         <ul class="mt-5 flex flex-wrap gap-3">
             <?php foreach ($news_proof_chips as $chip) : ?>
-                <li class="flex items-center gap-3 rounded border border-line bg-white px-4 py-3"><?php echo boblift_icon($chip['icon'], 'h-6 w-6 text-gold', '1.8'); ?><span><strong class="block text-xl font-black text-navy"><?php echo esc_html($chip['value']); ?></strong><small class="block text-sm font-semibold text-slate-600"><?php echo esc_html($chip['label']); ?></small></span></li>
+                <li class="flex items-center gap-3 rounded border border-line bg-white px-4 py-3"><?php echo boblift_icon($chip['icon'], 'h-6 w-6 text-gold', '1.8'); ?><span><strong class="block text-xl font-black text-navy"><?php echo esc_html($chip['value']); ?></strong><small class="block text-sm font-normal text-slate-600"><?php echo esc_html($chip['label']); ?></small></span></li>
             <?php endforeach; ?>
         </ul>
     <?php endif; ?>
@@ -95,7 +95,7 @@ $news_proof_chips = array_values(array_filter(array_map(static function (array $
         </div>
         <div class="hidden rounded border border-dashed border-blue-200 bg-blue-50/45 p-8 text-center" data-news-empty>
             <h2 class="text-2xl font-black tracking-[-0.015em] text-ink"><?php echo esc_html($empty_title); ?></h2>
-            <p class="mx-auto mt-3 max-w-[560px] text-sm font-semibold leading-7 text-slate-600"><?php echo esc_html($empty_text); ?></p>
+            <p class="mx-auto mt-3 max-w-[560px] text-sm font-normal leading-7 text-slate-600"><?php echo esc_html($empty_text); ?></p>
         </div>
     <?php endif; ?>
 </section>

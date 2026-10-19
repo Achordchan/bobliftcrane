@@ -41,7 +41,10 @@ img { max-width: 100%; }
   .page-shell { width: min(1600px, calc(100% - 96px)); margin-inline: auto; }
   .btn-primary { @apply inline-flex items-center justify-center gap-3 rounded-sm bg-navy px-7 py-4 text-base font-bold text-white shadow-card transition duration-300 hover:-translate-y-0.5 hover:bg-[#0b2d5b]; }
   .btn-white { @apply inline-flex items-center justify-center gap-3 rounded-sm border border-line bg-white px-7 py-4 text-base font-bold text-ink shadow-card transition duration-300 hover:-translate-y-0.5; }
-  .section-label { @apply text-xs font-extrabold uppercase tracking-[0.2em] text-gold lg:text-sm; }
+  /* The one small uppercase section label. Barlow ships 400/500/600 only, so 600 is the heaviest it draws. */
+  .section-label, .boblift-kicker { @apply text-[11px] font-semibold uppercase leading-[1.4] tracking-[0.18em] text-[#0B3F7D]; }
+  /* On navy panels the label keeps the gold it had, so it stays legible. */
+  .bg-navy .section-label, .bg-navy .boblift-kicker { @apply text-gold; }
   .card-hover { @apply transition duration-300 hover:-translate-y-2; }
   .nav-icon-btn { @apply inline-flex h-14 items-center justify-center gap-2 rounded-sm border border-line bg-white px-5 text-sm font-black text-navy shadow-card transition hover:-translate-y-0.5 hover:border-blue-200; }
   .boblift-video-tab { @apply inline-flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm border border-line bg-white px-4 text-sm font-black text-ink transition hover:border-ink/30 aria-pressed:border-navy aria-pressed:bg-navy aria-pressed:text-white; }
@@ -52,6 +55,19 @@ img { max-width: 100%; }
   .filter-row { @apply flex cursor-pointer items-center gap-3 rounded border border-line bg-[#f8fbff] px-4 py-3 text-sm font-bold text-slate-600 transition hover:border-blue-200 hover:bg-white; }
   .filter-row input { @apply h-4 w-4 accent-blue-700; }
   .product-filter-option { @apply flex cursor-pointer items-center gap-3 text-sm font-semibold text-slate-700 transition hover:text-blue-700; }
+  .boblift-category-tab { @apply inline-flex h-14 shrink-0 items-center gap-2 whitespace-nowrap border-b-2 border-transparent px-3 xl:px-4 text-sm font-black text-slate-500 transition hover:text-[#0B1B33]; }
+  .boblift-category-tab[aria-pressed="true"] { @apply border-[#0B3F7D] text-[#0B1B33]; }
+  .boblift-category-subtab { @apply inline-flex h-9 items-center gap-2 rounded-sm border border-[#D8DEE8] bg-white px-3 text-sm font-black text-slate-600 transition hover:border-blue-300 hover:text-blue-700; }
+  .boblift-category-subtab[aria-pressed="true"] { @apply border-[#0B3F7D] bg-[#0B3F7D] text-white; }
+  .boblift-category-tab [data-tab-count], .boblift-category-subtab [data-tab-count] { @apply text-xs font-black text-slate-400; }
+  /* Plain declarations: @apply hidden would copy every selector that uses .hidden (the mobile-menu toggle among them). */
+  .boblift-category-tab [data-tab-count] { display: none; }
+  @media (min-width: 1280px) { .boblift-category-tab [data-tab-count] { display: inline; } }
+  .boblift-category-subtab[aria-pressed="true"] [data-tab-count] { @apply text-white/70; }
+  .boblift-filter-dropdown-trigger { @apply inline-flex h-11 items-center gap-2 rounded-sm border border-[#D8DEE8] bg-white px-4 text-sm font-black text-[#0B1B33] transition hover:border-blue-300; }
+  .boblift-filter-dropdown-trigger[aria-expanded="true"] { @apply border-[#0B3F7D]; }
+  .boblift-filter-dropdown-trigger[aria-expanded="true"] svg { @apply rotate-180; }
+  .boblift-filter-chip { @apply inline-flex h-8 items-center gap-1.5 rounded-sm border border-[#D8DEE8] bg-[#F8FAFC] px-2.5 text-xs font-black text-[#0B1B33] transition hover:border-blue-300; }
 }
 
 
@@ -284,9 +300,6 @@ img { max-width: 100%; }
 .about-scroll-copy > p:not(.section-label) {
   color: #334155;
   text-shadow: 0 1px 0 rgba(255,255,255,.42);
-}
-.about-scroll-copy .section-label {
-  color: #c86f1f;
 }
 .about-proof-chip {
   opacity: 1;
@@ -778,18 +791,10 @@ img { max-width: 100%; }
   }
 }
 
-.mega-menu { pointer-events: none; visibility: hidden; opacity: 0; transition: opacity .2s ease, transform .2s ease, visibility 0s linear .2s; }
-.mega-menu { transform: translate(-50%, 12px); }
-.mega-menu::before { content: none; }
-.group\/products:hover .mega-menu,
-.group\/products:focus-within .mega-menu,
-.group\/products.mega-menu-open .mega-menu,
-.mega-menu:hover { pointer-events: auto; visibility: visible; opacity: 1; transform: translate(-50%, 0); transition-delay: 0s; }
-body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: none; visibility: hidden; opacity: 0; transform: translate(-50%, 12px); transition-delay: 0s; }
 .reveal { animation: rise .75s ease both; }
 .product-stage { background: radial-gradient(circle at 70% 46%, rgba(37,99,235,.12), transparent 28%), radial-gradient(circle at 76% 72%, rgba(37,99,235,.08), transparent 20%), linear-gradient(135deg, rgba(255,255,255,.98), rgba(241,247,255,.92)); }
 .product-hero-3d { transform: translateX(-50%) rotateY(-4deg) rotateX(1deg); transform-origin: center bottom; }
-.cms-richtext { color: #475569; font-size: 1rem; font-weight: 600; line-height: 2; }
+.cms-richtext { color: #475569; font-size: 1rem; font-weight: 400; line-height: 2; }
 .cms-richtext > * + * { margin-top: 1rem; }
 .cms-richtext h1, .cms-richtext h2, .cms-richtext h3 { color: var(--ink); font-weight: 900; letter-spacing: -.01em; line-height: 1.12; }
 .cms-richtext h1 { font-size: clamp(2rem, 4vw, 3.5rem); }
@@ -798,7 +803,7 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
 .cms-richtext ul, .cms-richtext ol { padding-inline-start: 1.35rem; }
 .cms-richtext ul { list-style: disc; }
 .cms-richtext ol { list-style: decimal; }
-.cms-richtext a { color: #2563eb; font-weight: 900; text-decoration: underline; text-underline-offset: 3px; }
+.cms-richtext a { color: #2563eb; font-weight: 500; text-decoration: underline; text-underline-offset: 3px; }
 
 
 
@@ -960,6 +965,8 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
     gap: 8px;
   }
   .boblift-product-listing .product-card-inline-actions {
+    inset-block-end: 8px;
+    inset-inline-end: 11px;
     gap: 4px;
   }
   .boblift-product-listing .product-card-inline-actions button {
@@ -1842,7 +1849,6 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    padding-inline: 14px;
     font-size: clamp(9px, 2.55vw, 10px);
     letter-spacing: .08em;
     line-height: 1.25;
@@ -1852,29 +1858,16 @@ body.mega-hover-suppressed .group\/products:hover .mega-menu { pointer-events: n
     line-height: .92;
   }
   .boblift-product-hero-actions {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 48px;
+    flex-wrap: nowrap;
     gap: 8px;
     overflow: visible;
     padding-bottom: 0;
   }
-  .boblift-product-hero-actions > button {
+  .boblift-product-hero-actions > * {
+    flex: 1 1 0;
     min-width: 0;
-    width: 100%;
     padding-inline: 10px;
     font-size: 12px;
-  }
-  .boblift-product-hero-request {
-    order: 1;
-  }
-  .boblift-product-hero-quote-toggle {
-    order: 2;
-    justify-self: end;
-    width: 48px !important;
-    padding-inline: 0 !important;
-  }
-  .boblift-product-hero-quote-toggle [data-product-quote-add-label] {
-    display: none;
   }
 }
 @media (max-width: 900px) {
@@ -2293,7 +2286,8 @@ body.boblift-filter-drawer-locked {
 .boblift-drawing-dialog::backdrop { background: rgba(7, 31, 66, .72); }
 
 /* Case and feedback detail pages: article prose and the feedback gallery. */
-.boblift-story-prose { color: #334155; font-size: 1.0625rem; font-weight: 500; line-height: 1.85; }
+/* Copy reads at 400 so the 600 headings and figures stand above it. */
+.boblift-story-prose { color: #475569; font-size: 1.0625rem; font-weight: 400; line-height: 1.85; }
 .boblift-story-prose > * + * { margin-top: 1.25rem; }
 .boblift-story-prose h2, .boblift-story-prose h3, .boblift-story-prose h4 { color: var(--ink, #08234a); font-weight: 900; letter-spacing: -0.015em; line-height: 1.2; }
 .boblift-story-prose h2 { margin-top: 3rem; font-size: clamp(1.5rem, 2.4vw, 2rem); }
@@ -2301,8 +2295,8 @@ body.boblift-filter-drawer-locked {
 .boblift-story-prose h4 { margin-top: 1.75rem; font-size: 1.1rem; }
 .boblift-story-prose > :first-child { margin-top: 0; }
 .boblift-story-prose h2 + *, .boblift-story-prose h3 + *, .boblift-story-prose h4 + * { margin-top: 0.75rem; }
-.boblift-story-prose strong { color: #0f172a; font-weight: 800; }
-.boblift-story-prose a { color: #1d4ed8; font-weight: 700; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.boblift-story-prose strong { color: #0f172a; font-weight: 600; }
+.boblift-story-prose a { color: #1d4ed8; font-weight: 500; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
 .boblift-story-prose ul, .boblift-story-prose ol { padding-inline-start: 1.3rem; }
 .boblift-story-prose ul { list-style: disc; }
 .boblift-story-prose ol { list-style: decimal; }
@@ -2351,4 +2345,23 @@ html:is(:lang(ru), :lang(uk), :lang(fr), :lang(es), :lang(de), :lang(it), :lang(
 /* Cyrillic menu labels run longer than English; between 1200px and 1400px they keep a 15px size so the full menu still fits on common laptop widths. */
 @media (min-width: 1200px) and (max-width: 1399.98px) {
   :root:is(:lang(ru), :lang(uk), :lang(be), :lang(bg), :lang(kk)) :is([data-desktop-nav] > a, [data-desktop-nav] > * > a) { font-size: 15px; }
+}
+
+/* Product archive with a category picked: the one brochure for its family is a single wide row under the intro, not half a two-column grid. */
+[data-brochure-single] [data-brochure-grid] { grid-template-columns: minmax(0, 1fr); max-width: 880px; }
+@media (min-width: 640px) {
+  [data-brochure-single] [data-brochure-card] { gap: 1.5rem; padding: 1.25rem; }
+  [data-brochure-single] [data-brochure-cover] { width: 8.5rem; }
+}
+
+/* Product archive: with a category intro and its brochure both showing, desktop puts them side by side so the row uses the full page width. */
+@media (min-width: 1024px) {
+  .boblift-archive-about:has(> [data-category-intro]:not([hidden])):has(> [data-brochures]:not(.hidden)) {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    column-gap: clamp(3rem, 5vw, 6rem);
+    align-items: start;
+  }
+  .boblift-archive-about:has(> [data-category-intro]:not([hidden])) > [data-category-intro] { grid-column: 1; }
+  .boblift-archive-about:has(> [data-category-intro]:not([hidden])) > [data-brochures] { grid-column: 2; grid-row: 1; margin-top: 4rem; }
 }

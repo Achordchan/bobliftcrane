@@ -67,10 +67,11 @@ $visit_links = is_array($ui['visitLinks'] ?? null) ? $ui['visitLinks'] : [];
 
 <section class="page-shell py-8 md:py-12">
     <div class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-8 xl:grid-cols-[minmax(0,1fr)_380px]">
-        <div class="min-w-0">
+        <div class="min-w-0 lg:col-start-1 lg:row-start-1">
             <?php boblift_render_inquiry_form(isset($_GET['product']) ? sanitize_text_field(wp_unslash($_GET['product'])) : '', ['compact' => true, 'source' => '联系页表单']); ?>
         </div>
-        <aside class="min-w-0 space-y-4 lg:sticky lg:top-6">
+        <?php // The direct channels span both rows on desktop (sticky beside the form); on phones they follow the form directly. ?>
+        <aside class="min-w-0 space-y-4 lg:sticky lg:top-6 lg:col-start-2 lg:row-span-2 lg:row-start-1">
             <?php // One place for the direct channels: phone and WhatsApp share a number, so they share a row. ?>
             <section class="rounded border border-line bg-white p-5 md:p-6" aria-labelledby="contact-direct-title">
                 <h2 id="contact-direct-title" class="text-lg font-black leading-7 text-navy"><?php echo esc_html($t('channelsLabel', 'Direct contact')); ?></h2>
@@ -128,43 +129,46 @@ $visit_links = is_array($ui['visitLinks'] ?? null) ? $ui['visitLinks'] : [];
                         </div>
                     <?php endif; ?>
                 </dl>
-                <p class="mt-4 flex items-start gap-2 text-sm font-semibold leading-6 text-slate-600">
+                <p class="mt-4 flex items-start gap-2 text-sm font-normal leading-6 text-slate-600">
                     <?php echo boblift_icon('clock-3', 'mt-0.5 h-4 w-4 shrink-0 text-slate-400'); ?>
                     <span><?php echo esc_html($t('hoursText')); ?></span>
                 </p>
             </section>
-            <section class="rounded border border-line bg-mist p-5 md:p-6" aria-labelledby="contact-after-title">
-                <h2 id="contact-after-title" class="text-lg font-black leading-7 text-navy"><?php echo esc_html($t('afterTitle', 'What happens next')); ?></h2>
-                <ol class="mt-4 space-y-4">
-                    <?php foreach ($after_steps as $index => $step) : ?>
-                        <li class="flex gap-3">
-                            <span class="grid h-7 w-7 shrink-0 place-items-center rounded-sm bg-navy text-xs font-black tabular-nums text-white"><?php echo esc_html((string) ($index + 1)); ?></span>
-                            <span class="min-w-0">
-                                <span class="block text-sm font-black leading-6 text-navy"><?php echo esc_html((string) ($step['title'] ?? '')); ?></span>
-                                <span class="block text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html((string) ($step['text'] ?? '')); ?></span>
-                            </span>
-                        </li>
-                    <?php endforeach; ?>
-                </ol>
-            </section>
-            <?php if ($has_custom_support) : ?>
-                <section class="rounded border border-line bg-mist p-5 md:p-6" aria-labelledby="contact-support-title">
-                    <h2 id="contact-support-title" class="text-lg font-black leading-7 text-navy"><?php echo esc_html($t('supportTitle')); ?></h2>
-                    <p class="mt-3 text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html($t('supportDescription')); ?></p>
-                    <ul class="mt-4 space-y-4">
-                        <?php foreach ($support_items as $item) : ?>
+        </aside>
+        <?php // What happens after sending, and the support overview, fill the space under the form. ?>
+        <div class="grid min-w-0 items-start gap-4 lg:col-start-1 lg:row-start-2 <?php echo $has_custom_support ? 'md:grid-cols-2' : ''; ?>">
+                <section class="rounded border border-line bg-mist p-5 md:p-6" aria-labelledby="contact-after-title">
+                    <h2 id="contact-after-title" class="text-lg font-black leading-7 text-navy"><?php echo esc_html($t('afterTitle', 'What happens next')); ?></h2>
+                    <ol class="mt-4 space-y-4">
+                        <?php foreach ($after_steps as $index => $step) : ?>
                             <li class="flex gap-3">
-                                <?php echo boblift_icon((string) ($item['iconName'] ?? 'shield-check'), 'mt-0.5 h-4 w-4 shrink-0 text-slate-400'); ?>
+                                <span class="grid h-7 w-7 shrink-0 place-items-center rounded-sm bg-navy text-xs font-black tabular-nums text-white"><?php echo esc_html((string) ($index + 1)); ?></span>
                                 <span class="min-w-0">
-                                    <span class="block text-sm font-black leading-6 text-navy"><?php echo esc_html((string) ($item['title'] ?? '')); ?></span>
-                                    <span class="block text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html((string) ($item['text'] ?? '')); ?></span>
+                                    <span class="block text-sm font-black leading-6 text-navy"><?php echo esc_html((string) ($step['title'] ?? '')); ?></span>
+                                    <span class="block text-sm font-normal leading-6 text-slate-600"><?php echo esc_html((string) ($step['text'] ?? '')); ?></span>
                                 </span>
                             </li>
                         <?php endforeach; ?>
-                    </ul>
+                    </ol>
                 </section>
-            <?php endif; ?>
-        </aside>
+                <?php if ($has_custom_support) : ?>
+                    <section class="rounded border border-line bg-mist p-5 md:p-6" aria-labelledby="contact-support-title">
+                        <h2 id="contact-support-title" class="text-lg font-black leading-7 text-navy"><?php echo esc_html($t('supportTitle')); ?></h2>
+                        <p class="mt-3 text-sm font-normal leading-6 text-slate-600"><?php echo esc_html($t('supportDescription')); ?></p>
+                        <ul class="mt-4 space-y-4">
+                            <?php foreach ($support_items as $item) : ?>
+                                <li class="flex gap-3">
+                                    <?php echo boblift_icon((string) ($item['iconName'] ?? 'shield-check'), 'mt-0.5 h-4 w-4 shrink-0 text-slate-400'); ?>
+                                    <span class="min-w-0">
+                                        <span class="block text-sm font-black leading-6 text-navy"><?php echo esc_html((string) ($item['title'] ?? '')); ?></span>
+                                        <span class="block text-sm font-normal leading-6 text-slate-600"><?php echo esc_html((string) ($item['text'] ?? '')); ?></span>
+                                    </span>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </section>
+                <?php endif; ?>
+        </div>
     </div>
 </section>
 
@@ -177,7 +181,7 @@ $visit_links = is_array($ui['visitLinks'] ?? null) ? $ui['visitLinks'] : [];
             <div class="min-w-0 p-5 md:p-8">
                 <p class="<?php echo esc_attr($eyebrow); ?>"><?php echo esc_html($t('locationLabel', 'Factory location')); ?></p>
                 <h2 class="mt-1 text-2xl font-black leading-8 text-navy"><?php echo esc_html($location_heading); ?></h2>
-                <p class="mt-3 text-sm font-semibold leading-7 text-slate-600"><?php echo esc_html($location_description); ?></p>
+                <p class="mt-3 text-sm font-normal leading-7 text-slate-600"><?php echo esc_html($location_description); ?></p>
                 <p class="mt-5 flex items-start gap-3 text-base font-black leading-6 text-ink">
                     <?php echo boblift_icon('map-pin', 'mt-0.5 h-5 w-5 shrink-0 text-blue-700'); ?>
                     <span class="min-w-0"><span class="block <?php echo esc_attr($eyebrow); ?>"><?php echo esc_html($t('addressLabel', 'Address')); ?></span><?php echo esc_html($address); ?></span>
@@ -188,7 +192,7 @@ $visit_links = is_array($ui['visitLinks'] ?? null) ? $ui['visitLinks'] : [];
                     <?php endforeach; ?>
                 </div>
                 <?php if ($visit_links !== []) : ?>
-                    <p class="mt-6 border-t border-line pt-4 text-sm font-semibold leading-7 text-slate-600">
+                    <p class="mt-6 border-t border-line pt-4 text-sm font-normal leading-7 text-slate-600">
                         <span class="font-black text-navy"><?php echo esc_html($t('visitLabel')); ?>:</span>
                         <?php foreach ($visit_links as $i => $link) : ?>
                             <?php echo $i > 0 ? '<span class="text-slate-300" aria-hidden="true"> / </span>' : ''; ?><a class="font-black text-blue-700 underline-offset-4 hover:underline" href="<?php echo esc_url(boblift_url((string) ($link['href'] ?? ''))); ?>"><?php echo esc_html((string) ($link['label'] ?? '')); ?></a>
@@ -200,7 +204,7 @@ $visit_links = is_array($ui['visitLinks'] ?? null) ? $ui['visitLinks'] : [];
     </article>
 
     <div class="mt-4 flex flex-col gap-2 rounded border border-line bg-mist px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <p class="min-w-0 text-sm font-semibold leading-6 text-slate-600"><span class="font-black text-navy"><?php echo esc_html($t('socialTitle')); ?></span> &middot; <?php echo esc_html($t('socialText')); ?></p>
+        <p class="min-w-0 text-sm font-normal leading-6 text-slate-600"><span class="font-black text-navy"><?php echo esc_html($t('socialTitle')); ?></span> &middot; <?php echo esc_html($t('socialText')); ?></p>
         <a class="inline-flex shrink-0 items-center gap-2 text-sm font-black text-blue-700 transition hover:text-navy" href="<?php echo esc_url(boblift_url($t('socialHref', '/social-media.html'))); ?>"><?php echo esc_html($t('socialAction')); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
     </div>
 </section>

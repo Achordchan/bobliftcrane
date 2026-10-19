@@ -43,7 +43,7 @@ $channels = array_values(array_filter([
         <div class="md:order-2">
             <p class="section-label mb-3"><?php echo esc_html((string) ($ui['afterLabel'] ?? 'After-sales')); ?></p>
             <h2 id="service-after-title" class="text-[clamp(1.5rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-ink"><?php echo esc_html((string) ($ui['afterTitle'] ?? '')); ?></h2>
-            <p class="mt-3 max-w-lg text-sm font-semibold leading-7 text-slate-600 md:text-base"><?php echo esc_html((string) ($ui['afterText'] ?? '')); ?></p>
+            <p class="mt-3 max-w-lg text-sm font-normal leading-7 text-slate-600 md:text-base"><?php echo esc_html((string) ($ui['afterText'] ?? '')); ?></p>
         </div>
         <div class="md:order-1"><?php boblift_render_video_card($after_sales); ?></div>
     </div>
@@ -57,7 +57,7 @@ $channels = array_values(array_filter([
     <div class="page-shell">
         <p class="section-label mb-3"><?php echo esc_html((string) ($ui['guideLabel'] ?? 'Operation guide')); ?></p>
         <h2 id="service-guide-title" class="max-w-[26ch] text-[clamp(1.75rem,2.8vw,3rem)] font-black leading-[1.05] tracking-[-0.015em] text-ink"><?php echo esc_html((string) ($ui['guideTitle'] ?? '')); ?></h2>
-        <p class="mt-3 max-w-2xl text-sm font-semibold leading-7 text-slate-600 md:text-base"><?php echo esc_html((string) ($ui['guideText'] ?? '')); ?></p>
+        <p class="mt-3 max-w-2xl text-sm font-normal leading-7 text-slate-600 md:text-base"><?php echo esc_html((string) ($ui['guideText'] ?? '')); ?></p>
         <div class="mt-8 grid gap-4 md:grid-cols-2 lg:gap-5">
             <?php foreach ($guides as $guide) : ?>
                 <article class="flex flex-col gap-5 rounded border border-line bg-white p-4 shadow-card md:p-5">
@@ -67,7 +67,7 @@ $channels = array_values(array_filter([
                         <?php if ($guide['points'] !== []) : ?>
                             <ul class="mt-3 grid gap-2">
                                 <?php foreach ($guide['points'] as $point) : ?>
-                                    <li class="flex items-start gap-2.5 text-sm font-semibold leading-6 text-slate-600"><span class="mt-0.5 shrink-0 text-blue-700"><?php echo boblift_icon('check', 'h-4 w-4', '2.5'); ?></span><span><?php echo esc_html($point); ?></span></li>
+                                    <li class="flex items-start gap-2.5 text-sm font-normal leading-6 text-slate-600"><span class="mt-0.5 shrink-0 text-blue-700"><?php echo boblift_icon('check', 'h-4 w-4', '2.5'); ?></span><span><?php echo esc_html($point); ?></span></li>
                                 <?php endforeach; ?>
                             </ul>
                         <?php endif; ?>
@@ -86,7 +86,7 @@ $channels = array_values(array_filter([
         <div class="lg:sticky lg:top-24 lg:self-start">
             <p class="section-label mb-3"><?php echo esc_html((string) ($ui['supportLabel'] ?? '')); ?></p>
             <h2 id="service-support-title" class="text-[clamp(1.5rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-ink"><?php echo esc_html((string) ($ui['supportTitle'] ?? '')); ?></h2>
-            <p class="mt-3 max-w-md text-sm font-semibold leading-7 text-slate-600 md:text-base"><?php echo esc_html((string) ($ui['supportText'] ?? '')); ?></p>
+            <p class="mt-3 max-w-md text-sm font-normal leading-7 text-slate-600 md:text-base"><?php echo esc_html((string) ($ui['supportText'] ?? '')); ?></p>
         </div>
         <ul class="grid gap-3 sm:grid-cols-2 md:gap-4">
             <?php foreach ($channels as $channel) : ?>
@@ -107,7 +107,7 @@ $channels = array_values(array_filter([
     <div class="flex flex-col gap-6 rounded bg-navy p-6 text-white sm:p-10 lg:flex-row lg:items-center lg:justify-between xl:p-12">
         <div class="max-w-2xl">
             <h2 id="service-cta-title" class="text-[clamp(1.5rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em]"><?php echo esc_html((string) ($ui['ctaTitle'] ?? '')); ?></h2>
-            <p class="mt-3 text-sm font-semibold leading-7 text-white/75 md:text-base"><?php echo esc_html((string) ($ui['ctaText'] ?? '')); ?></p>
+            <p class="mt-3 text-sm font-normal leading-7 text-white/75 md:text-base"><?php echo esc_html((string) ($ui['ctaText'] ?? '')); ?></p>
         </div>
         <div class="flex shrink-0 flex-wrap gap-3">
             <button class="inline-flex h-12 items-center justify-center gap-2 rounded-sm bg-white px-6 text-sm font-black text-navy transition hover:-translate-y-0.5 hover:bg-blue-50" type="button" data-inquiry-modal-open data-inquiry-source="售后操作页"><?php echo esc_html((string) ($ui['ctaButton'] ?? 'Send an Inquiry')); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>

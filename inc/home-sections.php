@@ -87,7 +87,7 @@ function boblift_render_home_factory(): void
                 <?php endif; ?>
                 <span class="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(8,35,74,0.12)_0%,rgba(8,35,74,0.62)_36%,rgba(8,35,74,0.92)_100%)] lg:bg-[linear-gradient(90deg,rgba(8,35,74,0.92)_0%,rgba(8,35,74,0.6)_46%,rgba(8,35,74,0.08)_100%)]"></span>
                 <h3 id="home-factory-title" class="max-w-[24ch] text-[clamp(1.625rem,2.3vw,2.625rem)] font-black leading-[1.08] tracking-[-0.015em]"><?php echo esc_html($factory['title']); ?></h3>
-                <?php if ($factory['text'] !== '') : ?><p class="mt-4 max-w-[520px] text-sm font-semibold leading-7 text-white/80 md:text-base"><?php echo esc_html($factory['text']); ?></p><?php endif; ?>
+                <?php if ($factory['text'] !== '') : ?><p class="mt-4 max-w-[520px] text-sm font-normal leading-7 text-white/80 md:text-base"><?php echo esc_html($factory['text']); ?></p><?php endif; ?>
                 <a class="mt-7 inline-flex h-12 w-fit items-center justify-center gap-2 rounded-sm bg-white px-6 text-sm font-black text-navy shadow-card transition hover:-translate-y-0.5 hover:bg-blue-50" href="<?php echo esc_url(boblift_url($factory['cta_href'])); ?>"><?php echo esc_html($factory['cta_label']); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
             </div>
         </div>
@@ -121,7 +121,7 @@ function boblift_render_home_cases(): void
                         <span class="flex flex-1 flex-col p-5 lg:p-6">
                             <?php if ($meta !== []) : ?><span class="mb-2 text-[11px] font-black uppercase tracking-[0.14em] text-slate-400"><?php echo esc_html(implode(' · ', $meta)); ?></span><?php endif; ?>
                             <span class="line-clamp-2 text-lg font-black leading-tight tracking-[-0.01em] text-ink lg:text-xl"><?php echo esc_html($item['title']); ?></span>
-                            <?php if (trim((string) ($item['summary'] ?? '')) !== '') : ?><span class="mt-2.5 line-clamp-3 text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html($item['summary']); ?></span><?php endif; ?>
+                            <?php if (trim((string) ($item['summary'] ?? '')) !== '') : ?><span class="mt-2.5 line-clamp-3 text-sm font-normal leading-6 text-slate-600"><?php echo esc_html($item['summary']); ?></span><?php endif; ?>
                             <span class="mt-auto inline-flex items-center gap-1.5 pt-4 text-sm font-black text-blue-600"><?php echo esc_html($ui['viewCaseLabel'] ?? 'View Case'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4 transition group-hover:translate-x-1'); ?></span>
                         </span>
                     </a>

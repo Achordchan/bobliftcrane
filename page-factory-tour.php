@@ -74,9 +74,9 @@ $pad = static fn(int $n): string => str_pad((string) $n, 2, '0', STR_PAD_LEFT);
         <?php foreach ($stops as $number => $stop) : $photos = $stop['photos']; $lead = array_shift($photos); ?>
             <article class="grid gap-5 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,2fr)] lg:gap-10" aria-labelledby="factory-stop-<?php echo esc_attr((string) $stop['key']); ?>">
                 <div class="lg:self-center">
-                    <p class="text-xs font-black uppercase tracking-[0.14em] text-blue-700"><?php echo esc_html(str_replace('{number}', $pad($number + 1), (string) ($ui['stopLabel'] ?? 'Stop {number}'))); ?></p>
+                    <p class="boblift-kicker"><?php echo esc_html(str_replace('{number}', $pad($number + 1), (string) ($ui['stopLabel'] ?? 'Stop {number}'))); ?></p>
                     <h2 id="factory-stop-<?php echo esc_attr((string) $stop['key']); ?>" class="mt-2 text-[clamp(1.5rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-ink"><?php echo esc_html((string) $stop['title']); ?></h2>
-                    <p class="mt-3 max-w-md text-sm font-semibold leading-7 text-slate-600 md:text-base"><?php echo esc_html((string) ($stop['text'] ?? '')); ?></p>
+                    <p class="mt-3 max-w-md text-sm font-normal leading-7 text-slate-600 md:text-base"><?php echo esc_html((string) ($stop['text'] ?? '')); ?></p>
                     <?php if ($stop['key'] === 'mounting') : ?>
                         <a class="mt-5 inline-flex items-center gap-1.5 text-sm font-black text-blue-700 hover:text-blue-900" href="<?php echo esc_url(boblift_url('/quality-testing.html')); ?>"><?php echo esc_html((string) ($ui['qualityLink'] ?? 'See how cranes are tested')); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
                     <?php endif; ?>
@@ -138,7 +138,7 @@ $pad = static fn(int $n): string => str_pad((string) $n, 2, '0', STR_PAD_LEFT);
     <div class="grid gap-5 rounded border border-line bg-white p-6 shadow-card sm:p-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] lg:items-center lg:gap-10">
         <div>
             <h2 id="factory-shows-title" class="text-xl font-black text-ink md:text-2xl"><?php echo esc_html((string) ($ui['showsTitle'] ?? '')); ?></h2>
-            <p class="mt-2 text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html((string) ($ui['showsText'] ?? '')); ?></p>
+            <p class="mt-2 text-sm font-normal leading-6 text-slate-600"><?php echo esc_html((string) ($ui['showsText'] ?? '')); ?></p>
             <?php if (trim((string) ($ui['showsUrl'] ?? '')) !== '') : ?><a class="mt-4 inline-flex items-center gap-1.5 text-sm font-black text-blue-700 hover:text-blue-900" href="<?php echo esc_url((string) $ui['showsUrl']); ?>" target="_blank" rel="noopener"><?php echo esc_html((string) ($ui['showsLink'] ?? '')); ?> <?php echo boblift_icon('arrow-up-right', 'h-4 w-4'); ?></a><?php endif; ?>
         </div>
         <ul class="grid gap-3 sm:grid-cols-2">
@@ -154,7 +154,7 @@ $pad = static fn(int $n): string => str_pad((string) $n, 2, '0', STR_PAD_LEFT);
     <div class="flex flex-col gap-6 rounded bg-navy p-6 text-white sm:p-10 lg:flex-row lg:items-center lg:justify-between xl:p-12">
         <div class="max-w-2xl">
             <h2 id="factory-cta-title" class="text-[clamp(1.5rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em]"><?php echo esc_html((string) ($ui['ctaTitle'] ?? '')); ?></h2>
-            <p class="mt-3 text-sm font-semibold leading-7 text-white/75 md:text-base"><?php echo esc_html((string) ($ui['ctaText'] ?? '')); ?></p>
+            <p class="mt-3 text-sm font-normal leading-7 text-white/75 md:text-base"><?php echo esc_html((string) ($ui['ctaText'] ?? '')); ?></p>
         </div>
         <div class="flex shrink-0 flex-wrap gap-3">
             <button class="inline-flex h-12 items-center justify-center gap-2 rounded-sm bg-white px-6 text-sm font-black text-navy transition hover:-translate-y-0.5 hover:bg-blue-50" type="button" data-inquiry-modal-open data-inquiry-source="工厂实景页"><?php echo esc_html((string) ($ui['ctaButton'] ?? 'Plan a Visit')); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>

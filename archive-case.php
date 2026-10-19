@@ -121,7 +121,7 @@ $render_case_filter = static function (string $id, string $filter, string $all_l
                                 <?php if ($product !== '') : ?><span><?php echo esc_html($product); ?></span><?php endif; ?>
                             </span>
                             <span class="boblift-case-card-title mt-3 block text-xl font-black leading-tight tracking-[-0.015em] text-ink"><?php echo esc_html($item['title']); ?></span>
-                            <span class="boblift-case-card-summary mt-3 block text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html($feedback_quote !== '' ? $feedback_quote : $item['summary']); ?></span>
+                            <span class="boblift-case-card-summary mt-3 block text-sm font-normal leading-6 text-slate-600"><?php echo esc_html($feedback_quote !== '' ? $feedback_quote : $item['summary']); ?></span>
                         </span>
                     </button>
                 </article>
@@ -137,7 +137,7 @@ $render_case_filter = static function (string $id, string $filter, string $all_l
                                 <?php if ($product !== '') : ?><span><?php echo esc_html($product); ?></span><?php endif; ?>
                             </span>
                             <span class="boblift-case-card-title mt-3 block text-xl font-black leading-tight tracking-[-0.015em] text-ink"><?php echo esc_html($item['title']); ?></span>
-                            <span class="boblift-case-card-summary mt-3 block text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html($item['summary']); ?></span>
+                            <span class="boblift-case-card-summary mt-3 block text-sm font-normal leading-6 text-slate-600"><?php echo esc_html($item['summary']); ?></span>
                             <span class="boblift-case-card-action mt-5 inline-flex items-center gap-2 text-sm font-black text-blue-600"><?php echo esc_html($ui['viewCaseLabel'] ?? 'View Case'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4 transition group-hover:translate-x-1'); ?></span>
                         </span>
                     </a>
@@ -153,7 +153,7 @@ $render_case_filter = static function (string $id, string $filter, string $all_l
                 <a class="block h-full" href="<?php echo esc_url($feedback['url']); ?>">
                     <span class="boblift-case-card-media relative block h-[260px] overflow-hidden rounded bg-[#eef5ff]">
                         <?php if ($feedback['cover'] !== '') : ?><img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.035]" src="<?php echo esc_url($feedback['cover']); ?>" alt="<?php echo esc_attr($feedback_caption); ?>" loading="lazy" decoding="async"><?php endif; ?>
-                        <?php if ($feedback['media'][0]['type'] === 'video') : ?><span class="absolute inset-0 m-auto grid size-16 place-items-center rounded-sm bg-white/90 text-blue-700 shadow-card"><?php echo boblift_icon('circle-play', 'h-7 w-7'); ?></span><?php endif; ?>
+                        <?php if (($feedback['media'][0]['type'] ?? '') === 'video') : ?><span class="absolute inset-0 m-auto grid size-16 place-items-center rounded-sm bg-white/90 text-blue-700 shadow-card"><?php echo boblift_icon('circle-play', 'h-7 w-7'); ?></span><?php endif; ?>
                         <?php if (count($feedback['media']) > 1) : ?><span class="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-sm bg-[#071f42]/80 px-2 py-1 text-xs font-black text-white"><?php echo boblift_icon('images', 'h-3.5 w-3.5'); ?><?php echo esc_html((string) count($feedback['media'])); ?></span><?php endif; ?>
                     </span>
                     <span class="boblift-case-card-content block p-5">
@@ -161,7 +161,8 @@ $render_case_filter = static function (string $id, string $filter, string $all_l
                             <?php if ($feedback['country'] !== '') : ?><span><?php echo esc_html($feedback['country']); ?></span><?php endif; ?>
                         </span>
                         <span class="boblift-case-card-title mt-3 block text-xl font-black leading-tight tracking-[-0.015em] text-ink"><?php echo esc_html($feedback_title); ?></span>
-                        <?php if ($feedback_counts !== '') : ?><span class="boblift-case-card-summary mt-2 block text-sm font-semibold leading-6 text-slate-500"><?php echo esc_html($feedback_counts); ?></span><?php endif; ?>
+                        <?php if ($feedback['excerpt'] !== '') : ?><span class="boblift-case-card-summary mt-2 line-clamp-2 block text-sm font-normal leading-6 text-slate-600"><?php echo esc_html($feedback['excerpt']); ?></span><?php endif; ?>
+                        <?php if ($feedback_counts !== '') : ?><span class="boblift-case-card-summary mt-2 block text-sm font-normal leading-6 text-slate-500"><?php echo esc_html($feedback_counts); ?></span><?php endif; ?>
                     </span>
                 </a>
             </article>
@@ -170,7 +171,7 @@ $render_case_filter = static function (string $id, string $filter, string $all_l
 
     <div class="hidden rounded border border-dashed border-blue-200 bg-blue-50/45 p-8 text-center" data-cases-empty>
         <h2 class="text-2xl font-black tracking-[-0.015em] text-ink"><?php echo esc_html($empty_title); ?></h2>
-        <p class="mx-auto mt-3 max-w-[560px] text-sm font-semibold leading-7 text-slate-600"><?php echo esc_html($empty_text); ?></p>
+        <p class="mx-auto mt-3 max-w-[560px] text-sm font-normal leading-7 text-slate-600"><?php echo esc_html($empty_text); ?></p>
         <button class="mt-5 inline-flex h-12 items-center justify-center rounded-sm bg-navy px-6 text-sm font-black text-white" type="button" data-cases-reset><?php echo esc_html($reset_label); ?></button>
     </div>
 

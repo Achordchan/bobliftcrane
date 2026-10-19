@@ -6,6 +6,7 @@ return [
         'See how a BOB-LIFT crane is mounted on a truck chassis in our workshop, and how cranes are wrapped and loaded for export.' => 'BOB-LIFT のクレーンを工場内でトラックのシャシーに架装する様子と、輸出用にクレーンを梱包してコンテナに積み込む様子をご覧いただけます。',
         'BOB-LIFT knuckle boom crane mounted on a white truck chassis in the workshop' => '工場内で白いトラックのシャシーに架装された BOB-LIFT 折りたたみ式クレーン',
         'Step {number}' => 'ステップ {number}',
+        '{count} steps' => '{count} 工程',
         'Truck mounting' => 'トラック架装',
         'Mounting a crane on a truck chassis' => 'クレーンをトラックのシャシーに架装する',
         'Lift the crane onto the chassis' => 'クレーンをシャシーに載せる',
@@ -69,6 +70,7 @@ return [
         'Service and operation' => 'サービスと操作',
     ],
     'zh' => [
+        '{count} steps' => '{count} 道工序',
         'Truck Mounting & Export' => '装车与出口',
         'From chassis to container' => '从底盘到集装箱',
         'See how a BOB-LIFT crane is mounted on a truck chassis in our workshop, and how cranes are wrapped and loaded for export.' => '看看 BOB-LIFT 起重机如何在车间装到卡车底盘上，以及起重机如何打包、装箱后出口。',

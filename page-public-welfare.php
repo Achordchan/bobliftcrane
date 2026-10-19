@@ -33,7 +33,7 @@ $cta = is_array($page_options['cta'] ?? null) ? $page_options['cta'] : [];
                             <?php echo boblift_icon((string) ($item['icon'] ?? 'check-circle'), 'h-8 w-8', '1.8'); ?>
                         </div>
                         <h3 class="mt-6 text-[clamp(26px,2.2vw,38px)] font-black leading-tight tracking-[-0.015em] text-[#0B1B33]"><?php echo esc_html((string) ($item['title'] ?? '')); ?></h3>
-                        <p class="mt-5 max-w-[720px] text-sm font-semibold leading-7 text-[#64748B] md:text-base md:leading-8"><?php echo esc_html((string) ($item['text'] ?? '')); ?></p>
+                        <p class="mt-5 max-w-[720px] text-sm font-normal leading-7 text-[#64748B] md:text-base md:leading-8"><?php echo esc_html((string) ($item['text'] ?? '')); ?></p>
                     </div>
                 </article>
             <?php endforeach; ?>
@@ -50,7 +50,7 @@ $cta = is_array($page_options['cta'] ?? null) ? $page_options['cta'] : [];
                 <div>
                     <span class="mb-6 block h-1 w-16 rounded-full bg-[#F5A23A]"></span>
                     <h2 class="max-w-[1280px] text-[clamp(34px,4.2vw,70px)] font-black leading-[1.04] tracking-[-0.015em]"><?php echo esc_html((string) ($cta['title'] ?? 'Building a safer future, together.')); ?></h2>
-                    <p class="mt-5 max-w-[1120px] text-sm font-semibold leading-7 text-white/80 md:text-base md:leading-8"><?php echo esc_html((string) ($cta['text'] ?? 'We welcome partners who share practical values: safer work, responsible manufacturing and long-term cooperation.')); ?></p>
+                    <p class="mt-5 max-w-[1120px] text-sm font-normal leading-7 text-white/80 md:text-base md:leading-8"><?php echo esc_html((string) ($cta['text'] ?? 'We welcome partners who share practical values: safer work, responsible manufacturing and long-term cooperation.')); ?></p>
                 </div>
                 <a class="inline-flex h-[58px] w-fit shrink-0 items-center justify-center gap-3 rounded-sm border border-white/70 bg-white/8 px-7 text-sm font-black text-white backdrop-blur transition hover:-translate-y-0.5 hover:bg-white hover:text-[#0B3F7D] md:h-[64px] md:px-8 md:text-base" href="<?php echo esc_url(boblift_url((string) ($cta['button_href'] ?? '/contact.html'))); ?>">
                     <?php echo boblift_icon('mail', 'h-5 w-5'); ?><?php echo esc_html((string) ($cta['button_label'] ?? 'Contact us')); ?><?php echo boblift_icon('arrow-right', 'h-5 w-5'); ?>

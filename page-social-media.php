@@ -279,7 +279,7 @@ if (($legacy_hero_title !== '' && $legacy_hero_title !== $shown_title) || ($lega
 <section class="page-shell pt-10 md:pt-12">
     <div class="mx-auto max-w-3xl text-center">
         <?php if ($legacy_hero_title !== '' && $legacy_hero_title !== $shown_title) : ?><h2 class="text-[clamp(1.5rem,2.4vw,2.25rem)] font-black leading-tight text-ink"><?php echo esc_html($t($legacy_hero_title)); ?></h2><?php endif; ?>
-        <?php if ($legacy_hero_text !== '' && $legacy_hero_text !== $shown_text) : ?><p class="mt-3 text-sm font-semibold leading-7 text-slate-600 md:text-base"><?php echo esc_html($t($legacy_hero_text)); ?></p><?php endif; ?>
+        <?php if ($legacy_hero_text !== '' && $legacy_hero_text !== $shown_text) : ?><p class="mt-3 text-sm font-normal leading-7 text-slate-600 md:text-base"><?php echo esc_html($t($legacy_hero_text)); ?></p><?php endif; ?>
     </div>
 </section>
 <?php endif; ?>
@@ -328,7 +328,7 @@ if ($legacy_panel !== []) : ?>
                                     <span class="min-w-0 w-full flex-1">
                                         <span class="block truncate text-[15px] font-black text-ink sm:text-base"><?php echo esc_html($label); ?></span>
                                         <?php if ($handle !== '') : ?><span class="block truncate text-xs font-bold text-blue-700"><?php echo esc_html($handle); ?></span><?php endif; ?>
-                                        <?php if ($text !== '') : ?><span class="mt-0.5 block text-xs font-semibold leading-5 text-slate-500 sm:text-sm"><?php echo esc_html($text); ?></span><?php endif; ?>
+                                        <?php if ($text !== '') : ?><span class="mt-0.5 block text-xs font-normal leading-5 text-slate-500 sm:text-sm"><?php echo esc_html($text); ?></span><?php endif; ?>
                                     </span>
                                     <?php if ($has_qr) : ?>
                                         <img class="h-16 w-16 shrink-0 rounded-sm border border-line bg-white object-contain p-1" src="<?php echo esc_url(boblift_image_setting_url($platform['qr'])); ?>" alt="<?php echo esc_attr($label . ' · ' . $t($labels['qr_label'] ?? 'Scan to follow')); ?>" loading="lazy" decoding="async">
@@ -354,7 +354,7 @@ if ($legacy_panel !== []) : ?>
                 <p class="section-label mb-3"><?php echo esc_html($posts_label); ?></p>
                 <h2 id="social-posts-title" class="text-[clamp(1.75rem,2.8vw,3rem)] font-black leading-[1.05] tracking-[-0.015em] text-ink"><?php echo esc_html($posts_title); ?></h2>
             </div>
-            <?php if (trim((string) ($labels['posts_text'] ?? '')) !== '') : ?><p class="max-w-md text-sm font-semibold leading-6 text-slate-500"><?php echo esc_html($t($labels['posts_text'])); ?></p><?php endif; ?>
+            <?php if (trim((string) ($labels['posts_text'] ?? '')) !== '') : ?><p class="max-w-md text-sm font-normal leading-6 text-slate-500"><?php echo esc_html($t($labels['posts_text'])); ?></p><?php endif; ?>
         </div>
 
         <div class="grid gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-8 xl:gap-10">
@@ -423,7 +423,7 @@ if ($legacy_panel !== []) : ?>
         <div class="max-w-2xl">
             <p class="section-label mb-3"><?php echo esc_html($t($cta['label'] ?? 'Talk to us directly')); ?></p>
             <h2 id="social-direct-title" class="text-[clamp(1.5rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em]"><?php echo esc_html($t($cta['title'] ?? 'Rather message us than follow?')); ?></h2>
-            <?php if (trim((string) ($cta['text'] ?? '')) !== '') : ?><p class="mt-3 text-sm font-semibold leading-7 text-white/75 md:text-base"><?php echo esc_html($t($cta['text'])); ?></p><?php endif; ?>
+            <?php if (trim((string) ($cta['text'] ?? '')) !== '') : ?><p class="mt-3 text-sm font-normal leading-7 text-white/75 md:text-base"><?php echo esc_html($t($cta['text'])); ?></p><?php endif; ?>
         </div>
         <div class="flex shrink-0 flex-wrap gap-3">
             <?php

@@ -134,16 +134,42 @@ function boblift_render_brochures(array $args = []): void
     $hide_all = $is_archive && !empty($args['initial_category']) && $initial_family === '';
     $wrapper = ($is_archive ? 'mt-10 scroll-mt-24 lg:mt-14' : 'scroll-mt-24 rounded border border-[#DDE7F2] bg-white p-6 shadow-card md:p-8') . ($hide_all ? ' hidden' : '');
     $card_bg = $is_archive ? 'bg-white' : 'bg-[#F8FAFC]';
+    $single = !$is_archive && count($items) === 1;
     ?>
-    <section id="brochures" class="<?php echo esc_attr($wrapper); ?>" data-brochures<?php echo $is_archive ? ' data-brochure-map="' . esc_attr(wp_json_encode($map, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)) . '"' : ''; ?> aria-labelledby="brochures-title">
-        <?php // On a product page a single brochure sits beside its heading, aligned with the other two-column cards. ?>
-        <div class="<?php echo esc_attr($is_archive || count($items) > 1 ? '' : 'grid gap-6 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)] lg:items-start lg:gap-12'); ?>">
+    <section id="brochures" class="<?php echo esc_attr($wrapper); ?>" data-brochures<?php echo $is_archive ? ' data-brochure-map="' . esc_attr(wp_json_encode($map, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)) . '"' : ''; ?><?php echo $initial_family !== '' ? ' data-brochure-single' : ''; ?> aria-labelledby="brochures-title">
+        <?php if ($single) :
+            $item = current($items);
+            $download_title = str_replace('{title}', $item['title'], (string) ($ui['downloadTitleTemplate'] ?? 'Download {title} as PDF'));
+            $meta = [
+                (string) ($ui['pdfLabel'] ?? 'PDF'),
+                (string) ($ui['languageLabel'] ?? 'EN'),
+                str_replace('{count}', (string) $item['pages'], (string) ($ui['pagesLabel'] ?? '{count} pages')),
+                (string) $item['size'],
+            ];
+            ?>
+            <?php // On a product page the one brochure is the whole block: its cover beside its title, no card inside the card. ?>
+            <div class="grid grid-cols-[88px_minmax(0,1fr)] items-start gap-5 sm:grid-cols-[140px_minmax(0,1fr)] sm:items-center sm:gap-8 lg:grid-cols-[170px_minmax(0,1fr)] lg:gap-12" data-brochure-card data-brochure-family="<?php echo esc_attr($item['key']); ?>">
+                <a class="block" href="<?php echo esc_url($item['url']); ?>" download="<?php echo esc_attr($item['file']); ?>" tabindex="-1" aria-hidden="true">
+                    <img class="aspect-[520/711] w-full rounded-sm border border-line bg-white object-cover shadow-card" src="<?php echo esc_url($item['cover']); ?>" width="520" height="711" alt="" loading="lazy" decoding="async">
+                </a>
+                <div class="min-w-0">
+                    <p class="boblift-kicker"><?php echo esc_html((string) ($ui['label'] ?? 'Brochures')); ?></p>
+                    <h2 id="brochures-title" class="mt-2 text-[clamp(1.25rem,2vw,2rem)] font-black leading-[1.12] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($item['title']); ?></h2>
+                    <p class="mt-3 max-w-2xl text-sm font-normal leading-7 text-slate-600 md:text-base"><?php echo esc_html($item['text']); ?></p>
+                    <p class="mt-3 text-[11px] font-black uppercase tracking-[0.1em] text-slate-500"><?php echo esc_html(implode(' · ', $meta)); ?></p>
+                    <div class="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2">
+                        <a class="inline-flex h-11 items-center justify-center gap-2 rounded-sm bg-navy px-5 text-sm font-black text-white transition hover:bg-[#0b2d5b]" href="<?php echo esc_url($item['url']); ?>" download="<?php echo esc_attr($item['file']); ?>" title="<?php echo esc_attr($download_title); ?>"><?php echo boblift_icon('download', 'h-4 w-4'); ?><?php echo esc_html((string) ($ui['downloadLabel'] ?? 'Download PDF')); ?></a>
+                        <button class="inline-flex h-11 items-center text-sm font-black text-blue-700 transition hover:text-navy" type="button" data-catalog-modal-open data-catalog-product="<?php echo esc_attr((string) ($args['product'] ?? $item['title'])); ?>" data-catalog-product-slug="<?php echo esc_attr((string) ($args['product_slug'] ?? '')); ?>" data-catalog-url="<?php echo esc_url($item['url']); ?>"><?php echo esc_html((string) ($ui['emailLabel'] ?? 'Email me a copy')); ?></button>
+                    </div>
+                </div>
+            </div>
+        <?php else : ?>
         <div class="max-w-3xl">
-            <p class="<?php echo $is_archive ? 'section-label' : 'text-[11px] font-black uppercase tracking-[0.2em] text-[#0B3F7D]'; ?>"><?php echo esc_html((string) ($ui['label'] ?? 'Brochures')); ?></p>
+            <p class="section-label"><?php echo esc_html((string) ($ui['label'] ?? 'Brochures')); ?></p>
             <h2 id="brochures-title" class="<?php echo $is_archive ? 'mt-2 text-2xl font-black leading-tight tracking-[-0.015em] text-ink md:text-3xl' : 'mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]'; ?>"><?php echo esc_html($title); ?></h2>
-            <p class="mt-3 text-sm font-semibold leading-7 text-slate-600 md:text-base"><?php echo esc_html((string) ($ui['text'] ?? '')); ?></p>
+            <p class="mt-3 text-sm font-normal leading-7 text-slate-600 md:text-base"><?php echo esc_html((string) ($ui['text'] ?? '')); ?></p>
         </div>
-        <div class="grid gap-4 <?php echo esc_attr($is_archive || count($items) > 1 ? 'mt-6 md:grid-cols-2 xl:grid-cols-3' : ''); ?>">
+        <div class="mt-6 grid gap-4 <?php echo $is_archive ? 'md:grid-cols-2 min-[1700px]:grid-cols-3' : 'md:grid-cols-2 xl:grid-cols-3'; ?>" data-brochure-grid>
             <?php foreach ($items as $item) :
                 $hidden = $is_archive && $initial_family !== '' && $initial_family !== $item['key'];
                 $download_title = str_replace('{title}', $item['title'], (string) ($ui['downloadTitleTemplate'] ?? 'Download {title} as PDF'));
@@ -155,7 +181,7 @@ function boblift_render_brochures(array $args = []): void
                 ];
                 ?>
                 <article class="<?php echo $hidden ? 'hidden' : 'flex'; ?> gap-4 rounded border border-line <?php echo esc_attr($card_bg); ?> p-4 shadow-card" data-brochure-card data-brochure-family="<?php echo esc_attr($item['key']); ?>">
-                    <a class="block w-24 shrink-0 self-start sm:w-28" href="<?php echo esc_url($item['url']); ?>" download="<?php echo esc_attr($item['file']); ?>" tabindex="-1" aria-hidden="true">
+                    <a class="block w-24 shrink-0 self-start sm:w-28" data-brochure-cover href="<?php echo esc_url($item['url']); ?>" download="<?php echo esc_attr($item['file']); ?>" tabindex="-1" aria-hidden="true">
                         <img class="aspect-[520/711] w-full rounded-sm border border-line bg-white object-cover" src="<?php echo esc_url($item['cover']); ?>" width="520" height="711" alt="" loading="lazy" decoding="async">
                     </a>
                     <div class="flex min-w-0 flex-1 flex-col">
@@ -165,7 +191,7 @@ function boblift_render_brochures(array $args = []): void
                             <?php endforeach; ?>
                         </ul>
                         <h3 class="mt-3 text-lg font-black leading-snug text-ink"><?php echo esc_html($item['title']); ?></h3>
-                        <p class="mt-2 text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html($item['text']); ?></p>
+                        <p class="mt-2 text-sm font-normal leading-6 text-slate-600"><?php echo esc_html($item['text']); ?></p>
                         <div class="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 pt-4">
                             <a class="inline-flex h-11 items-center justify-center gap-2 rounded-sm bg-navy px-5 text-sm font-black text-white transition hover:bg-[#0b2d5b]" href="<?php echo esc_url($item['url']); ?>" download="<?php echo esc_attr($item['file']); ?>" title="<?php echo esc_attr($download_title); ?>"><?php echo boblift_icon('download', 'h-4 w-4'); ?><?php echo esc_html((string) ($ui['downloadLabel'] ?? 'Download PDF')); ?></a>
                             <button class="inline-flex h-11 items-center text-sm font-black text-blue-700 transition hover:text-navy" type="button" data-catalog-modal-open data-catalog-product="<?php echo esc_attr((string) ($args['product'] ?? $item['title'])); ?>" data-catalog-product-slug="<?php echo esc_attr((string) ($args['product_slug'] ?? '')); ?>" data-catalog-url="<?php echo esc_url($item['url']); ?>"><?php echo esc_html((string) ($ui['emailLabel'] ?? 'Email me a copy')); ?></button>
@@ -174,7 +200,7 @@ function boblift_render_brochures(array $args = []): void
                 </article>
             <?php endforeach; ?>
         </div>
-        </div>
+        <?php endif; ?>
     </section>
     <?php
 }

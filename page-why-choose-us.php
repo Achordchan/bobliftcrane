@@ -48,7 +48,7 @@ $link_class = 'inline-flex w-fit items-center gap-1.5 text-sm font-black text-bl
     <div class="page-shell">
         <p class="section-label mb-3"><?php echo esc_html((string) ($ui['applicationsLabel'] ?? 'Product Application')); ?></p>
         <h2 id="why-applications-title" class="max-w-[26ch] text-[clamp(1.75rem,2.8vw,3rem)] font-black leading-[1.05] tracking-[-0.015em] text-ink"><?php echo esc_html((string) ($ui['applicationsTitle'] ?? '')); ?></h2>
-        <p class="mt-3 max-w-2xl text-sm font-semibold leading-7 text-slate-600 md:text-base"><?php echo esc_html((string) ($ui['applicationsText'] ?? '')); ?></p>
+        <p class="mt-3 max-w-2xl text-sm font-normal leading-7 text-slate-600 md:text-base"><?php echo esc_html((string) ($ui['applicationsText'] ?? '')); ?></p>
         <ul class="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
             <?php foreach ($applications as $index => $item) : ?>
                 <li class="rounded border border-line bg-white p-4 shadow-card md:p-5">
@@ -70,7 +70,7 @@ $link_class = 'inline-flex w-fit items-center gap-1.5 text-sm font-black text-bl
                 <p class="section-label mb-3"><?php echo esc_html((string) ($ui['certificatesLabel'] ?? 'Our Certificate')); ?></p>
                 <h2 id="why-certificates-title" class="text-[clamp(1.75rem,2.8vw,3rem)] font-black leading-[1.05] tracking-[-0.015em] text-ink"><?php echo esc_html((string) ($ui['certificatesTitle'] ?? '')); ?></h2>
             </div>
-            <p class="max-w-xl text-sm font-semibold leading-7 text-slate-600"><?php echo esc_html((string) ($ui['certificatesText'] ?? '')); ?></p>
+            <p class="max-w-xl text-sm font-normal leading-7 text-slate-600"><?php echo esc_html((string) ($ui['certificatesText'] ?? '')); ?></p>
         </div>
         <ul class="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 lg:gap-4">
             <?php foreach ($certification_items as $certification) :
@@ -88,7 +88,7 @@ $link_class = 'inline-flex w-fit items-center gap-1.5 text-sm font-black text-bl
                         </span>
                         <span class="block px-1 pb-1 pt-3 text-sm font-black leading-tight text-ink"><?php echo esc_html($title); ?></span>
                         <?php if ($certification['text'] !== '') : ?>
-                            <span class="mt-1 block px-1 pb-1 text-xs font-semibold leading-5 text-slate-500"><?php echo esc_html($certification['text']); ?></span>
+                            <span class="mt-1 block px-1 pb-1 text-xs font-normal leading-5 text-slate-500"><?php echo esc_html($certification['text']); ?></span>
                         <?php endif; ?>
                     </button>
                 </li>
@@ -112,7 +112,7 @@ $link_class = 'inline-flex w-fit items-center gap-1.5 text-sm font-black text-bl
         <div>
             <p class="section-label mb-3"><?php echo esc_html((string) ($ui['productionLabel'] ?? 'Production Equipment')); ?></p>
             <h2 id="why-production-title" class="text-[clamp(1.75rem,2.8vw,3rem)] font-black leading-[1.05] tracking-[-0.015em] text-ink"><?php echo esc_html((string) ($ui['productionTitle'] ?? '')); ?></h2>
-            <p class="mt-4 text-sm font-semibold leading-7 text-slate-600 md:text-base"><?php echo esc_html((string) ($ui['productionText'] ?? '')); ?></p>
+            <p class="mt-4 text-sm font-normal leading-7 text-slate-600 md:text-base"><?php echo esc_html((string) ($ui['productionText'] ?? '')); ?></p>
             <?php if ($facts !== []) : ?>
                 <dl class="mt-6 flex flex-wrap gap-x-10 gap-y-4">
                     <?php foreach ($facts as $fact) : ?>
@@ -134,7 +134,7 @@ $link_class = 'inline-flex w-fit items-center gap-1.5 text-sm font-black text-bl
         <div>
             <p class="mb-3 text-xs font-black uppercase tracking-[0.28em] text-blue-200"><?php echo esc_html((string) ($ui['marketLabel'] ?? 'Production Market')); ?></p>
             <h2 id="why-market-title" class="text-[clamp(1.75rem,2.8vw,3rem)] font-black leading-[1.05] tracking-[-0.015em]"><?php echo esc_html((string) ($ui['marketTitle'] ?? '')); ?></h2>
-            <p class="mt-4 max-w-2xl text-sm font-semibold leading-7 text-white/75 md:text-base"><?php echo esc_html((string) ($ui['marketText'] ?? '')); ?></p>
+            <p class="mt-4 max-w-2xl text-sm font-normal leading-7 text-white/75 md:text-base"><?php echo esc_html((string) ($ui['marketText'] ?? '')); ?></p>
             <a class="mt-6 inline-flex w-fit items-center gap-1.5 text-sm font-black text-white hover:text-blue-100" href="<?php echo esc_url(boblift_url('/global-customer-visits.html')); ?>"><?php echo esc_html((string) ($ui['visitsLink'] ?? 'Customer visits to our factory')); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
         </div>
         <?php if ($stats !== []) : ?>
@@ -157,7 +157,7 @@ $link_class = 'inline-flex w-fit items-center gap-1.5 text-sm font-black text-bl
                 <li class="rounded border border-line bg-white p-5 shadow-card md:p-6">
                     <span class="text-xs font-black tabular-nums tracking-[0.14em] text-blue-700"><?php echo esc_html($pad($index + 1)); ?></span>
                     <h3 class="mt-2 text-lg font-black text-ink md:text-xl"><?php echo esc_html((string) $service['title']); ?></h3>
-                    <p class="mt-2 text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html((string) ($service['text'] ?? '')); ?></p>
+                    <p class="mt-2 text-sm font-normal leading-6 text-slate-600"><?php echo esc_html((string) ($service['text'] ?? '')); ?></p>
                 </li>
             <?php endforeach; ?>
         </ol>
@@ -170,7 +170,7 @@ $link_class = 'inline-flex w-fit items-center gap-1.5 text-sm font-black text-bl
     <div class="flex flex-col gap-6 rounded bg-navy p-6 text-white sm:p-8 lg:flex-row lg:items-center lg:justify-between">
         <div class="max-w-xl">
             <h2 id="why-cta-title" class="text-[clamp(1.5rem,2.2vw,2.25rem)] font-black leading-[1.08] tracking-[-0.015em]"><?php echo esc_html((string) ($ui['ctaTitle'] ?? '')); ?></h2>
-            <p class="mt-3 text-sm font-semibold leading-7 text-white/75 md:text-base"><?php echo esc_html((string) ($ui['ctaText'] ?? '')); ?></p>
+            <p class="mt-3 text-sm font-normal leading-7 text-white/75 md:text-base"><?php echo esc_html((string) ($ui['ctaText'] ?? '')); ?></p>
         </div>
         <div class="flex shrink-0 flex-wrap gap-3">
             <button class="inline-flex h-12 items-center justify-center gap-2 rounded-sm bg-white px-6 text-sm font-black text-navy transition hover:-translate-y-0.5 hover:bg-blue-50" type="button" data-inquiry-modal-open data-inquiry-source="为什么选择页"><?php echo esc_html((string) ($ui['ctaButton'] ?? 'Send an Inquiry')); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>

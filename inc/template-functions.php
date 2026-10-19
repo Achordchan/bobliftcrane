@@ -962,10 +962,31 @@ function boblift_feedback_item(WP_Post $post): ?array
             $media[] = ['type' => 'image', 'src' => $src, 'full' => (string) wp_get_attachment_image_url($id, 'full'), 'thumb' => (string) wp_get_attachment_image_url($id, 'medium')];
         }
     }
-    if (!$media) {
+    // An article with a featured image but no photos or videos shows the featured image as its only media.
+    $thumbnail_id = (int) get_post_thumbnail_id($post);
+    if (!$media && $thumbnail_id && ($src = (string) wp_get_attachment_image_url($thumbnail_id, 'large'))) {
+        $media[] = ['type' => 'image', 'src' => $src, 'full' => (string) wp_get_attachment_image_url($thumbnail_id, 'full'), 'thumb' => (string) wp_get_attachment_image_url($thumbnail_id, 'medium')];
+    }
+    $content = (string) $post->post_content;
+    $legacy_body = $pick('_feedback_body');
+    // An article told only in the editor (no gallery, no featured image) still counts; an entry with nothing to show does not.
+    if (!$media && trim($content) === '' && $legacy_body === '') {
         return null;
     }
-    $cover = $media[0]['type'] === 'image' ? $media[0]['src'] : ($media[0]['poster'] ?? '');
+    // The featured image is the cover when set; otherwise the first image (or the first video's poster),
+    // and for an article without a gallery the first image in its body.
+    $cover = $thumbnail_id ? (string) wp_get_attachment_image_url($thumbnail_id, 'large') : '';
+    if ($cover === '' && $media) {
+        $cover = $media[0]['type'] === 'image' ? $media[0]['src'] : ($media[0]['poster'] ?? '');
+    }
+    if ($cover === '' && !$media) {
+        if (preg_match('/wp-image-(\d+)/', $content, $match)) {
+            $cover = (string) wp_get_attachment_image_url((int) $match[1], 'large');
+        }
+        if ($cover === '' && preg_match('/<img[^>]+src=["\']([^"\']+)["\']/i', $content, $match)) {
+            $cover = $match[1];
+        }
+    }
     foreach ($media as $m) {
         if ($cover === '' && $m['type'] === 'image') {
             $cover = $m['src'];
@@ -977,7 +998,9 @@ function boblift_feedback_item(WP_Post $post): ?array
         'country' => $pick('_feedback_country'),
         'model' => trim((string) get_post_meta($post->ID, '_feedback_model', true)),
         'note' => $pick('_feedback_note'),
-        'body' => $pick('_feedback_body'),
+        'excerpt' => trim($post->post_excerpt),
+        // Plain-text body per language from before the editor body; shown only while the editor body is empty.
+        'legacy_body' => $legacy_body,
         'media' => $media,
         'cover' => $cover,
         'photos' => count(array_filter($media, static fn(array $m): bool => $m['type'] === 'image')),
@@ -1172,9 +1195,9 @@ function boblift_page_hero(array|string $hero, string $title = '', string $descr
             </div>
         <?php endif; ?>
         <div class="boblift-page-hero-inner relative z-10 <?php echo esc_attr($inner_class); ?>">
-            <p class="boblift-page-hero-label mb-3 text-xs font-black uppercase tracking-[0.18em] text-[#0B3F7D] empty:hidden" data-banner-label><?php echo esc_html(trim((string) ($hero['label'] ?? ''))); ?></p>
+            <p class="boblift-kicker boblift-page-hero-label mb-3 empty:hidden" data-banner-label><?php echo esc_html(trim((string) ($hero['label'] ?? ''))); ?></p>
             <h1 class="boblift-page-hero-title <?php echo $has_image ? 'max-w-3xl' : 'max-w-5xl'; ?> text-[clamp(2rem,3vw,3.75rem)] font-black leading-[1.02] tracking-[-0.02em] text-[#0B1B33]" data-banner-title><?php echo $title_html; ?></h1>
-            <p class="boblift-page-hero-text mt-4 <?php echo $has_image ? 'max-w-xl' : 'max-w-[64rem]'; ?> text-sm font-semibold leading-7 text-slate-600 empty:hidden md:text-base md:leading-8" data-banner-text><?php echo esc_html(trim((string) ($hero['text'] ?? ''))); ?></p>
+            <p class="boblift-page-hero-text mt-4 <?php echo $has_image ? 'max-w-xl' : 'max-w-[64rem]'; ?> text-sm font-normal leading-7 text-slate-600 empty:hidden md:text-base md:leading-8" data-banner-text><?php echo esc_html(trim((string) ($hero['text'] ?? ''))); ?></p>
             <?php if ($meta !== '') : ?><p class="mt-4 text-xs font-black uppercase tracking-[0.14em] text-slate-400"><?php echo esc_html($meta); ?></p><?php endif; ?>
             <?php if (trim((string) ($hero['buttons_html'] ?? '')) !== '') : ?>
                 <div class="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center"><?php echo $hero['buttons_html']; // Already-escaped markup from the caller, as before. ?></div>
@@ -1307,15 +1330,15 @@ function boblift_product_card(array $product, string $extra_class = '', bool $ea
                 <span class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_82%,rgba(15,23,42,0.13),transparent_44%)]"></span>
                 <img class="absolute inset-0 z-10 h-full w-full transition duration-500 <?php echo esc_attr($card_image_class); ?>" src="<?php echo esc_url($card_image); ?>" alt="<?php echo esc_attr($product['title']); ?>" <?php echo $eager_image ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'; ?> decoding="async">
                 <a class="absolute inset-0 z-[15]" href="<?php echo esc_url($detail_url); ?>" aria-label="<?php echo esc_attr($view_details_label . ' ' . $product['title']); ?>"><span class="sr-only"><?php echo esc_html($view_details_label . ' ' . $product['title']); ?></span></a>
+                <div class="product-card-inline-actions absolute bottom-3 end-6 z-20 flex gap-2"><button class="inline-flex h-9 w-9 items-center justify-center rounded-sm border border-[#E5E7EB] bg-white text-[#0B1B33] transition hover:border-blue-300 hover:text-blue-700" type="button" data-product-favorite aria-label="<?php echo esc_attr($add_quote_label); ?>"><?php echo boblift_icon('heart', 'h-[18px] w-[18px]'); ?></button><button class="inline-flex h-9 w-9 items-center justify-center rounded-sm border border-[#E5E7EB] bg-white text-[#0B1B33] transition hover:border-blue-300 hover:text-blue-700" type="button" data-product-quick-view aria-label="<?php echo esc_attr($quick_view_label . ' ' . $product['title']); ?>"><?php echo boblift_icon('eye', 'h-[18px] w-[18px]'); ?></button></div>
             </div>
             <div class="product-card-body flex flex-1 flex-col p-6">
                 <div class="product-card-head flex items-start justify-between gap-3">
                 <a class="block min-w-0 flex-1" href="<?php echo esc_url($detail_url); ?>" aria-label="<?php echo esc_attr($view_details_label . ' ' . $product['title']); ?>">
-                    <div class="product-card-meta mb-1.5 flex min-w-0 items-center gap-4 font-semibold normal-case tracking-normal text-slate-600"><span class="line-clamp-2 block min-w-0 max-w-full break-words text-[14px] leading-[1.35]"><?php echo esc_html($card_eyebrow); ?></span></div>
+                    <div class="product-card-meta mb-1.5 flex min-w-0 items-center gap-4 font-normal normal-case tracking-normal text-slate-600"><span class="line-clamp-2 block min-w-0 max-w-full break-words text-[14px] leading-[1.35]"><?php echo esc_html($card_eyebrow); ?></span></div>
                     <h2 class="product-card-title font-black <?php echo $product_model !== '' ? 'product-card-model text-[clamp(28px,1.8vw,34px)] uppercase leading-none tracking-[0.02em] text-[#0B3F7D]' : 'text-xl leading-tight tracking-[-0.01em] text-[#0B1B33]'; ?>"><?php echo esc_html($card_heading); ?></h2>
-                    <p class="product-card-summary mt-3 hidden max-w-3xl text-sm font-semibold leading-6 text-slate-600 lg:text-base lg:leading-7"><?php echo esc_html($product['short_description'] ?? ''); ?></p>
+                    <p class="product-card-summary mt-3 hidden max-w-3xl text-sm font-normal leading-6 text-slate-600 lg:text-base lg:leading-7"><?php echo esc_html($product['short_description'] ?? ''); ?></p>
                 </a>
-                <div class="product-card-inline-actions flex shrink-0 gap-2"><button class="inline-flex h-10 w-10 items-center justify-center rounded-sm border border-[#E5E7EB] bg-white text-[#0B1B33] transition hover:border-blue-300 hover:text-blue-700" type="button" data-product-favorite aria-label="<?php echo esc_attr($add_quote_label); ?>"><?php echo boblift_icon('heart', 'h-[18px] w-[18px]'); ?></button><button class="inline-flex h-10 w-10 items-center justify-center rounded-sm border border-[#E5E7EB] bg-white text-[#0B1B33] transition hover:border-blue-300 hover:text-blue-700" type="button" data-product-quick-view aria-label="<?php echo esc_attr($quick_view_label . ' ' . $product['title']); ?>"><?php echo boblift_icon('eye', 'h-[18px] w-[18px]'); ?></button></div>
                 </div>
                 <div class="product-card-footer mt-auto grid grid-cols-2 gap-3 pt-5">
                     <div class="product-card-list-actions hidden gap-3"><button class="inline-flex h-11 w-11 items-center justify-center rounded-sm border border-[#E5E7EB] bg-white text-[#0B1B33] transition hover:-translate-y-0.5 hover:text-blue-700" type="button" data-product-favorite aria-label="<?php echo esc_attr($add_quote_label); ?>"><?php echo boblift_icon('heart', 'h-5 w-5'); ?></button><button class="inline-flex h-11 w-11 items-center justify-center rounded-sm border border-[#E5E7EB] bg-white text-[#0B1B33] transition hover:-translate-y-0.5 hover:text-blue-700" type="button" data-product-quick-view aria-label="<?php echo esc_attr($quick_view_label . ' ' . $product['title']); ?>"><?php echo boblift_icon('eye', 'h-5 w-5'); ?></button></div>
@@ -1378,7 +1401,7 @@ function boblift_render_customer_visits_section(array $visits, string $variant =
                 <div class="min-w-0">
                     <p class="section-label mb-4"><?php echo esc_html((string) ($visits['label'] ?? 'Global Customer Visits')); ?></p>
                     <h2 class="max-w-[760px] text-[clamp(32px,5.4vw,68px)] font-black leading-[0.98] tracking-[-0.01em] text-ink"><?php echo esc_html((string) ($visits['title'] ?? 'Welcoming partners to see how BOB-LIFT builds.')); ?></h2>
-                    <p class="mt-5 max-w-[680px] text-sm font-semibold leading-7 text-slate-600 md:text-base md:leading-8"><?php echo esc_html((string) ($visits['text'] ?? '')); ?></p>
+                    <p class="mt-5 max-w-[680px] text-sm font-normal leading-7 text-slate-600 md:text-base md:leading-8"><?php echo esc_html((string) ($visits['text'] ?? '')); ?></p>
                     <?php if (!empty($visits['cta_label'])) : ?>
                         <a class="mt-6 inline-flex h-12 items-center justify-center gap-2 rounded-sm bg-navy px-6 text-sm font-black text-white shadow-card transition hover:-translate-y-0.5 hover:bg-[#0b2d5b]" href="<?php echo esc_url(boblift_url((string) ($visits['cta_href'] ?? '/contact.html'))); ?>"><?php echo esc_html((string) $visits['cta_label']); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
                     <?php endif; ?>

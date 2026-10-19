@@ -263,7 +263,7 @@ function boblift_render_home_product_grid(array $category, int $index, array $se
                         <?php
                         // Tonnage is already in the name and the model, so the footer shows the lifting moment instead.
                         $card_moment = (float) ($product['filter_values']['moment'] ?? 0);
-                        if ($section['showProductSpecs'] && $card_moment > 0) : ?><span class="flex min-w-0 items-baseline gap-1.5 whitespace-nowrap"><span class="font-semibold text-slate-400"><?php echo esc_html($moment_label); ?></span><span class="font-black text-ink"><?php echo esc_html(rtrim(rtrim(number_format($card_moment, 2, '.', ''), '0'), '.') . ' t·m'); ?></span></span><?php else : ?><span></span><?php endif; ?>
+                        if ($section['showProductSpecs'] && $card_moment > 0) : ?><span class="flex min-w-0 items-baseline gap-1.5 whitespace-nowrap"><span class="font-normal text-slate-400"><?php echo esc_html($moment_label); ?></span><span class="font-black text-ink"><?php echo esc_html(rtrim(rtrim(number_format($card_moment, 2, '.', ''), '0'), '.') . ' t·m'); ?></span></span><?php else : ?><span></span><?php endif; ?>
                         <span class="inline-flex items-center gap-1.5 whitespace-nowrap font-black text-blue-600"><span class="sm:hidden"><?php echo esc_html($section['detailsShortLabel']); ?></span><span class="hidden sm:inline"><?php echo esc_html($section['viewDetailsLabel']); ?></span><?php echo boblift_icon('arrow-right', 'h-3.5 w-3.5 transition duration-300 group-hover:translate-x-1'); ?></span>
                     </span>
                 </a>

@@ -17,7 +17,7 @@ function boblift_render_legal_page(array $options, string $inquiry_source, strin
     $contact_card = static function () use ($ui, $contact, $inquiry_source): void { ?>
                         <section class="rounded border border-line bg-mist p-5">
                             <h2 class="text-base font-black leading-snug text-ink"><?php echo esc_html((string) ($ui['contactTitle'] ?? 'Questions about this page?')); ?></h2>
-                            <p class="mt-2 text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html((string) ($ui['contactText'] ?? '')); ?></p>
+                            <p class="mt-2 text-sm font-normal leading-6 text-slate-600"><?php echo esc_html((string) ($ui['contactText'] ?? '')); ?></p>
                             <div class="mt-4 grid gap-2 text-sm font-bold">
                                 <a class="inline-flex min-w-0 items-center gap-2 text-navy transition hover:text-blue-700" href="mailto:<?php echo esc_attr($contact['email']); ?>"><?php echo boblift_icon('mail', 'h-4 w-4 shrink-0 text-slate-400'); ?><span class="truncate"><?php echo esc_html($contact['email']); ?></span></a>
                                 <a class="inline-flex min-w-0 items-center gap-2 text-navy transition hover:text-blue-700" href="<?php echo esc_url(boblift_url('/contact.html')); ?>" data-inquiry-source="<?php echo esc_attr($inquiry_source); ?>"><?php echo boblift_icon('message-circle', 'h-4 w-4 shrink-0 text-slate-400'); ?><span class="truncate"><?php echo esc_html((string) ($ui['contactLink'] ?? 'Contact page')); ?></span></a>
