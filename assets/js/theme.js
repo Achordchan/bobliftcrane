@@ -4135,12 +4135,26 @@
       const current = headings.filter((heading) => visible.has(heading))[0]
         || headings.filter((heading) => heading.getBoundingClientRect().top < 0).pop();
       if (current) mark(current.id);
-    }, { rootMargin: '0px 0px -65% 0px' });
+    }, { rootMargin: `0px 0px -${Math.round(window.innerHeight * 0.65)}px 0px` }); // the top 35% of the viewport, in pixels: a percentage here may resolve against the width
     headings.forEach((heading) => observer.observe(heading));
+    return observer;
   };
   const init = () => {
     if (!('IntersectionObserver' in window)) return;
-    document.querySelectorAll('[data-news-toc], [data-scroll-steps]').forEach(watch);
+    const lists = [...document.querySelectorAll('[data-news-toc], [data-scroll-steps]')];
+    if (!lists.length) return;
+    let observers = lists.map(watch);
+    let height = window.innerHeight;
+    let timer = 0;
+    window.addEventListener('resize', () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        if (window.innerHeight === height) return;
+        height = window.innerHeight;
+        observers.forEach((observer) => observer?.disconnect());
+        observers = lists.map(watch);
+      }, 200);
+    }, { passive: true });
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
