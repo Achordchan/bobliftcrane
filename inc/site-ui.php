@@ -1768,7 +1768,7 @@ function boblift_product_options(int $limit = 0): array
             'value' => (string) ($product['title'] ?? ''),
             'slug' => (string) ($product['slug'] ?? ''),
         ];
-    }, boblift_all_products());
+    }, boblift_all_products(true));
 
     $items = array_values(array_filter($items, static fn(array $item): bool => $item['label'] !== ''));
     return $limit > 0 ? array_slice($items, 0, $limit) : $items;

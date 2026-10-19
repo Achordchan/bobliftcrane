@@ -257,14 +257,15 @@ if (is_array($related_terms) && $related_terms) {
     $term_depth = static fn(WP_Term $term): int => count(get_ancestors($term->term_id, 'product_category', 'taxonomy'));
     usort($related_terms, static fn(WP_Term $a, WP_Term $b): int => ($term_depth($b) <=> $term_depth($a)) ?: strcasecmp($a->name, $b->name) ?: ($a->term_id <=> $b->term_id));
     $related_term = $related_terms[0];
-    $related_ids = get_posts([
+    // Current models only: previous models are set beside their current equivalent in Model history instead.
+    $related_ids = get_posts(boblift_without_legacy([
         'post_type' => 'product',
         'post_status' => 'publish',
         'numberposts' => -1,
         'fields' => 'ids',
         'post__not_in' => [get_the_ID()],
         'tax_query' => [['taxonomy' => 'product_category', 'field' => 'term_id', 'terms' => $related_term->term_id]],
-    ]);
+    ]));
     // One meta query for all candidates, then sort on the loaded capacities.
     update_meta_cache('post', $related_ids);
     $capacities = [];
@@ -279,11 +280,18 @@ if (is_array($related_terms) && $related_terms) {
         $related_products[] = boblift_product_from_post(get_post($related_id));
     }
 }
+// Previous models (inc/product-lifecycle.php): this model beside the other configurations of its capacity.
+$is_legacy_model = boblift_product_is_legacy((int) get_the_ID());
+$model_history = $related_term instanceof WP_Term ? boblift_product_model_history((int) get_the_ID(), $related_term) : [];
 // The English product's categories with their ancestors, so a model filed under a sub-type still counts for its family and step set.
 $process_slugs = boblift_product_category_lineage(get_the_ID());
 // Generated range guide, spec groups and model FAQs (inc/product-guide.php), for truck and marine cranes with a decoded model code.
 $crane_family = boblift_product_crane_family($process_slugs);
 $product_guide = boblift_product_guide($product, $crane_family, $related_term);
+if ($model_history) {
+    // Model history sets the same capacity class side by side, previous models included.
+    $product_guide['compare'] = [];
+}
 $has_product_guide = $product_guide['intro'] !== '' || $product_guide['cards'] || $product_guide['compare'] || $product_guide['steps'] !== '' || $product_guide['supply'] !== '';
 // The editor's short summary opens Product details (it used to sit in the hero), whether or not there is body text.
 $product_summary = trim((string) ($product['short_description'] ?? ''));
@@ -331,6 +339,9 @@ if ($product_feedback) {
     $anchors[] = ['id' => 'feedback', 'label' => (string) ($cases_ui['customerFeedbackLabel'] ?? 'Customer Feedback')];
 }
 $anchors[] = ['id' => 'faq', 'label' => (string) ($ui['faqLabel'] ?? 'FAQ')];
+if ($model_history) {
+    $anchors[] = ['id' => 'model-history', 'label' => boblift_localized_static_text('Model history')];
+}
 $related_ui = boblift_site_ui('newsDetail');
 $case_detail_ui = boblift_site_ui('caseDetail');
 $anchors[] = ['id' => 'quote', 'label' => (string) ($ui['quoteAnchorLabel'] ?? 'Request Quote')];
@@ -354,6 +365,15 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                     <h1 class="boblift-product-hero-title mt-3 text-[clamp(44px,4.4vw,84px)] font-black leading-[0.92] tracking-[-0.02em] text-[#071f42]"><?php echo esc_html($hero_title); ?></h1>
                     <?php if ($show_hero_full_name) : ?>
                         <p class="mt-3 text-[clamp(18px,1.35vw,24px)] font-medium leading-tight text-slate-700"><?php echo esc_html($product_title); ?></p>
+                    <?php endif; ?>
+                    <?php if ($is_legacy_model) :
+                        $legacy_target = $model_history ? '#model-history' : ($related_term instanceof WP_Term && !is_wp_error(get_term_link($related_term)) ? (string) get_term_link($related_term) : boblift_product_archive_url());
+                        ?>
+                        <p class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm font-normal leading-6 text-slate-600">
+                            <span class="inline-flex items-center rounded-sm bg-[#EEF1F5] px-2 py-1 text-[11px] font-black uppercase leading-none tracking-[0.08em] text-slate-600"><?php echo esc_html(boblift_localized_static_text('Previous model')); ?></span>
+                            <span><?php echo esc_html(boblift_localized_static_text('No longer in regular production. It can still be built to order.')); ?></span>
+                            <a class="inline-flex items-center gap-1.5 font-black text-blue-700 transition hover:text-[#071f42]" href="<?php echo esc_url($legacy_target); ?>"><?php echo esc_html(boblift_localized_static_text('See the current models')); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></a>
+                        </p>
                     <?php endif; ?>
                     <?php boblift_render_model_decode($hero_model); ?>
                     <dl class="mt-6 grid grid-cols-2 border-y border-[#D5DEE9] sm:grid-cols-4 lg:mt-7">
@@ -903,6 +923,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                 <p class="boblift-product-catalog-link"><a class="inline-flex h-12 items-center justify-center gap-2 rounded-sm border border-[#D8E2EF] bg-white px-5 text-sm font-black text-[#071f42] transition hover:-translate-y-0.5 hover:border-blue-300 hover:text-blue-700" href="<?php echo esc_url($catalog_url); ?>" target="_blank" rel="noopener"><?php echo boblift_icon('file-text', 'h-4 w-4'); ?><?php echo esc_html((string) ($ui['heroPdfLabel'] ?? 'PDF Catalog')); ?></a></p>
             <?php endif; ?>
             <?php if (!$buying_terms) boblift_render_brochures(['context' => 'product', 'families' => boblift_brochure_families_for_product($product), 'product' => $product_title, 'product_slug' => (string) ($product['slug'] ?? '')]); ?>
+            <?php boblift_render_product_model_history($model_history, (int) get_the_ID(), $is_legacy_model); ?>
             <?php if ($related_products && $related_term instanceof WP_Term) :
                 $related_link = get_term_link($related_term);
                 ?>

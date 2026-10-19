@@ -97,17 +97,9 @@ function boblift_archive_term(string $slug): ?array
     return ['term' => $term, 'family' => boblift_source_term_slug($term)];
 }
 
-/**
- * The range as a spec sheet: one column per model (photo, model, name), one row per published figure, so a range of
- * twelve models stays five rows tall and scrolls sideways with the labels pinned.
- */
-function boblift_render_archive_compare(WP_Term $term): void
+/** The figures of range models as the comparison tables print them: moments in t·m, weights in kg, a photo for each. */
+function boblift_compare_models_prepare(array $models): array
 {
-    $t = static fn(string $text): string => boblift_localized_static_text($text);
-    $models = boblift_product_range_models($term);
-    if (count($models) < 2) {
-        return;
-    }
     // Moments are entered as "13 Ton.m" on some products and as a bare "2.2" on others: show them all as t·m.
     foreach ($models as $index => $item) {
         $moment = trim((string) $item['moment']);
@@ -118,6 +110,21 @@ function boblift_render_archive_compare(WP_Term $term): void
         $thumbnail = get_the_post_thumbnail_url($item['id'], 'medium');
         $models[$index]['image'] = is_string($thumbnail) && $thumbnail !== '' ? $thumbnail : boblift_post_thumbnail_url(get_post($item['id']), boblift_asset('images/products/crane-accessories.png'));
     }
+    return $models;
+}
+
+/**
+ * Models side by side: one column per model (photo, model, name), one row per published figure, so a range of twelve
+ * models stays five rows tall and scrolls sideways with the labels pinned. $options: label_class (the pinned column's
+ * colours), this_id (the page's own model, not linked), status (tag each column current or previous), ask (an inquiry
+ * button under each previous model).
+ */
+function boblift_render_model_table(array $models, string $labelled_by, array $options = []): void
+{
+    $t = static fn(string $text): string => boblift_localized_static_text($text);
+    $this_id = (int) ($options['this_id'] ?? 0);
+    $status = !empty($options['status']);
+    $ask = !empty($options['ask']);
     // A row shows only when at least one model has the figure.
     $rows = array_filter([
         'capacity_label' => $t('Capacity'),
@@ -125,8 +132,76 @@ function boblift_render_archive_compare(WP_Term $term): void
         'weight' => $t('Self weight'),
         'sections_label' => $t('Boom sections'),
     ], static fn(string $label, string $key): bool => (bool) array_filter(array_column($models, $key)), ARRAY_FILTER_USE_BOTH);
+    $label_cell = 'sticky start-0 z-10 w-[132px] min-w-[132px] border-e border-[#E5E7EB] px-4 text-start text-[13px] font-semibold text-slate-500 sm:w-[180px] sm:min-w-[180px] sm:px-5 ' . (string) ($options['label_class'] ?? 'bg-[#F8FAFC]');
+    $ask_label = $t('Ask about this model');
+    ?>
+    <div class="overflow-x-auto overscroll-x-contain rounded border border-[#E5E7EB] bg-white" tabindex="0" role="region" aria-labelledby="<?php echo esc_attr($labelled_by); ?>">
+        <table class="w-full border-separate border-spacing-0 text-sm">
+            <thead>
+                <tr>
+                    <th class="<?php echo esc_attr($label_cell); ?> border-b-2 border-b-ink align-bottom pb-4" scope="col"><?php echo esc_html($t('Model')); ?></th>
+                    <?php foreach ($models as $item) :
+                        $is_this = $item['id'] === $this_id;
+                        ?>
+                        <th class="min-w-[164px] border-b-2 border-b-ink px-4 pb-4 pt-5 text-start align-bottom font-normal <?php echo $is_this ? 'bg-[#F5F8FC]' : ''; ?>" scope="col">
+                            <?php if ($status) : ?>
+                                <span class="mb-3 inline-flex items-center rounded-sm px-2 py-1 text-[11px] font-black uppercase leading-none tracking-[0.08em] <?php echo $item['legacy'] ? 'bg-[#EEF1F5] text-slate-600' : 'bg-blue-50 text-blue-700'; ?>"><?php echo esc_html($t($item['legacy'] ? 'Previous model' : 'Current model')); ?></span>
+                            <?php endif; ?>
+                            <?php if ($is_this) : ?>
+                                <span class="block">
+                                    <span class="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-sm bg-white"><img class="h-full w-full object-contain" src="<?php echo esc_url($item['image']); ?>" alt="" loading="lazy" decoding="async"></span>
+                                    <span class="mt-3 flex items-center gap-2 text-base font-black text-ink"><?php echo esc_html($item['model']); ?><span class="text-[11px] font-black uppercase tracking-[0.1em] text-slate-500"><?php echo esc_html($t('This model')); ?></span></span>
+                                    <span class="mt-1 line-clamp-2 block text-xs leading-5 text-slate-500"><?php echo esc_html((string) $item['title']); ?></span>
+                                </span>
+                            <?php else : ?>
+                                <a class="group block" href="<?php echo esc_url($item['url']); ?>">
+                                    <span class="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-sm bg-[#F8FAFC]"><img class="h-full w-full object-contain transition duration-500 group-hover:scale-[1.04]" src="<?php echo esc_url($item['image']); ?>" alt="" loading="lazy" decoding="async"></span>
+                                    <span class="mt-3 flex items-center gap-1 text-base font-black text-ink transition group-hover:text-blue-700"><?php echo esc_html($item['model']); ?><?php echo boblift_icon('arrow-up-right', 'h-3.5 w-3.5 shrink-0 text-slate-400 transition group-hover:text-blue-700 rtl:-scale-x-100'); ?></span>
+                                    <span class="mt-1 line-clamp-2 block text-xs leading-5 text-slate-500"><?php echo esc_html((string) $item['title']); ?></span>
+                                </a>
+                            <?php endif; ?>
+                        </th>
+                    <?php endforeach; ?>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($rows as $key => $label) : ?>
+                    <tr class="group/row">
+                        <th class="<?php echo esc_attr($label_cell); ?> border-b py-3.5" scope="row"><?php echo esc_html($label); ?></th>
+                        <?php foreach ($models as $item) : ?>
+                            <td class="whitespace-nowrap border-b border-[#E5E7EB] px-4 py-3.5 font-semibold text-ink [font-variant-numeric:tabular-nums] <?php echo $ask ? '' : 'group-last/row:border-b-0'; ?> <?php echo $item['id'] === $this_id ? 'bg-[#F5F8FC]' : ''; ?>"><?php echo esc_html((string) ($item[$key] ?: '–')); ?></td>
+                        <?php endforeach; ?>
+                    </tr>
+                <?php endforeach; ?>
+                <?php if ($ask) : ?>
+                    <tr>
+                        <th class="<?php echo esc_attr($label_cell); ?> py-3.5" scope="row"><?php echo esc_html($t('Built to order')); ?></th>
+                        <?php foreach ($models as $item) : ?>
+                            <td class="px-4 py-3.5 <?php echo $item['id'] === $this_id ? 'bg-[#F5F8FC]' : ''; ?>">
+                                <?php if ($item['legacy']) : ?>
+                                    <button class="inline-flex items-center gap-1.5 text-start text-sm font-black text-blue-700 transition hover:text-[#071f42]" type="button" data-inquiry-modal-open data-inquiry-source="历史型号" data-inquiry-product="<?php echo esc_attr((string) $item['title']); ?>"><?php echo esc_html($ask_label); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 shrink-0 rtl:rotate-180'); ?></button>
+                                <?php else : ?>
+                                    <span class="text-slate-400">–</span>
+                                <?php endif; ?>
+                            </td>
+                        <?php endforeach; ?>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+    <?php
+}
+
+/** The range compared model by model, current models only. */
+function boblift_render_archive_compare(WP_Term $term): void
+{
+    $t = static fn(string $text): string => boblift_localized_static_text($text);
+    $models = boblift_product_range_models($term);
+    if (count($models) < 2) {
+        return;
+    }
     $id = 'compare-' . $term->slug;
-    $label_cell = 'sticky start-0 z-10 w-[132px] min-w-[132px] border-e border-[#E5E7EB] bg-[#F8FAFC] px-4 text-start text-[13px] font-semibold text-slate-500 sm:w-[180px] sm:min-w-[180px] sm:px-5';
     ?>
     <section class="mt-14 lg:mt-20" aria-labelledby="<?php echo esc_attr($id); ?>">
         <div class="grid gap-4 lg:grid-cols-12 lg:items-end lg:gap-8">
@@ -136,34 +211,77 @@ function boblift_render_archive_compare(WP_Term $term): void
             </div>
             <p class="max-w-[46ch] text-sm leading-6 text-slate-600 lg:col-span-5 lg:justify-self-end"><?php echo esc_html($t('Figures from the BOB-LIFT technical sheets. Confirm the configuration for your truck or vessel with our team.')); ?></p>
         </div>
-        <div class="mt-6 overflow-x-auto overscroll-x-contain rounded border border-[#E5E7EB] bg-white lg:mt-8" tabindex="0" role="region" aria-labelledby="<?php echo esc_attr($id); ?>">
-            <table class="w-full border-separate border-spacing-0 text-sm">
-                <thead>
-                    <tr>
-                        <th class="<?php echo esc_attr($label_cell); ?> border-b-2 border-b-ink align-bottom pb-4" scope="col"><?php echo esc_html($t('Model')); ?></th>
-                        <?php foreach ($models as $item) : ?>
-                            <th class="min-w-[164px] border-b-2 border-b-ink px-4 pb-4 pt-5 text-start align-bottom font-normal" scope="col">
-                                <a class="group block" href="<?php echo esc_url($item['url']); ?>">
-                                    <span class="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-sm bg-[#F8FAFC]"><img class="h-full w-full object-contain transition duration-500 group-hover:scale-[1.04]" src="<?php echo esc_url($item['image']); ?>" alt="" loading="lazy" decoding="async"></span>
-                                    <span class="mt-3 flex items-center gap-1 text-base font-black text-ink transition group-hover:text-blue-700"><?php echo esc_html($item['model']); ?><?php echo boblift_icon('arrow-up-right', 'h-3.5 w-3.5 shrink-0 text-slate-400 transition group-hover:text-blue-700 rtl:-scale-x-100'); ?></span>
-                                    <span class="mt-1 line-clamp-2 block text-xs leading-5 text-slate-500"><?php echo esc_html((string) $item['title']); ?></span>
-                                </a>
-                            </th>
-                        <?php endforeach; ?>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($rows as $key => $label) : ?>
-                        <tr class="group/row">
-                            <th class="<?php echo esc_attr($label_cell); ?> border-b py-3.5" scope="row"><?php echo esc_html($label); ?></th>
-                            <?php foreach ($models as $item) : ?>
-                                <td class="whitespace-nowrap border-b border-[#E5E7EB] px-4 py-3.5 font-semibold text-ink [font-variant-numeric:tabular-nums] group-last/row:border-b-0"><?php echo esc_html((string) ($item[$key] ?: '–')); ?></td>
-                            <?php endforeach; ?>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+        <div class="mt-6 lg:mt-8"><?php boblift_render_model_table(boblift_compare_models_prepare($models), $id); ?></div>
+    </section>
+    <?php
+}
+
+/**
+ * The model library: previous models, no longer built as standard but still built to order, grouped by category and
+ * folded away under the listing. Each row points to its current equivalent and opens an inquiry.
+ */
+function boblift_render_legacy_library(array $categories): void
+{
+    $groups = boblift_legacy_model_library($categories);
+    if ($groups === []) {
+        return;
+    }
+    $t = static fn(string $text): string => boblift_localized_static_text($text);
+    $total = array_sum(array_map(static fn(array $group): int => count($group['models']), $groups));
+    $head = 'whitespace-nowrap border-b-2 border-b-ink px-4 pb-3 pt-4 text-start align-bottom text-[13px] font-semibold text-slate-500';
+    $cell = 'border-b border-[#E5E7EB] px-4 py-3.5 align-top group-last/row:border-b-0';
+    $sticky = 'sticky start-0 z-10 w-[132px] min-w-[132px] border-e border-[#E5E7EB] bg-white sm:w-[180px] sm:min-w-[180px] sm:px-5';
+    ?>
+    <section class="mt-14 lg:mt-20" aria-labelledby="legacy-library-title">
+        <div class="grid gap-4 lg:grid-cols-12 lg:items-end lg:gap-8">
+            <div class="lg:col-span-7">
+                <p class="section-label"><?php echo esc_html($t('Model archive')); ?></p>
+                <h2 id="legacy-library-title" class="mt-3 text-[clamp(1.75rem,2.8vw,3rem)] font-black leading-[1.05] tracking-[-0.015em] text-ink"><?php echo esc_html($t('Previous models')); ?></h2>
+            </div>
+            <p class="max-w-[46ch] text-sm leading-6 text-slate-600 lg:col-span-5 lg:justify-self-end"><?php echo esc_html($t('Configurations we no longer build as standard. Each can still be built to order on request.')); ?></p>
         </div>
+        <details class="group/library mt-6 rounded border border-[#E5E7EB] bg-white lg:mt-8">
+            <summary class="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 px-4 text-sm font-black text-ink transition hover:text-blue-700 sm:px-5 [&::-webkit-details-marker]:hidden">
+                <span><span class="group-open/library:hidden"><?php echo esc_html($t('Show the list')); ?></span><span class="hidden group-open/library:inline"><?php echo esc_html($t('Hide the list')); ?></span> <span class="ms-1 font-semibold text-slate-500 [font-variant-numeric:tabular-nums]">(<?php echo esc_html((string) $total); ?>)</span></span>
+                <?php echo boblift_icon('chevron-down', 'h-5 w-5 shrink-0 text-slate-500 transition group-open/library:rotate-180'); ?>
+            </summary>
+            <div class="grid gap-8 border-t border-[#E5E7EB] px-4 pb-5 pt-6 sm:px-5 lg:pb-6">
+                <?php foreach ($groups as $group) :
+                    $group_id = 'legacy-library-' . $group['slug'];
+                    $models = boblift_compare_models_prepare($group['models']);
+                    ?>
+                    <div class="min-w-0">
+                        <h3 id="<?php echo esc_attr($group_id); ?>" class="text-lg font-black leading-snug text-ink"><?php echo esc_html($group['title']); ?></h3>
+                        <div class="relative mt-3 overflow-x-auto overscroll-x-contain rounded border border-[#E5E7EB]" tabindex="0" role="region" aria-labelledby="<?php echo esc_attr($group_id); ?>">
+                            <table class="w-full border-separate border-spacing-0 text-sm">
+                                <thead>
+                                    <tr>
+                                        <th class="<?php echo esc_attr($head . ' ' . $sticky); ?>" scope="col"><?php echo esc_html($t('Model')); ?></th>
+                                        <th class="<?php echo esc_attr($head); ?>" scope="col"><?php echo esc_html($t('Capacity')); ?></th>
+                                        <th class="<?php echo esc_attr($head); ?>" scope="col"><?php echo esc_html($t('Max lifting moment')); ?></th>
+                                        <th class="<?php echo esc_attr($head); ?>" scope="col"><?php echo esc_html($t('Self weight')); ?></th>
+                                        <th class="<?php echo esc_attr($head); ?> min-w-[160px]" scope="col"><?php echo esc_html($t('Current equivalent')); ?></th>
+                                        <th class="<?php echo esc_attr($head); ?>" scope="col"><span class="sr-only"><?php echo esc_html($t('Built to order')); ?></span></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($models as $item) : ?>
+                                        <tr class="group/row">
+                                            <th class="<?php echo esc_attr($cell . ' ' . $sticky); ?> text-start" scope="row"><a class="inline-flex items-center gap-1 font-black text-ink transition hover:text-blue-700" href="<?php echo esc_url($item['url']); ?>"><?php echo esc_html($item['model']); ?><?php echo boblift_icon('arrow-up-right', 'h-3.5 w-3.5 shrink-0 text-slate-400 rtl:-scale-x-100'); ?></a></th>
+                                            <td class="<?php echo esc_attr($cell); ?> whitespace-nowrap font-semibold text-ink [font-variant-numeric:tabular-nums]"><?php echo esc_html($item['capacity_label'] ?: '–'); ?></td>
+                                            <td class="<?php echo esc_attr($cell); ?> whitespace-nowrap font-semibold text-ink [font-variant-numeric:tabular-nums]"><?php echo esc_html($item['moment'] ?: '–'); ?></td>
+                                            <td class="<?php echo esc_attr($cell); ?> whitespace-nowrap font-semibold text-ink [font-variant-numeric:tabular-nums]"><?php echo esc_html($item['weight'] ?: '–'); ?></td>
+                                            <td class="<?php echo esc_attr($cell); ?> font-black [&_a]:text-blue-700 [&_a]:underline-offset-4 [&_a:hover]:underline"><?php echo $item['current'] ? boblift_guide_model_links($item['current']) : '<span class="text-slate-400">–</span>'; // phpcs:ignore WordPress.Security.EscapeOutput -- escaped by boblift_guide_model_links. ?></td>
+                                            <td class="<?php echo esc_attr($cell); ?> whitespace-nowrap"><button class="inline-flex items-center gap-1.5 text-sm font-black text-blue-700 transition hover:text-[#071f42]" type="button" data-inquiry-modal-open data-inquiry-source="历史型号库" data-inquiry-product="<?php echo esc_attr((string) $item['title']); ?>"><?php echo esc_html($t('Ask about this model')); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 shrink-0 rtl:rotate-180'); ?></button></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </details>
     </section>
     <?php
 }
@@ -300,6 +418,7 @@ function boblift_render_archive_extras(array $categories, string $initial_catego
         }
     };
     $blocks(static fn(array $term) => boblift_render_archive_compare($term['term']));
+    boblift_render_legacy_library($categories);
     boblift_render_archive_made();
     $blocks(static fn(array $term, string $slug) => boblift_render_archive_articles($term['family'], $slug));
 }
@@ -338,6 +457,30 @@ function boblift_render_product_articles(WP_Term $term): void
                 </li>
             <?php endforeach; ?>
         </ul>
+    </section>
+    <?php
+}
+
+/**
+ * Product page: this model beside the other configurations of its capacity when previous models are among them
+ * (inc/product-lifecycle.php), in the page's card style. $models from boblift_product_model_history().
+ */
+function boblift_render_product_model_history(array $models, int $product_id, bool $is_legacy): void
+{
+    if ($models === []) {
+        return;
+    }
+    $t = static fn(string $text): string => boblift_localized_static_text($text);
+    ?>
+    <section id="model-history" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card" aria-labelledby="model-history-title">
+        <div class="grid gap-x-8 gap-y-3 p-6 pb-0 md:p-8 md:pb-0 lg:grid-cols-12 lg:items-end">
+            <div class="lg:col-span-7">
+                <p class="boblift-kicker"><?php echo esc_html($t('Model history')); ?></p>
+                <h2 id="model-history-title" class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($t($is_legacy ? 'Compare with the current range' : 'Earlier configurations')); ?></h2>
+            </div>
+            <p class="max-w-[46ch] text-sm leading-6 text-slate-600 lg:col-span-5 lg:justify-self-end"><?php echo esc_html($t('Previous models are configurations we no longer build as standard. They can still be built to order.')); ?></p>
+        </div>
+        <div class="p-6 md:p-8"><?php boblift_render_model_table(boblift_compare_models_prepare($models), 'model-history-title', ['this_id' => $product_id, 'status' => true, 'ask' => true, 'label_class' => 'bg-white']); ?></div>
     </section>
     <?php
 }

@@ -1642,7 +1642,7 @@ function boblift_admin_product_checklist(string $path, array $options, string $b
     $name = boblift_admin_option_name($path, $base) . '[]';
     echo '<input type="hidden" name="' . esc_attr($name) . '" value="">';
     echo '<div class="boblift-admin-checklist">';
-    foreach (boblift_all_products() as $product) {
+    foreach (boblift_all_products(true) as $product) {
         $slug = (string) ($product['slug'] ?? '');
         if ($slug === '') {
             continue;

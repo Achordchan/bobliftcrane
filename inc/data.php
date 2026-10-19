@@ -1098,7 +1098,7 @@ foreach (['save_post_product', 'deleted_post', 'trashed_post', 'untrashed_post',
 // Product meta feeds the menu (model, capacity), so changes made without saving the post invalidate it too.
 foreach (['added_post_meta', 'updated_post_meta', 'deleted_post_meta'] as $boblift_menu_meta_hook) {
     add_action($boblift_menu_meta_hook, static function ($meta_id, $post_id, $meta_key): void {
-        if (in_array((string) $meta_key, ['_model', '_capacity', '_capacity_value', '_specs', '_boom_type', '_thumbnail_id'], true) && get_post_type((int) $post_id) === 'product') {
+        if (in_array((string) $meta_key, ['_model', '_capacity', '_capacity_value', '_specs', '_boom_type', '_thumbnail_id', '_boblift_lifecycle'], true) && get_post_type((int) $post_id) === 'product') {
             boblift_bump_product_menu_version();
         }
     }, 10, 3);
@@ -1264,36 +1264,36 @@ function boblift_build_product_menu_families(): array
             }
         }
         // Distinct products in the whole family; a product filed under both a parent and a child counts once.
-        $total = (int) (new WP_Query([
+        $total = (int) (new WP_Query(boblift_without_legacy([
             'post_type' => 'product',
             'post_status' => 'publish',
             'posts_per_page' => 1,
             'fields' => 'ids',
             'tax_query' => [['taxonomy' => 'product_category', 'terms' => $term_ids, 'include_children' => true]],
-        ]))->found_posts;
+        ])))->found_posts;
         $children = [];
         foreach (($group['children'] ?? []) as $child) {
             $child_term = get_term_by('slug', (string) ($child['slug'] ?? ''), 'product_category');
             if (!$child_term instanceof WP_Term) {
                 continue;
             }
-            $child_count = (int) (new WP_Query([
+            $child_count = (int) (new WP_Query(boblift_without_legacy([
                 'post_type' => 'product',
                 'post_status' => 'publish',
                 'posts_per_page' => 1,
                 'fields' => 'ids',
                 'tax_query' => [['taxonomy' => 'product_category', 'terms' => $child_term->term_id, 'include_children' => true]],
-            ]))->found_posts;
+            ])))->found_posts;
             if ($child_count === 0) {
                 continue;
             }
-            [$child_min, $child_max] = $capacity_range(get_posts([
+            [$child_min, $child_max] = $capacity_range(get_posts(boblift_without_legacy([
                 'post_type' => 'product',
                 'post_status' => 'publish',
                 'numberposts' => -1,
                 'fields' => 'ids',
                 'tax_query' => [['taxonomy' => 'product_category', 'terms' => $child_term->term_id, 'include_children' => true]],
-            ]));
+            ])));
             $children[] = ['title' => $child_term->name, 'url' => $term_link($child_term), 'count' => $child_count, 'min' => $child_min, 'max' => $child_max];
         }
         if ($total === 0) {
@@ -1302,12 +1302,12 @@ function boblift_build_product_menu_families(): array
         $models = [];
         if (count($children) < 2) {
             $children = [];
-            $posts = get_posts([
+            $posts = get_posts(boblift_without_legacy([
                 'post_type' => 'product',
                 'post_status' => 'publish',
                 'numberposts' => 12,
                 'tax_query' => [['taxonomy' => 'product_category', 'terms' => $term_ids, 'include_children' => true]],
-            ]);
+            ]));
             usort($posts, static fn(WP_Post $a, WP_Post $b): int => ((float) get_post_meta($a->ID, '_capacity_value', true) <=> (float) get_post_meta($b->ID, '_capacity_value', true)) ?: strnatcasecmp($a->post_title, $b->post_title));
             foreach (array_slice($posts, 0, 5) as $post) {
                 $english_id = function_exists('boblift_product_english_id') ? boblift_product_english_id($post->ID) : $post->ID;
@@ -1326,14 +1326,14 @@ function boblift_build_product_menu_families(): array
         $featured = [];
         if ($children !== []) {
             // Only IDs are loaded; full posts are fetched for the four featured models below.
-            $posts = get_posts([
+            $posts = get_posts(boblift_without_legacy([
                 'post_type' => 'product',
                 'post_status' => 'publish',
                 'numberposts' => -1,
                 'fields' => 'ids',
                 'update_post_term_cache' => false,
                 'tax_query' => [['taxonomy' => 'product_category', 'terms' => $term_ids, 'include_children' => true]],
-            ]);
+            ]));
             _prime_post_caches($posts, false, true);
             usort($posts, static fn(int $a, int $b): int => ((float) get_post_meta($a, '_capacity_value', true) <=> (float) get_post_meta($b, '_capacity_value', true)) ?: strnatcasecmp(get_the_title($a), get_the_title($b)));
             $picked = [];
@@ -1354,13 +1354,13 @@ function boblift_build_product_menu_families(): array
         }
         // The family's range across every model, and one cut-out crane to stand on the panel's stage:
         // the candidate nearest the middle of the range that has a cut-out photo.
-        $family_ids = get_posts([
+        $family_ids = get_posts(boblift_without_legacy([
             'post_type' => 'product',
             'post_status' => 'publish',
             'numberposts' => -1,
             'fields' => 'ids',
             'tax_query' => [['taxonomy' => 'product_category', 'terms' => $term_ids, 'include_children' => true]],
-        ]);
+        ]));
         [$family_min, $family_max] = $capacity_range($family_ids);
         $hero = null;
         $candidates = array_values(array_filter(array_merge($featured, $models), static fn(array $item): bool => !empty($item['id'])));
