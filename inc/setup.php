@@ -568,15 +568,20 @@ function boblift_repair_upload_image_sources(string $content): string {
     $uploads = wp_get_upload_dir();
     $base_url = trailingslashit((string) $uploads['baseurl']);
     $content = (string) preg_replace('#https?://(?:localhost|127\.0\.0\.1)(?::\d+)?/wp-content/uploads/#i', $base_url, $content);
-    $site_host = (string) wp_parse_url(home_url('/'), PHP_URL_HOST);
-    return (string) preg_replace_callback('/(<img\b[^>]*?\bsrc=)(["\'])((?:https?:\/\/([^\/"\']+))?\/wp-content\/uploads\/([^"\'?#]+))\2/i', static function (array $m) use ($uploads, $site_host): string {
+    $home = wp_parse_url(home_url('/'));
+    $site_authority = strtolower((string) ($home['host'] ?? '') . (isset($home['port']) ? ':' . $home['port'] : ''));
+    return (string) preg_replace_callback('/<img\b[^>]*>/i', static function (array $tag) use ($uploads, $site_authority): string {
         static $found = [];
-        if ($m[4] !== '' && strcasecmp($m[4], $site_host) !== 0) {
-            return $m[0];
+        if (!preg_match('/(\bsrc=)(["\'])((?:https?:\/\/([^\/"\']+))?\/wp-content\/uploads\/([^"\'?#]+))\2/i', $tag[0], $m)) {
+            return $tag[0];
+        }
+        // The host is compared with its port, so a local site such as localhost:8080 matches its own addresses.
+        if ($m[4] !== '' && strtolower($m[4]) !== $site_authority) {
+            return $tag[0];
         }
         $relative = rawurldecode($m[5]);
         if (file_exists(trailingslashit((string) $uploads['basedir']) . $relative)) {
-            return $m[0];
+            return $tag[0];
         }
         $name = wp_basename($relative);
         if (!array_key_exists($name, $found)) {
@@ -588,7 +593,12 @@ function boblift_repair_upload_image_sources(string $content): string {
             ));
             $found[$name] = count($ids) === 1 ? (string) wp_get_attachment_url((int) $ids[0]) : '';
         }
-        return $found[$name] !== '' ? $m[1] . $m[2] . esc_url($found[$name]) . $m[2] : $m[0];
+        if ($found[$name] === '') {
+            return $tag[0];
+        }
+        // The responsive sources point at the same missing folder, so they go and the repaired src is the only one.
+        $repaired = str_replace($m[0], $m[1] . $m[2] . esc_url($found[$name]) . $m[2], $tag[0]);
+        return (string) preg_replace('/\s(?:srcset|sizes)=(["\'])[^"\']*\1/i', '', $repaired);
     }, $content);
 }
 add_filter('the_content', 'boblift_repair_upload_image_sources', 6);
