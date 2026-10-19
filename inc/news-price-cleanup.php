@@ -65,9 +65,11 @@ function boblift_strip_story_price(string $content, string $story, string $inqui
             $first = $price_at - 2;
         }
     }
-    $start = (int) $paragraphs[$first][1];
-    $end = (int) $paragraphs[$price_at][1] + strlen($paragraphs[$price_at][0]);
-    $content = substr($content, 0, $start) . $replacement . substr($content, $end);
+    // Each selected paragraph is cut on its own, last first so earlier offsets hold, and any markup between them stays.
+    for ($index = $price_at; $index >= $first; $index--) {
+        $at = (int) $paragraphs[$index][1];
+        $content = substr($content, 0, $at) . ($index === $price_at ? $replacement : '') . substr($content, $at + strlen($paragraphs[$index][0]));
+    }
     // Any further price (an original and a discounted price, say) goes too; the inquiry line is added only once.
     return (string) preg_replace_callback('/<p\b[^>]*>.*?<\/p>/s', static function (array $paragraph): string {
         return boblift_paragraph_has_price(wp_strip_all_tags($paragraph[0])) ? '' : $paragraph[0];
