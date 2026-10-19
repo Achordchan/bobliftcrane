@@ -301,7 +301,7 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
         </div>
         <?php boblift_render_archive_extras($categories, $initial_category); ?>
     </div>
-    <div class="fixed inset-0 z-[70] hidden items-center justify-center bg-[#0B1B33]/45 px-4 py-8 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="quick-view-title" data-quick-view-modal>
+    <div class="fixed inset-0 z-[250] hidden items-center justify-center bg-[#0B1B33]/45 px-4 py-8 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="quick-view-title" data-quick-view-modal>
         <div class="max-h-[calc(100vh-4rem)] w-full max-w-5xl overflow-y-auto rounded bg-white shadow-card" data-quick-view-panel>
             <div class="grid gap-0 lg:grid-cols-[0.95fr_1.05fr]">
                 <div class="relative min-h-[340px] bg-[radial-gradient(circle_at_48%_34%,#ffffff_0%,#f8fafc_34%,#eef2f7_64%,#e2e8f0_100%)] lg:min-h-[480px]">

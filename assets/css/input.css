@@ -24,14 +24,17 @@
 @font-face { font-family: 'Source Sans 3'; font-style: normal; font-weight: 200 900; font-display: swap; src: url('../fonts/source-sans-3/source-sans-3-cyrillic.woff2') format('woff2'); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
 
 
-:root { --ink:#08234a; --navy:#071f42; --gold:#f59a3c; --line:#e4ebf4; --font-sans:"Barlow","Boblift Cyrillic Sans","Helvetica Neue",Arial,sans-serif; --radius:0.625rem; --boblift-header-h:78px; }
+:root { --ink:#08234a; --navy:#071f42; --gold:#f59a3c; --line:#e4ebf4; --font-sans:"Barlow","Boblift Cyrillic Sans","Helvetica Neue",Arial,sans-serif; --radius:0.625rem; }
 :root:is(:lang(ru), :lang(uk), :lang(be), :lang(bg), :lang(kk)) { --font-sans:"Boblift Cyrillic Sans","Helvetica Neue",Arial,sans-serif; }
 * { box-sizing: border-box; }
 html { max-width: 100%; overflow-x: hidden; overflow-x: clip; font-size: 16px; scroll-behavior: smooth; scroll-padding-top: var(--boblift-header-h); }
 /* The navigation (header#top) stays at the top of the window; these match its row height (h-[78px] lg:h-[92px]). */
-@media (min-width: 1024px) { :root { --boblift-header-h: 92px; } }
-/* Signed-in editors: below the fixed WordPress toolbar (it scrolls with the page below 601px). */
-@media (min-width: 601px) { .admin-bar #top { top: var(--wp-admin--admin-bar--height, 32px); } }
+/* --boblift-header-h is everything fixed over the top of the page: the navigation plus, for signed-in editors, the WordPress
+   toolbar above it (fixed from 601px; below that it scrolls with the page). --boblift-toolbar-h places the navigation itself. */
+:root { --boblift-nav-h: 78px; --boblift-toolbar-h: 0px; --boblift-header-h: calc(var(--boblift-nav-h) + var(--boblift-toolbar-h)); }
+@media (min-width: 1024px) { :root { --boblift-nav-h: 92px; } }
+@media (min-width: 601px) { :root:has(> body.admin-bar) { --boblift-toolbar-h: var(--wp-admin--admin-bar--height, 32px); } }
+#top { top: var(--boblift-toolbar-h); }
 body { max-width: 100%; overflow-x: hidden; overflow-x: clip; margin: 0; color: var(--ink); background: #fff; font-family: var(--font-sans); line-height: 1.5; }
 html.boblift-inquiry-scroll-locked,
 body.boblift-inquiry-scroll-locked {

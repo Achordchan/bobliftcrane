@@ -4138,8 +4138,8 @@
       if (top < list.scrollTop) list.scrollTop = top;
       else if (top + active.offsetHeight > list.scrollTop + list.clientHeight) list.scrollTop = top + active.offsetHeight - list.clientHeight;
     };
-    // The navigation stays over the top of the window, so reading starts below it.
-    const headerHeight = Math.round(document.getElementById('top')?.getBoundingClientRect().height || 0);
+    // The navigation (and an editor's toolbar above it) stays over the top of the window, so reading starts below it.
+    const headerHeight = Math.max(0, Math.round(document.getElementById('top')?.getBoundingClientRect().bottom || 0));
     const visible = new Set();
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => (entry.isIntersecting ? visible.add(entry.target) : visible.delete(entry.target)));
