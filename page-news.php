@@ -57,7 +57,7 @@ $news_proof_chips = array_values(array_filter(array_map(static function (array $
     <?php endif; ?>
 </div>
 
-<section id="news-updates" class="page-shell scroll-mt-[120px] pb-20 pt-8 md:pt-10 2xl:pb-24" data-news-filter-root data-news-max-visible="6" data-news-initial-category="<?php echo esc_attr($active_category); ?>">
+<section id="news-updates" class="page-shell scroll-mt-[120px] pb-20 pt-8 md:pt-10 2xl:pb-24" data-news-filter-root data-news-max-visible="9" data-news-initial-category="<?php echo esc_attr($active_category); ?>">
     <div class="mb-14 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
         <div class="boblift-news-view-switch me-auto" aria-label="<?php echo esc_attr((string) ($ui['viewModeLabel'] ?? 'News display mode')); ?>">
             <button class="boblift-news-view-button is-active" type="button" data-news-view-button="grid" aria-pressed="true"><?php echo boblift_icon('grid-3x3', 'h-4 w-4'); ?><span><?php echo esc_html((string) ($ui['defaultViewLabel'] ?? 'Default')); ?></span></button>
@@ -82,7 +82,7 @@ $news_proof_chips = array_values(array_filter(array_map(static function (array $
             foreach ($grid_articles as $article) :
                 $article_category_slug = sanitize_title((string) ($article['category_slug'] ?? $article['category'] ?? 'news'));
                 $matches_initial_filter = $active_category === '' || $active_category === $article_category_slug;
-                $visible_on_load = $matches_initial_filter && $initial_visible_count < 6;
+                $visible_on_load = $matches_initial_filter && $initial_visible_count < 9;
                 if ($visible_on_load) {
                     $initial_visible_count++;
                 }
@@ -93,6 +93,8 @@ $news_proof_chips = array_values(array_filter(array_map(static function (array $
                 </a>
             <?php endforeach; ?>
         </div>
+        <?php $pager_ui = boblift_site_ui('productArchive'); ?>
+        <nav class="mt-10 flex flex-wrap items-center justify-center gap-2<?php echo $initial_visible_count < count($grid_articles) ? '' : ' hidden'; ?>" aria-label="<?php echo esc_attr((string) ($ui['paginationLabel'] ?? 'News pagination')); ?>" data-news-pagination data-previous-label="<?php echo esc_attr((string) ($pager_ui['previousLabel'] ?? 'Previous')); ?>" data-next-label="<?php echo esc_attr((string) ($pager_ui['nextLabel'] ?? 'Next')); ?>"></nav>
         <div class="hidden rounded border border-dashed border-blue-200 bg-blue-50/45 p-8 text-center" data-news-empty>
             <h2 class="text-2xl font-black tracking-[-0.015em] text-ink"><?php echo esc_html($empty_title); ?></h2>
             <p class="mx-auto mt-3 max-w-[560px] text-sm font-normal leading-7 text-slate-600"><?php echo esc_html($empty_text); ?></p>

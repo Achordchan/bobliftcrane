@@ -1125,6 +1125,7 @@ function boblift_site_ui_defaults(?string $section = null): array
             'viewModeLabel' => 'News display mode',
             'defaultViewLabel' => 'Default',
             'listViewLabel' => 'List',
+            'paginationLabel' => 'News pagination',
         ],
         'newsDetail' => [
             'home' => 'Home',
