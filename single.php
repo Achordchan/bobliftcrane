@@ -25,7 +25,8 @@ $modified = get_the_modified_date('Y-m-d');
 $minutes = boblift_news_reading_minutes($content);
 $reading = str_replace('{minutes}', (string) $minutes, (string) ($article_ui['readingTemplate'] ?? '{minutes} min read'));
 // The featured image leads the story unless the text already shows the same picture (most imported stories open with it).
-$image = (string) get_the_post_thumbnail_url($post_id, 'full');
+$image_src = wp_get_attachment_image_src((int) get_post_thumbnail_id($post_id), 'full') ?: ['', 0, 0];
+$image = (string) $image_src[0];
 // Same picture = same upload path (year/month folder and file name), whatever the host, CDN query or size variant.
 $image_stem = static function (string $url): string {
     $path = strtolower((string) wp_parse_url($url, PHP_URL_PATH));
@@ -139,7 +140,7 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
 
             <?php if ($lead_image !== '') : ?>
                 <figure class="mt-8 overflow-hidden rounded border border-line bg-mist">
-                    <img class="h-auto w-full" src="<?php echo esc_url($lead_image); ?>" alt="<?php echo esc_attr($title); ?>" fetchpriority="high" decoding="async">
+                    <img class="h-auto w-full" src="<?php echo esc_url($lead_image); ?>"<?php if ((int) $image_src[1] > 0 && (int) $image_src[2] > 0) : ?> width="<?php echo (int) $image_src[1]; ?>" height="<?php echo (int) $image_src[2]; ?>"<?php endif; ?> alt="<?php echo esc_attr($title); ?>" fetchpriority="high" decoding="async">
                 </figure>
             <?php endif; ?>
 
