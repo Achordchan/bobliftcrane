@@ -52,7 +52,7 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
     </div>
     <div class="page-shell relative z-10 py-8 sm:py-10 lg:flex lg:min-h-[540px] lg:items-center lg:py-16 xl:min-h-[600px] 2xl:min-h-[660px]">
         <div class="flex max-w-xl flex-col lg:w-full lg:max-w-[42%] 2xl:max-w-[40%]">
-            <p class="text-xs font-black uppercase tracking-[0.18em] text-[#0B3F7D] empty:hidden"><?php echo esc_html($hero_text('label')); ?></p>
+            <p class="boblift-kicker empty:hidden"><?php echo esc_html($hero_text('label')); ?></p>
             <div class="grid">
                 <?php foreach ($hero_slides as $index => $slide) :
                     $heading_tag = $index === 0 ? 'h1' : 'h2';
@@ -60,7 +60,7 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
                 ?>
                     <div class="boblift-home-hero-slide [grid-area:1/1]" id="home-hero-slide-<?php echo esc_attr((string) $index); ?>"<?php echo $hero_count > 1 ? ' role="tabpanel" aria-labelledby="home-hero-tab-' . esc_attr((string) $index) . '"' : ''; ?><?php echo $index > 0 ? ' aria-hidden="true"' : ''; ?> data-home-hero-slide>
                         <<?php echo $heading_tag; ?><?php echo $index === 0 ? ' id="home-hero-title"' : ''; ?> class="mt-3 text-[clamp(2.1rem,4vw,4.5rem)] font-black leading-[1.02] tracking-[-0.02em] text-[#0B1B33] [text-wrap:balance] [word-break:auto-phrase]"><?php echo esc_html((string) $slide['title']); ?></<?php echo $heading_tag; ?>>
-                        <p class="mt-5 text-base font-semibold leading-7 text-slate-600 empty:hidden [word-break:auto-phrase] md:text-lg md:leading-8"><?php echo esc_html((string) preg_replace('/(\d)\s+(t|kg|m²)(?![\p{L}\d])/u', "$1\u{00A0}$2", (string) ($slide['text'] ?? ''))); ?></p>
+                        <p class="mt-5 text-base font-normal leading-7 text-slate-600 empty:hidden [word-break:auto-phrase] md:text-lg md:leading-8"><?php echo esc_html((string) preg_replace('/(\d)\s+(t|kg|m²)(?![\p{L}\d])/u', "$1\u{00A0}$2", (string) ($slide['text'] ?? ''))); ?></p>
                         <div class="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
                             <a class="inline-flex h-12 items-center justify-center gap-2 rounded-sm bg-navy px-6 text-sm font-black text-white transition hover:bg-[#0b2d5b]" href="<?php echo esc_url(boblift_url((string) (($slide['primary_href'] ?? '') ?: '/products'))); ?>"><?php echo esc_html((string) (($slide['primary_label'] ?? '') ?: boblift_localized_static_text('View Products'))); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
                             <button class="inline-flex h-12 items-center justify-center gap-2 rounded-sm border border-navy/20 bg-white px-6 text-sm font-black text-navy transition hover:border-blue-300 hover:text-blue-700" type="button" data-inquiry-modal-open data-inquiry-source="<?php echo esc_attr('首页首屏' . ($slide_tab !== '' ? ' · ' . $slide_tab : '')); ?>"><?php echo esc_html($hero_text('secondary_label', 'Request a Quote')); ?></button>
@@ -92,9 +92,9 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
 <section class="page-shell py-6 md:py-8" aria-label="<?php echo esc_attr($home_ui['qualityCertificationsLabel'] ?? 'Quality certifications'); ?>">
     <div class="flex flex-col gap-5 md:flex-row md:items-center md:justify-between md:gap-10">
         <div class="shrink-0">
-            <p class="text-xs font-black uppercase tracking-[0.18em] text-gold"><?php echo esc_html($trust['label'] ?? 'Certified'); ?></p>
+            <p class="boblift-kicker"><?php echo esc_html($trust['label'] ?? 'Certified'); ?></p>
             <p class="mt-1 text-lg font-black leading-snug text-ink"><?php echo esc_html($trust['title'] ?? 'Quality Assurance'); ?></p>
-            <p class="text-sm font-semibold text-slate-500"><?php echo esc_html($trust['description'] ?? 'Export-ready documentation.'); ?></p>
+            <p class="text-sm font-normal text-slate-500"><?php echo esc_html($trust['description'] ?? 'Export-ready documentation.'); ?></p>
         </div>
         <ul class="grid grid-cols-4 items-start gap-4 md:flex md:items-center md:gap-10 lg:gap-14">
             <?php foreach (($trust['marks'] ?? []) as $mark) :
@@ -102,7 +102,7 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
             ?>
                 <li class="flex flex-col items-center gap-2 text-center">
                     <?php echo boblift_img_from_setting($mark['logo'] ?? '', '', $mark_name . ' logo', 'h-8 w-20 max-w-full object-contain md:h-11 md:w-28'); ?>
-                    <span class="hidden text-xs font-semibold leading-4 text-slate-500 md:block"><?php echo esc_html($mark_name); ?></span>
+                    <span class="hidden text-xs font-normal leading-4 text-slate-500 md:block"><?php echo esc_html($mark_name); ?></span>
                 </li>
             <?php endforeach; ?>
         </ul>
@@ -149,7 +149,7 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
         <?php if ($about_stats) : ?>
         <div class="mt-6 grid <?php echo count($about_stats) >= 3 ? 'grid-cols-3' : 'grid-cols-2'; ?> divide-x divide-line border-y border-line sm:mt-8 lg:mt-5 xl:mt-8">
             <?php foreach (array_slice($about_stats, 0, 3) as $stat) : ?>
-                <p class="px-3 py-4 first:pl-0 sm:px-5 sm:py-5"><strong class="block text-2xl font-black leading-none text-ink sm:text-3xl"><?php echo esc_html($stat['value'] ?? ''); ?></strong><span class="mt-2 block text-xs font-semibold leading-4 text-slate-500"><?php echo esc_html($stat['label'] ?? ''); ?></span></p>
+                <p class="px-3 py-4 first:pl-0 sm:px-5 sm:py-5"><strong class="block text-2xl font-black leading-none text-ink sm:text-3xl"><?php echo esc_html($stat['value'] ?? ''); ?></strong><span class="mt-2 block text-xs font-normal leading-4 text-slate-500"><?php echo esc_html($stat['label'] ?? ''); ?></span></p>
             <?php endforeach; ?>
         </div>
         <?php endif; ?>

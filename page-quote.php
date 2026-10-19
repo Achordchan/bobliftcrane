@@ -19,7 +19,7 @@ $workflow_items = is_array($ui['workflowItems'] ?? null) ? array_values(array_fi
                 <div class="rounded border border-white/10 bg-white/8 p-4">
                     <?php echo boblift_icon((string) ($item['iconName'] ?? 'check-circle'), 'h-5 w-5 text-gold'); ?>
                     <h3 class="mt-3 text-base font-black"><?php echo esc_html((string) ($item['title'] ?? 'Quote step')); ?></h3>
-                    <p class="mt-1 text-sm font-semibold leading-6 text-white/70"><?php echo esc_html((string) ($item['text'] ?? '')); ?></p>
+                    <p class="mt-1 text-sm font-normal leading-6 text-white/70"><?php echo esc_html((string) ($item['text'] ?? '')); ?></p>
                 </div>
             <?php endforeach; ?>
         </div>

@@ -101,7 +101,7 @@ $product_result = static function (array $product) use ($highlight, $view_detail
             <img class="absolute inset-0 h-full w-full transition duration-500 group-hover:scale-[1.03] <?php echo esc_attr($image_class); ?>" src="<?php echo esc_url($image); ?>" alt="<?php echo esc_attr($title); ?>" loading="lazy" decoding="async">
         </div>
         <div class="flex min-w-0 flex-1 flex-col p-4 sm:p-5">
-            <p class="line-clamp-2 text-[13px] font-semibold leading-5 text-slate-500"><?php echo $highlight($name); ?></p>
+            <p class="line-clamp-2 text-[13px] font-normal leading-5 text-slate-500"><?php echo $highlight($name); ?></p>
             <h3 class="mt-1 break-words text-xl font-black sm:text-2xl uppercase leading-tight tracking-[0.02em] text-[#0B3F7D]"><?php echo $highlight($model !== '' ? $model : $title); ?></h3>
             <?php $specs = boblift_product_card_specs($product); if ($specs) : ?>
                 <dl class="mt-3 grid grid-cols-2 gap-3 border-t border-[#E5E7EB] pt-3 sm:mt-4 sm:grid-cols-3 sm:pt-4 [&>div:nth-child(3)]:hidden sm:[&>div:nth-child(3)]:block">
@@ -135,7 +135,7 @@ $post_result = static function (WP_Post $post) use ($highlight): void {
         <div class="min-w-0 py-0.5 sm:py-2">
             <?php if ($meta) : ?><p class="truncate text-xs font-bold text-slate-400"><?php echo esc_html(implode(' · ', $meta)); ?></p><?php endif; ?>
             <h3 class="mt-1.5 line-clamp-2 text-base font-black leading-snug text-ink transition group-hover:text-blue-700 sm:text-lg"><?php echo $highlight($title); ?></h3>
-            <?php if ($excerpt !== '') : ?><p class="mt-2 hidden text-sm font-semibold leading-6 text-slate-600 sm:line-clamp-2"><?php echo $highlight(wp_strip_all_tags($excerpt)); ?></p><?php endif; ?>
+            <?php if ($excerpt !== '') : ?><p class="mt-2 hidden text-sm font-normal leading-6 text-slate-600 sm:line-clamp-2"><?php echo $highlight(wp_strip_all_tags($excerpt)); ?></p><?php endif; ?>
         </div>
     </a>
     <?php
@@ -169,7 +169,7 @@ $category_links = static function () use ($families): void {
 <section class="boblift-search bg-[#F8FAFC] pb-16 pt-6 md:pb-24 md:pt-10">
     <div class="page-shell">
         <header class="rounded border border-line bg-white px-5 pt-7 shadow-card sm:px-8 md:pt-10 xl:px-12 <?php echo $query !== '' ? '' : 'pb-8 md:pb-12'; ?>">
-            <p class="text-xs font-black uppercase tracking-[0.18em] text-[#0B3F7D]"><?php echo esc_html($ui['pageLabel'] ?? 'Search results'); ?></p>
+            <p class="boblift-kicker"><?php echo esc_html($ui['pageLabel'] ?? 'Search results'); ?></p>
             <h1 class="mt-3 break-words text-[clamp(1.75rem,2.6vw,3rem)] font-black leading-[1.08] tracking-[-0.02em] text-[#0B1B33]">
                 <?php if ($query !== '') :
                     echo str_replace('{query}', '<span class="text-blue-700">' . esc_html($query) . '</span>', esc_html((string) ($ui['titleTemplate'] ?? 'Results for “{query}”')));
@@ -178,13 +178,13 @@ $category_links = static function () use ($families): void {
                 endif; ?>
             </h1>
             <?php if ($query === '') : ?>
-                <p class="mt-3 max-w-2xl text-sm font-semibold leading-7 text-slate-600 md:text-base"><?php echo esc_html($format((string) ($ui['emptyQueryText'] ?? ''), ['{example}' => $example_model])); ?></p>
+                <p class="mt-3 max-w-2xl text-sm font-normal leading-7 text-slate-600 md:text-base"><?php echo esc_html($format((string) ($ui['emptyQueryText'] ?? ''), ['{example}' => $example_model])); ?></p>
             <?php endif; ?>
             <form class="mt-6 flex max-w-3xl gap-2 md:gap-3" role="search" method="get" action="<?php echo esc_url(home_url('/')); ?>">
                 <label class="relative min-w-0 flex-1">
                     <span class="sr-only"><?php echo esc_html($ui['inputLabel'] ?? 'Search products and articles'); ?></span>
                     <?php echo boblift_icon('search', 'pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400'); ?>
-                    <input class="h-12 w-full rounded-sm border border-[#D8DEE8] bg-white pl-11 pr-4 text-base font-bold text-ink outline-none transition placeholder:font-semibold placeholder:text-slate-400 focus:border-navy focus:ring-4 focus:ring-blue-100 md:h-14 [&::-webkit-search-cancel-button]:hidden" type="search" name="s" value="<?php echo esc_attr($query); ?>" placeholder="<?php echo esc_attr($ui['placeholder'] ?? 'Search a model, crane type or topic'); ?>" autocomplete="off" enterkeyhint="search" <?php echo $query === '' ? 'autofocus' : ''; ?>>
+                    <input class="h-12 w-full rounded-sm border border-[#D8DEE8] bg-white pl-11 pr-4 text-base font-bold text-ink outline-none transition placeholder:font-normal placeholder:text-slate-400 focus:border-navy focus:ring-4 focus:ring-blue-100 md:h-14 [&::-webkit-search-cancel-button]:hidden" type="search" name="s" value="<?php echo esc_attr($query); ?>" placeholder="<?php echo esc_attr($ui['placeholder'] ?? 'Search a model, crane type or topic'); ?>" autocomplete="off" enterkeyhint="search" <?php echo $query === '' ? 'autofocus' : ''; ?>>
                 </label>
                 <?php if ($type !== '') : ?><input type="hidden" name="type" value="<?php echo esc_attr($type); ?>"><?php endif; ?>
                 <button class="inline-flex h-12 shrink-0 items-center justify-center rounded-sm bg-navy px-5 text-sm font-black text-white transition hover:bg-[#0b2d5b] md:h-14 md:px-8 md:text-base" type="submit"><?php echo esc_html($ui['submitLabel'] ?? 'Search'); ?></button>
@@ -217,7 +217,7 @@ $category_links = static function () use ($families): void {
             <div class="mt-6 rounded border border-line bg-white px-5 py-10 text-center shadow-card sm:px-8 md:mt-8 md:py-14">
                 <span class="mx-auto grid h-14 w-14 place-items-center rounded-sm bg-mist text-slate-400"><?php echo boblift_icon('search-x', 'h-7 w-7'); ?></span>
                 <h2 class="mx-auto mt-5 max-w-2xl break-words text-2xl font-black text-ink"><?php echo esc_html(str_replace('{query}', $query, (string) ($ui['noResultsTitle'] ?? 'No results for “{query}”'))); ?></h2>
-                <p class="mx-auto mt-3 max-w-xl text-sm font-semibold leading-7 text-slate-600"><?php echo esc_html($ui['noResultsText'] ?? ''); ?></p>
+                <p class="mx-auto mt-3 max-w-xl text-sm font-normal leading-7 text-slate-600"><?php echo esc_html($ui['noResultsText'] ?? ''); ?></p>
                 <div class="mt-6 flex justify-center"><?php $category_links(); ?></div>
             </div>
         <?php elseif ($query !== '') : ?>
@@ -267,7 +267,7 @@ $category_links = static function () use ($families): void {
             <aside class="mt-10 flex flex-col gap-5 rounded border border-line bg-white px-5 py-6 shadow-card sm:px-8 md:mt-12 md:flex-row md:items-center md:justify-between xl:px-12">
                 <div>
                     <h2 class="text-lg font-black text-ink md:text-xl"><?php echo esc_html($ui['helpTitle'] ?? 'Not sure which crane fits?'); ?></h2>
-                    <p class="mt-1.5 max-w-2xl text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html($ui['helpText'] ?? ''); ?></p>
+                    <p class="mt-1.5 max-w-2xl text-sm font-normal leading-6 text-slate-600"><?php echo esc_html($ui['helpText'] ?? ''); ?></p>
                 </div>
                 <button class="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-sm bg-navy px-6 text-sm font-black text-white transition hover:bg-[#0b2d5b]" type="button" data-inquiry-modal-open data-inquiry-source="搜索页"><?php echo esc_html($ui['helpButton'] ?? 'Ask an engineer'); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
             </aside>

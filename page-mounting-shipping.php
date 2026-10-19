@@ -52,40 +52,69 @@ $pad = static fn(int $n): string => str_pad((string) $n, 2, '0', STR_PAD_LEFT);
         'image_alt' => (string) ($ui['heroImageAlt'] ?? ''),
         'image_position' => 'center 55%',
     ]);
+    $steps_count = static fn(int $count): string => str_replace('{count}', (string) $count, boblift_localized_static_text('{count} steps'));
+    // The two ways a crane leaves the factory, each leading to its steps below.
+    $routes = ['mount' => 'finished-truck-arm', 'pack' => 'pack-wrapped-hall'];
     ?>
+    <nav class="mt-4 grid gap-3 md:mt-5 md:grid-cols-2 md:gap-4" aria-label="<?php echo esc_attr((string) ($ui['heroLabel'] ?? 'Truck Mounting & Export')); ?>">
+        <?php foreach ($routes as $section => $route_photo) : if (($sections[$section] ?? []) === []) continue; $route_image = $photo($route_photo); ?>
+            <a class="group grid grid-cols-[112px_minmax(0,1fr)] overflow-hidden rounded border border-line bg-white shadow-card transition hover:border-blue-300 sm:grid-cols-[180px_minmax(0,1fr)]" href="#mounting-<?php echo esc_attr($section); ?>">
+                <span class="relative block overflow-hidden bg-[#EDF1F5]"><img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" src="<?php echo esc_url($route_image['thumb']); ?>" alt="" loading="lazy" decoding="async"></span>
+                <span class="flex min-w-0 flex-col justify-between gap-3 p-4 sm:p-5">
+                    <span>
+                        <span class="block text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html((string) ($ui[$section . 'Label'] ?? '')); ?></span>
+                        <span class="mt-1.5 block text-base font-black leading-snug text-ink sm:text-lg"><?php echo esc_html((string) ($ui[$section . 'Title'] ?? '')); ?></span>
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 text-sm font-black text-blue-700"><?php echo esc_html($steps_count(count($sections[$section]))); ?><?php echo boblift_icon('arrow-down', 'h-4 w-4 transition group-hover:translate-y-0.5'); ?></span>
+                </span>
+            </a>
+        <?php endforeach; ?>
+    </nav>
 </div>
 
 <div data-detail-viewer data-detail-images="<?php echo esc_attr(wp_json_encode($gallery, JSON_UNESCAPED_SLASHES)); ?>" data-detail-alt="<?php echo esc_attr((string) ($ui['heroLabel'] ?? 'Truck Mounting & Export')); ?>" data-detail-captions="<?php echo esc_attr(wp_json_encode($captions, JSON_UNESCAPED_UNICODE)); ?>">
-<?php foreach (['mount' => 'py-12 md:py-16', 'pack' => 'border-t border-line bg-mist py-12 md:py-16'] as $section => $section_class) : if (($sections[$section] ?? []) === []) continue; ?>
-<section class="<?php echo esc_attr($section_class); ?>" aria-labelledby="mounting-<?php echo esc_attr($section); ?>-title">
-    <div class="page-shell grid gap-12 md:gap-16">
-        <div>
-            <p class="section-label mb-3"><?php echo esc_html((string) ($ui[$section . 'Label'] ?? '')); ?></p>
-            <h2 id="mounting-<?php echo esc_attr($section); ?>-title" class="max-w-[26ch] text-[clamp(1.75rem,2.8vw,3rem)] font-black leading-[1.05] tracking-[-0.015em] text-ink"><?php echo esc_html((string) ($ui[$section . 'Title'] ?? '')); ?></h2>
+<?php foreach (['mount' => 'py-12 md:py-16', 'pack' => 'border-y border-line bg-mist py-12 md:py-16'] as $section => $section_class) : if (($sections[$section] ?? []) === []) continue;
+    $section_steps = $sections[$section];
+    // A thumbnail row only where some step has three photos or more; with one extra photo each, a count on the lead photo is enough.
+    $section_thumbs = max(array_map(static fn(array $step): int => count($step['photos']), $section_steps)) >= 3;
+    ?>
+<section id="mounting-<?php echo esc_attr($section); ?>" class="scroll-mt-24 <?php echo esc_attr($section_class); ?>" aria-labelledby="mounting-<?php echo esc_attr($section); ?>-title">
+    <div class="page-shell">
+        <div class="flex flex-wrap items-end justify-between gap-x-8 gap-y-2">
+            <div>
+                <p class="section-label mb-3"><?php echo esc_html((string) ($ui[$section . 'Label'] ?? '')); ?></p>
+                <h2 id="mounting-<?php echo esc_attr($section); ?>-title" class="max-w-[26ch] text-[clamp(1.75rem,2.8vw,3rem)] font-black leading-[1.05] tracking-[-0.015em] text-ink"><?php echo esc_html((string) ($ui[$section . 'Title'] ?? '')); ?></h2>
+            </div>
+            <p class="text-sm font-black text-slate-500"><?php echo esc_html($steps_count(count($section_steps))); ?></p>
         </div>
-        <?php foreach ($sections[$section] as $number => $step) : $photos = $step['photos']; $lead = array_shift($photos); ?>
-            <article class="grid gap-5 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,2fr)] lg:gap-10" aria-labelledby="mounting-step-<?php echo esc_attr((string) $step['key']); ?>">
-                <div class="lg:self-center">
-                    <p class="text-xs font-black uppercase tracking-[0.14em] text-blue-700"><?php echo esc_html(str_replace('{number}', $pad($number + 1), (string) ($ui['stepLabel'] ?? 'Step {number}'))); ?></p>
-                    <h3 id="mounting-step-<?php echo esc_attr((string) $step['key']); ?>" class="mt-2 text-[clamp(1.5rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-ink"><?php echo esc_html((string) $step['title']); ?></h3>
-                    <p class="mt-3 max-w-md text-sm font-semibold leading-7 text-slate-600 md:text-base"><?php echo esc_html((string) ($step['text'] ?? '')); ?></p>
-                </div>
-                <?php
-                // Literal class names so Tailwind keeps them: the lead photo spans two rows beside the smaller ones.
-                $mosaic = [0 => ['grid-cols-1', 'col-span-1'], 1 => ['grid-cols-2', 'col-span-1'], 2 => ['grid-cols-2 md:grid-cols-3', 'col-span-2 md:row-span-2'], 3 => ['grid-cols-2 md:grid-cols-3', 'col-span-2 md:col-span-3']][count($photos)] ?? ['grid-cols-2 md:grid-cols-3', 'col-span-2 md:col-span-3'];
-                ?>
-                <div class="grid gap-2 sm:gap-3 <?php echo esc_attr($mosaic[0]); ?>">
-                    <button class="group relative overflow-hidden rounded bg-white <?php echo esc_attr($mosaic[1]); ?>" type="button" data-detail-open="<?php echo esc_attr((string) $lead['index']); ?>" aria-label="<?php echo esc_attr((string) $step['title'] . ' ' . $pad($lead['index'] + 1)); ?>">
-                        <img class="aspect-[4/3] h-full w-full object-cover transition duration-500 group-hover:scale-[1.03] <?php echo count($photos) === 2 ? 'md:aspect-auto' : (count($photos) === 3 ? 'md:aspect-[16/7]' : ''); ?>" src="<?php echo esc_url($lead['full']); ?>" alt="<?php echo esc_attr((string) $step['title']); ?>" loading="lazy" decoding="async">
+        <?php // One row of steps on desktop, joined by a numbered rail; photo, then title and text, so every column lines up.
+        // Phones get one compact row per step (photo left, text right); the extra photos stay in the viewer. ?>
+        <ol class="mt-6 grid gap-x-5 gap-y-6 sm:mt-8 sm:grid-cols-2 sm:gap-y-10 md:mt-10 <?php echo count($section_steps) >= 4 ? 'lg:grid-cols-4' : 'lg:grid-cols-3'; ?>">
+            <?php foreach ($section_steps as $number => $step) : $photos = $step['photos']; $lead = array_shift($photos); $is_last = $number === count($section_steps) - 1; ?>
+                <li class="grid min-w-0 grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)] content-start gap-x-4 sm:flex sm:flex-col" aria-labelledby="mounting-step-<?php echo esc_attr((string) $step['key']); ?>">
+                    <div class="col-start-2 row-start-1 flex items-center gap-3" aria-hidden="true">
+                        <span class="grid size-8 shrink-0 place-items-center rounded-sm bg-[#071f42] text-xs font-black sm:size-9 text-white [font-variant-numeric:tabular-nums]"><?php echo esc_html($pad($number + 1)); ?></span>
+                        <?php if (!$is_last) : ?><span class="hidden h-px flex-1 bg-[#C9D6E6] lg:block"></span><?php endif; ?>
+                    </div>
+                    <button class="group relative col-start-1 row-span-3 row-start-1 block self-start overflow-hidden rounded bg-[#EDF1F5] sm:mt-4" type="button" data-detail-open="<?php echo esc_attr((string) $lead['index']); ?>" aria-label="<?php echo esc_attr((string) $step['title'] . ' ' . $pad($lead['index'] + 1)); ?>">
+                        <img class="aspect-[4/3] w-full object-cover transition duration-500 group-hover:scale-[1.03]" src="<?php echo esc_url($lead['full']); ?>" alt="<?php echo esc_attr((string) $step['title']); ?>" loading="lazy" decoding="async">
+                        <?php if (!$section_thumbs && $photos) : ?><span class="absolute bottom-2 right-2 inline-flex items-center gap-1.5 rounded-sm bg-[#071f42]/80 px-2 py-1 text-xs font-black text-white [font-variant-numeric:tabular-nums]"><?php echo boblift_icon('images', 'h-3.5 w-3.5'); ?><?php echo esc_html((string) (count($photos) + 1)); ?></span><?php endif; ?>
                     </button>
-                    <?php foreach ($photos as $item) : ?>
-                        <button class="group relative overflow-hidden rounded bg-white" type="button" data-detail-open="<?php echo esc_attr((string) $item['index']); ?>" aria-label="<?php echo esc_attr((string) $step['title'] . ' ' . $pad($item['index'] + 1)); ?>">
-                            <img class="aspect-[4/3] h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" src="<?php echo esc_url($item['thumb']); ?>" alt="<?php echo esc_attr((string) $step['title']); ?>" loading="lazy" decoding="async">
-                        </button>
-                    <?php endforeach; ?>
-                </div>
-            </article>
-        <?php endforeach; ?>
+                    <?php if ($section_thumbs) : ?>
+                    <?php // A fixed row of three slots, so the titles below stay on one line across the steps. ?>
+                    <div class="mt-2 hidden grid-cols-3 gap-2 sm:grid">
+                        <?php foreach (array_slice($photos, 0, 3) as $item) : ?>
+                            <button class="group relative block overflow-hidden rounded-sm bg-[#EDF1F5]" type="button" data-detail-open="<?php echo esc_attr((string) $item['index']); ?>" aria-label="<?php echo esc_attr((string) $step['title'] . ' ' . $pad($item['index'] + 1)); ?>">
+                                <img class="aspect-[4/3] w-full object-cover transition duration-500 group-hover:scale-[1.06]" src="<?php echo esc_url($item['thumb']); ?>" alt="" loading="lazy" decoding="async">
+                            </button>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php endif; ?>
+                    <h3 id="mounting-step-<?php echo esc_attr((string) $step['key']); ?>" class="col-start-2 mt-3 text-base font-black leading-snug tracking-[-0.01em] text-ink sm:mt-5 sm:text-lg md:text-xl"><?php echo esc_html((string) $step['title']); ?></h3>
+                    <p class="col-start-2 mt-1.5 text-[13px] font-normal leading-5 text-slate-600 sm:mt-2 sm:text-sm sm:leading-6 md:text-[15px]"><?php echo esc_html((string) ($step['text'] ?? '')); ?></p>
+                </li>
+            <?php endforeach; ?>
+        </ol>
     </div>
 </section>
 <?php endforeach; ?>
@@ -104,36 +133,30 @@ $pad = static fn(int $n): string => str_pad((string) $n, 2, '0', STR_PAD_LEFT);
     </div>
 </div>
 
-<?php if ($needs !== []) : ?>
+<?php // The questions sales will ask and the inquiry buttons in one closing block (the old separate CTA repeated the questions). ?>
 <section class="page-shell py-12 md:py-16" aria-labelledby="mounting-needs-title">
-    <div class="grid gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,2fr)] lg:gap-10">
-        <div class="lg:sticky lg:top-24 lg:self-start">
-            <p class="section-label mb-3"><?php echo esc_html((string) ($ui['needsLabel'] ?? '')); ?></p>
-            <h2 id="mounting-needs-title" class="text-[clamp(1.5rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-ink"><?php echo esc_html((string) ($ui['needsTitle'] ?? '')); ?></h2>
-            <p class="mt-3 max-w-md text-sm font-semibold leading-7 text-slate-600 md:text-base"><?php echo esc_html((string) ($ui['needsText'] ?? '')); ?></p>
+    <div class="grid overflow-hidden rounded bg-navy text-white lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+        <div class="flex flex-col justify-between gap-8 p-6 sm:p-10 xl:p-12">
+            <div>
+                <p class="text-[11px] font-black uppercase tracking-[0.18em] text-gold"><?php echo esc_html((string) ($ui['needsLabel'] ?? '')); ?></p>
+                <h2 id="mounting-needs-title" class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em]"><?php echo esc_html((string) ($ui['needsTitle'] ?? '')); ?></h2>
+                <p class="mt-3 max-w-md text-sm font-normal leading-7 text-white/75 md:text-base"><?php echo esc_html((string) ($ui['needsText'] ?? '')); ?></p>
+            </div>
+            <div class="flex flex-wrap gap-3">
+                <button class="inline-flex h-12 items-center justify-center gap-2 rounded-sm bg-white px-6 text-sm font-black text-navy transition hover:bg-blue-50" type="button" data-inquiry-modal-open data-inquiry-source="装车出口页"><?php echo esc_html((string) ($ui['ctaButton'] ?? 'Send an Inquiry')); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
+                <a class="inline-flex h-12 items-center justify-center rounded-sm border border-white/30 px-6 text-sm font-black text-white transition hover:border-white" href="<?php echo esc_url(boblift_url('/contact.html')); ?>"><?php echo esc_html((string) ($ui['ctaLink'] ?? 'Contact us')); ?></a>
+            </div>
         </div>
-        <ol class="grid gap-3 sm:grid-cols-2 md:gap-4">
-            <?php foreach ($needs as $index => $need) : ?>
-                <li class="rounded border border-line bg-white p-5 shadow-card">
-                    <span class="text-xs font-black tabular-nums tracking-[0.14em] text-blue-700"><?php echo esc_html($pad($index + 1)); ?></span>
-                    <p class="mt-2 text-base font-black leading-6 text-ink"><?php echo esc_html($need); ?></p>
-                </li>
-            <?php endforeach; ?>
-        </ol>
-    </div>
-</section>
-<?php endif; ?>
-
-<section class="page-shell pb-12 md:pb-16" aria-labelledby="mounting-cta-title">
-    <div class="flex flex-col gap-6 rounded bg-navy p-6 text-white sm:p-10 lg:flex-row lg:items-center lg:justify-between xl:p-12">
-        <div class="max-w-2xl">
-            <h2 id="mounting-cta-title" class="text-[clamp(1.5rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em]"><?php echo esc_html((string) ($ui['ctaTitle'] ?? '')); ?></h2>
-            <p class="mt-3 text-sm font-semibold leading-7 text-white/75 md:text-base"><?php echo esc_html((string) ($ui['ctaText'] ?? '')); ?></p>
-        </div>
-        <div class="flex shrink-0 flex-wrap gap-3">
-            <button class="inline-flex h-12 items-center justify-center gap-2 rounded-sm bg-white px-6 text-sm font-black text-navy transition hover:-translate-y-0.5 hover:bg-blue-50" type="button" data-inquiry-modal-open data-inquiry-source="装车出口页"><?php echo esc_html((string) ($ui['ctaButton'] ?? 'Send an Inquiry')); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
-            <a class="inline-flex h-12 items-center justify-center rounded-sm border border-white/30 px-6 text-sm font-black text-white transition hover:border-white" href="<?php echo esc_url(boblift_url('/contact.html')); ?>"><?php echo esc_html((string) ($ui['ctaLink'] ?? 'Contact us')); ?></a>
-        </div>
+        <?php if ($needs !== []) : ?>
+            <ol class="divide-y divide-white/10 border-t border-white/10 px-6 sm:px-10 lg:border-s lg:border-t-0 xl:px-12">
+                <?php foreach ($needs as $index => $need) : ?>
+                    <li class="flex items-start gap-4 py-5 md:py-6">
+                        <span class="grid size-8 shrink-0 place-items-center rounded-sm border border-white/25 text-xs font-black text-white/80 [font-variant-numeric:tabular-nums]"><?php echo esc_html($pad($index + 1)); ?></span>
+                        <p class="pt-1 text-base font-black leading-6 md:text-lg"><?php echo esc_html($need); ?></p>
+                    </li>
+                <?php endforeach; ?>
+            </ol>
+        <?php endif; ?>
     </div>
 </section>
 

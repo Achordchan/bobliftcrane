@@ -26,16 +26,18 @@ function boblift_register_content_types(): void
         'supports' => ['title', 'editor', 'excerpt', 'thumbnail', 'revisions'],
     ]);
 
-    // Customer feedback: photos and videos customers send back. Language-neutral on purpose (only country
-    // and model are shown, stored per language in meta), so one entry serves every language of the site.
+    // Customer feedback: photos and videos customers send back, written up as an article (editor body, featured image,
+    // excerpt). Language-neutral on purpose: country and model are stored per language in meta, and the one article body
+    // serves every language of the site.
     register_post_type('feedback', [
         'labels' => boblift_post_type_labels('客户反馈', '客户反馈'),
         'public' => true,
+        'show_in_rest' => true,
         'has_archive' => false,
         'rewrite' => ['slug' => 'feedback', 'with_front' => false],
         'menu_icon' => 'dashicons-format-gallery',
         'exclude_from_search' => true,
-        'supports' => ['title', 'page-attributes'],
+        'supports' => ['title', 'editor', 'excerpt', 'thumbnail', 'revisions', 'page-attributes'],
     ]);
 
     register_post_type('inquiry', [
@@ -1638,7 +1640,6 @@ function boblift_feedback_meta_box(WP_Post $post): void
     wp_nonce_field('boblift_feedback_meta', 'boblift_feedback_nonce');
     $country = json_decode((string) get_post_meta($post->ID, '_feedback_country', true), true) ?: [];
     $note = json_decode((string) get_post_meta($post->ID, '_feedback_note', true), true) ?: [];
-    $body = json_decode((string) get_post_meta($post->ID, '_feedback_body', true), true) ?: [];
     $ids = array_filter(array_map('intval', explode(',', (string) get_post_meta($post->ID, '_feedback_media', true))));
     ?>
     <style>.boblift-feedback-box .boblift-admin-field{display:grid;grid-template-columns:170px minmax(0,1fr);gap:12px;margin:0 0 12px}.boblift-feedback-box input[type=text]{width:100%;max-width:520px;margin-bottom:6px}</style>
@@ -1654,13 +1655,7 @@ function boblift_feedback_meta_box(WP_Post $post): void
             <input type="text" name="boblift_feedback[note_<?php echo esc_attr($lang); ?>]" value="<?php echo esc_attr((string) ($note[$lang] ?? '')); ?>" placeholder="<?php echo esc_attr($lang === 'en' ? 'with clamshell bucket' : $lang_label); ?>">
         <?php endforeach; ?>
     </div></div>
-    <div class="boblift-admin-field"><label>正文（各语言，可空）</label><div class="boblift-feedback-body">
-        <?php foreach ($languages as $lang => $lang_label) : ?>
-            <p class="description" style="margin:0 0 4px"><?php echo esc_html($lang_label); ?></p>
-            <textarea name="boblift_feedback[body_<?php echo esc_attr($lang); ?>]" rows="5" style="width:100%;max-width:720px;margin-bottom:10px"><?php echo esc_textarea((string) ($body[$lang] ?? '')); ?></textarea>
-        <?php endforeach; ?>
-        <p class="description">显示在详情页图片下方，空行分段。留空时详情页只显示图片 / 视频。同样不要写客户姓名、公司名。</p>
-    </div></div>
+    <p class="boblift-admin-help">文章正文、摘要和特色图在编辑器里填写，所有语言共用同一篇正文。正文显示在详情页图片 / 视频下方，留空时只显示图片 / 视频；特色图作为列表封面，不设时用下面第一张图。同样不要写客户姓名、公司名。</p>
     <div class="boblift-admin-field"><label>关联产品</label><div><?php boblift_render_related_products_field('boblift_feedback[related]', $post->ID); ?></div></div>
     <div class="boblift-admin-field"><label>图片 / 视频</label><?php boblift_render_media_picker('boblift_feedback[media]', $ids, ['image', 'video'], '可多选；按选择顺序显示，第一张作为封面。视频建议 60 秒以内、720p、无声。'); ?></div>
     </div>
@@ -1806,8 +1801,6 @@ function boblift_save_feedback_meta(int $post_id): void
     update_post_meta($post_id, '_feedback_country', wp_slash(wp_json_encode($country, JSON_UNESCAPED_UNICODE)));
     $note = $save_languages('_feedback_note', 'note_', false);
     update_post_meta($post_id, '_feedback_note', array_filter($note) ? wp_slash(wp_json_encode($note, JSON_UNESCAPED_UNICODE)) : '');
-    $body = $save_languages('_feedback_body', 'body_', true);
-    update_post_meta($post_id, '_feedback_body', array_filter($body) ? wp_slash(wp_json_encode($body, JSON_UNESCAPED_UNICODE)) : '');
     update_post_meta($post_id, '_feedback_model', $text('model'));
     boblift_save_related_products($post_id, $data['related'] ?? null);
     update_post_meta($post_id, '_feedback_media', implode(',', array_filter(array_map('intval', explode(',', $text('media'))))));

@@ -93,7 +93,7 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
 <section class="rounded border border-navy bg-navy p-5 text-white">
                 <?php if ($legacy_cta_label !== '') : ?><p class="mb-2 text-xs font-black uppercase tracking-[0.14em] text-white/70"><?php echo esc_html($legacy_cta_label); ?></p><?php endif; ?>
                 <h2 class="text-lg font-black leading-snug"><?php echo esc_html((string) ($article_ui['contactTitle'] ?? '')); ?></h2>
-                <p class="mt-2 text-sm font-semibold leading-6 text-white/70"><?php echo esc_html((string) ($article_ui['contactText'] ?? '')); ?></p>
+                <p class="mt-2 text-sm font-normal leading-6 text-white/70"><?php echo esc_html((string) ($article_ui['contactText'] ?? '')); ?></p>
                 <a class="btn-white mt-4 w-full justify-center rounded-sm" href="<?php echo esc_url(boblift_url('/contact.html#inquiry')); ?>" data-inquiry-modal-open data-inquiry-source="新闻详情"><?php echo esc_html((string) ($article_ui['contactButton'] ?? 'Request a Quote')); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
                 <div class="mt-4 grid gap-2 border-t border-white/15 pt-4 text-sm font-bold">
                     <a class="inline-flex min-w-0 items-center gap-2 text-white/85 transition hover:text-white" href="<?php echo esc_url($contact['whatsappHref']); ?>" target="_blank" rel="noreferrer"><?php echo boblift_icon('whatsapp', 'h-4 w-4 shrink-0'); ?><span class="truncate"><?php echo esc_html((string) ($article_ui['whatsappLabel'] ?? 'WhatsApp')); ?> · <?php echo esc_html($contact['whatsapp']); ?></span></a>
@@ -137,7 +137,7 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
                             <span class="grid h-11 w-11 shrink-0 place-items-center rounded-sm bg-navy text-white"><?php echo boblift_icon('building-2', 'h-5 w-5'); ?></span>
                             <div class="min-w-0">
                                 <p class="text-sm font-black leading-tight text-ink"><?php echo esc_html((string) ($article_ui['authorName'] ?? 'BOB-LIFT Editorial Team')); ?></p>
-                                <p class="mt-1 text-xs font-semibold leading-5 text-slate-500"><?php echo esc_html((string) ($article_ui['authorText'] ?? '')); ?></p>
+                                <p class="mt-1 text-xs font-normal leading-5 text-slate-500"><?php echo esc_html((string) ($article_ui['authorText'] ?? '')); ?></p>
                             </div>
                         </div>
                         <dl class="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-line pt-4 text-xs">

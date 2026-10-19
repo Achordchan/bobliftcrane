@@ -44,9 +44,9 @@ $others = array_slice($others, 0, 4);
 
     <header class="mt-5 flex flex-col gap-5 border-b border-line pb-5 md:mt-6 md:flex-row md:items-end md:justify-between md:pb-6">
         <div class="min-w-0">
-            <p class="text-xs font-black uppercase tracking-[0.18em] text-blue-700"><?php echo esc_html($feedback_label); ?></p>
+            <p class="boblift-kicker"><?php echo esc_html($feedback_label); ?></p>
             <h1 class="mt-3 text-4xl font-black leading-none tracking-[-0.02em] text-ink md:text-[3.25rem]"><?php echo esc_html($feedback['model']); ?></h1>
-            <?php if ($feedback['note'] !== '') : ?><p class="mt-3 text-base font-semibold text-slate-600 md:text-lg"><?php echo esc_html($feedback['note']); ?></p><?php endif; ?>
+            <?php if ($feedback['note'] !== '') : ?><p class="mt-3 text-base font-normal text-slate-600 md:text-lg"><?php echo esc_html($feedback['note']); ?></p><?php endif; ?>
         </div>
         <dl class="grid shrink-0 grid-cols-2 gap-x-10 gap-y-1 text-sm md:text-right">
             <?php if ($feedback['country'] !== '') : ?>
@@ -92,9 +92,10 @@ $others = array_slice($others, 0, 4);
         <?php endif; ?>
     </section>
 
-    <?php if ($feedback['body'] !== '') : ?>
+    <?php // The article body from the editor, shared by every language. ?>
+    <?php if (trim((string) get_post_field('post_content', get_the_ID())) !== '') : ?>
         <div class="boblift-story-prose mx-auto mt-12 max-w-[760px] md:mt-16">
-            <?php echo wp_kses_post(wpautop(esc_html($feedback['body']))); ?>
+            <?php the_content(); ?>
         </div>
     <?php endif; ?>
 

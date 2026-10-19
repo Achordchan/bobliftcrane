@@ -35,7 +35,7 @@ $has_video = $featured !== [] || $batch || $tests !== [];
                 <li class="rounded border border-line bg-white p-5 shadow-card md:p-6">
                     <span class="text-xs font-black tabular-nums tracking-[0.14em] text-blue-700"><?php echo esc_html(str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT)); ?></span>
                     <h3 class="mt-2 text-lg font-black text-ink md:text-xl"><?php echo esc_html((string) $step['title']); ?></h3>
-                    <p class="mt-2 text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html((string) ($step['text'] ?? '')); ?></p>
+                    <p class="mt-2 text-sm font-normal leading-6 text-slate-600"><?php echo esc_html((string) ($step['text'] ?? '')); ?></p>
                 </li>
             <?php endforeach; ?>
         </ol>
@@ -58,7 +58,7 @@ $has_video = $featured !== [] || $batch || $tests !== [];
                 <?php boblift_render_video_card($batch); ?>
                 <div>
                     <h2 class="text-[clamp(1.4rem,2vw,2rem)] font-black leading-tight tracking-[-0.01em] text-ink"><?php echo esc_html((string) ($ui['batchTitle'] ?? '')); ?></h2>
-                    <p class="mt-3 text-sm font-semibold leading-7 text-slate-600 md:text-base"><?php echo esc_html((string) ($ui['batchText'] ?? '')); ?></p>
+                    <p class="mt-3 text-sm font-normal leading-7 text-slate-600 md:text-base"><?php echo esc_html((string) ($ui['batchText'] ?? '')); ?></p>
                 </div>
             </div>
         <?php endif; ?>
@@ -80,14 +80,14 @@ $has_video = $featured !== [] || $batch || $tests !== [];
         <div class="flex flex-col justify-between gap-5 rounded border border-line bg-white p-6 shadow-card sm:p-8">
             <div>
                 <h2 class="text-xl font-black text-ink md:text-2xl"><?php echo esc_html((string) ($ui['certificatesTitle'] ?? 'Certificates')); ?></h2>
-                <p class="mt-2 text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html((string) ($ui['certificatesText'] ?? '')); ?></p>
+                <p class="mt-2 text-sm font-normal leading-6 text-slate-600"><?php echo esc_html((string) ($ui['certificatesText'] ?? '')); ?></p>
             </div>
             <a class="inline-flex w-fit items-center gap-1.5 text-sm font-black text-blue-700 hover:text-blue-900" href="<?php echo esc_url(boblift_url('/about.html') . '#about-certifications'); ?>"><?php echo esc_html((string) ($ui['certificatesLink'] ?? 'View certificates')); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
         </div>
         <div class="flex flex-col gap-6 rounded bg-navy p-6 text-white sm:p-8 lg:flex-row lg:items-center lg:justify-between">
             <div class="max-w-xl">
                 <h2 id="quality-cta-title" class="text-[clamp(1.5rem,2.2vw,2.25rem)] font-black leading-[1.08] tracking-[-0.015em]"><?php echo esc_html((string) ($ui['ctaTitle'] ?? '')); ?></h2>
-                <p class="mt-3 text-sm font-semibold leading-7 text-white/75 md:text-base"><?php echo esc_html((string) ($ui['ctaText'] ?? '')); ?></p>
+                <p class="mt-3 text-sm font-normal leading-7 text-white/75 md:text-base"><?php echo esc_html((string) ($ui['ctaText'] ?? '')); ?></p>
             </div>
             <div class="flex shrink-0 flex-wrap gap-3">
                 <button class="inline-flex h-12 items-center justify-center gap-2 rounded-sm bg-white px-6 text-sm font-black text-navy transition hover:-translate-y-0.5 hover:bg-blue-50" type="button" data-inquiry-modal-open data-inquiry-source="质量测试页"><?php echo esc_html((string) ($ui['ctaButton'] ?? 'Ask for a Test Video')); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>

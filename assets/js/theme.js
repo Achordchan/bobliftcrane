@@ -112,12 +112,6 @@
       if (root !== exceptRoot) setLanguageOpen(root, false);
     });
   };
-  const closeMegaMenus = (exceptRoot = null) => {
-    qsa('[data-mega-root]').forEach((root) => {
-      if (root === exceptRoot) return;
-      root.classList.remove('mega-menu-open');
-    });
-  };
 
   const secondaryNavRoots = qsa('[data-secondary-nav-root]');
   let closeSecondaryNavs = () => {};
@@ -148,7 +142,6 @@
       window.clearTimeout(secondaryNavCloseTimer);
       if (open) {
         closeSecondaryNavs(root);
-        closeMegaMenus();
         positionSecondaryNav(root);
       }
       const trigger = qs('[data-secondary-nav-trigger]', root);
@@ -307,6 +300,16 @@
         setPrimaryOnlyVisible(index === '0');
         thumbs.forEach((item) => setGalleryActive(item, item === button));
         switchProductImage(src, label, button.dataset.productHeroGalleryFit || 'photo');
+      });
+    });
+
+    // The arrows on the stage step through the thumbs, wrapping at either end.
+    qsa('[data-product-hero-gallery-step]', root).forEach((arrow) => {
+      arrow.addEventListener('click', () => {
+        const current = thumbs.findIndex((item) => (item.dataset.productHeroGalleryIndex || '0') === root.dataset.productHeroActiveIndex);
+        const target = thumbs[(Math.max(current, 0) + Number(arrow.dataset.productHeroGalleryStep) + thumbs.length) % thumbs.length];
+        target.click();
+        target.scrollIntoView({ block: 'nearest', inline: 'nearest' });
       });
     });
   });
@@ -481,83 +484,6 @@
       setMobileMenuOpen(false);
     });
   }
-
-  const megaCloseTimers = new WeakMap();
-  const megaSuppressKey = 'boblift-suppress-mega-hover';
-  const releaseMegaHoverSuppression = () => document.body.classList.remove('mega-hover-suppressed');
-  try {
-    if (window.sessionStorage.getItem(megaSuppressKey) === '1') {
-      window.sessionStorage.removeItem(megaSuppressKey);
-      document.body.classList.add('mega-hover-suppressed');
-    }
-  } catch {}
-  const setMegaOpen = (root, open) => {
-    if (open && document.body.classList.contains('mega-hover-suppressed')) return;
-    if (open) closeSecondaryNavs();
-    const timer = megaCloseTimers.get(root);
-    if (timer) {
-      window.clearTimeout(timer);
-      megaCloseTimers.delete(root);
-    }
-    root.classList.toggle('mega-menu-open', open);
-  };
-  qsa('[data-mega-root]').forEach((root) => {
-    const menu = qs('.mega-menu', root);
-    if (!menu) return;
-    const scheduleClose = () => {
-      const timer = window.setTimeout(() => {
-        root.classList.remove('mega-menu-open');
-        megaCloseTimers.delete(root);
-      }, 650);
-      megaCloseTimers.set(root, timer);
-    };
-    root.addEventListener('click', (event) => {
-      const link = event.target.closest('a[href]');
-      if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-      const href = link.getAttribute('href') || '';
-      if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
-      try {
-        const url = new URL(href, window.location.href);
-        if (url.origin === window.location.origin) window.sessionStorage.setItem(megaSuppressKey, '1');
-      } catch {}
-      root.classList.remove('mega-menu-open');
-    });
-    root.addEventListener('pointerenter', () => setMegaOpen(root, true));
-    root.addEventListener('pointerleave', () => {
-      releaseMegaHoverSuppression();
-      scheduleClose();
-    });
-    root.addEventListener('focusin', () => setMegaOpen(root, true));
-    root.addEventListener('focusout', () => window.setTimeout(() => {
-      if (!root.contains(document.activeElement)) root.classList.remove('mega-menu-open');
-    }, 0));
-    menu.addEventListener('pointerenter', () => setMegaOpen(root, true));
-    menu.addEventListener('pointerleave', () => {
-      releaseMegaHoverSuppression();
-      scheduleClose();
-    });
-  });
-
-  // Products menu: the family row under the pointer (or keyboard focus) picks the preview panel.
-  // A short hover delay keeps a diagonal move toward the panel from switching families on the way.
-  qsa('[data-mega-families]').forEach((nav) => {
-    const rows = qsa('[data-mega-family]', nav);
-    const panels = qsa('[data-mega-panel]', nav);
-    let hoverTimer = 0;
-    const activate = (slug) => {
-      window.clearTimeout(hoverTimer);
-      rows.forEach((row) => { row.dataset.active = String(row.dataset.megaFamily === slug); });
-      panels.forEach((panel) => { panel.hidden = panel.dataset.megaPanel !== slug; });
-    };
-    rows.forEach((row) => {
-      row.addEventListener('pointerenter', () => {
-        window.clearTimeout(hoverTimer);
-        hoverTimer = window.setTimeout(() => activate(row.dataset.megaFamily), 90);
-      });
-      row.addEventListener('pointerleave', () => window.clearTimeout(hoverTimer));
-      row.addEventListener('focus', () => activate(row.dataset.megaFamily));
-    });
-  });
 
   const aboutLogoSections = qsa('[data-about-logo-scroll]');
   if (aboutLogoSections.length && window.gsap && window.ScrollTrigger) {
@@ -2314,6 +2240,7 @@
       const category = brochureRoot.dataset.currentCategory || '';
       const family = category ? (brochureMap[category] || '') : '';
       brochureBlock.classList.toggle('hidden', category !== '' && family === '');
+      brochureBlock.toggleAttribute('data-brochure-single', family !== '');
       qsa('[data-brochure-card]', brochureBlock).forEach((card) => {
         const show = family === '' || card.dataset.brochureFamily === family;
         card.classList.toggle('hidden', !show);
@@ -2479,9 +2406,9 @@
         node.innerHTML = `
           <div class="h-[72px] overflow-hidden rounded bg-[#eef2f7]">${item.image ? `<img class="h-full w-full object-cover" src="${escapeText(item.image)}" alt="${escapeText(item.title)}" loading="lazy" decoding="async">` : ''}</div>
           <div class="min-w-0">
-            <p class="truncate text-[11px] font-black uppercase tracking-[0.12em] text-blue-700">${escapeText(item.category)}</p>
+            <p class="boblift-kicker truncate">${escapeText(item.category)}</p>
             <h3 class="mt-1 line-clamp-2 text-sm font-black leading-5 text-ink">${escapeText(item.title)}</h3>
-            ${item.summary ? `<p class="mt-1 line-clamp-2 text-xs font-semibold leading-5 text-slate-500">${escapeText(item.summary)}</p>` : ''}
+            ${item.summary ? `<p class="mt-1 line-clamp-2 text-xs font-normal leading-5 text-slate-500">${escapeText(item.summary)}</p>` : ''}
             ${item.detailUrl ? `<a class="mt-2 inline-flex text-xs font-black text-blue-700 hover:text-navy" href="${escapeText(item.detailUrl)}">${escapeText(quoteListText('viewDetailsLabel', 'View details'))}</a>` : ''}
           </div>
           <button class="grid h-9 w-9 place-items-center rounded-sm border border-line bg-white text-slate-500 transition hover:border-red-100 hover:bg-red-50 hover:text-red-600" type="button" data-quote-list-remove="${escapeText(item.id)}" aria-label="${escapeText(quoteListText('removeLabelTemplate', 'Remove {product} from Quote List').replace('{product}', item.title || ''))}"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
@@ -2759,6 +2686,35 @@
     }));
   });
 
+  // Sister-site links ask first: the dialog names the site with a green check, then opens it in a new tab.
+  const leaveDialog = qs('[data-leave-dialog]');
+  if (leaveDialog && typeof leaveDialog.showModal === 'function') {
+    const leaveGo = qs('[data-leave-go]', leaveDialog);
+    const leaveGoLabel = qs('[data-leave-go-label]', leaveDialog);
+    // Capture phase: the site switcher stops clicks from bubbling out of its menu.
+    document.addEventListener('click', (event) => {
+      const link = event.target.closest('a[data-leave-site]');
+      if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      const domain = link.dataset.leaveDomain || link.hostname;
+      qs('[data-leave-name]', leaveDialog).textContent = link.dataset.leaveName || domain;
+      qs('[data-leave-domain]', leaveDialog).textContent = domain;
+      leaveGoLabel.textContent = (leaveDialog.dataset.leaveContinueTemplate || 'Continue to {domain}').replace('{domain}', domain);
+      leaveGo.href = link.href;
+      // The menu that held the link closes behind the dialog.
+      qsa('[data-language-root]').forEach((root) => {
+        qs('[data-language-menu]', root)?.classList.add('hidden');
+        qs('[data-language-toggle]', root)?.setAttribute('aria-expanded', 'false');
+      });
+      leaveDialog.showModal();
+    }, true);
+    qsa('[data-leave-stay]', leaveDialog).forEach((button) => button.addEventListener('click', () => leaveDialog.close()));
+    leaveGo.addEventListener('click', () => leaveDialog.close());
+    leaveDialog.addEventListener('click', (event) => {
+      if (event.target === leaveDialog) leaveDialog.close();
+    });
+  }
+
   // Video library cards open one shared player: a local MP4 now, a YouTube embed once ids are set.
   const videoDialog = qs('[data-video-dialog]');
   if (videoDialog) {
@@ -2913,6 +2869,13 @@
     const categoryChildPanels = qsa('[data-category-children-panel]', root);
     const filterGroups = qsa('[data-filter-group]', root);
     const drawer = qs('[data-filter-drawer]', root);
+    const filterBar = qs('[data-filter-bar]', root);
+    const categoryTabs = qsa('[data-category-tab]', root);
+    const categorySubtabRows = qsa('[data-category-subtabs]', root);
+    const filterDropdowns = qsa('[data-filter-dropdown]', root);
+    const filterChips = qs('[data-filter-chips]', root);
+    const filterChipsRow = qs('[data-filter-chips-row]', root);
+    const filterChipIcon = qs('[data-filter-chip-icon]', root);
     const grid = qs('[data-products-grid]', root);
     const banner = qs('[data-product-banner]', root);
     const bannerLabel = qs('[data-banner-label]', root);
@@ -2920,6 +2883,9 @@
     const bannerText = qs('[data-banner-text]', root);
     const bannerImage = qs('[data-banner-image]', root);
     const pagination = qs('[data-product-pagination]', root);
+    const toolbar = qs('[data-products-toolbar]', root);
+    const pageStatus = qs('[data-product-page]', root);
+    const pageStatusText = qs('[data-product-page-text]', root);
     const results = qs('[data-products-results]', root);
     const quickModal = qs('[data-quick-view-modal]', root);
     const quickPanel = qs('[data-quick-view-panel]', root);
@@ -2931,9 +2897,7 @@
     const quickInquiry = qs('[data-quick-inquiry]', root);
     const quickDetail = qs('[data-quick-detail]', root);
     const quickFavorite = qs('[data-quick-favorite]', root);
-    const rowsPerPage = 3;
     let currentPage = 1;
-    let gridColumnCount = 3;
     let activeQuickCard = null;
 
     cards.forEach((card, index) => { card.dataset.originalIndex = String(index); });
@@ -2956,10 +2920,8 @@
     };
     document.addEventListener('boblift:quote-list-change', syncFavoriteStates);
 
-    const updateGridColumns = () => {
-      gridColumnCount = 3;
-    };
-    const productsPerPage = () => gridColumnCount * rowsPerPage;
+    // 12 fills whole rows in the 1-4 column grids.
+    const productsPerPage = () => 12;
     const activeValues = (name) => [...new Set(checks.filter((input) => input.dataset.filter === name && input.checked).map((input) => input.value))];
     const categoryInputs = () => checks.filter((input) => input.dataset.filter === 'category');
     const parentChildren = new Map(categoryChildPanels.map((panel) => [
@@ -3177,6 +3139,62 @@
         && (!booms.length || booms.includes(card.dataset.boom || ''))
         && specFilters.every((filterName) => matchesSpec(card, filterName));
     };
+    const setFlexVisible = (element, visible) => {
+      element?.classList.toggle('hidden', !visible);
+      element?.classList.toggle('flex', visible);
+    };
+    // Desktop filter bar state: pressed tabs, the open category's sub-tabs, per-dropdown counts and the chips.
+    const updateFilterBar = () => {
+      if (!filterBar) return;
+      const selected = activeCategoryDisplayValues();
+      const parents = new Set(selected.map((value) => childParent.get(value) || value));
+      categoryTabs.forEach((tab) => {
+        const value = tab.dataset.categoryTab || '';
+        const active = tab.closest('[data-category-subtabs]') ? selected.includes(value) : (value === '' ? selected.length === 0 : parents.has(value));
+        tab.setAttribute('aria-pressed', String(active));
+      });
+      categorySubtabRows.forEach((row) => setFlexVisible(row, parents.size === 1 && parents.has(row.dataset.categorySubtabs || '')));
+      filterDropdowns.forEach((dropdown) => {
+        const badge = qs('[data-filter-dropdown-count]', dropdown);
+        const checked = qsa('input[data-filter]:checked', dropdown).length;
+        if (badge) badge.textContent = String(checked);
+        badge?.classList.toggle('hidden', !checked);
+        badge?.classList.toggle('inline-flex', !!checked);
+      });
+      setFlexVisible(qs('[data-filter-dropdowns]', filterBar), filterDropdowns.some((dropdown) => !dropdown.classList.contains('hidden')));
+      if (!filterChips) return;
+      const chips = filterDropdowns.flatMap((dropdown) => qsa('input[data-filter]:checked', dropdown).map((input) => {
+        const label = `${dropdown.dataset.filterTitle || ''}: ${qs('[data-filter-label]', input.closest('label'))?.textContent.trim() || input.value}`;
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'boblift-filter-chip';
+        chip.setAttribute('aria-label', productArchiveText('removeFilterLabel', 'Remove {label}').replace('{label}', label));
+        chip.append(Object.assign(document.createElement('span'), { textContent: label }));
+        if (filterChipIcon) chip.append(filterChipIcon.content.cloneNode(true));
+        chip.addEventListener('click', () => {
+          input.checked = false;
+          input.dispatchEvent(new Event('change'));
+        });
+        return chip;
+      }));
+      filterChips.replaceChildren(...chips);
+      setFlexVisible(filterChipsRow, chips.length > 0);
+    };
+    const setFilterDropdownOpen = (dropdown, open) => {
+      qs('[data-filter-dropdown-panel]', dropdown)?.classList.toggle('hidden', !open);
+      qs('[data-filter-dropdown-trigger]', dropdown)?.setAttribute('aria-expanded', String(open));
+    };
+    const selectCategory = (value) => {
+      categoryInputs().forEach((input) => { input.checked = false; });
+      if (value) {
+        setCategoryChecked(value, true);
+        if (childParent.has(value)) setCategoryChecked(childParent.get(value), true);
+      }
+      syncAllCategoryScopes();
+      updateFilterAvailability();
+      updateUrlFromFilters({ replace: false });
+      apply({ resetPage: true });
+    };
     const getSortMode = () => sortTrigger?.dataset.sortValue || 'recommended';
     const sortedCards = () => [...cards].sort((a, b) => {
       const av = Number(a.dataset.capacity || 0);
@@ -3223,7 +3241,7 @@
     const apply = ({ resetPage = false, scroll = false } = {}) => {
       updateCategoryChildrenVisibility();
       updateFilterAvailability();
-      updateGridColumns();
+      updateFilterBar();
       if (resetPage) currentPage = 1;
       const ordered = sortedCards();
       const filtered = ordered.filter(cardMatches);
@@ -3244,7 +3262,10 @@
       }
       if (grid) grid.classList.toggle('hidden', filtered.length === 0);
       renderPagination(filtered.length > 0 ? totalPages : 1);
-      if (scroll) results?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (pageStatusText) pageStatusText.textContent = productArchiveText('pageTemplate', 'Page {page} / {pages}').replace('{page}', String(currentPage)).replace('{pages}', String(totalPages));
+      setFlexVisible(pageStatus, filtered.length > 0 && totalPages > 1);
+      // A new page starts at the count and sort row, so the reader sees where they are.
+      if (scroll) (toolbar || results)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
     const changePage = (page) => {
       const filteredCount = sortedCards().filter(cardMatches).length;
@@ -3353,7 +3374,7 @@
       apply({ resetPage: true });
       closeDrawer({ restore: false });
     };
-    const specMarkup = (specs) => specs.slice(0, 6).map((spec) => `<div class="min-w-0 border-b border-r border-[#E5E7EB] px-3 py-3 md:px-4"><dt class="text-[11px] font-semibold leading-4 text-slate-500">${escapeHtml(spec.label || '')}</dt><dd class="mt-1 break-words text-base font-black leading-tight text-[#0B1B33] [font-variant-numeric:tabular-nums]">${escapeHtml(String(spec.value || '-'))}</dd></div>`).join('');
+    const specMarkup = (specs) => specs.slice(0, 6).map((spec) => `<div class="min-w-0 border-b border-r border-[#E5E7EB] px-3 py-3 md:px-4"><dt class="text-[11px] font-normal leading-4 text-slate-500">${escapeHtml(spec.label || '')}</dt><dd class="mt-1 break-words text-base font-black leading-tight text-[#0B1B33] [font-variant-numeric:tabular-nums]">${escapeHtml(String(spec.value || '-'))}</dd></div>`).join('');
     const openQuickView = (card) => {
       if (!quickModal || !card) return;
       activeQuickCard = card;
@@ -3412,7 +3433,18 @@
     sortOptions.forEach((button) => button.addEventListener('click', () => setSortMode(button.dataset.sortOption || 'recommended', button.textContent.trim())));
     document.addEventListener('pointerdown', (event) => {
       if (sortDropdown && !sortDropdown.contains(event.target)) setSortMenuOpen(false);
+      filterDropdowns.forEach((dropdown) => { if (!dropdown.contains(event.target)) setFilterDropdownOpen(dropdown, false); });
     });
+    categoryTabs.forEach((tab) => tab.addEventListener('click', () => selectCategory(tab.dataset.categoryTab || '')));
+    filterDropdowns.forEach((dropdown) => qs('[data-filter-dropdown-trigger]', dropdown)?.addEventListener('click', () => {
+      const open = qs('[data-filter-dropdown-panel]', dropdown)?.classList.contains('hidden') ?? false;
+      filterDropdowns.forEach((item) => setFilterDropdownOpen(item, item === dropdown && open));
+    }));
+    qsa('[data-filter-clear-specs]', root).forEach((button) => button.addEventListener('click', () => {
+      checks.filter((input) => input.dataset.filter !== 'category').forEach((input) => { input.checked = false; });
+      updateUrlFromFilters({ replace: false });
+      apply({ resetPage: true });
+    }));
     qsa('[data-view-toggle]', root).forEach((button) => button.addEventListener('click', () => {
       const view = button.dataset.viewToggle || 'grid';
       root.dataset.view = view;
@@ -3442,6 +3474,7 @@
     window.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
         setSortMenuOpen(false);
+        filterDropdowns.forEach((dropdown) => setFilterDropdownOpen(dropdown, false));
         closeQuickView();
       }
     });

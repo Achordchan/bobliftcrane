@@ -106,14 +106,14 @@ function boblift_render_inquiry_form(string $product = '', array $args = []): vo
         </div>
 
         <?php if (isset($_GET['inquiry']) && $_GET['inquiry'] === 'success') : ?>
-            <div class="mt-5 rounded border border-emerald-100 bg-emerald-50 p-4 text-sm font-semibold leading-6 text-emerald-800">
+            <div class="mt-5 rounded border border-emerald-100 bg-emerald-50 p-4 text-sm font-medium leading-6 text-emerald-800">
                 <p class="flex items-center gap-2 font-black"><?php echo boblift_icon('check-circle', 'h-4 w-4'); ?> <?php echo esc_html($ui['messages']['successTitle']); ?></p>
                 <p class="mt-1"><?php echo esc_html($ui['messages']['successText']); ?></p>
             </div>
         <?php elseif (isset($_GET['inquiry']) && $_GET['inquiry'] === 'verification') : ?>
-            <div class="mt-5 rounded border border-red-100 bg-red-50 p-4 text-sm font-semibold leading-6 text-red-800"><?php echo esc_html($ui['messages']['verificationRequired'] ?? 'Please complete the verification and try again.'); ?></div>
+            <div class="mt-5 rounded border border-red-100 bg-red-50 p-4 text-sm font-medium leading-6 text-red-800"><?php echo esc_html($ui['messages']['verificationRequired'] ?? 'Please complete the verification and try again.'); ?></div>
         <?php elseif (isset($_GET['inquiry']) && $_GET['inquiry'] === 'missing') : ?>
-            <div class="mt-5 rounded border border-red-100 bg-red-50 p-4 text-sm font-semibold leading-6 text-red-800"><?php echo esc_html($ui['messages']['requiredFields']); ?></div>
+            <div class="mt-5 rounded border border-red-100 bg-red-50 p-4 text-sm font-medium leading-6 text-red-800"><?php echo esc_html($ui['messages']['requiredFields']); ?></div>
         <?php endif; ?>
 
         <div class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -156,7 +156,7 @@ function boblift_render_inquiry_form(string $product = '', array $args = []): vo
 
             <label class="block md:col-span-2">
                 <span class="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html($ui['fields']['message']); ?><?php echo boblift_required_indicator($ui); ?></span>
-                <textarea class="min-h-[140px] w-full resize-y rounded border border-line bg-[#f8fbff] px-4 py-3 text-sm font-semibold leading-6 text-ink outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100" name="message" data-quote-field="message" placeholder="<?php echo esc_attr($ui['fields']['messagePlaceholder']); ?>" required></textarea>
+                <textarea class="min-h-[140px] w-full resize-y rounded border border-line bg-[#f8fbff] px-4 py-3 text-sm font-normal leading-6 text-ink outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100" name="message" data-quote-field="message" placeholder="<?php echo esc_attr($ui['fields']['messagePlaceholder']); ?>" required></textarea>
             </label>
 
             <div class="md:col-span-2">
@@ -198,14 +198,14 @@ function boblift_render_catalog_modal(): void
                 <label class="sr-only" aria-hidden="true">Website <input class="hidden" type="text" name="boblift_catalog_website" tabindex="-1" autocomplete="off"></label>
                 <div class="flex items-start justify-between gap-4">
                     <div>
-                        <p class="text-[11px] font-black uppercase tracking-[0.22em] text-blue-700"><?php echo esc_html($catalog_ui['label'] ?? 'PDF Catalog'); ?></p>
+                        <p class="boblift-kicker"><?php echo esc_html($catalog_ui['label'] ?? 'PDF Catalog'); ?></p>
                         <h2 id="catalog-modal-title" class="mt-2 text-2xl font-black leading-tight tracking-[-0.015em] text-ink md:text-3xl"><?php echo esc_html($catalog_ui['title'] ?? 'Get the product catalog'); ?></h2>
-                        <p class="mt-3 text-sm font-semibold leading-6 text-slate-600" data-catalog-description><?php echo esc_html($catalog_ui['description'] ?? 'Enter your email to receive the PDF catalog. The download link will appear immediately after submission.'); ?></p>
+                        <p class="mt-3 text-sm font-normal leading-6 text-slate-600" data-catalog-description><?php echo esc_html($catalog_ui['description'] ?? 'Enter your email to receive the PDF catalog. The download link will appear immediately after submission.'); ?></p>
                     </div>
                     <button class="grid h-10 w-10 shrink-0 place-items-center rounded-sm border border-line bg-white text-slate-500 transition hover:border-blue-200 hover:text-blue-700" type="button" data-catalog-modal-close aria-label="<?php echo esc_attr($catalog_ui['closeLabel'] ?? 'Close catalog request'); ?>"><?php echo boblift_icon('x', 'h-5 w-5'); ?></button>
                 </div>
                 <a class="mt-5 hidden h-11 items-center justify-center gap-2 rounded-sm border border-line bg-white px-5 text-sm font-black text-navy transition hover:border-blue-300" href="#" download data-catalog-direct-link><?php echo boblift_icon('download', 'h-4 w-4'); ?><?php echo esc_html($brochure_ui['modalDirectLabel'] ?? 'Download the PDF now'); ?></a>
-                <div class="mt-5 hidden rounded border border-line bg-[#f8fbff] p-3 text-sm font-semibold leading-6 text-slate-600" data-catalog-status role="status"></div>
+                <div class="mt-5 hidden rounded border border-line bg-[#f8fbff] p-3 text-sm font-normal leading-6 text-slate-600" data-catalog-status role="status"></div>
                 <div class="mt-5 grid gap-4 sm:grid-cols-2">
                     <label class="block sm:col-span-2">
                         <span class="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html($catalog_ui['emailLabel'] ?? 'Email'); ?><?php echo boblift_required_indicator(['fieldRequiredLabel' => $catalog_ui['requiredLabel'] ?? 'Required']); ?></span>
@@ -229,7 +229,7 @@ function boblift_render_catalog_modal(): void
                     <a class="mt-3 inline-flex h-11 items-center justify-center gap-2 rounded-sm bg-navy px-5 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-[#0b2d5b]" href="#" target="_blank" rel="noreferrer" data-catalog-download-link><?php echo boblift_icon('download', 'h-4 w-4'); ?><?php echo esc_html($catalog_ui['downloadLabel'] ?? 'Download PDF'); ?></a>
                 </div>
                 <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <p class="text-xs font-semibold leading-5 text-slate-500"><?php echo esc_html($catalog_ui['privacyText'] ?? 'We only use your email to send the requested catalog and follow up professionally.'); ?></p>
+                    <p class="text-xs font-normal leading-5 text-slate-500"><?php echo esc_html($catalog_ui['privacyText'] ?? 'We only use your email to send the requested catalog and follow up professionally.'); ?></p>
                     <button class="h-12 shrink-0 rounded-sm bg-navy px-7 text-sm font-black text-white shadow-card transition hover:-translate-y-0.5 hover:bg-[#0b2d5b] disabled:cursor-not-allowed disabled:opacity-60" type="submit" data-catalog-submit><?php echo esc_html($catalog_ui['submitLabel'] ?? 'Get PDF'); ?> <?php echo boblift_icon('send', 'ms-1 inline h-4 w-4'); ?></button>
                 </div>
             </form>
@@ -248,7 +248,7 @@ function boblift_render_inquiry_modal(): void
     ?>
     <div class="boblift-inquiry-modal fixed inset-0 z-[260] hidden items-end justify-center bg-[#071f42]/45 p-0 backdrop-blur-sm md:items-center md:p-6" data-global-inquiry-modal aria-hidden="true">
         <button class="absolute inset-0 h-full w-full cursor-default" type="button" data-inquiry-modal-close aria-label="<?php echo esc_attr($ui['closeLabel'] ?? 'Close inquiry form'); ?>"></button>
-        <div class="boblift-inquiry-dialog relative flex max-h-[94dvh] w-full max-w-5xl flex-col overflow-hidden rounded-t border border-white/70 bg-white shadow-raised md:max-h-[calc(100dvh-32px)] " role="dialog" aria-modal="true" aria-labelledby="global-inquiry-title" tabindex="-1">
+        <div class="boblift-inquiry-dialog relative flex max-h-[94dvh] w-full max-w-5xl flex-col overflow-hidden rounded-t bg-white shadow-raised md:max-h-[calc(100dvh-32px)] md:rounded" role="dialog" aria-modal="true" aria-labelledby="global-inquiry-title" tabindex="-1">
             <div class="boblift-inquiry-layout grid min-h-0 md:grid-cols-[0.72fr_1.28fr]">
                 <aside class="relative hidden bg-[linear-gradient(145deg,#071f42_0%,#0b3f7d_58%,#2563eb_100%)] p-8 text-white md:block">
                     <span class="pointer-events-none absolute -end-16 top-10 h-48 w-48 rounded-full bg-white/12 blur-2xl"></span>
@@ -256,7 +256,7 @@ function boblift_render_inquiry_modal(): void
                     <div class="relative z-10 max-w-[320px]">
                         <p class="text-[11px] font-black uppercase tracking-[0.28em] text-gold"><?php echo esc_html($ui['sideLabel'] ?? 'BOB-LIFT Inquiry'); ?></p>
                         <h2 class="mt-5 text-4xl font-black leading-[0.98] tracking-[-0.02em]"><?php echo esc_html($ui['sideTitle'] ?? 'Tell us what you need to lift.'); ?></h2>
-                        <p class="mt-5 text-sm font-semibold leading-7 text-white/76"><?php echo esc_html($ui['sideDescription'] ?? 'Share your contact details and working conditions. Our team will turn it into a clear quotation request.'); ?></p>
+                        <p class="mt-5 text-sm font-normal leading-7 text-white/76"><?php echo esc_html($ui['sideDescription'] ?? 'Share your contact details and working conditions. Our team will turn it into a clear quotation request.'); ?></p>
                     </div>
                     <div class="boblift-inquiry-character-stage relative mt-6 h-[300px] w-full" data-inquiry-characters>
                         <div class="boblift-character-privacy-bubble" data-character-privacy-note aria-hidden="true"><?php echo esc_html($ui['privacyBubbleText'] ?? 'We strictly protect your privacy information.'); ?></div>
@@ -300,15 +300,16 @@ function boblift_render_inquiry_modal(): void
                     <input type="hidden" name="quantity" data-quote-field="quantity" value="">
                     <div class="flex items-start justify-between gap-4">
                         <div>
-                            <p class="text-[11px] font-black uppercase tracking-[0.22em] text-blue-700"><?php echo esc_html($ui['modalLabel'] ?? 'Contact BOB-LIFT'); ?></p>
+                            <p class="boblift-kicker"><?php echo esc_html($ui['modalLabel'] ?? 'Contact BOB-LIFT'); ?></p>
                             <h2 id="global-inquiry-title" class="mt-2 text-2xl font-black leading-tight tracking-[-0.015em] text-ink md:text-3xl"><?php echo esc_html($ui['modalTitle'] ?? 'Send your inquiry'); ?></h2>
                         </div>
                         <button class="grid h-10 w-10 shrink-0 place-items-center rounded-sm border border-line bg-white text-slate-500 transition hover:border-blue-200 hover:text-blue-700" type="button" data-inquiry-modal-close aria-label="<?php echo esc_attr($ui['closeLabel'] ?? 'Close inquiry form'); ?>"><?php echo boblift_icon('x', 'h-5 w-5'); ?></button>
                     </div>
 
-                    <div class="mt-4 rounded border border-line bg-[#f8fbff] p-3 text-sm font-semibold leading-6 text-slate-600 hidden" data-inquiry-modal-status role="status"></div>
+                    <div class="mt-4 rounded border border-line bg-[#f8fbff] p-3 text-sm font-normal leading-6 text-slate-600 hidden" data-inquiry-modal-status role="status"></div>
 
-                    <div class="boblift-inquiry-fields-scroll mt-5 grid min-h-0 flex-1 gap-4 overflow-y-auto pe-1">
+                    <?php // The 4px padding (offset by the negative margin) keeps the inputs' focus ring inside the scroll box, which would clip it. ?>
+                    <div class="boblift-inquiry-fields-scroll -mx-1 mt-4 grid min-h-0 flex-1 gap-4 overflow-y-auto p-1">
                         <div class="boblift-inquiry-primary-fields grid gap-4 md:grid-cols-2">
                             <?php boblift_form_field('name', $ui['fields']['name']); ?>
                             <?php boblift_form_field('email', $ui['fields']['email'], 'email', true); ?>
@@ -317,7 +318,7 @@ function boblift_render_inquiry_modal(): void
                         </div>
                         <label class="block">
                             <span class="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html($ui['fields']['message']); ?><?php echo boblift_required_indicator($ui); ?></span>
-                            <textarea class="min-h-[120px] w-full resize-y rounded border border-line bg-[#f8fbff] px-4 py-3 text-sm font-semibold leading-6 text-ink outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100 md:min-h-[128px] lg:min-h-[140px]" name="message" data-quote-field="message" placeholder="<?php echo esc_attr($ui['fields']['messagePlaceholder']); ?>" required></textarea>
+                            <textarea class="block min-h-[120px] w-full resize-y rounded border border-line bg-[#f8fbff] px-4 py-3 text-sm font-normal leading-6 text-ink outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100 md:min-h-[128px] lg:min-h-[140px]" name="message" data-quote-field="message" placeholder="<?php echo esc_attr($ui['fields']['messagePlaceholder']); ?>" required></textarea>
                         </label>
                         <?php boblift_render_inquiry_extra_fields($ui); ?>
                     </div>
@@ -331,9 +332,9 @@ function boblift_render_inquiry_modal(): void
                 <aside class="boblift-inquiry-products-panel hidden min-h-0 border-t border-line bg-[#F8FBFF] p-5 md:border-s md:border-t-0 md:p-6" data-inquiry-selected-products aria-label="<?php echo esc_attr($ui['selectedProductsAriaLabel'] ?? 'Selected products'); ?>">
                     <div class="flex h-full min-h-0 flex-col">
                         <div class="shrink-0">
-                            <p class="text-[11px] font-black uppercase tracking-[0.16em] text-blue-700"><?php echo esc_html($ui['selectedProductsLabel'] ?? 'Selected products'); ?></p>
+                            <p class="boblift-kicker"><?php echo esc_html($ui['selectedProductsLabel'] ?? 'Selected products'); ?></p>
                             <h3 class="mt-2 text-xl font-black tracking-[-0.015em] text-ink"><?php echo esc_html($ui['selectedProductsTitle'] ?? 'Products in this inquiry'); ?></h3>
-                            <p class="mt-2 text-sm font-semibold leading-6 text-slate-500"><span data-inquiry-selected-products-count>0</span> <?php echo esc_html($ui['selectedProductsSummary'] ?? 'products will be included in this inquiry.'); ?></p>
+                            <p class="mt-2 text-sm font-normal leading-6 text-slate-500"><span data-inquiry-selected-products-count>0</span> <?php echo esc_html($ui['selectedProductsSummary'] ?? 'products will be included in this inquiry.'); ?></p>
                         </div>
                         <div class="mt-4 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pe-1" data-inquiry-selected-products-list></div>
                     </div>
@@ -428,7 +429,7 @@ function boblift_render_inquiry_extra_fields(array $ui): void
                 ?>
                 <label class="block md:col-span-2">
                     <span class="mb-2 block text-[11px] font-black uppercase tracking-[0.12em] text-slate-500"><?php echo esc_html(boblift_inquiry_extra_field_label($ui, 'other_requirements', 'Other requirements')); ?></span>
-                    <textarea class="min-h-[84px] w-full resize-y rounded border border-line bg-white px-3 py-3 text-sm font-semibold leading-6 text-ink outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100" name="other_requirements" data-quote-field="other_requirements"></textarea>
+                    <textarea class="min-h-[84px] w-full resize-y rounded border border-line bg-white px-3 py-3 text-sm font-normal leading-6 text-ink outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100" name="other_requirements" data-quote-field="other_requirements"></textarea>
                 </label>
                 <p class="md:col-span-2 text-xs font-bold leading-5 text-slate-500"><?php echo esc_html($ui['contactTimeNote'] ?? 'Our working hours are Monday to Friday, 8:30 AM–6:00 PM Beijing time.'); ?></p>
             </div>

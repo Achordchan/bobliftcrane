@@ -250,7 +250,7 @@ $section_heading = static function (string $title, int $count, string $link_labe
                             <h3 class="mt-1 text-lg font-black leading-snug"><a class="text-ink transition hover:text-blue-700" href="<?php echo esc_url($block['url']); ?>"><?php echo esc_html($block['title']); ?></a> <span class="text-sm font-bold tabular-nums text-slate-400"><?php echo esc_html((string) count($block['links'])); ?></span></h3>
                             <ul class="mt-2 grid gap-0.5">
                                 <?php foreach ($block['links'] as [$label, $url]) : ?>
-                                    <li><a class="boblift-sitemap-link inline-block text-sm font-semibold text-slate-600" href="<?php echo esc_url((string) $url); ?>"><?php echo esc_html((string) $label); ?></a></li>
+                                    <li><a class="boblift-sitemap-link inline-block text-sm font-medium text-slate-600" href="<?php echo esc_url((string) $url); ?>"><?php echo esc_html((string) $label); ?></a></li>
                                 <?php endforeach; ?>
                             </ul>
                         </div>
@@ -266,13 +266,13 @@ $section_heading = static function (string $title, int $count, string $link_labe
                     <?php if ($news_categories !== []) : ?>
                         <p class="mb-5 flex flex-wrap gap-x-5 gap-y-2 text-sm font-bold">
                             <?php foreach ($news_categories as $term) : $url = get_term_link($term); if (!is_string($url)) continue; ?>
-                                <a class="text-navy transition hover:text-blue-700" href="<?php echo esc_url($url); ?>"><?php echo esc_html($sitemap_label($term->name)); ?> <span class="font-semibold tabular-nums text-slate-400"><?php echo esc_html((string) $term->count); ?></span></a>
+                                <a class="text-navy transition hover:text-blue-700" href="<?php echo esc_url($url); ?>"><?php echo esc_html($sitemap_label($term->name)); ?> <span class="font-normal tabular-nums text-slate-400"><?php echo esc_html((string) $term->count); ?></span></a>
                             <?php endforeach; ?>
                         </p>
                     <?php endif; ?>
                     <ul class="grid gap-x-10 md:grid-cols-2">
                         <?php foreach ($news as $post) : ?>
-                            <li class="border-b border-line/70"><a class="boblift-sitemap-link flex items-baseline gap-3 py-2 text-sm font-semibold text-slate-600" href="<?php echo esc_url(get_permalink($post)); ?>"><time class="shrink-0 text-xs font-bold tabular-nums text-slate-400" datetime="<?php echo esc_attr(get_the_date('Y-m-d', $post)); ?>"><?php echo esc_html(get_the_date('Y-m', $post)); ?></time><span class="min-w-0"><?php echo esc_html($sitemap_label(get_the_title($post))); ?></span></a></li>
+                            <li class="border-b border-line/70"><a class="boblift-sitemap-link flex items-baseline gap-3 py-2 text-sm font-medium text-slate-600" href="<?php echo esc_url(get_permalink($post)); ?>"><time class="shrink-0 text-xs font-bold tabular-nums text-slate-400" datetime="<?php echo esc_attr(get_the_date('Y-m-d', $post)); ?>"><?php echo esc_html(get_the_date('Y-m', $post)); ?></time><span class="min-w-0"><?php echo esc_html($sitemap_label(get_the_title($post))); ?></span></a></li>
                         <?php endforeach; ?>
                     </ul>
                 </section>
@@ -283,7 +283,7 @@ $section_heading = static function (string $title, int $count, string $link_labe
                     <div id="sitemap-cases"><?php $section_heading((string) ($groups_ui['casesTitle'] ?? 'Customer cases'), count($cases), (string) ($groups_ui['allCasesLabel'] ?? 'All cases'), boblift_url('/cases.html')); ?></div>
                     <ul class="grid">
                         <?php foreach ($cases as $post) : ?>
-                            <li class="border-b border-line/70"><a class="boblift-sitemap-link block py-2 text-sm font-semibold text-slate-600" href="<?php echo esc_url(get_permalink($post)); ?>"><?php echo esc_html($sitemap_label(get_the_title($post))); ?></a></li>
+                            <li class="border-b border-line/70"><a class="boblift-sitemap-link block py-2 text-sm font-medium text-slate-600" href="<?php echo esc_url(get_permalink($post)); ?>"><?php echo esc_html($sitemap_label(get_the_title($post))); ?></a></li>
                         <?php endforeach; ?>
                     </ul>
                 </section>
@@ -294,7 +294,7 @@ $section_heading = static function (string $title, int $count, string $link_labe
                         <h2 class="mb-4 border-b border-line pb-4 text-xl font-black leading-tight text-ink"><?php echo esc_html($legacy_help['help_title']); ?></h2>
                     <?php endif; ?>
                     <?php foreach ($legacy_help_notes as $note) : ?>
-                        <p class="py-2 text-sm font-semibold text-slate-600"><?php if ($note['label'] !== '') : ?><strong class="text-navy"><?php echo esc_html($note['label']); ?></strong> <?php endif; ?><?php echo esc_html($note['text']); ?></p>
+                        <p class="py-2 text-sm font-normal text-slate-600"><?php if ($note['label'] !== '') : ?><strong class="text-navy"><?php echo esc_html($note['label']); ?></strong> <?php endif; ?><?php echo esc_html($note['text']); ?></p>
                     <?php endforeach; ?>
                 </section>
             <?php endif; ?>

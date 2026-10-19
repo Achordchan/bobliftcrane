@@ -95,7 +95,7 @@ $related_query = new WP_Query([
         </nav>
         <div class="mt-6 grid gap-4 md:mt-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] lg:items-end lg:gap-16">
             <div>
-                <p class="text-xs font-black uppercase tracking-[0.18em] text-blue-700"><?php echo esc_html($case_label); ?></p>
+                <p class="boblift-kicker"><?php echo esc_html($case_label); ?></p>
                 <h1 class="mt-3 max-w-[22ch] text-[2.125rem] font-black leading-[1.06] tracking-[-0.025em] text-ink md:text-5xl"><?php echo esc_html($title); ?></h1>
             </div>
             <?php if ($summary !== '') : ?>
@@ -186,7 +186,7 @@ $related_query = new WP_Query([
                                 <img class="h-full w-full object-cover" src="<?php echo esc_url(boblift_post_thumbnail_url(get_post(), boblift_asset('images/factory-workshop.jpg'))); ?>" alt="<?php echo esc_attr($related_title); ?>" loading="lazy" decoding="async">
                             </span>
                             <span class="block p-5">
-                                <span class="block text-[11px] font-black uppercase tracking-[0.14em] text-blue-700"><?php echo esc_html($localize_case_text($related_type !== '' ? $related_type : (string) ($ui['defaultTypeLabel'] ?? 'Customer Case'))); ?></span>
+                                <span class="boblift-kicker block"><?php echo esc_html($localize_case_text($related_type !== '' ? $related_type : (string) ($ui['defaultTypeLabel'] ?? 'Customer Case'))); ?></span>
                                 <span class="mt-2 line-clamp-2 block text-lg font-black leading-snug text-ink transition group-hover:text-blue-700"><?php echo esc_html($related_title); ?></span>
                             </span>
                         </a>

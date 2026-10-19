@@ -1080,7 +1080,7 @@ function boblift_product_menu_families(): array
  */
 function boblift_cached_product_menu_families(string $language): array
 {
-    $key = 'boblift_pmenu_' . md5($language . '|' . home_url() . '|' . (string) get_option('boblift_product_menu_version', '0'));
+    $key = 'boblift_pmenu3_' . md5($language . '|' . home_url() . '|' . (string) get_option('boblift_product_menu_version', '0'));
     $cached = get_transient($key);
     if (is_array($cached)) {
         return $cached;
@@ -1241,6 +1241,12 @@ function boblift_build_product_menu_families(): array
         $url = get_term_link($term);
         return is_string($url) ? $url : boblift_url('/' . $term->slug);
     };
+    // Max lifting capacity in tonnes, the measure the menu's capacity ruler is drawn on.
+    $capacity_of = static fn(int $id): float => function_exists('boblift_product_filter_values') ? (float) (boblift_product_filter_values($id)['capacity'] ?? 0) : 0.0;
+    $capacity_range = static function (array $ids) use ($capacity_of): array {
+        $values = array_values(array_filter(array_map($capacity_of, $ids), static fn(float $v): bool => $v > 0));
+        return $values ? [min($values), max($values)] : [0.0, 0.0];
+    };
     $families = [];
     foreach (boblift_product_category_hierarchy() as $group) {
         $term = get_term_by('slug', (string) ($group['slug'] ?? ''), 'product_category');
@@ -1283,7 +1289,14 @@ function boblift_build_product_menu_families(): array
             if ($child_count === 0) {
                 continue;
             }
-            $children[] = ['title' => $child_term->name, 'url' => $term_link($child_term), 'count' => $child_count];
+            [$child_min, $child_max] = $capacity_range(get_posts([
+                'post_type' => 'product',
+                'post_status' => 'publish',
+                'numberposts' => -1,
+                'fields' => 'ids',
+                'tax_query' => [['taxonomy' => 'product_category', 'terms' => $child_term->term_id, 'include_children' => true]],
+            ]));
+            $children[] = ['title' => $child_term->name, 'url' => $term_link($child_term), 'count' => $child_count, 'min' => $child_min, 'max' => $child_max];
         }
         if ($total === 0) {
             continue;
@@ -1299,7 +1312,16 @@ function boblift_build_product_menu_families(): array
             ]);
             usort($posts, static fn(WP_Post $a, WP_Post $b): int => ((float) get_post_meta($a->ID, '_capacity_value', true) <=> (float) get_post_meta($b->ID, '_capacity_value', true)) ?: strnatcasecmp($a->post_title, $b->post_title));
             foreach (array_slice($posts, 0, 5) as $post) {
-                $models[] = ['title' => (string) boblift_localize_product_text_fragments(get_the_title($post)), 'url' => (string) get_permalink($post)];
+                $english_id = function_exists('boblift_product_english_id') ? boblift_product_english_id($post->ID) : $post->ID;
+                $models[] = [
+                    'title' => (string) boblift_localize_product_text_fragments(get_the_title($post)),
+                    'url' => (string) get_permalink($post),
+                    'id' => (int) $post->ID,
+                    'model' => trim((string) get_post_meta($english_id, '_model', true)),
+                    'capacity' => $capacity_of((int) $post->ID),
+                    // Aerial work platforms are chosen by working height, which their English names carry ("28-Meter").
+                    'height' => preg_match('/(\d+(?:\.\d+)?)\s*-?\s*(?:meter|metre|m)\b/i', (string) get_the_title($english_id), $height_match) ? (float) $height_match[1] : 0.0,
+                ];
             }
         }
         // Families split into categories also show a few models across the capacity range.
@@ -1329,7 +1351,33 @@ function boblift_build_product_menu_families(): array
                 $capacity = function_exists('boblift_product_filter_values') ? (float) (boblift_product_filter_values($post->ID)['capacity'] ?? 0) : 0.0;
                 // Short label for the two-column list: model code and capacity, e.g. "SQ5ZA3 · 5 t".
                 $short = $model !== '' && $capacity > 0 ? $model . ' · ' . rtrim(rtrim(number_format($capacity, 2, '.', ''), '0'), '.') . ' t' : $title;
-                $featured[] = ['title' => $title, 'short' => $short, 'url' => (string) get_permalink($post), 'model' => $model];
+                $featured[] = ['title' => $title, 'short' => $short, 'url' => (string) get_permalink($post), 'model' => $model, 'id' => (int) $post->ID, 'capacity' => $capacity];
+            }
+        }
+        // The family's range across every model, and one cut-out crane to stand on the panel's stage:
+        // the candidate nearest the middle of the range that has a cut-out photo.
+        $family_ids = get_posts([
+            'post_type' => 'product',
+            'post_status' => 'publish',
+            'numberposts' => -1,
+            'fields' => 'ids',
+            'tax_query' => [['taxonomy' => 'product_category', 'terms' => $term_ids, 'include_children' => true]],
+        ]);
+        [$family_min, $family_max] = $capacity_range($family_ids);
+        $hero = null;
+        $candidates = array_values(array_filter(array_merge($featured, $models), static fn(array $item): bool => !empty($item['id'])));
+        $middle = $family_min > 0 ? sqrt($family_min * $family_max) : 0.0;
+        usort($candidates, static fn(array $a, array $b): int => abs(log(max((float) $a['capacity'], 0.01)) - log(max($middle, 0.01))) <=> abs(log(max((float) $b['capacity'], 0.01)) - log(max($middle, 0.01))));
+        $photo_hero = null;
+        foreach ($candidates as $candidate) {
+            $image = function_exists('boblift_post_thumbnail_url') ? (string) boblift_post_thumbnail_url(get_post($candidate['id']), '') : '';
+            // Without a cut-out, the nearest model's own photo still stands in, captioned the same way.
+            if ($image !== '' && $photo_hero === null) {
+                $photo_hero = ['image' => $image, 'url' => $candidate['url'], 'model' => (string) ($candidate['model'] ?? ''), 'capacity' => (float) $candidate['capacity'], 'height' => (float) ($candidate['height'] ?? 0), 'title' => (string) $candidate['title'], 'cutout' => false];
+            }
+            if ($image !== '' && function_exists('boblift_image_fit') && boblift_image_fit($image) === 'cutout') {
+                $hero = ['image' => $image, 'url' => $candidate['url'], 'model' => (string) ($candidate['model'] ?? ''), 'capacity' => (float) $candidate['capacity'], 'height' => (float) ($candidate['height'] ?? 0), 'title' => (string) $candidate['title'], 'cutout' => true];
+                break;
             }
         }
         $icon = sanitize_key((string) ($group['category']['icon'] ?? ''));
@@ -1348,6 +1396,9 @@ function boblift_build_product_menu_families(): array
             'children' => $children,
             'models' => $models,
             'featured' => $featured,
+            'min' => $family_min,
+            'max' => $family_max,
+            'hero' => $hero ?? $photo_hero,
             'group' => boblift_product_family_group($family_source_slug),
         ];
     }
@@ -1356,6 +1407,51 @@ function boblift_build_product_menu_families(): array
     $position = array_flip(array_keys($families));
     uksort($families, static fn($a, $b): int => ($order[$families[$a]['group']] <=> $order[$families[$b]['group']]) ?: ($position[$a] <=> $position[$b]));
     return array_values($families);
+}
+
+/**
+ * Log scale for the Products menu's capacity ruler: the nearest 1-2-5 stops around a family's range.
+ * Returns ['lo' => t, 'hi' => t, 'ticks' => [t, ...]] or [] when there is nothing to draw.
+ */
+function boblift_capacity_scale(float $min, float $max): array
+{
+    if ($min <= 0 || $max <= 0) {
+        return [];
+    }
+    $stops = [0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200];
+    $lo = $stops[0];
+    foreach ($stops as $stop) {
+        if ($stop <= $min) {
+            $lo = $stop;
+        }
+    }
+    $hi = end($stops);
+    foreach (array_reverse($stops) as $stop) {
+        if ($stop >= $max) {
+            $hi = $stop;
+        }
+    }
+    if ($hi <= $lo) {
+        $index = array_search($lo, $stops, true);
+        $hi = $stops[min(count($stops) - 1, (int) $index + 1)];
+    }
+    return ['lo' => (float) $lo, 'hi' => (float) $hi, 'ticks' => array_values(array_filter($stops, static fn($stop): bool => $stop >= $lo && $stop <= $hi))];
+}
+
+/** Position of a capacity on a scale from boblift_capacity_scale(), in percent. */
+function boblift_capacity_position(float $value, array $scale): float
+{
+    if (!$scale || $value <= 0) {
+        return 0.0;
+    }
+    $span = log($scale['hi']) - log($scale['lo']);
+    return $span > 0 ? max(0.0, min(100.0, (log($value) - log($scale['lo'])) / $span * 100)) : 0.0;
+}
+
+/** "0.8", "5", "12.5": a tonnage without trailing zeros. */
+function boblift_tonnes_label(float $value): string
+{
+    return rtrim(rtrim(number_format($value, 2, '.', ''), '0'), '.');
 }
 
 // A forklift fly jib hoists a hanging load, so it counts as a crane attachment. Aerial work platforms lift

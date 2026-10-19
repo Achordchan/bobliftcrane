@@ -148,7 +148,7 @@ if ($legacy_label !== '' || $legacy_headline !== '' || $legacy_paragraph !== '' 
     <div class="mx-auto max-w-[860px] text-center">
         <?php if ($legacy_label !== '') : ?><p class="section-label mb-4 justify-center"><?php echo esc_html($legacy_label); ?></p><?php endif; ?>
         <?php if ($legacy_headline !== '') : ?><h2 class="text-[clamp(1.75rem,2.8vw,3rem)] font-black leading-[1.08] tracking-[-0.02em] text-[#0B1B33]"><?php echo esc_html($legacy_headline); ?></h2><?php endif; ?>
-        <?php if ($legacy_paragraph !== '') : ?><p class="mx-auto mt-5 max-w-[760px] text-sm font-semibold leading-7 text-[#64748B] md:text-base md:leading-8"><?php echo esc_html($legacy_paragraph); ?></p><?php endif; ?>
+        <?php if ($legacy_paragraph !== '') : ?><p class="mx-auto mt-5 max-w-[760px] text-sm font-normal leading-7 text-[#64748B] md:text-base md:leading-8"><?php echo esc_html($legacy_paragraph); ?></p><?php endif; ?>
     </div>
     <?php if ($legacy_chips !== []) : ?>
         <div class="mt-7 grid gap-3 md:grid-cols-3">
@@ -169,7 +169,7 @@ if ($legacy_label !== '' || $legacy_headline !== '' || $legacy_paragraph !== '' 
         <div class="about-manufacturing-copy mx-auto w-full text-center" data-about-strength-copy>
             <p class="section-label mb-6 text-center"><?php echo esc_html($strength['label'] ?? 'Company Strength'); ?></p>
             <h2 class="about-strength-title mx-auto max-w-none text-[34px] font-black leading-[1.1] tracking-[-0.005em] text-[#0B1B33] md:text-[52px] xl:text-[68px]"><?php echo wp_kses_post($strength_title_html); ?></h2>
-            <p class="mx-auto mt-6 max-w-none text-base font-semibold leading-[1.7] tracking-normal text-[#64748B] md:text-lg xl:text-xl"><?php echo esc_html($strength['text'] ?? 'BOB-LIFT combines product engineering, precision production and responsive export service into one disciplined workflow for overseas B2B buyers.'); ?></p>
+            <p class="mx-auto mt-6 max-w-none text-base font-normal leading-[1.7] tracking-normal text-[#64748B] md:text-lg xl:text-xl"><?php echo esc_html($strength['text'] ?? 'BOB-LIFT combines product engineering, precision production and responsive export service into one disciplined workflow for overseas B2B buyers.'); ?></p>
         </div>
 
         <?php if (!empty($global_stats)) : ?>
@@ -211,7 +211,7 @@ if ($legacy_strength['cards'] !== [] || $legacy_strength['cta'] !== null || $leg
                 <?php foreach ($legacy_strength['cards'] as $legacy_card) : ?>
                     <div class="rounded border border-line bg-white p-6 shadow-card">
                         <h3 class="text-lg font-black leading-tight text-[#0B1B33]"><?php echo esc_html((string) ($legacy_card['title'] ?? '')); ?></h3>
-                        <p class="mt-3 text-sm font-semibold leading-7 text-[#64748B]"><?php echo esc_html((string) ($legacy_card['text'] ?? '')); ?></p>
+                        <p class="mt-3 text-sm font-normal leading-7 text-[#64748B]"><?php echo esc_html((string) ($legacy_card['text'] ?? '')); ?></p>
                     </div>
                 <?php endforeach; ?>
             </div>
@@ -276,10 +276,10 @@ if ($legacy_strength['cards'] !== [] || $legacy_strength['cta'] !== null || $leg
         <div id="about-certifications" class="mt-10 border-t border-[#DDE7F2] pt-8 md:mt-12 md:pt-10 lg:mt-14" data-about-certifications>
             <div class="mb-6 flex flex-col gap-3 md:mb-8 md:flex-row md:items-end md:justify-between">
                 <div>
-                    <p class="mb-2 text-xs font-black uppercase tracking-[0.28em] text-[#2563EB]"><?php echo esc_html($certification_label); ?></p>
+                    <p class="boblift-kicker mb-2"><?php echo esc_html($certification_label); ?></p>
                     <h3 class="text-[24px] font-black leading-tight tracking-normal text-[#0B1B33] md:text-[32px]"><?php echo esc_html($certification_title); ?></h3>
                 </div>
-                <p class="max-w-[760px] text-sm font-semibold leading-7 text-[#64748B]"><?php echo esc_html($certification_text); ?></p>
+                <p class="max-w-[760px] text-sm font-normal leading-7 text-[#64748B]"><?php echo esc_html($certification_text); ?></p>
             </div>
 
             <div class="relative -mx-4 flex overflow-hidden px-4 py-2 md:-mx-6 md:px-6" data-certification-marquee>
@@ -302,7 +302,7 @@ if ($legacy_strength['cards'] !== [] || $legacy_strength['cta'] !== null || $leg
                         <span class="block px-2 pb-2 pt-4">
                             <span class="line-clamp-2 text-sm font-black leading-tight text-[#0B1B33]"><?php echo esc_html($certification_title_text); ?></span>
                             <?php if ($certification['text'] !== '') : ?>
-                                <span class="mt-2 line-clamp-2 block text-xs font-semibold leading-5 text-[#64748B]"><?php echo esc_html($certification['text']); ?></span>
+                                <span class="mt-2 line-clamp-2 block text-xs font-normal leading-5 text-[#64748B]"><?php echo esc_html($certification['text']); ?></span>
                             <?php endif; ?>
                         </span>
                     </button>
@@ -332,10 +332,10 @@ if ($legacy_strength['cards'] !== [] || $legacy_strength['cta'] !== null || $leg
     <div class="page-shell about-wide-shell mb-5 md:mb-6">
         <div class="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
             <div>
-                <p class="mb-4 text-xs font-black uppercase tracking-[0.28em] text-[#2563EB]"><?php echo esc_html($gallery_label); ?></p>
+                <p class="boblift-kicker mb-4"><?php echo esc_html($gallery_label); ?></p>
                 <h2 class="text-[36px] font-black leading-[1.06] tracking-normal text-[#0B1B33] md:text-[52px] xl:text-[64px]"><?php echo esc_html($gallery_title); ?></h2>
             </div>
-            <p class="max-w-[760px] text-sm font-semibold leading-7 text-[#64748B] md:text-base"><?php echo esc_html($gallery_text); ?></p>
+            <p class="max-w-[760px] text-sm font-normal leading-7 text-[#64748B] md:text-base"><?php echo esc_html($gallery_text); ?></p>
         </div>
     </div>
     <div class="about-gallery-pin" data-gallery-pin>
@@ -347,7 +347,7 @@ if ($legacy_strength['cards'] !== [] || $legacy_strength['cta'] !== null || $leg
                     <div class="absolute inset-x-0 bottom-0 p-5 text-white md:p-7">
                         <span class="text-xs font-black tracking-[0.22em] text-white/70"><?php echo esc_html(str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT)); ?></span>
                         <h3 class="mt-3 text-3xl font-black leading-tight tracking-normal md:text-4xl"><?php echo esc_html(boblift_localized_static_text((string) ($item['title'] ?? ''))); ?></h3>
-                        <p class="mt-3 max-w-[620px] text-sm font-semibold leading-7 text-white/78 md:text-base"><?php echo esc_html(boblift_localized_static_text((string) ($item['text'] ?? ''))); ?></p>
+                        <p class="mt-3 max-w-[620px] text-sm font-normal leading-7 text-white/78 md:text-base"><?php echo esc_html(boblift_localized_static_text((string) ($item['text'] ?? ''))); ?></p>
                     </div>
                 </article>
             <?php endforeach; ?>
@@ -367,7 +367,7 @@ if ($legacy_strength['cards'] !== [] || $legacy_strength['cta'] !== null || $leg
                 <div class="about-executive-watermark pointer-events-none absolute -end-10 top-4 text-[clamp(72px,12vw,230px)] font-black leading-none tracking-[-0.03em] text-[#0B3F7D]/[0.055]" data-executive-watermark><?php echo esc_html($about_ui['leadershipWatermark'] ?? 'LEADERSHIP'); ?></div>
                 <div class="relative z-10 mb-6 grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-end">
                     <div class="lg:col-span-2" data-executive-copy-item>
-                        <p class="mb-4 text-xs font-black uppercase tracking-[0.42em] text-[#0B3F7D]"><?php echo esc_html($executives['label'] ?? 'Executive Leadership'); ?></p>
+                        <p class="boblift-kicker mb-4"><?php echo esc_html($executives['label'] ?? 'Executive Leadership'); ?></p>
                         <h2 class="max-w-none text-[clamp(34px,4.2vw,72px)] [text-wrap:balance] font-black leading-[1.02] tracking-[-0.015em] text-[#0B1B33]"><?php echo esc_html($executives['title'] ?? 'Leadership Team'); ?></h2>
                     </div>
                 </div>
@@ -378,7 +378,7 @@ if ($legacy_strength['cards'] !== [] || $legacy_strength['cta'] !== null || $leg
                                 <?php echo boblift_img_from_setting($member['image'] ?? [], 'images/about/executives/executive-01-square.png', ($member['name'] ?? 'BOB-LIFT executive') . ' portrait', 'absolute inset-0 h-full w-full object-cover object-center transition duration-700 group-hover:scale-[1.035]', ['loading' => 'lazy', 'decoding' => 'async', 'data-executive-image' => '']); ?>
                             </div>
                             <div class="flex min-w-0 flex-col justify-center p-5 2xl:p-6">
-                                <p class="text-[11px] font-black uppercase tracking-[0.22em] text-[#2563EB]"><?php echo esc_html($member['role'] ?? ''); ?></p>
+                                <p class="boblift-kicker"><?php echo esc_html($member['role'] ?? ''); ?></p>
                                 <h3 class="mt-3 text-[clamp(24px,1.75vw,36px)] font-black leading-[1.04] tracking-[-0.01em] text-[#0B1B33]"><?php echo esc_html($member['name'] ?? ''); ?></h3>
                             </div>
                         </article>
@@ -387,7 +387,7 @@ if ($legacy_strength['cards'] !== [] || $legacy_strength['cta'] !== null || $leg
                 </div>
                 <div class="about-executive-photo absolute inset-0 flex flex-col overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card" data-executive-photo aria-hidden="true">
                     <div class="relative z-10 shrink-0 px-5 pb-4 pt-5 md:px-7 md:pt-7 lg:px-8 lg:pt-8 2xl:px-10 2xl:pt-10">
-                        <p class="mb-4 text-xs font-black uppercase tracking-[0.42em] text-[#0B3F7D]"><?php echo esc_html($executive_team_label); ?></p>
+                        <p class="boblift-kicker mb-4"><?php echo esc_html($executive_team_label); ?></p>
                         <h2 class="max-w-none text-[clamp(34px,4.2vw,72px)] [text-wrap:balance] font-black leading-[1.02] tracking-[-0.015em] text-[#0B1B33]"><?php echo esc_html($executive_team_title); ?></h2>
                     </div>
                     <div class="relative min-h-0 flex-1 bg-[#F8FAFC] px-4 pb-5 md:px-7 md:pb-7 lg:px-8 lg:pb-8 2xl:px-10 2xl:pb-10">

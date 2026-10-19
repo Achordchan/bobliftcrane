@@ -104,7 +104,7 @@ $wall_alt = $t($visits['label'] ?? 'Global Customer Visits');
                     <div class="flex flex-1 flex-col p-5 xl:p-6">
                         <span class="text-xs font-black tabular-nums tracking-[0.14em] text-blue-700"><?php echo esc_html($pad($index + 1)); ?></span>
                         <h3 class="mt-2 text-lg font-black leading-snug text-ink xl:text-xl"><?php echo esc_html($t($step['title'])); ?></h3>
-                        <?php if (trim((string) ($step['text'] ?? '')) !== '') : ?><p class="mt-2 text-sm font-semibold leading-6 text-slate-600"><?php echo esc_html($t($step['text'])); ?></p><?php endif; ?>
+                        <?php if (trim((string) ($step['text'] ?? '')) !== '') : ?><p class="mt-2 text-sm font-normal leading-6 text-slate-600"><?php echo esc_html($t($step['text'])); ?></p><?php endif; ?>
                     </div>
                 </li>
             <?php endforeach; ?>
@@ -120,7 +120,7 @@ $wall_alt = $t($visits['label'] ?? 'Global Customer Visits');
                 <p class="section-label mb-3"><?php echo esc_html($t($visits['wall_label'] ?? 'Visit gallery')); ?></p>
                 <h2 id="visit-wall-title" class="text-[clamp(1.75rem,2.8vw,3rem)] font-black leading-[1.05] tracking-[-0.015em] text-ink"><?php echo esc_html($t($visits['wall_title'] ?? 'Photos from recent visits')); ?></h2>
             </div>
-            <?php if ($cards) : ?><p class="max-w-md text-sm font-semibold leading-6 text-slate-500"><?php echo esc_html($t($visits['wall_text'] ?? '')); ?></p><?php endif; ?>
+            <?php if ($cards) : ?><p class="max-w-md text-sm font-normal leading-6 text-slate-500"><?php echo esc_html($t($visits['wall_text'] ?? '')); ?></p><?php endif; ?>
         </div>
         <?php if ($cards) : ?>
             <div class="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-5 xl:gap-5">
@@ -162,7 +162,7 @@ $wall_alt = $t($visits['label'] ?? 'Global Customer Visits');
         <div>
             <p class="section-label mb-3"><?php echo esc_html($t($visits['plan_label'] ?? 'Plan your visit')); ?></p>
             <h2 id="visit-plan-title" class="max-w-[22ch] text-[clamp(1.75rem,2.8vw,3rem)] font-black leading-[1.05] tracking-[-0.015em]"><?php echo esc_html($t($visits['plan_title'] ?? 'Come and see the crane before you order it.')); ?></h2>
-            <p class="mt-4 max-w-xl text-sm font-semibold leading-7 text-white/75 md:text-base"><?php echo esc_html($t($visits['plan_text'] ?? '')); ?></p>
+            <p class="mt-4 max-w-xl text-sm font-normal leading-7 text-white/75 md:text-base"><?php echo esc_html($t($visits['plan_text'] ?? '')); ?></p>
             <div class="mt-7 flex flex-wrap gap-3">
                 <button class="inline-flex h-12 items-center justify-center gap-2 rounded-sm bg-white px-6 text-sm font-black text-navy transition hover:-translate-y-0.5 hover:bg-blue-50" type="button" data-inquiry-modal-open data-inquiry-source="参厂页"><?php echo esc_html($t($visits['cta_label'] ?? 'Plan a Visit')); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
                 <a class="inline-flex h-12 items-center justify-center rounded-sm border border-white/30 px-6 text-sm font-black text-white transition hover:border-white" href="<?php echo esc_url(boblift_url((string) ($visits['cta_href'] ?? '/contact.html'))); ?>"><?php echo esc_html($t($visits['plan_secondary_label'] ?? 'Contact us')); ?></a>
