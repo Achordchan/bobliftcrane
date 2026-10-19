@@ -574,22 +574,6 @@ function boblift_about_page_defaults(): array
                 ['image' => boblift_image_option('images/about/mfg-6-container-loading.webp'), 'title' => 'Container loading', 'text' => 'Loaded into containers at the factory and shipped to your port.'],
             ],
         ],
-        'executives' => [
-            'label' => 'Executive Leadership',
-            'title' => 'Leadership Team',
-            'team_label' => 'Whole Team',
-            'team_title' => 'BOB-LIFT Team',
-            'team_image' => boblift_image_option('images/about/quanyuan-compressed.jpg'),
-            'team_image_alt' => 'BOB-LIFT full team group photo',
-            'members' => [
-                ['image' => boblift_image_option('images/about/executives/executive-01-square.png'), 'name' => 'Daniel Chen', 'role' => 'Chief Executive Officer'],
-                ['image' => boblift_image_option('images/about/executives/executive-02-square.png'), 'name' => 'Sophia Lin', 'role' => 'Chief Operating Officer'],
-                ['image' => boblift_image_option('images/about/executives/executive-03-square.png'), 'name' => 'Robert Miller', 'role' => 'Chief Engineering Officer'],
-                ['image' => boblift_image_option('images/about/executives/executive-04-square.png'), 'name' => 'Michael Zhang', 'role' => 'Manufacturing Director'],
-                ['image' => boblift_image_option('images/about/executives/executive-05-square.png'), 'name' => 'Ethan Wang', 'role' => 'Global Sales Director'],
-                ['image' => boblift_image_option('images/about/executives/executive-06-square.png'), 'name' => 'Grace Wilson', 'role' => 'Service Director'],
-            ],
-        ],
     ];
 }
 
@@ -676,26 +660,10 @@ function boblift_about_legacy_strength(array $strength): array
     ];
 }
 
-/**
- * Sites saved before the team photo was renamed keep it in executives.group_image; use it until team_image is saved.
- * Applied to the front end and to the About editors, so a first save does not replace the old photo with the default.
- */
-function boblift_about_apply_legacy_team_image(array $value): array
-{
-    $legacy_team_image = $value['executives']['group_image'] ?? null;
-    // Options merged with the defaults count as "not saved" when team_image is empty or still the built-in default.
-    $default_team_image = boblift_about_page_defaults()['executives']['team_image'] ?? null;
-    $saved_team_image = $value['executives']['team_image'] ?? null;
-    if (!empty($legacy_team_image) && (empty($saved_team_image) || wp_json_encode($saved_team_image) === wp_json_encode($default_team_image))) {
-        $value['executives']['team_image'] = $legacy_team_image;
-    }
-    return $value;
-}
-
 function boblift_about_page_options(): array
 {
     $value = boblift_option('about_page', []);
-    $value = boblift_about_apply_legacy_team_image(is_array($value) ? $value : []);
+    $value = is_array($value) ? $value : [];
     $options = boblift_array_replace_recursive(boblift_about_page_defaults(), $value);
     return boblift_about_apply_nav_migration($options, $value);
 }

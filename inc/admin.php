@@ -623,16 +623,6 @@ function boblift_cleanup_admin_options(array $options): array
         foreach (['label', 'title', 'text'] as $key) {
             unset($options['about_page']['global_footprint'][$key]);
         }
-        // The legacy team photo moves to team_image before its old key is dropped, so a saved custom image is never lost.
-        if (!empty($options['about_page']['executives']['group_image']) && empty($options['about_page']['executives']['team_image'])) {
-            $options['about_page']['executives']['team_image'] = $options['about_page']['executives']['group_image'];
-        }
-        unset($options['about_page']['executives']['group_image']);
-        // Saving the team photo field retires the legacy key in the stored options too (the save merges into them, so an
-        // unset alone would leave the old photo there to reappear when team_image is reset to the built-in default).
-        if (is_array($options['about_page']['executives'] ?? null) && array_key_exists('team_image', $options['about_page']['executives'])) {
-            $options['about_page']['executives']['group_image'] = '';
-        }
     }
 
     if (isset($options['social_media_page']['hero']) && is_array($options['social_media_page']['hero'])) {
@@ -964,7 +954,7 @@ function boblift_about_page_meta_box(WP_Post $post): void
         // marks the menu reviewed) keeps the pages the front end already added.
         $raw = function_exists('boblift_mls_get_raw_options') ? boblift_mls_get_raw_options($language !== '' ? $language : null) : get_option('boblift_theme_options', []);
         $saved_about = is_array($raw['about_page'] ?? null) ? $raw['about_page'] : [];
-        $about = boblift_about_apply_nav_migration(boblift_about_apply_legacy_team_image((array) boblift_mls_section_options('about_page', $language)), $saved_about);
+        $about = boblift_about_apply_nav_migration((array) boblift_mls_section_options('about_page', $language), $saved_about);
     } else {
         $about = boblift_about_page_options();
     }
@@ -1326,23 +1316,6 @@ function boblift_render_about_page_fields(array $about, string $base): void
                 boblift_admin_input("manufacturing_gallery.items.$i.title", $about, '标题', $base);
                 boblift_admin_textarea("manufacturing_gallery.items.$i.text", $about, '说明', $base);
             }, false, (string) ($about['manufacturing_gallery']['items'][$i]['title'] ?? ''));
-        }
-    });
-
-    boblift_admin_panel('7. 领导与全体团队区', static function () use ($about, $base): void {
-        echo '<p class="boblift-admin-note">正面展示领导成员；翻转后展示全体团队照片，两者文案分开维护。</p>';
-        boblift_admin_input('executives.label', $about, '领导区标签', $base);
-        boblift_admin_input('executives.title', $about, '领导区标题', $base);
-        boblift_admin_input('executives.team_label', $about, '全体团队照片标签', $base);
-        boblift_admin_input('executives.team_title', $about, '全体团队照片标题', $base);
-        boblift_admin_media('executives.team_image', $about, '全体团队大图', $base, '推荐 3200×760 或 3840×900，超宽横图；用于翻转后的全屏展示。');
-        boblift_admin_input('executives.team_image_alt', $about, '全体团队大图 Alt', $base);
-        for ($i = 0; $i < 6; $i++) {
-            boblift_admin_subpanel('领导成员 ' . (string) ($i + 1), static function () use ($about, $base, $i): void {
-                boblift_admin_media("executives.members.$i.image", $about, '照片', $base, '推荐 1200×1200，正方形半身商务照；人脸居中，上方保留少量头部空间。');
-                boblift_admin_input("executives.members.$i.role", $about, '职位', $base);
-                boblift_admin_input("executives.members.$i.name", $about, '姓名', $base);
-            }, false, (string) ($about['executives']['members'][$i]['name'] ?? ''));
         }
     });
 
