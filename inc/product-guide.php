@@ -186,10 +186,12 @@ function boblift_product_guide(array $product, string $family, ?WP_Term $term): 
         ];
     }
     $hydraulic = $code['sections'] - 1;
+    // The "+1" section's type is not in the model code, so a "3+1" model shows its count without a breakdown.
+    $extra_section = $code['sections_label'] !== (string) $code['sections'];
     $guide['cards'][] = [
         'value' => $code['sections_label'],
         'label' => boblift_localized_static_text($code['boom'] === 'Z' ? 'Knuckle boom sections' : 'Telescopic boom sections'),
-        'text' => str_replace('{count}', (string) $hydraulic, boblift_localized_static_text($hydraulic === 1 ? '1 main boom + 1 hydraulic boom' : '1 main boom + {count} hydraulic booms')),
+        'text' => $extra_section ? '' : str_replace('{count}', (string) $hydraulic, boblift_localized_static_text($hydraulic === 1 ? '1 main boom + 1 hydraulic boom' : '1 main boom + {count} hydraulic booms')),
     ];
     if ($flow !== '') {
         $guide['cards'][] = [

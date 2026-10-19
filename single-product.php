@@ -279,8 +279,8 @@ if (is_array($related_terms) && $related_terms) {
         $related_products[] = boblift_product_from_post(get_post($related_id));
     }
 }
-$process_slugs = wp_get_post_terms(boblift_product_english_id(get_the_ID()), 'product_category', ['fields' => 'slugs']);
-$process_slugs = is_array($process_slugs) ? $process_slugs : [];
+// The English product's categories with their ancestors, so a model filed under a sub-type still counts for its family and step set.
+$process_slugs = boblift_product_category_lineage(get_the_ID());
 // Generated range guide, spec groups and model FAQs (inc/product-guide.php), for truck and marine cranes with a decoded model code.
 $crane_family = boblift_product_crane_family($process_slugs);
 $product_guide = boblift_product_guide($product, $crane_family, $related_term);

@@ -41,6 +41,10 @@ foreach (['mount' => 'mountSteps', 'pack' => 'packSteps'] as $section => $steps_
 }
 $needs = array_values(array_filter((array) ($ui['needs'] ?? []), static fn($need): bool => is_string($need) && trim($need) !== ''));
 $pad = static fn(int $n): string => str_pad((string) $n, 2, '0', STR_PAD_LEFT);
+$step_label = static function (int $n) use ($ui, $pad): string {
+    $label = boblift_localized_static_text(trim((string) ($ui['stepLabel'] ?? '')) ?: 'Step {number}');
+    return str_contains($label, '{number}') ? str_replace('{number}', $pad($n), $label) : trim($label . ' ' . $pad($n));
+};
 ?>
 <div class="page-shell pt-5 md:pt-8">
     <?php
@@ -92,9 +96,10 @@ $pad = static fn(int $n): string => str_pad((string) $n, 2, '0', STR_PAD_LEFT);
         <ol class="mt-6 grid gap-x-5 gap-y-6 sm:mt-8 sm:grid-cols-2 sm:gap-y-10 md:mt-10 <?php echo count($section_steps) >= 4 ? 'lg:grid-cols-4' : 'lg:grid-cols-3'; ?>">
             <?php foreach ($section_steps as $number => $step) : $photos = $step['photos']; $lead = array_shift($photos); $is_last = $number === count($section_steps) - 1; ?>
                 <li class="grid min-w-0 grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)] content-start gap-x-4 sm:flex sm:flex-col" aria-labelledby="mounting-step-<?php echo esc_attr((string) $step['key']); ?>">
-                    <div class="col-start-2 row-start-1 flex items-center gap-3" aria-hidden="true">
-                        <span class="grid size-8 shrink-0 place-items-center rounded-sm bg-[#071f42] text-xs font-black sm:size-9 text-white [font-variant-numeric:tabular-nums]"><?php echo esc_html($pad($number + 1)); ?></span>
-                        <?php if (!$is_last) : ?><span class="hidden h-px flex-1 bg-[#C9D6E6] lg:block"></span><?php endif; ?>
+                    <div class="col-start-2 row-start-1 flex items-center gap-3">
+                        <?php // The saved step label ("Step {number}"); a label without the placeholder gets the number after it. ?>
+                        <span class="inline-flex h-8 shrink-0 items-center rounded-sm bg-[#071f42] px-2.5 text-xs font-black uppercase tracking-[0.08em] text-white sm:h-9 sm:px-3 [font-variant-numeric:tabular-nums]"><?php echo esc_html($step_label($number + 1)); ?></span>
+                        <?php if (!$is_last) : ?><span class="hidden h-px flex-1 bg-[#C9D6E6] lg:block" aria-hidden="true"></span><?php endif; ?>
                     </div>
                     <button class="group relative col-start-1 row-span-3 row-start-1 block self-start overflow-hidden rounded bg-[#EDF1F5] sm:mt-4" type="button" data-detail-open="<?php echo esc_attr((string) $lead['index']); ?>" aria-label="<?php echo esc_attr((string) $step['title'] . ' ' . $pad($lead['index'] + 1)); ?>">
                         <img class="aspect-[4/3] w-full object-cover transition duration-500 group-hover:scale-[1.03]" src="<?php echo esc_url($lead['full']); ?>" alt="<?php echo esc_attr((string) $step['title']); ?>" loading="lazy" decoding="async">
