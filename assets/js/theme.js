@@ -3570,7 +3570,9 @@
             : 'h-11 rounded-sm border border-[#D8DEE8] bg-white px-5 text-sm font-black text-[#0B1B33] transition hover:border-blue-300 disabled:cursor-not-allowed disabled:opacity-40');
         button.addEventListener('click', () => {
           applyNewsFilter(activeCategory, { page });
-          (grid || root).scrollIntoView({ behavior: 'smooth', block: 'start' });
+          // The pager is rebuilt, so move focus to the first article of the new page.
+          cards.find((card) => !card.classList.contains('hidden'))?.focus({ preventScroll: true });
+          root.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
         if (active) button.setAttribute('aria-current', 'page');
         return button;
