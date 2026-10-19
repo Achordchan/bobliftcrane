@@ -197,22 +197,26 @@ function boblift_news_category_defaults(): array
 }
 
 /**
- * The newsroom filters by the old site's two groups. Posts filed under a category that is no longer a filter
- * (product news, marine solutions) are listed with the group they belong to.
+ * The newsroom filters by the old site's two groups. Posts (and saved filter links) for the two retired
+ * categories go to the group they belong to; any other category is left as it is.
  */
 function boblift_news_filter_category(string $slug, array $allowed): string
 {
-    if ($allowed === [] || in_array($slug, $allowed, true)) {
+    if ($slug === '' || in_array($slug, $allowed, true)) {
         return $slug;
     }
-    $plain = function_exists('boblift_plain_term_slug') ? boblift_plain_term_slug($slug, function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '') : $slug;
-    $group = str_starts_with($plain, 'product-news') || str_starts_with($plain, 'company-news') ? 'company-news' : 'industry-insight';
+    $language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
+    $plain = static fn(string $value): string => function_exists('boblift_plain_term_slug') ? boblift_plain_term_slug($value, $language) : $value;
+    $target = ['product-news' => 'company-news', 'marine-solution' => 'industry-insight'][$plain($slug)] ?? '';
+    if ($target === '') {
+        return $slug;
+    }
     foreach ($allowed as $candidate) {
-        if (str_starts_with($candidate, $group)) {
-            return $candidate;
+        if ($plain((string) $candidate) === $target) {
+            return (string) $candidate;
         }
     }
-    return $allowed[0];
+    return $slug;
 }
 
 function boblift_news_category_options(): array

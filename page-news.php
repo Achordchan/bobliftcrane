@@ -14,6 +14,7 @@ foreach ($news_categories as $term) {
     $news_category_names[$term->slug] = function_exists('boblift_localized_static_text') ? boblift_localized_static_text($term->name) : $term->name;
 }
 $active_category = isset($_GET['news_category']) ? sanitize_title(wp_unslash((string) $_GET['news_category'])) : '';
+$active_category = boblift_news_filter_category($active_category, $allowed_category_slugs);
 if ($active_category !== '' && !in_array($active_category, $allowed_category_slugs, true) && function_exists('boblift_plain_term_slug')) {
     $active_category = boblift_plain_term_slug($active_category, function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '');
 }
