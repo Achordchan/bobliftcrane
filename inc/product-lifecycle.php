@@ -175,15 +175,21 @@ function boblift_legacy_model_library(array $categories): array
     if (boblift_legacy_product_ids() === []) {
         return [];
     }
-    $groups = [];
-    $seen = [];
-    foreach ($categories as $category) {
+    $terms = [];
+    foreach (array_values($categories) as $position => $category) {
         $slug = (string) ($category['slug'] ?? '');
         $term = $slug !== '' ? get_term_by('slug', $slug, 'product_category') : null;
-        if (!$term instanceof WP_Term) {
-            continue;
+        if ($term instanceof WP_Term) {
+            $terms[] = ['position' => $position, 'term' => $term, 'title' => (string) ($category['title'] ?? $term->name), 'depth' => count(get_ancestors($term->term_id, 'product_category', 'taxonomy'))];
         }
-        // The models filed under this category itself; one filed under two listed categories appears in the first only.
+    }
+    // Deepest categories claim their models first, so a model filed under a parent and a child is listed (and matched
+    // with current models) under the child; the groups are shown in archive order afterwards.
+    usort($terms, static fn(array $a, array $b): int => ($b['depth'] <=> $a['depth']) ?: ($a['position'] <=> $b['position']));
+    $groups = [];
+    $seen = [];
+    foreach ($terms as ['position' => $position, 'term' => $term, 'title' => $title]) {
+        // The models filed under this category itself; one filed under two listed categories appears once.
         $models = boblift_product_range_models($term, 'all', false);
         $legacy = array_values(array_filter($models, static fn(array $item): bool => $item['legacy'] && !isset($seen[$item['id']])));
         foreach ($legacy as $item) {
@@ -197,8 +203,10 @@ function boblift_legacy_model_library(array $categories): array
             $same = $item['capacity'] > 0 ? array_values(array_filter($current, static fn(array $other): bool => $other['capacity'] > 0 && abs($other['capacity'] - $item['capacity']) < 0.001)) : [];
             $legacy[$index]['current'] = $same !== [] ? $same : boblift_nearest_capacity_models($current, $item['capacity']);
         }
-        $groups[] = ['slug' => $term->slug, 'title' => (string) ($category['title'] ?? $term->name), 'models' => $legacy];
+        $groups[$position] = ['slug' => $term->slug, 'title' => $title, 'models' => $legacy];
     }
+    ksort($groups);
+    $groups = array_values($groups);
     // Previous models outside every listed category (category assignment is optional) are listed on their own.
     $unlisted = array_values(array_diff(boblift_legacy_product_ids(), array_keys($seen)));
     $rest = $unlisted !== [] ? get_posts(['post_type' => 'product', 'post_status' => 'publish', 'numberposts' => -1, 'post__in' => $unlisted]) : [];
