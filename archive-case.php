@@ -153,7 +153,7 @@ $render_case_filter = static function (string $id, string $filter, string $all_l
                 <a class="block h-full" href="<?php echo esc_url($feedback['url']); ?>">
                     <span class="boblift-case-card-media relative block h-[260px] overflow-hidden rounded bg-[#eef5ff]">
                         <?php if ($feedback['cover'] !== '') : ?><img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.035]" src="<?php echo esc_url($feedback['cover']); ?>" alt="<?php echo esc_attr($feedback_caption); ?>" loading="lazy" decoding="async"><?php endif; ?>
-                        <?php if ($feedback['media'][0]['type'] === 'video') : ?><span class="absolute inset-0 m-auto grid size-16 place-items-center rounded-sm bg-white/90 text-blue-700 shadow-card"><?php echo boblift_icon('circle-play', 'h-7 w-7'); ?></span><?php endif; ?>
+                        <?php if (($feedback['media'][0]['type'] ?? '') === 'video') : ?><span class="absolute inset-0 m-auto grid size-16 place-items-center rounded-sm bg-white/90 text-blue-700 shadow-card"><?php echo boblift_icon('circle-play', 'h-7 w-7'); ?></span><?php endif; ?>
                         <?php if (count($feedback['media']) > 1) : ?><span class="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-sm bg-[#071f42]/80 px-2 py-1 text-xs font-black text-white"><?php echo boblift_icon('images', 'h-3.5 w-3.5'); ?><?php echo esc_html((string) count($feedback['media'])); ?></span><?php endif; ?>
                     </span>
                     <span class="boblift-case-card-content block p-5">

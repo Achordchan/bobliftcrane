@@ -967,13 +967,25 @@ function boblift_feedback_item(WP_Post $post): ?array
     if (!$media && $thumbnail_id && ($src = (string) wp_get_attachment_image_url($thumbnail_id, 'large'))) {
         $media[] = ['type' => 'image', 'src' => $src, 'full' => (string) wp_get_attachment_image_url($thumbnail_id, 'full'), 'thumb' => (string) wp_get_attachment_image_url($thumbnail_id, 'medium')];
     }
-    if (!$media) {
+    $content = (string) $post->post_content;
+    $legacy_body = $pick('_feedback_body');
+    // An article told only in the editor (no gallery, no featured image) still counts; an entry with nothing to show does not.
+    if (!$media && trim($content) === '' && $legacy_body === '') {
         return null;
     }
-    // The featured image is the cover when set; otherwise the first image (or the first video's poster).
+    // The featured image is the cover when set; otherwise the first image (or the first video's poster),
+    // and for an article without a gallery the first image in its body.
     $cover = $thumbnail_id ? (string) wp_get_attachment_image_url($thumbnail_id, 'large') : '';
-    if ($cover === '') {
+    if ($cover === '' && $media) {
         $cover = $media[0]['type'] === 'image' ? $media[0]['src'] : ($media[0]['poster'] ?? '');
+    }
+    if ($cover === '' && !$media) {
+        if (preg_match('/wp-image-(\d+)/', $content, $match)) {
+            $cover = (string) wp_get_attachment_image_url((int) $match[1], 'large');
+        }
+        if ($cover === '' && preg_match('/<img[^>]+src=["\']([^"\']+)["\']/i', $content, $match)) {
+            $cover = $match[1];
+        }
     }
     foreach ($media as $m) {
         if ($cover === '' && $m['type'] === 'image') {
@@ -988,7 +1000,7 @@ function boblift_feedback_item(WP_Post $post): ?array
         'note' => $pick('_feedback_note'),
         'excerpt' => trim($post->post_excerpt),
         // Plain-text body per language from before the editor body; shown only while the editor body is empty.
-        'legacy_body' => $pick('_feedback_body'),
+        'legacy_body' => $legacy_body,
         'media' => $media,
         'cover' => $cover,
         'photos' => count(array_filter($media, static fn(array $m): bool => $m['type'] === 'image')),

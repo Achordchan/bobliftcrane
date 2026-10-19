@@ -77,7 +77,13 @@ function boblift_product_category_lineage(int $product_id): array
 function boblift_product_crane_terms_apply(int $product_id): bool
 {
     $lineage = boblift_product_category_lineage($product_id);
-    return (bool) array_intersect($lineage, ['truck-mounted-crane', 'marine-crane', 'other-cranes'])
+    // The families and their concrete crane categories, since a category may stand on its own without its parent.
+    $cranes = [
+        'truck-mounted-crane', 'knuckle-boom-truck-mounted-cranes', 'telescopic-boom-truck-mounted-cranes', 'pickup-cranes',
+        'marine-crane', 'knuckle-boom-marine-cranes', 'telescopic-boom-marine-cranes',
+        'other-cranes', 'spider-cranes', 'timber-cranes',
+    ];
+    return (bool) array_intersect($lineage, $cranes)
         && !array_intersect($lineage, ['aerial-work-platform', 'tail-lift', 'forklift-fly-jib-cranes']);
 }
 
