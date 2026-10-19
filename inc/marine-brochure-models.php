@@ -42,7 +42,16 @@ function boblift_retire_old_marine_crane_models(): void
     if (get_option('boblift_marine_brochure_models_v1') !== false || !post_type_exists('product')) {
         return;
     }
-    // Translations share the English slug, so one query by slug finds every language's copy.
+    // add_option() inserts a unique row, so only one request holds the lock. A lock left by a request that died is
+    // released after ten minutes and the run starts again.
+    $lock = 'boblift_marine_brochure_models_v1_lock';
+    if (!add_option($lock, time(), '', false)) {
+        if (time() - (int) get_option($lock) < 600) {
+            return;
+        }
+        update_option($lock, time(), false);
+    }
+
     $ids = get_posts([
         'post_type' => 'product',
         'post_status' => 'publish',
@@ -52,10 +61,29 @@ function boblift_retire_old_marine_crane_models(): void
         'suppress_filters' => true,
         'lang' => '',
     ]);
-    // Saved before the updates, so a slow request cannot start the same run twice.
-    update_option('boblift_marine_brochure_models_v1', count($ids), false);
-    foreach ($ids as $id) {
-        wp_update_post(['ID' => (int) $id, 'post_status' => 'draft']);
+    // Translations usually share the English slug, but some may keep a numbered or language-suffixed slug, so
+    // linked translations are added through Polylang too.
+    if (function_exists('pll_get_post_translations')) {
+        foreach ($ids as $id) {
+            $ids = array_merge($ids, array_values(pll_get_post_translations((int) $id)));
+        }
     }
+    $ids = array_unique(array_map('intval', $ids));
+
+    $failed = 0;
+    foreach ($ids as $id) {
+        if (get_post_type($id) !== 'product' || get_post_status($id) !== 'publish') {
+            continue;
+        }
+        $result = wp_update_post(['ID' => $id, 'post_status' => 'draft'], true);
+        if (is_wp_error($result) || !$result) {
+            $failed++;
+        }
+    }
+    // Only a clean run is recorded; after a failure the next request tries again.
+    if ($failed === 0) {
+        update_option('boblift_marine_brochure_models_v1', count($ids), false);
+    }
+    delete_option($lock);
 }
 add_action('init', 'boblift_retire_old_marine_crane_models', 40);
