@@ -4,12 +4,7 @@ $about_page = boblift_about_page_options();
 $logo = $about_page['logo'] ?? [];
 $strength = $about_page['strength'] ?? [];
 $timeline = $about_page['timeline'] ?? [];
-$executives = $about_page['executives'] ?? [];
 $timeline_items = $timeline['items'] ?? [];
-$executive_team_image = $executives['team_image'] ?? ($executives['group_image'] ?? boblift_image_option('images/about/quanyuan-compressed.jpg'));
-$executive_team_label = (string) ($executives['team_label'] ?? 'Whole Team');
-$executive_team_title = (string) ($executives['team_title'] ?? 'BOB-LIFT Team');
-$executive_team_alt = (string) ($executives['team_image_alt'] ?? 'BOB-LIFT full team group photo');
 $manufacturing_gallery = is_array($about_page['manufacturing_gallery'] ?? null) ? $about_page['manufacturing_gallery'] : [];
 $facility_gallery = is_array($manufacturing_gallery['items'] ?? null) ? array_values(array_filter($manufacturing_gallery['items'], static fn($item): bool => is_array($item))) : [];
 $about_language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : 'en';
@@ -23,8 +18,6 @@ if ($is_zh_about) {
     $gallery_label = $gallery_label === 'Modern Manufacturing Base' ? '现代化制造基地' : $gallery_label;
     $gallery_title = $gallery_title === 'Intelligent Production.' ? '现代化生产现场' : $gallery_title;
     $gallery_text = $gallery_text === 'Experience our state-of-the-art 37,000 sqm facility where precision engineering meets rigorous quality control.' ? '从结构件加工到整机装配，制造流程围绕稳定质量和出口交付展开。' : $gallery_text;
-    $executive_team_label = $executive_team_label === 'Whole Team' ? '全体团队' : $executive_team_label;
-    $executive_team_title = $executive_team_title === 'BOB-LIFT Team' ? 'BOB-LIFT 团队' : $executive_team_title;
     $global_stat_label_map = [
         'Countries Exported' => '出口国家和地区',
         'Years Experience' => '经验年限',
@@ -353,20 +346,6 @@ if ($legacy_strength['cards'] !== [] || $legacy_strength['cta'] !== null || $leg
         </div>
     </div>
     <div class="about-gallery-scroll-spacer hidden lg:block" data-gallery-spacer aria-hidden="true"></div>
-</section>
-
-
-
-<section id="about-leadership" class="bg-[#F8FAFC] py-14 md:py-20">
-    <div class="page-shell">
-        <div class="mb-6 md:mb-8">
-            <p class="boblift-kicker mb-4"><?php echo esc_html($executive_team_label); ?></p>
-            <h2 class="max-w-none text-[clamp(30px,3.4vw,56px)] [text-wrap:balance] font-black leading-[1.04] tracking-[-0.015em] text-[#0B1B33]"><?php echo esc_html($executive_team_title); ?></h2>
-        </div>
-        <div class="overflow-x-auto overscroll-x-contain rounded border border-[#DDE7F2] bg-white p-3 shadow-card md:overflow-visible md:p-5">
-            <?php echo boblift_img_from_setting($executive_team_image, 'images/about/quanyuan-compressed.jpg', $executive_team_alt, 'block h-auto w-full min-w-[720px] md:min-w-0', ['loading' => 'lazy', 'decoding' => 'async']); ?>
-        </div>
-    </div>
 </section>
 
 <?php get_footer(); ?>
