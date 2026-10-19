@@ -74,11 +74,13 @@ function boblift_strip_story_price(string $content, string $story, string $inqui
     }, $content);
 }
 
-/** A price in the paragraph's text: an amount with USD or a dollar sign on either side, whatever punctuation follows. */
+/** A price in the paragraph's text: an amount with USD, a dollar sign or the dollar's name on either side, whatever punctuation follows. */
 function boblift_paragraph_has_price(string $text): bool
 {
     $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-    return (bool) preg_match('/\d[\d,.\s]*\+?\s*(?:USD|US\$|\$)|(?:USD|US\$|\$)[\s\p{P}]{0,3}\d/iu', $text);
+    // USD and the dollar's name in each site language (en, zh, ja, es, fr, ru, ar).
+    $currency = '(?:USD|US\$|\$|dollars?|美元|美金|ドル|dólar(?:es)?|доллар\w*|دولار\w*)';
+    return (bool) preg_match('/\d[\d,.\s]*\+?\s*' . $currency . '|' . $currency . '[\s\p{P}]{0,3}\d/iu', $text);
 }
 
 /** The offer posters, by file name, at any size WordPress generates. */
