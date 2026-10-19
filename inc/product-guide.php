@@ -48,29 +48,65 @@ function boblift_product_crane_family(array $english_slugs): string
 }
 
 /**
+ * Slugs of the product's English categories together with all their ancestors, so a child category
+ * still counts for its family (a model filed only under a sub-type of tail lifts is still a tail lift).
+ */
+function boblift_product_category_lineage(int $product_id): array
+{
+    $terms = wp_get_post_terms(boblift_product_english_id($product_id), 'product_category');
+    if (!is_array($terms)) {
+        return [];
+    }
+    $slugs = [];
+    foreach ($terms as $term) {
+        $slugs[] = $term->slug;
+        foreach (get_ancestors($term->term_id, 'product_category', 'taxonomy') as $ancestor_id) {
+            $ancestor = get_term($ancestor_id, 'product_category');
+            if ($ancestor instanceof WP_Term) {
+                $slugs[] = $ancestor->slug;
+            }
+        }
+    }
+    return array_values(array_unique($slugs));
+}
+
+/**
+ * Whether the crane order terms (12-month warranty, from 1 unit, container loading) apply: the product
+ * must sit in a crane family, and nowhere in the access equipment, tail lifts or fly jibs those terms exclude.
+ */
+function boblift_product_crane_terms_apply(int $product_id): bool
+{
+    $lineage = boblift_product_category_lineage($product_id);
+    return (bool) array_intersect($lineage, ['truck-mounted-crane', 'marine-crane', 'other-cranes'])
+        && !array_intersect($lineage, ['aerial-work-platform', 'tail-lift', 'forklift-fly-jib-cranes']);
+}
+
+/**
  * Every published model in the term (this page's language), with the figures the guide compares.
  * Each: id, model, title, url, capacity (t), moment, weight, sections (0 when the model code is not decoded).
  */
 function boblift_product_range_models(WP_Term $term): array
 {
-    $ids = get_posts([
+    // Full post objects, so titles, links and meta come from one query each rather than one per model.
+    $posts = get_posts([
         'post_type' => 'product',
         'post_status' => 'publish',
         'numberposts' => -1,
-        'fields' => 'ids',
         'tax_query' => [['taxonomy' => 'product_category', 'field' => 'term_id', 'terms' => $term->term_id]],
     ]);
-    update_meta_cache('post', $ids);
+    // The spec figures are read from the English products; load those posts and their meta together too.
+    _prime_post_caches(array_values(array_unique(array_map(static fn(WP_Post $post): int => boblift_product_english_id($post->ID), $posts))), false, true);
     $models = [];
-    foreach ($ids as $id) {
-        $model = boblift_clean_product_model((string) get_post_meta($id, '_model', true), (string) get_the_title($id));
+    foreach ($posts as $post) {
+        $id = $post->ID;
+        $model = boblift_clean_product_model((string) get_post_meta($id, '_model', true), (string) get_the_title($post));
         $values = boblift_product_filter_values($id);
         $code = boblift_crane_model_code($model);
         $models[] = [
             'id' => $id,
             'model' => $model,
-            'title' => get_the_title($id),
-            'url' => (string) get_permalink($id),
+            'title' => get_the_title($post),
+            'url' => (string) get_permalink($post),
             'capacity' => (float) $values['capacity'],
             'moment' => boblift_product_english_spec($id, 'Max Lifting Moment'),
             'weight' => boblift_product_english_spec($id, 'Self Weight'),

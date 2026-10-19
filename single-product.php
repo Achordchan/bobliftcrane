@@ -308,7 +308,7 @@ $process_sets = [
     'telescopic-boom-truck-mounted-cranes' => 'telescopic',
 ];
 // Order terms (from the user, 2026-10-19) hold for cranes; aerial work platforms, tail lifts and fly jibs are not covered.
-$hero_terms_apply = !array_intersect($process_slugs, ['aerial-work-platform', 'truck-mounted-aerial-work-platform', 'tail-lift', 'forklift-fly-jib-cranes']);
+$hero_terms_apply = boblift_product_crane_terms_apply(get_the_ID());
 $process_set = $process_sets[current(array_intersect(array_keys($process_sets), $process_slugs)) ?: ''] ?? '';
 $process_steps = $process_set !== '' ? array_values(array_filter((array) ($ui['processSteps'][$process_set] ?? []), static fn(mixed $step): bool => is_array($step) && trim((string) ($step['image'] ?? '')) !== '')) : [];
 if ($process_steps) {
