@@ -70,10 +70,38 @@ function boblift_strip_story_price(string $content, string $story, string $inqui
     return substr($content, 0, $start) . $replacement . substr($content, $end);
 }
 
-/** The offer posters (price printed on them): an <img> (wrapped in <p> once rendered), the same image in a <div>, then </figure>. */
+/**
+ * The offer posters (price printed on them) wherever they sit: each poster <img> goes on its own, then any <p>, <div> or
+ * <figure> it leaves empty. Other markup around it, balanced or not, is left as it was.
+ */
 function boblift_strip_story_price_posters(string $content): string
 {
-    return (string) preg_replace('/\s*(?:<p>\s*)?<img\b[^>]*\b(?:zhang\.png|lQLPJxfmBNvwfCHNBXrNBGKwyMGo9cJN6nAJ4sY0aUe2AA_1122_1402\.png)[^>]*>\s*(?:<\/p>\s*)?<div>\s*<img\b[^>]*>\s*<\/div>\s*<\/figure>/', '', $content);
+    $content = (string) preg_replace('/<img\b[^>]*(?:zhang\.png|lQLPJxfmBNvwfCHNBXrNBGKwyMGo9cJN6nAJ4sY0aUe2AA_1122_1402\.png)[^>]*>/i', '', $content);
+    do {
+        $before = $content;
+        $content = (string) preg_replace('/\s*<(p|div|figure)\b[^>]*>(?:\s|&nbsp;)*<\/\1>/i', '', $content);
+    } while ($content !== $before);
+    return $content;
+}
+
+/** Which price story a post is, by its own slug or, for a translation whose slug differs, by its Polylang translations. */
+function boblift_price_story_of(WP_Post $post): string
+{
+    static $stories = [];
+    if (isset($stories[$post->ID])) {
+        return $stories[$post->ID];
+    }
+    $slugs = boblift_price_story_slugs();
+    $story = $slugs[$post->post_name] ?? '';
+    if ($story === '' && function_exists('pll_get_post_translations')) {
+        foreach ((array) pll_get_post_translations($post->ID) as $translation_id) {
+            $story = $slugs[(string) get_post_field('post_name', (int) $translation_id)] ?? '';
+            if ($story !== '') {
+                break;
+            }
+        }
+    }
+    return $stories[$post->ID] = $story;
 }
 
 function boblift_hide_published_story_prices(string $content): string
@@ -82,11 +110,12 @@ function boblift_hide_published_story_prices(string $content): string
     if (!$post instanceof WP_Post || $post->post_type !== 'post') {
         return $content;
     }
-    $story = boblift_price_story_slugs()[$post->post_name] ?? '';
+    $story = boblift_price_story_of($post);
     if ($story === '') {
         return $content;
     }
     $language = function_exists('pll_get_post_language') ? (string) pll_get_post_language($post->ID) : 'en';
     return boblift_strip_story_price($content, $story, boblift_price_story_inquiry_line($language));
 }
-add_filter('the_content', 'boblift_hide_published_story_prices', 4);
+// After wpautop (10) and shortcodes (11), so paragraphs saved without <p> tags are matched too.
+add_filter('the_content', 'boblift_hide_published_story_prices', 20);
