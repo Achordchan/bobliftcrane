@@ -4122,7 +4122,7 @@
   else init();
 })();
 
-// News article contents and the product list's "how cranes are made" steps: mark the part being read.
+// News article contents: mark the section being read.
 (() => {
   const watch = (toc) => {
     const links = [...toc.querySelectorAll('a[href^="#"]')];
@@ -4141,7 +4141,7 @@
   };
   const init = () => {
     if (!('IntersectionObserver' in window)) return;
-    const lists = [...document.querySelectorAll('[data-news-toc], [data-scroll-steps]')];
+    const lists = [...document.querySelectorAll('[data-news-toc]')];
     if (!lists.length) return;
     let observers = lists.map(watch);
     let height = window.innerHeight;
@@ -4155,6 +4155,32 @@
         observers = lists.map(watch);
       }, 200);
     }, { passive: true });
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+
+// Product list, "how cranes are made": mark the last step whose photo has reached the top of the screen (just below
+// where its link scrolls it, scroll-mt-28). By position rather than intersection: the staggered photos sit 6rem apart.
+(() => {
+  const init = () => {
+    document.querySelectorAll('[data-scroll-steps]').forEach((list) => {
+      const links = [...list.querySelectorAll('a[href^="#"]')];
+      const steps = links.map((link) => document.getElementById(decodeURIComponent(link.hash.slice(1))));
+      if (!links.length || steps.some((step) => !step)) return;
+      let frame = 0;
+      const update = () => {
+        frame = 0;
+        const line = 160;
+        let current = 0;
+        steps.forEach((step, index) => { if (step.getBoundingClientRect().top <= line) current = index; });
+        links.forEach((link, index) => link.setAttribute('aria-current', index === current ? 'true' : 'false'));
+      };
+      const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
+      window.addEventListener('scroll', schedule, { passive: true });
+      window.addEventListener('resize', schedule, { passive: true });
+      update();
+    });
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
