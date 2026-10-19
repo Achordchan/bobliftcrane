@@ -554,3 +554,91 @@ function boblift_resolve_bare_image_sources(string $content): string {
     }, $content);
 }
 add_filter('the_content', 'boblift_resolve_bare_image_sources', 5);
+
+/**
+ * Two more ways article pictures broke after moving content between sites: translations copied from the local build still
+ * point at http://localhost/wp-content/uploads/..., and a few point at the month folder the picture had locally while the
+ * upload here landed in another month. Local addresses are pointed at this site's uploads; an upload address whose file is
+ * missing is pointed at the one attachment with that file name. Anything ambiguous or not found is left as it is.
+ */
+/**
+ * The URL of the one attachment whose file is called $name, or '' when none or several are. A generated size such as
+ * guide-1024x683.jpg is found through its original (guide.jpg) and returns that size when it exists, else the original.
+ */
+function boblift_unique_upload_url_for_name(string $name): string {
+    global $wpdb;
+    $attachment_with_file = static function (string $file) use ($wpdb): int {
+        $ids = $wpdb->get_col($wpdb->prepare(
+            "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_wp_attached_file' AND (meta_value = %s OR meta_value LIKE %s) LIMIT 2",
+            $file,
+            '%/' . $wpdb->esc_like($file)
+        ));
+        // The attachment's id, 0 when no attachment has the file, -1 when several do.
+        return count($ids) === 1 ? (int) $ids[0] : (count($ids) > 1 ? -1 : 0);
+    };
+    $id = $attachment_with_file($name);
+    if ($id !== 0) {
+        return $id > 0 ? (string) wp_get_attachment_url($id) : '';
+    }
+    if (!preg_match('/^(.+?)(?:-scaled)?-\d+x\d+(\.[a-z0-9]+)$/i', $name, $size)) {
+        return '';
+    }
+    $id = $attachment_with_file($size[1] . $size[2]) ?: $attachment_with_file($size[1] . '-scaled' . $size[2]);
+    if ($id <= 0) {
+        return '';
+    }
+    $original = (string) wp_get_attachment_url($id);
+    $original_file = (string) get_attached_file($id);
+    $meta = wp_get_attachment_metadata($id);
+    foreach ((array) ($meta['sizes'] ?? []) as $generated) {
+        if (($generated['file'] ?? '') === $name && file_exists(trailingslashit(dirname($original_file)) . $name)) {
+            return trailingslashit(dirname($original)) . rawurlencode($name);
+        }
+    }
+    return $original;
+}
+
+function boblift_repair_upload_image_sources(string $content): string {
+    if (stripos($content, '/wp-content/uploads/') === false) {
+        return $content;
+    }
+    $uploads = wp_get_upload_dir();
+    $base_url = trailingslashit((string) $uploads['baseurl']);
+    $content = (string) preg_replace('#https?://(?:localhost|127\.0\.0\.1)(?::\d+)?/wp-content/uploads/#i', $base_url, $content);
+    $home = wp_parse_url(home_url('/'));
+    $site_authority = strtolower((string) ($home['host'] ?? '') . (isset($home['port']) ? ':' . $home['port'] : ''));
+    // The uploads folder as a URL path (on a multisite network it ends in /sites/<id>), so file paths match basedir.
+    $base_path = trailingslashit((string) wp_parse_url($base_url, PHP_URL_PATH));
+    return (string) preg_replace_callback('/<img\b[^>]*>/i', static function (array $tag) use ($uploads, $site_authority, $base_path): string {
+        static $found = [];
+        if (!preg_match('/(\bsrc=)(["\'])((?:https?:\/\/([^\/"\']+))?\/[^"\'?#]+)\2/i', $tag[0], $m)) {
+            return $tag[0];
+        }
+        // The host is compared with its port, so a local site such as localhost:8080 matches its own addresses.
+        $host = strtolower($m[4] ?? '');
+        if ($host !== '' && $host !== $site_authority) {
+            return $tag[0];
+        }
+        // Only addresses inside this site's uploads URL (which carries any install subdirectory) are looked at.
+        $path = (string) wp_parse_url($m[3], PHP_URL_PATH);
+        if (strpos($path, $base_path) !== 0) {
+            return $tag[0];
+        }
+        $relative = rawurldecode(substr($path, strlen($base_path)));
+        if (file_exists(trailingslashit((string) $uploads['basedir']) . $relative)) {
+            return $tag[0];
+        }
+        $name = wp_basename($relative);
+        if (!array_key_exists($name, $found)) {
+            $found[$name] = boblift_unique_upload_url_for_name($name);
+        }
+        // No match, or the match is this very file (uploads served from elsewhere, say): the tag stays as it is.
+        if ($found[$name] === '' || (string) wp_parse_url($found[$name], PHP_URL_PATH) === $path) {
+            return $tag[0];
+        }
+        // The responsive sources point at the same missing folder, so they go and the repaired src is the only one.
+        $repaired = str_replace($m[0], $m[1] . $m[2] . esc_url($found[$name]) . $m[2], $tag[0]);
+        return (string) preg_replace('/\s(?:srcset|sizes)=(["\'])[^"\']*\1/i', '', $repaired);
+    }, $content);
+}
+add_filter('the_content', 'boblift_repair_upload_image_sources', 6);

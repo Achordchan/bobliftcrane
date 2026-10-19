@@ -1268,8 +1268,9 @@ img { max-width: 100%; }
   animation: inquiryCharacterBounce .65s ease both;
 }
 @media (min-width: 768px) {
+  /* In rem, so the dialog grows with the root font size (17-20px on wide screens) and its fields still fit unscrolled. */
   .boblift-inquiry-dialog {
-    width: min(980px, calc(100vw - 32px));
+    width: min(61.25rem, calc(100vw - 32px));
   }
   .boblift-inquiry-character-stage {
     height: min(300px, calc(100dvh - 360px));
@@ -1317,8 +1318,9 @@ img { max-width: 100%; }
 }
 
 @media (min-width: 768px) {
+  /* In rem, so the dialog grows with the root font size (17-20px on wide screens) and its fields still fit unscrolled. */
   .boblift-inquiry-dialog {
-    width: min(980px, calc(100vw - 32px));
+    width: min(61.25rem, calc(100vw - 32px));
   }
   .boblift-inquiry-character-stage {
     height: min(300px, calc(100dvh - 360px));
@@ -2187,7 +2189,7 @@ img { max-width: 100%; }
 
 @media (min-width: 768px) {
   .boblift-inquiry-dialog {
-    height: min(688px, calc(100dvh - 32px));
+    height: min(43rem, calc(100dvh - 32px));
   }
   .boblift-inquiry-layout,
   .boblift-inquiry-modal-form,

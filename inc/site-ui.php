@@ -1082,10 +1082,6 @@ function boblift_site_ui_defaults(?string $section = null): array
             'visitsLink' => 'Customer visits',
             'showsTitle' => 'Meet us at trade shows',
             'showsText' => 'You can also see BOB-LIFT cranes at international trade shows. Upcoming shows are announced on our group site.',
-            'shows' => [
-                ['name' => 'Canton Fair', 'detail' => 'Guangzhou · Booth 4.0G18 · April 2026'],
-                ['name' => 'Construction Indonesia', 'detail' => 'Jakarta · September 2026'],
-            ],
             'showsLink' => 'Trade shows on boblift.com',
             'showsUrl' => 'https://boblift.com/',
         ],
