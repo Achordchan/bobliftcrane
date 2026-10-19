@@ -132,20 +132,15 @@ $pad = static fn(int $n): string => str_pad((string) $n, 2, '0', STR_PAD_LEFT);
 </section>
 <?php endif; ?>
 
-<?php $shows = array_values(array_filter((array) ($ui['shows'] ?? []), static fn($show): bool => is_array($show) && trim((string) ($show['name'] ?? '')) !== '')); ?>
-<?php if ($shows !== []) : ?>
+<?php // Upcoming trade shows are listed on the group site, which keeps their dates current; this page links there. ?>
+<?php if (trim((string) ($ui['showsUrl'] ?? '')) !== '') : ?>
 <section class="page-shell pt-12 md:pt-16" aria-labelledby="factory-shows-title">
-    <div class="grid gap-5 rounded border border-line bg-white p-6 shadow-card sm:p-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] lg:items-center lg:gap-10">
+    <div class="flex flex-col gap-4 rounded border border-line bg-white p-6 shadow-card sm:p-8 md:flex-row md:items-center md:justify-between md:gap-10">
         <div>
             <h2 id="factory-shows-title" class="text-xl font-black text-ink md:text-2xl"><?php echo esc_html((string) ($ui['showsTitle'] ?? '')); ?></h2>
             <p class="mt-2 text-sm font-normal leading-6 text-slate-600"><?php echo esc_html((string) ($ui['showsText'] ?? '')); ?></p>
-            <?php if (trim((string) ($ui['showsUrl'] ?? '')) !== '') : ?><a class="mt-4 inline-flex items-center gap-1.5 text-sm font-black text-blue-700 hover:text-blue-900" href="<?php echo esc_url((string) $ui['showsUrl']); ?>" target="_blank" rel="noopener"><?php echo esc_html((string) ($ui['showsLink'] ?? '')); ?> <?php echo boblift_icon('arrow-up-right', 'h-4 w-4'); ?></a><?php endif; ?>
         </div>
-        <ul class="grid gap-3 sm:grid-cols-2">
-            <?php foreach ($shows as $show) : ?>
-                <li class="rounded-sm border border-line bg-mist px-4 py-3"><span class="block text-base font-black text-ink"><?php echo esc_html((string) $show['name']); ?></span><span class="mt-0.5 block text-xs font-bold text-slate-500"><?php echo esc_html((string) ($show['detail'] ?? '')); ?></span></li>
-            <?php endforeach; ?>
-        </ul>
+        <a class="inline-flex shrink-0 items-center gap-1.5 text-sm font-black text-blue-700 hover:text-blue-900" href="<?php echo esc_url((string) $ui['showsUrl']); ?>" target="_blank" rel="noopener"><?php echo esc_html((string) ($ui['showsLink'] ?? '')); ?> <?php echo boblift_icon('arrow-up-right', 'h-4 w-4'); ?></a>
     </div>
 </section>
 <?php endif; ?>
