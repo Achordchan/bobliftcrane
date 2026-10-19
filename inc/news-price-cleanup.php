@@ -34,6 +34,8 @@ function boblift_price_story_inquiry_line(string $language): string
  */
 function boblift_strip_story_price(string $content, string $story, string $inquiry_line): string
 {
+    // The posters go whether or not the price text is still there.
+    $content = boblift_strip_story_price_posters($content);
     if (!preg_match_all('/<p\b[^>]*>.*?<\/p>/s', $content, $found, PREG_OFFSET_CAPTURE)) {
         return $content;
     }
@@ -65,15 +67,19 @@ function boblift_strip_story_price(string $content, string $story, string $inqui
     }
     $start = (int) $paragraphs[$first][1];
     $end = (int) $paragraphs[$price_at][1] + strlen($paragraphs[$price_at][0]);
-    $content = substr($content, 0, $start) . $replacement . substr($content, $end);
-    // The offer poster (price printed on it): an <img> (wrapped in <p> once rendered), the same image in a <div>, then </figure>.
+    return substr($content, 0, $start) . $replacement . substr($content, $end);
+}
+
+/** The offer posters (price printed on them): an <img> (wrapped in <p> once rendered), the same image in a <div>, then </figure>. */
+function boblift_strip_story_price_posters(string $content): string
+{
     return (string) preg_replace('/\s*(?:<p>\s*)?<img\b[^>]*\b(?:zhang\.png|lQLPJxfmBNvwfCHNBXrNBGKwyMGo9cJN6nAJ4sY0aUe2AA_1122_1402\.png)[^>]*>\s*(?:<\/p>\s*)?<div>\s*<img\b[^>]*>\s*<\/div>\s*<\/figure>/', '', $content);
 }
 
 function boblift_hide_published_story_prices(string $content): string
 {
     $post = get_post();
-    if (!$post instanceof WP_Post || $post->post_type !== 'post' || stripos($content, 'USD') === false) {
+    if (!$post instanceof WP_Post || $post->post_type !== 'post') {
         return $content;
     }
     $story = boblift_price_story_slugs()[$post->post_name] ?? '';
