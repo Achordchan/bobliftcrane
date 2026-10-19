@@ -245,7 +245,7 @@ function boblift_render_archive_made(): void
     <section class="mt-16 border-t border-[#E5E7EB] pt-14 lg:mt-24 lg:pt-20" aria-labelledby="archive-made-title">
         <div class="grid gap-10 lg:grid-cols-12 lg:gap-12">
             <div class="lg:col-span-4">
-                <div class="lg:sticky lg:top-28">
+                <div class="lg:sticky lg:top-[calc(var(--boblift-header-h)+1.25rem)]">
                     <p class="section-label"><?php echo esc_html($t('How our cranes are made')); ?></p>
                     <h2 id="archive-made-title" class="mt-4 text-[clamp(2.5rem,4.4vw,4.75rem)] font-black leading-[0.98] tracking-[-0.025em] text-ink"><?php echo esc_html($t('From steel')); ?><br><span class="text-blue-700"><?php echo esc_html($t('to shipment.')); ?></span></h2>
                     <p class="mt-6 max-w-[40ch] text-base leading-7 text-slate-600"><?php echo esc_html($t('Photographed at our factory in Xuzhou, Jiangsu: the steps a crane goes through before it leaves.')); ?></p>
@@ -259,7 +259,7 @@ function boblift_render_archive_made(): void
             <?php // Two columns, every second photo set lower, so they read as a staggered wall rather than a grid of cards. ?>
             <div class="grid gap-8 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-10 sm:pb-24 lg:col-span-8 xl:gap-x-8 sm:[&>*:nth-child(even)]:translate-y-24">
                 <?php foreach ($steps as $index => $step) : ?>
-                    <figure id="archive-made-<?php echo esc_attr($number($index)); ?>" class="scroll-mt-28">
+                    <figure id="archive-made-<?php echo esc_attr($number($index)); ?>" class="scroll-mt-5">
                         <a class="group block overflow-hidden rounded-sm bg-mist" href="<?php echo esc_url($step['url']); ?>"><img class="aspect-[4/3] h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" src="<?php echo esc_url($step['image']); ?>" alt="<?php echo esc_attr($step['title']); ?>" loading="lazy" decoding="async"></a>
                         <figcaption class="mt-4 grid grid-cols-[auto_1fr] gap-x-4">
                             <span class="pt-1.5 text-xs font-bold text-blue-700 [font-variant-numeric:tabular-nums]"><?php echo esc_html($number($index) . ' / ' . $total); ?></span>

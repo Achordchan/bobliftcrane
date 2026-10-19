@@ -4176,7 +4176,8 @@
 })();
 
 // Product list, "how cranes are made": mark the last step whose photo has reached the top of the screen (just below
-// where its link scrolls it, scroll-mt-28). By position rather than intersection: the staggered photos sit 6rem apart.
+// where its link scrolls it: under the sticky navigation, plus scroll-mt-5). By position rather than intersection: the
+// staggered photos sit 6rem apart.
 (() => {
   const init = () => {
     document.querySelectorAll('[data-scroll-steps]').forEach((list) => {
@@ -4186,7 +4187,9 @@
       let frame = 0;
       const update = () => {
         frame = 0;
-        const line = 160;
+        const header = document.getElementById('top');
+        const headerBottom = header ? (parseFloat(getComputedStyle(header).top) || 0) + header.getBoundingClientRect().height : 0;
+        const line = headerBottom + 68;
         let current = 0;
         steps.forEach((step, index) => { if (step.getBoundingClientRect().top <= line) current = index; });
         links.forEach((link, index) => link.setAttribute('aria-current', index === current ? 'true' : 'false'));

@@ -71,7 +71,7 @@ function boblift_render_legal_page(array $options, string $inquiry_source, strin
                 </div>
 
                 <aside class="min-w-0 lg:order-1">
-                    <div class="grid gap-4 lg:sticky lg:top-6">
+                    <div class="grid gap-4 lg:sticky lg:top-[calc(var(--boblift-header-h)+1.5rem)]">
                         <?php if (count($sections) >= 3) : ?>
                             <nav class="hidden rounded border border-line bg-white p-5 lg:block" aria-label="<?php echo esc_attr((string) ($ui['tocTitle'] ?? 'On this page')); ?>" data-news-toc>
                                 <h2 class="text-xs font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html((string) ($ui['tocTitle'] ?? 'On this page')); ?></h2>
