@@ -570,7 +570,9 @@ function boblift_repair_upload_image_sources(string $content): string {
     $content = (string) preg_replace('#https?://(?:localhost|127\.0\.0\.1)(?::\d+)?/wp-content/uploads/#i', $base_url, $content);
     $home = wp_parse_url(home_url('/'));
     $site_authority = strtolower((string) ($home['host'] ?? '') . (isset($home['port']) ? ':' . $home['port'] : ''));
-    return (string) preg_replace_callback('/<img\b[^>]*>/i', static function (array $tag) use ($uploads, $site_authority): string {
+    // The uploads folder as a URL path (on a multisite network it ends in /sites/<id>), so file paths match basedir.
+    $base_path = trailingslashit((string) wp_parse_url($base_url, PHP_URL_PATH));
+    return (string) preg_replace_callback('/<img\b[^>]*>/i', static function (array $tag) use ($uploads, $site_authority, $base_path): string {
         static $found = [];
         if (!preg_match('/(\bsrc=)(["\'])((?:https?:\/\/([^\/"\']+))?\/wp-content\/uploads\/([^"\'?#]+))\2/i', $tag[0], $m)) {
             return $tag[0];
@@ -579,7 +581,11 @@ function boblift_repair_upload_image_sources(string $content): string {
         if ($m[4] !== '' && strtolower($m[4]) !== $site_authority) {
             return $tag[0];
         }
-        $relative = rawurldecode($m[5]);
+        $path = (string) wp_parse_url($m[3], PHP_URL_PATH);
+        if (strpos($path, $base_path) !== 0) {
+            return $tag[0];
+        }
+        $relative = rawurldecode(substr($path, strlen($base_path)));
         if (file_exists(trailingslashit((string) $uploads['basedir']) . $relative)) {
             return $tag[0];
         }
