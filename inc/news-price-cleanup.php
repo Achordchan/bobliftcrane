@@ -67,7 +67,11 @@ function boblift_strip_story_price(string $content, string $story, string $inqui
     }
     $start = (int) $paragraphs[$first][1];
     $end = (int) $paragraphs[$price_at][1] + strlen($paragraphs[$price_at][0]);
-    return substr($content, 0, $start) . $replacement . substr($content, $end);
+    $content = substr($content, 0, $start) . $replacement . substr($content, $end);
+    // Any further price (an original and a discounted price, say) goes too; the inquiry line is added only once.
+    return (string) preg_replace_callback('/<p\b[^>]*>.*?<\/p>/s', static function (array $paragraph): string {
+        return boblift_paragraph_has_price(wp_strip_all_tags($paragraph[0])) ? '' : $paragraph[0];
+    }, $content);
 }
 
 /** A price in the paragraph's text: an amount with USD or a dollar sign on either side, whatever punctuation follows. */

@@ -561,6 +561,42 @@ add_filter('the_content', 'boblift_resolve_bare_image_sources', 5);
  * upload here landed in another month. Local addresses are pointed at this site's uploads; an upload address whose file is
  * missing is pointed at the one attachment with that file name. Anything ambiguous or not found is left as it is.
  */
+/**
+ * The URL of the one attachment whose file is called $name, or '' when none or several are. A generated size such as
+ * guide-1024x683.jpg is found through its original (guide.jpg) and returns that size when it exists, else the original.
+ */
+function boblift_unique_upload_url_for_name(string $name): string {
+    global $wpdb;
+    $attachment_with_file = static function (string $file) use ($wpdb): int {
+        $ids = $wpdb->get_col($wpdb->prepare(
+            "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_wp_attached_file' AND (meta_value = %s OR meta_value LIKE %s) LIMIT 2",
+            $file,
+            '%/' . $wpdb->esc_like($file)
+        ));
+        return count($ids) === 1 ? (int) $ids[0] : 0;
+    };
+    $id = $attachment_with_file($name);
+    if ($id) {
+        return (string) wp_get_attachment_url($id);
+    }
+    if (!preg_match('/^(.+?)(?:-scaled)?-\d+x\d+(\.[a-z0-9]+)$/i', $name, $size)) {
+        return '';
+    }
+    $id = $attachment_with_file($size[1] . $size[2]) ?: $attachment_with_file($size[1] . '-scaled' . $size[2]);
+    if (!$id) {
+        return '';
+    }
+    $original = (string) wp_get_attachment_url($id);
+    $original_file = (string) get_attached_file($id);
+    $meta = wp_get_attachment_metadata($id);
+    foreach ((array) ($meta['sizes'] ?? []) as $generated) {
+        if (($generated['file'] ?? '') === $name && file_exists(trailingslashit(dirname($original_file)) . $name)) {
+            return trailingslashit(dirname($original)) . rawurlencode($name);
+        }
+    }
+    return $original;
+}
+
 function boblift_repair_upload_image_sources(string $content): string {
     if (stripos($content, '/wp-content/uploads/') === false) {
         return $content;
@@ -593,13 +629,7 @@ function boblift_repair_upload_image_sources(string $content): string {
         }
         $name = wp_basename($relative);
         if (!array_key_exists($name, $found)) {
-            global $wpdb;
-            $ids = $wpdb->get_col($wpdb->prepare(
-                "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_wp_attached_file' AND (meta_value = %s OR meta_value LIKE %s) LIMIT 2",
-                $name,
-                '%/' . $wpdb->esc_like($name)
-            ));
-            $found[$name] = count($ids) === 1 ? (string) wp_get_attachment_url((int) $ids[0]) : '';
+            $found[$name] = boblift_unique_upload_url_for_name($name);
         }
         if ($found[$name] === '') {
             return $tag[0];
