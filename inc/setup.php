@@ -631,7 +631,8 @@ function boblift_repair_upload_image_sources(string $content): string {
         if (!array_key_exists($name, $found)) {
             $found[$name] = boblift_unique_upload_url_for_name($name);
         }
-        if ($found[$name] === '') {
+        // No match, or the match is this very file (uploads served from elsewhere, say): the tag stays as it is.
+        if ($found[$name] === '' || (string) wp_parse_url($found[$name], PHP_URL_PATH) === $path) {
             return $tag[0];
         }
         // The responsive sources point at the same missing folder, so they go and the repaired src is the only one.
