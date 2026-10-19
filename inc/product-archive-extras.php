@@ -36,7 +36,13 @@ function boblift_archive_family_articles(string $family, int $limit = 3): array
     }
     static $posts = null;
     if ($posts === null) {
-        $posts = get_posts(['post_type' => 'post', 'post_status' => 'publish', 'numberposts' => 200, 'orderby' => 'date', 'order' => 'DESC']);
+        // Polylang filters by language only with filters on; name the page's language as well.
+        $language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
+        $args = ['post_type' => 'post', 'post_status' => 'publish', 'numberposts' => 200, 'orderby' => 'date', 'order' => 'DESC', 'suppress_filters' => false];
+        if ($language !== '') {
+            $args['lang'] = $language;
+        }
+        $posts = get_posts($args);
     }
     $found = [];
     foreach ($posts as $post) {
@@ -64,7 +70,7 @@ function boblift_archive_term(string $slug): ?array
 function boblift_render_archive_compare(WP_Term $term): void
 {
     $t = static fn(string $text): string => boblift_localized_static_text($text);
-    $models = array_values(array_filter(boblift_product_range_models($term), static fn(array $item): bool => $item['capacity'] > 0));
+    $models = boblift_product_range_models($term);
     // Moments are entered as "13 Ton.m" on some products and as a bare "2.2" on others: show them all as t·m.
     foreach ($models as $index => $item) {
         $moment = trim((string) $item['moment']);
@@ -98,7 +104,7 @@ function boblift_render_archive_compare(WP_Term $term): void
                     <?php foreach ($models as $item) : ?>
                         <tr class="transition hover:bg-[#F8FAFC]">
                             <th class="px-5 py-3.5 text-start font-black text-[#0B1B33]" scope="row"><a class="inline-flex items-center gap-1.5 transition hover:text-blue-700" href="<?php echo esc_url($item['url']); ?>"><?php echo esc_html($item['model']); ?><?php echo boblift_icon('arrow-right', 'h-3.5 w-3.5 text-slate-400 rtl:-scale-x-100'); ?></a></th>
-                            <td class="whitespace-nowrap px-5 py-3.5"><?php echo esc_html(boblift_guide_number($item['capacity']) . ' t'); ?></td>
+                            <td class="whitespace-nowrap px-5 py-3.5"><?php echo esc_html($item['capacity'] > 0 ? boblift_guide_number($item['capacity']) . ' t' : '–'); ?></td>
                             <?php foreach (array_keys($columns) as $key) : ?><td class="whitespace-nowrap px-5 py-3.5"><?php echo esc_html((string) ($item[$key] ?: '–')); ?></td><?php endforeach; ?>
                         </tr>
                     <?php endforeach; ?>
