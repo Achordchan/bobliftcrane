@@ -34,32 +34,58 @@ function boblift_archive_family_articles(string $family, int $limit = 3): array
     if ($pattern === '') {
         return [];
     }
-    static $posts = null;
-    if ($posts === null) {
-        // Polylang filters by language only with filters on; name the page's language as well.
+    // IDs and English titles only (one query each, cached for an hour per language); full posts are loaded for the matches alone.
+    static $titles = null;
+    if ($titles === null) {
         $language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
-        $args = ['post_type' => 'post', 'post_status' => 'publish', 'numberposts' => -1, 'orderby' => 'date', 'order' => 'DESC', 'suppress_filters' => false];
-        if ($language !== '') {
-            $args['lang'] = $language;
-        }
-        $posts = get_posts($args);
-        // The English titles are matched below: load those posts in one query rather than one per post.
-        if (function_exists('pll_get_post')) {
-            _prime_post_caches(array_values(array_filter(array_map(static fn(WP_Post $post): int => (int) pll_get_post($post->ID, 'en'), $posts))), false, false);
+        $cache_key = 'boblift_archive_articles_' . ($language !== '' ? $language : 'default') . '_' . (int) get_option('boblift_archive_articles_version', 0);
+        $titles = get_transient($cache_key);
+        if (!is_array($titles)) {
+            // Polylang filters by language only with filters on; name the page's language as well.
+            $args = ['post_type' => 'post', 'post_status' => 'publish', 'numberposts' => -1, 'orderby' => 'date', 'order' => 'DESC', 'fields' => 'ids', 'suppress_filters' => false];
+            if ($language !== '') {
+                $args['lang'] = $language;
+            }
+            $ids = array_map('intval', get_posts($args));
+            $english = [];
+            foreach ($ids as $id) {
+                $english[$id] = function_exists('pll_get_post') ? ((int) pll_get_post($id, 'en') ?: $id) : $id;
+            }
+            $rows = [];
+            if ($english) {
+                global $wpdb;
+                $source_ids = array_values(array_unique($english));
+                $placeholders = implode(',', array_fill(0, count($source_ids), '%d'));
+                $rows = $wpdb->get_results($wpdb->prepare("SELECT ID, post_title FROM {$wpdb->posts} WHERE ID IN ($placeholders)", $source_ids), OBJECT_K); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- placeholders only.
+            }
+            $titles = [];
+            foreach ($english as $id => $source_id) {
+                $titles[$id] = isset($rows[$source_id]) ? (string) $rows[$source_id]->post_title : '';
+            }
+            set_transient($cache_key, $titles, HOUR_IN_SECONDS);
         }
     }
     $found = [];
-    foreach ($posts as $post) {
-        $english_id = function_exists('pll_get_post') ? (int) pll_get_post($post->ID, 'en') : 0;
-        if (preg_match($pattern, (string) get_the_title($english_id ?: $post->ID))) {
-            $found[] = $post;
+    foreach ($titles as $id => $title) {
+        if ($title !== '' && preg_match($pattern, $title)) {
+            $found[] = (int) $id;
             if (count($found) >= $limit) {
                 break;
             }
         }
     }
-    return $found;
+    return $found ? get_posts(['post_type' => 'post', 'post__in' => $found, 'orderby' => 'post__in', 'numberposts' => $limit, 'lang' => '']) : [];
 }
+
+/** Any post saved, trashed or deleted starts a new cache of matched titles. */
+function boblift_archive_articles_flush(int $post_id): void
+{
+    if (get_post_type($post_id) === 'post') {
+        update_option('boblift_archive_articles_version', time(), false);
+    }
+}
+add_action('save_post', 'boblift_archive_articles_flush');
+add_action('deleted_post', 'boblift_archive_articles_flush');
 
 /** The term behind a category slug of this page's language, with its English (source) slug. */
 function boblift_archive_term(string $slug): ?array
