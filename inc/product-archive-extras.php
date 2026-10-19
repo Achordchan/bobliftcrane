@@ -38,11 +38,15 @@ function boblift_archive_family_articles(string $family, int $limit = 3): array
     if ($posts === null) {
         // Polylang filters by language only with filters on; name the page's language as well.
         $language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
-        $args = ['post_type' => 'post', 'post_status' => 'publish', 'numberposts' => 200, 'orderby' => 'date', 'order' => 'DESC', 'suppress_filters' => false];
+        $args = ['post_type' => 'post', 'post_status' => 'publish', 'numberposts' => -1, 'orderby' => 'date', 'order' => 'DESC', 'suppress_filters' => false];
         if ($language !== '') {
             $args['lang'] = $language;
         }
         $posts = get_posts($args);
+        // The English titles are matched below: load those posts in one query rather than one per post.
+        if (function_exists('pll_get_post')) {
+            _prime_post_caches(array_values(array_filter(array_map(static fn(WP_Post $post): int => (int) pll_get_post($post->ID, 'en'), $posts))), false, false);
+        }
     }
     $found = [];
     foreach ($posts as $post) {
@@ -132,7 +136,7 @@ function boblift_render_archive_articles(string $family, string $slug): void
                     <span class="block aspect-[16/10] overflow-hidden bg-mist"><img class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" src="<?php echo esc_url(boblift_post_thumbnail_url($post, boblift_asset('images/page-heroes/factory-floor.webp'))); ?>" alt="" loading="lazy" decoding="async"></span>
                     <span class="block p-5">
                         <time class="text-xs font-bold text-slate-500" datetime="<?php echo esc_attr(get_the_date('Y-m-d', $post)); ?>"><?php echo esc_html(get_the_date('', $post)); ?></time>
-                        <span class="mt-2 line-clamp-3 block text-base font-black leading-snug text-[#0B1B33] transition group-hover:text-blue-700"><?php echo esc_html(get_the_title($post)); ?></span>
+                        <span class="mt-2 line-clamp-3 text-base font-black leading-snug text-[#0B1B33] transition group-hover:text-blue-700"><?php echo esc_html(get_the_title($post)); ?></span>
                     </span>
                 </a>
             <?php endforeach; ?>
@@ -160,7 +164,7 @@ function boblift_render_archive_made(): void
                     <span class="block aspect-[16/10] overflow-hidden bg-mist"><img class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" src="<?php echo esc_url(boblift_image_src($page['image'])); ?>" alt="<?php echo esc_attr((string) ($ui['heroImageAlt'] ?? '')); ?>" loading="lazy" decoding="async"></span>
                     <span class="block p-5">
                         <span class="flex items-center justify-between gap-3 text-base font-black text-[#0B1B33] transition group-hover:text-blue-700"><?php echo esc_html((string) ($ui['heroLabel'] ?? '')); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 shrink-0 rtl:-scale-x-100'); ?></span>
-                        <span class="mt-2 line-clamp-3 block text-sm font-normal leading-6 text-slate-600"><?php echo esc_html((string) ($ui['heroText'] ?? '')); ?></span>
+                        <span class="mt-2 line-clamp-3 text-sm font-normal leading-6 text-slate-600"><?php echo esc_html((string) ($ui['heroText'] ?? '')); ?></span>
                     </span>
                 </a>
             <?php endforeach; ?>
