@@ -574,13 +574,15 @@ function boblift_repair_upload_image_sources(string $content): string {
     $base_path = trailingslashit((string) wp_parse_url($base_url, PHP_URL_PATH));
     return (string) preg_replace_callback('/<img\b[^>]*>/i', static function (array $tag) use ($uploads, $site_authority, $base_path): string {
         static $found = [];
-        if (!preg_match('/(\bsrc=)(["\'])((?:https?:\/\/([^\/"\']+))?\/wp-content\/uploads\/([^"\'?#]+))\2/i', $tag[0], $m)) {
+        if (!preg_match('/(\bsrc=)(["\'])((?:https?:\/\/([^\/"\']+))?\/[^"\'?#]+)\2/i', $tag[0], $m)) {
             return $tag[0];
         }
         // The host is compared with its port, so a local site such as localhost:8080 matches its own addresses.
-        if ($m[4] !== '' && strtolower($m[4]) !== $site_authority) {
+        $host = strtolower($m[4] ?? '');
+        if ($host !== '' && $host !== $site_authority) {
             return $tag[0];
         }
+        // Only addresses inside this site's uploads URL (which carries any install subdirectory) are looked at.
         $path = (string) wp_parse_url($m[3], PHP_URL_PATH);
         if (strpos($path, $base_path) !== 0) {
             return $tag[0];
