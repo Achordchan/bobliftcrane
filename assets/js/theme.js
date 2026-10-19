@@ -4122,11 +4122,9 @@
   else init();
 })();
 
-// News article contents: mark the section being read.
+// News article contents and the product list's "how cranes are made" steps: mark the part being read.
 (() => {
-  const init = () => {
-    const toc = document.querySelector('[data-news-toc]');
-    if (!toc || !('IntersectionObserver' in window)) return;
+  const watch = (toc) => {
     const links = [...toc.querySelectorAll('a[href^="#"]')];
     const headings = links.map((link) => document.getElementById(decodeURIComponent(link.hash.slice(1)))).filter(Boolean);
     if (!headings.length) return;
@@ -4139,6 +4137,10 @@
       if (current) mark(current.id);
     }, { rootMargin: '0px 0px -65% 0px' });
     headings.forEach((heading) => observer.observe(heading));
+  };
+  const init = () => {
+    if (!('IntersectionObserver' in window)) return;
+    document.querySelectorAll('[data-news-toc], [data-scroll-steps]').forEach(watch);
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
