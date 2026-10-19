@@ -1329,21 +1329,11 @@ function boblift_render_about_page_fields(array $about, string $base): void
         }
     });
 
-    boblift_admin_panel('7. 领导与全体团队区', static function () use ($about, $base): void {
-        echo '<p class="boblift-admin-note">正面展示领导成员；翻转后展示全体团队照片，两者文案分开维护。</p>';
-        boblift_admin_input('executives.label', $about, '领导区标签', $base);
-        boblift_admin_input('executives.title', $about, '领导区标题', $base);
+    boblift_admin_panel('7. 全体团队区', static function () use ($about, $base): void {
         boblift_admin_input('executives.team_label', $about, '全体团队照片标签', $base);
         boblift_admin_input('executives.team_title', $about, '全体团队照片标题', $base);
-        boblift_admin_media('executives.team_image', $about, '全体团队大图', $base, '推荐 3200×760 或 3840×900，超宽横图；用于翻转后的全屏展示。');
+        boblift_admin_media('executives.team_image', $about, '全体团队大图', $base, '推荐 3200×760 或 3840×900，超宽横图；手机上可左右滑动查看。');
         boblift_admin_input('executives.team_image_alt', $about, '全体团队大图 Alt', $base);
-        for ($i = 0; $i < 6; $i++) {
-            boblift_admin_subpanel('领导成员 ' . (string) ($i + 1), static function () use ($about, $base, $i): void {
-                boblift_admin_media("executives.members.$i.image", $about, '照片', $base, '推荐 1200×1200，正方形半身商务照；人脸居中，上方保留少量头部空间。');
-                boblift_admin_input("executives.members.$i.role", $about, '职位', $base);
-                boblift_admin_input("executives.members.$i.name", $about, '姓名', $base);
-            }, false, (string) ($about['executives']['members'][$i]['name'] ?? ''));
-        }
     });
 
     echo '</div>';

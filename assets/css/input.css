@@ -646,76 +646,7 @@ img { max-width: 100%; }
 }
 
 
-@media (min-width: 901px) {
-  .about-executive-section .page-shell {
-    width: min(2464px, calc(100% - 96px));
-  }
-  .about-executive-flip {
-    min-height: clamp(700px, 58vh, 920px);
-  }
-  .about-executive-card,
-  .about-executive-photo {
-    min-height: inherit;
-  }
-  .about-executive-card {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-}
 
-.about-executive-section {
-  isolation: isolate;
-  min-height: 100svh;
-  overflow-x: clip;
-  overflow-y: visible;
-}
-.about-executive-pin {
-  min-height: 100svh;
-  overflow: visible;
-  transform-style: preserve-3d;
-}
-.about-executive-flip {
-  width: 100%;
-  overflow: visible;
-  perspective: 2200px;
-  transform-style: preserve-3d;
-  transform-origin: center center;
-  isolation: isolate;
-}
-.about-executive-card,
-.about-executive-photo {
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  transform-style: preserve-3d;
-  transform-origin: center center;
-}
-.about-executive-photo {
-  opacity: 0;
-  transform: rotateY(-179.9deg);
-  will-change: transform, opacity;
-}
-.about-executive-photo img {
-  transform-origin: center;
-  will-change: transform;
-}
-.about-executive-card,
-.about-executive-member,
-.about-executive-card [data-executive-copy-item],
-.about-executive-watermark {
-  will-change: transform, opacity;
-}
-.about-executive-member [data-executive-image] {
-  transform-origin: center;
-  will-change: transform;
-}
-.about-executive-aura {
-  background:
-    radial-gradient(circle at 78% 18%, rgba(37,99,235,.13), transparent 30%),
-    radial-gradient(circle at 36% 82%, rgba(245,154,60,.10), transparent 30%),
-    linear-gradient(135deg, rgba(248,250,252,.92), rgba(255,255,255,.18) 42%, rgba(241,245,249,.72));
-  opacity: 1;
-}
 @supports not ((-webkit-background-clip: text) or (background-clip: text)) {
   .about-logo-fill {
     color: var(--navy);
@@ -771,29 +702,6 @@ img { max-width: 100%; }
   .about-manufacturing-section.is-gsap-ready .about-manufacturing-copy {
     opacity: 1;
     transform: none;
-    will-change: auto;
-  }
-  .about-executive-section {
-    min-height: auto;
-  }
-  .about-executive-pin {
-    min-height: auto;
-  }
-  .about-executive-photo {
-    position: relative;
-    inset: auto;
-    margin-top: 1rem;
-    aspect-ratio: 1672 / 941;
-    opacity: 1;
-    transform: none;
-  }
-  .about-executive-card,
-  .about-executive-member,
-  .about-executive-card [data-executive-copy-item],
-  .about-executive-member [data-executive-image],
-  .about-executive-photo,
-  .about-executive-photo img,
-  .about-executive-watermark {
     will-change: auto;
   }
 }

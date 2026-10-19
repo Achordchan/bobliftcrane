@@ -1421,7 +1421,6 @@ function boblift_site_ui_defaults(?string $section = null): array
             'strengthTitle' => 'Manufacturing, export and service in one team.',
             'timelineLabel' => 'Development Timeline',
             'stepLabel' => 'Step',
-            'leadershipWatermark' => 'LEADERSHIP',
             'galleryImageCount' => 4,
         ],
         'homePage' => [

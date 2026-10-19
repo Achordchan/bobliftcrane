@@ -6,7 +6,6 @@ $strength = $about_page['strength'] ?? [];
 $timeline = $about_page['timeline'] ?? [];
 $executives = $about_page['executives'] ?? [];
 $timeline_items = $timeline['items'] ?? [];
-$executive_members = $executives['members'] ?? [];
 $executive_team_image = $executives['team_image'] ?? ($executives['group_image'] ?? boblift_image_option('images/about/quanyuan-compressed.jpg'));
 $executive_team_label = (string) ($executives['team_label'] ?? 'Whole Team');
 $executive_team_title = (string) ($executives['team_title'] ?? 'BOB-LIFT Team');
@@ -358,44 +357,14 @@ if ($legacy_strength['cards'] !== [] || $legacy_strength['cta'] !== null || $leg
 
 
 
-<section id="about-leadership" class="about-executive-section relative overflow-visible bg-[#F8FAFC] pb-12 pt-0 lg:pb-0 lg:pt-0" data-about-executive>
-    <div class="about-executive-pin flex min-h-screen items-center py-12" data-executive-pin>
-        <div class="page-shell">
-            <div class="about-executive-flip relative" data-executive-flip>
-                <div class="about-executive-card relative overflow-hidden rounded border border-[#E5E7EB] bg-white p-5 shadow-card md:p-7 lg:p-8 2xl:p-10" data-executive-card>
-                <div class="about-executive-aura pointer-events-none absolute inset-0"></div>
-                <div class="about-executive-watermark pointer-events-none absolute -end-10 top-4 text-[clamp(72px,12vw,230px)] font-black leading-none tracking-[-0.03em] text-[#0B3F7D]/[0.055]" data-executive-watermark><?php echo esc_html($about_ui['leadershipWatermark'] ?? 'LEADERSHIP'); ?></div>
-                <div class="relative z-10 mb-6 grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-end">
-                    <div class="lg:col-span-2" data-executive-copy-item>
-                        <p class="boblift-kicker mb-4"><?php echo esc_html($executives['label'] ?? 'Executive Leadership'); ?></p>
-                        <h2 class="max-w-none text-[clamp(34px,4.2vw,72px)] [text-wrap:balance] font-black leading-[1.02] tracking-[-0.015em] text-[#0B1B33]"><?php echo esc_html($executives['title'] ?? 'Leadership Team'); ?></h2>
-                    </div>
-                </div>
-                <div class="about-executive-grid relative z-10 grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:gap-5" data-executive-grid>
-                    <?php foreach ($executive_members as $member) : ?>
-                        <article class="about-executive-member group grid overflow-hidden rounded border border-[#E5E7EB] bg-white shadow-card md:grid-cols-[clamp(150px,12vw,200px)_minmax(0,1fr)]" data-executive-member>
-                            <div class="relative aspect-square w-full overflow-hidden bg-[#EAF1F8] md:aspect-[4/5]">
-                                <?php echo boblift_img_from_setting($member['image'] ?? [], 'images/about/executives/executive-01-square.png', ($member['name'] ?? 'BOB-LIFT executive') . ' portrait', 'absolute inset-0 h-full w-full object-cover object-center transition duration-700 group-hover:scale-[1.035]', ['loading' => 'lazy', 'decoding' => 'async', 'data-executive-image' => '']); ?>
-                            </div>
-                            <div class="flex min-w-0 flex-col justify-center p-5 2xl:p-6">
-                                <p class="boblift-kicker"><?php echo esc_html($member['role'] ?? ''); ?></p>
-                                <h3 class="mt-3 text-[clamp(24px,1.75vw,36px)] font-black leading-[1.04] tracking-[-0.01em] text-[#0B1B33]"><?php echo esc_html($member['name'] ?? ''); ?></h3>
-                            </div>
-                        </article>
-                    <?php endforeach; ?>
-                </div>
-                </div>
-                <div class="about-executive-photo absolute inset-0 flex flex-col overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card" data-executive-photo aria-hidden="true">
-                    <div class="relative z-10 shrink-0 px-5 pb-4 pt-5 md:px-7 md:pt-7 lg:px-8 lg:pt-8 2xl:px-10 2xl:pt-10">
-                        <p class="boblift-kicker mb-4"><?php echo esc_html($executive_team_label); ?></p>
-                        <h2 class="max-w-none text-[clamp(34px,4.2vw,72px)] [text-wrap:balance] font-black leading-[1.02] tracking-[-0.015em] text-[#0B1B33]"><?php echo esc_html($executive_team_title); ?></h2>
-                    </div>
-                    <div class="relative min-h-0 flex-1 bg-[#F8FAFC] px-4 pb-5 md:px-7 md:pb-7 lg:px-8 lg:pb-8 2xl:px-10 2xl:pb-10">
-                        <?php echo boblift_img_from_setting($executive_team_image, 'images/about/quanyuan-compressed.jpg', $executive_team_alt, 'h-full w-full object-contain object-center', ['loading' => 'lazy', 'decoding' => 'async']); ?>
-                    </div>
-                    <div class="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(248,250,252,0.04)_0%,rgba(11,27,51,0.035)_100%)]"></div>
-                </div>
-            </div>
+<section id="about-leadership" class="bg-[#F8FAFC] py-14 md:py-20">
+    <div class="page-shell">
+        <div class="mb-6 md:mb-8">
+            <p class="boblift-kicker mb-4"><?php echo esc_html($executive_team_label); ?></p>
+            <h2 class="max-w-none text-[clamp(30px,3.4vw,56px)] [text-wrap:balance] font-black leading-[1.04] tracking-[-0.015em] text-[#0B1B33]"><?php echo esc_html($executive_team_title); ?></h2>
+        </div>
+        <div class="overflow-x-auto overscroll-x-contain rounded border border-[#DDE7F2] bg-white p-3 shadow-card md:overflow-visible md:p-5">
+            <?php echo boblift_img_from_setting($executive_team_image, 'images/about/quanyuan-compressed.jpg', $executive_team_alt, 'block h-auto w-full min-w-[720px] md:min-w-0', ['loading' => 'lazy', 'decoding' => 'async']); ?>
         </div>
     </div>
 </section>

@@ -575,20 +575,10 @@ function boblift_about_page_defaults(): array
             ],
         ],
         'executives' => [
-            'label' => 'Executive Leadership',
-            'title' => 'Leadership Team',
             'team_label' => 'Whole Team',
             'team_title' => 'BOB-LIFT Team',
             'team_image' => boblift_image_option('images/about/quanyuan-compressed.jpg'),
             'team_image_alt' => 'BOB-LIFT full team group photo',
-            'members' => [
-                ['image' => boblift_image_option('images/about/executives/executive-01-square.png'), 'name' => 'Daniel Chen', 'role' => 'Chief Executive Officer'],
-                ['image' => boblift_image_option('images/about/executives/executive-02-square.png'), 'name' => 'Sophia Lin', 'role' => 'Chief Operating Officer'],
-                ['image' => boblift_image_option('images/about/executives/executive-03-square.png'), 'name' => 'Robert Miller', 'role' => 'Chief Engineering Officer'],
-                ['image' => boblift_image_option('images/about/executives/executive-04-square.png'), 'name' => 'Michael Zhang', 'role' => 'Manufacturing Director'],
-                ['image' => boblift_image_option('images/about/executives/executive-05-square.png'), 'name' => 'Ethan Wang', 'role' => 'Global Sales Director'],
-                ['image' => boblift_image_option('images/about/executives/executive-06-square.png'), 'name' => 'Grace Wilson', 'role' => 'Service Director'],
-            ],
         ],
     ];
 }
