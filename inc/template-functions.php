@@ -761,14 +761,16 @@ function boblift_product_catalog_url(array $product): string
     return $url !== '' ? esc_url_raw($url) : '';
 }
 
-function boblift_all_products(): array
+/** Published products; previous models (inc/product-lifecycle.php) only when $include_legacy, as search and inquiry lists need them. */
+function boblift_all_products(bool $include_legacy = false): array
 {
-    $query = new WP_Query([
+    $args = [
         'post_type' => 'product',
         'post_status' => 'publish',
         'posts_per_page' => -1,
         'orderby' => ['menu_order' => 'ASC', 'date' => 'DESC'],
-    ]);
+    ];
+    $query = new WP_Query($include_legacy ? $args : boblift_without_legacy($args));
     if ($query->have_posts()) {
         return array_map('boblift_product_from_post', $query->posts);
     }
@@ -1486,7 +1488,7 @@ function boblift_search_products(string $query): array
     }
     $words = array_values(array_filter(array_map('boblift_search_key', preg_split('/\s+/u', $query) ?: [])));
     $scored = [];
-    foreach (boblift_all_products() as $index => $product) {
+    foreach (boblift_all_products(true) as $index => $product) {
         $models = array_filter(array_map('boblift_search_key', array_merge([(string) ($product['model'] ?? '')], preg_split('/[,，、\/]+/u', (string) ($product['model_aliases'] ?? '')) ?: [])));
         $score = 0;
         foreach ($models as $model) {

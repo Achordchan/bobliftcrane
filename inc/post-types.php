@@ -977,6 +977,8 @@ function boblift_product_meta_box(WP_Post $post): void
                     $boom_selected = $boom_raw;
                 }
                 boblift_render_select_field('boblift_meta[boom_type]', '吊臂类型', $boom_selected, $boom_options);
+                // Read for every language at once (inc/product-lifecycle.php); saving sets all translations.
+                boblift_render_select_field('boblift_meta[lifecycle]', '型号状态', boblift_product_is_legacy((int) $post->ID) ? 'legacy' : '', ['legacy' => '老型号（不在列表显示，放历史型号库，可按需定制）'], '在产型号');
             ?>
             <?php boblift_render_text_field('boblift_meta[catalog_pdf_url]', 'PDF目录文件URL', boblift_meta_value($post->ID, 'catalog_pdf_url'), 'url'); ?>
             <?php boblift_render_text_field('boblift_meta[status]', '状态', boblift_meta_value($post->ID, 'status')); ?>
@@ -1156,6 +1158,9 @@ function boblift_save_meta_boxes(int $post_id): void
         // The unchanged "original value" option keeps whatever was saved; anything else is normalised to the known types.
         update_post_meta($post_id, '_boom_type', ($posted_boom !== '' && $posted_boom === $current_boom) ? $current_boom : boblift_normalize_product_boom_type($posted_boom));
         update_post_meta($post_id, '_catalog_pdf_url', esc_url_raw((string) ($meta['catalog_pdf_url'] ?? '')));
+        if (isset($meta['lifecycle'])) {
+            boblift_save_product_lifecycle($post_id, (string) $meta['lifecycle'] === 'legacy' ? 'legacy' : '');
+        }
         update_post_meta($post_id, '_detail_body_ready', empty($meta['detail_body_ready']) ? '' : '1');
         update_post_meta($post_id, '_detail_images_ready', empty($meta['detail_images_ready']) ? '' : '1');
         foreach (['short_description', 'seo_description'] as $key) {

@@ -89,17 +89,24 @@ function boblift_product_crane_terms_apply(int $product_id): bool
 
 /**
  * Every published model in the term (this page's language), with the figures the guide compares.
- * Each: id, model, title, url, capacity (t), moment, weight, sections (0 when the model code is not decoded).
+ * Each: id, model, title, url, capacity (t), moment, weight, sections (0 when the model code is not decoded), legacy.
+ * $lifecycle: "current" (the default) leaves out the previous models, "legacy" keeps only them, "all" keeps both.
  */
-function boblift_product_range_models(WP_Term $term): array
+function boblift_product_range_models(WP_Term $term, string $lifecycle = 'current', bool $include_children = true): array
 {
-    // Full post objects, so titles, links and meta come from one query each rather than one per model.
-    $posts = get_posts([
+    $args = [
         'post_type' => 'product',
         'post_status' => 'publish',
         'numberposts' => -1,
-        'tax_query' => [['taxonomy' => 'product_category', 'field' => 'term_id', 'terms' => $term->term_id]],
-    ]);
+        'tax_query' => [['taxonomy' => 'product_category', 'field' => 'term_id', 'terms' => $term->term_id, 'include_children' => $include_children]],
+    ];
+    if ($lifecycle === 'legacy') {
+        $args['post__in'] = boblift_legacy_product_ids() ?: [0];
+    } elseif ($lifecycle !== 'all') {
+        $args = boblift_without_legacy($args);
+    }
+    // Full post objects, so titles, links and meta come from one query each rather than one per model.
+    $posts = get_posts($args);
     // The spec figures are read from the English products; load those posts and their meta together too.
     _prime_post_caches(array_values(array_unique(array_map(static fn(WP_Post $post): int => boblift_product_english_id($post->ID), $posts))), false, true);
     $models = [];
@@ -118,6 +125,7 @@ function boblift_product_range_models(WP_Term $term): array
             'weight' => boblift_product_english_spec($id, 'Self Weight'),
             'sections' => $code ? $code['sections'] : 0,
             'sections_label' => $code ? $code['sections_label'] : '',
+            'legacy' => boblift_product_is_legacy($id),
         ];
     }
     usort($models, static fn(array $a, array $b): int => ($a['capacity'] <=> $b['capacity']) ?: ($a['sections'] <=> $b['sections']) ?: strnatcasecmp($a['model'], $b['model']));
@@ -167,7 +175,8 @@ function boblift_product_guide(array $product, string $family, ?WP_Term $term): 
     $range = $term instanceof WP_Term ? boblift_product_range_models($term) : [];
     $capacities = array_values(array_unique(array_filter(array_map(static fn(array $item): float => $item['capacity'], $range))));
     sort($capacities);
-    if (count($range) > 1 && count($capacities) > 1) {
+    // A previous model is not one of the range it is counted against.
+    if (count($range) > 1 && count($capacities) > 1 && !boblift_product_is_legacy($product_id)) {
         $guide['intro'] = boblift_guide_sentence('The {model} is one of {count} models in our {range} range, which runs from {min} t to {max} t.', [
             '{model}' => $model_html,
             '{count}' => esc_html((string) count($range)),
