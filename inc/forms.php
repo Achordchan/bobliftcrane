@@ -13,6 +13,28 @@ function boblift_country_detect_url(): string
     return esc_url(add_query_arg('boblift_country_detect', '1', home_url('/')));
 }
 
+/**
+ * Forms post to the site root, which Polylang treats as English, so replies and the thank-you page came back in English
+ * whatever page the visitor was on. The form sends the page's language and the handlers switch to it first.
+ */
+function boblift_form_hidden_language_field(): string
+{
+    $language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
+    return $language !== '' ? '<input type="hidden" name="boblift_lang" value="' . esc_attr($language) . '">' : '';
+}
+
+function boblift_switch_to_posted_language(): void
+{
+    $slug = isset($_POST['boblift_lang']) ? sanitize_key((string) wp_unslash($_POST['boblift_lang'])) : '';
+    if ($slug === '' || !function_exists('PLL') || !isset(PLL()->model)) {
+        return;
+    }
+    $language = PLL()->model->get_language($slug);
+    if ($language) {
+        PLL()->curlang = $language;
+    }
+}
+
 function boblift_inquiry_success_url(): string
 {
     return function_exists('boblift_public_path_url') ? boblift_public_path_url('/success.html') : home_url('/success.html');
@@ -191,6 +213,7 @@ function boblift_render_catalog_modal(): void
             <form class="p-5 md:p-7" method="post" action="<?php echo boblift_catalog_action_url(); ?>" data-catalog-form novalidate>
                 <input type="hidden" name="action" value="boblift_request_catalog">
                 <input type="hidden" name="boblift_catalog_response" value="json">
+                <?php echo boblift_form_hidden_language_field(); ?>
                 <?php wp_nonce_field('boblift_catalog_request', 'boblift_catalog_nonce'); ?>
                 <input type="hidden" name="product" data-catalog-product-field value="">
                 <input type="hidden" name="product_slug" data-catalog-product-slug-field value="">
@@ -293,6 +316,7 @@ function boblift_render_inquiry_modal(): void
                 <form class="boblift-inquiry-modal-form flex min-h-0 flex-col overflow-hidden p-5 md:p-6 lg:p-7" method="post" action="<?php echo boblift_inquiry_action_url(); ?>" data-inquiry-modal-form data-quote-form data-success-url="<?php echo esc_url(boblift_inquiry_success_url()); ?>" data-country-detect-url="<?php echo esc_url(boblift_country_detect_url()); ?>" data-contact-email="<?php echo esc_attr($contact['email']); ?>" data-whatsapp-number="<?php echo esc_attr($contact['whatsappNumber']); ?>" data-inquiry-subject="<?php echo esc_attr($contact['inquirySubject']); ?>" data-default-inquiry-text="<?php echo esc_attr($contact['defaultInquiryText']); ?>" novalidate>
                     <input type="hidden" name="action" value="boblift_submit_inquiry">
                     <input type="hidden" name="boblift_inquiry_response" value="json">
+                    <?php echo boblift_form_hidden_language_field(); ?>
                     <?php wp_nonce_field('boblift_submit_inquiry', 'boblift_inquiry_nonce'); ?>
                     <input type="hidden" name="source_entry" value="" data-inquiry-source-field>
                     <input type="hidden" name="product" data-quote-field="product" value="">
@@ -522,6 +546,7 @@ function boblift_verify_turnstile(): bool
 
 function boblift_handle_catalog_request(): void
 {
+    boblift_switch_to_posted_language();
     $ui = function_exists('boblift_site_ui') ? boblift_site_ui('productDetail') : [];
     $catalog_ui = is_array($ui['catalogLead'] ?? null) ? $ui['catalogLead'] : [];
     if (!isset($_POST['boblift_catalog_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['boblift_catalog_nonce'])), 'boblift_catalog_request')) {
@@ -618,6 +643,7 @@ add_action('admin_post_nopriv_boblift_request_catalog', 'boblift_handle_catalog_
 
 function boblift_handle_inquiry(): void
 {
+    boblift_switch_to_posted_language();
     if (!isset($_POST['boblift_inquiry_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['boblift_inquiry_nonce'])), 'boblift_submit_inquiry')) {
         if (boblift_inquiry_wants_json()) {
             $ui = function_exists('boblift_site_ui') ? boblift_site_ui('quoteForm') : [];

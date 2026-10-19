@@ -2143,7 +2143,7 @@
       form.dataset.submitted = 'true';
       if (form.dataset.clearQuoteListOnSuccess === 'true') window.bobliftQuoteList?.clear();
       resetTurnstile(form);
-      window.location.href = data?.data?.redirect || form.dataset.successUrl || '/success.html';
+      window.location.href = form.dataset.successUrl || data?.data?.redirect || '/success.html';
     } catch (error) {
       form.dataset.submitting = 'false';
       inquiryModalStatus(error.message || quoteFormMessage('saveFailed', 'The inquiry could not be sent. Please try again.'), 'error');

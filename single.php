@@ -61,8 +61,6 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
         <a class="transition hover:text-blue-700" href="<?php echo esc_url(home_url('/')); ?>"><?php echo esc_html((string) ($ui['home'] ?? 'Home')); ?></a>
         <span aria-hidden="true">/</span>
         <a class="transition hover:text-blue-700" href="<?php echo esc_url($news_url); ?>"><?php echo esc_html((string) ($ui['news'] ?? 'News')); ?></a>
-        <span aria-hidden="true">/</span>
-        <span class="line-clamp-1 min-w-0 max-w-full text-slate-400"><?php echo esc_html($title); ?></span>
     </nav>
     <?php
         $render_products = static function () use ($products, $localize, $article_ui): void { ?>
