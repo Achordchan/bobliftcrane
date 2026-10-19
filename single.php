@@ -24,7 +24,19 @@ $published = get_the_date('Y-m-d');
 $modified = get_the_modified_date('Y-m-d');
 $minutes = boblift_news_reading_minutes($content);
 $reading = str_replace('{minutes}', (string) $minutes, (string) ($article_ui['readingTemplate'] ?? '{minutes} min read'));
-$image = get_the_post_thumbnail_url($post_id, 'full') ?: 'images/page-heroes/factory-floor.webp';
+// The featured image leads the story unless the text already shows the same picture (most imported stories open with it).
+$image_src = wp_get_attachment_image_src((int) get_post_thumbnail_id($post_id), 'full') ?: ['', 0, 0];
+$image = (string) $image_src[0];
+// Same picture = same upload path (year/month folder and file name), whatever the host, CDN query or size variant.
+$image_stem = static function (string $url): string {
+    $path = strtolower((string) wp_parse_url($url, PHP_URL_PATH));
+    $uploads = strpos($path, '/uploads/');
+    $path = $uploads !== false ? substr($path, $uploads) : $path;
+    return (string) preg_replace('/(?:-scaled)?(?:-\d+x\d+)?\.[a-z0-9]+$/', '', $path);
+};
+preg_match_all('/<img\b[^>]*\bsrc=["\']([^"\']+)["\']/i', $content, $content_images);
+$lead_image = $image !== '' && !in_array($image_stem($image), array_map($image_stem, $content_images[1]), true) ? $image : '';
+$news_url = boblift_url('/news');
 $products = boblift_news_related_products($title, $content, 3, (int) $post_id);
 $contact = boblift_contact_settings();
 
@@ -44,25 +56,15 @@ if ($category_term instanceof WP_Term) {
 $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
 ?>
 
-<article class="boblift-news-article">
-    <div class="page-shell pt-5 md:pt-8">
-        <?php
-        boblift_page_hero([
-            'label' => $category,
-            'title' => $title,
-            'text' => $excerpt,
-            'meta' => $published . ' · ' . $reading,
-            'image' => $image,
-            'image_alt' => $title,
-            'image_position' => 'center',
-            'class' => 'boblift-news-hero',
-        ]);
-        ?>
-    </div>
-
-    <div class="page-shell py-8 md:py-12 lg:py-14">
-        <?php
-        // Products and contact sit in a right rail on wide screens and under the author card below that.
+<article class="boblift-news-article page-shell pb-12 pt-5 md:pb-16 md:pt-8" aria-labelledby="news-article-title">
+    <nav class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-bold text-slate-500" aria-label="<?php echo esc_attr((string) ($ui['breadcrumbLabel'] ?? 'Breadcrumb')); ?>">
+        <a class="transition hover:text-blue-700" href="<?php echo esc_url(home_url('/')); ?>"><?php echo esc_html((string) ($ui['home'] ?? 'Home')); ?></a>
+        <span aria-hidden="true">/</span>
+        <a class="transition hover:text-blue-700" href="<?php echo esc_url($news_url); ?>"><?php echo esc_html((string) ($ui['news'] ?? 'News')); ?></a>
+        <span aria-hidden="true">/</span>
+        <span class="line-clamp-1 min-w-0 max-w-full text-slate-400"><?php echo esc_html($title); ?></span>
+    </nav>
+    <?php
         $render_products = static function () use ($products, $localize, $article_ui): void { ?>
 <?php if ($products !== []) : ?>
                 <section class="rounded border border-line bg-white p-5">
@@ -101,12 +103,29 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
                 </div>
             </section>
         <?php };
-        ?>
-        <div class="grid gap-8 lg:grid-cols-[17.5rem_minmax(0,1fr)] lg:gap-12 xl:grid-cols-[16.5rem_minmax(0,1fr)_17.5rem] 2xl:gap-16">
-            <div class="min-w-0 lg:order-2">
-                <div class="xl:mx-auto xl:max-w-[48rem]">
+    ?>
+    <?php /* As on the loader site: the headline opens the text column, so the side column starts level with it. */ ?>
+    <div class="mt-6 grid gap-10 md:mt-8 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-12 xl:grid-cols-[minmax(0,1fr)_20rem] xl:gap-16">
+        <div class="min-w-0">
+            <header class="border-b border-line pb-6 md:pb-8">
+                <?php if ($category_term instanceof WP_Term) : ?>
+                    <a class="boblift-kicker transition hover:text-blue-700" href="<?php echo esc_url(add_query_arg('news_category', $category_term->slug, $news_url)); ?>"><?php echo esc_html($category); ?></a>
+                <?php else : ?>
+                    <p class="boblift-kicker"><?php echo esc_html($category); ?></p>
+                <?php endif; ?>
+                <h1 id="news-article-title" class="mt-3 text-[2rem] font-black leading-[1.1] tracking-[-0.02em] text-ink md:text-[2.625rem]"><?php echo esc_html($title); ?></h1>
+                <?php if ($excerpt !== '') : ?>
+                    <p class="mt-4 text-lg font-normal leading-8 text-slate-600"><?php echo esc_html($excerpt); ?></p>
+                <?php endif; ?>
+                <p class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-bold text-slate-500 lg:hidden">
+                    <span><?php echo esc_html((string) ($article_ui['authorName'] ?? 'BOB-LIFT Editorial Team')); ?></span>
+                    <time datetime="<?php echo esc_attr($published); ?>"><?php echo esc_html($published); ?></time>
+                    <span><?php echo esc_html($reading); ?></span>
+                </p>
+            </header>
+
                 <?php if ($show_toc) : ?>
-                    <details class="boblift-news-toc-mobile mb-6 rounded border border-line bg-mist lg:hidden">
+                    <details class="boblift-news-toc-mobile mt-6 rounded border border-line bg-mist lg:hidden">
                         <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-black text-ink">
                             <span class="inline-flex items-center gap-2"><?php echo boblift_icon('list', 'h-4 w-4 text-slate-400'); ?><?php echo esc_html((string) ($article_ui['tocTitle'] ?? 'In this article')); ?></span>
                             <?php echo boblift_icon('chevron-down', 'boblift-news-toc-chevron h-4 w-4 text-slate-400 transition'); ?>
@@ -119,20 +138,24 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
                     </details>
                 <?php endif; ?>
 
-                <div class="boblift-article-body">
-                    <?php echo wp_kses_post($content); ?>
-                </div>
+            <?php if ($lead_image !== '') : ?>
+                <figure class="mt-8 overflow-hidden rounded border border-line bg-mist">
+                    <img class="h-auto w-full" src="<?php echo esc_url($lead_image); ?>"<?php if ((int) $image_src[1] > 0 && (int) $image_src[2] > 0) : ?> width="<?php echo (int) $image_src[1]; ?>" height="<?php echo (int) $image_src[2]; ?>"<?php endif; ?> alt="<?php echo esc_attr($title); ?>" fetchpriority="high" decoding="async">
+                </figure>
+            <?php endif; ?>
 
-                <div class="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6 text-sm font-bold text-slate-500">
-                    <span><?php echo esc_html((string) ($article_ui['updatedLabel'] ?? 'Updated')); ?> <time datetime="<?php echo esc_attr($modified); ?>"><?php echo esc_html($modified); ?></time></span>
-                    <a class="inline-flex items-center gap-2 text-navy transition hover:text-blue-700" href="<?php echo esc_url(boblift_url('/news')); ?>"><?php echo boblift_icon('chevron-left', 'h-4 w-4'); ?><?php echo esc_html((string) ($article_ui['backLabel'] ?? 'Back to News')); ?></a>
-                </div>
-                </div>
+            <div class="boblift-article-body mt-8">
+                <?php echo wp_kses_post($content); ?>
             </div>
 
-            <aside class="min-w-0 lg:order-1" aria-label="<?php echo esc_attr((string) ($ui['summary'] ?? 'Article Summary')); ?>">
-                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-                    <section class="rounded border border-line bg-white p-5">
+            <div class="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6 text-sm font-bold text-slate-500">
+                <span><?php echo esc_html((string) ($article_ui['updatedLabel'] ?? 'Updated')); ?> <time datetime="<?php echo esc_attr($modified); ?>"><?php echo esc_html($modified); ?></time></span>
+                <a class="inline-flex items-center gap-2 text-navy transition hover:text-blue-700" href="<?php echo esc_url($news_url); ?>"><?php echo boblift_icon('chevron-left', 'h-4 w-4 rtl:rotate-180'); ?><?php echo esc_html((string) ($article_ui['backLabel'] ?? 'Back to News')); ?></a>
+            </div>
+        </div>
+
+        <aside class="flex min-w-0 flex-col gap-4" aria-label="<?php echo esc_attr((string) ($ui['summary'] ?? 'Article Summary')); ?>">
+                    <section class="hidden rounded border border-line bg-white p-5 lg:block">
                         <div class="flex items-center gap-3">
                             <span class="grid h-11 w-11 shrink-0 place-items-center rounded-sm bg-navy text-white"><?php echo boblift_icon('building-2', 'h-5 w-5'); ?></span>
                             <div class="min-w-0">
@@ -153,11 +176,10 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
                         </dl>
                     </section>
 
-                    <div class="empty:hidden xl:hidden"><?php $render_products(); ?></div>
-
-                    <div class="grid gap-4 sm:col-span-2 lg:sticky lg:top-6 lg:col-span-1">
+                    <?php $render_products(); ?>
+                    <?php $render_contact(); ?>
                         <?php if ($show_toc) : ?>
-                            <nav class="boblift-news-toc hidden rounded border border-line bg-white p-5 lg:block" aria-label="<?php echo esc_attr((string) ($article_ui['tocTitle'] ?? 'In this article')); ?>" data-news-toc>
+                            <nav class="boblift-news-toc hidden rounded border border-line bg-white p-5 lg:sticky lg:top-24 lg:block" aria-label="<?php echo esc_attr((string) ($article_ui['tocTitle'] ?? 'In this article')); ?>" data-news-toc>
                                 <h2 class="text-xs font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html((string) ($article_ui['tocTitle'] ?? 'In this article')); ?></h2>
                                 <ol class="boblift-news-toc-list mt-3">
                                     <?php foreach ($toc as $item) : ?>
@@ -166,26 +188,16 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
                                 </ol>
                             </nav>
                         <?php endif; ?>
-                        <div class="xl:hidden"><?php $render_contact(); ?></div>
-                    </div>
-                </div>
-            </aside>
-
-            <aside class="hidden min-w-0 xl:order-3 xl:block" aria-label="<?php echo esc_attr((string) ($article_ui['productsTitle'] ?? 'Products in this article')); ?>">
-                <div class="grid gap-4 xl:sticky xl:top-6">
-                    <?php $render_products(); ?>
-                    <?php $render_contact(); ?>
-                </div>
-            </aside>
-        </div>
+        </aside>
     </div>
+</article>
 
     <?php if ($related_query instanceof WP_Query && $related_query->have_posts()) : ?>
         <section class="border-t border-line bg-mist py-10 md:py-14">
             <div class="page-shell">
                 <div class="mb-6 flex items-end justify-between gap-4">
                     <h2 class="text-[clamp(1.5rem,2.2vw,2.25rem)] font-black leading-tight tracking-[-0.015em] text-ink"><?php echo esc_html((string) ($article_ui['relatedTitle'] ?? 'More news')); ?></h2>
-                    <a class="inline-flex shrink-0 items-center gap-2 text-sm font-bold text-navy transition hover:text-blue-700" href="<?php echo esc_url(boblift_url('/news')); ?>"><?php echo esc_html((string) ($article_ui['relatedLink'] ?? 'All news')); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
+                    <a class="inline-flex shrink-0 items-center gap-2 text-sm font-bold text-navy transition hover:text-blue-700" href="<?php echo esc_url($news_url); ?>"><?php echo esc_html((string) ($article_ui['relatedLink'] ?? 'All news')); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
                 </div>
                 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5">
                     <?php while ($related_query->have_posts()) : $related_query->the_post();
@@ -207,6 +219,5 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
             </div>
         </section>
     <?php endif; ?>
-</article>
 
 <?php get_footer(); ?>

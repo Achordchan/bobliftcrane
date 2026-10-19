@@ -1684,6 +1684,13 @@ img { max-width: 100%; }
 :lang(zh) .boblift-article-body, :lang(ja) .boblift-article-body { font-size: 1.0625rem; line-height: 1.95; letter-spacing: .01em; }
 .boblift-article-body > * + * { margin-top: 1.25em; }
 .boblift-article-body > :first-child { margin-top: 0; }
+/* Stories imported from the old site wrap their paragraphs in a plain <div>; space those the same way, and drop the empty
+   paragraphs the import left between blocks. */
+.boblift-article-body :where(div:not([class]), section:not([class])) > * + * { margin-top: 1.25em; }
+.boblift-article-body :where(div:not([class]), section:not([class])) > :first-child { margin-top: 0; }
+/* News stories use the whole text column, as on the loader site; other pages keep the reading width. */
+.boblift-news-article .boblift-article-body { max-width: none; }
+.boblift-article-body p:empty { display: none; }
 .boblift-article-body h2, .boblift-article-body h3, .boblift-article-body h4 { color: var(--ink); font-family: var(--font-sans); font-weight: 800; letter-spacing: -.01em; scroll-margin-top: 1.5rem; }
 .boblift-article-body h2 { margin-top: 2.25em; font-size: clamp(1.5rem, 2vw, 1.875rem); line-height: 1.2; }
 .boblift-article-body h3 { margin-top: 1.9em; font-size: 1.3125rem; line-height: 1.3; }
