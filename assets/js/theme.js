@@ -4128,14 +4128,25 @@
     const links = [...toc.querySelectorAll('a[href^="#"]')];
     const headings = links.map((link) => document.getElementById(decodeURIComponent(link.hash.slice(1)))).filter(Boolean);
     if (!headings.length) return;
-    const mark = (id) => links.forEach((link) => link.setAttribute('aria-current', decodeURIComponent(link.hash.slice(1)) === id ? 'true' : 'false'));
+    const list = toc.querySelector('[data-news-toc-list]');
+    const mark = (id) => {
+      links.forEach((link) => link.setAttribute('aria-current', decodeURIComponent(link.hash.slice(1)) === id ? 'true' : 'false'));
+      // A list that scrolls inside its card keeps the current entry in view (the list only, never the page).
+      const active = links.find((link) => link.getAttribute('aria-current') === 'true');
+      if (!list || !active || list.scrollHeight <= list.clientHeight) return;
+      const top = active.offsetTop;
+      if (top < list.scrollTop) list.scrollTop = top;
+      else if (top + active.offsetHeight > list.scrollTop + list.clientHeight) list.scrollTop = top + active.offsetHeight - list.clientHeight;
+    };
+    // The navigation stays over the top of the window, so reading starts below it.
+    const headerHeight = Math.round(document.getElementById('top')?.getBoundingClientRect().height || 0);
     const visible = new Set();
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => (entry.isIntersecting ? visible.add(entry.target) : visible.delete(entry.target)));
       const current = headings.filter((heading) => visible.has(heading))[0]
-        || headings.filter((heading) => heading.getBoundingClientRect().top < 0).pop();
+        || headings.filter((heading) => heading.getBoundingClientRect().top < headerHeight).pop();
       if (current) mark(current.id);
-    }, { rootMargin: `0px 0px -${Math.round(window.innerHeight * 0.65)}px 0px` }); // the top 35% of the viewport, in pixels: a percentage here may resolve against the width
+    }, { rootMargin: `-${headerHeight}px 0px -${Math.round(window.innerHeight * 0.65)}px 0px` }); // the top 35% of the viewport, in pixels: a percentage here may resolve against the width
     headings.forEach((heading) => observer.observe(heading));
     return observer;
   };

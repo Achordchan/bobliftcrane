@@ -175,17 +175,20 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
                     </section>
 
                     <?php $render_products(); ?>
-                    <?php $render_contact(); ?>
+                    <?php // The contents and the quote card travel together below the navigation; when both do not fit the window, the contents list scrolls inside its card and the quote card stays whole. The bottom 5.5rem stays clear for the back-to-top button. ?>
+                    <div class="flex min-w-0 flex-col gap-4 lg:sticky lg:top-[calc(var(--boblift-header-h)+1.5rem)] lg:max-h-[calc(100dvh-var(--boblift-header-h)-7rem)]">
                         <?php if ($show_toc) : ?>
-                            <nav class="boblift-news-toc hidden rounded border border-line bg-white p-5 lg:sticky lg:top-24 lg:block" aria-label="<?php echo esc_attr((string) ($article_ui['tocTitle'] ?? 'In this article')); ?>" data-news-toc>
-                                <h2 class="text-xs font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html((string) ($article_ui['tocTitle'] ?? 'In this article')); ?></h2>
-                                <ol class="boblift-news-toc-list mt-3">
+                            <nav class="boblift-news-toc hidden min-h-[8rem] rounded border border-line bg-white p-5 lg:flex lg:flex-col" aria-label="<?php echo esc_attr((string) ($article_ui['tocTitle'] ?? 'In this article')); ?>" data-news-toc>
+                                <h2 class="shrink-0 text-xs font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html((string) ($article_ui['tocTitle'] ?? 'In this article')); ?></h2>
+                                <ol class="boblift-news-toc-list relative mt-3 min-h-0 overflow-y-auto overscroll-contain" data-news-toc-list>
                                     <?php foreach ($toc as $item) : ?>
                                         <li><a href="#<?php echo esc_attr(rawurlencode((string) $item['id'])); ?>"><?php echo esc_html($item['text']); ?></a></li>
                                     <?php endforeach; ?>
                                 </ol>
                             </nav>
                         <?php endif; ?>
+                        <div class="shrink-0"><?php $render_contact(); ?></div>
+                    </div>
         </aside>
     </div>
 </article>
