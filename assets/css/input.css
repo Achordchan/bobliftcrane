@@ -1707,7 +1707,7 @@ img { max-width: 100%; }
 .boblift-article-body blockquote { border: 1px solid var(--line, #e5e7eb); border-radius: 4px; background: #f8fafc; padding: 1rem 1.25rem; color: #475569; }
 .boblift-article-body img, .boblift-article-body video, .boblift-article-body iframe { max-width: 100%; height: auto; border-radius: 4px; }
 /* Pictures sit centred in the column and never grow taller than the screen, so a whole picture fits in one view. */
-.boblift-article-body img, .boblift-article-body video { display: block; width: auto; max-height: min(80vh, calc(100vh - 10rem)); max-height: min(80svh, calc(100svh - 10rem)); margin-inline: auto; }
+.boblift-article-body img, .boblift-article-body video { display: block; width: auto; max-height: min(80vh, calc(100vh - 10rem)); max-height: min(80svh, calc(100svh - 10rem)); margin-inline: auto; object-fit: contain; }
 .boblift-article-body iframe { aspect-ratio: 16 / 9; width: 100%; }
 .boblift-article-body figure { margin-left: 0; margin-right: 0; }
 .boblift-article-body figcaption { margin-top: .5rem; color: #64748b; font-size: .875rem; line-height: 1.5; text-align: center; }
