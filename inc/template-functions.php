@@ -774,6 +774,10 @@ function boblift_all_products(bool $include_legacy = false): array
     if ($query->have_posts()) {
         return array_map('boblift_product_from_post', $query->posts);
     }
+    // Every published product is a previous model: the current range is empty, not the seed catalog.
+    if (!$include_legacy && (new WP_Query(['post_type' => 'product', 'post_status' => 'publish', 'posts_per_page' => 1, 'fields' => 'ids', 'no_found_rows' => true]))->have_posts()) {
+        return [];
+    }
     return array_map(static function (array $product): array {
         $product['detail_url'] = boblift_html_url((string) $product['slug']);
         $product['inquiry_url'] = boblift_url('/contact.html?product=' . rawurlencode($product['title']) . '#inquiry');

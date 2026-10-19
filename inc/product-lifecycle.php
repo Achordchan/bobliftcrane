@@ -135,7 +135,11 @@ function boblift_product_model_history(int $post_id, WP_Term $term): array
     if ($own === null) {
         return [];
     }
-    $same = array_values(array_filter($models, static fn(array $item): bool => abs($item['capacity'] - $own['capacity']) < 0.001));
+    // Models without a capacity figure have no class to compare in.
+    if ($own['capacity'] <= 0) {
+        return [];
+    }
+    $same = array_values(array_filter($models, static fn(array $item): bool => $item['capacity'] > 0 && abs($item['capacity'] - $own['capacity']) < 0.001));
     if ($own['legacy'] && !array_filter($same, static fn(array $item): bool => !$item['legacy'])) {
         $current = array_values(array_filter($models, static fn(array $item): bool => !$item['legacy']));
         $same = array_merge(boblift_nearest_capacity_models($current, $own['capacity']), $same);
@@ -153,6 +157,10 @@ function boblift_nearest_capacity_models(array $models, float $capacity): array
     if ($models === [] || $capacity <= 0) {
         return [];
     }
+    $models = array_values(array_filter($models, static fn(array $item): bool => $item['capacity'] > 0));
+    if ($models === []) {
+        return [];
+    }
     $gaps = array_map(static fn(array $item): float => abs($item['capacity'] - $capacity), $models);
     $nearest = min($gaps);
     return array_values(array_filter($models, static fn(array $item): bool => abs(abs($item['capacity'] - $capacity) - $nearest) < 0.001));
@@ -168,21 +176,25 @@ function boblift_legacy_model_library(array $categories): array
         return [];
     }
     $groups = [];
+    $seen = [];
     foreach ($categories as $category) {
         $slug = (string) ($category['slug'] ?? '');
         $term = $slug !== '' ? get_term_by('slug', $slug, 'product_category') : null;
         if (!$term instanceof WP_Term) {
             continue;
         }
-        // Each model under its own category only, so a model filed under a parent and a child is listed once.
+        // The models filed under this category itself; one filed under two listed categories appears in the first only.
         $models = boblift_product_range_models($term, 'all', false);
-        $legacy = array_values(array_filter($models, static fn(array $item): bool => $item['legacy']));
+        $legacy = array_values(array_filter($models, static fn(array $item): bool => $item['legacy'] && !isset($seen[$item['id']])));
+        foreach ($legacy as $item) {
+            $seen[$item['id']] = true;
+        }
         if ($legacy === []) {
             continue;
         }
         $current = array_values(array_filter($models, static fn(array $item): bool => !$item['legacy']));
         foreach ($legacy as $index => $item) {
-            $same = array_values(array_filter($current, static fn(array $other): bool => abs($other['capacity'] - $item['capacity']) < 0.001));
+            $same = $item['capacity'] > 0 ? array_values(array_filter($current, static fn(array $other): bool => $other['capacity'] > 0 && abs($other['capacity'] - $item['capacity']) < 0.001)) : [];
             $legacy[$index]['current'] = $same !== [] ? $same : boblift_nearest_capacity_models($current, $item['capacity']);
         }
         $groups[] = ['term' => $term, 'title' => (string) ($category['title'] ?? $term->name), 'models' => $legacy];
