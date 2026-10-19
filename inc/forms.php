@@ -271,7 +271,7 @@ function boblift_render_inquiry_modal(): void
     ?>
     <div class="boblift-inquiry-modal fixed inset-0 z-[260] hidden items-end justify-center bg-[#071f42]/45 p-0 backdrop-blur-sm md:items-center md:p-6" data-global-inquiry-modal aria-hidden="true">
         <button class="absolute inset-0 h-full w-full cursor-default" type="button" data-inquiry-modal-close aria-label="<?php echo esc_attr($ui['closeLabel'] ?? 'Close inquiry form'); ?>"></button>
-        <div class="boblift-inquiry-dialog relative flex max-h-[94dvh] w-full max-w-5xl flex-col overflow-hidden rounded-t bg-white shadow-raised md:max-h-[calc(100dvh-32px)] md:rounded" role="dialog" aria-modal="true" aria-labelledby="global-inquiry-title" tabindex="-1">
+        <div class="boblift-inquiry-dialog relative flex outline-none max-h-[94dvh] w-full max-w-5xl flex-col overflow-hidden rounded-t bg-white shadow-raised md:max-h-[calc(100dvh-32px)] md:rounded" role="dialog" aria-modal="true" aria-labelledby="global-inquiry-title" tabindex="-1">
             <div class="boblift-inquiry-layout grid min-h-0 md:grid-cols-[0.72fr_1.28fr]">
                 <aside class="relative hidden bg-[linear-gradient(145deg,#071f42_0%,#0b3f7d_58%,#2563eb_100%)] p-8 text-white md:block">
                     <span class="pointer-events-none absolute -end-16 top-10 h-48 w-48 rounded-full bg-white/12 blur-2xl"></span>

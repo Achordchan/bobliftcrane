@@ -554,3 +554,41 @@ function boblift_resolve_bare_image_sources(string $content): string {
     }, $content);
 }
 add_filter('the_content', 'boblift_resolve_bare_image_sources', 5);
+
+/**
+ * Two more ways article pictures broke after moving content between sites: translations copied from the local build still
+ * point at http://localhost/wp-content/uploads/..., and a few point at the month folder the picture had locally while the
+ * upload here landed in another month. Local addresses are pointed at this site's uploads; an upload address whose file is
+ * missing is pointed at the one attachment with that file name. Anything ambiguous or not found is left as it is.
+ */
+function boblift_repair_upload_image_sources(string $content): string {
+    if (stripos($content, '/wp-content/uploads/') === false) {
+        return $content;
+    }
+    $uploads = wp_get_upload_dir();
+    $base_url = trailingslashit((string) $uploads['baseurl']);
+    $content = (string) preg_replace('#https?://(?:localhost|127\.0\.0\.1)(?::\d+)?/wp-content/uploads/#i', $base_url, $content);
+    $site_host = (string) wp_parse_url(home_url('/'), PHP_URL_HOST);
+    return (string) preg_replace_callback('/(<img\b[^>]*?\bsrc=)(["\'])((?:https?:\/\/([^\/"\']+))?\/wp-content\/uploads\/([^"\'?#]+))\2/i', static function (array $m) use ($uploads, $site_host): string {
+        static $found = [];
+        if ($m[4] !== '' && strcasecmp($m[4], $site_host) !== 0) {
+            return $m[0];
+        }
+        $relative = rawurldecode($m[5]);
+        if (file_exists(trailingslashit((string) $uploads['basedir']) . $relative)) {
+            return $m[0];
+        }
+        $name = wp_basename($relative);
+        if (!array_key_exists($name, $found)) {
+            global $wpdb;
+            $ids = $wpdb->get_col($wpdb->prepare(
+                "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_wp_attached_file' AND (meta_value = %s OR meta_value LIKE %s) LIMIT 2",
+                $name,
+                '%/' . $wpdb->esc_like($name)
+            ));
+            $found[$name] = count($ids) === 1 ? (string) wp_get_attachment_url((int) $ids[0]) : '';
+        }
+        return $found[$name] !== '' ? $m[1] . $m[2] . esc_url($found[$name]) . $m[2] : $m[0];
+    }, $content);
+}
+add_filter('the_content', 'boblift_repair_upload_image_sources', 6);
