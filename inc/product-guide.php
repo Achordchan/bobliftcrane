@@ -220,6 +220,14 @@ function boblift_product_spec_groups(int $product_id, array $rows, bool $has_mod
     if (count($english) !== count($spec_rows)) {
         return [];
     }
+    // Equal counts are not enough: a translated table may be reordered. Rows line up only when the first number in each
+    // row matches the English row at the same place (values are figures, so they survive translation); otherwise one table.
+    $first_number = static fn(string $value): string => preg_match('/\d+(?:[.,]\d+)?/', $value, $m) ? str_replace(',', '.', $m[0]) : '';
+    foreach ($spec_rows as $index => $row) {
+        if ($first_number((string) ($english[$index]['value'] ?? '')) !== $first_number((string) ($row['value'] ?? ''))) {
+            return [];
+        }
+    }
     $lifting = ['Max Lifting Capacity', 'Max Lifting Moment', 'Rotation Angle', 'Max Working Radius', 'Max Working Range', 'Min Working Range', 'Max Lifting Height', 'Max Lifting Height (from ground)', 'Working Height', 'Lifting Angle', 'Boom Type', 'Boom Sections', 'Winch', 'Matching Forklifts'];
     $hydraulics = ['Recommended Power', 'Hydraulic System Flow', 'Hydraulic System Pressure', 'Rated Working Pressure', 'Rated Flow', 'Oil Tank Capacity'];
     $groups = [

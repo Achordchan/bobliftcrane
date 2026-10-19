@@ -285,8 +285,8 @@ $process_slugs = is_array($process_slugs) ? $process_slugs : [];
 $crane_family = boblift_product_crane_family($process_slugs);
 $product_guide = boblift_product_guide($product, $crane_family, $related_term);
 $has_product_guide = $product_guide['intro'] !== '' || $product_guide['cards'] || $product_guide['compare'] || $product_guide['steps'] !== '' || $product_guide['supply'] !== '';
-// The editor's short summary opens Product details when there is no body text to carry it.
-$product_summary = $detail_body_html === '' ? trim((string) ($product['short_description'] ?? '')) : '';
+// The editor's short summary opens Product details (it used to sit in the hero), whether or not there is body text.
+$product_summary = trim((string) ($product['short_description'] ?? ''));
 $has_overview_copy = $has_product_guide || $product_summary !== '';
 $spec_groups = boblift_product_spec_groups(get_the_ID(), $technical_specs, $hero_model !== '');
 $anchors = [];
@@ -757,6 +757,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                             <p class="mt-4 inline-flex items-center gap-2 text-sm font-black text-[#071f42]"><?php echo boblift_icon('package-check', 'h-4 w-4 text-[#0B3F7D]'); ?><?php echo esc_html(boblift_localized_static_text('Order from 1 unit')); ?></p>
                         </section>
                         <section class="bg-white p-6 md:p-8" aria-labelledby="buying-documents">
+                            <?php // Links to #brochures (the brochure card this column replaces on crane pages) land here. ?><span id="brochures" class="block scroll-mt-24" aria-hidden="true"></span>
                             <h3 id="buying-documents" class="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(boblift_localized_static_text('Documents')); ?></h3>
                             <ul class="mt-4 grid gap-3 text-sm">
                                 <?php if ($buying_brochure) :
