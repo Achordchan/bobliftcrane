@@ -106,7 +106,12 @@ function boblift_product_range_models(WP_Term $term, string $lifecycle = 'curren
         $args = boblift_without_legacy($args);
     }
     // Full post objects, so titles, links and meta come from one query each rather than one per model.
-    $posts = get_posts($args);
+    return boblift_product_model_rows(get_posts($args));
+}
+
+/** Range model rows (see boblift_product_range_models) for the given product posts, in capacity order. */
+function boblift_product_model_rows(array $posts): array
+{
     // The spec figures are read from the English products; load those posts and their meta together too.
     _prime_post_caches(array_values(array_unique(array_map(static fn(WP_Post $post): int => boblift_product_english_id($post->ID), $posts))), false, true);
     $models = [];

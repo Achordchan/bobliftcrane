@@ -247,7 +247,7 @@ function boblift_render_legacy_library(array $categories): void
             </summary>
             <div class="grid gap-8 border-t border-[#E5E7EB] px-4 pb-5 pt-6 sm:px-5 lg:pb-6">
                 <?php foreach ($groups as $group) :
-                    $group_id = 'legacy-library-' . $group['term']->slug;
+                    $group_id = 'legacy-library-' . $group['slug'];
                     $models = boblift_compare_models_prepare($group['models']);
                     ?>
                     <div class="min-w-0">

@@ -197,7 +197,13 @@ function boblift_legacy_model_library(array $categories): array
             $same = $item['capacity'] > 0 ? array_values(array_filter($current, static fn(array $other): bool => $other['capacity'] > 0 && abs($other['capacity'] - $item['capacity']) < 0.001)) : [];
             $legacy[$index]['current'] = $same !== [] ? $same : boblift_nearest_capacity_models($current, $item['capacity']);
         }
-        $groups[] = ['term' => $term, 'title' => (string) ($category['title'] ?? $term->name), 'models' => $legacy];
+        $groups[] = ['slug' => $term->slug, 'title' => (string) ($category['title'] ?? $term->name), 'models' => $legacy];
+    }
+    // Previous models outside every listed category (category assignment is optional) are listed on their own.
+    $unlisted = array_values(array_diff(boblift_legacy_product_ids(), array_keys($seen)));
+    $rest = $unlisted !== [] ? get_posts(['post_type' => 'product', 'post_status' => 'publish', 'numberposts' => -1, 'post__in' => $unlisted]) : [];
+    if ($rest !== []) {
+        $groups[] = ['slug' => 'other', 'title' => boblift_localized_static_text('Other products'), 'models' => array_map(static fn(array $item): array => $item + ['current' => []], boblift_product_model_rows($rest))];
     }
     return $groups;
 }
