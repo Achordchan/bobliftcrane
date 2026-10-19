@@ -573,17 +573,18 @@ function boblift_unique_upload_url_for_name(string $name): string {
             $file,
             '%/' . $wpdb->esc_like($file)
         ));
-        return count($ids) === 1 ? (int) $ids[0] : 0;
+        // The attachment's id, 0 when no attachment has the file, -1 when several do.
+        return count($ids) === 1 ? (int) $ids[0] : (count($ids) > 1 ? -1 : 0);
     };
     $id = $attachment_with_file($name);
-    if ($id) {
-        return (string) wp_get_attachment_url($id);
+    if ($id !== 0) {
+        return $id > 0 ? (string) wp_get_attachment_url($id) : '';
     }
     if (!preg_match('/^(.+?)(?:-scaled)?-\d+x\d+(\.[a-z0-9]+)$/i', $name, $size)) {
         return '';
     }
     $id = $attachment_with_file($size[1] . $size[2]) ?: $attachment_with_file($size[1] . '-scaled' . $size[2]);
-    if (!$id) {
+    if ($id <= 0) {
         return '';
     }
     $original = (string) wp_get_attachment_url($id);
