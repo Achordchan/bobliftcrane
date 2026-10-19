@@ -175,8 +175,8 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
                     </section>
 
                     <?php $render_products(); ?>
-                    <?php // The contents and the quote card travel together below the navigation; when both do not fit the window, the contents list scrolls inside its card and the quote card stays whole. The bottom 5.5rem stays clear for the back-to-top button. ?>
-                    <div class="flex min-w-0 flex-col gap-4 lg:sticky lg:top-[calc(var(--boblift-header-h)+1.5rem)] lg:max-h-[calc(100dvh-var(--boblift-header-h)-7rem)]">
+                    <?php // The contents and the quote card travel together below the navigation; when both do not fit the window, the contents list scrolls inside its card and the quote card stays whole; in a window too short even for that, the whole group scrolls. The bottom 5.5rem stays clear for the back-to-top button. ?>
+                    <div class="flex min-w-0 flex-col gap-4 lg:sticky lg:top-[calc(var(--boblift-header-h)+1.5rem)] lg:max-h-[calc(100dvh-var(--boblift-header-h)-7rem)] lg:overflow-y-auto lg:overscroll-contain">
                         <?php if ($show_toc) : ?>
                             <nav class="boblift-news-toc hidden min-h-[8rem] rounded border border-line bg-white p-5 lg:flex lg:flex-col" aria-label="<?php echo esc_attr((string) ($article_ui['tocTitle'] ?? 'In this article')); ?>" data-news-toc>
                                 <h2 class="shrink-0 text-xs font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html((string) ($article_ui['tocTitle'] ?? 'In this article')); ?></h2>

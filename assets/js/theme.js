@@ -4138,15 +4138,19 @@
       if (top < list.scrollTop) list.scrollTop = top;
       else if (top + active.offsetHeight > list.scrollTop + list.clientHeight) list.scrollTop = top + active.offsetHeight - list.clientHeight;
     };
-    // The navigation (and an editor's toolbar above it) stays over the top of the window, so reading starts below it.
-    const headerHeight = Math.max(0, Math.round(document.getElementById('top')?.getBoundingClientRect().bottom || 0));
+    // The navigation stays over the top of the window (below an editor's toolbar), so reading starts below it: its sticky
+    // offset plus its height, not its current position, which is lower while the announcement bar is still in view.
+    const header = document.getElementById('top');
+    const headerHeight = header ? Math.round((parseFloat(getComputedStyle(header).top) || 0) + header.getBoundingClientRect().height) : 0;
+    // The reading band is the top 35% of the window below the navigation, and never less than 40px tall.
+    const bandBottom = Math.max(0, Math.min(Math.round(window.innerHeight * 0.65), window.innerHeight - headerHeight - 40));
     const visible = new Set();
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => (entry.isIntersecting ? visible.add(entry.target) : visible.delete(entry.target)));
       const current = headings.filter((heading) => visible.has(heading))[0]
         || headings.filter((heading) => heading.getBoundingClientRect().top < headerHeight).pop();
       if (current) mark(current.id);
-    }, { rootMargin: `-${headerHeight}px 0px -${Math.round(window.innerHeight * 0.65)}px 0px` }); // the top 35% of the viewport, in pixels: a percentage here may resolve against the width
+    }, { rootMargin: `-${headerHeight}px 0px -${bandBottom}px 0px` }); // in pixels: a percentage here may resolve against the width
     headings.forEach((heading) => observer.observe(heading));
     return observer;
   };
