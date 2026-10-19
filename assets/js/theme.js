@@ -3521,7 +3521,10 @@
     const cards = qsa('[data-news-card]', root);
     const grid = qs('[data-news-grid]', root);
     const empty = qs('[data-news-empty]', root);
-    const maxVisible = Number.parseInt(root.dataset.newsMaxVisible || '6', 10) || 6;
+    const pagination = qs('[data-news-pagination]', root);
+    const perPage = Number.parseInt(root.dataset.newsMaxVisible || '9', 10) || 9;
+    const urlPage = Number.parseInt(new URLSearchParams(window.location.search).get('news_page') || '1', 10);
+    let currentPage = Number.isFinite(urlPage) && urlPage > 0 ? urlPage : 1;
     const allowedCategories = buttons.map((button) => button.value || '');
     const urlCategory = new URLSearchParams(window.location.search).get('news_category') || '';
     let activeCategory = allowedCategories.includes(urlCategory) ? urlCategory : (root.dataset.newsInitialCategory || '');
@@ -3541,18 +3544,54 @@
       } else {
         url.searchParams.delete('news_category');
       }
+      if (currentPage > 1) {
+        url.searchParams.set('news_page', String(currentPage));
+      } else {
+        url.searchParams.delete('news_page');
+      }
       window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+    };
+
+    const renderNewsPagination = (totalPages) => {
+      if (!pagination) return;
+      pagination.replaceChildren();
+      pagination.classList.toggle('hidden', totalPages <= 1);
+      if (totalPages <= 1) return;
+      const makeButton = (label, page, active = false, disabled = false) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = label;
+        button.disabled = disabled;
+        const numeric = /^\d+$/.test(label);
+        button.className = active
+          ? 'h-11 min-w-11 rounded-sm bg-[#0B1B33] px-4 text-sm font-black text-white transition'
+          : (numeric
+            ? 'h-11 min-w-11 rounded-sm border border-[#D8DEE8] bg-white px-4 text-sm font-black text-[#0B1B33] transition hover:border-blue-300'
+            : 'h-11 rounded-sm border border-[#D8DEE8] bg-white px-5 text-sm font-black text-[#0B1B33] transition hover:border-blue-300 disabled:cursor-not-allowed disabled:opacity-40');
+        button.addEventListener('click', () => {
+          applyNewsFilter(activeCategory, { page });
+          (grid || root).scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        if (active) button.setAttribute('aria-current', 'page');
+        return button;
+      };
+      pagination.appendChild(makeButton(pagination.dataset.previousLabel || 'Previous', currentPage - 1, false, currentPage === 1));
+      for (let page = 1; page <= totalPages; page += 1) {
+        pagination.appendChild(makeButton(String(page), page, page === currentPage));
+      }
+      pagination.appendChild(makeButton(pagination.dataset.nextLabel || 'Next', currentPage + 1, false, currentPage === totalPages));
     };
 
     const applyNewsFilter = (category, options = {}) => {
       activeCategory = allowedCategories.includes(category) ? category : '';
-      let shown = 0;
-      cards.forEach((card) => {
-        const matches = !activeCategory || card.dataset.newsCategory === activeCategory;
-        const visible = matches && shown < maxVisible;
-        card.classList.toggle('hidden', !visible);
-        if (visible) shown += 1;
-      });
+      const matching = cards.filter((card) => !activeCategory || card.dataset.newsCategory === activeCategory);
+      const totalPages = Math.max(1, Math.ceil(matching.length / perPage));
+      currentPage = Math.min(Math.max(1, options.page || 1), totalPages);
+      const start = (currentPage - 1) * perPage;
+      const pageCards = new Set(matching.slice(start, start + perPage));
+      const shown = pageCards.size;
+      cards.forEach((card) => card.classList.toggle('hidden', !pageCards.has(card)));
+      renderNewsPagination(totalPages);
       buttons.forEach((button) => {
         const active = (button.value || '') === activeCategory;
         button.classList.toggle('is-active', active);
@@ -3590,7 +3629,7 @@
     });
 
     applyNewsView(activeView);
-    applyNewsFilter(activeCategory, { updateUrl: false });
+    applyNewsFilter(activeCategory, { updateUrl: false, page: currentPage });
   });
 
   qsa('[data-cases-root]').forEach((root) => {
