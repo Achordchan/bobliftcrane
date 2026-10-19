@@ -77,10 +77,10 @@ function boblift_paragraph_has_price(string $text): bool
     return (bool) preg_match('/\d[\d,.\s]*\+?\s*(?:USD|US\$|\$)|(?:USD|US\$|\$)[\s\p{P}]{0,3}\d/iu', $text);
 }
 
-/** The offer posters, by file name. */
+/** The offer posters, by file name, at any size WordPress generates. */
 function boblift_price_poster_pattern(): string
 {
-    return 'zhang\.png|lQLPJxfmBNvwfCHNBXrNBGKwyMGo9cJN6nAJ4sY0aUe2AA_1122_1402\.png';
+    return '(?<![\w-])(?:zhang|lQLPJxfmBNvwfCHNBXrNBGKwyMGo9cJN6nAJ4sY0aUe2AA_1122_1402)(?:-scaled)?(?:-\d+x\d+)?\.png';
 }
 
 /**
@@ -144,3 +144,14 @@ function boblift_hide_price_story_poster_thumbnail($thumbnail_id, $post)
     return preg_match('/(?:' . boblift_price_poster_pattern() . ')$/i', $file) ? 0 : $thumbnail_id;
 }
 add_filter('post_thumbnail_id', 'boblift_hide_price_story_poster_thumbnail', 10, 2);
+
+/** A saved excerpt of either story that quotes a price is not shown (WordPress returns saved excerpts without the_content). */
+function boblift_hide_price_story_excerpt(string $excerpt, $post = null): string
+{
+    $post = get_post($post);
+    if (!$post instanceof WP_Post || boblift_price_story_of($post) === '') {
+        return $excerpt;
+    }
+    return boblift_paragraph_has_price(wp_strip_all_tags($excerpt)) ? '' : $excerpt;
+}
+add_filter('get_the_excerpt', 'boblift_hide_price_story_excerpt', 20, 2);
