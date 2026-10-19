@@ -52,9 +52,10 @@ function boblift_retire_old_marine_crane_models(): void
         update_option($lock, time(), false);
     }
 
+    // Any status, so a retry still finds the translations of a product that is already a draft.
     $ids = get_posts([
         'post_type' => 'product',
-        'post_status' => 'publish',
+        'post_status' => ['publish', 'draft', 'pending', 'private', 'future'],
         'post_name__in' => boblift_retired_marine_crane_slugs(),
         'numberposts' => -1,
         'fields' => 'ids',
@@ -71,10 +72,12 @@ function boblift_retire_old_marine_crane_models(): void
     $ids = array_unique(array_map('intval', $ids));
 
     $failed = 0;
+    $drafted = 0;
     foreach ($ids as $id) {
         if (get_post_type($id) !== 'product' || get_post_status($id) !== 'publish') {
             continue;
         }
+        $drafted++;
         $result = wp_update_post(['ID' => $id, 'post_status' => 'draft'], true);
         if (is_wp_error($result) || !$result) {
             $failed++;
@@ -82,7 +85,7 @@ function boblift_retire_old_marine_crane_models(): void
     }
     // Only a clean run is recorded; after a failure the next request tries again.
     if ($failed === 0) {
-        update_option('boblift_marine_brochure_models_v1', count($ids), false);
+        update_option('boblift_marine_brochure_models_v1', $drafted, false);
     }
     delete_option($lock);
 }
