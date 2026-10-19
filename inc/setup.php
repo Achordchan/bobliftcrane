@@ -314,15 +314,10 @@ function boblift_utility_page_ids(): array
         $page_ids = function_exists('pll_get_post_translations') ? array_map('intval', array_values(pll_get_post_translations($page->ID))) : [];
         $page_ids[] = (int) $page->ID;
         foreach (array_unique($page_ids) as $page_id) {
-            // A customised Public Welfare page stays published (see boblift_redirect_retired_pages()), so it stays indexable
-            // too; each translation is judged by its own language's settings.
-            // A customised quote page likewise stays reachable (boblift_redirect_quote_page()).
-            if ($slug === 'public-welfare' || $slug === 'quote') {
+            // A customised quote page stays reachable (boblift_redirect_quote_page()).
+            if ($slug === 'quote') {
                 $page_language = function_exists('pll_get_post_language') ? (string) pll_get_post_language($page_id) : '';
-                $customized = $slug === 'quote'
-                    ? function_exists('boblift_quote_page_customized') && boblift_quote_page_customized($page_language)
-                    : boblift_public_welfare_customized($page_language !== '' ? $page_language : null);
-                if ($customized) {
+                if (function_exists('boblift_quote_page_customized') && boblift_quote_page_customized($page_language)) {
                     continue;
                 }
             }
@@ -355,43 +350,12 @@ function boblift_redirect_retired_pages(): void
     }
     foreach (boblift_retired_page_slugs() as $slug) {
         if (boblift_page_is_translation_of_slug($page, $slug)) {
-            // A page an administrator filled with their own content stays published; only the untouched built-in page retires.
-            if ($slug === 'public-welfare' && boblift_public_welfare_customized()) {
-                return;
-            }
             wp_safe_redirect(boblift_url('/about.html'), 301);
             exit;
         }
     }
 }
 add_action('template_redirect', 'boblift_redirect_retired_pages', 1);
-
-/**
- * Whether the Public Welfare settings stored for a language (default: the current one) hold content of the administrator's own: anything
- * other than the built-in defaults (in English or as translated for that language).
- */
-function boblift_public_welfare_customized(?string $language = null): bool
-{
-    $raw = function_exists('boblift_mls_get_raw_options') ? boblift_mls_get_raw_options($language) : get_option('boblift_theme_options', []);
-    $saved = is_array($raw['public_welfare_page'] ?? null) ? $raw['public_welfare_page'] : [];
-    if ($saved === []) {
-        return false;
-    }
-    // Settings saved untouched before this theme version still hold the old hero defaults; those are not customisations.
-    // aria_label is no longer a setting at all, so whatever it holds does not show on the page.
-    if (is_array($saved['hero'] ?? null)) {
-        unset($saved['hero']['aria_label']);
-    }
-    $old_image_alt = 'BOB-LIFT public welfare factory visit banner';
-    $old_image_alts = [$old_image_alt, function_exists('boblift_localized_static_text') ? trim(boblift_localized_static_text($old_image_alt, $language)) : $old_image_alt];
-    if (is_array($saved['hero'] ?? null) && isset($saved['hero']['image_alt']) && in_array(trim((string) $saved['hero']['image_alt']), $old_image_alts, true)) {
-        unset($saved['hero']['image_alt']);
-    }
-    $defaults = boblift_public_welfare_page_defaults();
-    $current = wp_json_encode(boblift_array_replace_recursive($defaults, $saved));
-    $localized = function_exists('boblift_localize_static_value') ? boblift_localize_static_value($defaults, $language) : $defaults;
-    return $current !== wp_json_encode($defaults) && $current !== wp_json_encode($localized);
-}
 
 function boblift_exclude_utility_pages_from_sitemap(array $args, string $post_type): array
 {

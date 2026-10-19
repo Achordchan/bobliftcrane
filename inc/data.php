@@ -712,10 +712,6 @@ function boblift_about_apply_nav_migration(array $options, array $saved): array
         return $options;
     }
     $retired = boblift_retired_page_slugs();
-    // A customised Public Welfare page stays published (boblift_redirect_retired_pages()), so its menu link stays too.
-    if (function_exists('boblift_public_welfare_customized') && boblift_public_welfare_customized()) {
-        $retired = array_values(array_diff($retired, ['public-welfare']));
-    }
     // Once an editor has saved the menu (secondary_nav_version), the list is theirs: a moved page they added back
     // stays, and a removed default page is not added again.
     $reviewed_menu = (int) ($saved['secondary_nav_version'] ?? 0) >= 1;
@@ -756,7 +752,7 @@ function boblift_about_apply_nav_migration(array $options, array $saved): array
     return $options;
 }
 
-// Pages taken off this site; their URLs redirect to About. Public Welfare moves to the group site boblift.com.
+// Pages taken off this site in every language; their URLs redirect to About. Public Welfare moves to the group site boblift.com.
 function boblift_retired_page_slugs(): array
 {
     return ['public-welfare'];
