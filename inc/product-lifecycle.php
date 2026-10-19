@@ -210,7 +210,19 @@ function boblift_legacy_model_library(array $categories): array
     $groups = array_values($groups);
     // Previous models outside every listed category (category assignment is optional) are listed on their own.
     $unlisted = array_values(array_diff(boblift_legacy_product_ids(), array_keys($seen)));
-    $rest = $unlisted !== [] ? get_posts(['post_type' => 'product', 'post_status' => 'publish', 'numberposts' => -1, 'post__in' => $unlisted]) : [];
+    $rest = [];
+    if ($unlisted !== []) {
+        // The marked IDs cover every language: keep this page's (Polylang filters by language only with filters on).
+        $args = ['post_type' => 'product', 'post_status' => 'publish', 'numberposts' => -1, 'post__in' => $unlisted, 'suppress_filters' => false];
+        $language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
+        if ($language !== '') {
+            $args['lang'] = $language;
+        }
+        $rest = get_posts($args);
+        if ($language !== '' && function_exists('pll_get_post_language')) {
+            $rest = array_values(array_filter($rest, static fn(WP_Post $post): bool => pll_get_post_language($post->ID) === $language));
+        }
+    }
     if ($rest !== []) {
         $groups[] = ['slug' => 'other', 'title' => boblift_localized_static_text('Other products'), 'models' => array_map(static fn(array $item): array => $item + ['current' => []], boblift_product_model_rows($rest))];
     }
