@@ -121,7 +121,7 @@ function boblift_save_product_lifecycle(int $post_id, string $value): void
 /**
  * The models to set side by side on a product page: every model of the same capacity in its category, current ones
  * first. A previous model with no current model of its capacity is set beside the current models nearest to it.
- * Empty when no previous model is involved.
+ * Empty unless both a previous and a current model are in it.
  */
 function boblift_product_model_history(int $post_id, WP_Term $term): array
 {
@@ -144,7 +144,8 @@ function boblift_product_model_history(int $post_id, WP_Term $term): array
         $current = array_values(array_filter($models, static fn(array $item): bool => !$item['legacy']));
         $same = array_merge(boblift_nearest_capacity_models($current, $own['capacity']), $same);
     }
-    if (count($same) < 2 || !array_filter($same, static fn(array $item): bool => $item['legacy'])) {
+    // A comparison needs a previous model and a current one to set it beside.
+    if (!array_filter($same, static fn(array $item): bool => $item['legacy']) || !array_filter($same, static fn(array $item): bool => !$item['legacy'])) {
         return [];
     }
     usort($same, static fn(array $a, array $b): int => ($a['legacy'] <=> $b['legacy']) ?: ($a['capacity'] <=> $b['capacity']) ?: ($a['sections'] <=> $b['sections']) ?: strnatcasecmp($a['model'], $b['model']));
