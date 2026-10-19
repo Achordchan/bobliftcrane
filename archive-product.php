@@ -299,6 +299,7 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
             <?php endforeach; ?>
             <?php boblift_render_brochures(['context' => 'archive', 'initial_category' => $initial_category]); ?>
         </div>
+        <?php boblift_render_archive_extras($categories, $initial_category); ?>
     </div>
     <div class="fixed inset-0 z-[70] hidden items-center justify-center bg-[#0B1B33]/45 px-4 py-8 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="quick-view-title" data-quick-view-modal>
         <div class="max-h-[calc(100vh-4rem)] w-full max-w-5xl overflow-y-auto rounded bg-white shadow-card" data-quick-view-panel>
@@ -328,5 +329,4 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
     </div>
     <div class="boblift-filter-drawer fixed inset-0 z-[60] hidden bg-[#0B1B33]/40 backdrop-blur-sm lg:hidden" data-filter-drawer><div class="boblift-filter-drawer-panel ms-auto h-full w-full max-w-md overflow-y-auto bg-[#F8FAFC] p-4 shadow-raised"><?php $filter_sidebar(); ?></div></div>
 </section>
-<?php boblift_render_model_key(); ?>
 <?php get_footer(); ?>
