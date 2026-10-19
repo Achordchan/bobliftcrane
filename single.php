@@ -140,7 +140,7 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
 
             <?php if ($lead_image !== '') : ?>
                 <figure class="mt-8 overflow-hidden rounded border border-line bg-mist">
-                    <img class="h-auto w-full" src="<?php echo esc_url($lead_image); ?>"<?php if ((int) $image_src[1] > 0 && (int) $image_src[2] > 0) : ?> width="<?php echo (int) $image_src[1]; ?>" height="<?php echo (int) $image_src[2]; ?>"<?php endif; ?> alt="<?php echo esc_attr($title); ?>" fetchpriority="high" decoding="async">
+                    <img class="mx-auto h-auto max-h-[min(80vh,calc(100vh-10rem))] w-auto max-w-full" src="<?php echo esc_url($lead_image); ?>"<?php if ((int) $image_src[1] > 0 && (int) $image_src[2] > 0) : ?> width="<?php echo (int) $image_src[1]; ?>" height="<?php echo (int) $image_src[2]; ?>"<?php endif; ?> alt="<?php echo esc_attr($title); ?>" fetchpriority="high" decoding="async">
                 </figure>
             <?php endif; ?>
 

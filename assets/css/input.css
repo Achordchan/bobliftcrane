@@ -1706,10 +1706,13 @@ img { max-width: 100%; }
 .boblift-article-body li::marker { color: #94a3b8; }
 .boblift-article-body blockquote { border: 1px solid var(--line, #e5e7eb); border-radius: 4px; background: #f8fafc; padding: 1rem 1.25rem; color: #475569; }
 .boblift-article-body img, .boblift-article-body video, .boblift-article-body iframe { max-width: 100%; height: auto; border-radius: 4px; }
+/* Pictures sit centred in the column and never grow taller than the screen, so a whole picture fits in one view. */
+.boblift-article-body img, .boblift-article-body video { display: block; width: auto; max-height: min(80vh, calc(100vh - 10rem)); max-height: min(80svh, calc(100svh - 10rem)); margin-inline: auto; }
 .boblift-article-body iframe { aspect-ratio: 16 / 9; width: 100%; }
 .boblift-article-body figure { margin-left: 0; margin-right: 0; }
-.boblift-article-body figcaption { margin-top: .5rem; color: #64748b; font-size: .875rem; line-height: 1.5; }
-.boblift-article-body table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; font-size: .9375rem; line-height: 1.5; }
+.boblift-article-body figcaption { margin-top: .5rem; color: #64748b; font-size: .875rem; line-height: 1.5; text-align: center; }
+/* A table only as wide as its content is centred; a wider one fills the column and scrolls sideways. */
+.boblift-article-body table { display: block; width: fit-content; max-width: 100%; margin-inline: auto; overflow-x: auto; border-collapse: collapse; font-size: .9375rem; line-height: 1.5; }
 .boblift-article-body th, .boblift-article-body td { border: 1px solid var(--line, #e5e7eb); padding: .55rem .75rem; text-align: start; vertical-align: top; }
 .boblift-article-body th { background: #f8fafc; color: var(--ink); font-weight: 600; }
 .boblift-article-body pre { overflow-x: auto; border-radius: 4px; background: #0f172a; padding: 1rem; color: #e2e8f0; font-size: .875rem; }
