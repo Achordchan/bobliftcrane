@@ -10,6 +10,7 @@ module.exports = {
   // logical start/end utilities, so saved HTML may still use them.
   safelist: [
     'inline-block',
+    'line-clamp-1',
     '-left-24',
     '-left-28',
     '-left-4',

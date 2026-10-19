@@ -2995,11 +2995,11 @@
     const bannerCategories = parseBannerJson(banner?.dataset.bannerCategories, {});
     const categoryUrls = parseBannerJson(root.dataset.categoryUrls, {});
     const productArchiveUrl = root.dataset.productArchiveUrl || '/';
-    const categoryIntros = qsa('[data-category-intro]', root);
+    const categoryIntros = qsa('[data-category-intro], [data-category-extra]', root);
     const updateBanner = () => {
       const categories = activeCategoryDisplayValues();
       // The intro for a single selected category; none on the full list or a mixed filter.
-      categoryIntros.forEach((intro) => { intro.hidden = !(categories.length === 1 && intro.dataset.categoryIntro === categories[0]); });
+      categoryIntros.forEach((intro) => { intro.hidden = !(categories.length === 1 && (intro.dataset.categoryIntro || intro.dataset.categoryExtra) === categories[0]); });
       if (!banner) return;
       const content = categories.length === 1 && bannerCategories[categories[0]] ? bannerCategories[categories[0]] : bannerDefault;
       if (bannerLabel) bannerLabel.textContent = content.label || '';
