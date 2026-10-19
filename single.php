@@ -31,7 +31,7 @@ $image_stem = static function (string $url): string {
     $path = strtolower((string) wp_parse_url($url, PHP_URL_PATH));
     $uploads = strpos($path, '/uploads/');
     $path = $uploads !== false ? substr($path, $uploads) : $path;
-    return (string) preg_replace('/(?:-\d+x\d+|-scaled)?\.[a-z0-9]+$/', '', $path);
+    return (string) preg_replace('/(?:-scaled)?(?:-\d+x\d+)?\.[a-z0-9]+$/', '', $path);
 };
 preg_match_all('/<img\b[^>]*\bsrc=["\']([^"\']+)["\']/i', $content, $content_images);
 $lead_image = $image !== '' && !in_array($image_stem($image), array_map($image_stem, $content_images[1]), true) ? $image : '';
