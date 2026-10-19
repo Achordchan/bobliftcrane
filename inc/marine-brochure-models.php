@@ -43,13 +43,20 @@ function boblift_retire_old_marine_crane_models(): void
         return;
     }
     // add_option() inserts a unique row, so only one request holds the lock. A lock left by a request that died is
-    // released after ten minutes and the run starts again.
+    // taken over after ten minutes with a compare-and-swap on its old value, so only one request can take it over.
+    global $wpdb;
     $lock = 'boblift_marine_brochure_models_v1_lock';
-    if (!add_option($lock, time(), '', false)) {
-        if (time() - (int) get_option($lock) < 600) {
+    $token = time() . '|' . wp_generate_password(12, false);
+    if (!add_option($lock, $token, '', false)) {
+        $held = (string) $wpdb->get_var($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", $lock));
+        if (time() - (int) $held < 600) {
             return;
         }
-        update_option($lock, time(), false);
+        $taken = $wpdb->update($wpdb->options, ['option_value' => $token], ['option_name' => $lock, 'option_value' => $held]);
+        wp_cache_delete($lock, 'options');
+        if ($taken !== 1) {
+            return;
+        }
     }
 
     // Any status, so a retry still finds the translations of a product that is already a draft.
@@ -87,6 +94,8 @@ function boblift_retire_old_marine_crane_models(): void
     if ($failed === 0) {
         update_option('boblift_marine_brochure_models_v1', $drafted, false);
     }
-    delete_option($lock);
+    // Released only while this request still owns it.
+    $wpdb->delete($wpdb->options, ['option_name' => $lock, 'option_value' => $token]);
+    wp_cache_delete($lock, 'options');
 }
 add_action('init', 'boblift_retire_old_marine_crane_models', 40);
