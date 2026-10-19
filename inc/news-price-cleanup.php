@@ -42,7 +42,7 @@ function boblift_strip_story_price(string $content, string $story, string $inqui
     $paragraphs = $found[0];
     $price_at = null;
     foreach ($paragraphs as $index => $paragraph) {
-        if (preg_match('/\bUSD\s*!/', $paragraph[0])) {
+        if (boblift_paragraph_has_price(wp_strip_all_tags($paragraph[0]))) {
             $price_at = $index;
             break;
         }
@@ -70,13 +70,26 @@ function boblift_strip_story_price(string $content, string $story, string $inqui
     return substr($content, 0, $start) . $replacement . substr($content, $end);
 }
 
+/** A price in the paragraph's text: an amount with USD or a dollar sign on either side, whatever punctuation follows. */
+function boblift_paragraph_has_price(string $text): bool
+{
+    $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    return (bool) preg_match('/\d[\d,.\s]*\+?\s*(?:USD|US\$|\$)|(?:USD|US\$|\$)[\s\p{P}]{0,3}\d/iu', $text);
+}
+
+/** The offer posters, by file name. */
+function boblift_price_poster_pattern(): string
+{
+    return 'zhang\.png|lQLPJxfmBNvwfCHNBXrNBGKwyMGo9cJN6nAJ4sY0aUe2AA_1122_1402\.png';
+}
+
 /**
  * The offer posters (price printed on them) wherever they sit: each poster <img> goes on its own, then any <p>, <div> or
  * <figure> it leaves empty. Other markup around it, balanced or not, is left as it was.
  */
 function boblift_strip_story_price_posters(string $content): string
 {
-    $content = (string) preg_replace('/<img\b[^>]*(?:zhang\.png|lQLPJxfmBNvwfCHNBXrNBGKwyMGo9cJN6nAJ4sY0aUe2AA_1122_1402\.png)[^>]*>/i', '', $content);
+    $content = (string) preg_replace('/<img\b[^>]*(?:' . boblift_price_poster_pattern() . ')[^>]*>/i', '', $content);
     do {
         $before = $content;
         $content = (string) preg_replace('/\s*<(p|div|figure)\b[^>]*>(?:\s|&nbsp;)*<\/\1>/i', '', $content);
@@ -119,3 +132,15 @@ function boblift_hide_published_story_prices(string $content): string
 }
 // After wpautop (10) and shortcodes (11), so paragraphs saved without <p> tags are matched too.
 add_filter('the_content', 'boblift_hide_published_story_prices', 20);
+
+/** A poster set as either story's featured image is not shown (story lead image, news cards). */
+function boblift_hide_price_story_poster_thumbnail($thumbnail_id, $post)
+{
+    $post = get_post($post);
+    if (!$thumbnail_id || !$post instanceof WP_Post || boblift_price_story_of($post) === '') {
+        return $thumbnail_id;
+    }
+    $file = (string) get_post_meta((int) $thumbnail_id, '_wp_attached_file', true);
+    return preg_match('/(?:' . boblift_price_poster_pattern() . ')$/i', $file) ? 0 : $thumbnail_id;
+}
+add_filter('post_thumbnail_id', 'boblift_hide_price_story_poster_thumbnail', 10, 2);
