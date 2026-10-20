@@ -2330,7 +2330,9 @@ body.boblift-filter-drawer-locked {
 
 /* Product page body text (正文): tighter than article prose, list in two columns on wide screens. */
 /* Product details copy reads as plain running text, like the loader site's overview: one size, muted grey, no accents. */
-.boblift-product-body { color: #56616b; font-size: 1rem; font-weight: 400; line-height: 1.9; }
+.boblift-product-body { color: #475569; font-size: .9375rem; font-weight: 400; line-height: 1.75; }
+@media (min-width: 768px) { .boblift-product-body { font-size: 1rem; line-height: 1.8; } }
+.boblift-product-body > * + * { margin-top: 1rem; }
 .boblift-product-body h3 { margin-top: 1.75rem; color: #1e293b; font-size: 1rem; font-weight: 700; letter-spacing: 0; line-height: 1.6; }
 .boblift-product-body h3 + * { margin-top: 0.5rem; }
 .boblift-product-body strong { color: #1e293b; font-weight: 600; }

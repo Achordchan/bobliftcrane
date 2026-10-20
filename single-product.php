@@ -362,10 +362,8 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
             <div class="grid grid-cols-1 items-center gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-10 xl:gap-14">
                 <div class="relative z-20 order-2 min-w-0 lg:order-1">
                     <p class="boblift-kicker boblift-product-hero-kicker"><?php echo esc_html($product['category_title'] ?? 'BOB-LIFT Product'); ?></p>
-                    <h1 class="boblift-product-hero-title mt-3 text-[clamp(44px,4.4vw,84px)] font-black leading-[0.92] tracking-[-0.02em] text-[#071f42]"><?php echo esc_html($hero_title); ?></h1>
-                    <?php if ($show_hero_full_name) : ?>
-                        <p class="mt-3 text-[clamp(18px,1.35vw,24px)] font-medium leading-tight text-slate-700"><?php echo esc_html($product_title); ?></p>
-                    <?php endif; ?>
+                    <?php // The full name sits inside the h1 with the model, so the heading keeps the product keyword the old site ranked on. ?>
+                    <h1 class="mt-3 text-[#071f42]"><span class="boblift-product-hero-title block text-[clamp(44px,4.4vw,84px)] font-black leading-[0.92] tracking-[-0.02em]"><?php echo esc_html($hero_title); ?></span><?php if ($show_hero_full_name) : ?><span class="mt-3 block text-[clamp(18px,1.35vw,24px)] font-medium leading-tight tracking-normal text-slate-700"><?php echo esc_html($product_title); ?></span><?php endif; ?></h1>
                     <?php if ($is_legacy_model) :
                         $legacy_target = $model_history ? '#model-history' : ($related_term instanceof WP_Term && !is_wp_error(get_term_link($related_term)) ? (string) get_term_link($related_term) : boblift_product_archive_url());
                         ?>
@@ -563,133 +561,120 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                 <article id="overview" class="scroll-mt-24 overflow-clip rounded border border-[#DDE7F2] bg-white shadow-card">
                     <?php // Old shared links to #details land on the product details. ?><span id="details" class="block scroll-mt-24" aria-hidden="true"></span>
                     <?php
-                    // With a series video the heading and film fill the left column and the copy the right, as on the loader site;
-                    // without one the heading and lead share the left column, so the sections beside them leave no empty title column.
+                    // Left: the full product name, the range intro, key figures and any film; right: the body copy, the
+                    // range comparison and the next-model note. One text style throughout, and no film placeholder.
                     $detail_has_sections = trim($detail_body_sections) !== '';
-                    // Every crane gets the film column; one without a film yet shows a placeholder until it is filmed.
-                    $detail_video_column = $product_videos || $detail_body_html !== '' || $has_overview_copy;
-                    $detail_split = $detail_video_column ? ($detail_body_html !== '' || $has_overview_copy) : $detail_body_lead !== '' && $detail_has_sections;
+                    $detail_has_body = $detail_body_lead !== '' || $detail_has_sections;
+                    // The editor's summary only stands in when there is no body: the body's first paragraph says the same.
+                    $detail_summary = $detail_has_body ? '' : $product_summary;
+                    $detail_has_right = $detail_has_body || $product_guide['compare'] || $product_guide['steps'] !== '' || $product_guide['supply'] !== '';
+                    $detail_model_label = $hero_model !== '' && strcasecmp($hero_model, $product_title) !== 0 ? $hero_model : '';
+                    $detail_text = 'text-[15px] font-normal leading-7 text-slate-600 md:text-base md:leading-[1.8]';
                     ?>
-                    <div class="grid gap-8 p-6 md:p-8 <?php echo $detail_split ? ($detail_video_column ? 'lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-12' : 'lg:grid-cols-12 lg:gap-12') : ''; ?>">
-                        <div class="min-w-0 <?php echo $detail_split ? ($detail_video_column ? 'lg:sticky lg:top-[calc(var(--boblift-header-h)+6rem)] lg:self-start' : 'lg:col-span-5') : ''; ?>">
-                            <p class="boblift-kicker"><?php echo esc_html($ui['detailBodyLabel'] ?? 'Product details'); ?></p>
-                            <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($hero_model !== '' ? $hero_model : $product_title); ?></h2>
-                            <?php if ($product_videos) :
-                                $first_video = $product_videos[0];
-                                $video_attrs = static fn(array $video): string => sprintf(
-                                    'data-video-player="%s" data-video-src="%s" data-video-youtube="%s" data-video-title="%s" data-video-poster="%s"',
-                                    esc_attr($video['player']),
-                                    esc_url($video['src']),
-                                    esc_attr($video['youtube']),
-                                    esc_attr((string) $video['label']),
-                                    esc_url(boblift_asset($video['poster']))
-                                );
-                            ?>
-                                <?php // Films play in place; a list below switches between them. Old shared links to #video land here. ?>
-                                <div id="video" class="mt-6 scroll-mt-24 <?php echo $detail_split ? '' : 'max-w-[720px]'; ?>" data-inline-videos>
-                                    <div class="relative aspect-video overflow-hidden rounded-sm bg-[#071f42]" data-inline-video-stage>
-                                        <button class="group absolute inset-0 block w-full focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-200" type="button" data-inline-video-play <?php echo $video_attrs($first_video); ?> aria-label="<?php echo esc_attr((string) $first_video['label']); ?>">
-                                            <img class="absolute inset-0 h-full w-full object-cover" src="<?php echo esc_url(boblift_asset($first_video['poster'])); ?>" alt="" loading="lazy" decoding="async" data-inline-video-poster>
-                                            <span class="absolute inset-0 m-auto grid size-14 place-items-center rounded-sm bg-white/90 text-[#071f42] shadow-card transition group-hover:bg-white"><?php echo boblift_icon('play', 'h-6 w-6'); ?></span>
-                                        </button>
-                                    </div>
-                                    <p class="mt-3 text-sm font-black leading-5 text-[#071f42]" data-inline-video-caption><?php echo esc_html((string) $first_video['label']); ?></p>
-                                    <?php if (count($product_videos) > 1) : ?>
-                                        <ul class="mt-4 grid grid-cols-3 gap-3">
-                                            <?php foreach ($product_videos as $index => $video) : ?>
-                                                <li class="min-w-0">
-                                                    <button class="group block w-full text-start focus-visible:outline-none" type="button" data-inline-video-item <?php echo $video_attrs($video); ?> aria-pressed="<?php echo $index === 0 ? 'true' : 'false'; ?>">
-                                                        <span class="relative block aspect-video overflow-hidden rounded-sm bg-[#071f42] ring-2 ring-transparent transition group-hover:ring-blue-300 group-focus-visible:ring-blue-400 group-aria-pressed:ring-[#0B3F7D]">
-                                                            <img class="absolute inset-0 h-full w-full object-cover" src="<?php echo esc_url(boblift_asset($video['poster'])); ?>" alt="" loading="lazy" decoding="async">
-                                                            <span class="absolute inset-0 m-auto grid size-7 place-items-center rounded-sm bg-white/90 text-[#071f42]"><?php echo boblift_icon('play', 'h-3.5 w-3.5'); ?></span>
-                                                        </span>
-                                                        <span class="mt-1.5 line-clamp-2 text-xs font-bold leading-4 text-slate-600 group-aria-pressed:text-[#071f42]"><?php echo esc_html((string) $video['label']); ?></span>
-                                                    </button>
-                                                </li>
-                                            <?php endforeach; ?>
-                                        </ul>
-                                    <?php endif; ?>
-                                    <p class="mt-4 text-xs font-normal leading-5 text-slate-500"><?php echo esc_html($video_ui['productVideoNote'] ?? ''); ?></p>
-                                    <a class="mt-3 inline-flex items-center gap-1.5 text-sm font-black text-blue-700 hover:text-blue-900" href="<?php echo esc_url(boblift_url('/videos.html')); ?>"><?php echo esc_html($video_ui['moreVideosLabel'] ?? 'More videos'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
-                                </div>
-                            <?php elseif ($detail_video_column) : ?>
-                                <div class="mt-6" data-product-video-placeholder>
-                                    <div class="relative grid aspect-video place-items-center overflow-hidden rounded-sm border border-[#D5DEE9] bg-[linear-gradient(180deg,#F5F8FC_0%,#E9EFF6_100%)]">
-                                        <div class="grid justify-items-center gap-3 px-6 text-center">
-                                            <span class="grid size-14 place-items-center rounded-sm border border-[#D5DEE9] bg-white text-[#0B3F7D]"><?php echo boblift_icon('play', 'h-6 w-6'); ?></span>
-                                            <p class="text-sm font-black text-[#071f42]"><?php echo esc_html(boblift_localized_static_text('Product video coming soon')); ?></p>
-                                        </div>
-                                    </div>
-                                    <a class="mt-4 inline-flex items-center gap-1.5 text-sm font-black text-blue-700 hover:text-blue-900" href="<?php echo esc_url(boblift_url('/videos.html')); ?>"><?php echo esc_html($video_ui['moreVideosLabel'] ?? 'More videos'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
-                                </div>
-                            <?php elseif ($detail_body_lead !== '') : ?>
-                                <div class="boblift-story-prose boblift-product-body boblift-product-lead mt-5 max-w-[900px]"><?php echo wp_kses_post($detail_body_lead); ?></div>
+                    <div class="grid gap-8 p-5 sm:p-6 md:p-8 <?php echo $detail_has_right ? 'lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-12' : ''; ?>">
+                        <div class="min-w-0 <?php echo $detail_has_right ? 'lg:sticky lg:top-[calc(var(--boblift-header-h)+6rem)] lg:self-start' : ''; ?>">
+                            <p class="boblift-kicker"><?php echo esc_html($ui['detailBodyLabel'] ?? 'Product details'); ?><?php if ($detail_model_label !== '') : ?><span class="text-slate-400"> · </span><?php echo esc_html($detail_model_label); ?><?php endif; ?></p>
+                            <h2 class="mt-3 text-[clamp(1.5rem,2.2vw,2.25rem)] font-black leading-[1.12] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($product_title); ?></h2>
+                            <?php if ($product_guide['intro'] !== '') : ?>
+                                <p class="mt-4 text-base font-normal leading-7 text-slate-700 md:text-lg md:leading-8 [&_strong]:font-black [&_strong]:text-[#071f42]"><?php echo wp_kses_post($product_guide['intro']); ?></p>
                             <?php endif; ?>
+                            <?php if ($detail_summary !== '') : ?>
+                                <p class="mt-4 text-base font-normal leading-7 text-slate-700 md:text-lg md:leading-8"><?php echo esc_html($detail_summary); ?></p>
+                            <?php endif; ?>
+                        <?php if ($product_guide['cards']) : ?>
+                            <ul class="mt-6 grid grid-cols-3 gap-2 sm:gap-3">
+                                <?php foreach ($product_guide['cards'] as $card) : ?>
+                                    <li class="min-w-0 rounded border border-[#DDE7F2] bg-[#F8FAFC] p-3 sm:p-4">
+                                        <p class="text-[10px] font-black uppercase leading-4 tracking-[0.1em] text-slate-500 sm:text-[11px] sm:tracking-[0.12em]"><?php echo esc_html($card['label']); ?></p>
+                                        <p class="mt-2 text-xl font-black leading-none sm:text-2xl text-[#071f42] [font-variant-numeric:tabular-nums]"><?php echo esc_html($card['value']); ?></p>
+                                        <?php if ($card['text'] !== '') : ?><p class="mt-1.5 text-xs font-normal leading-4 text-slate-600 sm:mt-2 sm:text-sm sm:leading-5"><?php echo esc_html($card['text']); ?></p><?php endif; ?>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        <?php endif; ?>
+                        <?php if ($product_videos) :
+                            $first_video = $product_videos[0];
+                            $video_attrs = static fn(array $video): string => sprintf(
+                                'data-video-player="%s" data-video-src="%s" data-video-youtube="%s" data-video-title="%s" data-video-poster="%s"',
+                                esc_attr($video['player']),
+                                esc_url($video['src']),
+                                esc_attr($video['youtube']),
+                                esc_attr((string) $video['label']),
+                                esc_url(boblift_asset($video['poster']))
+                            );
+                        ?>
+                            <?php // Films play in place; a list below switches between them. Old shared links to #video land here. ?>
+                            <div id="video" class="mt-6 scroll-mt-24" data-inline-videos>
+                                <div class="relative aspect-video overflow-hidden rounded-sm bg-[#071f42]" data-inline-video-stage>
+                                    <button class="group absolute inset-0 block w-full focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-200" type="button" data-inline-video-play <?php echo $video_attrs($first_video); ?> aria-label="<?php echo esc_attr((string) $first_video['label']); ?>">
+                                        <img class="absolute inset-0 h-full w-full object-cover" src="<?php echo esc_url(boblift_asset($first_video['poster'])); ?>" alt="" loading="lazy" decoding="async" data-inline-video-poster>
+                                        <span class="absolute inset-0 m-auto grid size-14 place-items-center rounded-sm bg-white/90 text-[#071f42] shadow-card transition group-hover:bg-white"><?php echo boblift_icon('play', 'h-6 w-6'); ?></span>
+                                    </button>
+                                </div>
+                                <p class="mt-3 text-sm font-black leading-5 text-[#071f42]" data-inline-video-caption><?php echo esc_html((string) $first_video['label']); ?></p>
+                                <?php if (count($product_videos) > 1) : ?>
+                                    <ul class="mt-4 grid grid-cols-3 gap-3">
+                                        <?php foreach ($product_videos as $index => $video) : ?>
+                                            <li class="min-w-0">
+                                                <button class="group block w-full text-start focus-visible:outline-none" type="button" data-inline-video-item <?php echo $video_attrs($video); ?> aria-pressed="<?php echo $index === 0 ? 'true' : 'false'; ?>">
+                                                    <span class="relative block aspect-video overflow-hidden rounded-sm bg-[#071f42] ring-2 ring-transparent transition group-hover:ring-blue-300 group-focus-visible:ring-blue-400 group-aria-pressed:ring-[#0B3F7D]">
+                                                        <img class="absolute inset-0 h-full w-full object-cover" src="<?php echo esc_url(boblift_asset($video['poster'])); ?>" alt="" loading="lazy" decoding="async">
+                                                        <span class="absolute inset-0 m-auto grid size-7 place-items-center rounded-sm bg-white/90 text-[#071f42]"><?php echo boblift_icon('play', 'h-3.5 w-3.5'); ?></span>
+                                                    </span>
+                                                    <span class="mt-1.5 line-clamp-2 text-xs font-bold leading-4 text-slate-600 group-aria-pressed:text-[#071f42]"><?php echo esc_html((string) $video['label']); ?></span>
+                                                </button>
+                                            </li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                <?php endif; ?>
+                                <p class="mt-4 text-xs font-normal leading-5 text-slate-500"><?php echo esc_html($video_ui['productVideoNote'] ?? ''); ?></p>
+                                <a class="mt-3 inline-flex items-center gap-1.5 text-sm font-black text-blue-700 hover:text-blue-900" href="<?php echo esc_url(boblift_url('/videos.html')); ?>"><?php echo esc_html($video_ui['moreVideosLabel'] ?? 'More videos'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
+                            </div>
+                        <?php endif; ?>
                         </div>
-                        <?php if ($detail_video_column && ($detail_body_html !== '' || $has_overview_copy)) : ?>
+                        <?php if ($detail_has_right) : ?>
                             <div class="min-w-0">
-                                <?php if ($product_summary !== '') : ?>
-                                    <p class="text-base font-normal leading-7 text-slate-700 md:text-lg md:leading-8"><?php echo esc_html($product_summary); ?></p>
-                                <?php endif; ?>
-                                <?php if ($has_product_guide) : ?>
-                                    <?php // The generated range guide (inc/product-guide.php) comes first; the editor's body follows it. ?>
-                                    <div class="boblift-product-guide <?php echo $product_summary !== '' ? 'mt-6' : ''; ?>">
-                                        <?php if ($product_guide['intro'] !== '') : ?>
-                                            <p class="text-base font-normal leading-7 text-slate-700 md:text-lg md:leading-8 [&_strong]:font-black [&_strong]:text-[#071f42]"><?php echo wp_kses_post($product_guide['intro']); ?></p>
-                                        <?php endif; ?>
-                                        <?php if ($product_guide['cards']) : ?>
-                                            <ul class="mt-6 grid gap-3 sm:grid-cols-3">
-                                                <?php foreach ($product_guide['cards'] as $card) : ?>
-                                                    <li class="min-w-0 rounded border border-[#DDE7F2] bg-[#F8FAFC] p-4">
-                                                        <p class="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500"><?php echo esc_html($card['label']); ?></p>
-                                                        <p class="mt-2 text-2xl font-black leading-none text-[#071f42] [font-variant-numeric:tabular-nums]"><?php echo esc_html($card['value']); ?></p>
-                                                        <?php if ($card['text'] !== '') : ?><p class="mt-2 text-sm font-normal leading-5 text-slate-600"><?php echo esc_html($card['text']); ?></p><?php endif; ?>
-                                                    </li>
-                                                <?php endforeach; ?>
-                                            </ul>
-                                        <?php endif; ?>
-                                        <?php if ($product_guide['compare']) : ?>
-                                            <h3 class="mt-8 text-lg font-black leading-snug text-[#071f42]"><?php echo esc_html($product_guide['compare_title']); ?></h3>
-                                            <div class="mt-3 overflow-x-auto">
-                                                <table class="w-full min-w-[420px] border-collapse text-start text-sm">
-                                                    <thead>
-                                                        <tr class="border-b border-[#D5DEE9] text-[11px] font-black uppercase tracking-[0.1em] text-slate-500">
-                                                            <th class="py-2 pe-4 text-start font-black" scope="col"><?php echo esc_html($ui['specLabels']['model'] ?? 'Model'); ?></th>
-                                                            <th class="py-2 pe-4 text-start font-black" scope="col"><?php echo esc_html(boblift_localized_static_text('Boom sections')); ?></th>
-                                                            <th class="py-2 pe-4 text-start font-black" scope="col"><?php echo esc_html(boblift_localized_static_text('Max lifting moment')); ?></th>
-                                                            <th class="py-2 text-start font-black" scope="col"><?php echo esc_html(boblift_localized_static_text('Self weight')); ?></th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody class="[font-variant-numeric:tabular-nums]">
-                                                        <?php foreach ($product_guide['compare'] as $row) : ?>
-                                                            <tr class="border-b border-[#E6EDF5] <?php echo $row['current'] ? 'bg-[#F5F8FC]' : ''; ?>">
-                                                                <th class="py-2.5 pe-4 text-start font-black text-[#071f42]" scope="row"><?php if ($row['current']) : ?><?php echo esc_html($row['model']); ?> <span class="ms-1 text-[11px] font-black uppercase tracking-[0.1em] text-slate-500"><?php echo esc_html(boblift_localized_static_text('This model')); ?></span><?php else : ?><a class="text-blue-700 underline-offset-4 hover:underline" href="<?php echo esc_url($row['url']); ?>"><?php echo esc_html($row['model']); ?></a><?php endif; ?></th>
-                                                                <td class="py-2.5 pe-4 text-slate-700"><?php echo esc_html($row['sections_label'] !== '' ? $row['sections_label'] : '–'); ?></td>
-                                                                <td class="py-2.5 pe-4 text-slate-700"><?php echo esc_html($row['moment'] !== '' ? $row['moment'] : '–'); ?></td>
-                                                                <td class="py-2.5 text-slate-700"><?php echo esc_html($row['weight'] !== '' ? $row['weight'] : '–'); ?></td>
-                                                            </tr>
-                                                        <?php endforeach; ?>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        <?php endif; ?>
-                                        <?php if ($product_guide['steps'] !== '' || $product_guide['supply'] !== '') : ?>
-                                            <h3 class="mt-8 text-lg font-black leading-snug text-[#071f42]"><?php echo esc_html(boblift_localized_static_text('Choosing the right model')); ?></h3>
-                                            <?php foreach (array_filter([$product_guide['steps'], $product_guide['supply']]) as $guide_paragraph) : ?>
-                                                <p class="mt-3 text-sm font-normal leading-7 text-slate-600 md:text-base [&_a]:font-black [&_a]:text-blue-700 [&_a:hover]:underline"><?php echo wp_kses_post($guide_paragraph); ?></p>
-                                            <?php endforeach; ?>
-                                        <?php endif; ?>
-                                    </div>
-                                <?php endif; ?>
                                 <?php if ($detail_body_lead !== '') : ?>
-                                    <div class="boblift-story-prose boblift-product-body boblift-product-lead <?php echo $has_product_guide ? 'mt-8 border-t border-[#E6EDF5] pt-8' : ''; ?>"><?php echo wp_kses_post($detail_body_lead); ?></div>
+                                    <div class="boblift-story-prose boblift-product-body boblift-product-lead"><?php echo wp_kses_post($detail_body_lead); ?></div>
                                 <?php endif; ?>
                                 <?php if ($detail_has_sections) : ?>
-                                    <div class="boblift-story-prose boblift-product-body boblift-product-sections <?php echo $detail_body_lead !== '' ? 'mt-7' : ($has_product_guide ? 'mt-8 border-t border-[#E6EDF5] pt-8' : ''); ?>"><?php echo wp_kses_post($detail_body_sections); ?></div>
+                                    <div class="boblift-story-prose boblift-product-body boblift-product-sections <?php echo $detail_body_lead !== '' ? 'mt-6' : ''; ?>"><?php echo wp_kses_post($detail_body_sections); ?></div>
+                                <?php endif; ?>
+                                <?php if ($product_guide['compare']) : ?>
+                                    <h3 class="<?php echo $detail_has_body ? 'mt-8' : ''; ?> text-lg font-black leading-snug text-[#071f42]"><?php echo esc_html($product_guide['compare_title']); ?></h3>
+                                    <div class="mt-3 overflow-x-auto">
+                                        <table class="w-full min-w-[420px] border-collapse text-start text-sm">
+                                            <thead>
+                                                <tr class="border-b border-[#D5DEE9] text-[11px] font-black uppercase tracking-[0.1em] text-slate-500">
+                                                    <th class="py-2 pe-4 text-start font-black" scope="col"><?php echo esc_html($ui['specLabels']['model'] ?? 'Model'); ?></th>
+                                                    <th class="py-2 pe-4 text-start font-black" scope="col"><?php echo esc_html(boblift_localized_static_text('Boom sections')); ?></th>
+                                                    <th class="py-2 pe-4 text-start font-black" scope="col"><?php echo esc_html(boblift_localized_static_text('Max lifting moment')); ?></th>
+                                                    <th class="py-2 text-start font-black" scope="col"><?php echo esc_html(boblift_localized_static_text('Self weight')); ?></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="[font-variant-numeric:tabular-nums]">
+                                                <?php foreach ($product_guide['compare'] as $row) : ?>
+                                                    <tr class="border-b border-[#E6EDF5] <?php echo $row['current'] ? 'bg-[#F5F8FC]' : ''; ?>">
+                                                        <th class="py-2.5 pe-4 text-start font-black text-[#071f42]" scope="row"><?php if ($row['current']) : ?><?php echo esc_html($row['model']); ?> <span class="ms-1 text-[11px] font-black uppercase tracking-[0.1em] text-slate-500"><?php echo esc_html(boblift_localized_static_text('This model')); ?></span><?php else : ?><a class="text-blue-700 underline-offset-4 hover:underline" href="<?php echo esc_url($row['url']); ?>"><?php echo esc_html($row['model']); ?></a><?php endif; ?></th>
+                                                        <td class="py-2.5 pe-4 text-slate-700"><?php echo esc_html($row['sections_label'] !== '' ? $row['sections_label'] : '–'); ?></td>
+                                                        <td class="py-2.5 pe-4 text-slate-700"><?php echo esc_html($row['moment'] !== '' ? $row['moment'] : '–'); ?></td>
+                                                        <td class="py-2.5 text-slate-700"><?php echo esc_html($row['weight'] !== '' ? $row['weight'] : '–'); ?></td>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                <?php endif; ?>
+                                <?php if ($product_guide['steps'] !== '' || $product_guide['supply'] !== '') : ?>
+                                    <?php // The next-model note closes the copy, set apart so its links read as a pointer, not body text. ?>
+                                    <div class="<?php echo $detail_has_body || $product_guide['compare'] ? 'mt-8' : ''; ?> rounded border border-[#DDE7F2] bg-[#F8FAFC] p-5">
+                                        <h3 class="text-base font-black leading-snug text-[#071f42]"><?php echo esc_html(boblift_localized_static_text('Choosing the right model')); ?></h3>
+                                        <?php foreach (array_filter([$product_guide['steps'], $product_guide['supply']]) as $guide_paragraph) : ?>
+                                            <p class="mt-2 <?php echo esc_attr($detail_text); ?> [&_a]:font-black [&_a]:text-blue-700 [&_a:hover]:underline"><?php echo wp_kses_post($guide_paragraph); ?></p>
+                                        <?php endforeach; ?>
+                                    </div>
                                 <?php endif; ?>
                             </div>
-                        <?php elseif ($detail_has_sections) : ?>
-                            <div class="boblift-story-prose boblift-product-body boblift-product-sections <?php echo $detail_split ? 'lg:col-span-7' : ''; ?>"><?php echo wp_kses_post($detail_body_sections); ?></div>
                         <?php endif; ?>
                     </div>
                 </article>
