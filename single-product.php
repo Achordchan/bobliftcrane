@@ -487,7 +487,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                 <div class="min-w-0 <?php echo $drawings ? '' : 'border-t border-[#E6EDF5]'; ?>">
                     <?php
                     // Phones list the specs as label-and-value rows; wider screens keep the tiles, and the last tile of a group
-                    // stretches over any columns left empty in its row, so an odd count leaves no blank cell.
+                    // stretches over any columns left empty in its row, so an odd count leaves no blank cell. A phone value takes at most 60% of the row and wraps there.
                     $spec_lg_cols = $drawings ? 2 : 4;
                     $spec_fill_classes = [
                         'sm' => [2 => 'sm:col-span-2', 3 => 'sm:col-span-3'],
@@ -515,7 +515,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                             ?>
                                 <div class="flex min-w-0 gap-x-4 border-b border-[#E6EDF5] px-6 py-3.5 sm:flex-col sm:items-stretch sm:justify-start sm:gap-x-0 sm:border-e sm:py-5 md:px-8 <?php echo $spec_wide ? 'flex-col' : 'items-baseline justify-between'; ?> <?php echo esc_attr(trim(implode(' ', $spec_span_classes))); ?> <?php echo $spec_is_model ? 'bg-[#F5F8FC]' : ''; ?>">
                                     <dt class="min-w-0 text-sm font-normal leading-5 text-slate-500 sm:text-xs"><?php echo esc_html($spec['label']); ?></dt>
-                                    <dd class="break-words font-black leading-tight text-[#071f42] [font-variant-numeric:tabular-nums] sm:mt-auto sm:pt-1.5 sm:text-start <?php echo $spec_wide ? 'pt-1' : 'shrink-0 text-end'; ?>"><span class="<?php echo ($spec_unit !== '' || mb_strlen($spec_number) <= 12) ? 'text-base sm:text-lg md:text-xl' : 'text-sm md:text-base'; ?>"><?php echo esc_html($spec_number); ?></span><?php if ($spec_unit !== '') : ?><span class="<?php echo $spec_unit === '°' ? '' : 'ms-1'; ?> text-xs font-bold text-slate-500 md:text-sm"><?php echo esc_html($spec_unit); ?></span><?php endif; ?></dd>
+                                    <dd class="break-words font-black leading-tight text-[#071f42] [font-variant-numeric:tabular-nums] sm:mt-auto sm:pt-1.5 sm:text-start <?php echo $spec_wide ? 'pt-1' : 'max-w-[60%] shrink-0 text-end sm:max-w-none'; ?>"><span class="<?php echo ($spec_unit !== '' || mb_strlen($spec_number) <= 12) ? 'text-base sm:text-lg md:text-xl' : 'text-sm md:text-base'; ?>"><?php echo esc_html($spec_number); ?></span><?php if ($spec_unit !== '') : ?><span class="<?php echo $spec_unit === '°' ? '' : 'ms-1'; ?> text-xs font-bold text-slate-500 md:text-sm"><?php echo esc_html($spec_unit); ?></span><?php endif; ?></dd>
                                 </div>
                             <?php endforeach; ?>
                         </dl>
