@@ -131,6 +131,11 @@ function boblift_restore_legacy_product_intros(): void
         if (!metadata_exists('post', $post->ID, '_detail_body_ready')) {
             add_post_meta($post->ID, '_detail_body_ready', boblift_product_content_ready($post->ID, '_detail_body_ready') ? '1' : '', true);
         }
+        // The body is only changed once the flag is in the table (pinned now or by an editor); otherwise retry later.
+        if (!$wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->postmeta} WHERE post_id = %d AND meta_key = %s", $post->ID, '_detail_body_ready'))) {
+            $failed++;
+            continue;
+        }
         // The earlier body is kept as a revision, so a product can be rolled back from the editor. Revisions are saved
         // through wp_insert_post(), so KSES is off around them too.
         $kses_was_on = has_filter('content_save_pre', 'wp_filter_post_kses') !== false;
