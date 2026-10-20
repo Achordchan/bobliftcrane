@@ -920,12 +920,20 @@
     marqueeSections.forEach((section) => {
       const tracks = qsa('[data-marquee-track]', section);
       let marqueeTween = null;
+      // Phones swipe the certificates by hand (CSS turns the row into a scroller), so the loop runs from 768px up only.
       if (gsap && tracks.length >= 2 && !reduceMotion) {
-        marqueeTween = gsap.to(tracks, {
-          xPercent: -100,
-          repeat: -1,
-          duration: 25,
-          ease: 'none'
+        gsap.matchMedia().add('(min-width: 768px)', () => {
+          marqueeTween = gsap.to(tracks, {
+            xPercent: -100,
+            repeat: -1,
+            duration: 25,
+            ease: 'none'
+          });
+          return () => {
+            marqueeTween?.kill();
+            marqueeTween = null;
+            gsap.set(tracks, { clearProps: 'transform' });
+          };
         });
         section.addEventListener('mouseenter', () => marqueeTween?.pause());
         section.addEventListener('mouseleave', () => marqueeTween?.resume());

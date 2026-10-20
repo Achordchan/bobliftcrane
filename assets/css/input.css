@@ -645,6 +645,65 @@ img { max-width: 100%; }
   }
 }
 
+/* Up to 900px the gallery is not pinned (theme.js only pins it on wide screens), so the row swipes natively:
+   without this the cards past the first sat outside the screen with no way to reach them. */
+@media (max-width: 900px) {
+  .about-gallery-pin {
+    height: auto;
+    min-height: 0;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 16px;
+    scrollbar-width: none;
+  }
+  .about-gallery-pin::-webkit-scrollbar { display: none; }
+  .about-gallery-track {
+    gap: 12px;
+    padding-inline: 16px;
+    padding-block: 4px 12px;
+  }
+  .about-gallery-item { scroll-snap-align: start; }
+}
+@media (max-width: 767px) {
+  .about-gallery-item {
+    width: 82vw;
+    height: clamp(300px, 92vw, 400px);
+  }
+  /* Phones: the certificates swipe by hand instead of drifting past half cut off; the looping copy is not needed. */
+  .about-certification-row {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 16px;
+    scrollbar-width: none;
+  }
+  .about-certification-row::-webkit-scrollbar { display: none; }
+  .about-certification-row [data-marquee-track] {
+    gap: 12px;
+    padding-inline: 0;
+  }
+  .about-certification-row [data-marquee-track][aria-hidden="true"] { display: none; }
+  .about-certification-row .about-certification-card {
+    width: 62vw;
+    max-width: 240px;
+    scroll-snap-align: start;
+  }
+  /* The company profile reads left-aligned on a phone, on the same edge as the figures below it. */
+  .about-manufacturing-copy,
+  .about-manufacturing-copy .section-label {
+    text-align: start;
+  }
+  .about-logo-scroll-section .about-logo-pin,
+  .about-logo-scroll-section .about-logo-shell {
+    min-height: 60svh;
+  }
+  .about-logo-scroll-section .about-crane-scene { opacity: .55; }
+  /* The figures sit two to a row and only need their content's height; the gaps around the timeline tighten to phone scale. */
+  .about-stat-card { min-height: 0; }
+  .about-manufacturing-section { padding-bottom: 48px; }
+  .about-timeline-section { padding-top: 48px; }
+  .about-timeline-header { margin-bottom: 32px; }
+}
+
 
 
 @supports not ((-webkit-background-clip: text) or (background-clip: text)) {
