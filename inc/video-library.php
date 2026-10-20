@@ -82,6 +82,9 @@ function boblift_video_library(): array
         array_replace($clip('truck-telescopic-sq5sa4', 'truck', 'SQ5SA4 telescopic boom crane in operation', $any, 0), ['shows' => ['truck', 'telescopic-boom', 5.0]]),
         array_replace($clip('grab-sq8za4', 'truck', 'SQ8ZA4 knuckle boom crane with grab', $any, 0), ['shows' => ['truck', 'knuckle-boom', 8.0]]),
         array_replace($clip('grab-sq5za4', 'truck', 'SQ5ZA4 knuckle boom crane with grab', $any, 0), ['shows' => ['truck', 'knuckle-boom', 5.0]]),
+        array_replace($clip('truck-knuckle-sq5za4', 'truck', 'SQ5ZA4 knuckle boom crane with clamshell bucket, load test', $any, 0), ['shows' => ['truck', 'knuckle-boom', 5.0]]),
+        array_replace($clip('truck-knuckle-sq6.3za3', 'truck', 'SQ6.3ZA3 knuckle boom crane walk-around', $any, 0), ['shows' => ['truck', 'knuckle-boom', 6.3]]),
+        array_replace($clip('truck-knuckle-sqz350', 'truck', 'SQZ350 knuckle boom crane walk-around', $any, 0), ['shows' => ['truck', 'knuckle-boom', 16.0]]),
         array_replace($clip('marine-knuckle-16-display', 'marine', '16 t knuckle boom marine crane on display', $any, 0), ['shows' => ['marine', 'knuckle-boom', 16.0]]),
         // Models without a product page: Video Center only.
         $clip('truck-knuckle-blz90k5', 'truck', 'BLZ90K5 knuckle boom crane, presented in our factory', $both, 0),
