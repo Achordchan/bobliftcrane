@@ -38,16 +38,36 @@ function boblift_insert_legacy_product_intro(string $content, array $intro): ?st
     if ($heading === '' || stripos(html_entity_decode(wp_strip_all_tags($content), ENT_QUOTES), $heading) !== false) {
         return null;
     }
-    $section = boblift_legacy_product_intro_html($intro, has_blocks($content));
-    if (preg_match('/(?:<!-- wp:heading\b[^>]*-->\s*)?<h3\b/i', $content, $match, PREG_OFFSET_CAPTURE)) {
-        return substr($content, 0, $match[0][1]) . $section . substr($content, $match[0][1]);
+    if (!has_blocks($content)) {
+        $section = boblift_legacy_product_intro_html($intro, false);
+        if (preg_match('/<h3\b/i', $content, $match, PREG_OFFSET_CAPTURE)) {
+            return substr($content, 0, $match[0][1]) . $section . substr($content, $match[0][1]);
+        }
+        return rtrim($content) . "\n\n" . $section;
     }
-    return rtrim($content) . "\n\n" . $section;
+    // A block body is split at top-level blocks only, so an h3 inside a Custom HTML or Group block never cuts that block in
+    // two. Each block is written back with serialize_block(), which keeps its saved markup.
+    $section = boblift_legacy_product_intro_html($intro, true);
+    $before = '';
+    $after = '';
+    $placed = false;
+    foreach (parse_blocks($content) as $block) {
+        $is_h3 = ($block['blockName'] ?? '') === 'core/heading' && (int) ($block['attrs']['level'] ?? 2) === 3;
+        if (!$placed && $is_h3) {
+            $placed = true;
+        }
+        if ($placed) {
+            $after .= serialize_block($block);
+        } else {
+            $before .= serialize_block($block);
+        }
+    }
+    return rtrim($before) . "\n\n" . $section . ltrim($after);
 }
 
 function boblift_restore_legacy_product_intros(): void
 {
-    if (get_option('boblift_legacy_product_intros_v1') !== false || !post_type_exists('product')) {
+    if (get_option('boblift_legacy_product_intros_v1') !== false || !post_type_exists('product') || get_transient('boblift_legacy_product_intros_wait')) {
         return;
     }
     // Same single-runner lock as boblift_retire_old_marine_crane_models(): add_option() lets one request in, and a lock
@@ -80,6 +100,7 @@ function boblift_restore_legacy_product_intros(): void
     ]) : [];
 
     $updated = 0;
+    $found = [];
     // An anonymous request runs with the save-time KSES filters on, which would strip editor-authored markup (iframes and
     // the like) from the whole body. They are off for this loop only; the inserted copy is escaped already.
     $kses_was_on = has_filter('content_save_pre', 'wp_filter_post_kses') !== false;
@@ -89,6 +110,7 @@ function boblift_restore_legacy_product_intros(): void
         if (function_exists('pll_get_post_language') && (string) pll_get_post_language($post->ID) !== 'en') {
             continue;
         }
+        $found[$post->post_name] = true;
         $content = boblift_insert_legacy_product_intro((string) $post->post_content, $intros[$post->post_name]);
         if ($content === null) {
             continue;
@@ -104,9 +126,13 @@ function boblift_restore_legacy_product_intros(): void
     if ($kses_was_on) {
         kses_init_filters();
     }
-    // Only a clean run is recorded; after a failure the next request tries again (finished products are skipped).
-    if ($failed === 0) {
+    // Only a clean run that reached every listed product is recorded. After a failure the next request tries again; while
+    // some products are missing (not imported yet, or in the trash) it checks again hourly. Finished products are skipped.
+    $missing = $intros ? count(array_diff_key($intros, $found)) : 0;
+    if ($failed === 0 && $missing === 0) {
         update_option('boblift_legacy_product_intros_v1', $updated, false);
+    } elseif ($failed === 0) {
+        set_transient('boblift_legacy_product_intros_wait', $missing, HOUR_IN_SECONDS);
     }
     $wpdb->delete($wpdb->options, ['option_name' => $lock, 'option_value' => $token]);
     wp_cache_delete($lock, 'options');
