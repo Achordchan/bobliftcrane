@@ -129,7 +129,21 @@ function boblift_restore_legacy_product_intros(): void
         // an unreviewed one (and its translations, which follow it). The current answer is pinned first.
         // add_post_meta() with $unique checks the table itself, so a choice an editor saved meanwhile is never overwritten.
         if (!metadata_exists('post', $post->ID, '_detail_body_ready')) {
-            add_post_meta($post->ID, '_detail_body_ready', boblift_product_content_ready($post->ID, '_detail_body_ready') ? '1' : '', true);
+            // Worked out from the body just read: the post cache is dropped so the check sees that body, not this request's
+            // copy. If the body changed while the answer was worked out, the pinned flag is taken back and the product waits.
+            clean_post_cache($post->ID);
+            wp_cache_delete($post->ID, 'post_meta');
+            $snapshot = get_post($post->ID);
+            $ready = boblift_product_content_ready($post->ID, '_detail_body_ready') ? '1' : '';
+            $pinned = add_post_meta($post->ID, '_detail_body_ready', $ready, true);
+            $now = $wpdb->get_var($wpdb->prepare("SELECT post_content FROM {$wpdb->posts} WHERE ID = %d AND BINARY post_content = %s", $post->ID, $current));
+            if (!$snapshot instanceof WP_Post || $snapshot->post_content !== $current || $now === null) {
+                if ($pinned) {
+                    delete_metadata_by_mid('post', $pinned);
+                }
+                $failed++;
+                continue;
+            }
         }
         // The body is only changed once the flag is in the table (pinned now or by an editor); otherwise retry later.
         if (!$wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->postmeta} WHERE post_id = %d AND meta_key = %s", $post->ID, '_detail_body_ready'))) {
