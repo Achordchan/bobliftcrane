@@ -65,20 +65,6 @@ function boblift_insert_legacy_product_intro(string $content, array $intro): ?st
     return rtrim($before) . "\n\n" . $section . ltrim($after);
 }
 
-/**
- * Takes back the readiness flag the restore pinned: only that row, and only while it still holds the pinned value, so a
- * choice an editor saved over it stands.
- */
-function boblift_unpin_legacy_intro_readiness(int $post_id, $meta_id, string $value): void
-{
-    global $wpdb;
-    if (!$meta_id) {
-        return;
-    }
-    $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->postmeta} WHERE meta_id = %d AND BINARY meta_value = %s", (int) $meta_id, $value));
-    wp_cache_delete($post_id, 'post_meta');
-}
-
 function boblift_restore_legacy_product_intros(): void
 {
     if (get_option('boblift_legacy_product_intros_v1') !== false || !post_type_exists('product') || get_transient('boblift_legacy_product_intros_wait')) {
@@ -114,6 +100,7 @@ function boblift_restore_legacy_product_intros(): void
     ]) : [];
 
     $updated = 0;
+    $hidden = 0;
     $found = [];
     // The body is written straight to the posts table with a compare-and-swap, not through wp_update_post(): an anonymous
     // request would run the save-time KSES filters over the whole body (stripping editor markup such as iframes) and clear
@@ -139,29 +126,20 @@ function boblift_restore_legacy_product_intros(): void
             update_post_meta($post->ID, '_boblift_legacy_intro_v1', '1');
             continue;
         }
-        // Whether the body shows depends on it differing from the _legacy_content backup, so a changed body would switch on
-        // an unreviewed one (and its translations, which follow it). The current answer is pinned first.
-        // add_post_meta() with $unique checks the table itself, so a choice an editor saved meanwhile is never overwritten.
-        $pinned = false;
-        $ready = '';
-        if (!metadata_exists('post', $post->ID, '_detail_body_ready')) {
-            // Worked out from the body just read: the post cache is dropped so the check sees that body, not this request's
-            // copy. If the body changed while the answer was worked out, the pinned flag is taken back and the product waits.
-            clean_post_cache($post->ID);
-            wp_cache_delete($post->ID, 'post_meta');
-            $snapshot = get_post($post->ID);
-            $ready = boblift_product_content_ready($post->ID, '_detail_body_ready') ? '1' : '';
-            $pinned = add_post_meta($post->ID, '_detail_body_ready', $ready, true);
-            $now = $wpdb->get_var($wpdb->prepare("SELECT post_content FROM {$wpdb->posts} WHERE ID = %d AND BINARY post_content = %s", $post->ID, $current));
-            if (!$snapshot instanceof WP_Post || $snapshot->post_content !== $current || $now === null) {
-                boblift_unpin_legacy_intro_readiness($post->ID, $pinned, $ready);
-                $failed++;
-                continue;
-            }
-        }
-        // The body is only changed once the flag is in the table (pinned now or by an editor); otherwise retry later.
-        if (!$wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->postmeta} WHERE post_id = %d AND meta_key = %s", $post->ID, '_detail_body_ready'))) {
+        // Without an editor's explicit choice, a body shows only while it differs from the _legacy_content backup, so
+        // changing a hidden, unreviewed body would switch it on (and its translations, which follow it). Those products are
+        // left as they are; a body that already shows keeps showing, since the section only adds to it. The answer is worked
+        // out from the body just read (caches dropped), and the swap below only lands on that same body. Nothing here writes
+        // the readiness flag, so an editor's choice is never touched.
+        clean_post_cache($post->ID);
+        wp_cache_delete($post->ID, 'post_meta');
+        $snapshot = get_post($post->ID);
+        if (!$snapshot instanceof WP_Post || $snapshot->post_content !== $current) {
             $failed++;
+            continue;
+        }
+        if (!metadata_exists('post', $post->ID, '_detail_body_ready') && !boblift_product_content_ready($post->ID, '_detail_body_ready')) {
+            $hidden++;
             continue;
         }
         // The earlier body is kept as a revision, so a product can be rolled back from the editor. Revisions are saved
@@ -186,9 +164,7 @@ function boblift_restore_legacy_product_intros(): void
             kses_init_filters();
         }
         if ($rows !== 1) {
-            // A failed swap means the body changed under us: the flag this run pinned is taken back (only while it still holds
-            // the pinned value), so the next attempt works it out again from the new body.
-            boblift_unpin_legacy_intro_readiness($post->ID, $pinned, $ready);
+            // The body changed under us; the next attempt starts again from the new body.
             $failed++;
             continue;
         }
@@ -199,7 +175,7 @@ function boblift_restore_legacy_product_intros(): void
     // some products are missing (not imported yet, or in the trash) it checks again hourly. Finished products are skipped.
     $missing = $intros ? count(array_diff_key($intros, $found)) : 0;
     if ($failed === 0 && $missing === 0) {
-        update_option('boblift_legacy_product_intros_v1', $updated, false);
+        update_option('boblift_legacy_product_intros_v1', ['updated' => $updated, 'hidden' => $hidden], false);
     } elseif ($failed === 0) {
         set_transient('boblift_legacy_product_intros_wait', $missing, HOUR_IN_SECONDS);
     }
