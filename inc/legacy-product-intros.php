@@ -101,30 +101,39 @@ function boblift_restore_legacy_product_intros(): void
 
     $updated = 0;
     $found = [];
-    // An anonymous request runs with the save-time KSES filters on, which would strip editor-authored markup (iframes and
-    // the like) from the whole body. They are off for this loop only; the inserted copy is escaped already.
-    $kses_was_on = has_filter('content_save_pre', 'wp_filter_post_kses') !== false;
-    kses_remove_filters();
+    // The body is written straight to the posts table with a compare-and-swap on the body that was read, not through
+    // wp_update_post(): an anonymous request would run the save-time KSES filters over the whole body (stripping editor
+    // markup such as iframes) and clear the slug of a pending product. A body an editor saved in the meantime no longer
+    // matches, so it is left alone and retried on a later request.
     foreach ($posts as $post) {
         // Translations share the English slug, so the language decides which post gets the copy.
         if (function_exists('pll_get_post_language') && (string) pll_get_post_language($post->ID) !== 'en') {
             continue;
         }
         $found[$post->post_name] = true;
-        $content = boblift_insert_legacy_product_intro((string) $post->post_content, $intros[$post->post_name]);
-        if ($content === null) {
-            continue;
-        }
-        // A revision is kept, so a product can be rolled back from the editor.
-        $result = wp_update_post(wp_slash(['ID' => $post->ID, 'post_content' => $content]), true);
-        if (is_wp_error($result) || !$result) {
+        $current = $wpdb->get_var($wpdb->prepare("SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $post->ID));
+        if ($current === null) {
             $failed++;
             continue;
         }
+        $content = boblift_insert_legacy_product_intro((string) $current, $intros[$post->post_name]);
+        if ($content === null) {
+            continue;
+        }
+        // The earlier body is kept as a revision, so a product can be rolled back from the editor.
+        wp_save_post_revision($post->ID);
+        $rows = $wpdb->update(
+            $wpdb->posts,
+            ['post_content' => $content, 'post_modified' => current_time('mysql'), 'post_modified_gmt' => current_time('mysql', true)],
+            ['ID' => $post->ID, 'post_content' => $current]
+        );
+        clean_post_cache($post->ID);
+        if ($rows !== 1) {
+            $failed++;
+            continue;
+        }
+        wp_save_post_revision($post->ID);
         $updated++;
-    }
-    if ($kses_was_on) {
-        kses_init_filters();
     }
     // Only a clean run that reached every listed product is recorded. After a failure the next request tries again; while
     // some products are missing (not imported yet, or in the trash) it checks again hourly. Finished products are skipped.
