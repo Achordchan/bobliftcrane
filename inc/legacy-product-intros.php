@@ -128,6 +128,8 @@ function boblift_restore_legacy_product_intros(): void
         // Whether the body shows depends on it differing from the _legacy_content backup, so a changed body would switch on
         // an unreviewed one (and its translations, which follow it). The current answer is pinned first.
         // add_post_meta() with $unique checks the table itself, so a choice an editor saved meanwhile is never overwritten.
+        $pinned = false;
+        $ready = '';
         if (!metadata_exists('post', $post->ID, '_detail_body_ready')) {
             // Worked out from the body just read: the post cache is dropped so the check sees that body, not this request's
             // copy. If the body changed while the answer was worked out, the pinned flag is taken back and the product waits.
@@ -172,6 +174,12 @@ function boblift_restore_legacy_product_intros(): void
             kses_init_filters();
         }
         if ($rows !== 1) {
+            // A failed swap means the body changed under us: the flag this run pinned is taken back (only while it still holds
+            // the pinned value), so the next attempt works it out again from the new body.
+            if ($pinned) {
+                $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->postmeta} WHERE meta_id = %d AND BINARY meta_value = %s", $pinned, $ready));
+                wp_cache_delete($post->ID, 'post_meta');
+            }
             $failed++;
             continue;
         }
