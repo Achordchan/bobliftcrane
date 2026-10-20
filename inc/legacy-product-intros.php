@@ -65,6 +65,20 @@ function boblift_insert_legacy_product_intro(string $content, array $intro): ?st
     return rtrim($before) . "\n\n" . $section . ltrim($after);
 }
 
+/**
+ * Takes back the readiness flag the restore pinned: only that row, and only while it still holds the pinned value, so a
+ * choice an editor saved over it stands.
+ */
+function boblift_unpin_legacy_intro_readiness(int $post_id, $meta_id, string $value): void
+{
+    global $wpdb;
+    if (!$meta_id) {
+        return;
+    }
+    $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->postmeta} WHERE meta_id = %d AND BINARY meta_value = %s", (int) $meta_id, $value));
+    wp_cache_delete($post_id, 'post_meta');
+}
+
 function boblift_restore_legacy_product_intros(): void
 {
     if (get_option('boblift_legacy_product_intros_v1') !== false || !post_type_exists('product') || get_transient('boblift_legacy_product_intros_wait')) {
@@ -140,9 +154,7 @@ function boblift_restore_legacy_product_intros(): void
             $pinned = add_post_meta($post->ID, '_detail_body_ready', $ready, true);
             $now = $wpdb->get_var($wpdb->prepare("SELECT post_content FROM {$wpdb->posts} WHERE ID = %d AND BINARY post_content = %s", $post->ID, $current));
             if (!$snapshot instanceof WP_Post || $snapshot->post_content !== $current || $now === null) {
-                if ($pinned) {
-                    delete_metadata_by_mid('post', $pinned);
-                }
+                boblift_unpin_legacy_intro_readiness($post->ID, $pinned, $ready);
                 $failed++;
                 continue;
             }
@@ -176,10 +188,7 @@ function boblift_restore_legacy_product_intros(): void
         if ($rows !== 1) {
             // A failed swap means the body changed under us: the flag this run pinned is taken back (only while it still holds
             // the pinned value), so the next attempt works it out again from the new body.
-            if ($pinned) {
-                $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->postmeta} WHERE meta_id = %d AND BINARY meta_value = %s", $pinned, $ready));
-                wp_cache_delete($post->ID, 'post_meta');
-            }
+            boblift_unpin_legacy_intro_readiness($post->ID, $pinned, $ready);
             $failed++;
             continue;
         }
