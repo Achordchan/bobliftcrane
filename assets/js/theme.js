@@ -923,6 +923,9 @@
       // Phones swipe the certificates by hand (CSS turns the row into a scroller), so the loop runs from 768px up only.
       if (gsap && tracks.length >= 2 && !reduceMotion) {
         gsap.matchMedia().add('(min-width: 768px)', () => {
+          // A row swiped on a phone keeps its scroll offset after rotating; the loop must start from the first card.
+          const row = qs('[data-certification-marquee]', section);
+          if (row) row.scrollLeft = 0;
           marqueeTween = gsap.to(tracks, {
             xPercent: -100,
             repeat: -1,

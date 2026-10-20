@@ -165,8 +165,12 @@ if ($legacy_label !== '' || $legacy_headline !== '' || $legacy_paragraph !== '' 
         </div>
 
         <?php if (!empty($global_stats)) : ?>
-        <?php // Phones show the figures two to a row (a third one takes the full row), so they read as one strip instead of a stack of tall cards. ?>
-        <div class="mx-auto mt-10 grid w-full max-w-none grid-cols-2 gap-3 sm:gap-6 <?php echo count($global_stats) >= 3 ? 'md:grid-cols-3' : 'md:grid-cols-2'; ?> md:mt-14 lg:mt-20 lg:gap-8" data-about-global data-about-strength-features>
+        <?php
+        // Phones show the figures two to a row (a third one takes the full row), so they read as one strip instead of a stack of tall cards;
+        // a figure longer than four characters (100,000) would not fit half a phone, so then they stay one to a row.
+        $global_stats_narrow = array_filter(array_slice($global_stats, 0, 3), static fn(array $stat): bool => mb_strlen(trim((string) ($stat['number'] ?? '')) . (string) ($stat['suffix'] ?? '+')) > 5) === [];
+        ?>
+        <div class="mx-auto mt-10 grid w-full max-w-none <?php echo $global_stats_narrow ? 'grid-cols-2' : 'grid-cols-1'; ?> gap-3 sm:gap-6 <?php echo count($global_stats) >= 3 ? 'md:grid-cols-3' : 'md:grid-cols-2'; ?> md:mt-14 lg:mt-20 lg:gap-8" data-about-global data-about-strength-features>
             <?php foreach (array_slice($global_stats, 0, 3) as $global_stat_index => $stat) :
                 $stat_number_raw = (string) ($stat['number'] ?? '0');
                 // Whole numbers count up; anything else (2.5, 1,200) is shown exactly as saved, without the count-up.
@@ -174,7 +178,7 @@ if ($legacy_label !== '' || $legacy_headline !== '' || $legacy_paragraph !== '' 
                 $stat_animates = preg_match('/^\d+$/', $stat_display) === 1;
                 $stat_suffix = (string) ($stat['suffix'] ?? '+');
             ?>
-                <div class="about-stat-card relative overflow-hidden rounded border border-[#E5E7EB] bg-white p-5 text-start shadow-card transition hover:-translate-y-1 sm:min-h-[190px] sm:p-8 lg:p-10 xl:p-12 <?php echo count($global_stats) >= 3 && $global_stat_index === 2 ? 'col-span-2 md:col-span-1' : ''; ?>">
+                <div class="about-stat-card relative overflow-hidden rounded border border-[#E5E7EB] bg-white p-5 text-start shadow-card transition hover:-translate-y-1 sm:min-h-[190px] sm:p-8 lg:p-10 xl:p-12 <?php echo $global_stats_narrow && count($global_stats) >= 3 && $global_stat_index === 2 ? 'col-span-2 md:col-span-1' : ''; ?>">
                     <span class="pointer-events-none absolute -end-2 -top-4 select-none text-[72px] font-black italic leading-none tracking-[-0.015em] text-[#F1F5F9] sm:-end-4 sm:-top-8 sm:text-[120px] lg:-end-6 lg:-top-10 lg:text-[140px]"><?php echo esc_html(str_pad((string) ($global_stat_index + 1), 2, '0', STR_PAD_LEFT)); ?></span>
                     <div class="relative z-10">
                         <p class="flex items-baseline font-black leading-none tracking-[-0.02em] text-[#0B3F7D]">
