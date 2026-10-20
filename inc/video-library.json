@@ -337,5 +337,23 @@
   "width": 720,
   "height": 1280,
   "duration": 35
+ },
+ {
+  "key": "truck-knuckle-sq5za4",
+  "width": 1280,
+  "height": 720,
+  "duration": 25
+ },
+ {
+  "key": "truck-knuckle-sq6.3za3",
+  "width": 1280,
+  "height": 720,
+  "duration": 41
+ },
+ {
+  "key": "truck-knuckle-sqz350",
+  "width": 1280,
+  "height": 720,
+  "duration": 42
  }
 ]
