@@ -101,38 +101,58 @@ function boblift_restore_legacy_product_intros(): void
 
     $updated = 0;
     $found = [];
-    // The body is written straight to the posts table with a compare-and-swap on the body that was read, not through
-    // wp_update_post(): an anonymous request would run the save-time KSES filters over the whole body (stripping editor
-    // markup such as iframes) and clear the slug of a pending product. A body an editor saved in the meantime no longer
-    // matches, so it is left alone and retried on a later request.
+    // The body is written straight to the posts table with a compare-and-swap, not through wp_update_post(): an anonymous
+    // request would run the save-time KSES filters over the whole body (stripping editor markup such as iframes) and clear
+    // the slug of a pending product. The swap checks the body and its modified time, so an editor save in the meantime
+    // (even a case-only one, which a case-insensitive collation would let through on the body alone) is left alone and
+    // retried on a later request. Each product is marked once handled, so a retry never re-adds a section an editor removed.
     foreach ($posts as $post) {
         // Translations share the English slug, so the language decides which post gets the copy.
         if (function_exists('pll_get_post_language') && (string) pll_get_post_language($post->ID) !== 'en') {
             continue;
         }
         $found[$post->post_name] = true;
-        $current = $wpdb->get_var($wpdb->prepare("SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $post->ID));
-        if ($current === null) {
+        if (get_post_meta($post->ID, '_boblift_legacy_intro_v1', true) === '1') {
+            continue;
+        }
+        $row = $wpdb->get_row($wpdb->prepare("SELECT post_content, post_modified_gmt FROM {$wpdb->posts} WHERE ID = %d", $post->ID));
+        if (!$row) {
             $failed++;
             continue;
         }
-        $content = boblift_insert_legacy_product_intro((string) $current, $intros[$post->post_name]);
+        $current = (string) $row->post_content;
+        $content = boblift_insert_legacy_product_intro($current, $intros[$post->post_name]);
         if ($content === null) {
+            update_post_meta($post->ID, '_boblift_legacy_intro_v1', '1');
             continue;
         }
-        // The earlier body is kept as a revision, so a product can be rolled back from the editor.
+        // Whether the body shows depends on it differing from the _legacy_content backup, so a changed body would switch on
+        // an unreviewed one (and its translations, which follow it). The current answer is pinned first.
+        if (!metadata_exists('post', $post->ID, '_detail_body_ready')) {
+            update_post_meta($post->ID, '_detail_body_ready', boblift_product_content_ready($post->ID, '_detail_body_ready') ? '1' : '');
+        }
+        // The earlier body is kept as a revision, so a product can be rolled back from the editor. Revisions are saved
+        // through wp_insert_post(), so KSES is off around them too.
+        $kses_was_on = has_filter('content_save_pre', 'wp_filter_post_kses') !== false;
+        kses_remove_filters();
         wp_save_post_revision($post->ID);
         $rows = $wpdb->update(
             $wpdb->posts,
             ['post_content' => $content, 'post_modified' => current_time('mysql'), 'post_modified_gmt' => current_time('mysql', true)],
-            ['ID' => $post->ID, 'post_content' => $current]
+            ['ID' => $post->ID, 'post_content' => $current, 'post_modified_gmt' => $row->post_modified_gmt]
         );
         clean_post_cache($post->ID);
+        if ($rows === 1) {
+            wp_save_post_revision($post->ID);
+        }
+        if ($kses_was_on) {
+            kses_init_filters();
+        }
         if ($rows !== 1) {
             $failed++;
             continue;
         }
-        wp_save_post_revision($post->ID);
+        update_post_meta($post->ID, '_boblift_legacy_intro_v1', '1');
         $updated++;
     }
     // Only a clean run that reached every listed product is recorded. After a failure the next request tries again; while
