@@ -2428,12 +2428,41 @@
 
   const productSectionLinks = qsa('[data-product-section-link]');
   if (productSectionLinks.length) {
+    const productSectionNav = qs('[data-product-section-nav]');
+    // Fade whichever physical side still hides tabs; scrollLeft runs negative in right-to-left pages.
+    const updateProductSectionNavFade = () => {
+      if (!productSectionNav) return;
+      const hidden = productSectionNav.scrollWidth - productSectionNav.clientWidth;
+      const offset = Math.abs(productSectionNav.scrollLeft);
+      const rtl = getComputedStyle(productSectionNav).direction === 'rtl';
+      const left = (rtl ? hidden - offset : offset) > 2;
+      const right = (rtl ? offset : hidden - offset) > 2;
+      const fade = left && right ? 'both' : left ? 'left' : right ? 'right' : '';
+      if (fade) productSectionNav.dataset.fade = fade;
+      else delete productSectionNav.dataset.fade;
+    };
+    if (productSectionNav) {
+      productSectionNav.addEventListener('scroll', updateProductSectionNavFade, { passive: true });
+      window.addEventListener('resize', updateProductSectionNavFade);
+      updateProductSectionNavFade();
+    }
+    // Keep the current tab in view when the row scrolls sideways; only the row moves, never the page.
+    const revealProductSectionLink = (link) => {
+      if (!productSectionNav || productSectionNav.scrollWidth <= productSectionNav.clientWidth) return;
+      const navRect = productSectionNav.getBoundingClientRect();
+      const linkRect = link.getBoundingClientRect();
+      if (linkRect.left >= navRect.left + 48 && linkRect.right <= navRect.right - 48) return;
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      productSectionNav.scrollBy({ left: (linkRect.left + linkRect.width / 2) - (navRect.left + navRect.width / 2), behavior: reduceMotion ? 'auto' : 'smooth' });
+    };
     const activateProductSectionLink = (id) => {
       productSectionLinks.forEach((link) => {
         const active = (link.getAttribute('href') || '') === `#${id}`;
+        const changed = active && !link.classList.contains('is-active');
         link.classList.toggle('is-active', active);
         if (active) link.setAttribute('aria-current', 'true');
         else link.removeAttribute('aria-current');
+        if (changed) revealProductSectionLink(link);
       });
     };
     const sectionIds = productSectionLinks.map((link) => (link.getAttribute('href') || '').replace('#', '')).filter(Boolean);

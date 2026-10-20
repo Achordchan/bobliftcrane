@@ -458,7 +458,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
             </div>
         </div>
     </section>
-    <div class="sticky top-[var(--boblift-header-h)] z-30 border-y border-[#DDE7F2] bg-white/82 shadow-card backdrop-blur-xl"><nav class="page-shell flex min-h-14 items-center overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="<?php echo esc_attr($ui['sectionNavLabel'] ?? 'Product detail sections'); ?>"><a class="boblift-cinema-nav-link grid h-14 min-w-14 place-items-center border-x border-[#DDE7F2] text-[#0B3F7D]" href="#product-hero" data-product-section-link aria-label="<?php echo esc_attr($product['title'] ?? 'Product hero'); ?>"><?php echo boblift_icon('home', 'h-5 w-5'); ?></a><?php foreach ($anchors as $anchor) : ?><a class="boblift-cinema-nav-link flex h-14 min-w-max items-center justify-center border-e border-[#DDE7F2] px-5 text-xs font-black text-[#334155] transition hover:bg-blue-50 hover:text-[#0B3F7D] md:px-6 md:text-sm" href="#<?php echo esc_attr($anchor['id']); ?>" data-product-section-link><?php echo esc_html($anchor['label']); ?></a><?php endforeach; ?></nav></div>
+    <div class="sticky top-[var(--boblift-header-h)] z-30 border-y border-[#DDE7F2] bg-white/82 shadow-card backdrop-blur-xl"><nav class="boblift-product-section-nav page-shell flex min-h-12 items-center overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] md:min-h-14 [&::-webkit-scrollbar]:hidden" aria-label="<?php echo esc_attr($ui['sectionNavLabel'] ?? 'Product detail sections'); ?>" data-product-section-nav><a class="boblift-cinema-nav-link grid h-12 min-w-12 shrink-0 place-items-center border-x border-[#DDE7F2] text-[#0B3F7D] md:h-14 md:min-w-14" href="#product-hero" data-product-section-link aria-label="<?php echo esc_attr($product['title'] ?? 'Product hero'); ?>"><?php echo boblift_icon('home', 'h-5 w-5'); ?></a><?php foreach ($anchors as $anchor) : ?><a class="boblift-cinema-nav-link flex h-12 min-w-max items-center justify-center border-e border-[#DDE7F2] px-4 text-xs font-black md:h-14 text-[#334155] transition hover:bg-blue-50 hover:text-[#0B3F7D] md:px-6 md:text-sm" href="#<?php echo esc_attr($anchor['id']); ?>" data-product-section-link><?php echo esc_html($anchor['label']); ?></a><?php endforeach; ?></nav></div>
     <section class="bg-[#F5F7FB] py-8 md:py-12">
         <div class="page-shell min-w-0 space-y-6 md:space-y-8">
             <article id="technical" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card">
@@ -485,24 +485,42 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                 $spec_range_link = $related_term instanceof WP_Term ? get_term_link($related_term) : '';
                 ?>
                 <div class="min-w-0 <?php echo $drawings ? '' : 'border-t border-[#E6EDF5]'; ?>">
-                    <?php foreach ($spec_sections as $spec_section) : ?>
+                    <?php
+                    // Phones list the specs as label-and-value rows; wider screens keep the tiles, and the last tile of a group
+                    // stretches over any columns left empty in its row, so an odd count leaves no blank cell.
+                    $spec_lg_cols = $drawings ? 2 : 4;
+                    $spec_fill_classes = [
+                        'sm' => [2 => 'sm:col-span-2', 3 => 'sm:col-span-3'],
+                        'lg' => [1 => 'lg:col-span-1', 2 => 'lg:col-span-2', 3 => 'lg:col-span-3', 4 => 'lg:col-span-4'],
+                    ];
+                    ?>
+                    <?php foreach ($spec_sections as $spec_section) :
+                        $spec_rows = array_values($spec_section['rows']);
+                        $spec_spans = array_map(static fn(array $spec): int => mb_strlen((string) $spec['value']) > 22 ? 2 : 1, $spec_rows);
+                        ?>
                         <?php if ($spec_section['label'] !== '') : ?>
-                            <h3 class="border-b border-[#E6EDF5] bg-[#F8FAFC] px-4 py-2.5 text-[11px] font-black uppercase tracking-[0.14em] text-slate-500 sm:px-6"><?php echo esc_html($spec_section['label']); ?></h3>
+                            <h3 class="border-b border-[#E6EDF5] bg-[#F8FAFC] px-6 py-2.5 text-[11px] font-black uppercase tracking-[0.14em] text-slate-500 md:px-8"><?php echo esc_html($spec_section['label']); ?></h3>
                         <?php endif; ?>
-                        <dl class="-mb-px grid grid-cols-2 <?php echo $drawings ? '-mr-px content-start sm:grid-cols-3 lg:mr-0 lg:grid-cols-2' : '-mr-px sm:grid-cols-3 lg:grid-cols-4'; ?>">
-                            <?php foreach ($spec_section['rows'] as $spec) :
+                        <dl class="-mb-px grid grid-cols-1 <?php echo $drawings ? 'content-start sm:-mr-px sm:grid-cols-3 lg:mr-0 lg:grid-cols-2' : 'sm:-mr-px sm:grid-cols-3 lg:grid-cols-4'; ?>">
+                            <?php foreach ($spec_rows as $spec_index => $spec) :
                                 [$spec_number, $spec_unit] = $hero_spec_parts((string) $spec['value']);
-                                $spec_wide = mb_strlen((string) $spec['value']) > 22;
+                                $spec_wide = $spec_spans[$spec_index] > 1;
                                 $spec_is_model = !$spec_groups && $hero_model !== '' && $spec === $technical_specs[0];
+                                $spec_span_classes = $spec_wide ? ['sm:col-span-2'] : [];
+                                if ($spec_index === count($spec_rows) - 1) {
+                                    $spec_sm_fill = boblift_grid_last_item_span($spec_spans, 3);
+                                    $spec_lg_fill = boblift_grid_last_item_span($spec_spans, $spec_lg_cols);
+                                    $spec_span_classes = [$spec_fill_classes['sm'][$spec_sm_fill] ?? ($spec_wide ? 'sm:col-span-2' : ''), $spec_fill_classes['lg'][$spec_lg_fill] ?? ''];
+                                }
                             ?>
-                                <div class="flex min-w-0 flex-col border-b border-e border-[#E6EDF5] px-4 py-4 sm:px-6 sm:py-5 <?php echo $spec_wide ? 'col-span-2' : ''; ?> <?php echo $spec_is_model ? 'bg-[#F5F8FC]' : ''; ?>">
-                                    <dt class="text-xs font-normal leading-5 text-slate-500"><?php echo esc_html($spec['label']); ?></dt>
-                                    <dd class="mt-auto break-words pt-1.5 font-black leading-tight text-[#071f42] [font-variant-numeric:tabular-nums]"><span class="<?php echo ($spec_unit !== '' || mb_strlen($spec_number) <= 12) ? 'text-lg md:text-xl' : 'text-sm md:text-base'; ?>"><?php echo esc_html($spec_number); ?></span><?php if ($spec_unit !== '') : ?><span class="<?php echo $spec_unit === '°' ? '' : 'ms-1'; ?> text-xs font-bold text-slate-500 md:text-sm"><?php echo esc_html($spec_unit); ?></span><?php endif; ?></dd>
+                                <div class="flex min-w-0 gap-x-4 border-b border-[#E6EDF5] px-6 py-3.5 sm:flex-col sm:items-stretch sm:justify-start sm:gap-x-0 sm:border-e sm:py-5 md:px-8 <?php echo $spec_wide ? 'flex-col' : 'items-baseline justify-between'; ?> <?php echo esc_attr(trim(implode(' ', $spec_span_classes))); ?> <?php echo $spec_is_model ? 'bg-[#F5F8FC]' : ''; ?>">
+                                    <dt class="min-w-0 text-sm font-normal leading-5 text-slate-500 sm:text-xs"><?php echo esc_html($spec['label']); ?></dt>
+                                    <dd class="break-words font-black leading-tight text-[#071f42] [font-variant-numeric:tabular-nums] sm:mt-auto sm:pt-1.5 sm:text-start <?php echo $spec_wide ? 'pt-1' : 'shrink-0 text-end'; ?>"><span class="<?php echo ($spec_unit !== '' || mb_strlen($spec_number) <= 12) ? 'text-base sm:text-lg md:text-xl' : 'text-sm md:text-base'; ?>"><?php echo esc_html($spec_number); ?></span><?php if ($spec_unit !== '') : ?><span class="<?php echo $spec_unit === '°' ? '' : 'ms-1'; ?> text-xs font-bold text-slate-500 md:text-sm"><?php echo esc_html($spec_unit); ?></span><?php endif; ?></dd>
                                 </div>
                             <?php endforeach; ?>
                         </dl>
                     <?php endforeach; ?>
-                    <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-[#E6EDF5] px-4 py-4 sm:px-6">
+                    <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-[#E6EDF5] px-6 py-4 md:px-8">
                         <p class="max-w-xl text-xs font-normal leading-5 text-slate-500"><?php echo esc_html(boblift_localized_static_text('Figures from the BOB-LIFT brochure for this range. Confirm the final specification with our team before ordering.')); ?></p>
                         <?php if (is_string($spec_range_link) && $spec_range_link !== '') : ?>
                             <a class="inline-flex shrink-0 items-center gap-1.5 text-sm font-black text-blue-700 transition hover:text-[#071f42]" href="<?php echo esc_url($spec_range_link); ?>"><?php echo esc_html(str_replace('{range}', $related_term->name, boblift_localized_static_text('Compare all {range}'))); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></a>
@@ -512,10 +530,11 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                 <?php if ($drawings) : ?>
                     <div id="drawing" class="flex scroll-mt-24 flex-col justify-center gap-6 border-t border-[#E6EDF5] p-6 md:p-8 lg:-ms-px lg:border-s lg:border-t-0">
                         <p class="boblift-kicker"><?php echo esc_html($ui['drawingTitle'] ?? 'Dimensions and load chart'); ?></p>
-                        <?php // Two drawings sit side by side; every drawing is capped in height, so a portrait sheet stays a preview and opens full size on click. ?>
-                        <div class="grid items-center gap-4 <?php echo count($drawings) > 1 ? 'grid-cols-2' : ''; ?>">
+                        <?php // Two drawings sit side by side; every drawing is capped in height, so a portrait sheet stays a preview and opens full size on click.
+                        // On phones several drawings become a swipe row at nearly the card's width, with the next one peeking in, instead of two thumbnails. ?>
+                        <div class="<?php echo count($drawings) > 1 ? 'boblift-drawing-strip -mx-6 flex snap-x snap-mandatory items-center gap-3 overflow-x-auto scroll-px-6 px-6 [-ms-overflow-style:none] [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden' : 'grid items-center'; ?>">
                         <?php foreach ($drawings as $drawing) : ?>
-                        <div data-drawing-root>
+                        <div class="<?php echo count($drawings) > 1 ? 'w-[80%] shrink-0 snap-start sm:w-auto' : ''; ?>" data-drawing-root>
                         <div>
                             <button class="block w-full cursor-zoom-in rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" type="button" data-drawing-open aria-label="<?php echo esc_attr($drawing['label']); ?>">
                                 <img class="mx-auto h-auto max-h-[460px] w-auto max-w-full" src="<?php echo esc_url($drawing['image']); ?>" <?php if (($drawing['width'] ?? 0) > 0 && ($drawing['height'] ?? 0) > 0) : ?>width="<?php echo esc_attr((string) $drawing['width']); ?>" height="<?php echo esc_attr((string) $drawing['height']); ?>"<?php endif; ?> alt="<?php echo esc_attr($drawing['label']); ?>" loading="lazy" decoding="async">

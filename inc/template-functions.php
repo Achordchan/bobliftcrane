@@ -1562,3 +1562,23 @@ function boblift_product_family_icon(string $icon, string $class = 'h-6 w-6'): s
     $body = $shapes[$icon] ?? $shapes['truck-crane'];
     return '<svg class="' . esc_attr($class) . '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . $body . '</svg>';
 }
+
+/**
+ * Columns the last item of a CSS grid should span so its row ends flush, given each item's span in auto-placement order.
+ */
+function boblift_grid_last_item_span(array $spans, int $columns): int
+{
+    $column = 0;
+    $last_start = 0;
+    $last_span = 1;
+    foreach ($spans as $span) {
+        $span = max(1, min($columns, (int) $span));
+        if ($column + $span > $columns) {
+            $column = 0;
+        }
+        $last_start = $column;
+        $last_span = $span;
+        $column = ($column + $span) % $columns;
+    }
+    return $columns - $last_start;
+}
