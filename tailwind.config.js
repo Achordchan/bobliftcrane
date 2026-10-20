@@ -10,6 +10,9 @@ module.exports = {
   // logical start/end utilities, so saved HTML may still use them.
   safelist: [
     'inline-block',
+    // Stored page content may still use these after the news template stopped needing them.
+    'justify-start',
+    'mb-14',
     'line-clamp-1',
     '-left-24',
     '-left-28',

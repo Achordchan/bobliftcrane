@@ -49,9 +49,17 @@ $link_class = 'inline-flex w-fit items-center gap-1.5 text-sm font-black text-bl
         <p class="section-label mb-3"><?php echo esc_html((string) ($ui['applicationsLabel'] ?? 'Product Application')); ?></p>
         <h2 id="why-applications-title" class="max-w-[26ch] text-[clamp(1.75rem,2.8vw,3rem)] font-black leading-[1.05] tracking-[-0.015em] text-ink"><?php echo esc_html((string) ($ui['applicationsTitle'] ?? '')); ?></h2>
         <p class="mt-3 max-w-2xl text-sm font-normal leading-7 text-slate-600 md:text-base"><?php echo esc_html((string) ($ui['applicationsText'] ?? '')); ?></p>
+        <?php
+        // The last tile stretches to the end of its row, so an odd count leaves no empty cell.
+        $application_spans = array_fill(0, count($applications), 1);
+        $application_fill = [
+            ([2 => 'col-span-2'])[boblift_grid_last_item_span($application_spans, 2)] ?? '',
+            ([1 => 'md:col-span-1', 2 => 'md:col-span-2', 3 => 'md:col-span-3', 4 => 'md:col-span-4'])[boblift_grid_last_item_span($application_spans, 4)] ?? '',
+        ];
+        ?>
         <ul class="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
             <?php foreach ($applications as $index => $item) : ?>
-                <li class="rounded border border-line bg-white p-4 shadow-card md:p-5">
+                <li class="rounded border border-line bg-white p-4 shadow-card md:p-5 <?php echo $index === count($applications) - 1 ? esc_attr(trim(implode(' ', $application_fill))) : ''; ?>">
                     <span class="text-xs font-black tabular-nums tracking-[0.14em] text-blue-700"><?php echo esc_html($pad($index + 1)); ?></span>
                     <p class="mt-2 text-base font-black text-ink md:text-lg"><?php echo esc_html((string) $item['title']); ?></p>
                 </li>
@@ -72,7 +80,8 @@ $link_class = 'inline-flex w-fit items-center gap-1.5 text-sm font-black text-bl
             </div>
             <p class="max-w-xl text-sm font-normal leading-7 text-slate-600"><?php echo esc_html((string) ($ui['certificatesText'] ?? '')); ?></p>
         </div>
-        <ul class="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 lg:gap-4">
+        <?php // Phones swipe through the documents in one row instead of scrolling past a long two-column wall. ?>
+        <ul class="-mx-4 mt-8 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:snap-none sm:grid-cols-3 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-5 lg:gap-4 [&::-webkit-scrollbar]:hidden">
             <?php foreach ($certification_items as $certification) :
                 $full_url = boblift_image_setting_url($certification['image'], (string) ($certification['image']['path'] ?? ''));
                 // Cards use the light "-sm" scan shipped next to theme documents; the viewer opens the full page.
@@ -81,7 +90,7 @@ $link_class = 'inline-flex w-fit items-center gap-1.5 text-sm font-black text-bl
                 $card_url = (int) ($certification['image']['id'] ?? 0) === 0 && $small !== $path && is_readable(get_template_directory() . '/assets/' . $small) ? boblift_image_src($small) : $full_url;
                 $title = $certification['title'] !== '' ? $certification['title'] : (string) ($ui['certificatesLabel'] ?? 'Our Certificate');
             ?>
-                <li>
+                <li class="w-[44%] shrink-0 snap-start sm:w-auto">
                     <button class="group flex h-full w-full cursor-zoom-in flex-col rounded border border-line bg-white p-2 text-start shadow-card transition hover:-translate-y-1" type="button" data-certification-open data-certification-src="<?php echo esc_url($full_url); ?>" data-certification-title="<?php echo esc_attr($title); ?>">
                         <span class="block overflow-hidden rounded bg-[#F8FAFC] ring-1 ring-[#E5E7EB]">
                             <img class="aspect-[5/7] w-full object-contain p-2" src="<?php echo esc_url($card_url); ?>" alt="<?php echo esc_attr($title); ?>" loading="lazy" decoding="async">

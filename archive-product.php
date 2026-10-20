@@ -276,7 +276,7 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
                 <?php foreach ($products as $index => $product) : boblift_product_card($product, '', $index === 0); endforeach; ?>
             </div>
             <div class="hidden min-h-[420px] flex-col items-center justify-center rounded border border-dashed border-[#CBD5E1] bg-white px-6 text-center shadow-card" data-product-empty><span class="inline-flex h-14 w-14 items-center justify-center rounded-sm bg-blue-50 text-blue-700"><?php echo boblift_icon('search-x', 'h-7 w-7'); ?></span><h2 class="mt-5 text-2xl font-black tracking-[-0.015em] text-[#0B1B33]"><?php echo esc_html($archive_ui['emptyTitle'] ?? 'No matching products found'); ?></h2><p class="mt-3 max-w-md text-sm font-normal leading-6 text-slate-600"><?php echo esc_html($archive_ui['emptyText'] ?? 'Try adjusting your filters or contact us for a custom lifting solution.'); ?></p><button class="mt-6 min-h-12 rounded-sm bg-[#0B1B33] px-6 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-[#0B3F7D]" type="button" data-filter-reset><?php echo esc_html($archive_ui['clearFiltersLabel'] ?? 'Clear Filters'); ?></button></div>
-            <nav class="mt-8 flex flex-wrap items-center justify-center gap-2" aria-label="<?php echo esc_attr($archive_ui['paginationLabel'] ?? 'Product pagination'); ?>" data-product-pagination></nav>
+            <nav class="mt-8 flex flex-wrap items-center justify-center gap-1.5 sm:gap-2" aria-label="<?php echo esc_attr($archive_ui['paginationLabel'] ?? 'Product pagination'); ?>" data-product-pagination></nav>
         </div>
 
         <div class="boblift-archive-about">
