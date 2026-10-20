@@ -13,11 +13,17 @@ function boblift_legacy_product_intros(): array
     return is_array($data['products'] ?? null) ? $data['products'] : [];
 }
 
-function boblift_legacy_product_intro_html(array $intro): string
+/**
+ * Block markup only for a block body: block comments in a classic body would make has_blocks() true and switch off
+ * wpautop(), so its blank-line paragraphs would run together.
+ */
+function boblift_legacy_product_intro_html(array $intro, bool $as_blocks): string
 {
-    $html = '<!-- wp:heading {"level":3} -->' . "\n" . '<h3 class="wp-block-heading">' . esc_html((string) $intro['heading']) . '</h3>' . "\n" . '<!-- /wp:heading -->' . "\n\n";
+    $heading = '<h3 class="wp-block-heading">' . esc_html((string) $intro['heading']) . '</h3>';
+    $html = ($as_blocks ? '<!-- wp:heading {"level":3} -->' . "\n" . $heading . "\n" . '<!-- /wp:heading -->' : $heading) . "\n\n";
     foreach ((array) $intro['paragraphs'] as $paragraph) {
-        $html .= '<!-- wp:paragraph -->' . "\n" . '<p>' . esc_html((string) $paragraph) . '</p>' . "\n" . '<!-- /wp:paragraph -->' . "\n\n";
+        $text = '<p>' . esc_html((string) $paragraph) . '</p>';
+        $html .= ($as_blocks ? '<!-- wp:paragraph -->' . "\n" . $text . "\n" . '<!-- /wp:paragraph -->' : $text) . "\n\n";
     }
     return $html;
 }
@@ -32,7 +38,7 @@ function boblift_insert_legacy_product_intro(string $content, array $intro): ?st
     if ($heading === '' || stripos(html_entity_decode(wp_strip_all_tags($content), ENT_QUOTES), $heading) !== false) {
         return null;
     }
-    $section = boblift_legacy_product_intro_html($intro);
+    $section = boblift_legacy_product_intro_html($intro, has_blocks($content));
     if (preg_match('/(?:<!-- wp:heading\b[^>]*-->\s*)?<h3\b/i', $content, $match, PREG_OFFSET_CAPTURE)) {
         return substr($content, 0, $match[0][1]) . $section . substr($content, $match[0][1]);
     }
@@ -62,6 +68,8 @@ function boblift_restore_legacy_product_intros(): void
     }
 
     $intros = boblift_legacy_product_intros();
+    // An unreadable or broken data file counts as a failed run, so the option stays unset and a later request retries.
+    $failed = $intros ? 0 : 1;
     $posts = $intros ? get_posts([
         'post_type' => 'product',
         'post_status' => ['publish', 'draft', 'pending', 'private', 'future'],
@@ -71,7 +79,6 @@ function boblift_restore_legacy_product_intros(): void
         'lang' => '',
     ]) : [];
 
-    $failed = 0;
     $updated = 0;
     foreach ($posts as $post) {
         // Translations share the English slug, so the language decides which post gets the copy.
