@@ -291,7 +291,7 @@ foreach ($languages as $language) {
 }
 ?>
 <?php if ($show_top_bar) : ?>
-    <div class="bg-navy px-4 py-3 text-center text-[11px] font-normal leading-5 text-white/85 md:text-xs"><span class="text-gold"><?php echo esc_html($top_bar['highlight'] ?? 'Global Lifting Solutions.'); ?></span> <?php echo esc_html($top_bar['text'] ?? 'Exported to 120+ Countries Worldwide.'); ?><a class="ms-3 text-gold md:ms-5" href="<?php echo esc_url(boblift_url($top_bar['link_href'] ?? '/about')); ?>"><?php echo esc_html($top_bar['link_label'] ?? 'Learn More +'); ?></a></div>
+    <div class="bg-navy px-4 py-3 text-center text-[11px] font-normal leading-5 text-white/85 md:text-xs"><?php // Phones drop the highlight so the bar stays on one line. ?><span class="hidden text-gold sm:inline"><?php echo esc_html($top_bar['highlight'] ?? 'Global Lifting Solutions.'); ?> </span><?php echo esc_html($top_bar['text'] ?? 'Exported to 120+ Countries Worldwide.'); ?><a class="ms-3 text-gold md:ms-5" href="<?php echo esc_url(boblift_url($top_bar['link_href'] ?? '/about')); ?>"><?php echo esc_html($top_bar['link_label'] ?? 'Learn More +'); ?></a></div>
 <?php endif; ?>
 <?php // The announcement bar scrolls away; the navigation below stays at the top of the window. ?>
 <header id="top" class="sticky top-0 z-[200]">

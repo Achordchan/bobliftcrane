@@ -988,11 +988,11 @@ img { max-width: 100%; }
   }
   .boblift-product-listing .product-card-ctas button,
   .boblift-product-listing .product-card-ctas a {
-    min-height: 36px;
+    min-height: 40px;
     gap: 4px;
     border-radius: 2px;
     padding-inline: 6px;
-    font-size: 9px;
+    font-size: 11.5px;
     letter-spacing: -.005em;
   }
   .boblift-product-listing .product-card-ctas svg {
@@ -1538,7 +1538,7 @@ img { max-width: 100%; }
 
 /* News Page */
 .boblift-news-category-pill {
-  @apply inline-flex min-w-[140px] items-center justify-center whitespace-nowrap rounded-sm border border-line bg-white px-7 py-3 text-sm font-black text-navy shadow-card transition duration-200 hover:border-blue-200;
+  @apply inline-flex shrink-0 snap-start items-center justify-center whitespace-nowrap rounded-sm border border-line bg-white px-5 py-2.5 text-sm font-black sm:min-w-[140px] sm:px-7 sm:py-3 text-navy shadow-card transition duration-200 hover:border-blue-200;
 }
 .boblift-news-category-pill.is-active {
   @apply border-navy bg-navy text-white;
