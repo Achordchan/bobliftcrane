@@ -80,6 +80,10 @@ function boblift_restore_legacy_product_intros(): void
     ]) : [];
 
     $updated = 0;
+    // An anonymous request runs with the save-time KSES filters on, which would strip editor-authored markup (iframes and
+    // the like) from the whole body. They are off for this loop only; the inserted copy is escaped already.
+    $kses_was_on = has_filter('content_save_pre', 'wp_filter_post_kses') !== false;
+    kses_remove_filters();
     foreach ($posts as $post) {
         // Translations share the English slug, so the language decides which post gets the copy.
         if (function_exists('pll_get_post_language') && (string) pll_get_post_language($post->ID) !== 'en') {
@@ -96,6 +100,9 @@ function boblift_restore_legacy_product_intros(): void
             continue;
         }
         $updated++;
+    }
+    if ($kses_was_on) {
+        kses_init_filters();
     }
     // Only a clean run is recorded; after a failure the next request tries again (finished products are skipped).
     if ($failed === 0) {
