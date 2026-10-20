@@ -259,5 +259,83 @@
   "height": 2160,
   "duration": 22,
   "mobile": "videos/library/factory-hall-cranes-mobile.mp4"
+ },
+ {
+  "key": "truck-telescopic-8",
+  "width": 1280,
+  "height": 720,
+  "duration": 37
+ },
+ {
+  "key": "marine-knuckle-25",
+  "width": 1280,
+  "height": 720,
+  "duration": 26
+ },
+ {
+  "key": "truck-knuckle-34",
+  "width": 1280,
+  "height": 720,
+  "duration": 36
+ },
+ {
+  "key": "truck-knuckle-sq4za3",
+  "width": 1280,
+  "height": 720,
+  "duration": 57
+ },
+ {
+  "key": "truck-knuckle-sq3.2za4",
+  "width": 720,
+  "height": 1280,
+  "duration": 34
+ },
+ {
+  "key": "truck-knuckle-sq10za5",
+  "width": 720,
+  "height": 1280,
+  "duration": 25
+ },
+ {
+  "key": "truck-knuckle-sqz430",
+  "width": 720,
+  "height": 1280,
+  "duration": 36
+ },
+ {
+  "key": "truck-telescopic-sq5sa4",
+  "width": 1280,
+  "height": 720,
+  "duration": 42
+ },
+ {
+  "key": "grab-sq8za4",
+  "width": 1280,
+  "height": 720,
+  "duration": 39
+ },
+ {
+  "key": "grab-sq5za4",
+  "width": 1280,
+  "height": 720,
+  "duration": 75
+ },
+ {
+  "key": "marine-knuckle-16-display",
+  "width": 1280,
+  "height": 720,
+  "duration": 29
+ },
+ {
+  "key": "truck-knuckle-blz90k5",
+  "width": 720,
+  "height": 1280,
+  "duration": 31
+ },
+ {
+  "key": "truck-knuckle-sqz165kz",
+  "width": 720,
+  "height": 1280,
+  "duration": 35
  }
 ]
