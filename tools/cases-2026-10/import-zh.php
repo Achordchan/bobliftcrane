@@ -12,7 +12,12 @@ foreach ($cases as $case) {
     $links = '';
     foreach ($case['links'] as $link) {
         if (isset($link['product_id'])) {
-            $url = wp_make_link_relative(get_permalink(pll_get_post((int) $link['product_id'], 'zh') ?: (int) $link['product_id']));
+            // A product that is not published on this site (e.g. a model moved to draft) gets no link.
+            $product_id = pll_get_post((int) $link['product_id'], 'zh') ?: (int) $link['product_id'];
+            if (get_post_status($product_id) !== 'publish') {
+                continue;
+            }
+            $url = wp_make_link_relative(get_permalink($product_id));
         } elseif (isset($link['brochure'])) {
             $url = wp_make_link_relative(boblift_asset('downloads/' . ['truck' => 'bob-lift-truck-mounted-cranes-2026.pdf', 'marine' => 'bob-lift-marine-cranes-2026.pdf'][$link['brochure']]));
         } else {

@@ -7,6 +7,10 @@ foreach ($cases as $case) {
     $links = '';
     foreach ($case['links'] as $link) {
         if (isset($link['product_id'])) {
+            // A product that is not published on this site (e.g. a model moved to draft) gets no link.
+            if (get_post_status((int) $link['product_id']) !== 'publish') {
+                continue;
+            }
             $url = wp_make_link_relative(get_permalink((int) $link['product_id']));
         } elseif (isset($link['brochure'])) {
             $url = wp_make_link_relative(boblift_asset('downloads/' . ['truck' => 'bob-lift-truck-mounted-cranes-2026.pdf', 'marine' => 'bob-lift-marine-cranes-2026.pdf'][$link['brochure']]));
@@ -72,7 +76,9 @@ foreach ($cases as $case) {
                 'author' => ['@type' => 'Person', 'name' => 'Achord Chan', 'url' => '{{home}}' . wp_make_link_relative(boblift_url('/about')), 'jobTitle' => 'Product Operations Director', 'worksFor' => ['@type' => 'Organization', 'name' => 'BOB-LIFT']],
                 'publisher' => ['@type' => 'Organization', 'name' => 'BOB-LIFT', 'url' => '{{home}}/'],
                 'image' => array_map(static fn(string $src): array => ['@type' => 'ImageObject', 'url' => '{{home}}' . $src], $images),
-                'about' => ['@type' => 'Product', 'name' => $case['product_name'], 'url' => '{{home}}' . wp_make_link_relative(get_permalink((int) $case['product_id']))],
+                'about' => get_post_status((int) $case['product_id']) === 'publish'
+                    ? ['@type' => 'Product', 'name' => $case['product_name'], 'url' => '{{home}}' . wp_make_link_relative(get_permalink((int) $case['product_id']))]
+                    : ['@type' => 'Product', 'name' => $case['product_name']],
                 'contentLocation' => ['@type' => 'Country', 'name' => $case['country']],
             ],
             [
