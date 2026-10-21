@@ -1,0 +1,164 @@
+{
+ "note": "English only. title empty = keep the current SEO title.",
+ "items": [
+  {
+   "kind": "front_page",
+   "path": "/",
+   "title": "China Truck Mounted Crane & Marine Crane Manufacturer | BOB-LIFT",
+   "description": "Xuzhou BOB-LIFT Construction Machinery Co., Ltd. builds truck mounted cranes, marine cranes, pickup cranes and forklift jib cranes for buyers in 120+ countries.",
+   "why": "旧站标题带来 202 次点击（多为品牌词），新标题丢了 Marine Crane 和 Manufacturer；恢复旧标题，描述写入公司全称（GSC 上「xuzhou bob-lift construction machinery co., ltd.」排第 1）"
+  },
+  {
+   "kind": "term",
+   "slug": "truck-mounted-crane",
+   "path": "/truck-mounted-crane",
+   "title": "Truck Mounted Cranes | Cranes for Trucks | BOB-LIFT",
+   "description": "Knuckle boom, telescopic boom and pickup truck cranes from 800 kg to 50 t. Compare BOB-LIFT truck mounted crane models, lifting charts and chassis matching.",
+   "why": "旧标题含 Cranes for Truck，新标题丢了；描述保留 800 kg–50 t 范围并补上选型用语"
+  },
+  {
+   "kind": "term",
+   "slug": "marine-crane",
+   "path": "/marine-crane",
+   "title": "Marine Cranes | Ship Cranes | BOB-LIFT",
+   "description": "Knuckle boom and telescopic boom marine cranes from 0.8 to 25 t for vessels, barges, docks and offshore supply work. Compare BOB-LIFT ship crane models.",
+   "why": "旧标题含 Ship Cranes（ship crane 在 GSC 第 17.6 位），新标题丢了"
+  },
+  {
+   "kind": "term",
+   "slug": "knuckle-boom-truck-mounted-cranes",
+   "path": "/knuckle-boom-truck-mounted-cranes",
+   "title": "Knuckle Boom Truck Mounted Cranes | BOB-LIFT",
+   "description": "Knuckle boom truck mounted cranes up to 50 t that fold compactly behind the cab and reach over obstacles. Compare BOB-LIFT models, outreach and lifting charts.",
+   "why": "标题与旧站一致；新描述是占位句"
+  },
+  {
+   "kind": "term",
+   "slug": "telescopic-boom-truck-mounted-cranes",
+   "path": "/telescopic-boom-truck-mounted-cranes",
+   "title": "Telescopic Boom Truck Mounted Cranes | BOB-LIFT",
+   "description": "Telescopic boom truck mounted cranes from 2 to 20 t with multi-section straight booms for fast, long-reach lifts. Compare BOB-LIFT models and lifting charts.",
+   "why": "27,639 次展示的分类页；标题与旧站一致，新描述是占位句"
+  },
+  {
+   "kind": "term",
+   "slug": "knuckle-boom-marine-cranes",
+   "path": "/knuckle-boom-marine-cranes",
+   "title": "Knuckle Boom Marine Cranes | BOB-LIFT",
+   "description": "Marine knuckle boom cranes from 0.8 to 25 t that fold flat on deck when stowed. Compare BOB-LIFT models for vessels, barges and port work.",
+   "why": "主查询 marine knuckle boom crane 第 8.9 位，描述里补上这个词序；新描述是占位句"
+  },
+  {
+   "kind": "term",
+   "slug": "telescopic-boom-marine-cranes",
+   "path": "/telescopic-boom-marine-cranes",
+   "title": "Telescopic Boom Marine Cranes | BOB-LIFT",
+   "description": "Telescopic boom marine cranes from 2 to 20 t for straight-reach cargo and service lifts on vessels and docks. Compare BOB-LIFT models and specs.",
+   "why": "新描述是占位句"
+  },
+  {
+   "kind": "term",
+   "slug": "pickup-cranes",
+   "path": "/pickup-cranes",
+   "title": "Pickup Truck Cranes | BOB-LIFT",
+   "description": "Compact 800 kg cranes for pickup trucks, with or without outriggers. See BOB-LIFT pickup truck crane models, specs and what your truck bed needs.",
+   "why": "旧标题 Pickup Truck Cranes 对应主查询 pickup truck crane（第 8.5 位），新标题缩成 Pickup Cranes；新描述是占位句"
+  },
+  {
+   "kind": "term",
+   "slug": "forklift-fly-jib-cranes",
+   "path": "/forklift-fly-jib-cranes",
+   "title": "Forklift Fly Jib Cranes | Jib Cranes for Forklifts | BOB-LIFT",
+   "description": "Fly jib cranes that mount on a forklift and turn it into a mobile crane. Compare BOB-LIFT forklift jib crane models, capacities and fitting needs.",
+   "why": "查询 jib crane for forklift、fly jib crane；新描述是占位句"
+  },
+  {
+   "kind": "term",
+   "slug": "truck-mounted-aerial-work-platform",
+   "path": "/truck-mounted-aerial-work-platform",
+   "title": "Truck Mounted Aerial Work Platforms | BOB-LIFT",
+   "description": "Truck mounted aerial work platforms from 18 to 40 m working height for maintenance, lighting and construction work. Compare BOB-LIFT aerial platform trucks.",
+   "why": "24,341 次展示，查询 aerial platform truck 第 2.4 位；新描述只有一个词组"
+  },
+  {
+   "kind": "term",
+   "slug": "aerial-work-platform",
+   "path": "/aerial-work-platform",
+   "title": "Aerial Work Platforms | BOB-LIFT",
+   "description": "BOB-LIFT aerial work platforms, including truck mounted models from 18 to 40 m working height. Compare models, outreach and basket capacity.",
+   "why": "新描述是占位句"
+  },
+  {
+   "kind": "term",
+   "slug": "timber-cranes",
+   "path": "/timber-cranes",
+   "title": "Timber Cranes | BOB-LIFT",
+   "description": "BOB-LIFT timber cranes for loading logs and forestry work, from 0.6 to 1.8 t. Compare models, boom reach and grapple options.",
+   "why": "新描述是占位句"
+  },
+  {
+   "kind": "term",
+   "slug": "spider-cranes",
+   "path": "/spider-cranes",
+   "title": "Spider Cranes | BOB-LIFT",
+   "description": "Compact knuckle and telescopic spider cranes for lifting in tight spaces, indoors and on soft ground. Compare BOB-LIFT spider crane models.",
+   "why": "新描述是占位句"
+  },
+  {
+   "kind": "term",
+   "slug": "tail-lift",
+   "path": "/tail-lift",
+   "title": "Truck Tail Lifts | BOB-LIFT",
+   "description": "Hydraulic truck tail lifts for loading and unloading goods at the rear of trucks and vans. See BOB-LIFT tail lift models and fitting needs.",
+   "why": "旧站产品页叫 truck-tail-lift，标题补上 Truck；新描述是占位句"
+  },
+  {
+   "kind": "term",
+   "slug": "other-cranes",
+   "path": "/other-cranes",
+   "title": "Other Cranes & Lifting Equipment | BOB-LIFT",
+   "description": "Timber cranes, spider cranes, tail lifts and other BOB-LIFT lifting equipment. Compare models and send an inquiry.",
+   "why": "新描述是占位句"
+  },
+  {
+   "kind": "post",
+   "slug": "lifting-capacity-of-knuckle-boom-cranes-id41303816",
+   "path": "/lifting-capacity-of-knuckle-boom-cranes-id41303816.html",
+   "title": "",
+   "description": "How much can a knuckle boom crane lift? It depends on lifting moment (t·m), outreach, boom angle and stability. Learn to read the load chart.",
+   "why": "73 次点击；旧站和新站描述都是「标题, BOB-LIFT」占位，按正文重写"
+  },
+  {
+   "kind": "post",
+   "slug": "differences-between-truck-mounted-cranes-and-mobile-cranes-id43478816",
+   "path": "/differences-between-truck-mounted-cranes-and-mobile-cranes-id43478816.html",
+   "title": "",
+   "description": "Truck mounted cranes vs mobile cranes: how they differ in mobility, site access, lifting capacity and running cost, and which suits your job.",
+   "why": "57 次点击；描述是占位，按正文重写"
+  },
+  {
+   "kind": "post",
+   "slug": "types-of-cranes-used-on-a-ship-id41221616",
+   "path": "/types-of-cranes-used-on-a-ship-id41221616.html",
+   "title": "",
+   "description": "The main types of cranes used on ships, from forklift jibs and gantry cranes to knuckle boom and telescopic marine cranes, and what each one handles.",
+   "why": "23 次点击；描述是占位，按正文重写"
+  },
+  {
+   "kind": "post",
+   "slug": "top-6-advantages-of-truck-mounted-cranes-for-transport-id45181716",
+   "path": "/top-6-advantages-of-truck-mounted-cranes-for-transport-id45181716.html",
+   "title": "",
+   "description": "Why truck mounted cranes suit transport work: road mobility, loading and hauling with one vehicle, and the time and cost savings that follow.",
+   "why": "2,448 次展示；描述是占位，按正文重写"
+  },
+  {
+   "kind": "post",
+   "slug": "bob-lift-10-ton-knuckle-boom-truck-crane-id43781565",
+   "path": "/bob-lift-10-ton-knuckle-boom-truck-crane-id43781565.html",
+   "title": "",
+   "description": "The BOB-LIFT 10-ton knuckle boom truck crane: high-strength steel boom, multi-section folding design, overload protection and hydraulic locks.",
+   "why": "12 次点击；描述是占位，按正文重写"
+  }
+ ]
+}

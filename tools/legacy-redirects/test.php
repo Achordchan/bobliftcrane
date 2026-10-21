@@ -55,13 +55,55 @@ foreach ([
 }
 // every enabled rule must resolve to itself and must not point at a path that is itself a rule source (no chains)
 $sources = [];
-foreach ($config['rules'] as $r) { $sources[boblift_legacy_redirect_normalize_path($r['from'])] = true; }
+foreach ($config['rules'] as $r) {
+    // A case-only rule (/Old-Name.html -> /old-name.html) never fires on its lowercase target, so pointing at it is no chain.
+    if (boblift_legacy_redirect_normalize_path($r['from']) !== boblift_legacy_redirect_normalize_path($r['to'])) { $sources[boblift_legacy_redirect_normalize_path($r['from'])] = true; }
+}
 foreach ($config['rules'] as $r) {
     if (($r['enabled'] ?? true) === false) { continue; }
     $got = boblift_legacy_redirect_resolve('www.bobliftcrane.com', $r['from'], $config, $base);
     if ($got === null && rtrim($r['from'], '/') !== rtrim($r['to'], '/')) { echo "FAIL rule not applied: {$r['from']}\n"; $fail++; }
     if ($r['to'][0] === '/' && isset($sources[boblift_legacy_redirect_normalize_path($r['to'])]) && boblift_legacy_redirect_normalize_path($r['to']) !== boblift_legacy_redirect_normalize_path($r['from'])) { echo "FAIL chain: {$r['from']} -> {$r['to']}\n"; $fail++; }
 }
+
+// Pattern fallbacks (path_fallbacks) for old URLs no exact rule names.
+$live = static fn(string $p): bool => in_array($p, ['/10-ton-telescopic-boom-truck-mounted-crane.html', '/products.html', '/marine-crane'], true);
+$articles = static fn(string $id): ?string => $id === '43478816' ? '/differences-between-truck-mounted-cranes-and-mobile-cranes-id43478816.html' : null;
+foreach ([
+    ['/products/10-Ton-Telescopic-Boom-Truck-Mounted-Crane.html', 'https://www.bobliftcrane.com/10-ton-telescopic-boom-truck-mounted-crane.html'], // product still sold
+    ['/products/6-3-Ton-Telescopic-Boom-Truck-Mounted-Crane.html', 'https://www.bobliftcrane.com/telescopic-boom-truck-mounted-cranes'], // not live: its category
+    ['/products/12-Ton-Knuckle-Boom-Marine-Crane.html', 'https://www.bobliftcrane.com/knuckle-boom-marine-cranes'],
+    ['/products/12-Ton-Crane.html', 'https://www.bobliftcrane.com/products.html?capacity=10-12'],
+    ['/products/1-ton-truck-mounted-crane.html', 'https://www.bobliftcrane.com/products.html?capacity=0-1'],
+    ['/products/Offshore-crane.html', 'https://www.bobliftcrane.com/marine-crane'],
+    ['/products/Forestry-Equipment.html', 'https://www.bobliftcrane.com/timber-cranes'],
+    ['/products/Durable-pickup-crane.html', 'https://www.bobliftcrane.com/pickup-cranes'],
+    ['/products/Reliable-small-excavator.html', 'https://www.bobliftcrane.com/products.html'],
+    ['/products/Heavy-duty-lifting-equipment.html', 'https://www.bobliftcrane.com/products.html'],
+    ['/products/Truck-Mounted-Crane.html', 'https://www.bobliftcrane.com/truck-mounted-crane'], // the exact rule wins
+    ['/crane-by-ton-p5', 'https://www.bobliftcrane.com/products.html'],
+    ['/products-p4.html', 'https://www.bobliftcrane.com/products.html'],
+    ['/knuckle-boom-marine-crane-p2', 'https://www.bobliftcrane.com/knuckle-boom-marine-cranes'],
+    ['/Industry-News-ic226357-p2.html', 'https://www.bobliftcrane.com/industry-insight.html'],
+    ['/Company-News-ic236357-p4.html', 'https://www.bobliftcrane.com/Company-News.html'],
+    ['/marine-crane-p3', 'https://www.bobliftcrane.com/marine-crane'],
+    ['/index/alphabet-E.html', 'https://www.bobliftcrane.com/'],
+    ['/Differences-between-Truck-Mounted-Crane-And-Mobile-Crane-id43478816.html', 'https://www.bobliftcrane.com/differences-between-truck-mounted-cranes-and-mobile-cranes-id43478816.html'],
+    ['/Some-Unknown-Article-id11111111.html', 'https://www.bobliftcrane.com/news.html'],
+    ['/3-ton-mini-excavator.html', 'https://www.bobliftcrane.com/products.html'],
+    ['/Marine-Cranes-pc40691787.html', 'https://www.bobliftcrane.com/marine-crane'],
+    ['/products/category/marine-crane', null], // a new-site path pattern the keyword fallbacks must not touch
+    ['/no-such-page.html', null],
+] as [$pth, $want]) {
+    $got = boblift_legacy_redirect_resolve('www.bobliftcrane.com', $pth, $config, $base, $live, $articles);
+    if ($got !== $want) { echo "FAIL fallback $pth -> " . var_export($got, true) . " (wanted " . var_export($want, true) . ")\n"; $fail++; }
+}
+// A translated old article lands on its English article, in the language directory when that serves it.
+$live_fr = static fn(string $p): bool => $p === '/fr/a-guide-to-truck-mounted-crane-installation-id40087376.html';
+$got = boblift_legacy_redirect_resolve('fr.bobliftcrane.com', "/Un-guide-pour-l'installation-d'une-grue-mont%C3%A9e-sur-camion-id40267376.html", $config, $base, $live_fr);
+if ($got !== 'https://www.bobliftcrane.com/fr/a-guide-to-truck-mounted-crane-installation-id40087376.html') { echo "FAIL translated article -> " . var_export($got, true) . "\n"; $fail++; }
+$got = boblift_legacy_redirect_resolve('fr.bobliftcrane.com', '/products-p3.html', $config, $base, $live_fr);
+if ($got !== 'https://www.bobliftcrane.com/products.html') { echo "FAIL language-host pagination -> " . var_export($got, true) . "\n"; $fail++; }
 
 $eff = [
     ['www.bobliftcrane.com', ['legacy_lang' => 'fr'], 'fr.bobliftcrane.com'],

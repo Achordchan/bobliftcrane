@@ -6,11 +6,12 @@
 
 | 文件 | 作用 |
 | --- | --- |
-| `inc/legacy-redirects.json` | 出厂规则（149 条）和语言子域兜底规则，数据库里没有自定义规则时用它 |
+| `inc/legacy-redirects.json` | 出厂规则（177 条精确规则 + 25 条模式规则 `path_fallbacks`）和语言子域兜底规则，数据库里没有自定义规则时用它 |
 | `inc/legacy-redirects.php` | 解析与跳转逻辑，REST 接口 |
 | `tools/legacy-redirects/redirect-map.csv` | 人看的映射表（旧路径、新目标、类型、说明） |
 | `tools/legacy-redirects/test.php` | 不依赖 WordPress 的规则自测：`php tools/legacy-redirects/test.php` |
-| `tools/legacy-redirects/check.py` | 对着跑起来的新站逐条验证：`python3 tools/legacy-redirects/check.py --base http://localhost:8080` |
+| `tools/legacy-redirects/check.py` | 对着跑起来的新站逐条验证：`python3 tools/legacy-redirects/check.py --base http://localhost:8080`；加 `--urls tools/legacy-redirects/old-urls.txt --csv 结果.csv` 则把旧站全部地址跟到最终页 |
+| `tools/legacy-redirects/old-urls.txt` | 旧站全部已知地址 1466 条：英文 sitemap 239、四个语言子域 sitemap 1034、GSC 近 16 个月有展示的 949 条（2026-10-22 导出，去重） |
 
 ## 规则怎么维护（不改代码）
 
@@ -31,6 +32,17 @@
 - SaaS 自动生成的关键词页（`/products/*.html`、`/news/*.html`、keywords）归到最相关的分类或首页。
 - 语言子域（fr/es/ru/sa）：译文 slug 无法逐条对应英文，按后缀归并：`-idNNN` 新闻 → `/news.html`，`-pd`/`-pl` 产品 → `/products.html`；英文 slug 的页面落到同路径；其余回首页。以上全部落到该语言自己的子目录（fr→/fr/、es→/es/、ru→/ru/、sa→/ar/，由 `language_host_prefix` 配置），主题会先确认目标页在该语言下真实存在才落过去；语言还没上线时暂落英文对应页（不会 404），语言页建好后自动改落该语言，无需改规则。子域请求经 Cloudflare 带 `?legacy_lang=xx` 进入主题处理。
 - `/forklift-jib-crane-guide`、`/marine-crane-buying-guide` 两篇文章和 7 吨叉车飞臂、800kg 无支腿皮卡吊两个产品由 `tools/content-gap` 导入（见该目录 README），跳转规则已启用；切换前必须先在目标站跑完导入，否则两篇指南会落 404。
+
+## 模式规则（path_fallbacks）
+
+精确规则没命中、且路径不是新站现役页面时，按顺序试 `path_fallbacks`（正则，不分大小写，`$1` 引用分组），用来接住 GSC 里收录过、但不在 sitemap 里的旧地址：
+
+- 分页 `/x-p2`、`/x-p3.html`：去掉页码后再走一遍规则（`rerun`），如 `/knuckle-boom-marine-crane-p2` → 分类页；
+- SaaS 产品关键词页 `/products/*.html`：同名产品还在就直达产品（`when_live`），否则落对应分类；吨位词走吨位筛选；其余按关键词归到船吊、木材吊、皮卡吊、飞臂吊、高空车等分类，最后兜底 `/products.html`；
+- 旧文章地址拼错或标题改过（`…-id43478816.html`）：按文章 id 找新站英文文章（`article_id`），找不到落新闻中心；
+- `/index/alphabet-X.html` 字母索引 → 首页；`-pc`/`-pd`/`-pl`/`-ic` 等 SaaS id 地址 → 对应列表页。
+
+语言子域在精确规则和同路径之后也走这一层（不查文章 id，因为译文 id 和英文不同）。热门的译文文章（GSC 有点击的 19 篇）已逐条映射到对应英文文章，新站有该语言版本时落到 `/fr/…` 等语言目录。
 
 ## 上线切换清单
 
@@ -57,7 +69,7 @@
 2. 在 WP.com 把 `www.bobliftcrane.com` 设为主域名，按 WP.com 给出的记录改 DNS（Cloudflare 里用 A 记录、灰云，不要改名称服务器）；根域 301 到 www。
 3. 同时在 Cloudflare 启用第 4 步的子域重定向规则，子域 DNS 记录保持代理（橙云）。
 4. 等 WP.com 自动签发 HTTPS 证书，覆盖 www。
-5. 跑 `check.py --base https://www.bobliftcrane.com`，再手测首页、一个产品页、一个旧分类页、`/ja/` 页面，以及 `fr.bobliftcrane.com` 首页和一个深层页面，确认 301 且带 `X-Redirect-By: boblift-legacy-redirects`；再测一个带参数的地址，如 `curl -I 'https://fr.bobliftcrane.com/message.html?gclid=abc'`，两跳之后的最终地址里必须还有 `gclid=abc`。
+5. 跑 `check.py --base https://www.bobliftcrane.com`，再手测首页、一个产品页、一个旧分类页、`/ja/` 页面，以及 `fr.bobliftcrane.com` 首页和一个深层页面，确认 301 且带 `X-Redirect-By: BOB-LIFT legacy`；再测一个带参数的地址，如 `curl -I 'https://fr.bobliftcrane.com/message.html?gclid=abc'`，两跳之后的最终地址里必须还有 `gclid=abc`。
 
 **三、上线后** （网页点击由用户本人操作）
 

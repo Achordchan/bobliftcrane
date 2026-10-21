@@ -392,3 +392,12 @@ function boblift_redirect_case_to_url_language(): void
     exit;
 }
 add_action('template_redirect', 'boblift_redirect_case_to_url_language', 2);
+
+// English is the hidden default language, so its URL is the x-default alternate on every translated page
+// (Polylang adds x-default only on the front page, and only when the default language shows in the URL).
+add_filter('pll_rel_hreflang_attributes', static function (array $hreflangs): array {
+    if (!isset($hreflangs['x-default']) && isset($hreflangs['en'])) {
+        $hreflangs['x-default'] = $hreflangs['en'];
+    }
+    return $hreflangs;
+});
