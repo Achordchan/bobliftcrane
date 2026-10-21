@@ -1,0 +1,125 @@
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "NewsArticle",
+      "@id": "{{home}}/bob-lift-crane-email-info-boblift-com.html#article",
+      "headline": "BOB-LIFT Crane Enquiries Now Go to info@boblift.com",
+      "description": "BOB-LIFT crane enquiries now go to info@boblift.com, the email for all our websites. Mail to info@bobliftcrane.com still arrives. Phone is unchanged.",
+      "image": {
+        "@type": "ImageObject",
+        "url": "{{image}}",
+        "width": 1200,
+        "height": 675
+      },
+      "datePublished": "2026-10-21",
+      "dateModified": "2026-10-21",
+      "author": {
+        "@id": "{{home}}/#achord"
+      },
+      "publisher": {
+        "@id": "{{home}}/#organization"
+      },
+      "mainEntityOfPage": "{{home}}/bob-lift-crane-email-info-boblift-com.html",
+      "keywords": "BOB-LIFT email, BOB-LIFT crane contact, info@boblift.com, BOB-LIFT crane enquiry",
+      "articleSection": "Company News",
+      "inLanguage": "en"
+    },
+    {
+      "@type": "Person",
+      "@id": "{{home}}/#achord",
+      "name": "Achord Chan",
+      "jobTitle": "Product Operations Director",
+      "worksFor": {
+        "@id": "{{home}}/#organization"
+      },
+      "url": "{{home}}/about.html"
+    },
+    {
+      "@type": "Organization",
+      "@id": "{{home}}/#organization",
+      "name": "BOB-LIFT",
+      "legalName": "Xuzhou BOB-LIFT Construction Machinery Co., Ltd.",
+      "url": "{{home}}/",
+      "email": "info@boblift.com",
+      "sameAs": [
+        "https://www.boblift.com/",
+        "https://bobliftloader.com/"
+      ],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "sales",
+        "email": "info@boblift.com",
+        "telephone": "+86-158-5249-9415"
+      },
+      "telephone": "+86-158-5249-9415",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "S324 Provincial Road, Zhangji Town, Tongshan District",
+        "addressLocality": "Xuzhou",
+        "addressRegion": "Jiangsu",
+        "addressCountry": "CN"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "{{home}}/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "News",
+          "item": "{{home}}/news.html"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "BOB-LIFT Crane Enquiries Now Go to info@boblift.com",
+          "item": "{{home}}/bob-lift-crane-email-info-boblift-com.html"
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is the email address for BOB-LIFT cranes?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "It is info@boblift.com. The same address is used for cranes, mini skid steer loaders, mini dumpers and after-sales service across all BOB-LIFT websites."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "I sent an enquiry to info@bobliftcrane.com. Will you see it?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. That address still receives mail. For new messages and replies, please use info@boblift.com so that we can answer faster."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do I need to do anything if I use the enquiry form?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. The enquiry form on this website sends your message to info@boblift.com."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is bobliftcrane.com still the website for BOB-LIFT cranes?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Cranes stay on bobliftcrane.com. Loaders and dumpers are on bobliftloader.com, and boblift.com introduces the BOB-LIFT group as a whole."
+          }
+        }
+      ]
+    }
+  ]
+}
