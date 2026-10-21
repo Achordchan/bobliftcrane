@@ -6,7 +6,7 @@
  *
  * Posts are created as drafts unless "publish" is passed. Running it again updates the posts it created earlier (found by the
  * _bl_news_source meta) instead of adding new ones, and reuses the images it uploaded. Internal links in the source are
- * root-relative English paths; other languages get their /<lang> prefix.
+ * root-relative English paths; each language gets the path of its Polylang home URL in front (site subfolder included).
  */
 if (!defined('WP_CLI') || !WP_CLI) { exit; }
 $publish = in_array('publish', $args ?? [], true);
@@ -65,12 +65,14 @@ function bl_news_schema_url(int $id): string {
 $ids = [];
 foreach ($articles as $lang => $a) {
     $prefix = bl_news_language_path($lang);
+    // Full path of the language's home page, including any subfolder WordPress is installed in.
+    $link_base = untrailingslashit((string) wp_parse_url((string) pll_home_url($lang), PHP_URL_PATH));
     $cover_id = bl_news_attachment($dir . $a['cover'], $a['title'], $source_key);
     $diagram_id = bl_news_attachment($dir . $a['diagram'], 'info@boblift.com: bobliftcrane.com, boblift.com, bobliftloader.com', $source_key);
     $cover_url = (string) wp_get_attachment_url($cover_id);
     $body = str_replace('{{diagram}}', (string) wp_get_attachment_url($diagram_id), (string) $a['body']);
-    // Root-relative site links get the language prefix; external, mailto, tel and wa.me links are left alone.
-    $body = preg_replace_callback('#href="(/[^"/][^"]*)"#', static fn(array $m): string => 'href="' . esc_attr($prefix . $m[1]) . '"', $body);
+    // Root-relative site links get the language home path in front; external, mailto, tel and wa.me links are left alone.
+    $body = preg_replace_callback('#href="(/[^"/][^"]*)"#', static fn(array $m): string => 'href="' . esc_attr($link_base . $m[1]) . '"', $body);
 
     $existing = get_posts(['post_type' => 'post', 'post_status' => 'any', 'meta_key' => '_bl_news_source', 'meta_value' => $source_key . ':' . $lang, 'posts_per_page' => 1, 'fields' => 'ids', 'lang' => '']);
     $postarr = [
