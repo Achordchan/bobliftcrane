@@ -410,8 +410,18 @@ function boblift_home_product_card_specs(array $product): array
     $local = array_values(array_filter((array) ($product['specs'] ?? []), 'is_array'));
     $same_rows = count($local) === count($english);
     $is_figure = static fn(string $value): bool => (bool) preg_match('/^[\d.,]+\s*[^\d\s]/u', $value);
+    // A translated row stands for the English row at the same index only when it carries the same value or the translated
+    // label: an editor may have reordered the rows. Otherwise the English value is shown under the translated English label.
     $row_item = static function (int $index, string $label = '') use ($english, $local, $same_rows): array {
-        $row = $same_rows ? $local[$index] : $english[$index];
+        $source = $english[$index];
+        $source_label = trim((string) ($source['label'] ?? ''));
+        $source_value = trim((string) ($source['value'] ?? ''));
+        $row = $same_rows ? $local[$index] : null;
+        $matches = is_array($row) && (trim((string) ($row['value'] ?? '')) === $source_value
+            || trim((string) ($row['label'] ?? '')) === trim(boblift_localized_static_text($source_label)));
+        if (!$matches) {
+            return ['label' => $label !== '' ? $label : boblift_localized_static_text($source_label), 'value' => $source_value];
+        }
         return ['label' => $label !== '' ? $label : trim((string) ($row['label'] ?? '')), 'value' => trim((string) ($row['value'] ?? ''))];
     };
     $items = [];

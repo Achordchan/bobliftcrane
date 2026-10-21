@@ -76,11 +76,20 @@ $footer_link_groups = array_map(static function (array $group): array {
     return $group;
 }, array_values(array_filter(is_array($footer['groups'] ?? null) ? $footer['groups'] : [], 'is_array')));
 // The service and factory pages make a third column, titled and linked from each page in the visitor's language.
-// A page an administrator already put in a saved group is not listed twice.
+// A page an administrator already put in a saved group is not listed twice, whether it was saved as /service.html,
+// with a language prefix such as /zh/service.html, or as the page's own permalink.
+$footer_path_key = static function (string $url): string {
+    $path = preg_replace('/\.html$/', '', trim((string) wp_parse_url($url, PHP_URL_PATH), '/'));
+    $languages = function_exists('pll_languages_list') ? (array) pll_languages_list(['fields' => 'slug']) : [];
+    if ($languages !== [] && preg_match('#^([a-z]{2}(?:-[a-z]{2})?)/(.+)$#i', $path, $m) && in_array(strtolower($m[1]), $languages, true)) {
+        $path = $m[2];
+    }
+    return strtolower($path);
+};
 $saved_paths = [];
 foreach ($footer_link_groups as $group) {
     foreach ((array) ($group['links'] ?? []) as $link) {
-        $saved_paths[] = preg_replace('/\.html$/', '', trim((string) wp_parse_url((string) ($link['href'] ?? $link['url'] ?? ''), PHP_URL_PATH), '/'));
+        $saved_paths[] = $footer_path_key((string) ($link['href'] ?? $link['url'] ?? ''));
     }
 }
 $service_links = [];
@@ -88,7 +97,11 @@ foreach (['mounting-shipping', 'service', 'quality-testing', 'factory-tour', 'gl
     $page = in_array($slug, $saved_paths, true) ? null : boblift_find_page_by_slug($slug);
     if ($page instanceof WP_Post && $page->post_status === 'publish') {
         $localized = function_exists('boblift_post_for_current_language') ? boblift_post_for_current_language($page) : $page;
-        $service_links[] = ['label' => get_the_title($localized), 'url' => get_permalink($localized)];
+        $url = get_permalink($localized);
+        if (in_array($footer_path_key((string) $url), $saved_paths, true)) {
+            continue;
+        }
+        $service_links[] = ['label' => get_the_title($localized), 'url' => $url];
     }
 }
 if ($service_links !== []) {
