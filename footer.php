@@ -14,7 +14,7 @@ if (is_page()) {
 }
 // The product list skips it too: every card has its own quote button and the contact bar stays on screen.
 $show_cta = !in_array($cta_page_slug, ['products', 'about', 'why-choose-us', 'quote', 'contact', 'social-media', 'factory-tour', 'quality-testing', 'mounting-shipping', 'service', 'public-welfare', 'global-customer-visits', 'privacy-policy', 'terms-of-use', 'sitemap'], true) && !is_page_template(['page-about.php', 'page-why-choose-us.php', 'page-social-media.php', 'page-factory-tour.php', 'page-quality-testing.php', 'page-mounting-shipping.php', 'page-service.php', 'page-public-welfare.php', 'page-global-customer-visits.php', 'page-privacy-policy.php', 'page-terms-of-use.php', 'page-sitemap.php']) && !is_post_type_archive('product') && (string) get_query_var('boblift_product_category') === '' && !is_singular('product');
-$email = $contact['email'] ?? 'info@bobliftcrane.com';
+$email = $contact['email'] ?? 'info@boblift.com';
 $phone = $contact['phone'] ?? '+86 15852499415';
 $phone_href = $contact['phone_href'] ?? ('tel:' . preg_replace('/[^\d+]+/', '', $phone));
 $whatsapp = preg_replace('/\D+/', '', $contact['whatsapp'] ?? $phone);
@@ -127,9 +127,15 @@ $footer_link_groups = array_map(static function (array $group): array {
             </div>
             <div class="pt-8 md:col-span-2 md:border-t md:border-line md:pt-10 xl:col-span-1 xl:border-s xl:border-t-0 xl:ps-12 xl:pt-0 2xl:ps-16">
                 <h3 class="mb-5 text-sm font-black uppercase tracking-[0.14em] text-navy"><?php echo esc_html($footer['contact_title'] ?? 'Contact Us'); ?></h3>
-                <ul class="grid gap-3 md:grid-cols-3 xl:grid-cols-1">
-                    <?php foreach ([['phone', $phone, $phone_href], ['mail', $email, 'mailto:' . $email], ['map-pin', $contact['address'] ?? 'Xuzhou, China', boblift_url('/contact')]] as $row) : ?>
-                        <li><a class="inline-flex min-w-0 items-start gap-3 text-sm font-medium leading-6 text-slate-600 transition hover:text-blue-700 md:text-[15px]" href="<?php echo esc_url($row[2]); ?>"><?php echo boblift_icon($row[0], 'mt-1 h-4 w-4 shrink-0 text-slate-400', '1.9'); ?><span class="min-w-0 break-words"><?php echo $row[0] === 'map-pin' ? esc_html($row[1]) : '<span dir="ltr">' . esc_html($row[1]) . '</span>'; ?></span></a></li>
+                <ul class="grid gap-3 md:grid-cols-3 md:gap-x-6 xl:grid-cols-1 xl:gap-x-0">
+                    <?php foreach ([['phone', $phone, $phone_href], ['mail', $email, 'mailto:' . $email]] as $row) : ?>
+                        <li><a class="inline-flex min-w-0 items-start gap-3 text-sm font-medium leading-6 text-slate-600 transition hover:text-blue-700 md:text-[15px]" href="<?php echo esc_url($row[2]); ?>"><?php echo boblift_icon($row[0], 'mt-1 h-4 w-4 shrink-0 text-slate-400', '1.9'); ?><span class="min-w-0 break-words"><span dir="ltr"><?php echo esc_html($row[1]); ?></span></span></a></li>
+                    <?php endforeach; ?>
+                </ul>
+                <?php // Registered address, main factory and office, each under its own label; they link to the contact page's map. ?>
+                <ul class="mt-5 grid gap-4 md:grid-cols-3 md:gap-6 xl:grid-cols-1 xl:gap-4">
+                    <?php foreach (boblift_company_addresses() as $row) : ?>
+                        <li><a class="flex min-w-0 items-start gap-3 text-sm font-medium leading-6 text-slate-600 transition hover:text-blue-700 md:text-[15px]" href="<?php echo esc_url(boblift_url('/contact') . '#map'); ?>"><?php echo boblift_icon('map-pin', 'mt-1 h-4 w-4 shrink-0 text-slate-400', '1.9'); ?><span class="min-w-0 break-words"><span class="block text-xs font-black uppercase tracking-[0.12em] text-slate-400"><?php echo esc_html($row['label']); ?></span><?php echo esc_html($row['address']); ?></span></a></li>
                     <?php endforeach; ?>
                 </ul>
             </div>
@@ -137,7 +143,14 @@ $footer_link_groups = array_map(static function (array $group): array {
         <?php
         // The year follows the calendar: a saved "© 2026" or a {year} placeholder shows the current year, and a range
         // ("© 2003–2026") keeps its start year and updates only the end.
-        $copyright = (string) ($footer['copyright'] ?? '© {year} BOB-LIFT. All Rights Reserved.');
+        // The old default, "© 2026 BOB-LIFT. All Rights Reserved." exactly as saved in each language, gives way to the line
+        // with the company's full name; any other saved text, including one that only starts the same way, is kept.
+        $copyright = trim((string) ($footer['copyright'] ?? ''));
+        $legacy_rights = ['All Rights Reserved.', '無断転載を禁じます。', '保留所有权利。', 'Todos los derechos reservados.', 'Все права защищены.', 'Tous droits réservés.', 'جميع الحقوق محفوظة.'];
+        $legacy_copyright = '/^©\s*(?:19|20)\d{2}\s*BOB-LIFT\s*[.。]\s*(?:' . implode('|', array_map(static fn(string $text): string => preg_quote($text, '/'), $legacy_rights)) . ')$/iu';
+        if ($copyright === '' || preg_match($legacy_copyright, $copyright)) {
+            $copyright = boblift_localized_static_text('© {year} ' . BOBLIFT_COMPANY_LEGAL_NAME . ' All rights reserved.');
+        }
         $copyright = str_replace('{year}', wp_date('Y'), $copyright);
         $copyright = (string) preg_replace('/(©\s*(?:19|20)\d{2}\s*[-–—]\s*)(?:19|20)\d{2}/u', '${1}' . wp_date('Y'), $copyright);
         $copyright = (string) preg_replace('/(©\s*)(?:19|20)\d{2}(?!\s*[-–—]\s*(?:19|20)\d{2})/u', '${1}' . wp_date('Y'), $copyright);
@@ -146,9 +159,10 @@ $footer_link_groups = array_map(static function (array $group): array {
         $network_links = array_values(array_filter((array) ($network_ui['sites'] ?? []), static fn($site): bool => is_array($site) && empty($site['current']) && trim((string) ($site['url'] ?? '')) !== ''));
         ?>
         <div class="flex flex-col gap-3 border-t border-line py-6 text-sm font-normal leading-6 text-slate-500 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
-            <div class="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3">
-                <span><?php echo esc_html($copyright); ?></span>
-                <span class="hidden text-slate-300 sm:inline" aria-hidden="true">·</span>
+            <?php // The copyright line carries the full company name, so the group note always goes on the line below it. ?>
+            <div class="flex flex-col gap-1">
+                <?php // The Latin company name keeps its own direction inside Arabic text, so its full stop stays at the end. ?>
+                <span><?php echo str_replace(esc_html(BOBLIFT_COMPANY_LEGAL_NAME), '<bdi dir="ltr">' . esc_html(BOBLIFT_COMPANY_LEGAL_NAME) . '</bdi>', esc_html($copyright)); ?></span>
                 <span class="flex flex-wrap items-center gap-x-3 gap-y-1"><span><?php echo esc_html((string) ($network_ui['footerNote'] ?? 'Lifting equipment site of the BOB-LIFT Group')); ?></span><?php foreach ($network_links as $site) : ?><a class="inline-flex items-center gap-1 text-navy transition hover:text-blue-700" href="<?php echo esc_url((string) $site['url']); ?>" target="_blank" rel="noopener" title="<?php echo esc_attr((string) $site['label']); ?>"><?php echo esc_html((string) ($site['domain'] ?? '')); ?><?php echo boblift_icon('arrow-up-right', 'h-3.5 w-3.5 text-slate-400'); ?></a><?php endforeach; ?></span>
             </div>
             <span class="flex flex-wrap gap-x-6 gap-y-2 lg:pe-24"><?php foreach ($footer['legal_links'] ?? [] as $link) : ?><a class="hover:text-blue-700" href="<?php echo esc_url(boblift_url($link['href'])); ?>"><?php echo esc_html($link['label']); ?></a><?php endforeach; ?></span>

@@ -38,6 +38,8 @@ function boblift_default_options(): array
         'static_text' => function_exists('boblift_static_text_defaults') ? boblift_static_text_defaults() : [],
         'floating_contact_buttons' => boblift_floating_contact_button_defaults(),
         'form_security' => boblift_form_security_defaults(),
+        // The main factory and office addresses (the registered one is contact.address, saved with the site's settings).
+        'contact' => ['factory_address' => 'S324 Provincial Road, Zhangji Town, Tongshan District, Xuzhou, Jiangsu, China', 'office_address' => '13F, Building A, Yongjia New Town Center, Yunlong District, Xuzhou, Jiangsu, China'],
     ], boblift_seed('settings', []));
 }
 
@@ -358,7 +360,7 @@ function boblift_privacy_policy_page_defaults(): array
             ['title' => 'International transfers', 'text' => 'BOB-LIFT is based in Xuzhou, China. Information you submit is handled by our team in China and may be processed by the service providers named above in other countries. We only transfer what is needed to answer your request.'],
             ['title' => 'Your choices', 'text' => 'You may contact BOB-LIFT to request access, correction or deletion of your inquiry information, subject to applicable business, legal and technical limitations.' . "\n\n" . 'If you are in the European Union, the United Kingdom or another region with data protection laws, you may also object to or ask us to limit how we use your information. We aim to reply to every request within 30 days.'],
             ['title' => 'Changes to this policy', 'text' => 'We may update this policy when our website or services change. The date at the top of this page shows when it was last updated.'],
-            ['title' => 'Contact', 'text' => 'For privacy questions, contact us at info@bobliftcrane.com or through the contact page on this website.'],
+            ['title' => 'Contact', 'text' => 'For privacy questions, contact us at info@boblift.com or through the contact page on this website.'],
         ],
     ];
 }
@@ -870,6 +872,32 @@ function boblift_option(string $path, mixed $default = null): mixed
         $value = $value[$segment];
     }
     return $value;
+}
+
+/** The company's registered name, as on the loader site and in the footer copyright line. */
+const BOBLIFT_COMPANY_LEGAL_NAME = 'Xuzhou BOB-LIFT Construction Machinery Co., Ltd.';
+
+/**
+ * The company's three addresses (registered address, main factory, office) with localized labels, as given on the
+ * loader site. contact.address is the registered one; an address saved empty is left out.
+ */
+function boblift_company_addresses(): array
+{
+    $contact = boblift_option('contact', []);
+    $contact = is_array($contact) ? $contact : [];
+    $rows = [
+        ['Registered address', $contact['address'] ?? 'No. 79, Zone B, Jinluotuo Industrial Park, Yunlong District, Xuzhou, Jiangsu, China'],
+        ['Main factory', $contact['factory_address'] ?? ''],
+        ['Office', $contact['office_address'] ?? ''],
+    ];
+    $addresses = [];
+    foreach ($rows as [$label, $address]) {
+        if (trim((string) $address) !== '') {
+            // The built-in English addresses have official Chinese wording for /zh/ and /ja/ (inc/translations/footer-company.php).
+            $addresses[] = ['label' => boblift_localized_static_text($label), 'address' => boblift_localized_static_text(trim((string) $address))];
+        }
+    }
+    return $addresses;
 }
 
 function boblift_array_replace_recursive(array $base, array $replacements): array

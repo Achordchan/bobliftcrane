@@ -2283,7 +2283,7 @@ function boblift_global_settings_page(): void
         <?php boblift_admin_input('branding.logo_height', $options, 'Logo 高度'); ?>
     <?php boblift_admin_settings_panel_end(); ?>
     <?php boblift_admin_settings_panel_start('联系方式', '对应 Header 二级菜单、Footer 联系区、悬浮联系按钮和询盘入口。'); ?>
-        <?php foreach ([['contact.email','销售邮箱'],['contact.phone','电话'],['contact.landline','座机（联系页显示，可留空）'],['contact.whatsapp','WhatsApp'],['contact.telegram','Telegram 号码 / 用户名'],['contact.address','地址'],['contact.phone_href','电话链接'],['contact.wechat_id','微信号']] as [$path, $label]) : ?>
+        <?php foreach ([['contact.email','销售邮箱'],['contact.phone','电话'],['contact.landline','座机（联系页显示，可留空）'],['contact.whatsapp','WhatsApp'],['contact.telegram','Telegram 号码 / 用户名'],['contact.address','注册地址'],['contact.factory_address','主厂区地址'],['contact.office_address','办公地址'],['contact.phone_href','电话链接'],['contact.wechat_id','微信号']] as [$path, $label]) : ?>
             <?php boblift_admin_input($path, $options, $label); ?>
         <?php endforeach; ?>
         <?php boblift_admin_link_input('contact.contact_path', $options, 'Contact 页面链接'); ?>
