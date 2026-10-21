@@ -143,10 +143,12 @@ $footer_link_groups = array_map(static function (array $group): array {
         <?php
         // The year follows the calendar: a saved "© 2026" or a {year} placeholder shows the current year, and a range
         // ("© 2003–2026") keeps its start year and updates only the end.
-        // The old "© 2026 BOB-LIFT. All Rights Reserved." default, saved in every language, gives way to the line with the
-        // company's full name; any other saved text is kept.
+        // The old default, "© 2026 BOB-LIFT. All Rights Reserved." exactly as saved in each language, gives way to the line
+        // with the company's full name; any other saved text, including one that only starts the same way, is kept.
         $copyright = trim((string) ($footer['copyright'] ?? ''));
-        if ($copyright === '' || preg_match('/^©\s*(?:19|20)\d{2}\s*BOB-LIFT\s*[.。]/u', $copyright)) {
+        $legacy_rights = ['All Rights Reserved.', '無断転載を禁じます。', '保留所有权利。', 'Todos los derechos reservados.', 'Все права защищены.', 'Tous droits réservés.', 'جميع الحقوق محفوظة.'];
+        $legacy_copyright = '/^©\s*(?:19|20)\d{2}\s*BOB-LIFT\s*[.。]\s*(?:' . implode('|', array_map(static fn(string $text): string => preg_quote($text, '/'), $legacy_rights)) . ')$/iu';
+        if ($copyright === '' || preg_match($legacy_copyright, $copyright)) {
             $copyright = boblift_localized_static_text('© {year} ' . BOBLIFT_COMPANY_LEGAL_NAME . ' All rights reserved.');
         }
         $copyright = str_replace('{year}', wp_date('Y'), $copyright);
