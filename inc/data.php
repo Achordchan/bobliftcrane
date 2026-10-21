@@ -38,6 +38,8 @@ function boblift_default_options(): array
         'static_text' => function_exists('boblift_static_text_defaults') ? boblift_static_text_defaults() : [],
         'floating_contact_buttons' => boblift_floating_contact_button_defaults(),
         'form_security' => boblift_form_security_defaults(),
+        // The main factory and office addresses (the registered one is contact.address, saved with the site's settings).
+        'contact' => ['factory_address' => 'S324 Provincial Road, Zhangji Town, Tongshan District, Xuzhou, Jiangsu, China', 'office_address' => '13F, Building A, Yongjia New Town Center, Yunlong District, Xuzhou, Jiangsu, China'],
     ], boblift_seed('settings', []));
 }
 
@@ -885,8 +887,8 @@ function boblift_company_addresses(): array
     $contact = is_array($contact) ? $contact : [];
     $rows = [
         ['Registered address', $contact['address'] ?? 'No. 79, Zone B, Jinluotuo Industrial Park, Yunlong District, Xuzhou, Jiangsu, China'],
-        ['Main factory', $contact['factory_address'] ?? 'S324 Provincial Road, Zhangji Town, Tongshan District, Xuzhou, Jiangsu, China'],
-        ['Office', $contact['office_address'] ?? '13F, Building A, Yongjia New Town Center, Yunlong District, Xuzhou, Jiangsu, China'],
+        ['Main factory', $contact['factory_address'] ?? ''],
+        ['Office', $contact['office_address'] ?? ''],
     ];
     $addresses = [];
     foreach ($rows as [$label, $address]) {
