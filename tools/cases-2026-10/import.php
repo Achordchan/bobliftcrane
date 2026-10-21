@@ -15,7 +15,8 @@ foreach ($cases as $case) {
         } elseif (isset($link['brochure'])) {
             $url = wp_make_link_relative(boblift_asset('downloads/' . ['truck' => 'bob-lift-truck-mounted-cranes-2026.pdf', 'marine' => 'bob-lift-marine-cranes-2026.pdf'][$link['brochure']]));
         } else {
-            $url = $link['url'];
+            // Site-relative paths go through home_url() so a subdirectory install keeps its base path.
+            $url = str_starts_with($link['url'], '/') ? home_url($link['url']) : $link['url'];
         }
         $links .= '<li><a href="' . esc_url($url) . '">' . esc_html($link['label']) . '</a></li>';
     }
