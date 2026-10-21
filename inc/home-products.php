@@ -375,7 +375,8 @@ function boblift_home_product_card_image(array $product): string
     foreach ((array) ($product['gallery'] ?? []) as $item) {
         $src = is_array($item) ? (string) ($item['image'] ?? '') : (string) $item;
         if ($src !== '' && preg_match('/-cutout\.png$/i', (string) strtok($src, '?'))) {
-            return $src;
+            // A theme-relative path ("images/products/x-cutout.png") resolves to the theme's assets; full and root-relative URLs stay.
+            return str_starts_with($src, '/') ? $src : boblift_image_src($src);
         }
     }
     return $main;

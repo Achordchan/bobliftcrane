@@ -92,8 +92,9 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
     </div>
 </section>
 
+<?php // Tablets and small laptops stack the heading over the marks; the two sit side by side once both fit (xl). ?>
 <section class="page-shell py-5 md:py-8" aria-label="<?php echo esc_attr($home_ui['qualityCertificationsLabel'] ?? 'Quality certifications'); ?>">
-    <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between md:gap-10">
+    <div class="flex flex-col gap-2 md:gap-5 xl:flex-row xl:items-center xl:justify-between xl:gap-10">
         <div class="shrink-0">
             <?php // Phones skip the heading lines: the figures and the marks carry the section on their own. ?>
             <div class="hidden md:block">
@@ -107,7 +108,7 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
                 </p>
             <?php endif; ?>
         </div>
-        <ul class="grid grid-cols-4 gap-2 md:flex md:items-center md:gap-10 lg:gap-14">
+        <ul class="grid grid-cols-4 gap-2 md:flex md:flex-wrap md:items-center md:gap-x-10 md:gap-y-4 xl:flex-nowrap xl:gap-x-8 2xl:gap-x-14">
             <?php foreach (($trust['marks'] ?? []) as $mark) :
                 $mark_name = function_exists('boblift_localized_static_text') ? boblift_localized_static_text((string) ($mark['name'] ?? '')) : (string) ($mark['name'] ?? '');
             ?>
