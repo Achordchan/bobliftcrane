@@ -450,6 +450,10 @@ function boblift_render_inquiry_extra_fields(array $ui): void
                 boblift_render_inquiry_extra_input('preferred_delivery', boblift_inquiry_extra_field_label($ui, 'preferred_delivery', 'Preferred delivery time'));
                 boblift_render_inquiry_extra_select($ui, 'contact_method', boblift_inquiry_extra_field_label($ui, 'contact_method', 'How would you like us to contact you?'), $option_list('contact_method', ['WhatsApp', 'Email', 'Either']));
                 boblift_render_inquiry_extra_input('preferred_contact_time', boblift_inquiry_extra_field_label($ui, 'preferred_contact_time', 'Preferred contact time'));
+                // The cell beside the last short field tells buyers all of this is optional.
+                ?>
+                <p class="self-end text-sm font-bold leading-6 text-slate-500 md:pb-2.5"><?php echo esc_html(boblift_localized_static_text('Additional details are optional — you can send your inquiry without them.')); ?></p>
+                <?php
                 ?>
                 <label class="block md:col-span-2">
                     <span class="mb-2 block text-[11px] font-black uppercase tracking-[0.12em] text-slate-500"><?php echo esc_html(boblift_inquiry_extra_field_label($ui, 'other_requirements', 'Other requirements')); ?></span>

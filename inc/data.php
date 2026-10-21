@@ -1507,6 +1507,12 @@ function boblift_capacity_position(float $value, array $scale): float
     return $span > 0 ? max(0.0, min(100.0, (log($value) - log($scale['lo'])) / $span * 100)) : 0.0;
 }
 
+/** A Chinese mobile number shown in groups, "+86 158 5249 9415"; any other number is shown as saved. Links keep the digits. */
+function boblift_phone_display(string $phone): string
+{
+    return preg_match('/^\+86\s?(\d{3})\s?(\d{4})\s?(\d{4})$/', trim($phone), $m) ? '+86 ' . $m[1] . ' ' . $m[2] . ' ' . $m[3] : $phone;
+}
+
 /** "0.8", "5", "12.5": a tonnage without trailing zeros. */
 function boblift_tonnes_label(float $value): string
 {
@@ -1541,9 +1547,10 @@ function boblift_footer_is_product_group(array $group): bool
     if ($links === []) {
         return false;
     }
-    // Only the complete historical default counts: the original seven links with their original labels, in their original
-    // order. A group an administrator edited (relabelled, reordered, other links) is left as saved. Both historical URL
-    // forms count: `/products#slug` and the root-relative `/slug` shipped in seed-data.json.
+    // Only the complete historical default counts: the original seven links in their original order. The labels are not
+    // compared, since every translated language saved its own wording of them. A group an administrator changed (other
+    // or reordered links) is left as saved. Both historical URL forms count: `/products#slug` and the root-relative
+    // `/slug` shipped in seed-data.json.
     $historical = [
         ['Telescopic Boom Truck Mounted Cranes', 'telescopic-boom-truck-mounted-cranes'],
         ['Knuckle Boom Truck Mounted Cranes', 'knuckle-boom-truck-mounted-cranes'],
@@ -1558,7 +1565,7 @@ function boblift_footer_is_product_group(array $group): bool
     }
     foreach (array_values($links) as $index => $link) {
         if (!is_array($link) || !preg_match('~^/?(?:products(?:\.html)?#)?([a-z0-9-]+)/?$~', trim((string) ($link['href'] ?? '')), $m)
-            || $m[1] !== $historical[$index][1] || trim((string) ($link['label'] ?? '')) !== $historical[$index][0]) {
+            || $m[1] !== $historical[$index][1]) {
             return false;
         }
     }

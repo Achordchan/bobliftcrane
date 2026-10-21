@@ -1862,13 +1862,14 @@
     const removeLabelTemplate = quoteFormText('selectedProductRemoveLabelTemplate', quoteListText('removeLabelTemplate', 'Remove {product} from Quote List'));
     inquiryModalSelectedProducts.forEach((item, index) => {
       const row = document.createElement('article');
-      row.className = 'group relative grid min-h-[68px] shrink-0 grid-cols-[46px_minmax(0,1fr)] gap-3 rounded border border-line bg-white p-2.5 shadow-card transition hover:border-blue-200 hover:bg-white';
+      // The remove button has a column of its own, so a long product name wraps beside it instead of running under it.
+      row.className = 'group relative grid min-h-[68px] shrink-0 grid-cols-[46px_minmax(0,1fr)_36px] items-center gap-3 rounded border border-line bg-white p-2.5 shadow-card transition hover:border-blue-200 hover:bg-white';
       row.innerHTML = `
         <div class="h-[46px] w-[46px] overflow-hidden rounded-sm bg-[#eef2f7]">${item.image ? `<img class="h-full w-full object-contain p-1" src="${escapeInquiryText(item.image)}" alt="${escapeInquiryText(item.title)}" loading="lazy" decoding="async">` : ''}</div>
         <div class="min-w-0 self-center">
           <h3 class="line-clamp-2 text-xs font-black leading-4 text-ink">${escapeInquiryText(item.title)}</h3>
         </div>
-        <button class="absolute end-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-sm border border-line bg-white/95 text-slate-500 opacity-100 shadow-card backdrop-blur transition hover:border-red-100 hover:bg-red-50 hover:text-red-600 focus:opacity-100 focus:outline-none focus:ring-4 focus:ring-red-100 md:opacity-0 md:group-hover:opacity-100" type="button" data-inquiry-product-remove="${index}" aria-label="${escapeInquiryText(removeLabelTemplate.replace('{product}', item.title || ''))}">
+        <button class="grid h-9 w-9 place-items-center rounded-sm border border-line bg-white text-slate-500 opacity-100 transition hover:border-red-100 hover:bg-red-50 hover:text-red-600 focus:opacity-100 focus:outline-none focus:ring-4 focus:ring-red-100 md:opacity-0 md:group-hover:opacity-100" type="button" data-inquiry-product-remove="${index}" aria-label="${escapeInquiryText(removeLabelTemplate.replace('{product}', item.title || ''))}">
           <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </button>
       `;
@@ -2788,6 +2789,19 @@
     }));
   });
 
+  // Footer on phones: the link groups start folded behind their titles (they ship open, so they show without script).
+  const footerPhone = window.matchMedia('(max-width: 767px)');
+  const syncFooterGroups = () => qsa('[data-footer-group]').forEach((group) => group.toggleAttribute('open', !footerPhone.matches));
+  syncFooterGroups();
+  footerPhone.addEventListener('change', syncFooterGroups);
+
+  // Footer on phones: the button shows the company's other addresses and then goes away.
+  qsa('[data-footer-more-addresses]').forEach((button) => button.addEventListener('click', () => {
+    qsa('[data-footer-more-address]', button.parentElement).forEach((item) => item.classList.remove('hidden'));
+    button.setAttribute('aria-expanded', 'true');
+    button.hidden = true;
+  }));
+
   // Social shorts play one at a time.
   const socialVideos = qsa('[data-social-video]');
   socialVideos.forEach((video) => video.addEventListener('play', () => {
@@ -2809,10 +2823,44 @@
       if (next) next.disabled = offset >= max - 2;
     };
     const setTab = (index) => {
-      tabs.forEach((tab, current) => tab.setAttribute('aria-pressed', String(current === index)));
+      tabs.forEach((tab, current) => {
+        tab.setAttribute('aria-selected', String(current === index));
+        tab.tabIndex = current === index ? 0 : -1;
+      });
       grids.forEach((panel, current) => panel.classList.toggle('hidden', current !== index));
     };
-    tabs.forEach((tab) => tab.addEventListener('click', () => setTab(Number(tab.dataset.productCategoryTab || 0))));
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => setTab(Number(tab.dataset.productCategoryTab || 0)));
+      // Arrow keys move along the row (mirrored in right-to-left pages), Home and End jump to its ends.
+      tab.addEventListener('keydown', (event) => {
+        const step = scrollDirection();
+        const targets = { ArrowRight: i + step, ArrowLeft: i - step, Home: 0, End: tabs.length - 1 };
+        if (!(event.key in targets)) return;
+        event.preventDefault();
+        const target = (targets[event.key] + tabs.length) % tabs.length;
+        setTab(target);
+        tabs[target].focus();
+      });
+    });
+    // Each family's models scroll in one row; the arrows page through it and switch off at either end.
+    qsa('[data-product-carousel]', root).forEach((carousel) => {
+      const row = qs('[data-product-row]', carousel);
+      const back = qs('[data-product-row-scroll="prev"]', carousel);
+      const forward = qs('[data-product-row-scroll="next"]', carousel);
+      if (!row || (!back && !forward)) return;
+      const direction = () => (getComputedStyle(row).direction === 'rtl' ? -1 : 1);
+      const update = () => {
+        const offset = Math.abs(row.scrollLeft);
+        const max = row.scrollWidth - row.clientWidth;
+        if (back) back.disabled = offset <= 2;
+        if (forward) forward.disabled = offset >= max - 2;
+      };
+      back?.addEventListener('click', () => row.scrollBy({ left: -direction() * row.clientWidth, behavior: 'smooth' }));
+      forward?.addEventListener('click', () => row.scrollBy({ left: direction() * row.clientWidth, behavior: 'smooth' }));
+      row.addEventListener('scroll', update, { passive: true });
+      if ('ResizeObserver' in window) new ResizeObserver(update).observe(row);
+      update();
+    });
     previous?.addEventListener('click', () => scroller?.scrollBy({ left: -scrollDirection() * Math.min(scroller.clientWidth * 0.72, 620), behavior: 'smooth' }));
     next?.addEventListener('click', () => scroller?.scrollBy({ left: scrollDirection() * Math.min(scroller.clientWidth * 0.72, 620), behavior: 'smooth' }));
     scroller?.addEventListener('scroll', updateScrollButtons, { passive: true });

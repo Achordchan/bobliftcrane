@@ -17,10 +17,10 @@ foreach ((array) ($ui['guides'] ?? []) as $guide) {
     }
 }
 $channels = array_values(array_filter([
-    ['icon' => 'whatsapp', 'label' => (string) ($ui['whatsappLabel'] ?? 'WhatsApp'), 'value' => (string) ($contact['whatsapp'] ?? ''), 'href' => (string) ($contact['whatsappHref'] ?? ''), 'external' => true],
+    ['icon' => 'whatsapp', 'label' => (string) ($ui['whatsappLabel'] ?? 'WhatsApp'), 'value' => boblift_phone_display((string) ($contact['whatsapp'] ?? '')), 'href' => (string) ($contact['whatsappHref'] ?? ''), 'external' => true],
     ['icon' => 'message-circle', 'label' => (string) ($ui['wechatLabel'] ?? 'WeChat'), 'value' => (string) ($contact['wechatId'] ?? ''), 'href' => '', 'external' => false],
     ['icon' => 'mail', 'label' => (string) ($ui['emailLabel'] ?? 'Email'), 'value' => (string) ($contact['email'] ?? ''), 'href' => !empty($contact['email']) ? 'mailto:' . $contact['email'] : '', 'external' => false],
-    ['icon' => 'phone', 'label' => (string) ($ui['phoneLabel'] ?? 'Phone'), 'value' => (string) ($contact['phone'] ?? ''), 'href' => (string) ($contact['phoneHref'] ?? ''), 'external' => false],
+    ['icon' => 'phone', 'label' => (string) ($ui['phoneLabel'] ?? 'Phone'), 'value' => boblift_phone_display((string) ($contact['phone'] ?? '')), 'href' => (string) ($contact['phoneHref'] ?? ''), 'external' => false],
 ], static fn(array $channel): bool => trim($channel['value']) !== ''));
 ?>
 <div class="page-shell pt-5 md:pt-8">

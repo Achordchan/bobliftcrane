@@ -73,71 +73,73 @@ $footer_link_groups = array_map(static function (array $group): array {
         $group['links'] = array_map(static fn(array $family): array => ['label' => $family['title'], 'url' => $family['url']], boblift_product_menu_families());
         return $group;
     }
-    // Saved company links predate the factory, testing and video pages; list them after About.
-    $links = array_values(array_filter((array) ($group['links'] ?? []), 'is_array'));
-    $paths = array_map(static fn(array $link): string => preg_replace('/\.html$/', '', trim((string) wp_parse_url((string) ($link['href'] ?? ''), PHP_URL_PATH), '/')), $links);
-    $about_at = array_search('about', $paths, true);
-    // Only the untouched historical company group (About, Cases, News, Contact with their default labels) gets the new pages;
-    // a group an administrator edited keeps exactly the links they saved.
-    $labels = array_map(static fn(array $link): string => trim((string) ($link['label'] ?? '')), $links);
-    $is_default_company_group = $paths === ['about', 'cases', 'news', 'contact'] && $labels === ['About BOB-LIFT', 'Customer Cases', 'Company News', 'Contact Us'];
-    if ($about_at !== false && $is_default_company_group) {
-        $extra = [];
-        foreach (['factory-tour', 'quality-testing', 'mounting-shipping', 'service', 'videos'] as $slug) {
-            $page = in_array($slug, $paths, true) ? null : boblift_find_page_by_slug($slug);
-            if ($page instanceof WP_Post && $page->post_status === 'publish') {
-                $localized = function_exists('boblift_post_for_current_language') ? boblift_post_for_current_language($page) : $page;
-                $extra[] = ['label' => get_the_title($localized), 'url' => get_permalink($localized)];
-            }
-        }
-        array_splice($links, $about_at + 1, 0, $extra);
-        $group['links'] = $links;
-    }
     return $group;
 }, array_values(array_filter(is_array($footer['groups'] ?? null) ? $footer['groups'] : [], 'is_array')));
+// The service and factory pages make a third column, titled and linked from each page in the visitor's language.
+// A page an administrator already put in a saved group is not listed twice.
+$saved_paths = [];
+foreach ($footer_link_groups as $group) {
+    foreach ((array) ($group['links'] ?? []) as $link) {
+        $saved_paths[] = preg_replace('/\.html$/', '', trim((string) wp_parse_url((string) ($link['href'] ?? $link['url'] ?? ''), PHP_URL_PATH), '/'));
+    }
+}
+$service_links = [];
+foreach (['mounting-shipping', 'service', 'quality-testing', 'factory-tour', 'global-customer-visits', 'why-choose-us', 'videos'] as $slug) {
+    $page = in_array($slug, $saved_paths, true) ? null : boblift_find_page_by_slug($slug);
+    if ($page instanceof WP_Post && $page->post_status === 'publish') {
+        $localized = function_exists('boblift_post_for_current_language') ? boblift_post_for_current_language($page) : $page;
+        $service_links[] = ['label' => get_the_title($localized), 'url' => get_permalink($localized)];
+    }
+}
+if ($service_links !== []) {
+    $footer_link_groups[] = ['title' => boblift_localized_static_text('Services & Support'), 'links' => $service_links];
+}
 ?>
 <footer class="border-t border-line bg-mist pb-[calc(76px+env(safe-area-inset-bottom))] pt-0 lg:pb-0">
     <div class="page-shell max-w-[2200px]">
-        <div class="grid grid-cols-1 gap-0 py-10 md:grid-cols-[0.92fr_1.08fr] md:gap-y-10 md:py-14 xl:grid-cols-[minmax(300px,0.95fr)_minmax(0,1.65fr)_minmax(340px,0.95fr)] xl:gap-y-0 xl:py-16 2xl:grid-cols-[minmax(360px,0.9fr)_minmax(0,1.75fr)_minmax(390px,0.95fr)] 2xl:py-20">
-            <div class="border-b border-line pb-8 md:border-b-0 md:pe-9 xl:pe-12 2xl:pe-16">
-                <a href="<?php echo esc_url(home_url('/')); ?>"><?php echo boblift_img_from_setting($branding['logo'] ?? 'images/bob-lift-logo.png', 'images/bob-lift-logo.png', $branding['logo_alt'] ?? 'BOB-LIFT', 'h-[52px] w-auto 2xl:h-[64px]'); ?></a>
-                <p class="mt-6 max-w-[34rem] text-sm font-medium leading-6 text-slate-500 md:max-w-[360px] md:text-base md:leading-7 2xl:max-w-[440px]"><?php echo esc_html($footer['intro'] ?? 'Engineered lifting solutions for global projects. Built to lift. Built to last.'); ?></p>
+        <div class="grid grid-cols-1 gap-0 py-8 md:grid-cols-[0.92fr_1.08fr] md:gap-y-10 md:py-14 xl:grid-cols-[minmax(300px,0.95fr)_minmax(0,1.65fr)_minmax(340px,0.95fr)] xl:gap-y-0 xl:py-16 2xl:grid-cols-[minmax(360px,0.9fr)_minmax(0,1.75fr)_minmax(390px,0.95fr)] 2xl:py-20">
+            <div class="border-b border-line pb-5 md:border-b-0 md:pe-9 xl:pe-12 2xl:pe-16">
+                <a href="<?php echo esc_url(home_url('/')); ?>"><?php echo boblift_img_from_setting($branding['logo'] ?? 'images/bob-lift-logo.png', 'images/bob-lift-logo.png', $branding['logo_alt'] ?? 'BOB-LIFT', 'h-10 w-auto md:h-[52px] 2xl:h-[64px]'); ?></a>
+                <p class="mt-3 max-w-[34rem] text-sm font-medium leading-6 text-slate-500 md:mt-6 md:max-w-[360px] md:text-base md:leading-7 2xl:max-w-[440px]"><?php echo esc_html($footer['intro'] ?? 'Engineered lifting solutions for global projects. Built to lift. Built to last.'); ?></p>
                 <?php if ($footer_social_links !== []) : ?>
-                    <div class="mt-6 flex flex-wrap items-center gap-4">
+                    <div class="mt-4 flex flex-wrap items-center gap-2 md:mt-6">
                         <?php foreach ($footer_social_links as $link) :
                             $social_label = (string) ($link['label'] ?? '');
                             $social_icon = 'images/social-icons/' . sanitize_key(str_replace(' ', '', strtolower($social_label))) . '.svg';
                         ?>
-                            <a class="grid h-6 w-6 place-items-center text-slate-400 transition hover:text-navy" href="<?php echo esc_url((string) $link['href']); ?>" target="_blank" rel="noreferrer" aria-label="<?php echo esc_attr($social_label); ?>">
+                            <a class="grid h-10 w-10 place-items-center rounded-sm border border-line bg-white text-slate-500 transition hover:border-blue-300 hover:text-navy" href="<?php echo esc_url((string) $link['href']); ?>" target="_blank" rel="noopener noreferrer" aria-label="<?php echo esc_attr(str_replace('{platform}', $social_label, boblift_localized_static_text('BOB-LIFT on {platform} (opens in a new tab)'))); ?>">
                                 <?php if (is_readable(boblift_asset_path($social_icon))) : ?><span class="h-5 w-5 bg-current [mask-position:center] [mask-repeat:no-repeat] [mask-size:contain]" style="-webkit-mask-image: url('<?php echo esc_url(boblift_asset($social_icon)); ?>'); mask-image: url('<?php echo esc_url(boblift_asset($social_icon)); ?>');"></span><?php else : ?><span class="text-xs font-black uppercase"><?php echo esc_html(substr($social_label, 0, 2)); ?></span><?php endif; ?>
                             </a>
                         <?php endforeach; ?>
                     </div>
                 <?php endif; ?>
             </div>
-            <div class="grid grid-cols-2 gap-x-6 border-b border-line py-8 md:border-b-0 md:border-s md:py-0 md:ps-8 xl:ps-0 2xl:gap-x-10">
+            <div class="grid grid-cols-1 divide-y divide-line border-b border-line md:grid-cols-2 md:gap-x-6 md:gap-y-5 md:divide-y-0 md:border-b-0 <?php echo count($footer_link_groups) > 2 ? 'xl:grid-cols-3' : ''; ?> md:border-s md:py-0 md:ps-8 xl:ps-0 2xl:gap-x-10">
                 <?php foreach ($footer_link_groups as $group) : ?>
-                    <div class="min-w-0 md:pe-8 xl:ps-12 2xl:ps-16">
-                        <h3 class="mb-4 text-sm font-black uppercase tracking-[0.14em] text-navy md:mb-5"><?php echo esc_html((string) ($group['title'] ?? '')); ?></h3>
-                        <ul class="grid gap-2 md:gap-3">
-                            <?php foreach (($group['links'] ?? []) as $link) : ?><li><a class="text-sm font-medium leading-6 text-slate-500 transition hover:text-blue-700 md:text-[15px]" href="<?php echo esc_url(isset($link['url']) ? (string) $link['url'] : boblift_product_nav_url((string) ($link['href'] ?? '/'), (string) ($link['label'] ?? ''))); ?>"><?php echo esc_html((string) ($link['label'] ?? '')); ?></a></li><?php endforeach; ?>
+                    <?php // Phones fold each group behind its title (theme.js closes them there); wider screens keep them open. ?>
+                    <details class="group/footer min-w-0 md:pe-8 xl:ps-12 2xl:ps-16" open data-footer-group>
+                        <summary class="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 md:pointer-events-none md:mb-5 md:min-h-0 md:cursor-auto [&::-webkit-details-marker]:hidden"><h3 class="text-sm font-black uppercase tracking-[0.14em] text-navy"><?php echo esc_html((string) ($group['title'] ?? '')); ?></h3><?php echo boblift_icon('chevron-down', 'h-4 w-4 shrink-0 text-slate-400 transition group-open/footer:rotate-180 md:hidden'); ?></summary>
+                        <ul class="grid pb-3 md:gap-3 md:pb-0">
+                            <?php foreach (($group['links'] ?? []) as $link) : ?><li><a class="inline-block py-2.5 text-sm font-medium leading-6 text-slate-500 transition hover:text-blue-700 md:py-0 md:text-[15px]" href="<?php echo esc_url(isset($link['url']) ? (string) $link['url'] : boblift_product_nav_url((string) ($link['href'] ?? '/'), (string) ($link['label'] ?? ''))); ?>"><?php echo esc_html((string) ($link['label'] ?? '')); ?></a></li><?php endforeach; ?>
                         </ul>
-                    </div>
+                    </details>
                 <?php endforeach; ?>
             </div>
-            <div class="pt-8 md:col-span-2 md:border-t md:border-line md:pt-10 xl:col-span-1 xl:border-s xl:border-t-0 xl:ps-12 xl:pt-0 2xl:ps-16">
-                <h3 class="mb-5 text-sm font-black uppercase tracking-[0.14em] text-navy"><?php echo esc_html($footer['contact_title'] ?? 'Contact Us'); ?></h3>
-                <ul class="grid gap-3 md:grid-cols-3 md:gap-x-6 xl:grid-cols-1 xl:gap-x-0">
-                    <?php foreach ([['phone', $phone, $phone_href], ['mail', $email, 'mailto:' . $email]] as $row) : ?>
-                        <li><a class="inline-flex min-w-0 items-start gap-3 text-sm font-medium leading-6 text-slate-600 transition hover:text-blue-700 md:text-[15px]" href="<?php echo esc_url($row[2]); ?>"><?php echo boblift_icon($row[0], 'mt-1 h-4 w-4 shrink-0 text-slate-400', '1.9'); ?><span class="min-w-0 break-words"><span dir="ltr"><?php echo esc_html($row[1]); ?></span></span></a></li>
+            <div class="pt-4 md:col-span-2 md:border-t md:border-line md:pt-10 xl:col-span-1 xl:border-s xl:border-t-0 xl:ps-12 xl:pt-0 2xl:ps-16">
+                <h3 class="mb-1 text-sm font-black uppercase tracking-[0.14em] text-navy md:mb-5"><?php echo esc_html($footer['contact_title'] ?? 'Contact Us'); ?></h3>
+                <ul class="grid md:grid-cols-3 md:gap-3 md:gap-x-6 xl:grid-cols-1 xl:gap-x-0">
+                    <?php foreach ([['phone', boblift_phone_display((string) $phone), $phone_href], ['mail', $email, 'mailto:' . $email]] as $row) : ?>
+                        <li><a class="inline-flex min-h-10 min-w-0 items-center gap-3 text-sm font-medium leading-6 text-slate-600 transition hover:text-blue-700 md:min-h-0 md:items-start md:text-[15px]" href="<?php echo esc_url($row[2]); ?>"><?php echo boblift_icon($row[0], 'mt-1 h-4 w-4 shrink-0 text-slate-400', '1.9'); ?><span class="min-w-0 break-words"><span dir="ltr"><?php echo esc_html($row[1]); ?></span></span></a></li>
                     <?php endforeach; ?>
                 </ul>
                 <?php // Registered address, main factory and office, each under its own label; they link to the contact page's map. ?>
-                <ul class="mt-5 grid gap-4 md:grid-cols-3 md:gap-6 xl:grid-cols-1 xl:gap-4">
-                    <?php foreach (boblift_company_addresses() as $row) : ?>
-                        <li><a class="flex min-w-0 items-start gap-3 text-sm font-medium leading-6 text-slate-600 transition hover:text-blue-700 md:text-[15px]" href="<?php echo esc_url(boblift_url('/contact') . '#map'); ?>"><?php echo boblift_icon('map-pin', 'mt-1 h-4 w-4 shrink-0 text-slate-400', '1.9'); ?><span class="min-w-0 break-words"><span class="block text-xs font-black uppercase tracking-[0.12em] text-slate-400"><?php echo esc_html($row['label']); ?></span><?php echo esc_html($row['address']); ?></span></a></li>
+                <?php $company_addresses = boblift_company_addresses(); ?>
+                <ul class="mt-1 grid gap-3 md:mt-5 md:grid-cols-3 md:gap-6 xl:grid-cols-1 xl:gap-4">
+                    <?php foreach ($company_addresses as $address_index => $row) : ?>
+                        <li<?php echo $address_index > 0 ? ' class="hidden md:block" data-footer-more-address' : ''; ?>><a class="flex min-w-0 items-start gap-3 text-sm font-medium leading-6 text-slate-600 transition hover:text-blue-700 md:text-[15px]" href="<?php echo esc_url(boblift_url('/contact') . '#map'); ?>"><?php echo boblift_icon('map-pin', 'mt-1 h-4 w-4 shrink-0 text-slate-400', '1.9'); ?><span class="min-w-0 break-words"><span class="block text-xs font-black uppercase tracking-[0.12em] text-slate-400"><?php echo esc_html($row['label']); ?></span><?php echo esc_html($row['address']); ?></span></a></li>
                     <?php endforeach; ?>
                 </ul>
+                <?php if (count($company_addresses) > 1) : ?><button class="inline-flex min-h-10 items-center gap-1.5 text-sm font-bold text-navy transition hover:text-blue-700 md:hidden" type="button" data-footer-more-addresses aria-expanded="false"><?php echo esc_html(str_replace('{count}', (string) count($company_addresses), boblift_localized_static_text('Show all {count} addresses'))); ?><?php echo boblift_icon('chevron-down', 'h-4 w-4'); ?></button><?php endif; ?>
             </div>
         </div>
         <?php
@@ -158,14 +160,14 @@ $footer_link_groups = array_map(static function (array $group): array {
         $network_ui = boblift_site_ui('siteSwitcher');
         $network_links = array_values(array_filter((array) ($network_ui['sites'] ?? []), static fn($site): bool => is_array($site) && empty($site['current']) && trim((string) ($site['url'] ?? '')) !== ''));
         ?>
-        <div class="flex flex-col gap-3 border-t border-line py-6 text-sm font-normal leading-6 text-slate-500 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
+        <div class="flex flex-col gap-3 border-t border-line py-5 text-[13px] font-normal leading-5 text-slate-500 lg:flex-row lg:items-center lg:justify-between lg:gap-6 lg:py-6 lg:text-sm lg:leading-6">
             <?php // The copyright line carries the full company name, so the group note always goes on the line below it. ?>
             <div class="flex flex-col gap-1">
                 <?php // The Latin company name keeps its own direction inside Arabic text, so its full stop stays at the end. ?>
-                <span><?php echo str_replace(esc_html(BOBLIFT_COMPANY_LEGAL_NAME), '<bdi dir="ltr">' . esc_html(BOBLIFT_COMPANY_LEGAL_NAME) . '</bdi>', esc_html($copyright)); ?></span>
-                <span class="flex flex-wrap items-center gap-x-3 gap-y-1"><span><?php echo esc_html((string) ($network_ui['footerNote'] ?? 'Lifting equipment site of the BOB-LIFT Group')); ?></span><?php foreach ($network_links as $site) : ?><a class="inline-flex items-center gap-1 text-navy transition hover:text-blue-700" href="<?php echo esc_url((string) $site['url']); ?>" target="_blank" rel="noopener" title="<?php echo esc_attr((string) $site['label']); ?>"><?php echo esc_html((string) ($site['domain'] ?? '')); ?><?php echo boblift_icon('arrow-up-right', 'h-3.5 w-3.5 text-slate-400'); ?></a><?php endforeach; ?></span>
+                <span class="[word-break:keep-all]"><?php echo str_replace(esc_html(BOBLIFT_COMPANY_LEGAL_NAME), '<bdi dir="ltr">' . esc_html(BOBLIFT_COMPANY_LEGAL_NAME) . '</bdi>', esc_html($copyright)); ?></span>
+                <span class="flex flex-wrap items-center gap-x-3 gap-y-1"><span class="basis-full lg:basis-auto"><?php echo esc_html((string) ($network_ui['footerNote'] ?? 'Lifting equipment site of the BOB-LIFT Group')); ?></span><?php foreach ($network_links as $site) : ?><a class="inline-flex items-center gap-1 text-navy transition hover:text-blue-700" href="<?php echo esc_url((string) $site['url']); ?>" target="_blank" rel="noopener" title="<?php echo esc_attr((string) $site['label']); ?>"><?php echo esc_html((string) ($site['domain'] ?? '')); ?><?php echo boblift_icon('arrow-up-right', 'h-3.5 w-3.5 text-slate-400'); ?></a><?php endforeach; ?></span>
             </div>
-            <span class="flex flex-wrap gap-x-6 gap-y-2 lg:pe-24"><?php foreach ($footer['legal_links'] ?? [] as $link) : ?><a class="hover:text-blue-700" href="<?php echo esc_url(boblift_url($link['href'])); ?>"><?php echo esc_html($link['label']); ?></a><?php endforeach; ?></span>
+            <span class="flex flex-wrap gap-x-3 gap-y-1 lg:gap-x-6 lg:pe-24 [&>a+a]:before:me-3 [&>a+a]:before:text-slate-300 [&>a+a]:before:content-['·'] lg:[&>a+a]:before:hidden"><?php foreach ($footer['legal_links'] ?? [] as $link) : ?><a class="inline-flex min-h-9 items-center hover:text-blue-700 lg:min-h-0" href="<?php echo esc_url(boblift_url($link['href'])); ?>"><?php echo esc_html($link['label']); ?></a><?php endforeach; ?></span>
         </div>
     </div>
 </footer>
