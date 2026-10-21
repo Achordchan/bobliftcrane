@@ -3983,9 +3983,8 @@
       if (!button || button.disabled) return;
       casesPage = Number(button.dataset.casesPage) || 1;
       applyCasesFilter();
-      const headerOffset = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--boblift-header-h')) || 0;
-      const top = root.getBoundingClientRect().top + window.scrollY - headerOffset - 16;
-      window.scrollTo({ top, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      // scrollIntoView honours html's scroll-padding-top (the fixed header height), so the controls land below the header.
+      root.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
     });
     resets.forEach((button) => {
       button.addEventListener('click', () => {

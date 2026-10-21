@@ -236,14 +236,16 @@ if (count($related_cards) < 3 && function_exists('boblift_feedback_items')) {
             $leftover = trim((string) preg_replace('#<h2>(.*?)</h2>\s*<ul>(.*?)</ul>#is', '', $content));
             foreach ($blocks as $block) {
                 $item_count = preg_match_all('#<li\b#i', $block[2]);
-                preg_match_all('#<li>\s*<a\s[^>]*?href="([^"]*)"([^>]*)>([^<]*)</a>\s*</li>#i', $block[2], $items, PREG_SET_ORDER);
+                // Only links the importer writes (href, optionally target="_blank" rel="noopener"); a link with any other
+                // attribute (id, download, ...) keeps the body in the prose renderer so its behaviour is not lost.
+                preg_match_all('#<li>\s*<a href="([^"]*)"( target="_blank" rel="noopener")?>([^<]*)</a>\s*</li>#i', $block[2], $items, PREG_SET_ORDER);
                 if ($leftover !== '' || $item_count === 0 || count($items) !== $item_count) {
                     $resource_blocks = [];
                     break;
                 }
                 $resource_blocks[] = [
                     'heading' => wp_strip_all_tags($block[1]),
-                    'links' => array_map(static fn(array $item): array => ['href' => html_entity_decode($item[1]), 'label' => html_entity_decode($item[3]), 'external' => str_contains($item[2], '_blank')], $items),
+                    'links' => array_map(static fn(array $item): array => ['href' => html_entity_decode($item[1]), 'label' => html_entity_decode($item[3]), 'external' => ($item[2] ?? '') !== ''], $items),
                 ];
             }
         }
