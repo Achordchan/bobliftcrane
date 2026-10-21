@@ -140,7 +140,8 @@ function boblift_legacy_redirect_rule_target(string $path, array $config): ?stri
  * misspelt article addresses. Each entry has `match` (regex on the decoded path, case-insensitive) and
  * `to` ($1... are the groups), plus optional flags:
  *   when_live  use `to` only when the new site really serves it, else try the next entry
- *   rerun      send `to` through the exact rules and these patterns once more (/x-p2 -> /x -> /x-cranes)
+ *   rerun      send `to` through the exact rules and these patterns once more (/x-p2 -> /x -> /x-cranes);
+ *              when nothing matches, `to` is used only if the new site serves it
  *   article_id the old article id ($1): the English article whose slug ends in -id<N>, else `to`
  */
 function boblift_legacy_redirect_path_fallback(string $path, array $config, ?callable $path_exists, ?callable $article_by_id, int $depth = 0): ?string
@@ -169,9 +170,15 @@ function boblift_legacy_redirect_path_fallback(string $path, array $config, ?cal
             continue;
         }
         if (!empty($fallback['rerun']) && $depth === 0 && $to !== '' && $to[0] === '/') {
-            return boblift_legacy_redirect_rule_target($to, $config)
-                ?? boblift_legacy_redirect_path_fallback($to, $config, $path_exists, $article_by_id, 1)
-                ?? $to;
+            $next = boblift_legacy_redirect_rule_target($to, $config) ?? boblift_legacy_redirect_path_fallback($to, $config, $path_exists, $article_by_id, 1);
+            if ($next !== null) {
+                return $next;
+            }
+            // The rewritten path itself only when the new site serves it; otherwise the remaining entries get a try.
+            if ($path_exists !== null && $path_exists(rtrim((string) parse_url($to, PHP_URL_PATH), '/'))) {
+                return $to;
+            }
+            continue;
         }
         return $to;
     }
@@ -429,9 +436,10 @@ function boblift_legacy_redirects_run(): void
     }
     $config = boblift_legacy_redirects_config();
     $host = boblift_legacy_redirect_effective_host((string) ($_SERVER['HTTP_HOST'] ?? ''), $_GET, $config);
-    // An old path under a language directory (/fr/Old-Article-id1.html) is resolved without the prefix first, so its
-    // exact rule and language win over the generic pattern fallbacks the full path would hit.
-    $target = boblift_legacy_redirect_resolve_in_language_directory($host, $path, $config);
+    // An exact rule for the full path (saved ones included, such as /fr/old.html) always wins. Otherwise an old path
+    // under a language directory (/fr/Old-Article-id1.html) is resolved without the prefix first, so its exact rule and
+    // language win over the generic pattern fallbacks the full path would hit.
+    $target = boblift_legacy_redirect_rule_target($path, $config) === null ? boblift_legacy_redirect_resolve_in_language_directory($host, $path, $config) : null;
     if ($target === null) {
         $target = boblift_legacy_redirect_resolve($host, $path, $config, home_url(), 'boblift_legacy_redirect_is_live_path', 'boblift_legacy_redirect_article_by_id');
     }

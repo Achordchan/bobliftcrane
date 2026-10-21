@@ -94,6 +94,7 @@ foreach ([
     ['/Marine-Cranes-pc40691787.html', 'https://www.bobliftcrane.com/marine-crane'],
     ['/products/category/marine-crane', null], // a new-site path pattern the keyword fallbacks must not touch
     ['/no-such-page.html', null],
+    ['/retired-category-p2', null], // nothing serves /retired-category: no redirect to a 404
 ] as [$pth, $want]) {
     $got = boblift_legacy_redirect_resolve('www.bobliftcrane.com', $pth, $config, $base, $live, $articles);
     if ($got !== $want) { echo "FAIL fallback $pth -> " . var_export($got, true) . " (wanted " . var_export($want, true) . ")\n"; $fail++; }
@@ -102,7 +103,9 @@ foreach ([
 $live_fr = static fn(string $p): bool => $p === '/fr/a-guide-to-truck-mounted-crane-installation-id40087376.html';
 $got = boblift_legacy_redirect_resolve('fr.bobliftcrane.com', "/Un-guide-pour-l'installation-d'une-grue-mont%C3%A9e-sur-camion-id40267376.html", $config, $base, $live_fr);
 if ($got !== 'https://www.bobliftcrane.com/fr/a-guide-to-truck-mounted-crane-installation-id40087376.html') { echo "FAIL translated article -> " . var_export($got, true) . "\n"; $fail++; }
-$got = boblift_legacy_redirect_resolve('fr.bobliftcrane.com', '/products-p3.html', $config, $base, $live_fr);
+$got = boblift_legacy_redirect_resolve('fr.bobliftcrane.com', '/retired-category-p2', $config, $base, $live_fr);
+if ($got !== 'https://www.bobliftcrane.com/') { echo "FAIL language-host unmapped pagination -> " . var_export($got, true) . "\n"; $fail++; }
+$got = boblift_legacy_redirect_resolve('fr.bobliftcrane.com', '/products-p3.html', $config, $base, static fn(string $p): bool => $p === '/products.html');
 if ($got !== 'https://www.bobliftcrane.com/products.html') { echo "FAIL language-host pagination -> " . var_export($got, true) . "\n"; $fail++; }
 
 $eff = [
