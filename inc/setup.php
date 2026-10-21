@@ -496,6 +496,37 @@ function boblift_article_schema(): void
 }
 add_action('wp_head', 'boblift_article_schema', 5);
 
+// Social preview tags for news posts: their SEO title and description (or the excerpt), and the cover image.
+function boblift_news_social_tags(): void
+{
+    if (!is_singular('post') || post_password_required(get_queried_object())) {
+        return;
+    }
+    $id = get_queried_object_id();
+    $title = trim((string) get_post_meta($id, '_seo_title', true)) ?: get_the_title($id);
+    $description = trim((string) get_post_meta($id, '_seo_description', true))
+        ?: wp_trim_words(wp_strip_all_tags((string) (get_post_field('post_excerpt', $id) ?: get_post_field('post_content', $id))), 40, '…');
+    $image = (string) get_the_post_thumbnail_url($id, 'full');
+    $tags = [
+        'og:type' => 'article',
+        'og:site_name' => 'BOB-LIFT',
+        'og:title' => $title,
+        'og:description' => $description,
+        'og:url' => get_permalink($id),
+        'og:image' => $image,
+        'article:published_time' => get_post_time('c', true, $id),
+        'twitter:card' => 'summary_large_image',
+        'twitter:title' => $title,
+        'twitter:description' => $description,
+        'twitter:image' => $image,
+    ];
+    foreach (array_filter($tags) as $property => $content) {
+        $attribute = str_starts_with($property, 'twitter:') ? 'name' : 'property';
+        printf("<meta %s=\"%s\" content=\"%s\">\n", $attribute, esc_attr($property), esc_attr($content));
+    }
+}
+add_action('wp_head', 'boblift_news_social_tags', 5);
+
 // The old site's "Crane by Ton" pages (/5-ton-crane.html ...) are replaced by the tonnage filter on the product list.
 function boblift_redirect_old_tonnage_pages(): void
 {

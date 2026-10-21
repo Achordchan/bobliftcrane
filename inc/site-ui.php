@@ -1628,7 +1628,7 @@ function boblift_normalize_product_boom_type(string $boom_type): string
 function boblift_contact_settings(): array
 {
     $contact = boblift_option('contact', []);
-    $email = $contact['email'] ?? 'info@bobliftcrane.com';
+    $email = $contact['email'] ?? 'info@boblift.com';
     $phone = $contact['phone'] ?? '+86 15852499415';
     $phone_href = $contact['phone_href'] ?? ('tel:' . preg_replace('/[^\d+]+/', '', $phone));
     $whatsapp = $contact['whatsapp'] ?? $phone;
@@ -1704,7 +1704,7 @@ function boblift_floating_contact_href(array $button, array $contact): string
 {
     $type = sanitize_key((string) ($button['type'] ?? 'custom'));
     $href = trim((string) ($button['href'] ?? ''));
-    $email = trim((string) ($contact['email'] ?? 'info@bobliftcrane.com'));
+    $email = trim((string) ($contact['email'] ?? 'info@boblift.com'));
     $phone = trim((string) ($contact['phone'] ?? '+86 15852499415'));
     $phone_href = trim((string) ($contact['phone_href'] ?? ('tel:' . preg_replace('/[^\d+]+/', '', $phone))));
     $whatsapp_raw = trim((string) ($contact['whatsapp'] ?? $phone));
