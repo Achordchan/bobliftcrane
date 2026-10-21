@@ -89,6 +89,11 @@ foreach ($articles as $lang => $a) {
     $id = $existing ? wp_update_post(wp_slash($postarr), true) : wp_insert_post(wp_slash($postarr), true);
     if (is_wp_error($id)) { fwrite(STDERR, $id->get_error_message() . "\n"); exit(1); }
     pll_set_post_language($id, $lang);
+    // Reserve the slug the post will keep once published (drafts skip the uniqueness check), so the JSON-LD URLs stay right.
+    $unique_slug = wp_unique_post_slug($slug, (int) $id, 'publish', 'post', 0);
+    if ($unique_slug !== get_post_field('post_name', $id)) {
+        wp_update_post(['ID' => (int) $id, 'post_name' => $unique_slug]);
+    }
     wp_set_post_categories($id, [$category_ids[$lang]]);
     set_post_thumbnail($id, $cover_id);
     update_post_meta($id, '_bl_news_source', $source_key . ':' . $lang);
