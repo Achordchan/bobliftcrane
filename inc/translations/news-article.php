@@ -3,6 +3,7 @@ return [
     'ja' => [
         'BOB-LIFT Editorial Team' => 'BOB-LIFT 編集部',
         'Written by our engineering and sales teams in Xuzhou, China.' => '中国・徐州のエンジニアと営業チームが執筆しています。',
+        'Product Operations Director, BOB-LIFT' => 'BOB-LIFT 製品運営ディレクター',
         'Updated' => '更新日',
         '{minutes} min read' => '{minutes} 分で読めます',
         'In this article' => 'この記事の内容',
@@ -18,6 +19,7 @@ return [
     'zh' => [
         'BOB-LIFT Editorial Team' => 'BOB-LIFT 编辑部',
         'Written by our engineering and sales teams in Xuzhou, China.' => '由徐州工厂的工程与销售团队撰写。',
+        'Product Operations Director, BOB-LIFT' => 'BOB-LIFT 产品运营总监',
         'Published' => '发布日期',
         'Updated' => '更新日期',
         '{minutes} min read' => '阅读约 {minutes} 分钟',

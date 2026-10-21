@@ -60,9 +60,10 @@ foreach ($cases as $case) {
     foreach ($meta as $key => $value) {
         update_post_meta($id, $key, wp_slash($value));
     }
-    // Article + breadcrumb JSON-LD, printed by boblift_article_schema(); {{home}} becomes the site address.
-    $path = wp_make_link_relative(get_permalink($id));
-    $images = array_values(array_filter(array_map(static fn($attachment): string => (string) wp_make_link_relative((string) wp_get_attachment_image_url((int) $attachment, 'large')), array_slice($case['gallery'], 0, 4))));
+    // Article + breadcrumb JSON-LD, printed by boblift_article_schema(). Complete URLs from this site's own permalinks,
+    // so subdirectory installs and language prefixes need no path arithmetic.
+    $url = get_permalink($id);
+    $images = array_values(array_filter(array_map(static fn($attachment): string => (string) wp_get_attachment_image_url((int) $attachment, 'large'), array_slice($case['gallery'], 0, 4))));
     $schema = [
         '@context' => 'https://schema.org',
         '@graph' => [
@@ -70,23 +71,23 @@ foreach ($cases as $case) {
                 '@type' => 'Article',
                 'headline' => $case['title'],
                 'description' => $case['seo_description'],
-                'mainEntityOfPage' => '{{home}}' . $path,
+                'mainEntityOfPage' => $url,
                 'datePublished' => get_post_time('c', true, $id),
                 'dateModified' => get_post_modified_time('c', true, $id),
-                'author' => ['@type' => 'Person', 'name' => 'Achord Chan', 'url' => '{{home}}' . wp_make_link_relative(boblift_url('/about')), 'jobTitle' => 'Product Operations Director', 'worksFor' => ['@type' => 'Organization', 'name' => 'BOB-LIFT']],
-                'publisher' => ['@type' => 'Organization', 'name' => 'BOB-LIFT', 'url' => '{{home}}/'],
-                'image' => array_map(static fn(string $src): array => ['@type' => 'ImageObject', 'url' => '{{home}}' . $src], $images),
+                'author' => ['@type' => 'Person', 'name' => 'Achord Chan', 'url' => home_url('/about.html'), 'jobTitle' => 'Product Operations Director', 'worksFor' => ['@type' => 'Organization', 'name' => 'BOB-LIFT']],
+                'publisher' => ['@type' => 'Organization', 'name' => 'BOB-LIFT', 'url' => home_url('/')],
+                'image' => array_map(static fn(string $src): array => ['@type' => 'ImageObject', 'url' => $src], $images),
                 'about' => get_post_status((int) $case['product_id']) === 'publish'
-                    ? ['@type' => 'Product', 'name' => $case['product_name'], 'url' => '{{home}}' . wp_make_link_relative(get_permalink((int) $case['product_id']))]
+                    ? ['@type' => 'Product', 'name' => $case['product_name'], 'url' => get_permalink((int) $case['product_id'])]
                     : ['@type' => 'Product', 'name' => $case['product_name']],
                 'contentLocation' => ['@type' => 'Country', 'name' => $case['country']],
             ],
             [
                 '@type' => 'BreadcrumbList',
                 'itemListElement' => [
-                    ['@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => '{{home}}/'],
-                    ['@type' => 'ListItem', 'position' => 2, 'name' => 'Cases', 'item' => '{{home}}' . wp_make_link_relative(boblift_case_archive_url())],
-                    ['@type' => 'ListItem', 'position' => 3, 'name' => $case['title'], 'item' => '{{home}}' . $path],
+                    ['@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => home_url('/')],
+                    ['@type' => 'ListItem', 'position' => 2, 'name' => 'Cases', 'item' => home_url('/cases.html')],
+                    ['@type' => 'ListItem', 'position' => 3, 'name' => $case['title'], 'item' => $url],
                 ],
             ],
         ],
@@ -97,7 +98,10 @@ foreach ($cases as $case) {
         update_post_meta((int) $attachment, '_wp_attachment_image_alt', wp_slash($alt));
     }
     // Cover: the AI illustration once it exists, otherwise the first customer photo.
-    $cover = (int) ($case['cover_id'] ?? 0) ?: (int) $case['gallery'][0];
+    $cover = (int) ($case['cover_id'] ?? 0);
+    if (!$cover || !wp_attachment_is_image($cover)) {
+        $cover = (int) $case['gallery'][0];
+    }
     set_post_thumbnail($id, $cover);
     WP_CLI::log($case['slug'] . ' => ' . $id . ' ' . get_permalink($id));
 }
