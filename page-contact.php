@@ -182,10 +182,15 @@ $visit_links = is_array($ui['visitLinks'] ?? null) ? $ui['visitLinks'] : [];
                 <p class="<?php echo esc_attr($eyebrow); ?>"><?php echo esc_html($t('locationLabel', 'Factory location')); ?></p>
                 <h2 class="mt-1 text-2xl font-black leading-8 text-navy"><?php echo esc_html($location_heading); ?></h2>
                 <p class="mt-3 text-sm font-normal leading-7 text-slate-600"><?php echo esc_html($location_description); ?></p>
-                <p class="mt-5 flex items-start gap-3 text-base font-black leading-6 text-ink">
-                    <?php echo boblift_icon('map-pin', 'mt-0.5 h-5 w-5 shrink-0 text-blue-700'); ?>
-                    <span class="min-w-0"><span class="block <?php echo esc_attr($eyebrow); ?>"><?php echo esc_html($t('addressLabel', 'Address')); ?></span><?php echo esc_html($address); ?></span>
-                </p>
+                <?php // Registered address, main factory and office; the map buttons below search for the registered address. ?>
+                <ul class="mt-5 grid gap-4">
+                    <?php foreach (boblift_company_addresses() as $row) : ?>
+                        <li class="flex items-start gap-3 text-base font-black leading-6 text-ink">
+                            <?php echo boblift_icon('map-pin', 'mt-0.5 h-5 w-5 shrink-0 text-blue-700'); ?>
+                            <span class="min-w-0"><span class="block <?php echo esc_attr($eyebrow); ?>"><?php echo esc_html($row['label']); ?></span><?php echo esc_html($row['address']); ?></span>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
                 <div class="mt-5 grid gap-2 sm:grid-cols-3">
                     <?php foreach ($map_links as $key => $href) : ?>
                         <a class="inline-flex h-11 items-center justify-center gap-2 rounded-sm bg-navy px-3 text-sm font-black text-white transition hover:bg-blue-700" href="<?php echo esc_url($href); ?>" target="_blank" rel="noreferrer noopener"><?php echo esc_html((string) ($map_labels[$key] ?? ucfirst($key))); ?> <?php echo boblift_icon('arrow-up-right', 'h-4 w-4'); ?></a>
