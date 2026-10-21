@@ -421,16 +421,19 @@ function boblift_legacy_redirects_run(): void
     if (!in_array($_SERVER['REQUEST_METHOD'] ?? 'GET', ['GET', 'HEAD'], true) || (defined('WP_CLI') && WP_CLI)) {
         return;
     }
-    $uri = (string) ($_SERVER['REQUEST_URI'] ?? '/');
+    // WordPress adds magic-quote slashes to $_SERVER: an old address with an apostrophe (l'installation) must match unslashed.
+    $uri = wp_unslash((string) ($_SERVER['REQUEST_URI'] ?? '/'));
     $path = (string) parse_url($uri, PHP_URL_PATH);
     if (preg_match('#^/(wp-admin|wp-json|wp-login\.php|wp-content|wp-includes|wp-cron\.php|xmlrpc\.php)#', $path) || isset($_GET['rest_route'])) {
         return;
     }
     $config = boblift_legacy_redirects_config();
     $host = boblift_legacy_redirect_effective_host((string) ($_SERVER['HTTP_HOST'] ?? ''), $_GET, $config);
-    $target = boblift_legacy_redirect_resolve($host, $path, $config, home_url(), 'boblift_legacy_redirect_is_live_path', 'boblift_legacy_redirect_article_by_id');
+    // An old path under a language directory (/fr/Old-Article-id1.html) is resolved without the prefix first, so its
+    // exact rule and language win over the generic pattern fallbacks the full path would hit.
+    $target = boblift_legacy_redirect_resolve_in_language_directory($host, $path, $config);
     if ($target === null) {
-        $target = boblift_legacy_redirect_resolve_in_language_directory($host, $path, $config);
+        $target = boblift_legacy_redirect_resolve($host, $path, $config, home_url(), 'boblift_legacy_redirect_is_live_path', 'boblift_legacy_redirect_article_by_id');
     }
     // Only the new site's own host is protected; a legacy language host always redirects, even where the path exists here.
     if ($target === null || (boblift_legacy_redirect_language_host($host, $config) === '' && boblift_legacy_redirect_is_live_path($path))) {
