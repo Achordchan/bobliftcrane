@@ -10,7 +10,9 @@ if (!defined('ABSPATH')) {
  */
 function boblift_strip_heading_full_stops(string $html): string
 {
-    return (string) preg_replace('~(<h([1-3])\b[^>]*>(?:(?!</h\2>).)*?)。((?:\s*</(?!h[1-3]\b)[a-z]+>)*\s*</h\2>)~su', '$1$3', $html);
+    $result = preg_replace('~(<h([1-3])\b[^>]*>(?:(?!</h\2>).)*?)。((?:\s*</(?!h[1-3]\b)[a-z]+>)*\s*</h\2>)~su', '$1$3', $html);
+    // A page with invalid UTF-8, or one past the regex backtracking limit, is sent unchanged rather than blank.
+    return $result ?? $html;
 }
 
 add_action('template_redirect', static function (): void {
