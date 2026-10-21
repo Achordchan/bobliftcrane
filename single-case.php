@@ -58,7 +58,9 @@ $section_html = static function (string $body): string {
         $items = array_filter($lines, static fn(string $line): bool => (bool) preg_match('/^\d+\.\s/', $line));
         if ($items && count($items) === count($lines) - (preg_match('/^\d+\.\s/', $lines[0]) ? 0 : 1)) {
             $lead = preg_match('/^\d+\.\s/', $lines[0]) ? '' : '<p>' . esc_html(array_shift($lines)) . '</p>';
-            $html .= $lead . '<ol>' . implode('', array_map(static fn(string $line): string => '<li>' . esc_html((string) preg_replace('/^\d+\.\s+/', '', $line)) . '</li>', $lines)) . '</ol>';
+            // Keep the author's numbering when a list is split across paragraphs or starts above 1.
+            $start = (int) $lines[0];
+            $html .= $lead . '<ol' . ($start > 1 ? ' start="' . $start . '"' : '') . '>' . implode('', array_map(static fn(string $line): string => '<li>' . esc_html((string) preg_replace('/^\d+\.\s+/', '', $line)) . '</li>', $lines)) . '</ol>';
         } else {
             $html .= wpautop(esc_html($paragraph));
         }

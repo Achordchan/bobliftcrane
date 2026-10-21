@@ -69,9 +69,8 @@ foreach ($cases as $case) {
     }
     set_post_thumbnail($id, (int) get_post_thumbnail_id($en->ID));
     // The Chinese page's own Article + breadcrumb JSON-LD (its URL, text and dates), not a copy of the English one.
-    // {{home}} is the page language's home (…/zh on Chinese pages), so paths drop their /zh prefix.
-    $relative = static fn(string $url): string => (string) preg_replace('#^/zh(?=/|$)#', '', wp_make_link_relative($url));
-    $path = $relative(get_permalink($id));
+    // Complete URLs from this site's own permalinks: no assumptions about how the language prefix or base path look.
+    $url = get_permalink($id);
     // Media lives at the site root, not under /zh, so image URLs stay absolute.
     $images = array_values(array_filter(array_map(static fn($attachment): string => (string) wp_get_attachment_image_url((int) $attachment, 'large'), array_slice(array_filter(explode(',', (string) get_post_meta($en->ID, '_case_gallery', true))), 0, 4))));
     $product_id = pll_get_post((int) get_post_meta($en->ID, '_related_product', true), 'zh') ?: (int) get_post_meta($en->ID, '_related_product', true);
@@ -83,23 +82,23 @@ foreach ($cases as $case) {
                 'inLanguage' => 'zh-CN',
                 'headline' => $case['title'],
                 'description' => $case['seo_description'],
-                'mainEntityOfPage' => '{{home}}' . $path,
+                'mainEntityOfPage' => $url,
                 'datePublished' => get_post_time('c', true, $id),
                 'dateModified' => get_post_modified_time('c', true, $id),
-                'author' => ['@type' => 'Person', 'name' => 'Achord Chan', 'url' => '{{home}}' . $relative(boblift_url('/about')), 'jobTitle' => 'BOB-LIFT 产品运营总监', 'worksFor' => ['@type' => 'Organization', 'name' => 'BOB-LIFT']],
-                'publisher' => ['@type' => 'Organization', 'name' => 'BOB-LIFT', 'url' => '{{home}}/'],
+                'author' => ['@type' => 'Person', 'name' => 'Achord Chan', 'url' => pll_home_url('zh') . 'about.html', 'jobTitle' => 'BOB-LIFT 产品运营总监', 'worksFor' => ['@type' => 'Organization', 'name' => 'BOB-LIFT']],
+                'publisher' => ['@type' => 'Organization', 'name' => 'BOB-LIFT', 'url' => home_url('/')],
                 'image' => array_map(static fn(string $src): array => ['@type' => 'ImageObject', 'url' => $src], $images),
                 'about' => get_post_status($product_id) === 'publish'
-                    ? ['@type' => 'Product', 'name' => (string) get_post_meta($en->ID, '_product_name', true), 'url' => '{{home}}' . $relative(get_permalink($product_id))]
+                    ? ['@type' => 'Product', 'name' => (string) get_post_meta($en->ID, '_product_name', true), 'url' => get_permalink($product_id)]
                     : ['@type' => 'Product', 'name' => (string) get_post_meta($en->ID, '_product_name', true)],
                 'contentLocation' => ['@type' => 'Country', 'name' => $case['country']],
             ],
             [
                 '@type' => 'BreadcrumbList',
                 'itemListElement' => [
-                    ['@type' => 'ListItem', 'position' => 1, 'name' => '首页', 'item' => '{{home}}/'],
-                    ['@type' => 'ListItem', 'position' => 2, 'name' => '案例', 'item' => '{{home}}/cases.html'],
-                    ['@type' => 'ListItem', 'position' => 3, 'name' => $case['title'], 'item' => '{{home}}' . $path],
+                    ['@type' => 'ListItem', 'position' => 1, 'name' => '首页', 'item' => pll_home_url('zh')],
+                    ['@type' => 'ListItem', 'position' => 2, 'name' => '案例', 'item' => pll_home_url('zh') . 'cases.html'],
+                    ['@type' => 'ListItem', 'position' => 3, 'name' => $case['title'], 'item' => $url],
                 ],
             ],
         ],

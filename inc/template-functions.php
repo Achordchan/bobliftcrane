@@ -1092,7 +1092,7 @@ function boblift_product_feedback_count(int $product_id): int
 
 /**
  * Products a case or feedback entry is linked to (_related_product, stored against English product ids), in the page's
- * language. Without a link, a model code named in the title or text picks the product (same matcher as news articles).
+ * language. Only the exact model on the entry or its stored link count; no family-level guesses.
  */
 function boblift_item_related_products(int $post_id, int $limit = 3): array
 {
@@ -1109,17 +1109,6 @@ function boblift_item_related_products(int $post_id, int $limit = 3): array
         $product = get_post($translated);
         if ($product instanceof WP_Post && $product->post_type === 'product' && $product->post_status === 'publish' && !post_password_required($product)) {
             $products[$product->ID] = $product;
-        }
-    }
-    if (!$products && function_exists('boblift_news_related_products')) {
-        $text = get_the_title($post_id) . ' ' . (string) get_post_meta($post_id, '_product_name', true) . ' ' . (string) get_post_meta($post_id, '_feedback_model', true);
-        if (preg_match('/(?<![a-z0-9])sq\d/i', $text)) {
-            foreach (boblift_news_related_products($text, '', $limit, $post_id) as $product) {
-                // Password-protected products keep their specs private, so they get no card.
-                if (!post_password_required($product)) {
-                    $products[$product->ID] = $product;
-                }
-            }
         }
     }
     return array_slice(array_values($products), 0, $limit);
