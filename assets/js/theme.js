@@ -3983,6 +3983,8 @@
       if (!button || button.disabled) return;
       casesPage = Number(button.dataset.casesPage) || 1;
       applyCasesFilter();
+      // The pager is rebuilt, so keyboard focus moves to the new current page instead of being lost.
+      pager.querySelector('[aria-current="page"]')?.focus({ preventScroll: true });
       // scrollIntoView honours html's scroll-padding-top (the fixed header height), so the controls land below the header.
       root.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
     });
