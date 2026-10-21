@@ -66,8 +66,11 @@ $others = array_slice($others, 0, 4);
 
     <?php // An article without photos or videos goes straight to its body. ?>
     <?php if ($first) : ?>
-    <section class="mt-5 md:mt-6" data-feedback-gallery data-feedback-media="<?php echo esc_attr(wp_json_encode($media, JSON_UNESCAPED_SLASHES)); ?>" data-feedback-title="<?php echo esc_attr($caption); ?>" aria-label="<?php echo esc_attr($caption); ?>">
-        <div class="relative aspect-[4/3] overflow-hidden rounded bg-[#EDF1F5] md:aspect-auto md:h-[clamp(380px,56vh,720px)]" data-feedback-stage>
+    <?php $backdrop = $first['thumb'] !== '' ? $first['thumb'] : ($first['type'] === 'video' ? $first['poster'] : $first['src']); ?>
+    <section class="boblift-feedback-gallery mt-5 md:mt-6<?php echo $total > 1 ? ' has-thumbs' : ''; ?>" data-feedback-gallery data-feedback-media="<?php echo esc_attr(wp_json_encode($media, JSON_UNESCAPED_SLASHES)); ?>" data-feedback-title="<?php echo esc_attr($caption); ?>" aria-label="<?php echo esc_attr($caption); ?>">
+        <div class="boblift-feedback-stage relative aspect-[4/3] overflow-hidden rounded bg-[#0B1B33] md:aspect-auto" data-feedback-stage>
+            <?php // The current photo, blurred, fills the space beside portrait and square shots. ?>
+            <div class="boblift-feedback-backdrop" data-feedback-backdrop<?php echo $backdrop !== '' ? ' style="background-image:url(\'' . esc_url($backdrop) . '\')"' : ''; ?> aria-hidden="true"></div>
             <div class="absolute inset-0" data-feedback-stage-media>
                 <?php if ($first['type'] === 'video') : ?>
                     <video class="h-full w-full object-contain" src="<?php echo esc_url($first['src']); ?>" poster="<?php echo esc_url($first['poster']); ?>" controls muted playsinline preload="metadata"></video>
@@ -83,7 +86,7 @@ $others = array_slice($others, 0, 4);
         </div>
 
         <?php if ($total > 1) : ?>
-            <div class="boblift-feedback-thumbs mt-3 flex gap-2 overflow-x-auto pb-1" data-feedback-thumbs>
+            <div class="boblift-feedback-thumbs mt-3 flex gap-2 overflow-x-auto pb-1 lg:mt-0" data-feedback-thumbs>
                 <?php foreach ($media as $index => $item) : ?>
                     <button class="boblift-feedback-thumb<?php echo $index === 0 ? ' is-active' : ''; ?>" type="button" data-feedback-thumb="<?php echo esc_attr((string) $index); ?>" aria-pressed="<?php echo $index === 0 ? 'true' : 'false'; ?>" aria-label="<?php echo esc_attr($pad($index + 1) . ' / ' . $pad($total)); ?>">
                         <?php if ($item['thumb'] !== '') : ?><img class="h-full w-full object-cover" src="<?php echo esc_url($item['thumb']); ?>" alt="" loading="lazy" decoding="async"><?php endif; ?>
@@ -104,6 +107,11 @@ $others = array_slice($others, 0, 4);
         <div class="boblift-story-prose mx-auto mt-12 max-w-[760px] md:mt-16">
             <?php echo wp_kses_post(wpautop(esc_html($feedback['legacy_body']))); ?>
         </div>
+    <?php endif; ?>
+
+    <?php $feedback_products = boblift_item_related_products(get_the_ID()); ?>
+    <?php if ($feedback_products) : ?>
+        <div class="mt-12 md:mt-16"><?php boblift_render_item_products($feedback_products, (string) ($ui['feedbackProductsTitle'] ?? 'The crane in these photos')); ?></div>
     <?php endif; ?>
 
     <div class="mt-12 flex flex-col gap-4 rounded border border-line bg-mist p-5 sm:flex-row sm:items-center sm:justify-between md:mt-16 md:p-6">

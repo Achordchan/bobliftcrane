@@ -2,8 +2,8 @@
 // Copy for the news article page (single.php): author card, contents, related products and contact card.
 return [
     'newsArticle' => [
-        'authorName' => 'BOB-LIFT Editorial Team',
-        'authorText' => 'Written by our engineering and sales teams in Xuzhou, China.',
+        'authorName' => 'Achord Chan',
+        'authorText' => 'Product Operations Director, BOB-LIFT',
         'publishedLabel' => 'Published',
         'updatedLabel' => 'Updated',
         'readingTemplate' => '{minutes} min read',

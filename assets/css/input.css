@@ -2137,26 +2137,171 @@ img { max-width: 100%; }
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
   }
-  .boblift-case-card {
+  .boblift-cases-grid .boblift-case-card {
     border-radius: 4px;
     padding: 7px;
   }
-  .boblift-case-card:hover {
+  .boblift-cases-grid .boblift-case-card:hover {
+.boblift-cases-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 12px 0 0;
+  overflow: hidden;
+  border: 1px solid var(--color-line, #e4ebf4);
+  border-radius: 4px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(8, 35, 74, .06);
+}
+.boblift-cases-stat {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 16px 24px;
+  box-shadow: inset -1px 0 0 #e4ebf4, inset 0 -1px 0 #e4ebf4;
+}
+.boblift-cases-stat-value {
+  margin: 0;
+  color: #0B1B33;
+  font-size: clamp(1.625rem, 2.4vw, 2.25rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums;
+}
+.boblift-cases-stat-label {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+@media (max-width: 767px) {
+  .boblift-cases-stat-label {
+    font-size: 11px;
+    letter-spacing: .06em;
+    line-height: 1.35;
+  }
+}
+/* Phones: the four figures sit in one compact row instead of a 2 x 2 block. */
+@media (max-width: 767px) {
+  .boblift-cases-stats {
+    grid-template-columns: repeat(var(--stats-count, 4), minmax(0, 1fr));
+  }
+  .boblift-cases-stat {
+    align-items: center;
+    gap: 4px;
+    padding: 14px 4px 12px;
+    text-align: center;
+    box-shadow: inset -1px 0 0 #e4ebf4;
+  }
+  .boblift-cases-stat-value {
+    font-size: 1.375rem;
+  }
+  .boblift-cases-stat-label {
+    font-size: 10px;
+    letter-spacing: .02em;
+  }
+  /* Related cases under a case swipe sideways instead of stacking three tall cards. */
+  .boblift-case-related {
+    display: flex;
+    gap: 12px;
+    margin-inline: -16px;
+    overflow-x: auto;
+    padding: 0 16px 4px;
+    scroll-padding-inline: 16px;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .boblift-case-related::-webkit-scrollbar {
+    display: none;
+  }
+  .boblift-case-related > a {
+    flex: 0 0 78%;
+    scroll-snap-align: start;
+  }
+}
+@media (min-width: 768px) {
+  .boblift-cases-stats {
+    grid-template-columns: repeat(var(--stats-count, 4), minmax(0, 1fr));
+  }
+  .boblift-cases-stat {
+    /* Same inset as the hero text above (sm:px-8 / xl:px-12) so the labels line up with it. */
+    padding: 22px 2rem;
+    box-shadow: inset -1px 0 0 #e4ebf4;
+  }
+}
+@media (min-width: 1280px) {
+  .boblift-cases-stat {
+    padding-inline: 3rem;
+  }
+}
+/* Application case detail: story column with the inquiry card pinned beside it on desktop. */
+.boblift-case-aside {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .boblift-case-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 20rem;
+    align-items: start;
+    gap: 4rem;
+  }
+  .boblift-case-aside {
+    display: block;
+    position: sticky;
+    top: calc(var(--boblift-header-h) + 24px);
+  }
+}
+@media (min-width: 1536px) {
+  .boblift-case-body {
+    grid-template-columns: minmax(0, 1fr) 22rem;
+    gap: 6rem;
+  }
+}
+/* Chinese and Japanese labels: the wide Latin letter-spacing pulls the characters apart. */
+.boblift-case-kicker:is(:lang(zh), :lang(ja)),
+.boblift-case-facts dt:is(:lang(zh), :lang(ja)) {
+  letter-spacing: .06em;
+}
+.boblift-cases-summary {
+  margin: 0 0 14px;
+  min-height: 20px;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+@media (min-width: 1280px) {
+  [data-active-kind="customer_feedback"] .boblift-cases-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+.boblift-cases-pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 40px;
+}
+.boblift-cases-pager.hidden {
+  display: none;
+}
     transform: none;
   }
-  .boblift-case-card-media {
-    height: clamp(108px, 31vw, 132px);
+  .boblift-cases-grid .boblift-case-card-media {
     border-radius: 4px;
   }
-  .boblift-case-card-content {
+  .boblift-cases-grid .boblift-case-card-content {
     padding: 11px 5px 5px;
   }
-  .boblift-case-card-meta {
+  .boblift-cases-grid .boblift-case-card-meta {
     gap: 4px;
     font-size: 9px;
     letter-spacing: .08em;
   }
-  .boblift-case-card-title {
+  .boblift-cases-grid .boblift-case-card-title {
     margin-top: 6px;
     display: -webkit-box;
     overflow: hidden;
@@ -2166,7 +2311,7 @@ img { max-width: 100%; }
     line-height: 1.18;
     letter-spacing: -.01em;
   }
-  .boblift-case-card-summary {
+  .boblift-cases-grid .boblift-case-card-summary {
     margin-top: 7px;
     display: -webkit-box;
     overflow: hidden;
@@ -2175,7 +2320,7 @@ img { max-width: 100%; }
     font-size: 11px;
     line-height: 1.42;
   }
-  .boblift-case-card-action {
+  .boblift-cases-grid .boblift-case-card-action {
     margin-top: 9px;
     gap: 6px;
     font-size: 11px;
@@ -2243,6 +2388,17 @@ body.boblift-filter-drawer-locked {
   .boblift-filter-drawer .boblift-product-filter-head {
     position: sticky;
     top: -16px;
+  .boblift-feedback-card-content {
+    padding: 10px 4px 4px;
+  }
+  .boblift-feedback-card-meta {
+    margin-top: 5px;
+    font-size: 11px;
+    line-height: 1.4;
+  }
+  .boblift-cases-pager {
+    margin-top: 28px;
+  }
     z-index: 5;
     margin: -24px -24px 24px;
     padding: 20px 24px 16px;
@@ -2373,4 +2529,21 @@ html:is(:lang(ru), :lang(uk), :lang(fr), :lang(es), :lang(de), :lang(it), :lang(
   }
   .boblift-archive-about:has(> [data-category-intro]:not([hidden])) > [data-category-intro] { grid-column: 1; }
   .boblift-archive-about:has(> [data-category-intro]:not([hidden])) > [data-brochures] { grid-column: 2; grid-row: 1; margin-top: 4rem; }
+}
+.boblift-feedback-gallery { --feedback-stage-h: clamp(380px, 56vh, 720px); }
+@media (min-width: 768px) { .boblift-feedback-stage { height: var(--feedback-stage-h); } }
+.boblift-feedback-backdrop { position: absolute; inset: 0; background-position: center; background-size: cover; filter: blur(28px) brightness(.72) saturate(1.1); transform: scale(1.15); transition: background-image .3s ease; }
+/* Desktop: thumbnails sit in a scrolling grid beside the stage instead of a long strip under it. */
+@media (min-width: 1024px) {
+  .boblift-feedback-gallery { --feedback-stage-h: clamp(440px, 66vh, 760px); }
+  .boblift-feedback-gallery.has-thumbs { display: grid; grid-template-columns: minmax(0, 1fr) 21rem; gap: .75rem; }
+  .boblift-feedback-gallery.has-thumbs .boblift-feedback-thumbs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: max-content; align-content: start; gap: .5rem; height: var(--feedback-stage-h); overflow: hidden auto; padding: 0 .25rem 0 0; scroll-snap-type: y proximity; scrollbar-width: thin; }
+  .boblift-feedback-gallery.has-thumbs .boblift-feedback-thumbs::-webkit-scrollbar { display: block; width: 4px; }
+  .boblift-feedback-gallery.has-thumbs .boblift-feedback-thumbs::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+  .boblift-feedback-gallery.has-thumbs .boblift-feedback-thumb { width: 100%; height: auto; aspect-ratio: 4 / 3; }
+  /* Out of flow so the photo cannot stretch its cell: Safari otherwise sized the rows from the image and the thumbnails overlapped. */
+  .boblift-feedback-gallery.has-thumbs .boblift-feedback-thumb > img { position: absolute; inset: 0; }
+}
+@media (min-width: 1536px) {
+  .boblift-feedback-gallery.has-thumbs { grid-template-columns: minmax(0, 1fr) 26rem; }
 }

@@ -481,7 +481,7 @@ add_action('pre_get_posts', 'boblift_limit_main_search');
 // Article JSON-LD kept in _article_schema_jsonld; {{home}} stands for the site address so the markup follows the host.
 function boblift_article_schema(): void
 {
-    if (!is_singular('post') || post_password_required(get_queried_object())) {
+    if (!is_singular(['post', 'case']) || post_password_required(get_queried_object())) {
         return;
     }
     $schema = trim((string) get_post_meta(get_queried_object_id(), '_article_schema_jsonld', true));
@@ -495,6 +495,31 @@ function boblift_article_schema(): void
     echo '<script type="application/ld+json">' . str_replace('</', '<\/', $schema) . "</script>\n";
 }
 add_action('wp_head', 'boblift_article_schema', 5);
+
+// Social preview tags for case pages: their SEO title and description, and the cover photo.
+function boblift_case_social_tags(): void
+{
+    if (!is_singular('case') || post_password_required(get_queried_object())) {
+        return;
+    }
+    $id = get_queried_object_id();
+    $title = trim((string) get_post_meta($id, '_seo_title', true)) ?: get_the_title($id);
+    $description = trim((string) get_post_meta($id, '_seo_description', true)) ?: trim((string) get_post_meta($id, '_summary', true));
+    $image = (string) get_the_post_thumbnail_url($id, 'large');
+    $tags = [
+        'og:type' => 'article',
+        'og:title' => $title,
+        'og:description' => $description,
+        'og:url' => get_permalink($id),
+        'og:image' => $image,
+        'twitter:card' => 'summary_large_image',
+    ];
+    foreach (array_filter($tags) as $property => $content) {
+        $attribute = str_starts_with($property, 'twitter:') ? 'name' : 'property';
+        printf("<meta %s=\"%s\" content=\"%s\">\n", $attribute, esc_attr($property), esc_attr($content));
+    }
+}
+add_action('wp_head', 'boblift_case_social_tags', 5);
 
 // Social preview tags for news posts: their SEO title and description (or the excerpt), and the cover image.
 function boblift_news_social_tags(): void

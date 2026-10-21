@@ -1090,6 +1090,75 @@ function boblift_product_feedback_count(int $product_id): int
     return count(boblift_product_feedback_all($product_id));
 }
 
+/**
+ * Products a case or feedback entry is linked to (_related_product, stored against English product ids), in the page's
+ * language. Without a link, a model code named in the title or text picks the product (same matcher as news articles).
+ */
+function boblift_item_related_products(int $post_id, int $limit = 3): array
+{
+    $language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
+    $source_id = function_exists('pll_get_post') ? ((int) pll_get_post($post_id, 'en') ?: $post_id) : $post_id;
+    $products = [];
+    // The exact model named on the entry wins over a stored link to a neighbouring model (older feedback links often point
+    // to the family page, e.g. SQ5ZA3TJ for an SQ5ZA3T delivery).
+    $model = trim((string) (get_post_meta($source_id, '_feedback_model', true) ?: get_post_meta($source_id, '_product_name', true)));
+    $exact = $model !== '' ? get_posts(['post_type' => 'product', 'post_status' => 'publish', 'posts_per_page' => 1, 'lang' => 'en', 'fields' => 'ids', 'meta_key' => '_model', 'meta_value' => $model]) : [];
+    $linked = $exact ? array_map('intval', $exact) : array_map('intval', get_post_meta($source_id, '_related_product'));
+    foreach ($linked as $product_id) {
+        $translated = $language !== '' && function_exists('pll_get_post') ? ((int) pll_get_post($product_id, $language) ?: $product_id) : $product_id;
+        $product = get_post($translated);
+        if ($product instanceof WP_Post && $product->post_type === 'product' && $product->post_status === 'publish') {
+            $products[$product->ID] = $product;
+        }
+    }
+    if (!$products && function_exists('boblift_news_related_products')) {
+        $text = get_the_title($post_id) . ' ' . (string) get_post_meta($post_id, '_product_name', true) . ' ' . (string) get_post_meta($post_id, '_feedback_model', true);
+        if (preg_match('/(?<![a-z0-9])sq\d/i', $text)) {
+            foreach (boblift_news_related_products($text, '', $limit, $post_id) as $product) {
+                $products[$product->ID] = $product;
+            }
+        }
+    }
+    return array_slice(array_values($products), 0, $limit);
+}
+
+// "Products in this case" cards for case and feedback pages: photo, name, model, two spec rows and a link to the product.
+function boblift_render_item_products(array $products, string $heading): void
+{
+    if (!$products) {
+        return;
+    }
+    $view_label = (string) (boblift_site_ui('caseDetail')['viewProductLabel'] ?? 'View product');
+    ?>
+    <section class="boblift-item-products" aria-label="<?php echo esc_attr($heading); ?>">
+        <h2 class="text-2xl font-black tracking-[-0.015em] text-ink md:text-3xl"><?php echo esc_html($heading); ?></h2>
+        <div class="mt-6 grid gap-4 <?php echo count($products) > 1 ? 'md:grid-cols-2' : ''; ?> <?php echo count($products) > 2 ? 'xl:grid-cols-3' : ''; ?>">
+            <?php foreach ($products as $product) :
+                $title = get_the_title($product);
+                $model = (string) get_post_meta(boblift_product_english_id($product->ID), '_model', true);
+                $model = $model !== '' && stripos($title, $model) === false ? $model : '';
+                $specs = array_slice(array_values(array_filter(boblift_decode_meta(get_post_meta($product->ID, '_specs', true), []), static fn($row): bool => is_array($row) && trim((string) ($row['label'] ?? '')) !== '' && trim((string) ($row['value'] ?? '')) !== '')), 0, 2);
+                $url = get_permalink($product);
+                ?>
+                <a class="group grid grid-cols-[7.5rem_minmax(0,1fr)] items-center gap-4 rounded border border-line bg-white p-3 transition hover:border-blue-300 sm:grid-cols-[9rem_minmax(0,1fr)]" href="<?php echo esc_url($url); ?>">
+                    <span class="block aspect-[4/3] overflow-hidden rounded-sm bg-mist"><img class="h-full w-full object-contain p-1.5" src="<?php echo esc_url(boblift_post_thumbnail_url($product, boblift_asset('images/products/crane-accessories.png'))); ?>" alt="<?php echo esc_attr($title); ?>" loading="lazy" decoding="async"></span>
+                    <span class="min-w-0">
+                        <span class="line-clamp-2 block text-base font-black leading-snug text-ink transition group-hover:text-blue-700"><?php echo esc_html($title); ?></span>
+                        <?php if ($model !== '') : ?><span class="mt-0.5 block text-xs font-bold text-slate-400"><?php echo esc_html($model); ?></span><?php endif; ?>
+                        <?php if ($specs) : ?>
+                            <span class="mt-2 grid gap-0.5 text-xs text-slate-500">
+                                <?php foreach ($specs as $spec) : ?><span><?php echo esc_html((string) $spec['label']); ?> <b class="font-black text-ink"><?php echo esc_html((string) $spec['value']); ?></b></span><?php endforeach; ?>
+                            </span>
+                        <?php endif; ?>
+                        <span class="mt-2 inline-flex items-center gap-1.5 text-sm font-black text-blue-700"><?php echo esc_html($view_label); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4 transition group-hover:translate-x-0.5 rtl:-scale-x-100'); ?></span>
+                    </span>
+                </a>
+            <?php endforeach; ?>
+        </div>
+    </section>
+    <?php
+}
+
 function boblift_product_cases(int $product_id, int $limit = 3): array
 {
     $posts = get_posts(['post_type' => 'case', 'post_status' => 'publish', 'posts_per_page' => -1, 'lang' => '', 'meta_key' => '_related_product', 'meta_value' => (string) boblift_product_english_id($product_id)]);
