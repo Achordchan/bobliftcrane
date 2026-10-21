@@ -2791,7 +2791,18 @@
 
   // Footer on phones: the link groups start folded behind their titles (they ship open, so they show without script).
   const footerPhone = window.matchMedia('(max-width: 767px)');
-  const syncFooterGroups = () => qsa('[data-footer-group]').forEach((group) => group.toggleAttribute('open', !footerPhone.matches));
+  // Wider screens show every group open with no disclosure control, so their titles cannot be focused or toggled
+  // (Enter and Space on a summary arrive as a click).
+  const syncFooterGroups = () => qsa('[data-footer-group]').forEach((group) => {
+    group.toggleAttribute('open', !footerPhone.matches);
+    const summary = qs('summary', group);
+    if (!summary) return;
+    if (footerPhone.matches) summary.removeAttribute('tabindex');
+    else summary.setAttribute('tabindex', '-1');
+  });
+  qsa('[data-footer-group] > summary').forEach((summary) => summary.addEventListener('click', (event) => {
+    if (!footerPhone.matches) event.preventDefault();
+  }));
   syncFooterGroups();
   footerPhone.addEventListener('change', syncFooterGroups);
 

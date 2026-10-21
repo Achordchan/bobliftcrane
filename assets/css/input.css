@@ -2456,17 +2456,26 @@ body.boblift-filter-drawer-locked {
 @media (min-width: 1024px) {
   .boblift-cat-wrap.is-fit .boblift-cat-track { grid-auto-flow: row; grid-template-columns: repeat(var(--cat-count), minmax(0, 1fr)); gap: 12px; }
   .boblift-cat-wrap.is-fit .boblift-cat-arrow { display: none; }
-  /* Desktop: the families fit one row of compact tabs, a small cut-out beside the name, so the models below stay on screen. */
-  .boblift-cat-wrap.is-fit .boblift-cat-card { flex-direction: row; align-items: center; gap: 12px; padding: 8px; border-radius: 2px; }
-  .boblift-cat-wrap.is-fit .boblift-cat-media { flex: none; width: 76px; height: 57px; aspect-ratio: auto; margin: 0; border-radius: 2px; }
-  .boblift-cat-wrap.is-fit .boblift-cat-media img { padding: 3px; }
-  .boblift-cat-wrap.is-fit .boblift-cat-label { flex: 1; min-width: 0; min-height: 0; margin: 0; padding: 0; padding-inline-end: 6px; border-top: 0; font-size: 15px; background: transparent; }
+  /* Desktop: the families fit one row of compact tabs so the models below stay on screen. A tab shows a small cut-out
+     beside the name only when the tab itself is wide enough for both; a narrower tab shows the name alone. */
+  .boblift-cat-wrap.is-fit .boblift-cat-card { container-type: inline-size; flex-direction: row; align-items: center; gap: 12px; min-height: 56px; padding: 8px 12px; border-radius: 2px; }
+  .boblift-cat-wrap.is-fit .boblift-cat-media, .boblift-cat-wrap.is-fit .boblift-cat-arrow-icon { display: none; }
+  .boblift-cat-wrap.is-fit .boblift-cat-label { flex: 1; min-width: 0; min-height: 0; margin: 0; padding: 0; border-top: 0; font-size: 15px; background: transparent; }
+  .boblift-cat-wrap.is-fit .boblift-cat-name { -webkit-line-clamp: 3; overflow-wrap: anywhere; }
   .boblift-cat-wrap.is-fit .boblift-cat-card[aria-selected="true"] { background: var(--navy); color: #fff; }
   .boblift-cat-wrap.is-fit .boblift-cat-card[aria-selected="true"] .boblift-cat-label { background: transparent; }
+  @container (min-width: 228px) {
+    .boblift-cat-wrap.is-fit .boblift-cat-media { display: block; flex: none; width: 76px; height: 57px; aspect-ratio: auto; margin: 0; border-radius: 2px; }
+    .boblift-cat-wrap.is-fit .boblift-cat-media img { padding: 3px; }
+    .boblift-cat-wrap.is-fit .boblift-cat-arrow-icon { display: block; }
+    .boblift-cat-wrap.is-fit .boblift-cat-name { -webkit-line-clamp: 2; }
+  }
+  @container (min-width: 280px) {
+    .boblift-cat-wrap.is-fit .boblift-cat-media { width: 88px; height: 66px; }
+  }
 }
 @media (min-width: 1200px) {
   .boblift-cat-wrap.is-fit .boblift-cat-track { gap: 14px; }
-  .boblift-cat-wrap.is-fit .boblift-cat-media { width: 88px; height: 66px; }
   .boblift-cat-wrap.is-fit .boblift-cat-label { font-size: 16px; }
 }
 
