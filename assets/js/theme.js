@@ -3685,6 +3685,11 @@
     let galleryTitle = '';
     const urlTab = new URLSearchParams(window.location.search).get('tab');
     let activeKind = urlTab === 'customer_feedback' ? 'customer_feedback' : 'scene_case';
+    // 101 feedback entries made the page ~26k px tall: the grid shows one page at a time.
+    const casesPerPage = 12;
+    let casesPage = 1;
+    const pager = qs('[data-cases-pager]', root);
+    const summary = qs('[data-cases-summary]', root);
 
     const resetModalMedia = () => {
       if (!modalMedia) return;
@@ -3793,17 +3798,76 @@
       setModalOpen(true);
     };
 
+    // Same pager as the product archive: shared page numbers, arrows only on phones.
+    const renderCasesPager = (totalPages) => {
+      if (!pager) return;
+      pager.innerHTML = '';
+      pager.classList.toggle('hidden', totalPages <= 1);
+      if (totalPages <= 1) return;
+      const makeButton = (label, page, active = false, disabled = false, arrow = '') => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.disabled = disabled;
+        button.dataset.casesPage = String(page);
+        if (arrow) {
+          button.setAttribute('aria-label', label);
+          const text = document.createElement('span');
+          text.className = 'hidden sm:inline';
+          text.textContent = label;
+          const icon = document.createElement('span');
+          icon.className = 'inline-block text-lg leading-none rtl:-scale-x-100 sm:hidden';
+          icon.dir = 'ltr';
+          icon.setAttribute('aria-hidden', 'true');
+          icon.textContent = arrow;
+          button.append(text, icon);
+        } else {
+          button.textContent = label;
+        }
+        button.className = active
+          ? 'h-11 min-w-11 rounded-sm bg-[#0B1B33] px-4 text-sm font-black text-white transition'
+          : (arrow
+            ? 'h-11 min-w-11 rounded-sm border border-[#D8DEE8] bg-white px-3 text-sm font-black text-[#0B1B33] transition hover:border-blue-300 disabled:cursor-not-allowed disabled:opacity-40 sm:px-5'
+            : 'h-11 min-w-11 rounded-sm border border-[#D8DEE8] bg-white px-4 text-sm font-black text-[#0B1B33] transition hover:border-blue-300');
+        if (active) button.setAttribute('aria-current', 'page');
+        return button;
+      };
+      pager.appendChild(makeButton(pager.dataset.prevLabel || 'Previous', casesPage - 1, false, casesPage === 1, '\u2039'));
+      pagerPageNumbers(totalPages, casesPage).forEach((page) => {
+        if (page === null) {
+          const ellipsis = document.createElement('span');
+          ellipsis.className = 'inline-flex h-11 min-w-6 items-center justify-center text-sm font-black text-slate-400';
+          ellipsis.setAttribute('aria-hidden', 'true');
+          ellipsis.textContent = '\u2026';
+          pager.appendChild(ellipsis);
+          return;
+        }
+        pager.appendChild(makeButton(String(page), page, page === casesPage));
+      });
+      pager.appendChild(makeButton(pager.dataset.nextLabel || 'Next', casesPage + 1, false, casesPage === totalPages, '\u203A'));
+    };
+
     const applyCasesFilter = () => {
       const country = countryFilter?.value || '';
       const product = productFilter?.value || '';
-      let visibleCount = 0;
-      cards.forEach((card) => {
-        const visible = (card.dataset.caseKind || 'scene_case') === activeKind
-          && (!country || card.dataset.country === country)
-          && (!product || card.dataset.product === product);
-        card.classList.toggle('hidden', !visible);
-        if (visible) visibleCount += 1;
-      });
+      const matches = cards.filter((card) => (card.dataset.caseKind || 'scene_case') === activeKind
+        && (!country || card.dataset.country === country)
+        && (!product || card.dataset.product === product));
+      const visibleCount = matches.length;
+      const totalPages = Math.max(1, Math.ceil(visibleCount / casesPerPage));
+      casesPage = Math.min(Math.max(1, casesPage), totalPages);
+      const from = (casesPage - 1) * casesPerPage;
+      const pageCards = new Set(matches.slice(from, from + casesPerPage));
+      cards.forEach((card) => card.classList.toggle('hidden', !pageCards.has(card)));
+      root.dataset.activeKind = activeKind;
+      if (summary) {
+        summary.textContent = visibleCount > casesPerPage
+          ? (summary.dataset.template || '{from}–{to} / {total}')
+            .replace('{from}', String(from + 1))
+            .replace('{to}', String(Math.min(from + casesPerPage, visibleCount)))
+            .replace('{total}', String(visibleCount))
+          : '';
+      }
+      renderCasesPager(totalPages);
       if (empty) empty.classList.toggle('hidden', visibleCount !== 0);
       if (grid) grid.classList.toggle('hidden', visibleCount === 0);
       tabButtons.forEach((button) => {
@@ -3904,14 +3968,30 @@
     tabButtons.forEach((button) => {
       button.addEventListener('click', () => {
         activeKind = button.dataset.casesTabButton === 'customer_feedback' ? 'customer_feedback' : 'scene_case';
+        casesPage = 1;
         applyCasesFilter();
       });
     });
-    countryFilter?.addEventListener('change', applyCasesFilter);
-    productFilter?.addEventListener('change', applyCasesFilter);
+    const resetCasesPage = () => {
+      casesPage = 1;
+      applyCasesFilter();
+    };
+    countryFilter?.addEventListener('change', resetCasesPage);
+    productFilter?.addEventListener('change', resetCasesPage);
+    pager?.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-cases-page]');
+      if (!button || button.disabled) return;
+      casesPage = Number(button.dataset.casesPage) || 1;
+      applyCasesFilter();
+      // The pager is rebuilt, so keyboard focus moves to the new current page instead of being lost.
+      pager.querySelector('[aria-current="page"]')?.focus({ preventScroll: true });
+      // scrollIntoView honours html's scroll-padding-top (the fixed header height), so the controls land below the header.
+      root.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    });
     resets.forEach((button) => {
       button.addEventListener('click', () => {
         activeKind = 'scene_case';
+        casesPage = 1;
         if (countryFilter) countryFilter.value = '';
         if (productFilter) productFilter.value = '';
         customSelects.forEach(syncCasesCustomSelect);
@@ -3950,6 +4030,7 @@
     const stage = root.querySelector('[data-feedback-stage]');
     const holder = root.querySelector('[data-feedback-stage-media]');
     const indexLabel = root.querySelector('[data-feedback-index]');
+    const backdrop = root.querySelector('[data-feedback-backdrop]');
     const thumbs = Array.from(root.querySelectorAll('[data-feedback-thumb]'));
     const title = root.dataset.feedbackTitle || '';
     let current = 0;
@@ -3980,6 +4061,8 @@
         holder.append(image);
       }
       if (indexLabel) indexLabel.textContent = pad(current + 1);
+      const backdropSrc = item.thumb || (item.type === 'video' ? item.poster : item.src) || '';
+      if (backdrop) backdrop.style.backgroundImage = backdropSrc ? `url("${backdropSrc.replace(/"/g, '%22')}")` : '';
       thumbs.forEach((thumb, i) => {
         const active = i === current;
         thumb.classList.toggle('is-active', active);

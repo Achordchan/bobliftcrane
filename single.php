@@ -116,7 +116,7 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
                     <p class="mt-4 text-lg font-normal leading-8 text-slate-600"><?php echo esc_html($excerpt); ?></p>
                 <?php endif; ?>
                 <p class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-bold text-slate-500 lg:hidden">
-                    <span><?php echo esc_html((string) ($article_ui['authorName'] ?? 'BOB-LIFT Editorial Team')); ?></span>
+                    <span><?php echo esc_html((string) ($article_ui['authorName'] ?? 'Achord Chan')); ?></span>
                     <time datetime="<?php echo esc_attr($published); ?>"><?php echo esc_html($published); ?></time>
                     <span><?php echo esc_html($reading); ?></span>
                 </p>
@@ -155,9 +155,9 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
         <aside class="flex min-w-0 flex-col gap-4" aria-label="<?php echo esc_attr((string) ($ui['summary'] ?? 'Article Summary')); ?>">
                     <section class="hidden rounded border border-line bg-white p-5 lg:block">
                         <div class="flex items-center gap-3">
-                            <span class="grid h-11 w-11 shrink-0 place-items-center rounded-sm bg-navy text-white"><?php echo boblift_icon('building-2', 'h-5 w-5'); ?></span>
+                            <img class="h-11 w-11 shrink-0 rounded-sm bg-mist object-cover" src="<?php echo esc_url(boblift_asset('images/authors/achord-chan.webp')); ?>" alt="<?php echo esc_attr((string) ($article_ui['authorName'] ?? 'Achord Chan')); ?>" width="44" height="44" loading="lazy" decoding="async">
                             <div class="min-w-0">
-                                <p class="text-sm font-black leading-tight text-ink"><?php echo esc_html((string) ($article_ui['authorName'] ?? 'BOB-LIFT Editorial Team')); ?></p>
+                                <p class="text-sm font-black leading-tight text-ink"><?php echo esc_html((string) ($article_ui['authorName'] ?? 'Achord Chan')); ?></p>
                                 <p class="mt-1 text-xs font-normal leading-5 text-slate-500"><?php echo esc_html((string) ($article_ui['authorText'] ?? '')); ?></p>
                             </div>
                         </div>
