@@ -1107,7 +1107,7 @@ function boblift_item_related_products(int $post_id, int $limit = 3): array
     foreach ($linked as $product_id) {
         $translated = $language !== '' && function_exists('pll_get_post') ? ((int) pll_get_post($product_id, $language) ?: $product_id) : $product_id;
         $product = get_post($translated);
-        if ($product instanceof WP_Post && $product->post_type === 'product' && $product->post_status === 'publish') {
+        if ($product instanceof WP_Post && $product->post_type === 'product' && $product->post_status === 'publish' && !post_password_required($product)) {
             $products[$product->ID] = $product;
         }
     }
@@ -1115,7 +1115,10 @@ function boblift_item_related_products(int $post_id, int $limit = 3): array
         $text = get_the_title($post_id) . ' ' . (string) get_post_meta($post_id, '_product_name', true) . ' ' . (string) get_post_meta($post_id, '_feedback_model', true);
         if (preg_match('/(?<![a-z0-9])sq\d/i', $text)) {
             foreach (boblift_news_related_products($text, '', $limit, $post_id) as $product) {
-                $products[$product->ID] = $product;
+                // Password-protected products keep their specs private, so they get no card.
+                if (!post_password_required($product)) {
+                    $products[$product->ID] = $product;
+                }
             }
         }
     }

@@ -230,12 +230,20 @@ if (count($related_cards) < 3 && function_exists('boblift_feedback_items')) {
         <?php
         // A body made only of "heading + list of links" blocks (the related links under a case) is shown as a link panel, not as prose.
         $resource_blocks = [];
-        if ($show_content && !preg_match('/<(p|img|figure|table|ol)\b/i', $content) && preg_match_all('#<h2[^>]*>(.*?)</h2>\s*<ul[^>]*>(.*?)</ul>#is', $content, $blocks, PREG_SET_ORDER)) {
+        if ($show_content && preg_match_all('#<h2>(.*?)</h2>\s*<ul>(.*?)</ul>#is', $content, $blocks, PREG_SET_ORDER)) {
+            // Converted only when the whole body is plain heading + link-list blocks; anything else (media, ids, other
+            // markup, list items that are not a single link) keeps the normal prose rendering so nothing is lost.
+            $leftover = trim((string) preg_replace('#<h2>(.*?)</h2>\s*<ul>(.*?)</ul>#is', '', $content));
             foreach ($blocks as $block) {
-                preg_match_all('#<li[^>]*>\s*<a\s+href="([^"]*)"([^>]*)>(.*?)</a>\s*</li>#is', $block[2], $items, PREG_SET_ORDER);
+                $item_count = preg_match_all('#<li\b#i', $block[2]);
+                preg_match_all('#<li>\s*<a\s[^>]*?href="([^"]*)"([^>]*)>([^<]*)</a>\s*</li>#i', $block[2], $items, PREG_SET_ORDER);
+                if ($leftover !== '' || $item_count === 0 || count($items) !== $item_count) {
+                    $resource_blocks = [];
+                    break;
+                }
                 $resource_blocks[] = [
                     'heading' => wp_strip_all_tags($block[1]),
-                    'links' => array_map(static fn(array $item): array => ['href' => html_entity_decode($item[1]), 'label' => wp_strip_all_tags($item[3]), 'external' => str_contains($item[2], '_blank')], $items),
+                    'links' => array_map(static fn(array $item): array => ['href' => html_entity_decode($item[1]), 'label' => html_entity_decode($item[3]), 'external' => str_contains($item[2], '_blank')], $items),
                 ];
             }
         }

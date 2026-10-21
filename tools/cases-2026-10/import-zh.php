@@ -51,7 +51,7 @@ foreach ($cases as $case) {
     $translations['zh'] = $id;
     pll_save_post_translations($translations);
     // Same photos, cover, product and kind as the English case; text fields in Chinese.
-    foreach (['_case_kind', '_product_name', '_case_gallery', '_related_product', '_article_schema_jsonld'] as $key) {
+    foreach (['_case_kind', '_product_name', '_case_gallery', '_related_product'] as $key) {
         update_post_meta($id, $key, wp_slash((string) get_post_meta($en->ID, $key, true)));
     }
     $meta = [
@@ -68,5 +68,41 @@ foreach ($cases as $case) {
         update_post_meta($id, $key, wp_slash($value));
     }
     set_post_thumbnail($id, (int) get_post_thumbnail_id($en->ID));
+    // The Chinese page's own Article + breadcrumb JSON-LD (its URL, text and dates), not a copy of the English one.
+    // {{home}} is the page language's home (…/zh on Chinese pages), so paths drop their /zh prefix.
+    $relative = static fn(string $url): string => (string) preg_replace('#^/zh(?=/|$)#', '', wp_make_link_relative($url));
+    $path = $relative(get_permalink($id));
+    $images = array_values(array_filter(array_map(static fn($attachment): string => (string) wp_make_link_relative((string) wp_get_attachment_image_url((int) $attachment, 'large')), array_slice(array_filter(explode(',', (string) get_post_meta($en->ID, '_case_gallery', true))), 0, 4))));
+    $product_id = pll_get_post((int) get_post_meta($en->ID, '_related_product', true), 'zh') ?: (int) get_post_meta($en->ID, '_related_product', true);
+    $schema = [
+        '@context' => 'https://schema.org',
+        '@graph' => [
+            [
+                '@type' => 'Article',
+                'inLanguage' => 'zh-CN',
+                'headline' => $case['title'],
+                'description' => $case['seo_description'],
+                'mainEntityOfPage' => '{{home}}' . $path,
+                'datePublished' => get_post_time('c', true, $id),
+                'dateModified' => get_post_modified_time('c', true, $id),
+                'author' => ['@type' => 'Person', 'name' => 'Achord Chan', 'url' => '{{home}}' . $relative(boblift_url('/about')), 'jobTitle' => 'BOB-LIFT 产品运营总监', 'worksFor' => ['@type' => 'Organization', 'name' => 'BOB-LIFT']],
+                'publisher' => ['@type' => 'Organization', 'name' => 'BOB-LIFT', 'url' => '{{home}}/'],
+                'image' => array_map(static fn(string $src): array => ['@type' => 'ImageObject', 'url' => '{{home}}' . $src], $images),
+                'about' => get_post_status($product_id) === 'publish'
+                    ? ['@type' => 'Product', 'name' => (string) get_post_meta($en->ID, '_product_name', true), 'url' => '{{home}}' . $relative(get_permalink($product_id))]
+                    : ['@type' => 'Product', 'name' => (string) get_post_meta($en->ID, '_product_name', true)],
+                'contentLocation' => ['@type' => 'Country', 'name' => $case['country']],
+            ],
+            [
+                '@type' => 'BreadcrumbList',
+                'itemListElement' => [
+                    ['@type' => 'ListItem', 'position' => 1, 'name' => '首页', 'item' => '{{home}}/'],
+                    ['@type' => 'ListItem', 'position' => 2, 'name' => '案例', 'item' => '{{home}}/cases.html'],
+                    ['@type' => 'ListItem', 'position' => 3, 'name' => $case['title'], 'item' => '{{home}}' . $path],
+                ],
+            ],
+        ],
+    ];
+    update_post_meta($id, '_article_schema_jsonld', wp_slash(wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)));
     WP_CLI::log($case['en_slug'] . ' zh => ' . $id . ' ' . get_permalink($id));
 }
