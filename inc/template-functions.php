@@ -901,7 +901,10 @@ function boblift_cache_set(string $name, mixed $data): void
  */
 function boblift_cache_assets_mark(): array
 {
-    $mark = [];
+    // Dynamic blocks and shortcodes render from the request (main query, current user, other content), so a build that ran
+    // any of them is not shared; nested builds keep their own flag and pass it up to the enclosing one.
+    $mark = ['dynamic_outer' => !empty($GLOBALS['boblift_cache_dynamic'])];
+    $GLOBALS['boblift_cache_dynamic'] = false;
     foreach (['styles' => wp_styles(), 'scripts' => wp_scripts()] as $kind => $dependencies) {
         $extras = [];
         foreach ($dependencies->registered as $handle => $item) {
@@ -974,8 +977,27 @@ function boblift_cache_assets_since(array $mark): array
         $recorded[$kind . '_registered'] = $registered;
         $recorded[$kind . '_added'] = $added;
     }
+    if (!empty($GLOBALS['boblift_cache_dynamic'])) {
+        $recorded['uncacheable'] = true;
+    }
+    $GLOBALS['boblift_cache_dynamic'] = !empty($mark['dynamic_outer']) || !empty($GLOBALS['boblift_cache_dynamic']);
     return $recorded;
 }
+
+add_filter('render_block', static function ($html, $block) {
+    $name = is_array($block) ? (string) ($block['blockName'] ?? '') : '';
+    if ($name !== '' && class_exists('WP_Block_Type_Registry')) {
+        $type = WP_Block_Type_Registry::get_instance()->get_registered($name);
+        if ($type && $type->is_dynamic()) {
+            $GLOBALS['boblift_cache_dynamic'] = true;
+        }
+    }
+    return $html;
+}, 10, 2);
+add_filter('do_shortcode_tag', static function ($output) {
+    $GLOBALS['boblift_cache_dynamic'] = true;
+    return $output;
+});
 
 function boblift_cache_replay_assets(array $cached): void
 {
@@ -1012,6 +1034,10 @@ function boblift_cached_data(string $group, array $vary, callable $build): mixed
     $cached = boblift_cache_get($name, $found);
     if ($found && is_array($cached) && array_key_exists('data', $cached)) {
         boblift_cache_replay_assets($cached);
+        if (!empty($cached['uncacheable'])) {
+            // A request-only entry reused inside another build keeps that build out of the store too.
+            $GLOBALS['boblift_cache_dynamic'] = true;
+        }
         return $cached['data'];
     }
     $mark = boblift_cache_assets_mark();
@@ -1026,6 +1052,10 @@ function boblift_cached_html(string $group, array $vary, callable $render): stri
     $cached = boblift_cache_get($name, $found);
     if ($found && is_array($cached) && isset($cached['html'])) {
         boblift_cache_replay_assets($cached);
+        if (!empty($cached['uncacheable'])) {
+            // A request-only entry reused inside another build keeps that build out of the store too.
+            $GLOBALS['boblift_cache_dynamic'] = true;
+        }
         return (string) $cached['html'];
     }
     $mark = boblift_cache_assets_mark();
