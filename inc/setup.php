@@ -524,6 +524,8 @@ function boblift_localize_front_post_type_names(): void
 add_action('wp', 'boblift_localize_front_post_type_names');
 
 // Article JSON-LD kept in _article_schema_jsonld; {{home}} stands for the site address so the markup follows the host.
+// It is the language-neutral root: Polylang adds the language prefix to home_url() on translated pages, and translated
+// schema already spells its own prefix ({{home}}/ru/cases/...) and points at shared uploads ({{home}}/wp-content/...).
 function boblift_article_schema(): void
 {
     if (!is_singular(['post', 'case']) || post_password_required(get_queried_object())) {
@@ -533,7 +535,7 @@ function boblift_article_schema(): void
     if ($schema === '') {
         return;
     }
-    $schema = str_replace('{{home}}', untrailingslashit(home_url()), $schema);
+    $schema = str_replace('{{home}}', untrailingslashit((string) get_option('home')), $schema);
     if (json_decode($schema) === null) {
         return;
     }
