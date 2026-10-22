@@ -205,3 +205,13 @@ function boblift_canonical_in_request_language(string|false $redirect_url, strin
     return $query_string !== '' ? $url . (str_contains($url, '?') ? '&' : '?') . $query_string : $url;
 }
 add_filter('redirect_canonical', 'boblift_canonical_in_request_language', 20, 2);
+
+// Polylang's own canonical check (template_redirect, priority 4, before core's) is what actually answers these requests:
+// it sends a post to its own language's address, so /contact/ went to /ja/contact.html before redirect_canonical ran.
+// The same correction applies there; returning false (already at the translation) tells Polylang not to redirect.
+add_filter('pll_check_canonical_url', static function ($redirect_url) {
+    if (!function_exists('pll_get_requested_url')) {
+        return $redirect_url;
+    }
+    return boblift_canonical_in_request_language(is_string($redirect_url) ? $redirect_url : false, (string) pll_get_requested_url());
+}, 20);
