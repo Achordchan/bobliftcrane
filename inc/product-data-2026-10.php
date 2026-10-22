@@ -72,13 +72,15 @@ function boblift_product_data_corrected_drawings(): array
 /**
  * Adds the corrected drawing as a new attachment and points the model's drawing at it, in every language. The old upload
  * is kept. Only a drawing that is still the imported one (file "boblift-drawings-<model>.webp", or its "-scaled"
- * copy) is swapped, so a drawing an editor has since replaced or reordered is left alone. True when done or not needed.
+ * copy) is swapped, so a drawing an editor has since replaced or reordered is left alone. True when done or not needed,
+ * null while the product does not exist yet.
  */
-function boblift_product_data_replace_drawing(string $model): bool
+function boblift_product_data_replace_drawing(string $model): ?bool
 {
     $english = boblift_product_data_english_id($model);
+    // No product yet (not imported): null keeps the step open.
     if ($english <= 0) {
-        return true;
+        return null;
     }
     // The old and new attachment are recorded as soon as the new one exists, so a run that stops half way resumes the
     // remaining translations from this record instead of from the English drawing, which by then is the new one.
@@ -130,11 +132,12 @@ function boblift_product_data_replace_drawing(string $model): bool
  * SQ8ZA6 and SQ8ZA6TJ share one load chart; the technical department confirmed 16.7 t·m for both (2026-10-22), so the
  * SQ8ZA6 moment row changes from 16 to 16.7 in every language. True when every row reads 16.7 afterwards.
  */
-function boblift_product_data_fix_sq8za6_moment(): bool
+function boblift_product_data_fix_sq8za6_moment(): ?bool
 {
     $english = boblift_product_data_english_id('SQ8ZA6');
+    // No product yet (not imported): null keeps the step open.
     if ($english <= 0) {
-        return true;
+        return null;
     }
     $english_rows = (array) boblift_decode_meta(get_post_meta($english, '_specs', true), []);
     $row_index = null;
@@ -239,9 +242,9 @@ function boblift_apply_product_data_2026_10(): void
         }
     }
     foreach (boblift_product_data_corrected_drawings() as $model) {
-        $step('drawing:' . $model, static fn(): bool => boblift_product_data_replace_drawing($model));
+        $step('drawing:' . $model, static fn(): ?bool => boblift_product_data_replace_drawing($model));
     }
-    $step('moment:SQ8ZA6', static fn(): bool => boblift_product_data_fix_sq8za6_moment());
+    $step('moment:SQ8ZA6', static fn(): ?bool => boblift_product_data_fix_sq8za6_moment());
     update_option($done_option, $done, false);
     if (function_exists('boblift_legacy_product_ids')) {
         boblift_legacy_product_ids(true);
