@@ -2827,7 +2827,7 @@ function boblift_form_security_settings_page(): void
         <?php boblift_admin_input('turnstile_site_key', $form_security, 'Site Key', 'boblift_theme_options[form_security]'); ?>
         <?php boblift_admin_input('turnstile_secret_key', $form_security, 'Secret Key', 'boblift_theme_options[form_security]'); ?>
     <?php boblift_admin_settings_panel_end(); ?>
-    <?php boblift_admin_settings_panel_start('统计与广告', '填 GA4 衡量 ID（G- 开头）和 Google Ads 转化 ID（AW- 开头），多个用逗号隔开。主题自动加载 Google 标签并开启同意模式 v2：欧洲经济区、英国、瑞士的访客默认拒绝并看到 Cookie 横幅，其他地区默认允许，页脚出现「Cookie 设置」。留空则不加载任何统计代码。'); ?>
+    <?php boblift_admin_settings_panel_start('统计与广告', '填 GA4 衡量 ID（G- 开头）和 Google Ads 转化 ID（AW- 开头），多个用逗号隔开。主题自动加载 Google 标签并开启同意模式 v2：欧洲经济区、英国、瑞士的访客默认拒绝并看到 Cookie 横幅，其他地区默认允许，页脚出现「Cookie 设置」。留空则不加载任何统计代码。先把各语言隐私政策的 Cookie 段改好再填。老站沿用的值：Google 标签 ID 填 G-DDDFW7JT74, AW-16505129123；询盘转化填 AW-16505129123/wV_TCKKezaIZEKORob49。'); ?>
         <?php boblift_admin_input('google_tag', $form_security, 'Google 标签 ID', 'boblift_theme_options[form_security]'); ?>
         <?php boblift_admin_input('google_conversion', $form_security, '询盘转化（Google Ads send_to，形如 AW-123456789/AbCdEf）', 'boblift_theme_options[form_security]'); ?>
     <?php boblift_admin_settings_panel_end(); ?>

@@ -268,10 +268,11 @@ function boblift_form_security_defaults(): array
         'turnstile_site_key' => '1x00000000000000000000AA',
         'turnstile_secret_key' => '1x0000000000000000000000000000000AA',
         // Site-wide tracking (inc/consent.php) is kept here too: like Turnstile it is one setting for every language.
-        // The old site's GA4 property and the Google Ads account its inquiry conversions are in (from GTM-K77CKZ9).
-        'google_tag' => 'G-DDDFW7JT74, AW-16505129123',
-        // "Ads Conversion - formSubmit - EC" in Ads account 573-204-7890: the old site's primary lead-form conversion.
-        'google_conversion' => 'AW-16505129123/wV_TCKKezaIZEKORob49',
+        // Off until every language's saved privacy policy describes these cookies; then enter the old site's GA4 property
+        // and Ads account (G-DDDFW7JT74, AW-16505129123) and its lead-form conversion (AW-16505129123/wV_TCKKezaIZEKORob49)
+        // under 表单安全 → 统计与广告.
+        'google_tag' => '',
+        'google_conversion' => '',
     ];
 }
 

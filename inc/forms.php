@@ -672,10 +672,6 @@ function boblift_handle_inquiry(): void
     if (trim((string) wp_unslash($_POST['boblift_inquiry_website'] ?? '')) !== '') {
         boblift_inquiry_succeed(0);
     }
-    if (boblift_inquiry_rate_limited()) {
-        $ui = function_exists('boblift_site_ui') ? boblift_site_ui('quoteForm') : [];
-        boblift_inquiry_fail((string) ($ui['messages']['tooMany'] ?? 'Too many inquiries were sent from your network. Please wait a few minutes and try again, or email us directly.'), 'error');
-    }
 
     $fields = [];
     $field_keys = array_merge(['name', 'email', 'phone', 'company', 'website', 'country', 'product', 'product_slug', 'quantity', 'message'], boblift_inquiry_extra_field_names());
@@ -702,6 +698,11 @@ function boblift_handle_inquiry(): void
         $ui = $ui ?? (function_exists('boblift_site_ui') ? boblift_site_ui('quoteForm') : []);
         boblift_inquiry_fail((string) ($ui['messages']['verificationRequired'] ?? 'Please complete the verification and try again.'), 'verification');
     }
+    // The slot is taken before anything is saved, so parallel submissions cannot all slip under the limit.
+    if (!boblift_inquiry_reserve_slot()) {
+        $ui = $ui ?? (function_exists('boblift_site_ui') ? boblift_site_ui('quoteForm') : []);
+        boblift_inquiry_fail((string) ($ui['messages']['tooMany'] ?? 'Too many inquiries were sent from your network. Please wait a few minutes and try again, or email us directly.'), 'error');
+    }
 
     $customer_title = $fields['name'] !== '' ? $fields['name'] : ($fields['company'] !== '' ? $fields['company'] : $fields['email']);
     $post_id = wp_insert_post([
@@ -719,7 +720,6 @@ function boblift_handle_inquiry(): void
         update_post_meta((int) $post_id, '_' . $key, $value);
     }
 
-    boblift_inquiry_count_submission();
     boblift_send_inquiry_mail($fields, (int) $post_id);
     // For other notifiers (DingTalk and the like): the saved inquiry and its fields.
     do_action('boblift_inquiry_submitted', (int) $post_id, $fields);
@@ -727,22 +727,24 @@ function boblift_handle_inquiry(): void
     boblift_inquiry_succeed((int) $post_id, $fields);
 }
 
-/** How many inquiries one IP address may send per 10 minutes before the form asks it to wait. */
+/** How many inquiries one IP address may send in one fixed 10-minute window before the form asks it to wait. */
 const BOBLIFT_INQUIRY_RATE_LIMIT = 5;
+const BOBLIFT_INQUIRY_RATE_WINDOW = 600;
 
-function boblift_inquiry_rate_key(): string
+/**
+ * Take one of this IP's inquiry slots in the current window; false when they are all taken. The count lives in its own
+ * options row per IP and window, raised by a single conditional UPDATE, so two requests can never both take the last
+ * slot (transients are a read then a write). Rows of finished windows are removed as new ones are made.
+ */
+function boblift_inquiry_reserve_slot(): bool
 {
-    return 'boblift_inquiry_rate_' . md5(function_exists('boblift_inquiry_client_ip') ? boblift_inquiry_client_ip() : (string) ($_SERVER['REMOTE_ADDR'] ?? ''));
-}
-
-function boblift_inquiry_rate_limited(): bool
-{
-    return (int) get_transient(boblift_inquiry_rate_key()) >= BOBLIFT_INQUIRY_RATE_LIMIT;
-}
-
-function boblift_inquiry_count_submission(): void
-{
-    set_transient(boblift_inquiry_rate_key(), (int) get_transient(boblift_inquiry_rate_key()) + 1, 10 * MINUTE_IN_SECONDS);
+    global $wpdb;
+    $window = intdiv(time(), BOBLIFT_INQUIRY_RATE_WINDOW);
+    $name = '_boblift_inquiry_rate_' . md5(boblift_inquiry_client_ip()) . '_' . $window;
+    $wpdb->query($wpdb->prepare("INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, '0', 'no')", $name));
+    $taken = (int) $wpdb->query($wpdb->prepare("UPDATE {$wpdb->options} SET option_value = option_value + 1 WHERE option_name = %s AND option_value + 0 < %d", $name, BOBLIFT_INQUIRY_RATE_LIMIT));
+    $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name LIKE %s AND SUBSTRING_INDEX(option_name, '_', -1) + 0 < %d", $wpdb->esc_like('_boblift_inquiry_rate_') . '%', $window - 1));
+    return $taken === 1;
 }
 
 /**

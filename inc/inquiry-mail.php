@@ -100,14 +100,47 @@ function boblift_inquiry_attribution_block(array $fields): string
     return '<tr><td style="padding:20px 36px 0;"><table width="100%" cellspacing="0" cellpadding="0" style="background:#f5f7fa;border-radius:4px;"><tr><td style="padding:14px 18px;">' . $kind . $rows . '</td></tr></table></td></tr>';
 }
 
-/** The visitor's IP address: Cloudflare's CF-Connecting-IP when the site sits behind it, else REMOTE_ADDR. */
+/**
+ * Cloudflare's published proxy ranges (https://www.cloudflare.com/ips/). CF-Connecting-IP is believed only from these:
+ * anyone else could send the header to pose as another visitor and get round the rate limit.
+ */
+const BOBLIFT_CLOUDFLARE_RANGES = [
+    '173.245.48.0/20', '103.21.244.0/22', '103.22.200.0/22', '103.31.4.0/22', '141.101.64.0/18', '108.162.192.0/18',
+    '190.93.240.0/20', '188.114.96.0/20', '197.234.240.0/22', '198.41.128.0/17', '162.158.0.0/15', '104.16.0.0/13',
+    '104.24.0.0/14', '172.64.0.0/13', '131.0.72.0/22',
+    '2400:cb00::/32', '2606:4700::/32', '2803:f800::/32', '2405:b500::/32', '2405:8100::/32', '2a06:98c0::/29', '2c0f:f248::/32',
+];
+
+function boblift_ip_in_range(string $ip, string $range): bool
+{
+    [$subnet, $bits] = explode('/', $range);
+    $ip_bin = @inet_pton($ip);
+    $subnet_bin = @inet_pton($subnet);
+    if ($ip_bin === false || $subnet_bin === false || strlen($ip_bin) !== strlen($subnet_bin)) {
+        return false;
+    }
+    $bits = (int) $bits;
+    $bytes = intdiv($bits, 8);
+    if (strncmp($ip_bin, $subnet_bin, $bytes) !== 0) {
+        return false;
+    }
+    $rest = $bits % 8;
+    return $rest === 0 || ((ord($ip_bin[$bytes]) ^ ord($subnet_bin[$bytes])) & (0xFF << (8 - $rest)) & 0xFF) === 0;
+}
+
+/** The visitor's IP address: CF-Connecting-IP when the request really came through Cloudflare, else REMOTE_ADDR. */
 function boblift_inquiry_client_ip(): string
 {
+    $peer = sanitize_text_field((string) ($_SERVER['REMOTE_ADDR'] ?? ''));
     $cloudflare = trim((string) ($_SERVER['HTTP_CF_CONNECTING_IP'] ?? ''));
     if ($cloudflare !== '' && filter_var($cloudflare, FILTER_VALIDATE_IP)) {
-        return $cloudflare;
+        foreach (BOBLIFT_CLOUDFLARE_RANGES as $range) {
+            if (boblift_ip_in_range($peer, $range)) {
+                return $cloudflare;
+            }
+        }
     }
-    return sanitize_text_field((string) ($_SERVER['REMOTE_ADDR'] ?? ''));
+    return $peer;
 }
 
 /** The country the sender's IP address points to, in Chinese (e.g. 加拿大); empty when it cannot be told. */
@@ -208,7 +241,11 @@ function boblift_inquiry_admin_mail(array $fields, int $post_id): array
     $entry = trim((string) ($fields['source_entry'] ?? ''));
     $page = (string) ($fields['source_page'] ?? '');
     $page_html = $page !== '' ? '<a href="' . esc_url($page) . '" target="_blank" style="color:#215bdb;text-decoration:none;">' . esc_html($page) . '</a>' : '—';
+    // The IP address is used only to tell the country; the privacy policy promises it is not kept with the inquiry.
     $ip = boblift_inquiry_client_ip();
+    $language_names = ['en' => '英语', 'zh' => '中文', 'ja' => '日语', 'es' => '西班牙语', 'ru' => '俄语', 'fr' => '法语', 'ar' => '阿拉伯语'];
+    $posted_language = sanitize_key((string) wp_unslash($_POST['boblift_lang'] ?? 'en'));
+    $language = $language_names[$posted_language] ?? ($posted_language !== '' ? $posted_language : '英语');
     $country = $ip !== '' ? (boblift_inquiry_ip_country($ip) ?: '未能识别') : '未能识别';
     $time = wp_date('Y-m-d H:i');
     $message = trim((string) $fields['message']);
@@ -226,7 +263,7 @@ function boblift_inquiry_admin_mail(array $fields, int $post_id): array
         . $heading('产品信息') . '<tr><td style="padding:0 36px;">' . $product_html . '</td></tr>'
         . $heading('客户信息') . '<tr><td style="padding:0 36px;"><table width="100%" cellspacing="0" cellpadding="0" style="border-top:1px solid #edf0f4;">' . implode('', $rows) . '</table></td></tr>'
         . $message_block
-        . '<tr><td style="padding:24px 36px 0;"><table width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #edf0f4;border-radius:4px;border-collapse:separate;"><tr>' . $meta('来源国家', esc_html($country)) . $meta('IP 地址', esc_html($ip ?: '—')) . $meta('提交时间', esc_html($time)) . '</tr></table></td></tr>'
+        . '<tr><td style="padding:24px 36px 0;"><table width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #edf0f4;border-radius:4px;border-collapse:separate;"><tr>' . $meta('来源国家', esc_html($country)) . $meta('页面语言', esc_html($language)) . $meta('提交时间', esc_html($time)) . '</tr></table></td></tr>'
         . boblift_inquiry_attribution_block($fields)
         . '<tr><td align="center" style="padding:32px 36px 12px;"><table cellspacing="0" cellpadding="0"><tr><td align="center" style="background:#215bdb;border-radius:2px;"><a href="mailto:' . esc_attr($email) . '" style="display:inline-block;width:260px;line-height:50px;font-size:17px;font-weight:bold;color:#ffffff;text-decoration:none;text-align:center;letter-spacing:1px;">立即回复客户</a></td></tr></table></td></tr>'
         . '<tr><td align="center" style="padding:0 36px 32px;font-size:13px;line-height:1.6;color:#64748b;">也可以直接回复这封邮件，回信会发到 ' . esc_html($email) . '</td></tr>'
