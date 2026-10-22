@@ -40,6 +40,16 @@ function boblift_inquiry_mail_logo(): string
     return '<img src="' . esc_url($src) . '" width="120" alt="BOB-LIFT" style="display:block;width:120px;height:auto;border:0;">';
 }
 
+/** The visitor's IP address: Cloudflare's CF-Connecting-IP when the site sits behind it, else REMOTE_ADDR. */
+function boblift_inquiry_client_ip(): string
+{
+    $cloudflare = trim((string) ($_SERVER['HTTP_CF_CONNECTING_IP'] ?? ''));
+    if ($cloudflare !== '' && filter_var($cloudflare, FILTER_VALIDATE_IP)) {
+        return $cloudflare;
+    }
+    return sanitize_text_field((string) ($_SERVER['REMOTE_ADDR'] ?? ''));
+}
+
 /** The country the sender's IP address points to, in Chinese (e.g. 加拿大); empty when it cannot be told. */
 function boblift_inquiry_ip_country(string $ip): string
 {
@@ -138,7 +148,7 @@ function boblift_inquiry_admin_mail(array $fields, int $post_id): array
     $entry = trim((string) ($fields['source_entry'] ?? ''));
     $page = (string) ($fields['source_page'] ?? '');
     $page_html = $page !== '' ? '<a href="' . esc_url($page) . '" target="_blank" style="color:#215bdb;text-decoration:none;">' . esc_html($page) . '</a>' : '—';
-    $ip = sanitize_text_field((string) ($_SERVER['REMOTE_ADDR'] ?? ''));
+    $ip = boblift_inquiry_client_ip();
     $country = $ip !== '' ? (boblift_inquiry_ip_country($ip) ?: '未能识别') : '未能识别';
     $time = wp_date('Y-m-d H:i');
     $message = trim((string) $fields['message']);
@@ -253,7 +263,11 @@ function boblift_inquiry_customer_mail(array $fields, string $language): array
     if ($products) {
         $summary[] = $row($copy['product'], esc_html(implode('; ', $products)));
     }
-    if (trim((string) $fields['message']) !== '') {
+    // The message is echoed back only behind a real spam check: without one, anyone could send branded mail with their
+    // own text to any address.
+    $config = function_exists('boblift_turnstile_config') ? boblift_turnstile_config() : [];
+    $verified = function_exists('boblift_turnstile_is_enabled') && boblift_turnstile_is_enabled() && empty($config['local_mode']);
+    if ($verified && trim((string) $fields['message']) !== '') {
         $summary[] = $row($copy['message'], nl2br(esc_html(wp_trim_words((string) $fields['message'], 120, '…')), false));
     }
     $contact_rows = $row($copy['phone'], esc_html($contact['phone']))
@@ -261,10 +275,9 @@ function boblift_inquiry_customer_mail(array $fields, string $language): array
         . ($address !== '' ? $row($copy['address'], esc_html($address)) : '')
         . $row($copy['website'], '<a href="' . esc_url($site) . '" style="color:#215bdb;text-decoration:none;">' . esc_html(untrailingslashit(preg_replace('#^https?://#', '', $site))) . '</a>');
     $section = static fn(string $title, string $rows): string => '<tr><td style="padding:24px 36px 8px;font-size:13px;font-weight:bold;letter-spacing:1px;color:#64748b;">' . esc_html($title) . '</td></tr><tr><td style="padding:0 36px;"><table width="100%" cellspacing="0" cellpadding="0" style="border-top:1px solid #edf0f4;">' . $rows . '</table></td></tr>';
-    $dir = $language === 'ar' ? 'rtl' : 'ltr';
 
     $body = '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head><body style="margin:0;padding:0;background:#eef1f5;">'
-        . '<table width="100%" cellspacing="0" cellpadding="0" dir="' . $dir . '" style="width:100%;background:#eef1f5;-webkit-text-size-adjust:100%;text-size-adjust:100%;' . $font . '"><tr><td align="center" style="padding:32px 0;">'
+        . '<table width="100%" cellspacing="0" cellpadding="0" dir="ltr" style="width:100%;background:#eef1f5;-webkit-text-size-adjust:100%;text-size-adjust:100%;' . $font . '"><tr><td align="center" style="padding:32px 0;">'
         . '<table width="620" cellspacing="0" cellpadding="0" style="width:620px;max-width:100%;background:#ffffff;border:1px solid #e3e8ef;border-radius:4px;border-collapse:separate;overflow:hidden;text-align:left;">'
         . '<tr><td height="6" style="height:6px;background:#215bdb;font-size:0;line-height:0;">&nbsp;</td></tr>'
         . '<tr><td style="padding:22px 36px;border-bottom:1px solid #edf0f4;">' . boblift_inquiry_mail_logo() . '</td></tr>'

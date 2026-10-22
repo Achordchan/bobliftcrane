@@ -68,6 +68,7 @@ function boblift_turnstile_config(): array
         'enabled' => $enabled,
         'site_key' => trim($site_key),
         'secret_key' => trim($secret_key),
+        'local_mode' => $local_mode,
     ];
 }
 
@@ -730,7 +731,7 @@ const BOBLIFT_INQUIRY_RATE_LIMIT = 5;
 
 function boblift_inquiry_rate_key(): string
 {
-    return 'boblift_inquiry_rate_' . md5(sanitize_text_field((string) ($_SERVER['REMOTE_ADDR'] ?? '')));
+    return 'boblift_inquiry_rate_' . md5(function_exists('boblift_inquiry_client_ip') ? boblift_inquiry_client_ip() : (string) ($_SERVER['REMOTE_ADDR'] ?? ''));
 }
 
 function boblift_inquiry_rate_limited(): bool
