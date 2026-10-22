@@ -816,8 +816,10 @@ function boblift_cache_signature(): string
 
 function boblift_products_cache_persistent(): bool
 {
+    // Only anonymous visitors share the stored entries: a logged-in request can render personalised content (a login/out
+    // block, nonces, user shortcodes), so it builds for itself and keeps the result for this request only.
     return !is_admin() && !wp_doing_ajax() && !wp_doing_cron() && !(defined('REST_REQUEST') && REST_REQUEST)
-        && !is_preview() && !is_customize_preview();
+        && !is_preview() && !is_customize_preview() && !is_user_logged_in();
 }
 
 /** The cached value, with $found telling a cached null or empty value from a miss. */
@@ -864,7 +866,13 @@ function boblift_cache_set(string $name, mixed $data): void
     if (!boblift_products_cache_persistent()) {
         return;
     }
-    $parts = str_split(base64_encode(gzcompress(serialize($data), 6)), 250000);
+    $serialized = serialize($data);
+    // Interactive blocks (Interactivity API) enqueue script modules and set state outside WP_Styles/WP_Scripts, which a
+    // cache hit cannot replay, so a build that rendered one is kept for this request only.
+    if (str_contains($serialized, 'data-wp-interactive')) {
+        return;
+    }
+    $parts = str_split(base64_encode(gzcompress($serialized, 6)), 250000);
     // Trailing chunks are written under this build's own generation and the head that names it goes last, so concurrent
     // builds never mix their chunks and a reader never sees a head before its chunks.
     $generation = substr(md5(wp_generate_uuid4()), 0, 12);
