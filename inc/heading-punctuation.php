@@ -10,8 +10,15 @@ if (!defined('ABSPATH')) {
  */
 function boblift_strip_heading_full_stops(string $html): string
 {
-    $result = preg_replace('~(<h([1-3])\b[^>]*>(?:(?!</h\2>).)*?)。((?:\s*</(?!h[1-3]\b)[a-z]+>)*\s*</h\2>)~su', '$1$3', $html);
-    // A page with invalid UTF-8, or one past the regex backtracking limit, is sent unchanged rather than blank.
+    // Each heading is cut out first and the stop removed inside it: one pattern over the whole page ran out of PCRE JIT
+    // stack on the 2 MB product archive and left every heading there unchanged.
+    $result = preg_replace_callback('~<h([1-3])\b[^>]*>.*?</h\1>~su', static function (array $match): string {
+        if (!str_contains($match[0], '。')) {
+            return $match[0];
+        }
+        return preg_replace('~(<h([1-3])\b[^>]*>(?:(?!</h\2>).)*?)。((?:\s*</(?!h[1-3]\b)[a-z]+>)*\s*</h\2>)~su', '$1$3', $match[0]) ?? $match[0];
+    }, $html);
+    // A page with invalid UTF-8 is sent unchanged rather than blank.
     return $result ?? $html;
 }
 
