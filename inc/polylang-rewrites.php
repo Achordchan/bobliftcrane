@@ -101,10 +101,16 @@ function boblift_guess_404_permalink_in_request_language(mixed $pre): mixed
     if (!$types) {
         return $pre;
     }
-    $type_list = implode(',', array_fill(0, count($types), '%s'));
-    $ids = $wpdb->get_col($wpdb->prepare("SELECT ID FROM {$wpdb->posts} WHERE post_name = %s AND post_type IN ($type_list) AND post_status = 'publish' ORDER BY ID", $name, ...$types));
+    // Same constraints as core: the post types asked for, and the year, month and day of a dated address.
+    $where = $wpdb->prepare('post_type IN (' . implode(',', array_fill(0, count($types), '%s')) . ") AND post_status = 'publish'", ...$types);
+    foreach (['year' => 'YEAR', 'monthnum' => 'MONTH', 'day' => 'DAYOFMONTH'] as $var => $sql) {
+        if (get_query_var($var)) {
+            $where .= $wpdb->prepare(" AND $sql(post_date) = %d", (int) get_query_var($var));
+        }
+    }
+    $ids = $wpdb->get_col($wpdb->prepare("SELECT ID FROM {$wpdb->posts} WHERE post_name = %s AND $where ORDER BY ID", $name));
     if (!$ids && !apply_filters('strict_redirect_guess_404_permalink', false)) {
-        $ids = $wpdb->get_col($wpdb->prepare("SELECT ID FROM {$wpdb->posts} WHERE post_name LIKE %s AND post_type IN ($type_list) AND post_status = 'publish' ORDER BY ID", $wpdb->esc_like($name) . '%', ...$types));
+        $ids = $wpdb->get_col($wpdb->prepare("SELECT ID FROM {$wpdb->posts} WHERE post_name LIKE %s AND $where ORDER BY ID", $wpdb->esc_like($name) . '%'));
     }
     if (!$ids) {
         return $pre;
@@ -128,7 +134,14 @@ function boblift_guess_404_permalink_in_request_language(mixed $pre): mixed
             }
         }
     }
-    $url = get_permalink($chosen);
+    // Keep a comments feed or a later page of a multipage post, as core does.
+    if (get_query_var('feed')) {
+        $url = get_post_comments_feed_link($chosen, (string) get_query_var('feed'));
+    } elseif ((int) get_query_var('page') > 1) {
+        $url = trailingslashit((string) get_permalink($chosen)) . user_trailingslashit((string) (int) get_query_var('page'), 'single_paged');
+    } else {
+        $url = get_permalink($chosen);
+    }
     return is_string($url) && $url !== '' ? $url : $pre;
 }
 add_filter('pre_redirect_guess_404_permalink', 'boblift_guess_404_permalink_in_request_language');
