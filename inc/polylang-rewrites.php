@@ -194,8 +194,12 @@ function boblift_canonical_in_request_language(string|false $redirect_url, strin
     foreach (['p', 'page_id', 'name', 'pagename', 'post_type', 'lang', 'feed', 'preview', 'preview_id'] as $routing_key) {
         unset($query[$routing_key]);
     }
-    if (untrailingslashit((string) parse_url($requested_url, PHP_URL_PATH)) === untrailingslashit((string) parse_url($url, PHP_URL_PATH)) && !array_diff_key(wp_unslash($_GET), $query)) {
-        return $redirect_url;
+    // Already at the translation (same host and path) with nothing to drop: no redirect at all, not even core's, which
+    // would point at the wrong language's address.
+    $same_host = strtolower((string) parse_url($requested_url, PHP_URL_HOST)) === strtolower((string) parse_url($url, PHP_URL_HOST));
+    $same_path = untrailingslashit((string) parse_url($requested_url, PHP_URL_PATH)) === untrailingslashit((string) parse_url($url, PHP_URL_PATH));
+    if ($same_host && $same_path && !array_diff_key(wp_unslash($_GET), $query)) {
+        return false;
     }
     $query_string = http_build_query($query, '', '&', PHP_QUERY_RFC3986);
     return $query_string !== '' ? $url . (str_contains($url, '?') ? '&' : '?') . $query_string : $url;
