@@ -228,18 +228,21 @@ function ptai_cached_url_to_postid($url, $lang)
   if ($state === null) {
     $version = (string) get_option('ptai_url_ids_version', '0');
     $name    = 'ptai_url_ids_' . md5($lang . '|' . home_url('/') . '|' . ($_SERVER['HTTP_HOST'] ?? ''));
-    $stored  = get_transient($name);
+    // url_to_postid() can resolve private content for a logged-in visitor, so only anonymous requests share the map.
+    $shared  = !is_user_logged_in();
+    $stored  = $shared ? get_transient($name) : false;
     $state   = [
       'name'    => $name,
       'version' => $version,
       'map'     => (is_array($stored) && ($stored['version'] ?? null) === $version && is_array($stored['map'] ?? null)) ? $stored['map'] : [],
+      'shared'  => $shared,
       'dirty'   => false,
     ];
   }
 
   if (!array_key_exists($url, $state['map'])) {
     $state['map'][$url] = (int) url_to_postid($url);
-    if (!$state['dirty']) {
+    if ($state['shared'] && !$state['dirty']) {
       $state['dirty'] = true;
       // The page buffer is rewritten while WordPress shuts down, so the new entries are saved after that.
       register_shutdown_function(static function () use (&$state) {
