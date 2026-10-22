@@ -1,0 +1,51 @@
+{
+ "model": "SQ3.2ZA3",
+ "sources": [
+  "SQ3.2ZA3起升曲线图-1.png",
+  "SQ3.2ZA3外形尺寸及参数图-1.png"
+ ],
+ "max_radius_m": 7.7,
+ "max_height_m": 9.5,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 75,
+ "outrigger_span_mm": "2450~3713",
+ "load_chart": [
+  [
+   2.1,
+   3200
+  ],
+  [
+   4.35,
+   1350
+  ],
+  [
+   5.9,
+   910
+  ],
+  [
+   7.7,
+   680
+  ]
+ ],
+ "params": {
+  "Max Lifting Capacity": "3200Kg",
+  "Max Lifting Moment": "6.8ton.m",
+  "Recommend Power": "14KW",
+  "Hydraulic System Flow": "25L/min",
+  "Hydraulic System Pressure": "25MPa",
+  "Oil Tank Capacity": "60L",
+  "Rotation Angle": "400°",
+  "Self Weight": "1330Kg",
+  "Installation Space": "850mm"
+ },
+ "dims_check": {
+  "height_mm": 2322,
+  "boom reach (side view)": "4319~7619",
+  "outrigger leg stroke": "712-1302",
+  "folded height (folded view)": "2039.6",
+  "outrigger span (folded view)": "2450~3713",
+  "Lbs": "7040/2970/2002/1496"
+ },
+ "confidence": "high",
+ "notes": "Two spans printed: working view 2250-3513 (inner/leg-centre dimension) with 2450 overall retracted width below it; folded view 2450~3713. Each pair differs by exactly 200 mm, so 2450~3713 is the overall (outer) extended span and is used here; 2250-3513 is the leg-centre span. Top folded view prints 725 (folded crane width). Chart load row max 7700 mm while side view reach prints 4319~7619 (different reference points). Rotation 400°. Boom tip at 75 deg about 9.5 m on grid."
+}

@@ -977,6 +977,28 @@ img { max-width: 100%; }
     line-height: 1;
     letter-spacing: .02em;
   }
+  .boblift-product-listing .product-card-specs {
+    grid-template-columns: minmax(0, 1fr);
+    margin-top: 10px;
+    gap: 3px;
+    padding-top: 9px;
+  }
+  .boblift-product-listing .product-card-specs > div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 6px;
+  }
+  .boblift-product-listing .product-card-specs dt {
+    font-size: 10.5px;
+    line-height: 16px;
+  }
+  .boblift-product-listing .product-card-specs dd {
+    flex-shrink: 0;
+    margin-top: 0;
+    font-size: 12.5px;
+    line-height: 16px;
+  }
   .boblift-product-listing .product-card-footer {
     display: block;
     padding-top: 12px;
@@ -1001,28 +1023,69 @@ img { max-width: 100%; }
   }
 }
 
-.boblift-product-listing[data-view="list"] .products-grid { grid-template-columns: minmax(0, 1fr); }
+/* Previous models: a tab that toggles on its own beside the category tabs. While on, the selected category's previous models replace the
+   grid (see boblift_render_legacy_panel()); the category tabs stay usable. */
+.boblift-legacy-panel { display: none; }
+[data-legacy-view] .boblift-legacy-panel { display: block; }
+[data-legacy-view] [data-products-toolbar],
+[data-legacy-view] [data-products-results],
+[data-legacy-view] [data-filter-dropdowns],
+[data-legacy-view] [data-filter-chips-row] { display: none !important; }
+/* The sub-tab row keeps its bottom spacing whenever no dropdown row follows it: previous models, or a category
+   (aerial work platforms) whose models none of the spec filters apply to. */
+[data-legacy-view] [data-category-subtabs],
+[data-filter-bar]:has([data-filter-dropdowns].hidden) [data-category-subtabs] { padding-bottom: 1rem; }
+
+/* List view: one row per model for comparing. The picture, then the name and summary, then four spec rows in a fixed
+   order (so values line up down the list), then the actions. One divider between the columns, no card-in-card. */
+.boblift-product-listing[data-view="list"] .products-grid { grid-template-columns: minmax(0, 1fr); gap: .75rem; }
 .boblift-product-listing[data-view="list"] .product-card { border-radius: 4px; }
-.boblift-product-listing[data-view="list"] .product-card-inner { display: grid; gap: 1.25rem; padding: 1rem; }
-.boblift-product-listing[data-view="list"] .product-card-media { aspect-ratio: 1 / 1; width: 100%; height: auto; min-height: 0; align-self: start; border-radius: 4px; }
+.boblift-product-listing[data-view="list"] .product-card:hover { transform: none; }
+.boblift-product-listing[data-view="list"] .product-card-inner { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 1rem; padding: .75rem; }
+.boblift-product-listing[data-view="list"] .product-card-media { aspect-ratio: 1 / 1; width: 100%; height: auto; min-height: 0; align-self: start; border-radius: 2px; }
+.boblift-product-listing[data-view="list"] .product-card-media img { padding: .5rem; }
 .boblift-product-listing[data-view="list"] .product-card-inline-actions { display: none; }
-.boblift-product-listing[data-view="list"] .product-card-body { justify-content: space-between; gap: 1.25rem; padding: .25rem 0; }
-.boblift-product-listing[data-view="list"] .product-card-meta { justify-content: flex-start; flex-wrap: wrap; gap: .75rem; margin-bottom: 0; }
-.boblift-product-listing[data-view="list"] .product-card-meta span + span::before { content: ""; display: inline-block; width: .25rem; height: .25rem; margin-inline-end: .75rem; border-radius: 2px; background: #cbd5e1; vertical-align: middle; }
-.boblift-product-listing[data-view="list"] .product-card-title { margin-top: .75rem; font-size: clamp(1.5rem,2.4vw,1.875rem); line-height: 1.08; letter-spacing: -.015em; }
-.boblift-product-listing[data-view="list"] .product-card-summary { display: block; }
-.boblift-product-listing[data-view="list"] .product-card-spec-grid { max-width: 48rem; grid-template-columns: repeat(1,minmax(0,1fr)); gap: .5rem; margin-top: 1rem; padding-top: 0; border-top: 0; }
-.boblift-product-listing[data-view="list"] .product-card-spec { min-height: 0; align-items: flex-start; justify-content: flex-start; border-color: #E5E7EB; border-radius: 4px; background: #F8FAFC; padding: .75rem 1rem; text-align: start; box-shadow: none; }
-.boblift-product-listing[data-view="list"] .product-card-spec svg { display: none; }
-.boblift-product-listing[data-view="list"] .product-card-spec-label { font-size: 10px; letter-spacing: .12em; color: #94a3b8; }
-.boblift-product-listing[data-view="list"] .product-card-spec-value { margin-top: .25rem; font-size: 1rem; letter-spacing: 0; }
-.boblift-product-listing[data-view="list"] .product-card-footer { display: flex; flex-direction: column; gap: .75rem; border-top: 1px solid #E5E7EB; padding-top: 1.25rem; }
-.boblift-product-listing[data-view="list"] .product-card-list-actions { display: flex; }
-.boblift-product-listing[data-view="list"] .product-card-ctas { display: grid; grid-template-columns: minmax(0,1fr); gap: .75rem; }
+.boblift-product-listing[data-view="list"] .product-card-body { gap: .75rem; padding: 0; }
+.boblift-product-listing[data-view="list"] .product-card-meta { margin-bottom: .25rem; }
+.boblift-product-listing[data-view="list"] .product-card-title { font-size: clamp(1.25rem, 2vw, 1.75rem); line-height: 1.08; }
+.boblift-product-listing[data-view="list"] .product-card-summary { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; margin-top: .5rem; font-size: .875rem; line-height: 1.5rem; }
+.boblift-product-listing[data-view="list"] .product-card-specs { display: none; }
+.boblift-product-listing[data-view="list"] .product-card-list-specs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem 1.25rem; margin: 0; border-top: 1px solid #E5E7EB; padding-top: .75rem; }
+.boblift-product-listing[data-view="list"] .product-card-footer { display: flex; align-items: center; gap: .5rem; margin-top: .875rem; padding-top: 0; }
+.boblift-product-listing[data-view="list"] .product-card-list-actions { display: flex; gap: .5rem; }
+.boblift-product-listing[data-view="list"] .product-card-list-actions button { width: 2.75rem; height: 2.75rem; }
+.boblift-product-listing[data-view="list"] .product-card-ctas { display: grid; flex: 1; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
 .boblift-product-favorite-active svg { fill: currentColor; }
-@media (min-width: 640px) { .boblift-product-listing[data-view="list"] .product-card-spec-grid { grid-template-columns: repeat(3,minmax(0,1fr)); } .boblift-product-listing[data-view="list"] .product-card-footer { flex-direction: row; align-items: center; justify-content: space-between; } .boblift-product-listing[data-view="list"] .product-card-ctas { grid-template-columns: auto auto; } }
-@media (min-width: 768px) { .boblift-product-listing[data-view="list"] .product-card-inner { grid-template-columns: 300px minmax(0, 1fr); padding: 1.25rem; } }
-@media (min-width: 1280px) { .boblift-product-listing[data-view="list"] .product-card-inner { grid-template-columns: 320px minmax(0, 1fr); } }
+/* Phones: the specs carry the row, so the summary and the icon buttons give way and the two actions share the width. */
+@media (max-width: 767px) {
+  .boblift-product-listing[data-view="list"] .product-card-summary, .boblift-product-listing[data-view="list"] .product-card-list-actions { display: none; }
+  .boblift-product-listing[data-view="list"] .product-card-ctas button, .boblift-product-listing[data-view="list"] .product-card-ctas a { min-height: 2.5rem; white-space: nowrap; }
+}
+@media (min-width: 768px) {
+  .boblift-product-listing[data-view="list"] .product-card-inner { grid-template-columns: 200px minmax(0, 1fr); gap: 1.5rem; padding: 1rem; }
+  .boblift-product-listing[data-view="list"] .product-card-list-specs { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .boblift-product-listing[data-view="list"] .product-card-ctas { flex: 0 0 auto; grid-template-columns: auto auto; }
+  /* The row has room for the full "Request Quote" at every width from here. */
+  .boblift-product-listing[data-view="list"] .product-card-ctas button > span:first-of-type { display: inline; }
+  .boblift-product-listing[data-view="list"] .product-card-ctas button > span:last-of-type { display: none; }
+  .boblift-product-listing[data-view="list"] .product-card-footer { justify-content: space-between; }
+}
+/* Desktop: name | specs | actions side by side, the specs and actions each behind one divider. */
+@media (min-width: 1024px) {
+  .boblift-product-listing[data-view="list"] .product-card-inner { grid-template-columns: 180px minmax(0, 1fr); align-items: center; }
+  .boblift-product-listing[data-view="list"] .product-card-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr) 11rem; align-items: center; gap: 0; }
+  .boblift-product-listing[data-view="list"] .product-card-head { padding-inline-end: 1.75rem; }
+  .boblift-product-listing[data-view="list"] .product-card-bottom { display: contents; }
+  .boblift-product-listing[data-view="list"] .product-card-list-specs { grid-template-columns: repeat(2, minmax(0, 1fr)); align-self: stretch; align-content: center; gap: 1rem 1.5rem; border-top: 0; border-inline-start: 1px solid #E5E7EB; padding: .25rem 1.75rem; }
+  .boblift-product-listing[data-view="list"] .product-card-footer { flex-direction: column; align-items: stretch; align-self: stretch; justify-content: center; gap: .5rem; margin-top: 0; border-inline-start: 1px solid #E5E7EB; padding-inline-start: 1.5rem; }
+  .boblift-product-listing[data-view="list"] .product-card-ctas { order: -1; grid-template-columns: minmax(0, 1fr); }
+  .boblift-product-listing[data-view="list"] .product-card-list-actions { justify-content: center; }
+  .boblift-product-listing[data-view="list"] .product-card-list-actions button { width: 2.5rem; height: 2.5rem; }
+}
+@media (min-width: 1280px) {
+  .boblift-product-listing[data-view="list"] .product-card-inner { grid-template-columns: 200px minmax(0, 1fr); }
+  .boblift-product-listing[data-view="list"] .product-card-list-specs { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
 
 @keyframes rise { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes productFlipIn { from { opacity: 0; transform: perspective(1400px) rotateY(-14deg) translateY(18px); } to { opacity: 1; transform: perspective(1400px) rotateY(0deg) translateY(0); } }
@@ -2565,19 +2628,21 @@ html:is(:lang(ru), :lang(uk), :lang(fr), :lang(es), :lang(de), :lang(it), :lang(
 
 /* Product archive with a category picked: the one brochure for its family is a single wide row under the intro, not half a two-column grid. */
 [data-brochure-single] [data-brochure-grid] { grid-template-columns: minmax(0, 1fr); max-width: 880px; }
+[data-brochure-single] [data-brochure-card] { grid-column: auto; }
 @media (min-width: 640px) {
   [data-brochure-single] [data-brochure-card] { gap: 1.5rem; padding: 1.25rem; }
   [data-brochure-single] [data-brochure-cover] { width: 8.5rem; }
 }
 
-/* Product archive: with a category intro and its brochure both showing, desktop puts them side by side so the row uses the full page width. */
+/* Product archive: with a category intro and its brochure both showing, desktop puts them side by side in two equal halves. */
 @media (min-width: 1024px) {
   .boblift-archive-about:has(> [data-category-intro]:not([hidden])):has(> [data-brochures]:not(.hidden)) {
     display: grid;
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-    column-gap: clamp(3rem, 5vw, 6rem);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: clamp(2.5rem, 4vw, 4rem);
     align-items: start;
   }
-  .boblift-archive-about:has(> [data-category-intro]:not([hidden])) > [data-category-intro] { grid-column: 1; }
+  /* Two equal halves: the intro runs up to the middle instead of stopping at its own reading width. */
+  .boblift-archive-about:has(> [data-category-intro]:not([hidden])) > [data-category-intro] { grid-column: 1; max-width: none; }
   .boblift-archive-about:has(> [data-category-intro]:not([hidden])) > [data-brochures] { grid-column: 2; grid-row: 1; margin-top: 4rem; }
 }

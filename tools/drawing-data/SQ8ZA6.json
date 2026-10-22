@@ -1,0 +1,66 @@
+{
+ "model": "SQ8ZA6",
+ "sources": [
+  "SQ8ZA6起升曲线图-1.png",
+  "SQ8ZA6外形尺寸及参数图-1.png"
+ ],
+ "max_radius_m": 14.68,
+ "max_height_m": 17.0,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 84,
+ "outrigger_span_mm": "2310~5610",
+ "dims": {
+  "length_mm": 2460,
+  "width_mm": 1153,
+  "height_mm": 2340
+ },
+ "load_chart": [
+  [
+   2.0,
+   8000
+  ],
+  [
+   4.506,
+   3700
+  ],
+  [
+   6.49,
+   2470
+  ],
+  [
+   8.51,
+   1820
+  ],
+  [
+   10.56,
+   1420
+  ],
+  [
+   12.63,
+   1160
+  ],
+  [
+   14.68,
+   850
+  ]
+ ],
+ "params": {
+  "Max Lifting Capacity": "8000Kg",
+  "Max Lifting Moment": "16ton.m",
+  "Recommend Power": "25KW",
+  "Hydraulic System Flow": "40L/min",
+  "Hydraulic System Pressure": "28MPa",
+  "Oil Tank Capacity": "160L",
+  "Rotation Angle": "360°",
+  "Self Weight": "3450Kg",
+  "boom reach (side view, mm)": "4509~14680",
+  "height in working position (mm)": "2705",
+  "outrigger overall incl. pads (mm)": "2530~5830",
+  "outrigger leg height (mm)": "736~1388",
+  "outrigger retracted (side view, mm)": "2310 / 2530",
+  "offset (mm)": "80",
+  "load lbs": "17600 / 8140 / 5434 / 4004 / 3124 / 2552 / 1870"
+ },
+ "confidence": "high",
+ "notes": "2460 is the folded SIDE-view length (horizontal), not width; front view and top view both give width 1153. 2340 = folded height above frame. Two spans: 2310~5610 (leg centres) and 2530~5830 (overall incl. pads); used 2310~5610. Chart also marks 12° lowest jib angle. Tip ~17.1 m."
+}

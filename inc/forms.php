@@ -663,6 +663,8 @@ function boblift_handle_inquiry(): void
         $fields[$key] = $key === 'email' ? sanitize_email($value) : sanitize_textarea_field($value);
     }
 
+    // Previous models in the inquiry are named on their own line, so the sales team knows they are built to order.
+    $fields['legacy_models'] = function_exists('boblift_inquiry_legacy_models') ? boblift_inquiry_legacy_models($fields['product_slug']) : '';
     // Which button opened the form, and the page it was on (the browser's referer for this POST).
     $fields['source_entry'] = mb_substr(sanitize_text_field(wp_unslash((string) ($_POST['source_entry'] ?? ''))), 0, 120);
     $fields['source_page'] = esc_url_raw((string) wp_get_referer());
@@ -698,10 +700,10 @@ function boblift_handle_inquiry(): void
     $messages = $quote_ui['messages'] ?? [];
     $lines = [boblift_contact_settings()['defaultInquiryText']];
     foreach ($fields as $key => $value) {
-        if ($key === 'product_slug') {
+        if ($key === 'product_slug' || ($key === 'legacy_models' && $value === '')) {
             continue;
         }
-        $lines[] = ($labels[$key] ?? (['source_entry' => 'Entry point', 'source_page' => 'Page'][$key] ?? ucfirst($key))) . ': ' . ($value !== '' ? $value : '-');
+        $lines[] = ($labels[$key] ?? (['source_entry' => 'Entry point', 'source_page' => 'Page', 'legacy_models' => '老型号 Previous model (built to order)'][$key] ?? ucfirst($key))) . ': ' . ($value !== '' ? $value : '-');
     }
     wp_mail($admin_email, (string) ($messages['mailSubject'] ?? 'New BOB-LIFT inquiry'), implode("\n", $lines), ['Reply-To: ' . $fields['email']]);
 

@@ -1,0 +1,53 @@
+{
+ "model": "SQ2SA3",
+ "sources": [
+  "SQ2SA3起升曲线图-1.png",
+  "SQ2SA3外形尺寸图-1.png"
+ ],
+ "max_radius_m": 8.2,
+ "max_height_m": 10,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 75,
+ "outrigger_span_mm": "1720~3120",
+ "load_chart": [
+  [
+   2.0,
+   2000
+  ],
+  [
+   3.1,
+   1200
+  ],
+  [
+   5.7,
+   550
+  ],
+  [
+   8.2,
+   250
+  ]
+ ],
+ "params": {
+  "Max Lifting Capacity": "2000Kg",
+  "Max Lifting Moment": "4.2ton.m",
+  "Recommend Power": "8KW",
+  "Hydraulic System Flow": "20L/min",
+  "Hydraulic System Pressure": "16Mpa",
+  "Oil Tank Capacity": "35L",
+  "Rotation Angle": "360°",
+  "Self Weight": "950Kg",
+  "Installation Space": "650mm"
+ },
+ "boom_angle_table": {
+  "key": "boom angle table (radius m / kg) boom 3.4/6.0/8.5 m",
+  "value": "0°: 3.1/1200, 5.7/550, 8.2/250; 10°: 3.05/1230, 5.6/570, 8.1/260; 20°: 2.9/1300, 5.35/620, 7.7/300; 30°: 2.7/1450, 4.93/700, 7.1/400; 40°: 2.4/1700, 4.36/850, 6.3/580; 50°: 2.0/2000, 3.66/1000, 5.2/800; 60°: —, 2.85/1100, 4.1/900; 70°: —, 1.95/1200, 2.8/900; 75°: —, —, 2.1/900"
+ },
+ "dims_check": {
+  "height_mm": 2106,
+  "boom reach (side view)": "3340-8200",
+  "outrigger leg stroke": "536-956",
+  "Lbs": "4400/2640/1210/550"
+ },
+ "confidence": "high",
+ "notes": "Sheet title 外形尺寸图 but it carries a Technical parameter table and a boom angle table. Boom angle table header boom lengths 3.4/6.0/8.5 m; 60-75° dashes for short booms. Top view prints 980/400/550/482/1050/1880. Boom tip at 75 deg about 10.15 m on grid."
+}

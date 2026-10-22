@@ -170,7 +170,12 @@ function boblift_render_brochures(array $args = []): void
             <p class="mt-3 text-sm font-normal leading-7 text-slate-600 md:text-base"><?php echo esc_html((string) ($ui['text'] ?? '')); ?></p>
         </div>
         <div class="mt-6 grid gap-4 <?php echo $is_archive ? 'md:grid-cols-2 min-[1700px]:grid-cols-3' : 'md:grid-cols-2 xl:grid-cols-3'; ?>" data-brochure-grid>
-            <?php foreach ($items as $item) :
+            <?php
+            // The last card fills what is left of its row, so an odd count leaves no empty cell (two columns, three from 1700px on the archive).
+            $spans = array_fill(0, count($items), 1);
+            $last_span_class = [1 => '', 2 => 'md:col-span-2'][boblift_grid_last_item_span($spans, 2)] . ' ' . ($is_archive ? [1 => 'min-[1700px]:col-span-1', 2 => 'min-[1700px]:col-span-2', 3 => 'min-[1700px]:col-span-3'] : [1 => 'xl:col-span-1', 2 => 'xl:col-span-2', 3 => 'xl:col-span-3'])[boblift_grid_last_item_span($spans, 3)];
+            $last_key = array_key_last($items);
+            foreach ($items as $item_key => $item) :
                 $hidden = $is_archive && $initial_family !== '' && $initial_family !== $item['key'];
                 $download_title = str_replace('{title}', $item['title'], (string) ($ui['downloadTitleTemplate'] ?? 'Download {title} as PDF'));
                 $meta = [
@@ -180,7 +185,7 @@ function boblift_render_brochures(array $args = []): void
                     (string) $item['size'],
                 ];
                 ?>
-                <article class="<?php echo $hidden ? 'hidden' : 'flex'; ?> gap-4 rounded border border-line <?php echo esc_attr($card_bg); ?> p-4 shadow-card" data-brochure-card data-brochure-family="<?php echo esc_attr($item['key']); ?>">
+                <article class="<?php echo $hidden ? 'hidden' : 'flex'; ?> gap-4 rounded border border-line <?php echo esc_attr($card_bg); ?> p-4 shadow-card<?php echo $item_key === $last_key ? ' ' . esc_attr(trim($last_span_class)) : ''; ?>" data-brochure-card data-brochure-family="<?php echo esc_attr($item['key']); ?>">
                     <a class="block w-24 shrink-0 self-start sm:w-28" data-brochure-cover href="<?php echo esc_url($item['url']); ?>" download="<?php echo esc_attr($item['file']); ?>" tabindex="-1" aria-hidden="true">
                         <img class="aspect-[520/711] w-full rounded-sm border border-line bg-white object-cover" src="<?php echo esc_url($item['cover']); ?>" width="520" height="711" alt="" loading="lazy" decoding="async">
                     </a>

@@ -1,0 +1,46 @@
+{
+ "model": "SQ5SA4T",
+ "sources": [
+  "SQ5SA4T起升曲线图-1.png",
+  "SQ5SA4T外形尺寸及参数图-1.png"
+ ],
+ "max_radius_m": 11.79,
+ "max_height_m": 13.5,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 75,
+ "outrigger_span_mm": null,
+ "load_chart": [
+  [
+   2.5,
+   5000
+  ],
+  [
+   3.99,
+   3000
+  ],
+  [
+   6.59,
+   1650
+  ],
+  [
+   9.19,
+   900
+  ],
+  [
+   11.79,
+   600
+  ]
+ ],
+ "params": {
+  "Max Lifting Capacity": "5000Kg",
+  "Max Lifting Moment": "12.5ton.m",
+  "Recommend Power": "18KW",
+  "Hydraulic System Flow": "32L/min",
+  "Hydraulic System Pressure": "21Mpa",
+  "Oil Tank Capacity": "100L",
+  "Rotation Angle": "360°",
+  "Self Weight": "2100Kg"
+ },
+ "confidence": "high",
+ "notes": "Pedestal (marine) crane, no outriggers, no Installation Space row. Height 2178, 1876 to boom, pedestal base 1442, end width 696; base plate 680 x 680, 100x6=600, 24-Ø22. Reach 3990~11790. Chart row identical to SQ5SA4. Self weight 2100Kg (SQ5SA4 truck version 2400Kg). Boom table matches current extract. Boom tip ~13.5 m on grid."
+}

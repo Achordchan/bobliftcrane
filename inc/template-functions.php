@@ -1347,6 +1347,37 @@ function boblift_product_card_specs(array $product): array
     ];
 }
 
+// List view: up to four rows of the product's own spec table, in a fixed order so rows line up for comparison down the
+// list. Rows are picked by their English label and shown in the page's language when the translation keeps the rows.
+function boblift_product_list_specs(array $product, int $limit = 4): array
+{
+    $id = (int) ($product['id'] ?? 0);
+    $local = array_values(array_filter((array) ($product['specs'] ?? []), static fn($row): bool => is_array($row) && trim((string) ($row['label'] ?? '')) !== '' && trim((string) ($row['value'] ?? '')) !== ''));
+    $english = $id > 0 && function_exists('boblift_product_english_id') ? array_values(array_filter((array) boblift_decode_meta(get_post_meta(boblift_product_english_id($id), '_specs', true), []), 'is_array')) : $local;
+    $same_rows = count($local) === count($english);
+    $order = ['Max Lifting Capacity', 'Max Lifting Moment', 'Working Height', 'Max Working Radius', 'Max Lifting Height', 'Self Weight', 'Recommended Power', 'Rotation Angle'];
+    $picked = [];
+    foreach ($order as $wanted) {
+        foreach ($english as $index => $row) {
+            if (trim((string) ($row['label'] ?? '')) !== $wanted || trim((string) ($row['value'] ?? '')) === '') {
+                continue;
+            }
+            $shown = $same_rows ? $local[$index] : $row;
+            $value = trim((string) ($shown['value'] ?? ''));
+            // "40000 kg" reads as "40 t", the way the range is named.
+            if ($wanted === 'Max Lifting Capacity' && function_exists('boblift_home_product_rated_capacity') && boblift_home_product_rated_capacity($product) >= 1) {
+                $value = boblift_home_product_tonnage_label(boblift_home_product_rated_capacity($product));
+            }
+            $picked[] = ['label' => trim((string) ($shown['label'] ?? $wanted)), 'value' => $value];
+            break;
+        }
+        if (count($picked) >= $limit) {
+            break;
+        }
+    }
+    return $picked;
+}
+
 function boblift_product_spec_icon_name(string $label, string $key = ''): string
 {
     return match ($key !== '' ? $key : $label) {
@@ -1373,6 +1404,9 @@ function boblift_product_card(array $product, string $extra_class = '', bool $ea
     $product_categories = array_values(array_unique(array_filter(array_map('strval', $product['categories'] ?? [($product['category'] ?? '')]))));
     $status = boblift_normalize_product_status((string) ($product['status'] ?? 'customizable'));
     $specs = boblift_product_card_specs($product);
+    // The two headline figures shown on the card, picked the same way as on the home page product cards.
+    $card_specs = function_exists('boblift_home_product_card_specs') ? boblift_home_product_card_specs($product) : [];
+    $list_specs = boblift_product_list_specs($product);
     $detail_url = boblift_product_url($product);
     $inquiry_url = $product['inquiry_url'] ?? boblift_url('/contact.html#inquiry');
     $product_id = (string) ($product['id'] ?? $product['slug'] ?? $product['title']);
@@ -1407,9 +1441,25 @@ function boblift_product_card(array $product, string $extra_class = '', bool $ea
                     <p class="product-card-summary mt-3 hidden max-w-3xl text-sm font-normal leading-6 text-slate-600 lg:text-base lg:leading-7"><?php echo esc_html($product['short_description'] ?? ''); ?></p>
                 </a>
                 </div>
+                <div class="product-card-bottom mt-auto">
+                <?php if ($card_specs) : ?>
+                    <dl class="product-card-specs mt-5 grid grid-cols-2 gap-4 border-t border-[#E5E7EB] pt-4">
+                        <?php foreach ($card_specs as $spec) : ?>
+                            <div class="min-w-0"><dt class="truncate text-xs font-bold leading-4 text-slate-400"><?php echo esc_html($spec['label']); ?></dt><dd class="mt-1 truncate text-base font-black leading-5 text-[#0B1B33]" dir="ltr"><?php echo esc_html($spec['value']); ?></dd></div>
+                        <?php endforeach; ?>
+                    </dl>
+                <?php endif; ?>
+                <?php if ($list_specs) : ?>
+                    <dl class="product-card-list-specs hidden">
+                        <?php foreach ($list_specs as $spec) : ?>
+                            <div class="min-w-0"><dt class="text-xs font-semibold leading-4 text-slate-500 [overflow-wrap:anywhere]"><?php echo esc_html($spec['label']); ?></dt><dd class="mt-1 truncate text-base font-black leading-6 text-[#0B1B33] [font-variant-numeric:tabular-nums]" dir="ltr"><?php echo esc_html($spec['value']); ?></dd></div>
+                        <?php endforeach; ?>
+                    </dl>
+                <?php endif; ?>
                 <div class="product-card-footer mt-auto grid grid-cols-2 gap-3 pt-5">
                     <div class="product-card-list-actions hidden gap-3"><button class="inline-flex h-11 w-11 items-center justify-center rounded-sm border border-[#E5E7EB] bg-white text-[#0B1B33] transition hover:-translate-y-0.5 hover:text-blue-700" type="button" data-product-favorite aria-label="<?php echo esc_attr($add_quote_label); ?>"><?php echo boblift_icon('heart', 'h-5 w-5'); ?></button><button class="inline-flex h-11 w-11 items-center justify-center rounded-sm border border-[#E5E7EB] bg-white text-[#0B1B33] transition hover:-translate-y-0.5 hover:text-blue-700" type="button" data-product-quick-view aria-label="<?php echo esc_attr($quick_view_label . ' ' . $product['title']); ?>"><?php echo boblift_icon('eye', 'h-5 w-5'); ?></button></div>
-                    <div class="product-card-ctas contents"><button class="inline-flex min-h-12 items-center justify-center gap-2 text-center leading-tight rounded-sm bg-[#0B1B33] px-4 text-[13px] font-black text-white shadow-card transition hover:-translate-y-0.5 hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品列表卡片" data-inquiry-product="<?php echo esc_attr($product['title']); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>"><?php echo boblift_icon('file-text', 'h-4 w-4'); ?><span class="hidden sm:inline"><?php echo esc_html($request_quote_label); ?></span><span class="sm:hidden"><?php echo esc_html($quote_list_ui['quoteShortLabel'] ?? 'Quote'); ?></span></button><a class="inline-flex min-h-12 items-center justify-center gap-2 text-center leading-tight rounded-sm border border-[#0B1B33]/40 bg-white px-4 text-[13px] font-black text-[#0B1B33] transition hover:-translate-y-0.5 hover:border-blue-500 hover:text-blue-700" href="<?php echo esc_url($detail_url); ?>"><span class="hidden sm:inline"><?php echo esc_html($view_details_label); ?></span><span class="sm:hidden"><?php echo esc_html($product_ui['viewShortLabel'] ?? 'View'); ?></span> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a></div>
+                    <div class="product-card-ctas contents"><button class="inline-flex min-h-12 items-center justify-center gap-2 text-center leading-tight rounded-sm bg-[#0B1B33] px-4 text-[13px] font-black text-white shadow-card transition hover:-translate-y-0.5 hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品列表卡片" data-inquiry-product="<?php echo esc_attr($product['title']); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>"><?php echo boblift_icon('file-text', 'h-4 w-4'); ?><span class="hidden sm:inline lg:hidden xl:inline"><?php echo esc_html($request_quote_label); ?></span><span class="sm:hidden lg:inline xl:hidden"><?php echo esc_html($quote_list_ui['quoteShortLabel'] ?? 'Quote'); ?></span></button><a class="inline-flex min-h-12 items-center justify-center gap-2 text-center leading-tight rounded-sm border border-[#0B1B33]/40 bg-white px-4 text-[13px] font-black text-[#0B1B33] transition hover:-translate-y-0.5 hover:border-blue-500 hover:text-blue-700" href="<?php echo esc_url($detail_url); ?>"><span class="hidden sm:inline"><?php echo esc_html($view_details_label); ?></span><span class="sm:hidden"><?php echo esc_html($product_ui['viewShortLabel'] ?? 'View'); ?></span> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a></div>
+                </div>
                 </div>
             </div>
         </div>

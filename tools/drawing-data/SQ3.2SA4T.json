@@ -1,0 +1,59 @@
+{
+ "model": "SQ3.2SA4T",
+ "sources": [
+  "SQ3.2SA4T起升曲线图-1.png",
+  "SQ3.2SA4T外形尺寸图-1.png"
+ ],
+ "max_radius_m": 10.5,
+ "max_height_m": 12,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 75,
+ "outrigger_span_mm": null,
+ "load_chart": [
+  [
+   2.2,
+   3200
+  ],
+  [
+   3.3,
+   1900
+  ],
+  [
+   5.7,
+   800
+  ],
+  [
+   8.1,
+   450
+  ],
+  [
+   10.5,
+   200
+  ]
+ ],
+ "params": {
+  "Max Lifting Capacity": "3200Kg",
+  "Max Lifting Moment": "6.8ton.m",
+  "Recommend Power": "14KW",
+  "Hydraulic System Flow": "25L/min",
+  "Hydraulic System Pressure": "20Mpa",
+  "Oil Tank Capacity": "60L",
+  "Rotation Angle": "360°",
+  "Self Weight": "1250Kg"
+ },
+ "boom_angle_table": {
+  "key": "boom angle table (radius m / kg) boom 3.6/6.0/8.4/10.8 m",
+  "value": "0°: 3.3/1900, 5.7/800, 8.1/550, 10.5/200; 10°: 3.25/1940, 5.6/820, 8.0/560, 10.3/210; 20°: 3.1/2030, 5.35/860, 7.6/600, 9.86/250; 30°: 2.85/2200, 4.93/940, 7.0/660, 9.1/300; 40°: 2.52/2490, 4.36/1050, 6.2/740, 8.0/350; 50°: 2.11/3200, 3.65/1260, 5.2/810, 6.74/420; 60°: —, 2.85/1600, 4.0/880, 5.25/533; 70°: —, 1.94/2370, 2.8/1150, 3.6/780; 75°: —, 1.47/2500, 2.1/1600, 2.7/1030"
+ },
+ "dims_check": {
+  "height_mm": 2200,
+  "boom reach (side view)": "3370~10500",
+  "boom underside height": "1650",
+  "mounting plate": "550x550",
+  "bolt pattern": "480x480",
+  "bolt holes": "16-ø22",
+  "Lbs": "7040/4180/1760/990/440"
+ },
+ "confidence": "high",
+ "notes": "Pedestal (marine) version, no outriggers. Moment printed 6.8ton.m here vs 7ton.m on SQ3.2SA4; self weight 1250Kg. Chart row 8100 mm = 450 kg vs boom table 0°/8.4 m = 8.1/550 (printed inconsistency). Base plate 550x550, 480x480, 16-ø22, spacings 288/96. Boom tip at 75 deg about 12.0 m on grid."
+}

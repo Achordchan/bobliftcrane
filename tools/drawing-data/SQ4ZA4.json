@@ -1,0 +1,47 @@
+{
+ "model": "SQ4ZA4",
+ "sources": [
+  "SQ4ZA4起升曲线图-1.png",
+  "SQ4ZA4外形尺寸及参数图-1.png"
+ ],
+ "max_radius_m": 9.4,
+ "max_height_m": 11.5,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 75,
+ "outrigger_span_mm": "2450~3713",
+ "load_chart": [
+  [
+   2.1,
+   4000
+  ],
+  [
+   4.35,
+   1750
+  ],
+  [
+   5.9,
+   1250
+  ],
+  [
+   7.7,
+   850
+  ],
+  [
+   9.4,
+   600
+  ]
+ ],
+ "params": {
+  "Max Lifting Capacity": "4000Kg",
+  "Max Lifting Moment": "8.4ton.m",
+  "Recommend Power": "14KW",
+  "Hydraulic System Flow": "25L/min",
+  "Hydraulic System Pressure": "26Mpa",
+  "Oil Tank Capacity": "60L",
+  "Rotation Angle": "400°",
+  "Self Weight": "1460Kg",
+  "Installation Space": "850mm"
+ },
+ "confidence": "high",
+ "notes": "Front (extended) view prints 2250-3513 (pad centres) with 2450 overall base width; folded view prints 2450~3713 (outer pad edges). Used the overall span 2450~3713; 2250-3513 is the same stroke measured at pad centres. Chart row mm 2100/4350/5900/7700/9400, Lbs 8800/3850/2750/1870/1320. Reach 4409-9409, extended height 2322, folded 2040, folded width 725, leg stroke 712-1302. Boom tip ~11.4 m on grid."
+}

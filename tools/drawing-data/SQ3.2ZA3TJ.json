@@ -1,0 +1,52 @@
+{
+ "model": "SQ3.2ZA3TJ",
+ "sources": [
+  "SQ3.2ZA3TJ起升曲线图-1.png",
+  "SQ3.2ZA3TJ外形尺寸及参数图-1.png"
+ ],
+ "max_radius_m": 7.7,
+ "max_height_m": 9.5,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 75,
+ "outrigger_span_mm": null,
+ "load_chart": [
+  [
+   2.1,
+   3200
+  ],
+  [
+   4.35,
+   1350
+  ],
+  [
+   5.9,
+   910
+  ],
+  [
+   7.7,
+   680
+  ]
+ ],
+ "params": {
+  "Max Lifting Capacity": "3200Kg",
+  "Max Lifting Moment": "6.8ton.m",
+  "Recommend Power": "15KW",
+  "Hydraulic System Flow": "25L/min",
+  "Hydraulic System Pressure": "25Mpa",
+  "Oil Tank Capacity": "60L",
+  "Rotation Angle": "360°",
+  "Self Weight": "1236Kg"
+ },
+ "dims_check": {
+  "length_mm": 2271,
+  "width_mm": 684,
+  "height_mm": 2240,
+  "boom reach (side view)": "4310-7700",
+  "mounting plate": "550x550",
+  "bolt pattern": "125X4=500",
+  "bolt holes": "16-ø21",
+  "Lbs": "7040/2970/2002/1496"
+ },
+ "confidence": "high",
+ "notes": "Pedestal (marine) knuckle crane, no outriggers. Original sheets are complete (not cropped): folded view 2271 long x 1951 high, end view width 684; working side view height 2240 and reach 4310-7700; max angle 75° printed on chart. Base plate 550x550, bolt pitch 125X4=500, 16-ø21. Boom tip at 75 deg about 9.55 m on grid."
+}

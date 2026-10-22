@@ -1,0 +1,2184 @@
+{
+ "BLS3.0T": {
+  "load_chart": [
+   [
+    3.66,
+    900
+   ],
+   [
+    5.62,
+    400
+   ],
+   [
+    6.86,
+    300
+   ],
+   [
+    8.46,
+    120
+   ]
+  ],
+  "max_boom_angle_deg": 70,
+  "max_height_approx": true,
+  "max_height_m": 9.8,
+  "max_radius_m": 8.46,
+  "outrigger_span_mm": null
+ },
+ "BLZ129K4": {
+  "load_chart": [
+   [
+    2.0,
+    6300
+   ],
+   [
+    4.58,
+    2705
+   ],
+   [
+    6.38,
+    1805
+   ],
+   [
+    8.25,
+    1295
+   ],
+   [
+    10.23,
+    995
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 12.5,
+  "max_radius_m": 10.23,
+  "outrigger_span_mm": "2250-5110"
+ },
+ "BLZ90K4TJ": {
+  "load_chart": [
+   [
+    4.35,
+    2230
+   ],
+   [
+    6.09,
+    1525
+   ],
+   [
+    7.9,
+    1140
+   ],
+   [
+    9.75,
+    815
+   ]
+  ],
+  "max_boom_angle_deg": 84,
+  "max_height_approx": true,
+  "max_height_m": 12.0,
+  "max_radius_m": 9.75,
+  "outrigger_span_mm": null
+ },
+ "BLZ90K5": {
+  "load_chart": [
+   [
+    4.44,
+    2030
+   ],
+   [
+    6.19,
+    1420
+   ],
+   [
+    8.0,
+    1000
+   ],
+   [
+    9.85,
+    750
+   ],
+   [
+    11.7,
+    590
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 14.0,
+  "max_radius_m": 11.7,
+  "outrigger_span_mm": "2324-4924"
+ },
+ "BLZ90K5TJ": {
+  "load_chart": [
+   [
+    4.44,
+    2030
+   ],
+   [
+    6.19,
+    1420
+   ],
+   [
+    8.0,
+    1000
+   ],
+   [
+    9.85,
+    750
+   ],
+   [
+    11.7,
+    590
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 14.0,
+  "max_radius_m": 11.7,
+  "outrigger_span_mm": null
+ },
+ "CC105": {
+  "load_chart": [
+   [
+    1.7,
+    2500
+   ],
+   [
+    2.2,
+    2000
+   ],
+   [
+    2.7,
+    1600
+   ],
+   [
+    4.1,
+    900
+   ],
+   [
+    5.2,
+    500
+   ],
+   [
+    6.6,
+    300
+   ]
+  ],
+  "max_boom_angle_deg": null,
+  "max_height_approx": true,
+  "max_height_m": 10.0,
+  "max_radius_m": 6.6,
+  "outrigger_span_mm": null
+ },
+ "CC125": {
+  "load_chart": [
+   [
+    2.1,
+    3500
+   ],
+   [
+    2.4,
+    3000
+   ],
+   [
+    3.8,
+    2200
+   ],
+   [
+    5.2,
+    1300
+   ],
+   [
+    6.6,
+    800
+   ],
+   [
+    8.0,
+    350
+   ]
+  ],
+  "max_boom_angle_deg": null,
+  "max_height_approx": true,
+  "max_height_m": 11.0,
+  "max_radius_m": 8.0,
+  "outrigger_span_mm": null
+ },
+ "CC145": {
+  "load_chart": [
+   [
+    2.2,
+    4900
+   ],
+   [
+    2.4,
+    4500
+   ],
+   [
+    3.8,
+    3100
+   ],
+   [
+    5.2,
+    2100
+   ],
+   [
+    6.6,
+    1300
+   ],
+   [
+    8.0,
+    750
+   ],
+   [
+    9.4,
+    500
+   ]
+  ],
+  "max_boom_angle_deg": null,
+  "max_height_approx": true,
+  "max_height_m": 12.5,
+  "max_radius_m": 9.4,
+  "outrigger_span_mm": null
+ },
+ "CC85": {
+  "load_chart": [
+   [
+    1.7,
+    2300
+   ],
+   [
+    2.1,
+    1900
+   ],
+   [
+    3.2,
+    1300
+   ],
+   [
+    4.3,
+    700
+   ],
+   [
+    5.4,
+    400
+   ]
+  ],
+  "max_boom_angle_deg": null,
+  "max_height_approx": true,
+  "max_height_m": 7.5,
+  "max_radius_m": 5.4,
+  "outrigger_span_mm": null
+ },
+ "F100Z-2E": {
+  "load_chart": [
+   [
+    3.0,
+    2450
+   ],
+   [
+    4.0,
+    1838
+   ],
+   [
+    5.0,
+    1470
+   ],
+   [
+    6.0,
+    1225
+   ],
+   [
+    7.0,
+    1050
+   ]
+  ],
+  "max_boom_angle_deg": 80,
+  "max_height_approx": true,
+  "max_height_m": 8.0,
+  "max_radius_m": 7.0,
+  "outrigger_span_mm": null
+ },
+ "SL150-2A": {
+  "load_chart": [
+   [
+    8.0,
+    1000
+   ]
+  ],
+  "max_boom_angle_deg": 78,
+  "max_height_approx": true,
+  "max_height_m": 10.8,
+  "max_radius_m": 8.0,
+  "outrigger_span_mm": null
+ },
+ "SL70": {
+  "load_chart": [],
+  "max_boom_angle_deg": 73,
+  "max_height_approx": true,
+  "max_height_m": 9.1,
+  "max_radius_m": null,
+  "outrigger_span_mm": "2224~3514"
+ },
+ "SQ08ZA3+1": {
+  "load_chart": [
+   [
+    1.337,
+    800
+   ],
+   [
+    2.252,
+    450
+   ],
+   [
+    3.227,
+    300
+   ],
+   [
+    4.151,
+    220
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 5.5,
+  "max_radius_m": 4.151,
+  "outrigger_span_mm": "2430"
+ },
+ "SQ08ZA3TJ+1": {
+  "load_chart": [
+   [
+    1.337,
+    800
+   ],
+   [
+    2.252,
+    450
+   ],
+   [
+    3.227,
+    300
+   ],
+   [
+    4.151,
+    220
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 5.5,
+  "max_radius_m": 4.151,
+  "outrigger_span_mm": null
+ },
+ "SQ10SA4": {
+  "load_chart": [
+   [
+    2.5,
+    10000
+   ],
+   [
+    5.0,
+    5200
+   ],
+   [
+    9.0,
+    2200
+   ],
+   [
+    12.0,
+    1625
+   ],
+   [
+    15.5,
+    1050
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 17.5,
+  "max_radius_m": 15.5,
+  "outrigger_span_mm": "2290-5990"
+ },
+ "SQ10SA4T": {
+  "load_chart": [
+   [
+    2.5,
+    10000
+   ],
+   [
+    5.0,
+    5200
+   ],
+   [
+    9.0,
+    2200
+   ],
+   [
+    12.0,
+    1625
+   ],
+   [
+    15.5,
+    1050
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 17.5,
+  "max_radius_m": 15.5,
+  "outrigger_span_mm": null
+ },
+ "SQ10ZA6": {
+  "load_chart": [
+   [
+    2.0,
+    10000
+   ],
+   [
+    4.5,
+    4650
+   ],
+   [
+    6.49,
+    3080
+   ],
+   [
+    8.51,
+    2280
+   ],
+   [
+    10.56,
+    1800
+   ],
+   [
+    12.63,
+    1480
+   ],
+   [
+    14.68,
+    1150
+   ]
+  ],
+  "max_boom_angle_deg": 84,
+  "max_height_approx": true,
+  "max_height_m": 17.0,
+  "max_radius_m": 14.68,
+  "outrigger_span_mm": "2310~5610"
+ },
+ "SQ10ZA6TJ": {
+  "load_chart": [
+   [
+    2.0,
+    10000
+   ],
+   [
+    4.5,
+    4650
+   ],
+   [
+    6.49,
+    3080
+   ],
+   [
+    8.51,
+    2280
+   ],
+   [
+    10.56,
+    1800
+   ],
+   [
+    12.63,
+    1480
+   ],
+   [
+    14.68,
+    1150
+   ]
+  ],
+  "max_boom_angle_deg": 84,
+  "max_height_approx": true,
+  "max_height_m": 17.0,
+  "max_radius_m": 14.68,
+  "outrigger_span_mm": null
+ },
+ "SQ12SA4": {
+  "load_chart": [
+   [
+    2.5,
+    12000
+   ],
+   [
+    5.54,
+    5800
+   ],
+   [
+    9.09,
+    2740
+   ],
+   [
+    12.64,
+    1850
+   ],
+   [
+    16.19,
+    1200
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 18.0,
+  "max_radius_m": 16.19,
+  "outrigger_span_mm": "2300~7500"
+ },
+ "SQ12SA4T": {
+  "load_chart": [
+   [
+    2.5,
+    12000
+   ],
+   [
+    5.54,
+    5800
+   ],
+   [
+    9.09,
+    2740
+   ],
+   [
+    12.64,
+    1850
+   ],
+   [
+    16.19,
+    1200
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 18.0,
+  "max_radius_m": 16.19,
+  "outrigger_span_mm": null
+ },
+ "SQ12ZA6": {
+  "load_chart": [
+   [
+    2.25,
+    12000
+   ],
+   [
+    4.7,
+    5450
+   ],
+   [
+    6.4,
+    3500
+   ],
+   [
+    8.19,
+    2500
+   ],
+   [
+    10.1,
+    1850
+   ],
+   [
+    12.2,
+    1400
+   ],
+   [
+    14.5,
+    1000
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 16.5,
+  "max_radius_m": 14.5,
+  "outrigger_span_mm": "2316-5706"
+ },
+ "SQ12ZA6T": {
+  "load_chart": [
+   [
+    2.25,
+    12000
+   ],
+   [
+    4.7,
+    5450
+   ],
+   [
+    6.4,
+    3500
+   ],
+   [
+    8.19,
+    2500
+   ],
+   [
+    10.1,
+    1850
+   ],
+   [
+    12.0,
+    1400
+   ],
+   [
+    14.5,
+    1000
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 16.5,
+  "max_radius_m": 14.5,
+  "outrigger_span_mm": null
+ },
+ "SQ14SA5": {
+  "load_chart": [
+   [
+    2.5,
+    14000
+   ],
+   [
+    5.75,
+    6500
+   ],
+   [
+    9.2,
+    3500
+   ],
+   [
+    12.58,
+    2200
+   ],
+   [
+    15.96,
+    1500
+   ],
+   [
+    19.33,
+    800
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 21.0,
+  "max_radius_m": 19.33,
+  "outrigger_span_mm": "2260~7400"
+ },
+ "SQ16SA5": {
+  "load_chart": [
+   [
+    2.5,
+    16000
+   ],
+   [
+    6.0,
+    7800
+   ],
+   [
+    10.1,
+    4100
+   ],
+   [
+    14.2,
+    2600
+   ],
+   [
+    18.2,
+    1700
+   ],
+   [
+    22.3,
+    1050
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 24.0,
+  "max_radius_m": 22.3,
+  "outrigger_span_mm": "2300-8000"
+ },
+ "SQ16SA5T": {
+  "load_chart": [
+   [
+    2.5,
+    16000
+   ],
+   [
+    6.0,
+    7800
+   ],
+   [
+    10.1,
+    4100
+   ],
+   [
+    14.2,
+    2600
+   ],
+   [
+    18.2,
+    1700
+   ],
+   [
+    22.3,
+    1050
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 24.0,
+  "max_radius_m": 22.3,
+  "outrigger_span_mm": null
+ },
+ "SQ1ZA3+1": {
+  "load_chart": [
+   [
+    1.39,
+    1600
+   ],
+   [
+    2.3,
+    1000
+   ],
+   [
+    3.25,
+    500
+   ],
+   [
+    4.23,
+    300
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 6.0,
+  "max_radius_m": 4.23,
+  "outrigger_span_mm": "1565-3095"
+ },
+ "SQ1ZA3TJ+1": {
+  "load_chart": [
+   [
+    1.39,
+    1600
+   ],
+   [
+    2.3,
+    1000
+   ],
+   [
+    3.25,
+    500
+   ],
+   [
+    4.23,
+    300
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 5.5,
+  "max_radius_m": 4.23,
+  "outrigger_span_mm": null
+ },
+ "SQ20SA5": {
+  "load_chart": [
+   [
+    2.5,
+    20000
+   ],
+   [
+    6.3,
+    12000
+   ],
+   [
+    10.3,
+    6300
+   ],
+   [
+    14.3,
+    3500
+   ],
+   [
+    18.3,
+    2200
+   ],
+   [
+    22,
+    1500
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 23.5,
+  "max_radius_m": 22,
+  "outrigger_span_mm": "2450-8050"
+ },
+ "SQ20SA5T": {
+  "load_chart": [
+   [
+    2.5,
+    20000
+   ],
+   [
+    6.3,
+    12000
+   ],
+   [
+    10.3,
+    6300
+   ],
+   [
+    14.3,
+    3500
+   ],
+   [
+    18.3,
+    2200
+   ],
+   [
+    22,
+    1500
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 24,
+  "max_radius_m": 22,
+  "outrigger_span_mm": null
+ },
+ "SQ2SA3": {
+  "load_chart": [
+   [
+    2.0,
+    2000
+   ],
+   [
+    3.1,
+    1200
+   ],
+   [
+    5.7,
+    550
+   ],
+   [
+    8.2,
+    250
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 10,
+  "max_radius_m": 8.2,
+  "outrigger_span_mm": "1720~3120"
+ },
+ "SQ2SA3T": {
+  "load_chart": [
+   [
+    2.0,
+    2000
+   ],
+   [
+    3.1,
+    1200
+   ],
+   [
+    5.7,
+    550
+   ],
+   [
+    8.2,
+    250
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 10,
+  "max_radius_m": 8.2,
+  "outrigger_span_mm": null
+ },
+ "SQ2ZA2TJ": {
+  "load_chart": [
+   [
+    2.0,
+    2000
+   ],
+   [
+    3.76,
+    1050
+   ],
+   [
+    5.1,
+    750
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 6.5,
+  "max_radius_m": 5.1,
+  "outrigger_span_mm": null
+ },
+ "SQ2ZA4": {
+  "load_chart": [
+   [
+    2.1,
+    2000
+   ],
+   [
+    4.1,
+    1000
+   ],
+   [
+    5.4,
+    700
+   ],
+   [
+    6.4,
+    460
+   ],
+   [
+    7.54,
+    300
+   ]
+  ],
+  "max_boom_angle_deg": 80,
+  "max_height_approx": true,
+  "max_height_m": 9.5,
+  "max_radius_m": 7.54,
+  "outrigger_span_mm": "1842-3500"
+ },
+ "SQ3.2SA4": {
+  "load_chart": [
+   [
+    2.2,
+    3200
+   ],
+   [
+    3.3,
+    1900
+   ],
+   [
+    5.7,
+    800
+   ],
+   [
+    8.1,
+    450
+   ],
+   [
+    10.5,
+    200
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 12,
+  "max_radius_m": 10.5,
+  "outrigger_span_mm": "1720~3120"
+ },
+ "SQ3.2SA4T": {
+  "load_chart": [
+   [
+    2.2,
+    3200
+   ],
+   [
+    3.3,
+    1900
+   ],
+   [
+    5.7,
+    800
+   ],
+   [
+    8.1,
+    450
+   ],
+   [
+    10.5,
+    200
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 12,
+  "max_radius_m": 10.5,
+  "outrigger_span_mm": null
+ },
+ "SQ3.2ZA3": {
+  "load_chart": [
+   [
+    2.1,
+    3200
+   ],
+   [
+    4.35,
+    1350
+   ],
+   [
+    5.9,
+    910
+   ],
+   [
+    7.7,
+    680
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 9.5,
+  "max_radius_m": 7.7,
+  "outrigger_span_mm": "2250-3513"
+ },
+ "SQ3.2ZA3TJ": {
+  "load_chart": [
+   [
+    2.1,
+    3200
+   ],
+   [
+    4.35,
+    1350
+   ],
+   [
+    5.9,
+    910
+   ],
+   [
+    7.7,
+    680
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 9.5,
+  "max_radius_m": 7.7,
+  "outrigger_span_mm": null
+ },
+ "SQ3.2ZA4": {
+  "load_chart": [
+   [
+    2.1,
+    3200
+   ],
+   [
+    4.4,
+    1350
+   ],
+   [
+    6.0,
+    910
+   ],
+   [
+    7.8,
+    680
+   ],
+   [
+    9.4,
+    520
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 11.5,
+  "max_radius_m": 9.4,
+  "outrigger_span_mm": "2250-3513"
+ },
+ "SQ4SA3T": {
+  "load_chart": [
+   [
+    2.5,
+    4000
+   ],
+   [
+    3.37,
+    2700
+   ],
+   [
+    5.69,
+    1600
+   ],
+   [
+    8.0,
+    950
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 10.0,
+  "max_radius_m": 8.0,
+  "outrigger_span_mm": null
+ },
+ "SQ4SA4": {
+  "load_chart": [
+   [
+    2.5,
+    4000
+   ],
+   [
+    3.42,
+    2600
+   ],
+   [
+    5.42,
+    1600
+   ],
+   [
+    7.42,
+    900
+   ],
+   [
+    9.42,
+    400
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 11.5,
+  "max_radius_m": 9.42,
+  "outrigger_span_mm": "2214-4534"
+ },
+ "SQ4ZA3": {
+  "load_chart": [
+   [
+    2.1,
+    4000
+   ],
+   [
+    4.35,
+    1750
+   ],
+   [
+    5.9,
+    1250
+   ],
+   [
+    7.7,
+    850
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 9.5,
+  "max_radius_m": 7.7,
+  "outrigger_span_mm": "2250-3513"
+ },
+ "SQ4ZA3T": {
+  "load_chart": [
+   [
+    2.1,
+    4000
+   ],
+   [
+    4.35,
+    1750
+   ],
+   [
+    5.9,
+    1250
+   ],
+   [
+    7.7,
+    850
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 9.5,
+  "max_radius_m": 7.7,
+  "outrigger_span_mm": null
+ },
+ "SQ4ZA3TJ": {
+  "load_chart": [
+   [
+    2.1,
+    4000
+   ],
+   [
+    4.35,
+    1750
+   ],
+   [
+    5.9,
+    1250
+   ],
+   [
+    7.7,
+    850
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 9.5,
+  "max_radius_m": 7.7,
+  "outrigger_span_mm": null
+ },
+ "SQ4ZA4": {
+  "load_chart": [
+   [
+    2.1,
+    4000
+   ],
+   [
+    4.35,
+    1750
+   ],
+   [
+    5.9,
+    1250
+   ],
+   [
+    7.7,
+    850
+   ],
+   [
+    9.4,
+    600
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 11.5,
+  "max_radius_m": 9.4,
+  "outrigger_span_mm": "2250-3513"
+ },
+ "SQ4ZG3T": {
+  "load_chart": [
+   [
+    3.0,
+    1600
+   ],
+   [
+    3.64,
+    1350
+   ],
+   [
+    4.6,
+    850
+   ],
+   [
+    5.6,
+    580
+   ]
+  ],
+  "max_boom_angle_deg": 65,
+  "max_height_approx": true,
+  "max_height_m": 7.0,
+  "max_radius_m": 5.6,
+  "outrigger_span_mm": "3686 x 3423"
+ },
+ "SQ5SA2F": {
+  "load_chart": [
+   [
+    2.35,
+    5150
+   ],
+   [
+    4.25,
+    2650
+   ],
+   [
+    6.2,
+    1850
+   ]
+  ],
+  "max_boom_angle_deg": 70,
+  "max_height_approx": true,
+  "max_height_m": 8.5,
+  "max_radius_m": 6.2,
+  "outrigger_span_mm": "2260-5120"
+ },
+ "SQ5SA3": {
+  "load_chart": [
+   [
+    2.5,
+    5000
+   ],
+   [
+    3.66,
+    2800
+   ],
+   [
+    6.17,
+    1500
+   ],
+   [
+    8.68,
+    1100
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 10.5,
+  "max_radius_m": 8.68,
+  "outrigger_span_mm": "2260~5100"
+ },
+ "SQ5SA4": {
+  "load_chart": [
+   [
+    2.5,
+    5000
+   ],
+   [
+    3.99,
+    3000
+   ],
+   [
+    6.59,
+    1650
+   ],
+   [
+    9.19,
+    900
+   ],
+   [
+    11.79,
+    600
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 13.5,
+  "max_radius_m": 11.79,
+  "outrigger_span_mm": "2293~5593"
+ },
+ "SQ5SA4T": {
+  "load_chart": [
+   [
+    2.5,
+    5000
+   ],
+   [
+    3.99,
+    3000
+   ],
+   [
+    6.59,
+    1650
+   ],
+   [
+    9.19,
+    900
+   ],
+   [
+    11.79,
+    600
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 13.5,
+  "max_radius_m": 11.79,
+  "outrigger_span_mm": null
+ },
+ "SQ5ZA3": {
+  "load_chart": [
+   [
+    2.1,
+    5000
+   ],
+   [
+    4.45,
+    2350
+   ],
+   [
+    6.2,
+    1600
+   ],
+   [
+    8.05,
+    1100
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 10.5,
+  "max_radius_m": 8.05,
+  "outrigger_span_mm": "2272-5122"
+ },
+ "SQ5ZA3TJ": {
+  "load_chart": [
+   [
+    2.1,
+    5000
+   ],
+   [
+    4.45,
+    2350
+   ],
+   [
+    6.2,
+    1600
+   ],
+   [
+    8.05,
+    1100
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 10.0,
+  "max_radius_m": 8.05,
+  "outrigger_span_mm": null
+ },
+ "SQ5ZA4": {
+  "load_chart": [
+   [
+    2.1,
+    5000
+   ],
+   [
+    4.45,
+    2350
+   ],
+   [
+    6.2,
+    1600
+   ],
+   [
+    8.05,
+    1100
+   ],
+   [
+    9.9,
+    700
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 12.0,
+  "max_radius_m": 9.9,
+  "outrigger_span_mm": "2272-5122"
+ },
+ "SQ6.3SA4": {
+  "load_chart": [
+   [
+    2.5,
+    6300
+   ],
+   [
+    4.5,
+    2800
+   ],
+   [
+    7.2,
+    1500
+   ],
+   [
+    9.9,
+    1000
+   ],
+   [
+    12.6,
+    600
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 14.5,
+  "max_radius_m": 12.6,
+  "outrigger_span_mm": "2280-5300"
+ },
+ "SQ6.3SA4T": {
+  "load_chart": [
+   [
+    2.5,
+    6300
+   ],
+   [
+    4.5,
+    2800
+   ],
+   [
+    7.2,
+    1500
+   ],
+   [
+    9.9,
+    1000
+   ],
+   [
+    12.6,
+    600
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 14.0,
+  "max_radius_m": 12.6,
+  "outrigger_span_mm": null
+ },
+ "SQ6.3ZA4TJ": {
+  "load_chart": [
+   [
+    2.1,
+    6300
+   ],
+   [
+    4.4,
+    3010
+   ],
+   [
+    6.3,
+    2020
+   ],
+   [
+    8.3,
+    1500
+   ],
+   [
+    10.2,
+    1190
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 12.5,
+  "max_radius_m": 10.2,
+  "outrigger_span_mm": null
+ },
+ "SQ6.3ZA5": {
+  "load_chart": [
+   [
+    2.1,
+    6300
+   ],
+   [
+    4.4,
+    3010
+   ],
+   [
+    6.3,
+    2020
+   ],
+   [
+    8.3,
+    1500
+   ],
+   [
+    10.2,
+    1190
+   ],
+   [
+    12.2,
+    950
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 14.5,
+  "max_radius_m": 12.2,
+  "outrigger_span_mm": "2290-5606"
+ },
+ "SQ6.3ZA5T": {
+  "load_chart": [
+   [
+    2.1,
+    6300
+   ],
+   [
+    4.4,
+    3010
+   ],
+   [
+    6.3,
+    2020
+   ],
+   [
+    8.3,
+    1500
+   ],
+   [
+    10.2,
+    1190
+   ],
+   [
+    12.2,
+    950
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 14.5,
+  "max_radius_m": 12.2,
+  "outrigger_span_mm": null
+ },
+ "SQ8SA5": {
+  "load_chart": [
+   [
+    2.5,
+    8000
+   ],
+   [
+    5.1,
+    4100
+   ],
+   [
+    8.5,
+    1800
+   ],
+   [
+    11.8,
+    1350
+   ],
+   [
+    15.2,
+    920
+   ],
+   [
+    18.5,
+    400
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 20.5,
+  "max_radius_m": 18.5,
+  "outrigger_span_mm": "2290-5990"
+ },
+ "SQ8SA5T": {
+  "load_chart": [
+   [
+    2.5,
+    8000
+   ],
+   [
+    5.1,
+    4100
+   ],
+   [
+    8.5,
+    1800
+   ],
+   [
+    11.8,
+    1350
+   ],
+   [
+    15.2,
+    920
+   ],
+   [
+    18.5,
+    400
+   ]
+  ],
+  "max_boom_angle_deg": 75,
+  "max_height_approx": true,
+  "max_height_m": 20.5,
+  "max_radius_m": 18.5,
+  "outrigger_span_mm": null
+ },
+ "SQ8ZA6": {
+  "load_chart": [
+   [
+    2.0,
+    8000
+   ],
+   [
+    4.506,
+    3700
+   ],
+   [
+    6.49,
+    2470
+   ],
+   [
+    8.51,
+    1820
+   ],
+   [
+    10.56,
+    1420
+   ],
+   [
+    12.63,
+    1160
+   ],
+   [
+    14.68,
+    850
+   ]
+  ],
+  "max_boom_angle_deg": 84,
+  "max_height_approx": true,
+  "max_height_m": 17.0,
+  "max_radius_m": 14.68,
+  "outrigger_span_mm": "2310~5610"
+ },
+ "SQ8ZA6TJ": {
+  "load_chart": [
+   [
+    2.0,
+    8000
+   ],
+   [
+    4.506,
+    3700
+   ],
+   [
+    6.49,
+    2470
+   ],
+   [
+    8.51,
+    1820
+   ],
+   [
+    10.56,
+    1420
+   ],
+   [
+    12.63,
+    1160
+   ],
+   [
+    14.68,
+    850
+   ]
+  ],
+  "max_boom_angle_deg": 84,
+  "max_height_approx": true,
+  "max_height_m": 17.0,
+  "max_radius_m": 14.68,
+  "outrigger_span_mm": null
+ },
+ "SQZ330": {
+  "load_chart": [
+   [
+    4.4,
+    6250
+   ],
+   [
+    6.0,
+    4220
+   ],
+   [
+    7.8,
+    3100
+   ],
+   [
+    9.8,
+    2410
+   ],
+   [
+    11.9,
+    1970
+   ],
+   [
+    13.9,
+    1660
+   ],
+   [
+    15.9,
+    1450
+   ]
+  ],
+  "max_boom_angle_deg": 80,
+  "max_height_approx": true,
+  "max_height_m": 18.0,
+  "max_radius_m": 15.9,
+  "outrigger_span_mm": "2324-5924"
+ },
+ "SQZ330T": {
+  "load_chart": [
+   [
+    2.0,
+    16000
+   ],
+   [
+    6.0,
+    4220
+   ],
+   [
+    7.8,
+    3100
+   ],
+   [
+    9.8,
+    2410
+   ],
+   [
+    11.9,
+    1970
+   ],
+   [
+    13.9,
+    1660
+   ],
+   [
+    15.9,
+    1450
+   ]
+  ],
+  "max_boom_angle_deg": 80,
+  "max_height_approx": true,
+  "max_height_m": 18.5,
+  "max_radius_m": 15.9,
+  "outrigger_span_mm": null
+ },
+ "SQZ430": {
+  "load_chart": [
+   [
+    4.4,
+    8700
+   ],
+   [
+    5.9,
+    6280
+   ],
+   [
+    7.8,
+    4550
+   ],
+   [
+    9.9,
+    3430
+   ],
+   [
+    12.0,
+    2730
+   ],
+   [
+    14.3,
+    2240
+   ],
+   [
+    16.6,
+    1910
+   ]
+  ],
+  "max_boom_angle_deg": null,
+  "max_height_approx": true,
+  "max_height_m": 19.0,
+  "max_radius_m": 16.6,
+  "outrigger_span_mm": "2300-6600"
+ },
+ "SQZ430T": {
+  "load_chart": [
+   [
+    2.0,
+    20000
+   ],
+   [
+    4.4,
+    8700
+   ],
+   [
+    5.9,
+    6280
+   ],
+   [
+    7.8,
+    4550
+   ],
+   [
+    9.9,
+    3430
+   ],
+   [
+    12.0,
+    2730
+   ],
+   [
+    14.3,
+    2240
+   ],
+   [
+    16.6,
+    1910
+   ]
+  ],
+  "max_boom_angle_deg": null,
+  "max_height_approx": true,
+  "max_height_m": 19.0,
+  "max_radius_m": 16.6,
+  "outrigger_span_mm": null
+ },
+ "SQZ500": {
+  "load_chart": [
+   [
+    4.2,
+    11650
+   ],
+   [
+    5.6,
+    8710
+   ],
+   [
+    7.4,
+    6450
+   ],
+   [
+    9.4,
+    4950
+   ],
+   [
+    11.3,
+    4050
+   ],
+   [
+    13.5,
+    3350
+   ],
+   [
+    15.9,
+    2840
+   ]
+  ],
+  "max_boom_angle_deg": null,
+  "max_height_approx": true,
+  "max_height_m": 18.5,
+  "max_radius_m": 15.9,
+  "outrigger_span_mm": "2300-7400"
+ },
+ "SQZ500T": {
+  "load_chart": [
+   [
+    2.0,
+    25000
+   ],
+   [
+    4.2,
+    12300
+   ],
+   [
+    5.6,
+    9300
+   ],
+   [
+    7.4,
+    6900
+   ],
+   [
+    9.4,
+    5300
+   ],
+   [
+    11.3,
+    4300
+   ],
+   [
+    13.5,
+    3600
+   ],
+   [
+    15.9,
+    3000
+   ],
+   [
+    18.0,
+    2000
+   ]
+  ],
+  "max_boom_angle_deg": 80,
+  "max_height_approx": true,
+  "max_height_m": 21.0,
+  "max_radius_m": 18.0,
+  "outrigger_span_mm": null
+ },
+ "SQZ560": {
+  "load_chart": [
+   [
+    4.2,
+    12300
+   ],
+   [
+    5.6,
+    9310
+   ],
+   [
+    7.4,
+    6910
+   ],
+   [
+    9.4,
+    5320
+   ],
+   [
+    11.3,
+    4350
+   ],
+   [
+    13.5,
+    3600
+   ],
+   [
+    15.9,
+    3050
+   ]
+  ],
+  "max_boom_angle_deg": null,
+  "max_height_approx": true,
+  "max_height_m": 18.5,
+  "max_radius_m": 15.9,
+  "outrigger_span_mm": "2300-7400"
+ },
+ "SQZ600": {
+  "load_chart": [
+   [
+    4.4,
+    12840
+   ],
+   [
+    5.8,
+    9420
+   ],
+   [
+    7.4,
+    7080
+   ],
+   [
+    9.4,
+    5300
+   ],
+   [
+    11.4,
+    4170
+   ],
+   [
+    13.6,
+    3360
+   ],
+   [
+    15.7,
+    2830
+   ],
+   [
+    18.0,
+    2420
+   ],
+   [
+    20.3,
+    2150
+   ]
+  ],
+  "max_boom_angle_deg": null,
+  "max_height_approx": true,
+  "max_height_m": 23.0,
+  "max_radius_m": 20.3,
+  "outrigger_span_mm": "2250-8600"
+ },
+ "SQZ700": {
+  "load_chart": [
+   [
+    4.4,
+    14360
+   ],
+   [
+    5.8,
+    10600
+   ],
+   [
+    7.4,
+    8020
+   ],
+   [
+    9.4,
+    6050
+   ],
+   [
+    11.4,
+    4800
+   ],
+   [
+    13.6,
+    3890
+   ],
+   [
+    15.7,
+    3290
+   ],
+   [
+    18.0,
+    2830
+   ],
+   [
+    20.3,
+    2500
+   ]
+  ],
+  "max_boom_angle_deg": null,
+  "max_height_approx": true,
+  "max_height_m": 23.0,
+  "max_radius_m": 20.3,
+  "outrigger_span_mm": "2250-8600"
+ },
+ "SQZ800": {
+  "load_chart": [
+   [
+    4.4,
+    14500
+   ],
+   [
+    5.8,
+    11500
+   ],
+   [
+    7.4,
+    8500
+   ],
+   [
+    9.4,
+    6500
+   ],
+   [
+    11.4,
+    5790
+   ],
+   [
+    13.6,
+    4500
+   ],
+   [
+    15.7,
+    3550
+   ],
+   [
+    18.0,
+    3000
+   ],
+   [
+    20.3,
+    2800
+   ]
+  ],
+  "max_boom_angle_deg": 84,
+  "max_height_approx": true,
+  "max_height_m": 23.0,
+  "max_radius_m": 20.3,
+  "outrigger_span_mm": "2250-8600"
+ },
+ "ZM65": {
+  "load_chart": [],
+  "max_boom_angle_deg": 66,
+  "max_height_approx": true,
+  "max_height_m": 8.5,
+  "max_radius_m": null,
+  "outrigger_span_mm": null
+ },
+ "ZM75": {
+  "load_chart": [],
+  "max_boom_angle_deg": 66,
+  "max_height_approx": true,
+  "max_height_m": 9.5,
+  "max_radius_m": null,
+  "outrigger_span_mm": null
+ },
+ "ZT120Z-2A": {
+  "load_chart": [],
+  "max_boom_angle_deg": 70,
+  "max_height_approx": true,
+  "max_height_m": 9.0,
+  "max_radius_m": null,
+  "outrigger_span_mm": "2220-5500"
+ },
+ "ZT160Z-2A": {
+  "load_chart": [],
+  "max_boom_angle_deg": 70,
+  "max_height_approx": true,
+  "max_height_m": 10.0,
+  "max_radius_m": null,
+  "outrigger_span_mm": "2220-5500"
+ }
+}

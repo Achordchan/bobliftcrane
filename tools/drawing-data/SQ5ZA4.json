@@ -1,0 +1,58 @@
+{
+ "model": "SQ5ZA4",
+ "sources": [
+  "SQ5ZA4起升曲线图-1.png",
+  "SQ5ZA4外形尺寸及参数图-1.png"
+ ],
+ "max_radius_m": 9.9,
+ "max_height_m": 12.0,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 75,
+ "outrigger_span_mm": "2272-5122",
+ "dims": {
+  "length_mm": null,
+  "width_mm": 2492,
+  "height_mm": 2357
+ },
+ "load_chart": [
+  [
+   2.1,
+   5000
+  ],
+  [
+   4.45,
+   2350
+  ],
+  [
+   6.2,
+   1600
+  ],
+  [
+   8.05,
+   1100
+  ],
+  [
+   9.9,
+   700
+  ]
+ ],
+ "params": {
+  "Max Lifting Capacity": "5000Kg",
+  "Max Lifting Moment": "10.5ton.m",
+  "Recommend Power": "22KW",
+  "Hydraulic System Flow": "35L/min",
+  "Hydraulic System Pressure": "28Mpa",
+  "Oil Tank Capacity": "100L",
+  "Rotation Angle": "400°",
+  "Self Weight": "2386Kg",
+  "Installation Space": "1050mm",
+  "boom reach (side view, mm)": "4535-9900",
+  "height in working position (mm)": "2781",
+  "outrigger leg height (mm)": "801-1500",
+  "outrigger overall (mm)": "2492",
+  "top view width (mm)": "943",
+  "load lbs": "11000 / 5170 / 3520 / 2420 / 1540"
+ },
+ "confidence": "high",
+ "notes": "Two outrigger dims on front view: 2272-5122 (span range) and 2492 (overall retracted incl. pads); used 2272-5122. 2357 = folded height above frame (legs 801-1500 below). 943 = top-view folded width. Boom tip on chart ~12.2 m. Rotation 400°."
+}

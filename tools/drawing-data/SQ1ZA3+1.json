@@ -1,0 +1,13 @@
+{
+ "model": "SQ1ZA3+1",
+ "sources": ["SQ1ZA3+1起升曲线图-1.png", "SQ1ZA3+1外形尺寸及参数图-1.png"],
+ "max_radius_m": 4.23,
+ "max_height_m": 6.0,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 75,
+ "outrigger_span_mm": "1565-3095",
+ "load_chart": [[1.39, 1600], [2.3, 1000], [3.25, 500], [4.23, 300]],
+ "params": {"最大起重质量 Max Lifting Capacity": "1600Kg", "最大起重力矩 Max Lifting Moment": "2.2ton.m", "推荐功率 Recommend Power": "7.5KW", "液压系统流量 Hydraulic System Flow": "15L/min", "液压系统压力 Hydraulic System Pressure": "18Mpa", "液压油箱容积 Oil Tank Capacity": "25L", "回转角度 Rotation Angle": "330°", "起重机自重 Self Weight": "470Kg", "安装空间 Installation Space": "550mm"},
+ "confidence": "high",
+ "notes": "Boom head top at 75° (with hatched manual '+1' extension) measures ~5.9 m on the chart grid -> 6.0 to nearest 0.5. Only one outrigger span printed (1565-3095); 1750 is base frame width; leg dims 538 and 300. Front view: 755 W x 1760 H; top view 919 / 386 / 464. Side: height 2062, reach 1390-4230. Rotation is 330° (not 360°). Lbs 3520/2200/1100/660. Moment 2.2 t.m = 1600 kg x 1.39 m."
+}

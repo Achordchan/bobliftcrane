@@ -1,0 +1,57 @@
+{
+ "model": "SQZ330",
+ "sources": [
+  "SQZ330起升曲线图-1.png",
+  "SQZ330外形尺寸图-1.png"
+ ],
+ "max_radius_m": 15.9,
+ "max_height_m": 18.0,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 80,
+ "outrigger_span_mm": "2324-5924",
+ "load_chart": [
+  [
+   4.4,
+   6250
+  ],
+  [
+   6.0,
+   4220
+  ],
+  [
+   7.8,
+   3100
+  ],
+  [
+   9.8,
+   2410
+  ],
+  [
+   11.9,
+   1970
+  ],
+  [
+   13.9,
+   1660
+  ],
+  [
+   15.9,
+   1450
+  ]
+ ],
+ "params": {
+  "Max Lifting Capacity / 最大起重质量": "16000Kg",
+  "Max Lifting Moment / 最大起重力矩": "33ton.m",
+  "Recommend Power / 推荐功率": "45kw",
+  "Hydraulic System Flow / 液压系统流量": "63L/min",
+  "Hydraulic System Pressure / 液压系统压力": "33Mpa",
+  "Oil Tank Capacity / 液压油箱容积": "200L",
+  "Rotation Angle / 回转角度": "360°",
+  "Self Weight / 起重机自重": "4900Kg",
+  "overall dims (front view, mm)": "2500 wide x 2420 high (above base) + 809-1369 outrigger leg",
+  "side view width (mm)": "1519 top / 1354 at outrigger legs",
+  "reach (mm)": "4450-15900"
+ },
+ "confidence": "high",
+ "notes": "Load table has stacked kg boxes per radius (unlabelled, presumably boom configurations); load_chart = top row (only complete row to 15.9 m, matches outer curve). Full stack: 4.4 m: 6250/6420/6600/6920/7200; 6.0 m: 4220/4380/4570/4780/5010; 7.8 m: 3100/3260/3430/3630/3840; 9.8 m: 2410/2550/2710/2900; 11.9 m: 1970/2100/2260; 13.9 m: 1660/1790; 15.9 m: 1450. Boom tip at 80 deg sits on the 18 m grid line."
+}

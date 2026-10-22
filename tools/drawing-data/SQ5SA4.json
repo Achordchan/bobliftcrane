@@ -1,0 +1,47 @@
+{
+ "model": "SQ5SA4",
+ "sources": [
+  "SQ5SA4起升曲线图-1.png",
+  "SQ5SA4外形尺寸及参数图-1.png"
+ ],
+ "max_radius_m": 11.79,
+ "max_height_m": 13.5,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 75,
+ "outrigger_span_mm": "2293~5593",
+ "load_chart": [
+  [
+   2.5,
+   5000
+  ],
+  [
+   3.99,
+   3000
+  ],
+  [
+   6.59,
+   1650
+  ],
+  [
+   9.19,
+   900
+  ],
+  [
+   11.79,
+   600
+  ]
+ ],
+ "params": {
+  "Max Lifting Capacity": "5000Kg",
+  "Max Lifting Moment": "12.5ton.m",
+  "Recommend Power": "18KW",
+  "Hydraulic System Flow": "32L/min",
+  "Hydraulic System Pressure": "21Mpa",
+  "Oil Tank Capacity": "100L",
+  "Rotation Angle": "360°",
+  "Self Weight": "2400Kg",
+  "Installation Space": "800mm"
+ },
+ "confidence": "high",
+ "notes": "Outline sheet has a front view of the base: outrigger span 2293~5593, overall base width 2476, leg stroke 697~1257 (current extract says none printed). Side view height 2384, 1869 under boom, column footprint 781, reach 3990~11790. Chart row mm 2500/3990/6590/9190/11790, Lbs 11000/6600/3630/1980/1320. Boom table (4.2/6.8/9.4/12 m) matches current extract. Boom tip ~13.7 m on grid."
+}

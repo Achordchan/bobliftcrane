@@ -1,0 +1,38 @@
+{
+ "model": "CC85",
+ "sources": [
+  "CC85-1.png"
+ ],
+ "max_radius_m": 5.4,
+ "max_height_m": 7.5,
+ "max_height_approx": true,
+ "max_boom_angle_deg": null,
+ "outrigger_span_mm": null,
+ "load_chart": [
+  [
+   1.7,
+   2300
+  ],
+  [
+   2.1,
+   1900
+  ],
+  [
+   3.2,
+   1300
+  ],
+  [
+   4.3,
+   700
+  ],
+  [
+   5.4,
+   400
+  ]
+ ],
+ "params": {
+  "chart note": "主臂1.9米*4节; 2节液压出臂，1节手拉出臂; 最大工作半径：5.4米"
+ },
+ "confidence": "high",
+ "notes": "Forklift-mounted jib attachment (CC series). Single sheet: chart + load table only, no outline/parameter table, no outrigger, no boom angle printed (boom drawn vertical and horizontal). Radii printed in mm. Vertical boom top reads ~7.7 m (rounded to 7.5; borderline)."
+}

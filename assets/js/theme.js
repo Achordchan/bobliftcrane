@@ -1800,6 +1800,7 @@
       image: typeof item.image === 'string' ? item.image : '',
       category: typeof item.category === 'string' ? item.category : 'BOB-LIFT',
       detailUrl: typeof item.detailUrl === 'string' ? item.detailUrl : '',
+      badge: typeof item.badge === 'string' ? item.badge : '',
     };
   };
   const cardInquiryProduct = (card) => normalizeInquiryProduct({
@@ -1867,6 +1868,7 @@
       row.innerHTML = `
         <div class="h-[46px] w-[46px] overflow-hidden rounded-sm bg-[#eef2f7]">${item.image ? `<img class="h-full w-full object-contain p-1" src="${escapeInquiryText(item.image)}" alt="${escapeInquiryText(item.title)}" loading="lazy" decoding="async">` : ''}</div>
         <div class="min-w-0 self-center">
+          ${item.badge ? `<span class="mb-1 inline-flex items-center rounded-sm border border-red-600 bg-red-50 px-1.5 py-0.5 text-[10px] font-black leading-none text-red-700">${escapeInquiryText(item.badge)}</span>` : ''}
           <h3 class="line-clamp-2 text-xs font-black leading-4 text-ink">${escapeInquiryText(item.title)}</h3>
         </div>
         <button class="grid h-9 w-9 place-items-center rounded-sm border border-line bg-white text-slate-500 opacity-100 transition hover:border-red-100 hover:bg-red-50 hover:text-red-600 focus:opacity-100 focus:outline-none focus:ring-4 focus:ring-red-100 md:opacity-0 md:group-hover:opacity-100" type="button" data-inquiry-product-remove="${index}" aria-label="${escapeInquiryText(removeLabelTemplate.replace('{product}', item.title || ''))}">
@@ -3052,6 +3054,9 @@
       }
     };
     const filterParamMap = { category: 'category', boom: 'boom', capacity: 'capacity', moment: 'moment', weight: 'weight' };
+    // A capacity range from a link that is not one of the bins (old-site tonnage pages redirect to ?capacity=4-5) filters
+    // as given and shows as its own chip until cleared.
+    let customCapacity = '';
     // Spec filters hold a number per card (tonnes, t·m, kg; 0 = not given) matched against "min-max" / "min+" bins.
     const specFilters = ['capacity', 'moment', 'weight'];
     const cardNumber = (card, filterName) => Number(card.dataset[filterName] || 0);
@@ -3074,9 +3079,13 @@
         const hashValue = filterName === 'category' ? window.location.hash.replace(/^#/, '').trim() : '';
         const pathValue = filterName === 'category' ? (root.dataset.currentCategory || '') : '';
         const values = [...paramValues(params, paramName), ...(hashValue ? [hashValue] : []), ...(pathValue ? [pathValue] : [])];
-        checks.filter((input) => input.dataset.filter === filterName).forEach((input) => {
+        const inputs = checks.filter((input) => input.dataset.filter === filterName);
+        inputs.forEach((input) => {
           input.checked = values.some((value) => optionMatchesParam(input, value));
         });
+        if (filterName === 'capacity') {
+          customCapacity = values.find((value) => /^\d+(?:\.\d+)?-\d+(?:\.\d+)?$/.test(value) && !inputs.some((input) => optionMatchesParam(input, value))) || '';
+        }
       });
       syncAllCategoryScopes();
       const clearedSelection = updateFilterAvailability();
@@ -3096,6 +3105,7 @@
         if (filterName === 'category') return;
         activeValues(filterName).forEach((value) => url.searchParams.append(paramName, slugifyFilter(value)));
       });
+      if (customCapacity && !activeValues('capacity').length) url.searchParams.set(filterParamMap.capacity, customCapacity);
       url.hash = '';
       const nextUrl = `${url.pathname}${url.search}`;
       if (replace) window.history.replaceState(null, '', nextUrl);
@@ -3170,6 +3180,7 @@
       let ranges = activeValues(filterName);
       // The capacity dropdown, where an archive renders one, applies while no capacity box is ticked.
       if (!ranges.length && filterName === 'capacity' && capacitySelect?.value) ranges = [capacitySelect.value];
+      if (!ranges.length && filterName === 'capacity' && customCapacity) ranges = [customCapacity];
       return !ranges.length || inAnyRange(cardNumber(card, filterName), ranges);
     };
     const hasAny = (source, values) => !values.length || values.some((value) => source.includes(value));
@@ -3218,6 +3229,22 @@
         });
         return chip;
       }));
+      if (customCapacity && !activeValues('capacity').length) {
+        const title = qs('[data-filter-dropdown][data-filter-group="capacity"]', root)?.dataset.filterTitle || '';
+        const label = `${title}: ${customCapacity.replace('-', '–')} t`;
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'boblift-filter-chip';
+        chip.setAttribute('aria-label', productArchiveText('removeFilterLabel', 'Remove {label}').replace('{label}', label));
+        chip.append(Object.assign(document.createElement('span'), { textContent: label }));
+        if (filterChipIcon) chip.append(filterChipIcon.content.cloneNode(true));
+        chip.addEventListener('click', () => {
+          customCapacity = '';
+          updateUrlFromFilters();
+          apply({ resetPage: true });
+        });
+        chips.unshift(chip);
+      }
       filterChips.replaceChildren(...chips);
       setFlexVisible(filterChipsRow, chips.length > 0);
     };
@@ -3237,6 +3264,7 @@
       apply({ resetPage: true });
     };
     const getSortMode = () => sortTrigger?.dataset.sortValue || 'recommended';
+    const cardOrder = new Map(cards.map((card, index) => [card, index]));
     const sortedCards = () => [...cards].sort((a, b) => {
       const av = Number(a.dataset.capacity || 0);
       const bv = Number(b.dataset.capacity || 0);
@@ -3251,7 +3279,8 @@
       if (mode === 'capacityDesc') return (bv > 0 ? bv : -1) - (av > 0 ? av : -1);
       if (mode === 'popular') return bp - ap;
       if (mode === 'newest') return bd - ad;
-      return bf - af || bp - ap || bd - ad;
+      // Recommended keeps the server order: featured, then families in tab order, largest first.
+      return bf - af || cardOrder.get(a) - cardOrder.get(b);
     });
     const renderPagination = (totalPages) => {
       if (!pagination) return;
@@ -3507,6 +3536,7 @@
       filterDropdowns.forEach((item) => setFilterDropdownOpen(item, item === dropdown && open));
     }));
     qsa('[data-filter-clear-specs]', root).forEach((button) => button.addEventListener('click', () => {
+      customCapacity = '';
       checks.filter((input) => input.dataset.filter !== 'category').forEach((input) => { input.checked = false; });
       updateUrlFromFilters({ replace: false });
       apply({ resetPage: true });
@@ -3545,6 +3575,7 @@
       }
     });
     checks.forEach((input) => input.addEventListener('change', () => {
+      if (input.dataset.filter === 'capacity') customCapacity = '';
       syncMatchingFilterInputs(input);
       syncCategoryScope(input);
       if (input.dataset.filter === 'category') updateFilterAvailability();
@@ -3561,6 +3592,7 @@
       apply({ resetPage: true });
     });
     resets.forEach((button) => button.addEventListener('click', () => {
+      customCapacity = '';
       checks.forEach((input) => { input.checked = false; });
       if (capacitySelect) capacitySelect.value = '';
       root.dataset.currentCategory = '';
@@ -3579,6 +3611,73 @@
     });
     syncFavoriteStates();
     syncFiltersFromUrl();
+  });
+
+  // Previous models: a tab that toggles on its own beside the category tabs. While on, the selected category's previous models replace the
+  // grid; changing the category keeps it on and rescopes the list, and a category without any shows a request form
+  // instead. ?models=previous turns it on directly.
+  qsa('[data-product-listing]').forEach((root) => {
+    const panel = qs('[data-legacy-panel]', root);
+    if (!panel) return;
+    const groups = qsa('[data-legacy-group]', panel);
+    const entries = qsa('[data-legacy-entry]', root);
+    const counts = qsa('[data-legacy-count]', root);
+    const toggle = qs('[data-legacy-toggle]', root);
+    const empty = qs('[data-legacy-empty]', panel);
+    const groupList = qs('[data-legacy-groups]', panel);
+    const scopeTitle = qs('[data-legacy-scope-title]', panel);
+    const isOpen = () => root.hasAttribute('data-legacy-view');
+    const scopedGroups = () => {
+      const current = root.dataset.currentCategory || '';
+      if (!current) return groups;
+      const input = qs(`input[data-filter="category"][value="${CSS.escape(current)}"]`, root);
+      const slugs = new Set([current, ...(input?.dataset.categoryChildren || '').split(',').filter(Boolean)]);
+      return groups.filter((group) => slugs.has(group.dataset.legacyGroup || ''));
+    };
+    const syncScope = () => {
+      const scoped = scopedGroups();
+      const total = scoped.reduce((sum, group) => sum + Number(group.dataset.legacySize || 0), 0);
+      counts.forEach((count) => { count.textContent = String(total); });
+      entries.forEach((entry) => entry.classList.toggle('hidden', total === 0));
+      groups.forEach((group) => { group.hidden = !scoped.includes(group); });
+      empty?.classList.toggle('hidden', total > 0);
+      empty?.classList.toggle('flex', total === 0);
+      groupList?.classList.toggle('hidden', total === 0);
+      const current = root.dataset.currentCategory || '';
+      const tab = current ? qs(`[data-category-tab="${CSS.escape(current)}"]`, root) : null;
+      const label = tab ? [...tab.childNodes].filter((node) => node.nodeType === Node.TEXT_NODE).map((node) => node.textContent).join('').trim() : '';
+      if (scopeTitle) {
+        scopeTitle.textContent = label ? ` · ${label}` : '';
+        scopeTitle.hidden = !label;
+      }
+    };
+    const setUrl = (open) => {
+      const url = new URL(window.location.href);
+      if (open) url.searchParams.set('models', 'previous');
+      else url.searchParams.delete('models');
+      window.history.replaceState(window.history.state, '', url);
+    };
+    const setOpen = (open, { scroll = true } = {}) => {
+      syncScope();
+      root.toggleAttribute('data-legacy-view', open);
+      toggle?.setAttribute('aria-pressed', String(open));
+      setUrl(open);
+      if (!scroll) return;
+      const bar = qs('[data-filter-bar]', root);
+      (open ? (bar?.offsetParent ? bar : panel) : (qs('[data-products-toolbar]', root) || root)).scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+    toggle?.addEventListener('click', () => setOpen(!isOpen()));
+    qsa('[data-legacy-open]', root).forEach((button) => button.addEventListener('click', () => setOpen(true)));
+    qsa('[data-legacy-close]', panel).forEach((button) => button.addEventListener('click', () => setOpen(false)));
+    // The listing script settles the category (path, query or hash) first; the scope follows it.
+    new MutationObserver(() => {
+      syncScope();
+      if (isOpen()) setUrl(true);
+    }).observe(root, { attributes: true, attributeFilter: ['data-current-category'] });
+    syncScope();
+    // The listing script rewrites the address when the category changes; keep the switch in it.
+    window.addEventListener('popstate', () => setOpen(new URLSearchParams(window.location.search).get('models') === 'previous', { scroll: false }));
+    if (new URLSearchParams(window.location.search).get('models') === 'previous') setOpen(true);
   });
 
   qsa('[data-news-filter-root]').forEach((root) => {

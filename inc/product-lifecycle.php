@@ -88,6 +88,42 @@ function boblift_product_is_legacy(int $post_id): bool
     return in_array($post_id, boblift_legacy_product_ids(), true);
 }
 
+/**
+ * The inquiry form's product payload for one product: its photo, and a "Previous model" badge when it is one, so the
+ * form shows what is being asked about. JSON for data-inquiry-products.
+ */
+function boblift_inquiry_product_payload(int $post_id, string $title = '', string $image = ''): string
+{
+    $post = get_post($post_id);
+    if (!$post instanceof WP_Post) {
+        return '';
+    }
+    $title = $title !== '' ? $title : get_the_title($post);
+    $image = $image !== '' ? $image : (string) (get_the_post_thumbnail_url($post, 'medium') ?: '');
+    $item = ['id' => (string) $post_id, 'title' => $title, 'slug' => (string) $post->post_name, 'image' => $image, 'detailUrl' => (string) get_permalink($post)];
+    if (boblift_product_is_legacy($post_id)) {
+        $item['badge'] = boblift_localized_static_text('Previous model');
+    }
+    return (string) wp_json_encode([$item], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+}
+
+/**
+ * Previous models among the products of an inquiry (slugs as the form posts them), as "SQ6.3SA3, SQ8ZA4", so the sales
+ * team sees at a glance that the customer asks about a model that is only built to order.
+ */
+function boblift_inquiry_legacy_models(string $slugs): string
+{
+    $models = [];
+    foreach (array_filter(array_map('trim', explode(',', $slugs))) as $slug) {
+        $post = get_page_by_path(sanitize_title($slug), OBJECT, 'product');
+        if ($post instanceof WP_Post && boblift_product_is_legacy((int) $post->ID)) {
+            $model = trim((string) get_post_meta($post->ID, '_model', true));
+            $models[] = $model !== '' ? $model : get_the_title($post);
+        }
+    }
+    return implode(', ', array_unique($models));
+}
+
 /** Product query arguments without the previous models (an explicit post__in list keeps only its current models). */
 function boblift_without_legacy(array $args): array
 {

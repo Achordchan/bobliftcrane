@@ -1,0 +1,8 @@
+{"model":"SQ20SA5","sources":["SQ20SA5起升曲线图-1.png","SQ20SA5外形尺寸及参数图-1.png"],
+"max_radius_m":22,"max_height_m":23.5,"max_height_approx":true,"max_boom_angle_deg":75,"outrigger_span_mm":"2450-8050",
+"load_chart":[[2.5,20000],[6.3,12000],[10.3,6300],[14.3,3500],[18.3,2200],[22,1500]],
+"params":{"Max Lifting Capacity":"20000Kg","Max Lifting Moment":"50ton.m","Recommend Power":"55KW","Hydraulic System Flow":"80+63L/min","Hydraulic System Pressure":"25Mpa","Oil Tank Capacity":"300L","Rotation Angle":"360°","Self Weight":"7300Kg","Installation Space":"1400mm"},
+"boom_angle_table":{"key":"boom angle table (radius m / kg) boom 6.8/10.8/14.8/18.8/22.5 m","value":"0°: 6.3/12000, 10.3/6300, 14.3/3500, 18.3/2200, 22.0/1500; 10°: 6.0/13000, 10.0/7200, 13.8/4000, 17.3/2350, 21.7/1620; 20°: 5.8/13500, 9.6/8000, 13.2/5000, 16.8/2500, 20.7/2050; 30°: 5.0/16000, 8.8/8600, 12.2/5640, 15.4/2920, 19.1/2430; 40°: 4.7/17000, 7.8/9200, 10.6/6890, 13.5/3840, 16.9/2720; 50°: 4.0/18000, 6.5/10500, 9.0/7000, 11.4/4000, 14.2/3200; 60°: 3.0/19000, 5.0/11200, 7.0/7200, 8.8/4200, 11.1/3600; 70°: 2.0/20000, 3.5/12200, 4.5/7400, 6.0/4400, 7.60/3800; 75°: —, 3.0/13500, 4.0/7600, 5.5/4600, 5.70/4000"},
+"dims_check":{"height_mm":2585,"boom reach (side view)":"6010-22000","outrigger leg stroke":"720-1400","Lbs":"44000/26400/13860/7700/4840/3300"},
+"confidence":"high",
+"notes":"Boom angle table header lists boom lengths 6.8/10.8/14.8/18.8/22.5 m; 75° row for 6.8 m boom is printed as a dash. Top view also prints 1016/544/1208/1040/230/60 and 210 below beam. Boom tip at 75 deg about 23.7 m on grid. Table 70°/22.5 m and 75°/22.5 m loads (3800, 4000) increase vs lower angles, and 75° radii 5.5 vs 5.70 for 18.8/22.5 m - as printed."}

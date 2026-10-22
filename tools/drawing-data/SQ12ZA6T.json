@@ -1,0 +1,13 @@
+{
+ "model": "SQ12ZA6T",
+ "sources": ["SQ12ZA6T起升曲线图-1.png", "SQ12ZA6T外形尺寸图-1.png"],
+ "max_radius_m": 14.5,
+ "max_height_m": 16.5,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 75,
+ "outrigger_span_mm": null,
+ "load_chart": [[2.25, 12000], [4.7, 5450], [6.4, 3500], [8.19, 2500], [10.1, 1850], [12.0, 1400], [14.5, 1000]],
+ "params": {"最大起重质量 Max Lifting Capacity": "12000Kg", "最大起重力矩 Max Lifting Moment": "27ton.m", "推荐功率 Recommend Power": "30KW", "液压系统流量 Hydraulic System Flow": "55L/min", "液压系统压力 Hydraulic System Pressure": "28Mpa", "液压油箱容积 Oil Tank Capacity": "160L", "回转角度 Rotation Angle": "360°", "起重机自重 Self Weight": "4350Kg"},
+ "confidence": "high",
+ "notes": "Pedestal (marine) version, no outriggers. 6th load point printed as 12000 mm (SQ12ZA6 truck version prints 12200 mm for the same 1400 kg) - possible typo in one of the two sheets. Printed Lbs row is 26400/11990/7700/5500/4070/3080/2200 (consistent with kg). Folded 2807 W x 2399 H, side 1597; working height 2885; reach 4520-14520. Mounting ø1127, ø1048 PCD, 28-ø26, ø400 centre. Boom head at 75° ~16.7 m."
+}
