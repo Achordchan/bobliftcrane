@@ -67,7 +67,8 @@ function boblift_google_tag_markup(): string
         $script .= 'gtag("config",' . $json($id) . ');';
     }
     $conversion = boblift_google_conversion();
-    if ($conversion !== '') {
+    // Only for a Google Ads account whose tag is loaded, which is what puts Advertising in the banner.
+    if ($conversion !== '' && in_array(strtok($conversion, '/'), $ids, true)) {
         $script .= 'window.bobliftGoogleConversion=' . $json($conversion) . ';';
     }
     return '<script>' . $script . '</script><script async src="https://www.googletagmanager.com/gtag/js?id=' . rawurlencode($ids[0]) . '"></script>' . "\n";

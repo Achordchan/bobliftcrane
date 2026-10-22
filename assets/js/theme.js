@@ -4462,9 +4462,28 @@
   // inquiry's number (?sent=), turns that note into one "generate_lead" whose transaction_id is the number. Each tab keeps
   // its own note, a reload finds none, and the tag's Consent Mode decides what it may send.
   const PENDING_LEAD = 'boblift_pending_lead';
+  // The note is kept only when analytics or advertising is agreed to: the visitor's choice in the boblift_consent cookie,
+  // else the Google tag's regional default (granted outside the EEA, the UK and Switzerland). Unknown counts as no.
+  const leadReportingAgreed = () => {
+    try {
+      const match = document.cookie.match(/(?:^|;\s*)boblift_consent=([^;]*)/);
+      if (match) {
+        const saved = JSON.parse(decodeURIComponent(match[1]));
+        return saved?.v === 1 && (saved.analytics === true || saved.advertising === true);
+      }
+      const entries = window.google_tag_data?.ics?.entries || {};
+      return ['analytics_storage', 'ad_storage'].some((name) => {
+        const entry = entries[name];
+        const value = entry && (entry.update !== undefined ? entry.update : entry.default);
+        return value === true;
+      });
+    } catch {
+      return false;
+    }
+  };
   document.addEventListener('submit', (event) => {
     const form = event.target;
-    if (window.bobliftTracking !== true || !(form instanceof HTMLFormElement) || !form.matches('[data-quote-form]')) return;
+    if (window.bobliftTracking !== true || !(form instanceof HTMLFormElement) || !form.matches('[data-quote-form]') || !leadReportingAgreed()) return;
     const value = (name) => String(form.querySelector(`[name="${name}"]`)?.value || '').slice(0, 120);
     try { sessionStorage.setItem(PENDING_LEAD, JSON.stringify({ product: value('product'), source: value('source_entry') })); } catch { /* not reported */ }
   }, true);
@@ -4723,6 +4742,10 @@
       }
       const declined = categories.filter((name) => !next[name]);
       if (declined.length) clearToolCookies(declined);
+      // With nothing agreed, an inquiry note waiting for the thank-you page (boblift_pending_lead) goes too.
+      if (!categories.some((name) => next[name])) {
+        try { sessionStorage.removeItem('boblift_pending_lead'); } catch { /* storage blocked */ }
+      }
       settleAttribution();
       close();
     };
