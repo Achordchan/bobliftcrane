@@ -4690,7 +4690,8 @@
     };
     const open = (withChoices, from = null) => {
       opener = from;
-      boxes.forEach((box) => { box.checked = choice ? choice[box.name] === true : true; });
+      // Nothing is ticked until the visitor ticks it: saving without a choice agrees to nothing.
+      boxes.forEach((box) => { box.checked = choice?.[box.name] === true; });
       showChoices(withChoices);
       control('close').hidden = !choice;
       banner.hidden = false;
