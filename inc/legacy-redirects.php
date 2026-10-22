@@ -120,26 +120,88 @@ function boblift_legacy_redirect_language_host(string $host, array $config): str
 }
 
 /**
- * Returns the absolute redirect target for a legacy request, or null when the request is not legacy.
- * $path_exists tells whether a path is a page the new site really serves; without it the same-path
- * fallback for language hosts is off and those requests go to the home page.
- * Pure function: no WordPress state besides the config argument.
- */
-function boblift_legacy_redirect_resolve(string $host, string $path, array $config, string $site_base, ?callable $path_exists = null): ?string
+/** Target of the enabled exact rule for $path, or null. */
+function boblift_legacy_redirect_rule_target(string $path, array $config): ?string
 {
     $norm = boblift_legacy_redirect_normalize_path($path);
-    $language = boblift_legacy_redirect_language_host($host, $config);
-    $base = $language !== '' ? 'https://' . ($config['canonical_host'] ?? parse_url($site_base, PHP_URL_HOST)) : rtrim($site_base, '/');
-
-    $target = null;
     foreach ((array) ($config['rules'] ?? []) as $rule) {
         if (!is_array($rule) || empty($rule['from']) || empty($rule['to']) || ($rule['enabled'] ?? true) === false) {
             continue;
         }
         if (boblift_legacy_redirect_normalize_path((string) $rule['from']) === $norm) {
-            $target = (string) $rule['to'];
-            break;
+            return (string) $rule['to'];
         }
+    }
+    return null;
+}
+
+/**
+ * Pattern rules (`path_fallbacks`) for old URLs no exact rule names: paginated lists, SaaS keyword pages,
+ * misspelt article addresses. Each entry has `match` (regex on the decoded path, case-insensitive) and
+ * `to` ($1... are the groups), plus optional flags:
+ *   when_live  use `to` only when the new site really serves it, else try the next entry
+ *   rerun      send `to` through the exact rules and these patterns once more (/x-p2 -> /x -> /x-cranes);
+ *              when nothing matches, `to` is used only if the new site serves it
+ *   article_id the old article id ($1): the English article whose slug ends in -id<N>, else `to`
+ */
+function boblift_legacy_redirect_path_fallback(string $path, array $config, ?callable $path_exists, ?callable $article_by_id, int $depth = 0): ?string
+{
+    $decoded = rtrim(rawurldecode($path), '/');
+    foreach ((array) ($config['path_fallbacks'] ?? []) as $fallback) {
+        if (!is_array($fallback) || empty($fallback['match']) || !isset($fallback['to']) || ($fallback['enabled'] ?? true) === false) {
+            continue;
+        }
+        $pattern = '~' . str_replace('~', '\~', (string) $fallback['match']) . '~iu';
+        if (@preg_match($pattern, $decoded, $m) !== 1) {
+            continue;
+        }
+        $to = (string) preg_replace_callback('/\$(\d)/', static fn($g) => (string) ($m[(int) $g[1]] ?? ''), (string) $fallback['to']);
+        if (!empty($fallback['article_id'])) {
+            $id = (string) preg_replace_callback('/\$(\d)/', static fn($g) => (string) ($m[(int) $g[1]] ?? ''), (string) $fallback['article_id']);
+            $found = $article_by_id !== null && $id !== '' ? $article_by_id($id) : null;
+            if (is_string($found) && $found !== '') {
+                return $found;
+            }
+        }
+        if (!empty($fallback['lowercase'])) {
+            $to = strtolower($to);
+        }
+        if (!empty($fallback['when_live']) && !($path_exists !== null && $to !== '' && $to[0] === '/' && $path_exists(rtrim((string) parse_url($to, PHP_URL_PATH), '/')))) {
+            continue;
+        }
+        if (!empty($fallback['rerun']) && $depth === 0 && $to !== '' && $to[0] === '/') {
+            $next = boblift_legacy_redirect_rule_target($to, $config) ?? boblift_legacy_redirect_path_fallback($to, $config, $path_exists, $article_by_id, 1);
+            if ($next !== null) {
+                return $next;
+            }
+            // The rewritten path itself only when the new site serves it; otherwise the remaining entries get a try.
+            if ($path_exists !== null && $path_exists(rtrim((string) parse_url($to, PHP_URL_PATH), '/'))) {
+                return $to;
+            }
+            continue;
+        }
+        return $to;
+    }
+    return null;
+}
+
+/**
+ * Returns the absolute redirect target for a legacy request, or null when the request is not legacy.
+ * $path_exists tells whether a path is a page the new site really serves; without it the same-path
+ * fallback for language hosts is off and those requests go to the home page.
+ * $article_by_id maps an old article id to the path of the English article that carries it.
+ * Pure function: no WordPress state besides the config argument and the two callbacks.
+ */
+function boblift_legacy_redirect_resolve(string $host, string $path, array $config, string $site_base, ?callable $path_exists = null, ?callable $article_by_id = null): ?string
+{
+    $norm = boblift_legacy_redirect_normalize_path($path);
+    $language = boblift_legacy_redirect_language_host($host, $config);
+    $base = $language !== '' ? 'https://' . ($config['canonical_host'] ?? parse_url($site_base, PHP_URL_HOST)) : rtrim($site_base, '/');
+
+    $target = boblift_legacy_redirect_rule_target($path, $config);
+
+    if ($target === null && $language === '' && $norm !== '/') {
+        $target = boblift_legacy_redirect_path_fallback($path, $config, $path_exists, $article_by_id);
     }
 
     if ($target === null && $language !== '') {
@@ -148,6 +210,9 @@ function boblift_legacy_redirect_resolve(string $host, string $path, array $conf
         // An English page that really exists under the same path wins over the generic suffix fallbacks.
         if ($exact !== '' && $path_exists !== null && !empty($config['language_host_same_path']) && @preg_match('~' . str_replace('~', '\~', (string) $config['language_host_same_path']) . '~i', $exact) === 1 && $path_exists($exact)) {
             $target = $exact;
+        }
+        if ($target === null && $norm !== '/') {
+            $target = boblift_legacy_redirect_path_fallback($path, $config, $path_exists, null);
         }
         foreach ($target === null ? (array) ($config['language_host_fallbacks'] ?? []) : [] as $fallback) {
             if (!empty($fallback['match']) && !empty($fallback['to']) && @preg_match('~' . str_replace('~', '\~', (string) $fallback['match']) . '~iu', $exact) === 1) {
@@ -319,7 +384,7 @@ function boblift_legacy_redirect_resolve_in_language_directory(string $host, str
     if ($lang === '' || $rest === '/' || boblift_legacy_redirect_is_live_path($path)) {
         return null;
     }
-    $target = boblift_legacy_redirect_resolve($host, $rest, $config, home_url(), 'boblift_legacy_redirect_is_live_path');
+    $target = boblift_legacy_redirect_resolve($host, $rest, $config, home_url(), 'boblift_legacy_redirect_is_live_path', 'boblift_legacy_redirect_article_by_id');
     if ($target === null) {
         return null;
     }
@@ -335,21 +400,48 @@ function boblift_legacy_redirect_resolve_in_language_directory(string $host, str
     return home_url($localized) . (isset($parts['query']) ? '?' . $parts['query'] : '') . (isset($parts['fragment']) ? '#' . $parts['fragment'] : '');
 }
 
+/** Path of the published English article whose slug ends in -id<N> (old SaaS article id), or null. */
+function boblift_legacy_redirect_article_by_id(string $id): ?string
+{
+    global $wpdb;
+    if (!preg_match('/^\d{6,10}$/', $id)) {
+        return null;
+    }
+    $ids = $wpdb->get_col($wpdb->prepare(
+        "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'post' AND post_status = 'publish' AND post_name LIKE %s ORDER BY ID ASC LIMIT 20",
+        '%' . $wpdb->esc_like('-id' . $id)
+    ));
+    foreach ($ids as $post_id) {
+        if (function_exists('pll_get_post_language') && !in_array(pll_get_post_language((int) $post_id), [false, '', 'en'], true)) {
+            continue;
+        }
+        $link = get_permalink((int) $post_id);
+        if ($link) {
+            return (string) parse_url($link, PHP_URL_PATH);
+        }
+    }
+    return null;
+}
+
 function boblift_legacy_redirects_run(): void
 {
     if (!in_array($_SERVER['REQUEST_METHOD'] ?? 'GET', ['GET', 'HEAD'], true) || (defined('WP_CLI') && WP_CLI)) {
         return;
     }
-    $uri = (string) ($_SERVER['REQUEST_URI'] ?? '/');
+    // WordPress adds magic-quote slashes to $_SERVER: an old address with an apostrophe (l'installation) must match unslashed.
+    $uri = wp_unslash((string) ($_SERVER['REQUEST_URI'] ?? '/'));
     $path = (string) parse_url($uri, PHP_URL_PATH);
     if (preg_match('#^/(wp-admin|wp-json|wp-login\.php|wp-content|wp-includes|wp-cron\.php|xmlrpc\.php)#', $path) || isset($_GET['rest_route'])) {
         return;
     }
     $config = boblift_legacy_redirects_config();
     $host = boblift_legacy_redirect_effective_host((string) ($_SERVER['HTTP_HOST'] ?? ''), $_GET, $config);
-    $target = boblift_legacy_redirect_resolve($host, $path, $config, home_url(), 'boblift_legacy_redirect_is_live_path');
+    // An exact rule for the full path (saved ones included, such as /fr/old.html) always wins. Otherwise an old path
+    // under a language directory (/fr/Old-Article-id1.html) is resolved without the prefix first, so its exact rule and
+    // language win over the generic pattern fallbacks the full path would hit.
+    $target = boblift_legacy_redirect_rule_target($path, $config) === null ? boblift_legacy_redirect_resolve_in_language_directory($host, $path, $config) : null;
     if ($target === null) {
-        $target = boblift_legacy_redirect_resolve_in_language_directory($host, $path, $config);
+        $target = boblift_legacy_redirect_resolve($host, $path, $config, home_url(), 'boblift_legacy_redirect_is_live_path', 'boblift_legacy_redirect_article_by_id');
     }
     // Only the new site's own host is protected; a legacy language host always redirects, even where the path exists here.
     if ($target === null || (boblift_legacy_redirect_language_host($host, $config) === '' && boblift_legacy_redirect_is_live_path($path))) {

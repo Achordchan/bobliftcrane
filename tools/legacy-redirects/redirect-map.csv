@@ -25,7 +25,7 @@
 /authority.html,/about.html,mapped,旧站资质页并入关于我们
 /article-inquire.html,/contact.html,mapped,旧站文章询盘表单
 /keywords.html,/,mapped,SaaS 自动生成的关键词页
-/keyword-index.html,/,mapped,SaaS 自动生成的关键词索引
+/keyword-index.html,/zh/,mapped,SaaS 关键词索引；Google 收录的是中文公司名（GSC 第 4 位），落中文首页
 /gallery.html,/cases.html,mapped,旧站图库，旧站自身跳产品页；新站对应案例中心
 /video-detail.html,/videos.html,mapped,旧站视频详情
 /knuckle-boom-truck-mounted-crane,/knuckle-boom-truck-mounted-cranes,mapped,分类，旧名单数
@@ -148,3 +148,56 @@
 /news/Truck-Mounted-Crane.html,/news.html,mapped,SaaS 新闻关键词页
 /news/Marine-crane.html,/news.html,mapped,SaaS 新闻关键词页
 /news/crane.html,/news.html,mapped,SaaS 新闻关键词页
+/what-is-the-maximum-angle-for-the-crane-boom.html,/what-is-the-maximum-angle-for-a-crane-boom.html,mapped,GSC 收录的错拼地址
+/what-type-of-cranes-are-used-at-dock.html,/what-type-of-cranes-are-used-at-docks.html,mapped,GSC 收录的错拼地址
+/marine-crale,/marine-crane,mapped,GSC 收录的错拼地址
+/china-8-ton-telescopic-boom-truck-mounted-crane,/8-ton-telescopic-boom-truck-mounted-crane.html,mapped,GSC 收录的旧产品别名
+/5-ton-knuckle-boom-truck-mounted-crane-wh-5ton,/5-ton-knuckle-boom-truck-mounted-crane.html,mapped,GSC 收录的旧产品别名
+/8-ton-overhead-crane,/products.html?capacity=6-8,mapped,GSC 收录；新站无桥式起重机，跳 6-8 吨筛选
+/Marine-Cranes-pc40691787.html,/marine-crane,mapped,旧站分类 id 地址
+/Crane-by-Ton-pc46360687.html,/products.html,mapped,旧站分类 id 地址
+/Un-guide-pour-l'installation-d'une-grue-montée-sur-camion-id40267376.html,/a-guide-to-truck-mounted-crane-installation-id40087376.html,mapped,fr 子域译文（GSC 44 次点击），对应英文安装指南
+/Una-guía-para-la-instalación-de-grúas-montadas-en-camiones-id46167376.html,/a-guide-to-truck-mounted-crane-installation-id40087376.html,mapped,es 子域译文，对应英文安装指南
+/دليل-لتركيب-الرافعة-المثبتة-على-الشاحنة-id44267376.html,/a-guide-to-truck-mounted-crane-installation-id40087376.html,mapped,sa 子域译文，对应英文安装指南
+/Tipos-de-grúas-utilizadas-en-un-barco-id41501616.html,/types-of-cranes-used-on-a-ship-id41221616.html,mapped,es 子域译文
+/Types-de-grues-utilisées-sur-un-navire-id42501616.html,/types-of-cranes-used-on-a-ship-id41221616.html,mapped,fr 子域译文
+/Estructura-de-grúas-marinas-id45167376.html,/structure-of-marine-cranes-id47987376.html,mapped,es 子域译文
+/Structure-des-grues-marines-id49267376.html,/structure-of-marine-cranes-id47987376.html,mapped,fr 子域译文
+/Конструкция-морских-кранов-id01812845.html,/structure-of-marine-cranes-id47987376.html,mapped,ru 子域译文
+/Presentamos-la-grúa-con-brazo-articulado-BOB-LIFT-de-5-toneladas-una-descripción-general-completa-id48540256.html,/5-ton-knuckle-boom-truck-mounted-crane.html,mapped,es 子域译文，新站无对应英文文章，跳 5 吨折臂产品
+/Camión-volquete-BOB-LIFT-de-2-toneladas-su-solución-de-transporte-confiable-para-proyectos-de-servicio-pesado-id46722346.html,https://bobliftloader.com/product/2-ton-mini-dumper/,mapped,es 子域翻斗车译文，跳装载站同款
+/¿Cuáles-son-las-diferencias-entre-las-grúas-sobre-camión-con-pluma-articulada-y-con-pluma-telescópica-id41603755.html,/what-are-the-differences-between-knuckle-boom-and-telescopic-boom-truck-cranes-id09913755.html,mapped,es 子域译文
+/BOB-LIFT-SQ10ZA5-Descuento-por-tiempo-limitado-¡Venta-caliente-id48256155.html,/bob-lift-sq10za5-limited-time-discount-hot-selling-id03356155.html,mapped,es 子域译文
+/BOB-LIFT-Solución-de-elevación-profesional-para-operaciones-navales-id45930165.html,/bob-lift-professional-lifting-solution-for-ship-operations-id03940165.html,mapped,es 子域译文
+/Capacidad-de-elevación-de-las-grúas-de-boom-de-nudillos-id49782816.html,/lifting-capacity-of-knuckle-boom-cranes-id41303816.html,mapped,es 子域译文
+/Comprensión-de-las-grúas-arañas-soluciones-versátiles-y-eficientes-para-tareas-de-levantamiento-complejas-id41701456.html,/understanding-spider-cranes-versatile-and-efficient-solutions-for-complex-lifting-tasks-id41361456.html,mapped,es 子域译文
+/Principio-de-funcionamiento-y-escenarios-de-aplicación-de-grúas-para-barcos-id44666097.html,/working-principle-and-application-scenarios-of-ship-cranes-id46701337.html,mapped,es 子域译文
+/BOB-LIFT-propose-des-solutions-efficaces-et-fiables-pour-les-opérations-de-levage-de-navires.-id44767455.html,/bob-lift-offers-efficient-and-reliable-solutions-for-ship-lifting-operations-id02577455.html,mapped,fr 子域译文
+/Les-utilisations-des-grues-dans-l'industrie-maritime-id41267376.html,/the-uses-of-cranes-in-the-marine-industry-id40187376.html,mapped,fr 子域译文
+/6-главных-преимуществ-автомобильных-кранов-для-транспорта-id06122845.html,/top-6-advantages-of-truck-mounted-cranes-for-transport-id45181716.html,mapped,ru 子域译文
+/BOB-LIFT-8-тонный-поворотный-кран-манипулятор-—-революция-в-сфере-подъемного-оборудования-id07222845.html,/bob-lift-8-ton-knuckle-truck-mounted-crane-a-value-revolution-in-lifting-equipment-id40892665.html,mapped,ru 子域译文
+正则 ^/index(/.*)?$,/,pattern,SaaS 字母索引页 /index/alphabet-X.html
+正则 ^(/.+?)-p\d+(\.html)?$,$1$2,pattern,分页 /x-p2、/x-p3.html：去掉页码再按规则走
+正则 ^/[^/]*marine[^/]*-pc\d+\.html$,/marine-crane,pattern,旧站分类 id 地址
+正则 -pc\d+\.html$,/products.html,pattern,旧站分类 id 地址
+正则 ^/products/(\d+(?:-\d+)?-ton-(?:knuckle|telescopic)-boom-(?:truck-mounted|marine)-crane)\.html$,/$1.html,pattern,SaaS 产品关键词页，同名产品在新站时直达产品
+正则 ^/products/\d+(?:-\d+)?-ton-(knuckle|telescopic)-boom-(truck-mounted|marine)-crane\.html$,/$1-boom-$2-cranes,pattern,同名产品已下架时落对应分类
+正则 ^/products/(1|2|3|4|5|6|8|10|12|16|20|25)-ton(?:-truck-mounted)?-crane\.html$,/$1-ton-crane,pattern,SaaS 吨位关键词页，走吨位筛选规则
+正则 ^/products/[^/]*(dumper)[^/]*\.html$,https://bobliftloader.com/products/mini-dumpers/,pattern,装载站
+正则 ^/products/[^/]*(skid-steer|loader)[^/]*\.html$,https://bobliftloader.com/products/skid-steer-loaders/,pattern,装载站
+正则 ^/products/[^/]*(marine|ship|offshore|vessel|boat)[^/]*\.html$,/marine-crane,pattern,SaaS 关键词页
+正则 ^/products/[^/]*(timber|forest|wood|log)[^/]*\.html$,/timber-cranes,pattern,SaaS 关键词页
+正则 ^/products/[^/]*pick-?up[^/]*\.html$,/pickup-cranes,pattern,SaaS 关键词页
+正则 ^/products/[^/]*(fly-jib|forklift)[^/]*\.html$,/forklift-fly-jib-cranes,pattern,SaaS 关键词页
+正则 ^/products/[^/]*(aerial|platform)[^/]*\.html$,/aerial-work-platform,pattern,SaaS 关键词页
+正则 ^/products/[^/]*spider[^/]*\.html$,/spider-cranes,pattern,SaaS 关键词页
+正则 ^/products/[^/]*tail-?(lift|board)[^/]*\.html$,/tail-lift,pattern,SaaS 关键词页
+正则 ^/products/[^/]*telescopic[^/]*\.html$,/telescopic-boom-truck-mounted-cranes,pattern,SaaS 关键词页
+正则 ^/products/[^/]*(knuckle|folding)[^/]*\.html$,/knuckle-boom-truck-mounted-cranes,pattern,SaaS 关键词页
+正则 ^/products/[^/]*truck[^/]*\.html$,/truck-mounted-crane,pattern,SaaS 关键词页
+正则 ^/products/[^/]+\.html$,/products.html,pattern,其余 SaaS 产品关键词页（挖掘机等）
+正则 ^/news/[^/]+\.html$,/news.html,pattern,SaaS 新闻关键词页
+正则 -id(\d+)\.html$,/news.html,pattern,旧文章地址拼错或标题改过：按文章 id 找到新站文章，找不到落新闻中心
+正则 -ic\d+\.html$,/news.html,pattern,旧新闻分类 id 地址
+正则 excavator,/products.html,pattern,挖掘机不在起重机站
+正则 -p[dl]\d+\.html$,/products.html,pattern,旧产品/产品列表 id 地址
