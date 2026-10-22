@@ -28,7 +28,14 @@ if ($real_root !== false && $real_path !== false && str_starts_with($real_path, 
     $size = (int) filesize($filesystem_path);
     $start = 0;
     $end = $size - 1;
+    $last_modified = gmdate('D, d M Y H:i:s', (int) filemtime($filesystem_path)) . ' GMT';
+    $etag = '"' . dechex((int) filemtime($filesystem_path)) . '-' . dechex($size) . '"';
     $range = (string) ($_SERVER['HTTP_RANGE'] ?? '');
+    // If-Range names the version the browser already holds part of; for any other version it gets the whole file (200).
+    $if_range = trim((string) ($_SERVER['HTTP_IF_RANGE'] ?? ''));
+    if ($if_range !== '' && $if_range !== $etag && $if_range !== $last_modified) {
+        $range = '';
+    }
     if (preg_match('/^bytes=(\d*)-(\d*)$/', $range, $match) && ($match[1] !== '' || $match[2] !== '')) {
         if ($match[1] === '') {
             $start = max(0, $size - (int) $match[2]);
@@ -46,7 +53,8 @@ if ($real_root !== false && $real_path !== false && str_starts_with($real_path, 
     header('Content-Type: ' . $media_types[$extension]);
     header('Accept-Ranges: bytes');
     header('Content-Length: ' . ($end - $start + 1));
-    header('Last-Modified: ' . gmdate('D, d M Y H:i:s', (int) filemtime($filesystem_path)) . ' GMT');
+    header('Last-Modified: ' . $last_modified);
+    header('ETag: ' . $etag);
     if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'HEAD') {
         exit;
     }
