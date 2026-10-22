@@ -1,0 +1,54 @@
+{
+ "model": "SQ5ZA3TJ",
+ "sources": [
+  "SQ5ZA3TJ起升曲线图-1.png",
+  "SQ5ZA3TJ外形尺寸及参数图-1.png"
+ ],
+ "max_radius_m": 8.05,
+ "max_height_m": 10.0,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 75,
+ "outrigger_span_mm": null,
+ "dims": {
+  "length_mm": 2321,
+  "width_mm": 712,
+  "height_mm": 2261
+ },
+ "load_chart": [
+  [
+   2.1,
+   5000
+  ],
+  [
+   4.45,
+   2350
+  ],
+  [
+   6.2,
+   1600
+  ],
+  [
+   8.05,
+   1100
+  ]
+ ],
+ "params": {
+  "Max Lifting Capacity": "5000Kg",
+  "Max Lifting Moment": "10.5ton.m",
+  "Recommend Power": "22KW",
+  "Hydraulic System Flow": "35L/min",
+  "Hydraulic System Pressure": "28Mpa",
+  "Oil Tank Capacity": "100L",
+  "Rotation Angle": "360°",
+  "Self Weight": "2120Kg",
+  "boom reach (side view, mm)": "4420-8050",
+  "height in working position (mm)": "2817",
+  "base plate": "680x680",
+  "bolt pitch": "100x6=600",
+  "bolt holes": "24-Φ22",
+  "centre hole": "Φ300",
+  "load lbs": "11000 / 5170 / 3520 / 2420"
+ },
+ "confidence": "high",
+ "notes": "Marine pedestal crane, no outriggers. Folded side view 2321 x 2261; front view width 712. Boom tip on chart at ~10.2 m (rounded to 10.0 at 0.5 m resolution). Radii printed in mm."
+}

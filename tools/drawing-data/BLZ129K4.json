@@ -1,0 +1,54 @@
+{
+ "model": "BLZ129K4",
+ "sources": [
+  "BLZ129K4起升曲线图-1.png",
+  "BLZ129K4外形尺寸图-1.png"
+ ],
+ "max_radius_m": 10.23,
+ "max_height_m": 12.5,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 75,
+ "outrigger_span_mm": "2250-5110",
+ "load_chart": [
+  [
+   2.0,
+   6300
+  ],
+  [
+   4.58,
+   2705
+  ],
+  [
+   6.38,
+   1805
+  ],
+  [
+   8.25,
+   1295
+  ],
+  [
+   10.23,
+   995
+  ]
+ ],
+ "params": {
+  "最大起重质量 Max Lifting Capacity": "6300Kg(2m)",
+  "最大起重力矩 Max Lifting Moment": "129KN.m",
+  "推荐功率 Recommend Power": "22KW",
+  "液压系统流量 Hydraulic System Flow": "35L/min",
+  "液压系统压力 Hydraulic System Pressure": "28Mpa",
+  "液压油箱容积 Oil Tank Capacity": "87L",
+  "回转角度 Rotation Angle": "380°",
+  "起重机自重 Self Weight": "1850Kg",
+  "安装空间 Installation Space": "950mm",
+  "overall length folded": "2445",
+  "folded height above frame": "2300",
+  "leg height": "621",
+  "leg extension": "600",
+  "side view width": "797",
+  "column offset": "316",
+  "reach (side view)": "4516-10226"
+ },
+ "confidence": "high",
+ "notes": "Boom tip at 75° reads ~12.3 m on grid (rounded to 12.5 per 0.5 m rule). lbs row 13860/5951/3971/2849/2189. Chart radius 10230 vs side-view reach 10226 (4 mm, different reference). Sheet lists 4580 mm in the table; outline reach starts 4516."
+}

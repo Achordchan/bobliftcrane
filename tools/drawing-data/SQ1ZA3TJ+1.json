@@ -1,0 +1,7 @@
+{"model":"SQ1ZA3TJ+1","sources":["SQ1ZA3TJ+1起升曲线图-1.png","SQ1ZA3TJ+1外形尺寸及参数图-1.png"],
+"max_radius_m":4.23,"max_height_m":5.5,"max_height_approx":true,"max_boom_angle_deg":75,"outrigger_span_mm":null,
+"load_chart":[[1.39,1600],[2.3,1000],[3.25,500],[4.23,300]],
+"params":{"Max Lifting Capacity":"1600Kg","Max Lifting Moment":"2.2ton.m","Recommend Power":"7.5KW","Hydraulic System Flow":"15L/min","Hydraulic System Pressure":"18Mpa","Oil Tank Capacity":"25L","Rotation Angle":"330°","Self Weight":"380Kg"},
+"dims_check":{"height_mm":1964,"boom reach (side view)":"1390-4230","mounting plate":"328x328","bolt pattern":"278x278","bolt holes":"12-ø18","inner bolt spacing":"94x94","Lbs":"3520/2200/1100/660"},
+"confidence":"high",
+"notes":"Pedestal (marine) version, no outriggers. Chart also prints Lbs 3520/2200/1100/660. Boom tip at 75 deg about 5.7 m on chart grid (rounded down to 5.5). Folded view prints 1770 high x 1305 wide; side view height 1964. Base plate 328x328, bolt pattern 278x278, 12-ø18, 94x94."}

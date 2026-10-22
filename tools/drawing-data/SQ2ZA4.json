@@ -1,0 +1,54 @@
+{
+ "model": "SQ2ZA4",
+ "sources": [
+  "SQ2ZA4起升曲线图-1.png",
+  "SQ2ZA4外形尺寸及参数图-1.png"
+ ],
+ "max_radius_m": 7.54,
+ "max_height_m": 9.5,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 80,
+ "outrigger_span_mm": "1842-3500",
+ "load_chart": [
+  [
+   2.1,
+   2000
+  ],
+  [
+   4.1,
+   1000
+  ],
+  [
+   5.4,
+   700
+  ],
+  [
+   6.4,
+   460
+  ],
+  [
+   7.54,
+   300
+  ]
+ ],
+ "params": {
+  "Max Lifting Capacity": "2000Kg",
+  "Max Lifting Moment": "4.2ton.m",
+  "Recommend Power": "9KW",
+  "Hydraulic System Flow": "20L/min",
+  "Hydraulic System Pressure": "20Mpa",
+  "Oil Tank Capacity": "25L",
+  "Rotation Angle": "370°",
+  "Self Weight": "750Kg",
+  "Installation Space": "680mm"
+ },
+ "dims_check": {
+  "height_mm": 1811,
+  "width_mm": 487,
+  "boom reach (side view)": "3832-7540",
+  "outrigger leg stroke": "577-917",
+  "Lbs": "4400/2200/1540/1012/660"
+ },
+ "confidence": "high",
+ "notes": "Rotation Angle printed as 370° (unusual but clearly printed). Top view prints 487 (folded width). Front view folded height 1811 above outrigger beam, leg stroke 577-917, span 1842-3500. Boom tip at 80 deg about 9.3 m on grid (9.5 to nearest 0.5)."
+}

@@ -1,0 +1,56 @@
+{
+ "model": "SQZ430",
+ "sources": [
+  "SQZ430起升曲线图-1.png",
+  "SQZ430外形尺寸图-1.png"
+ ],
+ "max_radius_m": 16.6,
+ "max_height_m": 19.0,
+ "max_height_approx": true,
+ "max_boom_angle_deg": null,
+ "outrigger_span_mm": "2300-6600",
+ "load_chart": [
+  [
+   4.4,
+   8700
+  ],
+  [
+   5.9,
+   6280
+  ],
+  [
+   7.8,
+   4550
+  ],
+  [
+   9.9,
+   3430
+  ],
+  [
+   12.0,
+   2730
+  ],
+  [
+   14.3,
+   2240
+  ],
+  [
+   16.6,
+   1910
+  ]
+ ],
+ "params": {
+  "Max Lifting Capacity / 最大起重质量": "20000Kg",
+  "Max Lifting Moment / 最大起重力矩": "42.3ton.m",
+  "Recommend Power / 推荐功率": "45kw",
+  "Hydraulic System Flow / 液压系统流量": "63L/min",
+  "Hydraulic System Pressure / 液压系统压力": "33Mpa",
+  "Oil Tank Capacity / 液压油箱容积": "240L",
+  "Rotation Angle / 回转角度": "360°",
+  "Self Weight / 起重机自重": "5500Kg",
+  "overall dims (mm)": "2550 x 2340 (+890 outrigger leg), side 1660 / 1350",
+  "reach (mm)": "4450-16600"
+ },
+ "confidence": "high",
+ "notes": "No max boom angle printed (only 0 deg). Boom tip ~19.2-19.3 m on grid, reported as 19.0. Stacked load boxes: 4.4 m: 8700/8820/8960/9140; 5.9 m: 6280/6430/6590/6790; 7.8 m: 4550/4650/4900/5110; 9.9 m: 3430/3610/3810/4040; 12.0 m: 2730/2930/3140; 14.3 m: 2240/2440; 16.6 m: 1910; load_chart = top row."
+}

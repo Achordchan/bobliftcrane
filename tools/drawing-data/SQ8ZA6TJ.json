@@ -1,0 +1,66 @@
+{
+ "model": "SQ8ZA6TJ",
+ "sources": [
+  "SQ8ZA6TJ起升曲线图-1.png",
+  "SQ8ZA6TJ外形尺寸及参数图-1.png"
+ ],
+ "max_radius_m": 14.68,
+ "max_height_m": 17.0,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 84,
+ "outrigger_span_mm": null,
+ "dims": {
+  "length_mm": 2454,
+  "width_mm": 1219,
+  "height_mm": 2295
+ },
+ "load_chart": [
+  [
+   2.0,
+   8000
+  ],
+  [
+   4.506,
+   3700
+  ],
+  [
+   6.49,
+   2470
+  ],
+  [
+   8.51,
+   1820
+  ],
+  [
+   10.56,
+   1420
+  ],
+  [
+   12.63,
+   1160
+  ],
+  [
+   14.68,
+   850
+  ]
+ ],
+ "params": {
+  "Max Lifting Capacity": "8000Kg",
+  "Max Lifting Moment": "16.7ton.m",
+  "Recommend Power": "25KW",
+  "Hydraulic System Flow": "40L/min",
+  "Hydraulic System Pressure": "28MPa",
+  "Oil Tank Capacity": "160L",
+  "Rotation Angle": "360°",
+  "Self Weight": "2730Kg",
+  "boom reach (side view, mm)": "4562-14680",
+  "height in working position (mm)": "2711",
+  "pedestal outer diameter": "Φ1000",
+  "bolt circle": "Φ930",
+  "centre hole": "Φ500",
+  "bolt holes": "28-Φ26",
+  "load lbs": "17600 / 8140 / 5434 / 4004 / 3124 / 2552 / 1870"
+ },
+ "confidence": "high",
+ "notes": "Original sheet is NOT cut off: 18 m grid line and 84° label are visible (tip ~17.05 m). Front width 1219 and reach 4562-14680 printed. Moment printed 16.7ton.m (SQ8ZA6 land version prints 16ton.m with the same load table). '25KW' printed in grey."
+}

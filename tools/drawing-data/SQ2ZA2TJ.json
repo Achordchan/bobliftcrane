@@ -1,0 +1,49 @@
+{
+ "model": "SQ2ZA2TJ",
+ "sources": [
+  "SQ2ZA2TJ起升曲线图-1.png",
+  "SQ2ZA2TJ外形尺寸及参数图-1.png"
+ ],
+ "max_radius_m": 5.1,
+ "max_height_m": 6.5,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 75,
+ "outrigger_span_mm": null,
+ "load_chart": [
+  [
+   2.0,
+   2000
+  ],
+  [
+   3.76,
+   1050
+  ],
+  [
+   5.1,
+   750
+  ]
+ ],
+ "params": {
+  "Max Lifting Capacity": "2000Kg",
+  "Max Lifting Moment": "4.2ton.m",
+  "Recommend Power": "9KW",
+  "Hydraulic System Flow": "20L/min",
+  "Hydraulic System Pressure": "20Mpa",
+  "Oil Tank Capacity": "25L",
+  "Rotation Angle": "360°",
+  "Self Weight": "590Kg"
+ },
+ "dims_check": {
+  "length_mm": 2104,
+  "width_mm": 609,
+  "height_mm": 1759,
+  "boom reach (side view)": "3760-5100",
+  "folded height": "1704",
+  "mounting plate": "780x500",
+  "bolt pitch": "6x120=720",
+  "bolt holes": "20-ø21",
+  "Lbs": "4400/2310/1650"
+ },
+ "confidence": "high",
+ "notes": "Pedestal (marine) knuckle crane, no outriggers. Folded view 2104 long x 1704 high; end view prints width 609. Working side view height 1759, reach 3760-5100. Base plate 780 x 500, bolt pitch 6x120=720, rows 440 / 220, 20-ø21. Boom tip at 75 deg about 6.7 m on grid."
+}

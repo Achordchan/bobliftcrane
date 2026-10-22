@@ -1,0 +1,47 @@
+{
+ "model": "BLZ90K4TJ",
+ "sources": [
+  "BLZ90K4TJ起升曲线图-1.png",
+  "BLZ90K4TJ外形尺寸及参数图-1.png"
+ ],
+ "max_radius_m": 9.75,
+ "max_height_m": 12.0,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 84,
+ "outrigger_span_mm": null,
+ "load_chart": [
+  [
+   4.35,
+   2230
+  ],
+  [
+   6.09,
+   1525
+  ],
+  [
+   7.9,
+   1140
+  ],
+  [
+   9.75,
+   815
+  ]
+ ],
+ "params": {
+  "最大起重质量 Max Lifting Capacity": "4600Kg(1.9m)",
+  "最大起重力矩 Max Lifting Moment": "90KN.m",
+  "推荐功率 Recommend Power": "15KW",
+  "液压系统流量 Hydraulic System Flow": "25L/min",
+  "液压系统压力 Hydraulic System Pressure": "28Mpa",
+  "液压油箱容积 Oil Tank Capacity": "57L",
+  "回转角度 Rotation Angle": "360° (全回转)",
+  "起重机自重 Self Weight": "1420Kg",
+  "overall length folded": "2390",
+  "folded height": "2061",
+  "width": "902",
+  "reach (side view)": "4350-9750",
+  "base plate 起重机底板安装尺寸": "680x680, 100x6=600, ø300, 24-ø22"
+ },
+ "confidence": "high",
+ "notes": "Pedestal (marine) version, no outriggers. Max boom angle printed 84° (not 75°). Tip reads ~11.9 m (a reference line is drawn just below the 12 m grid line). Load table has only 4 columns; max capacity 4600 kg @1.9 m is only in parameter table. lbs 4906/3355/2508/1793. Parameter table label typos in original: 'Reconmmend Power', 'Rotation Angel'."
+}

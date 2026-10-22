@@ -1,0 +1,23 @@
+{
+ "model": "ZT160Z-2A",
+ "length_mm": null,
+ "width_mm": 2500,
+ "height_mm": 2961,
+ "outrigger_span_mm": "2220-5500",
+ "max_boom_angle_deg": 70,
+ "max_radius_m": null,
+ "max_height_m": 10.0,
+ "max_height_approx": true,
+ "load_chart": [],
+ "other": {
+  "reach (mm)": "5400+1400+1400=8200",
+  "rated load": "1800Kg",
+  "seat height (mm)": "2591",
+  "column height (mm)": "1772",
+  "base depth (mm)": "906",
+  "outrigger leg height (mm)": "840-1440",
+  "min boom angle": "-30°"
+ },
+ "confidence": "high",
+ "notes": "Timber/grapple crane with operator seat. No folded length printed (8200 is reach). No radius/load table; single 1800Kg rating. Boom tip ~10.0 m."
+}

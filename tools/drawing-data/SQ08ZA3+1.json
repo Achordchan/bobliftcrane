@@ -1,0 +1,51 @@
+{
+ "model": "SQ08ZA3+1",
+ "sources": [
+  "SQ08ZA3+1起升曲线图-1.png",
+  "SQ08ZA3+1外形尺寸及参数图-1.png"
+ ],
+ "max_radius_m": 4.151,
+ "max_height_m": 5.5,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 75,
+ "outrigger_span_mm": "2430",
+ "load_chart": [
+  [
+   1.337,
+   800
+  ],
+  [
+   2.252,
+   450
+  ],
+  [
+   3.227,
+   300
+  ],
+  [
+   4.151,
+   220
+  ]
+ ],
+ "params": {
+  "最大起重质量 Max Lifting Capacity": "800Kg",
+  "最大起重力矩 Max Lifting Moment": "1.3ton.m",
+  "推荐功率 Recommend Power": "3.5KW",
+  "液压系统流量 Hydraulic System Flow": "8L/min",
+  "液压系统压力 Hydraulic System Pressure": "18MPa",
+  "液压油箱容积 Oil Tank Capacity": "20L",
+  "回转角度 Rotation Angle": "330°",
+  "起重机自重 Self Weight": "330Kg",
+  "reach (side view)": "1337-4151",
+  "overall height": "2190",
+  "column height": "1498",
+  "foot height": "375",
+  "column offset": "410",
+  "inner foot span": "1682",
+  "outer foot span": "2430",
+  "gravity center extracted/extended": "556 / 1516",
+  "top view": "824 x 339, 12-R7.5, 5, 50"
+ },
+ "confidence": "high",
+ "notes": "Spider legs: two spans printed, 1682 (inner) and 2430 (outer feet); 2430 used. Tip at 75° reads ~5.7-5.75 m (rounded 5.5; borderline 5.5/6.0). lbs 1760/990/660/484. No installation space row. Max capacity 800 kg has no radius in table (it is the 1337 mm value)."
+}

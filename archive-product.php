@@ -1,6 +1,20 @@
 <?php
 get_header();
 $products = boblift_all_products();
+// A product rated by working height (aerial platforms: a "Working Height" row and no "Max Lifting Capacity" row) keeps its
+// height in metres as the numeric fallback, so it stays out of the capacity filter and capacity sorts. The raw figure
+// still orders the family in the default sort.
+foreach ($products as &$product) {
+    $product['sort_size'] = (float) ($product['filter_values']['capacity'] ?? 0);
+    $spec_rows = (int) ($product['id'] ?? 0) > 0 ? (array) boblift_decode_meta(get_post_meta(boblift_product_english_id((int) $product['id']), '_specs', true), []) : [];
+    $spec_labels = array_map(static fn($row): string => is_array($row) ? trim((string) ($row['label'] ?? '')) : '', $spec_rows);
+    // A capacity stated with its unit (a "5 ton" capacity field) is a rated capacity whatever the spec table holds.
+    $rated = function_exists('boblift_home_product_rated_capacity') ? boblift_home_product_rated_capacity($product) : 0.0;
+    if ($rated <= 0 && in_array('Working Height', $spec_labels, true) && !in_array('Max Lifting Capacity', $spec_labels, true)) {
+        $product['filter_values']['capacity'] = 0.0;
+    }
+}
+unset($product);
 $categories = boblift_categories();
 $initial_category = sanitize_title((string) get_query_var('boblift_product_category'));
 if ($initial_category === '' && isset($_GET['category']) && is_string($_GET['category'])) {
@@ -83,6 +97,8 @@ foreach ($products as $product) {
         $boom_counts[$boom]++;
     }
 }
+$legacy_groups = function_exists('boblift_legacy_model_library') ? boblift_legacy_model_library($categories) : [];
+$legacy_total = array_sum(array_map(static fn(array $group): int => count($group['models']), $legacy_groups));
 $category_hierarchy = boblift_product_category_hierarchy();
 $category_url_map = [];
 foreach ($categories as $category) {
@@ -128,6 +144,21 @@ foreach ($category_filter_tree as $index => $item) {
 }
 $group_order = ['crane' => 0, 'attachment' => 1, 'access' => 2];
 usort($category_filter_tree, static fn(array $a, array $b): int => ($group_order[$a['group']] <=> $group_order[$b['group']]) ?: ($a['position'] <=> $b['position']));
+// Default order ("Recommended" keeps it): featured models, then the families in tab order, largest model first.
+$family_rank = [];
+foreach ($category_filter_tree as $rank => $item) {
+    foreach ($item['child_slugs'] ?? [$item['slug']] as $slug) {
+        $family_rank[$slug] ??= $rank;
+    }
+}
+$products = array_values($products);
+$product_order = [];
+foreach ($products as $index => $product) {
+    $ranks = array_map(static fn($slug): int => $family_rank[(string) $slug] ?? PHP_INT_MAX, $product['categories'] ?? [($product['category'] ?? '')]);
+    $product_order[$index] = [empty($product['featured']) ? 1 : 0, $ranks ? min($ranks) : PHP_INT_MAX, -(float) $product['sort_size'], $index];
+}
+uksort($products, static fn(int $a, int $b): int => $product_order[$a] <=> $product_order[$b]);
+$products = array_values($products);
 $filter_group = static function (string $title, string $filter, array $items, array $counts): void {
     $items = array_filter($items, static fn($label, $value): bool => $filter === 'capacity' || (int) ($counts[$value] ?? 0) > 0, ARRAY_FILTER_USE_BOTH);
     if (!$items) {
@@ -192,6 +223,8 @@ $filter_sidebar = static function () use ($filter_group, $category_filter_group,
                 <button class="inline-flex h-10 w-10 items-center justify-center rounded-sm border border-[#E5E7EB] text-[#0B1B33] transition hover:border-blue-300 hover:text-blue-700" type="button" data-filter-drawer-close aria-label="<?php echo esc_attr($archive_ui['closeFiltersLabel'] ?? 'Close filters'); ?>"><?php echo boblift_icon('x', 'h-5 w-5'); ?></button>
             </div>
         </div>
+        <?php // An old tonnage link's capacity range (?capacity=4-5) has no tick box; it shows here so phones can see and clear it. ?>
+        <div class="mb-6 hidden" data-filter-custom-capacity><button class="boblift-filter-chip" type="button" data-filter-custom-capacity-clear><span data-filter-custom-capacity-label></span><?php echo boblift_icon('x', 'h-3.5 w-3.5 text-slate-400'); ?></button></div>
         <div class="space-y-7"><?php
             $category_filter_group($category_filter_tree);
             $filter_group((string) ($archive_ui['boomFilterLabel'] ?? 'Boom Type'), 'boom', $boom_options, $boom_counts);
@@ -204,13 +237,15 @@ $filter_sidebar = static function () use ($filter_group, $category_filter_group,
 <?php };
 // Desktop: category tabs (one category at a time, like the Products menu), then a dropdown per spec filter,
 // then the picked spec options as chips. The checkboxes mirror the drawer's, so both drive the same filtering.
-$filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $category_counts, $spec_filters, $spec_counts, $boom_options, $boom_counts, $archive_ui, $products): void { ?>
+$filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $category_counts, $spec_filters, $spec_counts, $boom_options, $boom_counts, $archive_ui, $products, $legacy_total): void { ?>
     <div class="mb-6 hidden rounded border border-[#E5E7EB] bg-white shadow-card lg:mb-7 lg:block" data-filter-bar>
         <div class="flex flex-wrap px-3 shadow-[inset_0_-1px_0_#E5E7EB]" role="group" aria-label="<?php echo esc_attr($archive_ui['categoryFilterLabel'] ?? 'Product Category'); ?>">
             <button class="boblift-category-tab" type="button" aria-pressed="false" data-category-tab=""><?php echo esc_html($archive_ui['allCategoriesLabel'] ?? 'All Products'); ?><span data-tab-count><?php echo esc_html((string) count($products)); ?></span></button>
             <?php foreach ($category_filter_tree as $item) : ?>
                 <button class="boblift-category-tab" type="button" aria-pressed="false" data-category-tab="<?php echo esc_attr($item['slug']); ?>"><?php echo esc_html($item['title']); ?><span data-tab-count><?php echo esc_html((string) ($item['count'] ?? 0)); ?></span></button>
             <?php endforeach; ?>
+            <?php // Previous models look like a tab but toggle on their own: the category tab stays lit beside it, and the selected category's previous models replace the grid. ?>
+            <?php if ($legacy_total > 0) : ?><button class="boblift-category-tab boblift-legacy-tab ms-auto" type="button" aria-pressed="false" aria-controls="previous-models" data-legacy-toggle><?php echo boblift_icon('clock-3', 'h-4 w-4'); ?><?php echo esc_html(boblift_localized_static_text('Previous models')); ?><span data-tab-count data-legacy-count><?php echo esc_html((string) $legacy_total); ?></span></button><?php endif; ?>
         </div>
         <?php foreach ($category_filter_tree as $item) : if (empty($item['children'])) { continue; } ?>
             <div class="hidden flex-wrap gap-2 px-6 pt-4" role="group" aria-label="<?php echo esc_attr($item['title']); ?>" data-category-subtabs="<?php echo esc_attr($item['slug']); ?>">
@@ -237,7 +272,7 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
 <?php };
 ?>
 <section class="boblift-product-listing bg-[#F8FAFC] py-8 md:py-12 lg:py-14" data-product-listing data-view="grid" data-current-category="<?php echo esc_attr($initial_category); ?>" data-product-archive-url="<?php echo esc_url(boblift_product_archive_url()); ?>" data-category-urls="<?php echo esc_attr(wp_json_encode($category_url_map, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)); ?>">
-    <div class="mx-auto max-w-[2320px] px-4 sm:px-6 lg:px-12 min-[1780px]:px-32">
+    <div class="page-shell">
         <?php
         boblift_page_hero([
             'label' => $banner_initial['label'],
@@ -267,7 +302,7 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
                         <?php endforeach; ?>
                     </div>
                 </div>
-                <div class="hidden rounded border border-[#D8DEE8] bg-white p-1 shadow-card md:flex" aria-label="<?php echo esc_attr($archive_ui['viewModeLabel'] ?? 'Product view mode'); ?>"><button class="inline-flex h-10 w-10 items-center justify-center rounded-sm bg-[#0B1B33] text-sm font-black text-white transition" type="button" data-view-toggle="grid" aria-label="<?php echo esc_attr($archive_ui['gridViewLabel'] ?? 'Grid view'); ?>"><?php echo boblift_icon('grid-3x3', 'h-5 w-5'); ?></button><button class="inline-flex h-10 w-10 items-center justify-center rounded-sm text-sm font-black text-[#0B1B33] transition hover:bg-slate-100" type="button" data-view-toggle="list" aria-label="<?php echo esc_attr($archive_ui['listViewLabel'] ?? 'List view'); ?>"><?php echo boblift_icon('list', 'h-5 w-5'); ?></button></div>
+                <div class="hidden rounded border border-[#D8DEE8] bg-white p-1 shadow-card md:flex" data-products-view-modes aria-label="<?php echo esc_attr($archive_ui['viewModeLabel'] ?? 'Product view mode'); ?>"><button class="inline-flex h-10 w-10 items-center justify-center rounded-sm bg-[#0B1B33] text-sm font-black text-white transition" type="button" data-view-toggle="grid" aria-label="<?php echo esc_attr($archive_ui['gridViewLabel'] ?? 'Grid view'); ?>"><?php echo boblift_icon('grid-3x3', 'h-5 w-5'); ?></button><button class="inline-flex h-10 w-10 items-center justify-center rounded-sm text-sm font-black text-[#0B1B33] transition hover:bg-slate-100" type="button" data-view-toggle="list" aria-label="<?php echo esc_attr($archive_ui['listViewLabel'] ?? 'List view'); ?>"><?php echo boblift_icon('list', 'h-5 w-5'); ?></button></div>
             </div>
         </div>
 
@@ -275,9 +310,13 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
             <div class="products-grid grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 xl:gap-6 min-[1700px]:grid-cols-4" data-products-grid>
                 <?php foreach ($products as $index => $product) : boblift_product_card($product, '', $index === 0); endforeach; ?>
             </div>
-            <div class="hidden min-h-[420px] flex-col items-center justify-center rounded border border-dashed border-[#CBD5E1] bg-white px-6 text-center shadow-card" data-product-empty><span class="inline-flex h-14 w-14 items-center justify-center rounded-sm bg-blue-50 text-blue-700"><?php echo boblift_icon('search-x', 'h-7 w-7'); ?></span><h2 class="mt-5 text-2xl font-black tracking-[-0.015em] text-[#0B1B33]"><?php echo esc_html($archive_ui['emptyTitle'] ?? 'No matching products found'); ?></h2><p class="mt-3 max-w-md text-sm font-normal leading-6 text-slate-600"><?php echo esc_html($archive_ui['emptyText'] ?? 'Try adjusting your filters or contact us for a custom lifting solution.'); ?></p><button class="mt-6 min-h-12 rounded-sm bg-[#0B1B33] px-6 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-[#0B3F7D]" type="button" data-filter-reset><?php echo esc_html($archive_ui['clearFiltersLabel'] ?? 'Clear Filters'); ?></button></div>
+            <div class="hidden min-h-[420px] flex-col items-center justify-center rounded border border-dashed border-[#CBD5E1] bg-white px-6 text-center shadow-card" data-product-empty><span class="inline-flex h-14 w-14 items-center justify-center rounded-sm bg-blue-50 text-blue-700"><?php echo boblift_icon('search-x', 'h-7 w-7'); ?></span><h2 class="mt-5 text-2xl font-black tracking-[-0.015em] text-[#0B1B33]"><?php echo esc_html($archive_ui['emptyTitle'] ?? 'No matching products found'); ?></h2><p class="mt-3 max-w-md text-sm font-normal leading-6 text-slate-600"><?php echo esc_html($archive_ui['emptyText'] ?? 'Try adjusting your filters or contact us for a custom lifting solution.'); ?></p><button class="mt-6 min-h-12 rounded-sm bg-[#0B1B33] px-6 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-[#0B3F7D]" type="button" data-filter-reset><?php echo esc_html($archive_ui['clearFiltersLabel'] ?? 'Clear Filters'); ?></button><p class="mt-5 text-sm text-slate-500"><?php echo esc_html(boblift_localized_static_text('Looking for loaders or dumpers?')); ?> <a class="font-black text-blue-700 underline-offset-4 hover:underline" href="https://bobliftloader.com/" data-leave-site data-leave-name="Loader" data-leave-domain="bobliftloader.com" target="_blank" rel="noopener">bobliftloader.com</a></p></div>
             <nav class="mt-8 flex flex-wrap items-center justify-center gap-1.5 sm:gap-2" aria-label="<?php echo esc_attr($archive_ui['paginationLabel'] ?? 'Product pagination'); ?>" data-product-pagination></nav>
+            <?php if ($legacy_total > 0) : ?>
+                <p class="mt-6 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-sm text-slate-500" data-legacy-entry><span><?php echo esc_html(boblift_localized_static_text('Looking for an older model?')); ?></span><button class="inline-flex items-center gap-1.5 font-black text-blue-700 transition hover:text-[#071f42]" type="button" aria-controls="previous-models" data-legacy-open><?php echo esc_html(boblift_localized_static_text('Previous models')); ?> <span class="font-semibold text-slate-400 [font-variant-numeric:tabular-nums]" data-legacy-count><?php echo esc_html((string) $legacy_total); ?></span><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:-scale-x-100'); ?></button></p>
+            <?php endif; ?>
         </div>
+        <?php if (function_exists('boblift_render_legacy_panel')) { boblift_render_legacy_panel($legacy_groups); } ?>
 
         <div class="boblift-archive-about">
             <?php
@@ -300,6 +339,23 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
             <?php boblift_render_brochures(['context' => 'archive', 'initial_category' => $initial_category]); ?>
         </div>
         <?php boblift_render_archive_extras($categories, $initial_category); ?>
+        <?php
+        // Last on the page, after our own content: the sister site for compact site equipment. The link opens the leave dialog (footer.php) like the header switcher.
+        $t = static fn(string $text): string => boblift_localized_static_text($text);
+        $loader_leave = ' href="https://bobliftloader.com/" data-leave-site data-leave-name="Loader" data-leave-domain="bobliftloader.com"';
+        ?>
+        <section class="mt-12 grid overflow-hidden rounded border border-[#E5E7EB] bg-white shadow-card md:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:mt-16" aria-labelledby="group-loader-title">
+            <div class="flex flex-col justify-center p-6 md:p-8 lg:p-10">
+                <p class="section-label"><?php echo esc_html($t('Also from BOB-LIFT')); ?></p>
+                <h2 id="group-loader-title" class="mt-3 text-2xl font-black leading-tight tracking-[-0.015em] text-ink md:text-3xl"><?php echo esc_html($t('Mini loaders and dumpers')); ?></h2>
+                <p class="mt-3 max-w-[48ch] text-sm leading-7 text-slate-600 md:text-base"><?php echo esc_html($t('Mini skid steer loaders, mini dumpers and attachments, on the BOB-LIFT loader site.')); ?></p>
+                <a class="mt-6 inline-flex h-12 w-fit items-center gap-2 rounded-sm bg-navy px-6 text-sm font-black text-white shadow-card transition hover:-translate-y-0.5 hover:bg-[#0b2d5b]"<?php echo $loader_leave; ?> target="_blank" rel="noopener"><?php echo esc_html(str_replace('{domain}', 'bobliftloader.com', $t('Visit {domain}'))); ?><?php echo boblift_icon('arrow-up-right', 'h-4 w-4 rtl:-scale-x-100'); ?></a>
+            </div>
+            <a class="group relative grid min-h-[200px] grid-cols-2 items-center gap-2 bg-[radial-gradient(circle_at_50%_40%,#ffffff_0%,#f8fafc_38%,#eef2f7_70%,#e2e8f0_100%)] px-4 py-6 sm:min-h-[260px] md:px-8"<?php echo $loader_leave; ?> target="_blank" rel="noopener" tabindex="-1" aria-hidden="true">
+                <img class="mx-auto max-h-[150px] w-full object-contain drop-shadow-[0_6px_8px_rgba(11,27,51,0.12)] transition duration-500 group-hover:scale-[1.04] sm:max-h-[210px]" src="<?php echo esc_url(boblift_asset('images/group/loader-bl-1000.webp')); ?>" width="748" height="556" alt="" loading="lazy" decoding="async">
+                <img class="mx-auto max-h-[150px] w-full object-contain drop-shadow-[0_6px_8px_rgba(11,27,51,0.12)] transition duration-500 group-hover:scale-[1.04] sm:max-h-[210px]" src="<?php echo esc_url(boblift_asset('images/group/loader-mini-dumper.webp')); ?>" width="900" height="709" alt="" loading="lazy" decoding="async">
+            </a>
+        </section>
     </div>
     <div class="fixed inset-0 z-[250] hidden items-center justify-center bg-[#0B1B33]/45 px-4 py-8 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="quick-view-title" data-quick-view-modal>
         <div class="max-h-[calc(100vh-4rem)] w-full max-w-5xl overflow-y-auto rounded bg-white shadow-card" data-quick-view-panel>

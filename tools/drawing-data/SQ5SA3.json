@@ -1,0 +1,43 @@
+{
+ "model": "SQ5SA3",
+ "sources": [
+  "SQ5SA3起升曲线图-1.png",
+  "SQ5SA3外形尺寸图-1.png"
+ ],
+ "max_radius_m": 8.68,
+ "max_height_m": 10.5,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 75,
+ "outrigger_span_mm": "2260~5100",
+ "load_chart": [
+  [
+   2.5,
+   5000
+  ],
+  [
+   3.66,
+   2800
+  ],
+  [
+   6.17,
+   1500
+  ],
+  [
+   8.68,
+   1100
+  ]
+ ],
+ "params": {
+  "Max Lifting Capacity": "5000Kg",
+  "Max Lifting Moment": "12.5ton.m",
+  "Recommend Power": "18KW",
+  "Hydraulic System Flow": "32L/min",
+  "Hydraulic System Pressure": "20Mpa",
+  "Oil Tank Capacity": "90L",
+  "Rotation Angle": "360°",
+  "Self Weight": "2100Kg",
+  "Installation Space": "1050mm"
+ },
+ "confidence": "high",
+ "notes": "Single outrigger span 2260~5100 with 2460 overall base width; leg stroke 649~1239; height 2262; reach 3660-8680. Chart row mm 2500/3660/6170/8680, Lbs 11000/6160/3300/2420. Boom table (3.66/6.17/8.68 m) matches current extract. Boom tip ~10.6 m on grid."
+}

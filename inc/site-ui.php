@@ -1341,6 +1341,7 @@ function boblift_site_ui_defaults(?string $section = null): array
             'featuresSeriesLabel' => 'Series',
             'requestQuoteLabel' => 'Request Quote',
             'viewDetailsLabel' => 'View Details',
+            'relatedProductsLabel' => 'Related products',
             'viewShortLabel' => 'View',
             'quickViewLabel' => 'Quick view',
             'closeQuickViewLabel' => 'Close quick view',

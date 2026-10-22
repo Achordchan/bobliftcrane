@@ -1,0 +1,46 @@
+{
+ "model": "CC145",
+ "sources": [
+  "CC145-1.png"
+ ],
+ "max_radius_m": 9.4,
+ "max_height_m": 12.5,
+ "max_height_approx": true,
+ "max_boom_angle_deg": null,
+ "outrigger_span_mm": null,
+ "load_chart": [
+  [
+   2.2,
+   4900
+  ],
+  [
+   2.4,
+   4500
+  ],
+  [
+   3.8,
+   3100
+  ],
+  [
+   5.2,
+   2100
+  ],
+  [
+   6.6,
+   1300
+  ],
+  [
+   8.0,
+   750
+  ],
+  [
+   9.4,
+   500
+  ]
+ ],
+ "params": {
+  "chart note": "主臂1.9米*6节; 4节液压出臂，1节手拉出臂; 最大工作半径：9.4米"
+ },
+ "confidence": "high",
+ "notes": "Forklift-mounted jib attachment (CC series). Single sheet: chart + load table only, no outline/parameter table, no outrigger, no boom angle printed (boom drawn vertical and horizontal). Radii printed in mm. Vertical boom top reads ~12.6 m."
+}

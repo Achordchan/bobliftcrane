@@ -1,0 +1,56 @@
+{
+ "model": "SQZ560",
+ "sources": [
+  "SQZ560起升曲线图-1.png",
+  "SQZ560外形尺寸图-1.png"
+ ],
+ "max_radius_m": 15.9,
+ "max_height_m": 18.5,
+ "max_height_approx": true,
+ "max_boom_angle_deg": null,
+ "outrigger_span_mm": "2300-7400",
+ "load_chart": [
+  [
+   4.2,
+   12300
+  ],
+  [
+   5.6,
+   9310
+  ],
+  [
+   7.4,
+   6910
+  ],
+  [
+   9.4,
+   5320
+  ],
+  [
+   11.3,
+   4350
+  ],
+  [
+   13.5,
+   3600
+  ],
+  [
+   15.9,
+   3050
+  ]
+ ],
+ "params": {
+  "Max Lifting Capacity / 最大起重质量": "28000Kg",
+  "Max Lifting Moment / 最大起重力矩": "57.3ton.m",
+  "Recommend Power / 推荐功率": "65kw",
+  "Hydraulic System Flow / 液压系统流量": "80L/min",
+  "Hydraulic System Pressure / 液压系统压力": "35Mpa",
+  "Oil Tank Capacity / 液压油箱容积": "260L",
+  "Rotation Angle / 回转角度": "360°",
+  "Self Weight / 起重机自重": "6100Kg",
+  "overall dims (mm)": "2700 x 2500 (+890 outrigger leg), side 1820 / 1400",
+  "reach (mm)": "4230-15900"
+ },
+ "confidence": "high",
+ "notes": "No max angle printed. Boom tip ~18.6 m. Stacked load boxes: 4.2 m: 12300/12700/12800; 5.6 m: 9310/9450/9610; 7.4 m: 6910/7070/7250; 9.4 m: 5320/5490/5700; 11.3 m: 4350/4530/4720; 13.5 m: 3600/3780; 15.9 m: 3050; load_chart = top row. Self weight 6100Kg is lower than SQZ500's 6300Kg though the outline is identical - as printed."
+}

@@ -1,0 +1,68 @@
+{
+ "model": "SQ6.3SA4",
+ "sources": [
+  "SQ6.3SA4起升曲线图-1.png",
+  "SQ6.3SA4外形尺寸及参数图-1.png"
+ ],
+ "max_radius_m": 12.6,
+ "max_height_m": 14.5,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 75,
+ "outrigger_span_mm": "2280-5300",
+ "dims": {
+  "length_mm": null,
+  "width_mm": null,
+  "height_mm": 2441
+ },
+ "load_chart": [
+  [
+   2.5,
+   6300
+  ],
+  [
+   4.5,
+   2800
+  ],
+  [
+   7.2,
+   1500
+  ],
+  [
+   9.9,
+   1000
+  ],
+  [
+   12.6,
+   600
+  ]
+ ],
+ "params": {
+  "Max Lifting Capacity": "6300Kg",
+  "Max Lifting Moment": "15.75ton.m",
+  "Recommend Power": "22KW",
+  "Hydraulic System Flow": "40L/min",
+  "Hydraulic System Pressure": "20Mpa",
+  "Oil Tank Capacity": "100L",
+  "Rotation Angle": "360°",
+  "Self Weight": "2600Kg",
+  "Installation Space": "850mm",
+  "angle table 0°": "4.5/2800, 7.2/1500, 9.9/1000, 12.6/600",
+  "angle table 10°": "4.5/2900, 7.2/1600, 9.8/1000, 12.5/600",
+  "angle table 20°": "4.3/3000, 6.8/1700, 9.4/1100, 11.9/700",
+  "angle table 30°": "4/3000, 6.3/1800, 8.7/1200, 11/800",
+  "angle table 40°": "3.5/3700, 5.6/2100, 7.7/1300, 9.8/900",
+  "angle table 50°": "2.9/5800, 4.7/2400, 6.5/1400, 8.2/1100",
+  "angle table 60°": "2.5/6300, 3.6/3000, 5/1500, 6.4/1200",
+  "angle table 70°": "—, 2.5/3000, 3.4/1500, 4.4/1200",
+  "angle table 75°": "—, 2.5/3000, 2.6/1500, 3.3/1200",
+  "boom length (m)": "4.74 / 7.44 / 10.14 / 12.84",
+  "boom length (side view, mm)": "4420-12640",
+  "centre of gravity distances (mm)": "1077 / 2723",
+  "base width (mm)": "740",
+  "outrigger leg height (mm)": "650-1250",
+  "outrigger overall (mm)": "2480",
+  "load lbs": "13860 / 6160 / 3300 / 2200 / 1320"
+ },
+ "confidence": "high",
+ "notes": "Outriggers ARE printed on this sheet: span 2280-5300, overall 2480, legs 650-1250. No angle label on the chart; 75° from the boom-angle table. Pressure printed 20Mpa (other ZA models 28). 75° row 7.44 m column '2.5/3000' here but '—' on SQ6.3SA4T sheet. Chart tip ~14.5 m."
+}

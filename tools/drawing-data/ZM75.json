@@ -1,0 +1,19 @@
+{
+ "model": "ZM75",
+ "length_mm": null,
+ "width_mm": null,
+ "height_mm": 3012,
+ "outrigger_span_mm": null,
+ "max_boom_angle_deg": 66,
+ "max_radius_m": null,
+ "max_height_m": 9.5,
+ "max_height_approx": true,
+ "load_chart": [],
+ "other": {
+  "reach (mm)": "5350-7667",
+  "min boom angle": "-23°",
+  "load curves": "500KG (outer), 600KG, 700KG (inner)"
+ },
+ "confidence": "high",
+ "notes": "Timber crane with grapple. Only side view; no width/outrigger/radius table. Grapple tip ~9.5 m on grid."
+}

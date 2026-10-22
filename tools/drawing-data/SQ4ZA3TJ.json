@@ -1,0 +1,42 @@
+{
+ "model": "SQ4ZA3TJ",
+ "sources": [
+  "SQ4ZA3TJ起升曲线图-1.png",
+  "SQ4ZA3TJ外形尺寸及参数图-1.png"
+ ],
+ "max_radius_m": 7.7,
+ "max_height_m": 9.5,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 75,
+ "outrigger_span_mm": null,
+ "load_chart": [
+  [
+   2.1,
+   4000
+  ],
+  [
+   4.35,
+   1750
+  ],
+  [
+   5.9,
+   1250
+  ],
+  [
+   7.7,
+   850
+  ]
+ ],
+ "params": {
+  "Max Lifting Capacity": "4000Kg",
+  "Max Lifting Moment": "8.4ton.m",
+  "Recommend Power": "15KW",
+  "Hydraulic System Flow": "25L/min",
+  "Hydraulic System Pressure": "26Mpa",
+  "Oil Tank Capacity": "60L",
+  "Rotation Angle": "360°",
+  "Self Weight": "1256Kg"
+ },
+ "confidence": "high",
+ "notes": "Pedestal (marine) crane with winch, no outriggers, no Installation Space row. Folded 2271 x 1955 x 691; extended height 2293, reach 4320-7700; base plate 550 x 550, 125X4=500, 16-Ø21. Chart row mm 2100/4350/5900/7700, Lbs 8800/3850/2750/1870. Boom tip ~9.55 m on grid."
+}
