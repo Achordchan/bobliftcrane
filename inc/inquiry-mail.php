@@ -132,8 +132,18 @@ function boblift_ip_in_range(string $ip, string $range): bool
     return $rest === 0 || ((ord($ip_bin[$bytes]) ^ ord($subnet_bin[$bytes])) & (0xFF << (8 - $rest)) & 0xFF) === 0;
 }
 
-/** The visitor's IP address: CF-Connecting-IP when the request really came through Cloudflare, else REMOTE_ADDR. */
+/**
+ * The visitor's IP address: CF-Connecting-IP when the request really came through Cloudflare, else REMOTE_ADDR (on
+ * WordPress.com that is already the visitor's own address). A host behind another reverse proxy, which leaves its own
+ * address in REMOTE_ADDR, resolves the visitor through the boblift_inquiry_client_ip filter, which receives the peer
+ * address and should read a forwarded header only from proxies it trusts.
+ */
 function boblift_inquiry_client_ip(): string
+{
+    return (string) apply_filters('boblift_inquiry_client_ip', boblift_inquiry_resolve_client_ip(), sanitize_text_field((string) ($_SERVER['REMOTE_ADDR'] ?? '')));
+}
+
+function boblift_inquiry_resolve_client_ip(): string
 {
     $peer = sanitize_text_field((string) ($_SERVER['REMOTE_ADDR'] ?? ''));
     $cloudflare = trim((string) ($_SERVER['HTTP_CF_CONNECTING_IP'] ?? ''));
@@ -277,6 +287,11 @@ function boblift_inquiry_admin_mail(array $fields, int $post_id): array
 
     $who = trim((string) ($fields['company'] ?: $fields['name'])) ?: $email;
     $subject = '【起重机站】询盘飞奔而来，请及时跟进：' . $who . ($country !== '未能识别' ? '（' . $country . '）' : '');
+    // A subject an editor saved in 站点文案 (quoteForm → messages → mailSubject) still wins over the branded default.
+    $saved_subject = trim((string) ((function_exists('boblift_site_ui') ? boblift_site_ui('quoteForm') : [])['messages']['mailSubject'] ?? ''));
+    if ($saved_subject !== '' && $saved_subject !== 'New BOB-LIFT inquiry') {
+        $subject = $saved_subject;
+    }
     return [$subject, $body];
 }
 
