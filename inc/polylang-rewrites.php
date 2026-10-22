@@ -172,23 +172,26 @@ function boblift_canonical_in_request_language(string|false $redirect_url, strin
     if ($translation <= 0 || get_post_status($translation) !== 'publish') {
         return $redirect_url;
     }
-    $url = get_permalink($translation);
+    // A comments feed stays a feed; otherwise the page, keeping a later page of a multipage post and a comments page,
+    // in core's address formats.
+    $url = is_feed() ? get_post_comments_feed_link($translation, (string) get_query_var('feed')) : get_permalink($translation);
     if (!is_string($url) || $url === '') {
         return $redirect_url;
     }
-    // Keep a later page of a multipage post and a comments page, in core's address format.
-    if ((int) get_query_var('page') > 1) {
-        $url = trailingslashit($url) . user_trailingslashit((string) (int) get_query_var('page'), 'single_paged');
-    }
-    if ((int) get_query_var('cpage') > 0) {
-        global $wp_rewrite;
-        $url = trailingslashit($url) . user_trailingslashit($wp_rewrite->comments_pagination_base . '-' . (int) get_query_var('cpage'), 'commentpaged');
+    if (!is_feed()) {
+        if ((int) get_query_var('page') > 1) {
+            $url = trailingslashit($url) . user_trailingslashit((string) (int) get_query_var('page'), 'single_paged');
+        }
+        if ((int) get_query_var('cpage') > 0) {
+            global $wp_rewrite;
+            $url = trailingslashit($url) . user_trailingslashit($wp_rewrite->comments_pagination_base . '-' . (int) get_query_var('cpage'), 'commentpaged');
+        }
     }
     // Keep campaign parameters (gclid, utm_*), but not routing ones: ?page_id=569 or ?lang=ja would pick the other
     // language's page again on the corrected address (as in boblift_redirect_case_to_url_language()).
     $query = wp_unslash($_GET);
     $query = is_array($query) ? $query : [];
-    foreach (['p', 'page_id', 'name', 'pagename', 'post_type', 'lang', 'preview', 'preview_id'] as $routing_key) {
+    foreach (['p', 'page_id', 'name', 'pagename', 'post_type', 'lang', 'feed', 'preview', 'preview_id'] as $routing_key) {
         unset($query[$routing_key]);
     }
     if (untrailingslashit((string) parse_url($requested_url, PHP_URL_PATH)) === untrailingslashit((string) parse_url($url, PHP_URL_PATH)) && !array_diff_key(wp_unslash($_GET), $query)) {
