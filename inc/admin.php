@@ -14,6 +14,18 @@ function boblift_admin_menu(): void
 }
 add_action('admin_menu', 'boblift_admin_menu');
 
+// Polylang 3.9 gives switcher flags width/height 100% so they fill a sized wrapper; PolyTranslate AI prints them
+// bare in the list-table "Translate:" row action, where they would grow to the full column width.
+function boblift_translate_flag_admin_head(): void
+{
+    $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+    if (!$screen || !in_array($screen->base, ['edit', 'edit-tags'], true)) {
+        return;
+    }
+    echo '<style>.row-actions .missing-translation-flag img{display:inline-block!important;width:18px!important;height:12px!important;max-width:none;object-fit:cover;vertical-align:middle}</style>';
+}
+add_action('admin_head', 'boblift_translate_flag_admin_head');
+
 function boblift_admin_assets(string $hook): void
 {
     $settings_pages = ['boblift-global-settings', 'boblift-navigation-settings', 'boblift-footer-settings', 'boblift-news-settings', 'boblift-form-security-settings'];
