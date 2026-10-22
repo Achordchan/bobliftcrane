@@ -413,11 +413,19 @@ function boblift_img_src(string $url, string $sizes, int $fallback_width = 800):
     return 'src="' . esc_url(boblift_image_resized($original, $fallback_width)) . '" srcset="' . esc_attr($srcset) . '" sizes="' . esc_attr($sizes) . '"';
 }
 
-/* The site address behind an image-CDN address of this site's own picture (i0.wp.com/<site host>/<path>), or $url unchanged. */
+/*
+ * The site address behind an image-CDN address of this site's own picture (i0.wp.com/<site host>/<path>), or $url
+ * unchanged. Only an address that merely scales the picture is unwrapped (fit, w, h, zoom, quality, strip, ssl); one that
+ * crops, rotates or otherwise changes it (resize, crop, rotate, filter, …) is kept as the editor saved it.
+ */
 function boblift_image_cdn_original(string $url): string
 {
     $host = boblift_image_cdn_host(site_url());
-    if ($host === '' || !preg_match('#^https://i[0-3]\.wp\.com/' . preg_quote($host, '#') . '(/[^?#]*)#i', $url, $match)) {
+    if ($host === '' || !preg_match('~^https://i[0-3]\.wp\.com/' . preg_quote($host, '~') . '(/[^?#]*)(?:\?([^#]*))?~i', $url, $match)) {
+        return $url;
+    }
+    parse_str(html_entity_decode((string) ($match[2] ?? '')), $query);
+    if (array_diff(array_keys($query), ['fit', 'w', 'h', 'zoom', 'quality', 'strip', 'ssl'])) {
         return $url;
     }
     return wp_parse_url(site_url(), PHP_URL_SCHEME) . '://' . $host . $match[1];
