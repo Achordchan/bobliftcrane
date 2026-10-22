@@ -61,7 +61,8 @@ function boblift_google_tag_markup(): string
         . '(function(){try{var m=document.cookie.match(/(?:^|; )boblift_consent=([^;]*)/),v=m&&JSON.parse(decodeURIComponent(m[1]));if(!v||v.v!==1)return;'
         . 'var a=v.analytics===true?"granted":"denied",d=v.advertising===true?"granted":"denied";'
         . 'gtag("consent","update",{analytics_storage:a,ad_storage:d,ad_user_data:d,ad_personalization:d})}catch(e){}})();'
-        . 'gtag("set","ads_data_redaction",true);gtag("js",new Date());window.bobliftTracking=true;';
+        . 'gtag("set","ads_data_redaction",true);gtag("js",new Date());window.bobliftTracking=true;'
+        . (in_array('advertising', boblift_consent_categories(), true) ? 'window.bobliftAdvertising=true;' : '');
     foreach ($ids as $id) {
         $script .= 'gtag("config",' . $json($id) . ');';
     }

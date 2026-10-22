@@ -4549,8 +4549,11 @@
     }
   };
 
+  let arrivalHandled = false;
   const forgetAttribution = () => {
     try { localStorage.removeItem(ATTRIBUTION_KEY); } catch { /* storage blocked */ }
+    // Agreeing again later on this page reads its landing address afresh.
+    arrivalHandled = false;
   };
   const readAttribution = () => {
     let raw = null;
@@ -4565,7 +4568,6 @@
   };
 
   const arrivedAt = Date.now();
-  let arrivalHandled = false;
   // A new click replaces what is kept; tags alone never replace a click; the same click seen again keeps its first landing.
   const nextRecord = (stored) => {
     const found = cleanParams(Object.fromEntries(new URLSearchParams(location.search)));
@@ -4755,7 +4757,10 @@
       forgetAttribution();
       return;
     }
-    try { initAttribution(); } catch { /* the inquiry form works without it */ }
+    // Ad attribution needs a Google Ads ID, which is what puts Advertising in the banner.
+    if (window.bobliftAdvertising === true) {
+      try { initAttribution(); } catch { /* the inquiry form works without it */ }
+    } else forgetAttribution();
     initConsent();
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

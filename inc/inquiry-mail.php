@@ -72,8 +72,8 @@ function boblift_inquiry_attribution_clean(string $name, $value): string
 /** The attribution fields of the current POST, without the prefix. */
 function boblift_inquiry_attribution_from_post(): array
 {
-    // Nothing is accepted while tracking is off, even from a page cached before it was turned off.
-    if (!function_exists('boblift_google_tag_ids') || !boblift_google_tag_ids()) {
+    // Nothing is accepted unless a Google Ads ID puts Advertising in the cookie banner, even from a page cached earlier.
+    if (!function_exists('boblift_consent_categories') || !in_array('advertising', boblift_consent_categories(), true)) {
         return [];
     }
     $found = [];
