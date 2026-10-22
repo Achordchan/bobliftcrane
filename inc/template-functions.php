@@ -819,7 +819,9 @@ function boblift_products_cache_persistent(): bool
     // Only anonymous visitors share the stored entries: a logged-in request can render personalised content (a login/out
     // block, nonces, user shortcodes), so it builds for itself and keeps the result for this request only.
     return !is_admin() && !wp_doing_ajax() && !wp_doing_cron() && !(defined('REST_REQUEST') && REST_REQUEST)
-        && !is_preview() && !is_customize_preview() && !is_user_logged_in();
+        && !is_preview() && !is_customize_preview() && !is_user_logged_in()
+        // Stored entries are zlib-compressed; without the extension the cache stays per request.
+        && function_exists('gzcompress') && function_exists('gzuncompress');
 }
 
 /** The cached value, with $found telling a cached null or empty value from a miss. */
