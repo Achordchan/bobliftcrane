@@ -273,10 +273,10 @@ function boblift_render_video_card(array $video, string $class = ''): void
     <button class="group flex w-full min-w-0 flex-col overflow-hidden rounded border border-line bg-white text-left shadow-card transition duration-300 hover:-translate-y-0.5 hover:border-blue-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-100 <?php echo esc_attr($class); ?>" type="button" data-video-open data-video-player="<?php echo esc_attr($video['player']); ?>" data-video-src="<?php echo esc_url($video['src']); ?>" data-video-youtube="<?php echo esc_attr($video['youtube']); ?>" data-video-title="<?php echo esc_attr($label); ?>"<?php echo $portrait ? ' data-video-portrait' : ''; ?>>
         <span class="relative block aspect-video overflow-hidden bg-navy">
             <img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" src="<?php echo esc_url(boblift_asset($video['poster'])); ?>" alt="" loading="lazy" decoding="async">
-            <span class="absolute inset-0 m-auto grid size-12 place-items-center rounded-sm bg-white/90 text-navy shadow-card transition group-hover:bg-white"><?php echo boblift_icon('play', 'h-5 w-5'); ?></span>
+            <span class="absolute inset-0 m-auto grid size-9 place-items-center rounded-sm bg-white/90 text-navy shadow-card transition group-hover:bg-white sm:size-12"><?php echo boblift_icon('play', 'h-4 w-4 sm:h-5 sm:w-5'); ?></span>
             <?php if ($duration !== '') : ?><span class="absolute bottom-2 right-2 rounded-sm bg-navy/80 px-1.5 py-0.5 text-[11px] font-black tabular-nums text-white"><?php echo esc_html($duration); ?></span><?php endif; ?>
         </span>
-        <span class="block px-3.5 py-3 text-sm font-black leading-5 text-ink sm:px-4"><?php echo esc_html($label); ?></span>
+        <span class="block px-3 py-2.5 text-[13px] font-black leading-[18px] text-ink sm:px-4 sm:py-3 sm:text-sm sm:leading-5"><?php echo esc_html($label); ?></span>
     </button>
     <?php
 }

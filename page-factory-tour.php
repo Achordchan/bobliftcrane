@@ -49,6 +49,7 @@ $pad = static fn(int $n): string => str_pad((string) $n, 2, '0', STR_PAD_LEFT);
         'image_position' => 'center 55%',
     ]);
     ?>
+    <div class="mt-6 md:mt-8"><?php boblift_about_hub_nav('factory-tour'); ?></div>
 </div>
 
 <section class="page-shell pt-8 md:pt-10" aria-label="<?php echo esc_attr((string) ($ui['heroImageAlt'] ?? '')); ?>">
@@ -132,24 +133,18 @@ $pad = static fn(int $n): string => str_pad((string) $n, 2, '0', STR_PAD_LEFT);
 </section>
 <?php endif; ?>
 
-<?php // Upcoming trade shows are listed on the group site, which keeps their dates current; this page links there. ?>
-<?php if (trim((string) ($ui['showsUrl'] ?? '')) !== '') : ?>
-<section class="page-shell pt-12 md:pt-16" aria-labelledby="factory-shows-title">
-    <div class="flex flex-col gap-4 rounded border border-line bg-white p-6 shadow-card sm:p-8 md:flex-row md:items-center md:justify-between md:gap-10">
-        <div>
-            <h2 id="factory-shows-title" class="text-xl font-black text-ink md:text-2xl"><?php echo esc_html((string) ($ui['showsTitle'] ?? '')); ?></h2>
-            <p class="mt-2 text-sm font-normal leading-6 text-slate-600"><?php echo esc_html((string) ($ui['showsText'] ?? '')); ?></p>
-        </div>
-        <a class="inline-flex shrink-0 items-center gap-1.5 text-sm font-black text-blue-700 hover:text-blue-900" href="<?php echo esc_url((string) $ui['showsUrl']); ?>" target="_blank" rel="noopener"><?php echo esc_html((string) ($ui['showsLink'] ?? '')); ?> <?php echo boblift_icon('arrow-up-right', 'h-4 w-4'); ?></a>
-    </div>
-</section>
-<?php endif; ?>
-
 <section class="page-shell py-12 md:py-16" aria-labelledby="factory-cta-title">
     <div class="flex flex-col gap-6 rounded bg-navy p-6 text-white sm:p-10 lg:flex-row lg:items-center lg:justify-between xl:p-12">
         <div class="max-w-2xl">
             <h2 id="factory-cta-title" class="text-[clamp(1.5rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em]"><?php echo esc_html((string) ($ui['ctaTitle'] ?? '')); ?></h2>
             <p class="mt-3 text-sm font-normal leading-7 text-white/75 md:text-base"><?php echo esc_html((string) ($ui['ctaText'] ?? '')); ?></p>
+            <?php // Upcoming trade shows are listed on the group site, which keeps their dates current; the visit call to action links there. ?>
+            <?php if (trim((string) ($ui['showsUrl'] ?? '')) !== '') : ?>
+                <p class="mt-4 border-t border-white/15 pt-4 text-sm font-normal leading-6 text-white/70">
+                    <span class="font-black text-white"><?php echo esc_html((string) ($ui['showsTitle'] ?? '')); ?></span> · <?php echo esc_html((string) ($ui['showsText'] ?? '')); ?>
+                    <a class="ms-1 inline-flex items-center gap-1 font-black text-white underline-offset-4 hover:underline" href="<?php echo esc_url((string) $ui['showsUrl']); ?>" target="_blank" rel="noopener"><?php echo esc_html((string) ($ui['showsLink'] ?? '')); ?> <?php echo boblift_icon('arrow-up-right', 'h-3.5 w-3.5'); ?></a>
+                </p>
+            <?php endif; ?>
         </div>
         <div class="flex shrink-0 flex-wrap gap-3">
             <button class="inline-flex h-12 items-center justify-center gap-2 rounded-sm bg-white px-6 text-sm font-black text-navy transition hover:-translate-y-0.5 hover:bg-blue-50" type="button" data-inquiry-modal-open data-inquiry-source="工厂实景页"><?php echo esc_html((string) ($ui['ctaButton'] ?? 'Plan a Visit')); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>

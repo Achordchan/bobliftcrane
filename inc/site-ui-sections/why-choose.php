@@ -18,6 +18,7 @@ return [
             ['title' => 'Port terminals'],
             ['title' => 'Factory workshops'],
             ['title' => 'Construction sites'],
+            ['title' => 'Agriculture and forestry'],
         ],
         'applicationsLink' => 'See customer cases',
         'certificatesLabel' => 'Our Certificate',

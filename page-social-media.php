@@ -267,6 +267,7 @@ $whatsapp = preg_replace('/\D+/', '', (string) ($contact['whatsapp'] ?? ($contac
         'image_position' => 'center 40%',
     ]);
     ?>
+    <div class="mt-6 md:mt-8"><?php boblift_news_hub_nav('social-media'); ?></div>
 </div>
 
 <?php

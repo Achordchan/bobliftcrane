@@ -23,6 +23,7 @@ $has_video = $featured !== [] || $batch || $tests !== [];
         'image_position' => 'center 45%',
     ]);
     ?>
+    <div class="mt-6 md:mt-8"><?php boblift_about_hub_nav('quality-testing'); ?></div>
 </div>
 
 <?php if ($steps !== []) : ?>
@@ -66,8 +67,10 @@ $has_video = $featured !== [] || $batch || $tests !== [];
         <?php if ($tests !== []) : ?>
             <p class="section-label mb-3"><?php echo esc_html((string) ($ui['testsLabel'] ?? 'Test videos')); ?></p>
             <h2 id="quality-videos-title" class="mb-6 text-[clamp(1.5rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-ink"><?php echo esc_html((string) ($ui['testsTitle'] ?? '')); ?></h2>
-            <ul class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5">
-                <?php foreach ($tests as $video) : ?><li><?php boblift_render_video_card($video, 'h-full'); ?></li><?php endforeach; ?>
+            <?php // Two to a row on phones, four on desktop; with seven (or 4n+3) videos the first one takes two columns, so every row is full. ?>
+            <?php $tests_lead_wide = count($tests) % 4 === 3; ?>
+            <ul class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:gap-5">
+                <?php foreach ($tests as $test_index => $video) : ?><li class="<?php echo $tests_lead_wide && $test_index === 0 ? 'col-span-2' : ''; ?>"><?php boblift_render_video_card($video, 'h-full'); ?></li><?php endforeach; ?>
             </ul>
         <?php endif; ?>
         <?php boblift_render_video_player(); ?>

@@ -1673,6 +1673,8 @@ function boblift_page_hero(array|string $hero, string $title = '', string $descr
     if ($highlight !== '' && str_contains($title, $highlight)) {
         $title_html = preg_replace('/' . preg_quote(esc_html($highlight), '/') . '/', '<span class="text-blue-700">' . esc_html($highlight) . '</span>', $title_html, 1);
     }
+    // The brand name never breaks at its hyphen ("BOB-" / "LIFT").
+    $title_html = str_replace('BOB-LIFT', '<span class="whitespace-nowrap">BOB-LIFT</span>', $title_html);
     $meta = trim((string) ($hero['meta'] ?? ''));
     $links = array_values(array_filter(is_array($hero['links'] ?? null) ? $hero['links'] : [], static fn($link): bool => is_array($link) && trim((string) ($link['label'] ?? '')) !== ''));
     $inner_class = $has_image
@@ -1703,6 +1705,63 @@ function boblift_page_hero(array|string $hero, string $title = '', string $descr
         </div>
     </section>
     <?php
+}
+
+/**
+ * A row of underlined tabs linking sibling pages. $tabs: key => [label, href]; the $current key is marked as this page.
+ */
+function boblift_page_tabs(array $tabs, string $current, string $label): void
+{
+    ?>
+    <nav class="boblift-news-hub" aria-label="<?php echo esc_attr($label); ?>">
+        <?php foreach ($tabs as $key => [$text, $href]) : ?>
+            <a class="boblift-news-hub-link" href="<?php echo esc_url(boblift_url($href)); ?>"<?php echo (string) $key === $current ? ' aria-current="page"' : ''; ?>><?php echo esc_html($text); ?></a>
+        <?php endforeach; ?>
+    </nav>
+    <?php
+}
+
+/**
+ * Tab strip shared by the News, Video Center and Social Media pages, so each one links to the other two.
+ */
+function boblift_news_hub_nav(string $current): void
+{
+    $label = static fn(string $text): string => function_exists('boblift_localized_static_text') ? boblift_localized_static_text($text) : $text;
+    boblift_page_tabs([
+        'news' => [$label('News'), '/news.html'],
+        'videos' => [$label('Video Center'), '/videos.html'],
+        'social-media' => [$label('Social Media'), '/social-media.html'],
+    ], $current, $label('News'));
+}
+
+/**
+ * The About menu's pages (About Us, Why Choose, Factory Tour, ...) as slug => [label, href], labelled with each page's
+ * title in the current language, as the header menu shows them.
+ */
+function boblift_about_nav_pages(): array
+{
+    $about_page = function_exists('boblift_about_page_options') ? boblift_about_page_options() : [];
+    $pages = [];
+    foreach ((array) ($about_page['secondary_nav'] ?? []) as $link) {
+        $slug = is_array($link) ? (string) ($link['slug'] ?? '') : '';
+        if ($slug === '') {
+            continue;
+        }
+        $page = boblift_find_page_by_slug($slug);
+        $localized = $page instanceof WP_Post && function_exists('boblift_post_for_current_language') ? boblift_post_for_current_language($page) : $page;
+        $title = $localized instanceof WP_Post ? trim((string) get_the_title($localized)) : '';
+        $pages[$slug] = [$title !== '' ? $title : boblift_localized_static_text((string) ($link['label'] ?? '')), (string) ($link['href'] ?? '/' . $slug . '.html')];
+    }
+    return $pages;
+}
+
+/** Tab strip linking the About page and the pages under it. */
+function boblift_about_hub_nav(string $current): void
+{
+    $pages = boblift_about_nav_pages();
+    if (count($pages) > 1) {
+        boblift_page_tabs($pages, $current, $pages['about'][0] ?? boblift_localized_static_text('About Us'));
+    }
 }
 
 function boblift_button(string $label, string $href, string $variant = 'primary'): string

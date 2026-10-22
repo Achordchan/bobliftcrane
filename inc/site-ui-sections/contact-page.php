@@ -18,6 +18,12 @@ return [
         'channelWeChatIdLabel' => 'WeChat ID',
         'phoneWhatsappLabel' => 'Phone / WhatsApp',
         'landlineLabel' => 'Office phone',
+        // Shown when Telegram uses the same number as the phone and WhatsApp.
+        'phoneMessengerLabel' => 'Phone / WhatsApp / Telegram',
+        'telegramLabel' => 'Telegram',
+        'languagesText' => 'Our sales team speaks English, Russian and Chinese. You can also write in your own language and we will translate.',
+        'brochureTitle' => 'Download a brochure',
+        'brochureText' => 'Model specifications in PDF, ready to share with your team.',
         'channelWhatsappNote' => 'Usually replies within 24 hours.',
         'channelWeChatNote' => 'Scan the code or search the ID. Best for China-side contact.',
         'channelEmailNote' => 'Send drawings, photos or a full requirement list.',
@@ -53,6 +59,9 @@ return [
         'locationDescription' => 'BOB-LIFT builds its cranes in Xuzhou, Jiangsu, China. Buyers are welcome to see production and testing in person. Please tell us your dates in advance so we can arrange a visit.',
         'addressLabel' => 'Address',
         'mapKeywordCn' => '徐州巴布工程机械有限公司',
+        // The map buttons lead to the main factory, where visits take place.
+        'mapFactoryKeywordCn' => '江苏省徐州市铜山区张集镇S324省道',
+        'mapHint' => 'Directions to the main factory',
         'mapLabels' => ['google' => 'Google Maps', 'amap' => 'Amap', 'baidu' => 'Baidu Maps'],
         'visitLabel' => 'See the factory before you visit',
         'visitLinks' => [

@@ -129,7 +129,10 @@ function boblift_seo_default_description_for_post(WP_Post $post): string
         }
         if ($post->post_name === 'about') {
             $about = function_exists('boblift_about_page_options') ? boblift_about_page_options() : [];
-            return boblift_localize_seo_text((string) ($about['strength']['text'] ?? 'BOB-LIFT integrates crane engineering, manufacturing and export support for global lifting projects.'));
+            // The profile can run to several paragraphs; the first one is the description.
+            $profile = preg_split('/\R\s*\R/u', trim((string) ($about['strength']['text'] ?? ''))) ?: [];
+            $first = trim((string) ($profile[0] ?? ''));
+            return boblift_localize_seo_text($first !== '' ? $first : 'BOB-LIFT integrates crane engineering, manufacturing and export support for global lifting projects.');
         }
         if ($post->post_name === 'contact') {
             $ui = function_exists('boblift_site_ui') ? boblift_site_ui('contactPage') : [];

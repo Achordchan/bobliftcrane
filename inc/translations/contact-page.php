@@ -1,6 +1,11 @@
 <?php
 return [
     'ja' => [
+        'Phone / WhatsApp / Telegram' => '電話 / WhatsApp / Telegram',
+        'Our sales team speaks English, Russian and Chinese. You can also write in your own language and we will translate.' => '営業担当は英語・ロシア語・中国語で対応します。その他の言語でも、母国語のままお送りいただければ翻訳して対応します。',
+        'Download a brochure' => 'カタログをダウンロード',
+        'Model specifications in PDF, ready to share with your team.' => '各モデルの仕様を PDF でまとめています。社内での共有にご利用ください。',
+        'Directions to the main factory' => '本工場への道順',
         'Phone / WhatsApp' => '電話 / WhatsApp',
         'Office phone' => '代表電話',
         'Talk to BOB-LIFT before choosing a crane.' => 'クレーンを選ぶ前に、BOB-LIFT へご相談ください。',
@@ -48,6 +53,11 @@ return [
         'All social media' => 'SNS 一覧',
     ],
     'zh' => [
+        'Phone / WhatsApp / Telegram' => '电话 / WhatsApp / Telegram',
+        'Our sales team speaks English, Russian and Chinese. You can also write in your own language and we will translate.' => '销售团队可使用英语、俄语和中文沟通，其他语言可直接用母语留言，我们会翻译后回复。',
+        'Download a brochure' => '下载产品手册',
+        'Model specifications in PDF, ready to share with your team.' => '各型号参数的 PDF 版本，方便转给您的团队。',
+        'Directions to the main factory' => '导航至主厂区',
         'Phone / WhatsApp' => '电话 / WhatsApp',
         'Office phone' => '座机',
         'Contact Us' => '联系我们',
@@ -89,8 +99,8 @@ return [
         'Amap' => '高德地图',
         'Baidu Maps' => '百度地图',
         'See the factory before you visit' => '到访前先看看工厂',
-        'Factory tour' => '工厂参观',
-        'Global customer visits' => '全球客户到访',
+        'Factory tour' => '工厂实景',
+        'Global customer visits' => '全球客户来访',
         'Follow BOB-LIFT' => '关注 BOB-LIFT',
         'Factory updates, deliveries and customer visits on our social channels.' => '在社交平台了解工厂动态、交付和客户到访。',
         'All social media' => '全部社交媒体',
