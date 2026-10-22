@@ -6,7 +6,8 @@
  *   _boblift_drawing_data (see boblift_product_drawing_data());
  * - the marine cranes left out of the current brochure are published again as previous models in every language, and
  *   the three that are in the technical drawings stay current;
- * - the SQZ800 drawing is replaced by the corrected lifting chart the technical department sent on 2026-10-21.
+ * - the drawings the technical department corrected (SQZ800 on 2026-10-21, SQ10SA4(T) and SQ3.2SA4(T) on 2026-10-22)
+ *   replace the old ones, and the SQ8ZA6 moment is set to the confirmed 16.7 t·m.
  */
 function boblift_product_data_marine_previous_models(): array
 {
@@ -62,16 +63,22 @@ function boblift_product_data_publish_all(int $english_id): bool
     return $ok;
 }
 
-/**
- * Writes the new SQZ800 drawing over its attachment (the -scaled copy and the original, when WordPress kept both) and
- * rebuilds the sizes; true when done or when the site has no such attachment.
- */
-function boblift_product_data_replace_sqz800_drawing(): bool
+/** Drawings replaced by corrected versions from the technical department (assets/images/drawings/boblift-drawings-<model>.webp). */
+function boblift_product_data_corrected_drawings(): array
 {
-    $source = get_template_directory() . '/assets/images/drawings/boblift-drawings-SQZ800.webp';
-    global $wpdb;
-    // Matches "boblift-drawings-SQZ800.webp" and the "-scaled" name WordPress gives a large upload.
-    $attachment = (int) $wpdb->get_var($wpdb->prepare("SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_wp_attached_file' AND (meta_value LIKE %s OR meta_value LIKE %s) ORDER BY post_id LIMIT 1", '%/boblift-drawings-SQZ800.webp', '%/boblift-drawings-SQZ800-scaled.webp'));
+    return ['SQZ800', 'SQ10SA4', 'SQ10SA4T', 'SQ3.2SA4', 'SQ3.2SA4T'];
+}
+
+/**
+ * Writes a corrected drawing over the first drawing attached to the model's product (the -scaled copy and the
+ * original, when WordPress kept both) and rebuilds the sizes; true when done or when the product has no drawing.
+ */
+function boblift_product_data_replace_drawing(string $model): bool
+{
+    $source = get_template_directory() . '/assets/images/drawings/boblift-drawings-' . $model . '.webp';
+    $product = boblift_product_data_english_id($model);
+    $drawings = $product > 0 ? boblift_decode_meta(get_post_meta($product, '_drawings', true), []) : [];
+    $attachment = (int) ($drawings[0]['id'] ?? 0);
     $file = $attachment > 0 ? get_attached_file($attachment) : '';
     if (!$file) {
         return true;
@@ -95,6 +102,45 @@ function boblift_product_data_replace_sqz800_drawing(): bool
     // wp_update_attachment_metadata() is false for an unchanged value too, so the stored value is compared instead.
     $stored = wp_get_attachment_metadata($attachment);
     return is_array($stored) && (int) ($stored['width'] ?? 0) === (int) $meta['width'] && array_keys((array) ($stored['sizes'] ?? [])) === array_keys((array) ($meta['sizes'] ?? []));
+}
+
+/**
+ * SQ8ZA6 and SQ8ZA6TJ share one load chart; the technical department confirmed 16.7 t·m for both (2026-10-22), so the
+ * SQ8ZA6 moment row changes from 16 to 16.7 in every language. True when every row reads 16.7 afterwards.
+ */
+function boblift_product_data_fix_sq8za6_moment(): bool
+{
+    $english = boblift_product_data_english_id('SQ8ZA6');
+    if ($english <= 0) {
+        return true;
+    }
+    $english_rows = boblift_decode_meta(get_post_meta($english, '_specs', true), []);
+    $row_index = null;
+    foreach ((array) $english_rows as $index => $row) {
+        if (is_array($row) && trim((string) ($row['label'] ?? '')) === 'Max Lifting Moment') {
+            $row_index = $index;
+        }
+    }
+    if ($row_index === null) {
+        return true;
+    }
+    $ids = function_exists('pll_get_post_translations') ? array_values(pll_get_post_translations($english)) : [];
+    $ok = true;
+    foreach (array_unique(array_map('intval', array_merge([$english], $ids))) as $id) {
+        $rows = boblift_decode_meta(get_post_meta($id, '_specs', true), []);
+        if (!isset($rows[$row_index]['value']) || count($rows) !== count($english_rows)) {
+            continue;
+        }
+        $value = (string) $rows[$row_index]['value'];
+        $fixed = (string) preg_replace('/^16(?![\d.,])/u', '16.7', trim($value));
+        if ($fixed !== trim($value)) {
+            $rows[$row_index]['value'] = $fixed;
+            update_post_meta($id, '_specs', wp_slash((string) wp_json_encode($rows, JSON_UNESCAPED_UNICODE)));
+        }
+        $check = boblift_decode_meta(get_post_meta($id, '_specs', true), []);
+        $ok = str_starts_with(trim((string) ($check[$row_index]['value'] ?? '')), '16.7') && $ok;
+    }
+    return $ok;
 }
 
 function boblift_apply_product_data_2026_10(): void
@@ -148,7 +194,10 @@ function boblift_apply_product_data_2026_10(): void
             $ok = boblift_product_data_publish_all($id) && $ok;
         }
     }
-    $ok = boblift_product_data_replace_sqz800_drawing() && $ok;
+    foreach (boblift_product_data_corrected_drawings() as $model) {
+        $ok = boblift_product_data_replace_drawing($model) && $ok;
+    }
+    $ok = boblift_product_data_fix_sq8za6_moment() && $ok;
     if (function_exists('boblift_legacy_product_ids')) {
         boblift_legacy_product_ids(true);
     }

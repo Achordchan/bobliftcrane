@@ -55,5 +55,5 @@
   "Lbs": "7040/4180/1760/990/440"
  },
  "confidence": "high",
- "notes": "Pedestal (marine) version, no outriggers. Moment printed 6.8ton.m here vs 7ton.m on SQ3.2SA4; self weight 1250Kg. Chart row 8100 mm = 450 kg vs boom table 0°/8.4 m = 8.1/550 (printed inconsistency). Base plate 550x550, 480x480, 16-ø22, spacings 288/96. Boom tip at 75 deg about 12.0 m on grid."
+ "notes": "2026-10-22: re-read from the corrected drawings the technical department sent (the boom-angle table now matches the load row). "
 }

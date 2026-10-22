@@ -987,11 +987,14 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
             <?php boblift_render_product_model_history($model_history, (int) get_the_ID(), $is_legacy_model); ?>
             <?php if ($related_products && $related_term instanceof WP_Term) :
                 $related_link = get_term_link($related_term);
+                // Its own setting (产品详情页 → 相关产品标签): the news page's "Related" label is stored per language as
+                // "related articles" (相关文章, 関連情報), which is wrong for products, so it is not reused here.
+                $related_products_label = (string) (($ui['relatedProductsLabel'] ?? '') ?: boblift_localized_static_text('Related products'));
                 ?>
                 <section id="related" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card" aria-labelledby="related-title">
                     <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 p-6 pb-0 md:p-8 md:pb-0">
                         <div>
-                            <p class="boblift-kicker"><?php // Its own setting: the news page's "Related" label read as "related articles" in some languages. ?><?php echo esc_html((string) ($ui['relatedProductsLabel'] ?? boblift_localized_static_text('Related products'))); ?></p>
+                            <p class="boblift-kicker"><?php echo esc_html($related_products_label); ?></p>
                             <h2 id="related-title" class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($related_term->name); ?></h2>
                         </div>
                         <?php if (!is_wp_error($related_link)) : ?>

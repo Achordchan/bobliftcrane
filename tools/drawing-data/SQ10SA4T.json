@@ -1,13 +1,46 @@
 {
  "model": "SQ10SA4T",
- "sources": ["SQ10SA4T起升曲线图-1.png", "SQ10SA4T外形尺寸及参数图-1.png"],
+ "sources": [
+  "SQ10SA4T起升曲线图-1.png",
+  "SQ10SA4T外形尺寸及参数图-1.png"
+ ],
  "max_radius_m": 15.5,
  "max_height_m": 17.5,
  "max_height_approx": true,
  "max_boom_angle_deg": 75,
  "outrigger_span_mm": null,
- "load_chart": [[2.5, 10000], [5.0, 5200], [9.0, 2200], [12.0, 1625], [15.5, 1050]],
- "params": {"最大起重质量 Max Lifting Capacity": "10000Kg", "最大起重力矩 Max Lifting Moment": "25ton.m", "推荐功率 Recommend Power": "37KW", "液压系统流量 Hydraulic System Flow": "63L/min", "液压系统压力 Hydraulic System Pressure": "26Mpa", "液压油箱容积 Oil Tank Capacity": "200L", "回转角度 Rotation Angle": "360°", "起重机自重 Self Weight": "3250Kg"},
+ "load_chart": [
+  [
+   2.5,
+   10000
+  ],
+  [
+   5.0,
+   4500
+  ],
+  [
+   9.0,
+   2200
+  ],
+  [
+   12.0,
+   1500
+  ],
+  [
+   15.5,
+   1050
+  ]
+ ],
+ "params": {
+  "最大起重质量 Max Lifting Capacity": "10000Kg",
+  "最大起重力矩 Max Lifting Moment": "25ton.m",
+  "推荐功率 Recommend Power": "37KW",
+  "液压系统流量 Hydraulic System Flow": "63L/min",
+  "液压系统压力 Hydraulic System Pressure": "26Mpa",
+  "液压油箱容积 Oil Tank Capacity": "200L",
+  "回转角度 Rotation Angle": "360°",
+  "起重机自重 Self Weight": "3250Kg"
+ },
  "confidence": "high",
- "notes": "Marine/pedestal version, no outriggers. Boom tip top on chart ~17.3 m (rounded to 17.5). Lbs row 22000/11440/4840/3575/2310. Within-original inconsistencies: (1) chart 9000 mm = 2200 kg but boom table 0° row says 9.0/2000; (2) side-view dimension 5250-14000 but load chart reaches 15500 mm (boom table 0° 15.5/1050). Max angle 75° from boom table (5 boom lengths 5.6/9.02/12.44/15.87 m). Mounting: ø1000, ø930 PCD, 28-ø25, ø400 centre. Height 2527."
+ "notes": "2026-10-22: re-read from the corrected drawings the technical department sent (the boom-angle table now matches the load row). SQ10SA4T reach is 5250-15500. "
 }

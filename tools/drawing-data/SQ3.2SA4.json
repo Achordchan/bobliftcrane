@@ -53,5 +53,5 @@
   "Lbs": "7040/4180/1870/880/880"
  },
  "confidence": "high",
- "notes": "Contradictions within original: chart row 8100 mm = 450 kg but boom table 0°/8.4 m = 8.1/550; Lbs row prints 1870 (800 kg = 1760 lb), 880 (450 kg = 990 lb) and 880 (200 kg = 440 lb). 75° row increases load vs 70° for 8.4/10.8 m - as printed. Boom tip at 75 deg about 12.1 m on grid."
+ "notes": "2026-10-22: re-read from the corrected drawings the technical department sent (the boom-angle table now matches the load row). "
 }
