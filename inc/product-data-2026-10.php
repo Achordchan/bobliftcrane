@@ -76,43 +76,51 @@ function boblift_product_data_corrected_drawings(): array
  */
 function boblift_product_data_replace_drawing(string $model): bool
 {
-    $source = get_template_directory() . '/assets/images/drawings/boblift-drawings-' . $model . '.webp';
     $english = boblift_product_data_english_id($model);
-    $drawings = $english > 0 ? boblift_decode_meta(get_post_meta($english, '_drawings', true), []) : [];
-    $old = (int) ($drawings[0]['id'] ?? 0);
-    if ($old <= 0) {
+    if ($english <= 0) {
         return true;
     }
-    $old_name = wp_basename((string) get_post_meta($old, '_wp_attached_file', true));
-    $imported = ['boblift-drawings-' . $model . '.webp', 'boblift-drawings-' . $model . '-scaled.webp'];
-    if (!in_array($old_name, $imported, true)) {
-        return true;
-    }
-    if (!is_readable($source)) {
-        return false;
-    }
-    require_once ABSPATH . 'wp-admin/includes/file.php';
-    require_once ABSPATH . 'wp-admin/includes/media.php';
-    require_once ABSPATH . 'wp-admin/includes/image.php';
-    $tmp = wp_tempnam($source);
-    if (!$tmp || !copy($source, $tmp)) {
-        return false;
-    }
-    $new = media_handle_sideload(['name' => 'boblift-drawings-' . $model . '-2026-10.webp', 'tmp_name' => $tmp], 0, (string) get_the_title($old));
-    if (is_wp_error($new)) {
-        @unlink($tmp);
-        return false;
+    // The old and new attachment are recorded as soon as the new one exists, so a run that stops half way resumes the
+    // remaining translations from this record instead of from the English drawing, which by then is the new one.
+    $map_option = 'boblift_product_data_2026_10_drawings';
+    $map = (array) get_option($map_option, []);
+    [$old, $new] = array_map('intval', (array) ($map[$model] ?? [0, 0])) + [0, 0];
+    if ($new <= 0 || !get_post($new)) {
+        $drawings = boblift_decode_meta(get_post_meta($english, '_drawings', true), []);
+        $old = (int) ($drawings[0]['id'] ?? 0);
+        $imported = ['boblift-drawings-' . $model . '.webp', 'boblift-drawings-' . $model . '-scaled.webp'];
+        if ($old <= 0 || !in_array(wp_basename((string) get_post_meta($old, '_wp_attached_file', true)), $imported, true)) {
+            return true;
+        }
+        $source = get_template_directory() . '/assets/images/drawings/boblift-drawings-' . $model . '.webp';
+        if (!is_readable($source)) {
+            return false;
+        }
+        require_once ABSPATH . 'wp-admin/includes/file.php';
+        require_once ABSPATH . 'wp-admin/includes/media.php';
+        require_once ABSPATH . 'wp-admin/includes/image.php';
+        $tmp = wp_tempnam($source);
+        if (!$tmp || !copy($source, $tmp)) {
+            return false;
+        }
+        $new = media_handle_sideload(['name' => 'boblift-drawings-' . $model . '-2026-10.webp', 'tmp_name' => $tmp], 0, (string) get_the_title($old));
+        if (is_wp_error($new)) {
+            @unlink($tmp);
+            return false;
+        }
+        $map[$model] = [$old, (int) $new];
+        update_option($map_option, $map, false);
     }
     $ids = function_exists('pll_get_post_translations') ? array_values(pll_get_post_translations($english)) : [];
     $ok = true;
     foreach (array_unique(array_map('intval', array_merge([$english], $ids))) as $id) {
         $list = boblift_decode_meta(get_post_meta($id, '_drawings', true), []);
+        // Only entries still on the imported drawing move; one an editor changed in the meantime stays.
         if ((int) ($list[0]['id'] ?? 0) !== $old) {
             continue;
         }
         $list[0]['id'] = (int) $new;
-        $json = (string) wp_json_encode($list, JSON_UNESCAPED_UNICODE);
-        update_post_meta($id, '_drawings', wp_slash($json));
+        update_post_meta($id, '_drawings', wp_slash((string) wp_json_encode($list, JSON_UNESCAPED_UNICODE)));
         $ok = (int) (boblift_decode_meta(get_post_meta($id, '_drawings', true), [])[0]['id'] ?? 0) === (int) $new && $ok;
     }
     return $ok;
@@ -128,33 +136,26 @@ function boblift_product_data_fix_sq8za6_moment(): bool
     if ($english <= 0) {
         return true;
     }
-    $english_rows = boblift_decode_meta(get_post_meta($english, '_specs', true), []);
-    $row_index = null;
-    foreach ((array) $english_rows as $index => $row) {
-        if (is_array($row) && trim((string) ($row['label'] ?? '')) === 'Max Lifting Moment') {
-            $row_index = $index;
-        }
-    }
-    if ($row_index === null) {
-        return true;
-    }
     $ids = function_exists('pll_get_post_translations') ? array_values(pll_get_post_translations($english)) : [];
     $ok = true;
     foreach (array_unique(array_map('intval', array_merge([$english], $ids))) as $id) {
         $rows = boblift_decode_meta(get_post_meta($id, '_specs', true), []);
-        if (!isset($rows[$row_index]['value']) || count($rows) !== count($english_rows)) {
+        // The moment row is found by its value, a 16 in t·m (every language keeps the unit), not by position, so a
+        // reordered table cannot send the change to another row; a table without exactly one such row is left alone.
+        $matches = [];
+        foreach ((array) $rows as $index => $row) {
+            if (is_array($row) && preg_match('/^16(?:[.,]0+)?(\s*t\s*[·.]\s*m)$/u', trim((string) ($row['value'] ?? '')), $unit)) {
+                $matches[$index] = $unit[1];
+            }
+        }
+        if (count($matches) !== 1) {
             continue;
         }
-        // The leading figure, with a comma or a point ("16", "16.0", "16,0"); only an old 16 is changed, any other figure
-        // is an editor's and stays, so it cannot keep the migration retrying.
-        $value = trim((string) $rows[$row_index]['value']);
-        if (!preg_match('/^(\d+(?:[.,]\d+)?)/u', $value, $figure) || (float) str_replace(',', '.', $figure[1]) !== 16.0) {
-            continue;
-        }
-        $rows[$row_index]['value'] = '16.7' . substr($value, strlen($figure[1]));
+        $index = array_key_first($matches);
+        $rows[$index]['value'] = '16.7' . $matches[$index];
         update_post_meta($id, '_specs', wp_slash((string) wp_json_encode($rows, JSON_UNESCAPED_UNICODE)));
         $check = boblift_decode_meta(get_post_meta($id, '_specs', true), []);
-        $ok = (string) ($check[$row_index]['value'] ?? '') === $rows[$row_index]['value'] && $ok;
+        $ok = (string) ($check[$index]['value'] ?? '') === $rows[$index]['value'] && $ok;
     }
     return $ok;
 }
