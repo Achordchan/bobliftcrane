@@ -1923,8 +1923,13 @@ function boblift_about_nav_pages(): array
             $title = $localized instanceof WP_Post ? trim((string) get_the_title($localized)) : '';
             $shown = $title !== '' ? $title : boblift_localized_static_text($label);
         }
-        // Two links to one page (/factory-tour.html#workshops and #videos) both stay: a repeated slug gets a numbered key.
-        $pages[isset($pages[$slug]) ? $slug . '-' . count($pages) : $slug] = [$shown, $href];
+        // Two links to one page (/factory-tour.html#workshops and #videos) both stay: a repeated slug gets the first free
+        // numbered key (factory-tour-2, -3, ...), which never replaces another saved entry.
+        $key = $slug;
+        for ($suffix = 2; isset($pages[$key]); $suffix++) {
+            $key = $slug . '-' . $suffix;
+        }
+        $pages[$key] = [$shown, $href];
     }
     return $pages;
 }
