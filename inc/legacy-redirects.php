@@ -257,7 +257,7 @@ function boblift_legacy_redirect_resolve(string $host, string $path, array $conf
 
 /**
  * Language subdomains cannot reach WordPress when the new site is hosted on WordPress.com, so a
- * Cloudflare rule sends fr.bobliftcrane.com/path to https://www.bobliftcrane.com/path?legacy_lang=fr.
+ * Cloudflare rule sends fr.bobliftcrane.com/path to https://bobliftcrane.com/path?legacy_lang=fr.
  * That label stands in for the original host here.
  */
 function boblift_legacy_redirect_effective_host(string $host, array $query, array $config): string
