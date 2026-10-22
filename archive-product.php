@@ -8,7 +8,9 @@ foreach ($products as &$product) {
     $product['sort_size'] = (float) ($product['filter_values']['capacity'] ?? 0);
     $spec_rows = (int) ($product['id'] ?? 0) > 0 ? (array) boblift_decode_meta(get_post_meta(boblift_product_english_id((int) $product['id']), '_specs', true), []) : [];
     $spec_labels = array_map(static fn($row): string => is_array($row) ? trim((string) ($row['label'] ?? '')) : '', $spec_rows);
-    if (in_array('Working Height', $spec_labels, true) && !in_array('Max Lifting Capacity', $spec_labels, true)) {
+    // A capacity stated with its unit (a "5 ton" capacity field) is a rated capacity whatever the spec table holds.
+    $rated = function_exists('boblift_home_product_rated_capacity') ? boblift_home_product_rated_capacity($product) : 0.0;
+    if ($rated <= 0 && in_array('Working Height', $spec_labels, true) && !in_array('Max Lifting Capacity', $spec_labels, true)) {
         $product['filter_values']['capacity'] = 0.0;
     }
 }

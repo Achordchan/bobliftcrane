@@ -169,9 +169,9 @@ function boblift_render_model_cards(array $models, string $labelled_by, array $r
                         <p class="mt-1 line-clamp-2 text-xs leading-5 text-slate-500"><?php echo esc_html((string) $item['title']); ?></p>
                     </div>
                 </div>
-                <dl class="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-[#E5E7EB] pt-4 <?php echo esc_attr([2 => 'sm:grid-cols-2', 3 => 'sm:grid-cols-3', 4 => 'sm:grid-cols-4'][min(4, max(2, count($rows)))]); ?>">
+                <dl class="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-[#E5E7EB] pt-4 <?php echo esc_attr([2 => 'sm:grid-cols-2', 3 => 'sm:grid-cols-3 md:grid-cols-2 xl:grid-cols-3', 4 => 'sm:grid-cols-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4'][min(4, max(2, count($rows)))]); ?>">
                     <?php foreach ($rows as $key => $label) : ?>
-                        <div class="min-w-0"><dt class="text-xs font-semibold leading-4 text-slate-500"><?php echo esc_html($label); ?></dt><dd class="mt-1 whitespace-nowrap text-base font-black text-ink [font-variant-numeric:tabular-nums]" dir="ltr"><?php echo esc_html((string) ($item[$key] ?: '–')); ?></dd></div>
+                        <div class="min-w-0"><dt class="text-xs font-semibold leading-4 text-slate-500"><?php echo esc_html($label); ?></dt><dd class="mt-1 break-words text-base font-black leading-5 text-ink [font-variant-numeric:tabular-nums]" dir="ltr"><?php echo esc_html((string) ($item[$key] ?: '–')); ?></dd></div>
                     <?php endforeach; ?>
                 </dl>
                 <?php if ($ask && !$item['legacy'] && !$is_this) : ?>

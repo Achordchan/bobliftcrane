@@ -3627,18 +3627,18 @@
     const groupList = qs('[data-legacy-groups]', panel);
     const scopeTitle = qs('[data-legacy-scope-title]', panel);
     const isOpen = () => root.hasAttribute('data-legacy-view');
+    // Scoped by the ticked categories (the tabs tick them too) and their sub-categories; none ticked is All Products.
     const scopedGroups = () => {
-      const current = root.dataset.currentCategory || '';
-      if (!current) return groups;
-      const input = qs(`input[data-filter="category"][value="${CSS.escape(current)}"]`, root);
-      const slugs = new Set([current, ...(input?.dataset.categoryChildren || '').split(',').filter(Boolean)]);
+      const checked = qsa('input[data-filter="category"]:checked', root);
+      if (!checked.length) return groups;
+      const slugs = new Set(checked.flatMap((input) => [input.value, ...(input.dataset.categoryChildren || '').split(',').filter(Boolean)]));
       return groups.filter((group) => slugs.has(group.dataset.legacyGroup || ''));
     };
     const syncScope = () => {
       const scoped = scopedGroups();
       const total = scoped.reduce((sum, group) => sum + Number(group.dataset.legacySize || 0), 0);
       counts.forEach((count) => { count.textContent = String(total); });
-      entries.forEach((entry) => entry.classList.toggle('hidden', total === 0));
+      // The entries stay even at zero: the panel then offers a request form, and on phones the entry is the only way in.
       groups.forEach((group) => { group.hidden = !scoped.includes(group); });
       empty?.classList.toggle('hidden', total > 0);
       empty?.classList.toggle('flex', total === 0);

@@ -39,13 +39,17 @@ function boblift_product_data_english_id(string $model): int
     return 0;
 }
 
-/** Publishes the product and all its translations; true when every one is published. */
+/**
+ * Publishes the drafts among the product and its translations; true when each write succeeded. Only drafts: the
+ * brochure clean-up turned published posts into drafts, so private, pending or scheduled posts are an editor's choice
+ * and stay as they are. The models are the approved set listed above.
+ */
 function boblift_product_data_publish_all(int $english_id): bool
 {
     $ids = function_exists('pll_get_post_translations') ? array_values(pll_get_post_translations($english_id)) : [];
     $ok = true;
     foreach (array_unique(array_map('intval', array_merge([$english_id], $ids))) as $id) {
-        if (get_post_status($id) !== 'publish') {
+        if (get_post_status($id) === 'draft') {
             $result = wp_update_post(['ID' => $id, 'post_status' => 'publish'], true);
             $ok = $ok && !is_wp_error($result) && $result;
         }
