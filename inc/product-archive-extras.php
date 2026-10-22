@@ -547,14 +547,14 @@ function boblift_render_product_articles(WP_Term $term): void
     $single = count($posts) === 1;
     ?>
     <section id="articles" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card" aria-labelledby="articles-title">
-        <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 p-6 pb-0 md:p-8 md:pb-0">
+        <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 px-4 pt-5 pb-0 sm:p-6 sm:pb-0 md:p-8 md:pb-0">
             <div>
                 <p class="boblift-kicker"><?php echo esc_html($t('Guides and news')); ?></p>
                 <h2 id="articles-title" class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($t('Read before you buy')); ?></h2>
             </div>
             <a class="inline-flex items-center gap-1.5 text-sm font-black text-blue-700 transition hover:text-[#071f42]" href="<?php echo esc_url(boblift_url('/news')); ?>"><?php echo esc_html((string) ($article_ui['relatedLink'] ?? 'All news')); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></a>
         </div>
-        <ul class="grid gap-x-5 gap-y-6 p-6 md:p-8 <?php echo $single ? '' : 'sm:grid-cols-2 lg:grid-cols-3'; ?>">
+        <ul class="grid gap-x-5 gap-y-6 px-4 py-5 sm:p-6 md:p-8 <?php echo $single ? '' : 'sm:grid-cols-2 lg:grid-cols-3'; ?>">
             <?php foreach ($posts as $post) : ?>
                 <li class="min-w-0">
                     <a class="group <?php echo $single ? 'grid items-center gap-x-8 gap-y-3 sm:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]' : 'block'; ?>" href="<?php echo esc_url(get_permalink($post)); ?>">
@@ -584,7 +584,7 @@ function boblift_render_product_model_history(array $models, int $product_id, bo
     $t = static fn(string $text): string => boblift_localized_static_text($text);
     ?>
     <section id="model-history" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card" aria-labelledby="model-history-title">
-        <div class="grid gap-x-8 gap-y-3 p-6 pb-0 md:p-8 md:pb-0 lg:grid-cols-12 lg:items-end">
+        <div class="grid gap-x-8 gap-y-3 px-4 pt-5 pb-0 sm:p-6 sm:pb-0 md:p-8 md:pb-0 lg:grid-cols-12 lg:items-end">
             <div class="lg:col-span-7">
                 <p class="boblift-kicker"><?php echo esc_html($t('Model history')); ?></p>
                 <h2 id="model-history-title" class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($t($is_legacy ? 'Compare with the current range' : 'Earlier configurations')); ?></h2>
@@ -595,14 +595,14 @@ function boblift_render_product_model_history(array $models, int $product_id, bo
         // On a previous model's page the way on comes first: its current model(s), each a direct link.
         $current_models = $is_legacy ? array_values(array_filter($models, static fn(array $item): bool => !$item['legacy'])) : [];
         if ($current_models) : ?>
-            <div class="mx-6 mt-6 flex flex-wrap items-center gap-x-4 gap-y-3 rounded-sm border border-[#BFD3EA] bg-[#F5F8FC] px-4 py-3 md:mx-8">
+            <div class="mx-4 mt-6 sm:mx-6 flex flex-wrap items-center gap-x-4 gap-y-3 rounded-sm border border-[#BFD3EA] bg-[#F5F8FC] px-4 py-3 md:mx-8">
                 <span class="text-sm font-black text-[#071f42]"><?php echo esc_html($t('Current model')); ?></span>
                 <?php foreach ($current_models as $current) : ?>
                     <a class="inline-flex h-10 items-center gap-1.5 rounded-sm bg-[#071f42] px-4 text-sm font-black text-white transition hover:bg-[#0B3F7D]" href="<?php echo esc_url($current['url']); ?>"><?php echo esc_html(str_replace('{model}', (string) $current['model'], $t('View {model}'))); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></a>
                 <?php endforeach; ?>
             </div>
         <?php endif; ?>
-        <div class="p-6 md:p-8"><?php boblift_render_model_table(boblift_compare_models_prepare($models), 'model-history-title', ['this_id' => $product_id, 'status' => true, 'ask' => true, 'label_class' => 'bg-white']); ?></div>
+        <div class="px-4 py-5 sm:p-6 md:p-8"><?php boblift_render_model_table(boblift_compare_models_prepare($models), 'model-history-title', ['this_id' => $product_id, 'status' => true, 'ask' => true, 'label_class' => 'bg-white']); ?></div>
     </section>
     <?php
 }
