@@ -291,6 +291,19 @@ function boblift_home_product_english_specs(array $product): array
     return $cache[$english_id] ??= array_values(array_filter((array) boblift_decode_meta(get_post_meta($english_id, '_specs', true), []), 'is_array'));
 }
 
+/**
+ * A spec figure as a number. A comma followed by groups of three digits separates thousands ("6,300" is 6300); any other
+ * comma is a decimal comma ("6,3" is 6.3).
+ */
+function boblift_home_spec_number(string $figure): float
+{
+    $figure = trim($figure);
+    if (preg_match('/^\d{1,3}(?:,\d{3})+(?:\.\d+)?$/', $figure)) {
+        return (float) str_replace(',', '', $figure);
+    }
+    return (float) str_replace(',', '.', $figure);
+}
+
 // Rated capacity in tonnes from the "Max Lifting Capacity" row or a capacity text with its unit; 0 without either. The
 // numeric capacity value is not used: aerial work platforms keep their working height in metres there.
 function boblift_home_product_rated_capacity(array $product): float
@@ -298,7 +311,7 @@ function boblift_home_product_rated_capacity(array $product): float
     foreach (boblift_home_product_english_specs($product) as $row) {
         if (trim((string) ($row['label'] ?? '')) === 'Max Lifting Capacity' && preg_match('/^([\d.,]+)(?:\s*[-–]\s*([\d.,]+))?\s*(kg|t|tons?)(?![\p{L}·-])/u', trim((string) ($row['value'] ?? '')), $m)) {
             // A span such as "1-2 tons" is rated by its upper figure.
-            $number = (float) str_replace(',', '', $m[2] !== '' ? $m[2] : $m[1]);
+            $number = boblift_home_spec_number($m[2] !== '' ? $m[2] : $m[1]);
             return $m[3] === 'kg' ? $number / 1000 : $number;
         }
     }
@@ -306,7 +319,7 @@ function boblift_home_product_rated_capacity(array $product): float
     $id = (int) ($product['id'] ?? 0);
     $capacity_text = $id > 0 && function_exists('boblift_product_english_id') ? (string) get_post_meta(boblift_product_english_id($id), '_capacity', true) : (string) ($product['capacity'] ?? '');
     if (preg_match('/^([\d.,]+)\s*(kg|t|tons?)$/iu', trim($capacity_text), $m)) {
-        $number = (float) str_replace(',', '', $m[1]);
+        $number = boblift_home_spec_number($m[1]);
         return strtolower($m[2]) === 'kg' ? $number / 1000 : $number;
     }
     return 0.0;
@@ -324,7 +337,7 @@ function boblift_home_product_length_label(string $value): string
     if (!preg_match('/^([\d.,]+)\s*(mm|m)(?!\p{L})/u', trim($value), $m)) {
         return '';
     }
-    return boblift_tonnes_label((float) str_replace(',', '', $m[1]) / ($m[2] === 'mm' ? 1000 : 1)) . "\u{00A0}m";
+    return boblift_tonnes_label(boblift_home_spec_number($m[1]) / ($m[2] === 'mm' ? 1000 : 1)) . "\u{00A0}m";
 }
 
 // A family's capacity span, e.g. "1.6–40 t". Only when at least 80% of its models state a rated capacity, so a family
@@ -463,7 +476,7 @@ function boblift_home_product_card_specs(array $product): array
         if (count($items) < 2 && !isset($used[$index]) && trim((string) ($row['label'] ?? '')) === 'Self Weight' && $is_figure(trim((string) ($row['value'] ?? '')))) {
             $weight = $row_item($index, boblift_localized_static_text('Self weight'));
             if (preg_match('/^([\d.,]+)\s*kg$/u', trim((string) ($row['value'] ?? '')), $m)) {
-                $weight['value'] = boblift_home_product_tonnage_label((float) str_replace(',', '', $m[1]) / 1000);
+                $weight['value'] = boblift_home_product_tonnage_label(boblift_home_spec_number($m[1]) / 1000);
             }
             $items[] = $weight;
             $used[$index] = true;
