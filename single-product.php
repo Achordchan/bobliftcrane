@@ -809,8 +809,6 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                 // Every brochure of the product's families, as the brochure card this column replaces showed them.
                 $buying_brochures = boblift_brochure_items(boblift_brochure_families_for_product($product));
                 $brochure_ui = boblift_site_ui('brochures');
-                // Placeholder figures carry a mark for signed-in editors only, so they are replaced before launch.
-                $buying_flag = $buying_terms['pending'] && current_user_can('edit_posts') ? '<span class="ms-2 inline-flex rounded-sm border border-amber-300 bg-amber-50 px-1.5 py-0.5 align-middle text-[10px] font-black uppercase tracking-[0.08em] text-amber-700">Placeholder</span>' : '';
                 $buying_units = static fn(int $count): string => str_replace('{count}', (string) $count, boblift_localized_static_text($count === 1 ? '{count} unit' : '{count} units'));
                 ?>
                 <article id="buying" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card">
@@ -821,20 +819,24 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                     </div>
                     <div class="mt-6 grid gap-px border-t border-[#E6EDF5] bg-[#E6EDF5] md:mt-8 md:grid-cols-3">
                         <section class="bg-white p-6 md:p-8" aria-labelledby="buying-shipping">
-                            <h3 id="buying-shipping" class="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(boblift_localized_static_text('Shipping')); ?><?php echo $buying_flag; ?></h3>
-                            <dl class="mt-4 grid grid-cols-2 gap-4 [font-variant-numeric:tabular-nums]">
-                                <?php foreach (['gp20' => '20GP container', 'hq40' => '40HQ container'] as $box_key => $box_label) : if ($buying_terms['loading'][$box_key] <= 0) { continue; } ?>
-                                    <div>
-                                        <dt class="text-xs font-normal text-slate-500"><?php echo esc_html(boblift_localized_static_text($box_label)); ?></dt>
-                                        <dd class="mt-1 text-2xl font-black leading-none text-[#071f42]"><?php echo esc_html($buying_units($buying_terms['loading'][$box_key])); ?></dd>
-                                    </div>
-                                <?php endforeach; ?>
-                            </dl>
-                            <p class="mt-5 text-sm font-normal leading-6 text-slate-700"><?php echo esc_html(str_replace('{days}', $buying_terms['lead'], boblift_localized_static_text('Ships in {days} working days from order.'))); ?></p>
-                            <p class="mt-2 text-xs font-normal leading-5 text-slate-500"><?php echo esc_html(boblift_localized_static_text('Loading figures are approximate; we confirm the plan with your order.')); ?></p>
+                            <h3 id="buying-shipping" class="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(boblift_localized_static_text('Shipping')); ?></h3>
+                            <?php if ($buying_terms['pending']) : // Unconfirmed figures stay off the page until they are entered under 产品详情页. ?>
+                                <p class="mt-4 text-sm font-normal leading-6 text-slate-700"><?php echo esc_html(boblift_localized_static_text('Lead time and container loading are confirmed with your quotation.')); ?></p>
+                            <?php else : ?>
+                                <dl class="mt-4 grid grid-cols-2 gap-4 [font-variant-numeric:tabular-nums]">
+                                    <?php foreach (['gp20' => '20GP container', 'hq40' => '40HQ container'] as $box_key => $box_label) : if ($buying_terms['loading'][$box_key] <= 0) { continue; } ?>
+                                        <div>
+                                            <dt class="text-xs font-normal text-slate-500"><?php echo esc_html(boblift_localized_static_text($box_label)); ?></dt>
+                                            <dd class="mt-1 text-2xl font-black leading-none text-[#071f42]"><?php echo esc_html($buying_units($buying_terms['loading'][$box_key])); ?></dd>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </dl>
+                                <p class="mt-5 text-sm font-normal leading-6 text-slate-700"><?php echo esc_html(str_replace('{days}', $buying_terms['lead'], boblift_localized_static_text('Ships in {days} working days from order.'))); ?></p>
+                                <p class="mt-2 text-xs font-normal leading-5 text-slate-500"><?php echo esc_html(boblift_localized_static_text('Loading figures are approximate; we confirm the plan with your order.')); ?></p>
+                            <?php endif; ?>
                         </section>
                         <section class="bg-white p-6 md:p-8" aria-labelledby="buying-warranty">
-                            <h3 id="buying-warranty" class="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(boblift_localized_static_text('Warranty and parts')); ?><?php echo $buying_flag; ?></h3>
+                            <h3 id="buying-warranty" class="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(boblift_localized_static_text('Warranty and parts')); ?></h3>
                             <p class="mt-4 text-2xl font-black leading-none text-[#071f42]"><?php echo esc_html(boblift_localized_static_text('12 months')); ?></p>
                             <p class="mt-3 text-sm font-normal leading-6 text-slate-700"><?php echo esc_html(boblift_localized_static_text('Send the model, serial number and a photo or video of the issue; our team guides the repair and ships the parts.')); ?></p>
                             <p class="mt-4 inline-flex items-center gap-2 text-sm font-black text-[#071f42]"><?php echo boblift_icon('package-check', 'h-4 w-4 text-[#0B3F7D]'); ?><?php echo esc_html(boblift_localized_static_text('Order from 1 unit')); ?></p>

@@ -46,6 +46,7 @@ return [
         '{count} units' => '{count} 台',
         'Ships in {days} working days from order.' => 'ご注文から {days} 営業日で出荷します。',
         'Loading figures are approximate; we confirm the plan with your order.' => '積載台数は目安です。ご注文時に積載計画を確定します。',
+        'Lead time and container loading are confirmed with your quotation.' => '納期とコンテナ積載台数は、お見積りの際に確定します。',
         'Warranty and parts' => '保証・部品',
         '12 months' => '12 か月',
         'Send the model, serial number and a photo or video of the issue; our team guides the repair and ships the parts.' => '機種名、シリアル番号、不具合の写真または動画をお送りください。当社チームが修理をご案内し、部品を発送します。',
@@ -103,6 +104,7 @@ return [
         '{count} units' => '{count} 台',
         'Ships in {days} working days from order.' => '下单后 {days} 个工作日发货。',
         'Loading figures are approximate; we confirm the plan with your order.' => '装柜数量为参考值，下单时我们会确认装柜方案。',
+        'Lead time and container loading are confirmed with your quotation.' => '交货期和装柜方案随报价一并确认。',
         'Warranty and parts' => '质保与配件',
         '12 months' => '12 个月',
         'Send the model, serial number and a photo or video of the issue; our team guides the repair and ships the parts.' => '发来型号、出厂编号和故障照片或视频，我们会指导维修并寄出配件。',
@@ -113,5 +115,16 @@ return [
         'Not answered here?' => '没找到答案？',
         'Send us your question and our team replies with answers for your site.' => '把问题发给我们，团队会结合你的现场情况答复。',
         'Ask a question' => '提问',
+    ],    'fr' => [
+        'Lead time and container loading are confirmed with your quotation.' => 'Le délai de livraison et le chargement des conteneurs sont confirmés dans votre devis.',
+    ],
+    'es' => [
+        'Lead time and container loading are confirmed with your quotation.' => 'El plazo de entrega y la carga del contenedor se confirman junto con su presupuesto.',
+    ],
+    'ru' => [
+        'Lead time and container loading are confirmed with your quotation.' => 'Срок поставки и загрузка контейнера подтверждаются в вашем коммерческом предложении.',
+    ],
+    'ar' => [
+        'Lead time and container loading are confirmed with your quotation.' => 'يتم تأكيد مهلة التسليم وتحميل الحاويات مع عرض الأسعار الخاص بك.',
     ],
 ];
