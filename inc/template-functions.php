@@ -839,7 +839,7 @@ function boblift_cache_get(string $name, ?bool &$found = null): mixed
     }
     $encoded = (string) ($head['data'] ?? '');
     for ($index = 1; $index < (int) ($head['chunks'] ?? 1); $index++) {
-        $part = get_transient($name . '_' . $index);
+        $part = get_transient($name . '_' . (string) ($head['generation'] ?? '') . '_' . $index);
         if (!is_string($part)) {
             return null;
         }
@@ -865,10 +865,15 @@ function boblift_cache_set(string $name, mixed $data): void
         return;
     }
     $parts = str_split(base64_encode(gzcompress(serialize($data), 6)), 250000);
-    set_transient($name, ['signature' => $signature, 'chunks' => count($parts), 'data' => $parts[0]], 12 * HOUR_IN_SECONDS);
+    // Trailing chunks are written under this build's own generation and the head that names it goes last, so concurrent
+    // builds never mix their chunks and a reader never sees a head before its chunks.
+    $generation = substr(md5(wp_generate_uuid4()), 0, 12);
     foreach (array_slice($parts, 1, null, true) as $index => $part) {
-        set_transient($name . '_' . $index, $part, 12 * HOUR_IN_SECONDS);
+        if (!set_transient($name . '_' . $generation . '_' . $index, $part, 12 * HOUR_IN_SECONDS)) {
+            return;
+        }
     }
+    set_transient($name, ['signature' => $signature, 'generation' => $generation, 'chunks' => count($parts), 'data' => $parts[0]], 12 * HOUR_IN_SECONDS);
 }
 
 /**
@@ -1009,12 +1014,15 @@ function boblift_bump_products_cache(): void
 function boblift_bump_products_cache_now(): void
 {
     $GLOBALS['boblift_cache_memo'] = [];
-    update_option('boblift_products_cache_version', (string) ((int) get_option('boblift_products_cache_version', '0') + 1), true);
+    // A fresh token, not an increment: two concurrent saves could compute the same next number, or one could write back
+    // an older one, and make entries built mid-save valid again.
+    update_option('boblift_products_cache_version', wp_generate_uuid4(), true);
 }
 
 function boblift_bump_products_cache_for_post(int $post_id): void
 {
-    if (in_array(get_post_type($post_id), ['product', 'attachment'], true)) {
+    // Synced patterns (wp_block) can be embedded in product content, so editing one changes the rendered products.
+    if (in_array(get_post_type($post_id), ['product', 'attachment', 'wp_block'], true)) {
         boblift_bump_products_cache();
     }
 }

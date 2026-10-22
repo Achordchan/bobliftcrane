@@ -252,12 +252,20 @@ function ptai_cached_url_to_postid($url, $lang)
 
 function ptai_bump_url_ids_version()
 {
+  // A fresh token per change (never an increment, which concurrent saves could repeat), once when the change burst
+  // starts and once more when the request ends, so a map saved against the intermediate token is retired too.
   static $bumped = false;
   if ($bumped) {
     return;
   }
   $bumped = true;
-  update_option('ptai_url_ids_version', (string) ((int) get_option('ptai_url_ids_version', '0') + 1), true);
+  ptai_set_url_ids_version();
+  add_action('shutdown', 'ptai_set_url_ids_version', 0);
+}
+
+function ptai_set_url_ids_version()
+{
+  update_option('ptai_url_ids_version', wp_generate_uuid4(), true);
 }
 
 foreach (['save_post', 'deleted_post', 'trashed_post', 'untrashed_post'] as $ptai_post_hook) {
