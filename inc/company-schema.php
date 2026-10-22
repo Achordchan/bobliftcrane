@@ -165,7 +165,11 @@ add_filter('jetpack_seo_llms_txt_can_serve', '__return_false');
 
 // Ahead of the legacy redirects (priority 0) and the 404 template.
 add_action('template_redirect', static function (): void {
-    if (rtrim((string) wp_parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH), '/') !== '/llms.txt' || !get_option('blog_public')) {
+    // Compared with the path home_url() gives, so an install in a subdirectory (/cranes/llms.txt) answers too. Polylang
+    // adds no language prefix here: llms.txt describes the English (default-language) site.
+    $request = rtrim((string) wp_parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH), '/');
+    $base = rtrim((string) wp_parse_url((string) get_option('home'), PHP_URL_PATH), '/');
+    if ($request !== $base . '/llms.txt' || !get_option('blog_public')) {
         return;
     }
     status_header(200);
