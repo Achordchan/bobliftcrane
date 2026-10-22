@@ -273,6 +273,8 @@ function boblift_form_security_defaults(): array
         // under 表单安全 → 统计与广告.
         'google_tag' => '',
         'google_conversion' => '',
+        // The ad agency's Tag Manager container (GTM-…), loaded beside the Google tag by inc/consent.php.
+        'gtm_container' => '',
     ];
 }
 
