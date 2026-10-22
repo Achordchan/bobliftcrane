@@ -2806,12 +2806,18 @@
   syncFooterGroups();
   footerPhone.addEventListener('change', syncFooterGroups);
 
-  // Footer on phones: the button shows the company's other addresses and then goes away.
-  qsa('[data-footer-more-addresses]').forEach((button) => button.addEventListener('click', () => {
-    qsa('[data-footer-more-address]', button.parentElement).forEach((item) => item.classList.remove('hidden'));
-    button.setAttribute('aria-expanded', 'true');
-    button.hidden = true;
-  }));
+  // Footer on phones: the company's other addresses fold behind a button once script runs (without it they all show),
+  // and the button shows them and then goes away.
+  qsa('[data-footer-more-addresses]').forEach((button) => {
+    const extras = qsa('[data-footer-more-address]', button.parentElement);
+    extras.forEach((item) => item.classList.add('hidden'));
+    button.classList.replace('hidden', 'inline-flex');
+    button.addEventListener('click', () => {
+      extras.forEach((item) => item.classList.remove('hidden'));
+      button.setAttribute('aria-expanded', 'true');
+      button.classList.replace('inline-flex', 'hidden');
+    });
+  });
 
   // Social shorts play one at a time.
   const socialVideos = qsa('[data-social-video]');

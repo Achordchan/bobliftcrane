@@ -145,14 +145,15 @@ if ($service_links !== []) {
                         <li><a class="inline-flex min-h-10 min-w-0 items-center gap-3 text-sm font-medium leading-6 text-slate-600 transition hover:text-blue-700 md:min-h-0 md:items-start md:text-[15px]" href="<?php echo esc_url($row[2]); ?>"><?php echo boblift_icon($row[0], 'mt-1 h-4 w-4 shrink-0 text-slate-400', '1.9'); ?><span class="min-w-0 break-words"><span dir="ltr"><?php echo esc_html($row[1]); ?></span></span></a></li>
                     <?php endforeach; ?>
                 </ul>
-                <?php // Registered address, main factory and office, each under its own label; they link to the contact page's map. ?>
+                <?php // Registered address, main factory and office, each under its own label; they link to the contact page's map. All
+                // three ship visible; on phones theme.js folds the second and third behind the "show all" button. ?>
                 <?php $company_addresses = boblift_company_addresses(); ?>
                 <ul class="mt-1 grid gap-3 md:mt-5 md:grid-cols-3 md:gap-6 xl:grid-cols-1 xl:gap-4">
                     <?php foreach ($company_addresses as $address_index => $row) : ?>
-                        <li<?php echo $address_index > 0 ? ' class="hidden md:block" data-footer-more-address' : ''; ?>><a class="flex min-w-0 items-start gap-3 text-sm font-medium leading-6 text-slate-600 transition hover:text-blue-700 md:text-[15px]" href="<?php echo esc_url(boblift_url('/contact') . '#map'); ?>"><?php echo boblift_icon('map-pin', 'mt-1 h-4 w-4 shrink-0 text-slate-400', '1.9'); ?><span class="min-w-0 break-words"><span class="block text-xs font-black uppercase tracking-[0.12em] text-slate-400"><?php echo esc_html($row['label']); ?></span><?php echo esc_html($row['address']); ?></span></a></li>
+                        <li<?php echo $address_index > 0 ? ' class="md:block" data-footer-more-address' : ''; ?>><a class="flex min-w-0 items-start gap-3 text-sm font-medium leading-6 text-slate-600 transition hover:text-blue-700 md:text-[15px]" href="<?php echo esc_url(boblift_url('/contact') . '#map'); ?>"><?php echo boblift_icon('map-pin', 'mt-1 h-4 w-4 shrink-0 text-slate-400', '1.9'); ?><span class="min-w-0 break-words"><span class="block text-xs font-black uppercase tracking-[0.12em] text-slate-400"><?php echo esc_html($row['label']); ?></span><?php echo esc_html($row['address']); ?></span></a></li>
                     <?php endforeach; ?>
                 </ul>
-                <?php if (count($company_addresses) > 1) : ?><button class="inline-flex min-h-10 items-center gap-1.5 text-sm font-bold text-navy transition hover:text-blue-700 md:hidden" type="button" data-footer-more-addresses aria-expanded="false"><?php echo esc_html(str_replace('{count}', (string) count($company_addresses), boblift_localized_static_text('Show all {count} addresses'))); ?><?php echo boblift_icon('chevron-down', 'h-4 w-4'); ?></button><?php endif; ?>
+                <?php if (count($company_addresses) > 1) : ?><button class="hidden min-h-10 items-center gap-1.5 text-sm font-bold text-navy transition hover:text-blue-700 md:hidden" type="button" data-footer-more-addresses aria-expanded="false"><?php echo esc_html(str_replace('{count}', (string) count($company_addresses), boblift_localized_static_text('Show all {count} addresses'))); ?><?php echo boblift_icon('chevron-down', 'h-4 w-4'); ?></button><?php endif; ?>
             </div>
         </div>
         <?php

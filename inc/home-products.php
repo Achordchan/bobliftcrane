@@ -177,7 +177,7 @@ function boblift_home_product_catalog(array $section): array
         $catalog[] = [
             'name' => $title,
             'image' => $image !== '' ? $image : 'images/products/crane-accessories.png',
-            'image_fit' => $image !== '' ? boblift_image_fit(boblift_image_src($image)) : 'cutout',
+            'image_fit' => $image !== '' ? boblift_image_fit(boblift_home_image_url($image)) : 'cutout',
             'icon' => (string) ($parent_category['icon'] ?? ''),
             'href' => boblift_product_nav_url('/' . $parent_slug, $title),
             'total' => $total,
@@ -365,6 +365,12 @@ function boblift_home_product_image_ratio(string $url): float
     return $cache[$url] = $size && $size[1] > 0 ? $size[0] / $size[1] : 0.0;
 }
 
+/** A saved picture as a URL: theme-relative paths ("images/products/x.png") resolve to the theme's assets; full and root-relative URLs stay. */
+function boblift_home_image_url(string $src): string
+{
+    return $src === '' || str_starts_with($src, '/') ? $src : boblift_image_src($src);
+}
+
 /** The card picture: the model's own photo when it is a cut-out, else a cut-out from its gallery, else the photo. */
 function boblift_home_product_card_image(array $product): string
 {
@@ -375,8 +381,7 @@ function boblift_home_product_card_image(array $product): string
     foreach ((array) ($product['gallery'] ?? []) as $item) {
         $src = is_array($item) ? (string) ($item['image'] ?? '') : (string) $item;
         if ($src !== '' && preg_match('/-cutout\.png$/i', (string) strtok($src, '?'))) {
-            // A theme-relative path ("images/products/x-cutout.png") resolves to the theme's assets; full and root-relative URLs stay.
-            return str_starts_with($src, '/') ? $src : boblift_image_src($src);
+            return boblift_home_image_url($src);
         }
     }
     return $main;
@@ -501,7 +506,7 @@ function boblift_render_home_products(): void
                             <?php foreach ($catalog as $index => $category) : ?>
                                 <?php $chip_icon = $category['icon'] !== '' ? 'images/mega-menu-icons/' . sanitize_key($category['icon']) . '.png' : ''; ?>
                                 <button id="home-products-tab-<?php echo esc_attr((string) $index); ?>" class="boblift-cat-card group" type="button" role="tab" aria-selected="<?php echo $index === 0 ? 'true' : 'false'; ?>" tabindex="<?php echo $index === 0 ? '0' : '-1'; ?>" aria-controls="home-products-panel-<?php echo esc_attr((string) $index); ?>" data-product-category-tab="<?php echo esc_attr((string) $index); ?>">
-                                    <span class="boblift-cat-media<?php echo ($category['image_fit'] ?? '') === 'photo' ? ' is-photo' : ''; ?>"><img src="<?php echo esc_url(boblift_image_src($category['image'])); ?>" alt="" loading="lazy" decoding="async"></span>
+                                    <span class="boblift-cat-media<?php echo ($category['image_fit'] ?? '') === 'photo' ? ' is-photo' : ''; ?>"><img src="<?php echo esc_url(boblift_home_image_url((string) $category['image'])); ?>" alt="" loading="lazy" decoding="async"></span>
                                     <?php if ($chip_icon !== '' && is_readable(boblift_asset_path($chip_icon))) : ?><img class="boblift-cat-chip-icon" src="<?php echo esc_url(boblift_asset($chip_icon)); ?>" alt="" width="26" height="26" loading="lazy" decoding="async"><?php endif; ?>
                                     <span class="boblift-cat-label"><span class="boblift-cat-name"><?php echo esc_html($category['name']); ?></span><?php echo boblift_icon('arrow-right', 'boblift-cat-arrow-icon h-[18px] w-[18px]'); ?></span>
                                 </button>
