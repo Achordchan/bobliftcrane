@@ -62,28 +62,39 @@ function boblift_product_data_publish_all(int $english_id): bool
     return $ok;
 }
 
-/** Writes the new SQZ800 drawing over its attachment and rebuilds the sizes; true when done or nothing to do. */
+/**
+ * Writes the new SQZ800 drawing over its attachment (the -scaled copy and the original, when WordPress kept both) and
+ * rebuilds the sizes; true when done or when the site has no such attachment.
+ */
 function boblift_product_data_replace_sqz800_drawing(): bool
 {
     $source = get_template_directory() . '/assets/images/drawings/boblift-drawings-SQZ800.webp';
     global $wpdb;
-    $attachment = (int) $wpdb->get_var($wpdb->prepare("SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_wp_attached_file' AND meta_value LIKE %s ORDER BY post_id LIMIT 1", '%boblift-drawings-SQZ800.webp'));
+    // Matches "boblift-drawings-SQZ800.webp" and the "-scaled" name WordPress gives a large upload.
+    $attachment = (int) $wpdb->get_var($wpdb->prepare("SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_wp_attached_file' AND (meta_value LIKE %s OR meta_value LIKE %s) ORDER BY post_id LIMIT 1", '%/boblift-drawings-SQZ800.webp', '%/boblift-drawings-SQZ800-scaled.webp'));
     $file = $attachment > 0 ? get_attached_file($attachment) : '';
-    if (!$file || !is_readable($source)) {
+    if (!$file) {
         return true;
     }
-    if (!copy($source, $file)) {
+    if (!is_readable($source)) {
         return false;
     }
+    $original = function_exists('wp_get_original_image_path') ? (string) wp_get_original_image_path($attachment) : '';
+    foreach (array_unique(array_filter([$file, $original])) as $target) {
+        if (!copy($source, $target)) {
+            return false;
+        }
+    }
     require_once ABSPATH . 'wp-admin/includes/image.php';
-    $meta = wp_generate_attachment_metadata($attachment, $file);
-    if (!is_array($meta) || empty($meta['width']) || empty($meta['sizes'])) {
+    $meta = wp_generate_attachment_metadata($attachment, $original !== '' ? $original : $file);
+    // A site without intermediate sizes gets an empty "sizes" list, which is fine; no width means processing failed.
+    if (!is_array($meta) || empty($meta['width'])) {
         return false;
     }
     wp_update_attachment_metadata($attachment, $meta);
-    // wp_update_attachment_metadata() is false for an unchanged value too, so the stored sizes are compared instead.
+    // wp_update_attachment_metadata() is false for an unchanged value too, so the stored value is compared instead.
     $stored = wp_get_attachment_metadata($attachment);
-    return is_array($stored) && (int) ($stored['width'] ?? 0) === (int) $meta['width'] && array_keys((array) ($stored['sizes'] ?? [])) === array_keys($meta['sizes']);
+    return is_array($stored) && (int) ($stored['width'] ?? 0) === (int) $meta['width'] && array_keys((array) ($stored['sizes'] ?? [])) === array_keys((array) ($meta['sizes'] ?? []));
 }
 
 function boblift_apply_product_data_2026_10(): void
