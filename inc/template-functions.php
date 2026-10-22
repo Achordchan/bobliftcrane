@@ -241,11 +241,12 @@ function boblift_post_thumbnail_url(WP_Post $post, string $fallback): string
 }
 
 /*
- * A site picture (a theme image or a media-library upload) resized by WordPress.com's image CDN (Photon), which also
+ * A media-library upload resized by WordPress.com's image CDN (Photon), which also
  * serves WebP or AVIF where the browser takes them, so a card downloads a picture its own size rather than the full
  * photograph. Every CDN address asks for quality=80&strip=all: without it a PNG comes back as lossless WebP (a 600-pixel
  * copy of a 1.3 MB cut-out still weighs 520 KB). The address is left unchanged where the CDN cannot help: a site on
- * localhost, a private name or its own port (boblift_image_cdn_host()), a picture that is not a file on this site,
+ * localhost, a private name or its own port (boblift_image_cdn_host()), a picture that is not an upload on this site
+ * (theme images among them, see boblift_image_facts()),
  * and one carrying Content Credentials (C2PA), which the CDN re-signs into every copy. Ported from bobliftloader.
  * The host comes from site_url(): Polylang rewrites home_url() called from theme files to a language home it caches,
  * which can keep an earlier host.
@@ -326,14 +327,12 @@ function boblift_image_facts(string $url): ?array
     if (($host && strtolower((string) $host) !== boblift_image_cdn_host(site_url())) || wp_parse_url($url, PHP_URL_PORT) || wp_parse_url($url, PHP_URL_USER)) {
         return $known[$url] = null;
     }
+    // Media-library uploads only. The CDN keeps the first copy of an address for good and cannot be purged, so a picture
+    // must never change behind an address it has served: WordPress gives every upload a new file name, while a deploy
+    // rewrites theme images in place (a version query does not reach the CDN's copy of the original).
     $uploads = wp_upload_dir();
-    $roots = [(string) wp_parse_url($uploads['baseurl'], PHP_URL_PATH) => $uploads['basedir'], (string) wp_parse_url(get_template_directory_uri(), PHP_URL_PATH) => get_template_directory()];
-    $file = '';
-    foreach ($roots as $prefix => $dir) {
-        if ($prefix !== '' && str_starts_with($path, $prefix . '/')) {
-            $file = $dir . substr(rawurldecode($path), strlen($prefix));
-        }
-    }
+    $prefix = (string) wp_parse_url($uploads['baseurl'], PHP_URL_PATH);
+    $file = $prefix !== '' && str_starts_with($path, $prefix . '/') ? $uploads['basedir'] . substr(rawurldecode($path), strlen($prefix)) : '';
     if ($file === '' || str_contains($file, '..') || !is_file($file)) {
         return $known[$url] = null;
     }
