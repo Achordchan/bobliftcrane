@@ -7,6 +7,7 @@ require_once get_template_directory() . '/inc/site-ui.php';
 require_once get_template_directory() . '/inc/data.php';
 require_once get_template_directory() . '/inc/post-types.php';
 require_once get_template_directory() . '/inc/product-lifecycle.php';
+require_once get_template_directory() . '/inc/case-rest.php';
 require_once get_template_directory() . '/inc/template-functions.php';
 require_once get_template_directory() . '/inc/home-products.php';
 require_once get_template_directory() . '/inc/home-sections.php';
