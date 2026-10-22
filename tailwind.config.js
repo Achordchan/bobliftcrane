@@ -146,6 +146,8 @@ module.exports = {
         ink: '#08234a',
         navy: '#071f42',
         gold: '#f59a3c',
+        // Gold for small text on light backgrounds: the brand gold is 2.2:1 on white, this is 5.9:1.
+        'gold-deep': '#9a5208',
         mist: '#f4f7fb',
         line: '#e4ebf4',
         // Secondary text: Tailwind's #64748b falls just short of 4.5:1 on the mist panels (4.43), this passes on mist and white.
