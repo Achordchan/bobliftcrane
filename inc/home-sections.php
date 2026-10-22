@@ -142,23 +142,45 @@ function boblift_render_home_faq(): void
 // Customer feedback: photos and videos buyers sent back, one row of six, each from a different country where possible.
 function boblift_render_home_feedback(): void
 {
-    $items = array_values(array_filter(boblift_feedback_items(), static fn(array $item): bool => (string) ($item['cover'] ?? '') !== ''));
-    if ($items === []) {
-        return;
-    }
+    // Six entries with a cover, different countries first, then the next ones in order. Building an entry reads all of
+    // its media, so only the entries that can still be picked are built: the country is read first (the query primed
+    // every post's meta) and an entry whose country is already shown is passed over in the first round.
+    $posts = get_posts(['post_type' => 'feedback', 'post_status' => 'publish', 'posts_per_page' => -1, 'orderby' => ['menu_order' => 'ASC', 'date' => 'DESC'], 'lang' => '']);
+    // Featured images in one query rather than one per built entry.
+    _prime_post_caches(array_values(array_filter(array_map(static fn(WP_Post $post): int => (int) get_post_thumbnail_id($post), $posts))), false, true);
+    $built = [];
+    $item_at = static function (int $index) use ($posts, &$built): ?array {
+        if (!array_key_exists($index, $built)) {
+            $item = boblift_feedback_item($posts[$index]);
+            $built[$index] = $item && (string) ($item['cover'] ?? '') !== '' ? $item : null;
+        }
+        return $built[$index];
+    };
     $picked = [];
     $countries = [];
-    foreach ($items as $item) {
-        $country = (string) $item['country'];
-        if (count($picked) < 6 && !isset($countries[$country])) {
-            $picked[] = $item;
-            $countries[$country] = true;
+    foreach (array_keys($posts) as $index) {
+        if (count($picked) >= 6) {
+            break;
+        }
+        if (isset($countries[boblift_feedback_text($posts[$index]->ID, '_feedback_country')])) {
+            continue;
+        }
+        $item = $item_at($index);
+        if ($item !== null) {
+            $picked[$index] = $item;
+            $countries[(string) $item['country']] = true;
         }
     }
-    foreach ($items as $item) {
-        if (count($picked) < 6 && !in_array($item, $picked, true)) {
-            $picked[] = $item;
+    foreach (array_keys($posts) as $index) {
+        if (count($picked) >= 6) {
+            break;
         }
+        if (!isset($picked[$index]) && ($item = $item_at($index)) !== null) {
+            $picked[$index] = $item;
+        }
+    }
+    if ($picked === []) {
+        return;
     }
     $ui = boblift_site_ui('casesPage');
     $all_url = add_query_arg('tab', 'customer_feedback', boblift_case_archive_url());
@@ -179,7 +201,7 @@ function boblift_render_home_feedback(): void
                 ?>
                     <a class="group flex w-[44%] shrink-0 snap-start flex-col overflow-hidden rounded border border-line bg-white shadow-card transition duration-300 hover:border-blue-300 md:w-auto" href="<?php echo esc_url($item['url']); ?>">
                         <span class="relative block aspect-[4/3] overflow-hidden bg-[#eef5ff]">
-                            <img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" src="<?php echo esc_url($item['cover']); ?>" alt="<?php echo esc_attr($caption); ?>" loading="lazy" decoding="async">
+                            <img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" <?php echo boblift_img_src($item['cover'], '(min-width: 1024px) 17vw, (min-width: 768px) 33vw, 44vw'); ?> alt="<?php echo esc_attr($caption); ?>" loading="lazy" decoding="async">
                             <?php if (($item['media'][0]['type'] ?? '') === 'video') : ?><span class="absolute inset-0 m-auto grid size-11 place-items-center rounded-sm bg-white/90 text-blue-700 shadow-card"><?php echo boblift_icon('circle-play', 'h-6 w-6'); ?></span><?php endif; ?>
                         </span>
                         <span class="block px-3 py-3">
@@ -216,7 +238,7 @@ function boblift_render_home_cases(): void
                     $meta = array_values(array_filter([trim((string) ($item['country'] ?? '')), trim((string) ($item['application'] ?? ''))]));
                 ?>
                     <a class="group flex w-[82%] shrink-0 snap-start flex-col overflow-hidden rounded border border-line bg-white shadow-card transition duration-300 hover:-translate-y-1 hover:border-blue-300 md:w-auto" href="<?php echo esc_url($item['url']); ?>">
-                        <span class="relative block aspect-[4/3] overflow-hidden bg-[#eef5ff]"><img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" src="<?php echo esc_url(boblift_item_image($item)); ?>" alt="<?php echo esc_attr($item['title']); ?>" loading="lazy" decoding="async"></span>
+                        <span class="relative block aspect-[4/3] overflow-hidden bg-[#eef5ff]"><img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" <?php echo boblift_img_src(boblift_item_image($item), '(min-width: 768px) 33vw, 80vw'); ?> alt="<?php echo esc_attr($item['title']); ?>" loading="lazy" decoding="async"></span>
                         <span class="flex flex-1 flex-col p-5 lg:p-6">
                             <?php if ($meta !== []) : ?><span class="mb-2 text-[11px] font-black uppercase tracking-[0.14em] text-slate-400"><?php echo esc_html(implode(' · ', $meta)); ?></span><?php endif; ?>
                             <span class="line-clamp-2 text-lg font-black leading-tight tracking-[-0.01em] text-ink lg:text-xl"><?php echo esc_html($item['title']); ?></span>

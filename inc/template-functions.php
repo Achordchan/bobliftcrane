@@ -240,6 +240,151 @@ function boblift_post_thumbnail_url(WP_Post $post, string $fallback): string
     return is_string($thumbnail) && $thumbnail !== '' ? $thumbnail : $fallback;
 }
 
+/*
+ * A media-library upload resized by WordPress.com's image CDN (Photon), which also
+ * serves WebP or AVIF where the browser takes them, so a card downloads a picture its own size rather than the full
+ * photograph. Every CDN address asks for quality=80&strip=all: without it a PNG comes back as lossless WebP (a 600-pixel
+ * copy of a 1.3 MB cut-out still weighs 520 KB). The address is left unchanged where the CDN cannot help: a site on
+ * localhost, a private name or its own port (boblift_image_cdn_host()), a picture that is not an upload on this site
+ * (theme images among them, see boblift_image_facts()),
+ * and one carrying Content Credentials (C2PA), which the CDN re-signs into every copy. Ported from bobliftloader.
+ * The host comes from site_url(): Polylang rewrites home_url() called from theme files to a language home it caches,
+ * which can keep an earlier host.
+ */
+function boblift_image_resized(string $url, int $width): string
+{
+    $facts = boblift_image_facts($url);
+    if (!$facts || $facts['c2pa']) {
+        return $url;
+    }
+    // A picture no wider than asked for still goes through the CDN at its own size, for the format and quality alone.
+    if ($width >= $facts['width']) {
+        $width = 0;
+    }
+    $parts = wp_parse_url($url);
+    // ssl=1 has the CDN fetch the original over HTTPS; a picture served over plain HTTP is fetched that way.
+    $https = ($parts['scheme'] ?? wp_parse_url(site_url(), PHP_URL_SCHEME)) === 'https';
+    $query = isset($parts['query']) ? $parts['query'] . '&' : '';
+    return 'https://i0.wp.com/' . boblift_image_cdn_host(site_url()) . $parts['path'] . '?' . $query . ($width > 0 ? 'w=' . $width . '&' : '') . 'quality=80&strip=all' . ($https ? '&ssl=1' : '');
+}
+
+/*
+ * The site's host as the CDN addresses it; empty where the CDN cannot fetch from it: a site on its own port, and one on
+ * a local or private name (localhost, an IP address, .local, .test and the like). The boblift_image_cdn filter turns
+ * the CDN off for a site that is not public, or on for a host this misjudges (or for a local test).
+ */
+function boblift_image_cdn_host(string $home): string
+{
+    $host = strtolower((string) wp_parse_url($home, PHP_URL_HOST));
+    $public = $host !== '' && !wp_parse_url($home, PHP_URL_PORT) && str_contains($host, '.') && !filter_var(trim($host, '[]'), FILTER_VALIDATE_IP)
+        && !preg_match('/\.(local|localhost|localdomain|test|example|invalid|internal|lan|home\.arpa)$/', $host);
+    $public = (bool) apply_filters('boblift_image_cdn', $public, $host);
+    return $public && $host !== '' ? $host : '';
+}
+
+/* srcset for a site picture at the widths below its own, its full size (through the CDN) last; empty when it cannot be resized. */
+function boblift_image_srcset(string $url, array $widths = [160, 320, 480, 640, 800, 1024, 1280, 1600]): string
+{
+    $facts = boblift_image_facts($url);
+    if (!$facts || $facts['c2pa']) {
+        return '';
+    }
+    $candidates = [];
+    foreach ($widths as $width) {
+        if ($width < $facts['width']) {
+            $candidates[] = boblift_image_resized($url, $width) . ' ' . $width . 'w';
+        }
+    }
+    return $candidates ? implode(', ', [...$candidates, boblift_image_resized($url, 0) . ' ' . $facts['width'] . 'w']) : '';
+}
+
+/*
+ * The src attribute of a card or cover picture, with srcset and sizes when the CDN can resize it ($sizes: the width the
+ * picture is shown at). Where it cannot (a local site), this is exactly src="<the picture>".
+ */
+function boblift_img_src(string $url, string $sizes, int $fallback_width = 800): string
+{
+    $srcset = boblift_image_srcset($url);
+    if ($srcset === '') {
+        return 'src="' . esc_url($url) . '"';
+    }
+    return 'src="' . esc_url(boblift_image_resized($url, $fallback_width)) . '" srcset="' . esc_attr($srcset) . '" sizes="' . esc_attr($sizes) . '"';
+}
+
+/* The width and Content Credentials of a picture on this site, read from its file once and remembered while it is unchanged; null for anything else. */
+function boblift_image_facts(string $url): ?array
+{
+    static $known = [];
+    if ($url === '' || boblift_image_cdn_host(site_url()) === '') {
+        return null;
+    }
+    if (array_key_exists($url, $known)) {
+        return $known[$url];
+    }
+    $path = (string) wp_parse_url($url, PHP_URL_PATH);
+    $host = wp_parse_url($url, PHP_URL_HOST);
+    // Only the site's own host, as the CDN addresses it: no other host, port or credentials, which a CDN address would drop.
+    if (($host && strtolower((string) $host) !== boblift_image_cdn_host(site_url())) || wp_parse_url($url, PHP_URL_PORT) || wp_parse_url($url, PHP_URL_USER)) {
+        return $known[$url] = null;
+    }
+    // Media-library uploads only. The CDN keeps the first copy of an address for good and cannot be purged, so a picture
+    // must never change behind an address it has served: WordPress gives every upload a new file name, while a deploy
+    // rewrites theme images in place (a version query does not reach the CDN's copy of the original).
+    $uploads = wp_upload_dir();
+    $prefix = (string) wp_parse_url($uploads['baseurl'], PHP_URL_PATH);
+    $file = $prefix !== '' && str_starts_with($path, $prefix . '/') ? $uploads['basedir'] . substr(rawurldecode($path), strlen($prefix)) : '';
+    if ($file === '' || str_contains($file, '..') || !is_file($file)) {
+        return $known[$url] = null;
+    }
+    $key = md5($file . '|' . filemtime($file) . '|' . filesize($file));
+    // All pictures' facts live in one option, read once per request (one query rather than one per picture without a
+    // persistent object cache); the ones worked out on this request are saved when it ends.
+    $state = &$GLOBALS['boblift_image_facts'];
+    if (!is_array($state)) {
+        $stored = get_option('boblift_image_facts', []);
+        $state = ['facts' => is_array($stored) ? $stored : [], 'dirty' => false];
+    }
+    $facts = $state['facts'][$key] ?? null;
+    if (!is_array($facts)) {
+        $size = @getimagesize($file);
+        $facts = ['width' => (int) ($size[0] ?? 0), 'c2pa' => boblift_image_has_c2pa($file)];
+        $state['facts'][$key] = $facts;
+        if (!$state['dirty']) {
+            $state['dirty'] = true;
+            add_action('shutdown', 'boblift_image_facts_save', 0);
+        }
+    }
+    return $known[$url] = $facts['width'] ? $facts : null;
+}
+
+function boblift_image_facts_save(): void
+{
+    $state = $GLOBALS['boblift_image_facts'] ?? null;
+    if (!is_array($state) || !$state['dirty']) {
+        return;
+    }
+    // Keys change with a file's size and date, so replaced pictures leave stale entries; start over once it grows large.
+    $facts = count($state['facts']) > 4000 ? array_slice($state['facts'], -500, null, true) : $state['facts'];
+    update_option('boblift_image_facts', $facts, false);
+}
+
+/* Whether a picture file carries Content Credentials: a C2PA chunk in a WebP, a JUMBF "c2pa" box elsewhere (JPEG, PNG). */
+function boblift_image_has_c2pa(string $file): bool
+{
+    $bytes = (string) file_get_contents($file);
+    if (str_starts_with($bytes, 'RIFF') && substr($bytes, 8, 4) === 'WEBP') {
+        for ($at = 12; $at + 8 <= strlen($bytes);) {
+            if (substr($bytes, $at, 4) === 'C2PA') {
+                return true;
+            }
+            $length = unpack('V', substr($bytes, $at + 4, 4))[1];
+            $at += 8 + $length + ($length & 1);
+        }
+        return false;
+    }
+    return str_contains($bytes, 'c2pa');
+}
+
 /**
  * Whether a product's body text ("_detail_body_ready") or detail images ("_detail_images_ready") may be shown.
  * An editor's choice wins: a saved "1" shows it, a saved empty value hides it. Without a saved choice:
@@ -811,7 +956,8 @@ function boblift_cache_name(string $group, array $vary = []): string
 
 function boblift_cache_signature(): string
 {
-    return get_option('boblift_products_cache_version', '0') . '|' . boblift_products_code_version();
+    // Cached markup carries image addresses, which change when the image CDN is switched on or off.
+    return get_option('boblift_products_cache_version', '0') . '|' . boblift_products_code_version() . '|' . boblift_image_cdn_host(site_url());
 }
 
 function boblift_products_cache_persistent(): bool
@@ -1164,7 +1310,8 @@ foreach (['wp_insert_comment', 'edit_comment', 'deleted_comment', 'trashed_comme
 foreach (['added_option', 'updated_option', 'deleted_option'] as $boblift_option_hook) {
     add_action($boblift_option_hook, static function ($option): void {
         $option = (string) $option;
-        if ($option === 'boblift_products_cache_version' || str_starts_with($option, '_transient') || str_starts_with($option, '_site_transient')) {
+        // The products cache version and the image-facts store (boblift_image_facts()) do not change any page.
+        if ($option === 'boblift_products_cache_version' || $option === 'boblift_image_facts' || str_starts_with($option, '_transient') || str_starts_with($option, '_site_transient')) {
             return;
         }
         if (preg_match('/^(boblift|polylang|pll_|theme_mods_)/', $option)
@@ -1367,19 +1514,22 @@ function boblift_case_item_from_post(WP_Post $post): array
 
 // One customer feedback entry. Country, configuration note and body are stored per language;
 // images use a web size plus a thumbnail, videos carry their poster (the video attachment's featured image).
+/** A feedback field stored per language as JSON; an empty ja/zh slot falls back to English. */
+function boblift_feedback_text(int $post_id, string $key): string
+{
+    $language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
+    $values = json_decode((string) get_post_meta($post_id, $key, true), true) ?: [];
+    $local = trim((string) ($values[$language] ?? ''));
+    return $local !== '' ? $local : trim((string) ($values['en'] ?? ''));
+}
+
 function boblift_feedback_item(WP_Post $post): ?array
 {
     // A password-protected entry exposes nothing (text, media, URLs in lists) until WordPress has accepted the password.
     if (post_password_required($post)) {
         return null;
     }
-    $language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
-    $pick = static function (string $key) use ($post, $language): string {
-        $values = json_decode((string) get_post_meta($post->ID, $key, true), true) ?: [];
-        // Use the localized text only when it has real content; an empty ja/zh slot falls back to English.
-        $local = trim((string) ($values[$language] ?? ''));
-        return $local !== '' ? $local : trim((string) ($values['en'] ?? ''));
-    };
+    $pick = static fn(string $key): string => boblift_feedback_text($post->ID, $key);
     $media = [];
     foreach (array_filter(array_map('intval', explode(',', (string) get_post_meta($post->ID, '_feedback_media', true)))) as $id) {
         if (wp_attachment_is('video', $id)) {
@@ -1853,7 +2003,7 @@ function boblift_product_card(array $product, string $extra_class = '', bool $ea
         <div class="product-card-inner flex min-h-full flex-col">
             <div class="product-card-media relative h-64 overflow-hidden bg-[radial-gradient(circle_at_48%_34%,#ffffff_0%,#f8fafc_34%,#eef2f7_64%,#e2e8f0_100%)] sm:h-72 lg:h-64 xl:h-72">
                 <span class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_82%,rgba(15,23,42,0.13),transparent_44%)]"></span>
-                <img class="absolute inset-0 z-10 h-full w-full transition duration-500 <?php echo esc_attr($card_image_class); ?>" src="<?php echo esc_url($card_image); ?>" alt="<?php echo esc_attr($product['title']); ?>" <?php echo $eager_image ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'; ?> decoding="async">
+                <img class="absolute inset-0 z-10 h-full w-full transition duration-500 <?php echo esc_attr($card_image_class); ?>" <?php echo boblift_img_src($card_image, '(min-width: 1024px) 33vw, 50vw'); ?> alt="<?php echo esc_attr($product['title']); ?>" <?php echo $eager_image ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'; ?> decoding="async">
                 <a class="absolute inset-0 z-[15]" href="<?php echo esc_url($detail_url); ?>" aria-label="<?php echo esc_attr($view_details_label . ' ' . $product['title']); ?>"><span class="sr-only"><?php echo esc_html($view_details_label . ' ' . $product['title']); ?></span></a>
                 <div class="product-card-inline-actions absolute bottom-3 end-6 z-20 flex gap-2"><button class="inline-flex h-9 w-9 items-center justify-center rounded-sm border border-[#E5E7EB] bg-white text-[#0B1B33] transition hover:border-blue-300 hover:text-blue-700" type="button" data-product-favorite aria-label="<?php echo esc_attr($add_quote_label); ?>"><?php echo boblift_icon('heart', 'h-[18px] w-[18px]'); ?></button><button class="inline-flex h-9 w-9 items-center justify-center rounded-sm border border-[#E5E7EB] bg-white text-[#0B1B33] transition hover:border-blue-300 hover:text-blue-700" type="button" data-product-quick-view aria-label="<?php echo esc_attr($quick_view_label . ' ' . $product['title']); ?>"><?php echo boblift_icon('eye', 'h-[18px] w-[18px]'); ?></button></div>
             </div>
