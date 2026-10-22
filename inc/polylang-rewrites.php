@@ -116,7 +116,7 @@ function boblift_guess_404_permalink_in_request_language(mixed $pre): mixed
         return $pre;
     }
 
-    $language = boblift_current_language_slug() ?: (string) pll_default_language();
+    $language = boblift_request_url_language() ?: (string) pll_default_language();
     $default = (string) pll_default_language();
     $chosen = 0;
     foreach ($ids as $id) {
@@ -145,3 +145,63 @@ function boblift_guess_404_permalink_in_request_language(mixed $pre): mixed
     return is_string($url) && $url !== '' ? $url : $pre;
 }
 add_filter('pre_redirect_guess_404_permalink', 'boblift_guess_404_permalink_in_request_language');
+
+/**
+ * Keeps a page found by its bare slug in the language of the request.
+ *
+ * Translated copies of the About child pages (contact, service, why-choose-us ...) have no parent, so /contact/ matches
+ * whichever copy get_page_by_path() finds first and the canonical redirect then sent visitors to /ja/contact.html; the
+ * English page, under About, made /ja/about/contact/ land on /contact.html. When the post found is in another language
+ * than the address asks for and has a published translation in that language, redirect there instead.
+ */
+function boblift_canonical_in_request_language(string|false $redirect_url, string $requested_url): string|false
+{
+    if (!is_singular() || !function_exists('pll_get_post') || !function_exists('pll_get_post_language')) {
+        return $redirect_url;
+    }
+    $post = get_queried_object();
+    $language = boblift_request_url_language();
+    if (!$post instanceof WP_Post || $language === '') {
+        return $redirect_url;
+    }
+    $post_language = (string) pll_get_post_language($post->ID, 'slug');
+    if ($post_language === '' || $post_language === $language) {
+        return $redirect_url;
+    }
+    $translation = (int) pll_get_post($post->ID, $language);
+    if ($translation <= 0 || get_post_status($translation) !== 'publish') {
+        return $redirect_url;
+    }
+    // A comments feed stays a feed; otherwise the page, keeping a later page of a multipage post and a comments page,
+    // in core's address formats.
+    $url = is_feed() ? get_post_comments_feed_link($translation, (string) get_query_var('feed')) : get_permalink($translation);
+    if (!is_string($url) || $url === '') {
+        return $redirect_url;
+    }
+    if (!is_feed()) {
+        if ((int) get_query_var('page') > 1) {
+            $url = trailingslashit($url) . user_trailingslashit((string) (int) get_query_var('page'), 'single_paged');
+        }
+        if ((int) get_query_var('cpage') > 0) {
+            global $wp_rewrite;
+            $url = trailingslashit($url) . user_trailingslashit($wp_rewrite->comments_pagination_base . '-' . (int) get_query_var('cpage'), 'commentpaged');
+        }
+    }
+    // Keep campaign parameters (gclid, utm_*), but not routing ones: ?page_id=569 or ?lang=ja would pick the other
+    // language's page again on the corrected address (as in boblift_redirect_case_to_url_language()).
+    $query = wp_unslash($_GET);
+    $query = is_array($query) ? $query : [];
+    foreach (['p', 'page_id', 'name', 'pagename', 'post_type', 'lang', 'feed', 'preview', 'preview_id'] as $routing_key) {
+        unset($query[$routing_key]);
+    }
+    // Already at the translation (same host and path) with nothing to drop: no redirect at all, not even core's, which
+    // would point at the wrong language's address.
+    $same_host = strtolower((string) parse_url($requested_url, PHP_URL_HOST)) === strtolower((string) parse_url($url, PHP_URL_HOST));
+    $same_path = untrailingslashit((string) parse_url($requested_url, PHP_URL_PATH)) === untrailingslashit((string) parse_url($url, PHP_URL_PATH));
+    if ($same_host && $same_path && !array_diff_key(wp_unslash($_GET), $query)) {
+        return false;
+    }
+    $query_string = http_build_query($query, '', '&', PHP_QUERY_RFC3986);
+    return $query_string !== '' ? $url . (str_contains($url, '?') ? '&' : '?') . $query_string : $url;
+}
+add_filter('redirect_canonical', 'boblift_canonical_in_request_language', 20, 2);
