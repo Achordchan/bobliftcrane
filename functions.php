@@ -21,6 +21,7 @@ require_once get_template_directory() . '/inc/news-price-cleanup.php';
 require_once get_template_directory() . '/inc/forms.php';
 require_once get_template_directory() . '/inc/inquiry-mail.php';
 require_once get_template_directory() . '/inc/consent.php';
+require_once get_template_directory() . '/inc/dingtalk-bridge.php';
 require_once get_template_directory() . '/inc/brochures.php';
 require_once get_template_directory() . '/inc/news-article.php';
 require_once get_template_directory() . '/inc/legal-pages.php';
