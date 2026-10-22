@@ -528,7 +528,8 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                             ?>
                                 <div class="flex min-w-0 items-baseline justify-between gap-4 border-b border-[#E6EDF5] px-6 py-3 md:px-8 <?php echo esc_attr($spec_last); ?> <?php echo $spec_is_model ? 'bg-[#F5F8FC]' : ''; ?>">
                                     <dt class="min-w-0 text-sm font-normal leading-5 text-slate-500"><?php echo esc_html($spec['label']); ?></dt>
-                                    <dd class="shrink-0 whitespace-nowrap text-end font-black leading-tight text-[#071f42] [font-variant-numeric:tabular-nums]"><span class="text-base md:text-lg"><?php echo esc_html($spec_number); ?></span><?php if ($spec_unit !== '') : ?><span class="<?php echo $spec_unit === '°' ? '' : 'ms-1'; ?> text-xs font-bold text-slate-500 md:text-sm"><?php echo esc_html($spec_unit); ?></span><?php endif; ?></dd>
+                                    <?php // Short figures stay on one line; a long value (two configurations, a note) wraps within 60% of the row. ?>
+                                    <dd class="<?php echo mb_strlen((string) $spec['value']) <= 18 ? 'shrink-0 whitespace-nowrap' : 'min-w-0 max-w-[60%] break-words'; ?> text-end font-black leading-tight text-[#071f42] [font-variant-numeric:tabular-nums]"><span class="text-base md:text-lg"><?php echo esc_html($spec_number); ?></span><?php if ($spec_unit !== '') : ?><span class="<?php echo $spec_unit === '°' ? '' : 'ms-1'; ?> text-xs font-bold text-slate-500 md:text-sm"><?php echo esc_html($spec_unit); ?></span><?php endif; ?></dd>
                                 </div>
                             <?php endforeach; ?>
                         </dl>
@@ -619,7 +620,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                     $detail_has_body = $detail_body_lead !== '' || $detail_has_sections;
                     // The editor's summary only stands in when there is no body: the body's first paragraph says the same.
                     $detail_summary = $detail_has_body ? '' : $product_summary;
-                    $detail_has_right = $detail_has_body || $product_guide['compare'] || $product_guide['steps'] !== '' || $product_guide['supply'] !== '' || $product_guide['intro'] !== '' || $product_guide['cards'];
+                    $detail_has_right = $detail_has_body || $product_guide['compare'] || $product_guide['steps'] !== '' || $product_guide['supply'] !== '' || $product_guide['intro'] !== '' || $product_guide['cards'] || $detail_summary !== '';
                     $detail_model_label = $hero_model !== '' && strcasecmp($hero_model, $product_title) !== 0 ? $hero_model : '';
                     $detail_text = 'text-[15px] font-normal leading-7 text-slate-600 md:text-base md:leading-[1.8]';
                     ?>

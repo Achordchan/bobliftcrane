@@ -1027,7 +1027,12 @@ img { max-width: 100%; }
    grid (see boblift_render_legacy_panel()); the category tabs stay usable. */
 .boblift-legacy-panel { display: none; }
 [data-legacy-view] .boblift-legacy-panel { display: block; }
-[data-legacy-view] [data-products-toolbar],
+@media (min-width: 1024px) { [data-legacy-view] [data-products-toolbar] { display: none !important; } }
+/* Phones keep the filter button, the only way to change category there; count, sort and view modes go. */
+[data-legacy-view] [data-products-toolbar] > :first-child,
+[data-legacy-view] .boblift-product-sort-label,
+[data-legacy-view] .boblift-product-sort-trigger,
+[data-legacy-view] [data-products-view-modes],
 [data-legacy-view] [data-products-results],
 [data-legacy-view] [data-filter-dropdowns],
 [data-legacy-view] [data-filter-chips-row] { display: none !important; }

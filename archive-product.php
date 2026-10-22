@@ -1,13 +1,14 @@
 <?php
 get_header();
 $products = boblift_all_products();
-// A spec table without a "Max Lifting Capacity" row (aerial platforms list their working height) has no rated capacity:
-// its numeric fallback is metres, so it stays out of the capacity filter and capacity sorts. The raw figure still
-// orders the family in the default sort.
+// A product rated by working height (aerial platforms: a "Working Height" row and no "Max Lifting Capacity" row) keeps its
+// height in metres as the numeric fallback, so it stays out of the capacity filter and capacity sorts. The raw figure
+// still orders the family in the default sort.
 foreach ($products as &$product) {
     $product['sort_size'] = (float) ($product['filter_values']['capacity'] ?? 0);
     $spec_rows = (int) ($product['id'] ?? 0) > 0 ? (array) boblift_decode_meta(get_post_meta(boblift_product_english_id((int) $product['id']), '_specs', true), []) : [];
-    if ($spec_rows && !in_array('Max Lifting Capacity', array_map(static fn($row): string => is_array($row) ? trim((string) ($row['label'] ?? '')) : '', $spec_rows), true)) {
+    $spec_labels = array_map(static fn($row): string => is_array($row) ? trim((string) ($row['label'] ?? '')) : '', $spec_rows);
+    if (in_array('Working Height', $spec_labels, true) && !in_array('Max Lifting Capacity', $spec_labels, true)) {
         $product['filter_values']['capacity'] = 0.0;
     }
 }
@@ -297,7 +298,7 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
                         <?php endforeach; ?>
                     </div>
                 </div>
-                <div class="hidden rounded border border-[#D8DEE8] bg-white p-1 shadow-card md:flex" aria-label="<?php echo esc_attr($archive_ui['viewModeLabel'] ?? 'Product view mode'); ?>"><button class="inline-flex h-10 w-10 items-center justify-center rounded-sm bg-[#0B1B33] text-sm font-black text-white transition" type="button" data-view-toggle="grid" aria-label="<?php echo esc_attr($archive_ui['gridViewLabel'] ?? 'Grid view'); ?>"><?php echo boblift_icon('grid-3x3', 'h-5 w-5'); ?></button><button class="inline-flex h-10 w-10 items-center justify-center rounded-sm text-sm font-black text-[#0B1B33] transition hover:bg-slate-100" type="button" data-view-toggle="list" aria-label="<?php echo esc_attr($archive_ui['listViewLabel'] ?? 'List view'); ?>"><?php echo boblift_icon('list', 'h-5 w-5'); ?></button></div>
+                <div class="hidden rounded border border-[#D8DEE8] bg-white p-1 shadow-card md:flex" data-products-view-modes aria-label="<?php echo esc_attr($archive_ui['viewModeLabel'] ?? 'Product view mode'); ?>"><button class="inline-flex h-10 w-10 items-center justify-center rounded-sm bg-[#0B1B33] text-sm font-black text-white transition" type="button" data-view-toggle="grid" aria-label="<?php echo esc_attr($archive_ui['gridViewLabel'] ?? 'Grid view'); ?>"><?php echo boblift_icon('grid-3x3', 'h-5 w-5'); ?></button><button class="inline-flex h-10 w-10 items-center justify-center rounded-sm text-sm font-black text-[#0B1B33] transition hover:bg-slate-100" type="button" data-view-toggle="list" aria-label="<?php echo esc_attr($archive_ui['listViewLabel'] ?? 'List view'); ?>"><?php echo boblift_icon('list', 'h-5 w-5'); ?></button></div>
             </div>
         </div>
 

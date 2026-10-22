@@ -8,7 +8,7 @@
  "max_height_m": 11.5,
  "max_height_approx": true,
  "max_boom_angle_deg": 75,
- "outrigger_span_mm": "2450~3713",
+ "outrigger_span_mm": "2250-3513",
  "load_chart": [
   [
    2.1,
@@ -43,5 +43,5 @@
   "Installation Space": "850mm"
  },
  "confidence": "high",
- "notes": "Front (extended) view prints 2250-3513 (pad centres) with 2450 overall base width; folded view prints 2450~3713 (outer pad edges). Used the overall span 2450~3713; 2250-3513 is the same stroke measured at pad centres. Chart row mm 2100/4350/5900/7700/9400, Lbs 8800/3850/2750/1870/1320. Reach 4409-9409, extended height 2322, folded 2040, folded width 725, leg stroke 712-1302. Boom tip ~11.4 m on grid."
+ "notes": "Front (extended) view prints 2250-3513 (pad centres) with 2450 overall base width; folded view prints 2450~3713 (outer pad edges). Used the overall span 2450~3713; 2250-3513 is the same stroke measured at pad centres. Chart row mm 2100/4350/5900/7700/9400, Lbs 8800/3850/2750/1870/1320. Reach 4409-9409, extended height 2322, folded 2040, folded width 725, leg stroke 712-1302. Boom tip ~11.4 m on grid. Site uses the span at the outrigger pad centres, 2250-3513 (the overall outer span printed on the sheet is 2450~3713)."
 }

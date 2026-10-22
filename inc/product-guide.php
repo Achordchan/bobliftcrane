@@ -294,8 +294,10 @@ function boblift_product_drawing_data(int $product_id): array
         $rows[] = ['key' => 'angle', 'label' => boblift_localized_static_text('Max. boom angle'), 'value' => $angle . '°'];
     }
     $span = trim((string) ($data['outrigger_span_mm'] ?? ''));
-    if ($span !== '' && preg_match('/^\d+(?:\s*[-~–]\s*\d+)?$/u', $span)) {
-        $rows[] = ['key' => 'span', 'label' => boblift_localized_static_text('Outrigger span'), 'value' => (string) preg_replace('/\s*[-~–]\s*/u', '–', $span) . ' mm'];
+    // A range ("2250-8600") for truck cranes, a footprint ("3686 x 3423") for spider cranes.
+    if ($span !== '' && preg_match('/^\d+(?:\s*([-~–xX×])\s*\d+)?$/u', $span, $span_match)) {
+        $separator = in_array($span_match[1] ?? '', ['x', 'X', '×'], true) ? ' × ' : '–';
+        $rows[] = ['key' => 'span', 'label' => boblift_localized_static_text('Outrigger span'), 'value' => (string) preg_replace('/\s*[-~–xX×]\s*/u', $separator, $span) . ' mm'];
     }
     $chart = [];
     foreach ((array) ($data['load_chart'] ?? []) as $point) {

@@ -1,13 +1,54 @@
 {
  "model": "SQ10ZA6",
- "sources": ["SQ10ZA6起升曲线图-1.png", "SQ10ZA6外形尺寸及参数图-1.png"],
+ "sources": [
+  "SQ10ZA6起升曲线图-1.png",
+  "SQ10ZA6外形尺寸及参数图-1.png"
+ ],
  "max_radius_m": 14.68,
  "max_height_m": 17.0,
  "max_height_approx": true,
  "max_boom_angle_deg": 84,
- "outrigger_span_mm": "2499~5799",
- "load_chart": [[2.0, 10000], [4.5, 4650], [6.49, 3080], [8.51, 2280], [10.56, 1800], [12.63, 1480], [14.68, 1150]],
- "params": {"最大起重质量 Max Lifting Capacity": "10000Kg", "最大起重力矩 Max Lifting Moment": "21ton.m", "推荐功率 Recommend Power": "30KW", "液压系统流量 Hydraulic System Flow": "40L/min", "液压系统压力 Hydraulic System Pressure": "30MPa", "液压油箱容积 Oil Tank Capacity": "160L", "回转角度 Rotation Angle": "360°", "起重机自重 Self Weight": "3700Kg"},
+ "outrigger_span_mm": "2310~5610",
+ "load_chart": [
+  [
+   2.0,
+   10000
+  ],
+  [
+   4.5,
+   4650
+  ],
+  [
+   6.49,
+   3080
+  ],
+  [
+   8.51,
+   2280
+  ],
+  [
+   10.56,
+   1800
+  ],
+  [
+   12.63,
+   1480
+  ],
+  [
+   14.68,
+   1150
+  ]
+ ],
+ "params": {
+  "最大起重质量 Max Lifting Capacity": "10000Kg",
+  "最大起重力矩 Max Lifting Moment": "21ton.m",
+  "推荐功率 Recommend Power": "30KW",
+  "液压系统流量 Hydraulic System Flow": "40L/min",
+  "液压系统压力 Hydraulic System Pressure": "30MPa",
+  "液压油箱容积 Oil Tank Capacity": "160L",
+  "回转角度 Rotation Angle": "360°",
+  "起重机自重 Self Weight": "3700Kg"
+ },
  "confidence": "high",
- "notes": "Front view prints two outrigger spans: 2310~5610 (inner, leg-to-leg/centre) and 2499~5799 (overall outer); overall used. Leg extension 740~1390. Folded 2460 W x 2340 H, side 1199, top 1198; working height 2705; reach dim 4509-14680. Angle marks 84/80/70...20/12/0°. Hook-block top at 84° ~17.1 m. Lbs row 22000/10230/6776/5016/3960/3250/2530. No internal contradictions found."
+ "notes": "Front view prints two outrigger spans: 2310~5610 (inner, leg-to-leg/centre) and 2499~5799 (overall outer); overall used. Leg extension 740~1390. Folded 2460 W x 2340 H, side 1199, top 1198; working height 2705; reach dim 4509-14680. Angle marks 84/80/70...20/12/0°. Hook-block top at 84° ~17.1 m. Lbs row 22000/10230/6776/5016/3960/3250/2530. No internal contradictions found. Site uses the span at the outrigger pad centres, 2310~5610 (the overall outer span printed on the sheet is 2499~5799)."
 }

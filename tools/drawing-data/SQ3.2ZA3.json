@@ -8,7 +8,7 @@
  "max_height_m": 9.5,
  "max_height_approx": true,
  "max_boom_angle_deg": 75,
- "outrigger_span_mm": "2450~3713",
+ "outrigger_span_mm": "2250-3513",
  "load_chart": [
   [
    2.1,
@@ -47,5 +47,5 @@
   "Lbs": "7040/2970/2002/1496"
  },
  "confidence": "high",
- "notes": "Two spans printed: working view 2250-3513 (inner/leg-centre dimension) with 2450 overall retracted width below it; folded view 2450~3713. Each pair differs by exactly 200 mm, so 2450~3713 is the overall (outer) extended span and is used here; 2250-3513 is the leg-centre span. Top folded view prints 725 (folded crane width). Chart load row max 7700 mm while side view reach prints 4319~7619 (different reference points). Rotation 400°. Boom tip at 75 deg about 9.5 m on grid."
+ "notes": "Two spans printed: working view 2250-3513 (inner/leg-centre dimension) with 2450 overall retracted width below it; folded view 2450~3713. Each pair differs by exactly 200 mm, so 2450~3713 is the overall (outer) extended span and is used here; 2250-3513 is the leg-centre span. Top folded view prints 725 (folded crane width). Chart load row max 7700 mm while side view reach prints 4319~7619 (different reference points). Rotation 400°. Boom tip at 75 deg about 9.5 m on grid. Site uses the span at the outrigger pad centres, 2250-3513 (the overall outer span printed on the sheet is 2450~3713)."
 }

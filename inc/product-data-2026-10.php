@@ -77,7 +77,8 @@ function boblift_product_data_replace_sqz800_drawing(): bool
 function boblift_apply_product_data_2026_10(): void
 {
     $flag = 'boblift_product_data_2026_10_v1';
-    if (get_option($flag) !== false || !post_type_exists('product') || !function_exists('boblift_save_product_lifecycle')) {
+    // After the marine brochure clean-up has finished, so that it cannot draft again what this republishes.
+    if (get_option($flag) !== false || get_option('boblift_marine_brochure_models_v1') === false || !post_type_exists('product') || !function_exists('boblift_save_product_lifecycle')) {
         return;
     }
     // Same lock as the marine brochure clean-up: one request at a time, taken over after ten minutes.
@@ -96,14 +97,19 @@ function boblift_apply_product_data_2026_10(): void
         }
     }
 
-    $ok = true;
     $file = get_template_directory() . '/inc/drawing-data.json';
     $data = is_readable($file) ? json_decode((string) file_get_contents($file), true) : null;
+    // A missing or broken data file is a failed run, not an empty one, so the next request tries again.
+    $ok = is_array($data) && $data !== [];
     foreach ((array) $data as $model => $figures) {
         $id = boblift_product_data_english_id((string) $model);
-        if ($id > 0 && is_array($figures)) {
-            update_post_meta($id, '_boblift_drawing_data', wp_json_encode($figures));
+        if ($id <= 0 || !is_array($figures)) {
+            continue;
         }
+        $json = (string) wp_json_encode($figures);
+        update_post_meta($id, '_boblift_drawing_data', wp_slash($json));
+        // update_post_meta() also returns false when the value is unchanged, so the stored value is checked instead.
+        $ok = get_post_meta($id, '_boblift_drawing_data', true) === $json && $ok;
     }
     foreach (boblift_product_data_marine_previous_models() as $model) {
         $id = boblift_product_data_english_id($model);
