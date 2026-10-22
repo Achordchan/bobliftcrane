@@ -1089,12 +1089,13 @@ foreach (['added_post_meta', 'updated_post_meta', 'deleted_post_meta'] as $bobli
         boblift_bump_products_cache_for_post((int) $object_id);
     }, 10, 2);
 }
+// Term edits of any taxonomy (dynamic blocks in product content can list categories or tags) and comment changes (a
+// latest-comments block) retire the cache too; both only happen through editors or moderated submissions.
 foreach (['created_term', 'edited_term', 'delete_term'] as $boblift_term_hook) {
-    add_action($boblift_term_hook, static function ($term_id, $tt_id, $taxonomy): void {
-        if (in_array($taxonomy, ['product_category', 'language', 'post_translations', 'term_translations'], true)) {
-            boblift_bump_products_cache();
-        }
-    }, 10, 3);
+    add_action($boblift_term_hook, 'boblift_bump_products_cache');
+}
+foreach (['wp_insert_comment', 'edit_comment', 'deleted_comment', 'trashed_comment', 'untrashed_comment', 'spammed_comment', 'unspammed_comment', 'transition_comment_status'] as $boblift_comment_hook) {
+    add_action($boblift_comment_hook, 'boblift_bump_products_cache');
 }
 // Category titles, static-text translations, language settings and the permalink settings behind product links live in options.
 foreach (['added_option', 'updated_option', 'deleted_option'] as $boblift_option_hook) {
