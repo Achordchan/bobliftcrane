@@ -130,3 +130,18 @@ function boblift_validate_case_rest_meta(stdClass|WP_Error $prepared, WP_REST_Re
     return $prepared;
 }
 add_filter('rest_pre_insert_case', 'boblift_validate_case_rest_meta', 10, 2);
+
+/**
+ * A password-protected case shows its details only after the password is entered (single-case.php), but core REST returns
+ * registered meta whatever the post password. Its meta is left out of REST responses for anyone who cannot edit the case.
+ */
+function boblift_hide_protected_case_rest_meta(WP_REST_Response $response, WP_Post $post): WP_REST_Response
+{
+    if ($post->post_password !== '' && !current_user_can('edit_post', $post->ID)) {
+        $data = $response->get_data();
+        unset($data['meta']);
+        $response->set_data($data);
+    }
+    return $response;
+}
+add_filter('rest_prepare_case', 'boblift_hide_protected_case_rest_meta', 10, 2);
