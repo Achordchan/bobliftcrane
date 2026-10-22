@@ -8,7 +8,28 @@ function boblift_mls_default_sections(): array
     return ['branding', 'contact', 'floating_contact_buttons', 'top_bar', 'nav_items', 'product_nav_groups', 'footer', 'final_cta', 'home', 'about_page', 'social_media_page', 'public_welfare_page', 'privacy_policy_page', 'terms_of_use_page', 'sitemap_page', 'product_archive', 'news_categories', 'site_ui', 'static_text', 'seo_meta'];
 }
 
-function boblift_mls_settings(): array
+// Read on every localized string (over 100,000 times on the product archive), so it is built once per request and
+// rebuilt when the option is written.
+function boblift_mls_settings(bool $reset = false): array
+{
+    static $settings = null;
+    if ($reset) {
+        $settings = null;
+        return [];
+    }
+    if ($settings === null) {
+        $settings = boblift_mls_build_settings();
+    }
+    return $settings;
+}
+
+foreach (['add_option_', 'update_option_', 'delete_option_'] as $boblift_mls_option_hook) {
+    add_action($boblift_mls_option_hook . BOBLIFT_MLS_SETTINGS_OPTION, static function (): void {
+        boblift_mls_settings(true);
+    });
+}
+
+function boblift_mls_build_settings(): array
 {
     $saved = get_option(BOBLIFT_MLS_SETTINGS_OPTION, []);
     $saved = is_array($saved) ? $saved : [];

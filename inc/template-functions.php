@@ -605,11 +605,23 @@ function boblift_clean_imported_product_text(string $text): string
 // tools/image-fit records the fit from the pixels; images without it fall back to the file name.
 function boblift_image_fit(string $url): string
 {
-    static $cache = [];
+    // attachment_url_to_postid() scans the postmeta table once per image, so the fits are kept in the listing cache
+    // and the ones worked out on this request are saved when it ends.
+    $state = &$GLOBALS['boblift_image_fits'];
+    if (!is_array($state)) {
+        $name = boblift_cache_name('image-fit');
+        $cached = boblift_cache_get($name, $found);
+        $state = ['name' => $name, 'fits' => $found && is_array($cached) ? $cached : [], 'dirty' => false];
+    }
+    $cache = &$state['fits'];
     if ($url === '') {
         return 'photo';
     }
     if (!isset($cache[$url])) {
+        if (!$state['dirty']) {
+            $state['dirty'] = true;
+            add_action('shutdown', 'boblift_image_fit_save', 0);
+        }
         // Theme assets are not media-library attachments, so only uploads are looked up.
         $theme_asset = str_starts_with($url, trailingslashit(get_template_directory_uri()))
             || str_starts_with($url, trailingslashit(get_stylesheet_directory_uri()));
@@ -628,6 +640,14 @@ function boblift_image_fit(string $url): string
         $cache[$url] = $fit;
     }
     return $cache[$url];
+}
+
+function boblift_image_fit_save(): void
+{
+    $state = $GLOBALS['boblift_image_fits'] ?? null;
+    if (is_array($state) && $state['dirty']) {
+        boblift_cache_set($state['name'], $state['fits']);
+    }
 }
 
 function boblift_product_from_post(WP_Post $post): array
@@ -761,8 +781,412 @@ function boblift_product_catalog_url(array $product): string
     return $url !== '' ? esc_url_raw($url) : '';
 }
 
+/**
+ * Versioned cache for the slow builds of the product listing: the product list, the compare tables, the previous-model
+ * library and the image fits. Entries are kept per request and, on public pages, in transients named after what they
+ * vary by (language, host, arguments). Each stores a signature, a version option bumped by any product, attachment,
+ * term or site-option change plus the newest modification time of the theme code and seed data, so edits show on the
+ * next load. Values are compressed and split into rows of at most 250 KB, so each row fits a memcached item.
+ */
+function boblift_products_code_version(): int
+{
+    static $code_version = null;
+    if ($code_version === null) {
+        $files = array_merge(
+            glob(get_template_directory() . '/inc/*.{php,json}', GLOB_BRACE) ?: [],
+            glob(get_template_directory() . '/inc/*/*.php') ?: [],
+            glob(WP_PLUGIN_DIR . '/boblift-multilingual-sync/includes/*.php') ?: []
+        );
+        $code_version = $files ? max(array_map('filemtime', $files)) : 0;
+    }
+    return $code_version;
+}
+
+function boblift_cache_name(string $group, array $vary = []): string
+{
+    $language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
+    $context = implode('|', [$group, $language, home_url('/'), (string) ($_SERVER['HTTP_HOST'] ?? ''), is_ssl() ? 'https' : 'http']);
+    return 'boblift_c_' . md5($context . '|' . serialize($vary));
+}
+
+function boblift_cache_signature(): string
+{
+    return get_option('boblift_products_cache_version', '0') . '|' . boblift_products_code_version();
+}
+
+function boblift_products_cache_persistent(): bool
+{
+    // Only anonymous visitors share the stored entries: a logged-in request can render personalised content (a login/out
+    // block, nonces, user shortcodes), so it builds for itself and keeps the result for this request only.
+    return !is_admin() && !wp_doing_ajax() && !wp_doing_cron() && !(defined('REST_REQUEST') && REST_REQUEST)
+        && !is_preview() && !is_customize_preview() && !is_user_logged_in()
+        // Stored entries are zlib-compressed; without the extension the cache stays per request.
+        && function_exists('gzcompress') && function_exists('gzuncompress');
+}
+
+/** The cached value, with $found telling a cached null or empty value from a miss. */
+function boblift_cache_get(string $name, ?bool &$found = null): mixed
+{
+    $found = false;
+    $signature = boblift_cache_signature();
+    $memo = $GLOBALS['boblift_cache_memo'][$name] ?? null;
+    if (is_array($memo) && $memo['signature'] === $signature) {
+        $found = true;
+        return $memo['data'];
+    }
+    if (!boblift_products_cache_persistent()) {
+        return null;
+    }
+    $head = get_transient($name);
+    if (!is_array($head) || ($head['signature'] ?? null) !== $signature) {
+        return null;
+    }
+    $encoded = (string) ($head['data'] ?? '');
+    for ($index = 1; $index < (int) ($head['chunks'] ?? 1); $index++) {
+        $part = get_transient($name . '_' . (string) ($head['generation'] ?? '') . '_' . $index);
+        if (!is_string($part)) {
+            return null;
+        }
+        $encoded .= $part;
+    }
+    $raw = $encoded !== '' ? gzuncompress((string) base64_decode($encoded, true)) : false;
+    if (!is_string($raw)) {
+        return null;
+    }
+    $data = unserialize($raw);
+    $GLOBALS['boblift_cache_memo'][$name] = ['signature' => $signature, 'data' => $data];
+    $found = true;
+    return $data;
+}
+
+function boblift_cache_set(string $name, mixed $data): void
+{
+    // A build after a change re-arms the version bump for the next change.
+    $GLOBALS['boblift_products_cache_bumped'] = false;
+    $signature = boblift_cache_signature();
+    $GLOBALS['boblift_cache_memo'][$name] = ['signature' => $signature, 'data' => $data];
+    if (!boblift_products_cache_persistent()) {
+        return;
+    }
+    if (is_array($data) && !empty($data['uncacheable'])) {
+        return;
+    }
+    $serialized = serialize($data);
+    // Some blocks leave side effects outside WP_Styles/WP_Scripts that a cache hit cannot replay: interactive blocks
+    // (Interactivity API script modules and state) and generated block-support CSS (layout containers, element colours,
+    // duotone filters kept by the Style Engine). A build that rendered any of them is kept for this request only.
+    foreach (['data-wp-interactive', 'wp-container-', 'wp-elements-', 'wp-duotone-'] as $marker) {
+        if (str_contains($serialized, $marker)) {
+            return;
+        }
+    }
+    $parts = str_split(base64_encode(gzcompress($serialized, 6)), 250000);
+    // Trailing chunks are written under this build's own generation and the head that names it goes last, so concurrent
+    // builds never mix their chunks and a reader never sees a head before its chunks.
+    $generation = substr(md5(wp_generate_uuid4()), 0, 12);
+    foreach (array_slice($parts, 1, null, true) as $index => $part) {
+        if (!set_transient($name . '_' . $generation . '_' . $index, $part, 12 * HOUR_IN_SECONDS)) {
+            return;
+        }
+    }
+    set_transient($name, ['signature' => $signature, 'generation' => $generation, 'chunks' => count($parts), 'data' => $parts[0]], 12 * HOUR_IN_SECONDS);
+}
+
+/**
+ * Styles and scripts a build enqueues, registers or extends as a side effect (the_content enqueues block styles and
+ * blocks may register handles or add inline CSS/JS), so a cache hit reproduces them. The queues are emptied for the build
+ * and restored after it, so a handle already queued by an earlier build on the same request is still recorded; the
+ * restored order is the one an uncached request ends with. Registrations made during the build are recorded whole, and
+ * inline code and localized data added to handles registered before it are recorded as the added parts.
+ */
+function boblift_cache_assets_mark(): array
+{
+    // Dynamic blocks and shortcodes render from the request (main query, current user, other content), so a build that ran
+    // any of them is not shared; nested builds keep their own flag and pass it up to the enclosing one.
+    $mark = ['dynamic_outer' => !empty($GLOBALS['boblift_cache_dynamic'])];
+    $GLOBALS['boblift_cache_dynamic'] = false;
+    foreach (['styles' => wp_styles(), 'scripts' => wp_scripts()] as $kind => $dependencies) {
+        $extras = [];
+        foreach ($dependencies->registered as $handle => $item) {
+            $extras[$handle] = $item->extra;
+        }
+        $mark[$kind] = ['queue' => array_values($dependencies->queue), 'args' => $dependencies->args, 'extras' => $extras];
+        $dependencies->dequeue($mark[$kind]['queue']);
+    }
+    return $mark;
+}
+
+function boblift_cache_assets_since(array $mark): array
+{
+    $recorded = [];
+    foreach (['styles' => wp_styles(), 'scripts' => wp_scripts()] as $kind => $dependencies) {
+        $recorded[$kind] = array_values($dependencies->queue);
+        $before = $mark[$kind]['extras'];
+        $registered = [];
+        $added = [];
+        foreach ($dependencies->registered as $handle => $item) {
+            if (!array_key_exists($handle, $before)) {
+                $registered[$handle] = ['src' => $item->src, 'deps' => $item->deps, 'ver' => $item->ver, 'args' => $item->args, 'extra' => $item->extra];
+                continue;
+            }
+            $old = (array) $before[$handle];
+            $parts = [];
+            foreach (['before', 'after'] as $position) {
+                $now = (array) ($item->extra[$position] ?? []);
+                $was = (array) ($old[$position] ?? []);
+                if (count($now) > count($was)) {
+                    $parts[$position] = array_slice($now, count($was));
+                }
+            }
+            // wp_localize_script() appends to a handle's data, so only the appended part belongs to the build; data that
+            // changed in any other way cannot be told apart from the page's own and keeps the build out of the store.
+            $data_now = (string) ($item->extra['data'] ?? '');
+            $data_was = (string) ($old['data'] ?? '');
+            if ($data_now !== $data_was) {
+                if ($data_was === '' || str_starts_with($data_now, $data_was)) {
+                    $parts['data'] = ltrim(substr($data_now, strlen($data_was)), "\n");
+                } else {
+                    $recorded['uncacheable'] = true;
+                }
+            }
+            if ($parts) {
+                $added[$handle] = $parts;
+            }
+        }
+        // Every handle the entry enqueues, and their dependencies, carry their registration, so a hit on a request where
+        // nothing else registered them still prints them. A handle registered before the build keeps its pre-build extras
+        // here; the build's own additions are in $added.
+        $pending = $recorded[$kind];
+        foreach ($registered as $item) {
+            array_push($pending, ...array_values((array) $item['deps']));
+        }
+        while ($pending) {
+            $handle = array_shift($pending);
+            if (isset($registered[$handle]) || !isset($dependencies->registered[$handle])) {
+                continue;
+            }
+            $item = $dependencies->registered[$handle];
+            $registered[$handle] = ['src' => $item->src, 'deps' => $item->deps, 'ver' => $item->ver, 'args' => $item->args, 'extra' => (array) ($before[$handle] ?? $item->extra)];
+            array_push($pending, ...array_values((array) $item->deps));
+        }
+        $build_args = $dependencies->args;
+        $dependencies->dequeue($recorded[$kind]);
+        $dependencies->enqueue($mark[$kind]['queue']);
+        $dependencies->enqueue($recorded[$kind]);
+        $dependencies->args = $build_args + $mark[$kind]['args'];
+        $recorded[$kind . '_registered'] = $registered;
+        $recorded[$kind . '_added'] = $added;
+    }
+    if (!empty($GLOBALS['boblift_cache_dynamic'])) {
+        $recorded['uncacheable'] = true;
+    }
+    $GLOBALS['boblift_cache_dynamic'] = !empty($mark['dynamic_outer']) || !empty($GLOBALS['boblift_cache_dynamic']);
+    return $recorded;
+}
+
+// Core blocks whose render callback only rewrites the saved markup (no per-request
+// data). Treating them as dynamic would make every product with a heading or list
+// uncacheable; interactive/layout output is still caught by the marker check.
+const BOBLIFT_CACHE_STATIC_BLOCKS = [
+    'core/paragraph', 'core/heading', 'core/list', 'core/list-item', 'core/quote',
+    'core/pullquote', 'core/table', 'core/separator', 'core/spacer', 'core/code',
+    'core/preformatted', 'core/verse', 'core/details', 'core/image', 'core/gallery',
+    'core/cover', 'core/media-text', 'core/video', 'core/audio', 'core/file',
+    'core/embed', 'core/button', 'core/buttons', 'core/columns', 'core/column',
+    'core/group',
+];
+add_filter('render_block', static function ($html, $block) {
+    $name = is_array($block) ? (string) ($block['blockName'] ?? '') : '';
+    if ($name !== '' && !in_array($name, BOBLIFT_CACHE_STATIC_BLOCKS, true) && class_exists('WP_Block_Type_Registry')) {
+        $type = WP_Block_Type_Registry::get_instance()->get_registered($name);
+        if ($type && $type->is_dynamic()) {
+            $GLOBALS['boblift_cache_dynamic'] = true;
+        }
+    }
+    return $html;
+}, 10, 2);
+add_filter('do_shortcode_tag', static function ($output) {
+    $GLOBALS['boblift_cache_dynamic'] = true;
+    return $output;
+});
+
+function boblift_cache_replay_assets(array $cached): void
+{
+    foreach (['styles' => wp_styles(), 'scripts' => wp_scripts()] as $kind => $dependencies) {
+        foreach ((array) ($cached[$kind . '_registered'] ?? []) as $handle => $item) {
+            if (!isset($dependencies->registered[$handle])) {
+                $dependencies->add($handle, $item['src'], $item['deps'], $item['ver'], $item['args']);
+                $dependencies->registered[$handle]->extra = (array) $item['extra'];
+            }
+        }
+        foreach ((array) ($cached[$kind . '_added'] ?? []) as $handle => $parts) {
+            if (!isset($dependencies->registered[$handle])) {
+                continue;
+            }
+            $extra = &$dependencies->registered[$handle]->extra;
+            foreach (['before', 'after'] as $position) {
+                if (!empty($parts[$position])) {
+                    $extra[$position] = array_merge((array) ($extra[$position] ?? []), (array) $parts[$position]);
+                }
+            }
+            if (($parts['data'] ?? '') !== '') {
+                $current = (string) ($extra['data'] ?? '');
+                $extra['data'] = $current === '' ? $parts['data'] : $current . "\n" . $parts['data'];
+            }
+            unset($extra);
+        }
+        array_map($kind === 'styles' ? 'wp_enqueue_style' : 'wp_enqueue_script', (array) ($cached[$kind] ?? []));
+    }
+}
+
+function boblift_cached_data(string $group, array $vary, callable $build): mixed
+{
+    $name = boblift_cache_name($group, $vary);
+    $cached = boblift_cache_get($name, $found);
+    if ($found && is_array($cached) && array_key_exists('data', $cached)) {
+        boblift_cache_replay_assets($cached);
+        if (!empty($cached['uncacheable'])) {
+            // A request-only entry reused inside another build keeps that build out of the store too.
+            $GLOBALS['boblift_cache_dynamic'] = true;
+        }
+        return $cached['data'];
+    }
+    $mark = boblift_cache_assets_mark();
+    $data = $build();
+    boblift_cache_set($name, ['data' => $data] + boblift_cache_assets_since($mark));
+    return $data;
+}
+
+function boblift_cached_html(string $group, array $vary, callable $render): string
+{
+    $name = boblift_cache_name($group, $vary);
+    $cached = boblift_cache_get($name, $found);
+    if ($found && is_array($cached) && isset($cached['html'])) {
+        boblift_cache_replay_assets($cached);
+        if (!empty($cached['uncacheable'])) {
+            // A request-only entry reused inside another build keeps that build out of the store too.
+            $GLOBALS['boblift_cache_dynamic'] = true;
+        }
+        return (string) $cached['html'];
+    }
+    $mark = boblift_cache_assets_mark();
+    ob_start();
+    $render();
+    $html = (string) ob_get_clean();
+    boblift_cache_set($name, ['html' => $html] + boblift_cache_assets_since($mark));
+    return $html;
+}
+
+function boblift_bump_products_cache(): void
+{
+    // A product save updates dozens of meta rows: the first change bumps the version at once, the rest of the burst is
+    // skipped, and the version is bumped again when the request ends, so nothing built mid-burst (here or on a
+    // concurrent request) outlives the save.
+    if (empty($GLOBALS['boblift_products_cache_final_bump'])) {
+        $GLOBALS['boblift_products_cache_final_bump'] = true;
+        add_action('shutdown', 'boblift_bump_products_cache_now', 0);
+    }
+    if (!empty($GLOBALS['boblift_products_cache_bumped'])) {
+        return;
+    }
+    $GLOBALS['boblift_products_cache_bumped'] = true;
+    boblift_bump_products_cache_now();
+}
+
+function boblift_bump_products_cache_now(): void
+{
+    $GLOBALS['boblift_cache_memo'] = [];
+    // A fresh token, not an increment: two concurrent saves could compute the same next number, or one could write back
+    // an older one, and make entries built mid-save valid again.
+    update_option('boblift_products_cache_version', wp_generate_uuid4(), true);
+}
+
+function boblift_bump_products_cache_for_post(int $post_id): void
+{
+    // Synced patterns (wp_block) can be embedded in product content, so editing one changes the rendered products.
+    if (in_array(get_post_type($post_id), ['product', 'attachment', 'wp_block'], true)) {
+        boblift_bump_products_cache();
+    }
+}
+
+/**
+ * Rendered product content can embed dynamic blocks (latest posts, queries, page lists, synced patterns) that read other
+ * content, so saving, deleting or trashing content of any kind retires the cache. Post types written by WordPress itself
+ * or by visitors (revisions, oEmbed caches, changesets, privacy requests, form entries) are left out, so browsing and
+ * enquiries never invalidate it.
+ */
+function boblift_bump_products_cache_for_content(int $post_id, mixed $post = null): void
+{
+    // deleted_post fires after the row is gone, so its type comes from the WP_Post the hook passes.
+    $type = $post instanceof WP_Post ? $post->post_type : (string) get_post_type($post_id);
+    if ($type === '' || in_array($type, ['revision', 'oembed_cache', 'customize_changeset', 'user_request'], true) || str_starts_with($type, 'flamingo_')) {
+        return;
+    }
+    boblift_bump_products_cache();
+}
+
+add_action('save_post', static fn($post_id) => boblift_bump_products_cache_for_content((int) $post_id));
+add_action('deleted_post', static fn($post_id, $post = null) => boblift_bump_products_cache_for_content((int) $post_id, $post), 10, 2);
+add_action('trashed_post', static fn($post_id) => boblift_bump_products_cache_for_content((int) $post_id));
+add_action('untrashed_post', static fn($post_id) => boblift_bump_products_cache_for_content((int) $post_id));
+add_action('add_attachment', 'boblift_bump_products_cache');
+add_action('edit_attachment', 'boblift_bump_products_cache');
+add_action('delete_attachment', 'boblift_bump_products_cache');
+add_action('transition_post_status', static function ($new_status, $old_status, $post): void {
+    if ($post instanceof WP_Post && $new_status !== $old_status) {
+        boblift_bump_products_cache_for_content((int) $post->ID);
+    }
+}, 10, 3);
+// Categories, languages and Polylang translation groups are all terms on the product.
+// Term assignments of any content (a category-filtered query block lists other posts); wp_remove_object_terms() fires
+// only deleted_term_relationships.
+add_action('set_object_terms', static fn($object_id) => boblift_bump_products_cache_for_content((int) $object_id));
+add_action('deleted_term_relationships', static fn($object_id) => boblift_bump_products_cache_for_content((int) $object_id));
+foreach (['added_post_meta', 'updated_post_meta', 'deleted_post_meta'] as $boblift_meta_hook) {
+    add_action($boblift_meta_hook, static function ($meta_ids, $object_id): void {
+        boblift_bump_products_cache_for_post((int) $object_id);
+    }, 10, 2);
+}
+// Term edits of any taxonomy (dynamic blocks in product content can list categories or tags) and comment changes (a
+// latest-comments block) retire the cache too; both only happen through editors or moderated submissions.
+foreach (['created_term', 'edited_term', 'delete_term'] as $boblift_term_hook) {
+    add_action($boblift_term_hook, 'boblift_bump_products_cache');
+}
+// Plugins and theme switches change what content renders to (a shortcode with no plugin stays literal text), and an
+// update can change a plugin's output.
+foreach (['activated_plugin', 'deactivated_plugin', 'switch_theme', 'upgrader_process_complete', 'update_site_option_active_sitewide_plugins'] as $boblift_code_hook) {
+    add_action($boblift_code_hook, 'boblift_bump_products_cache');
+}
+foreach (['wp_insert_comment', 'edit_comment', 'deleted_comment', 'trashed_comment', 'untrashed_comment', 'spammed_comment', 'unspammed_comment', 'transition_comment_status'] as $boblift_comment_hook) {
+    add_action($boblift_comment_hook, 'boblift_bump_products_cache');
+}
+// Category titles, static-text translations, language settings and the permalink settings behind product links live in options.
+foreach (['added_option', 'updated_option', 'deleted_option'] as $boblift_option_hook) {
+    add_action($boblift_option_hook, static function ($option): void {
+        $option = (string) $option;
+        if ($option === 'boblift_products_cache_version' || str_starts_with($option, '_transient') || str_starts_with($option, '_site_transient')) {
+            return;
+        }
+        if (preg_match('/^(boblift|polylang|pll_|theme_mods_)/', $option)
+            || in_array($option, ['permalink_structure', 'category_base', 'tag_base', 'home', 'siteurl', 'show_on_front', 'page_on_front', 'active_plugins', 'template', 'stylesheet'], true)) {
+            boblift_bump_products_cache();
+        }
+    });
+}
+
 /** Published products; previous models (inc/product-lifecycle.php) only when $include_legacy, as search and inquiry lists need them. */
 function boblift_all_products(bool $include_legacy = false): array
+{
+    $products = boblift_cached_data('products', [$include_legacy], static fn(): array => boblift_build_all_products($include_legacy));
+    // The uncached query also primed the posts, terms and meta that the cards and compare tables read next.
+    $ids = array_filter(array_map(static fn(array $product): int => (int) ($product['id'] ?? 0), $products));
+    if ($ids) {
+        _prime_post_caches($ids, true, true);
+    }
+    return $products;
+}
+
+function boblift_build_all_products(bool $include_legacy): array
 {
     $args = [
         'post_type' => 'product',
