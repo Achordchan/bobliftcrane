@@ -287,8 +287,11 @@ function boblift_inquiry_admin_mail(array $fields, int $post_id): array
 
     $who = trim((string) ($fields['company'] ?: $fields['name'])) ?: $email;
     $subject = '【起重机站】询盘飞奔而来，请及时跟进：' . $who . ($country !== '未能识别' ? '（' . $country . '）' : '');
-    // A subject an editor saved in 站点文案 (quoteForm → messages → mailSubject) still wins over the branded default.
-    $saved_subject = trim((string) ((function_exists('boblift_site_ui') ? boblift_site_ui('quoteForm') : [])['messages']['mailSubject'] ?? ''));
+    // A subject an editor saved in 站点文案 (quoteForm → messages → mailSubject) still wins over the branded default. Only the
+    // source-language (English) options count: the sales team reads one subject whatever the visitor's language, and the
+    // translated copies hold machine translations of the old default (e.g. 新的 BOB-LIFT 询价), not a choice.
+    $source_options = get_option('boblift_theme_options', []);
+    $saved_subject = trim((string) (is_array($source_options) ? ($source_options['site_ui']['quoteForm']['messages']['mailSubject'] ?? '') : ''));
     if ($saved_subject !== '' && $saved_subject !== 'New BOB-LIFT inquiry') {
         $subject = $saved_subject;
     }
