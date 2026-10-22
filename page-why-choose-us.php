@@ -60,12 +60,26 @@ $link_class = 'inline-flex w-fit items-center gap-1.5 text-sm font-black text-bl
         <h2 id="why-applications-title" class="max-w-[26ch] text-[clamp(1.75rem,2.8vw,3rem)] font-black leading-[1.05] tracking-[-0.015em] text-ink"><?php echo esc_html((string) ($ui['applicationsTitle'] ?? '')); ?></h2>
         <p class="mt-3 max-w-2xl text-sm font-normal leading-7 text-slate-600 md:text-base"><?php echo esc_html((string) ($ui['applicationsText'] ?? '')); ?></p>
         <?php
-        // Photos from customer feedback, in the order of the built-in list; a saved list keeps them by position.
-        $application_photos = ['urban-construction', 'advertising-installation', 'electrical-maintenance', 'working-at-height', 'port-terminals', 'factory-workshops', 'construction-sites', 'agriculture-forestry'];
+        // Each card's photo: an image saved with the entry, else the built-in photo of the application with that title (in
+        // English or the current language), else none. Reordering or renaming entries never pairs a title with another scene.
+        $application_photos = [];
+        foreach ((array) (boblift_site_ui_defaults('whyChoose')['applications'] ?? []) as $default_application) {
+            $default_title = (string) ($default_application['title'] ?? '');
+            $default_image = (string) ($default_application['image'] ?? '');
+            if ($default_title !== '' && $default_image !== '') {
+                $application_photos[$default_title] = $default_image;
+                $application_photos[boblift_localized_static_text($default_title)] = $default_image;
+                foreach ((array) ($default_application['aliases'] ?? []) as $alias) {
+                    $application_photos[(string) $alias] = $default_image;
+                }
+            }
+        }
         ?>
         <ul class="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
             <?php foreach ($applications as $index => $item) :
-                $photo = isset($application_photos[$index]) ? boblift_image_src('images/why-choose/' . $application_photos[$index] . '.webp') : '';
+                $saved_image = $item['image'] ?? '';
+                $photo_path = $application_photos[trim((string) $item['title'])] ?? '';
+                $photo = $saved_image !== '' && $saved_image !== [] ? boblift_image_setting_url($saved_image, $photo_path) : ($photo_path !== '' ? boblift_image_src($photo_path) : '');
             ?>
                 <li class="overflow-hidden rounded border border-line bg-white shadow-card">
                     <?php if ($photo !== '') : ?>

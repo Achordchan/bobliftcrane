@@ -2699,4 +2699,10 @@ html:is(:lang(ru), :lang(uk), :lang(fr), :lang(es), :lang(de), :lang(it), :lang(
     position: absolute;
     inset: -10px -6px;
   }
+  /* In Direct contact the number and the WhatsApp / Telegram links sit 8px apart: each area grows by 4px, so they meet
+     without overlapping. */
+  [aria-labelledby="contact-direct-title"] dd a::after,
+  [aria-labelledby="contact-direct-title"] dd button::after {
+    inset: -4px -6px;
+  }
 }

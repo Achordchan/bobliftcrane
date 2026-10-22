@@ -110,7 +110,7 @@ $visit_links = is_array($ui['visitLinks'] ?? null) ? $ui['visitLinks'] : [];
                         <dt class="<?php echo esc_attr($eyebrow); ?>"><?php echo esc_html($telegram_same ? $t('phoneMessengerLabel', 'Phone / WhatsApp / Telegram') : $t('phoneWhatsappLabel', 'Phone / WhatsApp')); ?></dt>
                         <dd class="mt-1">
                             <a class="text-base font-black text-ink transition hover:text-blue-700" href="<?php echo esc_url((string) $contact['phoneHref']); ?>"><span dir="ltr"><?php echo esc_html($phone_text); ?></span></a>
-                            <span class="mt-1.5 flex flex-wrap items-center gap-x-5 gap-y-1">
+                            <span class="mt-2 flex flex-wrap items-center gap-x-5 gap-y-2">
                                 <a class="inline-flex items-center gap-1.5 text-sm font-bold text-blue-700 transition hover:text-navy" href="<?php echo esc_url($contact['whatsappHref']); ?>" target="_blank" rel="noreferrer"><?php echo boblift_icon('whatsapp', 'h-4 w-4'); ?><?php echo esc_html((string) ($ui['cardLabels']['whatsapp'] ?? 'WhatsApp')); ?></a>
                                 <?php echo $telegram_same ? $telegram_link : ''; ?>
                             </span>
