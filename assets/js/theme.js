@@ -528,7 +528,8 @@
       const mm = gsap.matchMedia();
       // The clip as a blob URL (a promise of one), fetched once per page and reused by later passes through the wide-screen layout.
       let aerialBlobRequest = null;
-      // After one failed download (a host without CORS, say) the clip keeps playing from its own source; no retries.
+      let aerialBlobUrl = '';
+      // After one failed download (a host without CORS, say) the clip plays from its own source; no retries.
       let aerialBlobFailed = false;
       mm.add('(min-width: 901px) and (prefers-reduced-motion: no-preference)', () => {
         let layoutActive = true;
@@ -546,20 +547,28 @@
         });
         // Both clips play one file. Loaded once into memory, it loops without refetching: a server without byte-range
         // support (the local PHP server) otherwise sends the whole file again at every loop, and the clip stalls each time.
-        // The download starts the first time the clip is about to play, not when the page opens.
+        // The download starts the first time the clip is about to play, not when the page opens, and playback waits for it
+        // (the start frame stays up meanwhile), so the browser never downloads the original and the blob side by side.
         const aerialSource = aerialVideo ? qs('source', aerialVideo) : null;
-        // Called on every scroll update while the clip plays; only the first call in this layout pass does anything.
+        const aerialBlobPending = () => !aerialBlobUrl && !aerialBlobFailed && !!aerialSource && !!window.fetch && !!window.URL && !!URL.createObjectURL;
+        let aerialWantsPlay = false;
+        // Called on every scroll update while the clip should play; only the first call in this layout pass does anything.
         let aerialBlobWired = false;
         const useAerialBlob = () => {
-          if (aerialBlobWired || aerialBlobFailed || !aerialSource || !window.fetch || !window.URL || !URL.createObjectURL) return;
+          if (aerialBlobWired || !aerialBlobPending()) return;
           aerialBlobWired = true;
           if (!aerialBlobRequest) {
             aerialBlobRequest = fetch(aerialSource.src)
               .then((response) => (response.ok ? response.blob() : Promise.reject()))
               .then((blob) => URL.createObjectURL(blob));
-            aerialBlobRequest.catch(() => {
-              aerialBlobFailed = true;
-            });
+            aerialBlobRequest.then(
+              (blobUrl) => {
+                aerialBlobUrl = blobUrl;
+              },
+              () => {
+                aerialBlobFailed = true;
+              }
+            );
           }
           aerialBlobRequest
             .then((blobUrl) => {
@@ -573,8 +582,12 @@
                 try { video.currentTime = time; } catch {}
                 if (wasPlaying) video.play().catch(() => {});
               });
+              if (aerialWantsPlay) playAerialVideo();
             })
-            .catch(() => {});
+            .catch(() => {
+              // Download failed: play the original source after all.
+              if (layoutActive && aerialWantsPlay) playAerialVideo();
+            });
         };
         gsap.set([aerialStart, aerialVideo, aerialEnd].filter(Boolean), { force3D: true });
         gsap.set(aerialStart, { opacity: 1 });
@@ -597,6 +610,7 @@
           if (aerialEnd) aerialEnd.style.opacity = phase === 'end' ? '1' : '0';
         };
         const pauseAerialVideo = () => {
+          aerialWantsPlay = false;
           if (!aerialVideo) return;
           aerialVideo.pause();
           if (logoVideo) logoVideo.pause();
@@ -629,7 +643,11 @@
         };
         const playAerialVideo = () => {
           if (!aerialVideo) return;
-          useAerialBlob();
+          if (aerialBlobPending()) {
+            aerialWantsPlay = true;
+            useAerialBlob();
+            return;
+          }
           if (aerialVideo.ended) {
             showAerialEnd();
             return;

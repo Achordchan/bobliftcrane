@@ -18,8 +18,16 @@ $certification_items = array_values(array_filter(array_map(static function ($ite
     return ['image' => $image, 'title' => (string) ($item['title'] ?? ''), 'text' => (string) ($item['text'] ?? '')];
 }, (array) ($about_page['certifications']['items'] ?? [])), static fn(array $item): bool => $item !== [] && ((int) ($item['image']['id'] ?? 0) > 0 || trim((string) ($item['image']['path'] ?? '')) !== '')));
 $facts = array_values(array_filter((array) ($tour_ui['facts'] ?? []), static fn($fact): bool => is_array($fact) && trim((string) ($fact['value'] ?? '')) !== ''));
-// The factory area already shows in the facts beside the production section, so the built-in Manufacturing Base figure is left out here.
-$stats = array_values(array_filter((array) ($about_page['global_footprint']['stats'] ?? []), static fn($stat): bool => is_array($stat) && trim((string) ($stat['number'] ?? '')) !== '' && (string) ($stat['label'] ?? '') !== 'Manufacturing Base'));
+// The built-in Manufacturing Base figure (37,000 m2) is left out while the production section's facts already show
+// that number; a changed figure, or facts without it, keep the statistic.
+$fact_values = implode(' ', array_map(static fn($fact): string => preg_replace('/\D+/', '', (string) ($fact['value'] ?? '')) ?? '', $facts));
+$stats = array_values(array_filter((array) ($about_page['global_footprint']['stats'] ?? []), static function ($stat) use ($fact_values): bool {
+    if (!is_array($stat) || trim((string) ($stat['number'] ?? '')) === '') {
+        return false;
+    }
+    $digits = preg_replace('/\D+/', '', (string) $stat['number']) ?? '';
+    return !((string) ($stat['label'] ?? '') === 'Manufacturing Base' && $digits !== '' && str_contains(' ' . $fact_values . ' ', ' ' . $digits . ' '));
+}));
 if ($is_zh) {
     $stat_labels = ['Countries Exported' => '出口国家和地区', 'Years Experience' => '经验年限', 'Units Delivered' => '累计交付设备', 'Cranes Exported' => '已出口起重机数量'];
     foreach ($stats as $index => $stat) {
