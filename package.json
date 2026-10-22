@@ -6,10 +6,12 @@
   "scripts": {
     "build:css": "tailwindcss -c tailwind.config.js -i assets/css/input.css -o assets/css/theme.css --minify",
     "watch:css": "tailwindcss -c tailwind.config.js -i assets/css/input.css -o assets/css/theme.css --watch",
+    "build:js": "node scripts/build-js.mjs",
     "start:wp": "./start.sh"
   },
   "devDependencies": {
     "autoprefixer": "^10.5.0",
+    "esbuild": "^0.25.11",
     "gsap": "^3.15.0",
     "postcss": "^8.5.15",
     "tailwindcss": "^3.4.17"

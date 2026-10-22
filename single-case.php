@@ -177,7 +177,7 @@ if (count($related_cards) < 3 && function_exists('boblift_feedback_items')) {
             <?php // The whole cover is shown (object-contain); on wide screens a blurred copy fills the space beside it instead of cropping it. ?>
             <figure class="boblift-case-hero relative m-0 overflow-hidden bg-[#0B1B33]<?php echo $display_facts ? ' rounded-t' : ' rounded'; ?>">
                 <div class="boblift-feedback-backdrop" style="background-image:url('<?php echo esc_url($image); ?>')" aria-hidden="true"></div>
-                <img class="relative block aspect-[3/2] w-full object-contain md:aspect-auto md:h-[clamp(420px,62vh,760px)]" src="<?php echo esc_url($image); ?>" alt="<?php echo esc_attr($image_alt); ?>" loading="eager" fetchpriority="high" decoding="async">
+                <img class="relative block aspect-[3/2] w-full object-contain md:aspect-auto md:h-[clamp(420px,62vh,760px)]" <?php echo boblift_img_src($image, '(min-width: 1024px) 67vw, 92vw', 1280); ?> alt="<?php echo esc_attr($image_alt); ?>" loading="eager" fetchpriority="high" decoding="async">
                 <?php if ($image_caption !== '') : ?><figcaption class="absolute bottom-3 start-3 max-w-[calc(100%-1.5rem)] rounded-sm bg-[#071f42]/80 px-2.5 py-1 text-xs font-bold text-white"><?php echo esc_html($image_caption); ?></figcaption><?php endif; ?>
             </figure>
         <?php endif; ?>
@@ -336,7 +336,7 @@ if (count($related_cards) < 3 && function_exists('boblift_feedback_items')) {
                     <?php foreach ($related_cards as $card) : ?>
                         <a class="group block overflow-hidden rounded border border-line bg-white transition hover:border-blue-300" href="<?php echo esc_url($card['url']); ?>">
                             <span class="block aspect-[4/3] overflow-hidden bg-[#EDF1F5]">
-                                <?php if ($card['image'] !== '') : ?><img class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.035]" src="<?php echo esc_url($card['image']); ?>" alt="<?php echo esc_attr($card['title']); ?>" loading="lazy" decoding="async"><?php endif; ?>
+                                <?php if ($card['image'] !== '') : ?><img class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.035]" <?php echo boblift_img_src($card['image'], '(min-width: 768px) 33vw, 92vw'); ?> alt="<?php echo esc_attr($card['title']); ?>" loading="lazy" decoding="async"><?php endif; ?>
                             </span>
                             <span class="block p-5">
                                 <span class="boblift-kicker block"><?php echo esc_html($card['label']); ?></span>

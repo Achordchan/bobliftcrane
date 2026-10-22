@@ -37,6 +37,20 @@ function boblift_sanitize_upload_filename(string $filename, string $filename_raw
 }
 add_filter('sanitize_file_name', 'boblift_sanitize_upload_filename', 20, 2);
 
+/** Whether $min was built from $source: scripts/build-js.mjs writes the source's SHA-1 on its first line. */
+function boblift_minified_script_is_current(string $source, string $min): bool
+{
+    if (!is_readable($source) || !is_readable($min)) {
+        return false;
+    }
+    $handle = fopen($min, 'rb');
+    $first_line = $handle ? (string) fgets($handle, 200) : '';
+    if ($handle) {
+        fclose($handle);
+    }
+    return preg_match('/sha1:([0-9a-f]{40})/', $first_line, $match) === 1 && hash_equals($match[1], (string) sha1_file($source));
+}
+
 function boblift_assets(): void
 {
     $css = get_template_directory() . '/assets/css/theme.css';
@@ -56,7 +70,11 @@ function boblift_assets(): void
     }
 
     wp_enqueue_style('boblift-theme', get_template_directory_uri() . '/assets/css/theme.css', [], is_readable($css) ? (string) filemtime($css) : '1.0.0');
-    wp_enqueue_script('boblift-theme', get_template_directory_uri() . '/assets/js/theme.js', $deps, is_readable($js) ? (string) filemtime($js) : '1.0.0', true);
+    // The minified build (npm run build:js) is served only while it was built from the current theme.js.
+    $min = get_template_directory() . '/assets/js/theme.min.js';
+    $js_file = boblift_minified_script_is_current($js, $min) ? 'theme.min.js' : 'theme.js';
+    $js_path = get_template_directory() . '/assets/js/' . $js_file;
+    wp_enqueue_script('boblift-theme', get_template_directory_uri() . '/assets/js/' . $js_file, $deps, is_readable($js_path) ? (string) filemtime($js_path) : '1.0.0', true);
     $quote_form_ui = function_exists('boblift_site_ui') ? boblift_site_ui('quoteForm') : [];
     $quote_list_ui = function_exists('boblift_site_ui') ? boblift_site_ui('quoteList') : [];
     $header_ui = function_exists('boblift_site_ui') ? boblift_site_ui('header') : [];

@@ -133,7 +133,7 @@ $render_case_filter = static function (string $id, string $filter, string $all_l
                 <article class="boblift-case-card group" data-cases-card data-case-kind="customer_feedback" data-country="<?php echo esc_attr($country); ?>" data-product="<?php echo esc_attr($product); ?>">
                     <button class="block h-full w-full text-start" type="button" data-cases-media-open data-media-type="<?php echo esc_attr($media_type); ?>" data-media-src="<?php echo esc_url($media_src); ?>" data-media-title="<?php echo esc_attr($item['title']); ?>">
                         <span class="boblift-case-card-media relative block aspect-[4/3] overflow-hidden rounded bg-[#eef5ff]">
-                            <img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.035]" src="<?php echo esc_url($image); ?>" alt="<?php echo esc_attr($item['title']); ?>" loading="<?php echo $index === 0 ? 'eager' : 'lazy'; ?>" decoding="async">
+                            <img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.035]" <?php echo boblift_img_src($image, '(min-width: 1280px) 30vw, 45vw'); ?> alt="<?php echo esc_attr($item['title']); ?>" loading="<?php echo $index === 0 ? 'eager' : 'lazy'; ?>" decoding="async">
                             <?php if ($media_type === 'video') : ?><span class="absolute inset-0 m-auto grid size-16 place-items-center rounded-sm bg-white/90 text-blue-700 shadow-card"><?php echo boblift_icon('circle-play', 'h-7 w-7'); ?></span><?php endif; ?>
                         </span>
                         <span class="boblift-case-card-content block p-5">
@@ -150,7 +150,7 @@ $render_case_filter = static function (string $id, string $filter, string $all_l
                 <article class="boblift-case-card group" data-cases-card data-case-kind="scene_case" data-country="<?php echo esc_attr($country); ?>" data-product="<?php echo esc_attr($product); ?>">
                     <a class="block h-full" href="<?php echo esc_url($item['url']); ?>">
                         <span class="boblift-case-card-media relative block aspect-[4/3] overflow-hidden rounded bg-[#eef5ff]">
-                            <img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.035]" src="<?php echo esc_url($image); ?>" alt="<?php echo esc_attr($item['title']); ?>" loading="<?php echo $index === 0 ? 'eager' : 'lazy'; ?>" decoding="async">
+                            <img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.035]" <?php echo boblift_img_src($image, '(min-width: 1280px) 30vw, 45vw'); ?> alt="<?php echo esc_attr($item['title']); ?>" loading="<?php echo $index === 0 ? 'eager' : 'lazy'; ?>" decoding="async">
                         </span>
                         <span class="boblift-case-card-content block p-5">
                             <span class="boblift-case-card-meta flex flex-wrap gap-2 text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">
@@ -173,7 +173,7 @@ $render_case_filter = static function (string $id, string $filter, string $all_l
             <article class="boblift-case-card group" data-cases-card data-case-kind="customer_feedback" data-country="<?php echo esc_attr($feedback['country']); ?>" data-product="<?php echo esc_attr($feedback['model']); ?>">
                 <a class="block h-full" href="<?php echo esc_url($feedback['url']); ?>">
                     <span class="boblift-case-card-media relative block aspect-[4/3] overflow-hidden rounded bg-[#eef5ff]">
-                        <?php if ($feedback['cover'] !== '') : ?><img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.035]" src="<?php echo esc_url($feedback['cover']); ?>" alt="<?php echo esc_attr($feedback_caption); ?>" loading="lazy" decoding="async"><?php endif; ?>
+                        <?php if ($feedback['cover'] !== '') : ?><img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.035]" <?php echo boblift_img_src($feedback['cover'], '(min-width: 1280px) 30vw, 45vw'); ?> alt="<?php echo esc_attr($feedback_caption); ?>" loading="lazy" decoding="async"><?php endif; ?>
                         <?php if (($feedback['media'][0]['type'] ?? '') === 'video') : ?><span class="absolute inset-0 m-auto grid size-16 place-items-center rounded-sm bg-white/90 text-blue-700 shadow-card"><?php echo boblift_icon('circle-play', 'h-7 w-7'); ?></span><?php endif; ?>
                         <?php if (count($feedback['media']) > 1) : ?><span class="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-sm bg-[#071f42]/80 px-2 py-1 text-xs font-black text-white"><?php echo boblift_icon('images', 'h-3.5 w-3.5'); ?><?php echo esc_html((string) count($feedback['media'])); ?></span><?php endif; ?>
                     </span>
