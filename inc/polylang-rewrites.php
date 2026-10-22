@@ -176,6 +176,14 @@ function boblift_canonical_in_request_language(string|false $redirect_url, strin
     if (!is_string($url) || $url === '') {
         return $redirect_url;
     }
+    // Keep a later page of a multipage post and a comments page, in core's address format.
+    if ((int) get_query_var('page') > 1) {
+        $url = trailingslashit($url) . user_trailingslashit((string) (int) get_query_var('page'), 'single_paged');
+    }
+    if ((int) get_query_var('cpage') > 0) {
+        global $wp_rewrite;
+        $url = trailingslashit($url) . user_trailingslashit($wp_rewrite->comments_pagination_base . '-' . (int) get_query_var('cpage'), 'commentpaged');
+    }
     // Keep campaign parameters (gclid, utm_*), but not routing ones: ?page_id=569 or ?lang=ja would pick the other
     // language's page again on the corrected address (as in boblift_redirect_case_to_url_language()).
     $query = wp_unslash($_GET);
