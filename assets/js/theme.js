@@ -552,6 +552,12 @@
         const aerialSource = aerialVideo ? qs('source', aerialVideo) : null;
         const aerialBlobPending = () => !aerialBlobUrl && !aerialBlobFailed && !!aerialSource && !!window.fetch && !!window.URL && !!URL.createObjectURL;
         let aerialWantsPlay = false;
+        // A download that finished while the narrow layout was showing is attached now.
+        if (aerialBlobUrl) {
+          [aerialVideo, logoVideo].filter(Boolean).forEach((video) => {
+            if (video.src !== aerialBlobUrl) video.src = aerialBlobUrl;
+          });
+        }
         // Called on every scroll update while the clip should play; only the first call in this layout pass does anything.
         let aerialBlobWired = false;
         const useAerialBlob = () => {
@@ -673,6 +679,8 @@
           }
 
           if (progress <= aerialStartProgress) {
+            // Back at the opening frame: a download still in flight must not start playback when it lands.
+            aerialWantsPlay = false;
             if (aerialPhase !== 'start' || aerialVideo.currentTime > 0.04) resetAerialVideo();
             return;
           }
