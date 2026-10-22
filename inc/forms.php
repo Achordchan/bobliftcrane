@@ -689,6 +689,10 @@ function boblift_handle_inquiry(): void
     // Which button opened the form, and the page it was on (the browser's referer for this POST).
     $fields['source_entry'] = mb_substr(sanitize_text_field(wp_unslash((string) ($_POST['source_entry'] ?? ''))), 0, 120);
     $fields['source_page'] = esc_url_raw((string) wp_get_referer());
+    // Which ad brought the visitor, when they agreed to advertising cookies (inc/inquiry-mail.php).
+    foreach (boblift_inquiry_attribution_from_post() as $name => $value) {
+        $fields['attr_' . $name] = $value;
+    }
 
     if ($fields['email'] === '' || $fields['message'] === '') {
         $ui = function_exists('boblift_site_ui') ? boblift_site_ui('quoteForm') : [];

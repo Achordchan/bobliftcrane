@@ -39,6 +39,67 @@ function boblift_inquiry_mail_logo(): string
     return '<img src="' . esc_url($src) . '" width="120" alt="BOB-LIFT" style="display:block;width:120px;height:auto;border:0;">';
 }
 
+/**
+ * Which ad brought the inquiry (sent by assets/js/theme.js in hidden boblift_attr_* fields, only when the visitor agreed to
+ * advertising cookies), with the longest value each may have. Saved with the inquiry as attr_<name> and shown in the mail.
+ */
+const BOBLIFT_INQUIRY_ATTRIBUTION = [
+    'gclid' => 255, 'gbraid' => 255, 'wbraid' => 255, 'gad_source' => 120, 'gad_campaignid' => 120,
+    'utm_source' => 120, 'utm_medium' => 120, 'utm_campaign' => 120, 'utm_term' => 120, 'utm_content' => 120,
+    'landing' => 300, 'first_seen' => 40,
+];
+
+/** Chinese labels of the attribution fields, for the mail and the admin inquiry box. */
+const BOBLIFT_INQUIRY_ATTRIBUTION_LABELS = [
+    'gclid' => 'gclid', 'gbraid' => 'gbraid', 'wbraid' => 'wbraid', 'gad_source' => 'gad_source', 'gad_campaignid' => '广告系列编号',
+    'utm_source' => 'UTM 来源', 'utm_medium' => 'UTM 媒介', 'utm_campaign' => 'UTM 系列', 'utm_term' => 'UTM 关键词', 'utm_content' => 'UTM 内容',
+    'landing' => '落地页', 'first_seen' => '落地时间',
+];
+
+/** One posted value as stored: one printable line, no markup, within its length; a click ID that is cut matches nothing, so it is dropped. */
+function boblift_inquiry_attribution_clean(string $name, $value): string
+{
+    if (!isset(BOBLIFT_INQUIRY_ATTRIBUTION[$name]) || !is_scalar($value)) {
+        return '';
+    }
+    $text = trim((string) preg_replace('/\s+/u', ' ', (string) preg_replace('/[\x00-\x1f\x7f<>]/u', ' ', (string) $value)));
+    if (in_array($name, ['gclid', 'gbraid', 'wbraid'], true)) {
+        return strlen($text) <= BOBLIFT_INQUIRY_ATTRIBUTION[$name] && preg_match('/^[A-Za-z0-9_.~=-]+$/', $text) ? $text : '';
+    }
+    return mb_substr($text, 0, BOBLIFT_INQUIRY_ATTRIBUTION[$name]);
+}
+
+/** The attribution fields of the current POST, without the prefix. */
+function boblift_inquiry_attribution_from_post(): array
+{
+    $found = [];
+    foreach (array_keys(BOBLIFT_INQUIRY_ATTRIBUTION) as $name) {
+        $value = boblift_inquiry_attribution_clean($name, wp_unslash($_POST['boblift_attr_' . $name] ?? ''));
+        if ($value !== '') {
+            $found[$name] = $value;
+        }
+    }
+    return $found;
+}
+
+/** The grey block in the mail that says how the visitor arrived; empty when nothing was sent. */
+function boblift_inquiry_attribution_block(array $fields): string
+{
+    $rows = '';
+    foreach (BOBLIFT_INQUIRY_ATTRIBUTION_LABELS as $name => $label) {
+        $value = (string) ($fields['attr_' . $name] ?? '');
+        if ($value !== '') {
+            $rows .= '<div style="padding:3px 0;font-size:13px;line-height:1.6;color:#334155;word-break:break-all;"><span style="color:#64748b;">' . esc_html($label) . '</span> ' . esc_html($value) . '</div>';
+        }
+    }
+    if ($rows === '') {
+        return '';
+    }
+    $ads = ($fields['attr_gclid'] ?? '') !== '' || ($fields['attr_gbraid'] ?? '') !== '' || ($fields['attr_wbraid'] ?? '') !== '' || ($fields['attr_gad_source'] ?? '') !== '';
+    $kind = '<div style="padding:3px 0;font-size:13px;line-height:1.6;color:#334155;"><span style="color:#64748b;">广告来源</span> <b>' . ($ads ? 'Google Ads 点击' : '营销标记') . '</b></div>';
+    return '<tr><td style="padding:20px 36px 0;"><table width="100%" cellspacing="0" cellpadding="0" style="background:#f5f7fa;border-radius:4px;"><tr><td style="padding:14px 18px;">' . $kind . $rows . '</td></tr></table></td></tr>';
+}
+
 /** The visitor's IP address: Cloudflare's CF-Connecting-IP when the site sits behind it, else REMOTE_ADDR. */
 function boblift_inquiry_client_ip(): string
 {
@@ -166,6 +227,7 @@ function boblift_inquiry_admin_mail(array $fields, int $post_id): array
         . $heading('客户信息') . '<tr><td style="padding:0 36px;"><table width="100%" cellspacing="0" cellpadding="0" style="border-top:1px solid #edf0f4;">' . implode('', $rows) . '</table></td></tr>'
         . $message_block
         . '<tr><td style="padding:24px 36px 0;"><table width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #edf0f4;border-radius:4px;border-collapse:separate;"><tr>' . $meta('来源国家', esc_html($country)) . $meta('IP 地址', esc_html($ip ?: '—')) . $meta('提交时间', esc_html($time)) . '</tr></table></td></tr>'
+        . boblift_inquiry_attribution_block($fields)
         . '<tr><td align="center" style="padding:32px 36px 12px;"><table cellspacing="0" cellpadding="0"><tr><td align="center" style="background:#215bdb;border-radius:2px;"><a href="mailto:' . esc_attr($email) . '" style="display:inline-block;width:260px;line-height:50px;font-size:17px;font-weight:bold;color:#ffffff;text-decoration:none;text-align:center;letter-spacing:1px;">立即回复客户</a></td></tr></table></td></tr>'
         . '<tr><td align="center" style="padding:0 36px 32px;font-size:13px;line-height:1.6;color:#64748b;">也可以直接回复这封邮件，回信会发到 ' . esc_html($email) . '</td></tr>'
         . '</table>'

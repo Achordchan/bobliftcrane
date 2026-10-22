@@ -2706,3 +2706,10 @@ html:is(:lang(ru), :lang(uk), :lang(fr), :lang(es), :lang(de), :lang(it), :lang(
     inset: -4px -6px;
   }
 }
+
+/* Cookie banner (inc/consent.php): its parts are shown and hidden with the hidden attribute, which display utilities would override. */
+[data-consent-banner][hidden],
+[data-consent-banner] [hidden],
+[data-consent-open][hidden] {
+  display: none !important;
+}

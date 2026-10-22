@@ -4472,10 +4472,275 @@
     }
     window.dataLayer = window.dataLayer || [];
     window.dataLayer.push({ event: 'generate_lead', form: 'inquiry', inquiry_product: lead.product || '', inquiry_source: lead.source || '' });
+    // The theme's Google tag (inc/consent.php) reports the lead to GA4, and to Google Ads when an inquiry conversion is set.
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', 'generate_lead', { form: 'inquiry', inquiry_product: lead.product || '', inquiry_source: lead.source || '' });
+      if (window.bobliftGoogleConversion) window.gtag('event', 'conversion', { send_to: window.bobliftGoogleConversion });
+    }
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', reportSentInquiry);
   else reportSentInquiry();
 
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+
+// Cookie choice and ad attribution, ported from the loader site (bobliftloader assets/js/consent.js and attribution.js).
+// The Google tag runs from the first visit with Consent Mode defaults (inc/consent.php): denied in the EEA, the UK and
+// Switzerland, granted elsewhere. The banner asks only visitors in those regions, or anyone who opens it from the footer;
+// the answer is kept in the boblift_consent cookie for a year and sent to the tag at once.
+(() => {
+  const COOKIE = 'boblift_consent';
+  const VERSION = 1;
+  const YEAR = 365 * 24 * 60 * 60;
+  const TOOL_COOKIES = {
+    analytics: /^(_ga|_gid|_gat|_dc_gtm)/,
+    advertising: /^(_gcl|_uet)/,
+  };
+
+  // Which ad brought the visitor: a Google Ads click ID or campaign tags (utm_*) on the landing address, kept in this
+  // browser for 90 days and sent with an inquiry in hidden fields, only while advertising is agreed to.
+  const ATTRIBUTION_KEY = 'boblift_attribution';
+  const DAYS = 90;
+  const CLICK_IDS = ['gclid', 'gbraid', 'wbraid'];
+  const PARAMS = [...CLICK_IDS, 'gad_source', 'gad_campaignid', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+  const FIELD_PREFIX = 'boblift_attr_';
+  const FIELDS = [...PARAMS, 'landing', 'first_seen'];
+
+  const readSaved = () => {
+    const match = document.cookie.split('; ').find((row) => row.startsWith(`${COOKIE}=`));
+    if (!match) return null;
+    try {
+      const saved = JSON.parse(decodeURIComponent(match.slice(COOKIE.length + 1)));
+      return saved?.v === VERSION ? saved : null;
+    } catch {
+      return null;
+    }
+  };
+
+  // Same limits as the server (boblift_inquiry_attribution_clean): one printable line, short; a click ID is dropped, never cut.
+  const clean = (value, length) => String(value ?? '').replace(/[\u0000-\u001f\u007f<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, length);
+  const cleanParams = (source) => {
+    const found = {};
+    PARAMS.forEach((name) => {
+      if (CLICK_IDS.includes(name)) {
+        const raw = String(source[name] ?? '').trim();
+        if (raw.length <= 255 && /^[A-Za-z0-9_.~=-]+$/.test(raw)) found[name] = raw;
+        return;
+      }
+      const value = clean(source[name], 120);
+      if (value) found[name] = value;
+    });
+    return found;
+  };
+
+  // true: agreed; false: refused; null: not known yet. A choice in the cookie wins; before one, Google's own consent state
+  // holds the regional default (an undocumented internal, so anything unexpected counts as unknown).
+  const advertisingAgreed = () => {
+    const saved = readSaved();
+    if (saved && typeof saved.advertising === 'boolean') return saved.advertising;
+    try {
+      const entry = window.google_tag_data?.ics?.entries?.ad_storage;
+      if (!entry || typeof entry !== 'object') return null;
+      const value = entry.update !== undefined ? entry.update : entry.default;
+      return typeof value === 'boolean' ? value : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const forgetAttribution = () => {
+    try { localStorage.removeItem(ATTRIBUTION_KEY); } catch { /* storage blocked */ }
+  };
+  const readAttribution = () => {
+    let raw = null;
+    try { raw = localStorage.getItem(ATTRIBUTION_KEY); } catch { return null; }
+    if (raw === null) return null;
+    try {
+      const saved = JSON.parse(raw);
+      if (saved && saved.v === 1 && saved.expires > Date.now() && saved.params && typeof saved.params === 'object') return saved;
+    } catch { /* unreadable: removed below */ }
+    forgetAttribution();
+    return null;
+  };
+
+  const arrivedAt = Date.now();
+  let arrivalHandled = false;
+  // A new click replaces what is kept; tags alone never replace a click; the same click seen again keeps its first landing.
+  const nextRecord = (stored) => {
+    const found = cleanParams(Object.fromEntries(new URLSearchParams(location.search)));
+    const hasClick = CLICK_IDS.some((name) => found[name]);
+    const storedHasClick = stored && CLICK_IDS.some((name) => stored.params[name]);
+    if (!hasClick && (Object.keys(found).length === 0 || storedHasClick)) return stored;
+    const primary = CLICK_IDS.find((name) => found[name]);
+    if (stored && (primary ? found[primary] === stored.params[primary] : JSON.stringify(found) === JSON.stringify(stored.params))) return stored;
+    if (stored && (stored.arrived || 0) > arrivedAt) return stored;
+    return { v: 1, arrived: arrivedAt, first_seen: new Date(arrivedAt).toISOString(), landing: clean(location.origin + location.pathname, 300), params: found, expires: arrivedAt + DAYS * 864e5 };
+  };
+  const settleAttribution = () => {
+    const agreed = advertisingAgreed();
+    if (agreed === true) {
+      if (!arrivalHandled) {
+        const record = nextRecord(readAttribution());
+        if (record) {
+          try { localStorage.setItem(ATTRIBUTION_KEY, JSON.stringify(record)); } catch { /* not recorded */ }
+        }
+      }
+      arrivalHandled = true;
+    } else if (agreed === false) forgetAttribution();
+    return agreed;
+  };
+  const fillAttribution = (form) => {
+    const record = advertisingAgreed() === true ? readAttribution() : null;
+    const values = record ? { ...record.params, landing: clean(record.landing, 300), first_seen: clean(record.first_seen, 40) } : {};
+    FIELDS.forEach((name) => {
+      let input = form.querySelector(`input[name="${FIELD_PREFIX}${name}"]`);
+      if (!values[name]) { input?.remove(); return; }
+      if (!input) {
+        input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = FIELD_PREFIX + name;
+        form.append(input);
+      }
+      input.value = values[name];
+    });
+  };
+
+  const initAttribution = () => {
+    // Google's tag loads after the page, so its default is asked for again, quickly at first, then every two seconds.
+    let waited = 0;
+    const ask = () => {
+      if (settleAttribution() !== null || waited >= 120000) return;
+      const step = waited < 6000 ? 250 : 2000;
+      waited += step;
+      window.setTimeout(ask, step);
+    };
+    ask();
+    window.addEventListener('pagehide', settleAttribution);
+    // Capture phase: runs before the inquiry modal builds its FormData and before the contact form posts.
+    document.addEventListener('submit', (event) => {
+      const form = event.target;
+      if (!(form instanceof HTMLFormElement) || !form.matches('[data-quote-form]')) return;
+      settleAttribution();
+      fillAttribution(form);
+    }, true);
+  };
+
+  const clearToolCookies = (categories) => {
+    if (categories.includes('advertising')) forgetAttribution();
+    const labels = location.hostname.split('.');
+    const domains = ['', ...labels.map((_, index) => labels.slice(index).join('.')).filter((name) => name.includes('.')).flatMap((name) => [name, `.${name}`])];
+    document.cookie.split('; ').map((row) => row.split('=')[0]).filter((name) => categories.some((category) => TOOL_COOKIES[category]?.test(name))).forEach((name) => {
+      domains.forEach((domain) => {
+        document.cookie = `${name}=; Max-Age=0; Path=/${domain ? `; Domain=${domain}` : ''}`;
+      });
+    });
+  };
+
+  // Europe's time zones count at once; otherwise the country comes from WordPress.com's geolocation, kept for the visit.
+  // A visitor whose country cannot be told is asked.
+  const EUROPE_ZONES = /^(?:Europe\/|Atlantic\/(?:Reykjavik|Canary|Madeira|Azores|Faroe)$|Arctic\/Longyearbyen$)/;
+  const askedHere = async (list) => {
+    if (!list) return true;
+    try {
+      if (EUROPE_ZONES.test(Intl.DateTimeFormat().resolvedOptions().timeZone || '')) return true;
+    } catch { /* no time zone: the country decides */ }
+    let country = '';
+    try { country = sessionStorage.getItem('boblift_country') || ''; } catch { country = ''; }
+    if (!/^[A-Z]{2}$/.test(country)) {
+      const abort = new AbortController();
+      const timer = window.setTimeout(() => abort.abort(), 4000);
+      try {
+        const response = await fetch('https://public-api.wordpress.com/geo/', { signal: abort.signal, credentials: 'omit' });
+        country = String((await response.json())?.country_short || '').toUpperCase();
+      } catch {
+        return true;
+      } finally {
+        window.clearTimeout(timer);
+      }
+      if (!/^[A-Z]{2}$/.test(country)) return true;
+      try { sessionStorage.setItem('boblift_country', country); } catch { /* asked again on the next page */ }
+    }
+    return list.split(',').includes(country);
+  };
+
+  const initConsent = () => {
+    const banner = document.querySelector('[data-consent-banner]');
+    if (!banner) return;
+    const categories = banner.dataset.categories.split(',');
+    const choices = banner.querySelector('[data-consent-choices]');
+    const boxes = [...banner.querySelectorAll('input[type="checkbox"]')];
+    const control = (name) => banner.querySelector(`[data-consent-action="${name}"]`);
+    const readChoice = () => {
+      const saved = readSaved();
+      return saved && categories.every((name) => typeof saved[name] === 'boolean') ? Object.fromEntries(categories.map((name) => [name, saved[name]])) : null;
+    };
+    let choice = readChoice();
+    let opener = null;
+
+    const showChoices = (on) => {
+      choices.hidden = !on;
+      control('save').hidden = !on;
+      control('accept').hidden = on;
+      const choose = control('choose');
+      if (choose) {
+        choose.hidden = on;
+        choose.setAttribute('aria-expanded', String(on));
+      }
+    };
+    const open = (withChoices, from = null) => {
+      opener = from;
+      boxes.forEach((box) => { box.checked = choice ? choice[box.name] === true : true; });
+      showChoices(withChoices);
+      control('close').hidden = !choice;
+      banner.hidden = false;
+      if (from) banner.querySelector('#boblift-consent-title')?.focus();
+    };
+    const close = () => {
+      banner.hidden = true;
+      opener?.focus();
+      opener = null;
+    };
+    const apply = (next) => {
+      choice = next;
+      if (typeof window.gtag === 'function') {
+        const ads = next.advertising === true ? 'granted' : 'denied';
+        window.gtag('consent', 'update', { analytics_storage: next.analytics === true ? 'granted' : 'denied', ad_storage: ads, ad_user_data: ads, ad_personalization: ads });
+      }
+      const declined = categories.filter((name) => !next[name]);
+      if (declined.length) clearToolCookies(declined);
+      settleAttribution();
+      close();
+    };
+    const decide = (next) => {
+      const secure = location.protocol === 'https:' ? '; Secure' : '';
+      document.cookie = `${COOKIE}=${encodeURIComponent(JSON.stringify({ v: VERSION, ...next }))}; Max-Age=${YEAR}; Path=/; SameSite=Lax${secure}`;
+      apply(next);
+    };
+    const decisions = {
+      accept: () => decide(Object.fromEntries(categories.map((name) => [name, true]))),
+      reject: () => decide(Object.fromEntries(categories.map((name) => [name, false]))),
+      save: () => decide(Object.fromEntries(boxes.map((box) => [box.name, box.checked]))),
+      choose: () => { showChoices(true); boxes[0]?.focus(); },
+      close,
+    };
+    banner.addEventListener('click', (event) => {
+      const action = event.target.closest('[data-consent-action]')?.dataset.consentAction;
+      if (action) decisions[action]();
+    });
+    banner.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && choice) close();
+    });
+    document.querySelectorAll('[data-consent-open]').forEach((button) => {
+      button.addEventListener('click', () => open(categories.length > 1, button));
+    });
+    if (!choice) askedHere(banner.dataset.regions).then((ask) => { if (ask && !choice && banner.hidden) open(false); });
+  };
+
+  const init = () => {
+    try { initAttribution(); } catch { /* the inquiry form works without it */ }
+    initConsent();
+  };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();
