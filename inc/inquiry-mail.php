@@ -72,6 +72,10 @@ function boblift_inquiry_attribution_clean(string $name, $value): string
 /** The attribution fields of the current POST, without the prefix. */
 function boblift_inquiry_attribution_from_post(): array
 {
+    // Nothing is accepted while tracking is off, even from a page cached before it was turned off.
+    if (!function_exists('boblift_google_tag_ids') || !boblift_google_tag_ids()) {
+        return [];
+    }
     $found = [];
     foreach (array_keys(BOBLIFT_INQUIRY_ATTRIBUTION) as $name) {
         $value = boblift_inquiry_attribution_clean($name, wp_unslash($_POST['boblift_attr_' . $name] ?? ''));

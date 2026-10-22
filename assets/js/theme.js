@@ -4712,11 +4712,21 @@
       settleAttribution();
       close();
     };
+    // Other tabs of this site learn of a change at once where BroadcastChannel exists, and on return to the tab otherwise,
+    // so a withdrawal in one tab also stops the Google tag in the others.
+    const channel = typeof BroadcastChannel === 'function' ? new BroadcastChannel('boblift-consent') : null;
     const decide = (next) => {
       const secure = location.protocol === 'https:' ? '; Secure' : '';
       document.cookie = `${COOKIE}=${encodeURIComponent(JSON.stringify({ v: VERSION, ...next }))}; Max-Age=${YEAR}; Path=/; SameSite=Lax${secure}`;
       apply(next);
+      channel?.postMessage('changed');
     };
+    const sync = () => {
+      const next = readChoice();
+      if (next && JSON.stringify(next) !== JSON.stringify(choice)) apply(next);
+    };
+    channel?.addEventListener('message', sync);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) sync(); });
     const decisions = {
       accept: () => decide(Object.fromEntries(categories.map((name) => [name, true]))),
       reject: () => decide(Object.fromEntries(categories.map((name) => [name, false]))),
@@ -4738,6 +4748,12 @@
   };
 
   const init = () => {
+    // Attribution exists only while the Google tag is configured (inc/consent.php sets the flag); with tracking turned off
+    // nothing is collected and any record kept earlier is dropped, whatever an old consent cookie says.
+    if (window.bobliftTracking !== true) {
+      forgetAttribution();
+      return;
+    }
     try { initAttribution(); } catch { /* the inquiry form works without it */ }
     initConsent();
   };
