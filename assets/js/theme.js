@@ -3196,6 +3196,21 @@
       element?.classList.toggle('flex', visible);
     };
     // Desktop filter bar state: pressed tabs, the open category's sub-tabs, per-dropdown counts and the chips.
+    // The same range in the phone filter drawer, which has no chips row.
+    const customCapacityBox = qs('[data-filter-custom-capacity]', root);
+    const syncCustomCapacityChip = () => {
+      if (!customCapacityBox) return;
+      const shown = !!customCapacity && !activeValues('capacity').length;
+      customCapacityBox.classList.toggle('hidden', !shown);
+      const title = qs('[data-filter-group="capacity"] legend', root)?.textContent.trim() || '';
+      const label = qs('[data-filter-custom-capacity-label]', customCapacityBox);
+      if (label) label.textContent = shown ? `${title}: ${customCapacity.replace('-', '–')} t` : '';
+    };
+    qs('[data-filter-custom-capacity-clear]', root)?.addEventListener('click', () => {
+      customCapacity = '';
+      updateUrlFromFilters();
+      apply({ resetPage: true });
+    });
     const updateFilterBar = () => {
       if (!filterBar) return;
       const selected = activeCategoryDisplayValues();
@@ -3229,6 +3244,7 @@
         });
         return chip;
       }));
+      syncCustomCapacityChip();
       if (customCapacity && !activeValues('capacity').length) {
         const title = qs('[data-filter-dropdown][data-filter-group="capacity"]', root)?.dataset.filterTitle || '';
         const label = `${title}: ${customCapacity.replace('-', '–')} t`;

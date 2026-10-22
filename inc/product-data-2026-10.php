@@ -70,38 +70,52 @@ function boblift_product_data_corrected_drawings(): array
 }
 
 /**
- * Writes a corrected drawing over the first drawing attached to the model's product (the -scaled copy and the
- * original, when WordPress kept both) and rebuilds the sizes; true when done or when the product has no drawing.
+ * Adds the corrected drawing as a new attachment and points the model's drawing at it, in every language. The old upload
+ * is kept. Only a drawing that is still the imported one (file "boblift-drawings-<model>.webp", or its "-scaled"
+ * copy) is swapped, so a drawing an editor has since replaced or reordered is left alone. True when done or not needed.
  */
 function boblift_product_data_replace_drawing(string $model): bool
 {
     $source = get_template_directory() . '/assets/images/drawings/boblift-drawings-' . $model . '.webp';
-    $product = boblift_product_data_english_id($model);
-    $drawings = $product > 0 ? boblift_decode_meta(get_post_meta($product, '_drawings', true), []) : [];
-    $attachment = (int) ($drawings[0]['id'] ?? 0);
-    $file = $attachment > 0 ? get_attached_file($attachment) : '';
-    if (!$file) {
+    $english = boblift_product_data_english_id($model);
+    $drawings = $english > 0 ? boblift_decode_meta(get_post_meta($english, '_drawings', true), []) : [];
+    $old = (int) ($drawings[0]['id'] ?? 0);
+    if ($old <= 0) {
+        return true;
+    }
+    $old_name = wp_basename((string) get_post_meta($old, '_wp_attached_file', true));
+    $imported = ['boblift-drawings-' . $model . '.webp', 'boblift-drawings-' . $model . '-scaled.webp'];
+    if (!in_array($old_name, $imported, true)) {
         return true;
     }
     if (!is_readable($source)) {
         return false;
     }
-    $original = function_exists('wp_get_original_image_path') ? (string) wp_get_original_image_path($attachment) : '';
-    foreach (array_unique(array_filter([$file, $original])) as $target) {
-        if (!copy($source, $target)) {
-            return false;
-        }
-    }
+    require_once ABSPATH . 'wp-admin/includes/file.php';
+    require_once ABSPATH . 'wp-admin/includes/media.php';
     require_once ABSPATH . 'wp-admin/includes/image.php';
-    $meta = wp_generate_attachment_metadata($attachment, $original !== '' ? $original : $file);
-    // A site without intermediate sizes gets an empty "sizes" list, which is fine; no width means processing failed.
-    if (!is_array($meta) || empty($meta['width'])) {
+    $tmp = wp_tempnam($source);
+    if (!$tmp || !copy($source, $tmp)) {
         return false;
     }
-    wp_update_attachment_metadata($attachment, $meta);
-    // wp_update_attachment_metadata() is false for an unchanged value too, so the stored value is compared instead.
-    $stored = wp_get_attachment_metadata($attachment);
-    return is_array($stored) && (int) ($stored['width'] ?? 0) === (int) $meta['width'] && array_keys((array) ($stored['sizes'] ?? [])) === array_keys((array) ($meta['sizes'] ?? []));
+    $new = media_handle_sideload(['name' => 'boblift-drawings-' . $model . '-2026-10.webp', 'tmp_name' => $tmp], 0, (string) get_the_title($old));
+    if (is_wp_error($new)) {
+        @unlink($tmp);
+        return false;
+    }
+    $ids = function_exists('pll_get_post_translations') ? array_values(pll_get_post_translations($english)) : [];
+    $ok = true;
+    foreach (array_unique(array_map('intval', array_merge([$english], $ids))) as $id) {
+        $list = boblift_decode_meta(get_post_meta($id, '_drawings', true), []);
+        if ((int) ($list[0]['id'] ?? 0) !== $old) {
+            continue;
+        }
+        $list[0]['id'] = (int) $new;
+        $json = (string) wp_json_encode($list, JSON_UNESCAPED_UNICODE);
+        update_post_meta($id, '_drawings', wp_slash($json));
+        $ok = (int) (boblift_decode_meta(get_post_meta($id, '_drawings', true), [])[0]['id'] ?? 0) === (int) $new && $ok;
+    }
+    return $ok;
 }
 
 /**
@@ -131,14 +145,16 @@ function boblift_product_data_fix_sq8za6_moment(): bool
         if (!isset($rows[$row_index]['value']) || count($rows) !== count($english_rows)) {
             continue;
         }
-        $value = (string) $rows[$row_index]['value'];
-        $fixed = (string) preg_replace('/^16(?![\d.,])/u', '16.7', trim($value));
-        if ($fixed !== trim($value)) {
-            $rows[$row_index]['value'] = $fixed;
-            update_post_meta($id, '_specs', wp_slash((string) wp_json_encode($rows, JSON_UNESCAPED_UNICODE)));
+        // The leading figure, with a comma or a point ("16", "16.0", "16,0"); only an old 16 is changed, any other figure
+        // is an editor's and stays, so it cannot keep the migration retrying.
+        $value = trim((string) $rows[$row_index]['value']);
+        if (!preg_match('/^(\d+(?:[.,]\d+)?)/u', $value, $figure) || (float) str_replace(',', '.', $figure[1]) !== 16.0) {
+            continue;
         }
+        $rows[$row_index]['value'] = '16.7' . substr($value, strlen($figure[1]));
+        update_post_meta($id, '_specs', wp_slash((string) wp_json_encode($rows, JSON_UNESCAPED_UNICODE)));
         $check = boblift_decode_meta(get_post_meta($id, '_specs', true), []);
-        $ok = str_starts_with(trim((string) ($check[$row_index]['value'] ?? '')), '16.7') && $ok;
+        $ok = (string) ($check[$row_index]['value'] ?? '') === $rows[$row_index]['value'] && $ok;
     }
     return $ok;
 }

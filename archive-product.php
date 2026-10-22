@@ -223,6 +223,8 @@ $filter_sidebar = static function () use ($filter_group, $category_filter_group,
                 <button class="inline-flex h-10 w-10 items-center justify-center rounded-sm border border-[#E5E7EB] text-[#0B1B33] transition hover:border-blue-300 hover:text-blue-700" type="button" data-filter-drawer-close aria-label="<?php echo esc_attr($archive_ui['closeFiltersLabel'] ?? 'Close filters'); ?>"><?php echo boblift_icon('x', 'h-5 w-5'); ?></button>
             </div>
         </div>
+        <?php // An old tonnage link's capacity range (?capacity=4-5) has no tick box; it shows here so phones can see and clear it. ?>
+        <div class="mb-6 hidden" data-filter-custom-capacity><button class="boblift-filter-chip" type="button" data-filter-custom-capacity-clear><span data-filter-custom-capacity-label></span><?php echo boblift_icon('x', 'h-3.5 w-3.5 text-slate-400'); ?></button></div>
         <div class="space-y-7"><?php
             $category_filter_group($category_filter_tree);
             $filter_group((string) ($archive_ui['boomFilterLabel'] ?? 'Boom Type'), 'boom', $boom_options, $boom_counts);
