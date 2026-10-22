@@ -54,6 +54,8 @@ return [
         'Previous models are configurations we no longer build as standard. They can still be built to order.' => '旧型番は標準生産を終了した仕様です。受注生産は引き続き可能です。',
         'No longer in regular production. It can still be built to order.' => '通常生産は終了しています。受注生産は可能です。',
         'See the current models' => '現行型番を見る',
+        'All Products' => 'すべての製品',
+        'Page {page} / {pages}' => 'ページ {page} / {pages}',
     ],
     'zh' => [
         'How much it lifts at each reach' => '不同作业半径能吊多重',
@@ -109,6 +111,9 @@ return [
         'Previous models are configurations we no longer build as standard. They can still be built to order.' => '老型号指已不再作为标准型号生产的配置，仍可按需定制。',
         'No longer in regular production. It can still be built to order.' => '已停止常规生产，仍可按需定制。',
         'See the current models' => '查看在产型号',
+        'All Products' => '全部产品',
+        'All' => '全部',
+        'Page {page} / {pages}' => '第 {page} 页 / 共 {pages} 页',
     ],
     'es' => [
         'How much it lifts at each reach' => 'Cuánto levanta a cada alcance',
@@ -164,6 +169,9 @@ return [
         'Previous models are configurations we no longer build as standard. They can still be built to order.' => 'Los modelos anteriores son configuraciones que ya no fabricamos de serie. Se pueden seguir fabricando bajo pedido.',
         'No longer in regular production. It can still be built to order.' => 'Ya no se fabrica de serie. Se puede seguir fabricando bajo pedido.',
         'See the current models' => 'Ver los modelos actuales',
+        'All Products' => 'Todos los productos',
+        'All' => 'Todos',
+        'Page {page} / {pages}' => 'Página {page} / {pages}',
     ],
     'ru' => [
         'How much it lifts at each reach' => 'Сколько поднимает на каждом вылете',
@@ -219,6 +227,9 @@ return [
         'Previous models are configurations we no longer build as standard. They can still be built to order.' => 'Прежние модели: конфигурации, которые мы больше не выпускаем серийно. Их по-прежнему можно изготовить под заказ.',
         'No longer in regular production. It can still be built to order.' => 'Серийно больше не выпускается. Можно изготовить под заказ.',
         'See the current models' => 'Смотреть текущие модели',
+        'All Products' => 'Вся продукция',
+        'All' => 'Все',
+        'Page {page} / {pages}' => 'Страница {page} / {pages}',
     ],
     'fr' => [
         'How much it lifts at each reach' => 'Charge levée à chaque portée',
@@ -274,6 +285,9 @@ return [
         'Previous models are configurations we no longer build as standard. They can still be built to order.' => 'Les anciens modèles sont des configurations que nous ne fabriquons plus en série. Ils peuvent encore être fabriqués sur commande.',
         'No longer in regular production. It can still be built to order.' => 'N’est plus fabriqué en série. Peut encore être fabriqué sur commande.',
         'See the current models' => 'Voir les modèles actuels',
+        'All Products' => 'Tous les produits',
+        'All' => 'Tous',
+        'Page {page} / {pages}' => 'Page {page} / {pages}',
     ],
     'ar' => [
         'How much it lifts at each reach' => 'الحمولة عند كل مدى',
@@ -329,5 +343,8 @@ return [
         'Previous models are configurations we no longer build as standard. They can still be built to order.' => 'الطرازات السابقة هي تكوينات لم نعد ننتجها بشكل قياسي، ولا يزال بالإمكان تصنيعها حسب الطلب.',
         'No longer in regular production. It can still be built to order.' => 'لم يعد يُنتج بشكل منتظم، ويمكن تصنيعه حسب الطلب.',
         'See the current models' => 'عرض الطرازات الحالية',
+        'All Products' => 'جميع المنتجات',
+        'All' => 'الكل',
+        'Page {page} / {pages}' => 'الصفحة {page} / {pages}',
     ],
 ];

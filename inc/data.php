@@ -990,6 +990,19 @@ function boblift_source_term_slug(WP_Term $term): string
     return $source instanceof WP_Term && !is_wp_error($source) ? $source->slug : $term->slug;
 }
 
+function boblift_source_term_sort(WP_Term $term): string
+{
+    $source_id = function_exists('pll_get_term') ? (int) pll_get_term($term->term_id, 'en') : 0;
+    if ($source_id > 0 && $source_id !== (int) $term->term_id) {
+        $source_sort = (string) get_term_meta($source_id, '_boblift_sort', true);
+        if ($source_sort !== '') {
+            return $source_sort;
+        }
+    }
+
+    return (string) get_term_meta($term->term_id, '_boblift_sort', true);
+}
+
 function boblift_categories(): array
 {
     $categories = boblift_seed_product_categories();
@@ -1037,7 +1050,8 @@ function boblift_categories(): array
             $image = (string) get_term_meta($term->term_id, '_boblift_image', true);
         }
         $icon = (string) get_term_meta($term->term_id, '_boblift_icon', true);
-        $sort = get_term_meta($term->term_id, '_boblift_sort', true);
+        // Translations follow the English category's order, so every language lists the categories the same way.
+        $sort = boblift_source_term_sort($term);
         $banner_label = (string) get_term_meta($term->term_id, '_boblift_banner_label', true);
         $banner_title = (string) get_term_meta($term->term_id, '_boblift_banner_title', true);
         $intro_title = trim((string) get_term_meta($term->term_id, '_boblift_intro_title', true));
