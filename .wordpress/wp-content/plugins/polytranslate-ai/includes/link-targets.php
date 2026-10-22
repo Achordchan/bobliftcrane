@@ -275,6 +275,10 @@ foreach (['save_post', 'deleted_post', 'trashed_post', 'untrashed_post'] as $pta
     }
   });
 }
+// Attachment saves fire add_attachment/edit_attachment instead of save_post.
+foreach (['add_attachment', 'edit_attachment', 'delete_attachment'] as $ptai_attachment_hook) {
+  add_action($ptai_attachment_hook, 'ptai_bump_url_ids_version', 10, 0);
+}
 foreach (['update_option_permalink_structure', 'update_option_rewrite_rules', 'update_option_polylang', 'update_option_page_on_front', 'update_option_page_for_posts'] as $ptai_option_hook) {
   add_action($ptai_option_hook, 'ptai_bump_url_ids_version');
 }
