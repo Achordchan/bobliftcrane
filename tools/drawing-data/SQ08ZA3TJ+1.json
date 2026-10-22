@@ -1,0 +1,48 @@
+{
+ "model": "SQ08ZA3TJ+1",
+ "sources": [
+  "SQ08ZA3TJ+1外形尺寸及参数图-1.png"
+ ],
+ "max_radius_m": 4.151,
+ "max_height_m": 5.5,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 75,
+ "outrigger_span_mm": null,
+ "load_chart": [
+  [
+   1.337,
+   800
+  ],
+  [
+   2.252,
+   450
+  ],
+  [
+   3.227,
+   300
+  ],
+  [
+   4.151,
+   220
+  ]
+ ],
+ "params": {
+  "最大起重质量 Max Lifting Capacity": "800Kg",
+  "最大起重力矩 Max Lifting Moment": "1.3ton.m",
+  "推荐功率 Recommend Power": "3.5KW",
+  "液压系统流量 Hydraulic System Flow": "8L/min",
+  "液压系统压力 Hydraulic System Pressure": "18Mpa",
+  "液压油箱容积 Oil Tank Capacity": "20L",
+  "回转角度 Rotation Angle": "330°",
+  "起重机自重 Self Weight": "220Kg",
+  "boom length (side view)": "4151",
+  "overall height": "1691",
+  "column height": "1457",
+  "base width": "735",
+  "top view height": "356",
+  "gravity center extracted/extended": "556 / 1516",
+  "起重机底板安装尺寸": "ø280, ø252, ø105, 12-14"
+ },
+ "confidence": "high",
+ "notes": "Pedestal (marine) version; single sheet contains outline, parameters and lifting chart (no separate 起升曲线图). No outriggers. Tip at 75° reads ~5.7-5.75 m (rounded 5.5; borderline). lbs 1760/990/660/484."
+}

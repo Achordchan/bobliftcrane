@@ -1,0 +1,54 @@
+{
+ "model": "SQ10SA4",
+ "sources": [
+  "SQ10SA4起升曲线图-1.png",
+  "SQ10SA4外形尺寸及参数图-1.png"
+ ],
+ "max_radius_m": 15.5,
+ "max_height_m": 17.5,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 75,
+ "outrigger_span_mm": "2290-5990",
+ "load_chart": [
+  [
+   2.5,
+   10000
+  ],
+  [
+   5.0,
+   4500
+  ],
+  [
+   9.0,
+   2200
+  ],
+  [
+   12.0,
+   1500
+  ],
+  [
+   15.5,
+   1050
+  ]
+ ],
+ "params": {
+  "最大起重质量 Max Lifting Capacity": "10000Kg",
+  "最大起重力矩 Max Lifting Moment": "25ton.m",
+  "推荐功率 Recommend Power": "37KW",
+  "液压系统流量 Hydraulic System Flow": "63L/min",
+  "液压系统压力 Hydraulic System Pressure": "26Mpa",
+  "液压油箱容积 Oil Tank Capacity": "200L",
+  "回转角度 Rotation Angle": "360°",
+  "起重机自重 Self Weight": "3800Kg",
+  "安装空间 Installation Space": "1100mm",
+  "reach (side view)": "5250-15500",
+  "overall height": "2534",
+  "leg extension": "736-1286",
+  "outrigger span": "2290-5990",
+  "frame width": "2470",
+  "boom lengths (m)": "5.6 / 9.02 / 12.44 / 15.87"
+ },
+ "confidence": "high",
+ "notes": "2026-10-22: re-read from the corrected drawings the technical department sent (the boom-angle table now matches the load row). ",
+ "boom_angle_table_0deg": "5.0/4500, 9.0/2200, 12.0/1500, 15.5/1050 (corrected drawing, 2026-10-22; matches the load row)"
+}

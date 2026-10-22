@@ -1,0 +1,57 @@
+{
+ "model": "SQ6.3ZA4TJ",
+ "sources": [
+  "SQ6.3ZA4TJ起升曲线图-1.png",
+  "SQ6.3ZA4TJ外形尺寸及参数图-1.png"
+ ],
+ "max_radius_m": 10.2,
+ "max_height_m": 12.5,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 75,
+ "outrigger_span_mm": null,
+ "dims": {
+  "length_mm": 2350,
+  "width_mm": 1094,
+  "height_mm": 2252
+ },
+ "load_chart": [
+  [
+   2.1,
+   6300
+  ],
+  [
+   4.4,
+   3010
+  ],
+  [
+   6.3,
+   2020
+  ],
+  [
+   8.3,
+   1500
+  ],
+  [
+   10.2,
+   1190
+  ]
+ ],
+ "params": {
+  "Max Lifting Capacity": "6300Kg",
+  "Max Lifting Moment": "13.2ton.m",
+  "Recommend Power": "22KW",
+  "Hydraulic System Flow": "40L/min",
+  "Hydraulic System Pressure": "28MPa",
+  "Oil Tank Capacity": "100L",
+  "Rotation Angle": "360°",
+  "Self Weight": "1740Kg",
+  "boom reach (side view, mm)": "4360-10200",
+  "base plate": "680x680",
+  "bolt pitch": "100x6=600",
+  "bolt holes": "24-Φ22",
+  "centre hole": "Φ300",
+  "load lbs": "13889 / 6636 / 4453 / 3307 / 2624"
+ },
+ "confidence": "high",
+ "notes": "Marine pedestal knuckle crane, no outriggers. Front view width 1094 and working reach 4360-10200 ARE printed. Chart tip ~12.5 m."
+}

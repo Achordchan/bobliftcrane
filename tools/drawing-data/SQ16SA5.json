@@ -1,0 +1,13 @@
+{
+ "model": "SQ16SA5",
+ "sources": ["SQ16SA5起升曲线图-1.png", "SQ16SA5外形尺寸图-1.png"],
+ "max_radius_m": 22.3,
+ "max_height_m": 24.0,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 75,
+ "outrigger_span_mm": "2300-8000",
+ "load_chart": [[2.5, 16000], [6.0, 7800], [10.1, 4100], [14.2, 2600], [18.2, 1700], [22.3, 1050]],
+ "params": {"最大起重质量 Max Lifting Capacity": "16000Kg", "最大起重力矩 Max Lifting Moment": "40ton.m", "推荐功率 Recommend Power": "55KW", "液压系统流量 Hydraulic System Flow": "80L/min", "液压系统压力 Hydraulic System Pressure": "30Mpa", "液压油箱容积 Oil Tank Capacity": "300L", "回转角度 Rotation Angle": "360°", "起重机自重 Self Weight": "6600Kg", "安装空间 Installation Space": "1300mm"},
+ "confidence": "high",
+ "notes": "Only one outrigger span printed (2300-8000); 2500 is base width retracted; leg extension 763-1393. Height 2745, reach 5950-22300. Within-original mismatch: boom table 0° row radii equal the boom lengths (6.3/10.45/14.5/18.55/22.6) while the chart row prints 6000/10100/14200/18200/22300 mm for the same loads. Lbs 35200/17160/9020/5720/3740/2310. Boom head at 75° ~24.1 m."
+}

@@ -110,6 +110,10 @@ function boblift_inquiry_column_content(string $column, int $post_id): void
         return;
     }
     if ($column === 'inquiry_product') {
+        $legacy = (string) get_post_meta($post_id, '_legacy_models', true);
+        if ($legacy !== '') {
+            echo '<span style="display:inline-block;margin:0 0 4px;padding:1px 6px;border:1px solid #dc2626;border-radius:2px;color:#b91c1c;font-weight:600">老型号 ' . esc_html($legacy) . '</span><br>';
+        }
         echo esc_html((string) get_post_meta($post_id, '_product', true));
         return;
     }
@@ -1064,6 +1068,7 @@ function boblift_inquiry_meta_box(WP_Post $post): void
         'website' => '网站',
         'country' => '国家',
         'product' => '意向产品',
+        'legacy_models' => '老型号（已停产，按需定制）',
         'product_slug' => '产品标识',
         'quantity' => '数量',
         'message' => '项目详情',

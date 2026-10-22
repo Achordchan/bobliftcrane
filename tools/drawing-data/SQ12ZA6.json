@@ -1,0 +1,13 @@
+{
+ "model": "SQ12ZA6",
+ "sources": ["SQ12ZA6起升曲线图-1.png (clipped landscape render; top of chart re-rendered from /Users/a1234/Desktop/工作/随车吊/折叠臂/折臂随车吊样本PDF/SQ12ZA6起升曲线图.pdf)", "SQ12ZA6外形尺寸图-1.png"],
+ "max_radius_m": 14.5,
+ "max_height_m": 16.5,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 75,
+ "outrigger_span_mm": "2316-5706",
+ "load_chart": [[2.25, 12000], [4.7, 5450], [6.4, 3500], [8.19, 2500], [10.1, 1850], [12.2, 1400], [14.5, 1000]],
+ "params": {"最大起重质量 Max Lifting Capacity": "12000Kg", "最大起重力矩 Max Lifting Moment": "27ton.m", "推荐功率 Recommend Power": "30KW", "液压系统流量 Hydraulic System Flow": "55L/min", "液压系统压力 Hydraulic System Pressure": "28Mpa", "液压油箱容积 Oil Tank Capacity": "160L", "回转角度 Rotation Angle": "360°", "起重机自重 Self Weight": "4800Kg", "安装空间 Installation Space": "1400mm"},
+ "confidence": "high",
+ "notes": "The orig PNG of the lifting chart is a landscape render of a rotated portrait page and cuts off the top (only up to ~13 m visible); full page re-rendered from the source PDF: chart grid 0-17 m, 75° and 0° marks, boom head at 75° ~16.6 m. Only one outrigger span printed (2316-5706); 2496 is the base width with outriggers retracted. Side: height 2852, reach 4520-14520 (load chart last radius 14500 - minor 20 mm mismatch). Folded front 2500 W x 2407 H, side 1173. Lbs 26400/11990/7700/5500/4070/3080/2200."
+}

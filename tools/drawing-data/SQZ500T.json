@@ -1,0 +1,66 @@
+{
+ "model": "SQZ500T",
+ "sources": [
+  "SQZ500T起升曲线图-1.png",
+  "SQZ500T外形尺寸及参数图-1.png"
+ ],
+ "max_radius_m": 18.0,
+ "max_height_m": 21.0,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 80,
+ "outrigger_span_mm": null,
+ "load_chart": [
+  [
+   2.0,
+   25000
+  ],
+  [
+   4.2,
+   12300
+  ],
+  [
+   5.6,
+   9300
+  ],
+  [
+   7.4,
+   6900
+  ],
+  [
+   9.4,
+   5300
+  ],
+  [
+   11.3,
+   4300
+  ],
+  [
+   13.5,
+   3600
+  ],
+  [
+   15.9,
+   3000
+  ],
+  [
+   18.0,
+   2000
+  ]
+ ],
+ "params": {
+  "Max Lifting Capacity / 最大起重质量": "25000Kg",
+  "Max Lifting Moment / 最大起重力矩": "53ton.m",
+  "Recommend Power / 推荐功率": "55kw",
+  "Hydraulic System Flow / 液压系统流量": "80L/min",
+  "Hydraulic System Pressure / 液压系统压力": "35Mpa",
+  "Oil Tank Capacity / 液压油箱容积": "260L",
+  "Rotation Angle / 回转角度": "360°",
+  "Self Weight / 起重机自重": "6474Kg",
+  "folded dims (mm)": "2649 x 2636, side view 1652, pedestal base 1400",
+  "reach (mm)": "4530-18000",
+  "起重机底板安装尺寸 / base plate installation": "ø1400 outer, ø1290 bolt circle, 30-ø33 holes, ø700 centre",
+  "Lbs row": "55000/27100/20500/15210/11680/9480/7936/6610/4400"
+ },
+ "confidence": "high",
+ "notes": "Marine/pedestal, no outriggers. Radii printed in mm. Very different machine from land SQZ500 (18 m reach, 80L/min, 35Mpa, 55kw, 6474Kg). Boom tip at 80 deg on the 21 m line."
+}

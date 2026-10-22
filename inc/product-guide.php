@@ -271,6 +271,75 @@ function boblift_product_guide(array $product, string $family, ?WP_Term $term): 
  * $rows are the displayed rows, with the Model row first when $has_model_row. Returns [] when the English table does not line up
  * with this language's rows, so the page falls back to one table.
  */
+/**
+ * Figures read off the product's drawing (tools/drawing-data): reach, boom angle, outrigger span and the load chart. Stored
+ * once on the English product as _boblift_drawing_data, since figures do not change with the language.
+ */
+function boblift_product_drawing_data(int $product_id): array
+{
+    $raw = get_post_meta(function_exists('boblift_product_english_id') ? boblift_product_english_id($product_id) : $product_id, '_boblift_drawing_data', true);
+    $data = is_string($raw) ? json_decode($raw, true) : (is_array($raw) ? $raw : null);
+    if (!is_array($data)) {
+        return [];
+    }
+    $number = static fn($value): string => is_numeric($value) && (float) $value > 0 ? rtrim(rtrim(number_format((float) $value, 2, '.', ''), '0'), '.') : '';
+    $rows = [];
+    if (($radius = $number($data['max_radius_m'] ?? null)) !== '') {
+        $rows[] = ['key' => 'radius', 'label' => boblift_localized_static_text('Max. radius'), 'value' => $radius . ' m'];
+    }
+    if (($height = $number($data['max_height_m'] ?? null)) !== '') {
+        $rows[] = ['key' => 'height', 'label' => boblift_localized_static_text('Max. height'), 'value' => (!empty($data['max_height_approx']) ? '≈ ' : '') . $height . ' m'];
+    }
+    if (($angle = $number($data['max_boom_angle_deg'] ?? null)) !== '') {
+        $rows[] = ['key' => 'angle', 'label' => boblift_localized_static_text('Max. boom angle'), 'value' => $angle . '°'];
+    }
+    $span = trim((string) ($data['outrigger_span_mm'] ?? ''));
+    // A range ("2250-8600") for truck cranes, a footprint ("3686 x 3423") for spider cranes.
+    if ($span !== '' && preg_match('/^\d+(?:\s*([-~–xX×])\s*\d+)?$/u', $span, $span_match)) {
+        $separator = in_array($span_match[1] ?? '', ['x', 'X', '×'], true) ? ' × ' : '–';
+        $rows[] = ['key' => 'span', 'label' => boblift_localized_static_text('Outrigger span'), 'value' => (string) preg_replace('/\s*[-~–xX×]\s*/u', $separator, $span) . ' mm'];
+    }
+    $chart = [];
+    foreach ((array) ($data['load_chart'] ?? []) as $point) {
+        if (is_array($point) && count($point) === 2 && (float) $point[0] > 0 && (float) $point[1] > 0) {
+            $chart[] = ['radius' => (float) $point[0], 'load' => (float) $point[1]];
+        }
+    }
+    // The chart reads outward from the crane; a sheet that prints its pairs out of order is sorted by radius.
+    usort($chart, static fn(array $a, array $b): int => $a['radius'] <=> $b['radius']);
+    return ['rows' => $rows, 'chart' => count($chart) >= 2 ? $chart : []];
+}
+
+/**
+ * Whether a translated spec table still follows the English one row for row: same length, and the first figure of
+ * each row equal to the English row's (figures survive translation). Only then can a translated row stand for the
+ * English row at its position.
+ */
+function boblift_spec_rows_aligned(array $local, array $english): bool
+{
+    if ($local === [] || count($local) !== count($english)) {
+        return false;
+    }
+    $first_number = static function ($row): ?float {
+        if (!is_array($row) || !preg_match('/\d[\d.,\x{00A0}\x{202F} ]*\d|\d/u', (string) ($row['value'] ?? ''), $m)) {
+            return null;
+        }
+        // "6,300", "6 300", "6.300" (thousands) and "16,0" / "16.0" (decimals) all read as the same figure: the last
+        // separator is a decimal point only when one or two digits follow it.
+        $digits = (string) preg_replace('/[\x{00A0}\x{202F} ]/u', '', $m[0]);
+        if (preg_match('/^(.*)[.,](\d{1,2})$/', $digits, $parts)) {
+            return (float) (str_replace([',', '.'], '', $parts[1]) . '.' . $parts[2]);
+        }
+        return (float) str_replace([',', '.'], '', $digits);
+    };
+    foreach (array_values($english) as $index => $row) {
+        if ($first_number($row) !== $first_number(array_values($local)[$index] ?? null)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 function boblift_product_spec_groups(int $product_id, array $rows, bool $has_model_row): array
 {
     $english = array_values(array_filter(boblift_decode_meta(get_post_meta(boblift_product_english_id($product_id), '_specs', true), []), static fn($row): bool => is_array($row) && trim((string) ($row['label'] ?? '')) !== '' && trim((string) ($row['value'] ?? '')) !== ''));

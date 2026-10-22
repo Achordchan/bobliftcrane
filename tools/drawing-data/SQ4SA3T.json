@@ -1,0 +1,42 @@
+{
+ "model": "SQ4SA3T",
+ "sources": [
+  "SQ4SA3T起升曲线图-1.png",
+  "SQ4SA3T外形尺寸图-1.png"
+ ],
+ "max_radius_m": 8.0,
+ "max_height_m": 10.0,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 75,
+ "outrigger_span_mm": null,
+ "load_chart": [
+  [
+   2.5,
+   4000
+  ],
+  [
+   3.37,
+   2700
+  ],
+  [
+   5.69,
+   1600
+  ],
+  [
+   8.0,
+   950
+  ]
+ ],
+ "params": {
+  "Max Lifting Capacity": "4000Kg",
+  "Max Lifting Moment": "10ton.m",
+  "Recommend Power": "16KW",
+  "Hydraulic System Flow": "25L/min",
+  "Hydraulic System Pressure": "20Mpa",
+  "Oil Tank Capacity": "100L",
+  "Rotation Angle": "360°",
+  "Self Weight": "1500Kg"
+ },
+ "confidence": "high",
+ "notes": "Pedestal (marine) crane, no outriggers; no Installation Space row. Chart row mm 2500/3370/5690/8000, Lbs 8800/5940/3520/2090. Boom tip plate at 75° reaches ~9.85-9.9 m on grid (hook ~8.9 m) so rounds to 10.0, not 9.5. Height 2320, pedestal 1061, base 1352; base plate 1030 x 660, 10-Ø27. Boom angle table boom lengths 3.67/5.99/8.3 m (matches current extract). Max moment 10 ton.m printed although 4000 kg x 2.5 m = 10."
+}

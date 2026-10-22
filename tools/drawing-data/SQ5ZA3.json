@@ -1,0 +1,43 @@
+{
+ "model": "SQ5ZA3",
+ "sources": [
+  "SQ5ZA3起升曲线图-1.png",
+  "SQ5ZA3外形尺寸及参数图-1.png"
+ ],
+ "max_radius_m": 8.05,
+ "max_height_m": 10.5,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 75,
+ "outrigger_span_mm": "2272-5122",
+ "load_chart": [
+  [
+   2.1,
+   5000
+  ],
+  [
+   4.45,
+   2350
+  ],
+  [
+   6.2,
+   1600
+  ],
+  [
+   8.05,
+   1100
+  ]
+ ],
+ "params": {
+  "Max Lifting Capacity": "5000Kg",
+  "Max Lifting Moment": "10.5ton.m",
+  "Recommend Power": "22KW",
+  "Hydraulic System Flow": "35L/min",
+  "Hydraulic System Pressure": "28Mpa",
+  "Oil Tank Capacity": "100L",
+  "Rotation Angle": "400°",
+  "Self Weight": "2286Kg",
+  "Installation Space": "1050mm"
+ },
+ "confidence": "high",
+ "notes": "Single outrigger span 2272-5122 with 2492 overall base width; leg stroke 801-1500. Extended height 2786, folded height 2357, folded width 943, reach 4442-8050. Chart row mm 2100/4450/6200/8050, Lbs 11000/5170/3520/2420. Boom tip ~10.4 m on grid."
+}

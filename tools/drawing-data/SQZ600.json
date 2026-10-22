@@ -1,0 +1,64 @@
+{
+ "model": "SQZ600",
+ "sources": [
+  "SQZ600起升曲线图-1.png",
+  "SQZ600外形尺寸图-1.png"
+ ],
+ "max_radius_m": 20.3,
+ "max_height_m": 23.0,
+ "max_height_approx": true,
+ "max_boom_angle_deg": null,
+ "outrigger_span_mm": "2250-8600",
+ "load_chart": [
+  [
+   4.4,
+   12840
+  ],
+  [
+   5.8,
+   9420
+  ],
+  [
+   7.4,
+   7080
+  ],
+  [
+   9.4,
+   5300
+  ],
+  [
+   11.4,
+   4170
+  ],
+  [
+   13.6,
+   3360
+  ],
+  [
+   15.7,
+   2830
+  ],
+  [
+   18.0,
+   2420
+  ],
+  [
+   20.3,
+   2150
+  ]
+ ],
+ "params": {
+  "Max Lifting Capacity / 最大起重质量": "30000Kg",
+  "Max Lifting Moment / 最大起重力矩": "63.3ton.m",
+  "Recommend Power / 推荐功率": "65kw",
+  "Hydraulic System Flow / 液压系统流量": "80L/min",
+  "Hydraulic System Pressure / 液压系统压力": "35Mpa",
+  "Oil Tank Capacity / 液压油箱容积": "260L",
+  "Rotation Angle / 回转角度": "360°",
+  "Self Weight / 起重机自重": "7500Kg",
+  "overall dims (mm)": "2550 x 2450, side 1650, slewing centre offset 340",
+  "reach (mm)": "4430-20300"
+ },
+ "confidence": "high",
+ "notes": "No max angle printed. Boom tip ~23.1 m. Stacked load boxes: 4.4 m: 12840/12920/13090/13260; 5.8 m: 9420/9530/9700/9900; 7.4 m: 7080/7230/7400/7630; 9.4 m: 5300/5450/5650/5900; 11.4 m: 4170/4350/4540/4800; 13.6 m: 3360/3540/3740/4000; 15.7 m: 2830/3020/3200; 18.0 m: 2420/2620; 20.3 m: 2150; load_chart = top row."
+}

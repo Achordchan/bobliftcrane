@@ -1,0 +1,43 @@
+{
+ "model": "SQ4ZA3",
+ "sources": [
+  "SQ4ZA3起升曲线图-1.png",
+  "SQ4ZA3外形尺寸及参数图-1.png"
+ ],
+ "max_radius_m": 7.7,
+ "max_height_m": 9.5,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 75,
+ "outrigger_span_mm": "2250-3513",
+ "load_chart": [
+  [
+   2.1,
+   4000
+  ],
+  [
+   4.35,
+   1750
+  ],
+  [
+   5.9,
+   1250
+  ],
+  [
+   7.7,
+   850
+  ]
+ ],
+ "params": {
+  "Max Lifting Capacity": "4000Kg",
+  "Max Lifting Moment": "8.4ton.m",
+  "Recommend Power": "14KW",
+  "Hydraulic System Flow": "25L/min",
+  "Hydraulic System Pressure": "26Mpa",
+  "Oil Tank Capacity": "60L",
+  "Rotation Angle": "400°",
+  "Self Weight": "1350Kg",
+  "Installation Space": "850mm"
+ },
+ "confidence": "high",
+ "notes": "Front (extended) view prints 2250-3513 (pad centres) with 2450 overall base width; folded view prints 2450~3713 (outer pad edges). Used the overall span 2450~3713; 2250-3513 is the same stroke measured at pad centres. Chart row mm 2100/4350/5900/7700, Lbs 8800/3850/2750/1870. Side view reach 4319~7619 (chart says 7700). Extended height 2322, folded 2039.6, folded width 725, leg stroke 712-1302. Boom tip ~9.5 m on grid. Site uses the span at the outrigger pad centres, 2250-3513 (the overall outer span printed on the sheet is 2450~3713)."
+}

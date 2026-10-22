@@ -1,0 +1,47 @@
+{
+ "model": "SQ12SA4",
+ "sources": [
+  "SQ12SA4起升曲线图-1.png",
+  "SQ12SA4外形尺寸及参数图-1.png"
+ ],
+ "max_radius_m": 16.19,
+ "max_height_m": 18.0,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 75,
+ "outrigger_span_mm": "2300~7500",
+ "load_chart": [
+  [
+   2.5,
+   12000
+  ],
+  [
+   5.54,
+   5800
+  ],
+  [
+   9.09,
+   2740
+  ],
+  [
+   12.64,
+   1850
+  ],
+  [
+   16.19,
+   1200
+  ]
+ ],
+ "params": {
+  "最大起重质量 Max Lifting Capacity": "12000Kg",
+  "最大起重力矩 Max Lifting Moment": "33ton.m",
+  "推荐功率 Recommend Power": "45KW",
+  "液压系统流量 Hydraulic System Flow": "75L/min",
+  "液压系统压力 Hydraulic System Pressure": "26Mpa",
+  "液压油箱容积 Oil Tank Capacity": "200L",
+  "回转角度 Rotation Angle": "360°",
+  "起重机自重 Self Weight": "4600Kg",
+  "安装空间 Installation Space": "1100mm"
+ },
+ "confidence": "high",
+ "notes": "Outline sheet DOES have a rear/front view with outriggers: two spans printed, 2300~7500 (inner) and 2500~7700 (overall); overall used. Leg extension 779~1409. Side view: height 2624, reach 5542~16192, base 1100. Boom table (lengths 5.85/9.32/12.82/16.5 m) identical to current 'other'. Boom head top at 75° ~18.1 m. Lbs row 26400/12760/6028/4070/2640. No internal contradictions. Site uses the span at the outrigger pad centres, 2300~7500 (the overall outer span printed on the sheet is 2500~7700)."
+}

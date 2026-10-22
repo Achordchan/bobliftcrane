@@ -1,0 +1,64 @@
+{
+ "model": "SQZ800",
+ "sources": [
+  "SQZ800起升曲线图-1.png",
+  "SQZ800外形尺寸图-1.png"
+ ],
+ "max_radius_m": 20.3,
+ "max_height_m": 23.0,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 84,
+ "outrigger_span_mm": "2250-8600",
+ "load_chart": [
+  [
+   4.4,
+   14500
+  ],
+  [
+   5.8,
+   11500
+  ],
+  [
+   7.4,
+   8500
+  ],
+  [
+   9.4,
+   6500
+  ],
+  [
+   11.4,
+   5790
+  ],
+  [
+   13.6,
+   4500
+  ],
+  [
+   15.7,
+   3550
+  ],
+  [
+   18.0,
+   3000
+  ],
+  [
+   20.3,
+   2800
+  ]
+ ],
+ "params": {
+  "Max Lifting Capacity / 最大起重质量": "40000Kg",
+  "Max Lifting Moment / 最大起重力矩": "80ton.m",
+  "Recommend Power / 推荐功率": "75kw",
+  "Hydraulic System Flow / 液压系统流量": "100L/min",
+  "Hydraulic System Pressure / 液压系统压力": "35Mpa",
+  "Oil Tank Capacity / 液压油箱容积": "300L",
+  "Rotation Angle / 回转角度": "360°",
+  "Self Weight / 起重机自重": "9000Kg",
+  "overall dims (mm)": "2550 x 2450, side 1650, slewing centre offset 340",
+  "reach (mm)": "4580-20300"
+ },
+ "confidence": "high",
+ "notes": "Single-row table; radius 18 printed without decimal. Chart also draws a raised-boom (~15 deg) working position. Boom tip at 84 deg on the 23 m line. Internal oddity: 11.4 m 5790 kg x 11.4 = 66 t.m vs 4.4 m 14500 kg = 63.8 t.m; capacity 40000Kg/80 t.m not reachable at any listed radius."
+}

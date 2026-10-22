@@ -1,0 +1,51 @@
+{
+ "model": "BLZ90K5TJ",
+ "sources": [
+  "BLZ90K5TJ起升曲线图-1.png",
+  "BLZ90K5TJ外形尺寸及参数图-1.png"
+ ],
+ "max_radius_m": 11.7,
+ "max_height_m": 14.0,
+ "max_height_approx": true,
+ "max_boom_angle_deg": 75,
+ "outrigger_span_mm": null,
+ "load_chart": [
+  [
+   4.44,
+   2030
+  ],
+  [
+   6.19,
+   1420
+  ],
+  [
+   8.0,
+   1000
+  ],
+  [
+   9.85,
+   750
+  ],
+  [
+   11.7,
+   590
+  ]
+ ],
+ "params": {
+  "最大起重质量 Max Lifting Capacity": "4600Kg(1.9m)",
+  "最大起重力矩 Max Lifting Moment": "90KN.m",
+  "推荐功率 Recommend Power": "15KW",
+  "液压系统流量 Hydraulic System Flow": "25L/min",
+  "液压系统压力 Hydraulic System Pressure": "28Mpa",
+  "液压油箱容积 Oil Tank Capacity": "57L",
+  "回转角度 Rotation Angle": "360° (全回转)",
+  "起重机自重 Self Weight": "1520Kg",
+  "overall length folded": "2483",
+  "folded height": "2061",
+  "width": "902",
+  "reach (side view)": "4440-11700",
+  "base plate 起重机底板安装尺寸": "680x680, 100x6=600, ø300, 24-ø22"
+ },
+ "confidence": "high",
+ "notes": "Pedestal (marine) version, no outriggers. Tip: head top ~13.8 m, pins ~13.7 m (rounded to 14.0; borderline 13.5/14.0). lbs 4466/3124/2200/1650/1298. No installation space row. Label typos 'Reconmmend', 'Angel' in original."
+}
