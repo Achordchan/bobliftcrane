@@ -1859,6 +1859,16 @@ img { max-width: 100%; }
     scroll-padding-inline: 16px;
   }
 }
+/* On phones the product page sections run edge to edge as bands, as on the loader site, instead of cards inside
+   the 16px gutter: their copy then starts on the same 16px line as the hero above. */
+@media (max-width: 767px) {
+  .boblift-pd-stack > :is(article, section):not(#quote) {
+    margin-inline: -16px;
+    border-radius: 0;
+    border-inline-width: 0;
+    box-shadow: none;
+  }
+}
 .boblift-product-section-nav[data-fade="right"] {
   -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent);
   mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent);
