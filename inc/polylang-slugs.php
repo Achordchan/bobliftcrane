@@ -393,6 +393,28 @@ function boblift_redirect_case_to_url_language(): void
 }
 add_action('template_redirect', 'boblift_redirect_case_to_url_language', 2);
 
+/**
+ * A case that is no longer published (moved to draft or deleted) sends its address to the case list in the URL's language
+ * (301), instead of a 404 or WordPress guessing a similarly named case in another language.
+ */
+function boblift_redirect_missing_case_to_list(): void
+{
+    if (!is_404()) {
+        return;
+    }
+    $path = '/' . ltrim((string) wp_parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH), '/');
+    $base = function_exists('boblift_language_path_base') ? boblift_language_path_base() : '';
+    $languages = function_exists('pll_languages_list') ? array_map('strval', (array) pll_languages_list(['fields' => 'slug'])) : [];
+    $prefix = $languages ? '(?:(?:' . implode('|', array_map(static fn(string $slug): string => preg_quote($slug, '#'), $languages)) . ')/)?' : '';
+    if (!preg_match('#^/' . preg_quote($base, '#') . $prefix . 'cases/[^/]+/?$#', $path)) {
+        return;
+    }
+    $language = boblift_request_url_language();
+    wp_safe_redirect(boblift_localized_url(boblift_case_archive_url(), $language !== '' ? $language : null), 301);
+    exit;
+}
+add_action('template_redirect', 'boblift_redirect_missing_case_to_list', 1);
+
 // English is the hidden default language, so its URL is the x-default alternate on every translated page
 // (Polylang adds x-default only on the front page, and only when the default language shows in the URL).
 add_filter('pll_rel_hreflang_attributes', static function (array $hreflangs): array {
