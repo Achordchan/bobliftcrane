@@ -868,6 +868,9 @@ function boblift_cache_set(string $name, mixed $data): void
     if (!boblift_products_cache_persistent()) {
         return;
     }
+    if (is_array($data) && !empty($data['uncacheable'])) {
+        return;
+    }
     $serialized = serialize($data);
     // Some blocks leave side effects outside WP_Styles/WP_Scripts that a cache hit cannot replay: interactive blocks
     // (Interactivity API script modules and state) and generated block-support CSS (layout containers, element colours,
@@ -932,8 +935,16 @@ function boblift_cache_assets_since(array $mark): array
                     $parts[$position] = array_slice($now, count($was));
                 }
             }
-            if (($item->extra['data'] ?? null) !== ($old['data'] ?? null)) {
-                $parts['data'] = $item->extra['data'] ?? null;
+            // wp_localize_script() appends to a handle's data, so only the appended part belongs to the build; data that
+            // changed in any other way cannot be told apart from the page's own and keeps the build out of the store.
+            $data_now = (string) ($item->extra['data'] ?? '');
+            $data_was = (string) ($old['data'] ?? '');
+            if ($data_now !== $data_was) {
+                if ($data_was === '' || str_starts_with($data_now, $data_was)) {
+                    $parts['data'] = ltrim(substr($data_now, strlen($data_was)), "\n");
+                } else {
+                    $recorded['uncacheable'] = true;
+                }
             }
             if ($parts) {
                 $added[$handle] = $parts;
@@ -969,8 +980,9 @@ function boblift_cache_replay_assets(array $cached): void
                     $extra[$position] = array_merge((array) ($extra[$position] ?? []), (array) $parts[$position]);
                 }
             }
-            if (array_key_exists('data', $parts)) {
-                $extra['data'] = $parts['data'];
+            if (($parts['data'] ?? '') !== '') {
+                $current = (string) ($extra['data'] ?? '');
+                $extra['data'] = $current === '' ? $parts['data'] : $current . "\n" . $parts['data'];
             }
             unset($extra);
         }
