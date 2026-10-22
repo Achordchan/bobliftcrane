@@ -395,7 +395,8 @@ add_action('template_redirect', 'boblift_redirect_case_to_url_language', 2);
 
 /**
  * A case that is no longer published (moved to draft or deleted) sends its address to the case list in the URL's language
- * (301), instead of a 404 or WordPress guessing a similarly named case in another language.
+ * (301), instead of a 404 or WordPress guessing a similarly named case in another language. An old slug of a case that is
+ * still published goes to that case instead.
  */
 function boblift_redirect_missing_case_to_list(): void
 {
@@ -410,6 +411,19 @@ function boblift_redirect_missing_case_to_list(): void
         return;
     }
     $language = boblift_request_url_language();
+    // A published case whose slug was changed (WordPress keeps the old one in _wp_old_slug) moves to its new address,
+    // preferably the one in the URL's language. This runs before core's own old-slug redirect, so it has to look itself.
+    $old_slug = sanitize_title(rawurldecode(basename(untrailingslashit($path))));
+    if ($old_slug !== '') {
+        $url_language = $language !== '' ? $language : (function_exists('pll_default_language') ? (string) pll_default_language() : '');
+        $find = static fn(string $lang): array => get_posts(['post_type' => 'case', 'post_status' => 'publish', 'posts_per_page' => 1, 'fields' => 'ids',
+            'lang' => $lang, 'meta_key' => '_wp_old_slug', 'meta_value' => $old_slug, 'orderby' => 'ID', 'order' => 'ASC']);
+        $moved = ($url_language !== '' ? $find($url_language) : []) ?: $find('');
+        if ($moved) {
+            wp_safe_redirect(get_permalink($moved[0]), 301);
+            exit;
+        }
+    }
     wp_safe_redirect(boblift_localized_url(boblift_case_archive_url(), $language !== '' ? $language : null), 301);
     exit;
 }
