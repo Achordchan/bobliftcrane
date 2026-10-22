@@ -1735,8 +1735,9 @@ function boblift_news_hub_nav(string $current): void
 }
 
 /**
- * The About menu's pages (About Us, Why Choose, Factory Tour, ...) as slug => [label, href], labelled the way the header
- * menu labels them: a saved label is kept; an untouched built-in label shows the page's title in a translated language.
+ * The About menu's pages (About Us, Why Choose, Factory Tour, ...) as slug => [label, href] (a repeated slug is numbered),
+ * labelled the way the header menu labels them: a saved label is kept; an untouched built-in label shows the page's title
+ * in a translated language.
  */
 function boblift_about_nav_pages(): array
 {
@@ -1772,7 +1773,8 @@ function boblift_about_nav_pages(): array
             $title = $localized instanceof WP_Post ? trim((string) get_the_title($localized)) : '';
             $shown = $title !== '' ? $title : boblift_localized_static_text($label);
         }
-        $pages[$slug] = [$shown, $href];
+        // Two links to one page (/factory-tour.html#workshops and #videos) both stay: a repeated slug gets a numbered key.
+        $pages[isset($pages[$slug]) ? $slug . '-' . count($pages) : $slug] = [$shown, $href];
     }
     return $pages;
 }

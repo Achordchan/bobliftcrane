@@ -544,8 +544,13 @@
         });
         // Both clips play one file. Loaded once into memory, it loops without refetching: a server without byte-range
         // support (the local PHP server) otherwise sends the whole file again at every loop, and the clip stalls each time.
+        // The download starts the first time the clip is about to play, not when the page opens.
         const aerialSource = aerialVideo ? qs('source', aerialVideo) : null;
-        if (aerialSource && window.fetch && window.URL && URL.createObjectURL) {
+        // Called on every scroll update while the clip plays; only the first call in this layout pass does anything.
+        let aerialBlobWired = false;
+        const useAerialBlob = () => {
+          if (aerialBlobWired || !aerialSource || !window.fetch || !window.URL || !URL.createObjectURL) return;
+          aerialBlobWired = true;
           if (!aerialBlobRequest) {
             aerialBlobRequest = fetch(aerialSource.src)
               .then((response) => (response.ok ? response.blob() : Promise.reject()))
@@ -567,8 +572,10 @@
                 if (wasPlaying) video.play().catch(() => {});
               });
             })
-            .catch(() => {});
-        }
+            .catch(() => {
+              aerialBlobWired = false;
+            });
+        };
         gsap.set([aerialStart, aerialVideo, aerialEnd].filter(Boolean), { force3D: true });
         gsap.set(aerialStart, { opacity: 1 });
         gsap.set(aerialVideo, { opacity: 0 });
@@ -622,6 +629,7 @@
         };
         const playAerialVideo = () => {
           if (!aerialVideo) return;
+          useAerialBlob();
           if (aerialVideo.ended) {
             showAerialEnd();
             return;
