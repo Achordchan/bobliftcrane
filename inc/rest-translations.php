@@ -50,12 +50,15 @@ function boblift_register_rest_translation_field(): void
 }
 add_action('rest_api_init', 'boblift_register_rest_translation_field');
 
-function boblift_rest_save_translation(WP_Post $post, array $value): true|WP_Error
+/**
+ * Checks a boblift_translation value before anything is written: create requests run it from rest_pre_insert_{type}, so a
+ * bad language, source or meta key, or a language the source already has, is refused before WordPress inserts the post.
+ *
+ * @return array{lang: string, source: WP_Post, source_lang: string, meta: array}|WP_Error
+ */
+function boblift_rest_check_translation(string $post_type, int $post_id, array $value): array|WP_Error
 {
-    if (!current_user_can('edit_post', $post->ID)) {
-        return new WP_Error('rest_cannot_edit', 'Sorry, you are not allowed to edit this item.', ['status' => rest_authorization_required_code()]);
-    }
-    if (!in_array($post->post_type, ['post', 'case'], true)) {
+    if (!in_array($post_type, ['post', 'case'], true)) {
         return new WP_Error('boblift_translation_type', 'Translations can be written for posts and cases only.', ['status' => 400]);
     }
     if (!function_exists('pll_set_post_language') || !function_exists('pll_save_post_translations') || !function_exists('pll_languages_list')) {
@@ -67,19 +70,44 @@ function boblift_rest_save_translation(WP_Post $post, array $value): true|WP_Err
     if (!in_array($lang, array_map('strval', (array) pll_languages_list(['fields' => 'slug'])), true)) {
         return new WP_Error('boblift_translation_lang', 'Unknown language.', ['status' => 400]);
     }
-    if (!$source instanceof WP_Post || $source->post_type !== $post->post_type || $source->ID === $post->ID || $source_lang === '' || $source_lang === $lang) {
-        return new WP_Error('boblift_translation_source', 'The source must be another ' . $post->post_type . ' in a different language.', ['status' => 400]);
+    if (!$source instanceof WP_Post || $source->post_type !== $post_type || $source->ID === $post_id || $source_lang === '' || $source_lang === $lang) {
+        return new WP_Error('boblift_translation_source', 'The source must be another ' . $post_type . ' in a different language.', ['status' => 400]);
     }
     $existing = (int) pll_get_post($source->ID, $lang);
-    if ($existing > 0 && $existing !== $post->ID) {
+    if ($existing > 0 && $existing !== $post_id) {
         return new WP_Error('boblift_translation_exists', 'The source already has a ' . $lang . ' translation (ID ' . $existing . ').', ['status' => 409]);
     }
     $meta = is_array($value['meta'] ?? null) ? $value['meta'] : [];
-    $allowed = boblift_rest_translation_meta_keys($post->post_type);
+    $allowed = boblift_rest_translation_meta_keys($post_type);
     $unknown = array_diff(array_keys($meta), $allowed);
     if ($unknown) {
         return new WP_Error('boblift_translation_meta', 'Unknown meta: ' . implode(', ', $unknown) . '. Allowed: ' . implode(', ', $allowed) . '.', ['status' => 400]);
     }
+    return ['lang' => $lang, 'source' => $source, 'source_lang' => $source_lang, 'meta' => $meta];
+}
+
+function boblift_rest_pre_insert_translation(stdClass|WP_Error $prepared, WP_REST_Request $request): stdClass|WP_Error
+{
+    $value = $request['boblift_translation'];
+    if (is_wp_error($prepared) || !is_array($value)) {
+        return $prepared;
+    }
+    $checked = boblift_rest_check_translation((string) ($prepared->post_type ?? ''), (int) ($prepared->ID ?? 0), $value);
+    return is_wp_error($checked) ? $checked : $prepared;
+}
+add_filter('rest_pre_insert_post', 'boblift_rest_pre_insert_translation', 10, 2);
+add_filter('rest_pre_insert_case', 'boblift_rest_pre_insert_translation', 10, 2);
+
+function boblift_rest_save_translation(WP_Post $post, array $value): true|WP_Error
+{
+    if (!current_user_can('edit_post', $post->ID)) {
+        return new WP_Error('rest_cannot_edit', 'Sorry, you are not allowed to edit this item.', ['status' => rest_authorization_required_code()]);
+    }
+    $checked = boblift_rest_check_translation($post->post_type, $post->ID, $value);
+    if (is_wp_error($checked)) {
+        return $checked;
+    }
+    ['lang' => $lang, 'source' => $source, 'source_lang' => $source_lang, 'meta' => $meta] = $checked;
 
     pll_set_post_language($post->ID, $lang);
     $translations = (array) pll_get_post_translations($source->ID);
