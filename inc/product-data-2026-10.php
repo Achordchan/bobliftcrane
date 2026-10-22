@@ -136,26 +136,30 @@ function boblift_product_data_fix_sq8za6_moment(): bool
     if ($english <= 0) {
         return true;
     }
+    $english_rows = (array) boblift_decode_meta(get_post_meta($english, '_specs', true), []);
+    $row_index = null;
+    foreach ($english_rows as $index => $row) {
+        if (is_array($row) && trim((string) ($row['label'] ?? '')) === 'Max Lifting Moment') {
+            $row_index = $index;
+        }
+    }
+    if ($row_index === null) {
+        return true;
+    }
     $ids = function_exists('pll_get_post_translations') ? array_values(pll_get_post_translations($english)) : [];
     $ok = true;
     foreach (array_unique(array_map('intval', array_merge([$english], $ids))) as $id) {
-        $rows = boblift_decode_meta(get_post_meta($id, '_specs', true), []);
-        // The moment row is found by its value, a 16 in t·m (every language keeps the unit), not by position, so a
-        // reordered table cannot send the change to another row; a table without exactly one such row is left alone.
-        $matches = [];
-        foreach ((array) $rows as $index => $row) {
-            if (is_array($row) && preg_match('/^16(?:[.,]0+)?(\s*t\s*[·.]\s*m)$/u', trim((string) ($row['value'] ?? '')), $unit)) {
-                $matches[$index] = $unit[1];
-            }
-        }
-        if (count($matches) !== 1) {
+        $rows = (array) boblift_decode_meta(get_post_meta($id, '_specs', true), []);
+        // The row at the English moment's position, in a table of the same length, and only when its value is itself a
+        // moment of 16: "16", "16.0", "16,0" with no unit or a t·m unit in any spelling ("t·m", "Ton.m", "ton.m", "tm").
+        // Anything else (a reordered table, "16 kW", an editor's other figure) is left alone.
+        if (count($rows) !== count($english_rows) || !preg_match('/^16(?:[.,]0+)?(\s*(?:t(?:on)?\s*[·.]?\s*m)?)$/iu', trim((string) ($rows[$row_index]['value'] ?? '')), $unit)) {
             continue;
         }
-        $index = array_key_first($matches);
-        $rows[$index]['value'] = '16.7' . $matches[$index];
+        $rows[$row_index]['value'] = '16.7' . $unit[1];
         update_post_meta($id, '_specs', wp_slash((string) wp_json_encode($rows, JSON_UNESCAPED_UNICODE)));
-        $check = boblift_decode_meta(get_post_meta($id, '_specs', true), []);
-        $ok = (string) ($check[$index]['value'] ?? '') === $rows[$index]['value'] && $ok;
+        $check = (array) boblift_decode_meta(get_post_meta($id, '_specs', true), []);
+        $ok = (string) ($check[$row_index]['value'] ?? '') === $rows[$row_index]['value'] && $ok;
     }
     return $ok;
 }
@@ -164,7 +168,7 @@ function boblift_apply_product_data_2026_10(): void
 {
     $flag = 'boblift_product_data_2026_10_v1';
     // After the marine brochure clean-up has finished, so that it cannot draft again what this republishes.
-    if (get_option($flag) !== false || get_option('boblift_marine_brochure_models_v1') === false || !post_type_exists('product') || !function_exists('boblift_save_product_lifecycle')) {
+    if (get_option($flag) !== false || get_transient($flag . '_wait') || get_option('boblift_marine_brochure_models_v1') === false || !post_type_exists('product') || !function_exists('boblift_save_product_lifecycle')) {
         return;
     }
     // Same lock as the marine brochure clean-up: one request at a time, taken over after ten minutes.
@@ -187,9 +191,14 @@ function boblift_apply_product_data_2026_10(): void
     $data = is_readable($file) ? json_decode((string) file_get_contents($file), true) : null;
     // A missing or broken data file is a failed run, not an empty one, so the next request tries again.
     $ok = is_array($data) && $data !== [];
+    $missing = 0;
     foreach ((array) $data as $model => $figures) {
         $id = boblift_product_data_english_id((string) $model);
-        if ($id <= 0 || !is_array($figures)) {
+        if ($id <= 0) {
+            $missing++;
+            continue;
+        }
+        if (!is_array($figures)) {
             continue;
         }
         $json = (string) wp_json_encode($figures);
@@ -218,9 +227,13 @@ function boblift_apply_product_data_2026_10(): void
     if (function_exists('boblift_legacy_product_ids')) {
         boblift_legacy_product_ids(true);
     }
-    // Only a clean run is recorded; after a failure the next request tries again.
-    if ($ok) {
+    // Only a clean run with every listed product present is recorded. Products not imported yet (a fresh site, where
+    // init runs before the importer) leave it pending; such a run waits an hour before looking again, so requests in
+    // between do not repeat the work.
+    if ($ok && $missing === 0) {
         update_option($flag, time(), false);
+    } elseif ($missing > 0) {
+        set_transient($flag . '_wait', 1, HOUR_IN_SECONDS);
     }
     $wpdb->delete($wpdb->options, ['option_name' => $lock, 'option_value' => $token]);
     wp_cache_delete($lock, 'options');
