@@ -4,9 +4,8 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * The two emails an inquiry sends: the notification the sales team receives (the loader site's design C "nameplate"
- * card, so the three BOB-LIFT sites look the same in the inbox) and the confirmation the customer receives in the
- * language of the page they wrote from. Both are HTML tables with inline styles, the only layout mail programs agree on.
+ * The email an inquiry sends to the sales team: the loader site's design C "nameplate" card, so the three BOB-LIFT sites
+ * look the same in the inbox. It is an HTML table with inline styles, the only layout mail programs agree on.
  */
 
 const BOBLIFT_INQUIRY_DEFAULT_RECIPIENT = 'info@boblift.com';
@@ -19,7 +18,7 @@ function boblift_inquiry_recipient(): string
     return (string) apply_filters('boblift_inquiry_recipient', is_email($email) ? $email : BOBLIFT_INQUIRY_DEFAULT_RECIPIENT);
 }
 
-/** Who both emails come from: the site title, at the site's own domain so receiving servers accept it. */
+/** Who the email comes from: the site title, at the site's own domain so receiving servers accept it. */
 function boblift_inquiry_mail_from_header(): string
 {
     $host = preg_replace('/^www\./i', '', (string) wp_parse_url(home_url(), PHP_URL_HOST));
@@ -178,124 +177,8 @@ function boblift_inquiry_admin_mail(array $fields, int $post_id): array
     return [$subject, $body];
 }
 
-/** The customer confirmation's words, by language; any other language uses English. */
-function boblift_inquiry_customer_copy(string $language): array
-{
-    $copy = [
-        'en' => [
-            'subject' => 'We have received your inquiry – BOB-LIFT',
-            'title' => 'Thank you for your inquiry',
-            'greeting' => 'Dear %s,',
-            'greetingFallback' => 'Hello,',
-            'intro' => 'Thank you for contacting BOB-LIFT. We have received your inquiry, and our sales team will review your requirements and reply to you by email as soon as possible.',
-            'summary' => 'Your inquiry',
-            'product' => 'Product',
-            'message' => 'Your message',
-            'next' => 'To help us recommend the right crane, you can reply to this email with your truck chassis model, the lifting capacity and working radius you need, and your destination port.',
-            'contact' => 'Contact us',
-            'phone' => 'Phone / WhatsApp',
-            'email' => 'Email',
-            'address' => 'Address',
-            'website' => 'Website',
-            'signoff' => 'Best regards,',
-            'team' => 'BOB-LIFT Sales Team',
-            'footer' => 'This is an automatic confirmation of the inquiry you sent on %s. If you did not send it, please ignore this email.',
-        ],
-        'zh' => [
-            'subject' => '我们已收到您的询价 – BOB-LIFT',
-            'title' => '感谢您的询价',
-            'greeting' => '%s，您好：',
-            'greetingFallback' => '您好：',
-            'intro' => '感谢您联系 BOB-LIFT。我们已收到您的询价，销售团队会根据您的需求尽快通过邮件回复您。',
-            'summary' => '您的询价内容',
-            'product' => '产品',
-            'message' => '您的留言',
-            'next' => '为了更准确地为您推荐机型，您可以直接回复这封邮件，告诉我们卡车底盘型号、所需起重量和工作幅度，以及目的港。',
-            'contact' => '联系我们',
-            'phone' => '电话 / WhatsApp',
-            'email' => '邮箱',
-            'address' => '地址',
-            'website' => '网站',
-            'signoff' => '此致',
-            'team' => 'BOB-LIFT 销售团队',
-            'footer' => '这是您在 %s 提交询价后的自动确认邮件。如果这不是您本人提交的，请忽略本邮件。',
-        ],
-        'ja' => [
-            'subject' => 'お問い合わせを受け付けました – BOB-LIFT',
-            'title' => 'お問い合わせありがとうございます',
-            'greeting' => '%s 様',
-            'greetingFallback' => 'お客様',
-            'intro' => 'BOB-LIFT にお問い合わせいただき、ありがとうございます。内容を確認のうえ、営業担当よりメールにてご連絡いたします。',
-            'summary' => 'お問い合わせ内容',
-            'product' => '製品',
-            'message' => 'メッセージ',
-            'next' => '最適な機種をご提案するため、トラックのシャーシ型式、必要な吊り上げ能力と作業半径、仕向け港をこのメールへの返信でお知らせください。',
-            'contact' => 'お問い合わせ先',
-            'phone' => '電話 / WhatsApp',
-            'email' => 'メール',
-            'address' => '所在地',
-            'website' => 'ウェブサイト',
-            'signoff' => 'よろしくお願いいたします。',
-            'team' => 'BOB-LIFT 営業チーム',
-            'footer' => 'このメールは %s に送信されたお問い合わせの自動確認です。お心当たりのない場合は、このメールを破棄してください。',
-        ],
-    ];
-    return $copy[$language] ?? $copy['en'];
-}
-
-/** The confirmation the customer receives, as [subject, html body]. No prices, lead times or postcode. */
-function boblift_inquiry_customer_mail(array $fields, string $language): array
-{
-    $copy = boblift_inquiry_customer_copy($language);
-    $font = "font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Hiragino Sans','Microsoft YaHei','Helvetica Neue',Arial,sans-serif;";
-    $contact = boblift_contact_settings();
-    // The Japanese options keep the Chinese address; Japanese customers read the English one more easily.
-    $address = $language === 'ja' ? (string) ((get_option('boblift_theme_options', [])['contact']['address'] ?? '') ?: $contact['address']) : (string) $contact['address'];
-    $address = trim((string) preg_replace('/\s*\b\d{6}\b\s*/u', ' ', $address));
-    $company = $language === 'zh' ? BOBLIFT_COMPANY_CHINESE_NAME : BOBLIFT_COMPANY_LEGAL_NAME;
-    $site = home_url('/');
-    $name = trim((string) $fields['name']);
-    $greeting = $name !== '' ? sprintf($copy['greeting'], esc_html($name)) : esc_html($copy['greetingFallback']);
-
-    $row = static fn(string $label, string $value): string => '<tr><td width="140" style="width:140px;padding:10px 12px 10px 0;border-bottom:1px solid #edf0f4;font-size:14px;color:#64748b;vertical-align:top;">' . esc_html($label) . '</td><td style="padding:10px 0;border-bottom:1px solid #edf0f4;font-size:15px;color:#0b1f33;line-height:1.6;vertical-align:top;word-break:break-word;">' . $value . '</td></tr>';
-    $summary = [];
-    $products = array_map(static fn(array $p): string => $p['title'], boblift_inquiry_mail_products($fields));
-    if ($products) {
-        $summary[] = $row($copy['product'], esc_html(implode('; ', $products)));
-    }
-    // The message is echoed back only behind a real spam check: without one, anyone could send branded mail with their
-    // own text to any address.
-    $config = function_exists('boblift_turnstile_config') ? boblift_turnstile_config() : [];
-    $verified = function_exists('boblift_turnstile_is_enabled') && boblift_turnstile_is_enabled() && empty($config['local_mode']);
-    if ($verified && trim((string) $fields['message']) !== '') {
-        $summary[] = $row($copy['message'], nl2br(esc_html(wp_trim_words((string) $fields['message'], 120, '…')), false));
-    }
-    $contact_rows = $row($copy['phone'], esc_html($contact['phone']))
-        . $row($copy['email'], '<a href="mailto:' . esc_attr($contact['email']) . '" style="color:#215bdb;text-decoration:none;">' . esc_html($contact['email']) . '</a>')
-        . ($address !== '' ? $row($copy['address'], esc_html($address)) : '')
-        . $row($copy['website'], '<a href="' . esc_url($site) . '" style="color:#215bdb;text-decoration:none;">' . esc_html(untrailingslashit(preg_replace('#^https?://#', '', $site))) . '</a>');
-    $section = static fn(string $title, string $rows): string => '<tr><td style="padding:24px 36px 8px;font-size:13px;font-weight:bold;letter-spacing:1px;color:#64748b;">' . esc_html($title) . '</td></tr><tr><td style="padding:0 36px;"><table width="100%" cellspacing="0" cellpadding="0" style="border-top:1px solid #edf0f4;">' . $rows . '</table></td></tr>';
-
-    $body = '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head><body style="margin:0;padding:0;background:#eef1f5;">'
-        . '<table width="100%" cellspacing="0" cellpadding="0" dir="ltr" style="width:100%;background:#eef1f5;-webkit-text-size-adjust:100%;text-size-adjust:100%;' . $font . '"><tr><td align="center" style="padding:32px 0;">'
-        . '<table width="620" cellspacing="0" cellpadding="0" style="width:620px;max-width:100%;background:#ffffff;border:1px solid #e3e8ef;border-radius:4px;border-collapse:separate;overflow:hidden;text-align:left;">'
-        . '<tr><td height="6" style="height:6px;background:#215bdb;font-size:0;line-height:0;">&nbsp;</td></tr>'
-        . '<tr><td style="padding:22px 36px;border-bottom:1px solid #edf0f4;">' . boblift_inquiry_mail_logo() . '</td></tr>'
-        . '<tr><td style="padding:30px 36px 0;"><div style="font-size:24px;line-height:1.3;font-weight:bold;color:#0b1f33;">' . esc_html($copy['title']) . '</div>'
-        . '<div style="padding-top:18px;font-size:15px;line-height:1.75;color:#0b1f33;">' . $greeting . '</div>'
-        . '<div style="padding-top:10px;font-size:15px;line-height:1.75;color:#334155;">' . esc_html($copy['intro']) . '</div></td></tr>'
-        . ($summary ? $section($copy['summary'], implode('', $summary)) : '')
-        . '<tr><td style="padding:22px 36px 0;"><div style="padding:14px 18px;background:#f5f7fa;border-radius:4px;font-size:14px;line-height:1.7;color:#334155;">' . esc_html($copy['next']) . '</div></td></tr>'
-        . $section($copy['contact'], $contact_rows)
-        . '<tr><td style="padding:26px 36px 32px;font-size:15px;line-height:1.7;color:#0b1f33;">' . esc_html($copy['signoff']) . '<br><strong>' . esc_html($copy['team']) . '</strong><br><span style="font-size:13px;color:#64748b;">' . esc_html($company) . '</span></td></tr>'
-        . '</table>'
-        . '<table width="620" cellspacing="0" cellpadding="0" style="width:620px;max-width:100%;"><tr><td align="center" style="padding:18px 36px 0;font-size:12px;line-height:1.7;color:#94a3b8;">' . esc_html(sprintf($copy['footer'], untrailingslashit(preg_replace('#^https?://#', '', $site)))) . '</td></tr></table>'
-        . '</td></tr></table></body></html>';
-    return [$copy['subject'], $body];
-}
-
-/** Send both emails for a saved inquiry. The customer copy is skipped for an address that is not a valid email. */
-function boblift_send_inquiry_mails(array $fields, int $post_id, string $language): void
+/** Send the sales notification for a saved inquiry. */
+function boblift_send_inquiry_mail(array $fields, int $post_id): void
 {
     // The form is handled on init priority 0, before the theme registers products and their categories; the product
     // card needs both (its type and permalink).
@@ -309,11 +192,5 @@ function boblift_send_inquiry_mails(array $fields, int $post_id, string $languag
     $sent = wp_mail(boblift_inquiry_recipient(), $subject, $body, ['Content-Type: text/html; charset=UTF-8', $from, $reply_to]);
     if ($post_id > 0) {
         update_post_meta($post_id, '_mail_sent', $sent ? '1' : '0');
-    }
-
-    if (is_email((string) $fields['email']) && apply_filters('boblift_inquiry_send_customer_mail', true, $fields)) {
-        [$customer_subject, $customer_body] = boblift_inquiry_customer_mail($fields, $language);
-        $contact = boblift_contact_settings();
-        wp_mail((string) $fields['email'], $customer_subject, $customer_body, ['Content-Type: text/html; charset=UTF-8', $from, 'Reply-To: ' . $contact['email']]);
     }
 }

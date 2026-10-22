@@ -68,7 +68,6 @@ function boblift_turnstile_config(): array
         'enabled' => $enabled,
         'site_key' => trim($site_key),
         'secret_key' => trim($secret_key),
-        'local_mode' => $local_mode,
     ];
 }
 
@@ -717,9 +716,7 @@ function boblift_handle_inquiry(): void
     }
 
     boblift_inquiry_count_submission();
-    $language = isset($_POST['boblift_lang']) ? sanitize_key((string) wp_unslash($_POST['boblift_lang'])) : '';
-    update_post_meta((int) $post_id, '_language', $language);
-    boblift_send_inquiry_mails($fields, (int) $post_id, $language);
+    boblift_send_inquiry_mail($fields, (int) $post_id);
     // For other notifiers (DingTalk and the like): the saved inquiry and its fields.
     do_action('boblift_inquiry_submitted', (int) $post_id, $fields);
 
