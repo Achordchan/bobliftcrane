@@ -526,7 +526,10 @@
       if (!pin || !bg || !logo) return;
 
       const mm = gsap.matchMedia();
+      // The clip as a blob URL (a promise of one), fetched once per page and reused by later passes through the wide-screen layout.
+      let aerialBlobRequest = null;
       mm.add('(min-width: 901px) and (prefers-reduced-motion: no-preference)', () => {
+        let layoutActive = true;
         section.classList.add('is-gsap-ready');
         gsap.set(bg, { scale: 1.08, yPercent: 0, opacity: 0, borderRadius: '4px', overflow: 'hidden', force3D: true });
         if (silhouette) gsap.set(silhouette, { scale: 1.02, opacity: 1, force3D: true });
@@ -543,11 +546,20 @@
         // support (the local PHP server) otherwise sends the whole file again at every loop, and the clip stalls each time.
         const aerialSource = aerialVideo ? qs('source', aerialVideo) : null;
         if (aerialSource && window.fetch && window.URL && URL.createObjectURL) {
-          fetch(aerialSource.src)
-            .then((response) => (response.ok ? response.blob() : Promise.reject()))
-            .then((blob) => {
-              const blobUrl = URL.createObjectURL(blob);
+          if (!aerialBlobRequest) {
+            aerialBlobRequest = fetch(aerialSource.src)
+              .then((response) => (response.ok ? response.blob() : Promise.reject()))
+              .then((blob) => URL.createObjectURL(blob));
+            aerialBlobRequest.catch(() => {
+              aerialBlobRequest = null;
+            });
+          }
+          aerialBlobRequest
+            .then((blobUrl) => {
+              // A fetch that finishes after the layout was torn down (narrowed below 901px) changes nothing.
+              if (!layoutActive) return;
               [aerialVideo, logoVideo].filter(Boolean).forEach((video) => {
+                if (video.src === blobUrl) return;
                 const wasPlaying = !video.paused;
                 const time = video.currentTime;
                 video.src = blobUrl;
@@ -692,6 +704,7 @@
         }
 
         return () => {
+          layoutActive = false;
           section.classList.remove('is-gsap-ready');
           section.classList.remove('is-about-logo-active');
           if (aerialVideo) {

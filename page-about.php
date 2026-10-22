@@ -95,7 +95,7 @@ foreach (['中国徐州', 'Xuzhou, China', '起重设备制造商', 'crane manuf
 }
 $about_hero_title = (string) (get_the_title() ?: ($logo['label'] ?? 'About BOB-LIFT'));
 $about_hero_title_html = str_replace('BOB-LIFT', '<span class="whitespace-nowrap">BOB-LIFT</span>', esc_html($about_hero_title));
-$about_hero_text = rtrim(trim((string) ($logo['headline'] ?? '')), '。.');
+$about_hero_text = (string) preg_replace('/[。.]+$/u', '', trim((string) ($logo['headline'] ?? '')));
 ?>
 <section class="about-logo-scroll-section relative isolate bg-[#F8FAFC]" data-about-logo-scroll style="--about-logo-image:url('<?php echo esc_url($about_aerial_start); ?>');">
     <div class="about-logo-pin relative overflow-hidden" data-about-logo-pin>

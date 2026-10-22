@@ -42,6 +42,15 @@ $map_labels = is_array($ui['mapLabels'] ?? null) ? $ui['mapLabels'] : [];
 
 $eyebrow = 'text-[11px] font-black uppercase tracking-[0.18em] text-slate-400';
 $after_steps = is_array($ui['afterSteps'] ?? null) ? $ui['afterSteps'] : [];
+$support_defaults = boblift_localize_static_value(boblift_site_ui_defaults('contactPage'));
+$has_custom_support = false;
+foreach (['supportTitle', 'supportDescription', 'supportItems'] as $support_key) {
+    if (($ui[$support_key] ?? null) !== ($support_defaults[$support_key] ?? null)) {
+        $has_custom_support = true;
+        break;
+    }
+}
+$support_items = is_array($ui['supportItems'] ?? null) ? $ui['supportItems'] : [];
 $brochures = function_exists('boblift_brochure_items') ? boblift_brochure_items() : [];
 $telegram_href = function_exists('boblift_telegram_contact_href') ? boblift_telegram_contact_href((string) $contact['telegram']) : '';
 $visit_links = is_array($ui['visitLinks'] ?? null) ? $ui['visitLinks'] : [];
@@ -105,7 +114,8 @@ $visit_links = is_array($ui['visitLinks'] ?? null) ? $ui['visitLinks'] : [];
                         </dd>
                     </div>
                     <?php endif; ?>
-                    <?php if ($telegram_link !== '' && !$telegram_same) : ?>
+                    <?php // Its own row unless the shared phone / WhatsApp row above already carries it. ?>
+                    <?php if ($telegram_link !== '' && !($telegram_same && $same_number)) : ?>
                     <div class="py-3.5">
                         <dt class="<?php echo esc_attr($eyebrow); ?>"><?php echo esc_html($t('telegramLabel', 'Telegram')); ?></dt>
                         <dd class="mt-1"><?php echo $telegram_link; ?></dd>
@@ -164,25 +174,47 @@ $visit_links = is_array($ui['visitLinks'] ?? null) ? $ui['visitLinks'] : [];
                 </ol>
             </section>
         </aside>
-        <?php // Brochures fill the space under the form; the direct channels and next steps sit beside it. ?>
-        <?php if ($brochures !== []) : ?>
-            <section class="min-w-0 rounded border border-line bg-white p-5 md:p-6 lg:col-start-1 lg:row-start-2" aria-labelledby="contact-brochure-title">
-                <h2 id="contact-brochure-title" class="text-lg font-black leading-7 text-navy"><?php echo esc_html($t('brochureTitle', 'Download a brochure')); ?></h2>
-                <p class="mt-1 text-sm font-normal leading-6 text-slate-600"><?php echo esc_html($t('brochureText')); ?></p>
-                <ul class="mt-4 grid gap-3 sm:grid-cols-3">
-                    <?php foreach ($brochures as $brochure) : ?>
-                        <li class="min-w-0">
-                            <a class="group flex h-full items-center gap-3 rounded-sm border border-line bg-mist p-3 transition hover:border-blue-200 hover:bg-white" href="<?php echo esc_url($brochure['url']); ?>" download>
-                                <img class="h-16 w-12 shrink-0 rounded-sm border border-line bg-white object-cover" src="<?php echo esc_url($brochure['cover']); ?>" alt="" width="48" height="64" loading="lazy" decoding="async">
+        <?php // Brochures, and support copy an editor wrote, fill the space under the form; the direct channels and next steps sit beside it. ?>
+        <?php if ($brochures !== [] || $has_custom_support) : ?>
+        <div class="grid min-w-0 items-start gap-4 lg:col-start-1 lg:row-start-2">
+            <?php if ($brochures !== []) : ?>
+                <section class="min-w-0 rounded border border-line bg-white p-5 md:p-6" aria-labelledby="contact-brochure-title">
+                    <h2 id="contact-brochure-title" class="text-lg font-black leading-7 text-navy"><?php echo esc_html($t('brochureTitle', 'Download a brochure')); ?></h2>
+                    <p class="mt-1 text-sm font-normal leading-6 text-slate-600"><?php echo esc_html($t('brochureText')); ?></p>
+                    <ul class="mt-4 grid gap-3 sm:grid-cols-3">
+                        <?php foreach ($brochures as $brochure) : ?>
+                            <li class="min-w-0">
+                                <a class="group flex h-full items-center gap-3 rounded-sm border border-line bg-mist p-3 transition hover:border-blue-200 hover:bg-white" href="<?php echo esc_url($brochure['url']); ?>" download>
+                                    <img class="h-16 w-12 shrink-0 rounded-sm border border-line bg-white object-cover" src="<?php echo esc_url($brochure['cover']); ?>" alt="" width="48" height="64" loading="lazy" decoding="async">
+                                    <span class="min-w-0">
+                                        <span class="block text-sm font-black leading-5 text-ink group-hover:text-blue-700"><?php echo esc_html($brochure['title']); ?></span>
+                                        <span class="mt-1 inline-flex items-center gap-1 text-xs font-bold text-slate-500"><?php echo boblift_icon('download', 'h-3.5 w-3.5'); ?>PDF · <?php echo esc_html($brochure['size']); ?></span>
+                                    </span>
+                                </a>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                </section>
+            <?php endif; ?>
+            <?php // Support copy an editor wrote in the old layout stays visible; the built-in support overview is not repeated. ?>
+            <?php if ($has_custom_support) : ?>
+                <section class="rounded border border-line bg-mist p-5 md:p-6" aria-labelledby="contact-support-title">
+                    <h2 id="contact-support-title" class="text-lg font-black leading-7 text-navy"><?php echo esc_html($t('supportTitle')); ?></h2>
+                    <p class="mt-3 text-sm font-normal leading-6 text-slate-600"><?php echo esc_html($t('supportDescription')); ?></p>
+                    <ul class="mt-4 space-y-4">
+                        <?php foreach ($support_items as $item) : ?>
+                            <li class="flex gap-3">
+                                <?php echo boblift_icon((string) ($item['iconName'] ?? 'shield-check'), 'mt-0.5 h-4 w-4 shrink-0 text-slate-400'); ?>
                                 <span class="min-w-0">
-                                    <span class="block text-sm font-black leading-5 text-ink group-hover:text-blue-700"><?php echo esc_html($brochure['title']); ?></span>
-                                    <span class="mt-1 inline-flex items-center gap-1 text-xs font-bold text-slate-500"><?php echo boblift_icon('download', 'h-3.5 w-3.5'); ?>PDF · <?php echo esc_html($brochure['size']); ?></span>
+                                    <span class="block text-sm font-black leading-6 text-navy"><?php echo esc_html((string) ($item['title'] ?? '')); ?></span>
+                                    <span class="block text-sm font-normal leading-6 text-slate-600"><?php echo esc_html((string) ($item['text'] ?? '')); ?></span>
                                 </span>
-                            </a>
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
-            </section>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                </section>
+            <?php endif; ?>
+        </div>
         <?php endif; ?>
     </div>
 </section>

@@ -1743,7 +1743,14 @@ function boblift_about_nav_pages(): array
     $about_page = function_exists('boblift_about_page_options') ? boblift_about_page_options() : [];
     $pages = [];
     foreach ((array) ($about_page['secondary_nav'] ?? []) as $link) {
-        $slug = is_array($link) ? (string) ($link['slug'] ?? '') : '';
+        if (!is_array($link)) {
+            continue;
+        }
+        // Entries saved with only a label and a link take their slug from the link, as the header menu does (/factory-tour.html -> factory-tour).
+        $slug = (string) ($link['slug'] ?? '');
+        if ($slug === '') {
+            $slug = sanitize_title(preg_replace('/\.html$/', '', trim((string) wp_parse_url((string) ($link['href'] ?? ''), PHP_URL_PATH), '/')) ?? '');
+        }
         if ($slug === '') {
             continue;
         }
