@@ -17,7 +17,10 @@ ROOT = Path(__file__).resolve().parent.parent / 'assets' / 'images'
 # Picture globs (relative to assets/images) and the widths to make. Large photos get phone and tablet widths; the
 # product-family icons, shown at 26 to 40 CSS pixels, get small ones.
 SETS = [
-    (['page-heroes/*.webp', 'product-banners/*.jpg', 'about/home-*.webp', 'about/about-aerial-*.webp', 'about/about-logo-1.png', 'about/about-logo-prototype-crane-ai.png'], [160, 480, 768, 1080, 1440]),
+    (['page-heroes/*.webp', 'product-banners/*.jpg', 'about/home-*.webp', 'about/about-aerial-*.webp', 'about/about-logo-prototype-crane-ai.png'], [160, 480, 768, 1080, 1440]),
+    # The about-page silhouette is cropped to fill a portrait phone screen (sizes 220vw), so a 1.75x phone needs about
+    # 1,550 pixels; without a 1600 copy it would fall back to the 1.3 MB PNG.
+    (['about/about-logo-1.png'], [160, 480, 768, 1080, 1440, 1600]),
     (['mega-menu-icons/*.png'], [64, 128]),
 ]
 QUALITY = 78
