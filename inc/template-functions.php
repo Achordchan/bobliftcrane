@@ -1745,13 +1745,17 @@ function boblift_cases(): array
     $query = new WP_Query(['post_type' => 'case', 'post_status' => 'publish', 'posts_per_page' => -1, 'orderby' => 'date', 'order' => 'DESC']);
     if ($query->have_posts()) {
         $items = array_map(static fn (WP_Post $post): array => boblift_case_item_from_post($post), $query->posts);
+        // Newest first (the query order), so new cases lead the home page and the case list; the seed order only
+        // settles cases published on the same day.
         $seed_order = array_flip(array_column(boblift_cases_seed(), 'slug'));
-        usort($items, static function (array $a, array $b) use ($seed_order): int {
-            $a_order = $seed_order[$a['slug'] ?? ''] ?? PHP_INT_MAX;
-            $b_order = $seed_order[$b['slug'] ?? ''] ?? PHP_INT_MAX;
-            return $a_order <=> $b_order;
+        $dates = array_map(static fn (WP_Post $post): string => substr((string) $post->post_date, 0, 10), $query->posts);
+        $keys = array_keys($items);
+        usort($keys, static function (int $a, int $b) use ($items, $dates, $seed_order): int {
+            return strcmp($dates[$b], $dates[$a])
+                ?: (($seed_order[$items[$a]['slug'] ?? ''] ?? PHP_INT_MAX) <=> ($seed_order[$items[$b]['slug'] ?? ''] ?? PHP_INT_MAX))
+                ?: $a <=> $b;
         });
-        return $items;
+        return array_map(static fn (int $key): array => $items[$key], $keys);
     }
     return array_map(static function (array $case): array {
         $case['url'] = function_exists('boblift_localized_url') ? boblift_localized_url(home_url('/cases/' . $case['slug'])) : home_url('/cases/' . $case['slug']);
