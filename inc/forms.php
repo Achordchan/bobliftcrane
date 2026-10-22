@@ -748,20 +748,18 @@ function boblift_inquiry_reserve_slot(): bool
 }
 
 /**
- * Answer a sent inquiry: JSON for the modal, else a redirect to the thank-you page. A short-lived cookie tells the
- * thank-you page to report one "generate_lead" to the dataLayer; a reload or a direct visit reports nothing.
+ * Answer a sent inquiry: JSON for the modal, else a redirect to the thank-you page. The thank-you address carries the
+ * saved inquiry's number (?sent=), which the page reports once as its conversion, using the number to tell inquiries
+ * apart (assets/js/theme.js). No cookie is set here: whether anything is reported is up to the visitor's consent.
  */
 function boblift_inquiry_succeed(int $post_id, array $fields = []): void
 {
-    if ($post_id > 0 && !headers_sent()) {
-        $lead = wp_json_encode(['product' => mb_substr((string) ($fields['product'] ?? ''), 0, 120), 'source' => (string) ($fields['source_entry'] ?? '')]);
-        setrawcookie('boblift_lead', rawurlencode((string) $lead), ['expires' => time() + 600, 'path' => '/', 'secure' => is_ssl(), 'samesite' => 'Lax']);
-    }
+    $redirect = $post_id > 0 ? add_query_arg('sent', $post_id, boblift_inquiry_success_url()) : boblift_inquiry_success_url();
     if (boblift_inquiry_wants_json()) {
         $quote_ui = boblift_site_ui('quoteForm');
-        wp_send_json_success(['message' => (string) ($quote_ui['successInlineText'] ?? 'Inquiry sent. Our team will contact you soon.'), 'id' => $post_id, 'redirect' => boblift_inquiry_success_url()]);
+        wp_send_json_success(['message' => (string) ($quote_ui['successInlineText'] ?? 'Inquiry sent. Our team will contact you soon.'), 'id' => $post_id, 'redirect' => $redirect]);
     }
-    wp_safe_redirect(boblift_inquiry_success_url());
+    wp_safe_redirect($redirect);
     exit;
 }
 

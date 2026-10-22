@@ -2096,7 +2096,8 @@
       form.dataset.submitted = 'true';
       if (form.dataset.clearQuoteListOnSuccess === 'true') window.bobliftQuoteList?.clear();
       resetTurnstile(form);
-      window.location.href = form.dataset.successUrl || data?.data?.redirect || '/success.html';
+      // The server's address carries the inquiry's number, which the thank-you page reports as its conversion.
+      window.location.href = data?.data?.redirect || form.dataset.successUrl || '/success.html';
     } catch (error) {
       form.dataset.submitting = 'false';
       inquiryModalStatus(error.message || quoteFormMessage('saveFailed', 'The inquiry could not be sent. Please try again.'), 'error');
@@ -4456,27 +4457,37 @@
       update();
     });
   };
-  // On the thank-you page: an inquiry the server has just saved leaves a short-lived "boblift_lead" cookie, which becomes
-  // one "generate_lead" event in the dataLayer for whatever tracking is added later (GA4, Google Ads, Tag Manager).
-  // The cookie is removed at once, so a reload or a direct visit reports nothing.
+  // A sent inquiry is reported once, from the tab that sent it: submitting a form notes the product and entry point in
+  // this tab's sessionStorage (only while the Google tag is configured), and the thank-you page, opened with the saved
+  // inquiry's number (?sent=), turns that note into one "generate_lead" whose transaction_id is the number. Each tab keeps
+  // its own note, a reload finds none, and the tag's Consent Mode decides what it may send.
+  const PENDING_LEAD = 'boblift_pending_lead';
+  document.addEventListener('submit', (event) => {
+    const form = event.target;
+    if (window.bobliftTracking !== true || !(form instanceof HTMLFormElement) || !form.matches('[data-quote-form]')) return;
+    const value = (name) => String(form.querySelector(`[name="${name}"]`)?.value || '').slice(0, 120);
+    try { sessionStorage.setItem(PENDING_LEAD, JSON.stringify({ product: value('product'), source: value('source_entry') })); } catch { /* not reported */ }
+  }, true);
   const reportSentInquiry = () => {
     if (!document.querySelector('[data-inquiry-success]')) return;
-    const match = document.cookie.match(/(?:^|;\s*)boblift_lead=([^;]*)/);
-    if (!match) return;
-    document.cookie = 'boblift_lead=; Max-Age=0; path=/; SameSite=Lax';
-    let lead = {};
+    const params = new URLSearchParams(location.search);
+    const sent = params.get('sent') || '';
+    if (sent) {
+      params.delete('sent');
+      history.replaceState(null, '', location.pathname + (params.toString() ? `?${params}` : '') + location.hash);
+    }
+    let lead = null;
     try {
-      lead = JSON.parse(decodeURIComponent(match[1])) || {};
+      lead = JSON.parse(sessionStorage.getItem(PENDING_LEAD) || 'null');
+      sessionStorage.removeItem(PENDING_LEAD);
     } catch {
-      lead = {};
+      lead = null;
     }
-    window.dataLayer = window.dataLayer || [];
-    window.dataLayer.push({ event: 'generate_lead', form: 'inquiry', inquiry_product: lead.product || '', inquiry_source: lead.source || '' });
+    if (!/^\d+$/.test(sent) || !lead || typeof window.gtag !== 'function') return;
+    const details = { form: 'inquiry', transaction_id: `inquiry-${sent}`, inquiry_product: lead.product || '', inquiry_source: lead.source || '' };
     // The theme's Google tag (inc/consent.php) reports the lead to GA4, and to Google Ads when an inquiry conversion is set.
-    if (typeof window.gtag === 'function') {
-      window.gtag('event', 'generate_lead', { form: 'inquiry', inquiry_product: lead.product || '', inquiry_source: lead.source || '' });
-      if (window.bobliftGoogleConversion) window.gtag('event', 'conversion', { send_to: window.bobliftGoogleConversion });
-    }
+    window.gtag('event', 'generate_lead', details);
+    if (window.bobliftGoogleConversion) window.gtag('event', 'conversion', { send_to: window.bobliftGoogleConversion, transaction_id: details.transaction_id });
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', reportSentInquiry);
   else reportSentInquiry();
