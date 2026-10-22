@@ -1,6 +1,6 @@
 .DS_Store
 node_modules/
-vendor/
+/vendor/
 .env
 .env.*
 !/.env.example
@@ -29,3 +29,6 @@ tmp/
 /tools/content-gap/source/products/
 /tools/content-gap/source/forklift-charts/
 /tools/content-gap/source/*.zip
+# Asset-processing tools and their output, and local scratch data: not part of the theme.
+/tools/
+/var/
