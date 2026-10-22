@@ -176,7 +176,7 @@ if (count($related_cards) < 3 && function_exists('boblift_feedback_items')) {
         <?php if ($image !== '') : ?>
             <?php // The whole cover is shown (object-contain); on wide screens a blurred copy fills the space beside it instead of cropping it. ?>
             <figure class="boblift-case-hero relative m-0 overflow-hidden bg-[#0B1B33]<?php echo $display_facts ? ' rounded-t' : ' rounded'; ?>">
-                <div class="boblift-feedback-backdrop" style="background-image:url('<?php echo esc_url($image); ?>')" aria-hidden="true"></div>
+                <div class="boblift-feedback-backdrop" style="background-image:url('<?php echo esc_url(boblift_image_resized($image, 480)); ?>')" aria-hidden="true"></div>
                 <img class="relative block aspect-[3/2] w-full object-contain md:aspect-auto md:h-[clamp(420px,62vh,760px)]" <?php echo boblift_img_src($image, '(min-width: 1024px) 67vw, 92vw', 1280); ?> alt="<?php echo esc_attr($image_alt); ?>" loading="eager" fetchpriority="high" decoding="async">
                 <?php if ($image_caption !== '') : ?><figcaption class="absolute bottom-3 start-3 max-w-[calc(100%-1.5rem)] rounded-sm bg-[#071f42]/80 px-2.5 py-1 text-xs font-bold text-white"><?php echo esc_html($image_caption); ?></figcaption><?php endif; ?>
             </figure>
