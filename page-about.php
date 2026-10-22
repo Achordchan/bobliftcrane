@@ -89,7 +89,9 @@ $strength_title = (string) ($strength['title'] ?? 'Manufacturing intelligence fo
 $strength_title_html = esc_html($strength_title);
 foreach (['中国徐州', 'Xuzhou, China', '起重设备制造商', 'crane manufacturer', '制造智能', '日常运营', 'Manufacturing intelligence', 'daily operation'] as $strength_highlight) {
     if ($strength_highlight !== '' && str_contains($strength_title, $strength_highlight)) {
-        $strength_title_html = str_replace(esc_html($strength_highlight), '<span class="whitespace-nowrap text-blue-700">' . esc_html($strength_highlight) . '</span>', $strength_title_html);
+        // A single word or a Chinese place name ("中国徐州") stays on one line; a multiword phrase may wrap.
+        $highlight_class = preg_match('/\s/u', $strength_highlight) ? 'text-blue-700' : 'whitespace-nowrap text-blue-700';
+        $strength_title_html = str_replace(esc_html($strength_highlight), '<span class="' . $highlight_class . '">' . esc_html($strength_highlight) . '</span>', $strength_title_html);
         break;
     }
 }

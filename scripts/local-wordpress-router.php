@@ -20,7 +20,11 @@ $filesystem_path = $wordpress_root . rawurldecode($request_path);
 // every loop and stalled. Video and audio files are served here with byte-range (206) support, as a real web server does.
 $media_types = ['mp4' => 'video/mp4', 'webm' => 'video/webm', 'mov' => 'video/quicktime', 'm4v' => 'video/mp4', 'mp3' => 'audio/mpeg'];
 $extension = strtolower(pathinfo($filesystem_path, PATHINFO_EXTENSION));
-if (isset($media_types[$extension]) && is_file($filesystem_path)) {
+// Only files that resolve inside the WordPress root (no "/../" escapes) are served here.
+$real_root = realpath($wordpress_root);
+$real_path = isset($media_types[$extension]) ? realpath($filesystem_path) : false;
+if ($real_root !== false && $real_path !== false && str_starts_with($real_path, $real_root . DIRECTORY_SEPARATOR) && is_file($real_path)) {
+    $filesystem_path = $real_path;
     $size = (int) filesize($filesystem_path);
     $start = 0;
     $end = $size - 1;
