@@ -19,8 +19,8 @@ function boblift_render_legal_page(array $options, string $inquiry_source, strin
                             <h2 class="text-base font-black leading-snug text-ink"><?php echo esc_html((string) ($ui['contactTitle'] ?? 'Questions about this page?')); ?></h2>
                             <p class="mt-2 text-sm font-normal leading-6 text-slate-600"><?php echo esc_html((string) ($ui['contactText'] ?? '')); ?></p>
                             <div class="mt-4 grid gap-2 text-sm font-bold">
-                                <a class="inline-flex min-w-0 items-center gap-2 text-navy transition hover:text-blue-700" href="mailto:<?php echo esc_attr($contact['email']); ?>"><?php echo boblift_icon('mail', 'h-4 w-4 shrink-0 text-slate-400'); ?><span class="truncate"><?php echo esc_html($contact['email']); ?></span></a>
-                                <a class="inline-flex min-w-0 items-center gap-2 text-navy transition hover:text-blue-700" href="<?php echo esc_url(boblift_url('/contact.html')); ?>" data-inquiry-source="<?php echo esc_attr($inquiry_source); ?>"><?php echo boblift_icon('message-circle', 'h-4 w-4 shrink-0 text-slate-400'); ?><span class="truncate"><?php echo esc_html((string) ($ui['contactLink'] ?? 'Contact page')); ?></span></a>
+                                <a class="inline-flex min-w-0 items-center gap-2 text-navy transition hover:text-blue-700" href="mailto:<?php echo esc_attr($contact['email']); ?>"><?php echo boblift_icon('mail', 'h-4 w-4 shrink-0 text-slate-500'); ?><span class="truncate"><?php echo esc_html($contact['email']); ?></span></a>
+                                <a class="inline-flex min-w-0 items-center gap-2 text-navy transition hover:text-blue-700" href="<?php echo esc_url(boblift_url('/contact.html')); ?>" data-inquiry-source="<?php echo esc_attr($inquiry_source); ?>"><?php echo boblift_icon('message-circle', 'h-4 w-4 shrink-0 text-slate-500'); ?><span class="truncate"><?php echo esc_html((string) ($ui['contactLink'] ?? 'Contact page')); ?></span></a>
                             </div>
                         </section>
     <?php };
@@ -94,7 +94,7 @@ function boblift_render_legal_page(array $options, string $inquiry_source, strin
                                 <h2 class="text-xs font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html((string) ($ui['documentsTitle'] ?? 'Related documents')); ?></h2>
                                 <ul class="mt-3 grid gap-1">
                                     <?php foreach ($documents as $doc) : ?>
-                                        <li><a class="flex items-center justify-between gap-3 rounded-sm px-1 py-2 text-sm font-bold text-navy transition hover:bg-mist hover:text-blue-700" href="<?php echo esc_url(boblift_url('/' . $doc['slug'] . '.html')); ?>"><?php echo esc_html($doc['label']); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 text-slate-400'); ?></a></li>
+                                        <li><a class="flex items-center justify-between gap-3 rounded-sm px-1 py-2 text-sm font-bold text-navy transition hover:bg-mist hover:text-blue-700" href="<?php echo esc_url(boblift_url('/' . $doc['slug'] . '.html')); ?>"><?php echo esc_html($doc['label']); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 text-slate-500'); ?></a></li>
                                     <?php endforeach; ?>
                                 </ul>
                             </nav>

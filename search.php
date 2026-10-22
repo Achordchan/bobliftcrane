@@ -106,7 +106,7 @@ $product_result = static function (array $product) use ($highlight, $view_detail
             <?php $specs = boblift_product_card_specs($product); if ($specs) : ?>
                 <dl class="mt-3 grid grid-cols-2 gap-3 border-t border-[#E5E7EB] pt-3 sm:mt-4 sm:grid-cols-3 sm:pt-4 [&>div:nth-child(3)]:hidden sm:[&>div:nth-child(3)]:block">
                     <?php foreach ($specs as $spec) : ?>
-                        <div class="min-w-0"><dt class="truncate text-[11px] font-bold text-slate-400"><?php echo esc_html((string) $spec['label']); ?></dt><dd class="mt-1 truncate text-sm font-black text-ink"><?php echo esc_html((string) $spec['value']); ?></dd></div>
+                        <div class="min-w-0"><dt class="truncate text-[11px] font-bold text-slate-500"><?php echo esc_html((string) $spec['label']); ?></dt><dd class="mt-1 truncate text-sm font-black text-ink"><?php echo esc_html((string) $spec['value']); ?></dd></div>
                     <?php endforeach; ?>
                 </dl>
             <?php endif; ?>
@@ -133,7 +133,7 @@ $post_result = static function (WP_Post $post) use ($highlight): void {
     <a class="group grid min-w-0 grid-cols-[104px_minmax(0,1fr)] items-start gap-4 rounded border border-[#E5E7EB] bg-white p-3 shadow-card transition duration-300 hover:-translate-y-0.5 hover:border-blue-200 sm:grid-cols-[200px_minmax(0,1fr)] sm:gap-6 sm:p-4" href="<?php echo esc_url(get_permalink($post)); ?>">
         <div class="relative aspect-[4/3] overflow-hidden rounded-sm bg-mist"><img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" src="<?php echo esc_url($image); ?>" alt="<?php echo esc_attr($title); ?>" loading="lazy" decoding="async"></div>
         <div class="min-w-0 py-0.5 sm:py-2">
-            <?php if ($meta) : ?><p class="truncate text-xs font-bold text-slate-400"><?php echo esc_html(implode(' · ', $meta)); ?></p><?php endif; ?>
+            <?php if ($meta) : ?><p class="truncate text-xs font-bold text-slate-500"><?php echo esc_html(implode(' · ', $meta)); ?></p><?php endif; ?>
             <h3 class="mt-1.5 line-clamp-2 text-base font-black leading-snug text-ink transition group-hover:text-blue-700 sm:text-lg"><?php echo $highlight($title); ?></h3>
             <?php if ($excerpt !== '') : ?><p class="mt-2 hidden text-sm font-normal leading-6 text-slate-600 sm:line-clamp-2"><?php echo $highlight(wp_strip_all_tags($excerpt)); ?></p><?php endif; ?>
         </div>
@@ -144,7 +144,7 @@ $post_result = static function (WP_Post $post) use ($highlight): void {
 $section_head = static function (string $label, int $count, string $tab, int $shown) use ($ui, $type, $search_url, $format): void {
     ?>
     <div class="mb-4 flex items-end justify-between gap-4 md:mb-5">
-        <h2 class="text-xl font-black text-ink md:text-2xl"><?php echo esc_html($label); ?> <span class="text-base font-bold tabular-nums text-slate-400"><?php echo esc_html((string) $count); ?></span></h2>
+        <h2 class="text-xl font-black text-ink md:text-2xl"><?php echo esc_html($label); ?> <span class="text-base font-bold tabular-nums text-slate-500"><?php echo esc_html((string) $count); ?></span></h2>
         <?php if ($type === '' && $count > $shown) : ?>
             <a class="inline-flex shrink-0 items-center gap-1.5 text-sm font-black text-navy transition hover:text-blue-700" href="<?php echo esc_url($search_url($tab)); ?>"><?php echo esc_html($format((string) ($ui['viewAllTemplate'] ?? 'View all {count}'), ['{count}' => (string) $count])); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
         <?php endif; ?>
@@ -159,7 +159,7 @@ $category_links = static function () use ($families): void {
     ?>
     <div class="flex flex-wrap gap-2">
         <?php foreach ($families as $family) : ?>
-            <a class="inline-flex h-10 items-center gap-2 rounded-sm border border-line bg-white px-3.5 text-sm font-bold text-navy transition hover:border-blue-300 hover:text-blue-700" href="<?php echo esc_url($family['url']); ?>"><?php echo esc_html($family['title']); ?><span class="text-xs font-bold tabular-nums text-slate-400"><?php echo esc_html((string) $family['count']); ?></span></a>
+            <a class="inline-flex h-10 items-center gap-2 rounded-sm border border-line bg-white px-3.5 text-sm font-bold text-navy transition hover:border-blue-300 hover:text-blue-700" href="<?php echo esc_url($family['url']); ?>"><?php echo esc_html($family['title']); ?><span class="text-xs font-bold tabular-nums text-slate-500"><?php echo esc_html((string) $family['count']); ?></span></a>
         <?php endforeach; ?>
     </div>
     <?php
@@ -183,7 +183,7 @@ $category_links = static function () use ($families): void {
             <form class="mt-6 flex max-w-3xl gap-2 md:gap-3" role="search" method="get" action="<?php echo esc_url(home_url('/')); ?>">
                 <label class="relative min-w-0 flex-1">
                     <span class="sr-only"><?php echo esc_html($ui['inputLabel'] ?? 'Search products and articles'); ?></span>
-                    <?php echo boblift_icon('search', 'pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400'); ?>
+                    <?php echo boblift_icon('search', 'pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500'); ?>
                     <input class="h-12 w-full rounded-sm border border-[#D8DEE8] bg-white pl-11 pr-4 text-base font-bold text-ink outline-none transition placeholder:font-normal placeholder:text-slate-400 focus:border-navy focus:ring-4 focus:ring-blue-100 md:h-14 [&::-webkit-search-cancel-button]:hidden" type="search" name="s" value="<?php echo esc_attr($query); ?>" placeholder="<?php echo esc_attr($ui['placeholder'] ?? 'Search a model, crane type or topic'); ?>" autocomplete="off" enterkeyhint="search" <?php echo $query === '' ? 'autofocus' : ''; ?>>
                 </label>
                 <?php if ($type !== '') : ?><input type="hidden" name="type" value="<?php echo esc_attr($type); ?>"><?php endif; ?>
@@ -207,7 +207,7 @@ $category_links = static function () use ($families): void {
                         }
                         $active = $tab === $type;
                         ?>
-                        <a class="relative inline-flex h-12 shrink-0 items-center gap-2 whitespace-nowrap px-3 text-sm font-black transition after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 md:px-4 md:text-base <?php echo $active ? 'text-ink after:bg-navy' : 'text-slate-500 hover:text-ink'; ?>" href="<?php echo esc_url($search_url($tab)); ?>" <?php echo $active ? 'aria-current="page"' : ''; ?>><?php echo esc_html($label); ?><span class="text-xs font-bold tabular-nums <?php echo $active ? 'text-blue-700' : 'text-slate-400'; ?>"><?php echo esc_html((string) $count); ?></span></a>
+                        <a class="relative inline-flex h-12 shrink-0 items-center gap-2 whitespace-nowrap px-3 text-sm font-black transition after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 md:px-4 md:text-base <?php echo $active ? 'text-ink after:bg-navy' : 'text-slate-500 hover:text-ink'; ?>" href="<?php echo esc_url($search_url($tab)); ?>" <?php echo $active ? 'aria-current="page"' : ''; ?>><?php echo esc_html($label); ?><span class="text-xs font-bold tabular-nums <?php echo $active ? 'text-blue-700' : 'text-slate-500'; ?>"><?php echo esc_html((string) $count); ?></span></a>
                     <?php endforeach; ?>
                 </nav>
             <?php endif; ?>
@@ -215,7 +215,7 @@ $category_links = static function () use ($families): void {
 
         <?php if ($query !== '' && $total === 0) : ?>
             <div class="mt-6 rounded border border-line bg-white px-5 py-10 text-center shadow-card sm:px-8 md:mt-8 md:py-14">
-                <span class="mx-auto grid h-14 w-14 place-items-center rounded-sm bg-mist text-slate-400"><?php echo boblift_icon('search-x', 'h-7 w-7'); ?></span>
+                <span class="mx-auto grid h-14 w-14 place-items-center rounded-sm bg-mist text-slate-500"><?php echo boblift_icon('search-x', 'h-7 w-7'); ?></span>
                 <h2 class="mx-auto mt-5 max-w-2xl break-words text-2xl font-black text-ink"><?php echo esc_html(str_replace('{query}', $query, (string) ($ui['noResultsTitle'] ?? 'No results for “{query}”'))); ?></h2>
                 <p class="mx-auto mt-3 max-w-xl text-sm font-normal leading-7 text-slate-600"><?php echo esc_html($ui['noResultsText'] ?? ''); ?></p>
                 <div class="mt-6 flex justify-center"><?php $category_links(); ?></div>

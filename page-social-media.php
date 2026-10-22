@@ -334,7 +334,7 @@ if ($legacy_panel !== []) : ?>
                                     <?php if ($has_qr) : ?>
                                         <img class="h-16 w-16 shrink-0 rounded-sm border border-line bg-white object-contain p-1" src="<?php echo esc_url(boblift_image_setting_url($platform['qr'])); ?>" alt="<?php echo esc_attr($label . ' · ' . $t($labels['qr_label'] ?? 'Scan to follow')); ?>" loading="lazy" decoding="async">
                                     <?php elseif ($url !== '') : ?>
-                                        <?php echo boblift_icon('arrow-up-right', 'absolute end-3 top-3 h-5 w-5 shrink-0 text-slate-400 transition group-hover:text-blue-600 sm:static'); ?>
+                                        <?php echo boblift_icon('arrow-up-right', 'absolute end-3 top-3 h-5 w-5 shrink-0 text-slate-500 transition group-hover:text-blue-600 sm:static'); ?>
                                     <?php endif; ?>
                                 </<?php echo $tag; ?>>
                             </li>

@@ -198,7 +198,7 @@ $total_links = array_sum(array_map(static fn(array $column): int => count($colum
 
 $section_heading = static function (string $title, int $count, string $link_label = '', string $link_url = ''): void { ?>
     <div class="mb-6 flex flex-wrap items-end justify-between gap-x-6 gap-y-2 border-b border-line pb-4">
-        <h2 class="text-[clamp(1.5rem,2.2vw,2.25rem)] font-black leading-tight tracking-[-0.015em] text-ink"><?php echo esc_html($title); ?> <span class="ml-1 align-middle text-sm font-bold tabular-nums text-slate-400"><?php echo esc_html((string) $count); ?></span></h2>
+        <h2 class="text-[clamp(1.5rem,2.2vw,2.25rem)] font-black leading-tight tracking-[-0.015em] text-ink"><?php echo esc_html($title); ?> <span class="ml-1 align-middle text-sm font-bold tabular-nums text-slate-500"><?php echo esc_html((string) $count); ?></span></h2>
         <?php if ($link_label !== '') : ?>
             <a class="inline-flex items-center gap-2 text-sm font-bold text-navy transition hover:text-blue-700" href="<?php echo esc_url($link_url); ?>"><?php echo esc_html($link_label); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
         <?php endif; ?>
@@ -245,9 +245,9 @@ $section_heading = static function (string $title, int $count, string $link_labe
                     <?php foreach ($product_blocks as $block) : ?>
                         <div class="boblift-sitemap-group mb-8">
                             <?php if ($block['eyebrow'] !== '') : ?>
-                                <p class="text-xs font-black uppercase tracking-[0.14em] text-slate-400"><?php if ($block['eyebrow_url'] !== '') : ?><a class="transition hover:text-blue-700" href="<?php echo esc_url($block['eyebrow_url']); ?>"><?php echo esc_html($block['eyebrow']); ?></a><?php else : echo esc_html($block['eyebrow']); endif; ?></p>
+                                <p class="text-xs font-black uppercase tracking-[0.14em] text-slate-500"><?php if ($block['eyebrow_url'] !== '') : ?><a class="transition hover:text-blue-700" href="<?php echo esc_url($block['eyebrow_url']); ?>"><?php echo esc_html($block['eyebrow']); ?></a><?php else : echo esc_html($block['eyebrow']); endif; ?></p>
                             <?php endif; ?>
-                            <h3 class="mt-1 text-lg font-black leading-snug"><a class="text-ink transition hover:text-blue-700" href="<?php echo esc_url($block['url']); ?>"><?php echo esc_html($block['title']); ?></a> <span class="text-sm font-bold tabular-nums text-slate-400"><?php echo esc_html((string) count($block['links'])); ?></span></h3>
+                            <h3 class="mt-1 text-lg font-black leading-snug"><a class="text-ink transition hover:text-blue-700" href="<?php echo esc_url($block['url']); ?>"><?php echo esc_html($block['title']); ?></a> <span class="text-sm font-bold tabular-nums text-slate-500"><?php echo esc_html((string) count($block['links'])); ?></span></h3>
                             <ul class="mt-2 grid gap-0.5">
                                 <?php foreach ($block['links'] as [$label, $url]) : ?>
                                     <li><a class="boblift-sitemap-link inline-block text-sm font-medium text-slate-600" href="<?php echo esc_url((string) $url); ?>"><?php echo esc_html((string) $label); ?></a></li>
@@ -266,13 +266,13 @@ $section_heading = static function (string $title, int $count, string $link_labe
                     <?php if ($news_categories !== []) : ?>
                         <p class="mb-5 flex flex-wrap gap-x-5 gap-y-2 text-sm font-bold">
                             <?php foreach ($news_categories as $term) : $url = get_term_link($term); if (!is_string($url)) continue; ?>
-                                <a class="text-navy transition hover:text-blue-700" href="<?php echo esc_url($url); ?>"><?php echo esc_html($sitemap_label($term->name)); ?> <span class="font-normal tabular-nums text-slate-400"><?php echo esc_html((string) $term->count); ?></span></a>
+                                <a class="text-navy transition hover:text-blue-700" href="<?php echo esc_url($url); ?>"><?php echo esc_html($sitemap_label($term->name)); ?> <span class="font-normal tabular-nums text-slate-500"><?php echo esc_html((string) $term->count); ?></span></a>
                             <?php endforeach; ?>
                         </p>
                     <?php endif; ?>
                     <ul class="grid gap-x-10 md:grid-cols-2">
                         <?php foreach ($news as $post) : ?>
-                            <li class="border-b border-line/70"><a class="boblift-sitemap-link flex items-baseline gap-3 py-2 text-sm font-medium text-slate-600" href="<?php echo esc_url(get_permalink($post)); ?>"><time class="shrink-0 text-xs font-bold tabular-nums text-slate-400" datetime="<?php echo esc_attr(get_the_date('Y-m-d', $post)); ?>"><?php echo esc_html(get_the_date('Y-m', $post)); ?></time><span class="min-w-0"><?php echo esc_html($sitemap_label(get_the_title($post))); ?></span></a></li>
+                            <li class="border-b border-line/70"><a class="boblift-sitemap-link flex items-baseline gap-3 py-2 text-sm font-medium text-slate-600" href="<?php echo esc_url(get_permalink($post)); ?>"><time class="shrink-0 text-xs font-bold tabular-nums text-slate-500" datetime="<?php echo esc_attr(get_the_date('Y-m-d', $post)); ?>"><?php echo esc_html(get_the_date('Y-m', $post)); ?></time><span class="min-w-0"><?php echo esc_html($sitemap_label(get_the_title($post))); ?></span></a></li>
                         <?php endforeach; ?>
                     </ul>
                 </section>

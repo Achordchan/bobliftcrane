@@ -55,7 +55,7 @@ $map_links = [
 ];
 $map_labels = is_array($ui['mapLabels'] ?? null) ? $ui['mapLabels'] : [];
 
-$eyebrow = 'text-[11px] font-black uppercase tracking-[0.18em] text-slate-400';
+$eyebrow = 'text-[11px] font-black uppercase tracking-[0.18em] text-slate-500';
 $after_steps = is_array($ui['afterSteps'] ?? null) ? $ui['afterSteps'] : [];
 $support_defaults = boblift_localize_static_value(boblift_site_ui_defaults('contactPage'));
 $has_custom_support = false;
@@ -164,12 +164,12 @@ $visit_links = is_array($ui['visitLinks'] ?? null) ? $ui['visitLinks'] : [];
                     <?php endif; ?>
                 </dl>
                 <p class="mt-4 flex items-start gap-2 text-sm font-normal leading-6 text-slate-600">
-                    <?php echo boblift_icon('clock-3', 'mt-0.5 h-4 w-4 shrink-0 text-slate-400'); ?>
+                    <?php echo boblift_icon('clock-3', 'mt-0.5 h-4 w-4 shrink-0 text-slate-500'); ?>
                     <span><?php echo esc_html($t('hoursText')); ?></span>
                 </p>
                 <?php if ($t('languagesText') !== '') : ?>
                     <p class="mt-2 flex items-start gap-2 text-sm font-normal leading-6 text-slate-600">
-                        <?php echo boblift_icon('globe', 'mt-0.5 h-4 w-4 shrink-0 text-slate-400'); ?>
+                        <?php echo boblift_icon('globe', 'mt-0.5 h-4 w-4 shrink-0 text-slate-500'); ?>
                         <span><?php echo esc_html($t('languagesText')); ?></span>
                     </p>
                 <?php endif; ?>
@@ -219,7 +219,7 @@ $visit_links = is_array($ui['visitLinks'] ?? null) ? $ui['visitLinks'] : [];
                     <ul class="mt-4 space-y-4">
                         <?php foreach ($support_items as $item) : ?>
                             <li class="flex gap-3">
-                                <?php echo boblift_icon((string) ($item['iconName'] ?? 'shield-check'), 'mt-0.5 h-4 w-4 shrink-0 text-slate-400'); ?>
+                                <?php echo boblift_icon((string) ($item['iconName'] ?? 'shield-check'), 'mt-0.5 h-4 w-4 shrink-0 text-slate-500'); ?>
                                 <span class="min-w-0">
                                     <span class="block text-sm font-black leading-6 text-navy"><?php echo esc_html((string) ($item['title'] ?? '')); ?></span>
                                     <span class="block text-sm font-normal leading-6 text-slate-600"><?php echo esc_html((string) ($item['text'] ?? '')); ?></span>

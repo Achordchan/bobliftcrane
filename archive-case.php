@@ -57,7 +57,7 @@ $render_case_filter = static function (string $id, string $filter, string $all_l
         </select>
         <button class="boblift-cases-select-trigger" type="button" data-cases-custom-select-toggle aria-haspopup="listbox" aria-expanded="false">
             <span data-cases-custom-select-label><?php echo esc_html($all_label); ?></span>
-            <?php echo boblift_icon('chevron-down', 'h-4 w-4 text-slate-400 transition'); ?>
+            <?php echo boblift_icon('chevron-down', 'h-4 w-4 text-slate-500 transition'); ?>
         </button>
         <div class="boblift-cases-select-menu hidden" role="listbox" data-cases-custom-select-menu>
             <div class="boblift-cases-select-search">

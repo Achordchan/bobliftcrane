@@ -299,18 +299,18 @@ foreach ($languages as $language) {
         <div data-header-row class="page-shell flex h-[78px] items-center justify-between gap-3 lg:h-[92px] lg:gap-4 min-[1380px]:grid min-[1380px]:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] min-[1680px]:gap-8">
             <div class="flex min-w-0 items-center gap-3 lg:gap-2 xl:gap-4">
                 <a class="flex shrink-0 items-center" href="<?php echo esc_url(home_url('/')); ?>" aria-label="<?php echo esc_attr($header_ui['homeAriaLabel'] ?? 'BOB-LIFT Home'); ?>">
-                    <?php echo boblift_img_from_setting($branding['logo'] ?? 'images/bob-lift-logo.png', 'images/bob-lift-logo.png', $branding['logo_alt'] ?? 'BOB-LIFT Cranes', 'h-[52px] w-auto object-contain lg:h-[58px]'); ?>
+                    <?php echo boblift_img_from_setting($branding['logo'] ?? 'images/bob-lift-logo.png', 'images/bob-lift-logo.png', $branding['logo_alt'] ?? 'BOB-LIFT Cranes', 'h-[52px] w-auto object-contain lg:h-[58px]', ['loading' => 'eager']); ?>
                 </a>
                 <?php if ($site_switcher_items !== []) : ?>
                     <span class="hidden h-8 w-px shrink-0 bg-line md:block" aria-hidden="true"></span>
                     <div class="relative hidden md:block" data-language-root>
-                        <button class="group flex h-10 items-center gap-1.5 whitespace-nowrap rounded-sm px-2 text-sm font-black text-ink transition hover:bg-mist focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/20 aria-expanded:bg-mist" type="button" aria-label="<?php echo esc_attr($site_switcher_ui['openLabel'] ?? 'Switch BOB-LIFT site'); ?>" aria-expanded="false" aria-controls="site-switcher-menu" data-language-toggle>
+                        <button class="group flex h-10 items-center gap-1.5 whitespace-nowrap rounded-sm px-2 text-sm font-black text-ink transition hover:bg-mist focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/20 aria-expanded:bg-mist" type="button" aria-label="<?php echo esc_attr(($site_switcher_current['short'] ?? 'Cranes') . ' · ' . ($site_switcher_ui['openLabel'] ?? 'Switch BOB-LIFT site')); ?>" aria-expanded="false" aria-controls="site-switcher-menu" data-language-toggle>
                             <span><?php echo esc_html($site_switcher_current['short'] ?? 'Cranes'); ?></span>
-                            <?php echo boblift_icon('chevron-down', 'h-4 w-4 shrink-0 text-slate-400 transition group-aria-expanded:rotate-180'); ?>
+                            <?php echo boblift_icon('chevron-down', 'h-4 w-4 shrink-0 text-slate-500 transition group-aria-expanded:rotate-180'); ?>
                         </button>
                         <div id="site-switcher-menu" class="absolute start-0 top-full z-[220] hidden pt-3" data-language-menu>
                             <div class="w-[340px] overflow-hidden rounded border border-line bg-white p-1.5 shadow-raised">
-                                <p class="px-3 pb-1.5 pt-2 text-[11px] font-black uppercase tracking-[0.14em] text-slate-400"><?php echo esc_html($site_switcher_ui['title'] ?? 'BOB-LIFT sites'); ?></p>
+                                <p class="px-3 pb-1.5 pt-2 text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html($site_switcher_ui['title'] ?? 'BOB-LIFT sites'); ?></p>
                                 <?php foreach ($site_switcher_items as $site) : ?>
                                     <a class="flex items-center gap-3 rounded-sm px-3 py-2.5 outline-none transition hover:bg-mist focus-visible:bg-mist <?php echo $site['current'] ? 'bg-mist' : ''; ?>" href="<?php echo esc_url($site['url']); ?>"<?php echo $site['current'] ? ' aria-current="true"' : $site_leave_attrs($site); ?>>
                                         <span class="grid size-9 shrink-0 place-items-center rounded-sm <?php echo $site['current'] ? 'bg-navy text-white' : 'border border-line bg-white text-navy'; ?> text-sm font-black" aria-hidden="true"><?php echo esc_html($site['mark']); ?></span>
@@ -322,7 +322,7 @@ foreach ($languages as $language) {
                                         <?php if ($site['current']) : ?>
                                             <span class="shrink-0 rounded-sm bg-navy px-1.5 py-0.5 text-[10px] font-black text-white"><?php echo esc_html($site_switcher_ui['currentLabel'] ?? 'You are here'); ?></span>
                                         <?php else : ?>
-                                            <?php echo boblift_icon('arrow-up-right', 'h-4 w-4 shrink-0 text-slate-400'); ?>
+                                            <?php echo boblift_icon('arrow-up-right', 'h-4 w-4 shrink-0 text-slate-500'); ?>
                                         <?php endif; ?>
                                     </a>
                                 <?php endforeach; ?>
@@ -415,10 +415,10 @@ foreach ($languages as $language) {
             <div class="flex items-center gap-2 md:gap-3 xl:gap-2 min-[1380px]:justify-self-end min-[1680px]:gap-3">
                 <button class="group grid h-11 w-11 shrink-0 place-items-center rounded-sm border border-line bg-white text-ink transition hover:border-ink/30 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/20 aria-expanded:border-ink/40 aria-expanded:bg-mist md:h-12 md:w-12" type="button" aria-label="<?php echo esc_attr($search_ui['openLabel'] ?? 'Search the site'); ?>" aria-expanded="false" aria-controls="site-search" data-search-toggle><?php echo boblift_icon('search', 'h-5 w-5 group-aria-expanded:hidden'); ?><?php echo boblift_icon('x', 'hidden h-5 w-5 group-aria-expanded:block'); ?></button>
                 <div class="relative" data-language-root>
-                    <button class="group flex h-11 items-center gap-1.5 rounded-sm border border-line bg-white px-3 text-start transition hover:border-ink/30 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/20 aria-expanded:border-ink/40 md:h-12" type="button" aria-label="<?php echo esc_attr(($header_ui['changeLanguageLabel'] ?? 'Change language') . ': ' . ($active_language['label'] ?? 'English')); ?>" aria-expanded="false" aria-controls="language-menu" data-language-toggle>
+                    <button class="group flex h-11 items-center gap-1.5 rounded-sm border border-line bg-white px-3 text-start transition hover:border-ink/30 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/20 aria-expanded:border-ink/40 md:h-12" type="button" aria-label="<?php echo esc_attr(strtoupper((string) ($active_language['code'] ?? 'en')) . ' · ' . ($header_ui['changeLanguageLabel'] ?? 'Change language') . ': ' . ($active_language['label'] ?? 'English')); ?>" aria-expanded="false" aria-controls="language-menu" data-language-toggle>
                         <?php echo boblift_icon('globe', 'h-4 w-4 shrink-0 text-slate-500'); ?>
                         <strong class="text-sm font-black uppercase tracking-[0.06em] text-ink"><?php echo esc_html(strtoupper((string) ($active_language['code'] ?? 'en'))); ?></strong>
-                        <?php echo boblift_icon('chevron-down', 'h-4 w-4 shrink-0 text-slate-400 transition group-aria-expanded:rotate-180'); ?>
+                        <?php echo boblift_icon('chevron-down', 'h-4 w-4 shrink-0 text-slate-500 transition group-aria-expanded:rotate-180'); ?>
                     </button>
                     <div id="language-menu" class="absolute end-0 top-full z-[220] hidden pt-2" data-language-menu>
                         <div class="w-52 overflow-hidden rounded border border-line bg-white py-1.5 shadow-raised">
@@ -430,7 +430,7 @@ foreach ($languages as $language) {
                                 ?>
                                 <a class="relative flex h-11 items-center gap-3 px-4 text-sm outline-none transition hover:bg-mist hover:text-ink focus-visible:bg-mist <?php echo $selected ? 'bg-mist font-black text-ink' : 'font-medium text-slate-600'; ?>" href="<?php echo esc_attr((string) ($language['href'] ?? '/')); ?>" hreflang="<?php echo esc_attr($language_code); ?>" title="<?php echo esc_attr($language_market); ?>" <?php echo $selected ? 'aria-current="true"' : ''; ?>>
                                     <span class="min-w-0 flex-1 truncate"><?php echo esc_html($language_label); ?></span>
-                                    <span class="text-[11px] font-bold uppercase tracking-[0.12em] <?php echo $selected ? 'text-ink' : 'text-slate-400'; ?>"><?php echo esc_html(strtoupper($language_code)); ?></span>
+                                    <span class="text-[11px] font-bold uppercase tracking-[0.12em] <?php echo $selected ? 'text-ink' : 'text-slate-500'; ?>"><?php echo esc_html(strtoupper($language_code)); ?></span>
                                 </a>
                             <?php endforeach; ?>
                         </div>
@@ -477,10 +477,10 @@ foreach ($languages as $language) {
                             <div class="grid gap-3">
                                 <?php $family_group_shown = 'crane'; foreach ($product_menu_families as $family) : ?>
                                     <?php if ($family['group'] !== $family_group_shown) : $family_group_shown = $family['group']; ?>
-                                        <p class="px-2 pt-1 text-[10px] font-black uppercase tracking-[0.14em] text-slate-400"><?php echo esc_html(boblift_product_family_group_label($family['group'])); ?></p>
+                                        <p class="px-2 pt-1 text-[10px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(boblift_product_family_group_label($family['group'])); ?></p>
                                     <?php endif; ?>
                                     <div>
-                                        <a class="flex items-center justify-between gap-3 rounded bg-white px-3 py-2 text-[13px] font-black leading-4 text-ink shadow-card" href="<?php echo esc_url($family['url']); ?>"><span class="min-w-0"><?php echo esc_html($family['title']); ?></span><span class="shrink-0 text-[11px] font-bold tabular-nums text-slate-400"><?php echo esc_html((string) $family['count']); ?></span></a>
+                                        <a class="flex items-center justify-between gap-3 rounded bg-white px-3 py-2 text-[13px] font-black leading-4 text-ink shadow-card" href="<?php echo esc_url($family['url']); ?>"><span class="min-w-0"><?php echo esc_html($family['title']); ?></span><span class="shrink-0 text-[11px] font-bold tabular-nums text-slate-500"><?php echo esc_html((string) $family['count']); ?></span></a>
                                         <?php if ($family['children']) : ?>
                                             <div class="mt-1 grid gap-1 ps-2">
                                                 <?php foreach ($family['children'] as $family_child) : ?><a class="rounded px-3 py-1.5 text-xs font-bold leading-[18px] text-slate-500 hover:bg-white hover:text-blue-700" href="<?php echo esc_url($family_child['url']); ?>"><?php echo esc_html($family_child['title']); ?></a><?php endforeach; ?>
@@ -529,12 +529,12 @@ foreach ($languages as $language) {
         <?php $site_switcher_others = array_values(array_filter($site_switcher_items, static fn(array $site): bool => !$site['current'])); ?>
         <?php if ($site_switcher_others !== []) : ?>
             <div class="mt-1.5 border-t border-line px-2 pb-1 pt-3">
-                <p class="px-2 pb-1.5 text-[11px] font-black uppercase tracking-[0.14em] text-slate-400"><?php echo esc_html($site_switcher_ui['mobileTitle'] ?? 'Other BOB-LIFT sites'); ?></p>
+                <p class="px-2 pb-1.5 text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html($site_switcher_ui['mobileTitle'] ?? 'Other BOB-LIFT sites'); ?></p>
                 <?php foreach ($site_switcher_others as $site) : ?>
                     <a class="flex items-center justify-between gap-3 rounded px-2 py-2.5 transition hover:bg-[#f7fbff]" href="<?php echo esc_url($site['url']); ?>"<?php echo $site_leave_attrs($site); ?>>
                         <span class="grid size-9 shrink-0 place-items-center rounded-sm border border-line bg-white text-sm font-black text-navy" aria-hidden="true"><?php echo esc_html($site['mark']); ?></span>
                         <span class="min-w-0 flex-1"><span class="block text-sm font-black text-ink"><?php echo esc_html($site['label']); ?></span><span class="block text-xs font-normal text-slate-500"><?php echo esc_html($site['description'] !== '' ? $site['description'] : $site['domain']); ?></span></span>
-                        <?php echo boblift_icon('arrow-up-right', 'h-4 w-4 shrink-0 text-slate-400'); ?>
+                        <?php echo boblift_icon('arrow-up-right', 'h-4 w-4 shrink-0 text-slate-500'); ?>
                     </a>
                 <?php endforeach; ?>
             </div>
@@ -545,16 +545,16 @@ foreach ($languages as $language) {
             <form class="flex gap-2 md:gap-3" role="search" method="get" action="<?php echo esc_url(home_url('/')); ?>">
                 <label class="relative min-w-0 flex-1">
                     <span class="sr-only"><?php echo esc_html($search_ui['inputLabel'] ?? 'Search products and articles'); ?></span>
-                    <?php echo boblift_icon('search', 'pointer-events-none absolute start-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 md:start-5'); ?>
+                    <?php echo boblift_icon('search', 'pointer-events-none absolute start-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500 md:start-5'); ?>
                     <input class="h-12 w-full rounded-sm border border-[#D8DEE8] bg-white ps-11 pe-4 text-base font-bold text-ink outline-none transition placeholder:font-normal placeholder:text-slate-400 focus:border-navy focus:ring-4 focus:ring-blue-100 md:h-14 md:ps-14 md:text-lg [&::-webkit-search-cancel-button]:hidden" type="search" name="s" value="<?php echo esc_attr($search_query); ?>" placeholder="<?php echo esc_attr($search_ui['placeholder'] ?? 'Search a model, crane type or topic'); ?>" autocomplete="off" enterkeyhint="search" data-search-input>
                 </label>
                 <button class="inline-flex h-12 shrink-0 items-center justify-center rounded-sm bg-navy px-5 text-sm font-black text-white transition hover:bg-[#0b2d5b] md:h-14 md:px-8 md:text-base" type="submit"><?php echo esc_html($search_ui['submitLabel'] ?? 'Search'); ?></button>
             </form>
             <?php if ($product_menu_families) : ?>
                 <div class="mt-4 flex flex-wrap items-center gap-2 md:mt-5">
-                    <span class="me-1 w-full text-xs font-black uppercase tracking-[0.14em] text-slate-400 sm:w-auto"><?php echo esc_html($search_ui['browseLabel'] ?? 'Browse by category'); ?></span>
+                    <span class="me-1 w-full text-xs font-black uppercase tracking-[0.14em] text-slate-500 sm:w-auto"><?php echo esc_html($search_ui['browseLabel'] ?? 'Browse by category'); ?></span>
                     <?php foreach ($product_menu_families as $family) : ?>
-                        <a class="inline-flex h-9 items-center gap-2 rounded-sm border border-line bg-white px-3 text-sm font-bold text-navy transition hover:border-blue-300 hover:text-blue-700" href="<?php echo esc_url($family['url']); ?>"><?php echo esc_html($family['title']); ?><span class="text-xs font-bold tabular-nums text-slate-400"><?php echo esc_html((string) $family['count']); ?></span></a>
+                        <a class="inline-flex h-9 items-center gap-2 rounded-sm border border-line bg-white px-3 text-sm font-bold text-navy transition hover:border-blue-300 hover:text-blue-700" href="<?php echo esc_url($family['url']); ?>"><?php echo esc_html($family['title']); ?><span class="text-xs font-bold tabular-nums text-slate-500"><?php echo esc_html((string) $family['count']); ?></span></a>
                     <?php endforeach; ?>
                 </div>
             <?php endif; ?>

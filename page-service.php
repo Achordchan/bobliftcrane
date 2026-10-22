@@ -94,7 +94,7 @@ $channels = array_values(array_filter([
                     <?php $tag = $channel['href'] !== '' ? 'a' : 'div'; ?>
                     <<?php echo $tag; ?> class="flex h-full items-center gap-4 rounded border border-line bg-white p-5 shadow-card <?php echo $channel['href'] !== '' ? 'transition duration-300 hover:-translate-y-0.5 hover:border-blue-300' : ''; ?>"<?php if ($channel['href'] !== '') : ?> href="<?php echo esc_url($channel['href']); ?>"<?php echo $channel['external'] ? ' target="_blank" rel="noreferrer"' : ''; endif; ?>>
                         <span class="grid size-11 shrink-0 place-items-center rounded-sm bg-blue-50 text-blue-700"><?php echo boblift_icon($channel['icon'], 'h-5 w-5'); ?></span>
-                        <span class="min-w-0"><span class="block text-xs font-black uppercase tracking-[0.14em] text-slate-400"><?php echo esc_html($channel['label']); ?></span><span class="mt-1 block break-words text-base font-black text-ink"><?php echo esc_html($channel['value']); ?></span></span>
+                        <span class="min-w-0"><span class="block text-xs font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html($channel['label']); ?></span><span class="mt-1 block break-words text-base font-black text-ink"><?php echo esc_html($channel['value']); ?></span></span>
                     </<?php echo $tag; ?>>
                 </li>
             <?php endforeach; ?>
