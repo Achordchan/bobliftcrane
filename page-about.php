@@ -71,6 +71,8 @@ $logo_silhouette_alt = (string) ($logo['silhouette_alt'] ?? 'BOB-LIFT crane silh
 $about_aerial_start_setting = $logo['aerial_start_image'] ?? boblift_image_option('images/about/about-aerial-mid-start.webp');
 $about_aerial_end_setting = $logo['aerial_end_image'] ?? boblift_image_option('images/about/about-aerial-mid-end.webp');
 $about_aerial_video_setting = is_array($logo['aerial_video'] ?? null) ? $logo['aerial_video'] : ['id' => 0, 'path' => 'videos/about/about-aerial-mid.mp4'];
+// The opening pictures cover a tall frame: on a phone the 16:9 picture is cropped from about twice the screen width.
+$about_cover_sizes = '(max-width: 767px) 220vw, 100vw';
 $about_aerial_start = boblift_image_setting_url($about_aerial_start_setting, 'images/about/about-aerial-mid-start.webp');
 $about_aerial_end = boblift_image_setting_url($about_aerial_end_setting, 'images/about/about-aerial-mid-end.webp');
 $about_aerial_video = '';
@@ -103,16 +105,16 @@ $about_hero_text = (string) preg_replace('/[。.]+$/u', '', trim((string) ($logo
     <div class="about-logo-pin relative overflow-hidden" data-about-logo-pin>
         <div class="absolute inset-0 bg-[#F8FAFC]"></div>
         <div class="about-logo-silhouette absolute inset-0" data-about-silhouette>
-            <?php echo boblift_img_from_setting($logo_silhouette_image, 'images/about/about-logo-1.png', $logo_silhouette_alt, 'absolute inset-0 h-full w-full object-cover object-center', ['loading' => 'eager', 'decoding' => 'async', 'fetchpriority' => 'high']); ?>
+            <?php echo boblift_img_from_setting($logo_silhouette_image, 'images/about/about-logo-1.png', $logo_silhouette_alt, 'absolute inset-0 h-full w-full object-cover object-center', ['loading' => 'eager', 'decoding' => 'async', 'fetchpriority' => 'high', 'sizes' => $about_cover_sizes]); ?>
         </div>
         <div class="about-aerial-media about-crane-scene absolute inset-0" data-about-crane-bg data-about-aerial-media>
-            <img class="about-aerial-frame about-aerial-start" src="<?php echo esc_url($about_aerial_start); ?>" alt="<?php echo esc_attr($about_aerial_start_alt); ?>" loading="eager" decoding="async" fetchpriority="high" data-about-aerial-start>
+            <img class="about-aerial-frame about-aerial-start" <?php echo boblift_img_src($about_aerial_start, $about_cover_sizes, 1600); ?> alt="<?php echo esc_attr($about_aerial_start_alt); ?>" loading="eager" decoding="async" fetchpriority="high" data-about-aerial-start>
             <?php if ($about_aerial_video !== '') : ?>
                 <video class="about-aerial-video" muted playsinline preload="metadata" poster="<?php echo esc_url($about_aerial_start); ?>" data-about-aerial-video>
                     <source src="<?php echo esc_url($about_aerial_video); ?>" type="video/mp4">
                 </video>
             <?php endif; ?>
-            <img class="about-aerial-frame about-aerial-end" src="<?php echo esc_url($about_aerial_end); ?>" alt="<?php echo esc_attr($about_aerial_end_alt); ?>" loading="lazy" decoding="async" data-about-aerial-end>
+            <img class="about-aerial-frame about-aerial-end" <?php echo boblift_img_src($about_aerial_end, $about_cover_sizes, 1600); ?> alt="<?php echo esc_attr($about_aerial_end_alt); ?>" loading="lazy" decoding="async" data-about-aerial-end>
         </div>
         <div class="about-logo-mask pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(248,250,252,0.62)_0%,rgba(248,250,252,0.18)_34%,rgba(248,250,252,0.84)_100%),radial-gradient(circle_at_50%_42%,rgba(255,255,255,0.12),rgba(248,250,252,0.72)_72%)]" data-about-mask></div>
         <div class="page-shell about-logo-shell relative z-10 flex h-full flex-col items-center justify-center py-8 md:py-10 lg:py-12">
@@ -224,7 +226,7 @@ if ($legacy_strength['cards'] !== [] || $legacy_strength['cta'] !== null || $leg
 <section class="bg-[#F8FAFC] pb-12 lg:pb-16" aria-label="<?php echo esc_attr((string) ($strength['label'] ?? 'Company Strength')); ?>">
     <div class="page-shell">
         <?php if ($legacy_strength['image'] !== null) : ?>
-            <div class="mb-8 overflow-hidden rounded border border-line bg-white shadow-card"><?php echo boblift_img_from_setting($legacy_strength['image'], 'images/about/about-logo-prototype-crane-ai.png', (string) ($strength['title'] ?? ''), 'mx-auto block h-auto max-h-[520px] w-full object-contain'); ?></div>
+            <div class="mb-8 overflow-hidden rounded border border-line bg-white shadow-card"><?php echo boblift_img_from_setting($legacy_strength['image'], 'images/about/about-logo-prototype-crane-ai.png', (string) ($strength['title'] ?? ''), 'mx-auto block h-auto max-h-[520px] w-full object-contain', ['sizes' => '(min-width: 1280px) 1200px, 100vw']); ?></div>
         <?php endif; ?>
         <?php if ($legacy_strength['cards'] !== []) : ?>
             <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -273,7 +275,7 @@ if ($legacy_strength['cards'] !== [] || $legacy_strength['cta'] !== null || $leg
                 </div>
                 <div class="about-timeline-panel" data-about-timeline-panel>
                     <div class="about-timeline-panel-media">
-                        <?php echo boblift_img_from_setting($item['image'] ?? [], 'images/factory-workshop.jpg', $title, 'absolute inset-0 h-full w-full object-cover', ['loading' => 'lazy', 'decoding' => 'async']); ?>
+                        <?php echo boblift_img_from_setting($item['image'] ?? [], 'images/factory-workshop.jpg', $title, 'absolute inset-0 h-full w-full object-cover', ['loading' => 'lazy', 'decoding' => 'async', 'sizes' => '(min-width: 1024px) 40vw, 80vw']); ?>
                         <div class="about-timeline-panel-media-overlay"></div>
                     </div>
                     <div class="about-timeline-panel-body">

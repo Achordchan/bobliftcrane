@@ -227,11 +227,15 @@ function boblift_img_from_setting(mixed $image, string $fallback, string $alt = 
         $attrs['decoding'] = 'async';
     }
 
+    // With sizes (the width it is shown at), the picture also carries srcset: CDN copies of an upload, or the theme's own copies.
+    $sizes = (string) ($attrs['sizes'] ?? '');
+    unset($attrs['sizes']);
     $extra = '';
     foreach ($attrs as $key => $value) {
         $extra .= ' ' . esc_attr($key) . '="' . esc_attr((string) $value) . '"';
     }
-    return '<img src="' . esc_url($src) . '" alt="' . esc_attr($alt) . '" class="' . esc_attr($class) . '"' . $extra . '>';
+    $source = $sizes !== '' ? boblift_img_src($src, $sizes, 1080) : 'src="' . esc_url($src) . '"';
+    return '<img ' . $source . ' alt="' . esc_attr($alt) . '" class="' . esc_attr($class) . '"' . $extra . '>';
 }
 
 function boblift_post_thumbnail_url(WP_Post $post, string $fallback): string
