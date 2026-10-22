@@ -1302,7 +1302,7 @@ function boblift_site_ui_defaults(?string $section = null): array
             'processLabel' => 'Manufacturing & delivery',
             'processTitle' => 'From our workshop to your port',
             // Placeholders pending the user's figures (2026-10-19): lead time in working days and units per container by
-            // capacity tier (max t, 0 = above the last tier). boblift_product_buying_terms() flags them to editors until changed.
+            // capacity tier (max t, 0 = above the last tier). single-product.php leaves them off the page until both are changed.
             'buyingLeadTime' => '15–30',
             'buyingContainers' => [['max' => 3.2, 'gp20' => 4, 'hq40' => 8], ['max' => 8, 'gp20' => 2, 'hq40' => 4], ['max' => 16, 'gp20' => 1, 'hq40' => 2], ['max' => 0, 'gp20' => 0, 'hq40' => 1]],
             // One set per crane type; the product page picks it from the English product category.

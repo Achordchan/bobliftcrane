@@ -376,7 +376,7 @@ function boblift_product_spec_groups(int $product_id, array $rows, bool $has_mod
 /**
  * Order terms on crane pages. Warranty and minimum order are confirmed (the user, 2026-10-19); the lead time,
  * container loading and service steps are placeholders pending the user's figures, editable under 产品详情页
- * (productDetail.buyingLeadTime / buyingContainers) and flagged to signed-in editors until they change.
+ * (productDetail.buyingLeadTime / buyingContainers); while either is unchanged the product page leaves both off.
  */
 function boblift_product_buying_terms(float $capacity, array $ui): array
 {
