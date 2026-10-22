@@ -191,45 +191,63 @@ function boblift_apply_product_data_2026_10(): void
     $data = is_readable($file) ? json_decode((string) file_get_contents($file), true) : null;
     // A missing or broken data file is a failed run, not an empty one, so the next request tries again.
     $ok = is_array($data) && $data !== [];
+    // Each step is checkpointed once it succeeds, so a retry (a product not imported yet, a failed write) only does
+    // what is still open and never touches a product again after it was done; an editor's later change stays.
+    $done_option = $flag . '_done';
+    $done = (array) get_option($done_option, []);
     $missing = 0;
-    foreach ((array) $data as $model => $figures) {
-        $id = boblift_product_data_english_id((string) $model);
-        if ($id <= 0) {
+    $step = static function (string $key, callable $run) use (&$done, &$ok, &$missing): void {
+        if (!empty($done[$key])) {
+            return;
+        }
+        $result = $run();
+        if ($result === null) {
             $missing++;
-            continue;
+            return;
         }
-        if (!is_array($figures)) {
-            continue;
+        if ($result) {
+            $done[$key] = 1;
+        } else {
+            $ok = false;
         }
-        $json = (string) wp_json_encode($figures);
-        update_post_meta($id, '_boblift_drawing_data', wp_slash($json));
-        // update_post_meta() also returns false when the value is unchanged, so the stored value is checked instead.
-        $ok = get_post_meta($id, '_boblift_drawing_data', true) === $json && $ok;
+    };
+    foreach ((array) $data as $model => $figures) {
+        $step('figures:' . $model, static function () use ($model, $figures): ?bool {
+            $id = boblift_product_data_english_id((string) $model);
+            if ($id <= 0) {
+                return null;
+            }
+            if (!is_array($figures)) {
+                return true;
+            }
+            $json = (string) wp_json_encode($figures);
+            update_post_meta($id, '_boblift_drawing_data', wp_slash($json));
+            // update_post_meta() also returns false when the value is unchanged, so the stored value is checked instead.
+            return get_post_meta($id, '_boblift_drawing_data', true) === $json;
+        });
     }
-    foreach (boblift_product_data_marine_previous_models() as $model) {
-        $id = boblift_product_data_english_id($model);
-        if ($id > 0) {
-            boblift_save_product_lifecycle($id, 'legacy');
-            $ok = boblift_product_data_publish_all($id) && $ok;
-        }
-    }
-    foreach (boblift_product_data_marine_current_models() as $model) {
-        $id = boblift_product_data_english_id($model);
-        if ($id > 0) {
-            boblift_save_product_lifecycle($id, '');
-            $ok = boblift_product_data_publish_all($id) && $ok;
+    foreach ([boblift_product_data_marine_previous_models(), boblift_product_data_marine_current_models()] as $group => $models) {
+        foreach ($models as $model) {
+            $step('lifecycle:' . $model, static function () use ($model, $group): ?bool {
+                $id = boblift_product_data_english_id($model);
+                if ($id <= 0) {
+                    return null;
+                }
+                boblift_save_product_lifecycle($id, $group === 0 ? 'legacy' : '');
+                return boblift_product_data_publish_all($id);
+            });
         }
     }
     foreach (boblift_product_data_corrected_drawings() as $model) {
-        $ok = boblift_product_data_replace_drawing($model) && $ok;
+        $step('drawing:' . $model, static fn(): bool => boblift_product_data_replace_drawing($model));
     }
-    $ok = boblift_product_data_fix_sq8za6_moment() && $ok;
+    $step('moment:SQ8ZA6', static fn(): bool => boblift_product_data_fix_sq8za6_moment());
+    update_option($done_option, $done, false);
     if (function_exists('boblift_legacy_product_ids')) {
         boblift_legacy_product_ids(true);
     }
-    // Only a clean run with every listed product present is recorded. Products not imported yet (a fresh site, where
-    // init runs before the importer) leave it pending; such a run waits an hour before looking again, so requests in
-    // between do not repeat the work.
+    // Done when every step is checkpointed. Products not imported yet (a fresh site, where init runs before the importer)
+    // keep their steps open; such a run waits an hour before looking again, and only those open steps run then.
     if ($ok && $missing === 0) {
         update_option($flag, time(), false);
     } elseif ($missing > 0) {

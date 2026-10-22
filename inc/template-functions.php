@@ -1354,7 +1354,7 @@ function boblift_product_list_specs(array $product, int $limit = 4): array
     $id = (int) ($product['id'] ?? 0);
     $local = array_values(array_filter((array) ($product['specs'] ?? []), static fn($row): bool => is_array($row) && trim((string) ($row['label'] ?? '')) !== '' && trim((string) ($row['value'] ?? '')) !== ''));
     $english = $id > 0 && function_exists('boblift_product_english_id') ? array_values(array_filter((array) boblift_decode_meta(get_post_meta(boblift_product_english_id($id), '_specs', true), []), 'is_array')) : $local;
-    $same_rows = count($local) === count($english);
+    $same_rows = function_exists('boblift_spec_rows_aligned') ? boblift_spec_rows_aligned($local, $english) : count($local) === count($english);
     $order = ['Max Lifting Capacity', 'Max Lifting Moment', 'Working Height', 'Max Working Radius', 'Max Lifting Height', 'Self Weight', 'Recommended Power', 'Rotation Angle'];
     $picked = [];
     foreach ($order as $wanted) {

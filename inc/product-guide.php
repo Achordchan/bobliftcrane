@@ -310,6 +310,25 @@ function boblift_product_drawing_data(int $product_id): array
     return ['rows' => $rows, 'chart' => count($chart) >= 2 ? $chart : []];
 }
 
+/**
+ * Whether a translated spec table still follows the English one row for row: same length, and the first figure of
+ * each row equal to the English row's (figures survive translation). Only then can a translated row stand for the
+ * English row at its position.
+ */
+function boblift_spec_rows_aligned(array $local, array $english): bool
+{
+    if ($local === [] || count($local) !== count($english)) {
+        return false;
+    }
+    $first_number = static fn($row): string => is_array($row) && preg_match('/\d+(?:[.,]\d+)?/', (string) ($row['value'] ?? ''), $m) ? str_replace(',', '.', $m[0]) : '';
+    foreach (array_values($english) as $index => $row) {
+        if ($first_number($row) !== $first_number(array_values($local)[$index] ?? null)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 function boblift_product_spec_groups(int $product_id, array $rows, bool $has_model_row): array
 {
     $english = array_values(array_filter(boblift_decode_meta(get_post_meta(boblift_product_english_id($product_id), '_specs', true), []), static fn($row): bool => is_array($row) && trim((string) ($row['label'] ?? '')) !== '' && trim((string) ($row['value'] ?? '')) !== ''));

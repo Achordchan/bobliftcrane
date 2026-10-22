@@ -112,12 +112,14 @@ function boblift_compare_models_prepare(array $models): array
         $english = function_exists('boblift_product_english_id') ? array_values(array_filter((array) boblift_decode_meta(get_post_meta(boblift_product_english_id((int) $item['id']), '_specs', true), []), 'is_array')) : [];
         $local = array_values(array_filter((array) boblift_decode_meta(get_post_meta((int) $item['id'], '_specs', true), []), 'is_array'));
         $models[$index]['extra'] = [];
+        // A translated row stands in for the English one only when the tables line up (boblift_spec_rows_aligned()).
+        $aligned = function_exists('boblift_spec_rows_aligned') && boblift_spec_rows_aligned($local, $english);
         foreach ($english as $row_index => $row) {
             $english_label = trim((string) ($row['label'] ?? ''));
             if ($english_label === '' || in_array($english_label, ['Max Lifting Capacity', 'Max Lifting Moment', 'Self Weight', 'Boom Sections'], true)) {
                 continue;
             }
-            $shown = count($local) === count($english) ? $local[$row_index] : $row;
+            $shown = $aligned ? $local[$row_index] : $row;
             $value = trim((string) ($shown['value'] ?? ''));
             if ($value !== '') {
                 $models[$index]['extra'][$english_label] = ['label' => trim((string) ($shown['label'] ?? $english_label)), 'value' => $value];
