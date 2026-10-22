@@ -2722,3 +2722,11 @@ html:is(:lang(ru), :lang(uk), :lang(fr), :lang(es), :lang(de), :lang(it), :lang(
 [data-consent-open][hidden] {
   display: none !important;
 }
+
+/* The product list holds 12 cards a page, most of them below the fold on a phone: the browser lays a card out only once
+   it nears the screen (it keeps the size it last had, 480px until then), which took about a third off the list pages'
+   style and layout work on a throttled phone. */
+.boblift-product-listing .product-card {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 480px;
+}
