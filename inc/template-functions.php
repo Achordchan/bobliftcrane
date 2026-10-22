@@ -338,13 +338,35 @@ function boblift_image_facts(string $url): ?array
         return $known[$url] = null;
     }
     $key = md5($file . '|' . filemtime($file) . '|' . filesize($file));
-    $facts = get_transient('boblift_image_' . $key);
+    // All pictures' facts live in one option, read once per request (one query rather than one per picture without a
+    // persistent object cache); the ones worked out on this request are saved when it ends.
+    $state = &$GLOBALS['boblift_image_facts'];
+    if (!is_array($state)) {
+        $stored = get_option('boblift_image_facts', []);
+        $state = ['facts' => is_array($stored) ? $stored : [], 'dirty' => false];
+    }
+    $facts = $state['facts'][$key] ?? null;
     if (!is_array($facts)) {
         $size = @getimagesize($file);
         $facts = ['width' => (int) ($size[0] ?? 0), 'c2pa' => boblift_image_has_c2pa($file)];
-        set_transient('boblift_image_' . $key, $facts, MONTH_IN_SECONDS);
+        $state['facts'][$key] = $facts;
+        if (!$state['dirty']) {
+            $state['dirty'] = true;
+            add_action('shutdown', 'boblift_image_facts_save', 0);
+        }
     }
     return $known[$url] = $facts['width'] ? $facts : null;
+}
+
+function boblift_image_facts_save(): void
+{
+    $state = $GLOBALS['boblift_image_facts'] ?? null;
+    if (!is_array($state) || !$state['dirty']) {
+        return;
+    }
+    // Keys change with a file's size and date, so replaced pictures leave stale entries; start over once it grows large.
+    $facts = count($state['facts']) > 4000 ? array_slice($state['facts'], -500, null, true) : $state['facts'];
+    update_option('boblift_image_facts', $facts, false);
 }
 
 /* Whether a picture file carries Content Credentials: a C2PA chunk in a WebP, a JUMBF "c2pa" box elsewhere (JPEG, PNG). */
@@ -1289,7 +1311,8 @@ foreach (['wp_insert_comment', 'edit_comment', 'deleted_comment', 'trashed_comme
 foreach (['added_option', 'updated_option', 'deleted_option'] as $boblift_option_hook) {
     add_action($boblift_option_hook, static function ($option): void {
         $option = (string) $option;
-        if ($option === 'boblift_products_cache_version' || str_starts_with($option, '_transient') || str_starts_with($option, '_site_transient')) {
+        // The products cache version and the image-facts store (boblift_image_facts()) do not change any page.
+        if ($option === 'boblift_products_cache_version' || $option === 'boblift_image_facts' || str_starts_with($option, '_transient') || str_starts_with($option, '_site_transient')) {
             return;
         }
         if (preg_match('/^(boblift|polylang|pll_|theme_mods_)/', $option)
