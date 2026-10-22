@@ -32,6 +32,7 @@ $counts = array_count_values(array_column($videos, 'tab'));
         'image_position' => 'center 55%',
     ]);
     ?>
+    <div class="mt-6 md:mt-8"><?php boblift_news_hub_nav('videos'); ?></div>
 </div>
 
 <section class="py-10 md:py-14" data-video-filter-root aria-label="<?php echo esc_attr((string) ($ui['heroLabel'] ?? 'Video Center')); ?>">
@@ -43,7 +44,8 @@ $counts = array_count_values(array_column($videos, 'tab'));
                     <button class="boblift-video-tab" type="button" data-video-filter="<?php echo esc_attr($key); ?>" aria-pressed="false"><?php echo esc_html($label); ?> <span class="tabular-nums opacity-60"><?php echo esc_html((string) $counts[$key]); ?></span></button>
                 <?php endforeach; ?>
             </div>
-            <ul class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5 xl:grid-cols-4">
+            <?php // Two to a row on phones too: one per row made the full library about 17,000px long. ?>
+            <ul class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 lg:gap-5 xl:grid-cols-4">
                 <?php foreach ($videos as $video) : ?>
                     <li data-video-group="<?php echo esc_attr($video['tab']); ?>"><?php boblift_render_video_card($video, 'h-full'); ?></li>
                 <?php endforeach; ?>

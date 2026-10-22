@@ -72,6 +72,7 @@ $wall_alt = $t($visits['label'] ?? 'Global Customer Visits');
         'image_alt' => (string) ($visits['hero_image_alt'] ?? 'The BOB-LIFT factory campus from the air'),
     ]);
     ?>
+    <div class="mt-6 md:mt-8"><?php boblift_about_hub_nav('global-customer-visits'); ?></div>
 </div>
 
 <?php if ($country_count > 0) : ?>
@@ -99,7 +100,7 @@ $wall_alt = $t($visits['label'] ?? 'Global Customer Visits');
             <?php foreach ($steps as $index => $step) : ?>
                 <li class="flex flex-col overflow-hidden rounded border border-line bg-white shadow-card">
                     <?php if ($has_image($step['image'] ?? '')) : ?>
-                        <div class="relative aspect-[4/3] overflow-hidden bg-mist"><img class="absolute inset-0 h-full w-full object-cover" src="<?php echo esc_url($thumb_url($step['image'])); ?>" alt="<?php echo esc_attr($t($step['title'])); ?>" loading="lazy" decoding="async"></div>
+                        <div class="relative aspect-[16/9] overflow-hidden bg-mist sm:aspect-[4/3]"><img class="absolute inset-0 h-full w-full object-cover" src="<?php echo esc_url($thumb_url($step['image'])); ?>" alt="<?php echo esc_attr($t($step['title'])); ?>" loading="lazy" decoding="async"></div>
                     <?php endif; ?>
                     <div class="flex flex-1 flex-col p-5 xl:p-6">
                         <span class="text-xs font-black tabular-nums tracking-[0.14em] text-blue-700"><?php echo esc_html($pad($index + 1)); ?></span>

@@ -446,7 +446,7 @@ function boblift_about_page_defaults(): array
         'strength' => [
             'label' => 'Company Profile',
             'title' => 'BOB-LIFT is a crane manufacturer based in Xuzhou, China.',
-            'text' => 'Xuzhou BOB-LIFT Construction Machinery Co., Ltd. designs, manufactures and exports truck-mounted cranes and related lifting equipment from a 37,000㎡ manufacturing base in Xuzhou, Jiangsu, China. Our core products include truck-mounted cranes, marine cranes, aerial work platforms, pickup cranes and spider cranes for overseas B2B projects.',
+            'text' => 'Xuzhou BOB-LIFT Construction Machinery Co., Ltd. is a high-tech manufacturer of truck-mounted cranes in Xuzhou, Jiangsu, China. From a 37,000㎡ factory we design, build and export the SQ08–SQ55 series of knuckle boom and telescopic boom truck-mounted cranes, together with marine cranes, pickup cranes, aerial work platforms and spider cranes for overseas B2B projects.' . "\n\n" . 'Our engineering team develops every model on a 3D design system, backed by structural analysis and a modular design library, around four ideas: safe, intelligent, technology-driven and leading. Technical exchange with truck-mounted crane makers in Italy and Sweden has brought our designs to international standards.' . "\n\n" . 'BOB-LIFT was among the first Chinese makers to receive the national type-test manufacturing licence for truck-mounted cranes, holds ISO 9001 certification, and was in the first group of Chinese exporters to obtain CE certification for the EU. Quality requirements cover design, purchasing, manufacturing, testing and service, and customer satisfaction is how we judge every crane and every answer we give.',
         ],
         'certifications' => [
             'label' => 'Certificates & Patents',
@@ -472,6 +472,7 @@ function boblift_about_page_defaults(): array
             'stats' => [
                 ['number' => '120', 'suffix' => '+', 'label' => 'Countries Exported'],
                 ['number' => '20', 'suffix' => '+', 'label' => 'Years Experience'],
+                ['number' => '37,000', 'suffix' => '㎡', 'label' => 'Manufacturing Base'],
             ],
         ],
         'timeline' => [
@@ -650,9 +651,10 @@ function boblift_social_legacy_heading(array $labels, string $new_key, string $n
 
 function boblift_about_legacy_intro(array $logo): array
 {
-    $default_headlines = ['Engineering Strength Behind Every Lift.'];
-    $default_paragraphs = ['BOB-LIFT integrates crane manufacturing, engineering expertise, quality control, and global service capability to deliver reliable lifting solutions for demanding projects worldwide.'];
-    $default_chip_labels = [['Advanced Crane Manufacturing', 'Global Export Capability', 'Strict Quality Control'], ['Safety-focused crane manufacturing', 'Technology-driven product development', 'Service support for global buyers']];
+    // Built-in copy in English and the Japanese and Chinese seeds; the headline now shows over the hero instead.
+    $default_headlines = ['Engineering Strength Behind Every Lift.', 'あらゆる吊り上げを支えるエンジニアリング力。', '每一次起重背后的工程实力。'];
+    $default_paragraphs = ['BOB-LIFT integrates crane manufacturing, engineering expertise, quality control, and global service capability to deliver reliable lifting solutions for demanding projects worldwide.', 'BOB-LIFTは、クレーン製造、エンジニアリングの専門知識、品質管理、グローバルサービス能力を統合し、世界中の要求の厳しいプロジェクトに信頼性の高い吊り上げソリューションを提供します。', 'BOB-LIFT 集起重机制造、工程专业能力、质量控制和全球服务能力于一体，为全球高要求项目提供可靠的起重解决方案。'];
+    $default_chip_labels = [['Advanced Crane Manufacturing', 'Global Export Capability', 'Strict Quality Control'], ['Safety-focused crane manufacturing', 'Technology-driven product development', 'Service support for global buyers'], ['安全重視のクレーン製造', '技術主導の製品開発', 'グローバルバイヤー向けサービスサポート'], ['以安全为核心的起重机制造', '以技术驱动的产品开发', '为全球买家提供服务支持']];
     $headline = trim((string) ($logo['headline'] ?? ''));
     $paragraph = trim((string) ($logo['paragraph'] ?? ''));
     $chips = array_values(array_filter((array) ($logo['proof_chips'] ?? []), static fn($chip): bool => is_array($chip) && (trim((string) ($chip['number'] ?? '')) !== '' || trim((string) ($chip['label'] ?? '')) !== '')));

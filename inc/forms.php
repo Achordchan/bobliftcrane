@@ -124,7 +124,9 @@ function boblift_render_inquiry_form(string $product = '', array $args = []): vo
                 <p class="section-label mb-3"><?php echo esc_html($ui['label']); ?></p>
                 <h2 class="text-2xl font-black leading-tight tracking-[-0.015em] text-ink md:text-4xl"><?php echo esc_html($ui['title']); ?></h2>
             </div>
+            <?php if (($args['badge'] ?? true) !== false) : ?>
             <span class="hidden rounded bg-navy px-4 py-2 text-xs font-black text-white md:inline-flex"><?php echo esc_html($ui['badge']); ?></span>
+            <?php endif; ?>
         </div>
 
         <?php if (isset($_GET['inquiry']) && $_GET['inquiry'] === 'success') : ?>
@@ -188,11 +190,18 @@ function boblift_render_inquiry_form(string $product = '', array $args = []): vo
 
         <div class="mt-6 flex flex-col gap-3">
             <?php boblift_render_turnstile_widget('mt-0'); ?>
+            <?php // The contact page lists email and WhatsApp beside the form, so it passes direct_links => false. ?>
+            <?php if (($args['direct_links'] ?? true) !== false) : ?>
             <div class="grid grid-cols-3 gap-2 sm:gap-3">
                 <button class="inline-flex min-h-12 min-w-0 items-center justify-center gap-1.5 rounded-sm bg-navy px-2 text-[11px] font-black leading-tight text-white shadow-card transition hover:-translate-y-0.5 hover:bg-[#0b2d5b] sm:gap-2 sm:px-5 sm:text-sm lg:px-7" type="submit"><span class="min-w-0 truncate"><?php echo esc_html($ui['buttons']['save']); ?></span> <?php echo boblift_icon('send', 'h-4 w-4 shrink-0'); ?></button>
                 <a class="inline-flex min-h-12 min-w-0 items-center justify-center gap-1.5 rounded-sm border border-line bg-white px-2 text-[11px] font-black leading-tight text-ink transition hover:-translate-y-0.5 hover:border-gold sm:gap-2 sm:px-5 sm:text-sm lg:px-7" href="mailto:<?php echo esc_attr($contact['email']); ?>" data-quote-email><span class="min-w-0 truncate"><?php echo esc_html($ui['buttons']['email']); ?></span> <?php echo boblift_icon('mail', 'h-4 w-4 shrink-0'); ?></a>
                 <a class="inline-flex min-h-12 min-w-0 items-center justify-center gap-1.5 rounded-sm border border-emerald-100 bg-emerald-50 px-2 text-[11px] font-black leading-tight text-emerald-700 transition hover:-translate-y-0.5 sm:gap-2 sm:px-5 sm:text-sm lg:px-7" href="<?php echo esc_url($contact['whatsappHref']); ?>" rel="noreferrer" target="_blank" data-quote-whatsapp><span class="min-w-0 truncate"><?php echo esc_html($ui['buttons']['whatsapp']); ?></span> <?php echo boblift_icon('message-circle', 'h-4 w-4 shrink-0'); ?></a>
             </div>
+            <?php else : ?>
+            <div>
+                <button class="flex min-h-12 w-full min-w-0 items-center justify-center gap-2 rounded-sm bg-navy px-5 text-sm font-black leading-tight text-white shadow-card transition hover:-translate-y-0.5 hover:bg-[#0b2d5b] sm:inline-flex sm:w-auto sm:min-w-[220px] lg:px-7" type="submit"><span class="min-w-0 truncate"><?php echo esc_html($ui['buttons']['save']); ?></span> <?php echo boblift_icon('send', 'h-4 w-4 shrink-0'); ?></button>
+            </div>
+            <?php endif; ?>
         </div>
     </form>
     <?php

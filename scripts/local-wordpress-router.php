@@ -16,6 +16,63 @@ if ('/wp-admin' === $request_path) {
 
 $filesystem_path = $wordpress_root . rawurldecode($request_path);
 
+// PHP's built-in server ignores Range headers and sends media whole, so a looping video refetched the entire file on
+// every loop and stalled. Video and audio files are served here with byte-range (206) support, as a real web server does.
+$media_types = ['mp4' => 'video/mp4', 'webm' => 'video/webm', 'mov' => 'video/quicktime', 'm4v' => 'video/mp4', 'mp3' => 'audio/mpeg'];
+$extension = strtolower(pathinfo($filesystem_path, PATHINFO_EXTENSION));
+// Only files that resolve inside the WordPress root (no "/../" escapes) are served here.
+$real_root = realpath($wordpress_root);
+$real_path = isset($media_types[$extension]) ? realpath($filesystem_path) : false;
+if ($real_root !== false && $real_path !== false && str_starts_with($real_path, $real_root . DIRECTORY_SEPARATOR) && is_file($real_path)) {
+    $filesystem_path = $real_path;
+    $size = (int) filesize($filesystem_path);
+    $start = 0;
+    $end = $size - 1;
+    $last_modified = gmdate('D, d M Y H:i:s', (int) filemtime($filesystem_path)) . ' GMT';
+    $etag = '"' . dechex((int) filemtime($filesystem_path)) . '-' . dechex($size) . '"';
+    $range = (string) ($_SERVER['HTTP_RANGE'] ?? '');
+    // If-Range names the version the browser already holds part of; for any other version it gets the whole file (200).
+    $if_range = trim((string) ($_SERVER['HTTP_IF_RANGE'] ?? ''));
+    if ($if_range !== '' && $if_range !== $etag && $if_range !== $last_modified) {
+        $range = '';
+    }
+    if (preg_match('/^bytes=(\d*)-(\d*)$/', $range, $match) && ($match[1] !== '' || $match[2] !== '')) {
+        if ($match[1] === '') {
+            $start = max(0, $size - (int) $match[2]);
+        } else {
+            $start = (int) $match[1];
+            $end = $match[2] !== '' ? min((int) $match[2], $size - 1) : $size - 1;
+        }
+        if ($start > $end || $start >= $size) {
+            header('Content-Range: bytes */' . $size, true, 416);
+            exit;
+        }
+        http_response_code(206);
+        header('Content-Range: bytes ' . $start . '-' . $end . '/' . $size);
+    }
+    header('Content-Type: ' . $media_types[$extension]);
+    header('Accept-Ranges: bytes');
+    header('Content-Length: ' . ($end - $start + 1));
+    header('Last-Modified: ' . $last_modified);
+    header('ETag: ' . $etag);
+    if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'HEAD') {
+        exit;
+    }
+    $handle = fopen($filesystem_path, 'rb');
+    if ($handle) {
+        fseek($handle, $start);
+        $remaining = $end - $start + 1;
+        while ($remaining > 0 && !feof($handle)) {
+            $chunk = (string) fread($handle, (int) min(1048576, $remaining));
+            echo $chunk;
+            $remaining -= strlen($chunk);
+            flush();
+        }
+        fclose($handle);
+    }
+    exit;
+}
+
 if (is_file($filesystem_path) || is_dir($filesystem_path)) {
     return false;
 }

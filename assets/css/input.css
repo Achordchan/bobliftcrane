@@ -27,6 +27,8 @@
 :root { --ink:#08234a; --navy:#071f42; --gold:#f59a3c; --line:#e4ebf4; --font-sans:"Barlow","Boblift Cyrillic Sans","Helvetica Neue",Arial,sans-serif; --radius:0.625rem; }
 :root:is(:lang(ru), :lang(uk), :lang(be), :lang(bg), :lang(kk)) { --font-sans:"Boblift Cyrillic Sans","Helvetica Neue",Arial,sans-serif; }
 * { box-sizing: border-box; }
+/* Headings never end on a lone character ("…三项检 / 查"); "pretty" keeps more words whole than "balance" does in Chinese. */
+h1, h2, h3 { text-wrap: pretty; }
 html { max-width: 100%; overflow-x: hidden; overflow-x: clip; font-size: 16px; scroll-behavior: smooth; scroll-padding-top: var(--boblift-header-h); }
 /* The navigation (header#top) stays at the top of the window; these match its row height (h-[78px] lg:h-[92px]). */
 /* --boblift-header-h is everything fixed over the top of the page: the navigation plus, for signed-in editors, the WordPress
@@ -167,7 +169,8 @@ img { max-width: 100%; }
   --about-accent: #2563EB;
   --about-line: #E5E7EB;
   --about-muted: #64748B;
-  min-height: 220svh;
+  /* About one screen of logo animation before the company profile (was 220svh). */
+  min-height: 160svh;
   overflow: clip;
 }
 .about-logo-pin {
@@ -335,14 +338,7 @@ img { max-width: 100%; }
   z-index: 2;
   margin-top: -1px;
 }
-.page-shell.about-wide-shell {
-  width: min(1600px, calc(100% - 96px));
-}
-@media (min-width: 1921px) {
-  .page-shell.about-wide-shell {
-    width: min(3200px, calc(100% - 96px));
-  }
-}
+/* The About sections use the same .page-shell width as every other page and the footer (they used to run edge to edge on wide screens). */
 .about-strength-bridge {
   background: linear-gradient(180deg, rgba(248,250,252,0) 0%, rgba(248,250,252,.78) 48%, #F8FAFC 100%);
   transform-origin: top center;
@@ -351,7 +347,7 @@ img { max-width: 100%; }
   text-wrap: balance;
 }
 .about-stat-card {
-  min-height: clamp(190px, 10vw, 300px);
+  min-height: 0;
 }
 .about-manufacturing-copy {
   transform: none;
@@ -397,7 +393,7 @@ img { max-width: 100%; }
   grid-template-columns: minmax(0, 1fr) var(--timeline-center) minmax(0, 1fr);
   align-items: center;
   column-gap: var(--timeline-gap);
-  padding-block: clamp(34px, 6vw, 82px);
+  padding-block: clamp(18px, 2.4vw, 40px);
 }
 .about-timeline-node {
   position: relative;
@@ -443,7 +439,7 @@ img { max-width: 100%; }
 .about-timeline-panel-media {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 2 / 1;
   overflow: hidden;
   border-radius: 4px;
   background: #EAF1F8;
@@ -622,9 +618,10 @@ img { max-width: 100%; }
 .about-gallery-track {
   align-items: center;
 }
+/* Two photos per screen, so the pinned row needs about half the scroll it used to. */
 .about-gallery-item {
-  width: min(72vw, 1680px);
-  height: clamp(520px, 36vw, 980px);
+  width: min(46vw, 1100px);
+  height: clamp(440px, 31vw, 760px);
 }
 @media (max-width: 1023px) {
   .about-gallery-pin {
@@ -632,8 +629,8 @@ img { max-width: 100%; }
     min-height: 440px;
   }
   .about-gallery-item {
-    width: 78vw;
-    height: clamp(360px, 52vw, 520px);
+    width: 62vw;
+    height: clamp(360px, 46vw, 480px);
   }
 }
 @media (max-width: 767px) {
@@ -1607,6 +1604,15 @@ img { max-width: 100%; }
 .boblift-news-category-pill.is-active {
   @apply border-navy bg-navy text-white;
 }
+.boblift-news-hub {
+  @apply flex gap-6 overflow-x-auto border-b border-line [scrollbar-width:none] md:gap-10 [&::-webkit-scrollbar]:hidden;
+}
+.boblift-news-hub-link {
+  @apply -mb-px inline-flex h-12 shrink-0 items-center whitespace-nowrap border-b-2 border-transparent text-sm font-black text-slate-500 transition hover:text-ink md:h-14 md:text-base;
+}
+.boblift-news-hub-link[aria-current="page"] {
+  @apply border-navy text-navy;
+}
 .boblift-news-view-switch {
   @apply inline-flex w-fit overflow-hidden rounded-sm border border-blue-100 bg-white/90 p-1 shadow-card backdrop-blur;
 }
@@ -1619,13 +1625,12 @@ img { max-width: 100%; }
 #news-updates.is-list-view .boblift-news-results-grid {
   grid-template-columns: minmax(0, 1fr) !important;
   gap: 16px;
-  max-width: 1280px;
 }
 #news-updates.is-list-view .boblift-news-result-card {
   display: grid !important;
-  grid-template-columns: 260px minmax(0, 1fr);
-  align-items: stretch;
-  gap: 26px;
+  grid-template-columns: clamp(240px, 26%, 360px) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(20px, 2.4vw, 36px);
   @apply rounded border border-blue-100 bg-white p-3 shadow-card hover:translate-y-0 hover:border-blue-200;
 }
 #news-updates.is-list-view .boblift-news-result-card.hidden {
@@ -1634,7 +1639,7 @@ img { max-width: 100%; }
 #news-updates.is-list-view .boblift-news-result-media {
   @apply relative min-w-0 overflow-hidden rounded bg-slate-100;
   width: 100%;
-  aspect-ratio: 1.35 / 1;
+  aspect-ratio: 16 / 9;
 }
 #news-updates.is-list-view .boblift-news-result-content {
   @apply flex min-w-0 flex-col justify-center px-1 py-2 md:py-3;
@@ -1657,18 +1662,43 @@ img { max-width: 100%; }
 #news-updates.is-list-view .boblift-news-result-readmore {
   @apply mt-4 w-fit rounded-sm border border-line bg-white px-4 py-2 text-[11px] uppercase tracking-[0.14em] text-navy shadow-card transition group-hover:border-blue-200 group-hover:bg-blue-50;
 }
+/* Phones: the list view is a compact row (small thumbnail beside the title), so it differs from the stacked default view. */
 @media (max-width: 767px) {
+  #news-updates.is-list-view .boblift-news-results-grid {
+    gap: 10px;
+  }
   #news-updates.is-list-view .boblift-news-result-card {
-    grid-template-columns: minmax(0, 1fr) !important;
-    gap: 14px;
-    padding: 12px;
+    grid-template-columns: 132px minmax(0, 1fr) !important;
+    align-items: start;
+    gap: 12px;
+    padding: 10px;
   }
   #news-updates.is-list-view .boblift-news-result-media {
-    aspect-ratio: 1.5 / 1;
+    aspect-ratio: 16 / 9;
     min-height: 0;
   }
   #news-updates.is-list-view .boblift-news-result-content {
-    padding: 4px 4px 8px;
+    padding: 0;
+  }
+  #news-updates.is-list-view .boblift-news-result-meta {
+    margin-bottom: 4px;
+    gap: 8px;
+  }
+  #news-updates.is-list-view .boblift-news-result-category {
+    height: 20px;
+    padding-inline: 6px;
+  }
+  #news-updates.is-list-view .boblift-news-result-date {
+    font-size: 11px;
+  }
+  #news-updates.is-list-view .boblift-news-result-title {
+    font-size: 15px;
+    line-height: 1.35;
+    -webkit-line-clamp: 3;
+  }
+  #news-updates.is-list-view .boblift-news-result-excerpt,
+  #news-updates.is-list-view .boblift-news-result-readmore {
+    display: none;
   }
 }
 
@@ -2652,4 +2682,27 @@ html:is(:lang(ru), :lang(uk), :lang(fr), :lang(es), :lang(de), :lang(it), :lang(
   /* Two equal halves: the intro runs up to the middle instead of stopping at its own reading width. */
   .boblift-archive-about:has(> [data-category-intro]:not([hidden])) > [data-category-intro] { grid-column: 1; max-width: none; }
   .boblift-archive-about:has(> [data-category-intro]:not([hidden])) > [data-brochures] { grid-column: 2; grid-row: 1; margin-top: 4rem; }
+}
+
+/* Phones: inline text links (arrow links, the contact numbers) are about 20px tall; an invisible area around them makes
+   them easy to tap without changing the layout. */
+@media (max-width: 767px) {
+  main a.inline-flex.text-sm.font-black.text-blue-700,
+  [aria-labelledby="contact-direct-title"] dd a,
+  [aria-labelledby="contact-direct-title"] dd button {
+    position: relative;
+  }
+  main a.inline-flex.text-sm.font-black.text-blue-700::after,
+  [aria-labelledby="contact-direct-title"] dd a::after,
+  [aria-labelledby="contact-direct-title"] dd button::after {
+    content: "";
+    position: absolute;
+    inset: -10px -6px;
+  }
+  /* In Direct contact the number and the WhatsApp / Telegram links sit 8px apart: each area grows by 4px, so they meet
+     without overlapping. */
+  [aria-labelledby="contact-direct-title"] dd a::after,
+  [aria-labelledby="contact-direct-title"] dd button::after {
+    inset: -4px -6px;
+  }
 }

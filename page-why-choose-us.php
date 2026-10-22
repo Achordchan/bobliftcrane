@@ -18,7 +18,16 @@ $certification_items = array_values(array_filter(array_map(static function ($ite
     return ['image' => $image, 'title' => (string) ($item['title'] ?? ''), 'text' => (string) ($item['text'] ?? '')];
 }, (array) ($about_page['certifications']['items'] ?? [])), static fn(array $item): bool => $item !== [] && ((int) ($item['image']['id'] ?? 0) > 0 || trim((string) ($item['image']['path'] ?? '')) !== '')));
 $facts = array_values(array_filter((array) ($tour_ui['facts'] ?? []), static fn($fact): bool => is_array($fact) && trim((string) ($fact['value'] ?? '')) !== ''));
-$stats = array_values(array_filter((array) ($about_page['global_footprint']['stats'] ?? []), static fn($stat): bool => is_array($stat) && trim((string) ($stat['number'] ?? '')) !== ''));
+// The built-in Manufacturing Base figure (37,000 m2) is left out while the production section's facts already show
+// that number; a changed figure, or facts without it, keep the statistic.
+$fact_values = implode(' ', array_map(static fn($fact): string => preg_replace('/\D+/', '', (string) ($fact['value'] ?? '')) ?? '', $facts));
+$stats = array_values(array_filter((array) ($about_page['global_footprint']['stats'] ?? []), static function ($stat) use ($fact_values): bool {
+    if (!is_array($stat) || trim((string) ($stat['number'] ?? '')) === '') {
+        return false;
+    }
+    $digits = preg_replace('/\D+/', '', (string) $stat['number']) ?? '';
+    return !((string) ($stat['label'] ?? '') === 'Manufacturing Base' && $digits !== '' && str_contains(' ' . $fact_values . ' ', ' ' . $digits . ' '));
+}));
 if ($is_zh) {
     $stat_labels = ['Countries Exported' => '出口国家和地区', 'Years Experience' => '经验年限', 'Units Delivered' => '累计交付设备', 'Cranes Exported' => '已出口起重机数量'];
     foreach ($stats as $index => $stat) {
@@ -41,6 +50,7 @@ $link_class = 'inline-flex w-fit items-center gap-1.5 text-sm font-black text-bl
         'image_position' => 'center 50%',
     ]);
     ?>
+    <div class="mt-6 md:mt-8"><?php boblift_about_hub_nav('why-choose-us'); ?></div>
 </div>
 
 <?php if ($applications !== []) : ?>
@@ -50,18 +60,35 @@ $link_class = 'inline-flex w-fit items-center gap-1.5 text-sm font-black text-bl
         <h2 id="why-applications-title" class="max-w-[26ch] text-[clamp(1.75rem,2.8vw,3rem)] font-black leading-[1.05] tracking-[-0.015em] text-ink"><?php echo esc_html((string) ($ui['applicationsTitle'] ?? '')); ?></h2>
         <p class="mt-3 max-w-2xl text-sm font-normal leading-7 text-slate-600 md:text-base"><?php echo esc_html((string) ($ui['applicationsText'] ?? '')); ?></p>
         <?php
-        // The last tile stretches to the end of its row, so an odd count leaves no empty cell.
-        $application_spans = array_fill(0, count($applications), 1);
-        $application_fill = [
-            ([2 => 'col-span-2'])[boblift_grid_last_item_span($application_spans, 2)] ?? '',
-            ([1 => 'md:col-span-1', 2 => 'md:col-span-2', 3 => 'md:col-span-3', 4 => 'md:col-span-4'])[boblift_grid_last_item_span($application_spans, 4)] ?? '',
-        ];
+        // Each card's photo: an image saved with the entry, else the built-in photo of the application with that title (in
+        // English or the current language), else none. Reordering or renaming entries never pairs a title with another scene.
+        $application_photos = [];
+        foreach ((array) (boblift_site_ui_defaults('whyChoose')['applications'] ?? []) as $default_application) {
+            $default_title = (string) ($default_application['title'] ?? '');
+            $default_image = (string) ($default_application['image'] ?? '');
+            if ($default_title !== '' && $default_image !== '') {
+                $application_photos[$default_title] = $default_image;
+                $application_photos[boblift_localized_static_text($default_title)] = $default_image;
+                foreach ((array) ($default_application['aliases'] ?? []) as $alias) {
+                    $application_photos[(string) $alias] = $default_image;
+                }
+            }
+        }
         ?>
         <ul class="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-            <?php foreach ($applications as $index => $item) : ?>
-                <li class="rounded border border-line bg-white p-4 shadow-card md:p-5 <?php echo $index === count($applications) - 1 ? esc_attr(trim(implode(' ', $application_fill))) : ''; ?>">
-                    <span class="text-xs font-black tabular-nums tracking-[0.14em] text-blue-700"><?php echo esc_html($pad($index + 1)); ?></span>
-                    <p class="mt-2 text-base font-black text-ink md:text-lg"><?php echo esc_html((string) $item['title']); ?></p>
+            <?php foreach ($applications as $index => $item) :
+                $saved_image = $item['image'] ?? '';
+                $photo_path = $application_photos[trim((string) $item['title'])] ?? '';
+                $photo = $saved_image !== '' && $saved_image !== [] ? boblift_image_setting_url($saved_image, $photo_path) : ($photo_path !== '' ? boblift_image_src($photo_path) : '');
+            ?>
+                <li class="overflow-hidden rounded border border-line bg-white shadow-card">
+                    <?php if ($photo !== '') : ?>
+                        <img class="aspect-[4/3] w-full object-cover" src="<?php echo esc_url($photo); ?>" alt="<?php echo esc_attr((string) $item['title']); ?>" width="800" height="600" loading="lazy" decoding="async">
+                    <?php endif; ?>
+                    <div class="p-4 md:p-5">
+                        <span class="text-xs font-black tabular-nums tracking-[0.14em] text-blue-700"><?php echo esc_html($pad($index + 1)); ?></span>
+                        <p class="mt-1 text-base font-black text-ink md:text-lg"><?php echo esc_html((string) $item['title']); ?></p>
+                    </div>
                 </li>
             <?php endforeach; ?>
         </ul>
@@ -82,7 +109,8 @@ $link_class = 'inline-flex w-fit items-center gap-1.5 text-sm font-black text-bl
         </div>
         <?php // Phones swipe through the documents in one row instead of scrolling past a long two-column wall. ?>
         <ul class="-mx-4 mt-8 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:snap-none sm:grid-cols-3 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-5 lg:gap-4 [&::-webkit-scrollbar]:hidden">
-            <?php foreach ($certification_items as $certification) :
+            <?php // One row of the certificates (CE, EAC, ISO); the trademarks and patents stay on the About page, linked below. ?>
+            <?php foreach (array_slice($certification_items, 0, 5) as $certification) :
                 $full_url = boblift_image_setting_url($certification['image'], (string) ($certification['image']['path'] ?? ''));
                 // Cards use the light "-sm" scan shipped next to theme documents; the viewer opens the full page.
                 $path = (string) ($certification['image']['path'] ?? '');

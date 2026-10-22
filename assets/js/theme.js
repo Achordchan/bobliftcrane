@@ -522,6 +522,7 @@
       const aerialStart = qs('[data-about-aerial-start]', section);
       const aerialEnd = qs('[data-about-aerial-end]', section);
       const logoVideo = qs('[data-about-logo-video]', section);
+      const heroCopy = qs('[data-about-hero-copy]', section);
       if (!pin || !bg || !logo) return;
 
       const mm = gsap.matchMedia();
@@ -627,7 +628,7 @@
           scrollTrigger: {
             trigger: section,
             start: 'top top',
-            end: '+=150%', // Shortened end since we don't need to read copy
+            end: '+=90%', // About one screen of scrolling; the section is 160svh tall (input.css)
             scrub: 0.65,
             pin,
             pinSpacing: false,
@@ -650,6 +651,8 @@
           .to(logo, { scale: 1.04, y: 0, opacity: 1, duration: 0.42, ease: 'power2.out' }, 0)
           .to(logoSolid, { opacity: 0, duration: 0.1, ease: 'none' }, 0)
           .to(logoImage, { opacity: 1, duration: 0.1, ease: 'none' }, 0)
+          // The page title fades as the aerial footage comes in, so it never sits over the busy photo.
+          .to(heroCopy, { opacity: 0, y: -16, duration: 0.16, ease: 'none' }, 0.04)
           // The scene already has a static clip radius; scaling reveals it without repainting the radius every frame.
           .to(bg, { scale: 0.94, yPercent: -5, duration: 0.48, ease: 'power2.inOut' }, 0.42)
           .to(logo, { scale: 0.6, y: () => -window.innerHeight * 0.15, opacity: 0, duration: 0.48, ease: 'power2.inOut' }, 0.42)
@@ -681,7 +684,7 @@
             pauseAerialVideo();
           }
           tl.kill();
-          gsap.set([bg, silhouette, mask, logo, logoSolid, logoImage, aerialStart, aerialVideo, aerialEnd].filter(Boolean), { clearProps: 'all' });
+          gsap.set([bg, silhouette, mask, logo, logoSolid, logoImage, heroCopy, aerialStart, aerialVideo, aerialEnd].filter(Boolean), { clearProps: 'all' });
         };
       });
 

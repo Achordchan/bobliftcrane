@@ -23,6 +23,7 @@ if ($is_zh_about) {
         'Years Experience' => '经验年限',
         'Units Delivered' => '累计交付设备',
         'Cranes Exported' => '已出口起重机数量',
+        'Manufacturing Base' => '制造基地',
     ];
     foreach ($global_stats as $global_stat_index => $global_stat) {
         $global_stat_label = (string) ($global_stat['label'] ?? '');
@@ -40,6 +41,9 @@ if ($is_zh_about) {
     $certification_title = $certification_title === 'Certification documents for export projects' ? '面向出口项目的认证文件' : $certification_title;
     $certification_text = $certification_text === 'Core certification documents supporting overseas procurement, factory audits and project delivery reviews.' ? '上传真实证书图片，支持海外采购、验厂与项目交付审核。' : $certification_text;
 }
+$certification_compare_key = static fn(string $text): string => preg_replace('/[\s\p{P}]+/u', '', str_replace('&', 'and', mb_strtolower($text))) ?? '';
+$certification_label_key = $certification_compare_key($certification_label);
+$certification_title_key = $certification_compare_key($certification_title);
 $certification_title_map = $is_zh_about ? [
     'ISO 9001 Quality Management' => 'ISO 9001 质量管理体系',
     'CE European Conformity' => 'CE 欧盟符合性认证',
@@ -85,14 +89,18 @@ $strength_title = (string) ($strength['title'] ?? 'Manufacturing intelligence fo
 $strength_title_html = esc_html($strength_title);
 foreach (['中国徐州', 'Xuzhou, China', '起重设备制造商', 'crane manufacturer', '制造智能', '日常运营', 'Manufacturing intelligence', 'daily operation'] as $strength_highlight) {
     if ($strength_highlight !== '' && str_contains($strength_title, $strength_highlight)) {
-        $strength_title_html = str_replace(esc_html($strength_highlight), '<span class="text-blue-700">' . esc_html($strength_highlight) . '</span>', $strength_title_html);
+        // A single word or a Chinese place name ("中国徐州") stays on one line; a multiword phrase may wrap.
+        $highlight_class = preg_match('/\s/u', $strength_highlight) ? 'text-blue-700' : 'whitespace-nowrap text-blue-700';
+        $strength_title_html = str_replace(esc_html($strength_highlight), '<span class="' . $highlight_class . '">' . esc_html($strength_highlight) . '</span>', $strength_title_html);
         break;
     }
 }
+$about_hero_title = (string) (get_the_title() ?: ($logo['label'] ?? 'About BOB-LIFT'));
+$about_hero_title_html = str_replace('BOB-LIFT', '<span class="whitespace-nowrap">BOB-LIFT</span>', esc_html($about_hero_title));
+$about_hero_text = (string) preg_replace('/[。.]+$/u', '', trim((string) ($logo['headline'] ?? '')));
 ?>
 <section class="about-logo-scroll-section relative isolate bg-[#F8FAFC]" data-about-logo-scroll style="--about-logo-image:url('<?php echo esc_url($about_aerial_start); ?>');">
     <div class="about-logo-pin relative overflow-hidden" data-about-logo-pin>
-        <h1 class="sr-only"><?php echo esc_html(get_the_title() ?: (string) ($logo['label'] ?? 'About BOB-LIFT')); ?></h1>
         <div class="absolute inset-0 bg-[#F8FAFC]"></div>
         <div class="about-logo-silhouette absolute inset-0" data-about-silhouette>
             <?php echo boblift_img_from_setting($logo_silhouette_image, 'images/about/about-logo-1.png', $logo_silhouette_alt, 'absolute inset-0 h-full w-full object-cover object-center', ['loading' => 'eager', 'decoding' => 'async', 'fetchpriority' => 'high']); ?>
@@ -122,7 +130,13 @@ foreach (['中国徐州', 'Xuzhou, China', '起重设备制造商', 'crane manuf
                     </span>
                 </div>
             </div>
-
+            <?php // The page title and the intro headline (editable in the About settings) sit at the foot of the hero, clear of the logo. ?>
+            <div class="about-hero-copy absolute inset-x-0 bottom-8 px-4 text-center min-[901px]:bottom-[calc(var(--boblift-header-h,78px)+5rem)]" data-about-hero-copy>
+                <h1 class="text-[clamp(1.75rem,3vw,3rem)] font-black leading-[1.1] tracking-[-0.02em] text-[#0B1B33]"><?php echo $about_hero_title_html; ?></h1>
+                <?php if ($about_hero_text !== '') : ?>
+                    <p class="mx-auto mt-3 max-w-[760px] text-base font-semibold leading-7 text-[#334155] md:text-lg"><?php echo esc_html($about_hero_text); ?></p>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
 </section>
@@ -134,7 +148,8 @@ $legacy_headline = $legacy_intro['headline'];
 $legacy_paragraph = $legacy_intro['paragraph'];
 $legacy_chips = $legacy_intro['chips'];
 // The old introduction's eyebrow label, when an editor changed it from the built-in "About BOB-LIFT".
-$legacy_label = boblift_customised_legacy_text($logo['label'] ?? '', 'About BOB-LIFT');
+// The Japanese and Chinese seeds of that label count as built-in too.
+$legacy_label = in_array(trim((string) ($logo['label'] ?? '')), ['BOB-LIFTについて', '关于 BOB-LIFT'], true) ? '' : boblift_customised_legacy_text($logo['label'] ?? '', 'About BOB-LIFT');
 if ($legacy_label !== '' || $legacy_headline !== '' || $legacy_paragraph !== '' || $legacy_chips !== []) : ?>
 <section class="page-shell py-10 md:py-14" aria-label="<?php echo esc_attr($legacy_headline !== '' ? $legacy_headline : ($legacy_label !== '' ? $legacy_label : 'About BOB-LIFT')); ?>">
     <div class="mx-auto max-w-[860px] text-center">
@@ -155,22 +170,30 @@ if ($legacy_label !== '' || $legacy_headline !== '' || $legacy_paragraph !== '' 
 </section>
 <?php endif; ?>
 
-<section id="about-strength" class="about-manufacturing-section relative isolate overflow-hidden bg-[#F8FAFC] pt-14 md:pt-20 lg:pt-24 pb-16 lg:pb-24" data-about-strength>
+<section id="about-strength" class="about-manufacturing-section relative isolate overflow-hidden bg-[#F8FAFC] pt-14 md:pt-20 lg:pt-24 pb-12 lg:pb-16" data-about-strength>
     <div class="about-strength-bridge pointer-events-none absolute inset-x-0 top-0 h-20 lg:h-24" data-about-strength-bridge></div>
     <div class="page-shell about-wide-shell relative z-10">
-        <div class="about-manufacturing-copy mx-auto w-full text-center" data-about-strength-copy>
-            <p class="section-label mb-6 text-center"><?php echo esc_html($strength['label'] ?? 'Company Strength'); ?></p>
-            <h2 class="about-strength-title mx-auto max-w-none text-[34px] font-black leading-[1.1] tracking-[-0.005em] text-[#0B1B33] md:text-[52px] xl:text-[68px]"><?php echo wp_kses_post($strength_title_html); ?></h2>
-            <p class="mx-auto mt-6 max-w-none text-base font-normal leading-[1.7] tracking-normal text-[#64748B] md:text-lg xl:text-xl"><?php echo esc_html($strength['text'] ?? 'BOB-LIFT combines product engineering, precision production and responsive export service into one disciplined workflow for overseas B2B buyers.'); ?></p>
+        <?php // Heading on the left, profile on the right, both on the page width the figure cards below use. ?>
+        <div class="about-manufacturing-copy grid w-full gap-6 text-start lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16 xl:gap-24" data-about-strength-copy>
+            <div class="min-w-0">
+                <p class="section-label mb-4"><?php echo esc_html($strength['label'] ?? 'Company Strength'); ?></p>
+                <h2 class="about-strength-title max-w-none text-[30px] font-black leading-[1.15] tracking-[-0.01em] text-[#0B1B33] md:text-[40px] xl:text-[48px]"><?php echo wp_kses_post($strength_title_html); ?></h2>
+            </div>
+            <?php // A blank line in the profile text starts a new paragraph. ?>
+            <div class="min-w-0 space-y-4 text-base font-normal leading-[1.8] tracking-normal text-[#64748B] md:text-[17px] lg:pt-9">
+                <?php foreach (preg_split('/\R\s*\R/u', trim((string) ($strength['text'] ?? ''))) ?: [] as $profile_paragraph) : ?>
+                    <?php if (trim($profile_paragraph) !== '') : ?><p><?php echo esc_html(trim($profile_paragraph)); ?></p><?php endif; ?>
+                <?php endforeach; ?>
+            </div>
         </div>
 
         <?php if (!empty($global_stats)) : ?>
         <?php
         // Phones show the figures two to a row (a third one takes the full row), so they read as one strip instead of a stack of tall cards;
         // a figure longer than four characters (100,000) would not fit half a phone, so then they stay one to a row.
-        $global_stats_narrow = array_filter(array_slice($global_stats, 0, 3), static fn(array $stat): bool => mb_strlen(trim((string) ($stat['number'] ?? '')) . (string) ($stat['suffix'] ?? '+')) > 5) === [];
+        $global_stats_narrow = array_filter(array_slice($global_stats, 0, 2), static fn(array $stat): bool => mb_strlen(trim((string) ($stat['number'] ?? '')) . (string) ($stat['suffix'] ?? '+')) > 5) === [];
         ?>
-        <div class="mx-auto mt-10 grid w-full max-w-none <?php echo $global_stats_narrow ? 'grid-cols-2' : 'grid-cols-1'; ?> gap-3 sm:gap-6 <?php echo count($global_stats) >= 3 ? 'md:grid-cols-3' : 'md:grid-cols-2'; ?> md:mt-14 lg:mt-20 lg:gap-8" data-about-global data-about-strength-features>
+        <div class="mx-auto mt-10 grid w-full max-w-none <?php echo $global_stats_narrow ? 'grid-cols-2' : 'grid-cols-1'; ?> gap-3 sm:gap-6 <?php echo count($global_stats) >= 3 ? 'md:grid-cols-3' : 'md:grid-cols-2'; ?> md:mt-12 lg:mt-14 lg:gap-6" data-about-global data-about-strength-features>
             <?php foreach (array_slice($global_stats, 0, 3) as $global_stat_index => $stat) :
                 $stat_number_raw = (string) ($stat['number'] ?? '0');
                 // Whole numbers count up; anything else (2.5, 1,200) is shown exactly as saved, without the count-up.
@@ -178,13 +201,13 @@ if ($legacy_label !== '' || $legacy_headline !== '' || $legacy_paragraph !== '' 
                 $stat_animates = preg_match('/^\d+$/', $stat_display) === 1;
                 $stat_suffix = (string) ($stat['suffix'] ?? '+');
             ?>
-                <div class="about-stat-card relative overflow-hidden rounded border border-[#E5E7EB] bg-white p-5 text-start shadow-card transition hover:-translate-y-1 sm:min-h-[190px] sm:p-8 lg:p-10 xl:p-12 <?php echo $global_stats_narrow && count($global_stats) >= 3 && $global_stat_index === 2 ? 'col-span-2 md:col-span-1' : ''; ?>">
+                <div class="about-stat-card relative overflow-hidden rounded border border-[#E5E7EB] bg-white p-5 text-start shadow-card transition hover:-translate-y-1 sm:p-7 lg:p-8 <?php echo $global_stats_narrow && count($global_stats) >= 3 && $global_stat_index === 2 ? 'col-span-2 md:col-span-1' : ''; ?>">
                     <span class="pointer-events-none absolute -end-2 -top-4 select-none text-[72px] font-black italic leading-none tracking-[-0.015em] text-[#F1F5F9] sm:-end-4 sm:-top-8 sm:text-[120px] lg:-end-6 lg:-top-10 lg:text-[140px]"><?php echo esc_html(str_pad((string) ($global_stat_index + 1), 2, '0', STR_PAD_LEFT)); ?></span>
                     <div class="relative z-10">
                         <p class="flex items-baseline font-black leading-none tracking-[-0.02em] text-[#0B3F7D]">
                             <span class="text-[40px] sm:text-[54px] lg:text-[68px]"<?php if ($stat_animates) : ?> data-global-stat="<?php echo esc_attr($stat_display); ?>"<?php endif; ?>><?php echo esc_html($stat_display); ?></span><span class="ms-1 text-[22px] text-[#2563EB] sm:text-[28px] lg:text-[34px]"><?php echo esc_html($stat_suffix); ?></span>
                         </p>
-                        <h3 class="mt-3 max-w-none text-sm font-black leading-tight text-[#0B1B33] sm:mt-6 sm:text-lg lg:text-xl"><?php echo esc_html($stat['label'] ?? ''); ?></h3>
+                        <h3 class="mt-3 max-w-none text-sm font-black leading-tight text-[#0B1B33] sm:mt-6 sm:text-lg lg:text-xl"><?php echo esc_html(boblift_localized_static_text((string) ($stat['label'] ?? ''))); ?></h3>
                     </div>
                 </div>
             <?php endforeach; ?>
@@ -220,9 +243,9 @@ if ($legacy_strength['cards'] !== [] || $legacy_strength['cta'] !== null || $leg
 </section>
 <?php endif; ?>
 
-<section class="about-timeline-section bg-[#F8FAFC] pt-16 lg:pt-24 pb-16 lg:pb-28" data-about-timeline>
+<section class="about-timeline-section bg-[#F8FAFC] pt-12 lg:pt-16 pb-12 lg:pb-16" data-about-timeline>
     <div class="page-shell about-wide-shell">
-        <div class="about-timeline-header mx-auto w-full text-center mb-16 max-w-none lg:mb-24" data-about-timeline-header>
+        <div class="about-timeline-header mx-auto w-full text-center mb-10 max-w-none lg:mb-14" data-about-timeline-header>
             <?php
             // The redesigned section has no eyebrow; a label an editor changed from the built-in "Development Timeline" stays visible.
             $timeline_label = trim((string) ($timeline['label'] ?? ''));
@@ -273,7 +296,8 @@ if ($legacy_strength['cards'] !== [] || $legacy_strength['cta'] !== null || $leg
         <div id="about-certifications" class="mt-10 border-t border-[#DDE7F2] pt-8 md:mt-12 md:pt-10 lg:mt-14" data-about-certifications>
             <div class="mb-6 flex flex-col gap-3 md:mb-8 md:flex-row md:items-end md:justify-between">
                 <div>
-                    <p class="boblift-kicker mb-2"><?php echo esc_html($certification_label); ?></p>
+                    <?php // The kicker is left out when it says the same as the title ("Certificates & Patents" / "Certificates and patents"). ?>
+                    <?php if ($certification_label_key !== $certification_title_key) : ?><p class="boblift-kicker mb-2"><?php echo esc_html($certification_label); ?></p><?php endif; ?>
                     <h3 class="text-[24px] font-black leading-tight tracking-normal text-[#0B1B33] md:text-[32px]"><?php echo esc_html($certification_title); ?></h3>
                 </div>
                 <p class="max-w-[760px] text-sm font-normal leading-7 text-[#64748B]"><?php echo esc_html($certification_text); ?></p>
@@ -351,6 +375,46 @@ if ($legacy_strength['cards'] !== [] || $legacy_strength['cta'] !== null || $leg
         </div>
     </div>
     <div class="about-gallery-scroll-spacer hidden lg:block" data-gallery-spacer aria-hidden="true"></div>
+</section>
+
+<?php
+// The other About pages (from the About menu in the settings) and a closing call to action; after the gallery spacer,
+// so the pinned gallery does not cover them.
+$about_more_links = [];
+foreach (boblift_about_nav_pages() as $slug => [$label, $href]) {
+    if ($slug !== 'about') {
+        $about_more_links[] = ['label' => $label, 'href' => $href, 'text' => (string) ($about_ui['moreTexts'][$slug] ?? '')];
+    }
+}
+?>
+<section class="bg-[#F8FAFC] py-14 lg:py-20" aria-labelledby="about-more-title">
+    <div class="page-shell about-wide-shell">
+        <?php if ($about_more_links !== []) : ?>
+            <p class="boblift-kicker mb-3"><?php echo esc_html((string) ($about_ui['moreLabel'] ?? 'More about BOB-LIFT')); ?></p>
+            <h2 id="about-more-title" class="text-[28px] font-black leading-[1.15] tracking-[-0.005em] text-[#0B1B33] md:text-[36px]"><?php echo esc_html((string) ($about_ui['moreTitle'] ?? 'See how we build and test, then come and visit.')); ?></h2>
+            <div class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <?php foreach ($about_more_links as $link) : ?>
+                    <a class="group flex items-center justify-between gap-4 rounded border border-line bg-white p-5 shadow-card transition hover:-translate-y-0.5 hover:border-blue-200 sm:flex-col sm:items-stretch sm:gap-6 sm:p-6" href="<?php echo esc_url(boblift_url($link['href'])); ?>">
+                        <span>
+                            <span class="block text-lg font-black leading-snug text-[#0B1B33] group-hover:text-blue-700"><?php echo esc_html($link['label']); ?></span>
+                            <?php if ($link['text'] !== '') : ?><span class="mt-2 block text-sm font-normal leading-6 text-[#64748B]"><?php echo esc_html($link['text']); ?></span><?php endif; ?>
+                        </span>
+                        <span class="inline-flex shrink-0 items-center gap-2 text-sm font-black text-blue-700"><span class="hidden sm:inline"><?php echo esc_html((string) ($about_ui['moreAction'] ?? 'Learn more')); ?></span> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></span>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+        <div class="<?php echo $about_more_links !== [] ? 'mt-10' : ''; ?> flex flex-col gap-6 rounded border border-line bg-navy p-6 text-white md:p-10 lg:flex-row lg:items-center lg:justify-between">
+            <div class="min-w-0">
+                <h2 class="text-2xl font-black leading-tight md:text-3xl"><?php echo esc_html((string) ($about_ui['ctaTitle'] ?? 'Planning a project or a factory visit?')); ?></h2>
+                <p class="mt-3 max-w-[680px] text-sm font-normal leading-7 text-white/75 md:text-base"><?php echo esc_html((string) ($about_ui['ctaText'] ?? '')); ?></p>
+            </div>
+            <div class="flex shrink-0 flex-col gap-3 sm:flex-row">
+                <button class="inline-flex h-12 items-center justify-center gap-2 rounded-sm bg-white px-6 text-sm font-black text-navy transition hover:bg-blue-50" type="button" data-inquiry-modal-open data-inquiry-source="关于页底部"><?php echo esc_html((string) ($about_ui['ctaInquiry'] ?? 'Send an inquiry')); ?> <?php echo boblift_icon('send', 'h-4 w-4'); ?></button>
+                <a class="inline-flex h-12 items-center justify-center gap-2 rounded-sm border border-white/30 px-6 text-sm font-black text-white transition hover:border-white hover:bg-white/10" href="<?php echo esc_url(boblift_url('/contact.html#map')); ?>"><?php echo esc_html((string) ($about_ui['ctaVisit'] ?? 'Plan a factory visit')); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
+            </div>
+        </div>
+    </div>
 </section>
 
 <?php get_footer(); ?>

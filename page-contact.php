@@ -28,11 +28,30 @@ $address = (string) $contact['address'];
 // Customised old location copy (locationTitle / locationDescriptionTemplate) is carried into these fields by boblift_site_ui().
 $location_heading = $t('locationHeading');
 $location_description = str_replace('{address}', $address, $t('locationDescription'));
-$company_cn = $t('mapKeywordCn', $address);
+// Visits take place at the main factory, so the map buttons search for it (the registered address when it is not set).
+$contact_option = boblift_option('contact', []);
+$factory_address = trim((string) (is_array($contact_option) ? ($contact_option['factory_address'] ?? '') : ''));
+$map_query = $factory_address !== '' ? $factory_address : $address;
+// Amap and Baidu search a Chinese keyword: one an editor saved (factory keyword first, then the older company keyword),
+// else the built-in Chinese address while the factory address is the built-in one, else the configured address itself.
+$contact_defaults = boblift_site_ui_defaults('contactPage');
+$saved_keyword = static fn(string $key): string => trim($t($key)) !== '' && $t($key) !== (string) ($contact_defaults[$key] ?? '') && $t($key) !== boblift_localized_static_text((string) ($contact_defaults[$key] ?? '')) ? $t($key) : '';
+$default_factory_address = (string) (boblift_default_options()['contact']['factory_address'] ?? '');
+if ($factory_address === '') {
+    $map_query_cn = $t('mapKeywordCn', $address);
+} elseif ($saved_keyword('mapFactoryKeywordCn') !== '') {
+    $map_query_cn = $saved_keyword('mapFactoryKeywordCn');
+} elseif ($saved_keyword('mapKeywordCn') !== '') {
+    $map_query_cn = $saved_keyword('mapKeywordCn');
+} elseif ($factory_address === $default_factory_address) {
+    $map_query_cn = (string) ($contact_defaults['mapFactoryKeywordCn'] ?? $factory_address);
+} else {
+    $map_query_cn = boblift_localized_static_text($factory_address, 'zh');
+}
 $map_links = [
-    'google' => 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($address),
-    'amap' => 'https://uri.amap.com/search?keyword=' . rawurlencode($company_cn),
-    'baidu' => 'https://map.baidu.com/search/' . rawurlencode($company_cn),
+    'google' => 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($map_query),
+    'amap' => 'https://uri.amap.com/search?keyword=' . rawurlencode($map_query_cn),
+    'baidu' => 'https://map.baidu.com/search/' . rawurlencode($map_query_cn),
 ];
 $map_labels = is_array($ui['mapLabels'] ?? null) ? $ui['mapLabels'] : [];
 
@@ -47,6 +66,8 @@ foreach (['supportTitle', 'supportDescription', 'supportItems'] as $support_key)
     }
 }
 $support_items = is_array($ui['supportItems'] ?? null) ? $ui['supportItems'] : [];
+$brochures = function_exists('boblift_brochure_items') ? boblift_brochure_items() : [];
+$telegram_href = function_exists('boblift_telegram_contact_href') ? boblift_telegram_contact_href((string) $contact['telegram']) : '';
 $visit_links = is_array($ui['visitLinks'] ?? null) ? $ui['visitLinks'] : [];
 ?>
 <div class="page-shell pt-5 md:pt-8">
@@ -68,7 +89,7 @@ $visit_links = is_array($ui['visitLinks'] ?? null) ? $ui['visitLinks'] : [];
 <section class="page-shell py-8 md:py-12">
     <div class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-8 xl:grid-cols-[minmax(0,1fr)_380px]">
         <div class="min-w-0 lg:col-start-1 lg:row-start-1">
-            <?php boblift_render_inquiry_form(isset($_GET['product']) ? sanitize_text_field(wp_unslash($_GET['product'])) : '', ['compact' => true, 'source' => '联系页表单']); ?>
+            <?php boblift_render_inquiry_form(isset($_GET['product']) ? sanitize_text_field(wp_unslash($_GET['product'])) : '', ['compact' => true, 'source' => '联系页表单', 'badge' => false, 'direct_links' => false]); ?>
         </div>
         <?php // The direct channels span both rows on desktop (sticky beside the form); on phones they follow the form directly. ?>
         <aside class="min-w-0 space-y-4 lg:sticky lg:top-[calc(var(--boblift-header-h)+1.5rem)] lg:col-start-2 lg:row-span-2 lg:row-start-1">
@@ -80,13 +101,19 @@ $visit_links = is_array($ui['visitLinks'] ?? null) ? $ui['visitLinks'] : [];
                     // One row when phone and WhatsApp are the same number; two rows when the saved numbers differ.
                     $digits = static fn(string $number): string => preg_replace('/\D+/', '', $number) ?? '';
                     $same_number = $digits((string) $contact['whatsapp']) === '' || $digits((string) $contact['phone']) === $digits((string) $contact['whatsapp']);
+                    // Telegram joins that row when it is the same number, and gets its own row otherwise.
+                    $telegram_same = $telegram_href !== '' && $digits((string) $contact['telegram']) === $digits((string) $contact['phone']);
+                    $telegram_link = $telegram_href !== '' ? '<a class="inline-flex items-center gap-1.5 text-sm font-bold text-blue-700 transition hover:text-navy" href="' . esc_url($telegram_href) . '" target="_blank" rel="noreferrer">' . boblift_icon('telegram', 'h-4 w-4') . esc_html($t('telegramLabel', 'Telegram')) . '</a>' : '';
                     ?>
                     <?php if ($same_number) : ?>
                     <div class="py-3.5">
-                        <dt class="<?php echo esc_attr($eyebrow); ?>"><?php echo esc_html($t('phoneWhatsappLabel', 'Phone / WhatsApp')); ?></dt>
-                        <dd class="mt-1 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+                        <dt class="<?php echo esc_attr($eyebrow); ?>"><?php echo esc_html($telegram_same ? $t('phoneMessengerLabel', 'Phone / WhatsApp / Telegram') : $t('phoneWhatsappLabel', 'Phone / WhatsApp')); ?></dt>
+                        <dd class="mt-1">
                             <a class="text-base font-black text-ink transition hover:text-blue-700" href="<?php echo esc_url((string) $contact['phoneHref']); ?>"><span dir="ltr"><?php echo esc_html($phone_text); ?></span></a>
-                            <a class="inline-flex items-center gap-1.5 text-sm font-bold text-blue-700 transition hover:text-navy" href="<?php echo esc_url($contact['whatsappHref']); ?>" target="_blank" rel="noreferrer"><?php echo boblift_icon('whatsapp', 'h-4 w-4'); ?><?php echo esc_html((string) ($ui['cardLabels']['whatsapp'] ?? 'WhatsApp')); ?></a>
+                            <span class="mt-2 flex flex-wrap items-center gap-x-5 gap-y-2">
+                                <a class="inline-flex items-center gap-1.5 text-sm font-bold text-blue-700 transition hover:text-navy" href="<?php echo esc_url($contact['whatsappHref']); ?>" target="_blank" rel="noreferrer"><?php echo boblift_icon('whatsapp', 'h-4 w-4'); ?><?php echo esc_html((string) ($ui['cardLabels']['whatsapp'] ?? 'WhatsApp')); ?></a>
+                                <?php echo $telegram_same ? $telegram_link : ''; ?>
+                            </span>
                         </dd>
                     </div>
                     <?php else : ?>
@@ -100,6 +127,13 @@ $visit_links = is_array($ui['visitLinks'] ?? null) ? $ui['visitLinks'] : [];
                             <span class="text-base font-black text-ink"><span dir="ltr"><?php echo esc_html($whatsapp_text); ?></span></span>
                             <a class="inline-flex items-center gap-1.5 text-sm font-bold text-blue-700 transition hover:text-navy" href="<?php echo esc_url($contact['whatsappHref']); ?>" target="_blank" rel="noreferrer"><?php echo boblift_icon('whatsapp', 'h-4 w-4'); ?><?php echo esc_html((string) ($ui['cardLabels']['whatsapp'] ?? 'WhatsApp')); ?></a>
                         </dd>
+                    </div>
+                    <?php endif; ?>
+                    <?php // Its own row unless the shared phone / WhatsApp row above already carries it. ?>
+                    <?php if ($telegram_link !== '' && !($telegram_same && $same_number)) : ?>
+                    <div class="py-3.5">
+                        <dt class="<?php echo esc_attr($eyebrow); ?>"><?php echo esc_html($t('telegramLabel', 'Telegram')); ?></dt>
+                        <dd class="mt-1"><?php echo $telegram_link; ?></dd>
                     </div>
                     <?php endif; ?>
                     <?php if ($contact['landline'] !== '') : ?>
@@ -133,48 +167,76 @@ $visit_links = is_array($ui['visitLinks'] ?? null) ? $ui['visitLinks'] : [];
                     <?php echo boblift_icon('clock-3', 'mt-0.5 h-4 w-4 shrink-0 text-slate-400'); ?>
                     <span><?php echo esc_html($t('hoursText')); ?></span>
                 </p>
+                <?php if ($t('languagesText') !== '') : ?>
+                    <p class="mt-2 flex items-start gap-2 text-sm font-normal leading-6 text-slate-600">
+                        <?php echo boblift_icon('globe', 'mt-0.5 h-4 w-4 shrink-0 text-slate-400'); ?>
+                        <span><?php echo esc_html($t('languagesText')); ?></span>
+                    </p>
+                <?php endif; ?>
+            </section>
+            <section class="rounded border border-line bg-mist p-5 md:p-6" aria-labelledby="contact-after-title">
+                <h2 id="contact-after-title" class="text-lg font-black leading-7 text-navy"><?php echo esc_html($t('afterTitle', 'What happens next')); ?></h2>
+                <ol class="mt-4 space-y-4">
+                    <?php foreach ($after_steps as $index => $step) : ?>
+                        <li class="flex gap-3">
+                            <span class="grid h-7 w-7 shrink-0 place-items-center rounded-sm bg-navy text-xs font-black tabular-nums text-white"><?php echo esc_html((string) ($index + 1)); ?></span>
+                            <span class="min-w-0">
+                                <span class="block text-sm font-black leading-6 text-navy"><?php echo esc_html((string) ($step['title'] ?? '')); ?></span>
+                                <span class="block text-sm font-normal leading-6 text-slate-600"><?php echo esc_html((string) ($step['text'] ?? '')); ?></span>
+                            </span>
+                        </li>
+                    <?php endforeach; ?>
+                </ol>
             </section>
         </aside>
-        <?php // What happens after sending, and the support overview, fill the space under the form. ?>
-        <div class="grid min-w-0 items-start gap-4 lg:col-start-1 lg:row-start-2 <?php echo $has_custom_support ? 'md:grid-cols-2' : ''; ?>">
-                <section class="rounded border border-line bg-mist p-5 md:p-6" aria-labelledby="contact-after-title">
-                    <h2 id="contact-after-title" class="text-lg font-black leading-7 text-navy"><?php echo esc_html($t('afterTitle', 'What happens next')); ?></h2>
-                    <ol class="mt-4 space-y-4">
-                        <?php foreach ($after_steps as $index => $step) : ?>
+        <?php // Brochures, and support copy an editor wrote, fill the space under the form; the direct channels and next steps sit beside it. ?>
+        <?php if ($brochures !== [] || $has_custom_support) : ?>
+        <div class="grid min-w-0 items-start gap-4 lg:col-start-1 lg:row-start-2">
+            <?php if ($brochures !== []) : ?>
+                <section class="min-w-0 rounded border border-line bg-white p-5 md:p-6" aria-labelledby="contact-brochure-title">
+                    <h2 id="contact-brochure-title" class="text-lg font-black leading-7 text-navy"><?php echo esc_html($t('brochureTitle', 'Download a brochure')); ?></h2>
+                    <p class="mt-1 text-sm font-normal leading-6 text-slate-600"><?php echo esc_html($t('brochureText')); ?></p>
+                    <ul class="mt-4 grid gap-3 sm:grid-cols-3">
+                        <?php foreach ($brochures as $brochure) : ?>
+                            <li class="min-w-0">
+                                <a class="group flex h-full items-center gap-3 rounded-sm border border-line bg-mist p-3 transition hover:border-blue-200 hover:bg-white" href="<?php echo esc_url($brochure['url']); ?>" download>
+                                    <img class="h-16 w-12 shrink-0 rounded-sm border border-line bg-white object-cover" src="<?php echo esc_url($brochure['cover']); ?>" alt="" width="48" height="64" loading="lazy" decoding="async">
+                                    <span class="min-w-0">
+                                        <span class="block text-sm font-black leading-5 text-ink group-hover:text-blue-700"><?php echo esc_html($brochure['title']); ?></span>
+                                        <span class="mt-1 inline-flex items-center gap-1 text-xs font-bold text-slate-500"><?php echo boblift_icon('download', 'h-3.5 w-3.5'); ?>PDF · <?php echo esc_html($brochure['size']); ?></span>
+                                    </span>
+                                </a>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                </section>
+            <?php endif; ?>
+            <?php // Support copy an editor wrote in the old layout stays visible; the built-in support overview is not repeated. ?>
+            <?php if ($has_custom_support) : ?>
+                <section class="rounded border border-line bg-mist p-5 md:p-6" aria-labelledby="contact-support-title">
+                    <h2 id="contact-support-title" class="text-lg font-black leading-7 text-navy"><?php echo esc_html($t('supportTitle')); ?></h2>
+                    <p class="mt-3 text-sm font-normal leading-6 text-slate-600"><?php echo esc_html($t('supportDescription')); ?></p>
+                    <ul class="mt-4 space-y-4">
+                        <?php foreach ($support_items as $item) : ?>
                             <li class="flex gap-3">
-                                <span class="grid h-7 w-7 shrink-0 place-items-center rounded-sm bg-navy text-xs font-black tabular-nums text-white"><?php echo esc_html((string) ($index + 1)); ?></span>
+                                <?php echo boblift_icon((string) ($item['iconName'] ?? 'shield-check'), 'mt-0.5 h-4 w-4 shrink-0 text-slate-400'); ?>
                                 <span class="min-w-0">
-                                    <span class="block text-sm font-black leading-6 text-navy"><?php echo esc_html((string) ($step['title'] ?? '')); ?></span>
-                                    <span class="block text-sm font-normal leading-6 text-slate-600"><?php echo esc_html((string) ($step['text'] ?? '')); ?></span>
+                                    <span class="block text-sm font-black leading-6 text-navy"><?php echo esc_html((string) ($item['title'] ?? '')); ?></span>
+                                    <span class="block text-sm font-normal leading-6 text-slate-600"><?php echo esc_html((string) ($item['text'] ?? '')); ?></span>
                                 </span>
                             </li>
                         <?php endforeach; ?>
-                    </ol>
+                    </ul>
                 </section>
-                <?php if ($has_custom_support) : ?>
-                    <section class="rounded border border-line bg-mist p-5 md:p-6" aria-labelledby="contact-support-title">
-                        <h2 id="contact-support-title" class="text-lg font-black leading-7 text-navy"><?php echo esc_html($t('supportTitle')); ?></h2>
-                        <p class="mt-3 text-sm font-normal leading-6 text-slate-600"><?php echo esc_html($t('supportDescription')); ?></p>
-                        <ul class="mt-4 space-y-4">
-                            <?php foreach ($support_items as $item) : ?>
-                                <li class="flex gap-3">
-                                    <?php echo boblift_icon((string) ($item['iconName'] ?? 'shield-check'), 'mt-0.5 h-4 w-4 shrink-0 text-slate-400'); ?>
-                                    <span class="min-w-0">
-                                        <span class="block text-sm font-black leading-6 text-navy"><?php echo esc_html((string) ($item['title'] ?? '')); ?></span>
-                                        <span class="block text-sm font-normal leading-6 text-slate-600"><?php echo esc_html((string) ($item['text'] ?? '')); ?></span>
-                                    </span>
-                                </li>
-                            <?php endforeach; ?>
-                        </ul>
-                    </section>
-                <?php endif; ?>
+            <?php endif; ?>
         </div>
+        <?php endif; ?>
     </div>
 </section>
 
 <section id="map" class="page-shell pb-10 md:pb-14">
     <article class="overflow-hidden rounded border border-line bg-white shadow-card">
-        <div class="grid lg:grid-cols-2">
+        <div class="grid grid-cols-1 lg:grid-cols-2">
             <div class="relative aspect-[16/9] min-h-[220px] bg-mist lg:aspect-auto lg:min-h-[380px]">
                 <img class="absolute inset-0 h-full w-full object-cover" src="<?php echo esc_url(boblift_image_src('images/factory/aerial-site.webp')); ?>" alt="<?php echo esc_attr($t('locationImageAlt')); ?>" loading="lazy" decoding="async">
             </div>
@@ -182,18 +244,19 @@ $visit_links = is_array($ui['visitLinks'] ?? null) ? $ui['visitLinks'] : [];
                 <p class="<?php echo esc_attr($eyebrow); ?>"><?php echo esc_html($t('locationLabel', 'Factory location')); ?></p>
                 <h2 class="mt-1 text-2xl font-black leading-8 text-navy"><?php echo esc_html($location_heading); ?></h2>
                 <p class="mt-3 text-sm font-normal leading-7 text-slate-600"><?php echo esc_html($location_description); ?></p>
-                <?php // Registered address, main factory and office; the map buttons below search for the registered address. ?>
+                <?php // Registered address, main factory and office; the map buttons below search for the main factory. ?>
                 <ul class="mt-5 grid gap-4">
                     <?php foreach (boblift_company_addresses() as $row) : ?>
-                        <li class="flex items-start gap-3 text-base font-black leading-6 text-ink">
+                        <li class="flex items-start gap-3 text-[15px] font-bold leading-6 text-ink md:text-base md:font-black">
                             <?php echo boblift_icon('map-pin', 'mt-0.5 h-5 w-5 shrink-0 text-blue-700'); ?>
                             <span class="min-w-0"><span class="block <?php echo esc_attr($eyebrow); ?>"><?php echo esc_html($row['label']); ?></span><?php echo esc_html($row['address']); ?></span>
                         </li>
                     <?php endforeach; ?>
                 </ul>
-                <div class="mt-5 grid gap-2 sm:grid-cols-3">
+                <p class="mt-5 <?php echo esc_attr($eyebrow); ?>"><?php echo esc_html($t('mapHint', 'Directions to the main factory')); ?></p>
+                <div class="mt-2 grid grid-cols-3 gap-2">
                     <?php foreach ($map_links as $key => $href) : ?>
-                        <a class="inline-flex h-11 items-center justify-center gap-2 rounded-sm bg-navy px-3 text-sm font-black text-white transition hover:bg-blue-700" href="<?php echo esc_url($href); ?>" target="_blank" rel="noreferrer noopener"><?php echo esc_html((string) ($map_labels[$key] ?? ucfirst($key))); ?> <?php echo boblift_icon('arrow-up-right', 'h-4 w-4'); ?></a>
+                        <a class="inline-flex h-11 min-w-0 items-center justify-center gap-1 rounded-sm bg-navy px-2 text-[13px] font-black text-white transition hover:bg-blue-700 sm:gap-2 sm:px-3 sm:text-sm" href="<?php echo esc_url($href); ?>" target="_blank" rel="noreferrer noopener"><span class="truncate"><?php echo esc_html((string) ($map_labels[$key] ?? ucfirst($key))); ?></span> <?php echo boblift_icon('arrow-up-right', 'hidden h-4 w-4 shrink-0 sm:block'); ?></a>
                     <?php endforeach; ?>
                 </div>
                 <?php if ($visit_links !== []) : ?>
