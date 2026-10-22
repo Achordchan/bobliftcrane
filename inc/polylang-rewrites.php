@@ -69,3 +69,79 @@ function boblift_strip_language_prefix(string $path): string
     }
     return $path;
 }
+
+/**
+ * Keeps WordPress's 404 guess in the language of the request.
+ *
+ * For an address that matches nothing, such as /contact/ (the contact page is a child of About, so its page path is
+ * about/contact), WordPress redirects to the first published post whose slug matches, whatever its language: /contact/
+ * went to /ja/contact.html and /why-choose-us/ to /ru/why-choose-us.html. This makes the same guess (exact slug first,
+ * then slug prefix, as WordPress does), then sends the visitor to the translation in the language the address asked for
+ * (its /xx/ directory, else the default language), falling back to the matched post itself when it is not translated.
+ */
+function boblift_guess_404_permalink_in_request_language(mixed $pre): mixed
+{
+    if ($pre !== null || !function_exists('pll_get_post') || !function_exists('pll_get_post_language') || !function_exists('pll_default_language')) {
+        return $pre;
+    }
+    $name = (string) get_query_var('name');
+    if ($name === '') {
+        $name = wp_basename((string) get_query_var('pagename'));
+    }
+    $name = sanitize_title_for_query($name);
+    if ($name === '') {
+        return $pre;
+    }
+
+    global $wpdb;
+    $types = array_values(array_filter(array_diff(get_post_types(['public' => true]), ['attachment']), 'is_post_type_viewable'));
+    if (get_query_var('post_type')) {
+        $types = array_values(array_intersect($types, (array) get_query_var('post_type')));
+    }
+    if (!$types) {
+        return $pre;
+    }
+    // Same constraints as core: the post types asked for, and the year, month and day of a dated address.
+    $where = $wpdb->prepare('post_type IN (' . implode(',', array_fill(0, count($types), '%s')) . ") AND post_status = 'publish'", ...$types);
+    foreach (['year' => 'YEAR', 'monthnum' => 'MONTH', 'day' => 'DAYOFMONTH'] as $var => $sql) {
+        if (get_query_var($var)) {
+            $where .= $wpdb->prepare(" AND $sql(post_date) = %d", (int) get_query_var($var));
+        }
+    }
+    $ids = $wpdb->get_col($wpdb->prepare("SELECT ID FROM {$wpdb->posts} WHERE post_name = %s AND $where ORDER BY ID", $name));
+    if (!$ids && !apply_filters('strict_redirect_guess_404_permalink', false)) {
+        $ids = $wpdb->get_col($wpdb->prepare("SELECT ID FROM {$wpdb->posts} WHERE post_name LIKE %s AND $where ORDER BY ID", $wpdb->esc_like($name) . '%'));
+    }
+    if (!$ids) {
+        return $pre;
+    }
+
+    $language = boblift_current_language_slug() ?: (string) pll_default_language();
+    $default = (string) pll_default_language();
+    $chosen = 0;
+    foreach ($ids as $id) {
+        if ((string) pll_get_post_language((int) $id, 'slug') === $language) {
+            $chosen = (int) $id;
+            break;
+        }
+    }
+    if (!$chosen) {
+        $first = (int) $ids[0];
+        foreach ([(int) pll_get_post($first, $language), (int) pll_get_post($first, $default), $first] as $candidate) {
+            if ($candidate > 0 && get_post_status($candidate) === 'publish') {
+                $chosen = $candidate;
+                break;
+            }
+        }
+    }
+    // Keep a comments feed or a later page of a multipage post, as core does.
+    if (get_query_var('feed')) {
+        $url = get_post_comments_feed_link($chosen, (string) get_query_var('feed'));
+    } elseif ((int) get_query_var('page') > 1) {
+        $url = trailingslashit((string) get_permalink($chosen)) . user_trailingslashit((string) (int) get_query_var('page'), 'single_paged');
+    } else {
+        $url = get_permalink($chosen);
+    }
+    return is_string($url) && $url !== '' ? $url : $pre;
+}
+add_filter('pre_redirect_guess_404_permalink', 'boblift_guess_404_permalink_in_request_language');
