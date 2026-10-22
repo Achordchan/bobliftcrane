@@ -116,8 +116,10 @@ function boblift_render_inquiry_form(string $product = '', array $args = []): vo
     ?>
     <form id="<?php echo esc_attr((string) ($args['id'] ?? 'inquiry')); ?>" class="boblift-quote-form scroll-mt-6 <?php echo esc_attr($class); ?>" method="post" action="<?php echo boblift_inquiry_action_url(); ?>" data-quote-form data-country-detect-url="<?php echo esc_url(boblift_country_detect_url()); ?>" data-contact-email="<?php echo esc_attr($contact['email']); ?>" data-whatsapp-number="<?php echo esc_attr($contact['whatsappNumber']); ?>" data-inquiry-subject="<?php echo esc_attr($contact['inquirySubject']); ?>" data-default-inquiry-text="<?php echo esc_attr($contact['defaultInquiryText']); ?>">
         <input type="hidden" name="action" value="boblift_submit_inquiry">
+        <?php echo boblift_form_hidden_language_field(); ?>
         <?php wp_nonce_field('boblift_submit_inquiry', 'boblift_inquiry_nonce'); ?>
         <input type="hidden" name="source_entry" value="<?php echo esc_attr((string) ($args['source'] ?? '页面表单')); ?>">
+        <label class="sr-only" aria-hidden="true">Website <input class="hidden" type="text" name="boblift_inquiry_website" tabindex="-1" autocomplete="off"></label>
 
         <div class="flex items-start justify-between gap-4">
             <div>
@@ -328,6 +330,7 @@ function boblift_render_inquiry_modal(): void
                     <?php echo boblift_form_hidden_language_field(); ?>
                     <?php wp_nonce_field('boblift_submit_inquiry', 'boblift_inquiry_nonce'); ?>
                     <input type="hidden" name="source_entry" value="" data-inquiry-source-field>
+            <label class="sr-only" aria-hidden="true">Website <input class="hidden" type="text" name="boblift_inquiry_website" tabindex="-1" autocomplete="off"></label>
                     <input type="hidden" name="product" data-quote-field="product" value="">
                     <input type="hidden" name="product_slug" data-product-slug-field value="">
                     <input type="hidden" name="quantity" data-quote-field="quantity" value="">
@@ -665,6 +668,11 @@ function boblift_handle_inquiry(): void
         wp_die(esc_html($ui['messages']['invalidRequest'] ?? __('Invalid inquiry request.', 'boblift')));
     }
 
+    // A field only a script fills in: anything in it means a bot filled every box. It is told the inquiry went through.
+    if (trim((string) wp_unslash($_POST['boblift_inquiry_website'] ?? '')) !== '') {
+        boblift_inquiry_succeed(0);
+    }
+
     $fields = [];
     $field_keys = array_merge(['name', 'email', 'phone', 'company', 'website', 'country', 'product', 'product_slug', 'quantity', 'message'], boblift_inquiry_extra_field_names());
     foreach ($field_keys as $key) {
@@ -677,6 +685,10 @@ function boblift_handle_inquiry(): void
     // Which button opened the form, and the page it was on (the browser's referer for this POST).
     $fields['source_entry'] = mb_substr(sanitize_text_field(wp_unslash((string) ($_POST['source_entry'] ?? ''))), 0, 120);
     $fields['source_page'] = esc_url_raw((string) wp_get_referer());
+    // Which ad brought the visitor, when they agreed to advertising cookies (inc/inquiry-mail.php).
+    foreach (boblift_inquiry_attribution_from_post() as $name => $value) {
+        $fields['attr_' . $name] = $value;
+    }
 
     if ($fields['email'] === '' || $fields['message'] === '') {
         $ui = function_exists('boblift_site_ui') ? boblift_site_ui('quoteForm') : [];
@@ -685,6 +697,11 @@ function boblift_handle_inquiry(): void
     if (!boblift_verify_turnstile()) {
         $ui = $ui ?? (function_exists('boblift_site_ui') ? boblift_site_ui('quoteForm') : []);
         boblift_inquiry_fail((string) ($ui['messages']['verificationRequired'] ?? 'Please complete the verification and try again.'), 'verification');
+    }
+    // The slot is taken before anything is saved, so parallel submissions cannot all slip under the limit.
+    if (!boblift_inquiry_reserve_slot()) {
+        $ui = $ui ?? (function_exists('boblift_site_ui') ? boblift_site_ui('quoteForm') : []);
+        boblift_inquiry_fail((string) ($ui['messages']['tooMany'] ?? 'Too many inquiries were sent from your network. Please wait a few minutes and try again, or email us directly.'), 'error');
     }
 
     $customer_title = $fields['name'] !== '' ? $fields['name'] : ($fields['company'] !== '' ? $fields['company'] : $fields['email']);
@@ -703,24 +720,46 @@ function boblift_handle_inquiry(): void
         update_post_meta((int) $post_id, '_' . $key, $value);
     }
 
-    $admin_email = get_option('admin_email');
-    $quote_ui = boblift_site_ui('quoteForm');
-    $labels = $quote_ui['inquiryLineLabels'] ?? [];
-    $messages = $quote_ui['messages'] ?? [];
-    $lines = [boblift_contact_settings()['defaultInquiryText']];
-    foreach ($fields as $key => $value) {
-        if ($key === 'product_slug' || ($key === 'legacy_models' && $value === '')) {
-            continue;
-        }
-        $lines[] = ($labels[$key] ?? (['source_entry' => 'Entry point', 'source_page' => 'Page', 'legacy_models' => '老型号 Previous model (built to order)'][$key] ?? ucfirst($key))) . ': ' . ($value !== '' ? $value : '-');
-    }
-    wp_mail($admin_email, (string) ($messages['mailSubject'] ?? 'New BOB-LIFT inquiry'), implode("\n", $lines), ['Reply-To: ' . $fields['email']]);
+    boblift_send_inquiry_mail($fields, (int) $post_id);
+    // For other notifiers (DingTalk and the like): the saved inquiry and its fields.
+    do_action('boblift_inquiry_submitted', (int) $post_id, $fields);
 
+    boblift_inquiry_succeed((int) $post_id, $fields);
+}
+
+/** How many inquiries one IP address may send in one fixed 10-minute window before the form asks it to wait. */
+const BOBLIFT_INQUIRY_RATE_LIMIT = 5;
+const BOBLIFT_INQUIRY_RATE_WINDOW = 600;
+
+/**
+ * Take one of this IP's inquiry slots in the current window; false when they are all taken. The count lives in its own
+ * options row per IP and window, raised by a single conditional UPDATE, so two requests can never both take the last
+ * slot (transients are a read then a write). Rows of finished windows are removed as new ones are made.
+ */
+function boblift_inquiry_reserve_slot(): bool
+{
+    global $wpdb;
+    $window = intdiv(time(), BOBLIFT_INQUIRY_RATE_WINDOW);
+    $name = '_boblift_inquiry_rate_' . md5(boblift_inquiry_client_ip()) . '_' . $window;
+    $wpdb->query($wpdb->prepare("INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, '0', 'no')", $name));
+    $taken = (int) $wpdb->query($wpdb->prepare("UPDATE {$wpdb->options} SET option_value = option_value + 1 WHERE option_name = %s AND option_value + 0 < %d", $name, BOBLIFT_INQUIRY_RATE_LIMIT));
+    $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name LIKE %s AND SUBSTRING_INDEX(option_name, '_', -1) + 0 < %d", $wpdb->esc_like('_boblift_inquiry_rate_') . '%', $window - 1));
+    return $taken === 1;
+}
+
+/**
+ * Answer a sent inquiry: JSON for the modal, else a redirect to the thank-you page. The thank-you address carries the
+ * saved inquiry's number (?sent=), which the page reports once as its conversion, using the number to tell inquiries
+ * apart (assets/js/theme.js). No cookie is set here: whether anything is reported is up to the visitor's consent.
+ */
+function boblift_inquiry_succeed(int $post_id, array $fields = []): void
+{
+    $redirect = $post_id > 0 ? add_query_arg('sent', $post_id, boblift_inquiry_success_url()) : boblift_inquiry_success_url();
     if (boblift_inquiry_wants_json()) {
-        wp_send_json_success(['message' => (string) ($quote_ui['successInlineText'] ?? 'Inquiry sent. Our team will contact you soon.'), 'id' => (int) $post_id, 'redirect' => boblift_inquiry_success_url()]);
+        $quote_ui = boblift_site_ui('quoteForm');
+        wp_send_json_success(['message' => (string) ($quote_ui['successInlineText'] ?? 'Inquiry sent. Our team will contact you soon.'), 'id' => $post_id, 'redirect' => $redirect]);
     }
-
-    wp_safe_redirect(boblift_inquiry_success_url());
+    wp_safe_redirect($redirect);
     exit;
 }
 

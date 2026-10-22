@@ -267,6 +267,12 @@ function boblift_form_security_defaults(): array
         'turnstile_local_mode' => '1',
         'turnstile_site_key' => '1x00000000000000000000AA',
         'turnstile_secret_key' => '1x0000000000000000000000000000000AA',
+        // Site-wide tracking (inc/consent.php) is kept here too: like Turnstile it is one setting for every language.
+        // Off until every language's saved privacy policy describes these cookies; then enter the old site's GA4 property
+        // and Ads account (G-DDDFW7JT74, AW-16505129123) and its lead-form conversion (AW-16505129123/wV_TCKKezaIZEKORob49)
+        // under 表单安全 → 统计与广告.
+        'google_tag' => '',
+        'google_conversion' => '',
     ];
 }
 
@@ -347,7 +353,7 @@ function boblift_privacy_policy_page_defaults(): array
         'title' => 'Privacy Policy',
         'description' => 'This page explains how BOB-LIFT handles contact, inquiry and website usage information submitted through this website.',
         'updated_label' => 'Last updated:',
-        'updated' => '2026-09-30',
+        'updated' => '2026-10-22',
         'side_title' => 'Scope',
         'side_text' => 'This policy applies to BOB-LIFT website forms, catalog requests, quote requests and direct business communication initiated through the site.',
         'sections' => [
@@ -355,8 +361,8 @@ function boblift_privacy_policy_page_defaults(): array
             ['title' => 'How we use information', 'text' => 'We use submitted information to respond to inquiries, prepare quotations, send requested catalog materials, provide product selection support, arrange after-sales communication and improve website service quality.'],
             ['title' => 'Sharing and disclosure', 'text' => 'BOB-LIFT does not sell personal information. We only share necessary information with internal sales, engineering, logistics or service teams when required to respond to your request. Information may also be processed by trusted website, email, analytics or security service providers.'],
             ['title' => 'Data retention', 'text' => 'Business inquiry records are kept only as long as needed for communication, quotation, project follow-up, legal compliance and legitimate business record keeping.'],
-            ['title' => 'Cookies and browser storage', 'text' => 'This website does not use advertising or cross-site tracking cookies. The spam check on our forms (Cloudflare Turnstile) may set cookies it needs to tell people from bots. Your quote list and display preferences, such as grid or list view on the news page, are kept in your own browser\'s local storage and are only sent to us when you submit a form. You can clear them at any time in your browser settings.'],
-            ['title' => 'Third-party services', 'text' => 'Some features load content from other companies: the map on the contact page comes from Google Maps, videos are played through YouTube in its privacy-enhanced mode, and form protection is provided by Cloudflare Turnstile. When you use these features, those companies may receive your IP address and browser information under their own privacy policies. To pre-fill the country field in our forms, the website estimates your country from your IP address; the IP address itself is not stored with your inquiry.'],
+            ['title' => 'Cookies and browser storage', 'text' => 'This website uses Google Analytics to count visits and Google Ads cookies to measure our adverts. Visitors in the EEA, the UK and Switzerland are asked first, and these cookies stay off unless they agree; everywhere else they are on by default and can be turned off at any time with Cookie settings at the foot of each page. One cookie of our own remembers that choice for 12 months. When advertising cookies are allowed and you arrive from one of our adverts, the ad click ID and campaign tags are kept in your browser for 90 days and sent with any inquiry you submit, so we know which advert brought it. The spam check on our forms (Cloudflare Turnstile) may set cookies it needs to tell people from bots. Your quote list and display preferences, such as grid or list view on the news page, are kept in your own browser\'s local storage and are only sent to us when you submit a form. You can clear them at any time in your browser settings.'],
+            ['title' => 'Third-party services', 'text' => 'Some features load content from other companies: visit statistics and advert measurement come from Google Analytics and Google Ads, the map on the contact page comes from Google Maps, videos are played through YouTube in its privacy-enhanced mode, and form protection is provided by Cloudflare Turnstile. When you use these features, those companies may receive your IP address and browser information under their own privacy policies. To pre-fill the country field in our forms, the website estimates your country from your IP address; the IP address itself is not stored with your inquiry.'],
             ['title' => 'International transfers', 'text' => 'BOB-LIFT is based in Xuzhou, China. Information you submit is handled by our team in China and may be processed by the service providers named above in other countries. We only transfer what is needed to answer your request.'],
             ['title' => 'Your choices', 'text' => 'You may contact BOB-LIFT to request access, correction or deletion of your inquiry information, subject to applicable business, legal and technical limitations.' . "\n\n" . 'If you are in the European Union, the United Kingdom or another region with data protection laws, you may also object to or ask us to limit how we use your information. We aim to reply to every request within 30 days.'],
             ['title' => 'Changes to this policy', 'text' => 'We may update this policy when our website or services change. The date at the top of this page shows when it was last updated.'],

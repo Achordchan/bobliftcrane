@@ -1087,6 +1087,11 @@ function boblift_inquiry_meta_box(WP_Post $post): void
         'source_entry' => '来源入口',
         'source_page' => '来源页面',
     ];
+    if (defined('BOBLIFT_INQUIRY_ATTRIBUTION_LABELS')) {
+        foreach (BOBLIFT_INQUIRY_ATTRIBUTION_LABELS as $name => $label) {
+            $labels['attr_' . $name] = '广告来源 · ' . $label;
+        }
+    }
     $copy_lines = [];
     foreach ($labels as $key => $label) {
         $value = (string) get_post_meta($post->ID, '_' . $key, true);
@@ -1098,7 +1103,12 @@ function boblift_inquiry_meta_box(WP_Post $post): void
     echo '<button type="button" class="button button-primary boblift-inquiry-copy" onclick="navigator.clipboard && navigator.clipboard.writeText(this.dataset.copy);this.textContent=\'已复制客户信息\';" data-copy="' . esc_attr(implode("\n", $copy_lines)) . '">复制客户信息</button>';
     echo '<table class="widefat striped boblift-inquiry-table"><tbody>';
     foreach ($labels as $key => $label) {
-        echo '<tr><th>' . esc_html($label) . '</th><td>' . nl2br(esc_html((string) get_post_meta($post->ID, '_' . $key, true))) . '</td></tr>';
+        $value = (string) get_post_meta($post->ID, '_' . $key, true);
+        // Ad attribution exists only for visitors who came from an ad and agreed to advertising cookies.
+        if ($value === '' && str_starts_with($key, 'attr_')) {
+            continue;
+        }
+        echo '<tr><th>' . esc_html($label) . '</th><td>' . nl2br(esc_html($value)) . '</td></tr>';
     }
     echo '</tbody></table></div>';
 }

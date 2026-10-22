@@ -8,7 +8,7 @@ if (!defined('ABSPATH')) {
 get_header();
 $ui = boblift_site_ui('successPage');
 ?>
-<section class="page-shell py-14 md:py-24">
+<section class="page-shell py-14 md:py-24" data-inquiry-success>
     <div class="mx-auto max-w-4xl rounded border border-line bg-white p-8 text-center shadow-card md:p-12">
         <div class="mx-auto grid h-16 w-16 place-items-center rounded-sm bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
             <?php echo boblift_icon('check-circle', 'h-8 w-8'); ?>
