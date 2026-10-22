@@ -867,10 +867,13 @@ function boblift_cache_set(string $name, mixed $data): void
         return;
     }
     $serialized = serialize($data);
-    // Interactive blocks (Interactivity API) enqueue script modules and set state outside WP_Styles/WP_Scripts, which a
-    // cache hit cannot replay, so a build that rendered one is kept for this request only.
-    if (str_contains($serialized, 'data-wp-interactive')) {
-        return;
+    // Some blocks leave side effects outside WP_Styles/WP_Scripts that a cache hit cannot replay: interactive blocks
+    // (Interactivity API script modules and state) and generated block-support CSS (layout containers, element colours,
+    // duotone filters kept by the Style Engine). A build that rendered any of them is kept for this request only.
+    foreach (['data-wp-interactive', 'wp-container-', 'wp-elements-', 'wp-duotone-'] as $marker) {
+        if (str_contains($serialized, $marker)) {
+            return;
+        }
     }
     $parts = str_split(base64_encode(gzcompress($serialized, 6)), 250000);
     // Trailing chunks are written under this build's own generation and the head that names it goes last, so concurrent

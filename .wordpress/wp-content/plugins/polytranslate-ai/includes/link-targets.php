@@ -278,6 +278,13 @@ foreach (['save_post', 'deleted_post', 'trashed_post', 'untrashed_post'] as $pta
 foreach (['update_option_permalink_structure', 'update_option_rewrite_rules', 'update_option_polylang', 'update_option_page_on_front', 'update_option_page_for_posts'] as $ptai_option_hook) {
   add_action($ptai_option_hook, 'ptai_bump_url_ids_version');
 }
+// Assigning a post's language or translation group (pll_set_post_language, pll_save_post_translations) only changes its
+// term relationships, so those changes retire the cached lookups too.
+add_action('set_object_terms', static function ($object_id, $terms, $tt_ids, $taxonomy) {
+  if (in_array($taxonomy, ['language', 'post_translations'], true)) {
+    ptai_bump_url_ids_version();
+  }
+}, 10, 4);
 foreach (['created_term', 'edited_term', 'delete_term'] as $ptai_term_hook) {
   add_action($ptai_term_hook, static function ($term_id, $tt_id, $taxonomy) {
     if ($taxonomy === 'language') {
