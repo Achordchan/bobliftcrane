@@ -320,7 +320,18 @@ function boblift_spec_rows_aligned(array $local, array $english): bool
     if ($local === [] || count($local) !== count($english)) {
         return false;
     }
-    $first_number = static fn($row): string => is_array($row) && preg_match('/\d+(?:[.,]\d+)?/', (string) ($row['value'] ?? ''), $m) ? str_replace(',', '.', $m[0]) : '';
+    $first_number = static function ($row): ?float {
+        if (!is_array($row) || !preg_match('/\d[\d.,\x{00A0}\x{202F} ]*\d|\d/u', (string) ($row['value'] ?? ''), $m)) {
+            return null;
+        }
+        // "6,300", "6 300", "6.300" (thousands) and "16,0" / "16.0" (decimals) all read as the same figure: the last
+        // separator is a decimal point only when one or two digits follow it.
+        $digits = (string) preg_replace('/[\x{00A0}\x{202F} ]/u', '', $m[0]);
+        if (preg_match('/^(.*)[.,](\d{1,2})$/', $digits, $parts)) {
+            return (float) (str_replace([',', '.'], '', $parts[1]) . '.' . $parts[2]);
+        }
+        return (float) str_replace([',', '.'], '', $digits);
+    };
     foreach (array_values($english) as $index => $row) {
         if ($first_number($row) !== $first_number(array_values($local)[$index] ?? null)) {
             return false;
