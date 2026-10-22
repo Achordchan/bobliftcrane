@@ -18,6 +18,10 @@ const BOBLIFT_CONSENT_DENIED_REGIONS = ['AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK'
  */
 function boblift_google_tag_ids(): array
 {
+    // The local copy never reports to the real GA4 property and Ads account.
+    if (in_array((string) wp_parse_url(home_url(), PHP_URL_HOST), ['localhost', '127.0.0.1'], true) && !apply_filters('boblift_google_tag_on_localhost', false)) {
+        return [];
+    }
     $saved = function_exists('boblift_form_security_options') ? (string) (boblift_form_security_options()['google_tag'] ?? '') : '';
     $ids = preg_split('~[\s,;]+~', strtoupper($saved), -1, PREG_SPLIT_NO_EMPTY) ?: [];
     return array_values(array_unique(array_filter($ids, static fn(string $id): bool => (bool) preg_match('~^(?:G|AW)-[A-Z0-9]{4,20}$~', $id))));
