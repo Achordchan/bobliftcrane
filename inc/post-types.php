@@ -1538,6 +1538,21 @@ function boblift_redirect_with_query(string $target, array $remove = []): void
     exit;
 }
 
+/** The published translation of a post in the language the requested address asks for, else the post itself. */
+function boblift_post_in_request_language(int $post_id): int
+{
+    if ($post_id <= 0 || !function_exists('pll_get_post') || !function_exists('pll_get_post_language') || !function_exists('boblift_request_url_language')) {
+        return $post_id;
+    }
+    $language = boblift_request_url_language();
+    $post_language = (string) pll_get_post_language($post_id, 'slug');
+    if ($language === '' || $post_language === '' || $post_language === $language) {
+        return $post_id;
+    }
+    $translation = (int) pll_get_post($post_id, $language);
+    return $translation > 0 && get_post_status($translation) === 'publish' ? $translation : $post_id;
+}
+
 function boblift_legacy_html_redirects(): void
 {
     if (is_admin() || wp_doing_ajax()) {
@@ -1587,9 +1602,18 @@ function boblift_legacy_html_redirects(): void
     }
 
     if (is_singular('product') || (is_single() && get_post_type() === 'post') || (is_page() && !is_front_page())) {
-        $canonical_path = boblift_normalize_public_path(boblift_strip_language_prefix((string) parse_url(get_permalink(), PHP_URL_PATH)));
+        // A bare slug can match a translation (translated About children have no parent, so /contact/ found the Japanese
+        // page): send the visitor to the copy in the language the address asks for, not to the language of the match.
+        $target_id = boblift_post_in_request_language((int) get_queried_object_id());
+        $target = (string) get_permalink($target_id);
+        $canonical_path = boblift_normalize_public_path(boblift_strip_language_prefix((string) parse_url($target, PHP_URL_PATH)));
+        $routing = ['p', 'page_id', 'name', 'pagename', 'post_type', 'lang'];
+        if ($target_id !== (int) get_queried_object_id() && ($path !== $canonical_path || array_intersect_key($_GET, array_flip($routing)))) {
+            // Routing parameters (?page_id=569) would find the other language's copy again on the corrected address.
+            boblift_redirect_with_query($target, $routing);
+        }
         if ($canonical_path !== '' && $path !== $canonical_path) {
-            boblift_redirect_with_query(get_permalink());
+            boblift_redirect_with_query($target);
         }
     }
 }
