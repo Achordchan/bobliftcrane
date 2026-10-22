@@ -1040,20 +1040,37 @@ function boblift_bump_products_cache_for_post(int $post_id): void
     }
 }
 
-add_action('save_post', static fn($post_id) => boblift_bump_products_cache_for_post((int) $post_id));
-add_action('deleted_post', static fn($post_id) => boblift_bump_products_cache_for_post((int) $post_id));
-add_action('trashed_post', static fn($post_id) => boblift_bump_products_cache_for_post((int) $post_id));
-add_action('untrashed_post', static fn($post_id) => boblift_bump_products_cache_for_post((int) $post_id));
+/**
+ * Rendered product content can embed dynamic blocks (latest posts, queries, page lists, synced patterns) that read other
+ * content, so saving, deleting or trashing content of any kind retires the cache. Post types written by WordPress itself
+ * or by visitors (revisions, oEmbed caches, changesets, privacy requests, form entries) are left out, so browsing and
+ * enquiries never invalidate it.
+ */
+function boblift_bump_products_cache_for_content(int $post_id): void
+{
+    $type = (string) get_post_type($post_id);
+    if ($type === '' || in_array($type, ['revision', 'oembed_cache', 'customize_changeset', 'user_request'], true) || str_starts_with($type, 'flamingo_')) {
+        return;
+    }
+    boblift_bump_products_cache();
+}
+
+add_action('save_post', static fn($post_id) => boblift_bump_products_cache_for_content((int) $post_id));
+add_action('deleted_post', static fn($post_id) => boblift_bump_products_cache_for_content((int) $post_id));
+add_action('trashed_post', static fn($post_id) => boblift_bump_products_cache_for_content((int) $post_id));
+add_action('untrashed_post', static fn($post_id) => boblift_bump_products_cache_for_content((int) $post_id));
 add_action('add_attachment', 'boblift_bump_products_cache');
 add_action('edit_attachment', 'boblift_bump_products_cache');
 add_action('delete_attachment', 'boblift_bump_products_cache');
 add_action('transition_post_status', static function ($new_status, $old_status, $post): void {
-    if ($post instanceof WP_Post && $post->post_type === 'product' && $new_status !== $old_status) {
-        boblift_bump_products_cache();
+    if ($post instanceof WP_Post && $new_status !== $old_status) {
+        boblift_bump_products_cache_for_content((int) $post->ID);
     }
 }, 10, 3);
 // Categories, languages and Polylang translation groups are all terms on the product.
 add_action('set_object_terms', static fn($object_id) => boblift_bump_products_cache_for_post((int) $object_id));
+// wp_remove_object_terms() fires only this one.
+add_action('deleted_term_relationships', static fn($object_id) => boblift_bump_products_cache_for_post((int) $object_id));
 foreach (['added_post_meta', 'updated_post_meta', 'deleted_post_meta'] as $boblift_meta_hook) {
     add_action($boblift_meta_hook, static function ($meta_ids, $object_id): void {
         boblift_bump_products_cache_for_post((int) $object_id);
