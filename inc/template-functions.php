@@ -950,6 +950,22 @@ function boblift_cache_assets_since(array $mark): array
                 $added[$handle] = $parts;
             }
         }
+        // Every handle the entry enqueues, and their dependencies, carry their registration, so a hit on a request where
+        // nothing else registered them still prints them. A handle registered before the build keeps its pre-build extras
+        // here; the build's own additions are in $added.
+        $pending = $recorded[$kind];
+        foreach ($registered as $item) {
+            array_push($pending, ...array_values((array) $item['deps']));
+        }
+        while ($pending) {
+            $handle = array_shift($pending);
+            if (isset($registered[$handle]) || !isset($dependencies->registered[$handle])) {
+                continue;
+            }
+            $item = $dependencies->registered[$handle];
+            $registered[$handle] = ['src' => $item->src, 'deps' => $item->deps, 'ver' => $item->ver, 'args' => $item->args, 'extra' => (array) ($before[$handle] ?? $item->extra)];
+            array_push($pending, ...array_values((array) $item->deps));
+        }
         $build_args = $dependencies->args;
         $dependencies->dequeue($recorded[$kind]);
         $dependencies->enqueue($mark[$kind]['queue']);
@@ -1081,9 +1097,10 @@ add_action('transition_post_status', static function ($new_status, $old_status, 
     }
 }, 10, 3);
 // Categories, languages and Polylang translation groups are all terms on the product.
-add_action('set_object_terms', static fn($object_id) => boblift_bump_products_cache_for_post((int) $object_id));
-// wp_remove_object_terms() fires only this one.
-add_action('deleted_term_relationships', static fn($object_id) => boblift_bump_products_cache_for_post((int) $object_id));
+// Term assignments of any content (a category-filtered query block lists other posts); wp_remove_object_terms() fires
+// only deleted_term_relationships.
+add_action('set_object_terms', static fn($object_id) => boblift_bump_products_cache_for_content((int) $object_id));
+add_action('deleted_term_relationships', static fn($object_id) => boblift_bump_products_cache_for_content((int) $object_id));
 foreach (['added_post_meta', 'updated_post_meta', 'deleted_post_meta'] as $boblift_meta_hook) {
     add_action($boblift_meta_hook, static function ($meta_ids, $object_id): void {
         boblift_bump_products_cache_for_post((int) $object_id);
