@@ -1046,9 +1046,10 @@ function boblift_bump_products_cache_for_post(int $post_id): void
  * or by visitors (revisions, oEmbed caches, changesets, privacy requests, form entries) are left out, so browsing and
  * enquiries never invalidate it.
  */
-function boblift_bump_products_cache_for_content(int $post_id): void
+function boblift_bump_products_cache_for_content(int $post_id, mixed $post = null): void
 {
-    $type = (string) get_post_type($post_id);
+    // deleted_post fires after the row is gone, so its type comes from the WP_Post the hook passes.
+    $type = $post instanceof WP_Post ? $post->post_type : (string) get_post_type($post_id);
     if ($type === '' || in_array($type, ['revision', 'oembed_cache', 'customize_changeset', 'user_request'], true) || str_starts_with($type, 'flamingo_')) {
         return;
     }
@@ -1056,7 +1057,7 @@ function boblift_bump_products_cache_for_content(int $post_id): void
 }
 
 add_action('save_post', static fn($post_id) => boblift_bump_products_cache_for_content((int) $post_id));
-add_action('deleted_post', static fn($post_id) => boblift_bump_products_cache_for_content((int) $post_id));
+add_action('deleted_post', static fn($post_id, $post = null) => boblift_bump_products_cache_for_content((int) $post_id, $post), 10, 2);
 add_action('trashed_post', static fn($post_id) => boblift_bump_products_cache_for_content((int) $post_id));
 add_action('untrashed_post', static fn($post_id) => boblift_bump_products_cache_for_content((int) $post_id));
 add_action('add_attachment', 'boblift_bump_products_cache');
