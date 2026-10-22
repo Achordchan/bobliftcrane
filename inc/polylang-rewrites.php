@@ -215,3 +215,27 @@ add_filter('pll_check_canonical_url', static function ($redirect_url) {
     }
     return boblift_canonical_in_request_language(is_string($redirect_url) ? $redirect_url : false, (string) pll_get_requested_url());
 }, 20);
+
+/**
+ * Keeps WordPress's old-slug redirect in the language of the request.
+ *
+ * A bare /contact/ is a 404 in the address's language (the English contact page lives under About), so
+ * wp_old_slug_redirect() (template_redirect, before redirect_canonical and the 404 guess above) looks for a post that
+ * once had the slug "contact" and found a translation: /contact/ went to /ja/contact.html, /why-choose-us/ to
+ * /ru/why-choose-us.html. Swap the post it found for its published translation in the language the address asks for.
+ */
+function boblift_old_slug_redirect_in_request_language(mixed $post_id): int
+{
+    $post_id = (int) $post_id;
+    if ($post_id <= 0 || !function_exists('pll_get_post') || !function_exists('pll_get_post_language') || !function_exists('boblift_request_url_language')) {
+        return $post_id;
+    }
+    $language = boblift_request_url_language();
+    $post_language = (string) pll_get_post_language($post_id, 'slug');
+    if ($language === '' || $post_language === '' || $post_language === $language) {
+        return $post_id;
+    }
+    $translation = (int) pll_get_post($post_id, $language);
+    return $translation > 0 && get_post_status($translation) === 'publish' ? $translation : $post_id;
+}
+add_filter('old_slug_redirect_post_id', 'boblift_old_slug_redirect_in_request_language');
