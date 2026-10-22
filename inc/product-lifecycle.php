@@ -173,6 +173,12 @@ function boblift_nearest_capacity_models(array $models, float $capacity): array
  */
 function boblift_legacy_model_library(array $categories): array
 {
+    // Reads every category's models and their translations, so the library is kept with the product list.
+    return boblift_cached_data('legacy-library', [md5(serialize($categories))], static fn(): array => boblift_build_legacy_model_library($categories));
+}
+
+function boblift_build_legacy_model_library(array $categories): array
+{
     if (boblift_legacy_product_ids() === []) {
         return [];
     }

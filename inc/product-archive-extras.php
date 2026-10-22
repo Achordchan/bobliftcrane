@@ -169,7 +169,7 @@ function boblift_render_model_table(array $models, string $labelled_by, array $o
                     <tr class="group/row">
                         <th class="<?php echo esc_attr($label_cell); ?> border-b py-3.5" scope="row"><?php echo esc_html($label); ?></th>
                         <?php foreach ($models as $item) : ?>
-                            <td class="whitespace-nowrap border-b border-[#E5E7EB] px-4 py-3.5 font-semibold text-ink [font-variant-numeric:tabular-nums] <?php echo $ask ? '' : 'group-last/row:border-b-0'; ?> <?php echo $item['id'] === $this_id ? 'bg-[#F5F8FC]' : ''; ?>"><?php echo esc_html((string) ($item[$key] ?: '–')); ?></td>
+                            <td class="boblift-spec-cell <?php echo $ask ? '' : 'group-last/row:border-b-0'; ?> <?php echo $item['id'] === $this_id ? 'bg-[#F5F8FC]' : ''; ?>"><?php echo esc_html((string) ($item[$key] ?: '–')); ?></td>
                         <?php endforeach; ?>
                     </tr>
                 <?php endforeach; ?>
@@ -196,6 +196,14 @@ function boblift_render_model_table(array $models, string $labelled_by, array $o
 /** The range compared model by model, current models only. */
 function boblift_render_archive_compare(WP_Term $term): void
 {
+    // Every model's spec sheet is read (hundreds of queries per page), so the rendered block is kept with the product list.
+    echo boblift_cached_html('archive-compare', [$term->term_id, $term->slug, $term->name], static function () use ($term): void { // phpcs:ignore WordPress.Security.EscapeOutput -- escaped when rendered.
+        boblift_render_archive_compare_block($term);
+    });
+}
+
+function boblift_render_archive_compare_block(WP_Term $term): void
+{
     $t = static fn(string $text): string => boblift_localized_static_text($text);
     $models = boblift_product_range_models($term);
     if (count($models) < 2) {
@@ -221,6 +229,14 @@ function boblift_render_archive_compare(WP_Term $term): void
  * folded away under the listing. Each row points to its current equivalent and opens an inquiry.
  */
 function boblift_render_legacy_library(array $categories): void
+{
+    // Reads every category's models and their translations, so the rendered library is kept with the product list.
+    echo boblift_cached_html('legacy-library-html', [md5(serialize($categories))], static function () use ($categories): void { // phpcs:ignore WordPress.Security.EscapeOutput -- escaped when rendered.
+        boblift_render_legacy_library_block($categories);
+    });
+}
+
+function boblift_render_legacy_library_block(array $categories): void
 {
     $groups = boblift_legacy_model_library($categories);
     if ($groups === []) {

@@ -53,6 +53,8 @@ img { max-width: 100%; }
   /* On navy panels the label keeps the gold it had, so it stays legible. */
   .bg-navy .section-label, .bg-navy .boblift-kicker { @apply text-gold; }
   .card-hover { @apply transition duration-300 hover:-translate-y-2; }
+  /* A figure cell of the model comparison tables (boblift_render_model_table()): repeated thousands of times per archive. */
+  .boblift-spec-cell { @apply whitespace-nowrap border-b border-[#E5E7EB] px-4 py-3.5 font-semibold text-ink [font-variant-numeric:tabular-nums]; }
   .nav-icon-btn { @apply inline-flex h-14 items-center justify-center gap-2 rounded-sm border border-line bg-white px-5 text-sm font-black text-navy shadow-card transition hover:-translate-y-0.5 hover:border-blue-200; }
   .boblift-video-tab { @apply inline-flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm border border-line bg-white px-4 text-sm font-black text-ink transition hover:border-ink/30 aria-pressed:border-navy aria-pressed:bg-navy aria-pressed:text-white; }
   .floating-contact-link { @apply relative grid size-11 shrink-0 place-items-center rounded-sm border border-line bg-white text-[11px] font-black text-navy transition hover:border-blue-200 hover:text-blue-700 lg:size-[40px] min-[1780px]:size-12; }

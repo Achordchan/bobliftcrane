@@ -158,7 +158,7 @@ function ptai_rewrite_links_to_current_language($content)
 
     // ── Resolve post ID from URL (cached) ────────────────────────────────
     if (!array_key_exists($clean_url, $postid_cache)) {
-      $postid_cache[$clean_url] = url_to_postid($clean_url); // int or 0
+      $postid_cache[$clean_url] = ptai_cached_url_to_postid($clean_url, $current_lang); // int or 0
     }
     $post_id = $postid_cache[$clean_url];
 
@@ -214,6 +214,68 @@ function ptai_rewrite_links_to_current_language($content)
   $pattern = '/<a(?:\s[^>]*)?\shref=("|\')(.*?)\1[^>]*>/is';
 
   return preg_replace_callback($pattern, $callback, $content);
+}
+
+
+/**
+ * BOB-LIFT change (2026-10-22, not in upstream 5.0.1): url_to_postid() runs one WP_Query per link, about 170 on a
+ * product archive in Chinese or Japanese, so its results are also kept across requests, in a transient per language
+ * and host. A version option, bumped when any post, permalink setting or Polylang language changes, retires them.
+ */
+function ptai_cached_url_to_postid($url, $lang)
+{
+  static $state = null;
+  if ($state === null) {
+    $version = (string) get_option('ptai_url_ids_version', '0');
+    $name    = 'ptai_url_ids_' . md5($lang . '|' . home_url('/') . '|' . ($_SERVER['HTTP_HOST'] ?? ''));
+    $stored  = get_transient($name);
+    $state   = [
+      'name'    => $name,
+      'version' => $version,
+      'map'     => (is_array($stored) && ($stored['version'] ?? null) === $version && is_array($stored['map'] ?? null)) ? $stored['map'] : [],
+      'dirty'   => false,
+    ];
+  }
+
+  if (!array_key_exists($url, $state['map'])) {
+    $state['map'][$url] = (int) url_to_postid($url);
+    if (!$state['dirty']) {
+      $state['dirty'] = true;
+      // The page buffer is rewritten while WordPress shuts down, so the new entries are saved after that.
+      register_shutdown_function(static function () use (&$state) {
+        set_transient($state['name'], ['version' => $state['version'], 'map' => $state['map']], DAY_IN_SECONDS);
+      });
+    }
+  }
+  return $state['map'][$url];
+}
+
+function ptai_bump_url_ids_version()
+{
+  static $bumped = false;
+  if ($bumped) {
+    return;
+  }
+  $bumped = true;
+  update_option('ptai_url_ids_version', (string) ((int) get_option('ptai_url_ids_version', '0') + 1), true);
+}
+
+foreach (['save_post', 'deleted_post', 'trashed_post', 'untrashed_post'] as $ptai_post_hook) {
+  add_action($ptai_post_hook, static function ($post_id) {
+    if (!wp_is_post_revision($post_id)) {
+      ptai_bump_url_ids_version();
+    }
+  });
+}
+foreach (['update_option_permalink_structure', 'update_option_rewrite_rules', 'update_option_polylang', 'update_option_page_on_front', 'update_option_page_for_posts'] as $ptai_option_hook) {
+  add_action($ptai_option_hook, 'ptai_bump_url_ids_version');
+}
+foreach (['created_term', 'edited_term', 'delete_term'] as $ptai_term_hook) {
+  add_action($ptai_term_hook, static function ($term_id, $tt_id, $taxonomy) {
+    if ($taxonomy === 'language') {
+      ptai_bump_url_ids_version();
+    }
+  }, 10, 3);
 }
 
 
