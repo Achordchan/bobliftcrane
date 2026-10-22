@@ -475,9 +475,9 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
             </div>
         </div>
     </section>
-    <div class="sticky top-[var(--boblift-header-h)] z-30 border-y border-[#DDE7F2] bg-white shadow-card"><nav class="boblift-product-section-nav page-shell flex min-h-12 items-center overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] md:min-h-14 [&::-webkit-scrollbar]:hidden" aria-label="<?php echo esc_attr($ui['sectionNavLabel'] ?? 'Product detail sections'); ?>" data-product-section-nav><a class="boblift-cinema-nav-link grid h-12 min-w-12 shrink-0 place-items-center border-x border-[#DDE7F2] text-[#0B3F7D] md:h-14 md:min-w-14" href="#product-hero" data-product-section-link aria-label="<?php echo esc_attr($product['title'] ?? 'Product hero'); ?>"><?php echo boblift_icon('home', 'h-5 w-5'); ?></a><?php foreach ($anchors as $anchor) : ?><a class="boblift-cinema-nav-link flex h-12 min-w-max items-center justify-center border-e border-[#DDE7F2] px-4 text-xs font-black md:h-14 text-[#334155] transition hover:bg-blue-50 hover:text-[#0B3F7D] md:px-6 md:text-sm" href="#<?php echo esc_attr($anchor['id']); ?>" data-product-section-link><?php echo esc_html($anchor['label']); ?></a><?php endforeach; ?></nav></div>
+    <div class="sticky top-[var(--boblift-header-h)] z-30 border-y border-[#DDE7F2] bg-white shadow-card"><nav class="boblift-product-section-nav page-shell flex min-h-12 items-center overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] md:min-h-14 [&::-webkit-scrollbar]:hidden" aria-label="<?php echo esc_attr($ui['sectionNavLabel'] ?? 'Product detail sections'); ?>" data-product-section-nav><a class="boblift-cinema-nav-link grid h-12 min-w-12 shrink-0 place-items-center border-x border-[#DDE7F2] text-[#0B3F7D] md:h-14 md:min-w-14" href="#product-hero" data-product-section-link aria-label="<?php echo esc_attr($product['title'] ?? 'Product hero'); ?>"><?php echo boblift_icon('home', 'h-5 w-5'); ?></a><?php foreach ($anchors as $anchor) : ?><a class="boblift-cinema-nav-link flex h-12 min-w-max items-center justify-center border-e border-[#DDE7F2] px-3 text-xs font-black sm:px-4 md:h-14 text-[#334155] transition hover:bg-blue-50 hover:text-[#0B3F7D] md:px-6 md:text-sm" href="#<?php echo esc_attr($anchor['id']); ?>" data-product-section-link><?php echo esc_html($anchor['label']); ?></a><?php endforeach; ?></nav></div>
     <section class="bg-[#F5F7FB] py-8 md:py-12">
-        <div class="boblift-pd-stack page-shell min-w-0 space-y-3 sm:space-y-6 md:space-y-8">
+        <div class="boblift-pd-stack page-shell min-w-0 space-y-2 sm:space-y-6 md:space-y-8">
             <article id="technical" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card">
                 <div class="px-4 py-5 sm:p-6 md:p-8">
                     <div class="flex items-start justify-between gap-4">
@@ -526,7 +526,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                                 $spec_is_model = !$spec_groups && $hero_model !== '' && $spec === $technical_specs[0];
                                 $spec_last = $spec_index === count($spec_rows) - 1 ? trim(($spec_fill['sm'][boblift_grid_last_item_span($spec_ones, 2)] ?? '') . ' ' . ($spec_cols === 3 ? ($spec_fill['lg'][boblift_grid_last_item_span($spec_ones, 3)] ?? 'lg:col-span-1') : '')) : '';
                             ?>
-                                <div class="flex min-w-0 items-baseline justify-between gap-4 border-b border-[#E6EDF5] px-4 py-3 sm:px-6 md:px-8 <?php echo esc_attr($spec_last); ?> <?php echo $spec_is_model ? 'bg-[#F5F8FC]' : ''; ?>">
+                                <div class="flex min-w-0 items-baseline justify-between gap-4 border-b border-[#E6EDF5] px-4 py-2.5 sm:px-6 sm:py-3 md:px-8 <?php echo esc_attr($spec_last); ?> <?php echo $spec_is_model ? 'bg-[#F5F8FC]' : ''; ?>">
                                     <dt class="min-w-0 text-sm font-normal leading-5 text-slate-500"><?php echo esc_html($spec['label']); ?></dt>
                                     <?php // Short figures stay on one line; a long value (two configurations, a note) wraps within 60% of the row. ?>
                                     <dd class="<?php echo mb_strlen((string) $spec['value']) <= 18 ? 'shrink-0 whitespace-nowrap' : 'min-w-0 max-w-[60%] break-words'; ?> text-end font-black leading-tight text-[#071f42] [font-variant-numeric:tabular-nums]"><span class="text-base md:text-lg"><?php echo esc_html($spec_number); ?></span><?php if ($spec_unit !== '') : ?><span class="<?php echo $spec_unit === '°' ? '' : 'ms-1'; ?> text-xs font-bold text-slate-500 md:text-sm"><?php echo esc_html($spec_unit); ?></span><?php endif; ?></dd>
@@ -815,13 +815,13 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                     <div class="px-4 pt-5 pb-0 sm:p-6 sm:pb-0 md:p-8 md:pb-0">
                         <p class="boblift-kicker"><?php echo esc_html(boblift_localized_static_text('Shipping & warranty')); ?></p>
                         <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html(boblift_localized_static_text('Shipping, warranty and documents')); ?></h2>
-                        <p class="mt-3 max-w-2xl text-sm font-normal leading-6 text-slate-600 md:text-base md:leading-7"><?php echo esc_html(str_replace('{model}', $hero_title, boblift_localized_static_text('How the {model} reaches you, and what happens after it arrives.'))); ?></p>
+                        <p class="mt-3 hidden max-w-2xl text-sm font-normal leading-6 text-slate-600 sm:block md:text-base md:leading-7"><?php echo esc_html(str_replace('{model}', $hero_title, boblift_localized_static_text('How the {model} reaches you, and what happens after it arrives.'))); ?></p>
                     </div>
-                    <div class="mt-6 grid gap-px border-t border-[#E6EDF5] bg-[#E6EDF5] md:mt-8 md:grid-cols-3">
+                    <div class="mt-4 grid gap-px border-t border-[#E6EDF5] bg-[#E6EDF5] sm:mt-6 md:mt-8 md:grid-cols-3">
                         <section class="bg-white px-4 py-5 sm:p-6 md:p-8" aria-labelledby="buying-shipping">
                             <h3 id="buying-shipping" class="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(boblift_localized_static_text('Shipping')); ?></h3>
                             <?php if ($buying_terms['pending']) : // Unconfirmed figures stay off the page until they are entered under 产品详情页. ?>
-                                <p class="mt-4 text-sm font-normal leading-6 text-slate-700"><?php echo esc_html(boblift_localized_static_text('Lead time and container loading are confirmed with your quotation.')); ?></p>
+                                <p class="mt-2 text-sm font-normal leading-6 text-slate-700 sm:mt-4"><?php echo esc_html(boblift_localized_static_text('Lead time and container loading are confirmed with your quotation.')); ?></p>
                             <?php else : ?>
                                 <dl class="mt-4 grid grid-cols-2 gap-4 [font-variant-numeric:tabular-nums]">
                                     <?php foreach (['gp20' => '20GP container', 'hq40' => '40HQ container'] as $box_key => $box_label) : if ($buying_terms['loading'][$box_key] <= 0) { continue; } ?>
@@ -837,16 +837,16 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                         </section>
                         <section class="bg-white px-4 py-5 sm:p-6 md:p-8" aria-labelledby="buying-warranty">
                             <h3 id="buying-warranty" class="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(boblift_localized_static_text('Warranty and parts')); ?></h3>
-                            <p class="mt-4 text-2xl font-black leading-none text-[#071f42]"><?php echo esc_html(boblift_localized_static_text('12 months')); ?></p>
-                            <p class="mt-3 text-sm font-normal leading-6 text-slate-700"><?php echo esc_html(boblift_localized_static_text('Send the model, serial number and a photo or video of the issue; our team guides the repair and ships the parts.')); ?></p>
-                            <p class="mt-4 inline-flex items-center gap-2 text-sm font-black text-[#071f42]"><?php echo boblift_icon('package-check', 'h-4 w-4 text-[#0B3F7D]'); ?><?php echo esc_html(boblift_localized_static_text('Order from 1 unit')); ?></p>
+                            <p class="mt-2 text-xl font-black leading-none text-[#071f42] sm:mt-4 sm:text-2xl"><?php echo esc_html(boblift_localized_static_text('12 months')); ?></p>
+                            <p class="mt-2 text-sm font-normal leading-6 text-slate-700 sm:mt-3"><?php echo esc_html(boblift_localized_static_text('Send the model, serial number and a photo or video of the issue; our team guides the repair and ships the parts.')); ?></p>
+                            <p class="mt-3 inline-flex items-center gap-2 text-sm font-black text-[#071f42] sm:mt-4"><?php echo boblift_icon('package-check', 'h-4 w-4 text-[#0B3F7D]'); ?><?php echo esc_html(boblift_localized_static_text('Order from 1 unit')); ?></p>
                         </section>
                         <section class="bg-white px-4 py-5 sm:p-6 md:p-8" aria-labelledby="buying-documents">
                             <?php // Links to #brochures (the brochure card this column replaces on crane pages) land here. ?><span id="brochures" class="block scroll-mt-24" aria-hidden="true"></span>
                             <h3 id="buying-documents" class="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(boblift_localized_static_text('Documents')); ?></h3>
-                            <ul class="mt-4 grid gap-3 text-sm">
+                            <ul class="mt-3 grid gap-3 text-sm sm:mt-4">
                                 <?php foreach ($buying_brochures as $buying_brochure) : ?>
-                                    <li class="mb-2 grid grid-cols-[64px_minmax(0,1fr)] items-start gap-4 border-b border-[#E6EDF5] pb-5">
+                                    <li class="mb-1 grid grid-cols-[48px_minmax(0,1fr)] items-start gap-3 border-b border-[#E6EDF5] pb-4 sm:mb-2 sm:grid-cols-[64px_minmax(0,1fr)] sm:gap-4 sm:pb-5">
                                         <a class="block" href="<?php echo esc_url($buying_brochure['url']); ?>" download="<?php echo esc_attr($buying_brochure['file']); ?>" tabindex="-1" aria-hidden="true"><img class="aspect-[520/711] w-full rounded-sm border border-[#DDE7F2] bg-white object-cover" src="<?php echo esc_url($buying_brochure['cover']); ?>" width="520" height="711" alt="" loading="lazy" decoding="async"></a>
                                         <div class="min-w-0">
                                             <p class="font-black leading-snug text-[#071f42]"><?php echo esc_html($buying_brochure['title']); ?></p>
@@ -949,25 +949,25 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                         $faq_group = $faq_groups[$faq_column] ?? null;
                         if (!$faq_group && $faq_column !== $faq_help_column) { continue; }
                         ?>
-                        <div class="min-w-0 px-4 py-5 sm:p-6 md:p-8 <?php echo $faq_column === 1 ? 'border-t border-[#E6EDF5] lg:border-s lg:border-t-0' : ''; ?>">
+                        <div class="min-w-0 px-4 py-4 sm:p-6 md:p-8 <?php echo $faq_column === 1 ? 'border-t border-[#E6EDF5] lg:border-s lg:border-t-0' : ''; ?>">
                             <?php if ($faq_group) : ?>
                                 <h3 class="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html($faq_group['label']); ?></h3>
-                                <div class="mt-3 border-t border-[#E6EDF5]">
+                                <div class="mt-2 border-t border-[#E6EDF5]">
                                     <?php foreach ($faq_group['items'] as $faq_index => $faq) : ?>
                                         <details class="group border-b border-[#E6EDF5]">
-                                            <summary class="flex cursor-pointer list-none items-start gap-3 py-4 text-[15px] font-black leading-6 text-[#071f42] transition hover:text-blue-700 md:gap-4 md:text-base [&::-webkit-details-marker]:hidden">
-                                                <span class="w-6 shrink-0 text-xs font-black leading-6 text-slate-500 [font-variant-numeric:tabular-nums]"><?php echo esc_html(str_pad((string) ($faq_index + 1), 2, '0', STR_PAD_LEFT)); ?></span>
+                                            <summary class="flex cursor-pointer list-none items-start gap-3 py-3.5 text-[15px] font-black leading-snug text-[#071f42] sm:py-4 sm:leading-6 transition hover:text-blue-700 md:gap-4 md:text-base [&::-webkit-details-marker]:hidden">
+                                                <span class="hidden w-6 shrink-0 text-xs font-black leading-6 text-slate-500 [font-variant-numeric:tabular-nums] sm:block"><?php echo esc_html(str_pad((string) ($faq_index + 1), 2, '0', STR_PAD_LEFT)); ?></span>
                                                 <span class="min-w-0 flex-1"><?php echo esc_html($faq['question']); ?></span>
-                                                <span class="grid size-6 shrink-0 place-items-center rounded-sm border border-[#DDE7F2] text-slate-500 transition group-open:rotate-180 group-open:border-[#0B3F7D] group-open:text-[#0B3F7D]"><?php echo boblift_icon('chevron-down', 'h-3.5 w-3.5'); ?></span>
+                                                <span class="grid size-5 shrink-0 place-items-center rounded-sm text-slate-500 sm:size-6 sm:border sm:border-[#DDE7F2] transition group-open:rotate-180 group-open:border-[#0B3F7D] group-open:text-[#0B3F7D]"><?php echo boblift_icon('chevron-down', 'h-3.5 w-3.5'); ?></span>
                                             </summary>
-                                            <p class="pb-5 pe-9 ps-9 text-sm font-normal leading-6 text-slate-600 md:pe-10 md:leading-7 md:ps-10 md:text-[15px]"><?php echo esc_html($faq['answer']); ?></p>
+                                            <p class="pb-4 pe-8 text-sm font-normal leading-6 text-slate-600 sm:pb-5 sm:pe-9 sm:ps-9 md:pe-10 md:leading-7 md:ps-10 md:text-[15px]"><?php echo esc_html($faq['answer']); ?></p>
                                         </details>
                                     <?php endforeach; ?>
                                 </div>
                             <?php endif; ?>
                             <?php if ($faq_column === $faq_help_column) : ?>
-                                <div class="<?php echo $faq_group ? 'mt-6 md:mt-8' : ''; ?> rounded border border-[#DDE7F2] bg-[#F8FAFC] p-4 sm:p-5 md:p-6">
-                                    <p class="text-base font-black text-[#071f42]"><?php echo esc_html(boblift_localized_static_text('Not answered here?')); ?></p>
+                                <div class="<?php echo $faq_group ? 'mt-5 sm:mt-6 md:mt-8' : ''; ?> sm:rounded sm:border sm:border-[#DDE7F2] sm:bg-[#F8FAFC] sm:p-5 md:p-6">
+                                    <p class="text-[15px] font-black text-[#071f42] sm:text-base"><?php echo esc_html(boblift_localized_static_text('Not answered here?')); ?></p>
                                     <p class="mt-1.5 text-sm font-normal leading-6 text-slate-600"><?php echo esc_html(boblift_localized_static_text('Send us your question and our team replies with answers for your site.')); ?></p>
                                     <div class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-3">
                                         <button class="inline-flex h-11 items-center justify-center gap-2 rounded-sm bg-[#071f42] px-5 text-sm font-black text-white transition hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页常见问题" data-inquiry-product="<?php echo esc_attr($product['title']); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html(boblift_localized_static_text('Ask a question')); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
