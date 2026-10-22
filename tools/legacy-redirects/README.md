@@ -56,24 +56,24 @@
 3. 新站放 WordPress.com（Premium 以上才能上传自定义主题和插件）；主题和插件 zip 上传，先在 WP.com 默认地址上测。用 `check.py --base <WP.com 临时地址> --host www.bobliftcrane.com` 跑全部规则。
 4. 语言子域 fr/es/ru/sa：WP.com 的附加域名只会整体跳主域，不能逐路径跳，所以由 Cloudflare 接管这四个子域（域名 DNS 要在 Cloudflare，免费版即可）。每个子域建一条重定向规则（共 4 条，把 `fr` 换成对应前缀）：条件是主机名等于 `fr.bobliftcrane.com`，类型选动态，状态码 301，目标表达式：
 
-   `concat("https://www.bobliftcrane.com", http.request.uri.path, "?legacy_lang=fr&", http.request.uri.query)`
+   `concat("https://bobliftcrane.com", http.request.uri.path, "?legacy_lang=fr&", http.request.uri.query)`
 
    （规则里的「保留查询字符串」必须关闭，否则查询参数会重复。Cloudflare 重定向表达式不支持 `if()`，所以无条件拼接；原链接没有查询参数时结尾会多一个 `&`，主题会忽略它。）这样原路径和原查询参数（gclid、utm 等）都会带过去，不会在第一跳丢掉。保存前用规则预览确认表达式可用。主题认到 `legacy_lang` 后按语言子域的归并规则再 301 一次到最终地址，并去掉这个参数。这样是两跳；想一跳到位，可改用 Cloudflare 批量重定向列表，把 `redirect-map.csv` 对应的语言子域地址逐条导入（条数受套餐限制，先确认）。
 5. fr/es/ru/sa 的目标语言目录由 `language_host_prefix` 配置：该语言目录下真有对应页面时才落过去，否则暂落英文对应页；以后上线某种语言不用改规则，上线前用 `check.py` 抽查一遍。
-6. 确认新站 `home` / `siteurl` 为 `https://www.bobliftcrane.com`，`/sitemap.xml`、`robots.txt`、canonical、hreflang 正常。
+6. 确认新站 `home` / `siteurl` 为 `https://bobliftcrane.com`，`/sitemap.xml`、`robots.txt`、canonical、hreflang 正常。
 7. 提前 24 小时把相关 DNS 记录 TTL 降到 300 秒。
 
 **二、切换日** ⚠
 
 1. 旧站停止改内容，导出最终 sitemap，与 `redirect-map.csv` 做最后一次差异比对。
-2. 在 WP.com 把 `www.bobliftcrane.com` 设为主域名，按 WP.com 给出的记录改 DNS（Cloudflare 里用 A 记录、灰云，不要改名称服务器）；根域 301 到 www。
+2. 在 WP.com 绑定 `bobliftcrane.com`（WP.com 只能把根域设为主地址，`www` 和 http 由它 301 到 `https://bobliftcrane.com`），按 WP.com 给出的记录改 DNS（Cloudflare 里用 A 记录、灰云，不要改名称服务器）。2026-10-22 已按此上线，`canonical_host` 随之改为根域。
 3. 同时在 Cloudflare 启用第 4 步的子域重定向规则，子域 DNS 记录保持代理（橙云）。
 4. 等 WP.com 自动签发 HTTPS 证书，覆盖 www。
-5. 跑 `check.py --base https://www.bobliftcrane.com`，再手测首页、一个产品页、一个旧分类页、`/ja/` 页面，以及 `fr.bobliftcrane.com` 首页和一个深层页面，确认 301 且带 `X-Redirect-By: BOB-LIFT legacy`；再测一个带参数的地址，如 `curl -I 'https://fr.bobliftcrane.com/message.html?gclid=abc'`，两跳之后的最终地址里必须还有 `gclid=abc`。
+5. 跑 `check.py --base https://bobliftcrane.com`，再手测首页、一个产品页、一个旧分类页、`/ja/` 页面，以及 `fr.bobliftcrane.com` 首页和一个深层页面，确认 301 且带 `X-Redirect-By: BOB-LIFT legacy`；再测一个带参数的地址，如 `curl -I 'https://fr.bobliftcrane.com/message.html?gclid=abc'`，两跳之后的最终地址里必须还有 `gclid=abc`。
 
 **三、上线后** （网页点击由用户本人操作）
 
-1. GSC：同一个域名没有换，不需要「更改地址」。在 Search Console 提交新站 `https://www.bobliftcrane.com/sitemap.xml`，删除旧 sitemap；对首页和几个重点页做网址检查。
+1. GSC：同一个域名没有换，不需要「更改地址」。在 Search Console 提交新站 `https://bobliftcrane.com/sitemap.xml`，删除旧 sitemap；对首页和几个重点页做网址检查。
 2. 若 GSC 里 fr/es/ru/sa 是单独资源，保留到抓取量降下来，不要删除。
 3. GA4、Google Ads、社媒主页链接里写死旧路径的，改成新地址。
 4. 一周内每天看 GSC「网页索引编码」里的 404 和「已找到未编入」，把漏掉的旧路径用 REST 补进规则。
