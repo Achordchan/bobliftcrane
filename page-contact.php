@@ -32,7 +32,22 @@ $location_description = str_replace('{address}', $address, $t('locationDescripti
 $contact_option = boblift_option('contact', []);
 $factory_address = trim((string) (is_array($contact_option) ? ($contact_option['factory_address'] ?? '') : ''));
 $map_query = $factory_address !== '' ? $factory_address : $address;
-$map_query_cn = $factory_address !== '' ? $t('mapFactoryKeywordCn', $map_query) : $t('mapKeywordCn', $address);
+// Amap and Baidu search a Chinese keyword: one an editor saved (factory keyword first, then the older company keyword),
+// else the built-in Chinese address while the factory address is the built-in one, else the configured address itself.
+$contact_defaults = boblift_site_ui_defaults('contactPage');
+$saved_keyword = static fn(string $key): string => trim($t($key)) !== '' && $t($key) !== (string) ($contact_defaults[$key] ?? '') && $t($key) !== boblift_localized_static_text((string) ($contact_defaults[$key] ?? '')) ? $t($key) : '';
+$default_factory_address = (string) (boblift_default_options()['contact']['factory_address'] ?? '');
+if ($factory_address === '') {
+    $map_query_cn = $t('mapKeywordCn', $address);
+} elseif ($saved_keyword('mapFactoryKeywordCn') !== '') {
+    $map_query_cn = $saved_keyword('mapFactoryKeywordCn');
+} elseif ($saved_keyword('mapKeywordCn') !== '') {
+    $map_query_cn = $saved_keyword('mapKeywordCn');
+} elseif ($factory_address === $default_factory_address) {
+    $map_query_cn = (string) ($contact_defaults['mapFactoryKeywordCn'] ?? $factory_address);
+} else {
+    $map_query_cn = boblift_localized_static_text($factory_address, 'zh');
+}
 $map_links = [
     'google' => 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($map_query),
     'amap' => 'https://uri.amap.com/search?keyword=' . rawurlencode($map_query_cn),
