@@ -112,6 +112,7 @@ return [
         'No longer in regular production. It can still be built to order.' => '已停止常规生产，仍可按需定制。',
         'See the current models' => '查看在产型号',
         'All Products' => '全部产品',
+        'All' => '全部',
         'Page {page} / {pages}' => '第 {page} 页 / 共 {pages} 页',
     ],
     'es' => [
@@ -169,6 +170,7 @@ return [
         'No longer in regular production. It can still be built to order.' => 'Ya no se fabrica de serie. Se puede seguir fabricando bajo pedido.',
         'See the current models' => 'Ver los modelos actuales',
         'All Products' => 'Todos los productos',
+        'All' => 'Todos',
         'Page {page} / {pages}' => 'Página {page} / {pages}',
     ],
     'ru' => [
@@ -226,6 +228,7 @@ return [
         'No longer in regular production. It can still be built to order.' => 'Серийно больше не выпускается. Можно изготовить под заказ.',
         'See the current models' => 'Смотреть текущие модели',
         'All Products' => 'Вся продукция',
+        'All' => 'Все',
         'Page {page} / {pages}' => 'Страница {page} / {pages}',
     ],
     'fr' => [
@@ -283,6 +286,7 @@ return [
         'No longer in regular production. It can still be built to order.' => 'N’est plus fabriqué en série. Peut encore être fabriqué sur commande.',
         'See the current models' => 'Voir les modèles actuels',
         'All Products' => 'Tous les produits',
+        'All' => 'Tous',
         'Page {page} / {pages}' => 'Page {page} / {pages}',
     ],
     'ar' => [
@@ -340,6 +344,7 @@ return [
         'No longer in regular production. It can still be built to order.' => 'لم يعد يُنتج بشكل منتظم، ويمكن تصنيعه حسب الطلب.',
         'See the current models' => 'عرض الطرازات الحالية',
         'All Products' => 'جميع المنتجات',
+        'All' => 'الكل',
         'Page {page} / {pages}' => 'الصفحة {page} / {pages}',
     ],
 ];
