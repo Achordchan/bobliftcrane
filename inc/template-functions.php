@@ -1141,6 +1141,11 @@ foreach (['added_post_meta', 'updated_post_meta', 'deleted_post_meta'] as $bobli
 foreach (['created_term', 'edited_term', 'delete_term'] as $boblift_term_hook) {
     add_action($boblift_term_hook, 'boblift_bump_products_cache');
 }
+// Plugins and theme switches change what content renders to (a shortcode with no plugin stays literal text), and an
+// update can change a plugin's output.
+foreach (['activated_plugin', 'deactivated_plugin', 'switch_theme', 'upgrader_process_complete', 'update_site_option_active_sitewide_plugins'] as $boblift_code_hook) {
+    add_action($boblift_code_hook, 'boblift_bump_products_cache');
+}
 foreach (['wp_insert_comment', 'edit_comment', 'deleted_comment', 'trashed_comment', 'untrashed_comment', 'spammed_comment', 'unspammed_comment', 'transition_comment_status'] as $boblift_comment_hook) {
     add_action($boblift_comment_hook, 'boblift_bump_products_cache');
 }
@@ -1152,7 +1157,7 @@ foreach (['added_option', 'updated_option', 'deleted_option'] as $boblift_option
             return;
         }
         if (preg_match('/^(boblift|polylang|pll_|theme_mods_)/', $option)
-            || in_array($option, ['permalink_structure', 'category_base', 'tag_base', 'home', 'siteurl', 'show_on_front', 'page_on_front'], true)) {
+            || in_array($option, ['permalink_structure', 'category_base', 'tag_base', 'home', 'siteurl', 'show_on_front', 'page_on_front', 'active_plugins', 'template', 'stylesheet'], true)) {
             boblift_bump_products_cache();
         }
     });
