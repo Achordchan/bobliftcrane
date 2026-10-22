@@ -79,7 +79,7 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
                                     <span class="h-14 w-16 shrink-0 overflow-hidden rounded-sm border border-line bg-mist"><img class="h-full w-full object-contain p-1" src="<?php echo esc_url(boblift_post_thumbnail_url($product, boblift_asset('images/products/crane-accessories.png'))); ?>" alt="" loading="lazy" decoding="async"></span>
                                     <span class="min-w-0">
                                         <span class="line-clamp-2 text-sm font-black leading-snug text-ink transition group-hover:text-blue-700"><?php echo esc_html($product_title); ?></span>
-                                        <?php if ($model !== '') : ?><span class="mt-0.5 block text-xs font-bold text-slate-400"><?php echo esc_html($model); ?></span><?php endif; ?>
+                                        <?php if ($model !== '') : ?><span class="mt-0.5 block text-xs font-bold text-slate-500"><?php echo esc_html($model); ?></span><?php endif; ?>
                                     </span>
                                 </a>
                             </li>
@@ -125,8 +125,8 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
                 <?php if ($show_toc) : ?>
                     <details class="boblift-news-toc-mobile mt-6 rounded border border-line bg-mist lg:hidden">
                         <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-black text-ink">
-                            <span class="inline-flex items-center gap-2"><?php echo boblift_icon('list', 'h-4 w-4 text-slate-400'); ?><?php echo esc_html((string) ($article_ui['tocTitle'] ?? 'In this article')); ?></span>
-                            <?php echo boblift_icon('chevron-down', 'boblift-news-toc-chevron h-4 w-4 text-slate-400 transition'); ?>
+                            <span class="inline-flex items-center gap-2"><?php echo boblift_icon('list', 'h-4 w-4 text-slate-500'); ?><?php echo esc_html((string) ($article_ui['tocTitle'] ?? 'In this article')); ?></span>
+                            <?php echo boblift_icon('chevron-down', 'boblift-news-toc-chevron h-4 w-4 text-slate-500 transition'); ?>
                         </summary>
                         <ol class="boblift-news-toc-list border-t border-line px-4 py-3">
                             <?php foreach ($toc as $item) : ?>
@@ -163,14 +163,14 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
                         </div>
                         <dl class="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-line pt-4 text-xs">
                             <div>
-                                <dt class="font-bold text-slate-400"><?php echo esc_html((string) ($article_ui['publishedLabel'] ?? 'Published')); ?></dt>
+                                <dt class="font-bold text-slate-500"><?php echo esc_html((string) ($article_ui['publishedLabel'] ?? 'Published')); ?></dt>
                                 <dd class="mt-1 font-black text-ink"><time datetime="<?php echo esc_attr($published); ?>"><?php echo esc_html($published); ?></time></dd>
                             </div>
                             <div>
-                                <dt class="font-bold text-slate-400"><?php echo esc_html((string) ($ui['category'] ?? 'Category')); ?></dt>
+                                <dt class="font-bold text-slate-500"><?php echo esc_html((string) ($ui['category'] ?? 'Category')); ?></dt>
                                 <dd class="mt-1 font-black text-ink"><?php echo esc_html($category); ?></dd>
                             </div>
-                            <div class="col-span-2 inline-flex items-center gap-2 font-bold text-slate-500"><?php echo boblift_icon('clock-3', 'h-4 w-4 text-slate-400'); ?><?php echo esc_html($reading); ?></div>
+                            <div class="col-span-2 inline-flex items-center gap-2 font-bold text-slate-500"><?php echo boblift_icon('clock-3', 'h-4 w-4 text-slate-500'); ?><?php echo esc_html($reading); ?></div>
                         </dl>
                     </section>
 

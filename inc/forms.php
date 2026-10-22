@@ -154,7 +154,7 @@ function boblift_render_inquiry_form(string $product = '', array $args = []): vo
                 <span class="relative block">
                     <button class="flex h-12 w-full items-center justify-between gap-3 rounded-sm border border-line bg-[#f8fbff] px-4 text-start text-sm font-bold text-ink outline-none transition hover:border-blue-200 focus:border-blue-300 focus:ring-4 focus:ring-blue-100" type="button" data-inquiry-select-toggle aria-expanded="false">
                         <span class="min-w-0 truncate" data-inquiry-select-label><?php echo esc_html($ui['fields']['productNotDecided']); ?></span>
-                        <?php echo boblift_icon('chevron-down', 'h-4 w-4 shrink-0 text-slate-400'); ?>
+                        <?php echo boblift_icon('chevron-down', 'h-4 w-4 shrink-0 text-slate-500'); ?>
                     </button>
                     <span class="absolute start-0 end-0 top-full z-50 mt-2 hidden max-h-72 overflow-y-auto rounded border border-blue-100 bg-white p-2 shadow-raised" data-inquiry-select-menu>
                         <button class="flex w-full items-center justify-between gap-3 rounded px-3 py-2.5 text-start text-sm font-bold text-slate-500 transition hover:bg-blue-50 hover:text-blue-700" type="button" data-inquiry-select-option data-value="" data-product-slug="">
@@ -407,7 +407,7 @@ function boblift_render_inquiry_extra_select(array $ui, string $name, string $la
         <span class="relative block">
             <button class="flex h-11 w-full items-center justify-between gap-3 rounded-sm border border-line bg-white px-3 text-start text-sm font-bold text-ink outline-none transition hover:border-blue-200 focus:border-blue-300 focus:ring-4 focus:ring-blue-100" type="button" data-inquiry-select-toggle aria-expanded="false">
                 <span class="min-w-0 truncate" data-inquiry-select-label><?php echo esc_html($placeholder); ?></span>
-                <span class="shrink-0 text-xs text-slate-400" aria-hidden="true">⌄</span>
+                <span class="shrink-0 text-xs text-slate-500" aria-hidden="true">⌄</span>
             </button>
             <span class="absolute start-0 end-0 top-full z-50 mt-2 hidden max-h-52 overflow-y-auto rounded border border-blue-100 bg-white p-1.5 shadow-raised" data-inquiry-select-menu>
                 <button class="flex w-full items-center justify-between rounded px-3 py-2 text-start text-sm font-bold text-slate-500 transition hover:bg-blue-50 hover:text-blue-700" type="button" data-inquiry-select-option data-value="">

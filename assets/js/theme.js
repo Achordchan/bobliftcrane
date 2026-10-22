@@ -1196,6 +1196,10 @@
       } else {
         node = document.createElement('img');
         node.className = 'h-full w-full object-cover';
+        if (thumb.dataset.srcset) {
+          node.sizes = thumb.dataset.sizes || '100vw';
+          node.srcset = thumb.dataset.srcset;
+        }
         node.src = poster;
         node.alt = alt;
         node.loading = 'lazy';
@@ -3053,6 +3057,13 @@
       if (bannerTitle) bannerTitle.textContent = content.title || '';
       if (bannerText) bannerText.textContent = content.text || '';
       if (bannerImage && content.image) {
+        // The smaller copies (srcset) belong to the picture; a banner without them drops the previous one's.
+        if (content.srcset) {
+          if (!bannerImage.getAttribute('sizes')) bannerImage.setAttribute('sizes', '(min-width: 1024px) 62vw, 100vw');
+          bannerImage.setAttribute('srcset', content.srcset);
+        } else {
+          bannerImage.removeAttribute('srcset');
+        }
         if (bannerImage.getAttribute('src') !== content.image) bannerImage.setAttribute('src', content.image);
         bannerImage.setAttribute('alt', content.imageAlt || '');
       }
@@ -3339,7 +3350,7 @@
       pagerPageNumbers(totalPages, currentPage).forEach((page) => {
         if (page === null) {
           const ellipsis = document.createElement('span');
-          ellipsis.className = 'inline-flex h-11 min-w-6 items-center justify-center text-sm font-black text-slate-400';
+          ellipsis.className = 'inline-flex h-11 min-w-6 items-center justify-center text-sm font-black text-slate-500';
           ellipsis.setAttribute('aria-hidden', 'true');
           ellipsis.textContent = '\u2026';
           pagination.appendChild(ellipsis);
@@ -3788,7 +3799,7 @@
       newsPageNumbers(totalPages).forEach((page) => {
         if (page === null) {
           const ellipsis = document.createElement('span');
-          ellipsis.className = 'inline-flex h-11 min-w-6 items-center justify-center text-sm font-black text-slate-400';
+          ellipsis.className = 'inline-flex h-11 min-w-6 items-center justify-center text-sm font-black text-slate-500';
           ellipsis.setAttribute('aria-hidden', 'true');
           ellipsis.textContent = '\u2026';
           pagination.appendChild(ellipsis);
@@ -4024,7 +4035,7 @@
       pagerPageNumbers(totalPages, casesPage).forEach((page) => {
         if (page === null) {
           const ellipsis = document.createElement('span');
-          ellipsis.className = 'inline-flex h-11 min-w-6 items-center justify-center text-sm font-black text-slate-400';
+          ellipsis.className = 'inline-flex h-11 min-w-6 items-center justify-center text-sm font-black text-slate-500';
           ellipsis.setAttribute('aria-hidden', 'true');
           ellipsis.textContent = '\u2026';
           pager.appendChild(ellipsis);
@@ -4503,6 +4514,8 @@
       lead = null;
     }
     if (!/^\d+$/.test(sent) || !lead || typeof window.gtag !== 'function') return;
+    // inc/consent.php loads the Google tag at once on this address (sent=); the call makes sure of it.
+    window.bobliftLoadGoogleTag?.();
     const details = { form: 'inquiry', transaction_id: `inquiry-${sent}`, inquiry_product: lead.product || '', inquiry_source: lead.source || '' };
     // The theme's Google tag (inc/consent.php) reports the lead to GA4, and to Google Ads when an inquiry conversion is set.
     window.gtag('event', 'generate_lead', details);

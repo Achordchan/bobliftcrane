@@ -607,6 +607,50 @@ add_filter('sharing_show', '__return_false');
 add_filter('wpl_is_likes_visible', '__return_false');
 
 /**
+ * Jetpack's Carousel (the full-screen lightbox for pictures in a post's text) loads whenever any text with a picture
+ * goes through the_content, which the home page and the lists do for every card they build. Only the templates that print
+ * a post's text keep it; elsewhere its stylesheet (render-blocking in <head>), its script, the Swiper prefetch and the
+ * hidden lightbox markup in the footer are taken out.
+ */
+function boblift_carousel_wanted(): bool
+{
+    global $template;
+    return is_singular() && !is_front_page() && in_array(basename((string) $template), ['single.php', 'single-case.php', 'single-feedback.php', 'single-product.php', 'page.php'], true);
+}
+
+function boblift_drop_jetpack_carousel(): void
+{
+    if (is_admin() || boblift_carousel_wanted()) {
+        return;
+    }
+    foreach (['jetpack-carousel', 'jetpack-swiper-library'] as $handle) {
+        wp_dequeue_style($handle);
+        wp_dequeue_script($handle);
+    }
+    if (current_action() !== 'wp_footer') {
+        return;
+    }
+    global $wp_filter;
+    foreach (($wp_filter['wp_footer']->callbacks ?? []) as $priority => $callbacks) {
+        foreach ($callbacks as $callback) {
+            $function = $callback['function'];
+            if (is_array($function) && is_object($function[0]) && $function[0] instanceof Jetpack_Carousel) {
+                remove_action('wp_footer', $function, $priority);
+            }
+        }
+    }
+}
+add_action('wp_print_styles', 'boblift_drop_jetpack_carousel', 100);
+add_action('wp_print_scripts', 'boblift_drop_jetpack_carousel', 100);
+add_action('wp_footer', 'boblift_drop_jetpack_carousel', 1);
+
+// WordPress's emoji script swaps emoji for pictures on browsers that cannot draw them, which every current browser can;
+// on a phone it cost a 250 ms task on every page. The site's copy has no emoji to draw.
+remove_action('wp_head', 'print_emoji_detection_script', 7);
+remove_action('wp_print_styles', 'print_emoji_styles');
+remove_action('wp_enqueue_scripts', 'wp_enqueue_emoji_styles');
+
+/**
  * Some translated articles reached the site with bare image file names (src="chart.png") instead of upload URLs, so the
  * browser looked for the picture next to the article address and showed a broken image. Each bare name is pointed at the
  * uploaded attachment with that file name; names with no matching upload are left as they are.

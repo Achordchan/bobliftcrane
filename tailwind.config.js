@@ -147,7 +147,9 @@ module.exports = {
         navy: '#071f42',
         gold: '#f59a3c',
         mist: '#f4f7fb',
-        line: '#e4ebf4'
+        line: '#e4ebf4',
+        // Secondary text: Tailwind's #64748b falls just short of 4.5:1 on the mist panels (4.43), this passes on mist and white.
+        slate: { 500: '#5f6f85' }
       }
     }
   },

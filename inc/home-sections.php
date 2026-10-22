@@ -125,7 +125,7 @@ function boblift_render_home_faq(): void
             <div class="divide-y divide-line border-y border-line">
                 <?php foreach ($items as $item) : ?>
                     <details class="group">
-                        <summary class="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 py-3 text-base font-black leading-snug text-ink transition hover:text-blue-700 [&::-webkit-details-marker]:hidden"><?php echo esc_html($t($item[0])); ?><?php echo boblift_icon('chevron-down', 'h-5 w-5 shrink-0 text-slate-400 transition group-open:rotate-180'); ?></summary>
+                        <summary class="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 py-3 text-base font-black leading-snug text-ink transition hover:text-blue-700 [&::-webkit-details-marker]:hidden"><?php echo esc_html($t($item[0])); ?><?php echo boblift_icon('chevron-down', 'h-5 w-5 shrink-0 text-slate-500 transition group-open:rotate-180'); ?></summary>
                         <div class="pb-5 pe-9 text-[15px] leading-7 text-slate-600 md:text-base">
                             <p><?php echo esc_html($t($item[1])); ?></p>
                             <?php if ($item[2]) : ?><a class="mt-2 inline-flex min-h-11 items-center gap-1.5 text-sm font-black text-blue-700 hover:text-[#071f42]" href="<?php echo esc_url($item[2][1]); ?>"><?php echo esc_html($t($item[2][0])); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:-scale-x-100'); ?></a><?php endif; ?>
@@ -240,7 +240,7 @@ function boblift_render_home_cases(): void
                     <a class="group flex w-[82%] shrink-0 snap-start flex-col overflow-hidden rounded border border-line bg-white shadow-card transition duration-300 hover:-translate-y-1 hover:border-blue-300 md:w-auto" href="<?php echo esc_url($item['url']); ?>">
                         <span class="relative block aspect-[4/3] overflow-hidden bg-[#eef5ff]"><img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" <?php echo boblift_img_src(boblift_item_image($item), '(min-width: 768px) 33vw, 80vw'); ?> alt="<?php echo esc_attr($item['title']); ?>" loading="lazy" decoding="async"></span>
                         <span class="flex flex-1 flex-col p-5 lg:p-6">
-                            <?php if ($meta !== []) : ?><span class="mb-2 text-[11px] font-black uppercase tracking-[0.14em] text-slate-400"><?php echo esc_html(implode(' · ', $meta)); ?></span><?php endif; ?>
+                            <?php if ($meta !== []) : ?><span class="mb-2 text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(implode(' · ', $meta)); ?></span><?php endif; ?>
                             <span class="line-clamp-2 text-lg font-black leading-tight tracking-[-0.01em] text-ink lg:text-xl"><?php echo esc_html($item['title']); ?></span>
                             <?php if (trim((string) ($item['summary'] ?? '')) !== '') : ?><span class="mt-2.5 line-clamp-3 text-[15px] font-normal leading-6 text-slate-600 lg:text-sm"><?php echo esc_html($item['summary']); ?></span><?php endif; ?>
                             <span class="mt-auto inline-flex items-center gap-1.5 pt-4 text-sm font-black text-blue-600"><?php echo esc_html($ui['viewCaseLabel'] ?? 'View Case'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4 transition group-hover:translate-x-1'); ?></span>

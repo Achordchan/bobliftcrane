@@ -51,13 +51,13 @@ $others = array_slice($others, 0, 4);
         <dl class="grid shrink-0 grid-cols-2 gap-x-10 gap-y-1 text-sm md:text-right">
             <?php if ($feedback['country'] !== '') : ?>
                 <div>
-                    <dt class="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400"><?php echo esc_html($ui['countryLabel'] ?? 'Country'); ?></dt>
+                    <dt class="text-[11px] font-black uppercase tracking-[0.16em] text-slate-500"><?php echo esc_html($ui['countryLabel'] ?? 'Country'); ?></dt>
                     <dd class="mt-1 flex items-center gap-1.5 font-black text-ink md:justify-end"><?php echo boblift_icon('map-pin', 'h-4 w-4 text-gold'); ?><?php echo esc_html($feedback['country']); ?></dd>
                 </div>
             <?php endif; ?>
             <?php if ($counts !== '') : ?>
                 <div>
-                    <dt class="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400"><?php echo esc_html($ui['mediaLabel'] ?? 'Media'); ?></dt>
+                    <dt class="text-[11px] font-black uppercase tracking-[0.16em] text-slate-500"><?php echo esc_html($ui['mediaLabel'] ?? 'Media'); ?></dt>
                     <dd class="mt-1 font-black text-ink"><?php echo esc_html($counts); ?></dd>
                 </div>
             <?php endif; ?>

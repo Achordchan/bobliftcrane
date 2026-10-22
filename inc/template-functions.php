@@ -213,6 +213,13 @@ function boblift_youtube_embed_url(string $url): string
 function boblift_img_from_setting(mixed $image, string $fallback, string $alt = '', string $class = '', array $attrs = []): string
 {
     $src = boblift_image_setting_url($image, $fallback);
+    // Width and height let the browser hold the picture's space before it arrives; CSS still sets the shown size.
+    if (!array_key_exists('width', $attrs) && !array_key_exists('height', $attrs)) {
+        $dimensions = boblift_image_dimensions($image, $src);
+        if ($dimensions) {
+            [$attrs['width'], $attrs['height']] = $dimensions;
+        }
+    }
     if (!array_key_exists('loading', $attrs)) {
         $attrs['loading'] = 'lazy';
     }
@@ -286,7 +293,10 @@ function boblift_image_cdn_host(string $home): string
 function boblift_image_srcset(string $url, array $widths = [160, 320, 480, 640, 800, 1024, 1280, 1600]): string
 {
     $facts = boblift_image_facts($url);
-    if (!$facts || $facts['c2pa']) {
+    if (!$facts) {
+        return boblift_theme_image_srcset($url);
+    }
+    if ($facts['c2pa']) {
         return '';
     }
     $candidates = [];
@@ -299,16 +309,131 @@ function boblift_image_srcset(string $url, array $widths = [160, 320, 480, 640, 
 }
 
 /*
+ * The local file behind a theme picture's address (…/themes/bobliftcrane/assets/…), or '' for any other address.
+ */
+function boblift_theme_image_file(string $url): string
+{
+    $base = get_template_directory_uri() . '/assets/';
+    $path = (string) wp_parse_url($url, PHP_URL_PATH);
+    $base_path = (string) wp_parse_url($base, PHP_URL_PATH);
+    if ($path === '' || $base_path === '' || !str_starts_with($path, $base_path) || str_contains($path, '..')) {
+        return '';
+    }
+    // Only the theme's own host (or a relative address): another server with the same path need not carry the copies.
+    $host = wp_parse_url($url, PHP_URL_HOST);
+    if ($host !== null && $host !== false && strtolower((string) $host) !== strtolower((string) wp_parse_url($base, PHP_URL_HOST))) {
+        return '';
+    }
+    $file = get_template_directory() . '/assets/' . rawurldecode(substr($path, strlen($base_path)));
+    return is_file($file) ? $file : '';
+}
+
+/*
+ * Smaller copies of a theme picture made by scripts/build-image-variants.py, next to it as <name>-<width>w.webp, keyed by
+ * width and smallest first. Theme pictures do not go through the image CDN (a deploy rewrites them in place and the CDN
+ * keeps its first copy for good), so these copies, each under its own file name, are what lets a phone download a small one.
+ */
+function boblift_theme_image_variants(string $url): array
+{
+    static $known = [];
+    if (array_key_exists($url, $known)) {
+        return $known[$url];
+    }
+    $file = boblift_theme_image_file($url);
+    if ($file === '') {
+        return $known[$url] = [];
+    }
+    $stem = preg_replace('/\.[a-z0-9]+$/i', '', basename($file));
+    $address = (string) strtok($url, '?#');
+    $folder_url = substr($address, 0, (int) strrpos($address, '/') + 1);
+    $variants = [];
+    foreach (glob(dirname($file) . '/' . boblift_glob_escape($stem) . '-*w.webp') ?: [] as $variant) {
+        if (preg_match('/-(\d+)w\.webp$/', $variant, $match) && basename($variant) === $stem . '-' . $match[1] . 'w.webp') {
+            $variants[(int) $match[1]] = $folder_url . basename($variant);
+        }
+    }
+    ksort($variants);
+    return $known[$url] = $variants;
+}
+
+function boblift_glob_escape(string $text): string
+{
+    return (string) preg_replace('/[\[\]*?]/', '[$0]', $text);
+}
+
+/* srcset for a theme picture from its smaller copies, the picture itself last; empty when it has none. */
+function boblift_theme_image_srcset(string $url): string
+{
+    $variants = boblift_theme_image_variants($url);
+    if (!$variants) {
+        return '';
+    }
+    $size = @getimagesize(boblift_theme_image_file($url));
+    $candidates = [];
+    foreach ($variants as $width => $variant) {
+        $candidates[] = $variant . ' ' . $width . 'w';
+    }
+    if ($size && $size[0] > array_key_last($variants)) {
+        $candidates[] = $url . ' ' . $size[0] . 'w';
+    }
+    return implode(', ', $candidates);
+}
+
+/* The smallest copy of a theme picture at least $width wide, or the picture itself. */
+function boblift_theme_image_variant(string $url, int $width): string
+{
+    foreach (boblift_theme_image_variants($url) as $variant_width => $variant) {
+        if ($variant_width >= $width) {
+            return $variant;
+        }
+    }
+    return $url;
+}
+
+/* A picture's width and height in pixels (a media-library upload or a theme picture), or null when unknown. */
+function boblift_image_dimensions(mixed $image, string $url): ?array
+{
+    $attachment_id = is_array($image) ? (int) ($image['id'] ?? 0) : 0;
+    if ($attachment_id > 0) {
+        $meta = wp_get_attachment_metadata($attachment_id);
+        return !empty($meta['width']) && !empty($meta['height']) ? [(int) $meta['width'], (int) $meta['height']] : null;
+    }
+    $file = boblift_theme_image_file($url);
+    $size = $file !== '' ? @getimagesize($file) : false;
+    return $size && $size[0] && $size[1] ? [(int) $size[0], (int) $size[1]] : null;
+}
+
+/*
  * The src attribute of a card or cover picture, with srcset and sizes when the CDN can resize it ($sizes: the width the
  * picture is shown at). Where it cannot (a local site), this is exactly src="<the picture>".
  */
 function boblift_img_src(string $url, string $sizes, int $fallback_width = 800): string
 {
-    $srcset = boblift_image_srcset($url);
+    // An upload Jetpack already sent through the CDN at one size (i0.wp.com/<site>/…?fit=1024,856) is resized from its original.
+    $original = boblift_image_cdn_original($url);
+    $srcset = boblift_image_srcset($original);
     if ($srcset === '') {
         return 'src="' . esc_url($url) . '"';
     }
-    return 'src="' . esc_url(boblift_image_resized($url, $fallback_width)) . '" srcset="' . esc_attr($srcset) . '" sizes="' . esc_attr($sizes) . '"';
+    return 'src="' . esc_url(boblift_image_resized($original, $fallback_width)) . '" srcset="' . esc_attr($srcset) . '" sizes="' . esc_attr($sizes) . '"';
+}
+
+/*
+ * The site address behind an image-CDN address of this site's own picture (i0.wp.com/<site host>/<path>), or $url
+ * unchanged. Only an address that merely scales the picture is unwrapped (fit, w, h, zoom, quality, strip, ssl); one that
+ * crops, rotates or otherwise changes it (resize, crop, rotate, filter, …) is kept as the editor saved it.
+ */
+function boblift_image_cdn_original(string $url): string
+{
+    $host = boblift_image_cdn_host(site_url());
+    if ($host === '' || !preg_match('~^https://i[0-3]\.wp\.com/' . preg_quote($host, '~') . '(/[^?#]*)(?:\?([^#]*))?~i', $url, $match)) {
+        return $url;
+    }
+    parse_str(html_entity_decode((string) ($match[2] ?? '')), $query);
+    if (array_diff(array_keys($query), ['fit', 'w', 'h', 'zoom', 'quality', 'strip', 'ssl'])) {
+        return $url;
+    }
+    return wp_parse_url(site_url(), PHP_URL_SCHEME) . '://' . $host . $match[1];
 }
 
 /* The width and Content Credentials of a picture on this site, read from its file once and remembered while it is unchanged; null for anything else. */
@@ -1710,7 +1835,7 @@ function boblift_render_item_products(array $products, string $heading): void
                     <span class="block aspect-[4/3] overflow-hidden rounded-sm bg-mist"><img class="h-full w-full object-contain p-1.5" src="<?php echo esc_url(boblift_post_thumbnail_url($product, boblift_asset('images/products/crane-accessories.png'))); ?>" alt="<?php echo esc_attr($title); ?>" loading="lazy" decoding="async"></span>
                     <span class="min-w-0">
                         <span class="line-clamp-2 block text-base font-black leading-snug text-ink transition group-hover:text-blue-700"><?php echo esc_html($title); ?></span>
-                        <?php if ($model !== '') : ?><span class="mt-0.5 block text-xs font-bold text-slate-400"><?php echo esc_html($model); ?></span><?php endif; ?>
+                        <?php if ($model !== '') : ?><span class="mt-0.5 block text-xs font-bold text-slate-500"><?php echo esc_html($model); ?></span><?php endif; ?>
                         <?php if ($specs) : ?>
                             <span class="mt-2 grid gap-0.5 text-xs text-slate-500">
                                 <?php foreach ($specs as $spec) : ?><span><?php echo esc_html((string) $spec['label']); ?> <b class="font-black text-ink"><?php echo esc_html((string) $spec['value']); ?></b></span><?php endforeach; ?>
@@ -1838,21 +1963,21 @@ function boblift_page_hero(array|string $hero, string $title = '', string $descr
     <section class="boblift-page-hero relative overflow-hidden rounded border border-line bg-white shadow-card <?php echo esc_attr((string) ($hero['class'] ?? '')); ?>" <?php echo (string) ($hero['attrs'] ?? ''); ?>>
         <?php if ($has_image) : ?>
             <div class="boblift-page-hero-media relative aspect-[11/5] w-full overflow-hidden bg-mist sm:aspect-[3/1] lg:absolute lg:inset-y-0 lg:end-0 lg:aspect-auto lg:w-[72%] lg:bg-white xl:w-[66%] 2xl:w-[62%] min-[1920px]:w-[56%]">
-                <img class="absolute inset-0 h-full w-full object-cover" style="object-position: <?php echo esc_attr((string) ($hero['image_position'] ?? 'right 30%')); ?>" src="<?php echo esc_url(boblift_page_hero_image($image)); ?>" alt="<?php echo esc_attr((string) ($hero['image_alt'] ?? '')); ?>" loading="eager" decoding="async" fetchpriority="high" data-banner-image>
+                <img class="absolute inset-0 h-full w-full object-cover" style="object-position: <?php echo esc_attr((string) ($hero['image_position'] ?? 'right 30%')); ?>" <?php echo boblift_img_src(boblift_page_hero_image($image), '(min-width: 1024px) 62vw, 100vw', 1600); ?> alt="<?php echo esc_attr((string) ($hero['image_alt'] ?? '')); ?>" loading="eager" decoding="async" fetchpriority="high" data-banner-image>
             </div>
         <?php endif; ?>
         <div class="boblift-page-hero-inner relative z-10 <?php echo esc_attr($inner_class); ?>">
             <p class="boblift-kicker boblift-page-hero-label mb-3 empty:hidden" data-banner-label><?php echo esc_html(trim((string) ($hero['label'] ?? ''))); ?></p>
             <h1 class="boblift-page-hero-title <?php echo $has_image ? 'max-w-3xl' : 'max-w-5xl'; ?> text-[clamp(2rem,3vw,3.75rem)] font-black leading-[1.02] tracking-[-0.02em] text-[#0B1B33]" data-banner-title><?php echo $title_html; ?></h1>
             <p class="boblift-page-hero-text mt-4 <?php echo $has_image ? 'max-w-xl' : 'max-w-[64rem]'; ?> text-sm font-normal leading-7 text-slate-600 empty:hidden md:text-base md:leading-8" data-banner-text><?php echo esc_html(trim((string) ($hero['text'] ?? ''))); ?></p>
-            <?php if ($meta !== '') : ?><p class="mt-4 text-xs font-black uppercase tracking-[0.14em] text-slate-400"><?php echo esc_html($meta); ?></p><?php endif; ?>
+            <?php if ($meta !== '') : ?><p class="mt-4 text-xs font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html($meta); ?></p><?php endif; ?>
             <?php if (trim((string) ($hero['buttons_html'] ?? '')) !== '') : ?>
                 <div class="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center"><?php echo $hero['buttons_html']; // Already-escaped markup from the caller, as before. ?></div>
             <?php endif; ?>
             <?php if ($links !== []) : ?>
                 <div class="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-bold text-navy md:mt-6">
                     <?php foreach ($links as $link) : ?>
-                        <a class="inline-flex items-center gap-2 transition hover:text-blue-700" href="<?php echo esc_url((string) ($link['href'] ?? '#')); ?>"<?php echo !empty($link['external']) ? ' target="_blank" rel="noreferrer"' : ''; ?>><?php echo !empty($link['icon']) ? boblift_icon((string) $link['icon'], 'h-4 w-4 text-slate-400') : ''; ?><?php echo esc_html((string) $link['label']); ?></a>
+                        <a class="inline-flex items-center gap-2 transition hover:text-blue-700" href="<?php echo esc_url((string) ($link['href'] ?? '#')); ?>"<?php echo !empty($link['external']) ? ' target="_blank" rel="noreferrer"' : ''; ?>><?php echo !empty($link['icon']) ? boblift_icon((string) $link['icon'], 'h-4 w-4 text-slate-500') : ''; ?><?php echo esc_html((string) $link['label']); ?></a>
                     <?php endforeach; ?>
                 </div>
             <?php endif; ?>
@@ -2101,7 +2226,8 @@ function boblift_product_card(array $product, string $extra_class = '', bool $ea
             </div>
             <div class="product-card-body flex flex-1 flex-col p-6">
                 <div class="product-card-head flex items-start justify-between gap-3">
-                <a class="block min-w-0 flex-1" href="<?php echo esc_url($detail_url); ?>" aria-label="<?php echo esc_attr($view_details_label . ' ' . $product['title']); ?>">
+                <?php // Named by the eyebrow and model it shows (an aria-label that left them out failed WCAG 2.5.3, label in name). ?>
+                <a class="block min-w-0 flex-1" href="<?php echo esc_url($detail_url); ?>">
                     <div class="product-card-meta mb-1.5 flex min-w-0 items-center gap-4 font-normal normal-case tracking-normal text-slate-600"><span class="line-clamp-2 block min-w-0 max-w-full break-words text-[14px] leading-[1.35]"><?php echo esc_html($card_eyebrow); ?></span></div>
                     <h2 class="product-card-title font-black <?php echo $product_model !== '' ? 'product-card-model text-[clamp(28px,1.8vw,34px)] uppercase leading-none tracking-[0.02em] text-[#0B3F7D]' : 'text-xl leading-tight tracking-[-0.01em] text-[#0B1B33]'; ?>"><?php echo esc_html($card_heading); ?></h2>
                     <p class="product-card-summary mt-3 hidden max-w-3xl text-sm font-normal leading-6 text-slate-600 lg:text-base lg:leading-7"><?php echo esc_html($product['short_description'] ?? ''); ?></p>
@@ -2111,7 +2237,7 @@ function boblift_product_card(array $product, string $extra_class = '', bool $ea
                 <?php if ($card_specs) : ?>
                     <dl class="product-card-specs mt-5 grid grid-cols-2 gap-4 border-t border-[#E5E7EB] pt-4">
                         <?php foreach ($card_specs as $spec) : ?>
-                            <div class="min-w-0"><dt class="truncate text-xs font-bold leading-4 text-slate-400"><?php echo esc_html($spec['label']); ?></dt><dd class="mt-1 truncate text-base font-black leading-5 text-[#0B1B33]" dir="ltr"><?php echo esc_html($spec['value']); ?></dd></div>
+                            <div class="min-w-0"><dt class="truncate text-xs font-bold leading-4 text-slate-500"><?php echo esc_html($spec['label']); ?></dt><dd class="mt-1 truncate text-base font-black leading-5 text-[#0B1B33]" dir="ltr"><?php echo esc_html($spec['value']); ?></dd></div>
                         <?php endforeach; ?>
                     </dl>
                 <?php endif; ?>

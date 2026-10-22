@@ -71,7 +71,19 @@ function boblift_google_tag_markup(): string
     if ($conversion !== '' && in_array(strtok($conversion, '/'), $ids, true)) {
         $script .= 'window.bobliftGoogleConversion=' . $json($conversion) . ';';
     }
-    return '<script>' . $script . '</script><script async src="https://www.googletagmanager.com/gtag/js?id=' . rawurlencode($ids[0]) . '"></script>' . "\n";
+    // The Google tag script (with the Ads and linked GA tags it pulls in, about 700 KB and a second of phone CPU) loads
+    // once the visitor first touches, scrolls or types, or 12 seconds after the page has loaded; the commands above wait
+    // in dataLayer until then. It loads at once on a click from an ad or campaign (gclid, gbraid, wbraid, utm_) so the
+    // click is kept before the visitor moves on, and on the page an inquiry lands on (sent=) so the lead is reported.
+    $src = 'https://www.googletagmanager.com/gtag/js?id=' . rawurlencode($ids[0]);
+    $script .= '(function(){var done=false,events=["pointerdown","keydown","touchstart","scroll","wheel"];'
+        . 'function load(){if(done)return;done=true;events.forEach(function(e){removeEventListener(e,load,true)});'
+        . 'var s=document.createElement("script");s.async=true;s.src=' . $json($src) . ';document.head.appendChild(s)}'
+        . 'window.bobliftLoadGoogleTag=load;'
+        . 'if(/[?&](gclid|gbraid|wbraid|utm_[a-z]+|sent)=/.test(location.search)){load();return}'
+        . 'events.forEach(function(e){addEventListener(e,load,{capture:true,passive:true})});'
+        . 'addEventListener("load",function(){setTimeout(load,12000)})})();';
+    return '<script>' . $script . '</script>' . "\n";
 }
 add_action('wp_head', static function (): void {
     if (!is_admin()) {

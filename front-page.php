@@ -48,7 +48,7 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
             <?php $hero_mobile_image = boblift_image_setting_url($slide['mobile_image'] ?? '', ''); ?>
             <picture class="contents">
                 <?php if ($hero_mobile_image !== '') : ?><source media="(max-width: 767px)" srcset="<?php echo esc_url($hero_mobile_image); ?>"><?php endif; ?>
-                <img class="boblift-home-hero-image absolute inset-0 h-full w-full object-cover object-[72%_center] lg:object-[right_20%]" src="<?php echo esc_url(boblift_page_hero_image_setting($slide['image'] ?? [], $hero_default_images[$index] ?? $hero_default_images[0])); ?>" alt="<?php echo esc_attr((string) ($slide['image_alt'] ?? '')); ?>" decoding="async" <?php echo $index === 0 ? 'loading="eager" fetchpriority="high"' : 'fetchpriority="low" aria-hidden="true"'; ?> data-home-hero-image>
+                <img class="boblift-home-hero-image absolute inset-0 h-full w-full object-cover object-[72%_center] lg:object-[right_20%]" <?php echo boblift_img_src(boblift_page_hero_image_setting($slide['image'] ?? [], $hero_default_images[$index] ?? $hero_default_images[0]), '(min-width: 1024px) 66vw, 100vw', 1600); ?> alt="<?php echo esc_attr((string) ($slide['image_alt'] ?? '')); ?>" decoding="async" <?php echo $index === 0 ? 'loading="eager" fetchpriority="high"' : 'fetchpriority="low" aria-hidden="true"'; ?> data-home-hero-image>
             </picture>
         <?php endforeach; ?>
     </div>
@@ -77,7 +77,7 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
                         <?php foreach ($hero_slides as $index => $slide) : ?>
                             <button class="boblift-home-hero-tab relative flex min-h-11 items-baseline gap-1.5 border-t-2 border-line pt-3 text-start text-sm font-black leading-5 text-slate-500 transition-colors hover:text-navy aria-selected:text-ink" type="button" role="tab" id="home-hero-tab-<?php echo esc_attr((string) $index); ?>" aria-controls="home-hero-slide-<?php echo esc_attr((string) $index); ?>" aria-selected="<?php echo $index === 0 ? 'true' : 'false'; ?>" tabindex="<?php echo $index === 0 ? '0' : '-1'; ?>" data-home-hero-tab>
                                 <span class="boblift-home-hero-tab-bar absolute inset-x-0 -top-0.5 h-0.5 bg-navy" aria-hidden="true"></span>
-                                <span class="tabular-nums text-slate-400"><?php echo esc_html(sprintf('%02d', $index + 1)); ?></span>
+                                <span class="tabular-nums text-slate-500"><?php echo esc_html(sprintf('%02d', $index + 1)); ?></span>
                                 <span><?php echo esc_html(trim((string) ($slide['tab'] ?? ''))); ?></span>
                             </button>
                         <?php endforeach; ?>
@@ -124,8 +124,8 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
             $more_certificates_label = boblift_localized_static_text('Patents & more');
             ?>
             <li class="hidden md:block">
-                <a class="group flex flex-col items-center gap-2 text-center" href="<?php echo esc_url($more_certificates_url); ?>" aria-label="<?php echo esc_attr(boblift_localized_static_text('All certificates and patents')); ?>">
-                    <span class="flex h-11 w-20 items-center justify-center gap-2 text-slate-400 transition group-hover:text-blue-700" aria-hidden="true"><span class="size-1.5 rounded-full bg-current"></span><span class="size-1.5 rounded-full bg-current"></span><span class="size-1.5 rounded-full bg-current"></span></span>
+                <a class="group flex flex-col items-center gap-2 text-center" href="<?php echo esc_url($more_certificates_url); ?>">
+                    <span class="flex h-11 w-20 items-center justify-center gap-2 text-slate-500 transition group-hover:text-blue-700" aria-hidden="true"><span class="size-1.5 rounded-full bg-current"></span><span class="size-1.5 rounded-full bg-current"></span><span class="size-1.5 rounded-full bg-current"></span></span>
                     <span class="inline-flex items-center gap-1 whitespace-nowrap text-xs font-bold leading-4 text-slate-500 transition group-hover:text-blue-700"><?php echo esc_html($more_certificates_label); ?><?php echo boblift_icon('arrow-right', 'h-3 w-3 rtl:-scale-x-100'); ?></span>
                 </a>
             </li>
@@ -137,6 +137,8 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
 <?php boblift_render_home_products(); ?>
 
 <?php // About and the factory are one chapter: who we are, then the factory you can come and see. ?>
+<?php // The photo beside the about text: the full width on phones, under half the window from 1024px. ?>
+<?php $about_stage_sizes = '(min-width: 1024px) 48vw, 100vw'; ?>
 <section id="about" class="pb-10 md:pb-16">
 <div class="page-shell grid grid-cols-1 gap-7 overflow-hidden pb-6 pt-8 md:gap-10 md:pb-10 md:pt-14 lg:grid-cols-[0.95fr_1.05fr] lg:items-start lg:gap-9 lg:pt-12 xl:grid-cols-[1fr_0.95fr] xl:items-stretch xl:gap-20 xl:pt-14" data-about-gallery>
     <div class="flex h-full min-h-0 flex-col">
@@ -146,7 +148,7 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
             <?php elseif ($active_gallery_is_local_video) : ?>
                 <video class="h-full w-full object-cover" controls preload="metadata" poster="<?php echo esc_url($active_gallery_poster); ?>"><source src="<?php echo esc_url($active_gallery_video); ?>"></video>
             <?php else : ?>
-                <img src="<?php echo esc_url($active_gallery_poster); ?>" alt="<?php echo esc_attr($active_gallery['alt'] ?? ''); ?>" class="h-full w-full object-cover" loading="lazy" decoding="async" data-about-active-image>
+                <img <?php echo boblift_img_src($active_gallery_poster, $about_stage_sizes, 1080); ?> alt="<?php echo esc_attr($active_gallery['alt'] ?? ''); ?>" class="h-full w-full object-cover" loading="lazy" decoding="async" data-about-active-image>
             <?php endif; ?>
             <span class="pointer-events-none absolute left-1/2 top-1/2 <?php echo ($active_gallery_is_youtube || $active_gallery_is_local_video) ? 'grid' : 'hidden'; ?> size-14 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-sm bg-white/94 text-gold shadow-card ring-1 ring-white/70 sm:size-20" data-about-play><?php echo boblift_icon('circle-play', 'size-7 fill-gold sm:size-10'); ?></span>
         </div>
@@ -159,8 +161,8 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
                 $gallery_youtube = boblift_youtube_embed_url((string) ($item['youtube_url'] ?? ''));
                 $gallery_is_video = ($gallery_type === 'local_video' && $gallery_video !== '') || ($gallery_type === 'youtube' && $gallery_youtube !== '');
                 ?>
-                <button class="relative h-12 overflow-hidden rounded-sm border shadow-card transition duration-200 sm:h-16 lg:h-12 xl:h-16 <?php echo $index === $active_gallery_index ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-white'; ?>" type="button" data-about-thumb data-type="<?php echo esc_attr($gallery_type); ?>" data-src="<?php echo esc_url($gallery_image); ?>" data-alt="<?php echo esc_attr($item['alt'] ?? ''); ?>" data-video-src="<?php echo esc_url($gallery_video); ?>" data-youtube-src="<?php echo esc_url($gallery_youtube); ?>" data-video="<?php echo $gallery_is_video ? 'true' : 'false'; ?>" aria-label="<?php echo esc_attr(str_replace('{item}', (string) ($item['alt'] ?? ($home_ui['galleryFallbackLabel'] ?? 'gallery image')), (string) ($home_ui['showGalleryTemplate'] ?? 'Show {item}'))); ?>">
-                    <img src="<?php echo esc_url($gallery_image); ?>" alt="<?php echo esc_attr($item['alt'] ?? ''); ?>" class="h-full w-full object-cover" loading="lazy" decoding="async">
+                <button class="relative h-12 overflow-hidden rounded-sm border shadow-card transition duration-200 sm:h-16 lg:h-12 xl:h-16 <?php echo $index === $active_gallery_index ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-white'; ?>" type="button" data-about-thumb data-type="<?php echo esc_attr($gallery_type); ?>" data-src="<?php echo esc_url($gallery_image); ?>" data-srcset="<?php echo esc_attr(boblift_image_srcset(boblift_image_cdn_original($gallery_image))); ?>" data-sizes="<?php echo esc_attr($about_stage_sizes); ?>" data-alt="<?php echo esc_attr($item['alt'] ?? ''); ?>" data-video-src="<?php echo esc_url($gallery_video); ?>" data-youtube-src="<?php echo esc_url($gallery_youtube); ?>" data-video="<?php echo $gallery_is_video ? 'true' : 'false'; ?>" aria-label="<?php echo esc_attr(str_replace('{item}', (string) ($item['alt'] ?? ($home_ui['galleryFallbackLabel'] ?? 'gallery image')), (string) ($home_ui['showGalleryTemplate'] ?? 'Show {item}'))); ?>">
+                    <img <?php echo boblift_img_src($gallery_image, '(min-width: 1280px) 110px, (min-width: 640px) 18vw, 20vw', 320); ?> alt="<?php echo esc_attr($item['alt'] ?? ''); ?>" class="h-full w-full object-cover" loading="lazy" decoding="async">
                     <?php if ($gallery_is_video) : ?><span class="absolute bottom-1 end-1 rounded-sm bg-navy/85 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.08em] text-white shadow-card sm:bottom-1.5 sm:end-1.5 sm:px-2 sm:text-[9px]"><?php echo esc_html($home_ui['videoLabel'] ?? 'Video'); ?></span><?php endif; ?>
                 </button>
             <?php endforeach; ?>

@@ -152,11 +152,11 @@ if (count($related_cards) < 3 && function_exists('boblift_feedback_items')) {
             <img class="size-12 shrink-0 rounded-sm bg-mist object-cover" src="<?php echo esc_url(boblift_asset('images/authors/achord-chan.webp')); ?>" alt="<?php echo esc_attr($byline_name); ?>" width="48" height="48" loading="lazy" decoding="async">
             <span class="min-w-0 leading-tight">
                 <span class="flex flex-wrap items-baseline gap-x-2">
-                    <span class="text-xs text-slate-400"><?php echo esc_html($ui['bylineLabel'] ?? 'Written by'); ?></span>
+                    <span class="text-xs text-slate-500"><?php echo esc_html($ui['bylineLabel'] ?? 'Written by'); ?></span>
                     <a class="text-sm font-black text-ink transition hover:text-blue-700" href="<?php echo esc_url(boblift_url('/about')); ?>"><?php echo esc_html($byline_name); ?></a>
                 </span>
                 <span class="mt-1 block text-xs text-slate-500"><?php echo esc_html($ui['bylineTitle'] ?? 'Product Operations Director, BOB-LIFT'); ?></span>
-                <span class="mt-1 block text-xs text-slate-400"><?php echo esc_html($ui['bylineUpdatedLabel'] ?? 'Updated'); ?> <time class="text-slate-600 [font-variant-numeric:tabular-nums]" datetime="<?php echo esc_attr(get_the_modified_date('c')); ?>"><?php echo esc_html(get_the_modified_date('Y-m-d')); ?></time></span>
+                <span class="mt-1 block text-xs text-slate-500"><?php echo esc_html($ui['bylineUpdatedLabel'] ?? 'Updated'); ?> <time class="text-slate-600 [font-variant-numeric:tabular-nums]" datetime="<?php echo esc_attr(get_the_modified_date('c')); ?>"><?php echo esc_html(get_the_modified_date('Y-m-d')); ?></time></span>
             </span>
         </div>
         <?php $byline_html = (string) ob_get_clean(); ?>
@@ -185,7 +185,7 @@ if (count($related_cards) < 3 && function_exists('boblift_feedback_items')) {
             <dl class="boblift-case-facts grid grid-cols-1 overflow-hidden sm:grid-cols-2 border-l border-t border-line <?php echo $image !== '' ? 'rounded-b border-t-0' : 'rounded'; ?> <?php echo [1 => 'lg:grid-cols-1', 2 => 'lg:grid-cols-2', 3 => 'lg:grid-cols-3'][count($display_facts)] ?? 'lg:grid-cols-4'; ?>" aria-label="<?php echo esc_attr($ui['factsTitle'] ?? 'Case Facts'); ?>">
                 <?php foreach ($display_facts as $fact) : ?>
                     <div class="border-b border-r border-line flex items-baseline justify-between gap-4 px-4 py-3 sm:block sm:py-4 md:px-6 md:py-5 sm:[&:last-child:nth-child(odd)]:col-span-2 lg:[&:last-child:nth-child(odd)]:col-span-1">
-                        <dt class="shrink-0 text-[11px] font-black uppercase tracking-[0.16em] text-slate-400"><?php echo esc_html($fact['label']); ?></dt>
+                        <dt class="shrink-0 text-[11px] font-black uppercase tracking-[0.16em] text-slate-500"><?php echo esc_html($fact['label']); ?></dt>
                         <dd class="min-w-0 text-end text-[0.9375rem] font-black text-ink sm:mt-1 sm:text-start sm:text-base md:text-lg"><?php echo esc_html($fact['value']); ?></dd>
                     </div>
                 <?php endforeach; ?>
@@ -259,7 +259,7 @@ if (count($related_cards) < 3 && function_exists('boblift_feedback_items')) {
                         <h2 class="text-lg font-black tracking-[-0.01em] text-ink"><?php echo esc_html($block['heading']); ?></h2>
                         <ul class="mt-4 grid gap-2 <?php echo $block_index === 0 ? 'sm:grid-cols-2' : ''; ?>">
                             <?php foreach ($block['links'] as $link) : ?>
-                                <li><a class="group flex h-full items-center justify-between gap-3 rounded-sm border border-line px-4 py-3 text-sm font-bold leading-snug text-ink transition hover:border-blue-300 hover:text-blue-700" href="<?php echo esc_url($link['href']); ?>"<?php echo $link['external'] ? ' target="_blank" rel="noopener"' : ''; ?>><span><?php echo esc_html($link['label']); ?></span><?php echo boblift_icon($link['external'] ? 'arrow-up-right' : 'arrow-right', 'h-4 w-4 shrink-0 text-slate-400 transition group-hover:text-blue-600 rtl:-scale-x-100'); ?></a></li>
+                                <li><a class="group flex h-full items-center justify-between gap-3 rounded-sm border border-line px-4 py-3 text-sm font-bold leading-snug text-ink transition hover:border-blue-300 hover:text-blue-700" href="<?php echo esc_url($link['href']); ?>"<?php echo $link['external'] ? ' target="_blank" rel="noopener"' : ''; ?>><span><?php echo esc_html($link['label']); ?></span><?php echo boblift_icon($link['external'] ? 'arrow-up-right' : 'arrow-right', 'h-4 w-4 shrink-0 text-slate-500 transition group-hover:text-blue-600 rtl:-scale-x-100'); ?></a></li>
                             <?php endforeach; ?>
                         </ul>
                     </div>

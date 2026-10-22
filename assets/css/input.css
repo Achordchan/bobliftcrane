@@ -79,7 +79,7 @@ img { max-width: 100%; }
   .boblift-category-tab[aria-pressed="true"] { @apply border-[#0B3F7D] text-[#0B1B33]; }
   .boblift-category-subtab { @apply inline-flex h-9 items-center gap-2 rounded-sm border border-[#D8DEE8] bg-white px-3 text-sm font-black text-slate-600 transition hover:border-blue-300 hover:text-blue-700; }
   .boblift-category-subtab[aria-pressed="true"] { @apply border-[#0B3F7D] bg-[#0B3F7D] text-white; }
-  .boblift-category-tab [data-tab-count], .boblift-category-subtab [data-tab-count] { @apply text-xs font-black text-slate-400; }
+  .boblift-category-tab [data-tab-count], .boblift-category-subtab [data-tab-count] { @apply text-xs font-black text-slate-500; }
   /* Plain declarations: @apply hidden would copy every selector that uses .hidden (the mobile-menu toggle among them). */
   .boblift-category-tab [data-tab-count] { display: none; }
   @media (min-width: 1280px) { .boblift-category-tab [data-tab-count] { display: inline; } }
@@ -1660,7 +1660,7 @@ img { max-width: 100%; }
   @apply inline-flex h-7 rounded-sm border-blue-100 bg-blue-50 px-3 text-[10px] text-blue-700;
 }
 #news-updates.is-list-view .boblift-news-result-date {
-  @apply text-[12px] font-black uppercase tracking-[0.12em] text-slate-400;
+  @apply text-[12px] font-black uppercase tracking-[0.12em] text-slate-500;
 }
 #news-updates.is-list-view .boblift-news-result-title {
   @apply line-clamp-1 text-xl font-black leading-tight tracking-[-0.015em] text-navy md:text-2xl;

@@ -11,6 +11,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
+      # The smaller WebP copies of theme pictures are committed; rebuilding them here keeps a deploy right even if a
+      # picture was replaced without re-running the script (the output for an unchanged picture is identical).
+      - name: Build image variants
+        run: |
+          python3 -m pip install --quiet Pillow
+          python3 scripts/build-image-variants.py
       - name: Upload the artifact
         uses: actions/upload-artifact@v4
         with:

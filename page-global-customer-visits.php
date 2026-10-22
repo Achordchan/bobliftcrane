@@ -142,7 +142,7 @@ $wall_alt = $t($visits['label'] ?? 'Global Customer Visits');
                         <span class="relative block <?php echo esc_attr($is_last_card ? $last_media : 'aspect-[4/3]'); ?> overflow-hidden bg-mist"><img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" src="<?php echo esc_url($thumb_url($card['image'])); ?>" alt="<?php echo esc_attr($card['alt']); ?>" loading="lazy" decoding="async"></span>
                         <span class="flex items-center justify-between gap-2 px-3.5 py-3 sm:px-4">
                             <span class="min-w-0 truncate text-sm font-black text-ink sm:text-base"><?php echo esc_html($card['label']); ?></span>
-                            <span class="inline-flex shrink-0 items-center gap-1 text-xs font-bold tabular-nums text-slate-400"><?php echo boblift_icon('images', 'h-3.5 w-3.5'); ?><?php echo esc_html((string) $card['count']); ?></span>
+                            <span class="inline-flex shrink-0 items-center gap-1 text-xs font-bold tabular-nums text-slate-500"><?php echo boblift_icon('images', 'h-3.5 w-3.5'); ?><?php echo esc_html((string) $card['count']); ?></span>
                         </span>
                     </button>
                 <?php endforeach; ?>

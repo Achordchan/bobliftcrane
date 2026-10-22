@@ -166,7 +166,7 @@ function boblift_render_model_cards(array $models, string $labelled_by, array $r
                         <?php if ($is_this) : ?>
                             <p class="flex flex-wrap items-center gap-x-2 text-lg font-black text-ink"><?php echo esc_html($item['model']); ?><span class="text-[11px] font-black uppercase tracking-[0.1em] text-slate-500"><?php echo esc_html($t('This model')); ?></span></p>
                         <?php else : ?>
-                            <a class="inline-flex items-center gap-1 text-lg font-black text-ink transition hover:text-blue-700" href="<?php echo esc_url($item['url']); ?>"><?php echo esc_html($item['model']); ?><?php echo boblift_icon('arrow-up-right', 'h-3.5 w-3.5 shrink-0 text-slate-400 rtl:-scale-x-100'); ?></a>
+                            <a class="inline-flex items-center gap-1 text-lg font-black text-ink transition hover:text-blue-700" href="<?php echo esc_url($item['url']); ?>"><?php echo esc_html($item['model']); ?><?php echo boblift_icon('arrow-up-right', 'h-3.5 w-3.5 shrink-0 text-slate-500 rtl:-scale-x-100'); ?></a>
                         <?php endif; ?>
                         <p class="mt-1 line-clamp-2 text-xs leading-5 text-slate-500"><?php echo esc_html((string) $item['title']); ?></p>
                     </div>
@@ -244,7 +244,7 @@ function boblift_render_model_table(array $models, string $labelled_by, array $o
                             <?php else : ?>
                                 <a class="group block" href="<?php echo esc_url($item['url']); ?>">
                                     <span class="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-sm bg-[#F8FAFC]"><img class="h-full w-full object-contain transition duration-500 group-hover:scale-[1.04]" src="<?php echo esc_url($item['image']); ?>" alt="" loading="lazy" decoding="async"></span>
-                                    <span class="mt-3 flex items-center gap-1 text-base font-black text-ink transition group-hover:text-blue-700"><?php echo esc_html($item['model']); ?><?php echo boblift_icon('arrow-up-right', 'h-3.5 w-3.5 shrink-0 text-slate-400 transition group-hover:text-blue-700 rtl:-scale-x-100'); ?></span>
+                                    <span class="mt-3 flex items-center gap-1 text-base font-black text-ink transition group-hover:text-blue-700"><?php echo esc_html($item['model']); ?><?php echo boblift_icon('arrow-up-right', 'h-3.5 w-3.5 shrink-0 text-slate-500 transition group-hover:text-blue-700 rtl:-scale-x-100'); ?></span>
                                     <span class="mt-1 line-clamp-2 block text-xs leading-5 text-slate-500"><?php echo esc_html((string) $item['title']); ?></span>
                                 </a>
                             <?php endif; ?>
@@ -272,7 +272,7 @@ function boblift_render_model_table(array $models, string $labelled_by, array $o
                                 <?php elseif ($item['id'] !== $this_id) : ?>
                                     <a class="inline-flex items-center gap-1.5 text-sm font-black text-[#071f42] transition hover:text-blue-700" href="<?php echo esc_url($item['url']); ?>"><?php echo esc_html(str_replace('{model}', (string) $item['model'], $t('View {model}'))); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 shrink-0 rtl:rotate-180'); ?></a>
                                 <?php else : ?>
-                                    <span class="text-slate-400">–</span>
+                                    <span class="text-slate-500">–</span>
                                 <?php endif; ?>
                             </td>
                         <?php endforeach; ?>
@@ -341,7 +341,7 @@ function boblift_render_legacy_panel_block(array $groups): void
     <section id="previous-models" class="boblift-legacy-panel scroll-mt-6" aria-labelledby="legacy-library-title" data-legacy-panel>
         <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between md:gap-8">
             <div class="min-w-0">
-                <h2 id="legacy-library-title" class="text-[clamp(1.5rem,2.2vw,2.25rem)] font-black leading-[1.08] tracking-[-0.015em] text-ink"><?php echo esc_html($t('Previous models')); ?><span class="text-slate-400" data-legacy-scope-title hidden></span></h2>
+                <h2 id="legacy-library-title" class="text-[clamp(1.5rem,2.2vw,2.25rem)] font-black leading-[1.08] tracking-[-0.015em] text-ink"><?php echo esc_html($t('Previous models')); ?><span class="text-slate-500" data-legacy-scope-title hidden></span></h2>
                 <p class="mt-2 max-w-[60ch] text-sm leading-6 text-slate-600 md:text-base md:leading-7"><?php echo esc_html($t('Configurations we no longer build as standard. Each can still be built to order on request.')); ?></p>
             </div>
             <button class="inline-flex h-11 w-fit shrink-0 items-center gap-2 rounded-sm border border-[#D8DEE8] bg-white px-4 text-sm font-black text-[#0B1B33] shadow-card transition hover:border-blue-300 hover:text-blue-700" type="button" data-legacy-close><?php echo boblift_icon('arrow-right', 'h-4 w-4 rotate-180 rtl:rotate-0'); ?><?php echo esc_html($t('Back to current models')); ?></button>
@@ -374,11 +374,11 @@ function boblift_render_legacy_panel_block(array $groups): void
                             <tbody>
                                 <?php foreach ($models as $item) : ?>
                                     <tr class="group/row">
-                                        <th class="<?php echo esc_attr($cell . ' ' . $sticky); ?> text-start" scope="row"><a class="inline-flex items-center gap-1 font-black text-ink transition hover:text-blue-700" href="<?php echo esc_url($item['url']); ?>"><?php echo esc_html($item['model']); ?><?php echo boblift_icon('arrow-up-right', 'h-3.5 w-3.5 shrink-0 text-slate-400 rtl:-scale-x-100'); ?></a></th>
+                                        <th class="<?php echo esc_attr($cell . ' ' . $sticky); ?> text-start" scope="row"><a class="inline-flex items-center gap-1 font-black text-ink transition hover:text-blue-700" href="<?php echo esc_url($item['url']); ?>"><?php echo esc_html($item['model']); ?><?php echo boblift_icon('arrow-up-right', 'h-3.5 w-3.5 shrink-0 text-slate-500 rtl:-scale-x-100'); ?></a></th>
                                         <td class="<?php echo esc_attr($cell); ?> whitespace-nowrap font-semibold text-ink [font-variant-numeric:tabular-nums]"><?php echo esc_html($item['capacity_label'] ?: '–'); ?></td>
                                         <td class="<?php echo esc_attr($cell); ?> whitespace-nowrap font-semibold text-ink [font-variant-numeric:tabular-nums]"><?php echo esc_html($item['moment'] ?: '–'); ?></td>
                                         <td class="<?php echo esc_attr($cell); ?> whitespace-nowrap font-semibold text-ink [font-variant-numeric:tabular-nums]"><?php echo esc_html($item['weight'] ?: '–'); ?></td>
-                                        <td class="<?php echo esc_attr($cell); ?> font-black [&_a]:text-blue-700 [&_a]:underline-offset-4 [&_a:hover]:underline"><?php echo $item['current'] ? boblift_guide_model_links($item['current']) : '<span class="text-slate-400">–</span>'; // phpcs:ignore WordPress.Security.EscapeOutput -- escaped by boblift_guide_model_links. ?></td>
+                                        <td class="<?php echo esc_attr($cell); ?> font-black [&_a]:text-blue-700 [&_a]:underline-offset-4 [&_a:hover]:underline"><?php echo $item['current'] ? boblift_guide_model_links($item['current']) : '<span class="text-slate-500">–</span>'; // phpcs:ignore WordPress.Security.EscapeOutput -- escaped by boblift_guide_model_links. ?></td>
                                         <td class="<?php echo esc_attr($cell); ?> whitespace-nowrap"><button class="inline-flex items-center gap-1.5 text-sm font-black text-blue-700 transition hover:text-[#071f42]" type="button" data-inquiry-modal-open data-inquiry-source="历史型号库" data-inquiry-product="<?php echo esc_attr((string) $item['title']); ?>" data-inquiry-products="<?php echo esc_attr(boblift_inquiry_product_payload((int) $item['id'], (string) $item['title'], (string) $item['image'])); ?>"><?php echo esc_html($t('Ask about this model')); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 shrink-0 rtl:rotate-180'); ?></button></td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -480,7 +480,7 @@ function boblift_render_archive_made(): void
                     <p class="mt-6 max-w-[40ch] text-base leading-7 text-slate-600"><?php echo esc_html($t('Photographed at our factory in Xuzhou, Jiangsu: the steps a crane goes through before it leaves.')); ?></p>
                     <ol class="mt-8 hidden border-t border-[#D9DEE7] lg:block" data-scroll-steps>
                         <?php foreach ($steps as $index => $step) : ?>
-                            <li><a class="group flex items-baseline gap-4 border-b border-[#D9DEE7] py-3 text-slate-400 transition hover:text-ink aria-[current=true]:border-b-blue-700 aria-[current=true]:text-ink [&[aria-current=true]>span:first-child]:text-blue-700" href="#archive-made-<?php echo esc_attr($number($index)); ?>" aria-current="<?php echo $index === 0 ? 'true' : 'false'; ?>"><span class="text-xs font-bold text-slate-400 [font-variant-numeric:tabular-nums]"><?php echo esc_html($number($index)); ?></span><span class="text-lg font-black leading-snug"><?php echo esc_html($step['title']); ?></span></a></li>
+                            <li><a class="group flex items-baseline gap-4 border-b border-[#D9DEE7] py-3 text-slate-500 transition hover:text-ink aria-[current=true]:border-b-blue-700 aria-[current=true]:text-ink [&[aria-current=true]>span:first-child]:text-blue-700" href="#archive-made-<?php echo esc_attr($number($index)); ?>" aria-current="<?php echo $index === 0 ? 'true' : 'false'; ?>"><span class="text-xs font-bold text-slate-500 [font-variant-numeric:tabular-nums]"><?php echo esc_html($number($index)); ?></span><span class="text-lg font-black leading-snug"><?php echo esc_html($step['title']); ?></span></a></li>
                         <?php endforeach; ?>
                     </ol>
                 </div>

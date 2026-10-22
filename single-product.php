@@ -406,7 +406,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                     <div class="boblift-product-hero-actions mt-6 flex flex-wrap items-center gap-2.5 sm:gap-3 lg:mt-7">
                         <button class="boblift-product-hero-request inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-sm bg-[#071f42] px-6 text-sm font-black text-white transition hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页首屏" data-inquiry-product="<?php echo esc_attr($product['title']); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html($ui['requestQuoteLabel'] ?? 'Request Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
                         <?php if ($hero_pdf_url !== '') : ?>
-                            <a class="boblift-product-hero-pdf inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-sm border border-[#D5DEE9] bg-white px-5 text-sm font-black text-[#0B3F7D] transition hover:border-blue-300" href="<?php echo esc_url($hero_pdf_url); ?>" <?php echo $hero_pdf_file !== '' ? 'download="' . esc_attr($hero_pdf_file) . '"' : 'target="_blank" rel="noopener"'; ?>><?php echo boblift_icon('download', 'h-4 w-4'); ?><?php echo esc_html($hero_pdf_label); ?><?php if ($hero_pdf_size !== '') : ?><span class="hidden text-xs font-bold text-slate-400 sm:inline"><?php echo esc_html($hero_pdf_size); ?></span><?php endif; ?></a>
+                            <a class="boblift-product-hero-pdf inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-sm border border-[#D5DEE9] bg-white px-5 text-sm font-black text-[#0B3F7D] transition hover:border-blue-300" href="<?php echo esc_url($hero_pdf_url); ?>" <?php echo $hero_pdf_file !== '' ? 'download="' . esc_attr($hero_pdf_file) . '"' : 'target="_blank" rel="noopener"'; ?>><?php echo boblift_icon('download', 'h-4 w-4'); ?><?php echo esc_html($hero_pdf_label); ?><?php if ($hero_pdf_size !== '') : ?><span class="hidden text-xs font-bold text-slate-500 sm:inline"><?php echo esc_html($hero_pdf_size); ?></span><?php endif; ?></a>
                         <?php endif; ?>
                     </div>
                     <?php if ($hero_whatsapp_href !== '' || $hero_email !== '') : ?>
@@ -416,7 +416,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                                 <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 font-black text-[#071f42] transition hover:border-[#25D366]" href="<?php echo esc_url($hero_whatsapp_href); ?>" target="_blank" rel="noopener"><?php echo boblift_icon('whatsapp', 'h-4 w-4 text-[#25D366]'); ?><span class="[font-variant-numeric:tabular-nums]"><?php echo esc_html($hero_whatsapp_display); ?></span></a>
                             <?php endif; ?>
                             <?php if ($hero_email !== '') : ?>
-                                <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 font-black text-[#071f42] transition hover:border-blue-500" href="<?php echo esc_url('mailto:' . $hero_email . '?subject=' . rawurlencode('BOB-LIFT quote: ' . ($hero_model !== '' ? $hero_model : $product_title))); ?>"><?php echo boblift_icon('mail', 'h-4 w-4 text-slate-400'); ?><?php echo esc_html($hero_email); ?></a>
+                                <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 font-black text-[#071f42] transition hover:border-blue-500" href="<?php echo esc_url('mailto:' . $hero_email . '?subject=' . rawurlencode('BOB-LIFT quote: ' . ($hero_model !== '' ? $hero_model : $product_title))); ?>"><?php echo boblift_icon('mail', 'h-4 w-4 text-slate-500'); ?><?php echo esc_html($hero_email); ?></a>
                             <?php endif; ?>
                         </div>
                     <?php endif; ?>
@@ -602,7 +602,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                                         </tbody>
                                     </table>
                                 </div>
-                                <p class="mt-3 text-[11px] leading-4 text-slate-400"><?php echo esc_html(boblift_localized_static_text('Reach is measured from the slewing centre to the hook. Figures from the drawing above.')); ?></p>
+                                <p class="mt-3 text-[11px] leading-4 text-slate-500"><?php echo esc_html(boblift_localized_static_text('Reach is measured from the slewing centre to the hook. Figures from the drawing above.')); ?></p>
                             </figure>
                         <?php endif; ?>
                     </div>
@@ -626,7 +626,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                     ?>
                     <div class="grid gap-8 p-5 sm:p-6 md:p-10 xl:p-12 <?php echo $detail_has_right ? 'lg:grid-cols-2 lg:gap-14 xl:gap-20' : ''; ?>">
                         <div class="min-w-0 <?php echo $detail_has_right ? 'lg:sticky lg:top-[calc(var(--boblift-header-h)+6rem)] lg:self-start' : ''; ?>">
-                            <p class="boblift-kicker"><?php echo esc_html($ui['detailBodyLabel'] ?? 'Product details'); ?><?php if ($detail_model_label !== '') : ?><span class="text-slate-400"> · </span><?php echo esc_html($detail_model_label); ?><?php endif; ?></p>
+                            <p class="boblift-kicker"><?php echo esc_html($ui['detailBodyLabel'] ?? 'Product details'); ?><?php if ($detail_model_label !== '') : ?><span class="text-slate-500"> · </span><?php echo esc_html($detail_model_label); ?><?php endif; ?></p>
                             <h2 class="mt-3 text-[clamp(1.75rem,3vw,3rem)] font-black leading-[1.05] tracking-[-0.02em] text-[#071f42] [text-wrap:balance]"><?php echo esc_html($product_title); ?></h2>
                         <?php if ($product_videos) :
                             $first_video = $product_videos[0];
@@ -650,7 +650,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                                 <p class="sr-only" data-inline-video-caption><?php echo esc_html((string) $first_video['label']); ?></p>
                                 <?php if (count($product_videos) > 1) : ?>
                                     <?php // A strip of small thumbnails, each with its title, like a playlist under the player. ?>
-                                    <p class="mt-4 text-[11px] font-black uppercase tracking-[0.14em] text-[#071f42] rtl:tracking-normal"><?php echo esc_html($video_ui['moreVideosLabel'] ?? 'Videos'); ?><span class="ms-2 font-semibold text-slate-400 [font-variant-numeric:tabular-nums]"><?php echo esc_html((string) count($product_videos)); ?></span></p>
+                                    <p class="mt-4 text-[11px] font-black uppercase tracking-[0.14em] text-[#071f42] rtl:tracking-normal"><?php echo esc_html($video_ui['moreVideosLabel'] ?? 'Videos'); ?><span class="ms-2 font-semibold text-slate-500 [font-variant-numeric:tabular-nums]"><?php echo esc_html((string) count($product_videos)); ?></span></p>
                                     <ul class="mt-2 flex flex-wrap gap-3">
                                         <?php foreach ($product_videos as $index => $video) : ?>
                                             <li class="w-24 sm:w-28">
@@ -848,7 +848,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                                         <a class="block" href="<?php echo esc_url($buying_brochure['url']); ?>" download="<?php echo esc_attr($buying_brochure['file']); ?>" tabindex="-1" aria-hidden="true"><img class="aspect-[520/711] w-full rounded-sm border border-[#DDE7F2] bg-white object-cover" src="<?php echo esc_url($buying_brochure['cover']); ?>" width="520" height="711" alt="" loading="lazy" decoding="async"></a>
                                         <div class="min-w-0">
                                             <p class="font-black leading-snug text-[#071f42]"><?php echo esc_html($buying_brochure['title']); ?></p>
-                                            <p class="mt-1 text-[11px] font-black uppercase tracking-[0.1em] text-slate-400"><?php echo esc_html(implode(' · ', array_filter(['PDF', str_replace('{count}', (string) $buying_brochure['pages'], (string) ($brochure_ui['pagesLabel'] ?? '{count} pages')), (string) $buying_brochure['size']]))); ?></p>
+                                            <p class="mt-1 text-[11px] font-black uppercase tracking-[0.1em] text-slate-500"><?php echo esc_html(implode(' · ', array_filter(['PDF', str_replace('{count}', (string) $buying_brochure['pages'], (string) ($brochure_ui['pagesLabel'] ?? '{count} pages')), (string) $buying_brochure['size']]))); ?></p>
                                             <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
                                                 <a class="inline-flex items-center gap-1.5 font-black text-[#0B3F7D] transition hover:text-blue-700" href="<?php echo esc_url($buying_brochure['url']); ?>" download="<?php echo esc_attr($buying_brochure['file']); ?>"><?php echo boblift_icon('download', 'h-4 w-4'); ?><?php echo esc_html((string) ($brochure_ui['downloadLabel'] ?? 'Download PDF')); ?></a>
                                                 <button class="font-black text-blue-700 transition hover:text-[#071f42]" type="button" data-catalog-modal-open data-catalog-product="<?php echo esc_attr($product_title); ?>" data-catalog-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-catalog-url="<?php echo esc_url($buying_brochure['url']); ?>"><?php echo esc_html((string) ($brochure_ui['emailLabel'] ?? 'Email me a copy')); ?></button>
@@ -954,7 +954,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                                     <?php foreach ($faq_group['items'] as $faq_index => $faq) : ?>
                                         <details class="group border-b border-[#E6EDF5]">
                                             <summary class="flex cursor-pointer list-none items-start gap-3 py-4 text-[15px] font-black leading-6 text-[#071f42] transition hover:text-blue-700 md:gap-4 md:text-base [&::-webkit-details-marker]:hidden">
-                                                <span class="w-6 shrink-0 text-xs font-black leading-6 text-slate-400 [font-variant-numeric:tabular-nums]"><?php echo esc_html(str_pad((string) ($faq_index + 1), 2, '0', STR_PAD_LEFT)); ?></span>
+                                                <span class="w-6 shrink-0 text-xs font-black leading-6 text-slate-500 [font-variant-numeric:tabular-nums]"><?php echo esc_html(str_pad((string) ($faq_index + 1), 2, '0', STR_PAD_LEFT)); ?></span>
                                                 <span class="min-w-0 flex-1"><?php echo esc_html($faq['question']); ?></span>
                                                 <span class="grid size-6 shrink-0 place-items-center rounded-sm border border-[#DDE7F2] text-slate-500 transition group-open:rotate-180 group-open:border-[#0B3F7D] group-open:text-[#0B3F7D]"><?php echo boblift_icon('chevron-down', 'h-3.5 w-3.5'); ?></span>
                                             </summary>
@@ -1019,7 +1019,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                                         <?php if ($related_specs) : ?>
                                             <span class="mt-3 grid grid-cols-2 gap-2 border-t border-[#E5E7EB] pt-3">
                                                 <?php foreach ($related_specs as $spec) : ?>
-                                                    <span class="min-w-0"><span class="block truncate text-[11px] font-semibold leading-4 text-slate-400"><?php echo esc_html($spec['label']); ?></span><span class="mt-0.5 block truncate text-sm font-black text-[#071f42]" dir="ltr"><?php echo esc_html($spec['value']); ?></span></span>
+                                                    <span class="min-w-0"><span class="block truncate text-[11px] font-semibold leading-4 text-slate-500"><?php echo esc_html($spec['label']); ?></span><span class="mt-0.5 block truncate text-sm font-black text-[#071f42]" dir="ltr"><?php echo esc_html($spec['value']); ?></span></span>
                                                 <?php endforeach; ?>
                                             </span>
                                         <?php endif; ?>
