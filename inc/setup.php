@@ -499,6 +499,30 @@ function boblift_limit_main_search(WP_Query $query): void
 }
 add_action('pre_get_posts', 'boblift_limit_main_search');
 
+// On the front end the case and product types carry their names in the page's language. Their registered labels are the
+// Chinese admin names (案例, 产品), and markup built from them, such as the breadcrumb JSON-LD the platform prints in
+// <head>, would otherwise show those on every language.
+function boblift_localize_front_post_type_names(): void
+{
+    if (is_admin() || wp_doing_ajax() || (defined('REST_REQUEST') && REST_REQUEST)) {
+        return;
+    }
+    $names = [
+        'case' => (string) (boblift_site_ui('caseDetail')['cases'] ?? 'Cases'),
+        'product' => (string) (boblift_site_ui('search')['tabProducts'] ?? 'Products'),
+    ];
+    foreach ($names as $type => $name) {
+        $object = get_post_type_object($type);
+        if ($object && $name !== '') {
+            $object->label = $name;
+            $object->labels->name = $name;
+            $object->labels->menu_name = $name;
+            $object->labels->archives = $name;
+        }
+    }
+}
+add_action('wp', 'boblift_localize_front_post_type_names');
+
 // Article JSON-LD kept in _article_schema_jsonld; {{home}} stands for the site address so the markup follows the host.
 function boblift_article_schema(): void
 {
