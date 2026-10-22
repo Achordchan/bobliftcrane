@@ -116,7 +116,7 @@ function boblift_guess_404_permalink_in_request_language(mixed $pre): mixed
         return $pre;
     }
 
-    $language = boblift_request_language() ?: (string) pll_default_language();
+    $language = boblift_request_url_language() ?: (string) pll_default_language();
     $default = (string) pll_default_language();
     $chosen = 0;
     foreach ($ids as $id) {
@@ -147,36 +147,12 @@ function boblift_guess_404_permalink_in_request_language(mixed $pre): mixed
 add_filter('pre_redirect_guess_404_permalink', 'boblift_guess_404_permalink_in_request_language');
 
 /**
- * The language the requested address asks for: its /xx/ directory, else the default language when Polylang hides the
- * default language's directory. "" when that cannot be told (Polylang off, or not in directory mode).
- */
-function boblift_request_language(): string
-{
-    if (!function_exists('pll_default_language')) {
-        return '';
-    }
-    $options = (array) get_option('polylang', []);
-    if ((int) ($options['force_lang'] ?? 0) !== 1) {
-        return '';
-    }
-    $path = (string) parse_url(wp_unslash((string) ($_SERVER['REQUEST_URI'] ?? '/')), PHP_URL_PATH);
-    $base = boblift_language_path_base();
-    foreach (boblift_prefixed_languages() as $slug) {
-        if (preg_match('#^/' . preg_quote($base . $slug, '#') . '(/|$)#', $path)) {
-            return (string) $slug;
-        }
-    }
-    $hide_default = !array_key_exists('hide_default', $options) || !empty($options['hide_default']);
-    return $hide_default ? (string) pll_default_language() : '';
-}
-
-/**
  * Keeps a page found by its bare slug in the language of the request.
  *
  * Translated copies of the About child pages (contact, service, why-choose-us ...) have no parent, so /contact/ matches
  * whichever copy get_page_by_path() finds first and the canonical redirect then sent visitors to /ja/contact.html; the
  * English page, under About, made /ja/about/contact/ land on /contact.html. When the post found is in another language
- * than the address asks for and has a published translation in that language, redirect there instead, keeping the query.
+ * than the address asks for and has a published translation in that language, redirect there instead.
  */
 function boblift_canonical_in_request_language(string|false $redirect_url, string $requested_url): string|false
 {
@@ -184,7 +160,7 @@ function boblift_canonical_in_request_language(string|false $redirect_url, strin
         return $redirect_url;
     }
     $post = get_queried_object();
-    $language = boblift_request_language();
+    $language = boblift_request_url_language();
     if (!$post instanceof WP_Post || $language === '') {
         return $redirect_url;
     }
@@ -200,7 +176,17 @@ function boblift_canonical_in_request_language(string|false $redirect_url, strin
     if (!is_string($url) || $url === '') {
         return $redirect_url;
     }
-    $query = (string) parse_url($requested_url, PHP_URL_QUERY);
-    return $query !== '' ? $url . (str_contains($url, '?') ? '&' : '?') . $query : $url;
+    // Keep campaign parameters (gclid, utm_*), but not routing ones: ?page_id=569 or ?lang=ja would pick the other
+    // language's page again on the corrected address (as in boblift_redirect_case_to_url_language()).
+    $query = wp_unslash($_GET);
+    $query = is_array($query) ? $query : [];
+    foreach (['p', 'page_id', 'name', 'pagename', 'post_type', 'lang', 'preview', 'preview_id'] as $routing_key) {
+        unset($query[$routing_key]);
+    }
+    if (untrailingslashit((string) parse_url($requested_url, PHP_URL_PATH)) === untrailingslashit((string) parse_url($url, PHP_URL_PATH)) && !array_diff_key(wp_unslash($_GET), $query)) {
+        return $redirect_url;
+    }
+    $query_string = http_build_query($query, '', '&', PHP_QUERY_RFC3986);
+    return $query_string !== '' ? $url . (str_contains($url, '?') ? '&' : '?') . $query_string : $url;
 }
 add_filter('redirect_canonical', 'boblift_canonical_in_request_language', 20, 2);
