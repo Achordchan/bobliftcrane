@@ -94,7 +94,7 @@ function boblift_guess_404_permalink_in_request_language(mixed $pre): mixed
     }
 
     global $wpdb;
-    $types = array_values(array_diff(get_post_types(['public' => true]), ['attachment']));
+    $types = array_values(array_filter(array_diff(get_post_types(['public' => true]), ['attachment']), 'is_post_type_viewable'));
     if (get_query_var('post_type')) {
         $types = array_values(array_intersect($types, (array) get_query_var('post_type')));
     }
