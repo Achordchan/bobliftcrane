@@ -153,10 +153,12 @@ function boblift_product_data_fix_sq8za6_moment(): ?bool
     $ok = true;
     foreach (array_unique(array_map('intval', array_merge([$english], $ids))) as $id) {
         $rows = (array) boblift_decode_meta(get_post_meta($id, '_specs', true), []);
-        // The row at the English moment's position, in a table of the same length, and only when its value is itself a
-        // moment of 16: "16", "16.0", "16,0" with no unit or a t·m unit in any spelling ("t·m", "Ton.m", "ton.m", "tm").
-        // Anything else (a reordered table, "16 kW", an editor's other figure) is left alone.
-        if (count($rows) !== count($english_rows) || !preg_match('/^16(?:[.,]0+)?(\s*(?:t(?:on)?\s*[·.]?\s*m)?)$/iu', trim((string) ($rows[$row_index]['value'] ?? '')), $unit)) {
+        // Row identity: the table must follow the English one row for row (every other row's first figure equal to the
+        // English row's, boblift_spec_rows_aligned()), so the row at the English moment's position is the moment. Its own
+        // value must then be a moment of 16: "16", "16.0", "16,0" with no unit or a t·m unit ("t·m", "Ton.m", "ton.m",
+        // "tm"). Anything else (a reordered table, "16 kW", an editor's other figure) is left alone.
+        $others = static fn(array $table): array => array_values(array_diff_key($table, [$row_index => true]));
+        if (!boblift_spec_rows_aligned($others($rows), $others($english_rows)) || !preg_match('/^16(?:[.,]0+)?(\s*(?:t(?:on)?\s*[·.]?\s*m)?)$/iu', trim((string) ($rows[$row_index]['value'] ?? '')), $unit)) {
             continue;
         }
         $rows[$row_index]['value'] = '16.7' . $unit[1];
