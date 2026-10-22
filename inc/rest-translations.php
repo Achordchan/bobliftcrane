@@ -91,6 +91,13 @@ function boblift_rest_check_translation(string $post_type, int $post_id, array $
     if ($existing > 0 && $existing !== $post_id) {
         return new WP_Error('boblift_translation_exists', 'The source already has a ' . $lang . ' translation (ID ' . $existing . ').', ['status' => 409]);
     }
+    // A news post keeps its source's categories, so each one needs a translation in the target language.
+    if ($post_type === 'post' && function_exists('pll_get_term')) {
+        $missing = array_filter(wp_get_post_categories($source->ID), static fn(int $id): bool => (int) pll_get_term($id, $lang) <= 0);
+        if ($missing) {
+            return new WP_Error('boblift_translation_category', 'These source categories have no ' . $lang . ' translation: ' . implode(', ', $missing) . '.', ['status' => 400]);
+        }
+    }
     $meta = is_array($value['meta'] ?? null) ? $value['meta'] : [];
     $allowed = boblift_rest_translation_meta_keys($post_type);
     $unknown = array_diff(array_keys($meta), $allowed);
@@ -172,7 +179,7 @@ function boblift_rest_save_translation(WP_Post $post, array $value): true|WP_Err
         set_post_thumbnail($post->ID, $thumbnail);
     }
     if ($post->post_type === 'post') {
-        $categories = array_values(array_filter(array_map(static fn(int $id): int => (int) pll_get_term($id, $lang), wp_get_post_categories($source->ID))));
+        $categories = array_map(static fn(int $id): int => (int) pll_get_term($id, $lang), wp_get_post_categories($source->ID));
         if ($categories) {
             wp_set_post_categories($post->ID, $categories);
         }
