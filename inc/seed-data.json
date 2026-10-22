@@ -144,15 +144,15 @@
       "intro": "Engineered lifting solutions for global projects. Built to lift. Built to last.",
       "social_links": [
         {
-          "label": "LinkedIn",
-          "href": "/contact.html"
-        },
-        {
           "label": "YouTube",
-          "href": "/contact.html"
+          "href": "https://www.youtube.com/@bobliftcrane"
         },
         {
           "label": "Facebook",
+          "href": "https://www.facebook.com/bobliftconstruction"
+        },
+        {
+          "label": "LinkedIn",
           "href": "/contact.html"
         }
       ],
@@ -310,7 +310,7 @@
         "visual_watermark_label": "BOB-LIFT",
         "intro": "Choose a crane family first, then compare the core boom types for your lifting task.",
         "find_model_title": "Find Your Model",
-        "max_category_products": 4,
+        "max_category_products": 8,
         "show_category_scroll_buttons": "1",
         "show_product_specs": "1"
       },

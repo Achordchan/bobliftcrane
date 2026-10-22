@@ -1,0 +1,58 @@
+<?php
+// Home page "Main Products" section (inc/home-products.php). Counts sit after a colon or a dot, so no language needs plural forms.
+return [
+    'ja' => [
+        'All models · {count}' => '全機種 · {count}',
+        'Models: {count}' => '機種数：{count}',
+        'Max. height' => '最大揚程',
+        'Max. radius' => '最大作業半径',
+        'Product types' => '製品タイプ',
+        'Show previous models' => '前の機種',
+        'Show more models' => '次の機種',
+    ],
+    'zh' => [
+        'All models · {count}' => '全部型号 · {count}',
+        'Models: {count}' => '型号：{count}',
+        'Max. height' => '最大起升高度',
+        'Max. radius' => '最大作业半径',
+        'Product types' => '产品类型',
+        'Show previous models' => '上一组型号',
+        'Show more models' => '更多型号',
+    ],
+    'es' => [
+        'All models · {count}' => 'Todos los modelos · {count}',
+        'Models: {count}' => 'Modelos: {count}',
+        'Max. height' => 'Altura máx.',
+        'Max. radius' => 'Radio máx.',
+        'Product types' => 'Tipos de producto',
+        'Show previous models' => 'Modelos anteriores',
+        'Show more models' => 'Más modelos',
+    ],
+    'ru' => [
+        'All models · {count}' => 'Все модели · {count}',
+        'Models: {count}' => 'Моделей: {count}',
+        'Max. height' => 'Макс. высота',
+        'Max. radius' => 'Макс. вылет',
+        'Product types' => 'Типы продукции',
+        'Show previous models' => 'Предыдущие модели',
+        'Show more models' => 'Ещё модели',
+    ],
+    'fr' => [
+        'All models · {count}' => 'Tous les modèles · {count}',
+        'Models: {count}' => 'Modèles : {count}',
+        'Max. height' => 'Hauteur max.',
+        'Max. radius' => 'Portée max.',
+        'Product types' => 'Types de produits',
+        'Show previous models' => 'Modèles précédents',
+        'Show more models' => 'Plus de modèles',
+    ],
+    'ar' => [
+        'All models · {count}' => 'جميع الطرازات · {count}',
+        'Models: {count}' => 'عدد الطرازات: {count}',
+        'Max. height' => 'أقصى ارتفاع',
+        'Max. radius' => 'أقصى نصف قطر',
+        'Product types' => 'أنواع المنتجات',
+        'Show previous models' => 'الطرازات السابقة',
+        'Show more models' => 'المزيد من الطرازات',
+    ],
+];

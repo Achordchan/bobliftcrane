@@ -1507,6 +1507,12 @@ function boblift_capacity_position(float $value, array $scale): float
     return $span > 0 ? max(0.0, min(100.0, (log($value) - log($scale['lo'])) / $span * 100)) : 0.0;
 }
 
+/** A Chinese mobile number shown in groups, "+86 158 5249 9415"; any other number is shown as saved. Links keep the digits. */
+function boblift_phone_display(string $phone): string
+{
+    return preg_match('/^\+86\s?(\d{3})\s?(\d{4})\s?(\d{4})$/', trim($phone), $m) ? '+86 ' . $m[1] . ' ' . $m[2] . ' ' . $m[3] : $phone;
+}
+
 /** "0.8", "5", "12.5": a tonnage without trailing zeros. */
 function boblift_tonnes_label(float $value): string
 {
@@ -1527,6 +1533,22 @@ function boblift_product_family_group_label(string $group): string
     return $label !== '' && function_exists('boblift_localized_static_text') ? boblift_localized_static_text($label) : $label;
 }
 
+/** The name of the product category with this (English) slug in the current language; '' when there is none. */
+function boblift_product_category_name_in_language(string $slug): string
+{
+    static $cache = [];
+    $language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
+    if (!isset($cache[$language][$slug])) {
+        // The slug is the English term's; the lookup skips Polylang's language filter so it finds that term on every language's pages.
+        $terms = get_terms(['taxonomy' => 'product_category', 'slug' => $slug, 'hide_empty' => false, 'number' => 1, 'lang' => '']);
+        $term = !is_wp_error($terms) && $terms !== [] ? $terms[0] : null;
+        $term_id = $term instanceof WP_Term && function_exists('pll_get_term') && $language !== '' ? (int) pll_get_term($term->term_id, $language) : ($term instanceof WP_Term ? $term->term_id : 0);
+        $localized = $term_id ? get_term($term_id, 'product_category') : null;
+        $cache[$language][$slug] = $localized instanceof WP_Term ? trim($localized->name) : '';
+    }
+    return $cache[$language][$slug];
+}
+
 /**
  * The footer's product column follows the product category tree, like the Products menu. It is the
  * link group saved with source "product_categories" or, in options saved before that existed, the group that still
@@ -1542,8 +1564,10 @@ function boblift_footer_is_product_group(array $group): bool
         return false;
     }
     // Only the complete historical default counts: the original seven links with their original labels, in their original
-    // order. A group an administrator edited (relabelled, reordered, other links) is left as saved. Both historical URL
-    // forms count: `/products#slug` and the root-relative `/slug` shipped in seed-data.json.
+    // order. A label is original when it is the English default, its static-text translation, the linked category's name
+    // in the current language, or one of the labels each language saved with that default (listed below). A group an
+    // administrator edited (relabelled, reordered, other links) is left as saved. Both historical URL forms count:
+    // `/products#slug` and the root-relative `/slug` shipped in seed-data.json.
     $historical = [
         ['Telescopic Boom Truck Mounted Cranes', 'telescopic-boom-truck-mounted-cranes'],
         ['Knuckle Boom Truck Mounted Cranes', 'knuckle-boom-truck-mounted-cranes'],
@@ -1556,9 +1580,27 @@ function boblift_footer_is_product_group(array $group): bool
     if (count($links) !== count($historical)) {
         return false;
     }
+    // Default labels the translated languages saved that match neither the static text nor today's category names.
+    $saved_default_labels = [
+        'ja' => ['伸縮ブームトラック搭載クレーン'],
+        'es' => ['Grúas marinas'],
+        'ru' => ['Краны для пикапа', 'Судовые краны', 'Краны-удлинители (флай-джибы) для вилочных погрузчиков'],
+        'fr' => ['Grues marines'],
+        'ar' => ['رافعات مثبتة على شاحنة بذراع تلسكوبي', 'رافعات مثبتة على شاحنة بذراع مفصلي', 'رافعات لشاحنات البيك أب', 'رافعات بحرية'],
+    ];
+    $language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
     foreach (array_values($links) as $index => $link) {
         if (!is_array($link) || !preg_match('~^/?(?:products(?:\.html)?#)?([a-z0-9-]+)/?$~', trim((string) ($link['href'] ?? '')), $m)
-            || $m[1] !== $historical[$index][1] || trim((string) ($link['label'] ?? '')) !== $historical[$index][0]) {
+            || $m[1] !== $historical[$index][1]) {
+            return false;
+        }
+        $label = trim((string) ($link['label'] ?? ''));
+        $default = $historical[$index][0];
+        $original = $label === $default
+            || (function_exists('boblift_localized_static_text') && $label === trim(boblift_localized_static_text($default)))
+            || $label === boblift_product_category_name_in_language($m[1])
+            || in_array($label, $saved_default_labels[$language] ?? [], true);
+        if (!$original) {
             return false;
         }
     }
