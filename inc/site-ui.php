@@ -999,6 +999,7 @@ function boblift_site_ui_defaults(?string $section = null): array
                 'successText' => 'Our team will contact you soon. For anything urgent, use Email or WhatsApp.',
                 'requiredFields' => 'Please enter a valid email address and project details.',
                 'verificationRequired' => 'Please complete the verification and try again.',
+                'tooMany' => 'Too many inquiries were sent from your network. Please wait a few minutes and try again, or email us directly.',
                 'verificationLoading' => 'Loading verification...',
                 'verificationSubmitAgain' => 'Please complete the verification and submit again.',
                 'verificationLoadFailed' => 'Verification could not be loaded. Please try again.',

@@ -4456,6 +4456,26 @@
       update();
     });
   };
+  // On the thank-you page: an inquiry the server has just saved leaves a short-lived "boblift_lead" cookie, which becomes
+  // one "generate_lead" event in the dataLayer for whatever tracking is added later (GA4, Google Ads, Tag Manager).
+  // The cookie is removed at once, so a reload or a direct visit reports nothing.
+  const reportSentInquiry = () => {
+    if (!document.querySelector('[data-inquiry-success]')) return;
+    const match = document.cookie.match(/(?:^|;\s*)boblift_lead=([^;]*)/);
+    if (!match) return;
+    document.cookie = 'boblift_lead=; Max-Age=0; path=/; SameSite=Lax';
+    let lead = {};
+    try {
+      lead = JSON.parse(decodeURIComponent(match[1])) || {};
+    } catch {
+      lead = {};
+    }
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({ event: 'generate_lead', form: 'inquiry', inquiry_product: lead.product || '', inquiry_source: lead.source || '' });
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', reportSentInquiry);
+  else reportSentInquiry();
+
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();
