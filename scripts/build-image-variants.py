@@ -34,6 +34,11 @@ def main() -> None:
             for source in sorted(ROOT.glob(pattern)):
                 if variants_of(source):
                     continue
+                # Copies from an earlier run go first: a picture replaced by a narrower one must not keep wider
+                # copies of the old picture, which the theme would still offer in srcset.
+                for stale in source.parent.glob(f'{source.stem}-*w.webp'):
+                    if stale.stem[len(source.stem) + 1:-1].isdigit():
+                        stale.unlink()
                 with Image.open(source) as image:
                     image.load()
                     for width in widths:
