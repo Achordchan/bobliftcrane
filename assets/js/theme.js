@@ -4520,6 +4520,8 @@
     // The theme's Google tag (inc/consent.php) reports the lead to GA4, and to Google Ads when an inquiry conversion is set.
     window.gtag('event', 'generate_lead', details);
     if (window.bobliftGoogleConversion) window.gtag('event', 'conversion', { send_to: window.bobliftGoogleConversion, transaction_id: details.transaction_id });
+    // The same lead as a plain dataLayer event, for triggers in a Tag Manager container (inc/consent.php).
+    window.dataLayer?.push({ event: 'inquiry_submitted', ...details });
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', reportSentInquiry);
   else reportSentInquiry();

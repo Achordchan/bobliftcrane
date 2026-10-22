@@ -5,12 +5,19 @@ if (!defined('ABSPATH')) {
 
 /**
  * Google's tags and the cookie banner, the same way the loader site does it (bobliftloader inc/consent.php): the GA4 and
- * Google Ads IDs saved under 表单安全 → 统计与广告 load the Google tag with Consent Mode v2. Visitors in the EEA, the UK and
+ * Google Ads IDs saved under 表单安全 → 统计与广告 load the Google tag with Consent Mode v2, and a Tag Manager container saved
+ * there loads beside it under the same consent defaults. Visitors in the EEA, the UK and
  * Switzerland start with everything denied (Google then sends only cookieless pings) and are asked by the banner; everyone
  * else starts granted and can change it with "Cookie settings" in the footer. The choice is kept in the boblift_consent
- * cookie and applied by assets/js/theme.js. With no ID saved, nothing here prints: no tag, no banner, no footer link.
+ * cookie and applied by assets/js/theme.js. With no ID or container saved, nothing here prints: no tag, no banner, no footer link.
  */
 const BOBLIFT_CONSENT_DENIED_REGIONS = ['AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE', 'IS', 'LI', 'NO', 'GB', 'CH'];
+
+/** The local copy never reports to the real GA4 property, Ads account or Tag Manager container. */
+function boblift_google_tags_allowed(): bool
+{
+    return !in_array((string) wp_parse_url(home_url(), PHP_URL_HOST), ['localhost', '127.0.0.1'], true) || apply_filters('boblift_google_tag_on_localhost', false);
+}
 
 /**
  * The valid Google tag IDs saved in the admin (comma, space or newline separated), in order, without duplicates. Only GA4 (G-)
@@ -18,8 +25,7 @@ const BOBLIFT_CONSENT_DENIED_REGIONS = ['AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK'
  */
 function boblift_google_tag_ids(): array
 {
-    // The local copy never reports to the real GA4 property and Ads account.
-    if (in_array((string) wp_parse_url(home_url(), PHP_URL_HOST), ['localhost', '127.0.0.1'], true) && !apply_filters('boblift_google_tag_on_localhost', false)) {
+    if (!boblift_google_tags_allowed()) {
         return [];
     }
     $saved = function_exists('boblift_form_security_options') ? (string) (boblift_form_security_options()['google_tag'] ?? '') : '';
@@ -34,21 +40,39 @@ function boblift_google_conversion(): string
     return preg_match('~^AW-\d{6,15}/[A-Za-z0-9_-]{4,64}$~', $value) ? $value : '';
 }
 
-/** The consent categories the saved tags serve, in banner order: analytics for GA4, advertising for Google Ads. */
+/**
+ * The Google Tag Manager container saved in the admin ("GTM-ABC1234"), or '' when none or malformed. The container is for
+ * the tags the ad agency manages there; the theme's own GA4 and Ads tags above keep reporting either way.
+ */
+function boblift_gtm_container(): string
+{
+    if (!boblift_google_tags_allowed()) {
+        return '';
+    }
+    $value = function_exists('boblift_form_security_options') ? strtoupper(trim((string) (boblift_form_security_options()['gtm_container'] ?? ''))) : '';
+    return preg_match('~^GTM-[A-Z0-9]{4,12}$~', $value) ? $value : '';
+}
+
+/** The consent categories the saved tags serve, in banner order: analytics for GA4, advertising for Google Ads, both for GTM. */
 function boblift_consent_categories(): array
 {
     $categories = [];
     foreach (boblift_google_tag_ids() as $id) {
         $categories[str_starts_with($id, 'G-') ? 'analytics' : 'advertising'] = true;
     }
+    // What a Tag Manager container fires is set outside the site, so it may need either kind of consent.
+    if (boblift_gtm_container() !== '') {
+        $categories += ['analytics' => true, 'advertising' => true];
+    }
     return array_values(array_intersect(['analytics', 'advertising'], array_keys($categories)));
 }
 
-/** The Google tag with its consent defaults, for the top of <head>. */
+/** The Google tag and Tag Manager container with their consent defaults, for the top of <head>. */
 function boblift_google_tag_markup(): string
 {
     $ids = boblift_google_tag_ids();
-    if (!$ids) {
+    $gtm = boblift_gtm_container();
+    if (!$ids && $gtm === '') {
         return '';
     }
     $denied = ['ad_storage' => 'denied', 'ad_user_data' => 'denied', 'ad_personalization' => 'denied', 'analytics_storage' => 'denied'];
@@ -71,14 +95,22 @@ function boblift_google_tag_markup(): string
     if ($conversion !== '' && in_array(strtok($conversion, '/'), $ids, true)) {
         $script .= 'window.bobliftGoogleConversion=' . $json($conversion) . ';';
     }
-    // The Google tag script (with the Ads and linked GA tags it pulls in, about 700 KB and a second of phone CPU) loads
-    // once the visitor first touches, scrolls or types, or 12 seconds after the page has loaded; the commands above wait
-    // in dataLayer until then. It loads at once on a click from an ad or campaign (gclid, gbraid, wbraid, utm_) so the
-    // click is kept before the visitor moves on, and on the page an inquiry lands on (sent=) so the lead is reported.
-    $src = 'https://www.googletagmanager.com/gtag/js?id=' . rawurlencode($ids[0]);
+    // The Google tag script (with the Ads and linked GA tags it pulls in, about 700 KB and a second of phone CPU) and the
+    // Tag Manager container load once the visitor first touches, scrolls or types, or 12 seconds after the page has
+    // loaded; the commands above wait in dataLayer until then. They load at once on a click from an ad or campaign
+    // (gclid, gbraid, wbraid, utm_) so the click is kept before the visitor moves on, and on the page an inquiry lands on
+    // (sent=) so the lead is reported.
+    $sources = [];
+    if ($ids) {
+        $sources[] = 'https://www.googletagmanager.com/gtag/js?id=' . rawurlencode($ids[0]);
+    }
+    if ($gtm !== '') {
+        $sources[] = 'https://www.googletagmanager.com/gtm.js?id=' . rawurlencode($gtm);
+    }
     $script .= '(function(){var done=false,events=["pointerdown","keydown","touchstart","scroll","wheel"];'
         . 'function load(){if(done)return;done=true;events.forEach(function(e){removeEventListener(e,load,true)});'
-        . 'var s=document.createElement("script");s.async=true;s.src=' . $json($src) . ';document.head.appendChild(s)}'
+        . ($gtm !== '' ? 'dataLayer.push({"gtm.start":Date.now(),event:"gtm.js"});' : '')
+        . $json($sources) . '.forEach(function(u){var s=document.createElement("script");s.async=true;s.src=u;document.head.appendChild(s)})}'
         . 'window.bobliftLoadGoogleTag=load;'
         . 'if(/[?&](gclid|gbraid|wbraid|utm_[a-z]+|sent)=/.test(location.search)){load();return}'
         . 'events.forEach(function(e){addEventListener(e,load,{capture:true,passive:true})});'
