@@ -40,12 +40,17 @@ function boblift_product_data_english_id(string $model): int
 }
 
 /**
- * Publishes the drafts among the product and its translations; true when each write succeeded. Only drafts: the
- * brochure clean-up turned published posts into drafts, so private, pending or scheduled posts are an editor's choice
- * and stay as they are. The models are the approved set listed above.
+ * Publishes the drafts among the product and its translations; true when each write succeeded. Republishing these
+ * exact models was approved by the site owner on 2026-10-21 (thread "起重机站 Products 页优化"). It is limited further to
+ * the products the brochure clean-up retired (boblift_retired_marine_crane_slugs(), English slug) and to drafts, the
+ * status that clean-up set: private, pending or scheduled posts are an editor's choice and stay as they are.
  */
 function boblift_product_data_publish_all(int $english_id): bool
 {
+    $retired = function_exists('boblift_retired_marine_crane_slugs') ? boblift_retired_marine_crane_slugs() : [];
+    if (!in_array((string) get_post_field('post_name', $english_id), $retired, true)) {
+        return true;
+    }
     $ids = function_exists('pll_get_post_translations') ? array_values(pll_get_post_translations($english_id)) : [];
     $ok = true;
     foreach (array_unique(array_map('intval', array_merge([$english_id], $ids))) as $id) {
@@ -72,10 +77,13 @@ function boblift_product_data_replace_sqz800_drawing(): bool
     }
     require_once ABSPATH . 'wp-admin/includes/image.php';
     $meta = wp_generate_attachment_metadata($attachment, $file);
-    if (is_array($meta) && $meta) {
-        wp_update_attachment_metadata($attachment, $meta);
+    if (!is_array($meta) || empty($meta['width']) || empty($meta['sizes'])) {
+        return false;
     }
-    return true;
+    wp_update_attachment_metadata($attachment, $meta);
+    // wp_update_attachment_metadata() is false for an unchanged value too, so the stored sizes are compared instead.
+    $stored = wp_get_attachment_metadata($attachment);
+    return is_array($stored) && (int) ($stored['width'] ?? 0) === (int) $meta['width'] && array_keys((array) ($stored['sizes'] ?? [])) === array_keys($meta['sizes']);
 }
 
 function boblift_apply_product_data_2026_10(): void

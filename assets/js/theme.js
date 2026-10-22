@@ -3631,7 +3631,12 @@
     const scopedGroups = () => {
       const checked = qsa('input[data-filter="category"]:checked', root);
       if (!checked.length) return groups;
-      const slugs = new Set(checked.flatMap((input) => [input.value, ...(input.dataset.categoryChildren || '').split(',').filter(Boolean)]));
+      // A ticked sub-category also ticks its parent (selectCategory()); then the parent stands for that child only,
+      // not for all its siblings, as in the product listing.
+      const chosenParents = new Set(checked.filter((input) => input.dataset.categoryRole === 'child').map((input) => input.dataset.categoryParent || ''));
+      const slugs = new Set(checked.flatMap((input) => (input.dataset.categoryRole === 'parent' && chosenParents.has(input.value))
+        ? []
+        : [input.value, ...(input.dataset.categoryChildren || '').split(',').filter(Boolean)]));
       return groups.filter((group) => slugs.has(group.dataset.legacyGroup || ''));
     };
     const syncScope = () => {
