@@ -42,7 +42,7 @@ function boblift_register_rest_translation_field(): void
                 }
                 return $saved;
             } finally {
-                boblift_rest_translation_lock($value, false);
+                boblift_rest_translation_lock(false);
             }
         },
         'schema' => [
@@ -101,27 +101,28 @@ function boblift_rest_check_translation(string $post_type, int $post_id, array $
 }
 
 /**
- * A named database lock per source and language, taken by the pre-insert check and released once the item is linked, so
- * two requests for the same translation cannot both pass the check: the second waits, then finds the first and gets 409.
+ * One named database lock for every translation write, taken by the pre-insert check and released once the item is linked.
+ * Linking rewrites the whole translation group, so two writes touching the same group (from any member, into any
+ * language) must not overlap; translation writes are rare, so a single site-wide lock costs nothing in practice. A second
+ * request waits, then re-checks against what the first one saved.
  * If the insert itself fails, MySQL drops the lock when the request's database connection closes.
  */
-function boblift_rest_translation_lock(array $value, bool $take): bool
+function boblift_rest_translation_lock(bool $take): bool
 {
     global $wpdb;
-    static $held = [];
-    $name = 'boblift_translation_' . (int) ($value['source'] ?? 0) . '_' . sanitize_key((string) ($value['lang'] ?? ''));
+    static $held = false;
     if ($take) {
-        if (!isset($held[$name])) {
-            if ((int) $wpdb->get_var($wpdb->prepare('SELECT GET_LOCK(%s, 10)', $name)) !== 1) {
+        if (!$held) {
+            if ((int) $wpdb->get_var("SELECT GET_LOCK('boblift_translation_write', 10)") !== 1) {
                 return false;
             }
-            $held[$name] = true;
+            $held = true;
         }
         return true;
     }
-    if (isset($held[$name])) {
-        $wpdb->query($wpdb->prepare('SELECT RELEASE_LOCK(%s)', $name));
-        unset($held[$name]);
+    if ($held) {
+        $wpdb->query("SELECT RELEASE_LOCK('boblift_translation_write')");
+        $held = false;
     }
     return true;
 }
@@ -132,12 +133,12 @@ function boblift_rest_pre_insert_translation(stdClass|WP_Error $prepared, WP_RES
     if (is_wp_error($prepared) || !is_array($value)) {
         return $prepared;
     }
-    if (!boblift_rest_translation_lock($value, true)) {
+    if (!boblift_rest_translation_lock(true)) {
         return new WP_Error('boblift_translation_busy', 'Another request is writing this translation; try again.', ['status' => 409]);
     }
     $checked = boblift_rest_check_translation((string) ($prepared->post_type ?? ''), (int) ($prepared->ID ?? 0), $value);
     if (is_wp_error($checked)) {
-        boblift_rest_translation_lock($value, false);
+        boblift_rest_translation_lock(false);
         return $checked;
     }
     return $prepared;
