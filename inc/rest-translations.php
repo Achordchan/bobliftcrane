@@ -32,8 +32,18 @@ function boblift_register_rest_translation_field(): void
             $translations = array_map('intval', (array) pll_get_post_translations((int) $post['id']));
             return ['lang' => (string) pll_get_post_language((int) $post['id']), 'translations' => $translations ?: new stdClass()];
         },
-        'update_callback' => static function ($value, WP_Post $post) {
-            return boblift_rest_save_translation($post, is_array($value) ? $value : []);
+        'update_callback' => static function ($value, WP_Post $post, string $field, WP_REST_Request $request) {
+            $value = is_array($value) ? $value : [];
+            try {
+                $saved = boblift_rest_save_translation($post, $value);
+                // A post this request has just created is removed again if it could not be filed as the translation.
+                if (is_wp_error($saved) && $request->get_method() === 'POST' && empty($request['id'])) {
+                    wp_delete_post($post->ID, true);
+                }
+                return $saved;
+            } finally {
+                boblift_rest_translation_lock($value, false);
+            }
         },
         'schema' => [
             'description' => 'Polylang language and translations; on posts and cases, send source, lang and meta to file this item as a translation.',
@@ -73,6 +83,10 @@ function boblift_rest_check_translation(string $post_type, int $post_id, array $
     if (!$source instanceof WP_Post || $source->post_type !== $post_type || $source->ID === $post_id || $source_lang === '' || $source_lang === $lang) {
         return new WP_Error('boblift_translation_source', 'The source must be another ' . $post_type . ' in a different language.', ['status' => 400]);
     }
+    // Linking changes the source's translation group and copies its meta, so the caller must be able to edit the source too.
+    if (!current_user_can('edit_post', $source->ID)) {
+        return new WP_Error('rest_cannot_edit', 'Sorry, you are not allowed to edit the source item.', ['status' => rest_authorization_required_code()]);
+    }
     $existing = (int) pll_get_post($source->ID, $lang);
     if ($existing > 0 && $existing !== $post_id) {
         return new WP_Error('boblift_translation_exists', 'The source already has a ' . $lang . ' translation (ID ' . $existing . ').', ['status' => 409]);
@@ -86,14 +100,47 @@ function boblift_rest_check_translation(string $post_type, int $post_id, array $
     return ['lang' => $lang, 'source' => $source, 'source_lang' => $source_lang, 'meta' => $meta];
 }
 
+/**
+ * A named database lock per source and language, taken by the pre-insert check and released once the item is linked, so
+ * two requests for the same translation cannot both pass the check: the second waits, then finds the first and gets 409.
+ * If the insert itself fails, MySQL drops the lock when the request's database connection closes.
+ */
+function boblift_rest_translation_lock(array $value, bool $take): bool
+{
+    global $wpdb;
+    static $held = [];
+    $name = 'boblift_translation_' . (int) ($value['source'] ?? 0) . '_' . sanitize_key((string) ($value['lang'] ?? ''));
+    if ($take) {
+        if (!isset($held[$name])) {
+            if ((int) $wpdb->get_var($wpdb->prepare('SELECT GET_LOCK(%s, 10)', $name)) !== 1) {
+                return false;
+            }
+            $held[$name] = true;
+        }
+        return true;
+    }
+    if (isset($held[$name])) {
+        $wpdb->query($wpdb->prepare('SELECT RELEASE_LOCK(%s)', $name));
+        unset($held[$name]);
+    }
+    return true;
+}
+
 function boblift_rest_pre_insert_translation(stdClass|WP_Error $prepared, WP_REST_Request $request): stdClass|WP_Error
 {
     $value = $request['boblift_translation'];
     if (is_wp_error($prepared) || !is_array($value)) {
         return $prepared;
     }
+    if (!boblift_rest_translation_lock($value, true)) {
+        return new WP_Error('boblift_translation_busy', 'Another request is writing this translation; try again.', ['status' => 409]);
+    }
     $checked = boblift_rest_check_translation((string) ($prepared->post_type ?? ''), (int) ($prepared->ID ?? 0), $value);
-    return is_wp_error($checked) ? $checked : $prepared;
+    if (is_wp_error($checked)) {
+        boblift_rest_translation_lock($value, false);
+        return $checked;
+    }
+    return $prepared;
 }
 add_filter('rest_pre_insert_post', 'boblift_rest_pre_insert_translation', 10, 2);
 add_filter('rest_pre_insert_case', 'boblift_rest_pre_insert_translation', 10, 2);
