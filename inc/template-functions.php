@@ -872,15 +872,21 @@ function boblift_cache_set(string $name, mixed $data): void
 }
 
 /**
- * Styles and scripts a build enqueues as a side effect (the_content enqueues block styles), so a cache hit enqueues them
- * too. The queues are emptied for the build and restored after it, so a handle already queued by an earlier build on the
- * same request is still recorded; the restored order is the one an uncached request ends with.
+ * Styles and scripts a build enqueues, registers or extends as a side effect (the_content enqueues block styles and
+ * blocks may register handles or add inline CSS/JS), so a cache hit reproduces them. The queues are emptied for the build
+ * and restored after it, so a handle already queued by an earlier build on the same request is still recorded; the
+ * restored order is the one an uncached request ends with. Registrations made during the build are recorded whole, and
+ * inline code and localized data added to handles registered before it are recorded as the added parts.
  */
 function boblift_cache_assets_mark(): array
 {
     $mark = [];
     foreach (['styles' => wp_styles(), 'scripts' => wp_scripts()] as $kind => $dependencies) {
-        $mark[$kind] = ['queue' => array_values($dependencies->queue), 'args' => $dependencies->args];
+        $extras = [];
+        foreach ($dependencies->registered as $handle => $item) {
+            $extras[$handle] = $item->extra;
+        }
+        $mark[$kind] = ['queue' => array_values($dependencies->queue), 'args' => $dependencies->args, 'extras' => $extras];
         $dependencies->dequeue($mark[$kind]['queue']);
     }
     return $mark;
@@ -891,19 +897,67 @@ function boblift_cache_assets_since(array $mark): array
     $recorded = [];
     foreach (['styles' => wp_styles(), 'scripts' => wp_scripts()] as $kind => $dependencies) {
         $recorded[$kind] = array_values($dependencies->queue);
+        $before = $mark[$kind]['extras'];
+        $registered = [];
+        $added = [];
+        foreach ($dependencies->registered as $handle => $item) {
+            if (!array_key_exists($handle, $before)) {
+                $registered[$handle] = ['src' => $item->src, 'deps' => $item->deps, 'ver' => $item->ver, 'args' => $item->args, 'extra' => $item->extra];
+                continue;
+            }
+            $old = (array) $before[$handle];
+            $parts = [];
+            foreach (['before', 'after'] as $position) {
+                $now = (array) ($item->extra[$position] ?? []);
+                $was = (array) ($old[$position] ?? []);
+                if (count($now) > count($was)) {
+                    $parts[$position] = array_slice($now, count($was));
+                }
+            }
+            if (($item->extra['data'] ?? null) !== ($old['data'] ?? null)) {
+                $parts['data'] = $item->extra['data'] ?? null;
+            }
+            if ($parts) {
+                $added[$handle] = $parts;
+            }
+        }
         $build_args = $dependencies->args;
         $dependencies->dequeue($recorded[$kind]);
         $dependencies->enqueue($mark[$kind]['queue']);
         $dependencies->enqueue($recorded[$kind]);
         $dependencies->args = $build_args + $mark[$kind]['args'];
+        $recorded[$kind . '_registered'] = $registered;
+        $recorded[$kind . '_added'] = $added;
     }
     return $recorded;
 }
 
 function boblift_cache_replay_assets(array $cached): void
 {
-    array_map('wp_enqueue_style', (array) ($cached['styles'] ?? []));
-    array_map('wp_enqueue_script', (array) ($cached['scripts'] ?? []));
+    foreach (['styles' => wp_styles(), 'scripts' => wp_scripts()] as $kind => $dependencies) {
+        foreach ((array) ($cached[$kind . '_registered'] ?? []) as $handle => $item) {
+            if (!isset($dependencies->registered[$handle])) {
+                $dependencies->add($handle, $item['src'], $item['deps'], $item['ver'], $item['args']);
+                $dependencies->registered[$handle]->extra = (array) $item['extra'];
+            }
+        }
+        foreach ((array) ($cached[$kind . '_added'] ?? []) as $handle => $parts) {
+            if (!isset($dependencies->registered[$handle])) {
+                continue;
+            }
+            $extra = &$dependencies->registered[$handle]->extra;
+            foreach (['before', 'after'] as $position) {
+                if (!empty($parts[$position])) {
+                    $extra[$position] = array_merge((array) ($extra[$position] ?? []), (array) $parts[$position]);
+                }
+            }
+            if (array_key_exists('data', $parts)) {
+                $extra['data'] = $parts['data'];
+            }
+            unset($extra);
+        }
+        array_map($kind === 'styles' ? 'wp_enqueue_style' : 'wp_enqueue_script', (array) ($cached[$kind] ?? []));
+    }
 }
 
 function boblift_cached_data(string $group, array $vary, callable $build): mixed
@@ -938,11 +992,22 @@ function boblift_cached_html(string $group, array $vary, callable $render): stri
 
 function boblift_bump_products_cache(): void
 {
-    // One write per change burst: a product save updates dozens of meta rows, and the next build clears the flag.
+    // A product save updates dozens of meta rows: the first change bumps the version at once, the rest of the burst is
+    // skipped, and the version is bumped again when the request ends, so nothing built mid-burst (here or on a
+    // concurrent request) outlives the save.
+    if (empty($GLOBALS['boblift_products_cache_final_bump'])) {
+        $GLOBALS['boblift_products_cache_final_bump'] = true;
+        add_action('shutdown', 'boblift_bump_products_cache_now', 0);
+    }
     if (!empty($GLOBALS['boblift_products_cache_bumped'])) {
         return;
     }
     $GLOBALS['boblift_products_cache_bumped'] = true;
+    boblift_bump_products_cache_now();
+}
+
+function boblift_bump_products_cache_now(): void
+{
     $GLOBALS['boblift_cache_memo'] = [];
     update_option('boblift_products_cache_version', (string) ((int) get_option('boblift_products_cache_version', '0') + 1), true);
 }
@@ -980,14 +1045,15 @@ foreach (['created_term', 'edited_term', 'delete_term'] as $boblift_term_hook) {
         }
     }, 10, 3);
 }
-// Category titles, static-text translations and language settings live in options.
+// Category titles, static-text translations, language settings and the permalink settings behind product links live in options.
 foreach (['added_option', 'updated_option', 'deleted_option'] as $boblift_option_hook) {
     add_action($boblift_option_hook, static function ($option): void {
         $option = (string) $option;
         if ($option === 'boblift_products_cache_version' || str_starts_with($option, '_transient') || str_starts_with($option, '_site_transient')) {
             return;
         }
-        if (preg_match('/^(boblift|polylang|pll_|theme_mods_)/', $option)) {
+        if (preg_match('/^(boblift|polylang|pll_|theme_mods_)/', $option)
+            || in_array($option, ['permalink_structure', 'category_base', 'tag_base', 'home', 'siteurl', 'show_on_front', 'page_on_front'], true)) {
             boblift_bump_products_cache();
         }
     });
