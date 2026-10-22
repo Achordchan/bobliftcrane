@@ -984,9 +984,20 @@ function boblift_cache_assets_since(array $mark): array
     return $recorded;
 }
 
+// Core blocks whose render callback only rewrites the saved markup (no per-request
+// data). Treating them as dynamic would make every product with a heading or list
+// uncacheable; interactive/layout output is still caught by the marker check.
+const BOBLIFT_CACHE_STATIC_BLOCKS = [
+    'core/paragraph', 'core/heading', 'core/list', 'core/list-item', 'core/quote',
+    'core/pullquote', 'core/table', 'core/separator', 'core/spacer', 'core/code',
+    'core/preformatted', 'core/verse', 'core/details', 'core/image', 'core/gallery',
+    'core/cover', 'core/media-text', 'core/video', 'core/audio', 'core/file',
+    'core/embed', 'core/button', 'core/buttons', 'core/columns', 'core/column',
+    'core/group',
+];
 add_filter('render_block', static function ($html, $block) {
     $name = is_array($block) ? (string) ($block['blockName'] ?? '') : '';
-    if ($name !== '' && class_exists('WP_Block_Type_Registry')) {
+    if ($name !== '' && !in_array($name, BOBLIFT_CACHE_STATIC_BLOCKS, true) && class_exists('WP_Block_Type_Registry')) {
         $type = WP_Block_Type_Registry::get_instance()->get_registered($name);
         if ($type && $type->is_dynamic()) {
             $GLOBALS['boblift_cache_dynamic'] = true;
