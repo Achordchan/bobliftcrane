@@ -10,7 +10,7 @@ Needs Pillow (pip install Pillow).
 """
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageOps
 
 ROOT = Path(__file__).resolve().parent.parent / 'assets' / 'images'
 
@@ -39,8 +39,9 @@ def main() -> None:
                 for stale in source.parent.glob(f'{source.stem}-*w.webp'):
                     if stale.stem[len(source.stem) + 1:-1].isdigit():
                         stale.unlink()
-                with Image.open(source) as image:
-                    image.load()
+                with Image.open(source) as opened:
+                    # Upright pixels: a browser shows the original turned by its EXIF orientation, the copies carry none.
+                    image = ImageOps.exif_transpose(opened)
                     for width in widths:
                         if width >= image.width:
                             continue

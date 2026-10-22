@@ -319,6 +319,11 @@ function boblift_theme_image_file(string $url): string
     if ($path === '' || $base_path === '' || !str_starts_with($path, $base_path) || str_contains($path, '..')) {
         return '';
     }
+    // Only the theme's own host (or a relative address): another server with the same path need not carry the copies.
+    $host = wp_parse_url($url, PHP_URL_HOST);
+    if ($host !== null && $host !== false && strtolower((string) $host) !== strtolower((string) wp_parse_url($base, PHP_URL_HOST))) {
+        return '';
+    }
     $file = get_template_directory() . '/assets/' . rawurldecode(substr($path, strlen($base_path)));
     return is_file($file) ? $file : '';
 }
