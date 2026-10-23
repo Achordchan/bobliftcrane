@@ -19,7 +19,7 @@ if (!defined('ABSPATH')) {
  *              for "set"). A row whose English label is already in the table is skipped.
  *   "replace": {"en": [{"from": "continuous 360° slewing", "to": "360° slewing", "in": "content"}], "zh": [...]} replaces
  *              plain text in that language's body ("in": "content", the default), excerpt ("excerpt") or SEO description
- *              ("seo_description"). "from" and "to" are plain text (no "<" or ">"), "to" is not empty, and "from" must
+ *              ("seo_description"). "from" and "to" are plain text (no "<", ">" or quotes), "to" is not empty, and "from" must
  *              occur exactly once (not counting occurrences inside an occurrence of "to"), in page text: never inside a
  *              tag, attribute, comment, script or style. When it no longer occurs and "to" does, the item is already
  *              done and is skipped.
@@ -237,13 +237,15 @@ function boblift_product_specs_text(int $post_id, string $in): string
  * Which bytes of an HTML string are page text: a copy of it with every tag (quoted attribute values included), comment
  * and script, style, textarea or title element, opened and up to its close or the end, blanked out with NUL bytes.
  */
-function boblift_product_specs_text_mask(string $html): string
+function boblift_product_specs_text_mask(string $html): ?string
 {
-    return (string) preg_replace_callback(
+    $mask = preg_replace_callback(
         '~<!--.*?(?:-->|\z)|<(script|style|textarea|title)\b.*?(?:</\1\s*>|\z)|<(?:[^>"\']|"[^"]*"|\'[^\']*\')*(?:>|\z)~is',
         static fn(array $m): string => str_repeat("\0", strlen($m[0])),
         $html
     );
+    // A regex failure (PCRE limits on a very long body) gives null: no mask, so nothing counts as page text.
+    return is_string($mask) && strlen($mask) === strlen($html) ? $mask : null;
 }
 
 /** Byte offsets of every occurrence of $needle in $haystack, overlapping ones included. */
@@ -272,7 +274,8 @@ function boblift_product_specs_replace_one(string $text, string $from, string $t
         return new WP_Error('boblift_specs_replace', sprintf('In the %s, "%s" occurs %d times (not counting those inside "%s"); it must occur exactly once.', $where, $from, count($pending), $to), ['status' => 400]);
     }
     // Only page text: never a tag, an attribute value, a comment (block attributes) or a script or style body.
-    if (str_contains(substr(boblift_product_specs_text_mask($text), $pending[0], strlen($from)), "\0")) {
+    $mask = boblift_product_specs_text_mask($text);
+    if ($mask === null || str_contains(substr($mask, $pending[0], strlen($from)), "\0")) {
         return new WP_Error('boblift_specs_replace', sprintf('In the %s, "%s" is inside a tag, comment, script or style; only page text can be replaced.', $where, $from), ['status' => 400]);
     }
     return substr($text, 0, $pending[0]) . $to . substr($text, $pending[0] + strlen($from));
@@ -304,8 +307,8 @@ function boblift_product_specs_plan_texts(int $post_id, string $language, array 
         $in = is_array($item) ? (string) ($item['in'] ?? 'content') : '';
         $from = is_array($item) ? (string) ($item['from'] ?? '') : '';
         $to = is_array($item) ? (string) ($item['to'] ?? '') : '';
-        if (!in_array($in, ['content', 'excerpt', 'seo_description'], true) || $from === '' || $to === '' || $from === $to || preg_match('/[<>\x00]/', $from . $to)) {
-            return new WP_Error('boblift_specs_replace', sprintf('A %s "replace" item needs plain-text "from" and a different, non-empty "to" (no "<" or ">"), and "in" of content, excerpt or seo_description.', $language), ['status' => 400]);
+        if (!in_array($in, ['content', 'excerpt', 'seo_description'], true) || $from === '' || $to === '' || $from === $to || preg_match('/[<>"\'\x00]/', $from . $to)) {
+            return new WP_Error('boblift_specs_replace', sprintf('A %s "replace" item needs plain-text "from" and a different, non-empty "to" (no "<", ">" or quotes), and "in" of content, excerpt or seo_description.', $language), ['status' => 400]);
         }
         $texts[$in] ??= [boblift_product_specs_text($post_id, $in), null];
         // Each item must also stand on the stored text alone, on a stretch no earlier item touches: an item whose
