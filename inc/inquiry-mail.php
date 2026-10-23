@@ -292,26 +292,29 @@ function boblift_inquiry_ip_country(string $ip): string
 /** The products named in the inquiry: model, type, photo and link of each chosen product, else the typed product name. */
 function boblift_inquiry_mail_products(array $fields): array
 {
-    $posts = [];
+    // Each entry is a product found on the site, or a name that matches none, kept as typed so nothing the customer asked
+    // about is dropped from the mail.
+    $entries = [];
     foreach (array_filter(array_map('trim', explode(',', (string) ($fields['product_slug'] ?? '')))) as $slug) {
         $post = get_page_by_path(sanitize_title($slug), OBJECT, 'product');
         if ($post instanceof WP_Post) {
-            $posts[] = $post;
+            $entries[] = $post;
         }
     }
     // Some buttons send only the product's name (in the page's language). Each name the form joined with "; " is looked up
-    // as a product title in any language, then by the model in it (SQ12ZA6, SQZ800 …).
-    if (!$posts) {
+    // as a product title in any language, then by the model in it (SQ12ZA6, SQ12ZA6+1, SQZ800 …).
+    if (!$entries) {
         foreach (array_filter(array_map('trim', explode(';', (string) ($fields['product'] ?? '')))) as $name) {
-            $post = boblift_inquiry_product_by_name($name);
-            if ($post instanceof WP_Post) {
-                $posts[] = $post;
-            }
+            $entries[] = boblift_inquiry_product_by_name($name) ?? $name;
         }
     }
     $products = [];
     $seen = [];
-    foreach ($posts as $post) {
+    foreach ($entries as $post) {
+        if (!$post instanceof WP_Post) {
+            $products[] = ['title' => (string) $post, 'model' => '', 'type' => '', 'url' => '', 'image' => ''];
+            continue;
+        }
         $english_id = function_exists('boblift_product_english_id') ? boblift_product_english_id($post->ID) : $post->ID;
         if (isset($seen[$english_id])) {
             continue;
@@ -346,8 +349,8 @@ function boblift_inquiry_product_by_name(string $name): ?WP_Post
     if ($found) {
         return $found[0];
     }
-    // The longest model-like word first: "SQ12ZA6" rather than "12".
-    preg_match_all('/\b[A-Z]{2,4}\d+(?:\.\d+)?[A-Z]*\d*[A-Z]?\b/', strtoupper($name), $matches);
+    // The longest model-like word first: "SQ12ZA6" rather than "12"; an extension such as "+1" is part of the model.
+    preg_match_all('/\b[A-Z]{2,4}\d+(?:\.\d+)?[A-Z]*\d*[A-Z]?(?:\+\d+)?(?![\w+])/', strtoupper($name), $matches);
     $models = array_unique($matches[0]);
     usort($models, static fn(string $a, string $b): int => strlen($b) <=> strlen($a));
     foreach ($models as $model) {
