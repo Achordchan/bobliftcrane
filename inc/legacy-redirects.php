@@ -16,16 +16,28 @@ if (!defined('ABSPATH')) {
  */
 const BOBLIFT_LEGACY_REDIRECTS_OPTION = 'boblift_legacy_redirects';
 
-// Old "Crane by Ton" page path (/5-ton-crane or /5-ton-crane.html) => tonnage filter bin key, independent of the bin labels
-// shown in the filter. Used by boblift_redirect_old_tonnage_pages() for whatever the redirect rules do not catch.
-function boblift_old_tonnage_bin(string $path): ?string
+// The old site's "Crane by Ton" sizes => tonnage filter bin key, independent of the bin labels shown in the filter. Each size
+// is now a page of its own (inc/tonnage-pages.php) listing that bin's models.
+function boblift_tonnage_bins(): array
+{
+    return [1 => '0-1', 2 => '1-2', 3 => '2-3', 4 => '3-4', 5 => '4-5', 6 => '5-6', 8 => '6-8', 10 => '8-10', 12 => '10-12', 16 => '12-16', 20 => '16-20', 25 => '20-25'];
+}
+
+// Tonnage page path (/5-ton-crane or /5-ton-crane.html, any case) => its size in tonnes, or 0.
+function boblift_tonnage_size_from_path(string $path): int
 {
     $path = strtolower(trim($path, '/'));
     if (!preg_match('/^(\d+)-ton-crane(?:\.html)?$/', $path, $m)) {
-        return null;
+        return 0;
     }
-    $bins = [1 => '0-1', 2 => '1-2', 3 => '2-3', 4 => '3-4', 5 => '4-5', 6 => '5-6', 8 => '6-8', 10 => '8-10', 12 => '10-12', 16 => '12-16', 20 => '16-20', 25 => '20-25'];
-    return $bins[(int) $m[1]] ?? null;
+    return isset(boblift_tonnage_bins()[(int) $m[1]]) ? (int) $m[1] : 0;
+}
+
+// Old "Crane by Ton" page path => tonnage filter bin key, or null.
+function boblift_old_tonnage_bin(string $path): ?string
+{
+    $size = boblift_tonnage_size_from_path($path);
+    return $size > 0 ? boblift_tonnage_bins()[$size] : null;
 }
 
 function boblift_legacy_redirects_default_config(): array
@@ -341,6 +353,10 @@ function boblift_legacy_redirect_is_live_path(string $path): bool
                 return true;
             }
         }
+    }
+    // A tonnage page (/5-ton-crane.html, inc/tonnage-pages.php) is served in every language.
+    if (function_exists('boblift_tonnage_size_from_path') && preg_match('#^/\d+-ton-crane\.html$#', $rest) && boblift_tonnage_size_from_path($rest) > 0) {
+        return true;
     }
     $post_id = url_to_postid(home_url($raw));
     if ($post_id > 0 && get_post_status($post_id) === 'publish' && rtrim(rawurldecode((string) parse_url(get_permalink($post_id), PHP_URL_PATH)), '/') === $raw) {

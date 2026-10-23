@@ -37,6 +37,7 @@ require_once get_template_directory() . '/inc/seo-rest.php';
 require_once get_template_directory() . '/inc/cache-warm.php';
 require_once get_template_directory() . '/inc/company-schema.php';
 require_once get_template_directory() . '/inc/legacy-redirects.php';
+require_once get_template_directory() . '/inc/tonnage-pages.php';
 require_once get_template_directory() . '/inc/polylang-slugs.php';
 require_once get_template_directory() . '/inc/rest-translations.php';
 require_once get_template_directory() . '/inc/rest-content-insert.php';

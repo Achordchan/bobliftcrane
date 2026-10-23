@@ -2950,6 +2950,10 @@
     // The server lists only this page's category (and its sub-categories); the category tabs and the drawer's category
     // list are links to the other categories' pages, so the category never changes here.
     const fixedCategory = root.dataset.currentCategory || '';
+    // A tonnage page (/5-ton-crane.html) lists one capacity bin: its box stays ticked, and unticking it opens the whole list.
+    const fixedCapacity = root.dataset.fixedCapacity || '';
+    const isFixedCapacity = (input) => !!fixedCapacity && input.dataset.filter === 'capacity' && input.value === fixedCapacity;
+    const keepFixedCapacity = () => checks.filter(isFixedCapacity).forEach((input) => { input.checked = true; });
 
     cards.forEach((card, index) => { card.dataset.originalIndex = String(index); });
 
@@ -3034,7 +3038,7 @@
         const values = paramValues(params, paramName);
         const inputs = checks.filter((input) => input.dataset.filter === filterName);
         inputs.forEach((input) => {
-          input.checked = values.some((value) => optionMatchesParam(input, value));
+          input.checked = isFixedCapacity(input) || values.some((value) => optionMatchesParam(input, value));
         });
         if (filterName === 'capacity') {
           customCapacity = values.find((value) => /^\d+(?:\.\d+)?-\d+(?:\.\d+)?$/.test(value) && !inputs.some((input) => optionMatchesParam(input, value))) || '';
@@ -3047,14 +3051,25 @@
     const updateUrlFromFilters = ({ replace = true } = {}) => {
       const url = new URL(window.location.href);
       Object.values(filterParamMap).forEach((paramName) => url.searchParams.delete(paramName));
-      Object.entries(filterParamMap).forEach(([filterName, paramName]) => {
-        activeValues(filterName).forEach((value) => url.searchParams.append(paramName, slugifyFilter(value)));
-      });
+      appendFilterParams(url);
       if (customCapacity && !activeValues('capacity').length) url.searchParams.set(filterParamMap.capacity, customCapacity);
       url.hash = '';
       const nextUrl = `${url.pathname}${url.search}`;
       if (replace) window.history.replaceState(null, '', nextUrl);
       else window.history.pushState(null, '', nextUrl);
+    };
+    // The tonnage page's own bin is its address, not a parameter.
+    function appendFilterParams(url) {
+      Object.entries(filterParamMap).forEach(([filterName, paramName]) => {
+        activeValues(filterName)
+          .filter((value) => !(filterName === 'capacity' && value === fixedCapacity))
+          .forEach((value) => url.searchParams.append(paramName, slugifyFilter(value)));
+      });
+    }
+    const openWholeList = () => {
+      const url = new URL(root.dataset.productArchiveUrl || '/', window.location.origin);
+      appendFilterParams(url);
+      window.location.href = url.toString();
     };
     const inAnyRange = (numberValue, ranges) => ranges.some((range) => {
       const parts = String(range).replace(/_/g, '.').match(/\d+(?:\.\d+)?/g) || [];
@@ -3467,6 +3482,7 @@
     qsa('[data-filter-clear-specs]', root).forEach((button) => button.addEventListener('click', () => {
       customCapacity = '';
       checks.filter((input) => input.dataset.filter !== 'category').forEach((input) => { input.checked = false; });
+      keepFixedCapacity();
       updateUrlFromFilters({ replace: false });
       apply({ resetPage: true });
     }));
@@ -3504,6 +3520,10 @@
       }
     });
     checks.forEach((input) => input.addEventListener('change', () => {
+      if (isFixedCapacity(input) && !input.checked) {
+        openWholeList();
+        return;
+      }
       if (input.dataset.filter === 'capacity') customCapacity = '';
       syncMatchingFilterInputs(input);
       if (isMobileFilterDrawerActive(input)) return;
@@ -3518,6 +3538,7 @@
     resets.forEach((button) => button.addEventListener('click', () => {
       customCapacity = '';
       checks.forEach((input) => { input.checked = false; });
+      keepFixedCapacity();
       if (capacitySelect) capacitySelect.value = '';
       updateFilterAvailability();
       if (isMobileFilterDrawerActive(button)) return;

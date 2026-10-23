@@ -342,7 +342,7 @@ foreach ($languages as $language) {
                     $has_children = $children !== [];
                     $item_path = trim(parse_url($item_url, PHP_URL_PATH) ?: '/', '/');
                     $active = $href === '/' ? ($current_path === '' && !is_search()) : ($item_path !== '' && str_starts_with($current_path, $item_path));
-                    if ($is_product_menu_item && (is_post_type_archive('product') || is_singular('product') || get_query_var('boblift_product_category'))) {
+                    if ($is_product_menu_item && (is_post_type_archive('product') || is_singular('product') || get_query_var('boblift_product_category') || get_query_var('boblift_tonnage'))) {
                         $active = true;
                     }
                     if ($is_news_item && ($current_path === 'news' || $current_path === 'news.html' || is_page_template('page-news.php') || is_singular('post') || $nav_href_matches_current('/videos.html') || $nav_href_matches_current('/social-media.html'))) {
@@ -370,6 +370,11 @@ foreach ($languages as $language) {
                                                 <?php if ($family_index > 0 && $family['group'] !== $product_menu_families[$family_index - 1]['group']) : ?><span class="mx-7 h-7 w-px bg-slate-300" aria-hidden="true"></span><?php elseif ($family_index > 0) : ?><span class="mx-5" aria-hidden="true"></span><?php endif; ?>
                                                 <a class="text-[16px] font-medium leading-none transition hover:text-blue-700 <?php echo $family['slug'] === $product_menu_active ? 'font-black text-ink' : 'text-slate-600'; ?>" href="<?php echo esc_url($family['url']); ?>"><?php echo esc_html($family['title']); ?></a>
                                             <?php endforeach; ?>
+                                            <?php // Last, after a divider: the tonnage pages (inc/tonnage-pages.php), through the row on the product list. ?>
+                                            <?php if (function_exists('boblift_tonnage_links') && boblift_tonnage_links()) : ?>
+                                                <span class="mx-7 h-7 w-px bg-slate-300" aria-hidden="true"></span>
+                                                <a class="text-[16px] font-medium leading-none transition hover:text-blue-700 <?php echo get_query_var('boblift_tonnage') ? 'font-black text-ink' : 'text-slate-600'; ?>" href="<?php echo esc_url(boblift_product_archive_url() . '#by-capacity'); ?>"><?php echo esc_html(boblift_localized_static_text('Browse by capacity')); ?></a>
+                                            <?php endif; ?>
                                         </nav>
                                     </div>
                                 </div>
@@ -489,6 +494,12 @@ foreach ($languages as $language) {
                                     </div>
                                 <?php endforeach; ?>
                             </div>
+                            <?php $mobile_capacity_links = function_exists('boblift_tonnage_links') ? boblift_tonnage_links() : []; if ($mobile_capacity_links) : ?>
+                                <p class="px-2 pb-2 pt-4 text-[10px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(boblift_localized_static_text('Browse by capacity')); ?></p>
+                                <div class="grid grid-cols-3 gap-1">
+                                    <?php foreach ($mobile_capacity_links as [$capacity_label, $capacity_url]) : ?><a class="rounded bg-white px-2 py-1.5 text-center text-xs font-bold leading-[18px] text-slate-600 shadow-card hover:text-blue-700" href="<?php echo esc_url($capacity_url); ?>"><?php echo esc_html($capacity_label); ?></a><?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     <?php elseif ($mobile_has_children) : ?>
                         <details class="group rounded" <?php echo $mobile_children_open ? 'open' : ''; ?>>

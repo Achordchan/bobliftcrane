@@ -188,6 +188,21 @@ if ($unlisted_products !== []) {
     ];
 }
 
+// The tonnage pages (inc/tonnage-pages.php), each listing one capacity bin across every category.
+$sitemap_capacity_links = [];
+foreach (function_exists('boblift_tonnage_links') ? boblift_tonnage_links() : [] as $size => [, $capacity_url]) {
+    $sitemap_capacity_links[] = [boblift_tonnage_heading((int) $size), $capacity_url];
+}
+if ($sitemap_capacity_links !== []) {
+    $product_blocks[] = [
+        'eyebrow' => '',
+        'eyebrow_url' => '',
+        'title' => boblift_localized_static_text('Browse by capacity'),
+        'url' => boblift_product_archive_url() . '#by-capacity',
+        'links' => $sitemap_capacity_links,
+    ];
+}
+
 $news_categories = get_terms(['taxonomy' => 'category', 'hide_empty' => true, 'orderby' => 'count', 'order' => 'DESC']);
 $news_categories = is_wp_error($news_categories) ? [] : array_values(array_filter($news_categories, static fn($term): bool => $term instanceof WP_Term && $term->slug !== 'uncategorized'));
 $news = get_posts(['post_type' => 'post', 'post_status' => 'publish', 'numberposts' => 80, 'orderby' => 'date', 'order' => 'DESC']);

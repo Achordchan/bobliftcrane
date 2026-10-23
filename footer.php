@@ -13,7 +13,7 @@ if (is_page()) {
     $cta_page_slug = (string) get_post_field('post_name', $cta_source_id);
 }
 // The product list skips it too: every card has its own quote button and the contact bar stays on screen.
-$show_cta = !in_array($cta_page_slug, ['products', 'about', 'why-choose-us', 'quote', 'contact', 'social-media', 'factory-tour', 'quality-testing', 'mounting-shipping', 'service', 'public-welfare', 'global-customer-visits', 'privacy-policy', 'terms-of-use', 'sitemap'], true) && !is_page_template(['page-about.php', 'page-why-choose-us.php', 'page-social-media.php', 'page-factory-tour.php', 'page-quality-testing.php', 'page-mounting-shipping.php', 'page-service.php', 'page-public-welfare.php', 'page-global-customer-visits.php', 'page-privacy-policy.php', 'page-terms-of-use.php', 'page-sitemap.php']) && !is_post_type_archive('product') && (string) get_query_var('boblift_product_category') === '' && !is_singular('product');
+$show_cta = !in_array($cta_page_slug, ['products', 'about', 'why-choose-us', 'quote', 'contact', 'social-media', 'factory-tour', 'quality-testing', 'mounting-shipping', 'service', 'public-welfare', 'global-customer-visits', 'privacy-policy', 'terms-of-use', 'sitemap'], true) && !is_page_template(['page-about.php', 'page-why-choose-us.php', 'page-social-media.php', 'page-factory-tour.php', 'page-quality-testing.php', 'page-mounting-shipping.php', 'page-service.php', 'page-public-welfare.php', 'page-global-customer-visits.php', 'page-privacy-policy.php', 'page-terms-of-use.php', 'page-sitemap.php']) && !is_post_type_archive('product') && (string) get_query_var('boblift_product_category') === '' && (string) get_query_var('boblift_tonnage') === '' && !is_singular('product');
 $email = $contact['email'] ?? 'info@boblift.com';
 $phone = $contact['phone'] ?? '+86 15852499415';
 $phone_href = $contact['phone_href'] ?? ('tel:' . preg_replace('/[^\d+]+/', '', $phone));
@@ -190,7 +190,7 @@ $request_path = (string) (wp_parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''),
 $request_path = function_exists('boblift_normalize_public_path') ? boblift_normalize_public_path($request_path) : '/' . trim($request_path, '/');
 $product_archive_path = function_exists('boblift_product_archive_path') ? boblift_product_archive_path() : '/products.html';
 $product_archive_path = function_exists('boblift_normalize_public_path') ? boblift_normalize_public_path($product_archive_path) : '/' . trim($product_archive_path, '/');
-$show_quote_list = is_post_type_archive('product') || is_singular('product') || is_tax('product_category') || (bool) get_query_var('boblift_product_category') || is_page(['products', 'product']) || $request_path === $product_archive_path;
+$show_quote_list = is_post_type_archive('product') || is_singular('product') || is_tax('product_category') || (bool) get_query_var('boblift_product_category') || (bool) get_query_var('boblift_tonnage') || is_page(['products', 'product']) || $request_path === $product_archive_path;
 $floating_contact_buttons = function_exists('boblift_floating_contact_buttons') ? boblift_floating_contact_buttons() : [];
 ?>
 <?php if ($floating_contact_buttons !== []) : ?>
