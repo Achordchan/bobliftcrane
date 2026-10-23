@@ -3550,8 +3550,8 @@
   });
 
   // Previous models: a tab that toggles on its own beside the category tabs. While on, the selected category's previous models replace the
-  // grid; changing the category keeps it on and rescopes the list, and a category without any shows a request form
-  // instead. ?models=previous turns it on directly.
+  // grid; the category links keep it on (setUrl()), so the next category's page opens with its own previous models, and a
+  // category without any shows a request form instead. ?models=previous turns it on directly.
   qsa('[data-product-listing]').forEach((root) => {
     const panel = qs('[data-legacy-panel]', root);
     if (!panel) return;
@@ -3583,6 +3583,13 @@
       if (open) url.searchParams.set('models', 'previous');
       else url.searchParams.delete('models');
       window.history.replaceState(window.history.state, '', url);
+      // Category tabs and drawer links load another category's page: while the panel is open they open it there too.
+      qsa('a[data-category-tab], a[data-category-link]', root).forEach((link) => {
+        const target = new URL(link.href, window.location.origin);
+        if (open) target.searchParams.set('models', 'previous');
+        else target.searchParams.delete('models');
+        link.href = target.toString();
+      });
     };
     const setOpen = (open, { scroll = true } = {}) => {
       syncScope();

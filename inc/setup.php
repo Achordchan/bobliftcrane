@@ -682,12 +682,13 @@ function boblift_redirect_category_query_to_category_page(): void
     if (!is_string($target) || $target === '') {
         return;
     }
-    $query = wp_unslash($_GET);
-    $query = is_array($query) ? $query : [];
-    unset($query['category']);
-    $query_string = http_build_query($query, '', '&', PHP_QUERY_RFC3986);
-    if ($query_string !== '') {
-        $target .= (str_contains($target, '?') ? '&' : '?') . $query_string;
+    // Filled in from the raw query string, not $_GET: the list writes a multiple choice as repeated parameters
+    // (capacity=2-4&capacity=4-6), which $_GET collapses to the last one.
+    $pairs = array_filter(explode('&', (string) ($_SERVER['QUERY_STRING'] ?? '')), static function (string $pair): bool {
+        return $pair !== '' && urldecode(explode('=', $pair, 2)[0]) !== 'category';
+    });
+    if ($pairs) {
+        $target .= (str_contains($target, '?') ? '&' : '?') . implode('&', $pairs);
     }
     wp_safe_redirect($target, 301);
     exit;
