@@ -15,6 +15,9 @@ return [
         'More news' => 'その他のニュース',
         'All news' => 'ニュース一覧',
         'Back to News' => 'ニュース一覧へ戻る',
+        'News secondary navigation' => 'ニュースのサブナビゲーション',
+        'News pagination' => 'ニュースのページ送り',
+        'Rows of BOB-LIFT knuckle boom cranes in the factory' => '工場に並ぶ BOB-LIFT ナックルブームクレーン',
     ],
     'zh' => [
         'BOB-LIFT Editorial Team' => 'BOB-LIFT 编辑部',
@@ -32,5 +35,32 @@ return [
         'More news' => '更多新闻',
         'All news' => '全部新闻',
         'Back to News' => '返回新闻列表',
+        'News secondary navigation' => '新闻二级导航',
+        'News pagination' => '新闻分页',
+        'Rows of BOB-LIFT knuckle boom cranes in the factory' => '工厂里成排的 BOB-LIFT 折臂起重机',
+    ],
+    'es' => [
+        'Product Operations Director, BOB-LIFT' => 'Director de Operaciones de Producto, BOB-LIFT',
+        'News secondary navigation' => 'Navegación secundaria de noticias',
+        'News pagination' => 'Paginación de noticias',
+        'Rows of BOB-LIFT knuckle boom cranes in the factory' => 'Hileras de grúas de pluma articulada BOB-LIFT en la fábrica',
+    ],
+    'ru' => [
+        'Product Operations Director, BOB-LIFT' => 'Директор по продуктовым операциям, BOB-LIFT',
+        'News secondary navigation' => 'Дополнительная навигация по новостям',
+        'News pagination' => 'Страницы новостей',
+        'Rows of BOB-LIFT knuckle boom cranes in the factory' => 'Ряды кранов BOB-LIFT с шарнирно-сочленённой стрелой на заводе',
+    ],
+    'fr' => [
+        'Product Operations Director, BOB-LIFT' => 'Directeur des opérations produit, BOB-LIFT',
+        'News secondary navigation' => 'Navigation secondaire des actualités',
+        'News pagination' => 'Pagination des actualités',
+        'Rows of BOB-LIFT knuckle boom cranes in the factory' => 'Rangées de grues à flèche articulée BOB-LIFT dans l\'usine',
+    ],
+    'ar' => [
+        'Product Operations Director, BOB-LIFT' => 'مدير عمليات المنتجات، BOB-LIFT',
+        'News secondary navigation' => 'التنقل الفرعي للأخبار',
+        'News pagination' => 'ترقيم صفحات الأخبار',
+        'Rows of BOB-LIFT knuckle boom cranes in the factory' => 'صفوف من رافعات BOB-LIFT ذات الذراع المفصلية في المصنع',
     ],
 ];

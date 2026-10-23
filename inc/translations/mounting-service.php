@@ -138,4 +138,16 @@ return [
         'Operating the crane safely' => '安全操作起重机',
         'Service and operation' => '售后与操作',
     ],
+    'es' => [
+        '{count} steps' => '{count} pasos',
+    ],
+    'ru' => [
+        '{count} steps' => 'Этапов: {count}',
+    ],
+    'fr' => [
+        '{count} steps' => '{count} étapes',
+    ],
+    'ar' => [
+        '{count} steps' => 'عدد الخطوات: {count}',
+    ],
 ];

@@ -749,7 +749,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                 ?>
                 <article id="features" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card">
                     <div class="px-4 pt-5 pb-0 sm:p-6 sm:pb-0 md:p-8 md:pb-0">
-                        <p class="boblift-kicker"><?php echo esc_html($features_series !== '' ? $features_series : ($ui['featuresLabel'] ?? 'Key Features')); ?></p>
+                        <p class="boblift-kicker"><?php echo esc_html($features_series !== '' ? boblift_localized_static_text($features_series) : ($ui['featuresLabel'] ?? 'Key Features')); ?></p>
                         <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($ui['featuresTitle'] ?? 'Product technical advantages'); ?></h2>
                     </div>
                     <?php if ($feature_cards) : ?>

@@ -105,4 +105,32 @@ return [
         'Factory updates, deliveries and customer visits on our social channels.' => '在社交平台了解工厂动态、交付和客户到访。',
         'All social media' => '全部社交媒体',
     ],
+    'es' => [
+        'Phone / WhatsApp / Telegram' => 'Teléfono / WhatsApp / Telegram',
+        'Our sales team speaks English, Russian and Chinese. You can also write in your own language and we will translate.' => 'Nuestro equipo comercial habla inglés, ruso y chino. También puede escribirnos en su idioma y nosotros lo traduciremos.',
+        'Download a brochure' => 'Descargar un catálogo',
+        'Model specifications in PDF, ready to share with your team.' => 'Especificaciones de los modelos en PDF, listas para compartir con su equipo.',
+        'Directions to the main factory' => 'Cómo llegar a la fábrica principal',
+    ],
+    'ru' => [
+        'Phone / WhatsApp / Telegram' => 'Телефон / WhatsApp / Telegram',
+        'Our sales team speaks English, Russian and Chinese. You can also write in your own language and we will translate.' => 'Наш отдел продаж говорит на английском, русском и китайском. Можно писать и на своём языке — мы переведём.',
+        'Download a brochure' => 'Скачать каталог',
+        'Model specifications in PDF, ready to share with your team.' => 'Характеристики моделей в PDF — удобно переслать коллегам.',
+        'Directions to the main factory' => 'Как добраться до основного завода',
+    ],
+    'fr' => [
+        'Phone / WhatsApp / Telegram' => 'Téléphone / WhatsApp / Telegram',
+        'Our sales team speaks English, Russian and Chinese. You can also write in your own language and we will translate.' => 'Notre équipe commerciale parle anglais, russe et chinois. Vous pouvez aussi nous écrire dans votre langue, nous traduirons.',
+        'Download a brochure' => 'Télécharger une brochure',
+        'Model specifications in PDF, ready to share with your team.' => 'Caractéristiques des modèles en PDF, prêtes à partager avec votre équipe.',
+        'Directions to the main factory' => 'Itinéraire vers l\'usine principale',
+    ],
+    'ar' => [
+        'Phone / WhatsApp / Telegram' => 'الهاتف / WhatsApp / Telegram',
+        'Our sales team speaks English, Russian and Chinese. You can also write in your own language and we will translate.' => 'يتحدث فريق المبيعات الإنجليزية والروسية والصينية. ويمكنك أيضًا الكتابة بلغتك وسنتولى الترجمة.',
+        'Download a brochure' => 'تنزيل كتيّب',
+        'Model specifications in PDF, ready to share with your team.' => 'مواصفات الطرازات بصيغة PDF، جاهزة للمشاركة مع فريقك.',
+        'Directions to the main factory' => 'الاتجاهات إلى المصنع الرئيسي',
+    ],
 ];

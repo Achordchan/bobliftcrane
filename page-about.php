@@ -12,6 +12,12 @@ $is_zh_about = str_starts_with($about_language, 'zh');
 $gallery_label = (string) ($manufacturing_gallery['label'] ?? 'Modern Manufacturing Base');
 $gallery_title = (string) ($manufacturing_gallery['title'] ?? 'Intelligent Production.');
 $gallery_text = (string) ($manufacturing_gallery['text'] ?? 'Experience our state-of-the-art 37,000 sqm facility where precision engineering meets rigorous quality control.');
+if (!$is_zh_about) {
+    // Other languages show the English defaults until edited, so they go through the built-in dictionary.
+    $gallery_label = boblift_localized_static_text($gallery_label);
+    $gallery_title = boblift_localized_static_text($gallery_title);
+    $gallery_text = boblift_localized_static_text($gallery_text);
+}
 $global_footprint = is_array($about_page['global_footprint'] ?? null) ? $about_page['global_footprint'] : [];
 $global_stats = is_array($global_footprint['stats'] ?? null) ? array_values(array_filter($global_footprint['stats'], static fn($item): bool => is_array($item) && trim((string) ($item['number'] ?? '')) !== '')) : [];
 if ($is_zh_about) {
@@ -67,7 +73,7 @@ $certification_items = array_values(array_filter(array_map(static function (arra
 }));
 $about_ui = function_exists('boblift_site_ui') ? boblift_site_ui('aboutPage') : [];
 $logo_silhouette_image = $logo['silhouette_image'] ?? boblift_image_option('images/about/about-logo-1.png');
-$logo_silhouette_alt = (string) ($logo['silhouette_alt'] ?? 'BOB-LIFT crane silhouette background');
+$logo_silhouette_alt = boblift_localized_static_text((string) ($logo['silhouette_alt'] ?? 'BOB-LIFT crane silhouette background'));
 $about_aerial_start_setting = $logo['aerial_start_image'] ?? boblift_image_option('images/about/about-aerial-mid-start.webp');
 $about_aerial_end_setting = $logo['aerial_end_image'] ?? boblift_image_option('images/about/about-aerial-mid-end.webp');
 $about_aerial_video_setting = is_array($logo['aerial_video'] ?? null) ? $logo['aerial_video'] : ['id' => 0, 'path' => 'videos/about/about-aerial-mid.mp4'];
@@ -85,8 +91,8 @@ if ($about_aerial_video === '') {
     $about_aerial_video_path = (string) ($about_aerial_video_setting['path'] ?? 'videos/about/about-aerial-mid.mp4');
     $about_aerial_video = $about_aerial_video_path !== '' ? boblift_asset($about_aerial_video_path) : '';
 }
-$about_aerial_start_alt = (string) ($logo['aerial_start_alt'] ?? 'BOB-LIFT factory aerial view opening frame');
-$about_aerial_end_alt = (string) ($logo['aerial_end_alt'] ?? 'BOB-LIFT factory aerial view ending frame');
+$about_aerial_start_alt = boblift_localized_static_text((string) ($logo['aerial_start_alt'] ?? 'BOB-LIFT factory aerial view opening frame'));
+$about_aerial_end_alt = boblift_localized_static_text((string) ($logo['aerial_end_alt'] ?? 'BOB-LIFT factory aerial view ending frame'));
 $strength_title = (string) ($strength['title'] ?? 'Manufacturing intelligence for global lifting projects.');
 $strength_title_html = esc_html($strength_title);
 foreach (['中国徐州', 'Xuzhou, China', '起重设备制造商', 'crane manufacturer', '制造智能', '日常运营', 'Manufacturing intelligence', 'daily operation'] as $strength_highlight) {
@@ -344,9 +350,9 @@ if ($legacy_strength['cards'] !== [] || $legacy_strength['cta'] !== null || $leg
 <?php if ($certification_items !== []) : ?>
 <?php // Outside the section's stacking context so it covers the header and the floating contact bar. ?>
 <div class="fixed inset-0 z-[999] hidden items-center justify-center bg-[#0B1B33]/88 p-4 backdrop-blur-md" data-certification-lightbox aria-hidden="true">
-    <button class="absolute inset-0 cursor-zoom-out" type="button" data-certification-close aria-label="<?php echo esc_attr($is_zh_about ? '关闭证书大图' : 'Close certificate preview'); ?>"></button>
+    <button class="absolute inset-0 cursor-zoom-out" type="button" data-certification-close aria-label="<?php echo esc_attr($is_zh_about ? '关闭证书大图' : boblift_localized_static_text('Close certificate preview')); ?>"></button>
     <figure class="relative z-10 max-h-[92vh] w-full max-w-[980px] rounded bg-white p-3 shadow-card md:p-4">
-        <button class="absolute end-3 top-3 grid h-10 w-10 place-items-center rounded-sm bg-[#0B1B33] text-white shadow-card transition hover:bg-[#0B3F7D]" type="button" data-certification-close aria-label="<?php echo esc_attr($is_zh_about ? '关闭' : 'Close'); ?>">×</button>
+        <button class="absolute end-3 top-3 grid h-10 w-10 place-items-center rounded-sm bg-[#0B1B33] text-white shadow-card transition hover:bg-[#0B3F7D]" type="button" data-certification-close aria-label="<?php echo esc_attr($is_zh_about ? '关闭' : boblift_localized_static_text('Close')); ?>">×</button>
         <img class="max-h-[78vh] w-full rounded object-contain" src="" alt="" data-certification-lightbox-image>
         <figcaption class="px-2 pb-1 pt-3 text-center text-sm font-black text-[#0B1B33]" data-certification-lightbox-title></figcaption>
     </figure>
