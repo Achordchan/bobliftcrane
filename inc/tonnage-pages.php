@@ -226,6 +226,17 @@ function boblift_tonnage_intro(int $size): string
     return implode(in_array($language, ['zh', 'ja'], true) ? '' : ' ', $sentences);
 }
 
+/** "See all 5 Ton Cranes" for a product page; the name starts lower-case mid-sentence where the language needs it. */
+function boblift_tonnage_see_all_label(int $size): string
+{
+    $name = boblift_tonnage_heading($size);
+    $language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
+    if (in_array($language, ['es', 'fr', 'ru'], true)) {
+        $name = mb_strtolower(mb_substr($name, 0, 1)) . mb_substr($name, 1);
+    }
+    return str_replace('{name}', $name, boblift_localized_static_text('See all {name}'));
+}
+
 /** Home > Products > N Ton Cranes, as [label, url] pairs. */
 function boblift_tonnage_breadcrumb(int $size): array
 {

@@ -370,6 +370,11 @@ foreach ($languages as $language) {
                                                 <?php if ($family_index > 0 && $family['group'] !== $product_menu_families[$family_index - 1]['group']) : ?><span class="mx-7 h-7 w-px bg-slate-300" aria-hidden="true"></span><?php elseif ($family_index > 0) : ?><span class="mx-5" aria-hidden="true"></span><?php endif; ?>
                                                 <a class="text-[16px] font-medium leading-none transition hover:text-blue-700 <?php echo $family['slug'] === $product_menu_active ? 'font-black text-ink' : 'text-slate-600'; ?>" href="<?php echo esc_url($family['url']); ?>"><?php echo esc_html($family['title']); ?></a>
                                             <?php endforeach; ?>
+                                            <?php // Last, after a divider: the tonnage pages (inc/tonnage-pages.php), through the row on the product list. ?>
+                                            <?php if (function_exists('boblift_tonnage_links') && boblift_tonnage_links()) : ?>
+                                                <span class="mx-7 h-7 w-px bg-slate-300" aria-hidden="true"></span>
+                                                <a class="text-[16px] font-medium leading-none transition hover:text-blue-700 <?php echo get_query_var('boblift_tonnage') ? 'font-black text-ink' : 'text-slate-600'; ?>" href="<?php echo esc_url(boblift_product_archive_url() . '#by-capacity'); ?>"><?php echo esc_html(boblift_localized_static_text('Browse by capacity')); ?></a>
+                                            <?php endif; ?>
                                         </nav>
                                     </div>
                                 </div>
