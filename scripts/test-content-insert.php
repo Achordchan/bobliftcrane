@@ -17,6 +17,15 @@ function add_action(...$args): void
 function add_filter(...$args): void
 {
 }
+function current_user_can(string $cap): bool
+{
+    return false;
+}
+// Stands in for KSES: it rewrites a bare ampersand the way a save without unfiltered_html does.
+function wp_kses_post(string $html): string
+{
+    return preg_replace('~&(?!amp;)~', '&amp;', $html);
+}
 require dirname(__DIR__) . '/inc/rest-content-insert.php';
 
 $cases = [
@@ -34,6 +43,7 @@ $cases = [
     'paragraph in a blockquote' => ['<blockquote><p>Quote</p></blockquote><p>z</p>', 'Quote', "<blockquote><p>Quote</p></blockquote>\n<p>N</p><p>z</p>"],
     'tag inside a comment' => ['<p>A <!-- </p> --> b</p><p>z</p>', 'A', "<p>A <!-- </p> --> b</p>\n<p>N</p><p>z</p>"],
     'tag inside a script' => ['<p>A<script>var s="</p>";</script> b</p><p>z</p>', 'A', "<p>A<script>var s=\"</p>\";</script> b</p>\n<p>N</p><p>z</p>"],
+    'quoted attribute with a tag' => ['<p>A <span title="use > not </p> here">t</span></p><p>z</p>', 'A', "<p>A <span title=\"use > not </p> here\">t</span></p>\n<p>N</p><p>z</p>"],
     'already inserted' => ["<p>A</p>\n<p>N</p>", 'A', "<p>A</p>\n<p>N</p>"],
     'unclosed paragraphs' => ['<p>one<p>A two<p>three', 'A', 'boblift_insert_element'],
     'div only' => ['<div>A</div>', 'A', 'boblift_insert_element'],
@@ -49,5 +59,12 @@ foreach ($cases as $name => [$content, $after, $want]) {
         echo "FAIL {$name}\n  want: " . json_encode($want) . "\n  got:  " . json_encode($got) . "\n";
     }
 }
-echo $failed ? "{$failed} failed\n" : count($cases) . " passed\n";
+// A repeat of a filtered insertion finds the filtered copy and changes nothing.
+$value = ['after' => 'A', 'html' => '<p><a href="/x?a=1&b=2">x</a></p>'];
+$once = boblift_content_insert_apply('<p>A</p>', $value);
+if (boblift_content_insert_apply($once, $value) !== $once || !str_contains($once, '&amp;b=2')) {
+    $failed++;
+    echo "FAIL filtered repeat\n  got: " . json_encode($once) . "\n";
+}
+echo $failed ? "{$failed} failed\n" : (count($cases) + 1) . " passed\n";
 exit($failed ? 1 : 0);
