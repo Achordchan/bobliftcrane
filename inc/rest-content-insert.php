@@ -14,10 +14,12 @@ if (!defined('ABSPATH')) {
  * after the block's closing comment if one follows. HTML that is already in the content is skipped, so sending the same
  * request twice changes nothing. A request that also sends "content" is refused: send one or the other.
  *
- * rest_pre_insert_{type} checks the insertion against the stored body before anything is saved, so a snippet that cannot
- * be placed refuses the whole request. The field's update callback then writes it with a compare-and-set on the body it
- * read, retrying from the fresh body if any other save changed it in between, so no concurrent edit is overwritten. The
- * HTML goes through the same KSES filter a normal save applies for the user, and the new body is kept as a revision.
+ * rest_pre_insert_{type} takes a per-post lock that is held until the save is done, so insertion requests into one item
+ * run one at a time and the core update reloads the body saved by the one before, then checks the insertion against the
+ * stored body before anything is saved, so a snippet that cannot be placed refuses the whole request. The field's
+ * update callback then writes it with a compare-and-set on the body it read, retrying from the fresh body if any other
+ * save changed it in between, so no concurrent edit is overwritten. The HTML goes through the same KSES filter a normal
+ * save applies for the user, and the new body is kept as a revision.
  */
 function boblift_content_insert_types(): array
 {
@@ -47,13 +49,55 @@ function boblift_rest_pre_insert_content_insert(stdClass|WP_Error $prepared, WP_
     if ($request['content'] !== null) {
         return new WP_Error('boblift_insert_content', 'Send either "content" or "boblift_content_insert", not both.', ['status' => 400]);
     }
-    $checked = boblift_content_insert_apply(boblift_content_insert_stored((int) ($prepared->ID ?? 0)), $value);
-    return is_wp_error($checked) ? $checked : $prepared;
+    // The core update that runs before the field callback writes the whole post back, body included. Holding this lock
+    // from here until rest_after_insert keeps a second insertion request from writing a body it loaded before the first
+    // one's insertion was saved.
+    $post_id = (int) ($prepared->ID ?? 0);
+    if ($post_id > 0 && !boblift_content_insert_lock($post_id)) {
+        return new WP_Error('boblift_insert_busy', 'Another insertion into this item is being saved; try again.', ['status' => 409]);
+    }
+    // This request loaded the post before the lock was held; drop that copy so the core update reloads the saved body.
+    if ($post_id > 0) {
+        clean_post_cache($post_id);
+    }
+    $checked = boblift_content_insert_apply(boblift_content_insert_stored($post_id), $value);
+    if (is_wp_error($checked)) {
+        boblift_content_insert_lock(0);
+        return $checked;
+    }
+    return $prepared;
 }
 foreach (boblift_content_insert_types() as $boblift_insert_type) {
     add_filter('rest_pre_insert_' . $boblift_insert_type, 'boblift_rest_pre_insert_content_insert', 10, 2);
+    add_action('rest_after_insert_' . $boblift_insert_type, static fn() => boblift_content_insert_lock(0));
 }
 unset($boblift_insert_type);
+add_action('shutdown', static fn() => boblift_content_insert_lock(0));
+
+/**
+ * A named database lock per post, taken with the post's ID and released with 0. If the save fails before
+ * rest_after_insert runs, the shutdown hook releases it, and MySQL drops it anyway when the connection closes.
+ */
+function boblift_content_insert_lock(int $post_id): bool
+{
+    global $wpdb;
+    static $held = '';
+    if ($post_id > 0) {
+        $name = 'boblift_content_insert_' . $post_id;
+        if ($held !== $name) {
+            if ((int) $wpdb->get_var($wpdb->prepare('SELECT GET_LOCK(%s, 10)', $name)) !== 1) {
+                return false;
+            }
+            $held = $name;
+        }
+        return true;
+    }
+    if ($held !== '') {
+        $wpdb->query($wpdb->prepare('SELECT RELEASE_LOCK(%s)', $held));
+        $held = '';
+    }
+    return true;
+}
 
 /** The body as stored right now, read past the object cache. */
 function boblift_content_insert_stored(int $post_id): string
