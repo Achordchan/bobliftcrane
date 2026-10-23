@@ -46,9 +46,15 @@ function boblift_register_gallery_rest_meta(): void
         'auth_callback' => $auth,
     ]);
     // The core REST API only exposes registered meta on post types that support custom fields.
+    add_post_type_support('product', 'custom-fields');
     add_post_type_support('page', 'custom-fields');
 }
 add_action('init', 'boblift_register_gallery_rest_meta', 20);
+
+// Core REST returns registered meta whatever the post password, so a protected product or page keeps its photo lists
+// (and other meta) out of responses for anyone who cannot edit it, as protected cases do (inc/case-rest.php).
+add_filter('rest_prepare_product', 'boblift_hide_protected_case_rest_meta', 10, 2);
+add_filter('rest_prepare_page', 'boblift_hide_protected_case_rest_meta', 10, 2);
 
 /** Checks one photo-list meta value; returns an error message, or '' when it is fine (or not sent). */
 function boblift_gallery_rest_error(array $meta, string $key, array $columns, string $id_column = ''): string
