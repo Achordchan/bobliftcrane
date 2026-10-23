@@ -88,9 +88,10 @@ function boblift_rest_save_content_insert(int $post_id, $value): bool|WP_Error
         if (is_wp_error($content) || $content === $stored) {
             return is_wp_error($content) ? $content : true;
         }
-        // Compare-and-set: only replace the body this attempt read; any save in between makes this match nothing.
+        // Compare-and-set, byte for byte (the column collation ignores case and accents): only replace the body this
+        // attempt read; any save in between makes this match nothing.
         $updated = $wpdb->query($wpdb->prepare(
-            "UPDATE {$wpdb->posts} SET post_content = %s, post_modified = %s, post_modified_gmt = %s WHERE ID = %d AND post_content = %s",
+            "UPDATE {$wpdb->posts} SET post_content = %s, post_modified = %s, post_modified_gmt = %s WHERE ID = %d AND BINARY post_content = BINARY %s",
             $content,
             current_time('mysql'),
             current_time('mysql', true),
