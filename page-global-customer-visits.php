@@ -135,8 +135,12 @@ $wall_alt = $t($visits['label'] ?? 'Global Customer Visits');
                 ([1 => 'md:col-span-1', 2 => 'md:col-span-2', 3 => 'md:col-span-3'])[$last_fill[1]] ?? '',
                 ([1 => 'lg:col-span-1', 2 => 'lg:col-span-2', 3 => 'lg:col-span-3', 4 => 'lg:col-span-4', 5 => 'lg:col-span-5'])[$last_fill[2]] ?? '',
             ]));
-            // A card stretched across both phone columns gets a wider photo so it is not twice as tall as the rest.
-            $last_media = $last_fill[0] === 2 ? 'aspect-[8/3] md:aspect-[4/3]' : 'aspect-[4/3]';
+            // A stretched card gets a photo widened by its span, so its row stays as tall as the rest instead of one huge picture.
+            $last_media = trim(implode(' ', [
+                ([1 => 'aspect-[4/3]', 2 => 'aspect-[8/3]'])[$last_fill[0]] ?? 'aspect-[4/3]',
+                ([1 => 'md:aspect-[4/3]', 2 => 'md:aspect-[8/3]', 3 => 'md:aspect-[4/1]'])[$last_fill[1]] ?? '',
+                ([1 => 'lg:aspect-[4/3]', 2 => 'lg:aspect-[8/3]', 3 => 'lg:aspect-[4/1]', 4 => 'lg:aspect-[16/3]', 5 => 'lg:aspect-[20/3]'])[$last_fill[2]] ?? '',
+            ]));
             ?>
             <div class="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-5 xl:gap-5">
                 <?php foreach (array_values($cards) as $card_index => $card) : $is_last_card = $card_index === count($cards) - 1; ?>
