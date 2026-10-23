@@ -86,7 +86,8 @@ add_action('shutdown', 'boblift_content_insert_release');
 
 /**
  * Every update of one of these items takes the same per-post lock just before its row is written, so no other save can
- * land between an insertion request's core update and its own write. Within an insertion request the core update
+ * land between an insertion request's core update and its own write. A save whose body is one an insertion replaced in
+ * the last ten minutes (it loaded the post earlier and left the body alone) writes the body as stored now instead. Within an insertion request the core update
  * writes the body as stored at that moment, never the copy loaded earlier; other saves hold the lock only until their
  * row is written (wp_insert_post). If the lock cannot be had within 10 seconds an ordinary save goes ahead unlocked, as
  * it would without this file.
@@ -102,6 +103,12 @@ function boblift_content_insert_guard_core_write(array $data, array $postarr, ar
         return $data;
     }
     boblift_content_insert_lock($post_id);
+    // A save that loaded the post before a recent insertion carries the body from before it. Unless the save changed
+    // that body, write the body as stored now, so a title-only or quick edit does not drop the insertion.
+    $replaced = get_transient('boblift_content_insert_prev_' . $post_id);
+    if (is_array($replaced) && in_array(md5(wp_unslash((string) $data['post_content'])), $replaced, true)) {
+        $data['post_content'] = wp_slash(boblift_content_insert_stored($post_id));
+    }
     return $data;
 }
 add_filter('wp_insert_post_data', 'boblift_content_insert_guard_core_write', PHP_INT_MAX, 4);
@@ -199,6 +206,10 @@ function boblift_rest_save_content_insert(int $post_id, $value): string|WP_Error
             $stored
         ));
         if ($updated === 1) {
+            // Remember the replaced body for a while, so a save still holding it keeps the insertion (see the guard).
+            $replaced = get_transient('boblift_content_insert_prev_' . $post_id);
+            $replaced = array_slice(array_merge([md5($stored)], is_array($replaced) ? $replaced : []), 0, 5);
+            set_transient('boblift_content_insert_prev_' . $post_id, $replaced, 10 * MINUTE_IN_SECONDS);
             clean_post_cache($post_id);
             wp_save_post_revision($post_id);
             return $content;
