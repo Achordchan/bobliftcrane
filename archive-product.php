@@ -219,12 +219,14 @@ $filter_dropdown = static function (string $title, string $filter, array $items,
 <?php };
 // The category list switches page: each entry links to its category, the current one ticked; a parent's
 // sub-categories show under it while it or one of them is open.
-$category_filter_group = static function (array $tree) use ($category_counts, $archive_ui, $initial_category, $active_parent, $category_link, $current_attr): void {
+$category_filter_group = static function (array $tree) use ($category_counts, $archive_ui, $initial_category, $active_parent, $category_link, $current_attr, $all_product_count): void {
     $box = static fn(bool $on): string => '<span class="relative flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border ' . ($on ? 'border-[#0B3F7D] bg-[#0B3F7D]' : 'border-slate-300 bg-white') . '" aria-hidden="true"><span class="pointer-events-none absolute h-2.5 w-1.5 -translate-y-0.5 rotate-45 border-b-2 border-r-2 border-white' . ($on ? '' : ' opacity-0') . '"></span></span>';
     ?>
     <fieldset class="border-t border-[#E5E7EB] pt-6 first:border-t-0 first:pt-0">
         <legend class="float-left mb-4 w-full text-base font-black text-[#0B1B33]"><?php echo esc_html($archive_ui['categoryFilterLabel'] ?? 'Product Category'); ?></legend>
         <div class="clear-left space-y-3">
+            <?php // The desktop bar has an All Products tab; the drawer needs its own way back to the whole range. ?>
+            <a class="product-filter-option" href="<?php echo esc_url($category_link('')); ?>" data-category-link=""<?php echo $current_attr($initial_category === ''); ?>><?php echo $box($initial_category === ''); ?><span class="min-w-0 flex-1 font-black leading-snug"><?php echo esc_html($archive_ui['allCategoriesLabel'] ?? 'All Products'); ?></span><span class="shrink-0 text-xs font-black text-slate-500"><?php echo esc_html((string) $all_product_count); ?></span></a>
             <?php $group_shown = 'crane'; foreach ($tree as $item) : $slug = (string) $item['slug']; $open = $slug === $active_parent; ?>
                 <?php if (($item['group'] ?? 'crane') !== $group_shown) : $group_shown = $item['group']; ?>
                     <p class="border-t border-line pt-3 text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(boblift_product_family_group_label($group_shown)); ?></p>
