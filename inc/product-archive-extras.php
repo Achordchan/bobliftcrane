@@ -504,8 +504,8 @@ function boblift_render_archive_made(): void
 }
 
 /**
- * Everything below the listing that depends on the category: one block per category, shown by the archive script
- * (like the category intros) when that category alone is picked.
+ * Everything below the listing that depends on the category: one block per category passed in (the archive passes
+ * only the page's own category; the all-products page passes none).
  */
 function boblift_render_archive_extras(array $categories, string $initial_category): void
 {

@@ -54,10 +54,15 @@ $banner_default = [
     'image' => $archive_banner_custom ? boblift_image_setting_url($archive_banner_image) : boblift_product_banner_photo_url(),
     'imageAlt' => $archive_banner_custom ? (string) ($product_archive['image_alt'] ?? '') : 'BOB-LIFT knuckle boom crane in the factory yard',];
 $banner_default['srcset'] = boblift_image_srcset(boblift_image_cdn_original($banner_default['image']));
+// A category page shows its own banner only: switching category loads that category's page.
+$valid_category_slugs = array_fill_keys(array_filter(array_map(static fn($item): string => (string) ($item['slug'] ?? ''), $categories)), true);
+if ($initial_category !== '' && !isset($valid_category_slugs[$initial_category])) {
+    $initial_category = '';
+}
 $banner_categories = [];
 foreach ($categories as $category) {
     $slug = (string) ($category['slug'] ?? '');
-    if ($slug === '') {
+    if ($slug === '' || $slug !== $initial_category) {
         continue;
     }
     $banner_categories[$slug] = [
@@ -69,13 +74,7 @@ foreach ($categories as $category) {
     ];
     $banner_categories[$slug]['srcset'] = boblift_image_srcset(boblift_image_cdn_original($banner_categories[$slug]['image']));
 }
-$valid_category_slugs = array_fill_keys(array_keys($banner_categories), true);
-if ($initial_category !== '' && !isset($valid_category_slugs[$initial_category])) {
-    $initial_category = '';
-}
 $banner_initial = $initial_category !== '' ? $banner_categories[$initial_category] : $banner_default;
-$spec_counts = array_map(static fn(array $filter): array => array_fill_keys(array_keys($filter['bins']), 0), $spec_filters);
-$boom_counts = array_fill_keys(array_keys($boom_options), 0);
 foreach ($products as $product) {
     $product_key = (string) ($product['id'] ?? $product['slug'] ?? $product['title'] ?? wp_unique_id('product_'));
     $product_categories = array_values(array_unique(array_filter(array_map('strval', $product['categories'] ?? [($product['category'] ?? '')]))));
@@ -85,21 +84,7 @@ foreach ($products as $product) {
             $category_product_map[$category][$product_key] = true;
         }
     }
-    foreach ($spec_filters as $filter => $config) {
-        $number = (float) ($product['filter_values'][$filter] ?? 0);
-        foreach (array_keys($config['bins']) as $bin) {
-            if ($in_bin($number, (string) $bin)) {
-                $spec_counts[$filter][$bin]++;
-            }
-        }
-    }
-    $boom = $product['boom_type'] ?? '';
-    if (isset($boom_counts[$boom])) {
-        $boom_counts[$boom]++;
-    }
 }
-$legacy_groups = function_exists('boblift_legacy_model_library') ? boblift_legacy_model_library($categories) : [];
-$legacy_total = array_sum(array_map(static fn(array $group): int => count($group['models']), $legacy_groups));
 $category_hierarchy = boblift_product_category_hierarchy();
 $category_url_map = [];
 foreach ($categories as $category) {
@@ -160,6 +145,44 @@ foreach ($products as $index => $product) {
 }
 uksort($products, static fn(int $a, int $b): int => $product_order[$a] <=> $product_order[$b]);
 $products = array_values($products);
+// The tabs count every product; a category page lists only its own: the category and, for a parent, its sub-categories.
+$all_product_count = count($products);
+$scope_slugs = [];
+$active_parent = '';
+if ($initial_category !== '') {
+    foreach ($category_filter_tree as $item) {
+        if ($item['slug'] === $initial_category || in_array($initial_category, (array) ($item['child_slugs'] ?? []), true)) {
+            $active_parent = (string) $item['slug'];
+            $scope_slugs = $item['slug'] === $initial_category ? (array) $item['child_slugs'] : [$initial_category];
+            break;
+        }
+    }
+    $scope_slugs = $scope_slugs ?: [$initial_category];
+    $products = array_values(array_filter($products, static fn(array $product): bool => (bool) array_intersect(array_map('strval', $product['categories'] ?? [($product['category'] ?? '')]), $scope_slugs)));
+}
+$spec_counts = array_map(static fn(array $filter): array => array_fill_keys(array_keys($filter['bins']), 0), $spec_filters);
+$boom_counts = array_fill_keys(array_keys($boom_options), 0);
+foreach ($products as $product) {
+    foreach ($spec_filters as $filter => $config) {
+        $number = (float) ($product['filter_values'][$filter] ?? 0);
+        foreach (array_keys($config['bins']) as $bin) {
+            if ($in_bin($number, (string) $bin)) {
+                $spec_counts[$filter][$bin]++;
+            }
+        }
+    }
+    $boom = $product['boom_type'] ?? '';
+    if (isset($boom_counts[$boom])) {
+        $boom_counts[$boom]++;
+    }
+}
+$legacy_groups = function_exists('boblift_legacy_model_library') ? boblift_legacy_model_library($categories) : [];
+if ($scope_slugs) {
+    $legacy_groups = array_values(array_filter($legacy_groups, static fn(array $group): bool => in_array((string) ($group['slug'] ?? ''), $scope_slugs, true)));
+}
+$legacy_total = array_sum(array_map(static fn(array $group): int => count($group['models']), $legacy_groups));
+$category_link = static fn(string $slug): string => $slug === '' ? boblift_product_archive_url() : (string) ($category_url_map[$slug] ?? boblift_public_path_url('/' . $slug));
+$current_attr = static fn(bool $current): string => $current ? ' aria-current="page"' : '';
 $filter_group = static function (string $title, string $filter, array $items, array $counts): void {
     $items = array_filter($items, static fn($label, $value): bool => $filter === 'capacity' || (int) ($counts[$value] ?? 0) > 0, ARRAY_FILTER_USE_BOTH);
     if (!$items) {
@@ -194,19 +217,25 @@ $filter_dropdown = static function (string $title, string $filter, array $items,
         </div>
     </div>
 <?php };
-$category_filter_group = static function (array $tree) use ($category_counts, $archive_ui): void { ?>
+// The category list switches page: each entry links to its category, the current one ticked; a parent's
+// sub-categories show under it while it or one of them is open.
+$category_filter_group = static function (array $tree) use ($category_counts, $archive_ui, $initial_category, $active_parent, $category_link, $current_attr, $all_product_count): void {
+    $box = static fn(bool $on): string => '<span class="relative flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border ' . ($on ? 'border-[#0B3F7D] bg-[#0B3F7D]' : 'border-slate-300 bg-white') . '" aria-hidden="true"><span class="pointer-events-none absolute h-2.5 w-1.5 -translate-y-0.5 rotate-45 border-b-2 border-r-2 border-white' . ($on ? '' : ' opacity-0') . '"></span></span>';
+    ?>
     <fieldset class="border-t border-[#E5E7EB] pt-6 first:border-t-0 first:pt-0">
         <legend class="float-left mb-4 w-full text-base font-black text-[#0B1B33]"><?php echo esc_html($archive_ui['categoryFilterLabel'] ?? 'Product Category'); ?></legend>
         <div class="clear-left space-y-3">
-            <?php $group_shown = 'crane'; foreach ($tree as $item) : ?>
+            <?php // The desktop bar has an All Products tab; the drawer needs its own way back to the whole range. ?>
+            <a class="product-filter-option" href="<?php echo esc_url($category_link('')); ?>" data-category-link=""<?php echo $current_attr($initial_category === ''); ?>><?php echo $box($initial_category === ''); ?><span class="min-w-0 flex-1 font-black leading-snug"><?php echo esc_html($archive_ui['allCategoriesLabel'] ?? 'All Products'); ?></span><span class="shrink-0 text-xs font-black text-slate-500"><?php echo esc_html((string) $all_product_count); ?></span></a>
+            <?php $group_shown = 'crane'; foreach ($tree as $item) : $slug = (string) $item['slug']; $open = $slug === $active_parent; ?>
                 <?php if (($item['group'] ?? 'crane') !== $group_shown) : $group_shown = $item['group']; ?>
                     <p class="border-t border-line pt-3 text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(boblift_product_family_group_label($group_shown)); ?></p>
                 <?php endif; ?>
-                <label class="product-filter-option"><span class="relative flex h-5 w-5 shrink-0 items-center justify-center"><input class="peer h-5 w-5 appearance-none rounded-sm border border-slate-300 bg-white transition checked:border-[#0B3F7D] checked:bg-[#0B3F7D] focus:outline-none focus:ring-4 focus:ring-blue-100" type="checkbox" data-filter="category" data-category-role="<?php echo !empty($item['children']) ? 'parent' : 'single'; ?>" data-category-children="<?php echo esc_attr(implode(',', $item['child_slugs'] ?? [$item['slug']])); ?>" value="<?php echo esc_attr($item['slug']); ?>"><span class="pointer-events-none absolute h-2.5 w-1.5 -translate-y-0.5 rotate-45 border-b-2 border-r-2 border-white opacity-0 peer-checked:opacity-100"></span></span><span class="min-w-0 flex-1 font-black leading-snug"><?php echo esc_html($item['title']); ?></span><span class="shrink-0 text-xs font-black text-slate-500"><?php echo esc_html((string) ($item['count'] ?? 0)); ?></span></label>
-                <?php if (!empty($item['children'])) : ?>
-                    <div class="hidden space-y-3" data-category-children-panel="<?php echo esc_attr($item['slug']); ?>" data-category-children="<?php echo esc_attr(implode(',', $item['child_slugs'] ?? [])); ?>">
-                        <?php foreach (($item['children'] ?? []) as $child) : $child_slug = (string) ($child['slug'] ?? ''); ?>
-                            <label class="product-filter-option ps-8 text-[0.92em]"><span class="relative flex h-5 w-5 shrink-0 items-center justify-center"><input class="peer h-5 w-5 appearance-none rounded-sm border border-slate-300 bg-white transition checked:border-[#0B3F7D] checked:bg-[#0B3F7D] focus:outline-none focus:ring-4 focus:ring-blue-100" type="checkbox" data-filter="category" data-category-role="child" data-category-parent="<?php echo esc_attr($item['slug']); ?>" value="<?php echo esc_attr($child_slug); ?>"><span class="pointer-events-none absolute h-2.5 w-1.5 -translate-y-0.5 rotate-45 border-b-2 border-r-2 border-white opacity-0 peer-checked:opacity-100"></span></span><span class="min-w-0 flex-1 leading-snug"><?php echo esc_html($child['title'] ?? $child_slug); ?></span><span class="shrink-0 text-xs font-black text-slate-500"><?php echo esc_html((string) ($category_counts[$child_slug] ?? 0)); ?></span></label>
+                <a class="product-filter-option" href="<?php echo esc_url($category_link($slug)); ?>" data-category-link="<?php echo esc_attr($slug); ?>"<?php echo $current_attr($slug === $initial_category); ?>><?php echo $box($open); ?><span class="min-w-0 flex-1 font-black leading-snug"><?php echo esc_html($item['title']); ?></span><span class="shrink-0 text-xs font-black text-slate-500"><?php echo esc_html((string) ($item['count'] ?? 0)); ?></span></a>
+                <?php if ($open && !empty($item['children'])) : ?>
+                    <div class="space-y-3">
+                        <?php foreach (($item['children'] ?? []) as $child) : $child_slug = (string) ($child['slug'] ?? ''); if (($category_counts[$child_slug] ?? 0) <= 0) { continue; } ?>
+                            <a class="product-filter-option ps-8 text-[0.92em]" href="<?php echo esc_url($category_link($child_slug)); ?>" data-category-link="<?php echo esc_attr($child_slug); ?>"<?php echo $current_attr($child_slug === $initial_category); ?>><?php echo $box($child_slug === $initial_category); ?><span class="min-w-0 flex-1 leading-snug"><?php echo esc_html($child['title'] ?? $child_slug); ?></span><span class="shrink-0 text-xs font-black text-slate-500"><?php echo esc_html((string) ($category_counts[$child_slug] ?? 0)); ?></span></a>
                         <?php endforeach; ?>
                     </div>
                 <?php endif; ?>
@@ -236,23 +265,23 @@ $filter_sidebar = static function () use ($filter_group, $category_filter_group,
         <div class="boblift-filter-drawer-actions mt-8 border-t border-[#E5E7EB] pt-6"><button class="min-h-12 w-full rounded-sm bg-[#0B1B33] px-5 text-sm font-black text-white shadow-card transition hover:-translate-y-0.5 hover:bg-[#0B3F7D]" type="button" data-filter-apply><?php echo esc_html($archive_ui['applyFiltersLabel'] ?? 'Apply'); ?></button></div>
     </aside>
 <?php };
-// Desktop: category tabs (one category at a time, like the Products menu), then a dropdown per spec filter,
-// then the picked spec options as chips. The checkboxes mirror the drawer's, so both drive the same filtering.
-$filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $category_counts, $spec_filters, $spec_counts, $boom_options, $boom_counts, $archive_ui, $products, $legacy_total): void { ?>
+// Desktop: category tabs (links to each category's page, like the Products menu), then a dropdown per spec filter,
+// then the picked spec options as chips. The spec checkboxes mirror the drawer's, so both drive the same filtering.
+$filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $category_counts, $spec_filters, $spec_counts, $boom_options, $boom_counts, $archive_ui, $all_product_count, $legacy_total, $initial_category, $active_parent, $category_link, $current_attr): void { ?>
     <div class="mb-6 hidden rounded border border-[#E5E7EB] bg-white shadow-card lg:mb-7 lg:block" data-filter-bar>
         <div class="flex flex-wrap px-3 shadow-[inset_0_-1px_0_#E5E7EB]" role="group" aria-label="<?php echo esc_attr($archive_ui['categoryFilterLabel'] ?? 'Product Category'); ?>">
-            <button class="boblift-category-tab" type="button" aria-pressed="false" data-category-tab=""><?php echo esc_html($archive_ui['allCategoriesLabel'] ?? 'All Products'); ?><span data-tab-count><?php echo esc_html((string) count($products)); ?></span></button>
+            <a class="boblift-category-tab" href="<?php echo esc_url($category_link('')); ?>" data-category-tab=""<?php echo $current_attr($initial_category === ''); ?>><?php echo esc_html($archive_ui['allCategoriesLabel'] ?? 'All Products'); ?><span data-tab-count><?php echo esc_html((string) $all_product_count); ?></span></a>
             <?php foreach ($category_filter_tree as $item) : ?>
-                <button class="boblift-category-tab" type="button" aria-pressed="false" data-category-tab="<?php echo esc_attr($item['slug']); ?>"><?php echo esc_html($item['title']); ?><span data-tab-count><?php echo esc_html((string) ($item['count'] ?? 0)); ?></span></button>
+                <a class="boblift-category-tab" href="<?php echo esc_url($category_link((string) $item['slug'])); ?>" data-category-tab="<?php echo esc_attr($item['slug']); ?>"<?php echo $current_attr($item['slug'] === $active_parent); ?>><?php echo esc_html($item['title']); ?><span data-tab-count><?php echo esc_html((string) ($item['count'] ?? 0)); ?></span></a>
             <?php endforeach; ?>
             <?php // Previous models look like a tab but toggle on their own: the category tab stays lit beside it, and the selected category's previous models replace the grid. ?>
             <?php if ($legacy_total > 0) : ?><button class="boblift-category-tab boblift-legacy-tab ms-auto" type="button" aria-pressed="false" aria-controls="previous-models" data-legacy-toggle><?php echo boblift_icon('clock-3', 'h-4 w-4'); ?><?php echo esc_html(boblift_localized_static_text('Previous models')); ?><span data-tab-count data-legacy-count><?php echo esc_html((string) $legacy_total); ?></span></button><?php endif; ?>
         </div>
-        <?php foreach ($category_filter_tree as $item) : if (empty($item['children'])) { continue; } ?>
-            <div class="hidden flex-wrap gap-2 px-6 pt-4" role="group" aria-label="<?php echo esc_attr($item['title']); ?>" data-category-subtabs="<?php echo esc_attr($item['slug']); ?>">
-                <button class="boblift-category-subtab" type="button" aria-pressed="false" data-category-tab="<?php echo esc_attr($item['slug']); ?>"><?php echo esc_html($archive_ui['allInCategoryLabel'] ?? 'All'); ?><span data-tab-count><?php echo esc_html((string) ($item['count'] ?? 0)); ?></span></button>
+        <?php foreach ($category_filter_tree as $item) : if (empty($item['children']) || $item['slug'] !== $active_parent) { continue; } ?>
+            <div class="flex flex-wrap gap-2 px-6 pt-4" role="group" aria-label="<?php echo esc_attr($item['title']); ?>" data-category-subtabs="<?php echo esc_attr($item['slug']); ?>">
+                <a class="boblift-category-subtab" href="<?php echo esc_url($category_link((string) $item['slug'])); ?>" data-category-tab="<?php echo esc_attr($item['slug']); ?>"<?php echo $current_attr($item['slug'] === $initial_category); ?>><?php echo esc_html($archive_ui['allInCategoryLabel'] ?? 'All'); ?><span data-tab-count><?php echo esc_html((string) ($item['count'] ?? 0)); ?></span></a>
                 <?php foreach ($item['children'] as $child) : $child_slug = (string) ($child['slug'] ?? ''); if (($category_counts[$child_slug] ?? 0) <= 0) { continue; } ?>
-                    <button class="boblift-category-subtab" type="button" aria-pressed="false" data-category-tab="<?php echo esc_attr($child_slug); ?>"><?php echo esc_html($child['title'] ?? $child_slug); ?><span data-tab-count><?php echo esc_html((string) $category_counts[$child_slug]); ?></span></button>
+                    <a class="boblift-category-subtab" href="<?php echo esc_url($category_link($child_slug)); ?>" data-category-tab="<?php echo esc_attr($child_slug); ?>"<?php echo $current_attr($child_slug === $initial_category); ?>><?php echo esc_html($child['title'] ?? $child_slug); ?><span data-tab-count><?php echo esc_html((string) $category_counts[$child_slug]); ?></span></a>
                 <?php endforeach; ?>
             </div>
         <?php endforeach; ?>
@@ -321,16 +350,16 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
 
         <div class="boblift-archive-about">
             <?php
-            // Category introductions (edited on the category screen or through REST term meta), shown below the listing for the selected category only; on desktop the brochure sits beside it (see .boblift-archive-about).
+            // The category introduction (edited on the category screen or through REST term meta), below the listing on its category's page only; on desktop the brochure sits beside it (see .boblift-archive-about).
             foreach ($categories as $intro_category) :
                 $intro_slug = (string) ($intro_category['slug'] ?? '');
                 $intro_paragraphs = array_values(array_filter(array_map('strval', (array) ($intro_category['intro_paragraphs'] ?? [])), static fn(string $text): bool => trim($text) !== ''));
-                if ($intro_slug === '' || $intro_paragraphs === []) {
+                if ($intro_slug === '' || $intro_slug !== $initial_category || $intro_paragraphs === []) {
                     continue;
                 }
                 $intro_title = trim((string) ($intro_category['intro_title'] ?? ''));
             ?>
-                <section class="mt-12 max-w-[880px] lg:mt-16" data-category-intro="<?php echo esc_attr($intro_slug); ?>" aria-labelledby="category-intro-<?php echo esc_attr($intro_slug); ?>"<?php echo $intro_slug === $initial_category ? '' : ' hidden'; ?>>
+                <section class="mt-12 max-w-[880px] lg:mt-16" data-category-intro="<?php echo esc_attr($intro_slug); ?>" aria-labelledby="category-intro-<?php echo esc_attr($intro_slug); ?>">
                     <h2 id="category-intro-<?php echo esc_attr($intro_slug); ?>" class="text-[clamp(1.4rem,2vw,2rem)] font-black leading-tight tracking-[-0.01em] text-[#0B1B33]"><?php echo esc_html($intro_title !== '' ? $intro_title : (string) ($intro_category['banner_title'] ?? $intro_category['title'] ?? '')); ?></h2>
                     <?php foreach ($intro_paragraphs as $paragraph) : ?>
                         <p class="mt-4 text-sm font-normal leading-7 text-slate-600 md:text-base"><?php echo esc_html($paragraph); ?></p>
@@ -339,7 +368,7 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
             <?php endforeach; ?>
             <?php boblift_render_brochures(['context' => 'archive', 'initial_category' => $initial_category]); ?>
         </div>
-        <?php boblift_render_archive_extras($categories, $initial_category); ?>
+        <?php boblift_render_archive_extras(array_values(array_filter($categories, static fn(array $item): bool => $initial_category !== '' && (string) ($item['slug'] ?? '') === $initial_category)), $initial_category); ?>
         <?php
         // Last on the page, after our own content: the sister site for compact site equipment. The link opens the leave dialog (footer.php) like the header switcher.
         $t = static fn(string $text): string => boblift_localized_static_text($text);

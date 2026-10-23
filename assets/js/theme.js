@@ -2917,12 +2917,9 @@
     const sortOptions = qsa('[data-sort-option]', root);
     const resets = qsa('[data-filter-reset]', root);
     const applyFilterButtons = qsa('[data-filter-apply]', root);
-    const categoryChildPanels = qsa('[data-category-children-panel]', root);
     const filterGroups = qsa('[data-filter-group]', root);
     const drawer = qs('[data-filter-drawer]', root);
     const filterBar = qs('[data-filter-bar]', root);
-    const categoryTabs = qsa('[data-category-tab]', root);
-    const categorySubtabRows = qsa('[data-category-subtabs]', root);
     const filterDropdowns = qsa('[data-filter-dropdown]', root);
     const filterChips = qs('[data-filter-chips]', root);
     const filterChipsRow = qs('[data-filter-chips-row]', root);
@@ -2950,6 +2947,9 @@
     const quickFavorite = qs('[data-quick-favorite]', root);
     let currentPage = 1;
     let activeQuickCard = null;
+    // The server lists only this page's category (and its sub-categories); the category tabs and the drawer's category
+    // list are links to the other categories' pages, so the category never changes here.
+    const fixedCategory = root.dataset.currentCategory || '';
 
     cards.forEach((card, index) => { card.dataset.originalIndex = String(index); });
 
@@ -2974,66 +2974,7 @@
     // 12 fills whole rows in the 1-4 column grids.
     const productsPerPage = () => 12;
     const activeValues = (name) => [...new Set(checks.filter((input) => input.dataset.filter === name && input.checked).map((input) => input.value))];
-    const categoryInputs = () => checks.filter((input) => input.dataset.filter === 'category');
-    const parentChildren = new Map(categoryChildPanels.map((panel) => [
-      panel.dataset.categoryChildrenPanel || '',
-      (panel.dataset.categoryChildren || '').split(',').map((value) => value.trim()).filter(Boolean),
-    ]).filter(([parentValue]) => parentValue));
-    const childParent = new Map();
-    parentChildren.forEach((children, parentValue) => children.forEach((childValue) => childParent.set(childValue, parentValue)));
-    const setCategoryChecked = (value, checked) => {
-      categoryInputs().filter((input) => input.value === value).forEach((input) => { input.checked = checked; });
-    };
-    const isCategoryChecked = (value) => categoryInputs().some((input) => input.value === value && input.checked);
-    const checkedCategoryValues = (role = '') => [...new Set(categoryInputs()
-      .filter((input) => input.checked && (!role || input.dataset.categoryRole === role))
-      .map((input) => input.value))];
-    const syncCategoryScope = (changedInput) => {
-      if (!changedInput || changedInput.dataset.filter !== 'category') return;
-      const value = changedInput.value || '';
-      if (changedInput.dataset.categoryRole === 'parent' && !changedInput.checked) {
-        (parentChildren.get(value) || []).forEach((childValue) => setCategoryChecked(childValue, false));
-        return;
-      }
-      if (changedInput.dataset.categoryRole === 'child') {
-        const parentValue = changedInput.dataset.categoryParent || childParent.get(value) || '';
-        if (!parentValue) return;
-        if (changedInput.checked) {
-          setCategoryChecked(parentValue, true);
-          return;
-        }
-        const siblingChecked = (parentChildren.get(parentValue) || []).some((childValue) => isCategoryChecked(childValue));
-        if (!siblingChecked) setCategoryChecked(parentValue, false);
-      }
-    };
-    const syncAllCategoryScopes = () => {
-      checkedCategoryValues('child').forEach((childValue) => {
-        const parentValue = childParent.get(childValue);
-        if (parentValue) setCategoryChecked(parentValue, true);
-      });
-      parentChildren.forEach((children, parentValue) => {
-        const childChecked = children.some((childValue) => isCategoryChecked(childValue));
-        if (!childChecked && !isCategoryChecked(parentValue)) {
-          children.forEach((childValue) => setCategoryChecked(childValue, false));
-        }
-      });
-    };
-    const activeCategoryDisplayValues = () => {
-      const childValues = checkedCategoryValues('child');
-      const singleValues = checkedCategoryValues('single');
-      const parentValues = checkedCategoryValues('parent').filter((parentValue) => !(parentChildren.get(parentValue) || []).some((childValue) => childValues.includes(childValue)));
-      return [...new Set([...childValues, ...singleValues, ...parentValues])];
-    };
-    const activeCategoryFilterValues = () => [...new Set(activeCategoryDisplayValues().flatMap((value) => parentChildren.get(value) || [value]))];
-    const updateCategoryChildrenVisibility = () => {
-      categoryChildPanels.forEach((panel) => {
-        const parentValue = panel.dataset.categoryChildrenPanel || '';
-        const childValues = parentChildren.get(parentValue) || [];
-        const parentChecked = isCategoryChecked(parentValue);
-        const childChecked = childValues.some((value) => isCategoryChecked(value));
-        panel.classList.toggle('hidden', !parentChecked && !childChecked);
-      });
-    };
+    const activeCategoryDisplayValues = () => (fixedCategory ? [fixedCategory] : []);
     const parseBannerJson = (value, fallback) => {
       try {
         const parsed = JSON.parse(value || '');
@@ -3045,7 +2986,6 @@
     const bannerDefault = parseBannerJson(banner?.dataset.bannerDefault, {});
     const bannerCategories = parseBannerJson(banner?.dataset.bannerCategories, {});
     const categoryUrls = parseBannerJson(root.dataset.categoryUrls, {});
-    const productArchiveUrl = root.dataset.productArchiveUrl || '/';
     const categoryIntros = qsa('[data-category-intro], [data-category-extra]', root);
     const updateBanner = () => {
       const categories = activeCategoryDisplayValues();
@@ -3068,7 +3008,7 @@
         bannerImage.setAttribute('alt', content.imageAlt || '');
       }
     };
-    const filterParamMap = { category: 'category', boom: 'boom', capacity: 'capacity', moment: 'moment', weight: 'weight' };
+    const filterParamMap = { boom: 'boom', capacity: 'capacity', moment: 'moment', weight: 'weight' };
     // A capacity range from a link that is not one of the bins (old-site tonnage pages redirect to ?capacity=4-5) filters
     // as given and shows as its own chip until cleared.
     let customCapacity = '';
@@ -3091,9 +3031,7 @@
     const syncFiltersFromUrl = () => {
       const params = new URLSearchParams(window.location.search);
       Object.entries(filterParamMap).forEach(([filterName, paramName]) => {
-        const hashValue = filterName === 'category' ? window.location.hash.replace(/^#/, '').trim() : '';
-        const pathValue = filterName === 'category' ? (root.dataset.currentCategory || '') : '';
-        const values = [...paramValues(params, paramName), ...(hashValue ? [hashValue] : []), ...(pathValue ? [pathValue] : [])];
+        const values = paramValues(params, paramName);
         const inputs = checks.filter((input) => input.dataset.filter === filterName);
         inputs.forEach((input) => {
           input.checked = values.some((value) => optionMatchesParam(input, value));
@@ -3102,7 +3040,6 @@
           customCapacity = values.find((value) => /^\d+(?:\.\d+)?-\d+(?:\.\d+)?$/.test(value) && !inputs.some((input) => optionMatchesParam(input, value))) || '';
         }
       });
-      syncAllCategoryScopes();
       const clearedSelection = updateFilterAvailability();
       if (clearedSelection) updateUrlFromFilters();
       apply({ resetPage: true });
@@ -3110,14 +3047,7 @@
     const updateUrlFromFilters = ({ replace = true } = {}) => {
       const url = new URL(window.location.href);
       Object.values(filterParamMap).forEach((paramName) => url.searchParams.delete(paramName));
-      const categoryValues = activeCategoryDisplayValues();
-      const selectedCategory = categoryValues.length === 1 ? slugifyFilter(categoryValues[0]) : '';
-      root.dataset.currentCategory = selectedCategory;
-      const categoryUrl = selectedCategory && categoryUrls[selectedCategory] ? new URL(categoryUrls[selectedCategory], window.location.origin) : null;
-      const archiveUrl = new URL(productArchiveUrl, window.location.origin);
-      url.pathname = categoryUrl ? categoryUrl.pathname : archiveUrl.pathname;
       Object.entries(filterParamMap).forEach(([filterName, paramName]) => {
-        if (filterName === 'category') return;
         activeValues(filterName).forEach((value) => url.searchParams.append(paramName, slugifyFilter(value)));
       });
       if (customCapacity && !activeValues('capacity').length) url.searchParams.set(filterParamMap.capacity, customCapacity);
@@ -3134,7 +3064,6 @@
       if (min <= 0) return numberValue > 0 && numberValue <= max;
       return numberValue > min && numberValue <= max;
     });
-    const cardCategories = (card) => (card.dataset.categories || card.dataset.category || '').split(',').filter(Boolean);
     const cardMatchesFilterOption = (card, filterName, value) => {
       if (specFilters.includes(filterName)) return inAnyRange(cardNumber(card, filterName), [value]);
       if (filterName === 'boom') return (card.dataset.boom || '') === value;
@@ -3156,8 +3085,7 @@
       return specFilters.every((name) => name === filterName || matchesSpec(card, name));
     };
     const updateFilterAvailability = () => {
-      const categories = activeCategoryFilterValues();
-      const categoryCards = cards.filter((card) => hasAny(cardCategories(card), categories));
+      const categoryCards = cards;
       let clearedSelection = false;
 
       filterGroups.forEach((group) => {
@@ -3169,9 +3097,8 @@
           const input = qs('input[data-filter]', option);
           if (!input) return;
           const optionCount = eligibleCards.filter((card) => cardMatchesFilterOption(card, filterName, input.value)).length;
-          // A category switch can leave a selection that no product in the new category has: drop it.
-          if (input.checked && !categoryCards.some((card) => cardMatchesFilterOption(card, filterName, input.value))
-            && (filterName !== 'capacity' || cards.some((card) => cardMatchesFilterOption(card, filterName, input.value)))) {
+          // A selection from an address that no product in this category has is dropped (an unmatched capacity bin stays, showing the empty state).
+          if (input.checked && filterName !== 'capacity' && !categoryCards.some((card) => cardMatchesFilterOption(card, filterName, input.value))) {
             input.checked = false;
             clearedSelection = true;
           }
@@ -3198,19 +3125,16 @@
       if (!ranges.length && filterName === 'capacity' && customCapacity) ranges = [customCapacity];
       return !ranges.length || inAnyRange(cardNumber(card, filterName), ranges);
     };
-    const hasAny = (source, values) => !values.length || values.some((value) => source.includes(value));
     const cardMatches = (card) => {
-      const categories = activeCategoryFilterValues();
       const booms = activeValues('boom');
-      return hasAny(cardCategories(card), categories)
-        && (!booms.length || booms.includes(card.dataset.boom || ''))
+      return (!booms.length || booms.includes(card.dataset.boom || ''))
         && specFilters.every((filterName) => matchesSpec(card, filterName));
     };
     const setFlexVisible = (element, visible) => {
       element?.classList.toggle('hidden', !visible);
       element?.classList.toggle('flex', visible);
     };
-    // Desktop filter bar state: pressed tabs, the open category's sub-tabs, per-dropdown counts and the chips.
+    // Desktop filter bar state: per-dropdown counts and the chips (the tabs are links, marked by the server).
     // The same range in the phone filter drawer, which has no chips row.
     const customCapacityBox = qs('[data-filter-custom-capacity]', root);
     const syncCustomCapacityChip = () => {
@@ -3228,14 +3152,6 @@
     });
     const updateFilterBar = () => {
       if (!filterBar) return;
-      const selected = activeCategoryDisplayValues();
-      const parents = new Set(selected.map((value) => childParent.get(value) || value));
-      categoryTabs.forEach((tab) => {
-        const value = tab.dataset.categoryTab || '';
-        const active = tab.closest('[data-category-subtabs]') ? selected.includes(value) : (value === '' ? selected.length === 0 : parents.has(value));
-        tab.setAttribute('aria-pressed', String(active));
-      });
-      categorySubtabRows.forEach((row) => setFlexVisible(row, parents.size === 1 && parents.has(row.dataset.categorySubtabs || '')));
       filterDropdowns.forEach((dropdown) => {
         const badge = qs('[data-filter-dropdown-count]', dropdown);
         const checked = qsa('input[data-filter]:checked', dropdown).length;
@@ -3282,17 +3198,6 @@
     const setFilterDropdownOpen = (dropdown, open) => {
       qs('[data-filter-dropdown-panel]', dropdown)?.classList.toggle('hidden', !open);
       qs('[data-filter-dropdown-trigger]', dropdown)?.setAttribute('aria-expanded', String(open));
-    };
-    const selectCategory = (value) => {
-      categoryInputs().forEach((input) => { input.checked = false; });
-      if (value) {
-        setCategoryChecked(value, true);
-        if (childParent.has(value)) setCategoryChecked(childParent.get(value), true);
-      }
-      syncAllCategoryScopes();
-      updateFilterAvailability();
-      updateUrlFromFilters({ replace: false });
-      apply({ resetPage: true });
     };
     const getSortMode = () => sortTrigger?.dataset.sortValue || 'recommended';
     const cardOrder = new Map(cards.map((card, index) => [card, index]));
@@ -3361,7 +3266,6 @@
       pagination.appendChild(makeButton(productArchiveText('nextLabel', 'Next'), currentPage + 1, false, currentPage === totalPages, '\u203A'));
     };
     const apply = ({ resetPage = false, scroll = false } = {}) => {
-      updateCategoryChildrenVisibility();
       updateFilterAvailability();
       updateFilterBar();
       if (resetPage) currentPage = 1;
@@ -3437,15 +3341,11 @@
     const captureFilterState = () => ({
       checks: checks.map((input) => input.checked),
       capacity: capacitySelect ? capacitySelect.value : '',
-      currentCategory: root.dataset.currentCategory || '',
     });
     const restoreFilterState = (state) => {
       if (!state) return;
       checks.forEach((input, index) => { input.checked = !!state.checks[index]; });
       if (capacitySelect) capacitySelect.value = state.capacity || '';
-      root.dataset.currentCategory = state.currentCategory || '';
-      syncAllCategoryScopes();
-      updateCategoryChildrenVisibility();
       updateFilterAvailability();
     };
     let filterDrawerScrollY = 0;
@@ -3494,7 +3394,6 @@
     const applyMobileDrawerFilters = () => {
       if (!drawer) return;
       filterDrawerCommitted = true;
-      syncAllCategoryScopes();
       updateFilterAvailability();
       updateUrlFromFilters({ replace: false });
       apply({ resetPage: true });
@@ -3561,7 +3460,6 @@
       if (sortDropdown && !sortDropdown.contains(event.target)) setSortMenuOpen(false);
       filterDropdowns.forEach((dropdown) => { if (!dropdown.contains(event.target)) setFilterDropdownOpen(dropdown, false); });
     });
-    categoryTabs.forEach((tab) => tab.addEventListener('click', () => selectCategory(tab.dataset.categoryTab || '')));
     filterDropdowns.forEach((dropdown) => qs('[data-filter-dropdown-trigger]', dropdown)?.addEventListener('click', () => {
       const open = qs('[data-filter-dropdown-panel]', dropdown)?.classList.contains('hidden') ?? false;
       filterDropdowns.forEach((item) => setFilterDropdownOpen(item, item === dropdown && open));
@@ -3608,12 +3506,7 @@
     checks.forEach((input) => input.addEventListener('change', () => {
       if (input.dataset.filter === 'capacity') customCapacity = '';
       syncMatchingFilterInputs(input);
-      syncCategoryScope(input);
-      if (input.dataset.filter === 'category') updateFilterAvailability();
-      if (isMobileFilterDrawerActive(input)) {
-        updateCategoryChildrenVisibility();
-        return;
-      }
+      if (isMobileFilterDrawerActive(input)) return;
       updateUrlFromFilters();
       apply({ resetPage: true });
     }));
@@ -3626,16 +3519,28 @@
       customCapacity = '';
       checks.forEach((input) => { input.checked = false; });
       if (capacitySelect) capacitySelect.value = '';
-      root.dataset.currentCategory = '';
-      syncAllCategoryScopes();
-      updateCategoryChildrenVisibility();
       updateFilterAvailability();
       if (isMobileFilterDrawerActive(button)) return;
       updateUrlFromFilters({ replace: false });
       apply({ resetPage: true });
     }));
+    // Old links named the category in the hash (/products.html#marine-crane): they open that category's page.
+    // A fragment that is not valid percent-encoding (#50%) names no category.
+    const hashCategory = () => {
+      try {
+        return slugifyFilter(decodeURIComponent(window.location.hash.replace(/^#/, '')));
+      } catch {
+        return '';
+      }
+    };
+    const openHashCategory = () => {
+      const url = !fixedCategory && categoryUrls[hashCategory()];
+      if (url) window.location.replace(`${new URL(url, window.location.origin).pathname}${window.location.search}`);
+      return !!url;
+    };
+    if (openHashCategory()) return;
     window.addEventListener('popstate', syncFiltersFromUrl);
-    window.addEventListener('hashchange', syncFiltersFromUrl);
+    window.addEventListener('hashchange', openHashCategory);
     window.addEventListener('resize', () => {
       apply({ resetPage: true });
       if (drawer && !drawer.classList.contains('hidden')) syncFilterDrawerOffset();
@@ -3645,8 +3550,8 @@
   });
 
   // Previous models: a tab that toggles on its own beside the category tabs. While on, the selected category's previous models replace the
-  // grid; changing the category keeps it on and rescopes the list, and a category without any shows a request form
-  // instead. ?models=previous turns it on directly.
+  // grid; the category links keep it on (setUrl()), so the next category's page opens with its own previous models, and a
+  // category without any shows a request form instead. ?models=previous turns it on directly.
   qsa('[data-product-listing]').forEach((root) => {
     const panel = qs('[data-legacy-panel]', root);
     if (!panel) return;
@@ -3658,24 +3563,10 @@
     const groupList = qs('[data-legacy-groups]', panel);
     const scopeTitle = qs('[data-legacy-scope-title]', panel);
     const isOpen = () => root.hasAttribute('data-legacy-view');
-    // Scoped by the ticked categories (the tabs tick them too) and their sub-categories; none ticked is All Products.
-    const scopedGroups = () => {
-      const checked = qsa('input[data-filter="category"]:checked', root);
-      if (!checked.length) return groups;
-      // A ticked sub-category also ticks its parent (selectCategory()); then the parent stands for that child only,
-      // not for all its siblings, as in the product listing.
-      const chosenParents = new Set(checked.filter((input) => input.dataset.categoryRole === 'child').map((input) => input.dataset.categoryParent || ''));
-      const slugs = new Set(checked.flatMap((input) => (input.dataset.categoryRole === 'parent' && chosenParents.has(input.value))
-        ? []
-        : [input.value, ...(input.dataset.categoryChildren || '').split(',').filter(Boolean)]));
-      return groups.filter((group) => slugs.has(group.dataset.legacyGroup || ''));
-    };
+    // The server renders only the page's category's groups (every group on the all-products page).
     const syncScope = () => {
-      const scoped = scopedGroups();
-      const total = scoped.reduce((sum, group) => sum + Number(group.dataset.legacySize || 0), 0);
+      const total = groups.reduce((sum, group) => sum + Number(group.dataset.legacySize || 0), 0);
       counts.forEach((count) => { count.textContent = String(total); });
-      // The entries stay even at zero: the panel then offers a request form, and on phones the entry is the only way in.
-      groups.forEach((group) => { group.hidden = !scoped.includes(group); });
       empty?.classList.toggle('hidden', total > 0);
       empty?.classList.toggle('flex', total === 0);
       groupList?.classList.toggle('hidden', total === 0);
@@ -3692,6 +3583,13 @@
       if (open) url.searchParams.set('models', 'previous');
       else url.searchParams.delete('models');
       window.history.replaceState(window.history.state, '', url);
+      // Category tabs and drawer links load another category's page: while the panel is open they open it there too.
+      qsa('a[data-category-tab], a[data-category-link]', root).forEach((link) => {
+        const target = new URL(link.href, window.location.origin);
+        if (open) target.searchParams.set('models', 'previous');
+        else target.searchParams.delete('models');
+        link.href = target.toString();
+      });
     };
     const setOpen = (open, { scroll = true } = {}) => {
       syncScope();
@@ -3705,13 +3603,8 @@
     toggle?.addEventListener('click', () => setOpen(!isOpen()));
     qsa('[data-legacy-open]', root).forEach((button) => button.addEventListener('click', () => setOpen(true)));
     qsa('[data-legacy-close]', panel).forEach((button) => button.addEventListener('click', () => setOpen(false)));
-    // The listing script settles the category (path, query or hash) first; the scope follows it.
-    new MutationObserver(() => {
-      syncScope();
-      if (isOpen()) setUrl(true);
-    }).observe(root, { attributes: true, attributeFilter: ['data-current-category'] });
     syncScope();
-    // The listing script rewrites the address when the category changes; keep the switch in it.
+    // The listing script rewrites the address when a filter changes; keep the switch in it.
     window.addEventListener('popstate', () => setOpen(new URLSearchParams(window.location.search).get('models') === 'previous', { scroll: false }));
     if (new URLSearchParams(window.location.search).get('models') === 'previous') setOpen(true);
   });
