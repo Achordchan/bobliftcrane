@@ -37,6 +37,10 @@ function boblift_register_rest_product_specs_field(): void
         'get_callback' => static function (array $post): array {
             $tables = [];
             foreach (boblift_product_specs_group((int) $post['id']) as $language => $id) {
+                // Core checked only the requested product; a translation is shown only to someone who may edit it.
+                if (!current_user_can('edit_post', $id)) {
+                    continue;
+                }
                 $tables[$language] = array_values((array) boblift_decode_meta(get_post_meta($id, '_specs', true), []));
             }
             return $tables;
@@ -145,7 +149,8 @@ function boblift_product_specs_plan_rows(array $tables, array $value): array|WP_
     }
     foreach ((array) ($value['insert'] ?? []) as $item) {
         $label_map = is_array($item) && is_array($item['label'] ?? null) ? $item['label'] : [];
-        $english_label = trim((string) ($label_map['en'] ?? ''));
+        // Matched and stored in the same sanitized form, so a retry finds the row it added.
+        $english_label = sanitize_text_field((string) ($label_map['en'] ?? ''));
         if ($english_label === '') {
             return new WP_Error('boblift_specs_insert', '"insert" needs a "label" map with an "en" label.', ['status' => 400]);
         }
@@ -157,12 +162,12 @@ function boblift_product_specs_plan_rows(array $tables, array $value): array|WP_
             return $after;
         }
         foreach (array_keys($new) as $language) {
-            $label = trim((string) ($label_map[$language] ?? ''));
+            $label = sanitize_text_field((string) ($label_map[$language] ?? ''));
             $text = boblift_product_specs_value_for($item['value'] ?? null, $language);
             if ($label === '' || $text === null || trim($text) === '') {
                 return new WP_Error('boblift_specs_insert', sprintf('"insert" of "%s" gives no %s label or value.', $english_label, $language), ['status' => 400]);
             }
-            array_splice($new[$language], $after + 1, 0, [['label' => sanitize_text_field($label), 'value' => sanitize_text_field($text)]]);
+            array_splice($new[$language], $after + 1, 0, [['label' => $label, 'value' => sanitize_text_field($text)]]);
         }
     }
     return array_filter($new, static fn(array $rows, string $language): bool => $rows !== $tables[$language], ARRAY_FILTER_USE_BOTH);
