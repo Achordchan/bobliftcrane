@@ -312,7 +312,12 @@ function boblift_inquiry_mail_products(array $fields): array
     // as a product title in any language, then by the model in it (SQ12ZA6, SQ12ZA6+1, SQZ800 …).
     if (!$entries) {
         foreach (array_filter(array_map('trim', explode(';', (string) ($fields['product'] ?? '')))) as $name) {
-            $entries[] = boblift_inquiry_product_by_name($name) ?? $name;
+            $found = boblift_inquiry_products_by_name($name);
+            // Matched by the models in it, the typed text may say more (several models, options): it is kept as typed too.
+            if (!$found || count($found) > 1 || get_the_title($found[0]) !== $name) {
+                $entries[] = $name;
+            }
+            array_push($entries, ...$found);
         }
     }
     $products = [];
@@ -345,29 +350,30 @@ function boblift_inquiry_mail_products(array $fields): array
     return $products;
 }
 
-/** A published product whose title (in any language) is the given name, else whose model the name contains. */
-function boblift_inquiry_product_by_name(string $name): ?WP_Post
+/**
+ * The published products a typed name points to: the product whose title (in any language) is the name, else one product
+ * for each model in it, in the order typed. Empty when it names none.
+ */
+function boblift_inquiry_products_by_name(string $name): array
 {
     if ($name === '') {
-        return null;
+        return [];
     }
     $args = ['post_type' => 'product', 'post_status' => 'publish', 'posts_per_page' => 1, 'no_found_rows' => true, 'lang' => '', 'suppress_filters' => false];
     $found = get_posts($args + ['title' => $name]);
     if ($found) {
-        return $found[0];
+        return [$found[0]];
     }
-    // The longest model-like word first: "SQ12ZA6" rather than "12"; suffixes (SQ12ZA6TJF) and an extension such as "+1"
-    // are part of the model.
+    // Whole models only: suffixes (SQ12ZA6TJF) and an extension such as "+1" are part of the model.
     preg_match_all('/\b[A-Z]{2,4}\d+(?:\.\d+)?[A-Z]*\d*[A-Z]*(?:\+\d+)?(?![\w+])/', strtoupper($name), $matches);
-    $models = array_unique($matches[0]);
-    usort($models, static fn(string $a, string $b): int => strlen($b) <=> strlen($a));
-    foreach ($models as $model) {
+    $posts = [];
+    foreach (array_unique($matches[0]) as $model) {
         $found = get_posts($args + ['meta_query' => [['key' => '_model', 'value' => $model]]]);
         if ($found) {
-            return $found[0];
+            $posts[] = $found[0];
         }
     }
-    return null;
+    return $posts;
 }
 
 /**
