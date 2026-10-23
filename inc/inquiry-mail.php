@@ -93,8 +93,10 @@ function boblift_inquiry_channel(array $fields): array
         $detail = $value('utm_term') !== '' ? '关键词 ' . $value('utm_term') : ($value('gad_campaignid') !== '' ? '广告系列 ' . $value('gad_campaignid') : '');
         return ['Google Ads 广告', $detail];
     }
-    if ($value('utm_source') !== '') {
-        return ['营销链接', trim($value('utm_source') . ($value('utm_medium') !== '' ? ' / ' . $value('utm_medium') : ''))];
+    // Any campaign tag marks a marketing link; the detail is whichever of source, medium and campaign it carries.
+    $tags = array_filter(array_map($value, ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content']), 'strlen');
+    if ($tags) {
+        return ['营销链接', implode(' / ', array_slice(array_values($tags), 0, 3))];
     }
     $host = (string) (($fields['attr_referrer'] ?? '') !== '' ? $fields['attr_referrer'] : ($fields['page_referrer'] ?? ''));
     if ($host !== '') {
