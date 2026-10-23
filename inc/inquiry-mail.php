@@ -390,6 +390,10 @@ function boblift_inquiry_mail_product_image(int $english_id, int $post_id): stri
         $first = is_array($gallery) ? reset($gallery) : null;
         $image = is_array($first) ? (string) ($first['url'] ?? $first['image'] ?? '') : (is_string($first) ? $first : '');
     }
+    // A theme image (images/products/…) is resolved as the product pages resolve it.
+    if ($image !== '' && !preg_match('#^(?:https?:)?/#i', $image) && function_exists('boblift_asset')) {
+        $image = boblift_asset($image);
+    }
     if (str_starts_with($image, '//')) {
         $image = 'https:' . $image;
     } elseif (str_starts_with($image, '/')) {
