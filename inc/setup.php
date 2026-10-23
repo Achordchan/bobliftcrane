@@ -269,7 +269,10 @@ function boblift_document_title_parts(array $title): array
         // Feedback has no per-language title; build it from the model and the localized country.
         $post = get_queried_object();
         $item = $post instanceof WP_Post ? boblift_feedback_item($post) : null;
-        if ($item) {
+        $record_title = $post instanceof WP_Post ? boblift_feedback_seo_text($post->ID, 'title') : '';
+        if ($record_title !== '') {
+            $seo_title = $record_title;
+        } elseif ($item) {
             $label = (string) (boblift_site_ui('casesPage')['customerFeedbackLabel'] ?? 'Customer Feedback');
             $seo_title = implode(' · ', array_filter([$item['model'], $item['country']])) . ' | ' . $label . ' | BOB-LIFT';
         }
@@ -306,6 +309,8 @@ function boblift_meta_description(): void
         $description = boblift_seo_page_by_slug('products', 'description');
     } elseif (is_post_type_archive('case')) {
         $description = boblift_seo_page_by_slug('cases', 'description');
+    } elseif (is_singular('feedback')) {
+        $description = boblift_feedback_seo_text(get_queried_object_id(), 'description');
     } elseif (is_singular()) {
         $post = get_queried_object();
         $description = $post instanceof WP_Post ? boblift_seo_post_description($post) : '';

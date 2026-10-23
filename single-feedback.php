@@ -98,8 +98,13 @@ $others = array_slice($others, 0, 4);
     </section>
     <?php endif; ?>
 
-    <?php // The article body from the editor, shared by every language; older entries keep their per-language plain-text body until it is moved into the editor. ?>
-    <?php if (trim((string) get_post_field('post_content', get_the_ID())) !== '') : ?>
+    <?php // The delivery record in this language comes first (inc/feedback-record.php); then the editor body shared by every language; older entries keep their per-language plain-text body until it is moved into the editor. ?>
+    <?php $record = boblift_feedback_record(get_the_ID()); ?>
+    <?php if ($record !== '') : ?>
+        <div class="boblift-story-prose mx-auto mt-12 max-w-[760px] md:mt-16">
+            <?php echo wp_kses_post($record); ?>
+        </div>
+    <?php elseif (trim((string) get_post_field('post_content', get_the_ID())) !== '') : ?>
         <div class="boblift-story-prose mx-auto mt-12 max-w-[760px] md:mt-16">
             <?php the_content(); ?>
         </div>
