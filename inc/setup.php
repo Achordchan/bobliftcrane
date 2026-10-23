@@ -675,7 +675,12 @@ add_action('template_redirect', 'boblift_redirect_old_tonnage_pages', 1);
 // which still lists all their products.
 function boblift_redirect_category_query_to_category_page(): void
 {
-    if (is_admin() || !is_post_type_archive('product') || (string) get_query_var('boblift_product_category') !== '') {
+    if (is_admin() || (string) get_query_var('boblift_product_category') !== '') {
+        return;
+    }
+    // The product list is served by the products page (/products.html, page "products"), not the post type archive.
+    $path = boblift_normalize_public_path(boblift_strip_language_prefix((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH)));
+    if (!is_post_type_archive('product') && $path !== boblift_product_archive_path()) {
         return;
     }
     // Read from the raw query string, not $_GET: the list writes a multiple choice as repeated parameters
