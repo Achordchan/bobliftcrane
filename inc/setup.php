@@ -669,6 +669,31 @@ function boblift_redirect_old_tonnage_pages(): void
 }
 add_action('template_redirect', 'boblift_redirect_old_tonnage_pages', 1);
 
+// The product list used to pick a category from ?category= (/products.html?category=marine-crane); each category now has
+// its own page, which the list only links to, so such links move there, keeping the other parameters (spec filters, utm_*).
+function boblift_redirect_category_query_to_category_page(): void
+{
+    if (is_admin() || !is_post_type_archive('product') || (string) get_query_var('boblift_product_category') !== '') {
+        return;
+    }
+    $slug = isset($_GET['category']) && is_string($_GET['category']) ? sanitize_title(wp_unslash($_GET['category'])) : '';
+    $term = $slug !== '' ? get_term_by('slug', $slug, 'product_category') : null;
+    $target = $term instanceof WP_Term ? get_term_link($term) : null;
+    if (!is_string($target) || $target === '') {
+        return;
+    }
+    $query = wp_unslash($_GET);
+    $query = is_array($query) ? $query : [];
+    unset($query['category']);
+    $query_string = http_build_query($query, '', '&', PHP_QUERY_RFC3986);
+    if ($query_string !== '') {
+        $target .= (str_contains($target, '?') ? '&' : '?') . $query_string;
+    }
+    wp_safe_redirect($target, 301);
+    exit;
+}
+add_action('template_redirect', 'boblift_redirect_category_query_to_category_page', 1);
+
 // WordPress.com adds Jetpack "Share this" and "Like this" blocks under every post's text. The theme's own article layout
 // has no place for them (and the likes need a WordPress.com login), so they are switched off.
 add_filter('sharing_show', '__return_false');
