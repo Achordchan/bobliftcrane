@@ -116,6 +116,16 @@ function boblift_feedback_record_sitemap_args(array $args, string $post_type): a
 }
 add_filter('wp_sitemaps_posts_query_args', 'boblift_feedback_record_sitemap_args', 10, 2);
 
+// The live site serves Jetpack's sitemap (/sitemap-posts-feedback-1.xml), which ignores the core filter above.
+function boblift_feedback_record_jetpack_sitemap_skip(bool $skip, $post): bool
+{
+    if ($skip || !is_object($post) || ($post->post_type ?? '') !== 'feedback') {
+        return $skip;
+    }
+    return boblift_feedback_record((int) $post->ID, 'en') === '';
+}
+add_filter('jetpack_sitemap_skip_post', 'boblift_feedback_record_jetpack_sitemap_skip', 10, 2);
+
 // Polylang links no translations for language-neutral feedback, so the languages that carry a record point at each
 // other here; a language without a record is noindex and stays out of the set.
 function boblift_feedback_record_hreflang(): void
