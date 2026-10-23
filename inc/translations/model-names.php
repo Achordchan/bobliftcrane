@@ -54,4 +54,24 @@ return [
         'Boom count: 1 main boom + 4 hydraulic booms' => '臂节数：1 节主臂 + 4 节液压臂',
         'Marine version of the truck crane model' => '同款随车吊的船用版',
     ],
+    'es' => [
+        'Previous photo' => 'Foto anterior',
+        'Next photo' => 'Foto siguiente',
+        'Product video coming soon' => 'Video del producto próximamente',
+    ],
+    'ru' => [
+        'Previous photo' => 'Предыдущее фото',
+        'Next photo' => 'Следующее фото',
+        'Product video coming soon' => 'Видео о продукте скоро появится',
+    ],
+    'fr' => [
+        'Previous photo' => 'Photo précédente',
+        'Next photo' => 'Photo suivante',
+        'Product video coming soon' => 'Vidéo du produit bientôt disponible',
+    ],
+    'ar' => [
+        'Previous photo' => 'الصورة السابقة',
+        'Next photo' => 'الصورة التالية',
+        'Product video coming soon' => 'فيديو المنتج قريبًا',
+    ],
 ];

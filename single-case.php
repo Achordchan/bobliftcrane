@@ -19,7 +19,7 @@ $post_id = get_the_ID();
 $localize_case_fragments = static fn(mixed $value): mixed => function_exists('boblift_localize_product_text_fragments') ? boblift_localize_product_text_fragments($value) : $value;
 $localize_case_text = static fn(string $text): string => (string) $localize_case_fragments(function_exists('boblift_localized_static_text') ? boblift_localized_static_text($text) : $text);
 $facts = $localize_case_fragments(boblift_decode_meta(get_post_meta($post_id, '_facts', true), []));
-$country = trim((string) $localize_case_fragments((string) get_post_meta($post_id, '_country', true)));
+$country = trim($localize_case_text((string) get_post_meta($post_id, '_country', true)));
 $product_name = trim((string) $localize_case_fragments((string) get_post_meta($post_id, '_product_name', true)));
 $application = trim((string) $localize_case_fragments((string) get_post_meta($post_id, '_application', true)));
 $type = trim((string) $localize_case_fragments((string) get_post_meta($post_id, '_type', true)));

@@ -44,7 +44,7 @@ function boblift_home_factory_content(): array
             'Production details are documented for export-ready delivery.' => '輸出対応の納品に向け、生産の詳細を記録しています。',
         ],
     ][$language] ?? [];
-    $translate = static fn(string $text): string => $translations[$text] ?? $text;
+    $translate = static fn(string $text): string => $translations[$text] ?? boblift_localized_static_text($text);
 
     // The video opens over the lake; the factory frame reads better as its still.
     $poster = boblift_image_setting_url($logo['aerial_end_image'] ?? [], 'images/about/about-aerial-mid-end.webp');
@@ -162,7 +162,7 @@ function boblift_render_home_feedback(): void
         if (count($picked) >= 6) {
             break;
         }
-        if (isset($countries[boblift_feedback_text($posts[$index]->ID, '_feedback_country')])) {
+        if (isset($countries[boblift_localized_static_text(boblift_feedback_text($posts[$index]->ID, '_feedback_country'))])) {
             continue;
         }
         $item = $item_at($index);

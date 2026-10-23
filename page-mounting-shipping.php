@@ -126,14 +126,14 @@ $step_label = static function (int $n) use ($ui, $pad): string {
     <div class="fixed inset-0 z-[1000] hidden flex-col bg-[#040f22]" data-detail-lightbox role="dialog" aria-modal="true" aria-hidden="true" aria-label="<?php echo esc_attr((string) ($ui['heroLabel'] ?? 'Truck Mounting & Export')); ?>">
         <div class="flex shrink-0 items-center justify-between px-4 py-3 text-white md:px-6">
             <p class="flex min-w-0 items-baseline gap-3 text-xs font-black tracking-[0.08em]" aria-live="polite"><span class="shrink-0 [font-variant-numeric:tabular-nums]"><span data-detail-index>01</span> / <?php echo esc_html($pad(count($gallery))); ?></span><span class="truncate text-sm tracking-normal text-white/80" data-detail-caption></span></p>
-            <button class="grid size-10 place-items-center rounded-sm bg-white/10 text-white transition hover:bg-white hover:text-[#071f42]" type="button" data-detail-close aria-label="<?php echo esc_attr($detail_ui['closeLabel'] ?? 'Close'); ?>"><?php echo boblift_icon('x', 'h-5 w-5'); ?></button>
+            <button class="grid size-10 place-items-center rounded-sm bg-white/10 text-white transition hover:bg-white hover:text-[#071f42]" type="button" data-detail-close aria-label="<?php echo esc_attr(boblift_localized_static_text((string) ($detail_ui['closeLabel'] ?? 'Close'))); ?>"><?php echo boblift_icon('x', 'h-5 w-5'); ?></button>
         </div>
         <div class="relative min-h-0 flex-1">
             <div class="absolute inset-0 flex items-center justify-center overflow-auto px-3 pb-4 md:px-20" data-detail-stage>
                 <img class="block max-h-full max-w-full object-contain" src="" alt="" data-detail-image>
             </div>
-            <button class="boblift-feedback-arrow left-2 md:left-5" type="button" data-detail-prev aria-label="<?php echo esc_attr($detail_ui['previousLabel'] ?? 'Previous'); ?>"><?php echo boblift_icon('chevron-left', 'h-5 w-5'); ?></button>
-            <button class="boblift-feedback-arrow right-2 md:right-5" type="button" data-detail-next aria-label="<?php echo esc_attr($detail_ui['nextLabel'] ?? 'Next'); ?>"><?php echo boblift_icon('chevron-right', 'h-5 w-5'); ?></button>
+            <button class="boblift-feedback-arrow left-2 md:left-5" type="button" data-detail-prev aria-label="<?php echo esc_attr(boblift_localized_static_text((string) ($detail_ui['previousLabel'] ?? 'Previous'))); ?>"><?php echo boblift_icon('chevron-left', 'h-5 w-5'); ?></button>
+            <button class="boblift-feedback-arrow right-2 md:right-5" type="button" data-detail-next aria-label="<?php echo esc_attr(boblift_localized_static_text((string) ($detail_ui['nextLabel'] ?? 'Next'))); ?>"><?php echo boblift_icon('chevron-right', 'h-5 w-5'); ?></button>
         </div>
     </div>
 </div>

@@ -58,6 +58,7 @@ return [
         'See the current models' => '現行型番を見る',
         'All Products' => 'すべての製品',
         'Page {page} / {pages}' => 'ページ {page} / {pages}',
+        'BOB-LIFT knuckle boom crane in the factory yard' => '工場敷地に置かれた BOB-LIFT ナックルブームクレーン',
     ],
     'zh' => [
         'Buying guide' => '选型指南',
@@ -118,6 +119,7 @@ return [
         'All Products' => '全部产品',
         'All' => '全部',
         'Page {page} / {pages}' => '第 {page} 页 / 共 {pages} 页',
+        'BOB-LIFT knuckle boom crane in the factory yard' => '停在工厂场地上的 BOB-LIFT 折臂起重机',
     ],
     'es' => [
         'Buying guide' => 'Guía de compra',
@@ -178,6 +180,8 @@ return [
         'All Products' => 'Todos los productos',
         'All' => 'Todos',
         'Page {page} / {pages}' => 'Página {page} / {pages}',
+        'BOB-LIFT knuckle boom crane in the factory yard' => 'Grúa de pluma articulada BOB-LIFT en el patio de la fábrica',
+        'BOB-LIFT Product Range' => 'Gama de productos BOB-LIFT',
     ],
     'ru' => [
         'Buying guide' => 'Как выбрать',
@@ -238,6 +242,8 @@ return [
         'All Products' => 'Вся продукция',
         'All' => 'Все',
         'Page {page} / {pages}' => 'Страница {page} / {pages}',
+        'BOB-LIFT knuckle boom crane in the factory yard' => 'Кран-манипулятор BOB-LIFT с шарнирно-сочленённой стрелой на заводской площадке',
+        'BOB-LIFT Product Range' => 'Продукция BOB-LIFT',
     ],
     'fr' => [
         'Buying guide' => 'Guide d’achat',
@@ -298,6 +304,8 @@ return [
         'All Products' => 'Tous les produits',
         'All' => 'Tous',
         'Page {page} / {pages}' => 'Page {page} / {pages}',
+        'BOB-LIFT knuckle boom crane in the factory yard' => 'Grue à flèche articulée BOB-LIFT dans la cour de l\'usine',
+        'BOB-LIFT Product Range' => 'Gamme de produits BOB-LIFT',
     ],
     'ar' => [
         'Buying guide' => 'دليل الشراء',
@@ -358,5 +366,7 @@ return [
         'All Products' => 'جميع المنتجات',
         'All' => 'الكل',
         'Page {page} / {pages}' => 'الصفحة {page} / {pages}',
+        'BOB-LIFT knuckle boom crane in the factory yard' => 'رافعة BOB-LIFT ذات ذراع مفصلية في ساحة المصنع',
+        'BOB-LIFT Product Range' => 'مجموعة منتجات BOB-LIFT',
     ],
 ];

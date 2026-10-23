@@ -92,4 +92,16 @@ return [
         'Send an Inquiry' => '发送询盘',
         'View products' => '查看产品',
     ],
+    'es' => [
+        'Agriculture and forestry' => 'Agricultura y silvicultura',
+    ],
+    'ru' => [
+        'Agriculture and forestry' => 'Сельское и лесное хозяйство',
+    ],
+    'fr' => [
+        'Agriculture and forestry' => 'Agriculture et sylviculture',
+    ],
+    'ar' => [
+        'Agriculture and forestry' => 'الزراعة والغابات',
+    ],
 ];

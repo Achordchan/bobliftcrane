@@ -1636,7 +1636,7 @@ function boblift_case_item_from_post(WP_Post $post): array
         'content' => boblift_localize_product_text_fragments(apply_filters('the_content', $post->post_content)),
         'url' => get_permalink($post),
         'case_kind' => (string) get_post_meta($post->ID, '_case_kind', true),
-        'country' => (string) get_post_meta($post->ID, '_country', true),
+        'country' => boblift_localized_static_text((string) get_post_meta($post->ID, '_country', true)),
         'product_name' => boblift_localize_product_text_fragments((string) get_post_meta($post->ID, '_product_name', true)),
         'application' => boblift_localize_product_text_fragments((string) get_post_meta($post->ID, '_application', true)),
         'feedback_quote' => boblift_localize_product_text_fragments((string) get_post_meta($post->ID, '_feedback_quote', true)),
@@ -1717,7 +1717,7 @@ function boblift_feedback_item(WP_Post $post): ?array
     return [
         'id' => $post->ID,
         'url' => (string) get_permalink($post),
-        'country' => $pick('_feedback_country'),
+        'country' => boblift_localized_static_text($pick('_feedback_country')),
         'model' => trim((string) get_post_meta($post->ID, '_feedback_model', true)),
         'note' => $pick('_feedback_note'),
         'excerpt' => trim($post->post_excerpt),

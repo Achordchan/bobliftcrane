@@ -48,11 +48,11 @@ $archive_banner_path = trim((string) ($archive_banner_image['path'] ?? ''));
 // An upload, or a custom path/URL, wins; only the retired default image falls back to the built-in photo.
 $archive_banner_custom = (int) ($archive_banner_image['id'] ?? 0) > 0 || ($archive_banner_path !== '' && $archive_banner_path !== 'images/products/truck-mounted-crane.png');
 $banner_default = [
-    'label' => (string) ($product_archive['label'] ?? 'BOB-LIFT Product Range'),
+    'label' => boblift_localized_static_text((string) ($product_archive['label'] ?? 'BOB-LIFT Product Range')),
     'title' => (string) ($product_archive['title'] ?? 'Cranes & Lifting Equipment'),
     'text' => (string) ($product_archive['text'] ?? 'Explore BOB-LIFT truck mounted cranes, marine cranes and lifting equipment for global projects.'),
     'image' => $archive_banner_custom ? boblift_image_setting_url($archive_banner_image) : boblift_product_banner_photo_url(),
-    'imageAlt' => $archive_banner_custom ? (string) ($product_archive['image_alt'] ?? '') : 'BOB-LIFT knuckle boom crane in the factory yard',];
+    'imageAlt' => $archive_banner_custom ? (string) ($product_archive['image_alt'] ?? '') : boblift_localized_static_text('BOB-LIFT knuckle boom crane in the factory yard'),];
 $banner_default['srcset'] = boblift_image_srcset(boblift_image_cdn_original($banner_default['image']));
 if ($tonnage > 0) {
     $banner_default['title'] = boblift_tonnage_heading($tonnage);
@@ -70,7 +70,7 @@ foreach ($categories as $category) {
         continue;
     }
     $banner_categories[$slug] = [
-        'label' => $category['banner_label'] ?? 'BOB-LIFT Product Range',
+        'label' => boblift_localized_static_text((string) ($category['banner_label'] ?? 'BOB-LIFT Product Range')),
         'title' => $category['banner_title'] ?? ($category['title'] ?? $slug),
         'text' => $category['description'] ?? $banner_default['text'],
         'image' => boblift_product_banner_photo_url(get_term_by('slug', $slug, 'product_category') ?: null),
