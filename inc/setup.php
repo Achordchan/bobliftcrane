@@ -330,6 +330,18 @@ function boblift_meta_description(): void
 }
 add_action('wp_head', 'boblift_meta_description', 1);
 
+/**
+ * Jetpack SEO prints a second description on singular pages (the excerpt or its own field), so a page carried two
+ * different ones and search engines could pick the wrong one. The theme's tag above is the only description; Jetpack
+ * keeps its other tags, such as robots noindex.
+ */
+add_filter('jetpack_seo_meta_tags', static function ($meta) {
+    if (is_array($meta)) {
+        unset($meta['description']);
+    }
+    return $meta;
+});
+
 function boblift_remove_public_user_sitemap($provider, string $name)
 {
     return $name === 'users' ? false : $provider;
