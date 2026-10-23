@@ -530,7 +530,8 @@ function boblift_render_archive_extras(array $categories, string $initial_catego
         }
     };
     $blocks(static fn(array $term) => boblift_render_archive_compare($term['term']));
-    $blocks(static fn(array $term) => function_exists('boblift_render_buying_guide') ? boblift_render_buying_guide($term['term']) : null);
+    // Only the page's own category carries the #buying-guide anchor and the FAQPage data; any other category's guide is a hidden panel.
+    $blocks(static fn(array $term, string $slug) => function_exists('boblift_render_buying_guide') ? boblift_render_buying_guide($term['term'], $slug === $initial_category) : null);
     boblift_render_archive_made();
     $blocks(static fn(array $term, string $slug) => boblift_render_archive_articles($term['family'], $slug));
 }

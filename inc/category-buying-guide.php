@@ -74,7 +74,8 @@ function boblift_buying_guide(WP_Term $term): array
     return $guide;
 }
 
-function boblift_render_buying_guide(WP_Term $term): void
+/** $is_current: the page's own category, which alone gets the #buying-guide anchor and the FAQPage JSON-LD. */
+function boblift_render_buying_guide(WP_Term $term, bool $is_current = true): void
 {
     $guide = boblift_buying_guide($term);
     if (!$guide) {
@@ -85,11 +86,12 @@ function boblift_render_buying_guide(WP_Term $term): void
     $faq = array_values((array) ($guide['faq'] ?? []));
     ?>
     <?php // Two columns from lg on, header and body alike: the title over the points on the left, the intro over the questions on the right. ?>
-    <section id="buying-guide" class="mt-14 scroll-mt-24 lg:mt-20" aria-labelledby="buying-guide-title">
+    <?php $title_id = 'buying-guide-title-' . $term->term_id; ?>
+    <section id="<?php echo esc_attr($is_current ? 'buying-guide' : 'buying-guide-' . $term->term_id); ?>" class="mt-14 scroll-mt-24 lg:mt-20" aria-labelledby="<?php echo esc_attr($title_id); ?>">
         <div class="grid gap-x-12 gap-y-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:items-end xl:gap-x-16">
             <div class="min-w-0">
                 <?php if (($guide['eyebrow'] ?? '') !== '') : ?><p class="section-label"><?php echo esc_html($guide['eyebrow']); ?></p><?php endif; ?>
-                <h2 id="buying-guide-title" class="mt-3 max-w-[22ch] text-[clamp(1.75rem,2.8vw,3rem)] font-black leading-[1.05] tracking-[-0.015em] text-ink"><?php echo esc_html((string) (($guide['title'] ?? '') ?: boblift_localized_static_text('Buying guide'))); ?></h2>
+                <h2 id="<?php echo esc_attr($title_id); ?>" class="mt-3 max-w-[22ch] text-[clamp(1.75rem,2.8vw,3rem)] font-black leading-[1.05] tracking-[-0.015em] text-ink"><?php echo esc_html((string) (($guide['title'] ?? '') ?: boblift_localized_static_text('Buying guide'))); ?></h2>
             </div>
             <?php if (($guide['intro'] ?? '') !== '') : ?><p class="text-sm leading-7 text-slate-600 md:text-base [&_a]:font-bold [&_a]:text-blue-700 [&_a]:underline-offset-4 [&_a:hover]:underline"><?php echo wp_kses((string) $guide['intro'], $allowed); ?></p><?php endif; ?>
         </div>
@@ -119,7 +121,7 @@ function boblift_render_buying_guide(WP_Term $term): void
                 </div>
             <?php endif; ?>
         </div>
-        <?php if ($faq) : ?>
+        <?php if ($faq && $is_current) : ?>
             <?php
             $schema = [
                 '@context' => 'https://schema.org',
