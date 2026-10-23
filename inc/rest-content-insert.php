@@ -10,7 +10,7 @@ if (!defined('ABSPATH')) {
  *
  * Write: {"after": "a snippet of the paragraph's raw HTML", "html": "<p>New sentence with a link.</p>"}, or a list of
  * those. The snippet must occur exactly once in the content. The HTML goes after the element that holds it: the
- * paragraph or heading, or the whole outermost list or table when the snippet sits inside one, and after the block's
+ * paragraph or heading, or the whole outermost list, table or blockquote when the snippet sits inside one, and after the block's
  * closing comment if one follows. HTML that is already in the content is skipped, so sending the same request twice
  * changes nothing.
  * The insertion is worked out in rest_pre_insert_{type}, before anything is saved, against the content the request
@@ -95,14 +95,20 @@ function boblift_content_insert_after(string $content, string $after, string $ht
 }
 
 /**
- * Where new content can go for text at $pos: after the outermost list or table holding it (a paragraph inside a list
- * item or a cell is no place for it), else after the innermost paragraph or heading holding it. Returns the offset just
+ * Where new content can go for text at $pos: after the outermost list, table or blockquote holding it (a paragraph
+ * inside a list item, a cell or a quote is no place for it), else after the innermost paragraph or heading holding it. Returns the offset just
  * past that element's closing tag, or null when there is no such element or it is never closed.
  */
 function boblift_content_insert_boundary(string $content, int $pos): ?int
 {
     $void = ['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr'];
-    preg_match_all('~<(/?)([a-z][a-z0-9]*)\b[^>]*?(/?)>~i', $content, $tags, PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
+    // Comments and script or style bodies hold no live tags: blank them out, keeping every offset.
+    $scan = preg_replace_callback(
+        '~<!--.*?-->|(?<=<script)\b[^>]*>.*?(?=</script>)|(?<=<style)\b[^>]*>.*?(?=</style>)~is',
+        static fn(array $m): string => str_repeat(' ', strlen($m[0])),
+        $content
+    );
+    preg_match_all('~<(/?)([a-z][a-z0-9]*)\b[^>]*?(/?)>~i', $scan, $tags, PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
     $stack = [];
     $target = null;
     foreach ($tags as $tag) {
@@ -112,7 +118,7 @@ function boblift_content_insert_boundary(string $content, int $pos): ?int
         if ($offset >= $pos && $target === null) {
             // The stack now holds the snippet's ancestors: pick the element to insert after.
             foreach ($stack as $depth => $open) {
-                if (in_array($open, ['ul', 'ol', 'table'], true)) {
+                if (in_array($open, ['ul', 'ol', 'table', 'blockquote'], true)) {
                     $target = $depth;
                     break;
                 }
