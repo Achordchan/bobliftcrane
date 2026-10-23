@@ -103,7 +103,7 @@ $others = array_slice($others, 0, 4);
     $record = boblift_feedback_record(get_the_ID());
     ob_start();
     if ($record !== '') {
-        echo '<div class="boblift-story-prose boblift-feedback-record max-w-[760px]">' . wp_kses_post($record) . '</div>';
+        echo '<div class="boblift-story-prose boblift-feedback-record max-w-[760px] lg:max-w-none">' . wp_kses_post($record) . '</div>';
     } elseif (trim((string) get_post_field('post_content', get_the_ID())) !== '') {
         echo '<div class="boblift-story-prose max-w-[760px]">';
         the_content();
@@ -117,8 +117,8 @@ $others = array_slice($others, 0, 4);
     $ask_model = str_replace('{model}', $feedback['model'], $ui['askModelTemplate'] ?? 'Interested in the {model}?');
     ?>
 
-    <?php // Same frame as the case page: the text starts on the page edge and the inquiry card is pinned beside it on desktop. ?>
-    <div class="mt-12 md:mt-16<?php echo $body_html !== '' ? ' boblift-case-body' : ''; ?>">
+    <?php // The text starts on the page edge and fills the photo's width; the inquiry card is pinned under the thumbnail column on desktop. ?>
+    <div class="mt-12 md:mt-16<?php echo $body_html !== '' ? ' boblift-case-body boblift-feedback-body' : ''; ?>">
         <?php if ($body_html !== '') : ?><div class="boblift-case-main min-w-0"><?php echo $body_html; ?></div><?php endif; ?>
 
         <?php if ($body_html !== '') : ?>

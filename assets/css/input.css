@@ -2633,6 +2633,15 @@ body.boblift-filter-drawer-locked {
 .boblift-story-prose th, .boblift-story-prose td { padding: 0.6rem 0.75rem; border-bottom: 1px solid #e4ebf4; text-align: start; }
 .boblift-story-prose th { color: #08234a; font-weight: 800; }
 
+/* Feedback detail: the record and its card share the gallery's columns, so the text ends near the photo's right edge and the card sits under the thumbnails. */
+@media (min-width: 1024px) {
+  .boblift-case-body.boblift-feedback-body { grid-template-columns: minmax(0, 1fr) 21rem; gap: .75rem; }
+  .boblift-feedback-body > .boblift-case-main { padding-inline-end: 3rem; }
+}
+@media (min-width: 1536px) {
+  .boblift-case-body.boblift-feedback-body { grid-template-columns: minmax(0, 1fr) 26rem; }
+  .boblift-feedback-body > .boblift-case-main { padding-inline-end: 4rem; }
+}
 /* Feedback delivery record: an opening line, a facts strip, sections split by rules and spec tables that read as data sheets. */
 .boblift-feedback-record > p:first-child { color: #0f172a; font-size: 1.1875rem; line-height: 1.7; }
 .boblift-feedback-record > p:nth-child(2):has(> strong:first-child) { padding: 1rem 1.25rem; border: 1px solid #e4ebf4; border-radius: 4px; background: #f6f8fb; font-size: 0.9375rem; line-height: 1.7; }
