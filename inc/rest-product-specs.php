@@ -74,8 +74,10 @@ function boblift_rest_pre_insert_product_specs(stdClass|WP_Error $prepared, WP_R
         return $prepared;
     }
     $sent = array_keys(array_merge((array) $request->get_query_params(), (array) $request->get_body_params(), (array) $request->get_json_params()));
-    // Parameters that only shape the request or response, never the saved item.
-    $other = array_diff($sent, ['boblift_specs', 'id', 'context', '_fields', '_envelope', '_locale', '_method', '_wpnonce']);
+    // Only parameters the update route accepts can change the item (a proxy's routing and signing parameters cannot);
+    // of those, only the field itself and the ones that shape the response may come along.
+    $route_args = array_keys((array) ($request->get_attributes()['args'] ?? []));
+    $other = array_diff(array_intersect($sent, $route_args), ['boblift_specs', 'id', 'context', '_fields']);
     if ($other !== []) {
         return new WP_Error('boblift_specs_alone', sprintf('Send "boblift_specs" on its own; this request also sends: %s.', implode(', ', $other)), ['status' => 400]);
     }
