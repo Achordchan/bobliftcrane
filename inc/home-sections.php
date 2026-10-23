@@ -252,3 +252,30 @@ function boblift_render_home_cases(): void
     </section>
     <?php
 }
+
+/**
+ * The home kicker (the page's H1) per language, as a field on that language's front page, so it can be read and written
+ * through the standard wp/v2/pages route (the WordPress.com connector only reaches wp/v2). When it is empty the Home
+ * settings label (home.hero.label) applies, as before.
+ */
+function boblift_register_home_hero_label_meta(): void
+{
+    register_post_meta('page', '_boblift_hero_label', [
+        'type' => 'string',
+        'single' => true,
+        'default' => '',
+        'show_in_rest' => true,
+        'sanitize_callback' => 'sanitize_text_field',
+        'auth_callback' => static fn($allowed, $meta_key, $post_id): bool => current_user_can('edit_post', (int) $post_id),
+    ]);
+}
+add_action('init', 'boblift_register_home_hero_label_meta', 20);
+
+function boblift_home_hero_label_override(): string
+{
+    $page_id = (int) get_queried_object_id();
+    if ($page_id <= 0 || !boblift_is_front_page_or_translation($page_id)) {
+        return '';
+    }
+    return trim((string) get_post_meta($page_id, '_boblift_hero_label', true));
+}

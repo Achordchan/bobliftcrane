@@ -57,7 +57,7 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
             <?php
             // The kicker names the whole business, so it is the page's H1; the slide titles are the carousel's own
             // headings. Without a kicker the first slide title stays the H1.
-            $hero_label = $hero_text('label');
+            $hero_label = boblift_home_hero_label_override() ?: $hero_text('label');
             ?>
             <?php if ($hero_label !== '') : ?>
                 <h1 id="home-hero-title" class="boblift-kicker empty:hidden"><?php echo esc_html($hero_label); ?></h1>
