@@ -54,14 +54,21 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
     </div>
     <div class="page-shell relative z-10 py-8 sm:py-10 lg:flex lg:min-h-[540px] lg:items-center lg:py-16 xl:min-h-[600px] 2xl:min-h-[660px]">
         <div class="flex max-w-xl flex-col lg:w-full lg:max-w-[42%] 2xl:max-w-[40%]">
-            <p class="boblift-kicker empty:hidden"><?php echo esc_html($hero_text('label')); ?></p>
+            <?php
+            // The kicker names the whole business, so it is the page's H1; the slide titles are the carousel's own
+            // headings. Without a kicker the first slide title stays the H1.
+            $hero_label = $hero_text('label');
+            ?>
+            <?php if ($hero_label !== '') : ?>
+                <h1 id="home-hero-title" class="boblift-kicker empty:hidden"><?php echo esc_html($hero_label); ?></h1>
+            <?php endif; ?>
             <div class="grid">
                 <?php foreach ($hero_slides as $index => $slide) :
-                    $heading_tag = $index === 0 ? 'h1' : 'h2';
+                    $heading_tag = $index === 0 && $hero_label === '' ? 'h1' : 'h2';
                     $slide_tab = trim((string) ($slide['tab'] ?? ''));
                 ?>
                     <div class="boblift-home-hero-slide [grid-area:1/1]" id="home-hero-slide-<?php echo esc_attr((string) $index); ?>"<?php echo $hero_count > 1 ? ' role="tabpanel" aria-labelledby="home-hero-tab-' . esc_attr((string) $index) . '"' : ''; ?><?php echo $index > 0 ? ' aria-hidden="true"' : ''; ?> data-home-hero-slide>
-                        <<?php echo $heading_tag; ?><?php echo $index === 0 ? ' id="home-hero-title"' : ''; ?> class="mt-3 text-[clamp(2.1rem,4vw,4.5rem)] font-black leading-[1.02] tracking-[-0.02em] text-[#0B1B33] [text-wrap:balance] [word-break:auto-phrase]"><?php echo esc_html((string) $slide['title']); ?></<?php echo $heading_tag; ?>>
+                        <<?php echo $heading_tag; ?><?php echo $index === 0 && $hero_label === '' ? ' id="home-hero-title"' : ''; ?> class="mt-3 text-[clamp(2.1rem,4vw,4.5rem)] font-black leading-[1.02] tracking-[-0.02em] text-[#0B1B33] [text-wrap:balance] [word-break:auto-phrase]"><?php echo esc_html((string) $slide['title']); ?></<?php echo $heading_tag; ?>>
                         <p class="mt-5 text-base font-normal leading-7 text-slate-600 empty:hidden [word-break:auto-phrase] md:text-lg md:leading-8"><?php echo esc_html((string) preg_replace('/(\d)\s+(t|kg|m²)(?![\p{L}\d])/u', "$1\u{00A0}$2", (string) ($slide['text'] ?? ''))); ?></p>
                         <div class="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
                             <a class="inline-flex h-12 items-center justify-center gap-2 rounded-sm bg-navy px-6 text-sm font-black text-white transition hover:bg-[#0b2d5b]" href="<?php echo esc_url(boblift_url((string) (($slide['primary_href'] ?? '') ?: '/products'))); ?>"><?php echo esc_html((string) (($slide['primary_label'] ?? '') ?: boblift_localized_static_text('View Products'))); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
