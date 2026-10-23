@@ -310,7 +310,12 @@ function boblift_meta_description(): void
     } elseif (is_post_type_archive('case')) {
         $description = boblift_seo_page_by_slug('cases', 'description');
     } elseif (is_singular('feedback')) {
-        $description = boblift_feedback_seo_text(get_queried_object_id(), 'description');
+        // The record's own description when this language has one, else the description every post falls back to.
+        $post = get_queried_object();
+        $description = $post instanceof WP_Post ? boblift_feedback_seo_text($post->ID, 'description') : '';
+        if ($description === '' && $post instanceof WP_Post) {
+            $description = boblift_seo_post_description($post);
+        }
     } elseif (is_singular()) {
         $post = get_queried_object();
         $description = $post instanceof WP_Post ? boblift_seo_post_description($post) : '';
