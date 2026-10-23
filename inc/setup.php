@@ -543,6 +543,38 @@ function boblift_article_schema(): void
 }
 add_action('wp_head', 'boblift_article_schema', 5);
 
+// JSON-LD written into the body (a Custom HTML block holding <script type="application/ld+json">, as for a VideoObject)
+// is printed in the head instead: the templates pass the body through wp_kses_post(), which drops the <script> tags and
+// would leave the JSON on the page as text.
+function boblift_content_jsonld_pattern(): string
+{
+    return '#<script\b[^>]*\btype\s*=\s*(["\'])application/ld\+json\1[^>]*>(.*?)</script>#is';
+}
+
+function boblift_strip_content_jsonld(string $content): string
+{
+    return stripos($content, 'application/ld+json') === false ? $content : (string) preg_replace(boblift_content_jsonld_pattern(), '', $content);
+}
+add_filter('the_content', 'boblift_strip_content_jsonld', 1);
+
+function boblift_content_jsonld(): void
+{
+    if (!is_singular() || post_password_required(get_queried_object())) {
+        return;
+    }
+    $content = (string) get_post_field('post_content', get_queried_object_id(), 'raw');
+    if (stripos($content, 'application/ld+json') === false || !preg_match_all(boblift_content_jsonld_pattern(), $content, $matches)) {
+        return;
+    }
+    foreach ($matches[2] as $json) {
+        $data = json_decode(str_replace('{{home}}', untrailingslashit((string) get_option('home')), trim($json)), true);
+        if (is_array($data)) {
+            echo '<script type="application/ld+json">' . wp_json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) . "</script>\n";
+        }
+    }
+}
+add_action('wp_head', 'boblift_content_jsonld', 6);
+
 // Social preview tags for case pages: their SEO title and description, and the cover photo.
 function boblift_case_social_tags(): void
 {
