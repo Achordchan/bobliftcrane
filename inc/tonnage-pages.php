@@ -67,6 +67,30 @@ function boblift_tonnage_products(int $size): array
     return $cache[$language][$size] = $products;
 }
 
+/** The tonnage page a capacity belongs to (5 for 4.6 t), or 0 when it is in no bin or that bin's page has no models. */
+function boblift_tonnage_size_for_capacity(float $capacity): int
+{
+    foreach (boblift_tonnage_bins() as $size => $bin) {
+        [$min, $max] = boblift_tonnage_bin_range($bin);
+        if ($capacity > $min && $capacity <= $max) {
+            return boblift_tonnage_products($size) ? $size : 0;
+        }
+    }
+    return 0;
+}
+
+/** The tonnage pages that have models, as size => [label, url], for the "Browse by capacity" links. */
+function boblift_tonnage_links(): array
+{
+    $links = [];
+    foreach (array_keys(boblift_tonnage_bins()) as $size) {
+        if (boblift_tonnage_products($size)) {
+            $links[$size] = [str_replace('{n}', (string) $size, boblift_localized_static_text('{n} Ton')), boblift_tonnage_url($size)];
+        }
+    }
+    return $links;
+}
+
 /** "4.6", "9,000": a figure without trailing zeros. */
 function boblift_tonnage_number(float $value, bool $thousands = false): string
 {

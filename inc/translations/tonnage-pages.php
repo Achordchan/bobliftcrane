@@ -3,6 +3,9 @@
 // ({n}, {count}, {range}, {models}, {categories}, {moment}, {weight}) come from the products' own data.
 return [
     'ja' => [
+        '{n} Ton' => '{n} t',
+        'Browse by capacity' => '容量で探す',
+        'See all {name}' => '{name}をすべて見る',
         '{n} Ton Cranes' => '{n} トンクレーン',
         '{n} Ton Crane: Truck Mounted & Marine Models | BOB-LIFT' => '{n}トンクレーン：トラック搭載・船舶用モデル | BOB-LIFT',
         '{n} Ton Crane: Truck Mounted Models | BOB-LIFT' => '{n}トンクレーン：トラック搭載モデル | BOB-LIFT',
@@ -22,6 +25,9 @@ return [
         'Breadcrumb' => 'パンくずリスト',
     ],
     'zh' => [
+        '{n} Ton' => '{n} 吨',
+        'Browse by capacity' => '按吨位浏览',
+        'See all {name}' => '查看全部 {name}',
         '{n} Ton Cranes' => '{n} 吨起重机',
         '{n} Ton Crane: Truck Mounted & Marine Models | BOB-LIFT' => '{n} 吨起重机：随车起重机与船用起重机型号 | BOB-LIFT',
         '{n} Ton Crane: Truck Mounted Models | BOB-LIFT' => '{n} 吨起重机：随车起重机型号 | BOB-LIFT',
@@ -41,6 +47,9 @@ return [
         'Breadcrumb' => '面包屑导航',
     ],
     'es' => [
+        '{n} Ton' => '{n} t',
+        'Browse by capacity' => 'Ver por capacidad',
+        'See all {name}' => 'Ver todas las {name}',
         '{n} Ton Cranes' => 'Grúas de {n} toneladas',
         '{n} Ton Crane: Truck Mounted & Marine Models | BOB-LIFT' => 'Grúa de {n} t: modelos para camión y marinos | BOB-LIFT',
         '{n} Ton Crane: Truck Mounted Models | BOB-LIFT' => 'Grúa de {n} t: modelos para camión | BOB-LIFT',
@@ -60,6 +69,9 @@ return [
         'Breadcrumb' => 'Ruta de navegación',
     ],
     'ru' => [
+        '{n} Ton' => '{n} т',
+        'Browse by capacity' => 'По грузоподъёмности',
+        'See all {name}' => 'Все {name}',
         '{n} Ton Cranes' => 'Краны {n} т',
         '{n} Ton Crane: Truck Mounted & Marine Models | BOB-LIFT' => 'Кран {n} т: крано-манипуляторы и судовые краны | BOB-LIFT',
         '{n} Ton Crane: Truck Mounted Models | BOB-LIFT' => 'Кран {n} т: крано-манипуляторы | BOB-LIFT',
@@ -79,6 +91,9 @@ return [
         'Breadcrumb' => 'Навигационная цепочка',
     ],
     'fr' => [
+        '{n} Ton' => '{n} t',
+        'Browse by capacity' => 'Par capacité',
+        'See all {name}' => 'Voir toutes les {name}',
         '{n} Ton Cranes' => 'Grues de {n} tonnes',
         '{n} Ton Crane: Truck Mounted & Marine Models | BOB-LIFT' => 'Grue de {n} tonnes : modèles sur camion et marins | BOB-LIFT',
         '{n} Ton Crane: Truck Mounted Models | BOB-LIFT' => 'Grue de {n} tonnes : modèles sur camion | BOB-LIFT',
@@ -98,6 +113,9 @@ return [
         'Breadcrumb' => 'Fil d’Ariane',
     ],
     'ar' => [
+        '{n} Ton' => '{n} طن',
+        'Browse by capacity' => 'تصفح حسب الحمولة',
+        'See all {name}' => 'عرض جميع {name}',
         '{n} Ton Cranes' => 'رافعات {n} طن',
         '{n} Ton Crane: Truck Mounted & Marine Models | BOB-LIFT' => 'رافعة {n} طن: موديلات محمولة على شاحنة وبحرية | BOB-LIFT',
         '{n} Ton Crane: Truck Mounted Models | BOB-LIFT' => 'رافعة {n} طن: موديلات محمولة على شاحنة | BOB-LIFT',

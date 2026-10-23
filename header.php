@@ -489,6 +489,12 @@ foreach ($languages as $language) {
                                     </div>
                                 <?php endforeach; ?>
                             </div>
+                            <?php $mobile_capacity_links = function_exists('boblift_tonnage_links') ? boblift_tonnage_links() : []; if ($mobile_capacity_links) : ?>
+                                <p class="px-2 pb-2 pt-4 text-[10px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(boblift_localized_static_text('Browse by capacity')); ?></p>
+                                <div class="grid grid-cols-3 gap-1">
+                                    <?php foreach ($mobile_capacity_links as [$capacity_label, $capacity_url]) : ?><a class="rounded bg-white px-2 py-1.5 text-center text-xs font-bold leading-[18px] text-slate-600 shadow-card hover:text-blue-700" href="<?php echo esc_url($capacity_url); ?>"><?php echo esc_html($capacity_label); ?></a><?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     <?php elseif ($mobile_has_children) : ?>
                         <details class="group rounded" <?php echo $mobile_children_open ? 'open' : ''; ?>>

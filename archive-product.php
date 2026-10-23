@@ -190,6 +190,20 @@ if ($tonnage > 0) {
     $legacy_groups = array_values(array_filter($legacy_groups, static fn(array $group): bool => in_array((string) ($group['slug'] ?? ''), $scope_slugs, true)));
 }
 $legacy_total = array_sum(array_map(static fn(array $group): int => count($group['models']), $legacy_groups));
+// "Browse by capacity": the tonnage pages (inc/tonnage-pages.php) of the bins this page lists models in; every bin on the whole
+// list and on a tonnage page, where the page's own bin is the current one.
+$capacity_links = function_exists('boblift_tonnage_links') ? boblift_tonnage_links() : [];
+if ($tonnage === 0 && !$on_all_products) {
+    $capacity_links = array_filter($capacity_links, static function (int $size) use ($products, $in_bin): bool {
+        $bin = boblift_tonnage_bins()[$size];
+        foreach ($products as $product) {
+            if ($in_bin((float) ($product['filter_values']['capacity'] ?? 0), $bin)) {
+                return true;
+            }
+        }
+        return false;
+    }, ARRAY_FILTER_USE_KEY);
+}
 $category_link = static fn(string $slug): string => $slug === '' ? boblift_product_archive_url() : (string) ($category_url_map[$slug] ?? boblift_public_path_url('/' . $slug));
 $current_attr = static fn(bool $current): string => $current ? ' aria-current="page"' : '';
 $filter_group = static function (string $title, string $filter, array $items, array $counts) use ($fixed_capacity): void {
@@ -332,6 +346,16 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
         ]);
         $filter_bar();
         ?>
+        <?php if ($capacity_links) : ?>
+            <nav id="by-capacity" class="mb-6 flex scroll-mt-6 items-center gap-3 lg:mb-7" aria-label="<?php echo esc_attr(boblift_localized_static_text('Browse by capacity')); ?>">
+                <span class="shrink-0 text-sm font-black text-slate-500"><?php echo esc_html(boblift_localized_static_text('Browse by capacity')); ?></span>
+                <div class="flex min-w-0 flex-1 gap-2 overflow-x-auto overscroll-x-contain [scrollbar-width:none] md:flex-wrap md:overflow-visible [&::-webkit-scrollbar]:hidden">
+                    <?php foreach ($capacity_links as $size => [$capacity_label, $capacity_url]) : ?>
+                        <a class="boblift-category-subtab shrink-0" href="<?php echo esc_url($capacity_url); ?>"<?php echo $current_attr($size === $tonnage); ?>><?php echo esc_html($capacity_label); ?></a>
+                    <?php endforeach; ?>
+                </div>
+            </nav>
+        <?php endif; ?>
 
         <div class="mb-6 flex scroll-mt-6 flex-col gap-4 md:flex-row md:items-center md:justify-between lg:mb-7" data-products-toolbar>
             <div class="flex flex-wrap items-center gap-3">
