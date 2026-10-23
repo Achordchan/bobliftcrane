@@ -4225,22 +4225,29 @@
       let captions = [];
       try { captions = JSON.parse(viewer.dataset.detailCaptions || '[]'); } catch (error) { captions = []; }
       const caption = box.querySelector('[data-detail-caption]');
+      const total = box.querySelector('[data-detail-total]');
+      const arrows = [...box.querySelectorAll('[data-detail-prev], [data-detail-next]')];
       const pad = (n) => String(n).padStart(2, '0');
       let current = 0;
+      // A button with data-detail-count keeps the arrows inside its own run of photos (one visit's country), so paging never drifts into the next group.
+      let from = 0;
+      let size = images.length;
       let opener = null;
       let touchX = null;
       let background = [];
       let previousOverflow = '';
       const focusableControls = () => [...box.querySelectorAll('button, a[href], input, select, textarea, [tabindex]')]
         .filter((control) => !control.disabled && control.tabIndex >= 0 && control.getClientRects().length > 0);
+      const wrap = (n) => from + ((((n - from) % size) + size) % size);
       const show = (next) => {
-        current = (next + images.length) % images.length;
+        current = wrap(next);
         image.src = images[current];
         image.alt = captions[current] || `${alt} ${current + 1}`;
-        if (index) index.textContent = pad(current + 1);
+        if (index) index.textContent = pad(current - from + 1);
+        if (total) total.textContent = pad(size);
         if (caption) caption.textContent = captions[current] || '';
         stage.scrollTop = 0;
-        [current + 1, current - 1].forEach((n) => { new Image().src = images[(n + images.length) % images.length]; });
+        if (size > 1) [current + 1, current - 1].forEach((n) => { new Image().src = images[wrap(n)]; });
       };
       const close = () => {
         box.classList.add('hidden');
@@ -4253,6 +4260,10 @@
       };
       const open = (n, button) => {
         opener = button;
+        const count = Number(button.dataset.detailCount) || 0;
+        from = count > 0 ? Math.min(Math.max(n, 0), images.length - 1) : 0;
+        size = count > 0 ? Math.min(count, images.length - from) : images.length;
+        arrows.forEach((arrow) => { arrow.style.display = size > 1 ? '' : 'none'; });
         show(n);
         box.classList.remove('hidden');
         box.classList.add('flex');
@@ -4296,7 +4307,7 @@
         if (touchX === null) return;
         const delta = event.changedTouches[0].clientX - touchX;
         touchX = null;
-        if (Math.abs(delta) > 50 && images.length > 1) show(current + (delta < 0 ? 1 : -1));
+        if (Math.abs(delta) > 50 && size > 1) show(current + (delta < 0 ? 1 : -1));
       }, { passive: true });
     });
   };
