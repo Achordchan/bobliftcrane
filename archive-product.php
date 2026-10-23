@@ -1,18 +1,11 @@
 <?php
 get_header();
 $products = boblift_all_products();
-// A product rated by working height (aerial platforms: a "Working Height" row and no "Max Lifting Capacity" row) keeps its
-// height in metres as the numeric fallback, so it stays out of the capacity filter and capacity sorts. The raw figure
-// still orders the family in the default sort.
+// A product rated by working height keeps its height in metres as the numeric fallback, so it stays out of the capacity
+// filter and capacity sorts (boblift_product_listing_capacity()). The raw figure still orders the family in the default sort.
 foreach ($products as &$product) {
     $product['sort_size'] = (float) ($product['filter_values']['capacity'] ?? 0);
-    $spec_rows = (int) ($product['id'] ?? 0) > 0 ? (array) boblift_decode_meta(get_post_meta(boblift_product_english_id((int) $product['id']), '_specs', true), []) : [];
-    $spec_labels = array_map(static fn($row): string => is_array($row) ? trim((string) ($row['label'] ?? '')) : '', $spec_rows);
-    // A capacity stated with its unit (a "5 ton" capacity field) is a rated capacity whatever the spec table holds.
-    $rated = function_exists('boblift_home_product_rated_capacity') ? boblift_home_product_rated_capacity($product) : 0.0;
-    if ($rated <= 0 && in_array('Working Height', $spec_labels, true) && !in_array('Max Lifting Capacity', $spec_labels, true)) {
-        $product['filter_values']['capacity'] = 0.0;
-    }
+    $product['filter_values']['capacity'] = boblift_product_listing_capacity($product);
 }
 unset($product);
 $categories = boblift_categories();
@@ -20,6 +13,13 @@ $initial_category = sanitize_title((string) get_query_var('boblift_product_categ
 if ($initial_category === '' && isset($_GET['category']) && is_string($_GET['category'])) {
     $initial_category = sanitize_title(wp_unslash($_GET['category']));
 }
+// A tonnage page (/5-ton-crane.html, inc/tonnage-pages.php) lists one capacity bin across every category, the bin ticked.
+$tonnage = function_exists('boblift_current_tonnage') ? boblift_current_tonnage() : 0;
+$fixed_capacity = $tonnage > 0 ? (string) boblift_tonnage_bins()[$tonnage] : '';
+if ($tonnage > 0) {
+    $initial_category = '';
+}
+$on_all_products = $initial_category === '' && $tonnage === 0;
 $category_counts = array_fill_keys(array_map(static fn($item) => $item['slug'], $categories), 0);
 $category_product_map = array_fill_keys(array_map(static fn($item) => $item['slug'], $categories), []);
 $archive_ui = function_exists('boblift_site_ui') ? boblift_site_ui('productArchive') : [];
@@ -54,6 +54,10 @@ $banner_default = [
     'image' => $archive_banner_custom ? boblift_image_setting_url($archive_banner_image) : boblift_product_banner_photo_url(),
     'imageAlt' => $archive_banner_custom ? (string) ($product_archive['image_alt'] ?? '') : 'BOB-LIFT knuckle boom crane in the factory yard',];
 $banner_default['srcset'] = boblift_image_srcset(boblift_image_cdn_original($banner_default['image']));
+if ($tonnage > 0) {
+    $banner_default['title'] = boblift_tonnage_heading($tonnage);
+    $banner_default['text'] = boblift_tonnage_intro($tonnage);
+}
 // A category page shows its own banner only: switching category loads that category's page.
 $valid_category_slugs = array_fill_keys(array_filter(array_map(static fn($item): string => (string) ($item['slug'] ?? ''), $categories)), true);
 if ($initial_category !== '' && !isset($valid_category_slugs[$initial_category])) {
@@ -160,6 +164,9 @@ if ($initial_category !== '') {
     $scope_slugs = $scope_slugs ?: [$initial_category];
     $products = array_values(array_filter($products, static fn(array $product): bool => (bool) array_intersect(array_map('strval', $product['categories'] ?? [($product['category'] ?? '')]), $scope_slugs)));
 }
+if ($fixed_capacity !== '') {
+    $products = array_values(array_filter($products, static fn(array $product): bool => $in_bin((float) ($product['filter_values']['capacity'] ?? 0), $fixed_capacity)));
+}
 $spec_counts = array_map(static fn(array $filter): array => array_fill_keys(array_keys($filter['bins']), 0), $spec_filters);
 $boom_counts = array_fill_keys(array_keys($boom_options), 0);
 foreach ($products as $product) {
@@ -177,13 +184,15 @@ foreach ($products as $product) {
     }
 }
 $legacy_groups = function_exists('boblift_legacy_model_library') ? boblift_legacy_model_library($categories) : [];
-if ($scope_slugs) {
+if ($tonnage > 0) {
+    $legacy_groups = [];
+} elseif ($scope_slugs) {
     $legacy_groups = array_values(array_filter($legacy_groups, static fn(array $group): bool => in_array((string) ($group['slug'] ?? ''), $scope_slugs, true)));
 }
 $legacy_total = array_sum(array_map(static fn(array $group): int => count($group['models']), $legacy_groups));
 $category_link = static fn(string $slug): string => $slug === '' ? boblift_product_archive_url() : (string) ($category_url_map[$slug] ?? boblift_public_path_url('/' . $slug));
 $current_attr = static fn(bool $current): string => $current ? ' aria-current="page"' : '';
-$filter_group = static function (string $title, string $filter, array $items, array $counts): void {
+$filter_group = static function (string $title, string $filter, array $items, array $counts) use ($fixed_capacity): void {
     $items = array_filter($items, static fn($label, $value): bool => $filter === 'capacity' || (int) ($counts[$value] ?? 0) > 0, ARRAY_FILTER_USE_BOTH);
     if (!$items) {
         return;
@@ -193,13 +202,13 @@ $filter_group = static function (string $title, string $filter, array $items, ar
         <legend class="float-left mb-4 w-full text-base font-black text-[#0B1B33]"><?php echo esc_html($title); ?></legend>
         <div class="clear-left space-y-3">
             <?php foreach ($items as $value => $label) : ?>
-                <label class="product-filter-option" data-filter-option><span class="relative flex h-5 w-5 shrink-0 items-center justify-center"><input class="peer h-5 w-5 appearance-none rounded-sm border border-slate-300 bg-white transition checked:border-[#0B3F7D] checked:bg-[#0B3F7D] focus:outline-none focus:ring-4 focus:ring-blue-100" type="checkbox" data-filter="<?php echo esc_attr($filter); ?>" value="<?php echo esc_attr($value); ?>"><span class="pointer-events-none absolute h-2.5 w-1.5 -translate-y-0.5 rotate-45 border-b-2 border-r-2 border-white opacity-0 peer-checked:opacity-100"></span></span><span class="min-w-0 flex-1 whitespace-nowrap" data-filter-label><?php echo esc_html($label); ?></span><span class="shrink-0 text-xs font-black text-slate-500" data-filter-count><?php echo esc_html((string) ($counts[$value] ?? 0)); ?></span></label>
+                <label class="product-filter-option" data-filter-option><span class="relative flex h-5 w-5 shrink-0 items-center justify-center"><input class="peer h-5 w-5 appearance-none rounded-sm border border-slate-300 bg-white transition checked:border-[#0B3F7D] checked:bg-[#0B3F7D] focus:outline-none focus:ring-4 focus:ring-blue-100" type="checkbox" data-filter="<?php echo esc_attr($filter); ?>" value="<?php echo esc_attr($value); ?>"<?php checked($filter === 'capacity' && (string) $value === $fixed_capacity); ?>><span class="pointer-events-none absolute h-2.5 w-1.5 -translate-y-0.5 rotate-45 border-b-2 border-r-2 border-white opacity-0 peer-checked:opacity-100"></span></span><span class="min-w-0 flex-1 whitespace-nowrap" data-filter-label><?php echo esc_html($label); ?></span><span class="shrink-0 text-xs font-black text-slate-500" data-filter-count><?php echo esc_html((string) ($counts[$value] ?? 0)); ?></span></label>
             <?php endforeach; ?>
         </div>
     </fieldset>
 <?php };
 // Desktop bar: the same options as $filter_group, behind one dropdown button per filter.
-$filter_dropdown = static function (string $title, string $filter, array $items, array $counts): void {
+$filter_dropdown = static function (string $title, string $filter, array $items, array $counts) use ($fixed_capacity): void {
     $items = array_filter($items, static fn($label, $value): bool => $filter === 'capacity' || (int) ($counts[$value] ?? 0) > 0, ARRAY_FILTER_USE_BOTH);
     if (!$items) {
         return;
@@ -211,7 +220,7 @@ $filter_dropdown = static function (string $title, string $filter, array $items,
         <div id="<?php echo esc_attr($panel_id); ?>" class="absolute start-0 top-[calc(100%+8px)] z-40 hidden max-h-[60vh] overflow-y-auto rounded border border-[#DDE5EF] bg-white p-2 shadow-raised <?php echo count($items) > 6 ? 'w-[440px]' : 'w-[280px]'; ?>" data-filter-dropdown-panel>
             <div class="grid gap-0.5 <?php echo count($items) > 6 ? 'grid-cols-2' : ''; ?>">
                 <?php foreach ($items as $value => $label) : ?>
-                    <label class="product-filter-option min-h-10 rounded-sm px-2.5 hover:bg-[#F8FAFC]" data-filter-option><span class="relative flex h-5 w-5 shrink-0 items-center justify-center"><input class="peer h-5 w-5 appearance-none rounded-sm border border-slate-300 bg-white transition checked:border-[#0B3F7D] checked:bg-[#0B3F7D] focus:outline-none focus:ring-4 focus:ring-blue-100" type="checkbox" data-filter="<?php echo esc_attr($filter); ?>" value="<?php echo esc_attr($value); ?>"><span class="pointer-events-none absolute h-2.5 w-1.5 -translate-y-0.5 rotate-45 border-b-2 border-r-2 border-white opacity-0 peer-checked:opacity-100"></span></span><span class="min-w-0 flex-1 whitespace-nowrap" data-filter-label><?php echo esc_html($label); ?></span><span class="shrink-0 text-xs font-black text-slate-500" data-filter-count><?php echo esc_html((string) ($counts[$value] ?? 0)); ?></span></label>
+                    <label class="product-filter-option min-h-10 rounded-sm px-2.5 hover:bg-[#F8FAFC]" data-filter-option><span class="relative flex h-5 w-5 shrink-0 items-center justify-center"><input class="peer h-5 w-5 appearance-none rounded-sm border border-slate-300 bg-white transition checked:border-[#0B3F7D] checked:bg-[#0B3F7D] focus:outline-none focus:ring-4 focus:ring-blue-100" type="checkbox" data-filter="<?php echo esc_attr($filter); ?>" value="<?php echo esc_attr($value); ?>"<?php checked($filter === 'capacity' && (string) $value === $fixed_capacity); ?>><span class="pointer-events-none absolute h-2.5 w-1.5 -translate-y-0.5 rotate-45 border-b-2 border-r-2 border-white opacity-0 peer-checked:opacity-100"></span></span><span class="min-w-0 flex-1 whitespace-nowrap" data-filter-label><?php echo esc_html($label); ?></span><span class="shrink-0 text-xs font-black text-slate-500" data-filter-count><?php echo esc_html((string) ($counts[$value] ?? 0)); ?></span></label>
                 <?php endforeach; ?>
             </div>
         </div>
@@ -219,14 +228,14 @@ $filter_dropdown = static function (string $title, string $filter, array $items,
 <?php };
 // The category list switches page: each entry links to its category, the current one ticked; a parent's
 // sub-categories show under it while it or one of them is open.
-$category_filter_group = static function (array $tree) use ($category_counts, $archive_ui, $initial_category, $active_parent, $category_link, $current_attr, $all_product_count): void {
+$category_filter_group = static function (array $tree) use ($category_counts, $archive_ui, $initial_category, $active_parent, $category_link, $current_attr, $all_product_count, $on_all_products): void {
     $box = static fn(bool $on): string => '<span class="relative flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border ' . ($on ? 'border-[#0B3F7D] bg-[#0B3F7D]' : 'border-slate-300 bg-white') . '" aria-hidden="true"><span class="pointer-events-none absolute h-2.5 w-1.5 -translate-y-0.5 rotate-45 border-b-2 border-r-2 border-white' . ($on ? '' : ' opacity-0') . '"></span></span>';
     ?>
     <fieldset class="border-t border-[#E5E7EB] pt-6 first:border-t-0 first:pt-0">
         <legend class="float-left mb-4 w-full text-base font-black text-[#0B1B33]"><?php echo esc_html($archive_ui['categoryFilterLabel'] ?? 'Product Category'); ?></legend>
         <div class="clear-left space-y-3">
             <?php // The desktop bar has an All Products tab; the drawer needs its own way back to the whole range. ?>
-            <a class="product-filter-option" href="<?php echo esc_url($category_link('')); ?>" data-category-link=""<?php echo $current_attr($initial_category === ''); ?>><?php echo $box($initial_category === ''); ?><span class="min-w-0 flex-1 font-black leading-snug"><?php echo esc_html($archive_ui['allCategoriesLabel'] ?? 'All Products'); ?></span><span class="shrink-0 text-xs font-black text-slate-500"><?php echo esc_html((string) $all_product_count); ?></span></a>
+            <a class="product-filter-option" href="<?php echo esc_url($category_link('')); ?>" data-category-link=""<?php echo $current_attr($on_all_products); ?>><?php echo $box($on_all_products); ?><span class="min-w-0 flex-1 font-black leading-snug"><?php echo esc_html($archive_ui['allCategoriesLabel'] ?? 'All Products'); ?></span><span class="shrink-0 text-xs font-black text-slate-500"><?php echo esc_html((string) $all_product_count); ?></span></a>
             <?php $group_shown = 'crane'; foreach ($tree as $item) : $slug = (string) $item['slug']; $open = $slug === $active_parent; ?>
                 <?php if (($item['group'] ?? 'crane') !== $group_shown) : $group_shown = $item['group']; ?>
                     <p class="border-t border-line pt-3 text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(boblift_product_family_group_label($group_shown)); ?></p>
@@ -267,10 +276,10 @@ $filter_sidebar = static function () use ($filter_group, $category_filter_group,
 <?php };
 // Desktop: category tabs (links to each category's page, like the Products menu), then a dropdown per spec filter,
 // then the picked spec options as chips. The spec checkboxes mirror the drawer's, so both drive the same filtering.
-$filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $category_counts, $spec_filters, $spec_counts, $boom_options, $boom_counts, $archive_ui, $all_product_count, $legacy_total, $initial_category, $active_parent, $category_link, $current_attr): void { ?>
+$filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $category_counts, $spec_filters, $spec_counts, $boom_options, $boom_counts, $archive_ui, $all_product_count, $legacy_total, $initial_category, $active_parent, $category_link, $current_attr, $on_all_products): void { ?>
     <div class="mb-6 hidden rounded border border-[#E5E7EB] bg-white shadow-card lg:mb-7 lg:block" data-filter-bar>
         <div class="flex flex-wrap px-3 shadow-[inset_0_-1px_0_#E5E7EB]" role="group" aria-label="<?php echo esc_attr($archive_ui['categoryFilterLabel'] ?? 'Product Category'); ?>">
-            <a class="boblift-category-tab" href="<?php echo esc_url($category_link('')); ?>" data-category-tab=""<?php echo $current_attr($initial_category === ''); ?>><?php echo esc_html($archive_ui['allCategoriesLabel'] ?? 'All Products'); ?><span data-tab-count><?php echo esc_html((string) $all_product_count); ?></span></a>
+            <a class="boblift-category-tab" href="<?php echo esc_url($category_link('')); ?>" data-category-tab=""<?php echo $current_attr($on_all_products); ?>><?php echo esc_html($archive_ui['allCategoriesLabel'] ?? 'All Products'); ?><span data-tab-count><?php echo esc_html((string) $all_product_count); ?></span></a>
             <?php foreach ($category_filter_tree as $item) : ?>
                 <a class="boblift-category-tab" href="<?php echo esc_url($category_link((string) $item['slug'])); ?>" data-category-tab="<?php echo esc_attr($item['slug']); ?>"<?php echo $current_attr($item['slug'] === $active_parent); ?>><?php echo esc_html($item['title']); ?><span data-tab-count><?php echo esc_html((string) ($item['count'] ?? 0)); ?></span></a>
             <?php endforeach; ?>
@@ -301,8 +310,16 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
     </div>
 <?php };
 ?>
-<section class="boblift-product-listing bg-[#F8FAFC] py-8 md:py-12 lg:py-14" data-product-listing data-view="grid" data-current-category="<?php echo esc_attr($initial_category); ?>" data-product-archive-url="<?php echo esc_url(boblift_product_archive_url()); ?>" data-category-urls="<?php echo esc_attr(wp_json_encode($category_url_map, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)); ?>">
+<section class="boblift-product-listing bg-[#F8FAFC] py-8 md:py-12 lg:py-14" data-product-listing data-view="grid" data-current-category="<?php echo esc_attr($initial_category); ?>" data-fixed-capacity="<?php echo esc_attr($fixed_capacity); ?>" data-product-archive-url="<?php echo esc_url(boblift_product_archive_url()); ?>" data-category-urls="<?php echo esc_attr(wp_json_encode($category_url_map, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)); ?>">
     <div class="page-shell">
+        <?php if ($tonnage > 0) : ?>
+            <nav class="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-bold text-slate-500 md:mb-5" aria-label="<?php echo esc_attr(boblift_localized_static_text('Breadcrumb')); ?>">
+                <?php foreach (boblift_tonnage_breadcrumb($tonnage) as $index => [$crumb_label, $crumb_url]) : ?>
+                    <?php if ($index > 0) : ?><span aria-hidden="true">/</span><?php endif; ?>
+                    <?php if ($index < 2) : ?><a class="transition hover:text-blue-700" href="<?php echo esc_url($crumb_url); ?>"><?php echo esc_html($crumb_label); ?></a><?php else : ?><span aria-current="page"><?php echo esc_html($crumb_label); ?></span><?php endif; ?>
+                <?php endforeach; ?>
+            </nav>
+        <?php endif; ?>
         <?php
         boblift_page_hero([
             'label' => $banner_initial['label'],

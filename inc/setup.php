@@ -256,7 +256,9 @@ function boblift_document_title_parts(array $title): array
 {
     $seo_title = '';
     $product_category = boblift_current_product_category_term();
-    if ($product_category instanceof WP_Term) {
+    if (boblift_current_tonnage() > 0) {
+        $seo_title = boblift_tonnage_title(boblift_current_tonnage());
+    } elseif ($product_category instanceof WP_Term) {
         $seo_title = boblift_seo_term_title($product_category);
     } elseif (is_category()) {
         $term = get_queried_object();
@@ -300,7 +302,9 @@ function boblift_meta_description(): void
 {
     $description = '';
     $product_category = boblift_current_product_category_term();
-    if ($product_category instanceof WP_Term) {
+    if (boblift_current_tonnage() > 0) {
+        $description = boblift_tonnage_description(boblift_current_tonnage());
+    } elseif ($product_category instanceof WP_Term) {
         $description = boblift_seo_term_description($product_category);
     } elseif (is_category()) {
         $term = get_queried_object();
@@ -641,30 +645,19 @@ function boblift_news_social_tags(): void
 }
 add_action('wp_head', 'boblift_news_social_tags', 5);
 
-// The old site's "Crane by Ton" pages (/5-ton-crane.html ...) are replaced by the tonnage filter on the product list.
+// The old site's "Crane by Ton" addresses that the redirect rules do not catch (/zh/5-ton-crane, /products/5-ton-crane in
+// another case ...) move to the tonnage page in the address's language (inc/tonnage-pages.php), keeping their parameters.
 function boblift_redirect_old_tonnage_pages(): void
 {
     if (is_admin() || !is_404()) {
         return;
     }
-    $key = function_exists('boblift_old_tonnage_bin') ? boblift_old_tonnage_bin((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH)) : null;
-    if ($key === null) {
+    $size = function_exists('boblift_tonnage_size_from_path') ? boblift_tonnage_size_from_path(boblift_strip_language_prefix((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH))) : 0;
+    if ($size <= 0) {
         return;
     }
-    $ui = function_exists('boblift_site_ui') ? boblift_site_ui('productArchive') : [];
-    // Keep incoming parameters (utm_*, gclid, ...); the tonnage bin wins over any `capacity` already in the query.
-    $query = wp_unslash($_GET);
-    $query = is_array($query) ? $query : [];
-    unset($query['capacity']);
-    if (isset($ui['capacityBins'][$key])) {
-        $query['capacity'] = $key;
-    }
-    $query_string = http_build_query($query, '', '&', PHP_QUERY_RFC3986);
-    $target = boblift_product_archive_url();
-    if ($query_string !== '') {
-        $target .= (str_contains($target, '?') ? '&' : '?') . $query_string;
-    }
-    wp_safe_redirect($target, 301);
+    $query = (string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_QUERY);
+    wp_safe_redirect(boblift_tonnage_url($size) . ($query !== '' ? '?' . $query : ''), 301);
     exit;
 }
 add_action('template_redirect', 'boblift_redirect_old_tonnage_pages', 1);

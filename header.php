@@ -342,7 +342,7 @@ foreach ($languages as $language) {
                     $has_children = $children !== [];
                     $item_path = trim(parse_url($item_url, PHP_URL_PATH) ?: '/', '/');
                     $active = $href === '/' ? ($current_path === '' && !is_search()) : ($item_path !== '' && str_starts_with($current_path, $item_path));
-                    if ($is_product_menu_item && (is_post_type_archive('product') || is_singular('product') || get_query_var('boblift_product_category'))) {
+                    if ($is_product_menu_item && (is_post_type_archive('product') || is_singular('product') || get_query_var('boblift_product_category') || get_query_var('boblift_tonnage'))) {
                         $active = true;
                     }
                     if ($is_news_item && ($current_path === 'news' || $current_path === 'news.html' || is_page_template('page-news.php') || is_singular('post') || $nav_href_matches_current('/videos.html') || $nav_href_matches_current('/social-media.html'))) {
