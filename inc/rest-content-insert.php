@@ -14,6 +14,12 @@ if (!defined('ABSPATH')) {
  * after the block's closing comment if one follows. HTML that is already in the content is skipped, so sending the same
  * request twice changes nothing. A request that also sends "content" is refused: send one or the other.
  *
+ * An item can instead correct a phrase: {"replace": "slew 360° continuously", "with": "slew 360°"}. Both are plain text
+ * (no "<", ">" or quotes); "replace" must occur exactly once in page text (never inside a tag, attribute, comment,
+ * script or style), not counting occurrences inside an occurrence of "with". When it no longer occurs and "with" does,
+ * the item is already done and is skipped, so this too can be sent again safely. A "replace" item goes on its own: a
+ * request that holds one and any other item is refused.
+ *
  * rest_pre_insert_{type} takes a per-post lock that is held until the save is done, every REST update of the item takes
  * the same lock before it loads the post, and any other save takes it just before its row is written, so nothing lands
  * in between; the request's own core update writes the body as stored at that moment. It then checks the insertion
@@ -41,7 +47,7 @@ function boblift_register_rest_content_insert_field(): void
             return true;
         },
         'schema' => [
-            'description' => 'Write only: {"after": snippet, "html": html} (or a list) adds html after the element holding the snippet.',
+            'description' => 'Write only: {"after": snippet, "html": html} adds html after the element holding the snippet; {"replace": text, "with": text} corrects a plain-text phrase. One item or a list.',
             'type' => ['object', 'array'],
             'context' => ['edit'],
         ],
@@ -190,8 +196,20 @@ function boblift_content_insert_stored(int $post_id): string
 /** Applies every insertion in a request value to $content, filtering the HTML the way a save by this user would. */
 function boblift_content_insert_apply(string $content, $value): string|WP_Error
 {
-    $inserts = is_array($value) && array_key_exists('after', $value) ? [$value] : (array) $value;
+    $inserts = is_array($value) && (array_key_exists('after', $value) || array_key_exists('replace', $value)) ? [$value] : (array) $value;
+    // A replacement can remove what another item of the request checks for (its own "with", or an insertion's HTML),
+    // so a retry could not tell that item was done: a "replace" item goes alone.
+    if (count($inserts) > 1 && array_filter($inserts, static fn($insert): bool => is_array($insert) && array_key_exists('replace', $insert)) !== []) {
+        return new WP_Error('boblift_insert_replace', 'Send a "replace" item on its own, one per request.', ['status' => 400]);
+    }
     foreach ($inserts as $insert) {
+        if (is_array($insert) && array_key_exists('replace', $insert)) {
+            $content = boblift_content_insert_replace($content, (string) ($insert['replace'] ?? ''), (string) ($insert['with'] ?? ''));
+            if (is_wp_error($content)) {
+                return $content;
+            }
+            continue;
+        }
         $html = is_array($insert) ? (string) ($insert['html'] ?? '') : '';
         if (!current_user_can('unfiltered_html')) {
             $html = wp_kses_post($html);
@@ -231,6 +249,15 @@ function boblift_rest_save_content_insert(int $post_id, $value): string|WP_Error
         }
     }
     return new WP_Error('boblift_insert_busy', 'The item kept changing while the insertion was saved; try again.', ['status' => 409]);
+}
+
+/** Replaces one plain-text phrase in page text, the way boblift_specs "replace" does for products. */
+function boblift_content_insert_replace(string $content, string $from, string $to): string|WP_Error
+{
+    if ($from === '' || $to === '' || $from === $to || preg_match('/[<>"\'\x00]/', $from . $to)) {
+        return new WP_Error('boblift_insert_replace', 'A "replace" item needs plain-text "replace" and a different, non-empty "with" (no "<", ">" or quotes).', ['status' => 400]);
+    }
+    return boblift_product_specs_replace_one($content, $from, $to, 'content');
 }
 
 function boblift_content_insert_after(string $content, string $after, string $html): string|WP_Error

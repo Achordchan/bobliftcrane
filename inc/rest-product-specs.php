@@ -18,8 +18,8 @@ if (!defined('ABSPATH')) {
  *              row after the row with that English label, in every language ("label" names every language; "value" as
  *              for "set"). A row whose English label is already in the table is skipped.
  *   "replace": {"en": [{"from": "continuous 360° slewing", "to": "360° slewing", "in": "content"}], "zh": [...]} replaces
- *              plain text in that language's body ("in": "content", the default), excerpt ("excerpt") or SEO description
- *              ("seo_description"). "from" and "to" are plain text (no "<", ">" or quotes), "to" is not empty, and "from" must
+ *              plain text in that language's body ("in": "content", the default), excerpt ("excerpt"), SEO description
+ *              ("seo_description") or short description ("short_description", the summary beside the gallery). "from" and "to" are plain text (no "<", ">" or quotes), "to" is not empty, and "from" must
  *              occur exactly once (not counting occurrences inside an occurrence of "to"), in page text: never inside a
  *              tag, attribute, comment, script or style. When it no longer occurs and "to" does, the item is already
  *              done and is skipped.
@@ -224,12 +224,19 @@ function boblift_product_specs_meta_row(int $post_id, string $key): ?array
     return is_array($row) ? ['id' => (int) $row['meta_id'], 'value' => (string) $row['meta_value']] : null;
 }
 
+/** The post meta key of each "in" that is stored as meta rather than in the posts table. */
+function boblift_product_specs_meta_texts(): array
+{
+    return ['seo_description' => '_seo_description', 'short_description' => '_short_description'];
+}
+
 /** The text a "replace" item works on, as stored right now (read past the object cache). */
 function boblift_product_specs_text(int $post_id, string $in): string
 {
     global $wpdb;
-    if ($in === 'seo_description') {
-        return (string) (boblift_product_specs_meta_row($post_id, '_seo_description')['value'] ?? '');
+    $meta_key = boblift_product_specs_meta_texts()[$in] ?? null;
+    if ($meta_key !== null) {
+        return (string) (boblift_product_specs_meta_row($post_id, $meta_key)['value'] ?? '');
     }
     $column = $in === 'excerpt' ? 'post_excerpt' : 'post_content';
     return (string) $wpdb->get_var($wpdb->prepare("SELECT {$column} FROM {$wpdb->posts} WHERE ID = %d", $post_id));
@@ -309,8 +316,8 @@ function boblift_product_specs_plan_texts(int $post_id, string $language, array 
         $in = is_array($item) ? (string) ($item['in'] ?? 'content') : '';
         $from = is_array($item) ? (string) ($item['from'] ?? '') : '';
         $to = is_array($item) ? (string) ($item['to'] ?? '') : '';
-        if (!in_array($in, ['content', 'excerpt', 'seo_description'], true) || $from === '' || $to === '' || $from === $to || preg_match('/[<>"\'\x00]/', $from . $to)) {
-            return new WP_Error('boblift_specs_replace', sprintf('A %s "replace" item needs plain-text "from" and a different, non-empty "to" (no "<", ">" or quotes), and "in" of content, excerpt or seo_description.', $language), ['status' => 400]);
+        if (!in_array($in, array_merge(['content', 'excerpt'], array_keys(boblift_product_specs_meta_texts())), true) || $from === '' || $to === '' || $from === $to || preg_match('/[<>"\'\x00]/', $from . $to)) {
+            return new WP_Error('boblift_specs_replace', sprintf('A %s "replace" item needs plain-text "from" and a different, non-empty "to" (no "<", ">" or quotes), and "in" of content, excerpt, seo_description or short_description.', $language), ['status' => 400]);
         }
         $texts[$in] ??= [boblift_product_specs_text($post_id, $in), null];
         // Each item must also stand on the stored text alone, on a stretch no earlier item touches: an item whose
@@ -390,8 +397,9 @@ function boblift_product_specs_commit(array $group, array $rows, array $texts, a
     foreach ($texts as $language => $changes) {
         $id = $group[$language];
         foreach ($changes as $in => $pair) {
-            if ($in === 'seo_description') {
-                $queries[] = $wpdb->prepare("UPDATE {$wpdb->postmeta} SET meta_value = %s WHERE post_id = %d AND meta_key = '_seo_description' AND BINARY meta_value = BINARY %s ORDER BY meta_id LIMIT 1", $pair[1], $id, $pair[0]);
+            $meta_key = boblift_product_specs_meta_texts()[$in] ?? null;
+            if ($meta_key !== null) {
+                $queries[] = $wpdb->prepare("UPDATE {$wpdb->postmeta} SET meta_value = %s WHERE post_id = %d AND meta_key = %s AND BINARY meta_value = BINARY %s ORDER BY meta_id LIMIT 1", $pair[1], $id, $meta_key, $pair[0]);
                 continue;
             }
             $column = $in === 'excerpt' ? 'post_excerpt' : 'post_content';
