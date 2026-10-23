@@ -115,3 +115,33 @@ function boblift_feedback_record_sitemap_args(array $args, string $post_type): a
     return $args;
 }
 add_filter('wp_sitemaps_posts_query_args', 'boblift_feedback_record_sitemap_args', 10, 2);
+
+// Polylang links no translations for language-neutral feedback, so the languages that carry a record point at each
+// other here; a language without a record is noindex and stays out of the set.
+function boblift_feedback_record_hreflang(): void
+{
+    if (!is_singular('feedback') || !function_exists('pll_languages_list')) {
+        return;
+    }
+    $post = get_queried_object();
+    if (!$post instanceof WP_Post || boblift_feedback_record($post->ID) === '') {
+        return;
+    }
+    $links = [];
+    foreach ((array) pll_languages_list(['fields' => 'slug']) as $language) {
+        $language = (string) $language;
+        if (boblift_feedback_record($post->ID, $language) !== '') {
+            $links[$language] = boblift_public_path_url('/feedback/' . $post->post_name, $language);
+        }
+    }
+    if (count($links) < 2) {
+        return;
+    }
+    if (isset($links['en'])) {
+        $links['x-default'] = $links['en'];
+    }
+    foreach ($links as $language => $url) {
+        echo '<link rel="alternate" href="' . esc_url(trailingslashit($url)) . '" hreflang="' . esc_attr($language) . '" />' . "\n";
+    }
+}
+add_action('wp_head', 'boblift_feedback_record_hreflang', 2);
