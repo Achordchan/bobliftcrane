@@ -17,7 +17,8 @@ if (!defined('ABSPATH')) {
  * An item can instead correct a phrase: {"replace": "slew 360° continuously", "with": "slew 360°"}. Both are plain text
  * (no "<", ">" or quotes); "replace" must occur exactly once in page text (never inside a tag, attribute, comment,
  * script or style), not counting occurrences inside an occurrence of "with". When it no longer occurs and "with" does,
- * the item is already done and is skipped, so this too can be sent again safely.
+ * the item is already done and is skipped, so this too can be sent again safely. A "replace" item goes on its own: a
+ * request that holds one and any other item is refused.
  *
  * rest_pre_insert_{type} takes a per-post lock that is held until the save is done, every REST update of the item takes
  * the same lock before it loads the post, and any other save takes it just before its row is written, so nothing lands
@@ -196,6 +197,11 @@ function boblift_content_insert_stored(int $post_id): string
 function boblift_content_insert_apply(string $content, $value): string|WP_Error
 {
     $inserts = is_array($value) && (array_key_exists('after', $value) || array_key_exists('replace', $value)) ? [$value] : (array) $value;
+    // A replacement can remove what another item of the request checks for (its own "with", or an insertion's HTML),
+    // so a retry could not tell that item was done: a "replace" item goes alone.
+    if (count($inserts) > 1 && array_filter($inserts, static fn($insert): bool => is_array($insert) && array_key_exists('replace', $insert)) !== []) {
+        return new WP_Error('boblift_insert_replace', 'Send a "replace" item on its own, one per request.', ['status' => 400]);
+    }
     foreach ($inserts as $insert) {
         if (is_array($insert) && array_key_exists('replace', $insert)) {
             $content = boblift_content_insert_replace($content, (string) ($insert['replace'] ?? ''), (string) ($insert['with'] ?? ''));
