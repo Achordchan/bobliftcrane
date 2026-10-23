@@ -259,6 +259,12 @@ function boblift_product_specs_plan_texts(int $post_id, string $language, array 
             return new WP_Error('boblift_specs_replace', sprintf('A %s "replace" item needs plain-text "from" and a different, non-empty "to" (no "<" or ">"), and "in" of content, excerpt or seo_description.', $language), ['status' => 400]);
         }
         $texts[$in] ??= [boblift_product_specs_text($post_id, $in), null];
+        // Each item must also stand on the stored text alone: one whose "from" only appears through an earlier item's
+        // "to" (a chain) could not tell, on a retry, that it was already done.
+        $alone = boblift_product_specs_replace_one($texts[$in][0], $from, $to, $language . ' ' . $in);
+        if (is_wp_error($alone)) {
+            return $alone;
+        }
         $new = boblift_product_specs_replace_one($texts[$in][1] ?? $texts[$in][0], $from, $to, $language . ' ' . $in);
         if (is_wp_error($new)) {
             return $new;
