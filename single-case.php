@@ -41,10 +41,16 @@ $sections_text = implode('', array_map(static fn(array $section): string => $sec
 // links may point at (id or name attributes) are never duplicate content, so they keep the body visible.
 $content_has_media = (bool) preg_match('/<(img|figure|video|audio|iframe|picture|embed|object|table|ul|ol)\b|<a\s[^>]*href=|<[a-z][^>]*\s(?:id|name)\s*=/i', $content);
 $show_content = ($flatten($content) !== '' || $content_has_media) && ($content_has_media || !$sections || $flatten($content) !== $flatten($sections_text));
+// This case's own alt texts (a translated case keeps them in _case_image_alts); otherwise the media item's alt.
+$case_image_alts = [];
+foreach (boblift_case_rest_rows(get_post_meta($post_id, '_case_image_alts', true)) ?? [] as $row) {
+    $case_image_alts[(int) ($row['id'] ?? 0)] = trim((string) ($row['alt'] ?? ''));
+}
+$case_image_alt = static fn(int $attachment_id): string => ($case_image_alts[$attachment_id] ?? '') ?: trim((string) get_post_meta($attachment_id, '_wp_attachment_image_alt', true));
 $gallery = [];
 foreach (array_filter(array_map('intval', explode(',', (string) get_post_meta($post_id, '_case_gallery', true)))) as $attachment_id) {
     if ($src = (string) wp_get_attachment_image_url($attachment_id, 'large')) {
-        $gallery[] = ['src' => $src, 'alt' => trim((string) get_post_meta($attachment_id, '_wp_attachment_image_alt', true))];
+        $gallery[] = ['src' => $src, 'alt' => $case_image_alt($attachment_id)];
     }
 }
 $section_images = array_slice($gallery, 0, count($sections));
@@ -70,7 +76,7 @@ $section_html = static function (string $body): string {
 $image = get_the_post_thumbnail_url($post_id, 'full') ?: '';
 // The cover's own alt text and caption: AI covers say so ("Illustration: ..."), so the page must not relabel them as a photo.
 $image_id = (int) get_post_thumbnail_id($post_id);
-$image_alt = trim((string) get_post_meta($image_id, '_wp_attachment_image_alt', true)) ?: $title;
+$image_alt = $case_image_alt($image_id) ?: $title;
 $image_caption = $image_id ? trim((string) wp_get_attachment_caption($image_id)) : '';
 $image_caption = $image_caption !== '' && function_exists('boblift_localized_static_text') ? boblift_localized_static_text($image_caption) : $image_caption;
 $cases_url = function_exists('boblift_case_archive_url') ? boblift_case_archive_url() : boblift_url('/cases.html');
