@@ -245,6 +245,8 @@ if ($legacy_strength['cards'] !== [] || $legacy_strength['cta'] !== null || $leg
 </section>
 <?php endif; ?>
 
+<?php if (function_exists('boblift_render_about_facts')) { boblift_render_about_facts(is_array($about_page['facts'] ?? null) ? $about_page['facts'] : []); } ?>
+
 <section class="about-timeline-section bg-[#F8FAFC] pt-12 lg:pt-16 pb-12 lg:pb-16" data-about-timeline>
     <div class="page-shell about-wide-shell">
         <div class="about-timeline-header mx-auto w-full text-center mb-10 max-w-none lg:mb-14" data-about-timeline-header>

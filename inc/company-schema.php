@@ -65,6 +65,7 @@ function boblift_company_schema_graph(): array
         'url' => home_url('/'),
         'logo' => boblift_asset('images/bob-lift-logo.png'),
         'foundingDate' => '2003',
+        'foundingLocation' => ['@type' => 'Place', 'name' => 'Xuzhou, Jiangsu, China', 'address' => ['@type' => 'PostalAddress', 'addressLocality' => 'Xuzhou', 'addressRegion' => 'Jiangsu', 'addressCountry' => 'CN']],
         'email' => $contact['email'],
         'telephone' => $contact['phone'],
         'sameAs' => boblift_company_same_as(),

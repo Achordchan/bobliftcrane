@@ -476,6 +476,26 @@ function boblift_about_page_defaults(): array
                 ['image' => boblift_image_option('certifications/patent-forklift-timber-grab.webp'), 'title' => 'Timber grab for forklifts', 'text' => 'Utility model patent · ZL 2020 2 0118811.2'],
             ],
         ],
+        // Company at a glance (inc/about-facts.php): label and value per row. A value may hold links (a[href]) and the
+        // placeholders {factory_address}, {office_address}, {email}, {phone} and {profiles}, filled from the contact
+        // settings and the company's public profiles, so those are kept in one place.
+        'facts' => [
+            'title' => 'Company at a glance',
+            'items' => [
+                ['label' => 'Registered name', 'value_html' => 'Xuzhou BOB-LIFT Construction Machinery Co., Ltd. (徐州巴布工程机械有限公司)'],
+                ['label' => 'Brand', 'value_html' => 'BOB-LIFT'],
+                ['label' => 'Founded', 'value_html' => '2003, Xuzhou, Jiangsu, China'],
+                ['label' => 'Factory', 'value_html' => '{factory_address} · 37,000 m²'],
+                ['label' => 'Sales office', 'value_html' => '{office_address}'],
+                ['label' => 'Products', 'value_html' => 'Knuckle boom truck mounted cranes 1.6–40 t, telescopic boom truck mounted cranes 2–20 t, marine cranes 0.8–25 t, pickup cranes, spider cranes, timber cranes, forklift fly jib cranes, tail lifts and truck mounted aerial work platforms (18–40 m)'],
+                ['label' => 'Markets', 'value_html' => 'Exported to 120+ countries'],
+                ['label' => 'Certificates', 'value_html' => '<a href="#about-certifications">CE (Machinery Directive 2006/42/EC), EAC (TR CU 010/2011), ISO 9001 (truck-mounted and marine crane production), ISO 14001</a>'],
+                ['label' => 'Trademarks', 'value_html' => 'BOB-LIFT China No. 26579311 · 巴布 China No. 27469741 · BOB-LIFT Russia No. 1211725'],
+                ['label' => 'Patents', 'value_html' => '<a href="#about-certifications">5 utility model patents</a>'],
+                ['label' => 'Contact', 'value_html' => '{email} · {phone} (phone and WhatsApp) · Mon–Fri 8:30–18:00 Beijing time'],
+                ['label' => 'Also find us on', 'value_html' => '{profiles}'],
+            ],
+        ],
         'global_footprint' => [
             'stats' => [
                 ['number' => '120', 'suffix' => '+', 'label' => 'Countries Exported'],
