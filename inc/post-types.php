@@ -125,6 +125,12 @@ function boblift_inquiry_column_content(string $column, int $post_id): void
         if ($path !== '') {
             echo '<br><a href="' . esc_url($page) . '" target="_blank" rel="noopener">' . esc_html(rawurldecode($path)) . '</a>';
         }
+        foreach (['_channel', '_device'] as $key) {
+            $value = (string) get_post_meta($post_id, $key, true);
+            if ($value !== '') {
+                echo '<br><span style="color:#64748b">' . esc_html($value) . '</span>';
+            }
+        }
         return;
     }
     if ($column === 'inquiry_country') {
@@ -1087,6 +1093,9 @@ function boblift_inquiry_meta_box(WP_Post $post): void
         'source_entry' => '来源入口',
         'source_title' => '来源页面标题',
         'source_page' => '来源页面',
+        'channel' => '来源渠道',
+        'page_referrer' => '本页上一站',
+        'device' => '访问设备',
     ];
     if (defined('BOBLIFT_INQUIRY_ATTRIBUTION_LABELS')) {
         foreach (BOBLIFT_INQUIRY_ATTRIBUTION_LABELS as $name => $label) {

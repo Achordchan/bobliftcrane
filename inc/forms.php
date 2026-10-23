@@ -693,6 +693,16 @@ function boblift_handle_inquiry(): void
     foreach (boblift_inquiry_attribution_from_post() as $name => $value) {
         $fields['attr_' . $name] = $value;
     }
+    // Sent whatever the cookie choice, as nothing is stored for them in the browser: the site that linked to the page the
+    // form was sent from (host only), whether advertising was agreed to, and the device the visitor used.
+    $fields['page_referrer'] = boblift_inquiry_referrer_host((string) wp_unslash($_POST['boblift_page_referrer'] ?? ''));
+    if (in_array($fields['page_referrer'], [preg_replace('/^www\./', '', strtolower((string) wp_parse_url(home_url(), PHP_URL_HOST))), ''], true)) {
+        $fields['page_referrer'] = '';
+    }
+    $consent = (string) wp_unslash($_POST['boblift_ad_consent'] ?? '');
+    $fields['ad_consent'] = in_array($consent, ['true', 'false'], true) ? $consent : '';
+    $fields['device'] = boblift_inquiry_device(mb_substr(sanitize_text_field(wp_unslash((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''))), 0, 512), ($_POST['boblift_touch'] ?? '') === '1');
+    $fields['channel'] = implode(' · ', array_filter(boblift_inquiry_channel($fields), 'strlen'));
 
     if ($fields['email'] === '' || $fields['message'] === '') {
         $ui = function_exists('boblift_site_ui') ? boblift_site_ui('quoteForm') : [];
