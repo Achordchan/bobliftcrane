@@ -109,7 +109,12 @@ function boblift_seo_redirect_retired_news_categories(): void
     }
     $term = get_queried_object();
     $target = $term instanceof WP_Term ? boblift_seo_retired_news_category_target($term) : null;
-    $url = $target instanceof WP_Term ? get_term_link($target) : '';
+    if (!$target instanceof WP_Term) {
+        return;
+    }
+    // A feed subscription follows to the target category's feed in the same format, not to an HTML page.
+    $feed = is_feed() ? (string) get_query_var('feed') : '';
+    $url = is_feed() ? get_term_feed_link($target->term_id, 'category', $feed === 'feed' ? '' : $feed) : get_term_link($target);
     if (is_string($url) && $url !== '') {
         wp_safe_redirect($url, 301);
         exit;
