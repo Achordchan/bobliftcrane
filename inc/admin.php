@@ -737,6 +737,11 @@ function boblift_sanitize_options_recursive(array $value): array
             continue;
         }
         $text = is_string($item) ? wp_unslash($item) : (string) $item;
+        // value_html (About facts) keeps links; every other field is plain text.
+        if ($key === 'value_html') {
+            $result[$key] = trim(wp_kses($text, ['a' => ['href' => true]]));
+            continue;
+        }
         $result[$key] = in_array($key, ['text', 'paragraph'], true) ? sanitize_textarea_field($text) : sanitize_text_field($text);
     }
     return $result;
@@ -1278,6 +1283,17 @@ function boblift_render_about_page_fields(array $about, string $base): void
             }, false, (string) ($about['global_footprint']['stats'][$i]['label'] ?? ''));
         }
         echo '</div>';
+    });
+
+    boblift_admin_panel('3.1 公司概况（Company at a glance）', static function () use ($about, $base): void {
+        echo '<p class="boblift-admin-note">显示在公司简介和发展时间线之间。每行一个“名称 / 内容”，名称留空的行不显示。内容可用 &lt;a href="..."&gt; 链接，其余为纯文本；可用占位符 {factory_address}、{office_address}、{email}、{phone}（取自联系方式设置）和 {profiles}（B2B 平台和社交主页链接）。</p>';
+        boblift_admin_input('facts.title', $about, '标题', $base);
+        for ($i = 0; $i < 14; $i++) {
+            boblift_admin_subpanel('第 ' . (string) ($i + 1) . ' 行', static function () use ($about, $base, $i): void {
+                boblift_admin_input("facts.items.$i.label", $about, '名称', $base);
+                boblift_admin_textarea("facts.items.$i.value_html", $about, '内容', $base);
+            }, false, (string) ($about['facts']['items'][$i]['label'] ?? ''));
+        }
     });
 
     boblift_admin_panel('4. 发展时间线', static function () use ($about, $base): void {
