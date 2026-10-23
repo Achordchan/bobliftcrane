@@ -70,8 +70,8 @@ function boblift_gallery_rest_error(array $meta, string $key, array $columns, st
         if (array_diff(array_keys($row), $columns) || array_filter($row, static fn($cell): bool => !is_scalar($cell))) {
             return 'each row takes only ' . implode(', ', $columns) . ', as plain values.';
         }
-        if ($id_column !== '' && get_post_type(absint($row[$id_column] ?? 0)) !== 'attachment') {
-            return ($row[$id_column] ?? '(none)') . ' is not a media library item.';
+        if ($id_column !== '' && !wp_attachment_is_image(absint($row[$id_column] ?? 0))) {
+            return ($row[$id_column] ?? '(none)') . ' is not an image in the media library.';
         }
         if ($id_column === '' && trim((string) ($row['image'] ?? '')) === '') {
             return 'every row needs an image.';
