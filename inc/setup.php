@@ -606,7 +606,7 @@ add_action('wp_head', 'boblift_content_jsonld', 6);
 
 // A Product node (a case's "about": its crane model) makes Search Console report a Product snippet missing offers,
 // review or aggregateRating. We publish no prices or ratings, so such nodes go out as a plain Thing that keeps the
-// model name and its product page URL.
+// model name, its product page URL and, on a top-level node, its @context.
 function boblift_demote_product_nodes(array $data): array
 {
     foreach ($data as $key => $value) {
@@ -615,7 +615,7 @@ function boblift_demote_product_nodes(array $data): array
         }
     }
     if (isset($data['@type']) && (is_string($data['@type']) ? $data['@type'] === 'Product' : in_array('Product', (array) $data['@type'], true))) {
-        $data = ['@type' => 'Thing'] + array_intersect_key($data, array_flip(['@id', 'name', 'url', 'description', 'image']));
+        $data = ['@type' => 'Thing'] + array_intersect_key($data, array_flip(['@context', '@id', 'name', 'url', 'description', 'image']));
     }
     return $data;
 }
