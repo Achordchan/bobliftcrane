@@ -115,7 +115,14 @@ function boblift_inquiry_channel(array $fields): array
         if ($ads !== '') {
             return ['Google Ads 广告', $ads . '（没有点击编号）'];
         }
-        $search = $named(['google\.[a-z.]+' => 'Google', 'bing\.com' => 'Bing', 'yahoo\.[a-z.]+' => 'Yahoo', 'yandex\.[a-z.]+' => 'Yandex', 'ya\.ru' => 'Yandex', 'baidu\.com' => '百度', 'duckduckgo\.com' => 'DuckDuckGo', 'ecosia\.org' => 'Ecosia', 'naver\.com' => 'Naver', 'seznam\.cz' => 'Seznam', 'sogou\.com' => '搜狗', 'so\.com' => '360 搜索', 'brave\.com' => 'Brave']);
+        // Search engines by their search hosts only: docs.google.com or mail.yahoo.com is a link, not a search.
+        $search = '';
+        foreach (['/^(?:m\.)?google\.(?:com?\.)?[a-z]{2,3}$/' => 'Google', '/^(?:cn\.)?bing\.com$/' => 'Bing', '/^(?:[a-z]{2}\.)?search\.yahoo\.(?:com|co\.jp)$/' => 'Yahoo', '/^yandex\.(?:com|ru|com\.tr|by|kz|uz)$/' => 'Yandex', '/^ya\.ru$/' => 'Yandex', '/^(?:m\.)?baidu\.com$/' => '百度', '/^(?:html\.)?duckduckgo\.com$/' => 'DuckDuckGo', '/^ecosia\.org$/' => 'Ecosia', '/^(?:m\.)?search\.naver\.com$/' => 'Naver', '/^(?:search\.)?seznam\.cz$/' => 'Seznam', '/^(?:m\.)?sogou\.com$/' => '搜狗', '/^(?:m\.)?so\.com$/' => '360 搜索', '/^search\.brave\.com$/' => 'Brave'] as $pattern => $name) {
+            if (preg_match($pattern, $host)) {
+                $search = $name;
+                break;
+            }
+        }
         if ($search !== '') {
             return ['自然搜索', $search];
         }
