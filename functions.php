@@ -33,6 +33,7 @@ require_once get_template_directory() . '/inc/heading-punctuation.php';
 require_once get_template_directory() . '/inc/importer.php';
 require_once get_template_directory() . '/inc/setup.php';
 require_once get_template_directory() . '/inc/seo-archives.php';
+require_once get_template_directory() . '/inc/seo-rest.php';
 require_once get_template_directory() . '/inc/cache-warm.php';
 require_once get_template_directory() . '/inc/company-schema.php';
 require_once get_template_directory() . '/inc/legacy-redirects.php';
