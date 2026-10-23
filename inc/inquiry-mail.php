@@ -224,20 +224,39 @@ function boblift_inquiry_mail_product_card(array $product): string
  */
 function boblift_inquiry_source_page(array $fields): array
 {
-    $url = (string) ($fields['source_page'] ?? '');
+    $url = trim((string) ($fields['source_page'] ?? ''));
     $parts = $url !== '' ? wp_parse_url($url) : [];
-    $clean = is_array($parts) && !empty($parts['host']) ? ($parts['scheme'] ?? 'https') . '://' . $parts['host'] . (isset($parts['port']) ? ':' . $parts['port'] : '') . ($parts['path'] ?? '/') : $url;
-    $params = [];
-    if (is_array($parts) && !empty($parts['query'])) {
-        parse_str($parts['query'], $params);
+    $parts = is_array($parts) ? $parts : [];
+    // The form's own referer field is relative (/contact.html?gclid=…): it is read against this site's address.
+    if ($url !== '' && empty($parts['host'])) {
+        $home = wp_parse_url(home_url('/'));
+        $parts = array_merge(is_array($home) ? array_intersect_key($home, array_flip(['scheme', 'host', 'port'])) : [], $parts);
+    }
+    $query = [];
+    if (!empty($parts['query'])) {
+        parse_str($parts['query'], $query);
+    }
+    // Ad and campaign tags are listed on their own; anything else in the query (?page_id=, ?s=, ?product= …) picks the
+    // page, so it stays in the address.
+    $tracking = [];
+    foreach ($query as $name => $value) {
+        if (is_scalar($value) && preg_match('/^(?:utm_\w+|gclid|gbraid|wbraid|gad_\w+|fbclid|msclkid|ttclid|li_fat_id|_gl|yclid|dclid)$/i', (string) $name)) {
+            $tracking[(string) $name] = (string) $value;
+            unset($query[$name]);
+        }
+    }
+    $path = (string) ($parts['path'] ?? '/');
+    $clean = '';
+    if (!empty($parts['host'])) {
+        $clean = ($parts['scheme'] ?? 'https') . '://' . $parts['host'] . (isset($parts['port']) ? ':' . $parts['port'] : '') . $path . ($query ? '?' . http_build_query($query) : '');
     }
     // "BOB-LIFT" sits at the end of most titles and at the start of the home page's; either way it says nothing here.
     $title = trim((string) preg_replace(['/\s*[|｜–—-]\s*BOB-LIFT\s*$/u', '/^BOB-LIFT\s*[|｜–—-]\s*/u'], '', (string) ($fields['source_title'] ?? '')));
-    // The home page in any language (/, /zh/ …) is named as such.
-    if (is_array($parts) && preg_match('#^/(?:[a-z]{2}/?)?$#', (string) ($parts['path'] ?? '/'))) {
+    // The home page in any language (/, /zh/ …), with nothing in the query that picks another page, is named as such.
+    if ($clean !== '' && !$query && preg_match('#^/(?:[a-z]{2}/?)?$#', $path)) {
         $title = '首页' . ($title !== '' ? ' · ' . $title : '');
     }
-    return ['url' => $clean, 'title' => $title, 'params' => array_filter(array_map(static fn($value): string => is_scalar($value) ? (string) $value : '', $params), 'strlen')];
+    return ['url' => $clean, 'title' => $title, 'params' => array_filter($tracking, 'strlen')];
 }
 
 /** The notification the sales team receives, as [subject, html body]. */
