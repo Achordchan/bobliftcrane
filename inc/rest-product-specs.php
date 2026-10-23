@@ -20,8 +20,9 @@ if (!defined('ABSPATH')) {
  *   "replace": {"en": [{"from": "continuous 360° slewing", "to": "360° slewing", "in": "content"}], "zh": [...]} replaces
  *              plain text in that language's body ("in": "content", the default), excerpt ("excerpt") or SEO description
  *              ("seo_description"). "from" and "to" are plain text (no "<" or ">"), "to" is not empty, and "from" must
- *              occur exactly once outside the occurrences of "to", in the text of the page rather than inside a tag or
- *              comment. When it no longer occurs there and "to" does, the item is already done and is skipped.
+ *              occur exactly once (not counting occurrences inside an occurrence of "to"), in page text: never inside a
+ *              tag, attribute, comment, script or style. When it no longer occurs and "to" does, the item is already
+ *              done and is skipped.
  * Only the field itself may be sent: a request with any other parameter is refused before anything is saved.
  *
  * The request takes the per-post lock of every language version (the lock boblift_content_insert and every REST save
@@ -68,8 +69,9 @@ function boblift_rest_pre_insert_product_specs(stdClass|WP_Error $prepared, WP_R
     if (is_wp_error($prepared) || $request['boblift_specs'] === null) {
         return $prepared;
     }
-    $sent = array_keys(array_merge((array) $request->get_body_params(), (array) $request->get_json_params()));
-    $other = array_diff($sent, ['boblift_specs', 'id']);
+    $sent = array_keys(array_merge((array) $request->get_query_params(), (array) $request->get_body_params(), (array) $request->get_json_params()));
+    // Parameters that only shape the request or response, never the saved item.
+    $other = array_diff($sent, ['boblift_specs', 'id', 'context', '_fields', '_envelope', '_locale', '_method', '_wpnonce']);
     if ($other !== []) {
         return new WP_Error('boblift_specs_alone', sprintf('Send "boblift_specs" on its own; this request also sends: %s.', implode(', ', $other)), ['status' => 400]);
     }
@@ -185,40 +187,59 @@ function boblift_product_specs_text(int $post_id, string $in): string
     return (string) $wpdb->get_var($wpdb->prepare("SELECT {$column} FROM {$wpdb->posts} WHERE ID = %d", $post_id));
 }
 
-/** Whether the byte at $offset is page text: not inside a tag or an HTML comment (block comments hold attributes). */
-function boblift_product_specs_in_text(string $html, int $offset): bool
+/**
+ * Which bytes of an HTML string are page text: a copy of it with every tag (quoted attribute values included), comment
+ * and script, style, textarea or title element, opened and up to its close or the end, blanked out with NUL bytes.
+ */
+function boblift_product_specs_text_mask(string $html): string
 {
-    $before = substr($html, 0, $offset);
-    $comment = strrpos($before, '<!--');
-    if ($comment !== false && strpos($before, '-->', $comment) === false) {
-        return false;
+    return (string) preg_replace_callback(
+        '~<!--.*?(?:-->|\z)|<(script|style|textarea|title)\b.*?(?:</\1\s*>|\z)|<(?:[^>"\']|"[^"]*"|\'[^\']*\')*(?:>|\z)~is',
+        static fn(array $m): string => str_repeat("\0", strlen($m[0])),
+        $html
+    );
+}
+
+/** Byte offsets of every occurrence of $needle in $haystack, overlapping ones included. */
+function boblift_product_specs_offsets(string $haystack, string $needle): array
+{
+    $found = [];
+    for ($at = strpos($haystack, $needle); $at !== false; $at = strpos($haystack, $needle, $at + 1)) {
+        $found[] = $at;
     }
-    $open = strrpos($before, '<');
-    return $open === false || (int) strrpos($before, '>') > $open;
+    return $found;
 }
 
 /**
- * Applies one "replace" item to a text. Returns the new text (unchanged when the item is already done) or an error. The
- * occurrences of "to" are set aside first, so a "to" that contains "from" ("90 kN" to "90 kN·m") is not matched again.
+ * Applies one "replace" item to a text. Returns the new text (unchanged when the item is already done) or an error. An
+ * occurrence of "from" that lies inside an occurrence of "to" ("90 kN" inside "90 kN·m") is the replacement already
+ * made, so it is not counted again; when none is left and "to" is there, the item is done.
  */
 function boblift_product_specs_replace_one(string $text, string $from, string $to, string $where): string|WP_Error
 {
-    $marker = "\u{E000}";
-    $parts = explode($to, $text);
-    $rest = implode($marker, $parts);
-    $count = substr_count($rest, $from);
-    if ($count === 0 && count($parts) > 1) {
+    $targets = boblift_product_specs_offsets($text, $to);
+    $pending = array_values(array_filter(
+        boblift_product_specs_offsets($text, $from),
+        static function (int $at) use ($targets, $from, $to): bool {
+            foreach ($targets as $target) {
+                if ($at >= $target && $at + strlen($from) <= $target + strlen($to)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    ));
+    if ($pending === [] && $targets !== []) {
         return $text;
     }
-    if ($count !== 1) {
-        return new WP_Error('boblift_specs_replace', sprintf('In the %s, "%s" occurs %d times outside "%s"; it must occur exactly once.', $where, $from, $count, $to), ['status' => 400]);
+    if (count($pending) !== 1) {
+        return new WP_Error('boblift_specs_replace', sprintf('In the %s, "%s" occurs %d times (not counting those inside "%s"); it must occur exactly once.', $where, $from, count($pending), $to), ['status' => 400]);
     }
-    // Neither "to" nor its marker holds "<" or ">", so setting them aside leaves every tag and comment where it was.
-    $at = strpos($rest, $from);
-    if (!boblift_product_specs_in_text($rest, $at)) {
-        return new WP_Error('boblift_specs_replace', sprintf('In the %s, "%s" is inside a tag or comment; only page text can be replaced.', $where, $from), ['status' => 400]);
+    // Only page text: never a tag, an attribute value, a comment (block attributes) or a script or style body.
+    if (str_contains(substr(boblift_product_specs_text_mask($text), $pending[0], strlen($from)), "\0")) {
+        return new WP_Error('boblift_specs_replace', sprintf('In the %s, "%s" is inside a tag, comment, script or style; only page text can be replaced.', $where, $from), ['status' => 400]);
     }
-    return str_replace($marker, $to, substr($rest, 0, $at) . $to . substr($rest, $at + strlen($from)));
+    return substr($text, 0, $pending[0]) . $to . substr($text, $pending[0] + strlen($from));
 }
 
 /** Applies one language's "replace" items to its stored texts. Returns in => [old, new] (only texts that change). */
@@ -229,7 +250,7 @@ function boblift_product_specs_plan_texts(int $post_id, string $language, array 
         $in = is_array($item) ? (string) ($item['in'] ?? 'content') : '';
         $from = is_array($item) ? (string) ($item['from'] ?? '') : '';
         $to = is_array($item) ? (string) ($item['to'] ?? '') : '';
-        if (!in_array($in, ['content', 'excerpt', 'seo_description'], true) || $from === '' || $to === '' || $from === $to || preg_match('/[<>\x{E000}]/u', $from . $to)) {
+        if (!in_array($in, ['content', 'excerpt', 'seo_description'], true) || $from === '' || $to === '' || $from === $to || preg_match('/[<>\x00]/', $from . $to)) {
             return new WP_Error('boblift_specs_replace', sprintf('A %s "replace" item needs plain-text "from" and a different, non-empty "to" (no "<" or ">"), and "in" of content, excerpt or seo_description.', $language), ['status' => 400]);
         }
         $texts[$in] ??= [boblift_product_specs_text($post_id, $in), null];
@@ -269,22 +290,22 @@ function boblift_product_specs_commit(array $group, array $rows, array $texts, a
     global $wpdb;
     $now = current_time('mysql');
     $now_gmt = current_time('mysql', true);
+    // Every write is a compare-and-set on the value this request read and planned from (byte for byte; the collation
+    // ignores case and accents), so a save that slipped in between, such as a REST meta update that runs after its
+    // post's lock is released, makes the write match nothing and the whole request roll back.
     $queries = [];
     foreach ($rows as $language => $table) {
-        $queries[] = $wpdb->prepare("UPDATE {$wpdb->postmeta} SET meta_value = %s WHERE meta_id = %d", (string) wp_json_encode($table, JSON_UNESCAPED_UNICODE), $spec_meta[$language]['id']);
+        $queries[] = $wpdb->prepare("UPDATE {$wpdb->postmeta} SET meta_value = %s WHERE meta_id = %d AND BINARY meta_value = BINARY %s", (string) wp_json_encode($table, JSON_UNESCAPED_UNICODE), $spec_meta[$language]['id'], $spec_meta[$language]['value']);
     }
     foreach ($texts as $language => $changes) {
         $id = $group[$language];
         foreach ($changes as $in => $pair) {
             if ($in === 'seo_description') {
-                $meta = boblift_product_specs_meta_row($id, '_seo_description');
-                $queries[] = $meta === null
-                    ? $wpdb->prepare("INSERT INTO {$wpdb->postmeta} (post_id, meta_key, meta_value) VALUES (%d, '_seo_description', %s)", $id, $pair[1])
-                    : $wpdb->prepare("UPDATE {$wpdb->postmeta} SET meta_value = %s WHERE meta_id = %d", $pair[1], $meta['id']);
+                $queries[] = $wpdb->prepare("UPDATE {$wpdb->postmeta} SET meta_value = %s WHERE post_id = %d AND meta_key = '_seo_description' AND BINARY meta_value = BINARY %s ORDER BY meta_id LIMIT 1", $pair[1], $id, $pair[0]);
                 continue;
             }
             $column = $in === 'excerpt' ? 'post_excerpt' : 'post_content';
-            $queries[] = $wpdb->prepare("UPDATE {$wpdb->posts} SET {$column} = %s, post_modified = %s, post_modified_gmt = %s WHERE ID = %d", $pair[1], $now, $now_gmt, $id);
+            $queries[] = $wpdb->prepare("UPDATE {$wpdb->posts} SET {$column} = %s, post_modified = %s, post_modified_gmt = %s WHERE ID = %d AND BINARY {$column} = BINARY %s", $pair[1], $now, $now_gmt, $id, $pair[0]);
         }
     }
     if ($queries === []) {
@@ -292,10 +313,11 @@ function boblift_product_specs_commit(array $group, array $rows, array $texts, a
     }
     $wpdb->query('START TRANSACTION');
     foreach ($queries as $query) {
-        if ($wpdb->query($query) === false) {
-            $error = $wpdb->last_error;
+        $result = $wpdb->query($query);
+        if ($result !== 1) {
+            $error = $result === false ? $wpdb->last_error : 'it changed while the request was being worked out';
             $wpdb->query('ROLLBACK');
-            return new WP_Error('boblift_specs_write', sprintf('Nothing was saved: a write failed (%s).', $error), ['status' => 500]);
+            return new WP_Error('boblift_specs_write', sprintf('Nothing was saved: a write failed (%s); try again.', $error), ['status' => $result === false ? 500 : 409]);
         }
     }
     if ($wpdb->query('COMMIT') === false) {
