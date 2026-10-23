@@ -47,7 +47,7 @@ function boblift_dingtalk_inquiry(int $post_id, array $fields): void
         $meta[] = ['label' => '页面地址', 'icon' => '🔗', 'value' => $source['url'], 'link' => true];
     }
     if (($fields['source_entry'] ?? '') !== '') {
-        $meta[] = ['label' => '入口', 'icon' => '🔘', 'value' => '入口 ' . (string) $fields['source_entry']];
+        $meta[] = ['label' => '入口', 'icon' => '🔘', 'value' => (string) $fields['source_entry']];
     }
     $ad_meta = function_exists('achord_dingtalk_cf7_attribution_meta') ? achord_dingtalk_cf7_attribution_meta($attribution) : [];
     if ($ad_meta) {
