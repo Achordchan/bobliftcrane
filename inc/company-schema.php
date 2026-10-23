@@ -14,10 +14,24 @@ if (!defined('ABSPATH')) {
  */
 const BOBLIFT_COMPANY_CHINESE_NAME = '徐州巴布工程机械有限公司';
 
-/** Public profiles of the company: the group and loader sites plus the real (https) social links saved in the footer. */
+/**
+ * The company's own supplier listings on B2B directories (checked 2026-10-23: each names Xuzhou BOB-LIFT and lists its
+ * cranes). They tell search engines these profiles and this site are the same manufacturer.
+ */
+const BOBLIFT_COMPANY_DIRECTORY_PROFILES = [
+    'https://bobliftcrane.en.made-in-china.com/',
+    'https://boblift.en.made-in-china.com/',
+    'https://www.directindustry.com/prod/bob-lift-241919.html',
+    'https://www.exporthub.com/boblift/profile.html',
+];
+
+/**
+ * Public profiles of the company: the group and loader sites, its directory listings, and the real (https) social
+ * links saved in the footer.
+ */
 function boblift_company_same_as(): array
 {
-    $urls = ['https://www.boblift.com/', 'https://bobliftloader.com/'];
+    $urls = array_merge(['https://www.boblift.com/', 'https://bobliftloader.com/'], BOBLIFT_COMPANY_DIRECTORY_PROFILES);
     $links = boblift_option('footer.social_links', []);
     foreach (is_array($links) ? $links : [] as $link) {
         $href = is_array($link) ? trim((string) ($link['href'] ?? '')) : '';
