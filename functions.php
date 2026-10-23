@@ -44,4 +44,5 @@ require_once get_template_directory() . '/inc/tonnage-pages.php';
 require_once get_template_directory() . '/inc/polylang-slugs.php';
 require_once get_template_directory() . '/inc/rest-translations.php';
 require_once get_template_directory() . '/inc/rest-content-insert.php';
+require_once get_template_directory() . '/inc/rest-product-specs.php';
 require_once get_template_directory() . '/inc/polylang-rewrites.php';
