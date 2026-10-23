@@ -669,26 +669,39 @@ function boblift_redirect_old_tonnage_pages(): void
 }
 add_action('template_redirect', 'boblift_redirect_old_tonnage_pages', 1);
 
-// The product list used to pick a category from ?category= (/products.html?category=marine-crane); each category now has
+// The product list used to pick categories from ?category= (/products.html?category=marine-crane); each category now has
 // its own page, which the list only links to, so such links move there, keeping the other parameters (spec filters, utm_*).
+// Several categories (?category=a&category=b, an old multiple choice) have no single page: they move to the whole range,
+// which still lists all their products.
 function boblift_redirect_category_query_to_category_page(): void
 {
     if (is_admin() || !is_post_type_archive('product') || (string) get_query_var('boblift_product_category') !== '') {
         return;
     }
-    $slug = isset($_GET['category']) && is_string($_GET['category']) ? sanitize_title(wp_unslash($_GET['category'])) : '';
-    $term = $slug !== '' ? get_term_by('slug', $slug, 'product_category') : null;
-    $target = $term instanceof WP_Term ? get_term_link($term) : null;
+    // Read from the raw query string, not $_GET: the list writes a multiple choice as repeated parameters
+    // (capacity=2-4&capacity=4-6), which $_GET collapses to the last one.
+    $pairs = array_values(array_filter(explode('&', (string) ($_SERVER['QUERY_STRING'] ?? '')), static fn(string $pair): bool => $pair !== ''));
+    $slugs = [];
+    $kept = [];
+    foreach ($pairs as $pair) {
+        [$name, $value] = array_pad(explode('=', $pair, 2), 2, '');
+        if (urldecode($name) === 'category') {
+            $slugs[] = sanitize_title(urldecode($value));
+        } else {
+            $kept[] = $pair;
+        }
+    }
+    $slugs = array_values(array_unique(array_filter($slugs)));
+    if (!$slugs) {
+        return;
+    }
+    $term = count($slugs) === 1 ? get_term_by('slug', $slugs[0], 'product_category') : null;
+    $target = $term instanceof WP_Term ? get_term_link($term) : (count($slugs) > 1 ? boblift_product_archive_url() : null);
     if (!is_string($target) || $target === '') {
         return;
     }
-    // Filled in from the raw query string, not $_GET: the list writes a multiple choice as repeated parameters
-    // (capacity=2-4&capacity=4-6), which $_GET collapses to the last one.
-    $pairs = array_filter(explode('&', (string) ($_SERVER['QUERY_STRING'] ?? '')), static function (string $pair): bool {
-        return $pair !== '' && urldecode(explode('=', $pair, 2)[0]) !== 'category';
-    });
-    if ($pairs) {
-        $target .= (str_contains($target, '?') ? '&' : '?') . implode('&', $pairs);
+    if ($kept) {
+        $target .= (str_contains($target, '?') ? '&' : '?') . implode('&', $kept);
     }
     wp_safe_redirect($target, 301);
     exit;
