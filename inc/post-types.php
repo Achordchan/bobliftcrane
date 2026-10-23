@@ -1085,6 +1085,7 @@ function boblift_inquiry_meta_box(WP_Post $post): void
         'preferred_contact_time' => '期望联系时间',
         'other_requirements' => '其他需求',
         'source_entry' => '来源入口',
+        'source_title' => '来源页面标题',
         'source_page' => '来源页面',
     ];
     if (defined('BOBLIFT_INQUIRY_ATTRIBUTION_LABELS')) {

@@ -119,6 +119,7 @@ function boblift_render_inquiry_form(string $product = '', array $args = []): vo
         <?php echo boblift_form_hidden_language_field(); ?>
         <?php wp_nonce_field('boblift_submit_inquiry', 'boblift_inquiry_nonce'); ?>
         <input type="hidden" name="source_entry" value="<?php echo esc_attr((string) ($args['source'] ?? '页面表单')); ?>">
+        <input type="hidden" name="source_title" value="<?php echo esc_attr(wp_get_document_title()); ?>">
         <label class="sr-only" aria-hidden="true">Website <input class="hidden" type="text" name="boblift_inquiry_website" tabindex="-1" autocomplete="off"></label>
 
         <div class="flex items-start justify-between gap-4">
@@ -330,6 +331,7 @@ function boblift_render_inquiry_modal(): void
                     <?php echo boblift_form_hidden_language_field(); ?>
                     <?php wp_nonce_field('boblift_submit_inquiry', 'boblift_inquiry_nonce'); ?>
                     <input type="hidden" name="source_entry" value="" data-inquiry-source-field>
+                    <input type="hidden" name="source_title" value="<?php echo esc_attr(wp_get_document_title()); ?>">
             <label class="sr-only" aria-hidden="true">Website <input class="hidden" type="text" name="boblift_inquiry_website" tabindex="-1" autocomplete="off"></label>
                     <input type="hidden" name="product" data-quote-field="product" value="">
                     <input type="hidden" name="product_slug" data-product-slug-field value="">
@@ -685,6 +687,8 @@ function boblift_handle_inquiry(): void
     // Which button opened the form, and the page it was on (the browser's referer for this POST).
     $fields['source_entry'] = mb_substr(sanitize_text_field(wp_unslash((string) ($_POST['source_entry'] ?? ''))), 0, 120);
     $fields['source_page'] = esc_url_raw((string) wp_get_referer());
+    // The title of that page as the visitor saw it, so the notification can name the page and not only its address.
+    $fields['source_title'] = mb_substr(sanitize_text_field(wp_unslash((string) ($_POST['source_title'] ?? ''))), 0, 200);
     // Which ad brought the visitor, when they agreed to advertising cookies (inc/inquiry-mail.php).
     foreach (boblift_inquiry_attribution_from_post() as $name => $value) {
         $fields['attr_' . $name] = $value;
