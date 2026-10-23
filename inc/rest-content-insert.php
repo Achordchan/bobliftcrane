@@ -86,7 +86,11 @@ add_action('shutdown', 'boblift_content_insert_release');
 
 /**
  * Every update of one of these items takes the same per-post lock just before its row is written, so no other save can
- * land between an insertion request's core update and its own write. Within an insertion request the core update
+ * land between an insertion request's core update and its own write. Limit: a non-REST save (quick edit, a plugin
+ * calling wp_update_post()) loads the post inside wp_update_post() before this filter, so if it loads in the moment
+ * between an insertion's write and its own lock, it can write the older body back. That is WordPress's usual
+ * last-save-wins for such saves, the same as two editors saving one post; insertions are rare manual operator writes,
+ * so it is accepted rather than wrapping every save in the site. Within an insertion request the core update
  * writes the body as stored at that moment, never the copy loaded earlier; other saves hold the lock only until their
  * row is written (wp_insert_post). If the lock cannot be had within 10 seconds an ordinary save goes ahead unlocked, as
  * it would without this file.
