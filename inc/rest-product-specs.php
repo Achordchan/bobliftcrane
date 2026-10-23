@@ -18,16 +18,17 @@ if (!defined('ABSPATH')) {
  *              row after the row with that English label, in every language ("label" names every language; "value" as
  *              for "set"). A row whose English label is already in the table is skipped.
  *   "replace": {"en": [{"from": "continuous 360° slewing", "to": "360° slewing", "in": "content"}], "zh": [...]} replaces
- *              text in that language's body ("in": "content", the default), excerpt ("excerpt") or SEO description
- *              ("seo_description"). "from" must occur exactly once; when it is gone and "to" is already there the item
- *              is skipped, so sending the same request twice changes nothing.
- * A row is changed in a translation only while its table still follows the English one row for row
- * (boblift_spec_rows_aligned()); otherwise the request is refused. Every language is worked out and checked before
- * anything is written, so a request that cannot be applied changes nothing. Each item is then written under its own
- * per-post lock (the one boblift_content_insert uses, so no REST save of that item can land in between) and re-checked
- * against its stored state; if an item changed between the check and its write, the request stops with an error naming
- * the items already written, and sending it again finishes the rest. A request that also sends "content", "excerpt" or
- * "meta" is refused: send one or the other.
+ *              plain text in that language's body ("in": "content", the default), excerpt ("excerpt") or SEO description
+ *              ("seo_description"). "from" and "to" are plain text (no "<" or ">"), "to" is not empty, and "from" must
+ *              occur exactly once outside the occurrences of "to", in the text of the page rather than inside a tag or
+ *              comment. When it no longer occurs there and "to" does, the item is already done and is skipped.
+ * Only the field itself may be sent: a request with any other parameter is refused before anything is saved.
+ *
+ * The request takes the per-post lock of every language version (the lock boblift_content_insert and every REST save
+ * of these items take, so no such save can land in between), reads the stored tables and texts past the object cache,
+ * works out every change and checks it, and writes them all in one database transaction. A request that cannot be
+ * applied in full changes nothing, so sending the same request again is always safe. A row is changed in a translation
+ * only while its table still follows the English one row for row (boblift_spec_rows_aligned()).
  */
 function boblift_register_rest_product_specs_field(): void
 {
@@ -39,12 +40,7 @@ function boblift_register_rest_product_specs_field(): void
             }
             return $tables;
         },
-        'update_callback' => static function ($value, WP_Post $post, string $field, WP_REST_Request $request) {
-            foreach (['content', 'excerpt', 'meta'] as $core) {
-                if ($request[$core] !== null) {
-                    return new WP_Error('boblift_specs_core', sprintf('Send either "%s" or "boblift_specs", not both.', $core), ['status' => 400]);
-                }
-            }
+        'update_callback' => static function ($value, WP_Post $post) {
             $saved = boblift_rest_save_product_specs($post->ID, is_array($value) ? $value : []);
             if (is_wp_error($saved)) {
                 return $saved;
@@ -65,6 +61,21 @@ function boblift_register_rest_product_specs_field(): void
     ]);
 }
 add_action('rest_api_init', 'boblift_register_rest_product_specs_field');
+
+/** The core update runs before field callbacks, so a request that also changes anything else is refused before it. */
+function boblift_rest_pre_insert_product_specs(stdClass|WP_Error $prepared, WP_REST_Request $request): stdClass|WP_Error
+{
+    if (is_wp_error($prepared) || $request['boblift_specs'] === null) {
+        return $prepared;
+    }
+    $sent = array_keys(array_merge((array) $request->get_body_params(), (array) $request->get_json_params()));
+    $other = array_diff($sent, ['boblift_specs', 'id']);
+    if ($other !== []) {
+        return new WP_Error('boblift_specs_alone', sprintf('Send "boblift_specs" on its own; this request also sends: %s.', implode(', ', $other)), ['status' => 400]);
+    }
+    return $prepared;
+}
+add_filter('rest_pre_insert_product', 'boblift_rest_pre_insert_product_specs', 10, 2);
 
 /** The product's translation group as language => ID, the English product first. */
 function boblift_product_specs_group(int $product_id): array
@@ -117,16 +128,17 @@ function boblift_product_specs_plan_rows(array $tables, array $value): array|WP_
     }
     $new = $tables;
     foreach ((array) ($value['set'] ?? []) as $item) {
-        $index = boblift_product_specs_row_index($new['en'], is_array($item) ? trim((string) ($item['label'] ?? '')) : '');
+        $label = is_array($item) ? trim((string) ($item['label'] ?? '')) : '';
+        $index = boblift_product_specs_row_index($new['en'], $label);
         if (is_wp_error($index)) {
             return $index;
         }
         foreach (array_keys($new) as $language) {
             $text = boblift_product_specs_value_for($item['value'] ?? null, $language);
             if ($text === null || trim($text) === '') {
-                return new WP_Error('boblift_specs_value', sprintf('"set" for "%s" gives no %s value.', $item['label'], $language), ['status' => 400]);
+                return new WP_Error('boblift_specs_value', sprintf('"set" for "%s" gives no %s value.', $label, $language), ['status' => 400]);
             }
-            $new[$language][$index]['value'] = trim($text);
+            $new[$language][$index]['value'] = sanitize_text_field($text);
         }
     }
     foreach ((array) ($value['insert'] ?? []) as $item) {
@@ -148,10 +160,18 @@ function boblift_product_specs_plan_rows(array $tables, array $value): array|WP_
             if ($label === '' || $text === null || trim($text) === '') {
                 return new WP_Error('boblift_specs_insert', sprintf('"insert" of "%s" gives no %s label or value.', $english_label, $language), ['status' => 400]);
             }
-            array_splice($new[$language], $after + 1, 0, [['label' => $label, 'value' => trim($text)]]);
+            array_splice($new[$language], $after + 1, 0, [['label' => sanitize_text_field($label), 'value' => sanitize_text_field($text)]]);
         }
     }
     return array_filter($new, static fn(array $rows, string $language): bool => $rows !== $tables[$language], ARRAY_FILTER_USE_BOTH);
+}
+
+/** The stored meta row (meta_id and value) of one key, read past the object cache; null when there is none. */
+function boblift_product_specs_meta_row(int $post_id, string $key): ?array
+{
+    global $wpdb;
+    $row = $wpdb->get_row($wpdb->prepare("SELECT meta_id, meta_value FROM {$wpdb->postmeta} WHERE post_id = %d AND meta_key = %s ORDER BY meta_id LIMIT 1", $post_id, $key), ARRAY_A);
+    return is_array($row) ? ['id' => (int) $row['meta_id'], 'value' => (string) $row['meta_value']] : null;
 }
 
 /** The text a "replace" item works on, as stored right now (read past the object cache). */
@@ -159,13 +179,49 @@ function boblift_product_specs_text(int $post_id, string $in): string
 {
     global $wpdb;
     if ($in === 'seo_description') {
-        return (string) $wpdb->get_var($wpdb->prepare("SELECT meta_value FROM {$wpdb->postmeta} WHERE post_id = %d AND meta_key = '_seo_description' ORDER BY meta_id LIMIT 1", $post_id));
+        return (string) (boblift_product_specs_meta_row($post_id, '_seo_description')['value'] ?? '');
     }
     $column = $in === 'excerpt' ? 'post_excerpt' : 'post_content';
     return (string) $wpdb->get_var($wpdb->prepare("SELECT {$column} FROM {$wpdb->posts} WHERE ID = %d", $post_id));
 }
 
-/** Applies one language's "replace" items to its texts. Returns in => new text (only texts that change), or an error. */
+/** Whether the byte at $offset is page text: not inside a tag or an HTML comment (block comments hold attributes). */
+function boblift_product_specs_in_text(string $html, int $offset): bool
+{
+    $before = substr($html, 0, $offset);
+    $comment = strrpos($before, '<!--');
+    if ($comment !== false && strpos($before, '-->', $comment) === false) {
+        return false;
+    }
+    $open = strrpos($before, '<');
+    return $open === false || (int) strrpos($before, '>') > $open;
+}
+
+/**
+ * Applies one "replace" item to a text. Returns the new text (unchanged when the item is already done) or an error. The
+ * occurrences of "to" are set aside first, so a "to" that contains "from" ("90 kN" to "90 kN·m") is not matched again.
+ */
+function boblift_product_specs_replace_one(string $text, string $from, string $to, string $where): string|WP_Error
+{
+    $marker = "\u{E000}";
+    $parts = explode($to, $text);
+    $rest = implode($marker, $parts);
+    $count = substr_count($rest, $from);
+    if ($count === 0 && count($parts) > 1) {
+        return $text;
+    }
+    if ($count !== 1) {
+        return new WP_Error('boblift_specs_replace', sprintf('In the %s, "%s" occurs %d times outside "%s"; it must occur exactly once.', $where, $from, $count, $to), ['status' => 400]);
+    }
+    // Neither "to" nor its marker holds "<" or ">", so setting them aside leaves every tag and comment where it was.
+    $at = strpos($rest, $from);
+    if (!boblift_product_specs_in_text($rest, $at)) {
+        return new WP_Error('boblift_specs_replace', sprintf('In the %s, "%s" is inside a tag or comment; only page text can be replaced.', $where, $from), ['status' => 400]);
+    }
+    return str_replace($marker, $to, substr($rest, 0, $at) . $to . substr($rest, $at + strlen($from)));
+}
+
+/** Applies one language's "replace" items to its stored texts. Returns in => [old, new] (only texts that change). */
 function boblift_product_specs_plan_texts(int $post_id, string $language, array $items): array|WP_Error
 {
     $texts = [];
@@ -173,77 +229,85 @@ function boblift_product_specs_plan_texts(int $post_id, string $language, array 
         $in = is_array($item) ? (string) ($item['in'] ?? 'content') : '';
         $from = is_array($item) ? (string) ($item['from'] ?? '') : '';
         $to = is_array($item) ? (string) ($item['to'] ?? '') : '';
-        if (!in_array($in, ['content', 'excerpt', 'seo_description'], true) || $from === '' || $from === $to) {
-            return new WP_Error('boblift_specs_replace', sprintf('A %s "replace" item needs "from", a different "to" and "in" of content, excerpt or seo_description.', $language), ['status' => 400]);
+        if (!in_array($in, ['content', 'excerpt', 'seo_description'], true) || $from === '' || $to === '' || $from === $to || preg_match('/[<>\x{E000}]/u', $from . $to)) {
+            return new WP_Error('boblift_specs_replace', sprintf('A %s "replace" item needs plain-text "from" and a different, non-empty "to" (no "<" or ">"), and "in" of content, excerpt or seo_description.', $language), ['status' => 400]);
         }
-        if (!current_user_can('unfiltered_html')) {
-            $to = $in === 'seo_description' ? sanitize_text_field($to) : wp_kses_post($to);
+        $texts[$in] ??= [boblift_product_specs_text($post_id, $in), null];
+        $new = boblift_product_specs_replace_one($texts[$in][1] ?? $texts[$in][0], $from, $to, $language . ' ' . $in);
+        if (is_wp_error($new)) {
+            return $new;
         }
-        $text = $texts[$in] ?? boblift_product_specs_text($post_id, $in);
-        $count = substr_count($text, $from);
-        if ($count === 0 && $to !== '' && str_contains($text, $to)) {
-            continue;
-        }
-        if ($count !== 1) {
-            return new WP_Error('boblift_specs_replace', sprintf('In the %s %s, "%s" occurs %d times; it must occur exactly once.', $language, $in, $from, $count), ['status' => 400]);
-        }
-        $texts[$in] = str_replace($from, $to, $text);
+        $texts[$in][1] = $new;
     }
-    foreach ($texts as $in => $text) {
-        if ($text === boblift_product_specs_text($post_id, $in)) {
-            unset($texts[$in]);
-        }
-    }
-    return $texts;
+    return array_filter($texts, static fn(array $pair): bool => $pair[1] !== null && $pair[1] !== $pair[0]);
 }
 
-/**
- * Writes one item's planned spec table and texts, each only if it is still what the plan was made from (byte for byte);
- * true when written, false when something changed meanwhile.
- */
-function boblift_product_specs_write(int $post_id, array $old_rows, ?array $rows, array $old_texts, array $texts): bool
+/** Takes (true) or releases (false) the per-post lock of each ID; on a failed take, releases what it took. */
+function boblift_product_specs_locks(array $ids, bool $take): bool
 {
     global $wpdb;
-    if ($rows !== null) {
-        $current = array_values((array) boblift_decode_meta(get_post_meta($post_id, '_specs', true), []));
-        if ($current !== $old_rows) {
+    sort($ids);
+    $held = [];
+    foreach ($ids as $id) {
+        $name = 'boblift_content_insert_' . $id;
+        if (!$take) {
+            $wpdb->query($wpdb->prepare('SELECT RELEASE_LOCK(%s)', $name));
+            continue;
+        }
+        if ((int) $wpdb->get_var($wpdb->prepare('SELECT GET_LOCK(%s, 10)', $name)) !== 1) {
+            boblift_product_specs_locks($held, false);
             return false;
         }
-    }
-    foreach ($texts as $in => $text) {
-        if (boblift_product_specs_text($post_id, $in) !== $old_texts[$in]) {
-            return false;
-        }
-    }
-    if ($rows !== null) {
-        update_post_meta($post_id, '_specs', wp_slash((string) wp_json_encode($rows, JSON_UNESCAPED_UNICODE)));
-    }
-    $columns = array_intersect_key(['content' => 'post_content', 'excerpt' => 'post_excerpt'], $texts);
-    foreach ($columns as $in => $column) {
-        $wpdb->query($wpdb->prepare(
-            "UPDATE {$wpdb->posts} SET {$column} = %s, post_modified = %s, post_modified_gmt = %s WHERE ID = %d",
-            $texts[$in],
-            current_time('mysql'),
-            current_time('mysql', true),
-            $post_id
-        ));
-    }
-    if (isset($texts['seo_description'])) {
-        update_post_meta($post_id, '_seo_description', wp_slash($texts['seo_description']));
-    }
-    clean_post_cache($post_id);
-    if ($columns !== []) {
-        wp_save_post_revision($post_id);
+        $held[] = $id;
     }
     return true;
 }
 
-/** Plans the whole request for every language, then writes it item by item. Returns true or an error. */
+/** Writes every planned change in one transaction. Returns true, or an error after rolling everything back. */
+function boblift_product_specs_commit(array $group, array $rows, array $texts, array $spec_meta): bool|WP_Error
+{
+    global $wpdb;
+    $now = current_time('mysql');
+    $now_gmt = current_time('mysql', true);
+    $queries = [];
+    foreach ($rows as $language => $table) {
+        $queries[] = $wpdb->prepare("UPDATE {$wpdb->postmeta} SET meta_value = %s WHERE meta_id = %d", (string) wp_json_encode($table, JSON_UNESCAPED_UNICODE), $spec_meta[$language]['id']);
+    }
+    foreach ($texts as $language => $changes) {
+        $id = $group[$language];
+        foreach ($changes as $in => $pair) {
+            if ($in === 'seo_description') {
+                $meta = boblift_product_specs_meta_row($id, '_seo_description');
+                $queries[] = $meta === null
+                    ? $wpdb->prepare("INSERT INTO {$wpdb->postmeta} (post_id, meta_key, meta_value) VALUES (%d, '_seo_description', %s)", $id, $pair[1])
+                    : $wpdb->prepare("UPDATE {$wpdb->postmeta} SET meta_value = %s WHERE meta_id = %d", $pair[1], $meta['id']);
+                continue;
+            }
+            $column = $in === 'excerpt' ? 'post_excerpt' : 'post_content';
+            $queries[] = $wpdb->prepare("UPDATE {$wpdb->posts} SET {$column} = %s, post_modified = %s, post_modified_gmt = %s WHERE ID = %d", $pair[1], $now, $now_gmt, $id);
+        }
+    }
+    if ($queries === []) {
+        return true;
+    }
+    $wpdb->query('START TRANSACTION');
+    foreach ($queries as $query) {
+        if ($wpdb->query($query) === false) {
+            $error = $wpdb->last_error;
+            $wpdb->query('ROLLBACK');
+            return new WP_Error('boblift_specs_write', sprintf('Nothing was saved: a write failed (%s).', $error), ['status' => 500]);
+        }
+    }
+    if ($wpdb->query('COMMIT') === false) {
+        $wpdb->query('ROLLBACK');
+        return new WP_Error('boblift_specs_write', 'Nothing was saved: the transaction could not be committed.', ['status' => 500]);
+    }
+    return true;
+}
+
+/** Locks every language version, plans the whole request from stored data, and writes it all or nothing. */
 function boblift_rest_save_product_specs(int $product_id, array $value): bool|WP_Error
 {
-    if (!current_user_can('edit_post', $product_id)) {
-        return new WP_Error('rest_cannot_edit', 'Sorry, you are not allowed to edit this product.', ['status' => rest_authorization_required_code()]);
-    }
     $group = boblift_product_specs_group($product_id);
     if (($group['en'] ?? 0) !== $product_id) {
         return new WP_Error('boblift_specs_english', sprintf('Send boblift_specs to the English product (%d).', (int) ($group['en'] ?? 0)), ['status' => 400]);
@@ -257,51 +321,45 @@ function boblift_rest_save_product_specs(int $product_id, array $value): bool|WP
     if (array_diff_key($replace, $group) !== []) {
         return new WP_Error('boblift_specs_language', sprintf('"replace" names languages this product does not have: %s.', implode(', ', array_keys(array_diff_key($replace, $group)))), ['status' => 400]);
     }
-
-    $tables = [];
-    foreach ($group as $language => $id) {
-        $tables[$language] = array_values((array) boblift_decode_meta(get_post_meta($id, '_specs', true), []));
+    if (!boblift_product_specs_locks(array_values($group), true)) {
+        return new WP_Error('boblift_specs_busy', 'Another save of this product is in progress; nothing was saved, try again.', ['status' => 409]);
     }
-    $rows = isset($value['set']) || isset($value['insert']) ? boblift_product_specs_plan_rows($tables, $value) : [];
-    if (is_wp_error($rows)) {
-        return $rows;
-    }
-    $texts = [];
-    $old_texts = [];
-    foreach ($replace as $language => $items) {
-        $planned = boblift_product_specs_plan_texts($group[$language], (string) $language, (array) $items);
-        if (is_wp_error($planned)) {
-            return $planned;
-        }
-        $texts[$language] = $planned;
-        foreach (array_keys($planned) as $in) {
-            $old_texts[$language][$in] = boblift_product_specs_text($group[$language], $in);
-        }
-    }
-
-    $written = [];
     try {
+        $spec_meta = [];
+        $tables = [];
         foreach ($group as $language => $id) {
-            if (!isset($rows[$language]) && empty($texts[$language])) {
+            $spec_meta[$language] = boblift_product_specs_meta_row($id, '_specs');
+            $tables[$language] = array_values((array) boblift_decode_meta($spec_meta[$language]['value'] ?? '', []));
+        }
+        $rows = isset($value['set']) || isset($value['insert']) ? boblift_product_specs_plan_rows($tables, $value) : [];
+        if (is_wp_error($rows)) {
+            return $rows;
+        }
+        foreach (array_keys($rows) as $language) {
+            if ($spec_meta[$language] === null) {
+                return new WP_Error('boblift_specs_missing', sprintf('The %s product has no spec table to change.', $language), ['status' => 409]);
+            }
+        }
+        $texts = [];
+        foreach ($replace as $language => $items) {
+            $planned = boblift_product_specs_plan_texts($group[$language], (string) $language, (array) $items);
+            if (is_wp_error($planned)) {
+                return $planned;
+            }
+            $texts[$language] = $planned;
+        }
+        $saved = boblift_product_specs_commit($group, $rows, $texts, $spec_meta);
+        foreach ($group as $language => $id) {
+            clean_post_cache($id);
+            if (is_wp_error($saved)) {
                 continue;
             }
-            // The English product's lock is already held by this REST request; another item's lock replaces it.
-            if (!boblift_content_insert_lock($id)) {
-                return boblift_product_specs_partial($written, $id, 'Another save of this item is in progress');
+            if (array_intersect_key($texts[$language] ?? [], ['content' => true, 'excerpt' => true]) !== []) {
+                wp_save_post_revision($id);
             }
-            if (!boblift_product_specs_write($id, $tables[$language], $rows[$language] ?? null, $old_texts[$language] ?? [], $texts[$language] ?? [])) {
-                return boblift_product_specs_partial($written, $id, 'It changed while the request was being checked');
-            }
-            $written[] = $id;
         }
+        return $saved;
     } finally {
-        boblift_content_insert_lock(0);
+        boblift_product_specs_locks(array_values($group), false);
     }
-    return true;
-}
-
-function boblift_product_specs_partial(array $written, int $id, string $reason): WP_Error
-{
-    $done = $written === [] ? 'Nothing was written.' : sprintf('Already written: %s.', implode(', ', $written));
-    return new WP_Error('boblift_specs_busy', sprintf('%s (item %d); send the request again. %s', $reason, $id, $done), ['status' => 409]);
 }
