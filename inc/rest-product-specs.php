@@ -330,6 +330,21 @@ function boblift_product_specs_plan_texts(int $post_id, string $language, array 
         }
         $texts[$in][1] = $new;
     }
+    // Sending the same request again must change nothing: run every item once more over its planned result.
+    foreach ($texts as $in => $pair) {
+        $again = $pair[1] ?? $pair[0];
+        foreach ($items as $item) {
+            if ((string) ($item['in'] ?? 'content') === $in) {
+                $again = boblift_product_specs_replace_one($again, (string) $item['from'], (string) $item['to'], $language . ' ' . $in);
+                if (is_wp_error($again)) {
+                    break;
+                }
+            }
+        }
+        if ($again !== ($pair[1] ?? $pair[0])) {
+            return new WP_Error('boblift_specs_replace', sprintf('In the %s %s, sending these items again would change the text again (one item makes text another one replaces); split them into separate requests.', $language, $in), ['status' => 400]);
+        }
+    }
     return array_filter($texts, static fn(array $pair): bool => $pair[1] !== null && $pair[1] !== $pair[0]);
 }
 
