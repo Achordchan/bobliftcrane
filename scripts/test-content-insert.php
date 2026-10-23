@@ -28,6 +28,8 @@ $cases = [
     'paragraph in a list item' => ['<ul><li><p>A</p><ul><li>i</li></ul></li></ul><p>z</p>', 'A', "<ul><li><p>A</p><ul><li>i</li></ul></li></ul>\n<p>N</p><p>z</p>"],
     'nested list' => ['<ul><li>x<ul><li>A</li></ul> t</li></ul><p>z</p>', 'A', "<ul><li>x<ul><li>A</li></ul> t</li></ul>\n<p>N</p><p>z</p>"],
     'table cell' => ['<table><tr><td>A</td></tr></table><p>z</p>', 'A', "<table><tr><td>A</td></tr></table>\n<p>N</p><p>z</p>"],
+    'block table' => ["<!-- wp:table -->\n<figure class=\"wp-block-table\"><table><tbody><tr><td>A</td></tr></tbody></table><figcaption>c</figcaption></figure>\n<!-- /wp:table --><p>z</p>", 'A', "<!-- wp:table -->\n<figure class=\"wp-block-table\"><table><tbody><tr><td>A</td></tr></tbody></table><figcaption>c</figcaption></figure>\n<!-- /wp:table -->\n<p>N</p><p>z</p>"],
+    'image caption' => ['<figure><img src="x.jpg" alt=""><figcaption>Cap</figcaption></figure><p>z</p>', 'Cap', "<figure><img src=\"x.jpg\" alt=\"\"><figcaption>Cap</figcaption></figure>\n<p>N</p><p>z</p>"],
     'bare blockquote' => ['<blockquote>Quote</blockquote><p>z</p>', 'Quote', "<blockquote>Quote</blockquote>\n<p>N</p><p>z</p>"],
     'paragraph in a blockquote' => ['<blockquote><p>Quote</p></blockquote><p>z</p>', 'Quote', "<blockquote><p>Quote</p></blockquote>\n<p>N</p><p>z</p>"],
     'tag inside a comment' => ['<p>A <!-- </p> --> b</p><p>z</p>', 'A', "<p>A <!-- </p> --> b</p>\n<p>N</p><p>z</p>"],

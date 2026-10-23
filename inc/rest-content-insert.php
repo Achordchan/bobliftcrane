@@ -4,18 +4,18 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * REST: the write-only boblift_content_insert field on wp/v2 posts, cases, products and pages. It adds one piece of HTML
- * after a given paragraph without sending the whole body back, so an internal link can go into an old classic-HTML
+ * REST: the write-only boblift_content_insert field on wp/v2 posts, cases, products and pages. It adds one piece of
+ * HTML after a given paragraph without sending the whole body back, so an internal link can go into an old classic-HTML
  * article (which has no blocks for the section routes to edit) through the WordPress.com connector.
  *
  * Write: {"after": "a snippet of the paragraph's raw HTML", "html": "<p>New sentence with a link.</p>"}, or a list of
  * those. The snippet must occur exactly once in the content. The HTML goes after the element that holds it: the
- * paragraph or heading, or the whole outermost list, table or blockquote when the snippet sits inside one, and after the block's
- * closing comment if one follows. HTML that is already in the content is skipped, so sending the same request twice
- * changes nothing.
- * The insertion is worked out in rest_pre_insert_{type}, before anything is saved, against the content the request
- * sends or else the stored content, so a snippet that cannot be placed refuses the whole request. The result is saved as
- * part of the normal update, which keeps a revision that can be restored from the editor.
+ * paragraph or heading, or the whole outermost list, table, blockquote or figure when the snippet sits inside one, and
+ * after the block's closing comment if one follows. HTML that is already in the content is skipped, so sending the same
+ * request twice changes nothing. The insertion is worked out in rest_pre_insert_{type}, before anything is saved,
+ * against the content the request sends or else the stored content, so a snippet that cannot be placed refuses the
+ * whole request. The result is saved as part of the normal update, which keeps a revision that can be restored from the
+ * editor.
  */
 function boblift_content_insert_types(): array
 {
@@ -43,10 +43,17 @@ function boblift_rest_pre_insert_content_insert(stdClass|WP_Error $prepared, WP_
     if (is_wp_error($prepared) || $value === null) {
         return $prepared;
     }
+    $post_id = (int) ($prepared->ID ?? 0);
+    // Two insertions into one article must not both start from the same stored body: hold a lock on the post until
+    // its save is done, and read the body only once the lock is held.
+    if ($post_id > 0 && !boblift_content_insert_lock($post_id)) {
+        return new WP_Error('boblift_insert_busy', 'Another request is changing this item; try again.', ['status' => 409]);
+    }
     if (isset($prepared->post_content)) {
         $content = (string) $prepared->post_content;
     } else {
-        $post = !empty($prepared->ID) ? get_post((int) $prepared->ID) : null;
+        clean_post_cache($post_id);
+        $post = $post_id > 0 ? get_post($post_id) : null;
         $content = $post instanceof WP_Post ? (string) $post->post_content : '';
     }
     $inserts = is_array($value) && array_key_exists('after', $value) ? [$value] : (array) $value;
@@ -57,6 +64,7 @@ function boblift_rest_pre_insert_content_insert(stdClass|WP_Error $prepared, WP_
             is_array($insert) ? (string) ($insert['html'] ?? '') : ''
         );
         if (is_wp_error($content)) {
+            boblift_content_insert_lock(0);
             return $content;
         }
     }
@@ -65,8 +73,35 @@ function boblift_rest_pre_insert_content_insert(stdClass|WP_Error $prepared, WP_
 }
 foreach (boblift_content_insert_types() as $boblift_insert_type) {
     add_filter('rest_pre_insert_' . $boblift_insert_type, 'boblift_rest_pre_insert_content_insert', 10, 2);
+    add_action('rest_after_insert_' . $boblift_insert_type, static fn() => boblift_content_insert_lock(0));
 }
 unset($boblift_insert_type);
+add_action('shutdown', static fn() => boblift_content_insert_lock(0));
+
+/**
+ * A named database lock per post, taken with the post's ID and released with 0 once the save is done. If the save fails
+ * before rest_after_insert runs, the shutdown hook releases it, and MySQL drops it anyway when the connection closes.
+ */
+function boblift_content_insert_lock(int $post_id): bool
+{
+    global $wpdb;
+    static $held = '';
+    if ($post_id > 0) {
+        $name = 'boblift_content_insert_' . $post_id;
+        if ($held !== $name) {
+            if ((int) $wpdb->get_var($wpdb->prepare('SELECT GET_LOCK(%s, 10)', $name)) !== 1) {
+                return false;
+            }
+            $held = $name;
+        }
+        return true;
+    }
+    if ($held !== '') {
+        $wpdb->query($wpdb->prepare('SELECT RELEASE_LOCK(%s)', $held));
+        $held = '';
+    }
+    return true;
+}
 
 function boblift_content_insert_after(string $content, string $after, string $html): string|WP_Error
 {
@@ -95,9 +130,10 @@ function boblift_content_insert_after(string $content, string $after, string $ht
 }
 
 /**
- * Where new content can go for text at $pos: after the outermost list, table or blockquote holding it (a paragraph
- * inside a list item, a cell or a quote is no place for it), else after the innermost paragraph or heading holding it. Returns the offset just
- * past that element's closing tag, or null when there is no such element or it is never closed.
+ * Where new content can go for text at $pos: after the outermost list, table, blockquote or figure holding it (a
+ * paragraph inside a list item, a cell, a quote or a block's figure wrapper is no place for it), else after the
+ * innermost paragraph or heading holding it. Returns the offset just past that element's closing tag, or null when
+ * there is no such element or it is never closed.
  */
 function boblift_content_insert_boundary(string $content, int $pos): ?int
 {
@@ -118,7 +154,7 @@ function boblift_content_insert_boundary(string $content, int $pos): ?int
         if ($offset >= $pos && $target === null) {
             // The stack now holds the snippet's ancestors: pick the element to insert after.
             foreach ($stack as $depth => $open) {
-                if (in_array($open, ['ul', 'ol', 'table', 'blockquote'], true)) {
+                if (in_array($open, ['ul', 'ol', 'table', 'blockquote', 'figure'], true)) {
                     $target = $depth;
                     break;
                 }
