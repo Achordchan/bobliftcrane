@@ -6,6 +6,8 @@ get_header();
 
 $about_page = function_exists('boblift_about_page_options') ? boblift_about_page_options() : [];
 $visits = is_array($about_page['customer_visits'] ?? null) ? $about_page['customer_visits'] : [];
+// Photos added over REST (inc/gallery-rest.php) come first: they are the newest visits.
+$visits['items'] = array_merge(boblift_rest_visit_items((int) get_queried_object_id()), (array) ($visits['items'] ?? []));
 $t = static fn(mixed $text): string => boblift_localized_static_text(trim((string) $text));
 $has_image = static function ($image): bool {
     if (is_array($image)) {
