@@ -14,11 +14,12 @@ function boblift_dingtalk_inquiry(int $post_id, array $fields): void
     if ($post_id <= 0 || !function_exists('achord_dingtalk_dispatch')) {
         return;
     }
+    // Short labels (two to four characters) keep the label–value pairs in DingTalk evenly spaced; the email has the long ones.
     $labels = [
-        'name' => '姓名', 'email' => '邮箱', 'phone' => '电话 / WhatsApp', 'company' => '公司', 'website' => '网站', 'country' => '国家（客户填写）',
-        'product' => '产品', 'legacy_models' => '老型号（需定制生产）', 'quantity' => '数量', 'truck_available' => '是否有卡车', 'truck_model' => '卡车型号 / 底盘品牌',
-        'truck_specs' => '底盘参数', 'imported_from_china' => '是否从中国进口过', 'customs_clearance' => '清关', 'destination_port' => '目的港 / 城市',
-        'preferred_delivery' => '期望交期', 'contact_method' => '联系方式偏好', 'preferred_contact_time' => '方便联系时间', 'other_requirements' => '其他要求',
+        'name' => '姓名', 'email' => '邮箱', 'phone' => '电话', 'company' => '公司', 'website' => '网站', 'country' => '国家',
+        'product' => '产品', 'legacy_models' => '老型号', 'quantity' => '数量', 'truck_available' => '有无卡车', 'truck_model' => '卡车型号',
+        'truck_specs' => '底盘参数', 'imported_from_china' => '进口经验', 'customs_clearance' => '清关', 'destination_port' => '目的港',
+        'preferred_delivery' => '期望交期', 'contact_method' => '联系方式', 'preferred_contact_time' => '联系时间', 'other_requirements' => '其他要求',
         'message' => '留言',
     ];
     $rows = [];
