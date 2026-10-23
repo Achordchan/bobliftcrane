@@ -35,7 +35,30 @@ function boblift_dingtalk_inquiry(int $post_id, array $fields): void
             $attribution[$name] = (string) $fields['attr_' . $name];
         }
     }
-    $meta = function_exists('achord_dingtalk_cf7_attribution_meta') ? achord_dingtalk_cf7_attribution_meta($attribution) : [];
+    // Where the inquiry came from first (the page's name and its address without ad parameters, then the button), then the
+    // ad source, the country and the time.
+    $source = function_exists('boblift_inquiry_source_page') ? boblift_inquiry_source_page($fields) : ['url' => (string) ($fields['source_page'] ?? ''), 'title' => '', 'params' => []];
+    $meta = [];
+    if ($source['title'] !== '') {
+        $meta[] = ['label' => '来源页面', 'icon' => '📄', 'value' => $source['title']];
+    }
+    if ($source['url'] !== '') {
+        $meta[] = ['label' => '页面地址', 'icon' => '🔗', 'value' => $source['url'], 'link' => true];
+    }
+    if (($fields['source_entry'] ?? '') !== '') {
+        $meta[] = ['label' => '入口', 'icon' => '🔘', 'value' => '入口 ' . (string) $fields['source_entry']];
+    }
+    $ad_meta = function_exists('achord_dingtalk_cf7_attribution_meta') ? achord_dingtalk_cf7_attribution_meta($attribution) : [];
+    if ($ad_meta) {
+        $meta = array_merge($meta, $ad_meta);
+    } elseif ($source['params']) {
+        // Without ad consent there is no attribution, but the address may still carry utm tags worth seeing.
+        $pairs = [];
+        foreach ($source['params'] as $name => $value) {
+            $pairs[] = $name . '=' . $value;
+        }
+        $meta[] = ['label' => '页面参数', 'icon' => '🏷️', 'value' => implode(' · ', $pairs)];
+    }
     if (get_post_meta($post_id, '_mail_sent', true) === '0') {
         $meta[] = ['label' => '注意', 'icon' => '⚠️', 'value' => '通知邮件没有发出去，请到后台查看这条询盘'];
     }
@@ -43,13 +66,7 @@ function boblift_dingtalk_inquiry(int $post_id, array $fields): void
     if ($country !== '') {
         $meta[] = ['label' => '来源国家', 'icon' => '🌍', 'value' => $country];
     }
-    if (($fields['source_entry'] ?? '') !== '') {
-        $meta[] = ['label' => '入口', 'icon' => '🔘', 'value' => (string) $fields['source_entry']];
-    }
-    if (($fields['source_page'] ?? '') !== '') {
-        $meta[] = ['label' => '来源页', 'icon' => '🔗', 'value' => (string) $fields['source_page'], 'link' => true];
-    }
-    $meta[] = ['label' => '时间', 'icon' => '🕒', 'value' => wp_date('Y-m-d H:i') . '　起重机站询盘表单'];
+    $meta[] = ['label' => '时间', 'icon' => '🕒', 'value' => wp_date('Y-m-d H:i')];
 
     $links = [];
     if (is_email((string) ($fields['email'] ?? ''))) {
@@ -58,7 +75,8 @@ function boblift_dingtalk_inquiry(int $post_id, array $fields): void
     $links[] = ['label' => '📋 后台查看', 'url' => admin_url('post.php?post=' . $post_id . '&action=edit')];
 
     achord_dingtalk_dispatch([
-        'title' => '📩 新询盘',
+        // Its own title, so the group can tell this site's inquiries from the loader site's at a glance.
+        'title' => '🏗️ 起重机站新询盘',
         'headline' => trim((string) ($fields['product'] ?? '')),
         'fields' => $rows,
         'meta' => $meta,

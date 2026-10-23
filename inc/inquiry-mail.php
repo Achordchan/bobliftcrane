@@ -218,6 +218,28 @@ function boblift_inquiry_mail_product_card(array $product): string
     return '<table width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:10px;border:1px solid #e3e8ef;border-radius:4px;border-collapse:separate;"><tr>' . $photo . '<td style="padding:16px 18px 10px;vertical-align:top;">' . $name . $tags . '</td></tr></table>';
 }
 
+/**
+ * The page an inquiry was sent from, split for reading: the address without its query string, the page's title (sent by
+ * the form, without the site name) and the query parameters (ad tags such as gclid) on their own.
+ */
+function boblift_inquiry_source_page(array $fields): array
+{
+    $url = (string) ($fields['source_page'] ?? '');
+    $parts = $url !== '' ? wp_parse_url($url) : [];
+    $clean = is_array($parts) && !empty($parts['host']) ? ($parts['scheme'] ?? 'https') . '://' . $parts['host'] . (isset($parts['port']) ? ':' . $parts['port'] : '') . ($parts['path'] ?? '/') : $url;
+    $params = [];
+    if (is_array($parts) && !empty($parts['query'])) {
+        parse_str($parts['query'], $params);
+    }
+    // "BOB-LIFT" sits at the end of most titles and at the start of the home page's; either way it says nothing here.
+    $title = trim((string) preg_replace(['/\s*[|｜–—-]\s*BOB-LIFT\s*$/u', '/^BOB-LIFT\s*[|｜–—-]\s*/u'], '', (string) ($fields['source_title'] ?? '')));
+    // The home page in any language (/, /zh/ …) is named as such.
+    if (is_array($parts) && preg_match('#^/(?:[a-z]{2}/?)?$#', (string) ($parts['path'] ?? '/'))) {
+        $title = '首页' . ($title !== '' ? ' · ' . $title : '');
+    }
+    return ['url' => $clean, 'title' => $title, 'params' => array_filter(array_map(static fn($value): string => is_scalar($value) ? (string) $value : '', $params), 'strlen')];
+}
+
 /** The notification the sales team receives, as [subject, html body]. */
 function boblift_inquiry_admin_mail(array $fields, int $post_id): array
 {
@@ -253,8 +275,19 @@ function boblift_inquiry_admin_mail(array $fields, int $post_id): array
     $product_html = $products ? implode('', array_map('boblift_inquiry_mail_product_card', $products)) : '<div style="padding:14px 18px;border:1px solid #e3e8ef;border-radius:4px;font-size:15px;color:#64748b;">未选择产品</div>';
     $kind = $products ? '产品询盘' : '询盘表单';
     $entry = trim((string) ($fields['source_entry'] ?? ''));
-    $page = (string) ($fields['source_page'] ?? '');
-    $page_html = $page !== '' ? '<a href="' . esc_url($page) . '" target="_blank" style="color:#215bdb;text-decoration:none;">' . esc_html($page) . '</a>' : '—';
+    $source = boblift_inquiry_source_page($fields);
+    $page_html = '—';
+    if ($source['url'] !== '') {
+        $page_html = ($source['title'] !== '' ? '<div style="font-size:16px;font-weight:bold;color:#0b1f33;padding-bottom:2px;">' . esc_html($source['title']) . '</div>' : '')
+            . '<a href="' . esc_url($source['url']) . '" target="_blank" style="color:#215bdb;text-decoration:none;">' . esc_html($source['url']) . '</a>';
+        if ($source['params']) {
+            $pairs = [];
+            foreach ($source['params'] as $name => $value) {
+                $pairs[] = esc_html($name . '=' . $value);
+            }
+            $page_html .= '<div style="padding-top:6px;font-size:12px;line-height:1.6;color:#64748b;">页面参数：' . implode(' &nbsp;·&nbsp; ', $pairs) . '</div>';
+        }
+    }
     // The IP address is used only to tell the country; the privacy policy promises it is not kept with the inquiry.
     $ip = boblift_inquiry_client_ip();
     $language_names = ['en' => '英语', 'zh' => '中文', 'ja' => '日语', 'es' => '西班牙语', 'ru' => '俄语', 'fr' => '法语', 'ar' => '阿拉伯语'];
@@ -285,8 +318,7 @@ function boblift_inquiry_admin_mail(array $fields, int $post_id): array
         . '<table width="660" cellspacing="0" cellpadding="0" style="width:660px;"><tr><td align="center" style="padding:18px 36px 0;font-size:12px;line-height:1.7;color:#94a3b8;">此邮件由 ' . $host . ' 询盘表单自动发送 · 副本见' . $admin_link . '</td></tr></table>'
         . '</td></tr></table></body></html>';
 
-    $who = trim((string) ($fields['company'] ?: $fields['name'])) ?: $email;
-    $subject = '【起重机站】询盘飞奔而来，请及时跟进：' . $who . ($country !== '未能识别' ? '（' . $country . '）' : '');
+    $subject = '【起重机站】询盘飞奔而来，请及时跟进：' . $email;
     // A subject an editor saved in 站点文案 (quoteForm → messages → mailSubject) still wins over the branded default. Only the
     // source-language (English) options count: the sales team reads one subject whatever the visitor's language, and the
     // translated copies hold machine translations of the old default (e.g. 新的 BOB-LIFT 询价), not a choice.
