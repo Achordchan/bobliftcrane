@@ -14,13 +14,13 @@ if (!defined('ABSPATH')) {
  * after the block's closing comment if one follows. HTML that is already in the content is skipped, so sending the same
  * request twice changes nothing. A request that also sends "content" is refused: send one or the other.
  *
- * rest_pre_insert_{type} takes a per-post lock that is held until the save is done, and every other update of the item
- * takes the same lock just before its row is written, so nothing lands in between; the request's own core update writes
- * the body as stored at that moment. It then checks the insertion against the stored body before anything is saved, so
- * a snippet that cannot be placed refuses the whole request. The field's update callback writes the insertion with a
- * byte-for-byte compare-and-set on the body it read, retrying from the fresh body if it changed, and the response shows
- * the saved body. The HTML goes through the same KSES filter a normal save applies for the user, and the new body is
- * kept as a revision.
+ * rest_pre_insert_{type} takes a per-post lock that is held until the save is done, every REST update of the item takes
+ * the same lock before it loads the post, and any other save takes it just before its row is written, so nothing lands
+ * in between; the request's own core update writes the body as stored at that moment. It then checks the insertion
+ * against the stored body before anything is saved, so a snippet that cannot be placed refuses the whole request. The
+ * field's update callback writes the insertion with a byte-for-byte compare-and-set on the body it read, retrying from
+ * the fresh body if it changed, and the response shows the saved body. The HTML goes through the same KSES filter a
+ * normal save applies for the user, and the new body is kept as a revision.
  */
 function boblift_content_insert_types(): array
 {
@@ -86,8 +86,7 @@ add_action('shutdown', 'boblift_content_insert_release');
 
 /**
  * Every update of one of these items takes the same per-post lock just before its row is written, so no other save can
- * land between an insertion request's core update and its own write. A save whose body is one an insertion replaced in
- * the last ten minutes (it loaded the post earlier and left the body alone) writes the body as stored now instead. Within an insertion request the core update
+ * land between an insertion request's core update and its own write. Within an insertion request the core update
  * writes the body as stored at that moment, never the copy loaded earlier; other saves hold the lock only until their
  * row is written (wp_insert_post). If the lock cannot be had within 10 seconds an ordinary save goes ahead unlocked, as
  * it would without this file.
@@ -103,14 +102,30 @@ function boblift_content_insert_guard_core_write(array $data, array $postarr, ar
         return $data;
     }
     boblift_content_insert_lock($post_id);
-    // A save that loaded the post before a recent insertion carries the body from before it. Unless the save changed
-    // that body, write the body as stored now, so a title-only or quick edit does not drop the insertion.
-    $replaced = get_transient('boblift_content_insert_prev_' . $post_id);
-    if (is_array($replaced) && in_array(md5(wp_unslash((string) $data['post_content'])), $replaced, true)) {
-        $data['post_content'] = wp_slash(boblift_content_insert_stored($post_id));
-    }
     return $data;
 }
+
+/**
+ * A REST update of one of these items takes the lock before its handler loads the post and keeps it until the response is
+ * built, so a title-only update cannot load a body, wait, and then write it back over an insertion saved meanwhile. The
+ * post cache is dropped once the lock is held, so the handler loads the body as stored.
+ */
+function boblift_content_insert_lock_rest_update($response, $handler, WP_REST_Request $request)
+{
+    if (!in_array($request->get_method(), ['POST', 'PUT', 'PATCH'], true) || !preg_match('~^/wp/v2/[a-z0-9_-]+/(\d+)$~', $request->get_route(), $id)) {
+        return $response;
+    }
+    $post = get_post((int) $id[1]);
+    if ($post instanceof WP_Post && in_array($post->post_type, boblift_content_insert_types(), true) && boblift_content_insert_lock($post->ID)) {
+        clean_post_cache($post->ID);
+    }
+    return $response;
+}
+add_filter('rest_request_before_callbacks', 'boblift_content_insert_lock_rest_update', 10, 3);
+add_filter('rest_request_after_callbacks', static function ($response) {
+    boblift_content_insert_release();
+    return $response;
+});
 add_filter('wp_insert_post_data', 'boblift_content_insert_guard_core_write', PHP_INT_MAX, 4);
 add_action('wp_insert_post', static function (int $post_id): void {
     if (boblift_content_insert_active() !== $post_id) {
@@ -206,10 +221,6 @@ function boblift_rest_save_content_insert(int $post_id, $value): string|WP_Error
             $stored
         ));
         if ($updated === 1) {
-            // Remember the replaced body for a while, so a save still holding it keeps the insertion (see the guard).
-            $replaced = get_transient('boblift_content_insert_prev_' . $post_id);
-            $replaced = array_slice(array_merge([md5($stored)], is_array($replaced) ? $replaced : []), 0, 5);
-            set_transient('boblift_content_insert_prev_' . $post_id, $replaced, 10 * MINUTE_IN_SECONDS);
             clean_post_cache($post_id);
             wp_save_post_revision($post_id);
             return $content;
