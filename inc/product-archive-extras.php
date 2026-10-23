@@ -517,8 +517,8 @@ function boblift_render_archive_extras(array $categories, string $initial_catego
             $found[$slug] = $term;
         }
     }
-    // The comparison sits right under the listing, the factory steps next, and the articles close the page. Previous
-    // models are a view of the listing itself (boblift_render_legacy_panel()).
+    // The comparison sits right under the listing, the buying guide (inc/category-buying-guide.php) and the factory steps
+    // next, and the articles close the page. Previous models are a view of the listing itself (boblift_render_legacy_panel()).
     $blocks = static function (callable $render) use ($found, $initial_category): void {
         foreach ($found as $slug => $term) {
             ob_start();
@@ -530,6 +530,7 @@ function boblift_render_archive_extras(array $categories, string $initial_catego
         }
     };
     $blocks(static fn(array $term) => boblift_render_archive_compare($term['term']));
+    $blocks(static fn(array $term) => function_exists('boblift_render_buying_guide') ? boblift_render_buying_guide($term['term']) : null);
     boblift_render_archive_made();
     $blocks(static fn(array $term, string $slug) => boblift_render_archive_articles($term['family'], $slug));
 }

@@ -1,6 +1,8 @@
 <?php
 return [
     'ja' => [
+        'Buying guide' => '購入ガイド',
+        'Frequently asked questions' => 'よくあるご質問',
         'How much it lifts at each reach' => '作業半径ごとの吊り上げ能力',
         'The further the hook is from the crane, the less it can lift: {load1} kg at {radius1} m, {load2} kg at {radius2} m.' => 'フックがクレーンから離れるほど吊れる重さは小さくなります：{radius1} m で {load1} kg、{radius2} m で {load2} kg。',
         'Lifts (kg)' => '吊り上げ (kg)',
@@ -58,6 +60,8 @@ return [
         'Page {page} / {pages}' => 'ページ {page} / {pages}',
     ],
     'zh' => [
+        'Buying guide' => '选型指南',
+        'Frequently asked questions' => '常见问题',
         'How much it lifts at each reach' => '不同作业半径能吊多重',
         'The further the hook is from the crane, the less it can lift: {load1} kg at {radius1} m, {load2} kg at {radius2} m.' => '吊钩离起重机越远，能吊的越轻：{radius1} m 处可吊 {load1} kg，{radius2} m 处可吊 {load2} kg。',
         'Lifts (kg)' => '可吊 (kg)',
@@ -116,6 +120,8 @@ return [
         'Page {page} / {pages}' => '第 {page} 页 / 共 {pages} 页',
     ],
     'es' => [
+        'Buying guide' => 'Guía de compra',
+        'Frequently asked questions' => 'Preguntas frecuentes',
         'How much it lifts at each reach' => 'Cuánto levanta a cada alcance',
         'The further the hook is from the crane, the less it can lift: {load1} kg at {radius1} m, {load2} kg at {radius2} m.' => 'Cuanto más lejos está el gancho de la grúa, menos puede levantar: {load1} kg a {radius1} m, {load2} kg a {radius2} m.',
         'Lifts (kg)' => 'Levanta (kg)',
@@ -174,6 +180,8 @@ return [
         'Page {page} / {pages}' => 'Página {page} / {pages}',
     ],
     'ru' => [
+        'Buying guide' => 'Как выбрать',
+        'Frequently asked questions' => 'Частые вопросы',
         'How much it lifts at each reach' => 'Сколько поднимает на каждом вылете',
         'The further the hook is from the crane, the less it can lift: {load1} kg at {radius1} m, {load2} kg at {radius2} m.' => 'Чем дальше крюк от крана, тем меньше он поднимает: {load1} кг на {radius1} м, {load2} кг на {radius2} м.',
         'Lifts (kg)' => 'Груз (кг)',
@@ -232,6 +240,8 @@ return [
         'Page {page} / {pages}' => 'Страница {page} / {pages}',
     ],
     'fr' => [
+        'Buying guide' => 'Guide d’achat',
+        'Frequently asked questions' => 'Questions fréquentes',
         'How much it lifts at each reach' => 'Charge levée à chaque portée',
         'The further the hook is from the crane, the less it can lift: {load1} kg at {radius1} m, {load2} kg at {radius2} m.' => 'Plus le crochet est loin de la grue, moins elle lève : {load1} kg à {radius1} m, {load2} kg à {radius2} m.',
         'Lifts (kg)' => 'Charge (kg)',
@@ -290,6 +300,8 @@ return [
         'Page {page} / {pages}' => 'Page {page} / {pages}',
     ],
     'ar' => [
+        'Buying guide' => 'دليل الشراء',
+        'Frequently asked questions' => 'الأسئلة الشائعة',
         'How much it lifts at each reach' => 'الحمولة عند كل مدى',
         'The further the hook is from the crane, the less it can lift: {load1} kg at {radius1} m, {load2} kg at {radius2} m.' => 'كلما ابتعد الخطاف عن الرافعة قلّ ما يمكنها رفعه: {load1} كغ عند {radius1} م، و{load2} كغ عند {radius2} م.',
         'Lifts (kg)' => 'الحمولة (كغ)',

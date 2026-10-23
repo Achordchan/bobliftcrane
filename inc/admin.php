@@ -3078,6 +3078,7 @@ function boblift_product_category_meta_values(?WP_Term $term = null): array
         'sort' => $term_id > 0 ? (string) get_term_meta($term_id, '_boblift_sort', true) : '',
         'intro_title' => $term_id > 0 ? (string) get_term_meta($term_id, '_boblift_intro_title', true) : '',
         'intro_text' => $term_id > 0 ? (string) get_term_meta($term_id, '_boblift_intro_text', true) : '',
+        'buying_guide' => $term_id > 0 ? (string) get_term_meta($term_id, '_boblift_buying_guide', true) : '',
         'term' => $term,
     ];
 }
@@ -3116,6 +3117,7 @@ function boblift_product_category_add_fields(): void
     <div class="form-field"><label>SEO 描述</label><textarea name="boblift_product_category_meta[seo_description]" rows="4"></textarea><p class="boblift-term-field-note">前台 description 就读取这里保存的值。</p></div>
     <div class="form-field"><label>分类介绍标题</label><input class="boblift-term-short" type="text" name="boblift_product_category_meta[intro_title]" value="" placeholder="留空则用 Banner 标题"></div>
     <div class="form-field"><label>分类介绍正文</label><textarea name="boblift_product_category_meta[intro_text]" rows="8"></textarea><p class="boblift-term-field-note">用在产品列表只选中这个分类时，显示在产品列表下方。正文段落之间空一行；正文留空则不显示。</p></div>
+    <div class="form-field"><label>选型指南与常见问题（JSON，可选）</label><textarea name="boblift_product_category_meta[buying_guide]" rows="8" spellcheck="false"></textarea><p class="boblift-term-field-note">格式：{"eyebrow":"","title":"","intro":"","points":[{"title":"","text":""}],"faq":[{"q":"","a":""}]}。显示在分类页「Compare the range」下方；正文可用 a、strong、em，其余为纯文本。格式不对会存成空；留空则不显示。</p></div>
     <div class="form-field"><label>排序</label><input class="small-text" type="number" name="boblift_product_category_meta[sort]" value="100"></div>
     <?php
 }
@@ -3154,6 +3156,8 @@ function boblift_product_category_edit_fields(WP_Term $term): void
     <tr class="form-field"><th scope="row"><label>SEO 描述</label></th><td><textarea class="large-text" rows="4" name="boblift_product_category_meta[seo_description]"><?php echo esc_textarea($seo_description); ?></textarea><p class="description">前台 description 就读取这里保存的值。</p></td></tr>
     <tr class="form-field"><th scope="row"><label>分类介绍标题</label></th><td><input class="regular-text" type="text" name="boblift_product_category_meta[intro_title]" value="<?php echo esc_attr($meta['intro_title']); ?>" placeholder="留空则用 Banner 标题"></td></tr>
     <tr class="form-field"><th scope="row"><label>分类介绍正文</label></th><td><textarea class="large-text" rows="8" name="boblift_product_category_meta[intro_text]"><?php echo esc_textarea($meta['intro_text']); ?></textarea><p class="description">用在产品列表只选中这个分类时，显示在产品列表下方。正文段落之间空一行；正文留空则不显示。</p></td></tr>
+    <?php $buying_guide = json_decode($meta['buying_guide'], true); ?>
+    <tr class="form-field"><th scope="row"><label>选型指南与常见问题（JSON，可选）</label></th><td><textarea class="large-text code" rows="14" spellcheck="false" name="boblift_product_category_meta[buying_guide]"><?php echo esc_textarea(is_array($buying_guide) ? (string) wp_json_encode($buying_guide, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : $meta['buying_guide']); ?></textarea><p class="description">格式：{"eyebrow":"","title":"","intro":"","points":[{"title":"","text":""}],"faq":[{"q":"","a":""}]}。显示在分类页「Compare the range」下方；正文可用 a、strong、em，其余为纯文本。格式不对会存成空；留空则不显示。</p></td></tr>
     <tr class="form-field"><th scope="row"><label>排序</label></th><td><input class="small-text" type="number" name="boblift_product_category_meta[sort]" value="<?php echo esc_attr($meta['sort'] !== '' ? $meta['sort'] : '100'); ?>"></td></tr>
     <?php
 }
@@ -3188,6 +3192,11 @@ function boblift_save_product_category_meta(int $term_id): void
     update_term_meta($term_id, '_boblift_sort', (int) ($meta['sort'] ?? 100));
     update_term_meta($term_id, '_boblift_intro_title', sanitize_text_field((string) ($meta['intro_title'] ?? '')));
     update_term_meta($term_id, '_boblift_intro_text', sanitize_textarea_field((string) ($meta['intro_text'] ?? '')));
+    // Sanitized by the registered meta (boblift_buying_guide_sanitize()); slashed because update_term_meta() unslashes, which
+    // would otherwise strip the backslashes of escaped quotes in the JSON. A form without the field leaves the guide as it is.
+    if (array_key_exists('buying_guide', $meta)) {
+        update_term_meta($term_id, '_boblift_buying_guide', wp_slash(trim((string) $meta['buying_guide'])));
+    }
 }
 add_action('created_product_category', 'boblift_save_product_category_meta');
 add_action('edited_product_category', 'boblift_save_product_category_meta');
