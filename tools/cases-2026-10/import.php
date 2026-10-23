@@ -79,8 +79,8 @@ foreach ($cases as $case) {
                 'publisher' => ['@type' => 'Organization', 'name' => 'BOB-LIFT', 'url' => home_url('/')],
                 'image' => array_map(static fn(string $src): array => ['@type' => 'ImageObject', 'url' => $src], $images),
                 'about' => get_post_status((int) $case['product_id']) === 'publish'
-                    ? ['@type' => 'Product', 'name' => $case['product_name'], 'url' => get_permalink((int) $case['product_id'])]
-                    : ['@type' => 'Product', 'name' => $case['product_name']],
+                    ? ['@type' => 'Thing', 'name' => $case['product_name'], 'url' => get_permalink((int) $case['product_id'])]
+                    : ['@type' => 'Thing', 'name' => $case['product_name']],
                 'contentLocation' => ['@type' => 'Country', 'name' => $case['country']],
             ],
             [
