@@ -99,30 +99,80 @@ $others = array_slice($others, 0, 4);
     <?php endif; ?>
 
     <?php // The delivery record in this language comes first (inc/feedback-record.php); then the editor body shared by every language; older entries keep their per-language plain-text body until it is moved into the editor. ?>
-    <?php $record = boblift_feedback_record(get_the_ID()); ?>
-    <?php if ($record !== '') : ?>
-        <div class="boblift-story-prose mx-auto mt-12 max-w-[760px] md:mt-16">
-            <?php echo wp_kses_post($record); ?>
-        </div>
-    <?php elseif (trim((string) get_post_field('post_content', get_the_ID())) !== '') : ?>
-        <div class="boblift-story-prose mx-auto mt-12 max-w-[760px] md:mt-16">
-            <?php the_content(); ?>
-        </div>
-    <?php elseif ($feedback['legacy_body'] !== '') : ?>
-        <div class="boblift-story-prose mx-auto mt-12 max-w-[760px] md:mt-16">
-            <?php echo wp_kses_post(wpautop(esc_html($feedback['legacy_body']))); ?>
-        </div>
-    <?php endif; ?>
+    <?php
+    $record = boblift_feedback_record(get_the_ID());
+    ob_start();
+    if ($record !== '') {
+        echo '<div class="boblift-story-prose boblift-feedback-record max-w-[760px]">' . wp_kses_post($record) . '</div>';
+    } elseif (trim((string) get_post_field('post_content', get_the_ID())) !== '') {
+        echo '<div class="boblift-story-prose max-w-[760px]">';
+        the_content();
+        echo '</div>';
+    } elseif ($feedback['legacy_body'] !== '') {
+        echo '<div class="boblift-story-prose max-w-[760px]">' . wp_kses_post(wpautop(esc_html($feedback['legacy_body']))) . '</div>';
+    }
+    $body_html = (string) ob_get_clean();
+    $feedback_products = boblift_item_related_products(get_the_ID());
+    $quote_url = boblift_url('/contact.html?product=' . rawurlencode($feedback['model']) . '#inquiry');
+    $ask_model = str_replace('{model}', $feedback['model'], $ui['askModelTemplate'] ?? 'Interested in the {model}?');
+    ?>
 
-    <?php $feedback_products = boblift_item_related_products(get_the_ID()); ?>
-    <?php if ($feedback_products) : ?>
-        <div class="mt-12 md:mt-16"><?php boblift_render_item_products($feedback_products, (string) ($ui['feedbackProductsTitle'] ?? 'The crane in these photos')); ?></div>
-    <?php endif; ?>
+    <?php // Same frame as the case page: the text starts on the page edge and the inquiry card is pinned beside it on desktop. ?>
+    <div class="mt-12 md:mt-16<?php echo $body_html !== '' ? ' boblift-case-body' : ''; ?>">
+        <?php if ($body_html !== '') : ?><div class="boblift-case-main min-w-0"><?php echo $body_html; ?></div><?php endif; ?>
 
-    <div class="mt-12 flex flex-col gap-4 rounded border border-line bg-mist p-5 sm:flex-row sm:items-center sm:justify-between md:mt-16 md:p-6">
-        <p class="text-lg font-black leading-snug text-ink"><?php echo esc_html(str_replace('{model}', $feedback['model'], $ui['askModelTemplate'] ?? 'Interested in the {model}?')); ?></p>
-        <div class="flex flex-wrap gap-3">
-            <a class="btn-primary rounded-sm" href="<?php echo esc_url(boblift_url('/contact.html?product=' . rawurlencode($feedback['model']) . '#inquiry')); ?>" data-inquiry-modal-open data-inquiry-source="客户反馈详情" data-inquiry-product="<?php echo esc_attr($feedback['model']); ?>"><?php echo esc_html($ui['getQuoteLabel'] ?? 'Get a Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4 text-gold'); ?></a>
+        <?php if ($body_html !== '') : ?>
+            <aside class="boblift-case-aside">
+                <div class="boblift-case-aside-card rounded border border-line bg-white p-6 shadow-card">
+                    <p class="boblift-kicker"><?php echo esc_html($feedback_label); ?></p>
+                    <p class="mt-3 text-2xl font-black leading-tight text-ink"><?php echo esc_html($feedback['model']); ?></p>
+                    <dl class="mt-4 grid gap-2 border-t border-line pt-4 text-sm">
+                        <?php if ($feedback['country'] !== '') : ?>
+                            <div class="flex items-baseline justify-between gap-4"><dt class="text-slate-500"><?php echo esc_html($ui['countryLabel'] ?? 'Country'); ?></dt><dd class="text-end font-black text-ink"><?php echo esc_html($feedback['country']); ?></dd></div>
+                        <?php endif; ?>
+                        <?php if ($counts !== '') : ?>
+                            <div class="flex items-baseline justify-between gap-4"><dt class="text-slate-500"><?php echo esc_html($ui['mediaLabel'] ?? 'Media'); ?></dt><dd class="text-end font-black text-ink"><?php echo esc_html($counts); ?></dd></div>
+                        <?php endif; ?>
+                    </dl>
+                    <div class="my-6 border-t border-line"></div>
+                    <p class="text-lg font-black leading-snug text-ink"><?php echo esc_html($ask_model); ?></p>
+                    <?php if ($feedback_products) : ?>
+                        <ul class="mt-4 grid gap-2">
+                            <?php foreach ($feedback_products as $feedback_product) :
+                                $product_title = get_the_title($feedback_product);
+                                $product_model = (string) get_post_meta(boblift_product_english_id($feedback_product->ID), '_model', true);
+                                ?>
+                                <li>
+                                    <a class="group grid grid-cols-[4.5rem_minmax(0,1fr)] items-center gap-3 rounded-sm border border-line p-2 transition hover:border-blue-300" href="<?php echo esc_url(get_permalink($feedback_product)); ?>">
+                                        <span class="block aspect-[4/3] overflow-hidden rounded-sm bg-mist"><img class="h-full w-full object-contain p-1" src="<?php echo esc_url(boblift_post_thumbnail_url($feedback_product, boblift_asset('images/products/crane-accessories.png'))); ?>" alt="" loading="lazy" decoding="async"></span>
+                                        <span class="min-w-0">
+                                            <span class="block text-sm font-black leading-tight text-ink transition group-hover:text-blue-700"><?php echo esc_html($product_model !== '' ? $product_model : $product_title); ?></span>
+                                            <span class="mt-0.5 line-clamp-1 block text-xs text-slate-500"><?php echo esc_html($product_title); ?></span>
+                                            <span class="mt-1 inline-flex items-center gap-1 text-xs font-black text-blue-700"><?php echo esc_html($ui['viewProductLabel'] ?? 'View product'); ?> <?php echo boblift_icon('arrow-right', 'h-3.5 w-3.5 rtl:-scale-x-100'); ?></span>
+                                        </span>
+                                    </a>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php endif; ?>
+                    <a class="btn-primary mt-5 w-full justify-center rounded-sm" href="<?php echo esc_url($quote_url); ?>" data-inquiry-modal-open data-inquiry-source="客户反馈详情" data-inquiry-product="<?php echo esc_attr($feedback['model']); ?>"><?php echo esc_html($ui['getQuoteLabel'] ?? 'Get a Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4 text-gold'); ?></a>
+                    <a class="mt-4 inline-flex items-center gap-1.5 text-sm font-black text-blue-700 transition hover:text-ink" href="<?php echo esc_url($feedback_list_url); ?>"><?php echo boblift_icon('chevron-left', 'h-4 w-4 rtl:-scale-x-100'); ?><?php echo esc_html($ui['moreFeedbackLabel'] ?? 'More customer feedback'); ?></a>
+                </div>
+            </aside>
+        <?php endif; ?>
+    </div>
+
+    <?php // Phones (and entries without text) get the product and the inquiry as bands after the text. ?>
+    <div class="<?php echo $body_html !== '' ? 'lg:hidden' : ''; ?>">
+        <?php if ($feedback_products) : ?>
+            <div class="<?php echo $body_html !== '' ? 'mt-12 md:mt-16' : ''; ?>"><?php boblift_render_item_products($feedback_products, (string) ($ui['feedbackProductsTitle'] ?? 'The crane in these photos')); ?></div>
+        <?php endif; ?>
+
+        <div class="mt-12 flex flex-col gap-4 rounded border border-line bg-mist p-5 sm:flex-row sm:items-center sm:justify-between md:mt-16 md:p-6">
+            <p class="text-lg font-black leading-snug text-ink"><?php echo esc_html($ask_model); ?></p>
+            <div class="flex flex-wrap gap-3">
+                <a class="btn-primary rounded-sm" href="<?php echo esc_url($quote_url); ?>" data-inquiry-modal-open data-inquiry-source="客户反馈详情" data-inquiry-product="<?php echo esc_attr($feedback['model']); ?>"><?php echo esc_html($ui['getQuoteLabel'] ?? 'Get a Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4 text-gold'); ?></a>
+            </div>
         </div>
     </div>
 
