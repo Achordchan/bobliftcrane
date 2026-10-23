@@ -79,9 +79,50 @@ function boblift_rest_pre_insert_product_specs(stdClass|WP_Error $prepared, WP_R
     if ($other !== []) {
         return new WP_Error('boblift_specs_alone', sprintf('Send "boblift_specs" on its own; this request also sends: %s.', implode(', ', $other)), ['status' => 400]);
     }
+    // Check the whole request against the stored data first, so one that cannot be applied stops before the core update.
+    $post_id = (int) ($prepared->ID ?? 0);
+    $value = $request['boblift_specs'];
+    $plan = boblift_product_specs_plan($post_id, is_array($value) ? $value : []);
+    if (is_wp_error($plan)) {
+        return $plan;
+    }
+    // The core update writes the stored row back; keep its body, excerpt and title exactly as stored rather than as
+    // re-filtered for this user (an editor without unfiltered_html would otherwise lose an administrator's markup).
+    boblift_product_specs_core_guard($post_id);
     return $prepared;
 }
 add_filter('rest_pre_insert_product', 'boblift_rest_pre_insert_product_specs', 10, 2);
+add_action('rest_after_insert_product', static fn() => boblift_product_specs_core_guard(0));
+// Also when a later step refuses the request, so the guard never outlives it.
+add_filter('rest_request_after_callbacks', static function ($response) {
+    boblift_product_specs_core_guard(0);
+    return $response;
+});
+
+/** The product whose core update this request is protecting, 0 when none; set it by passing an ID. */
+function boblift_product_specs_core_guard(?int $set = null): int
+{
+    static $active = 0;
+    if ($set !== null) {
+        $active = $set;
+    }
+    return $active;
+}
+
+add_filter('wp_insert_post_data', static function (array $data, array $postarr): array {
+    $post_id = (int) ($postarr['ID'] ?? 0);
+    if ($post_id <= 0 || boblift_product_specs_core_guard() !== $post_id) {
+        return $data;
+    }
+    global $wpdb;
+    $stored = $wpdb->get_row($wpdb->prepare("SELECT post_content, post_excerpt, post_title FROM {$wpdb->posts} WHERE ID = %d", $post_id), ARRAY_A);
+    if (is_array($stored)) {
+        foreach ($stored as $column => $text) {
+            $data[$column] = wp_slash((string) $text);
+        }
+    }
+    return $data;
+}, PHP_INT_MAX - 1, 2);
 
 /** The product's translation group as language => ID, the English product first. */
 function boblift_product_specs_group(int $product_id): array
@@ -274,16 +315,14 @@ function boblift_product_specs_plan_texts(int $post_id, string $language, array 
         if (is_wp_error($alone)) {
             return $alone;
         }
-        // The stretch an item covers: its "from" when still to do, else the "to" it left.
-        $pending = boblift_product_specs_pending($texts[$in][0], $from, $to);
-        $width = $pending === [] ? strlen($to) : strlen($from);
-        foreach ($pending === [] ? boblift_product_specs_offsets($texts[$in][0], $to) : $pending as $at) {
+        // Only items still to do claim their stretch (the "from" occurrence); a done item touches nothing.
+        foreach (boblift_product_specs_pending($texts[$in][0], $from, $to) as $at) {
             foreach ($spans[$in] ?? [] as [$start, $end]) {
-                if ($at < $end && $at + $width > $start) {
+                if ($at < $end && $at + strlen($from) > $start) {
                     return new WP_Error('boblift_specs_replace', sprintf('In the %s %s, "%s" overlaps the text of an earlier item; send one item for that stretch.', $language, $in, $from), ['status' => 400]);
                 }
             }
-            $spans[$in][] = [$at, $at + $width];
+            $spans[$in][] = [$at, $at + strlen($from)];
         }
         $new = boblift_product_specs_replace_one($texts[$in][1] ?? $texts[$in][0], $from, $to, $language . ' ' . $in);
         if (is_wp_error($new)) {
@@ -359,7 +398,11 @@ function boblift_product_specs_commit(array $group, array $rows, array $texts, a
 }
 
 /** Locks every language version, plans the whole request from stored data, and writes it all or nothing. */
-function boblift_rest_save_product_specs(int $product_id, array $value): bool|WP_Error
+/**
+ * Works out a whole request from the stored data: ['group', 'rows', 'texts', 'spec_meta'], or an error when any part of it
+ * cannot be applied. Run once as a check before the core update and again, under the locks, for the write.
+ */
+function boblift_product_specs_plan(int $product_id, array $value): array|WP_Error
 {
     $group = boblift_product_specs_group($product_id);
     if (($group['en'] ?? 0) !== $product_id) {
@@ -374,40 +417,55 @@ function boblift_rest_save_product_specs(int $product_id, array $value): bool|WP
     if (array_diff_key($replace, $group) !== []) {
         return new WP_Error('boblift_specs_language', sprintf('"replace" names languages this product does not have: %s.', implode(', ', array_keys(array_diff_key($replace, $group)))), ['status' => 400]);
     }
+    $spec_meta = [];
+    $tables = [];
+    foreach ($group as $language => $id) {
+        $spec_meta[$language] = boblift_product_specs_meta_row($id, '_specs');
+        $tables[$language] = array_values((array) boblift_decode_meta($spec_meta[$language]['value'] ?? '', []));
+    }
+    $rows = isset($value['set']) || isset($value['insert']) ? boblift_product_specs_plan_rows($tables, $value) : [];
+    if (is_wp_error($rows)) {
+        return $rows;
+    }
+    foreach (array_keys($rows) as $language) {
+        if ($spec_meta[$language] === null) {
+            return new WP_Error('boblift_specs_missing', sprintf('The %s product has no spec table to change.', $language), ['status' => 409]);
+        }
+    }
+    $texts = [];
+    foreach ($replace as $language => $items) {
+        $planned = boblift_product_specs_plan_texts($group[$language], (string) $language, (array) $items);
+        if (is_wp_error($planned)) {
+            return $planned;
+        }
+        $texts[$language] = $planned;
+    }
+    return ['group' => $group, 'rows' => $rows, 'texts' => $texts, 'spec_meta' => $spec_meta];
+}
+
+/** Locks every language version, plans the whole request again from stored data, and writes it all or nothing. */
+function boblift_rest_save_product_specs(int $product_id, array $value): bool|WP_Error
+{
+    $group = boblift_product_specs_plan($product_id, $value);
+    if (is_wp_error($group)) {
+        return $group;
+    }
+    $group = $group['group'];
     if (!boblift_product_specs_locks(array_values($group), true)) {
         return new WP_Error('boblift_specs_busy', 'Another save of this product is in progress; nothing was saved, try again.', ['status' => 409]);
     }
     try {
-        $spec_meta = [];
-        $tables = [];
-        foreach ($group as $language => $id) {
-            $spec_meta[$language] = boblift_product_specs_meta_row($id, '_specs');
-            $tables[$language] = array_values((array) boblift_decode_meta($spec_meta[$language]['value'] ?? '', []));
+        $plan = boblift_product_specs_plan($product_id, $value);
+        if (is_wp_error($plan)) {
+            return $plan;
         }
-        $rows = isset($value['set']) || isset($value['insert']) ? boblift_product_specs_plan_rows($tables, $value) : [];
-        if (is_wp_error($rows)) {
-            return $rows;
+        if ($plan['group'] !== $group) {
+            return new WP_Error('boblift_specs_busy', 'The product\'s translations changed meanwhile; nothing was saved, try again.', ['status' => 409]);
         }
-        foreach (array_keys($rows) as $language) {
-            if ($spec_meta[$language] === null) {
-                return new WP_Error('boblift_specs_missing', sprintf('The %s product has no spec table to change.', $language), ['status' => 409]);
-            }
-        }
-        $texts = [];
-        foreach ($replace as $language => $items) {
-            $planned = boblift_product_specs_plan_texts($group[$language], (string) $language, (array) $items);
-            if (is_wp_error($planned)) {
-                return $planned;
-            }
-            $texts[$language] = $planned;
-        }
-        $saved = boblift_product_specs_commit($group, $rows, $texts, $spec_meta);
+        $saved = boblift_product_specs_commit($group, $plan['rows'], $plan['texts'], $plan['spec_meta']);
         foreach ($group as $language => $id) {
             clean_post_cache($id);
-            if (is_wp_error($saved)) {
-                continue;
-            }
-            if (array_intersect_key($texts[$language] ?? [], ['content' => true, 'excerpt' => true]) !== []) {
+            if (!is_wp_error($saved) && array_intersect_key($plan['texts'][$language] ?? [], ['content' => true, 'excerpt' => true]) !== []) {
                 wp_save_post_revision($id);
             }
         }
