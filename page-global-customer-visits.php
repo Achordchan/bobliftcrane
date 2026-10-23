@@ -51,7 +51,7 @@ $captions = [];
 $cards = [];
 foreach ($groups as $key => $photos) {
     $label = $key === $more_key ? $t($visits['more_visits_label'] ?? 'More factory visits') : $key;
-    $cards[] = ['label' => $label, 'start' => count($gallery), 'count' => count($photos), 'image' => $photos[0]['image'], 'alt' => $t($photos[0]['title'] ?? $label)];
+    $cards[] = ['more' => $key === $more_key, 'label' => $label, 'start' => count($gallery), 'count' => count($photos), 'image' => $photos[0]['image'], 'alt' => $t($photos[0]['title'] ?? $label)];
     foreach ($photos as $photo) {
         $gallery[] = boblift_image_setting_url($photo['image']);
         $captions[] = $label;
@@ -135,12 +135,26 @@ $wall_alt = $t($visits['label'] ?? 'Global Customer Visits');
                 ([1 => 'md:col-span-1', 2 => 'md:col-span-2', 3 => 'md:col-span-3'])[$last_fill[1]] ?? '',
                 ([1 => 'lg:col-span-1', 2 => 'lg:col-span-2', 3 => 'lg:col-span-3', 4 => 'lg:col-span-4', 5 => 'lg:col-span-5'])[$last_fill[2]] ?? '',
             ]));
-            // A card stretched across both phone columns gets a wider photo so it is not twice as tall as the rest.
-            $last_media = $last_fill[0] === 2 ? 'aspect-[8/3] md:aspect-[4/3]' : 'aspect-[4/3]';
+            // A stretched card gets a photo widened by its span, so its row stays as tall as the rest instead of one huge picture.
+            $last_media = trim(implode(' ', [
+                ([1 => 'aspect-[4/3]', 2 => 'aspect-[8/3]'])[$last_fill[0]] ?? 'aspect-[4/3]',
+                ([1 => 'md:aspect-[4/3]', 2 => 'md:aspect-[8/3]', 3 => 'md:aspect-[4/1]'])[$last_fill[1]] ?? '',
+                ([1 => 'lg:aspect-[4/3]', 2 => 'lg:aspect-[8/3]', 3 => 'lg:aspect-[4/1]', 4 => 'lg:aspect-[16/3]', 5 => 'lg:aspect-[20/3]'])[$last_fill[2]] ?? '',
+            ]));
             ?>
             <div class="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-5 xl:gap-5">
                 <?php foreach (array_values($cards) as $card_index => $card) : $is_last_card = $card_index === count($cards) - 1; ?>
-                    <button class="<?php echo $is_last_card ? esc_attr($last_classes) . ' ' : ''; ?>group flex min-w-0 flex-col overflow-hidden rounded border border-line bg-white text-left shadow-card transition duration-300 hover:-translate-y-1 hover:border-blue-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-100" type="button" data-detail-open="<?php echo esc_attr((string) $card['start']); ?>" aria-label="<?php echo esc_attr($card['label'] . ' · ' . $card['count'] . ' ' . $t($visits['photo_count_suffix'] ?? 'photos')); ?>">
+                    <?php if ($card['more']) : ?>
+                    <?php // Unsorted photos open from a fixed panel instead of a photo, which would be cropped badly when the card stretches across a row. ?>
+                    <button class="<?php echo $is_last_card ? esc_attr($last_classes) . ' ' : ''; ?>group flex min-h-[120px] min-w-0 flex-col items-start justify-between gap-4 overflow-hidden rounded bg-navy bg-[linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[length:28px_28px] p-5 text-start text-white shadow-card transition duration-300 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-100 sm:min-h-[140px] sm:p-6 md:flex-row md:items-center" type="button" data-detail-open="<?php echo esc_attr((string) $card['start']); ?>" data-detail-count="<?php echo esc_attr((string) $card['count']); ?>" aria-label="<?php echo esc_attr($card['label'] . ' · ' . $card['count'] . ' ' . $t($visits['photo_count_suffix'] ?? 'photos')); ?>">
+                        <span class="min-w-0">
+                            <span class="block text-base font-black leading-tight sm:text-xl"><?php echo esc_html($card['label']); ?></span>
+                            <span class="mt-2 inline-flex items-center gap-1.5 whitespace-nowrap text-sm font-bold tabular-nums text-white/70"><?php echo boblift_icon('images', 'h-4 w-4'); ?>+<?php echo esc_html((string) $card['count'] . ' ' . $t($visits['photo_count_suffix'] ?? 'photos')); ?></span>
+                        </span>
+                        <span class="grid size-11 shrink-0 place-items-center rounded-full bg-white text-navy transition group-hover:translate-x-0.5 sm:size-12"><?php echo boblift_icon('arrow-right', 'h-5 w-5 rtl:-scale-x-100'); ?></span>
+                    </button>
+                    <?php continue; endif; ?>
+                    <button class="<?php echo $is_last_card ? esc_attr($last_classes) . ' ' : ''; ?>group flex min-w-0 flex-col overflow-hidden rounded border border-line bg-white text-left shadow-card transition duration-300 hover:-translate-y-1 hover:border-blue-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-100" type="button" data-detail-open="<?php echo esc_attr((string) $card['start']); ?>" data-detail-count="<?php echo esc_attr((string) $card['count']); ?>" aria-label="<?php echo esc_attr($card['label'] . ' · ' . $card['count'] . ' ' . $t($visits['photo_count_suffix'] ?? 'photos')); ?>">
                         <span class="relative block <?php echo esc_attr($is_last_card ? $last_media : 'aspect-[4/3]'); ?> overflow-hidden bg-mist"><img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" src="<?php echo esc_url($thumb_url($card['image'])); ?>" alt="<?php echo esc_attr($card['alt']); ?>" loading="lazy" decoding="async"></span>
                         <span class="flex items-center justify-between gap-2 px-3.5 py-3 sm:px-4">
                             <span class="min-w-0 truncate text-sm font-black text-ink sm:text-base"><?php echo esc_html($card['label']); ?></span>
@@ -151,7 +165,7 @@ $wall_alt = $t($visits['label'] ?? 'Global Customer Visits');
             </div>
             <div class="fixed inset-0 z-[1000] hidden flex-col bg-[#040f22]" data-detail-lightbox role="dialog" aria-modal="true" aria-hidden="true" aria-label="<?php echo esc_attr($wall_alt); ?>">
                 <div class="flex shrink-0 items-center justify-between px-4 py-3 text-white md:px-6">
-                    <p class="flex min-w-0 items-baseline gap-3 text-xs font-black tracking-[0.08em]" aria-live="polite"><span class="shrink-0 [font-variant-numeric:tabular-nums]"><span data-detail-index>01</span> / <?php echo esc_html($pad(count($gallery))); ?></span><span class="truncate text-sm tracking-normal text-white/80" data-detail-caption></span></p>
+                    <p class="flex min-w-0 items-baseline gap-3 text-xs font-black tracking-[0.08em]" aria-live="polite"><span class="shrink-0 [font-variant-numeric:tabular-nums]"><span data-detail-index>01</span> / <span data-detail-total><?php echo esc_html($pad(count($gallery))); ?></span></span><span class="truncate text-sm tracking-normal text-white/80" data-detail-caption></span></p>
                     <button class="grid size-10 place-items-center rounded-sm bg-white/10 text-white transition hover:bg-white hover:text-[#071f42]" type="button" data-detail-close aria-label="<?php echo esc_attr($detail_ui['closeLabel'] ?? 'Close'); ?>"><?php echo boblift_icon('x', 'h-5 w-5'); ?></button>
                 </div>
                 <div class="relative min-h-0 flex-1">
