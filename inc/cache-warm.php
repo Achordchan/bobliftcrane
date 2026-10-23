@@ -11,6 +11,7 @@ if (!defined('ABSPATH')) {
 const BOBLIFT_CACHE_WARM_STATE = 'boblift_cache_warm_state';
 const BOBLIFT_CACHE_WARM_HOOK = 'boblift_cache_warm';
 const BOBLIFT_CACHE_WARM_BATCH = 8;
+const BOBLIFT_CACHE_WARM_TRIES = 3;
 
 /** The pages to build, in every language: the home page, the products page and each product category with products. */
 function boblift_cache_warm_urls(): array
@@ -52,22 +53,40 @@ function boblift_cache_warm_schedule(): void
 }
 add_action('template_redirect', 'boblift_cache_warm_schedule', 99);
 
-/** Builds the next few pages; a change made while it runs starts the list again for the new version. */
+/**
+ * Builds the next few pages; a change made while it runs starts the list again for the new version. A page that times
+ * out or answers with a server error is tried again after the list, up to BOBLIFT_CACHE_WARM_TRIES times in all.
+ */
 function boblift_cache_warm_run(): void
 {
     $signature = boblift_cache_signature();
     $state = get_option(BOBLIFT_CACHE_WARM_STATE);
-    $offset = is_array($state) && ($state['signature'] ?? '') === $signature ? (int) ($state['offset'] ?? 0) : 0;
+    $same = is_array($state) && ($state['signature'] ?? '') === $signature;
+    $offset = $same ? (int) ($state['offset'] ?? 0) : 0;
+    $retry = $same ? (array) ($state['retry'] ?? []) : [];
     $urls = boblift_cache_warm_urls();
-    $next = $offset + BOBLIFT_CACHE_WARM_BATCH;
-    // Saved before the requests, so pages built by them see this version as already being rebuilt.
-    update_option(BOBLIFT_CACHE_WARM_STATE, ['signature' => $signature, 'offset' => $next], false);
-    foreach (array_slice($urls, $offset, BOBLIFT_CACHE_WARM_BATCH) as $url) {
-        // The query string skips the CDN's copy so the request reaches PHP; it is not part of any cache key.
-        wp_remote_get(add_query_arg('boblift_warm', '1', $url), ['timeout' => 30, 'redirection' => 0, 'headers' => ['Cache-Control' => 'no-cache']]);
+    $batch = array_slice($urls, $offset, BOBLIFT_CACHE_WARM_BATCH);
+    $offset += count($batch);
+    if (!$batch) {
+        $batch = array_slice(array_keys($retry), 0, BOBLIFT_CACHE_WARM_BATCH);
     }
-    if ($next < count($urls)) {
+    // Saved before the requests, so pages built by them see this version as already being rebuilt.
+    update_option(BOBLIFT_CACHE_WARM_STATE, ['signature' => $signature, 'offset' => $offset, 'retry' => $retry], false);
+    foreach ($batch as $url) {
+        // The query string skips the CDN's copy so the request reaches PHP; it is not part of any cache key.
+        $response = wp_remote_get(add_query_arg('boblift_warm', '1', $url), ['timeout' => 30, 'redirection' => 0, 'headers' => ['Cache-Control' => 'no-cache']]);
+        $tries = (int) ($retry[$url] ?? 0) + 1;
+        unset($retry[$url]);
+        if ((is_wp_error($response) || (int) wp_remote_retrieve_response_code($response) >= 500) && $tries < BOBLIFT_CACHE_WARM_TRIES) {
+            $retry[$url] = $tries;
+        }
+    }
+    update_option(BOBLIFT_CACHE_WARM_STATE, ['signature' => $signature, 'offset' => $offset, 'retry' => $retry], false);
+    if ($offset < count($urls)) {
         wp_schedule_single_event(time(), BOBLIFT_CACHE_WARM_HOOK);
+    } elseif ($retry) {
+        // A struggling server gets a few minutes before the failed pages are asked for again.
+        wp_schedule_single_event(time() + 5 * MINUTE_IN_SECONDS, BOBLIFT_CACHE_WARM_HOOK);
     }
 }
 add_action(BOBLIFT_CACHE_WARM_HOOK, 'boblift_cache_warm_run');
