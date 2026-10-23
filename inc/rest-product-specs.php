@@ -223,17 +223,7 @@ function boblift_product_specs_offsets(string $haystack, string $needle): array
 function boblift_product_specs_replace_one(string $text, string $from, string $to, string $where): string|WP_Error
 {
     $targets = boblift_product_specs_offsets($text, $to);
-    $pending = array_values(array_filter(
-        boblift_product_specs_offsets($text, $from),
-        static function (int $at) use ($targets, $from, $to): bool {
-            foreach ($targets as $target) {
-                if ($at >= $target && $at + strlen($from) <= $target + strlen($to)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-    ));
+    $pending = boblift_product_specs_pending($text, $from, $to);
     if ($pending === [] && $targets !== []) {
         return $text;
     }
@@ -247,10 +237,28 @@ function boblift_product_specs_replace_one(string $text, string $from, string $t
     return substr($text, 0, $pending[0]) . $to . substr($text, $pending[0] + strlen($from));
 }
 
+/** Offsets of the occurrences of "from" still to replace: those not lying inside an occurrence of "to". */
+function boblift_product_specs_pending(string $text, string $from, string $to): array
+{
+    $targets = boblift_product_specs_offsets($text, $to);
+    return array_values(array_filter(
+        boblift_product_specs_offsets($text, $from),
+        static function (int $at) use ($targets, $from, $to): bool {
+            foreach ($targets as $target) {
+                if ($at >= $target && $at + strlen($from) <= $target + strlen($to)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    ));
+}
+
 /** Applies one language's "replace" items to its stored texts. Returns in => [old, new] (only texts that change). */
 function boblift_product_specs_plan_texts(int $post_id, string $language, array $items): array|WP_Error
 {
     $texts = [];
+    $spans = [];
     foreach ($items as $item) {
         $in = is_array($item) ? (string) ($item['in'] ?? 'content') : '';
         $from = is_array($item) ? (string) ($item['from'] ?? '') : '';
@@ -259,11 +267,23 @@ function boblift_product_specs_plan_texts(int $post_id, string $language, array 
             return new WP_Error('boblift_specs_replace', sprintf('A %s "replace" item needs plain-text "from" and a different, non-empty "to" (no "<" or ">"), and "in" of content, excerpt or seo_description.', $language), ['status' => 400]);
         }
         $texts[$in] ??= [boblift_product_specs_text($post_id, $in), null];
-        // Each item must also stand on the stored text alone: one whose "from" only appears through an earlier item's
-        // "to" (a chain) could not tell, on a retry, that it was already done.
+        // Each item must also stand on the stored text alone, on a stretch no earlier item touches: an item whose
+        // "from" appears only through, or overlaps, an earlier item's text (a chain) could not tell on a retry that it
+        // was already done.
         $alone = boblift_product_specs_replace_one($texts[$in][0], $from, $to, $language . ' ' . $in);
         if (is_wp_error($alone)) {
             return $alone;
+        }
+        // The stretch an item covers: its "from" when still to do, else the "to" it left.
+        $pending = boblift_product_specs_pending($texts[$in][0], $from, $to);
+        $width = $pending === [] ? strlen($to) : strlen($from);
+        foreach ($pending === [] ? boblift_product_specs_offsets($texts[$in][0], $to) : $pending as $at) {
+            foreach ($spans[$in] ?? [] as [$start, $end]) {
+                if ($at < $end && $at + $width > $start) {
+                    return new WP_Error('boblift_specs_replace', sprintf('In the %s %s, "%s" overlaps the text of an earlier item; send one item for that stretch.', $language, $in, $from), ['status' => 400]);
+                }
+            }
+            $spans[$in][] = [$at, $at + $width];
         }
         $new = boblift_product_specs_replace_one($texts[$in][1] ?? $texts[$in][0], $from, $to, $language . ' ' . $in);
         if (is_wp_error($new)) {
