@@ -32,12 +32,13 @@ function boblift_dingtalk_inquiry(int $post_id, array $fields): void
 
     $attribution = [];
     foreach (array_keys(defined('BOBLIFT_INQUIRY_ATTRIBUTION') ? BOBLIFT_INQUIRY_ATTRIBUTION : []) as $name) {
-        if (($fields['attr_' . $name] ?? '') !== '') {
+        // The referring site is shown in 来源渠道; the plugin's ad lines are only for ad clicks and campaign tags.
+        if ($name !== 'referrer' && ($fields['attr_' . $name] ?? '') !== '') {
             $attribution[$name] = (string) $fields['attr_' . $name];
         }
     }
     // Where the inquiry came from first (the page's name and its address without ad parameters, then the button), then the
-    // ad source, the country and the time.
+    // channel and device, the ad source, the country and the time.
     $source = function_exists('boblift_inquiry_source_page') ? boblift_inquiry_source_page($fields) : ['url' => (string) ($fields['source_page'] ?? ''), 'title' => '', 'params' => []];
     $meta = [];
     if ($source['title'] !== '') {
@@ -48,6 +49,13 @@ function boblift_dingtalk_inquiry(int $post_id, array $fields): void
     }
     if (($fields['source_entry'] ?? '') !== '') {
         $meta[] = ['label' => '入口', 'icon' => '🔘', 'value' => (string) $fields['source_entry']];
+    }
+    // How the visitor came (Google Ads, natural search, another site, direct) and on what device, for every inquiry.
+    if (function_exists('boblift_inquiry_channel')) {
+        $meta[] = ['label' => '来源渠道', 'icon' => '🚦', 'value' => implode(' · ', array_filter(boblift_inquiry_channel($fields), 'strlen'))];
+    }
+    if (($fields['device'] ?? '') !== '') {
+        $meta[] = ['label' => '访问设备', 'icon' => str_starts_with((string) $fields['device'], '电脑') ? '💻' : '📱', 'value' => (string) $fields['device']];
     }
     $ad_meta = function_exists('achord_dingtalk_cf7_attribution_meta') ? achord_dingtalk_cf7_attribution_meta($attribution) : [];
     if ($ad_meta) {

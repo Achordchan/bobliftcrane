@@ -4475,7 +4475,18 @@
   const CLICK_IDS = ['gclid', 'gbraid', 'wbraid'];
   const PARAMS = [...CLICK_IDS, 'gad_source', 'gad_campaignid', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
   const FIELD_PREFIX = 'boblift_attr_';
-  const FIELDS = [...PARAMS, 'landing', 'first_seen'];
+  const FIELDS = [...PARAMS, 'landing', 'first_seen', 'referrer'];
+
+  // The site that linked to this page, host only (www. dropped); empty for this site's own pages and for direct visits.
+  const bareHost = (host) => String(host || '').toLowerCase().replace(/^www\./, '');
+  const externalReferrer = () => {
+    try {
+      const host = bareHost(new URL(document.referrer).hostname);
+      return host && host !== bareHost(location.hostname) && host.length <= 120 ? host : '';
+    } catch {
+      return '';
+    }
+  };
 
   const readSaved = () => {
     const match = document.cookie.split('; ').find((row) => row.startsWith(`${COOKIE}=`));
@@ -4539,15 +4550,21 @@
 
   const arrivedAt = Date.now();
   // A new click replaces what is kept; tags alone never replace a click; the same click seen again keeps its first landing.
+  // A visit from another site with neither (natural search, a link) is kept only over another such visit or nothing.
   const nextRecord = (stored) => {
     const found = cleanParams(Object.fromEntries(new URLSearchParams(location.search)));
+    const referrer = externalReferrer();
     const hasClick = CLICK_IDS.some((name) => found[name]);
     const storedHasClick = stored && CLICK_IDS.some((name) => stored.params[name]);
-    if (!hasClick && (Object.keys(found).length === 0 || storedHasClick)) return stored;
+    if (!hasClick && Object.keys(found).length === 0) {
+      if (!referrer || (stored && (Object.keys(stored.params).length || stored.referrer === referrer || (stored.arrived || 0) > arrivedAt))) return stored;
+      return { v: 1, arrived: arrivedAt, first_seen: new Date(arrivedAt).toISOString(), landing: clean(location.origin + location.pathname, 300), referrer, params: {}, expires: arrivedAt + DAYS * 864e5 };
+    }
+    if (!hasClick && storedHasClick) return stored;
     const primary = CLICK_IDS.find((name) => found[name]);
     if (stored && (primary ? found[primary] === stored.params[primary] : JSON.stringify(found) === JSON.stringify(stored.params))) return stored;
     if (stored && (stored.arrived || 0) > arrivedAt) return stored;
-    return { v: 1, arrived: arrivedAt, first_seen: new Date(arrivedAt).toISOString(), landing: clean(location.origin + location.pathname, 300), params: found, expires: arrivedAt + DAYS * 864e5 };
+    return { v: 1, arrived: arrivedAt, first_seen: new Date(arrivedAt).toISOString(), landing: clean(location.origin + location.pathname, 300), referrer, params: found, expires: arrivedAt + DAYS * 864e5 };
   };
   const settleAttribution = () => {
     const agreed = advertisingAgreed();
@@ -4564,7 +4581,7 @@
   };
   const fillAttribution = (form) => {
     const record = advertisingAgreed() === true ? readAttribution() : null;
-    const values = record ? { ...record.params, landing: clean(record.landing, 300), first_seen: clean(record.first_seen, 40) } : {};
+    const values = record ? { ...record.params, landing: clean(record.landing, 300), first_seen: clean(record.first_seen, 40), referrer: bareHost(clean(record.referrer, 120)) } : {};
     FIELDS.forEach((name) => {
       let input = form.querySelector(`input[name="${FIELD_PREFIX}${name}"]`);
       if (!values[name]) { input?.remove(); return; }
@@ -4724,7 +4741,31 @@
     if (!choice) askedHere(banner.dataset.regions).then((ask) => { if (ask && !choice && banner.hidden) open(false); });
   };
 
+  // Sent with every inquiry whatever the cookie choice, since nothing is kept in the browser for them: the site that linked
+  // to this page, whether advertising is agreed to (so the mail can say why no ad source is known) and whether the screen
+  // takes touch (iPadOS Safari presents itself as a Mac). inc/forms.php reads them.
+  const fillContext = (form) => {
+    const values = {
+      boblift_page_referrer: externalReferrer(),
+      boblift_ad_consent: window.bobliftAdvertising === true ? String(advertisingAgreed()) : '',
+      boblift_touch: navigator.maxTouchPoints > 1 ? '1' : '0',
+    };
+    Object.entries(values).forEach(([name, value]) => {
+      let input = form.querySelector(`input[name="${name}"]`);
+      if (!input) {
+        input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        form.append(input);
+      }
+      input.value = value;
+    });
+  };
+
   const init = () => {
+    document.addEventListener('submit', (event) => {
+      if (event.target instanceof HTMLFormElement && event.target.matches('[data-quote-form]')) fillContext(event.target);
+    }, true);
     // Attribution exists only while the Google tag is configured (inc/consent.php sets the flag); with tracking turned off
     // nothing is collected and any record kept earlier is dropped, whatever an old consent cookie says.
     if (window.bobliftTracking !== true) {

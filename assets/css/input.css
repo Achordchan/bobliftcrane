@@ -2771,9 +2771,11 @@ html:is(:lang(ru), :lang(uk), :lang(fr), :lang(es), :lang(de), :lang(it), :lang(
 }
 
 /* The product list holds 12 cards a page, most of them below the fold on a phone: the browser lays a card out only once
-   it nears the screen (it keeps the size it last had, 480px until then), which took about a third off the list pages'
-   style and layout work on a throttled phone. */
+   it nears the screen (it keeps the size it last had, 200px until then), which took about a third off the list pages'
+   style and layout work on a throttled phone. Safari keeps that placeholder as a minimum height even after the card is
+   drawn, so it stays below the shortest real card (about 235px in list view, 335px in the phone grid); a taller one left
+   a blank gap under the model name on iPhones. */
 .boblift-product-listing .product-card {
   content-visibility: auto;
-  contain-intrinsic-size: auto 480px;
+  contain-intrinsic-size: auto 200px;
 }
