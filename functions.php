@@ -17,6 +17,7 @@ require_once get_template_directory() . '/inc/video-library.php';
 require_once get_template_directory() . '/inc/model-names.php';
 require_once get_template_directory() . '/inc/product-guide.php';
 require_once get_template_directory() . '/inc/product-archive-extras.php';
+require_once get_template_directory() . '/inc/category-buying-guide.php';
 require_once get_template_directory() . '/inc/marine-brochure-models.php';
 require_once get_template_directory() . '/inc/product-data-2026-10.php';
 require_once get_template_directory() . '/inc/legacy-product-intros.php';
