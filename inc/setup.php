@@ -563,10 +563,11 @@ function boblift_article_schema(): void
         return;
     }
     $schema = str_replace('{{home}}', untrailingslashit((string) get_option('home')), $schema);
-    if (json_decode($schema) === null) {
+    $data = json_decode($schema, true);
+    if (!is_array($data)) {
         return;
     }
-    echo '<script type="application/ld+json">' . str_replace('</', '<\/', $schema) . "</script>\n";
+    echo '<script type="application/ld+json">' . wp_json_encode(boblift_demote_product_nodes($data), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) . "</script>\n";
 }
 add_action('wp_head', 'boblift_article_schema', 5);
 
@@ -596,11 +597,28 @@ function boblift_content_jsonld(): void
     foreach ($matches[2] as $json) {
         $data = json_decode(str_replace('{{home}}', untrailingslashit((string) get_option('home')), trim($json)), true);
         if (is_array($data)) {
+            $data = boblift_demote_product_nodes($data);
             echo '<script type="application/ld+json">' . wp_json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) . "</script>\n";
         }
     }
 }
 add_action('wp_head', 'boblift_content_jsonld', 6);
+
+// A Product node (a case's "about": its crane model) makes Search Console report a Product snippet missing offers,
+// review or aggregateRating. We publish no prices or ratings, so such nodes go out as a plain Thing that keeps the
+// model name, its product page URL and, on a top-level node, its @context.
+function boblift_demote_product_nodes(array $data): array
+{
+    foreach ($data as $key => $value) {
+        if (is_array($value)) {
+            $data[$key] = boblift_demote_product_nodes($value);
+        }
+    }
+    if (isset($data['@type']) && (is_string($data['@type']) ? $data['@type'] === 'Product' : in_array('Product', (array) $data['@type'], true))) {
+        $data = ['@type' => 'Thing'] + array_intersect_key($data, array_flip(['@context', '@id', 'name', 'url', 'description', 'image']));
+    }
+    return $data;
+}
 
 // Social preview tags for case pages: their SEO title and description, and the cover photo.
 function boblift_case_social_tags(): void

@@ -90,8 +90,8 @@ foreach ($cases as $case) {
                 'publisher' => ['@type' => 'Organization', 'name' => 'BOB-LIFT', 'url' => home_url('/')],
                 'image' => array_map(static fn(string $src): array => ['@type' => 'ImageObject', 'url' => $src], $images),
                 'about' => get_post_status($product_id) === 'publish'
-                    ? ['@type' => 'Product', 'name' => (string) get_post_meta($en->ID, '_product_name', true), 'url' => get_permalink($product_id)]
-                    : ['@type' => 'Product', 'name' => (string) get_post_meta($en->ID, '_product_name', true)],
+                    ? ['@type' => 'Thing', 'name' => (string) get_post_meta($en->ID, '_product_name', true), 'url' => get_permalink($product_id)]
+                    : ['@type' => 'Thing', 'name' => (string) get_post_meta($en->ID, '_product_name', true)],
                 'contentLocation' => ['@type' => 'Country', 'name' => $case['country']],
             ],
             [
