@@ -38,4 +38,5 @@ require_once get_template_directory() . '/inc/company-schema.php';
 require_once get_template_directory() . '/inc/legacy-redirects.php';
 require_once get_template_directory() . '/inc/polylang-slugs.php';
 require_once get_template_directory() . '/inc/rest-translations.php';
+require_once get_template_directory() . '/inc/rest-content-insert.php';
 require_once get_template_directory() . '/inc/polylang-rewrites.php';
