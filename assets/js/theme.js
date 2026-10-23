@@ -3525,7 +3525,14 @@
       apply({ resetPage: true });
     }));
     // Old links named the category in the hash (/products.html#marine-crane): they open that category's page.
-    const hashCategory = () => slugifyFilter(decodeURIComponent(window.location.hash.replace(/^#/, '')));
+    // A fragment that is not valid percent-encoding (#50%) names no category.
+    const hashCategory = () => {
+      try {
+        return slugifyFilter(decodeURIComponent(window.location.hash.replace(/^#/, '')));
+      } catch {
+        return '';
+      }
+    };
     const openHashCategory = () => {
       const url = !fixedCategory && categoryUrls[hashCategory()];
       if (url) window.location.replace(`${new URL(url, window.location.origin).pathname}${window.location.search}`);
