@@ -1060,7 +1060,8 @@ function boblift_product_catalog_url(array $product): string
  * library and the image fits. Entries are kept per request and, on public pages, in transients named after what they
  * vary by (language, host, arguments). Each stores a signature, a version option bumped by any product, attachment,
  * term or site-option change plus the newest modification time of the theme code and seed data, so edits show on the
- * next load. Values are compressed and split into rows of at most 250 KB, so each row fits a memcached item.
+ * next load; the signature, not the expiry, retires an entry, so entries are kept a week. Values are compressed and
+ * split into rows of at most 250 KB, so each row fits a memcached item.
  */
 function boblift_products_code_version(): int
 {
@@ -1160,11 +1161,11 @@ function boblift_cache_set(string $name, mixed $data): void
     // builds never mix their chunks and a reader never sees a head before its chunks.
     $generation = substr(md5(wp_generate_uuid4()), 0, 12);
     foreach (array_slice($parts, 1, null, true) as $index => $part) {
-        if (!set_transient($name . '_' . $generation . '_' . $index, $part, 12 * HOUR_IN_SECONDS)) {
+        if (!set_transient($name . '_' . $generation . '_' . $index, $part, WEEK_IN_SECONDS)) {
             return;
         }
     }
-    set_transient($name, ['signature' => $signature, 'generation' => $generation, 'chunks' => count($parts), 'data' => $parts[0]], 12 * HOUR_IN_SECONDS);
+    set_transient($name, ['signature' => $signature, 'generation' => $generation, 'chunks' => count($parts), 'data' => $parts[0]], WEEK_IN_SECONDS);
 }
 
 /**
@@ -1394,10 +1395,20 @@ function boblift_bump_products_cache_for_content(int $post_id, mixed $post = nul
 {
     // deleted_post fires after the row is gone, so its type comes from the WP_Post the hook passes.
     $type = $post instanceof WP_Post ? $post->post_type : (string) get_post_type($post_id);
-    if ($type === '' || in_array($type, ['revision', 'oembed_cache', 'customize_changeset', 'user_request'], true) || str_starts_with($type, 'flamingo_')) {
+    // Content no visitor can see (a draft being written, an autosave, a scheduled post, the trash) cannot change a page;
+    // publishing or unpublishing it passes through transition_post_status, which sees the published side.
+    $status = $post instanceof WP_Post ? $post->post_status : (string) get_post_status($post_id);
+    if (in_array($status, ['draft', 'auto-draft', 'pending', 'future', 'trash'], true)) {
         return;
     }
-    boblift_bump_products_cache();
+    if (!boblift_products_cache_ignores_type($type)) {
+        boblift_bump_products_cache();
+    }
+}
+
+function boblift_products_cache_ignores_type(string $type): bool
+{
+    return $type === '' || in_array($type, ['revision', 'oembed_cache', 'customize_changeset', 'user_request'], true) || str_starts_with($type, 'flamingo_');
 }
 
 add_action('save_post', static fn($post_id) => boblift_bump_products_cache_for_content((int) $post_id));
@@ -1408,8 +1419,9 @@ add_action('add_attachment', 'boblift_bump_products_cache');
 add_action('edit_attachment', 'boblift_bump_products_cache');
 add_action('delete_attachment', 'boblift_bump_products_cache');
 add_action('transition_post_status', static function ($new_status, $old_status, $post): void {
-    if ($post instanceof WP_Post && $new_status !== $old_status) {
-        boblift_bump_products_cache_for_content((int) $post->ID);
+    if ($post instanceof WP_Post && $new_status !== $old_status && ($new_status === 'publish' || $old_status === 'publish')
+        && !boblift_products_cache_ignores_type($post->post_type)) {
+        boblift_bump_products_cache();
     }
 }, 10, 3);
 // Categories, languages and Polylang translation groups are all terms on the product.
@@ -1439,8 +1451,9 @@ foreach (['wp_insert_comment', 'edit_comment', 'deleted_comment', 'trashed_comme
 foreach (['added_option', 'updated_option', 'deleted_option'] as $boblift_option_hook) {
     add_action($boblift_option_hook, static function ($option): void {
         $option = (string) $option;
-        // The products cache version and the image-facts store (boblift_image_facts()) do not change any page.
-        if ($option === 'boblift_products_cache_version' || $option === 'boblift_image_facts' || str_starts_with($option, '_transient') || str_starts_with($option, '_site_transient')) {
+        // The products cache version, the image-facts store (boblift_image_facts()) and the rebuild progress
+        // (inc/cache-warm.php) do not change any page.
+        if (in_array($option, ['boblift_products_cache_version', 'boblift_image_facts', 'boblift_cache_warm_state'], true) || str_starts_with($option, '_transient') || str_starts_with($option, '_site_transient')) {
             return;
         }
         if (preg_match('/^(boblift|polylang|pll_|theme_mods_)/', $option)
