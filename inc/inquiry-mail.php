@@ -349,8 +349,9 @@ function boblift_inquiry_product_by_name(string $name): ?WP_Post
     if ($found) {
         return $found[0];
     }
-    // The longest model-like word first: "SQ12ZA6" rather than "12"; an extension such as "+1" is part of the model.
-    preg_match_all('/\b[A-Z]{2,4}\d+(?:\.\d+)?[A-Z]*\d*[A-Z]?(?:\+\d+)?(?![\w+])/', strtoupper($name), $matches);
+    // The longest model-like word first: "SQ12ZA6" rather than "12"; suffixes (SQ12ZA6TJF) and an extension such as "+1"
+    // are part of the model.
+    preg_match_all('/\b[A-Z]{2,4}\d+(?:\.\d+)?[A-Z]*\d*[A-Z]*(?:\+\d+)?(?![\w+])/', strtoupper($name), $matches);
     $models = array_unique($matches[0]);
     usort($models, static fn(string $a, string $b): int => strlen($b) <=> strlen($a));
     foreach ($models as $model) {
@@ -377,7 +378,9 @@ function boblift_inquiry_mail_product_image(int $english_id, int $post_id): stri
     if (str_starts_with($image, '//')) {
         $image = 'https:' . $image;
     } elseif (str_starts_with($image, '/')) {
-        $image = untrailingslashit(home_url()) . $image;
+        // Against the site's origin only: a site in a subdirectory already has that directory in the path.
+        $home = wp_parse_url(home_url());
+        $image = is_array($home) && !empty($home['host']) ? ($home['scheme'] ?? 'https') . '://' . $home['host'] . (isset($home['port']) ? ':' . $home['port'] : '') . $image : '';
     }
     return preg_match('#^https?://#i', $image) ? $image : '';
 }
