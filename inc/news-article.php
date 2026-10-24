@@ -256,11 +256,12 @@ function boblift_news_article_faq(string $content): array
         if (!preg_match($heading, $text($sections[$i]))) {
             continue;
         }
-        $parts = preg_split('#<h3\b[^>]*>(.*?)</h3>#is', $sections[$i + 1], -1, PREG_SPLIT_DELIM_CAPTURE) ?: [];
+        // A rule ends the FAQ: what follows it (an author note, a call to action) is not part of the questions.
+        $section = (string) preg_split('#<hr\b#i', $sections[$i + 1], 2)[0];
+        $parts = preg_split('#<h3\b[^>]*>(.*?)</h3>#is', $section, -1, PREG_SPLIT_DELIM_CAPTURE) ?: [];
         for ($j = 1; $j < count($parts) - 1; $j += 2) {
             $question = $text($parts[$j]);
-            // A rule ends the FAQ: what follows it (an author note, a call to action) is not part of the last answer.
-            $answer = $text((string) preg_split('#<hr\b#i', $parts[$j + 1], 2)[0]);
+            $answer = $text($parts[$j + 1]);
             if ($question !== '' && $answer !== '') {
                 $items[] = ['@type' => 'Question', 'name' => $question, 'acceptedAnswer' => ['@type' => 'Answer', 'text' => $answer]];
             }
@@ -269,7 +270,7 @@ function boblift_news_article_faq(string $content): array
     return $items;
 }
 
-/** Schema.org types the page's own JSON-LD already describes (_article_schema_jsonld and JSON-LD written in the body). */
+/** Schema.org types the page's own JSON-LD already describes, at any depth (_article_schema_jsonld and JSON-LD written in the body). */
 function boblift_post_stored_schema_types(int $post_id): array
 {
     $home = untrailingslashit((string) get_option('home'));
@@ -286,7 +287,8 @@ function boblift_post_stored_schema_types(int $post_id): array
         foreach ((array) ($node['@type'] ?? []) as $type) {
             $types[(string) $type] = true;
         }
-        foreach ($node['@graph'] ?? (array_is_list($node) ? $node : []) as $child) {
+        // Nested nodes count too: @graph entries, lists, and objects held by a property (a WebPage's breadcrumb).
+        foreach ($node as $child) {
             $collect($child);
         }
     };
