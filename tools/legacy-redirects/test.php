@@ -18,7 +18,7 @@ $cases = [
     ['www.bobliftcrane.com', '/about.html', null],
     ['www.bobliftcrane.com', '/', null],
     ['www.bobliftcrane.com', '/marine-crane-buying-guide', 'https://bobliftcrane.com/marine-crane-buying-guide.html'], // article imported by tools/content-gap
-    ['www.bobliftcrane.com', '/5-ton-crane', 'https://bobliftcrane.com/products.html?capacity=4-5'], // tonnage filter (#7)
+    ['www.bobliftcrane.com', '/5-ton-crane', 'https://bobliftcrane.com/5-ton-crane.html'], // tonnage page (#129)
     ['www.bobliftcrane.com', '/5-ton-crane.html', null], // .html form: left to the theme's tonnage fallback, checked below
     ['www.bobliftcrane.com', '/Company-News.html', null],
     ['fr.bobliftcrane.com', '/', 'https://bobliftcrane.com/'],
@@ -33,6 +33,12 @@ $cases = [
     ['fr.bobliftcrane.com', '/a-propos.html', 'https://bobliftcrane.com/'], // ASCII translated slug with no English page
     ['fr.bobliftcrane.com', '/some/deep/path', 'https://bobliftcrane.com/'],
     ['de.bobliftcrane.com', '/Products-Marine-Cranes.html', 'https://bobliftcrane.com/marine-crane'],
+    // Withdrawn promotion stories (company policy: no public prices) go to the product or category they promoted.
+    ['www.bobliftcrane.com', '/bob-lift-sq10za5-limited-time-discount-hot-selling-id03356155.html', 'https://bobliftcrane.com/10-ton-knuckle-boom-truck-mounted-crane-sq10za5.html'],
+    ['www.bobliftcrane.com', '/BOB-LIFT-SQ10ZA5-Limited-Time-Discount-Hot-Selling-id03356155.html', 'https://bobliftcrane.com/10-ton-knuckle-boom-truck-mounted-crane-sq10za5.html'],
+    ['www.bobliftcrane.com', '/balancing-efficiency-and-practicality-the-sq10sa5-is-currently-on-sale-at-a-discount-id08025155.html', 'https://bobliftcrane.com/10-ton-telescopic-boom-truck-mounted-crane-sq10sa5.html'],
+    ['www.bobliftcrane.com', '/three-tier-premium-benefits-and-five-core-guarantees-id48993465.html', 'https://bobliftcrane.com/truck-mounted-crane'],
+    ['www.bobliftcrane.com', '/bob-lift-three-models-of-truck-mounted-cranes-are-currently-on-promotion.html', 'https://bobliftcrane.com/truck-mounted-crane'],
 ];
 $fail = 0;
 foreach ($cases as [$host, $path, $want]) {
@@ -73,8 +79,8 @@ foreach ([
     ['/products/10-Ton-Telescopic-Boom-Truck-Mounted-Crane.html', 'https://bobliftcrane.com/10-ton-telescopic-boom-truck-mounted-crane.html'], // product still sold
     ['/products/6-3-Ton-Telescopic-Boom-Truck-Mounted-Crane.html', 'https://bobliftcrane.com/telescopic-boom-truck-mounted-cranes'], // not live: its category
     ['/products/12-Ton-Knuckle-Boom-Marine-Crane.html', 'https://bobliftcrane.com/knuckle-boom-marine-cranes'],
-    ['/products/12-Ton-Crane.html', 'https://bobliftcrane.com/products.html?capacity=10-12'],
-    ['/products/1-ton-truck-mounted-crane.html', 'https://bobliftcrane.com/products.html?capacity=0-1'],
+    ['/products/12-Ton-Crane.html', 'https://bobliftcrane.com/12-ton-crane.html'],
+    ['/products/1-ton-truck-mounted-crane.html', 'https://bobliftcrane.com/1-ton-crane.html'],
     ['/products/Offshore-crane.html', 'https://bobliftcrane.com/marine-crane'],
     ['/products/Forestry-Equipment.html', 'https://bobliftcrane.com/timber-cranes'],
     ['/products/Durable-pickup-crane.html', 'https://bobliftcrane.com/pickup-cranes'],
@@ -143,7 +149,7 @@ if (!boblift_legacy_redirects_has_custom() || boblift_legacy_redirects_config()[
 $find = static function (array $rules, string $from): ?array { foreach ($rules as $r) { if (boblift_legacy_redirect_normalize_path($r['from']) === $from) { return $r; } } return null; };
 $GLOBALS['saved_option'] = ['format' => 2, 'overrides' => [['from' => '/message.html', 'to' => '/custom-contact.html', 'note' => 'x']], 'removed' => ['/contactus.html'], 'replace' => false];
 $rules = boblift_legacy_redirects_config()['rules'];
-if (($find($rules, '/5-ton-crane')['to'] ?? '') !== '/products.html?capacity=4-5') { echo "FAIL shipped rule not followed under saved changes\n"; $fail++; }
+if (($find($rules, '/5-ton-crane')['to'] ?? '') !== '/5-ton-crane.html') { echo "FAIL shipped rule not followed under saved changes\n"; $fail++; }
 if (($find($rules, '/message.html')['to'] ?? '') !== '/custom-contact.html') { echo "FAIL saved override not applied\n"; $fail++; }
 if ($find($rules, '/contactus.html') !== null) { echo "FAIL removed rule came back\n"; $fail++; }
 if (count($rules) !== count($config['rules']) - 1) { echo "FAIL rule count under saved changes\n"; $fail++; }
