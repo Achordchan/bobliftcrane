@@ -642,6 +642,37 @@ function boblift_news_article_schema(): void
 }
 add_action('wp_head', 'boblift_news_article_schema', 4);
 
+// Elsewhere (products, pages, archives) Jetpack's graph is only its BreadcrumbList, whose Home is the English home page on
+// every language: Polylang localises home_url() for the theme, not for plugins. That graph is printed here instead, built
+// by Jetpack's own breadcrumb builder, with Home pointing at the page's language. Runs after boblift_news_article_schema().
+function boblift_localized_jetpack_breadcrumb(): void
+{
+    $builder = 'Automattic\\Jetpack\\SEO\\Schema_Builder';
+    $breadcrumb_node = 'Automattic\\Jetpack\\SEO\\Breadcrumb_Schema_Node';
+    $post_node = 'Automattic\\Jetpack\\SEO\\Post_Schema_Node';
+    $settings = 'Automattic\\Jetpack\\SEO\\Schema_Settings';
+    if (is_front_page() || is_author() || has_action('wp_head', [$builder, 'emit']) !== 5
+        || !method_exists($breadcrumb_node, 'build') || !method_exists($post_node, 'build') || !method_exists($settings, 'get_breadcrumb_list')
+        || !class_exists('Jetpack_SEO_Utils') || !class_exists('Jetpack_SEO_Posts') || !Jetpack_SEO_Utils::is_enabled_jetpack_seo()) {
+        return;
+    }
+    $page_node = is_singular() ? $post_node::build(get_queried_object()) : null;
+    // An Article override carries publisher and author references only Jetpack's own assembly adds, so it stays Jetpack's.
+    if (is_array($page_node) && ($page_node['@type'] ?? '') === 'Article') {
+        return;
+    }
+    $breadcrumb = !empty($settings::get_breadcrumb_list()['enabled']) ? $breadcrumb_node::build() : null;
+    if (is_array($breadcrumb) && isset($breadcrumb['itemListElement'][0]['item'])) {
+        $breadcrumb['itemListElement'][0]['item'] = home_url('/');
+    }
+    remove_action('wp_head', [$builder, 'emit'], 5);
+    $nodes = array_values(array_filter([$page_node, $breadcrumb], 'is_array'));
+    if ($nodes !== []) {
+        echo '<script type="application/ld+json">' . wp_json_encode(['@context' => 'https://schema.org', '@graph' => $nodes], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) . "</script>\n";
+    }
+}
+add_action('wp_head', 'boblift_localized_jetpack_breadcrumb', 4);
+
 // Jetpack's own related-posts block prints an empty "Related" heading in the article body; the page lists more news itself.
 add_filter('jetpack_relatedposts_filter_enabled_for_request', '__return_false');
 
@@ -682,6 +713,20 @@ function boblift_singular_social_tags(): array
  * it takes the theme's description, and the SEO title where one is set. The theme prints its own set only when
  * Jetpack's did not run.
  */
+// Jetpack's Twitter card carries only twitter:text:title; every page also gets twitter:title and twitter:description, the same
+// as its Open Graph title and description, so tools that read the card alone find them. Runs after the filter below.
+add_filter('jetpack_open_graph_tags', static function ($tags) {
+    if (!is_array($tags)) {
+        return $tags;
+    }
+    foreach (['twitter:title' => 'og:title', 'twitter:description' => 'og:description'] as $twitter => $og) {
+        if (empty($tags[$twitter]) && is_string($tags[$og] ?? null) && trim($tags[$og]) !== '') {
+            $tags[$twitter] = $tags[$og];
+        }
+    }
+    return $tags;
+}, 30);
+
 add_filter('jetpack_open_graph_tags', static function ($tags) {
     $social = boblift_singular_social_tags();
     if (!is_array($tags) || $social === []) {
