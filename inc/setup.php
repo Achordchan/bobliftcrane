@@ -620,45 +620,50 @@ function boblift_demote_product_nodes(array $data): array
     return $data;
 }
 
-// Social preview tags for case pages: their SEO title and description, and the cover photo.
-function boblift_case_social_tags(): void
+// Jetpack SEO's graph is replaced on news articles: its Person links the author's WordPress.com profile, its
+// BreadcrumbList repeats the headline (the site sets no posts page) and its Home is the English one on every language.
+// On a case it only adds a second BreadcrumbList next to the case's own. Priority 4 runs before Jetpack's output at 5.
+function boblift_news_article_schema(): void
 {
-    if (!is_singular('case') || post_password_required(get_queried_object())) {
+    if (!is_singular(['post', 'case']) || post_password_required(get_queried_object())) {
         return;
     }
-    $id = get_queried_object_id();
-    $title = trim((string) get_post_meta($id, '_seo_title', true)) ?: get_the_title($id);
-    $description = trim((string) get_post_meta($id, '_seo_description', true)) ?: trim((string) get_post_meta($id, '_summary', true));
-    $image = (string) get_the_post_thumbnail_url($id, 'large');
-    $tags = [
-        'og:type' => 'article',
-        'og:title' => $title,
-        'og:description' => $description,
-        'og:url' => get_permalink($id),
-        'og:image' => $image,
-        'twitter:card' => 'summary_large_image',
-    ];
-    foreach (array_filter($tags) as $property => $content) {
-        $attribute = str_starts_with($property, 'twitter:') ? 'name' : 'property';
-        printf("<meta %s=\"%s\" content=\"%s\">\n", $attribute, esc_attr($property), esc_attr($content));
+    if (is_singular('case') && !in_array('BreadcrumbList', boblift_post_stored_schema_types(get_queried_object_id()), true)) {
+        return;
+    }
+    if (class_exists('Automattic\Jetpack\SEO\Schema_Builder')) {
+        remove_action('wp_head', ['Automattic\Jetpack\SEO\Schema_Builder', 'emit'], 5);
+    }
+    $post = get_queried_object();
+    $graph = is_singular('post') && $post instanceof WP_Post ? boblift_news_article_schema_graph($post) : [];
+    if ($graph !== []) {
+        echo '<script type="application/ld+json">' . wp_json_encode($graph, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) . "</script>\n";
     }
 }
-add_action('wp_head', 'boblift_case_social_tags', 5);
+add_action('wp_head', 'boblift_news_article_schema', 4);
 
-// Social preview tags for news posts: their SEO title and description (or the excerpt), and the cover image.
-function boblift_news_social_tags(): void
+// Jetpack's own related-posts block prints an empty "Related" heading in the article body; the page lists more news itself.
+add_filter('jetpack_relatedposts_filter_enabled_for_request', '__return_false');
+
+// Social preview tags for news posts and cases: their SEO title and description (or the excerpt / summary) and the cover.
+function boblift_singular_social_tags(): array
 {
-    if (!is_singular('post') || post_password_required(get_queried_object())) {
-        return;
+    if (!is_singular(['post', 'case']) || post_password_required(get_queried_object())) {
+        return [];
     }
     $id = get_queried_object_id();
-    $title = trim((string) get_post_meta($id, '_seo_title', true)) ?: get_the_title($id);
-    $description = trim((string) get_post_meta($id, '_seo_description', true))
-        ?: wp_trim_words(wp_strip_all_tags((string) (get_post_field('post_excerpt', $id) ?: get_post_field('post_content', $id))), 40, '…');
-    $image = (string) get_the_post_thumbnail_url($id, 'full');
-    $tags = [
+    $seo_title = trim((string) get_post_meta($id, '_seo_title', true));
+    $title = $seo_title ?: get_the_title($id);
+    if (is_singular('case')) {
+        $description = trim((string) get_post_meta($id, '_seo_description', true)) ?: trim((string) get_post_meta($id, '_summary', true));
+    } else {
+        $description = trim((string) get_post_meta($id, '_seo_description', true))
+            ?: wp_trim_words(wp_strip_all_tags((string) (get_post_field('post_excerpt', $id) ?: get_post_field('post_content', $id))), 40, '…');
+    }
+    $image = (string) get_the_post_thumbnail_url($id, is_singular('case') ? 'large' : 'full');
+    return ['seo_title' => $seo_title, 'tags' => array_filter([
         'og:type' => 'article',
-        'og:site_name' => 'BOB-LIFT',
+        'og:site_name' => (string) get_bloginfo('name'),
         'og:title' => $title,
         'og:description' => $description,
         'og:url' => get_permalink($id),
@@ -668,13 +673,43 @@ function boblift_news_social_tags(): void
         'twitter:title' => $title,
         'twitter:description' => $description,
         'twitter:image' => $image,
-    ];
-    foreach (array_filter($tags) as $property => $content) {
+    ])];
+}
+
+/**
+ * Jetpack prints its Open Graph and Twitter tags on every page; on news posts and cases the theme used to print a
+ * second set with other values. Jetpack's set (with the image size, its media alt and the locales) is now the only one:
+ * it takes the theme's description, and the SEO title where one is set. The theme prints its own set only when
+ * Jetpack's did not run.
+ */
+add_filter('jetpack_open_graph_tags', static function ($tags) {
+    $social = boblift_singular_social_tags();
+    if (!is_array($tags) || $social === []) {
+        return $tags;
+    }
+    $GLOBALS['boblift_jetpack_social_tags'] = true;
+    if (!empty($social['tags']['og:description'])) {
+        $tags['og:description'] = $social['tags']['og:description'];
+    }
+    if ($social['seo_title'] !== '') {
+        $tags['og:title'] = $social['seo_title'];
+        $tags['twitter:text:title'] = $social['seo_title'];
+    }
+    return $tags;
+}, 20);
+
+function boblift_fallback_social_tags(): void
+{
+    if (!empty($GLOBALS['boblift_jetpack_social_tags'])) {
+        return;
+    }
+    foreach ((boblift_singular_social_tags()['tags'] ?? []) as $property => $content) {
         $attribute = str_starts_with($property, 'twitter:') ? 'name' : 'property';
         printf("<meta %s=\"%s\" content=\"%s\">\n", $attribute, esc_attr($property), esc_attr($content));
     }
 }
-add_action('wp_head', 'boblift_news_social_tags', 5);
+// After Jetpack's tags (priority 10), so it is known whether they were printed.
+add_action('wp_head', 'boblift_fallback_social_tags', 11);
 
 // The old site's "Crane by Ton" addresses that the redirect rules do not catch (/zh/5-ton-crane, /products/5-ton-crane in
 // another case ...) move to the tonnage page in the address's language (inc/tonnage-pages.php), keeping their parameters.

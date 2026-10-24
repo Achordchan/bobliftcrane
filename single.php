@@ -76,7 +76,7 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
                             ?>
                             <li>
                                 <a class="group flex items-center gap-3 py-3" href="<?php echo esc_url(get_permalink($product)); ?>">
-                                    <span class="h-14 w-16 shrink-0 overflow-hidden rounded-sm border border-line bg-mist"><img class="h-full w-full object-contain p-1" src="<?php echo esc_url(boblift_post_thumbnail_url($product, boblift_asset('images/products/crane-accessories.png'))); ?>" alt="" loading="lazy" decoding="async"></span>
+                                    <span class="h-14 w-16 shrink-0 overflow-hidden rounded-sm border border-line bg-mist"><img class="h-full w-full object-contain p-1" src="<?php echo esc_url(boblift_post_thumbnail_url($product, boblift_asset('images/products/crane-accessories.png'))); ?>" alt="<?php echo esc_attr($product_title); ?>" loading="lazy" decoding="async"></span>
                                     <span class="min-w-0">
                                         <span class="line-clamp-2 text-sm font-black leading-snug text-ink transition group-hover:text-blue-700"><?php echo esc_html($product_title); ?></span>
                                         <?php if ($model !== '') : ?><span class="mt-0.5 block text-xs font-bold text-slate-500"><?php echo esc_html($model); ?></span><?php endif; ?>
@@ -138,7 +138,7 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
 
             <?php if ($lead_image !== '') : ?>
                 <figure class="mt-8 overflow-hidden rounded border border-line bg-mist">
-                    <img class="mx-auto h-auto max-h-[min(80vh,calc(100vh-10rem))] w-auto max-w-full" <?php echo boblift_img_src($lead_image, '(min-width: 1024px) 67vw, 92vw', 1280); ?><?php if ((int) $image_src[1] > 0 && (int) $image_src[2] > 0) : ?> width="<?php echo (int) $image_src[1]; ?>" height="<?php echo (int) $image_src[2]; ?>"<?php endif; ?> alt="<?php echo esc_attr($title); ?>" fetchpriority="high" decoding="async">
+                    <img class="mx-auto h-auto max-h-[min(80vh,calc(100vh-10rem))] w-auto max-w-full" <?php echo boblift_img_src($lead_image, '(min-width: 1024px) 67vw, 92vw', 1280); ?><?php if ((int) $image_src[1] > 0 && (int) $image_src[2] > 0) : ?> width="<?php echo (int) $image_src[1]; ?>" height="<?php echo (int) $image_src[2]; ?>"<?php endif; ?> alt="<?php echo esc_attr($localize(boblift_post_thumbnail_alt(get_post($post_id), $title))); ?>" fetchpriority="high" decoding="async">
                 </figure>
             <?php endif; ?>
 
@@ -208,7 +208,7 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
                         ?>
                         <article class="group overflow-hidden rounded border border-line bg-white">
                             <a class="block aspect-[16/9] overflow-hidden bg-mist" href="<?php the_permalink(); ?>" tabindex="-1" aria-hidden="true">
-                                <img class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" <?php echo boblift_img_src(boblift_post_thumbnail_url(get_post(), boblift_asset('images/page-heroes/factory-floor.webp')), '(min-width: 768px) 33vw, 92vw'); ?> alt="" loading="lazy" decoding="async">
+                                <img class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" <?php echo boblift_img_src(boblift_post_thumbnail_url(get_post(), boblift_asset('images/page-heroes/factory-floor.webp')), '(min-width: 768px) 33vw, 92vw'); ?> alt="<?php echo esc_attr($localize(boblift_post_thumbnail_alt(get_post(), $related_title))); ?>" loading="lazy" decoding="async">
                             </a>
                             <div class="p-5">
                                 <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-bold text-slate-500"><span class="font-black uppercase tracking-[0.12em] text-blue-700"><?php echo esc_html($related_category); ?></span><time datetime="<?php echo esc_attr(get_the_date('Y-m-d')); ?>"><?php echo esc_html(get_the_date('Y-m-d')); ?></time></p>

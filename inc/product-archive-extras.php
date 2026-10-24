@@ -158,7 +158,7 @@ function boblift_render_model_cards(array $models, string $labelled_by, array $r
             ?>
             <li class="flex flex-col rounded border <?php echo $is_this ? 'border-[#BFD3EA] bg-[#F5F8FC]' : 'border-[#E5E7EB] bg-white'; ?> p-4 sm:p-5">
                 <div class="flex items-center gap-4 sm:gap-5">
-                    <span class="flex h-24 w-28 shrink-0 items-center justify-center overflow-hidden rounded-sm bg-[#F8FAFC] sm:h-28 sm:w-36"><img class="h-full w-full object-contain" src="<?php echo esc_url($item['image']); ?>" alt="" loading="lazy" decoding="async"></span>
+                    <span class="flex h-24 w-28 shrink-0 items-center justify-center overflow-hidden rounded-sm bg-[#F8FAFC] sm:h-28 sm:w-36"><img class="h-full w-full object-contain" src="<?php echo esc_url($item['image']); ?>" alt="<?php echo esc_attr(trim((string) $item['title']) ?: (string) $item['model']); ?>" loading="lazy" decoding="async"></span>
                     <div class="min-w-0">
                         <?php if ($status) : ?>
                             <span class="mb-2 inline-flex items-center rounded-sm px-2 py-1 text-[11px] font-black uppercase leading-none tracking-[0.08em] <?php echo $item['legacy'] ? 'bg-[#EEF1F5] text-slate-600' : 'bg-blue-50 text-blue-700'; ?>"><?php echo esc_html($t($item['legacy'] ? 'Previous model' : 'Current model')); ?></span>
@@ -237,13 +237,13 @@ function boblift_render_model_table(array $models, string $labelled_by, array $o
                             <?php endif; ?>
                             <?php if ($is_this) : ?>
                                 <span class="block">
-                                    <span class="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-sm bg-white"><img class="h-full w-full object-contain" src="<?php echo esc_url($item['image']); ?>" alt="" loading="lazy" decoding="async"></span>
+                                    <span class="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-sm bg-white"><img class="h-full w-full object-contain" src="<?php echo esc_url($item['image']); ?>" alt="<?php echo esc_attr(trim((string) $item['title']) ?: (string) $item['model']); ?>" loading="lazy" decoding="async"></span>
                                     <span class="mt-3 flex items-center gap-2 text-base font-black text-ink"><?php echo esc_html($item['model']); ?><span class="text-[11px] font-black uppercase tracking-[0.1em] text-slate-500"><?php echo esc_html($t('This model')); ?></span></span>
                                     <span class="mt-1 line-clamp-2 block text-xs leading-5 text-slate-500"><?php echo esc_html((string) $item['title']); ?></span>
                                 </span>
                             <?php else : ?>
                                 <a class="group block" href="<?php echo esc_url($item['url']); ?>">
-                                    <span class="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-sm bg-[#F8FAFC]"><img class="h-full w-full object-contain transition duration-500 group-hover:scale-[1.04]" src="<?php echo esc_url($item['image']); ?>" alt="" loading="lazy" decoding="async"></span>
+                                    <span class="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-sm bg-[#F8FAFC]"><img class="h-full w-full object-contain transition duration-500 group-hover:scale-[1.04]" src="<?php echo esc_url($item['image']); ?>" alt="<?php echo esc_attr(trim((string) $item['title']) ?: (string) $item['model']); ?>" loading="lazy" decoding="async"></span>
                                     <span class="mt-3 flex items-center gap-1 text-base font-black text-ink transition group-hover:text-blue-700"><?php echo esc_html($item['model']); ?><?php echo boblift_icon('arrow-up-right', 'h-3.5 w-3.5 shrink-0 text-slate-500 transition group-hover:text-blue-700 rtl:-scale-x-100'); ?></span>
                                     <span class="mt-1 line-clamp-2 block text-xs leading-5 text-slate-500"><?php echo esc_html((string) $item['title']); ?></span>
                                 </a>
@@ -413,7 +413,7 @@ function boblift_render_archive_articles(string $family, string $slug): void
         <div class="mt-6 grid gap-5 lg:mt-8 <?php echo $single ? '' : (count($posts) === 2 ? 'md:grid-cols-2' : 'md:grid-cols-3'); ?> xl:gap-6">
             <?php foreach ($posts as $post) : $excerpt = function_exists('boblift_article_card_excerpt') ? boblift_article_card_excerpt((string) get_the_excerpt($post), (string) get_the_title($post)) : ''; ?>
                 <a class="group grid overflow-hidden rounded border border-[#E5E7EB] bg-white transition hover:border-blue-200 <?php echo $single ? 'md:grid-cols-12' : ''; ?>" href="<?php echo esc_url(get_permalink($post)); ?>">
-                    <span class="relative block aspect-[16/9] overflow-hidden bg-mist <?php echo $single ? 'md:col-span-5 md:aspect-auto md:min-h-[280px]' : ''; ?>"><img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" src="<?php echo esc_url(boblift_post_thumbnail_url($post, boblift_asset('images/page-heroes/factory-floor.webp'))); ?>" alt="" loading="lazy" decoding="async"></span>
+                    <span class="relative block aspect-[16/9] overflow-hidden bg-mist <?php echo $single ? 'md:col-span-5 md:aspect-auto md:min-h-[280px]' : ''; ?>"><img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" src="<?php echo esc_url(boblift_post_thumbnail_url($post, boblift_asset('images/page-heroes/factory-floor.webp'))); ?>" alt="<?php echo esc_attr(boblift_post_thumbnail_alt($post, (string) get_the_title($post))); ?>" loading="lazy" decoding="async"></span>
                     <span class="flex flex-col p-5 <?php echo $single ? 'md:col-span-7 md:justify-center md:p-10' : ''; ?>">
                         <time class="text-xs font-bold text-slate-500" datetime="<?php echo esc_attr(get_the_date('Y-m-d', $post)); ?>"><?php echo esc_html(get_the_date('Y-m-d', $post)); ?></time>
                         <span class="mt-2 line-clamp-2 font-black leading-snug text-ink transition group-hover:text-blue-700 <?php echo $single ? 'text-[clamp(1.25rem,1.8vw,1.75rem)]' : 'text-lg'; ?>"><?php echo esc_html(get_the_title($post)); ?></span>
@@ -560,7 +560,7 @@ function boblift_render_product_articles(WP_Term $term): void
             <?php foreach ($posts as $post) : ?>
                 <li class="min-w-0">
                     <a class="group <?php echo $single ? 'grid items-center gap-x-8 gap-y-3 sm:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]' : 'block'; ?>" href="<?php echo esc_url(get_permalink($post)); ?>">
-                        <span class="block aspect-[16/9] overflow-hidden rounded-sm bg-[#EDF1F5]"><img class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" src="<?php echo esc_url(boblift_post_thumbnail_url($post, boblift_asset('images/page-heroes/factory-floor.webp'))); ?>" alt="" loading="lazy" decoding="async"></span>
+                        <span class="block aspect-[16/9] overflow-hidden rounded-sm bg-[#EDF1F5]"><img class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" src="<?php echo esc_url(boblift_post_thumbnail_url($post, boblift_asset('images/page-heroes/factory-floor.webp'))); ?>" alt="<?php echo esc_attr(boblift_post_thumbnail_alt($post, (string) get_the_title($post))); ?>" loading="lazy" decoding="async"></span>
                         <span class="block min-w-0">
                             <time class="mt-3 block text-xs font-bold text-slate-500 <?php echo $single ? 'sm:mt-0' : ''; ?>" datetime="<?php echo esc_attr(get_the_date('Y-m-d', $post)); ?>"><?php echo esc_html(get_the_date('Y-m-d', $post)); ?></time>
                             <span class="mt-1.5 line-clamp-2 block font-black leading-snug text-[#071f42] transition group-hover:text-blue-700 <?php echo $single ? 'text-[clamp(1.125rem,1.6vw,1.5rem)]' : 'text-base'; ?>"><?php echo esc_html(get_the_title($post)); ?></span>

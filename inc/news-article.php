@@ -241,3 +241,133 @@ function boblift_news_related_products(string $title, string $content, int $limi
     }
     return $products;
 }
+
+/**
+ * Question and answer pairs from the article's FAQ section: the <h3> questions under an <h2> titled FAQ (in any of the
+ * site's languages), each answered by the text up to the next question. Returns [] when there is no such section.
+ */
+function boblift_news_article_faq(string $content): array
+{
+    $heading = '/\bFAQs?\b|frequently asked|常见问题|常見問題|よくある(?:ご)?質問|preguntas frecuentes|часто задаваемые вопросы|questions fréquentes|foire aux questions|الأسئلة الشائعة|الأسئلة المتكررة/iu';
+    $text = static fn(string $html): string => trim((string) preg_replace('/\s+/u', ' ', html_entity_decode(wp_strip_all_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8')));
+    $sections = preg_split('#(<h2\b[^>]*>.*?</h2>)#is', $content, -1, PREG_SPLIT_DELIM_CAPTURE) ?: [];
+    $items = [];
+    for ($i = 1; $i < count($sections) - 1; $i += 2) {
+        if (!preg_match($heading, $text($sections[$i]))) {
+            continue;
+        }
+        // A rule ends the FAQ: what follows it (an author note, a call to action) is not part of the questions.
+        $section = (string) preg_split('#<hr\b#i', $sections[$i + 1], 2)[0];
+        $parts = preg_split('#<h3\b[^>]*>(.*?)</h3>#is', $section, -1, PREG_SPLIT_DELIM_CAPTURE) ?: [];
+        for ($j = 1; $j < count($parts) - 1; $j += 2) {
+            $question = $text($parts[$j]);
+            $answer = $text($parts[$j + 1]);
+            if ($question !== '' && $answer !== '') {
+                $items[] = ['@type' => 'Question', 'name' => $question, 'acceptedAnswer' => ['@type' => 'Answer', 'text' => $answer]];
+            }
+        }
+    }
+    return $items;
+}
+
+/** Schema.org types the page's own JSON-LD already describes, at any depth (_article_schema_jsonld and JSON-LD written in the body). */
+function boblift_post_stored_schema_types(int $post_id): array
+{
+    $home = untrailingslashit((string) get_option('home'));
+    $documents = [trim((string) get_post_meta($post_id, '_article_schema_jsonld', true))];
+    $content = (string) get_post_field('post_content', $post_id, 'raw');
+    if (stripos($content, 'application/ld+json') !== false && function_exists('boblift_content_jsonld_pattern') && preg_match_all(boblift_content_jsonld_pattern(), $content, $matches)) {
+        $documents = array_merge($documents, $matches[2]);
+    }
+    $types = [];
+    $collect = static function ($node) use (&$collect, &$types): void {
+        if (!is_array($node)) {
+            return;
+        }
+        foreach ((array) ($node['@type'] ?? []) as $type) {
+            $types[(string) $type] = true;
+        }
+        // Nested nodes count too: @graph entries, lists, and objects held by a property (a WebPage's breadcrumb).
+        foreach ($node as $child) {
+            $collect($child);
+        }
+    };
+    foreach ($documents as $json) {
+        $collect(json_decode(str_replace('{{home}}', $home, trim((string) $json)), true));
+    }
+    return array_keys($types);
+}
+
+/**
+ * The news article's JSON-LD graph: Article with its author (Achord Chan, who signs every article on the page) and the
+ * publisher, the BreadcrumbList shown above the headline (Home / News / article) and, when the text has an FAQ section,
+ * an FAQPage. Nodes the article's own JSON-LD already holds are left out, so a hand-written Article is not doubled.
+ */
+function boblift_news_article_schema_graph(WP_Post $post): array
+{
+    $home = untrailingslashit((string) get_option('home'));
+    $stored = boblift_post_stored_schema_types($post->ID);
+    $localize = static fn(string $text): string => function_exists('boblift_localize_product_text_fragments') ? (string) boblift_localize_product_text_fragments($text) : $text;
+    $plain = static fn(string $text): string => trim(html_entity_decode(wp_strip_all_tags($text), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+    $title = $plain($localize(get_the_title($post)));
+    $url = (string) get_permalink($post);
+    $article_ui = boblift_site_ui('newsArticle');
+    $ui = boblift_site_ui('newsDetail');
+    $nodes = [];
+
+    if (array_intersect($stored, ['Article', 'NewsArticle', 'BlogPosting']) === []) {
+        $person = [
+            '@type' => 'Person',
+            '@id' => $home . '/#achord-chan',
+            'name' => trim((string) ($article_ui['authorName'] ?? '')) ?: 'Achord Chan',
+            'jobTitle' => 'Product Operations Director',
+            'url' => boblift_url('/about.html'),
+            'image' => boblift_asset('images/authors/achord-chan.webp'),
+            'worksFor' => ['@id' => $home . '/#organization'],
+        ];
+        $article = [
+            '@type' => 'Article',
+            '@id' => $url . '#article',
+            'headline' => $title,
+            'description' => $plain(boblift_seo_post_description($post)),
+            'datePublished' => get_post_time('c', true, $post),
+            'dateModified' => get_post_modified_time('c', true, $post),
+            'inLanguage' => get_bloginfo('language'),
+            'mainEntityOfPage' => ['@type' => 'WebPage', '@id' => $url],
+            'author' => ['@id' => $person['@id']],
+            'publisher' => [
+                '@type' => 'Organization',
+                '@id' => $home . '/#organization',
+                'name' => 'BOB-LIFT',
+                'url' => $home . '/',
+                'logo' => ['@type' => 'ImageObject', 'url' => boblift_asset('images/bob-lift-logo.png')],
+            ],
+        ];
+        $image = wp_get_attachment_image_src((int) get_post_thumbnail_id($post), 'full');
+        if (is_array($image) && (string) $image[0] !== '') {
+            $article['image'] = array_filter(['@type' => 'ImageObject', 'url' => (string) $image[0], 'width' => (int) $image[1], 'height' => (int) $image[2]]);
+        }
+        $nodes[] = $article;
+        $nodes[] = $person;
+    }
+
+    if (!in_array('BreadcrumbList', $stored, true)) {
+        $nodes[] = [
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => [
+                ['@type' => 'ListItem', 'position' => 1, 'name' => (string) ($ui['home'] ?? 'Home'), 'item' => home_url('/')],
+                ['@type' => 'ListItem', 'position' => 2, 'name' => (string) ($ui['news'] ?? 'News'), 'item' => boblift_url('/news')],
+                ['@type' => 'ListItem', 'position' => 3, 'name' => $title, 'item' => $url],
+            ],
+        ];
+    }
+
+    if (!in_array('FAQPage', $stored, true)) {
+        $faq = boblift_news_article_faq($localize((string) $post->post_content));
+        if ($faq !== []) {
+            $nodes[] = ['@type' => 'FAQPage', '@id' => $url . '#faq', 'mainEntity' => $faq];
+        }
+    }
+
+    return $nodes === [] ? [] : ['@context' => 'https://schema.org', '@graph' => $nodes];
+}
