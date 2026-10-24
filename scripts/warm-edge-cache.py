@@ -39,11 +39,13 @@ def main() -> int:
         print(f"sitemap index returned {status}")
         return 1
     urls: list[str] = []
+    failed_sitemaps = 0
     for sitemap in locs(index):
         status, body = fetch(sitemap)
         if status == 200:
             urls.extend(locs(body))
         else:
+            failed_sitemaps += 1
             print(f"{sitemap} returned {status}")
     failed = 0
     for url in urls:
@@ -52,8 +54,9 @@ def main() -> int:
             failed += 1
             print(f"{url} returned {status}")
         time.sleep(0.6)
-    print(f"warmed {len(urls) - failed} of {len(urls)} URLs")
-    return 0
+    print(f"warmed {len(urls) - failed} of {len(urls)} URLs, {failed_sitemaps} sitemaps unreadable")
+    # Any skipped sitemap or page means some pages may still be stale, so the run fails and shows up in Actions.
+    return 1 if failed or failed_sitemaps else 0
 
 
 if __name__ == "__main__":
