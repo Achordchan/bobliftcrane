@@ -691,9 +691,11 @@ add_filter('jetpack_open_graph_tags', static function ($tags) {
     if (!empty($social['tags']['og:description'])) {
         $tags['og:description'] = $social['tags']['og:description'];
     }
-    // Jetpack reads the upload's alt, which is English on every language; a translated page gets its own title instead.
+    // Jetpack reads the upload's alt, which is English on every language; a translated page whose social image is its
+    // featured image gets that image's alt by the theme's rule (its own title). English pages and other images keep Jetpack's.
     $post = get_queried_object();
-    if (!empty($tags['og:image:alt']) && $post instanceof WP_Post) {
+    $language = (function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '') ?: 'en';
+    if (!empty($tags['og:image:alt']) && $post instanceof WP_Post && $language !== 'en' && has_post_thumbnail($post)) {
         $alt = boblift_post_thumbnail_alt($post, (string) get_the_title($post));
         $tags['og:image:alt'] = $alt;
         if (!empty($tags['twitter:image:alt'])) {
