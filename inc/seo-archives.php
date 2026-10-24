@@ -139,3 +139,12 @@ function boblift_seo_sitemap_retired_news_categories(array $args, string $taxono
     return $args;
 }
 add_filter('wp_sitemaps_taxonomies_query_args', 'boblift_seo_sitemap_retired_news_categories', 10, 2);
+
+// A news category page has no pagination links, so it lists every article in the category rather than the first ten.
+function boblift_seo_news_category_show_all(WP_Query $query): void
+{
+    if (!is_admin() && $query->is_main_query() && $query->is_category() && !$query->is_feed()) {
+        $query->set('posts_per_page', -1);
+    }
+}
+add_action('pre_get_posts', 'boblift_seo_news_category_show_all');
