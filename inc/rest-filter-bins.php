@@ -17,6 +17,11 @@ if (!defined('ABSPATH')) {
  * bins; "bins": null drops them (and, for capacity, the legacy capacityRanges list) so the theme's list applies. Keys are
  * "min-max" or "min+" in the filter's unit, decimals written with "_"; labels are plain text. The write is a
  * compare-and-set on the stored option row, retried when another save changed it in between.
+ *
+ * The WordPress.com connector reaches only the core routes, so the same reads and writes are also the boblift_filter_bins
+ * field on wp/v2/pages (context edit, manage_options), for the language of the page sent: reading it gives that
+ * language's {"capacity": ..., "moment": ..., "weight": ...}; writing {"filter": "capacity", "bins": {...} | null} saves
+ * as the POST above. Send it on its own with the page id: the page itself is saved unchanged.
  */
 function boblift_filter_bins_keys(): array
 {
@@ -165,3 +170,46 @@ function boblift_filter_bins_rest_register(): void
     ]);
 }
 add_action('rest_api_init', 'boblift_filter_bins_rest_register');
+
+function boblift_filter_bins_page_language(WP_Post $post): string
+{
+    return function_exists('boblift_mls_post_language') ? (string) boblift_mls_post_language($post) : 'en';
+}
+
+function boblift_filter_bins_register_page_field(): void
+{
+    register_rest_field('page', 'boblift_filter_bins', [
+        'get_callback' => static function (array $post) {
+            $page = get_post((int) $post['id']);
+            if (!$page instanceof WP_Post || !current_user_can('manage_options')) {
+                return null;
+            }
+            return boblift_filter_bins_shown(boblift_filter_bins_stored(boblift_filter_bins_page_language($page))['options']);
+        },
+        'update_callback' => static function ($value, WP_Post $post) {
+            if (!current_user_can('manage_options')) {
+                return new WP_Error('boblift_bins_forbidden', 'Changing the filter bins needs manage_options.', ['status' => 403]);
+            }
+            $value = is_array($value) ? $value : [];
+            $filter = (string) ($value['filter'] ?? '');
+            if (!isset(boblift_filter_bins_keys()[$filter]) || !array_key_exists('bins', $value)) {
+                return new WP_Error('boblift_bins_invalid', 'Send {"filter": "capacity" | "moment" | "weight", "bins": {...} | null}.', ['status' => 400]);
+            }
+            $bins = $value['bins'];
+            if ($bins !== null) {
+                $bins = boblift_filter_bins_clean($bins);
+                if (is_wp_error($bins)) {
+                    return $bins;
+                }
+            }
+            $saved = boblift_filter_bins_save(boblift_filter_bins_page_language($post), $filter, $bins);
+            return is_wp_error($saved) ? $saved : true;
+        },
+        'schema' => [
+            'description' => 'Product list filter bins of this page\'s language. Write {"filter": "capacity", "bins": {"min-max": label} | null}.',
+            'type' => ['object', 'null'],
+            'context' => ['edit'],
+        ],
+    ]);
+}
+add_action('rest_api_init', 'boblift_filter_bins_register_page_field');
