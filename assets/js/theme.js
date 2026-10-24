@@ -2906,6 +2906,8 @@
   qsa('[data-product-listing]').forEach((root) => {
     const cards = qsa('.product-card', root);
     const checks = qsa('input[data-filter]', root);
+    // A category page's "Browse by capacity" chips tick one capacity bin of this category's own list (archive-product.php).
+    const capacityChips = qsa('[data-capacity-chip]', root);
     const capacitySelect = qs('[data-capacity-select]', root);
     const count = qs('[data-product-count]', root);
     const total = qs('[data-product-total]', root);
@@ -3283,6 +3285,9 @@
     const apply = ({ resetPage = false, scroll = false } = {}) => {
       updateFilterAvailability();
       updateFilterBar();
+      const activeCapacity = activeValues('capacity');
+      if (!activeCapacity.length && customCapacity) activeCapacity.push(customCapacity);
+      capacityChips.forEach((chip) => chip.setAttribute('aria-pressed', String(activeCapacity.includes(chip.dataset.capacityChip || ''))));
       if (resetPage) currentPage = 1;
       const ordered = sortedCards();
       const filtered = ordered.filter(cardMatches);
@@ -3528,6 +3533,17 @@
       syncMatchingFilterInputs(input);
       if (isMobileFilterDrawerActive(input)) return;
       updateUrlFromFilters();
+      apply({ resetPage: true });
+    }));
+    // A chip selects its bin alone, through its capacity box or, where the capacity filter's bins (产品列表 settings) have
+    // none, as a custom range; a pressed chip clears its bin.
+    capacityChips.forEach((chip) => chip.addEventListener('click', () => {
+      const bin = chip.dataset.capacityChip || '';
+      const pressed = chip.getAttribute('aria-pressed') === 'true';
+      const capacityInputs = checks.filter((input) => input.dataset.filter === 'capacity');
+      capacityInputs.forEach((input) => { input.checked = pressed ? input.checked && input.value !== bin : input.value === bin; });
+      customCapacity = !pressed && !capacityInputs.some((input) => input.value === bin) ? bin : '';
+      updateUrlFromFilters({ replace: false });
       apply({ resetPage: true });
     }));
     capacitySelect?.addEventListener('change', () => {

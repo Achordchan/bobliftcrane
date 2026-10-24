@@ -190,10 +190,12 @@ if ($tonnage > 0) {
     $legacy_groups = array_values(array_filter($legacy_groups, static fn(array $group): bool => in_array((string) ($group['slug'] ?? ''), $scope_slugs, true)));
 }
 $legacy_total = array_sum(array_map(static fn(array $group): int => count($group['models']), $legacy_groups));
-// "Browse by capacity": the tonnage pages (inc/tonnage-pages.php) of the bins this page lists models in; every bin on the whole
-// list and on a tonnage page, where the page's own bin is the current one.
+// "Browse by capacity": on the whole list and on a tonnage page, links to every tonnage page (inc/tonnage-pages.php), the
+// page's own bin the current one. A category page keeps its visitor in the category: its chips are buttons for the bins it
+// lists models in, ticking that bin's capacity filter here (theme.js) instead of opening the all-category tonnage page.
 $capacity_links = function_exists('boblift_tonnage_links') ? boblift_tonnage_links() : [];
-if ($tonnage === 0 && !$on_all_products) {
+$capacity_chips_filter = $tonnage === 0 && !$on_all_products;
+if ($capacity_chips_filter) {
     $capacity_links = array_filter($capacity_links, static function (int $size) use ($products, $in_bin): bool {
         $bin = boblift_tonnage_bins()[$size];
         foreach ($products as $product) {
@@ -351,7 +353,11 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
                 <span class="shrink-0 text-sm font-black text-slate-500"><?php echo esc_html(boblift_localized_static_text('Browse by capacity')); ?></span>
                 <div class="flex min-w-0 flex-1 gap-2 overflow-x-auto overscroll-x-contain [scrollbar-width:none] md:flex-wrap md:overflow-visible [&::-webkit-scrollbar]:hidden">
                     <?php foreach ($capacity_links as $size => [$capacity_label, $capacity_url]) : ?>
-                        <a class="boblift-category-subtab shrink-0" href="<?php echo esc_url($capacity_url); ?>"<?php echo $current_attr($size === $tonnage); ?>><?php echo esc_html($capacity_label); ?></a>
+                        <?php if ($capacity_chips_filter) : ?>
+                            <button class="boblift-category-subtab shrink-0" type="button" aria-pressed="false" data-capacity-chip="<?php echo esc_attr(boblift_tonnage_bins()[$size]); ?>"><?php echo esc_html($capacity_label); ?></button>
+                        <?php else : ?>
+                            <a class="boblift-category-subtab shrink-0" href="<?php echo esc_url($capacity_url); ?>"<?php echo $current_attr($size === $tonnage); ?>><?php echo esc_html($capacity_label); ?></a>
+                        <?php endif; ?>
                     <?php endforeach; ?>
                 </div>
             </nav>
