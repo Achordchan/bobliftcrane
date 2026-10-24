@@ -8,7 +8,9 @@ if (!defined('ABSPATH')) {
  * failure that WordPress.com only reports as "the site is temporarily unavailable" can be read back through the
  * connector, which reaches wp/v2 only and has no access to the server's error log.
  *
- * Read: GET /wp/v2/pages/<any page id>?context=edit, field boblift_fatal_log (newest first; administrators only).
+ * Read: GET /wp/v2/pages/<any page id>?context=edit, field boblift_fatal_log (newest first; administrators only). The
+ * WordPress.com connector returns only core fields and registered meta, so the same list is also the read-only page meta
+ * _boblift_fatal_log, as a JSON string.
  * Clear: POST /wp/v2/pages/<id> with {"boblift_fatal_log": []}.
  */
 const BOBLIFT_FATAL_LOG_PREFIX = 'boblift_fatal_log_';
@@ -56,6 +58,39 @@ function boblift_fatal_log_names(): array
 $GLOBALS['boblift_fatal_log_reserve'] = str_repeat(' ', 256 * 1024);
 register_shutdown_function('boblift_fatal_log_record');
 
+/** The stored entries, newest first. */
+function boblift_fatal_log_entries(): array
+{
+    return array_values(array_filter(array_map(static fn(string $name) => get_option($name), array_slice(boblift_fatal_log_names(), 0, BOBLIFT_FATAL_LOG_SIZE)), 'is_array'));
+}
+
+function boblift_fatal_log_register_meta(): void
+{
+    register_post_meta('page', '_boblift_fatal_log', [
+        'type' => 'string',
+        'single' => true,
+        'default' => '',
+        'show_in_rest' => true,
+        // Read only: nothing is stored under this key, the value is the log itself. Writes are accepted and dropped
+        // (below), so an editor or client that sends every registered meta back on save is not refused.
+        'auth_callback' => static fn(): bool => current_user_can('manage_options'),
+    ]);
+}
+add_action('init', 'boblift_fatal_log_register_meta', 20);
+
+foreach (['add_post_metadata', 'update_post_metadata'] as $boblift_fatal_log_hook) {
+    add_filter($boblift_fatal_log_hook, static fn($check, $object_id, $meta_key) => $meta_key === '_boblift_fatal_log' ? true : $check, 10, 3);
+}
+unset($boblift_fatal_log_hook);
+
+add_filter('get_post_metadata', static function ($value, $object_id, $meta_key, $single) {
+    if ($meta_key !== '_boblift_fatal_log') {
+        return $value;
+    }
+    $json = current_user_can('manage_options') ? (string) wp_json_encode(boblift_fatal_log_entries(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : '';
+    return $single ? $json : [$json];
+}, 10, 4);
+
 function boblift_fatal_log_register_field(): void
 {
     register_rest_field('page', 'boblift_fatal_log', [
@@ -63,7 +98,7 @@ function boblift_fatal_log_register_field(): void
             if (!current_user_can('manage_options')) {
                 return null;
             }
-            return array_values(array_filter(array_map(static fn(string $name) => get_option($name), array_slice(boblift_fatal_log_names(), 0, BOBLIFT_FATAL_LOG_SIZE)), 'is_array'));
+            return boblift_fatal_log_entries();
         },
         'update_callback' => static function ($value) {
             if (!current_user_can('manage_options')) {
