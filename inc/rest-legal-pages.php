@@ -13,6 +13,9 @@ if (!defined('ABSPATH')) {
  * "title": ..., "description": ..., "updated_label": ..., "updated": ..., "side_title": ..., "side_text": ...},
  * "sections": [{"title": ..., "text": ...}]}, the wording the page shows (the language's stored options over the theme
  * defaults); "stored" is false when the language has no stored options for the page and shows the defaults.
+ * "published" is false for a language the multilingual sync has not published yet: visitors then see the defaults
+ * instead, and the wording here (which is what the page editor shows and edits) only goes live when it is published.
+ * Writes always check and change the language's own wording, as saving the page in the editor does.
  *
  * Write: one change or a list of them, each {"key": "sections.4.text", "from": "the text as shown now", "to": "new text"}.
  * "key" is one of the field names above or sections.N.title / sections.N.text for an existing clause. A change applies
@@ -44,6 +47,7 @@ function boblift_register_rest_legal_page_field(): void
                 'section' => $section,
                 'language' => $language,
                 'stored' => isset($stored['options'][$section]) && is_array($stored['options'][$section]),
+                'published' => boblift_legal_page_language_published($language),
                 'fields' => array_intersect_key($shown, array_flip(boblift_legal_page_scalar_keys())),
                 'sections' => $shown['sections'],
             ];
@@ -100,6 +104,15 @@ function boblift_legal_page_section(WP_Post $post): string
 function boblift_legal_page_language(WP_Post $post): string
 {
     return function_exists('boblift_mls_post_language') ? boblift_mls_post_language($post) : 'en';
+}
+
+/** Whether visitors of this language see its own stored options (boblift_mls_theme_options' rule for a visitor). */
+function boblift_legal_page_language_published(string $language): bool
+{
+    if (!function_exists('boblift_mls_source_language') || !function_exists('boblift_mls_language_status')) {
+        return true;
+    }
+    return $language === boblift_mls_source_language() || boblift_mls_language_status($language) === 'published';
 }
 
 function boblift_legal_page_scalar_keys(): array
@@ -205,7 +218,8 @@ function boblift_rest_save_legal_page(WP_Post $post, mixed $value): true|WP_Erro
             // No row yet: add_option fails when another save created one first, and the next attempt reads that row.
             $done = add_option($stored['name'], $options, '', false);
         } else {
-            $done = (bool) $wpdb->update($wpdb->options, ['option_value' => maybe_serialize($options)], ['option_name' => $stored['name'], 'option_value' => $stored['raw']]);
+            // BINARY: the row must still match byte for byte, whatever the column's collation (a case-only change counts).
+            $done = (bool) $wpdb->query($wpdb->prepare("UPDATE {$wpdb->options} SET option_value = %s WHERE option_name = %s AND BINARY option_value = BINARY %s", maybe_serialize($options), $stored['name'], $stored['raw']));
         }
         wp_cache_delete($stored['name'], 'options');
         wp_cache_delete('alloptions', 'options');
