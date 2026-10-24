@@ -88,7 +88,8 @@ function boblift_google_tag_markup(): string
         . 'gtag("set","ads_data_redaction",true);gtag("js",new Date());window.bobliftTracking=true;'
         . (in_array('advertising', boblift_consent_categories(), true) ? 'window.bobliftAdvertising=true;' : '');
     foreach ($ids as $id) {
-        $script .= 'gtag("config",' . $json($id) . ');';
+        // Ads accounts accept the hashed email a sent inquiry sets as user_data (enhanced conversions, assets/js/theme.js).
+        $script .= 'gtag("config",' . $json($id) . (str_starts_with($id, 'AW-') ? ',{"allow_enhanced_conversions":true}' : '') . ');';
     }
     $conversion = boblift_google_conversion();
     // Only for a Google Ads account whose tag is loaded, which is what puts Advertising in the banner.
