@@ -691,6 +691,15 @@ add_filter('jetpack_open_graph_tags', static function ($tags) {
     if (!empty($social['tags']['og:description'])) {
         $tags['og:description'] = $social['tags']['og:description'];
     }
+    // Jetpack reads the upload's alt, which is English on every language; a translated page gets its own title instead.
+    $post = get_queried_object();
+    if (!empty($tags['og:image:alt']) && $post instanceof WP_Post) {
+        $alt = boblift_post_thumbnail_alt($post, (string) get_the_title($post));
+        $tags['og:image:alt'] = $alt;
+        if (!empty($tags['twitter:image:alt'])) {
+            $tags['twitter:image:alt'] = $alt;
+        }
+    }
     if ($social['seo_title'] !== '') {
         $tags['og:title'] = $social['seo_title'];
         $tags['twitter:text:title'] = $social['seo_title'];

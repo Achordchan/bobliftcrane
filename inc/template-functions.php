@@ -238,10 +238,21 @@ function boblift_img_from_setting(mixed $image, string $fallback, string $alt = 
     return '<img ' . $source . ' alt="' . esc_attr($alt) . '" class="' . esc_attr($class) . '"' . $extra . '>';
 }
 
-/** The featured image's alt text from the media library, or the fallback (usually the post title) when it has none. */
+/**
+ * The featured image's alt text from the media library, or the fallback (usually the post title) when it has none.
+ * Uploads are shared by every language and their alt is English, so a translated page takes the alt only from an
+ * upload filed in its own language and otherwise the (translated) fallback.
+ */
 function boblift_post_thumbnail_alt(WP_Post $post, string $fallback = ''): string
 {
     $thumbnail_id = (int) get_post_thumbnail_id($post);
+    $language = (function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '') ?: 'en';
+    if ($thumbnail_id && $language !== 'en' && $fallback !== '') {
+        $image_language = function_exists('pll_get_post_language') ? (string) pll_get_post_language($thumbnail_id) : '';
+        if ($image_language !== $language) {
+            return $fallback;
+        }
+    }
     $alt = $thumbnail_id ? trim((string) get_post_meta($thumbnail_id, '_wp_attachment_image_alt', true)) : '';
     return $alt !== '' ? $alt : $fallback;
 }
