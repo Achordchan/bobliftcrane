@@ -238,6 +238,14 @@ function boblift_img_from_setting(mixed $image, string $fallback, string $alt = 
     return '<img ' . $source . ' alt="' . esc_attr($alt) . '" class="' . esc_attr($class) . '"' . $extra . '>';
 }
 
+/** The featured image's alt text from the media library, or the fallback (usually the post title) when it has none. */
+function boblift_post_thumbnail_alt(WP_Post $post, string $fallback = ''): string
+{
+    $thumbnail_id = (int) get_post_thumbnail_id($post);
+    $alt = $thumbnail_id ? trim((string) get_post_meta($thumbnail_id, '_wp_attachment_image_alt', true)) : '';
+    return $alt !== '' ? $alt : $fallback;
+}
+
 function boblift_post_thumbnail_url(WP_Post $post, string $fallback): string
 {
     $thumbnail_id = get_post_thumbnail_id($post);

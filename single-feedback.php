@@ -144,7 +144,7 @@ $others = array_slice($others, 0, 4);
                                 ?>
                                 <li>
                                     <a class="group grid grid-cols-[4.5rem_minmax(0,1fr)] items-center gap-3 rounded-sm border border-line p-2 transition hover:border-blue-300" href="<?php echo esc_url(get_permalink($feedback_product)); ?>">
-                                        <span class="block aspect-[4/3] overflow-hidden rounded-sm bg-mist"><img class="h-full w-full object-contain p-1" src="<?php echo esc_url(boblift_post_thumbnail_url($feedback_product, boblift_asset('images/products/crane-accessories.png'))); ?>" alt="" loading="lazy" decoding="async"></span>
+                                        <span class="block aspect-[4/3] overflow-hidden rounded-sm bg-mist"><img class="h-full w-full object-contain p-1" src="<?php echo esc_url(boblift_post_thumbnail_url($feedback_product, boblift_asset('images/products/crane-accessories.png'))); ?>" alt="<?php echo esc_attr($product_title); ?>" loading="lazy" decoding="async"></span>
                                         <span class="min-w-0">
                                             <span class="block text-sm font-black leading-tight text-ink transition group-hover:text-blue-700"><?php echo esc_html($product_model !== '' ? $product_model : $product_title); ?></span>
                                             <span class="mt-0.5 line-clamp-1 block text-xs text-slate-500"><?php echo esc_html($product_title); ?></span>
