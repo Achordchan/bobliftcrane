@@ -67,7 +67,10 @@ function boblift_filter_bins_clean(mixed $bins): array|WP_Error
     foreach ($bins as $key => $label) {
         $key = (string) $key;
         $text = is_string($label) ? trim(sanitize_text_field($label)) : '';
-        if (!preg_match('/^\d+(?:_\d+)?(?:-\d+(?:_\d+)?|\+)$/', $key) || $text === '' || $text !== trim((string) $label)) {
+        // The list matches a bin as min < figure <= max, so a bounded bin needs max above min.
+        $bounds = explode('-', str_replace('_', '.', $key));
+        $empty_range = count($bounds) === 2 && (float) $bounds[1] <= (float) $bounds[0];
+        if (!preg_match('/^\d+(?:_\d+)?(?:-\d+(?:_\d+)?|\+)$/', $key) || $empty_range || $text === '' || $text !== trim((string) $label)) {
             return new WP_Error('boblift_bins_invalid', sprintf('Bin "%s" needs a "min-max" or "min+" key and a plain-text label.', $key), ['status' => 400]);
         }
         $clean[$key] = $text;
