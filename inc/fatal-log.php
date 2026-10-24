@@ -71,14 +71,14 @@ function boblift_fatal_log_register_meta(): void
         'single' => true,
         'default' => '',
         'show_in_rest' => true,
-        // Read only: nothing is stored under this key, the value is the log itself. Writes are accepted and dropped
+        // Read only: nothing is stored under this key, the value is the log itself. Writes and deletes are accepted and dropped
         // (below), so an editor or client that sends every registered meta back on save is not refused.
         'auth_callback' => static fn(): bool => current_user_can('manage_options'),
     ]);
 }
 add_action('init', 'boblift_fatal_log_register_meta', 20);
 
-foreach (['add_post_metadata', 'update_post_metadata'] as $boblift_fatal_log_hook) {
+foreach (['add_post_metadata', 'update_post_metadata', 'delete_post_metadata'] as $boblift_fatal_log_hook) {
     add_filter($boblift_fatal_log_hook, static fn($check, $object_id, $meta_key) => $meta_key === '_boblift_fatal_log' ? true : $check, 10, 3);
 }
 unset($boblift_fatal_log_hook);
