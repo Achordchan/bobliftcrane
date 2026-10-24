@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
  * Read: GET /wp/v2/pages/<any page id>?context=edit, field boblift_fatal_log (newest first; administrators only).
  * Clear: POST /wp/v2/pages/<id> with {"boblift_fatal_log": []}.
  */
-const BOBLIFT_FATAL_LOG_OPTION = 'boblift_fatal_log';
+const BOBLIFT_FATAL_LOG_PREFIX = 'boblift_fatal_log_';
 const BOBLIFT_FATAL_LOG_SIZE = 5;
 
 function boblift_fatal_log_record(): void
@@ -34,20 +34,24 @@ function boblift_fatal_log_record(): void
         'uri' => substr((string) wp_parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH), 0, 500),
         'rest_route' => $route,
     ];
-    global $wpdb;
-    // Two requests failing at once would otherwise both read the same log and the later write would drop the other
-    // entry; the lock serialises the read-modify-write (read past the object cache), and MySQL drops it if the
-    // connection closes first.
-    $locked = (int) $wpdb->get_var("SELECT GET_LOCK('boblift_fatal_log', 5)") === 1;
-    wp_cache_delete(BOBLIFT_FATAL_LOG_OPTION, 'options');
-    wp_cache_delete('notoptions', 'options');
-    $log = get_option(BOBLIFT_FATAL_LOG_OPTION, []);
-    $log = array_slice(array_merge([$entry], is_array($log) ? $log : []), 0, BOBLIFT_FATAL_LOG_SIZE);
-    update_option(BOBLIFT_FATAL_LOG_OPTION, $log, false);
-    if ($locked) {
-        $wpdb->query("SELECT RELEASE_LOCK('boblift_fatal_log')");
+    // Each entry is its own option (added, never rewritten), so concurrent failures and a concurrent clear cannot
+    // overwrite one another; the name sorts by time. Entries beyond the newest few are pruned.
+    add_option(BOBLIFT_FATAL_LOG_PREFIX . sprintf('%.6F', microtime(true)) . '_' . bin2hex(random_bytes(4)), $entry, '', false);
+    foreach (array_slice(boblift_fatal_log_names(), BOBLIFT_FATAL_LOG_SIZE) as $name) {
+        delete_option($name);
     }
 }
+
+/** Names of the stored entries, newest first. */
+function boblift_fatal_log_names(): array
+{
+    global $wpdb;
+    return array_map('strval', (array) $wpdb->get_col($wpdb->prepare(
+        "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s ORDER BY option_name DESC",
+        $wpdb->esc_like(BOBLIFT_FATAL_LOG_PREFIX) . '%'
+    )));
+}
+
 // Kept until shutdown so that the handler has memory to work with after the limit was hit.
 $GLOBALS['boblift_fatal_log_reserve'] = str_repeat(' ', 256 * 1024);
 register_shutdown_function('boblift_fatal_log_record');
@@ -59,8 +63,7 @@ function boblift_fatal_log_register_field(): void
             if (!current_user_can('manage_options')) {
                 return null;
             }
-            $log = get_option(BOBLIFT_FATAL_LOG_OPTION, []);
-            return is_array($log) ? array_values($log) : [];
+            return array_values(array_filter(array_map(static fn(string $name) => get_option($name), array_slice(boblift_fatal_log_names(), 0, BOBLIFT_FATAL_LOG_SIZE)), 'is_array'));
         },
         'update_callback' => static function ($value) {
             if (!current_user_can('manage_options')) {
@@ -69,7 +72,9 @@ function boblift_fatal_log_register_field(): void
             if ($value !== []) {
                 return new WP_Error('boblift_fatal_log_invalid', 'Send [] to clear the log; it cannot be written otherwise.', ['status' => 400]);
             }
-            delete_option(BOBLIFT_FATAL_LOG_OPTION);
+            foreach (boblift_fatal_log_names() as $name) {
+                delete_option($name);
+            }
             return true;
         },
         'schema' => [

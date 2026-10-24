@@ -1471,8 +1471,8 @@ foreach (['added_option', 'updated_option', 'deleted_option'] as $boblift_option
     add_action($boblift_option_hook, static function ($option): void {
         $option = (string) $option;
         // The products cache version, the image-facts store (boblift_image_facts()) and the rebuild progress
-        // (inc/cache-warm.php) do not change any page.
-        if (in_array($option, ['boblift_products_cache_version', 'boblift_image_facts', 'boblift_cache_warm_state'], true) || str_starts_with($option, '_transient') || str_starts_with($option, '_site_transient')) {
+        // (inc/cache-warm.php) and the fatal error log (inc/fatal-log.php) do not change any page.
+        if (in_array($option, ['boblift_products_cache_version', 'boblift_image_facts', 'boblift_cache_warm_state'], true) || str_starts_with($option, '_transient') || str_starts_with($option, '_site_transient') || str_starts_with($option, 'boblift_fatal_log_')) {
             return;
         }
         if (preg_match('/^(boblift|polylang|pll_|theme_mods_)/', $option)
