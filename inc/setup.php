@@ -691,15 +691,23 @@ add_filter('jetpack_open_graph_tags', static function ($tags) {
     if (!empty($social['tags']['og:description'])) {
         $tags['og:description'] = $social['tags']['og:description'];
     }
-    // Jetpack reads the upload's alt, which is English on every language; a translated page whose social image is its
-    // featured image gets that image's alt by the theme's rule (its own title). English pages and other images keep Jetpack's.
+    // Jetpack reads the upload's alt, which is English on every language. On a translated page, a social image that is
+    // the featured image (same upload, whatever the CDN size) takes that image's alt by the theme's rule (its own title);
+    // English pages and any other image keep Jetpack's.
     $post = get_queried_object();
     $language = (function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '') ?: 'en';
-    if (!empty($tags['og:image:alt']) && $post instanceof WP_Post && $language !== 'en' && has_post_thumbnail($post)) {
+    $featured = $post instanceof WP_Post && $language !== 'en' ? (string) get_the_post_thumbnail_url($post, 'full') : '';
+    if ($featured !== '') {
+        $stem = static function (string $url): string {
+            $path = strtolower((string) wp_parse_url($url, PHP_URL_PATH));
+            $uploads = strpos($path, '/uploads/');
+            return (string) preg_replace('/(?:-scaled)?(?:-\d+x\d+)?\.[a-z0-9]+$/', '', $uploads !== false ? substr($path, $uploads) : $path);
+        };
         $alt = boblift_post_thumbnail_alt($post, (string) get_the_title($post));
-        $tags['og:image:alt'] = $alt;
-        if (!empty($tags['twitter:image:alt'])) {
-            $tags['twitter:image:alt'] = $alt;
+        foreach (['og:image' => 'og:image:alt', 'twitter:image' => 'twitter:image:alt'] as $image_key => $alt_key) {
+            if (!empty($tags[$alt_key]) && is_string($tags[$image_key] ?? null) && $stem($tags[$image_key]) === $stem($featured)) {
+                $tags[$alt_key] = $alt;
+            }
         }
     }
     if ($social['seo_title'] !== '') {
