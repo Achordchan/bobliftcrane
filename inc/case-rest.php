@@ -6,8 +6,9 @@
  *
  * Text fields are stored as on the edit screen. _facts and _sections take a JSON array of rows ({label, value} and
  * {heading, body}), _case_gallery a comma list of attachment IDs, _related_product one English product ID per value and
- * _article_schema_jsonld a JSON object or array ({{home}} for the site address). A request with a malformed value is
- * refused before anything is saved.
+ * _article_schema_jsonld a JSON object or array ({{home}} for the site address). _case_image_alts is a JSON array of
+ * {id, alt} rows: the alt text this case shows for its cover and gallery images, so a translated case does not repeat the
+ * English alt stored on the shared media item. A request with a malformed value is refused before anything is saved.
  */
 
 /** Meta key => [schema type, sanitizer] for every case field that REST can read and write. */
@@ -30,6 +31,7 @@ function boblift_case_rest_meta_fields(): array
         '_facts' => ['string', static fn($value): string => boblift_rows_to_json(boblift_case_rest_rows($value) ?? [], ['label', 'value'])],
         '_sections' => ['string', static fn($value): string => boblift_rows_to_json(boblift_case_rest_rows($value) ?? [], ['heading', 'body'])],
         '_case_gallery' => ['string', static fn($value): string => implode(',', boblift_case_rest_ids($value))],
+        '_case_image_alts' => ['string', static fn($value): string => boblift_rows_to_json(array_map(static fn(array $row): array => ['id' => (string) absint($row['id'] ?? 0), 'alt' => (string) ($row['alt'] ?? '')], boblift_case_rest_rows($value) ?? []), ['id', 'alt'])],
         '_related_product' => ['array', static fn($value): string => (string) absint($value)],
         '_article_schema_jsonld' => ['string', static function ($value): string {
             $decoded = json_decode((string) $value, true);
@@ -114,6 +116,20 @@ function boblift_validate_case_rest_meta(stdClass|WP_Error $prepared, WP_REST_Re
         foreach (boblift_case_rest_ids($meta['_case_gallery']) as $id) {
             if (get_post_type($id) !== 'attachment') {
                 return $error('_case_gallery', $id . ' is not a media library item.');
+            }
+        }
+    }
+    if (isset($meta['_case_image_alts']) && $meta['_case_image_alts'] !== '') {
+        $rows = boblift_case_rest_rows($meta['_case_image_alts']);
+        if ($rows === null) {
+            return $error('_case_image_alts', 'expected a JSON array of objects with id and alt.');
+        }
+        foreach ($rows as $row) {
+            if (array_diff(array_keys($row), ['id', 'alt']) || !is_scalar($row['alt'] ?? null) || trim((string) $row['alt']) === '') {
+                return $error('_case_image_alts', 'each row takes an id and a non-empty alt, as plain values.');
+            }
+            if (!is_numeric($row['id'] ?? null) || get_post_type((int) $row['id']) !== 'attachment') {
+                return $error('_case_image_alts', ($row['id'] ?? '(none)') . ' is not a media library item.');
             }
         }
     }
