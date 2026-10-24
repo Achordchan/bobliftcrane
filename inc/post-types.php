@@ -231,9 +231,11 @@ function boblift_register_taxonomies(): void
 add_action('init', 'boblift_register_taxonomies');
 
 /**
- * Category introduction shown under the product list when one category is selected. Editable on the category screen
- * and through REST: POST /wp/v2/product_category/<id> with {"meta": {"_boblift_intro_title": "...", "_boblift_intro_text": "..."}}.
- * Paragraphs in _boblift_intro_text are separated by a blank line. Each Polylang language term holds its own copy.
+ * Category introduction shown under the product list when one category is selected, and the banner heading (H1) of the
+ * category page. Editable on the category screen and through REST: POST /wp/v2/product_category/<id> with
+ * {"meta": {"_boblift_intro_title": "...", "_boblift_intro_text": "...", "_boblift_banner_title": "..."}}.
+ * Paragraphs in _boblift_intro_text are separated by a blank line. An empty _boblift_banner_title falls back to the term
+ * name. Each Polylang language term holds its own copy.
  */
 function boblift_register_product_category_intro_meta(): void
 {
@@ -252,6 +254,14 @@ function boblift_register_product_category_intro_meta(): void
         'default' => '',
         'show_in_rest' => true,
         'sanitize_callback' => 'sanitize_textarea_field',
+        'auth_callback' => $auth,
+    ]);
+    register_term_meta('product_category', '_boblift_banner_title', [
+        'type' => 'string',
+        'single' => true,
+        'default' => '',
+        'show_in_rest' => true,
+        'sanitize_callback' => 'sanitize_text_field',
         'auth_callback' => $auth,
     ]);
 }
