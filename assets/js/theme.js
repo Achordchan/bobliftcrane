@@ -4433,11 +4433,55 @@
       return false;
     }
   };
+  // Enhanced conversions: the visitor's email goes to Google Ads only as a SHA-256 hash, and only with advertising agreed
+  // to (the boblift_consent cookie, else the regional default of ad_user_data). The raw address is never stored.
+  const adDataAgreed = () => {
+    try {
+      const match = document.cookie.match(/(?:^|;\s*)boblift_consent=([^;]*)/);
+      if (match) {
+        const saved = JSON.parse(decodeURIComponent(match[1]));
+        return saved?.v === 1 && saved.advertising === true;
+      }
+      const entry = window.google_tag_data?.ics?.entries?.ad_user_data;
+      return (entry && (entry.update !== undefined ? entry.update : entry.default)) === true;
+    } catch {
+      return false;
+    }
+  };
+  // Google's normalization: trimmed and lower-cased, and for Gmail addresses without the dots before the @.
+  const normalizedEmail = (raw) => {
+    const email = String(raw || '').trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return '';
+    const [local, domain] = email.split('@');
+    return ['gmail.com', 'googlemail.com'].includes(domain) ? `${local.replace(/\./g, '')}@${domain}` : email;
+  };
+  const sha256Hex = async (text) => {
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+    return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+  };
+  // Hashed as the visitor types, so the hash is ready when the form submits and the page navigates away.
+  const emailHashes = new Map();
+  const hashEmailField = (field) => {
+    const email = normalizedEmail(field.value);
+    if (!email || emailHashes.has(email) || !window.crypto?.subtle) return;
+    emailHashes.set(email, '');
+    sha256Hex(email).then((hash) => emailHashes.set(email, hash)).catch(() => emailHashes.delete(email));
+  };
+  document.addEventListener('change', (event) => {
+    const field = event.target;
+    if (window.bobliftTracking === true && field instanceof HTMLInputElement && field.name === 'email' && field.closest('[data-quote-form]')) hashEmailField(field);
+  }, true);
   document.addEventListener('submit', (event) => {
     const form = event.target;
     if (window.bobliftTracking !== true || !(form instanceof HTMLFormElement) || !form.matches('[data-quote-form]') || !leadReportingAgreed()) return;
     const value = (name) => String(form.querySelector(`[name="${name}"]`)?.value || '').slice(0, 120);
-    try { sessionStorage.setItem(PENDING_LEAD, JSON.stringify({ product: value('product'), source: value('source_entry') })); } catch { /* not reported */ }
+    const lead = { product: value('product'), source: value('source_entry') };
+    const save = () => { try { sessionStorage.setItem(PENDING_LEAD, JSON.stringify(lead)); } catch { /* not reported */ } };
+    const email = adDataAgreed() ? normalizedEmail(form.querySelector('[name="email"]')?.value) : '';
+    if (email && emailHashes.get(email)) lead.email_sha256 = emailHashes.get(email);
+    save();
+    // Typed and submitted at once (autofill, Enter): hash now and update the note if it finishes before the page leaves.
+    if (email && !lead.email_sha256 && window.crypto?.subtle) sha256Hex(email).then((hash) => { lead.email_sha256 = hash; save(); }).catch(() => {});
   }, true);
   const reportSentInquiry = () => {
     if (!document.querySelector('[data-inquiry-success]')) return;
@@ -4458,6 +4502,8 @@
     // inc/consent.php loads the Google tag at once on this address (sent=); the call makes sure of it.
     window.bobliftLoadGoogleTag?.();
     const details = { form: 'inquiry', transaction_id: `inquiry-${sent}`, inquiry_product: lead.product || '', inquiry_source: lead.source || '' };
+    // Enhanced conversions for the Ads conversion below (consent was checked when the note was written).
+    if (/^[0-9a-f]{64}$/.test(lead.email_sha256 || '')) window.gtag('set', 'user_data', { sha256_email_address: lead.email_sha256 });
     // The theme's Google tag (inc/consent.php) reports the lead to GA4, and to Google Ads when an inquiry conversion is set.
     window.gtag('event', 'generate_lead', details);
     if (window.bobliftGoogleConversion) window.gtag('event', 'conversion', { send_to: window.bobliftGoogleConversion, transaction_id: details.transaction_id });
