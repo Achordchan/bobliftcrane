@@ -1,0 +1,22 @@
+name: Warm Edge Cache
+
+# WordPress.com deploys the "Publish Website" artifact once that run has finished, so this runs as its own workflow
+# after it (a job inside that workflow would hold the deploy back until the warming was done). It waits for the
+# deploy, then requests every sitemap URL so the edge cache replaces its pre-deploy copies (scripts/warm-edge-cache.py).
+on:
+  workflow_run:
+    workflows: ["Publish Website"]
+    types: [completed]
+  workflow_dispatch:
+jobs:
+  Warm-Edge-Cache:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@master
+      - name: Wait for the deploy
+        if: github.event_name == 'workflow_run'
+        run: sleep 600
+      - name: Request every sitemap URL
+        run: python3 scripts/warm-edge-cache.py https://bobliftcrane.com
