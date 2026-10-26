@@ -279,6 +279,8 @@ function boblift_form_security_defaults(): array
         'gtm_container_languages' => '',
         // Inquiry senders to block (inc/inquiry-guard.php): emails, @domains, IPs or ranges, one per line.
         'inquiry_blocklist' => '',
+        // Keep each inquiry's IP: turned on once every language's saved privacy policy says IPs are kept.
+        'inquiry_store_ip' => '0',
     ];
 }
 

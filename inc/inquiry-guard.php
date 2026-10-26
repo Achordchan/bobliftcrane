@@ -16,6 +16,13 @@ if (!defined('ABSPATH')) {
  * IP) and whether and why it was blocked.
  */
 
+/** Whether inquiries keep the sender's IP: off until every language's privacy policy says they do (表单安全). */
+function boblift_inquiry_store_ip(): bool
+{
+    $options = function_exists('boblift_form_security_options') ? boblift_form_security_options() : [];
+    return (string) ($options['inquiry_store_ip'] ?? '0') === '1';
+}
+
 /** The blocklist entries as typed, lower-cased, without blanks or duplicates. */
 function boblift_inquiry_blocklist(): array
 {

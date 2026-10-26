@@ -732,7 +732,7 @@ function boblift_sanitize_options_recursive(array $value): array
             $result[$key] = max(0, (int) $item);
             continue;
         }
-        if (in_array($key, ['turnstile_enabled', 'turnstile_local_mode'], true)) {
+        if (in_array($key, ['turnstile_enabled', 'turnstile_local_mode', 'inquiry_store_ip'], true)) {
             $result[$key] = (string) (int) !empty($item);
             continue;
         }
@@ -2861,8 +2861,9 @@ function boblift_form_security_settings_page(): void
         <?php boblift_admin_input('gtm_container', $form_security, 'GTM 容器 ID（形如 GTM-ABC1234，广告代理在 GTM 里管理的代码；不填就不加载）', 'boblift_theme_options[form_security]'); ?>
         <?php boblift_admin_input('gtm_container_languages', $form_security, '按语种单独的 GTM 容器（形如 es=GTM-ABC1234，多个用逗号隔开；该语种页面只加载这里的容器，不再加载上面的全站容器）', 'boblift_theme_options[form_security]'); ?>
     <?php boblift_admin_settings_panel_end(); ?>
-    <?php boblift_admin_settings_panel_start('询盘黑名单', '每行一个：邮箱（spam@example.com）、整个邮箱域名（@example.com）、IP（203.0.113.7）或 IP 段（203.0.113.0/24）。命中的询盘照样存进「询盘」，标「已拦截」存为草稿，不发邮件和钉钉，也不跳带编号的感谢页，所以不计广告转化；对方仍看到提交成功。询盘的 IP 在询盘详情里。'); ?>
+    <?php boblift_admin_settings_panel_start('询盘黑名单', '每行一个：邮箱（spam@example.com）、整个邮箱域名（@example.com）、IP（203.0.113.7）或 IP 段（203.0.113.0/24）。命中的询盘照样存进「询盘」，标「已拦截」存为草稿，不发邮件和钉钉，也不跳带编号的感谢页，所以不计广告转化；对方仍看到提交成功。勾选「询盘保存 IP」后，询盘详情里会显示 IP。'); ?>
         <?php boblift_admin_textarea('inquiry_blocklist', $form_security, '拦截的邮箱和 IP', 'boblift_theme_options[form_security]'); ?>
+        <?php boblift_admin_checkbox('inquiry_store_ip', $form_security, '询盘保存 IP（先把各语种隐私政策里「IP 不随询盘保存」那句改掉再勾选；不勾时 IP 黑名单照样生效，只是询盘里不留 IP）', 'boblift_theme_options[form_security]'); ?>
     <?php boblift_admin_settings_panel_end(); ?>
     <?php
     boblift_admin_page_end();

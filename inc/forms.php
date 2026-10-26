@@ -703,10 +703,11 @@ function boblift_handle_inquiry(): void
     $fields['ad_consent'] = in_array($consent, ['true', 'false'], true) ? $consent : '';
     $fields['device'] = boblift_inquiry_device(mb_substr(sanitize_text_field(wp_unslash((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''))), 0, 512), ($_POST['boblift_touch'] ?? '') === '1');
     $fields['channel'] = implode(' · ', array_filter(boblift_inquiry_channel($fields), 'strlen'));
-    // Kept with the inquiry so a spammer's address can go on the blocklist (inc/inquiry-guard.php) and Google Ads' IP exclusions.
-    // The privacy policy says so (boblift_privacy_policy_page_defaults()); languages whose wording is saved in the theme
-    // options keep their old sentence until it is changed, through the boblift_legal_page REST field, when this goes live.
-    $fields['ip'] = boblift_inquiry_client_ip();
+    // The sender's IP, checked against the blocklist (inc/inquiry-guard.php). It is kept with the inquiry, for the blocklist
+    // and Google Ads' IP exclusions, only once 表单安全 says every language's privacy policy has been updated to say so:
+    // wording saved in the theme options keeps its old "not stored" sentence until it is changed.
+    $client_ip = boblift_inquiry_client_ip();
+    $fields['ip'] = boblift_inquiry_store_ip() ? $client_ip : '';
 
     if ($fields['email'] === '' || $fields['message'] === '') {
         $ui = function_exists('boblift_site_ui') ? boblift_site_ui('quoteForm') : [];
@@ -722,7 +723,7 @@ function boblift_handle_inquiry(): void
         boblift_inquiry_fail((string) ($ui['messages']['tooMany'] ?? 'Too many inquiries were sent from your network. Please wait a few minutes and try again, or email us directly.'), 'error');
     }
     // A sender on the blocklist is saved as a blocked draft and told it went through: no mail, no DingTalk, no conversion.
-    $block_reason = boblift_inquiry_block_reason($fields['email'], $fields['ip']);
+    $block_reason = boblift_inquiry_block_reason($fields['email'], $client_ip);
     if ($block_reason !== '') {
         boblift_inquiry_save_blocked($fields, $block_reason);
     }
