@@ -50,6 +50,10 @@ function boblift_register_content_types(): void
         'capability_type' => 'post',
         'capabilities' => ['create_posts' => 'do_not_allow'],
         'map_meta_cap' => true,
+        // Read-only, administrators only (inc/inquiry-guard.php): /wp/v2/inquiries.
+        'show_in_rest' => class_exists('Boblift_Inquiries_REST_Controller'),
+        'rest_base' => 'inquiries',
+        'rest_controller_class' => 'Boblift_Inquiries_REST_Controller',
     ]);
 }
 add_action('init', 'boblift_register_content_types');
@@ -100,6 +104,10 @@ function boblift_inquiry_column_content(string $column, int $post_id): void
     if ($column === 'inquiry_customer') {
         $name = (string) get_post_meta($post_id, '_name', true);
         $title = $name !== '' ? $name : get_the_title($post_id);
+        $blocked = (string) get_post_meta($post_id, '_blocked', true);
+        if ($blocked !== '') {
+            echo '<span style="display:inline-block;margin:0 0 4px;padding:1px 6px;border:1px solid #64748b;border-radius:2px;color:#475569;font-weight:600">已拦截 · ' . esc_html($blocked) . '</span><br>';
+        }
         echo '<strong><a class="row-title" href="' . esc_url(get_edit_post_link($post_id)) . '">' . esc_html($title) . '</a></strong>';
         return;
     }
@@ -1106,6 +1114,8 @@ function boblift_inquiry_meta_box(WP_Post $post): void
         'channel' => '来源渠道',
         'page_referrer' => '本页上一站',
         'device' => '访问设备',
+        'ip' => 'IP 地址',
+        'blocked' => '黑名单拦截',
     ];
     if (defined('BOBLIFT_INQUIRY_ATTRIBUTION_LABELS')) {
         foreach (BOBLIFT_INQUIRY_ATTRIBUTION_LABELS as $name => $label) {
@@ -1125,7 +1135,7 @@ function boblift_inquiry_meta_box(WP_Post $post): void
     foreach ($labels as $key => $label) {
         $value = (string) get_post_meta($post->ID, '_' . $key, true);
         // Ad attribution exists only for visitors who came from an ad and agreed to advertising cookies.
-        if ($value === '' && str_starts_with($key, 'attr_')) {
+        if ($value === '' && (str_starts_with($key, 'attr_') || $key === 'blocked')) {
             continue;
         }
         echo '<tr><th>' . esc_html($label) . '</th><td>' . nl2br(esc_html($value)) . '</td></tr>';
