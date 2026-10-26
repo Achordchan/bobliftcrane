@@ -86,12 +86,15 @@ function boblift_inquiry_save_blocked(array $fields, string $reason): void
         'post_status' => 'draft',
         'post_title' => sprintf('[已拦截] Inquiry from %s - %s', $customer, current_time('Y-m-d H:i')),
     ], true);
-    if (!is_wp_error($post_id)) {
-        foreach ($fields as $key => $value) {
-            update_post_meta((int) $post_id, '_' . $key, $value);
-        }
-        update_post_meta((int) $post_id, '_blocked', $reason);
+    if (is_wp_error($post_id)) {
+        // Unsaved, it would be lost without a trace: the sender is asked to try again, as for any other failed save.
+        $ui = function_exists('boblift_site_ui') ? boblift_site_ui('quoteForm') : [];
+        boblift_inquiry_fail((string) ($ui['messages']['saveFailed'] ?? 'The inquiry could not be sent. Please try again.'), 'error');
     }
+    foreach ($fields as $key => $value) {
+        update_post_meta((int) $post_id, '_' . $key, $value);
+    }
+    update_post_meta((int) $post_id, '_blocked', $reason);
     boblift_inquiry_succeed(0);
 }
 

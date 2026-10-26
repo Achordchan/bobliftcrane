@@ -704,6 +704,8 @@ function boblift_handle_inquiry(): void
     $fields['device'] = boblift_inquiry_device(mb_substr(sanitize_text_field(wp_unslash((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''))), 0, 512), ($_POST['boblift_touch'] ?? '') === '1');
     $fields['channel'] = implode(' · ', array_filter(boblift_inquiry_channel($fields), 'strlen'));
     // Kept with the inquiry so a spammer's address can go on the blocklist (inc/inquiry-guard.php) and Google Ads' IP exclusions.
+    // The privacy policy says so (boblift_privacy_policy_page_defaults()); languages whose wording is saved in the theme
+    // options keep their old sentence until it is changed, through the boblift_legal_page REST field, when this goes live.
     $fields['ip'] = boblift_inquiry_client_ip();
 
     if ($fields['email'] === '' || $fields['message'] === '') {
