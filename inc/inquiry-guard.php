@@ -12,7 +12,7 @@ if (!defined('ABSPATH')) {
  * so it is never reported as an ad conversion. The sender sees the usual success message and learns nothing.
  *
  * API: /wp/v2/inquiries (newest first, blocked drafts included), administrators only, read-only. Each inquiry with
- * context=edit carries boblift_inquiry: every saved field (sender, product, message, page, channel, device, ad click IDs,
+ * context=edit carries meta.boblift_inquiry (also top-level boblift_inquiry): every saved field (sender, product, message, page, channel, device, ad click IDs,
  * IP) and whether and why it was blocked.
  */
 
@@ -170,11 +170,36 @@ function boblift_inquiry_record(int $post_id): array
     return $record;
 }
 
+// Published as meta.boblift_inquiry, which tools that read only core fields and registered meta (the WordPress.com
+// connector) can see. Nothing is stored under that key: reading it builds the record from the inquiry's own fields.
+add_action('init', static function (): void {
+    register_post_meta('inquiry', 'boblift_inquiry', [
+        'type' => 'object',
+        'single' => true,
+        'description' => 'The inquiry, read-only: every saved field and, when blocked, why.',
+        'show_in_rest' => ['schema' => ['type' => 'object', 'context' => ['edit'], 'additionalProperties' => true]],
+        'auth_callback' => '__return_false',
+    ]);
+}, 20);
+
+add_filter('get_post_metadata', static function ($value, $post_id, $key) {
+    if ($key !== 'boblift_inquiry' || get_post_type((int) $post_id) !== 'inquiry') {
+        return $value;
+    }
+    return [boblift_inquiries_can_read() ? boblift_inquiry_record((int) $post_id) : []];
+}, 10, 3);
+
+// The same record as a top-level field, as #161 first published it.
 add_action('rest_api_init', static function (): void {
     register_rest_field('inquiry', 'boblift_inquiry', [
         'get_callback' => static fn(array $post): array => boblift_inquiries_can_read() ? boblift_inquiry_record((int) $post['id']) : [],
         'schema' => ['type' => 'object', 'context' => ['edit'], 'readonly' => true, 'additionalProperties' => true],
     ]);
+});
+
+// The edit screen already shows every field in 询盘详情; the generic Custom Fields box would only expose raw keys.
+add_action('add_meta_boxes_inquiry', static function (): void {
+    remove_meta_box('postcustom', 'inquiry', 'normal');
 });
 
 // The default list shows blocked drafts too, so a blocked inquiry can be checked; an explicit status still narrows it.
