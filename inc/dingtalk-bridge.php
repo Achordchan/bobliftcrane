@@ -52,7 +52,9 @@ function boblift_dingtalk_inquiry(int $post_id, array $fields): void
         $meta[] = ['label' => '访问设备', 'icon' => str_starts_with((string) $fields['device'], '电脑') ? '💻' : '📱', 'value' => (string) $fields['device']];
     }
     $landing = (string) ($fields['attr_landing'] ?? '');
-    if ($landing !== '' && rtrim($landing, '/') !== rtrim(explode('?', $source['url'], 2)[0], '/')) {
+    // The page address keeps the parameters that pick a page (?page_id=); only a trailing slash and a # are ignored.
+    $page_key = static fn(string $url): string => (string) preg_replace('#/(?=\?|$)#', '', (string) preg_replace('/#.*$/s', '', $url), 1);
+    if ($landing !== '' && $page_key($landing) !== $page_key($source['url'])) {
         $meta[] = ['label' => '落地页', 'icon' => '🧭', 'value' => $landing, 'link' => true];
     }
     if (get_post_meta($post_id, '_mail_sent', true) === '0') {
