@@ -41,13 +41,36 @@ function boblift_google_conversion(): string
 }
 
 /**
- * The Google Tag Manager container saved in the admin ("GTM-ABC1234"), or '' when none or malformed. The container is for
- * the tags the ad agency manages there; the theme's own GA4 and Ads tags above keep reporting either way.
+ * Per-language Tag Manager containers saved in the admin as "es=GTM-ABC1234" pairs (one per line or comma separated),
+ * keyed by Polylang language slug. Malformed pairs are dropped.
+ */
+function boblift_gtm_language_containers(): array
+{
+    $saved = function_exists('boblift_form_security_options') ? (string) (boblift_form_security_options()['gtm_container_languages'] ?? '') : '';
+    $containers = [];
+    foreach (preg_split('~[\s,;]+~', $saved, -1, PREG_SPLIT_NO_EMPTY) ?: [] as $pair) {
+        if (preg_match('~^([a-z]{2,3}(?:[-_][a-z0-9]{2,8})?)=(GTM-[A-Z0-9]{4,12})$~i', $pair, $match)) {
+            $containers[strtolower($match[1])] = strtoupper($match[2]);
+        }
+    }
+    return $containers;
+}
+
+/**
+ * The Google Tag Manager container for the current page ("GTM-ABC1234"), or '' when none or malformed. A container saved
+ * for the page's language replaces the site-wide one there, so the two never load together and count the same
+ * conversions twice. The containers are for the tags the ad agency manages; the theme's own GA4 and Ads tags above keep
+ * reporting either way.
  */
 function boblift_gtm_container(): string
 {
     if (!boblift_google_tags_allowed()) {
         return '';
+    }
+    $language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
+    $by_language = boblift_gtm_language_containers();
+    if ($language !== '' && isset($by_language[$language])) {
+        return $by_language[$language];
     }
     $value = function_exists('boblift_form_security_options') ? strtoupper(trim((string) (boblift_form_security_options()['gtm_container'] ?? ''))) : '';
     return preg_match('~^GTM-[A-Z0-9]{4,12}$~', $value) ? $value : '';
