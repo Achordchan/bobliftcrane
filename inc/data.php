@@ -275,6 +275,8 @@ function boblift_form_security_defaults(): array
         'google_conversion' => '',
         // The ad agency's Tag Manager container (GTM-…), loaded beside the Google tag by inc/consent.php.
         'gtm_container' => '',
+        // Containers that replace it on one language's pages, as "es=GTM-…" pairs.
+        'gtm_container_languages' => '',
     ];
 }
 
