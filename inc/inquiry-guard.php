@@ -42,6 +42,17 @@ function boblift_inquiry_mailbox(string $email): string
     return $local . '@' . $domain;
 }
 
+/** An address range as typed (203.0.113.0/24, 2001:db8::/32); a mistyped one is ignored rather than read as /0, which matches everyone. */
+function boblift_inquiry_valid_range(string $range): bool
+{
+    $parts = explode('/', $range);
+    if (count($parts) !== 2 || !filter_var($parts[0], FILTER_VALIDATE_IP) || !ctype_digit($parts[1])) {
+        return false;
+    }
+    $bits = (int) $parts[1];
+    return $bits >= 1 && $bits <= (filter_var($parts[0], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) ? 32 : 128);
+}
+
 /** Why this sender is blocked (e.g. 邮箱 spam@example.com), or '' when nothing on the blocklist matches. */
 function boblift_inquiry_block_reason(string $email, string $ip): string
 {
@@ -49,7 +60,9 @@ function boblift_inquiry_block_reason(string $email, string $ip): string
     $domain = str_contains($email, '@') ? substr($email, (int) strrpos($email, '@')) : '';
     foreach (boblift_inquiry_blocklist() as $entry) {
         if (str_contains($entry, '@')) {
-            if ($email !== '' && (boblift_inquiry_mailbox($entry) === $email || (str_starts_with($entry, '@') && $entry === $domain))) {
+            // A whole domain is compared the way mailboxes are: @googlemail.com is the same as @gmail.com.
+            $entry_domain = str_starts_with($entry, '@') ? substr(boblift_inquiry_mailbox('x' . $entry), 1) : '';
+            if ($email !== '' && ($entry_domain !== '' ? $entry_domain === $domain : boblift_inquiry_mailbox($entry) === $email)) {
                 return '邮箱 ' . $entry;
             }
             continue;
@@ -57,7 +70,7 @@ function boblift_inquiry_block_reason(string $email, string $ip): string
         if ($ip === '' || !filter_var($ip, FILTER_VALIDATE_IP)) {
             continue;
         }
-        if (str_contains($entry, '/') ? boblift_ip_in_range($ip, $entry) : (filter_var($entry, FILTER_VALIDATE_IP) && inet_pton($entry) === inet_pton($ip))) {
+        if (str_contains($entry, '/') ? boblift_inquiry_valid_range($entry) && boblift_ip_in_range($ip, $entry) : (filter_var($entry, FILTER_VALIDATE_IP) && inet_pton($entry) === inet_pton($ip))) {
             return 'IP ' . $entry;
         }
     }
