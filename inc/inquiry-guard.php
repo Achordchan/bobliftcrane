@@ -101,7 +101,8 @@ function boblift_inquiry_save_blocked(array $fields, string $reason): void
     foreach ($fields as $key => $value) {
         update_post_meta((int) $post_id, '_' . $key, $value);
     }
-    update_post_meta((int) $post_id, '_blocked', $reason);
+    // An IP entry can be the sender's own address: without IP storage the reason names only the kind of match.
+    update_post_meta((int) $post_id, '_blocked', !boblift_inquiry_store_ip() && str_starts_with($reason, 'IP ') ? 'IP 黑名单' : $reason);
     boblift_inquiry_succeed(0);
 }
 
