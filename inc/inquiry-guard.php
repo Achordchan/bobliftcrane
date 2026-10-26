@@ -12,7 +12,7 @@ if (!defined('ABSPATH')) {
  * so it is never reported as an ad conversion. The sender sees the usual success message and learns nothing.
  *
  * API: /wp/v2/inquiries (newest first, blocked drafts included), administrators only, read-only. Each inquiry with
- * context=edit carries meta.boblift_inquiry: every saved field (sender, product, message, page, channel, device, ad click IDs,
+ * context=edit carries meta.boblift_inquiry (also top-level boblift_inquiry): every saved field (sender, product, message, page, channel, device, ad click IDs,
  * IP) and whether and why it was blocked.
  */
 
@@ -188,6 +188,14 @@ add_filter('get_post_metadata', static function ($value, $post_id, $key) {
     }
     return [boblift_inquiries_can_read() ? boblift_inquiry_record((int) $post_id) : []];
 }, 10, 3);
+
+// The same record as a top-level field, as #161 first published it.
+add_action('rest_api_init', static function (): void {
+    register_rest_field('inquiry', 'boblift_inquiry', [
+        'get_callback' => static fn(array $post): array => boblift_inquiries_can_read() ? boblift_inquiry_record((int) $post['id']) : [],
+        'schema' => ['type' => 'object', 'context' => ['edit'], 'readonly' => true, 'additionalProperties' => true],
+    ]);
+});
 
 // The edit screen already shows every field in 询盘详情; the generic Custom Fields box would only expose raw keys.
 add_action('add_meta_boxes_inquiry', static function (): void {
