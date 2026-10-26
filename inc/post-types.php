@@ -46,7 +46,9 @@ function boblift_register_content_types(): void
         'show_ui' => true,
         'show_in_menu' => true,
         'menu_icon' => 'dashicons-email-alt2',
-        'supports' => false,
+        // custom-fields only so the read-only REST record (meta.boblift_inquiry, inc/inquiry-guard.php) is published; the
+        // Custom Fields box it would add to the edit screen is removed there.
+        'supports' => ['custom-fields'],
         'capability_type' => 'post',
         'capabilities' => ['create_posts' => 'do_not_allow'],
         'map_meta_cap' => true,
