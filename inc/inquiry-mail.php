@@ -203,24 +203,39 @@ function boblift_inquiry_attribution_from_post(): array
     return $found;
 }
 
-/** The grey block in the mail that says how the visitor arrived; empty when nothing was sent. */
+/**
+ * The ad tracking values at the foot of the mail, for whoever checks the ads: the click IDs and tags kept since the visitor
+ * landed, then any the page the form was sent from carried that differ from them (a second ad click shows up there). The
+ * sales team reads the channel at 来源渠道; this block is only the raw values behind it. Empty when there are none.
+ */
 function boblift_inquiry_attribution_block(array $fields): string
 {
+    $line = static fn(string $label, string $value): string => '<div style="padding:2px 0;font-size:12px;line-height:1.6;color:#64748b;word-break:break-all;">' . esc_html($label) . ' <span style="color:#334155;">' . esc_html($value) . '</span></div>';
     $rows = '';
     foreach (BOBLIFT_INQUIRY_ATTRIBUTION_LABELS as $name => $label) {
         $value = (string) ($fields['attr_' . $name] ?? '');
         if ($value !== '') {
-            $rows .= '<div style="padding:3px 0;font-size:13px;line-height:1.6;color:#334155;word-break:break-all;"><span style="color:#64748b;">' . esc_html($label) . '</span> ' . esc_html($value) . '</div>';
+            $rows .= $line($label, $value);
         }
+    }
+    $note = '';
+    $clicks = 0;
+    foreach (boblift_inquiry_source_page($fields)['params'] as $name => $value) {
+        $kept = (string) ($fields['attr_' . $name] ?? '');
+        if ($kept === $value) {
+            continue;
+        }
+        $rows .= $line('提交页 ' . (BOBLIFT_INQUIRY_ATTRIBUTION_LABELS[$name] ?? $name), $value);
+        $clicks += $kept !== '' && in_array($name, ['gclid', 'gbraid', 'wbraid'], true) ? 1 : 0;
     }
     if ($rows === '') {
         return '';
     }
-    $ads = ($fields['attr_gclid'] ?? '') !== '' || ($fields['attr_gbraid'] ?? '') !== '' || ($fields['attr_wbraid'] ?? '') !== '' || ($fields['attr_gad_source'] ?? '') !== '';
-    $tagged = $ads || array_filter(array_keys(BOBLIFT_INQUIRY_ATTRIBUTION), static fn(string $name): bool => str_starts_with($name, 'utm_') && ($fields['attr_' . $name] ?? '') !== '');
-    // Only a site the visitor came from was kept: that is a visit record, not an ad.
-    $kind = '<div style="padding:3px 0;font-size:13px;line-height:1.6;color:#334155;"><span style="color:#64748b;">' . ($tagged ? '广告来源' : '进站记录') . '</span> <b>' . ($ads ? 'Google Ads 点击' : ($tagged ? '营销标记' : '首次进站')) . '</b></div>';
-    return '<tr><td style="padding:20px 36px 0;"><table width="100%" cellspacing="0" cellpadding="0" style="background:#f5f7fa;border-radius:4px;"><tr><td style="padding:14px 18px;">' . $kind . $rows . '</td></tr></table></td></tr>';
+    if ($clicks) {
+        // The kept record is the latest click: an older tab never overwrites it, so the form's page can hold an earlier one.
+        $note = '<div style="padding:2px 0 4px;font-size:12px;line-height:1.6;color:#64748b;">访客点过不止一次广告：上面是最近一次点击，「提交页」是填表那个页面打开时的点击。</div>';
+    }
+    return '<tr><td style="padding:8px 36px 28px;"><table width="100%" cellspacing="0" cellpadding="0" style="border-top:1px dashed #e3e8ef;"><tr><td style="padding:14px 0 0;"><div style="padding-bottom:6px;font-size:12px;font-weight:bold;color:#94a3b8;">广告追踪参数（看广告效果用，跟进客户可以不看）</div>' . $note . $rows . '</td></tr></table></td></tr>';
 }
 
 /**
@@ -496,15 +511,8 @@ function boblift_inquiry_admin_mail(array $fields, int $post_id): array
     if ($source['url'] !== '') {
         $page_html = ($source['title'] !== '' ? '<div style="font-size:16px;font-weight:bold;color:#0b1f33;padding-bottom:2px;">' . esc_html($source['title']) . '</div>' : '')
             . '<a href="' . esc_url($source['url']) . '" target="_blank" style="color:#215bdb;text-decoration:none;">' . esc_html($source['url']) . '</a>';
-        if ($source['params']) {
-            $pairs = [];
-            foreach ($source['params'] as $name => $value) {
-                $pairs[] = esc_html($name . '=' . $value);
-            }
-            $page_html .= '<div style="padding-top:6px;font-size:12px;line-height:1.6;color:#64748b;">页面参数：' . implode(' &nbsp;·&nbsp; ', $pairs) . '</div>';
-        }
     }
-    // The IP address is used only to tell the country; the privacy policy promises it is not kept with the inquiry.
+    // The IP address is shown to the sales team (and tells the country) but is not kept with the inquiry; the privacy policy says so.
     $ip = boblift_inquiry_client_ip();
     $language_names = ['en' => '英语', 'zh' => '中文', 'ja' => '日语', 'es' => '西班牙语', 'ru' => '俄语', 'fr' => '法语', 'ar' => '阿拉伯语'];
     $posted_language = sanitize_key((string) wp_unslash($_POST['boblift_lang'] ?? 'en'));
@@ -532,10 +540,10 @@ function boblift_inquiry_admin_mail(array $fields, int $post_id): array
         . $heading('产品信息') . '<tr><td style="padding:0 36px;">' . $product_html . '</td></tr>'
         . $heading('客户信息') . '<tr><td style="padding:0 36px;"><table width="100%" cellspacing="0" cellpadding="0" style="border-top:1px solid #edf0f4;">' . implode('', $rows) . '</table></td></tr>'
         . $message_block
-        . '<tr><td style="padding:24px 36px 0;"><table width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #edf0f4;border-radius:4px;border-collapse:separate;"><tr>' . $meta('来源渠道', $channel_html) . $meta('访问设备', $device_html) . $meta('来源国家', esc_html($country)) . '</tr><tr>' . $meta('页面语言', esc_html($language)) . $meta('提交时间', esc_html($time)) . $meta('&nbsp;', '&nbsp;') . '</tr></table></td></tr>'
-        . boblift_inquiry_attribution_block($fields)
+        . '<tr><td style="padding:24px 36px 0;"><table width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #edf0f4;border-radius:4px;border-collapse:separate;"><tr>' . $meta('来源渠道', $channel_html) . $meta('访问设备', $device_html) . $meta('来源国家', esc_html($country)) . '</tr><tr>' . $meta('页面语言', esc_html($language)) . $meta('提交时间', esc_html($time)) . $meta('IP 地址', $ip !== '' ? esc_html($ip) : '未能识别') . '</tr></table></td></tr>'
         . '<tr><td align="center" style="padding:32px 36px 12px;"><table cellspacing="0" cellpadding="0"><tr><td align="center" style="background:#215bdb;border-radius:2px;"><a href="mailto:' . esc_attr($email) . '" style="display:inline-block;width:260px;line-height:50px;font-size:17px;font-weight:bold;color:#ffffff;text-decoration:none;text-align:center;letter-spacing:1px;">立即回复客户</a></td></tr></table></td></tr>'
         . '<tr><td align="center" style="padding:0 36px 32px;font-size:13px;line-height:1.6;color:#64748b;">也可以直接回复这封邮件，回信会发到 ' . esc_html($email) . '</td></tr>'
+        . boblift_inquiry_attribution_block($fields)
         . '</table>'
         . '<table width="660" cellspacing="0" cellpadding="0" style="width:660px;"><tr><td align="center" style="padding:18px 36px 0;font-size:12px;line-height:1.7;color:#94a3b8;">此邮件由 ' . $host . ' 询盘表单自动发送 · 副本见' . $admin_link . '</td></tr></table>'
         . '</td></tr></table></body></html>';
