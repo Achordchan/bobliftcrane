@@ -358,7 +358,8 @@ function boblift_public_welfare_page_options(): array
  * The Privacy Policy's English defaults. Every language's published copy is saved in its theme options and shown instead of
  * these, so a change here alters only a site that never saved one: the saved copies are changed one sentence at a time
  * through the boblift_legal_page REST field (inc/rest-legal-pages.php), in every language, before the change they describe goes
- * live. The IP sentence in 「Third-party services」 (sections.5) was rolled out that way with the inquiry notification's IP line.
+ * live. The IP sentence in 「Third-party services」 (sections.5) below already says the IP address is kept with an inquiry and
+ * shown, with the country, in the sales team's email and work-chat notifications; every saved language was updated to match.
  */
 function boblift_privacy_policy_page_defaults(): array
 {
