@@ -78,6 +78,19 @@ function boblift_register_feedback_record_meta(): void
             'auth_callback' => static fn($allowed, $meta_key, $post_id): bool => current_user_can('edit_post', (int) $post_id),
         ]);
     }
+    // The gallery ("12,34,56", attachment IDs in display order; the first image is the cover) is written the same way,
+    // so a new customer photo goes in without the edit screen. IDs that are not attachments are dropped.
+    register_post_meta('feedback', '_feedback_media', [
+        'type' => 'string',
+        'single' => true,
+        'default' => '',
+        'show_in_rest' => true,
+        'sanitize_callback' => static fn($value): string => implode(',', array_unique(array_filter(
+            array_map('intval', is_array($value) ? $value : explode(',', (string) $value)),
+            static fn(int $id): bool => $id > 0 && get_post_type($id) === 'attachment'
+        ))),
+        'auth_callback' => static fn($allowed, $meta_key, $post_id): bool => current_user_can('edit_post', (int) $post_id),
+    ]);
     // Model and country are read alongside the record, so a writer knows which entry it is working on.
     foreach (['_feedback_model', '_feedback_country'] as $key) {
         register_post_meta('feedback', $key, [
@@ -91,6 +104,10 @@ function boblift_register_feedback_record_meta(): void
     add_post_type_support('feedback', 'custom-fields');
 }
 add_action('init', 'boblift_register_feedback_record_meta', 20);
+
+// Core REST returns registered meta whatever the post password, so a protected entry keeps its gallery and record out of
+// responses for anyone who cannot edit it, as protected cases, products and pages do (inc/case-rest.php).
+add_filter('rest_prepare_feedback', 'boblift_hide_protected_case_rest_meta', 10, 2);
 
 // Gallery-only entries share almost all of their text with the other 100; keep them out of the index until written up.
 function boblift_feedback_record_robots(array $robots): array
