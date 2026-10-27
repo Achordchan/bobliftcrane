@@ -3819,7 +3819,8 @@
     // 101 feedback entries made the page ~26k px tall: the grid shows one page at a time.
     const casesPerPage = 12;
     let casesPage = Math.max(1, Number.parseInt(urlParams.get('case_page') || '1', 10) || 1);
-    [[countryFilter, 'country'], [productFilter, 'product']].forEach(([select, key]) => {
+    // Prefixed: "product" is the product post type's query variable and would turn the address into a product request.
+    [[countryFilter, 'case_country'], [productFilter, 'case_product']].forEach(([select, key]) => {
       const value = urlParams.get(key) || '';
       if (select && value && Array.from(select.options).some((option) => option.value === value)) select.value = value;
     });
@@ -3828,8 +3829,8 @@
       const set = (key, value) => (value ? url.searchParams.set(key, value) : url.searchParams.delete(key));
       set('tab', activeKind === 'customer_feedback' ? 'customer_feedback' : '');
       set('case_page', casesPage > 1 ? String(casesPage) : '');
-      set('country', countryFilter?.value || '');
-      set('product', productFilter?.value || '');
+      set('case_country', countryFilter?.value || '');
+      set('case_product', productFilter?.value || '');
       if (url.href !== window.location.href) window.history.replaceState(window.history.state, '', url.href);
     };
     const pager = qs('[data-cases-pager]', root);

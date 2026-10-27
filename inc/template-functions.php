@@ -2489,7 +2489,11 @@ function boblift_search_posts(string $query, string $post_type, int $per_page, i
         $country = (string) get_post_meta($post->ID, '_country', true);
         $product = (string) get_post_meta($post->ID, '_product_name', true);
         $application = (string) get_post_meta($post->ID, '_application', true);
-        $texts = [$country, boblift_localized_static_text($country), $product, boblift_localize_product_text_fragments($product), boblift_localize_product_text_fragments($application)];
+        // Title, summary and body too, so a query mixing a field and a body word ("Australia installation") matches.
+        $texts = [
+            $country, boblift_localized_static_text($country), $product, boblift_localize_product_text_fragments($product), boblift_localize_product_text_fragments($application),
+            $post->post_title, $post->post_excerpt, (string) get_post_meta($post->ID, '_summary', true), wp_strip_all_tags($post->post_content),
+        ];
         if (boblift_search_text_matches($query, $texts)) {
             $ids[] = $post->ID;
         }
