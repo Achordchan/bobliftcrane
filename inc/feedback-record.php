@@ -105,6 +105,10 @@ function boblift_register_feedback_record_meta(): void
 }
 add_action('init', 'boblift_register_feedback_record_meta', 20);
 
+// Core REST returns registered meta whatever the post password, so a protected entry keeps its gallery and record out of
+// responses for anyone who cannot edit it, as protected cases, products and pages do (inc/case-rest.php).
+add_filter('rest_prepare_feedback', 'boblift_hide_protected_case_rest_meta', 10, 2);
+
 // Gallery-only entries share almost all of their text with the other 100; keep them out of the index until written up.
 function boblift_feedback_record_robots(array $robots): array
 {
