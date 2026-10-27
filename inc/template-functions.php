@@ -2502,12 +2502,22 @@ function boblift_search_posts(string $query, string $post_type, int $per_page, i
     return new WP_Query(['post__in' => $ids ?: [0], 'orderby' => 'post__in'] + $args);
 }
 
-// Every word of the query appears somewhere in the texts (punctuation and case ignored, as in product search).
+// Every word of the query appears somewhere in the texts (punctuation and case ignored, as in product search) and,
+// as in WordPress search, no word written with a leading "-" does.
 function boblift_search_text_matches(string $query, array $texts): bool
 {
-    $words = array_values(array_filter(array_map('boblift_search_key', preg_split('/\s+/u', trim($query)) ?: [])));
+    $include = [];
+    $exclude = [];
+    foreach (preg_split('/\s+/u', trim($query)) ?: [] as $token) {
+        $excluded = mb_strlen($token) > 1 && str_starts_with($token, '-');
+        $key = boblift_search_key($excluded ? substr($token, 1) : $token);
+        if ($key !== '') {
+            $excluded ? $exclude[] = $key : $include[] = $key;
+        }
+    }
     $haystack = boblift_search_key(implode(' ', $texts));
-    return $words && count(array_filter($words, static fn(string $word): bool => str_contains($haystack, $word))) === count($words);
+    $has = static fn(string $word): bool => str_contains($haystack, $word);
+    return $include && count(array_filter($include, $has)) === count($include) && !array_filter($exclude, $has);
 }
 
 // Customer feedback entries whose country (in the page's language or in English), model, note or delivery record
@@ -2528,6 +2538,9 @@ function boblift_search_feedback(string $query): array
             (string) $item['note'],
             (string) $item['excerpt'],
             wp_strip_all_tags($record),
+            // The body the detail page shows when the language has no record.
+            wp_strip_all_tags((string) get_post_field('post_content', (int) $item['id'])),
+            (string) $item['legacy_body'],
         ]);
     }));
 }
