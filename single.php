@@ -36,6 +36,9 @@ $image_stem = static function (string $url): string {
 };
 preg_match_all('/<img\b[^>]*\bsrc=["\']([^"\']+)["\']/i', $content, $content_images);
 $lead_image = $image !== '' && !in_array($image_stem($image), array_map($image_stem, $content_images[1]), true) ? $image : '';
+// The featured image's caption (Media Library) shows under it, e.g. "AI-generated illustration"; translated through the static text dictionaries.
+$lead_caption = $lead_image !== '' ? trim(wp_strip_all_tags((string) wp_get_attachment_caption((int) get_post_thumbnail_id($post_id)))) : '';
+$lead_caption = $lead_caption !== '' && function_exists('boblift_localized_static_text') ? boblift_localized_static_text($lead_caption) : $lead_caption;
 $news_url = boblift_url('/news');
 $products = boblift_news_related_products($title, $content, 3, (int) $post_id);
 $contact = boblift_contact_settings();
@@ -139,6 +142,9 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
             <?php if ($lead_image !== '') : ?>
                 <figure class="mt-8 overflow-hidden rounded border border-line bg-mist">
                     <img class="mx-auto h-auto max-h-[min(80vh,calc(100vh-10rem))] w-auto max-w-full" <?php echo boblift_img_src($lead_image, '(min-width: 1024px) 67vw, 92vw', 1280); ?><?php if ((int) $image_src[1] > 0 && (int) $image_src[2] > 0) : ?> width="<?php echo (int) $image_src[1]; ?>" height="<?php echo (int) $image_src[2]; ?>"<?php endif; ?> alt="<?php echo esc_attr($localize(boblift_post_thumbnail_alt(get_post($post_id), $title))); ?>" fetchpriority="high" decoding="async">
+                    <?php if ($lead_caption !== '') : ?>
+                        <figcaption class="border-t border-line bg-white px-4 py-2 text-xs text-slate-500"><?php echo esc_html($lead_caption); ?></figcaption>
+                    <?php endif; ?>
                 </figure>
             <?php endif; ?>
 
