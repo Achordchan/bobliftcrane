@@ -2467,14 +2467,65 @@ function boblift_search_products(string $query): array
 
 function boblift_search_posts(string $query, string $post_type, int $per_page, int $page = 1): WP_Query
 {
-    return new WP_Query([
+    $args = [
         's' => $query,
         'post_type' => $post_type,
         'post_status' => 'publish',
         'posts_per_page' => $per_page,
         'paged' => max(1, $page),
         'ignore_sticky_posts' => true,
-    ]);
+    ];
+    if ($post_type !== 'case') {
+        return new WP_Query($args);
+    }
+    // A case's country, product and application are fields, not part of its title or body, so a search for
+    // "Australia" found none of the Australian cases. Matches on those fields follow the title and body matches.
+    $ids = (new WP_Query(['posts_per_page' => -1, 'fields' => 'ids', 'paged' => 1] + $args))->posts;
+    $all = new WP_Query(['post_type' => 'case', 'post_status' => 'publish', 'posts_per_page' => -1]);
+    foreach ($all->posts as $post) {
+        if (in_array($post->ID, $ids, true) || post_password_required($post)) {
+            continue;
+        }
+        $country = (string) get_post_meta($post->ID, '_country', true);
+        $product = (string) get_post_meta($post->ID, '_product_name', true);
+        $application = (string) get_post_meta($post->ID, '_application', true);
+        $texts = [$country, boblift_localized_static_text($country), $product, boblift_localize_product_text_fragments($product), boblift_localize_product_text_fragments($application)];
+        if (boblift_search_text_matches($query, $texts)) {
+            $ids[] = $post->ID;
+        }
+    }
+    unset($args['s']);
+    return new WP_Query(['post__in' => $ids ?: [0], 'orderby' => 'post__in'] + $args);
+}
+
+// Every word of the query appears somewhere in the texts (punctuation and case ignored, as in product search).
+function boblift_search_text_matches(string $query, array $texts): bool
+{
+    $words = array_values(array_filter(array_map('boblift_search_key', preg_split('/\s+/u', trim($query)) ?: [])));
+    $haystack = boblift_search_key(implode(' ', $texts));
+    return $words && count(array_filter($words, static fn(string $word): bool => str_contains($haystack, $word))) === count($words);
+}
+
+// Customer feedback entries whose country (in the page's language or in English), model, note or delivery record
+// match the query, in list order.
+function boblift_search_feedback(string $query): array
+{
+    if (boblift_search_key($query) === '') {
+        return [];
+    }
+    $language = function_exists('boblift_current_language_slug') ? (boblift_current_language_slug() ?: 'en') : 'en';
+    return array_values(array_filter(boblift_feedback_items(), static function (array $item) use ($query, $language): bool {
+        $countries = json_decode((string) get_post_meta((int) $item['id'], '_feedback_country', true), true);
+        $record = function_exists('boblift_feedback_record') ? boblift_feedback_record((int) $item['id'], $language) : '';
+        return boblift_search_text_matches($query, [
+            (string) $item['country'],
+            is_array($countries) ? (string) ($countries['en'] ?? '') : '',
+            (string) $item['model'],
+            (string) $item['note'],
+            (string) $item['excerpt'],
+            wp_strip_all_tags($record),
+        ]);
+    }));
 }
 
 /**

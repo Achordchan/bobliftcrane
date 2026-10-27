@@ -2133,6 +2133,10 @@ img { max-width: 100%; }
   font-weight: 900;
   transition: background .18s ease, color .18s ease;
 }
+/* The option's own display rule comes after Tailwind's .hidden, so options filtered out by the search stay hidden here. */
+.boblift-cases-select-option.hidden {
+  display: none;
+}
 .boblift-cases-select-option:hover,
 .boblift-cases-select-option.is-active {
   background: #eff6ff;
