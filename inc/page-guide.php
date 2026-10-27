@@ -29,7 +29,8 @@ function boblift_page_guide_sanitize($value): string
             $guide['facts'][] = ['value' => $plain($fact['value']), 'label' => $plain($fact['label'])];
         }
     }
-    if ($guide['title'] === '' && !$guide['points'] && !$guide['faq'] && !$guide['facts']) {
+    // A page guide always has its own heading (there is no generic fallback title for it), so one without is not stored.
+    if ($guide['title'] === '' || (!$guide['points'] && !$guide['faq'] && !$guide['facts'])) {
         return '';
     }
     return (string) wp_json_encode($guide, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -53,7 +54,7 @@ function boblift_render_page_guide(string $section_class = 'border-t border-line
 {
     $post_id = (int) get_queried_object_id();
     $guide = $post_id ? json_decode((string) get_post_meta($post_id, '_boblift_page_guide', true), true) : null;
-    if (!is_array($guide) || (trim((string) ($guide['title'] ?? '')) === '' && empty($guide['points']) && empty($guide['faq']))) {
+    if (!is_array($guide) || trim((string) ($guide['title'] ?? '')) === '' || (empty($guide['points']) && empty($guide['faq']) && empty($guide['facts']))) {
         return;
     }
     ?>
