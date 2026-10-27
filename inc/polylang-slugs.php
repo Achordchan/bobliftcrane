@@ -54,7 +54,9 @@ function boblift_slug_is_reserved(string $slug, string $post_type, int $post_par
     return (bool) apply_filters('wp_unique_post_slug_is_bad_flat_slug', false, $slug, $post_type);
 }
 
-add_filter('wp_unique_post_slug', static function (string $slug, int $post_id, string $post_status, string $post_type, int $post_parent, string $original_slug): string {
+// Untyped: the REST create route checks a draft's slug before the post exists and passes a null ID and parent.
+add_filter('wp_unique_post_slug', static function ($slug, $post_id, $post_status, $post_type, $post_parent, $original_slug) {
+    [$slug, $post_id, $post_type, $post_parent, $original_slug] = [(string) $slug, (int) $post_id, (string) $post_type, (int) $post_parent, (string) $original_slug];
     // Cases are looked up by their own post-type route, which does not pick the post by language, so each translation keeps a
     // unique slug (Polylang's -ja/-zh style suffix) instead of sharing the English one.
     if ($slug === $original_slug || $post_type === 'attachment' || $post_type === 'case' || !function_exists('pll_get_post_language') || !function_exists('pll_languages_list')) {

@@ -256,6 +256,7 @@
   {"from": "/bob-lift-sq10za5-limited-time-discount-hot-selling.html", "to": "/10-ton-knuckle-boom-truck-mounted-crane-sq10za5.html", "note": "过期促销新闻（不公开报价）10-24 撤为草稿，跳对应产品/分类页"},
   {"from": "/bob-lift-three-models-of-truck-mounted-cranes-are-currently-on-promotion.html", "to": "/truck-mounted-crane", "note": "过期促销新闻（不公开报价）10-24 撤为草稿，跳对应产品/分类页"},
   {"from": "/enter-the-bob-lift-factory-with-professional-manufacturing.html", "to": "/enter-the-bob-lift-factory-with-professional-manufacturing-we-create-more-reliable-lifting-equipment-id09841355.html", "note": "种子占位短文，与同名全文重复；占位文撤下后跳全文"},
-  {"from": "/bob-lift-offers-efficient-and-reliable-solutions-for-ship-lifting-operations.html", "to": "/bob-lift-offers-efficient-and-reliable-solutions-for-ship-lifting-operations-id02577455.html", "note": "种子占位短文，与同名全文重复；占位文撤下后跳全文"}
+  {"from": "/bob-lift-offers-efficient-and-reliable-solutions-for-ship-lifting-operations.html", "to": "/bob-lift-offers-efficient-and-reliable-solutions-for-ship-lifting-operations-id02577455.html", "note": "种子占位短文，与同名全文重复；占位文撤下后跳全文"},
+  {"from": "/news-show-4.html", "to": "/knuckle-boom-vs-telescopic-boom-truck-crane.html", "note": "10-24 旧文 1679 改写并换新 slug（7 语种同 slug），旧网址跳新文；核心按 _wp_old_slug 的跳转在 .html 网址上没生效"}
  ]
 }

@@ -7,7 +7,8 @@ if (!defined('ABSPATH')) {
  * Sends each saved inquiry to the DingTalk group through the achord-wp-dingtalk plugin (the one the loader site uses),
  * when that plugin is active. The plugin reads Contact Form 7 by itself; this site's own form hands it the same message
  * structure through achord_dingtalk_dispatch(), with source "boblift:inquiry". The robots, keywords and @mentions are
- * set in the plugin (设置 → 钉钉推送). As in the sales email, the visitor's raw IP is left out: only the country is shown.
+ * set in the plugin (设置 → 钉钉推送). As in the sales email, the country and the visitor's IP address are shown; the raw ad
+ * tracking values are left to the email's foot.
  */
 function boblift_dingtalk_inquiry(int $post_id, array $fields): void
 {
@@ -30,15 +31,8 @@ function boblift_dingtalk_inquiry(int $post_id, array $fields): void
         }
     }
 
-    $attribution = [];
-    foreach (array_keys(defined('BOBLIFT_INQUIRY_ATTRIBUTION') ? BOBLIFT_INQUIRY_ATTRIBUTION : []) as $name) {
-        // The referring site is shown in 来源渠道; the plugin's ad lines are only for ad clicks and campaign tags.
-        if ($name !== 'referrer' && ($fields['attr_' . $name] ?? '') !== '') {
-            $attribution[$name] = (string) $fields['attr_' . $name];
-        }
-    }
     // Where the inquiry came from first (the page's name and its address without ad parameters, then the button), then the
-    // channel and device, the ad source, the country and the time.
+    // channel (which already says which ad), the device, the landing page when it was another page, the country, IP and time.
     $source = function_exists('boblift_inquiry_source_page') ? boblift_inquiry_source_page($fields) : ['url' => (string) ($fields['source_page'] ?? ''), 'title' => '', 'params' => []];
     $meta = [];
     if ($source['title'] !== '') {
@@ -57,23 +51,22 @@ function boblift_dingtalk_inquiry(int $post_id, array $fields): void
     if (($fields['device'] ?? '') !== '') {
         $meta[] = ['label' => '访问设备', 'icon' => str_starts_with((string) $fields['device'], '电脑') ? '💻' : '📱', 'value' => (string) $fields['device']];
     }
-    $ad_meta = function_exists('achord_dingtalk_cf7_attribution_meta') ? achord_dingtalk_cf7_attribution_meta($attribution) : [];
-    if ($ad_meta) {
-        $meta = array_merge($meta, $ad_meta);
-    } elseif ($source['params']) {
-        // Without ad consent there is no attribution, but the address may still carry utm tags worth seeing.
-        $pairs = [];
-        foreach ($source['params'] as $name => $value) {
-            $pairs[] = $name . '=' . $value;
-        }
-        $meta[] = ['label' => '页面参数', 'icon' => '🏷️', 'value' => implode(' · ', $pairs)];
+    $landing = (string) ($fields['attr_landing'] ?? '');
+    // The page address keeps the parameters that pick a page (?page_id=); only a trailing slash and a # are ignored.
+    $page_key = static fn(string $url): string => (string) preg_replace('#/(?=\?|$)#', '', (string) preg_replace('/#.*$/s', '', $url), 1);
+    if ($landing !== '' && $page_key($landing) !== $page_key($source['url'])) {
+        $meta[] = ['label' => '落地页', 'icon' => '🧭', 'value' => $landing, 'link' => true];
     }
     if (get_post_meta($post_id, '_mail_sent', true) === '0') {
         $meta[] = ['label' => '注意', 'icon' => '⚠️', 'value' => '通知邮件没有发出去，请到后台查看这条询盘'];
     }
-    $country = function_exists('boblift_inquiry_ip_country') ? boblift_inquiry_ip_country(boblift_inquiry_client_ip()) : '';
+    $ip = function_exists('boblift_inquiry_client_ip') ? boblift_inquiry_client_ip() : '';
+    $country = $ip !== '' && function_exists('boblift_inquiry_ip_country') ? boblift_inquiry_ip_country($ip) : '';
     if ($country !== '') {
         $meta[] = ['label' => '来源国家', 'icon' => '🌍', 'value' => $country];
+    }
+    if ($ip !== '') {
+        $meta[] = ['label' => 'IP 地址', 'icon' => '🖥️', 'value' => $ip];
     }
     $meta[] = ['label' => '时间', 'icon' => '🕒', 'value' => wp_date('Y-m-d H:i')];
 

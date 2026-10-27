@@ -3,6 +3,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+require_once get_template_directory() . '/inc/fatal-log.php';
 require_once get_template_directory() . '/inc/site-ui.php';
 require_once get_template_directory() . '/inc/data.php';
 require_once get_template_directory() . '/inc/post-types.php';
@@ -24,6 +25,7 @@ require_once get_template_directory() . '/inc/legacy-product-intros.php';
 require_once get_template_directory() . '/inc/news-price-cleanup.php';
 require_once get_template_directory() . '/inc/forms.php';
 require_once get_template_directory() . '/inc/inquiry-mail.php';
+require_once get_template_directory() . '/inc/inquiry-guard.php';
 require_once get_template_directory() . '/inc/consent.php';
 require_once get_template_directory() . '/inc/dingtalk-bridge.php';
 require_once get_template_directory() . '/inc/brochures.php';
