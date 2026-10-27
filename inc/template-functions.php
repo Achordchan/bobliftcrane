@@ -2479,17 +2479,18 @@ function boblift_search_posts(string $query, string $post_type, int $per_page, i
         return new WP_Query($args);
     }
     // A case's country, product and application are fields, not part of its title or body, so a search for
-    // "Australia" found none of the Australian cases. Matches on those fields follow the title and body matches.
-    $ids = (new WP_Query(['posts_per_page' => -1, 'fields' => 'ids', 'paged' => 1] + $args))->posts;
+    // "Australia" found none of the Australian cases. Every case is matched against its fields and text together, so
+    // exclusions ("-Australia") and phrases apply to the fields as well; WordPress's own ranking orders the matches.
+    $ranked = (new WP_Query(['posts_per_page' => -1, 'fields' => 'ids', 'paged' => 1] + $args))->posts;
+    $ids = [];
     $all = new WP_Query(['post_type' => 'case', 'post_status' => 'publish', 'posts_per_page' => -1]);
     foreach ($all->posts as $post) {
-        if (in_array($post->ID, $ids, true) || post_password_required($post)) {
+        if (post_password_required($post)) {
             continue;
         }
         $country = (string) get_post_meta($post->ID, '_country', true);
         $product = (string) get_post_meta($post->ID, '_product_name', true);
         $application = (string) get_post_meta($post->ID, '_application', true);
-        // Title, summary and body too, so a query mixing a field and a body word ("Australia installation") matches.
         $texts = [
             $country, boblift_localized_static_text($country), $product, boblift_localize_product_text_fragments($product), boblift_localize_product_text_fragments($application),
             $post->post_title, $post->post_excerpt, (string) get_post_meta($post->ID, '_summary', true), wp_strip_all_tags($post->post_content),
@@ -2498,26 +2499,44 @@ function boblift_search_posts(string $query, string $post_type, int $per_page, i
             $ids[] = $post->ID;
         }
     }
+    $rank = array_flip($ranked);
+    usort($ids, static fn(int $a, int $b): int => ($rank[$a] ?? PHP_INT_MAX) <=> ($rank[$b] ?? PHP_INT_MAX));
     unset($args['s']);
     return new WP_Query(['post__in' => $ids ?: [0], 'orderby' => 'post__in'] + $args);
 }
 
-// Every word of the query appears somewhere in the texts (punctuation and case ignored, as in product search) and,
-// as in WordPress search, no word written with a leading "-" does.
+// The query read the way WordPress search reads it: "quoted phrases" stay whole, a leading "-" excludes a term, and
+// every other term must appear in one of the texts. Single words ignore punctuation and spacing (as in product search,
+// so "SQ5SA3" finds "SQ5-SA3"); a phrase must appear as written within one text, case aside.
 function boblift_search_text_matches(string $query, array $texts): bool
 {
-    $include = [];
-    $exclude = [];
-    foreach (preg_split('/\s+/u', trim($query)) ?: [] as $token) {
-        $excluded = mb_strlen($token) > 1 && str_starts_with($token, '-');
-        $key = boblift_search_key($excluded ? substr($token, 1) : $token);
-        if ($key !== '') {
-            $excluded ? $exclude[] = $key : $include[] = $key;
+    $lower = static fn(string $text): string => function_exists('mb_strtolower') ? mb_strtolower($text) : strtolower($text);
+    $flat = static fn(string $text): string => (string) preg_replace('/\s+/u', ' ', $lower($text));
+    $joined = boblift_search_key(implode(' ', $texts));
+    $flat_texts = array_map($flat, $texts);
+    $include = 0;
+    preg_match_all('/(-?)"([^"]*)"?|(-?)(\S+)/u', trim($query), $tokens, PREG_SET_ORDER);
+    foreach ($tokens as $token) {
+        $phrase = isset($token[2]) && $token[2] !== '' && ($token[4] ?? '') === '';
+        $excluded = ($phrase ? $token[1] : ($token[3] ?? '')) === '-';
+        if ($phrase) {
+            $needle = trim($flat($token[2]));
+            $found = $needle !== '' && (bool) array_filter($flat_texts, static fn(string $text): bool => str_contains($text, $needle));
+            $empty = $needle === '';
+        } else {
+            $needle = boblift_search_key((string) ($token[4] ?? ''));
+            $found = $needle !== '' && str_contains($joined, $needle);
+            $empty = $needle === '';
         }
+        if ($empty) {
+            continue;
+        }
+        if ($excluded ? $found : !$found) {
+            return false;
+        }
+        $include += $excluded ? 0 : 1;
     }
-    $haystack = boblift_search_key(implode(' ', $texts));
-    $has = static fn(string $word): bool => str_contains($haystack, $word);
-    return $include && count(array_filter($include, $has)) === count($include) && !array_filter($exclude, $has);
+    return $include > 0;
 }
 
 // Customer feedback entries whose country (in the page's language or in English), model, note or delivery record
@@ -2537,10 +2556,8 @@ function boblift_search_feedback(string $query): array
             (string) $item['model'],
             (string) $item['note'],
             (string) $item['excerpt'],
-            wp_strip_all_tags($record),
-            // The body the detail page shows when the language has no record.
-            wp_strip_all_tags((string) get_post_field('post_content', (int) $item['id'])),
-            (string) $item['legacy_body'],
+            // The body the detail page shows: the record, else the editor body, else the old plain-text body.
+            wp_strip_all_tags($record !== '' ? $record : (trim((string) get_post_field('post_content', (int) $item['id'])) ?: (string) $item['legacy_body'])),
         ]);
     }));
 }
