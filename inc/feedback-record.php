@@ -155,3 +155,23 @@ function boblift_feedback_record_hreflang(): void
     }
 }
 add_action('wp_head', 'boblift_feedback_record_hreflang', 2);
+
+// The language switcher also asks Polylang for each language's version, finds no translation and falls back to that
+// language's home page. Every entry answers at /<lang>/feedback/<slug>/, so the switcher stays on the same entry.
+function boblift_feedback_record_translation_url($url, string $language)
+{
+    if (!is_singular('feedback')) {
+        return $url;
+    }
+    $post = get_queried_object();
+    return $post instanceof WP_Post ? trailingslashit(boblift_public_path_url('/feedback/' . $post->post_name, $language)) : $url;
+}
+add_filter('pll_translation_url', 'boblift_feedback_record_translation_url', 10, 2);
+
+// Polylang prints hreflang links from the same URLs; on feedback they come from boblift_feedback_record_hreflang()
+// instead, which leaves out the languages without a record (those are noindex).
+function boblift_feedback_record_polylang_hreflang(array $hreflangs): array
+{
+    return is_singular('feedback') ? [] : $hreflangs;
+}
+add_filter('pll_rel_hreflang_attributes', 'boblift_feedback_record_polylang_hreflang', 20);
