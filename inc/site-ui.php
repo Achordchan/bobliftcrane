@@ -1450,10 +1450,10 @@ function boblift_site_ui_defaults(?string $section = null): array
             'faqItems' => [
                 ['question' => 'Which configuration should we choose for this model?', 'answer' => 'Send the load, working radius, lifting height, site access and destination. The engineering team will confirm whether the standard configuration fits before quotation.'],
                 ['question' => 'Can the crane be customized for our working conditions?', 'answer' => 'BOB-LIFT can adjust configuration around lifting radius, site access, operation scenario and destination requirements.'],
-                ['question' => 'What is the typical delivery time?', 'answer' => 'Delivery time depends on model configuration, order quantity and destination. BOB-LIFT confirms the schedule together with the quotation.'],
-                ['question' => 'What export documents are provided?', 'answer' => 'Common export support can include commercial invoice, packing list, bill of lading and product documents required for the confirmed order.'],
-                ['question' => 'Do you provide installation and operation training?', 'answer' => 'Installation guidance, operation notes and remote technical support can be arranged according to the project requirement.'],
-                ['question' => 'What after-sales support is available?', 'answer' => 'After-sales support covers parts consultation, troubleshooting guidance and service coordination for confirmed export orders.'],
+                ['question' => 'What is the typical delivery time?', 'answer' => 'Lead time depends on the configuration, order quantity and destination. We confirm it in writing with your quotation.'],
+                ['question' => 'What export documents are provided?', 'answer' => 'Each order ships with a commercial invoice, packing list and bill of lading, plus the product documents required for the confirmed order.'],
+                ['question' => 'Do you provide installation and operation training?', 'answer' => 'We can mount the crane on your truck before shipping. For installation on site, our team provides installation guidance and remote technical support, and our Service & Operation page has short videos on checks before and during lifting.'],
+                ['question' => 'What after-sales support is available?', 'answer' => 'Cranes carry a 12-month warranty. Send the model, serial number and a photo or video of the issue; our team guides the repair and ships the parts.'],
             ],
             'fallbackFeatures' => [
                 ['title' => 'Flexible Boom Operation', 'text' => 'Telescopic boom extends for versatile lifting in multiple working conditions.'],

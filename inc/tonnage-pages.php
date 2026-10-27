@@ -226,9 +226,18 @@ function boblift_tonnage_intro(int $size): string
     return implode(in_array($language, ['zh', 'ja'], true) ? '' : ' ', $sentences);
 }
 
-/** "See all 5 Ton Cranes" for a product page; the name starts lower-case mid-sentence where the language needs it. */
-function boblift_tonnage_see_all_label(int $size): string
+/**
+ * "See all 5 Ton Cranes" for a product page; the name starts lower-case mid-sentence where the language needs it. A model
+ * whose capacity is not the page's size (6.3 t on the 8 Ton page, which lists over 6 t up to 8 t) gets the page's range
+ * instead, "See all 6–8 t cranes", so the link does not read as another capacity.
+ */
+function boblift_tonnage_see_all_label(int $size, float $capacity = 0.0): string
 {
+    if ($capacity > 0 && abs($capacity - $size) > 0.001) {
+        [$min, $max] = boblift_tonnage_bin_range(boblift_tonnage_bins()[$size] ?? '0-0');
+        $template = $min > 0 ? 'See all {min}–{max} t cranes' : 'See all cranes up to {max} t';
+        return str_replace(['{min}', '{max}'], [boblift_tonnage_number($min), boblift_tonnage_number($max)], boblift_localized_static_text($template));
+    }
     $name = boblift_tonnage_heading($size);
     $language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
     if (in_array($language, ['es', 'fr', 'ru'], true)) {

@@ -49,4 +49,5 @@ require_once get_template_directory() . '/inc/rest-content-insert.php';
 require_once get_template_directory() . '/inc/rest-product-specs.php';
 require_once get_template_directory() . '/inc/rest-legal-pages.php';
 require_once get_template_directory() . '/inc/rest-filter-bins.php';
+require_once get_template_directory() . '/inc/rest-product-faq.php';
 require_once get_template_directory() . '/inc/polylang-rewrites.php';
