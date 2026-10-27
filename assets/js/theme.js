@@ -3813,11 +3813,26 @@
     let gallery = [];
     let galleryIndex = 0;
     let galleryTitle = '';
-    const urlTab = new URLSearchParams(window.location.search).get('tab');
-    let activeKind = urlTab === 'customer_feedback' ? 'customer_feedback' : 'scene_case';
+    // Tab, page and filters live in the address, so Back from a case or feedback entry returns to the same view.
+    const urlParams = new URLSearchParams(window.location.search);
+    let activeKind = urlParams.get('tab') === 'customer_feedback' ? 'customer_feedback' : 'scene_case';
     // 101 feedback entries made the page ~26k px tall: the grid shows one page at a time.
     const casesPerPage = 12;
-    let casesPage = 1;
+    let casesPage = Math.max(1, Number.parseInt(urlParams.get('case_page') || '1', 10) || 1);
+    // Prefixed: "product" is the product post type's query variable and would turn the address into a product request.
+    [[countryFilter, 'case_country'], [productFilter, 'case_product']].forEach(([select, key]) => {
+      const value = urlParams.get(key) || '';
+      if (select && value && Array.from(select.options).some((option) => option.value === value)) select.value = value;
+    });
+    const writeCasesUrl = () => {
+      const url = new URL(window.location.href);
+      const set = (key, value) => (value ? url.searchParams.set(key, value) : url.searchParams.delete(key));
+      set('tab', activeKind === 'customer_feedback' ? 'customer_feedback' : '');
+      set('case_page', casesPage > 1 ? String(casesPage) : '');
+      set('case_country', countryFilter?.value || '');
+      set('case_product', productFilter?.value || '');
+      if (url.href !== window.location.href) window.history.replaceState(window.history.state, '', url.href);
+    };
     const pager = qs('[data-cases-pager]', root);
     const summary = qs('[data-cases-summary]', root);
 
@@ -3998,6 +4013,7 @@
           : '';
       }
       renderCasesPager(totalPages);
+      writeCasesUrl();
       if (empty) empty.classList.toggle('hidden', visibleCount !== 0);
       if (grid) grid.classList.toggle('hidden', visibleCount === 0);
       tabButtons.forEach((button) => {
@@ -4144,6 +4160,30 @@
       }
     });
     applyCasesFilter();
+    // The cards are hidden by script after load, so the browser's own scroll restore can land on the wrong row:
+    // keep the position per address and put it back when the page is reached with Back or Forward.
+    const scrollKey = () => `boblift-cases-scroll:${window.location.pathname}${window.location.search}`;
+    window.addEventListener('pagehide', () => {
+      // Manual restore is set only for this archive's own Back; pages opened from here keep the browser's.
+      if ('scrollRestoration' in window.history) window.history.scrollRestoration = 'auto';
+      try {
+        window.sessionStorage.setItem(scrollKey(), String(Math.round(window.scrollY)));
+      } catch (error) {
+        // Storage can be blocked (private mode); the view itself is still restored from the address.
+      }
+    });
+    if (performance.getEntriesByType?.('navigation')[0]?.type === 'back_forward') {
+      let saved = null;
+      try {
+        saved = window.sessionStorage.getItem(scrollKey());
+      } catch (error) {
+        saved = null;
+      }
+      if (saved !== null) {
+        if ('scrollRestoration' in window.history) window.history.scrollRestoration = 'manual';
+        window.requestAnimationFrame(() => window.scrollTo(0, Number(saved) || 0));
+      }
+    }
   });
 })();
 

@@ -3,15 +3,18 @@ get_header();
 
 $ui = boblift_site_ui('search');
 $product_detail_ui = boblift_site_ui('productDetail');
+$cases_ui = boblift_site_ui('casesPage');
 $query = trim(get_search_query(false));
 $type = isset($_GET['type']) && is_string($_GET['type']) ? sanitize_key(wp_unslash($_GET['type'])) : '';
-$type = in_array($type, ['product', 'news', 'case'], true) ? $type : '';
+$type = in_array($type, ['product', 'news', 'case', 'feedback'], true) ? $type : '';
 $page = isset($_GET['pg']) ? max(1, absint($_GET['pg'])) : 1;
 $news_per_page = $type === 'news' ? 10 : 4;
 $case_per_page = $type === 'case' ? 12 : 3;
 $product_limit = $type === 'product' ? 0 : 6;
+$feedback_limit = $type === 'feedback' ? 0 : 4;
 
 $products = $query !== '' ? boblift_search_products($query) : [];
+$feedback_results = $query !== '' ? boblift_search_feedback($query) : [];
 $news_query = $query !== '' ? boblift_search_posts($query, 'post', $news_per_page, $type === 'news' ? $page : 1) : null;
 $case_query = $query !== '' ? boblift_search_posts($query, 'case', $case_per_page, $type === 'case' ? $page : 1) : null;
 // WP_Query reports no total for a page past the end (a bookmark after posts were removed): count from page 1 and
@@ -34,6 +37,7 @@ $counts = [
     'product' => count($products),
     'news' => $news_query ? (int) $news_query->found_posts : 0,
     'case' => $case_query ? (int) $case_query->found_posts : 0,
+    'feedback' => count($feedback_results),
 ];
 $total = array_sum($counts);
 // A selected tab with no matches (e.g. a new search from the News tab that only matches products) falls back to All results.
@@ -41,6 +45,7 @@ if ($type !== '' && $total > 0 && ($counts[$type] ?? 0) === 0) {
     $type = '';
     $page = 1;
     $product_limit = 6;
+    $feedback_limit = 4;
     $news_per_page = 4;
     $case_per_page = 3;
     $news_query = boblift_search_posts($query, 'post', $news_per_page, 1);
@@ -141,6 +146,21 @@ $post_result = static function (WP_Post $post) use ($highlight): void {
     <?php
 };
 
+$feedback_label = (string) ($cases_ui['customerFeedbackLabel'] ?? 'Customer Feedback');
+$feedback_result = static function (array $item) use ($highlight, $feedback_label): void {
+    $counts_text = boblift_feedback_counts_text($item);
+    ?>
+    <a class="group grid min-w-0 grid-cols-[104px_minmax(0,1fr)] items-start gap-4 rounded border border-[#E5E7EB] bg-white p-3 shadow-card transition duration-300 hover:-translate-y-0.5 hover:border-blue-200 sm:grid-cols-[200px_minmax(0,1fr)] sm:gap-6 sm:p-4" href="<?php echo esc_url((string) $item['url']); ?>">
+        <div class="relative aspect-[4/3] overflow-hidden rounded-sm bg-mist"><?php if ((string) $item['cover'] !== '') : ?><img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" src="<?php echo esc_url((string) $item['cover']); ?>" alt="<?php echo esc_attr(trim($item['model'] . ' · ' . $item['country'], ' ·')); ?>" loading="lazy" decoding="async"><?php endif; ?></div>
+        <div class="min-w-0 py-0.5 sm:py-2">
+            <p class="truncate text-xs font-bold text-slate-500"><?php echo $highlight(implode(' · ', array_filter([$feedback_label, (string) $item['country']]))); ?></p>
+            <h3 class="mt-1.5 line-clamp-2 text-base font-black leading-snug text-ink transition group-hover:text-blue-700 sm:text-lg"><?php echo $highlight((string) $item['model']); ?></h3>
+            <?php if ($counts_text !== '') : ?><p class="mt-2 hidden text-sm font-normal leading-6 text-slate-600 sm:line-clamp-2"><?php echo esc_html($counts_text); ?></p><?php endif; ?>
+        </div>
+    </a>
+    <?php
+};
+
 $section_head = static function (string $label, int $count, string $tab, int $shown) use ($ui, $type, $search_url, $format): void {
     ?>
     <div class="mb-4 flex items-end justify-between gap-4 md:mb-5">
@@ -200,6 +220,7 @@ $category_links = static function () use ($families): void {
                         'product' => [(string) ($ui['tabProducts'] ?? 'Products'), $counts['product']],
                         'news' => [(string) ($ui['tabNews'] ?? 'News'), $counts['news']],
                         'case' => [(string) ($ui['tabCases'] ?? 'Cases'), $counts['case']],
+                        'feedback' => [$feedback_label, $counts['feedback']],
                     ];
                     foreach ($tabs as $tab => [$label, $count]) :
                         if ($tab !== '' && $count === 0) {
@@ -258,6 +279,14 @@ $category_links = static function () use ($families): void {
                                 <?php endfor; ?>
                             </nav>
                         <?php endif; ?>
+                    </section>
+                <?php endif; ?>
+                <?php if ($counts['feedback'] > 0 && in_array($type, ['', 'feedback'], true)) : ?>
+                    <section>
+                        <?php $section_head($feedback_label, $counts['feedback'], 'feedback', $feedback_limit ?: $counts['feedback']); ?>
+                        <div class="grid gap-3 lg:grid-cols-2 lg:gap-4">
+                            <?php foreach ($feedback_limit ? array_slice($feedback_results, 0, $feedback_limit) : $feedback_results as $feedback_item) : $feedback_result($feedback_item); endforeach; ?>
+                        </div>
                     </section>
                 <?php endif; ?>
             </div>
