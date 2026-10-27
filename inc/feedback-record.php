@@ -78,6 +78,19 @@ function boblift_register_feedback_record_meta(): void
             'auth_callback' => static fn($allowed, $meta_key, $post_id): bool => current_user_can('edit_post', (int) $post_id),
         ]);
     }
+    // The gallery ("12,34,56", attachment IDs in display order; the first image is the cover) is written the same way,
+    // so a new customer photo goes in without the edit screen. IDs that are not attachments are dropped.
+    register_post_meta('feedback', '_feedback_media', [
+        'type' => 'string',
+        'single' => true,
+        'default' => '',
+        'show_in_rest' => true,
+        'sanitize_callback' => static fn($value): string => implode(',', array_unique(array_filter(
+            array_map('intval', is_array($value) ? $value : explode(',', (string) $value)),
+            static fn(int $id): bool => $id > 0 && get_post_type($id) === 'attachment'
+        ))),
+        'auth_callback' => static fn($allowed, $meta_key, $post_id): bool => current_user_can('edit_post', (int) $post_id),
+    ]);
     // Model and country are read alongside the record, so a writer knows which entry it is working on.
     foreach (['_feedback_model', '_feedback_country'] as $key) {
         register_post_meta('feedback', $key, [
