@@ -138,7 +138,10 @@ $step_label = static function (int $n) use ($ui, $pad): string {
     </div>
 </div>
 
+<?php boblift_render_page_guide(); ?>
+
 <?php // The questions sales will ask and the inquiry buttons in one closing block (the old separate CTA repeated the questions). ?>
+
 <section class="page-shell py-12 md:py-16" aria-labelledby="mounting-needs-title">
     <div class="grid overflow-hidden rounded bg-navy text-white lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
         <div class="flex flex-col justify-between gap-8 p-6 sm:p-10 xl:p-12">

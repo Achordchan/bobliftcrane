@@ -81,13 +81,22 @@ function boblift_render_buying_guide(WP_Term $term, bool $is_current = true): vo
     if (!$guide) {
         return;
     }
+    boblift_render_guide_block($guide, $is_current ? 'buying-guide' : 'buying-guide-' . $term->term_id, 'buying-guide-title-' . $term->term_id, $is_current, 'mt-14 lg:mt-20');
+}
+
+/**
+ * A guide block (eyebrow, title, intro, optional key figures, numbered points, FAQ), shared by the category buying guides
+ * and the page guides (inc/page-guide.php). $faq_schema prints the FAQPage JSON-LD for the questions.
+ */
+function boblift_render_guide_block(array $guide, string $section_id, string $title_id, bool $faq_schema, string $class = ''): void
+{
     $allowed = boblift_buying_guide_allowed_html();
     $points = array_values((array) ($guide['points'] ?? []));
     $faq = array_values((array) ($guide['faq'] ?? []));
+    $facts = array_values((array) ($guide['facts'] ?? []));
     ?>
     <?php // Two columns from lg on, header and body alike: the title over the points on the left, the intro over the questions on the right. ?>
-    <?php $title_id = 'buying-guide-title-' . $term->term_id; ?>
-    <section id="<?php echo esc_attr($is_current ? 'buying-guide' : 'buying-guide-' . $term->term_id); ?>" class="mt-14 scroll-mt-24 lg:mt-20" aria-labelledby="<?php echo esc_attr($title_id); ?>">
+    <section id="<?php echo esc_attr($section_id); ?>" class="scroll-mt-24 <?php echo esc_attr($class); ?>" aria-labelledby="<?php echo esc_attr($title_id); ?>">
         <div class="grid gap-x-12 gap-y-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:items-end xl:gap-x-16">
             <div class="min-w-0">
                 <?php if (($guide['eyebrow'] ?? '') !== '') : ?><p class="section-label"><?php echo esc_html($guide['eyebrow']); ?></p><?php endif; ?>
@@ -95,6 +104,16 @@ function boblift_render_buying_guide(WP_Term $term, bool $is_current = true): vo
             </div>
             <?php if (($guide['intro'] ?? '') !== '') : ?><p class="text-sm leading-7 text-slate-600 md:text-base [&_a]:font-bold [&_a]:text-blue-700 [&_a]:underline-offset-4 [&_a:hover]:underline"><?php echo wp_kses((string) $guide['intro'], $allowed); ?></p><?php endif; ?>
         </div>
+        <?php if ($facts) : ?>
+            <dl class="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded border border-[#E5E7EB] bg-[#E5E7EB] lg:mt-10 <?php echo count($facts) % 3 === 0 ? 'md:grid-cols-3' : 'md:grid-cols-4'; ?>">
+                <?php foreach ($facts as $fact) : ?>
+                    <div class="flex min-w-0 flex-col bg-white px-4 py-5 md:px-6 md:py-6">
+                        <dt class="order-2 mt-1.5 text-sm leading-6 text-slate-600"><?php echo esc_html((string) ($fact['label'] ?? '')); ?></dt>
+                        <dd class="order-1 break-words text-2xl font-black leading-tight tracking-[-0.01em] text-ink md:text-3xl"><?php echo esc_html((string) ($fact['value'] ?? '')); ?></dd>
+                    </div>
+                <?php endforeach; ?>
+            </dl>
+        <?php endif; ?>
         <div class="mt-8 grid gap-x-12 gap-y-12 border-t border-[#E5E7EB] pt-8 lg:mt-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:items-start lg:pt-10 xl:gap-x-16">
             <?php if ($points) : ?>
                 <?php // The number sits on the title's baseline, so number, title and text share one left edge. ?>
@@ -121,7 +140,7 @@ function boblift_render_buying_guide(WP_Term $term, bool $is_current = true): vo
                 </div>
             <?php endif; ?>
         </div>
-        <?php if ($faq && $is_current) : ?>
+        <?php if ($faq && $faq_schema) : ?>
             <?php
             $schema = [
                 '@context' => 'https://schema.org',

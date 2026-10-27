@@ -133,6 +133,8 @@ $pad = static fn(int $n): string => str_pad((string) $n, 2, '0', STR_PAD_LEFT);
 </section>
 <?php endif; ?>
 
+<?php boblift_render_page_guide(); ?>
+
 <section class="page-shell py-12 md:py-16" aria-labelledby="factory-cta-title">
     <div class="flex flex-col gap-6 rounded bg-navy p-6 text-white sm:p-10 lg:flex-row lg:items-center lg:justify-between xl:p-12">
         <div class="max-w-2xl">

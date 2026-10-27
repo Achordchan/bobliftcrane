@@ -80,6 +80,8 @@ $channels = array_values(array_filter([
 </section>
 <?php endif; ?>
 
+<?php boblift_render_page_guide(); ?>
+
 <?php if ($channels !== []) : ?>
 <section class="page-shell py-12 md:py-16" aria-labelledby="service-support-title">
     <div class="grid gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,2fr)] lg:gap-10">
