@@ -4164,6 +4164,8 @@
     // keep the position per address and put it back when the page is reached with Back or Forward.
     const scrollKey = () => `boblift-cases-scroll:${window.location.pathname}${window.location.search}`;
     window.addEventListener('pagehide', () => {
+      // Manual restore is set only for this archive's own Back; pages opened from here keep the browser's.
+      if ('scrollRestoration' in window.history) window.history.scrollRestoration = 'auto';
       try {
         window.sessionStorage.setItem(scrollKey(), String(Math.round(window.scrollY)));
       } catch (error) {

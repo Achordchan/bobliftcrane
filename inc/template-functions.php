@@ -2506,7 +2506,7 @@ function boblift_search_posts(string $query, string $post_type, int $per_page, i
 }
 
 // The query read the way WordPress search reads it: "quoted phrases" stay whole, a leading "-" excludes a term, and
-// every other term must appear in one of the texts. Single words ignore punctuation and spacing (as in product search,
+// every other term must appear in one of the texts; a query of exclusions only keeps what it does not exclude. Single words ignore punctuation and spacing (as in product search,
 // so "SQ5SA3" finds "SQ5-SA3"); a phrase must appear as written within one text, case aside.
 function boblift_search_text_matches(string $query, array $texts): bool
 {
@@ -2514,7 +2514,7 @@ function boblift_search_text_matches(string $query, array $texts): bool
     $flat = static fn(string $text): string => (string) preg_replace('/\s+/u', ' ', $lower($text));
     $joined = boblift_search_key(implode(' ', $texts));
     $flat_texts = array_map($flat, $texts);
-    $include = 0;
+    $terms = 0;
     preg_match_all('/(-?)"([^"]*)"?|(-?)(\S+)/u', trim($query), $tokens, PREG_SET_ORDER);
     foreach ($tokens as $token) {
         $phrase = isset($token[2]) && $token[2] !== '' && ($token[4] ?? '') === '';
@@ -2534,9 +2534,10 @@ function boblift_search_text_matches(string $query, array $texts): bool
         if ($excluded ? $found : !$found) {
             return false;
         }
-        $include += $excluded ? 0 : 1;
+        $terms++;
     }
-    return $include > 0;
+    // Exclusions alone ("-Australia") match everything they do not exclude, as in WordPress search.
+    return $terms > 0;
 }
 
 // Customer feedback entries whose country (in the page's language or in English), model, note or delivery record
