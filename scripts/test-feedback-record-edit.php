@@ -14,6 +14,9 @@ function is_wp_error($thing): bool
 function add_action(...$args): void
 {
 }
+function add_filter(...$args): void
+{
+}
 require dirname(__DIR__) . '/inc/rest-feedback-record-edit.php';
 
 $fail = 0;

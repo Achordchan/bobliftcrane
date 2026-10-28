@@ -10,7 +10,8 @@ if (!defined('ABSPATH')) {
  * Write {"edits": [{"lang": "en", "find": "…", "replace": "…"}, {"lang": "es", "after_last": "</table>", "insert": "<p>…</p>"}]}.
  * "find" must occur exactly once in that language's record and "after_last" at least once; text is matched against the
  * record as stored, which is what wp/v2/feedback returns in meta._feedback_record. The edits run in order, and one edit
- * that does not apply rejects them all, so nothing is saved. The result goes through the record's own sanitizing.
+ * that does not apply rejects the request before WordPress saves any part of it. The result goes through the record's
+ * own sanitizing and is saved as a compare-and-set, so concurrent edits to one entry do not overwrite each other.
  */
 function boblift_feedback_record_apply_edits(array $records, mixed $edits): array|WP_Error
 {
@@ -45,6 +46,70 @@ function boblift_feedback_record_apply_edits(array $records, mixed $edits): arra
     return $records;
 }
 
+/** The stored record of an entry, as decoded languages plus the raw meta row it came from (null when there is none). */
+function boblift_feedback_record_edit_stored(int $post_id): ?array
+{
+    global $wpdb;
+    $row = $wpdb->get_row($wpdb->prepare("SELECT meta_id, meta_value FROM {$wpdb->postmeta} WHERE post_id = %d AND meta_key = '_feedback_record' ORDER BY meta_id LIMIT 1", $post_id));
+    $records = $row ? json_decode((string) $row->meta_value, true) : null;
+    return is_array($records) && $records !== [] ? ['meta_id' => (int) $row->meta_id, 'raw' => (string) $row->meta_value, 'records' => $records] : null;
+}
+
+/**
+ * Checks the edits before WordPress saves anything in the request, so a bad edit leaves the title and other meta of the
+ * same request unsaved too. A request that also replaces meta._feedback_record is refused: the two would overwrite
+ * each other.
+ */
+function boblift_feedback_record_edit_precheck($prepared_post, WP_REST_Request $request)
+{
+    if (!$request->has_param('boblift_feedback_record_edit') || is_wp_error($prepared_post)) {
+        return $prepared_post;
+    }
+    $meta = $request->get_param('meta');
+    if (is_array($meta) && array_key_exists('_feedback_record', $meta)) {
+        return new WP_Error('boblift_record_edit_invalid', 'Send either meta._feedback_record or boblift_feedback_record_edit, not both.', ['status' => 400]);
+    }
+    $stored = boblift_feedback_record_edit_stored((int) $request->get_param('id'));
+    if ($stored === null) {
+        return new WP_Error('boblift_record_edit_invalid', 'This entry has no delivery record to edit; write meta._feedback_record instead.', ['status' => 400]);
+    }
+    $value = $request->get_param('boblift_feedback_record_edit');
+    $edited = boblift_feedback_record_apply_edits($stored['records'], is_array($value) ? ($value['edits'] ?? null) : null);
+    return is_wp_error($edited) ? $edited : $prepared_post;
+}
+add_filter('rest_pre_insert_feedback', 'boblift_feedback_record_edit_precheck', 10, 2);
+
+/**
+ * Applies the edits and saves the record as a compare-and-set on its meta row, retried when another save changed the
+ * row in between, so two requests editing different languages at once both keep their changes.
+ */
+function boblift_feedback_record_edit_save(int $post_id, mixed $edits): true|WP_Error
+{
+    global $wpdb;
+    for ($attempt = 0; $attempt < 5; $attempt++) {
+        $stored = boblift_feedback_record_edit_stored($post_id);
+        if ($stored === null) {
+            return new WP_Error('boblift_record_edit_invalid', 'This entry has no delivery record to edit; write meta._feedback_record instead.', ['status' => 400]);
+        }
+        $edited = boblift_feedback_record_apply_edits($stored['records'], $edits);
+        if (is_wp_error($edited)) {
+            return $edited;
+        }
+        if ($edited === $stored['records']) {
+            return true;
+        }
+        // The record's own sanitizing (KSES per language), as a meta write through REST would apply it.
+        $value = sanitize_meta('_feedback_record', (string) wp_json_encode($edited, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), 'post', 'feedback');
+        $done = $wpdb->query($wpdb->prepare("UPDATE {$wpdb->postmeta} SET meta_value = %s WHERE meta_id = %d AND BINARY meta_value = BINARY %s", $value, $stored['meta_id'], $stored['raw']));
+        if ($done) {
+            wp_cache_delete($post_id, 'post_meta');
+            clean_post_cache($post_id);
+            return true;
+        }
+    }
+    return new WP_Error('boblift_record_edit_busy', 'The record kept changing while saving; try again.', ['status' => 409]);
+}
+
 function boblift_feedback_record_edit_register_field(): void
 {
     register_rest_field('feedback', 'boblift_feedback_record_edit', [
@@ -53,19 +118,7 @@ function boblift_feedback_record_edit_register_field(): void
             if (!current_user_can('edit_post', $post->ID)) {
                 return new WP_Error('boblift_record_edit_forbidden', 'Editing a delivery record needs edit_post on the entry.', ['status' => 403]);
             }
-            $records = json_decode((string) get_post_meta($post->ID, '_feedback_record', true), true);
-            if (!is_array($records) || $records === []) {
-                return new WP_Error('boblift_record_edit_invalid', 'This entry has no delivery record to edit; write meta._feedback_record instead.', ['status' => 400]);
-            }
-            $edited = boblift_feedback_record_apply_edits($records, is_array($value) ? ($value['edits'] ?? null) : null);
-            if (is_wp_error($edited)) {
-                return $edited;
-            }
-            if ($edited !== $records) {
-                // Meta writes unslash their input, and the JSON escapes the quotes in the HTML.
-                update_post_meta($post->ID, '_feedback_record', wp_slash((string) wp_json_encode($edited, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)));
-            }
-            return true;
+            return boblift_feedback_record_edit_save($post->ID, is_array($value) ? ($value['edits'] ?? null) : null);
         },
         'schema' => [
             'description' => 'Edits to this entry\'s delivery record. Write {"edits": [{"lang", "find", "replace"} | {"lang", "after_last", "insert"}]}.',
