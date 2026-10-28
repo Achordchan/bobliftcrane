@@ -1374,7 +1374,6 @@ function boblift_site_ui_defaults(?string $section = null): array
                 'invalidRequest' => 'Invalid catalog request. Please refresh and try again.',
                 'saveFailed' => 'The catalog request could not be saved. Please try again.',
                 'rateLimited' => 'Please wait a few minutes before requesting another catalog.',
-                'adminMailSubject' => 'New BOB-LIFT catalog request',
                 'customerMailSubject' => 'Your BOB-LIFT %s catalog',
                 'customerMailGreeting' => 'Thank you for requesting the %s catalog.',
                 'customerMailDownloadIntro' => 'You can download it here:',

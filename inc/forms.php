@@ -230,6 +230,8 @@ function boblift_render_catalog_modal(): void
                 <input type="hidden" name="product" data-catalog-product-field value="">
                 <input type="hidden" name="product_slug" data-catalog-product-slug-field value="">
                 <input type="hidden" name="catalog_url" data-catalog-url-field value="">
+                <input type="hidden" name="source_entry" data-catalog-source-field value="">
+                <input type="hidden" name="source_title" value="<?php echo esc_attr(wp_get_document_title()); ?>">
                 <label class="sr-only" aria-hidden="true">Website <input class="hidden" type="text" name="boblift_catalog_website" tabindex="-1" autocomplete="off"></label>
                 <div class="flex items-start justify-between gap-4">
                     <div>
@@ -263,6 +265,7 @@ function boblift_render_catalog_modal(): void
                     <span data-catalog-success-text><?php echo esc_html($catalog_ui['successText'] ?? 'Catalog request saved. We also sent the catalog link to your email.'); ?></span>
                     <a class="mt-3 inline-flex h-11 items-center justify-center gap-2 rounded-sm bg-navy px-5 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-[#0b2d5b]" href="#" target="_blank" rel="noreferrer" data-catalog-download-link><?php echo boblift_icon('download', 'h-4 w-4'); ?><?php echo esc_html($catalog_ui['downloadLabel'] ?? 'Download PDF'); ?></a>
                 </div>
+                <?php boblift_render_turnstile_widget('mt-5', true); ?>
                 <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <p class="text-xs font-normal leading-5 text-slate-500"><?php echo esc_html($catalog_ui['privacyText'] ?? 'We only use your email to send the requested catalog and follow up professionally.'); ?></p>
                     <button class="h-12 shrink-0 rounded-sm bg-navy px-7 text-sm font-black text-white shadow-card transition hover:-translate-y-0.5 hover:bg-[#0b2d5b] disabled:cursor-not-allowed disabled:opacity-60" type="submit" data-catalog-submit><?php echo esc_html($catalog_ui['submitLabel'] ?? 'Get PDF'); ?> <?php echo boblift_icon('send', 'ms-1 inline h-4 w-4'); ?></button>
@@ -583,9 +586,32 @@ function boblift_handle_catalog_request(): void
     $fields['catalog_url'] = isset($_POST['catalog_url']) ? esc_url_raw((string) wp_unslash($_POST['catalog_url'])) : '';
     $fields['message'] = 'PDF catalog request';
     $fields['lead_type'] = 'catalog_request';
+    // The same context the inquiry form records (see boblift_handle_inquiry): the button and page, the ad or site that
+    // brought the visitor, the device, and the IP once 表单安全 allows keeping it. The sales email and DingTalk show them.
+    $fields['source_entry'] = mb_substr(sanitize_text_field(wp_unslash((string) ($_POST['source_entry'] ?? ''))), 0, 120);
+    $fields['source_page'] = esc_url_raw((string) wp_get_referer());
+    $fields['source_title'] = mb_substr(sanitize_text_field(wp_unslash((string) ($_POST['source_title'] ?? ''))), 0, 200);
+    foreach (boblift_inquiry_attribution_from_post() as $name => $value) {
+        $fields['attr_' . $name] = $value;
+    }
+    $fields['page_referrer'] = boblift_inquiry_referrer_host((string) wp_unslash($_POST['boblift_page_referrer'] ?? ''));
+    if ($fields['page_referrer'] === preg_replace('/^www\./', '', strtolower((string) wp_parse_url(home_url(), PHP_URL_HOST)))) {
+        $fields['page_referrer'] = '';
+    }
+    $consent = (string) wp_unslash($_POST['boblift_ad_consent'] ?? '');
+    $fields['ad_consent'] = in_array($consent, ['true', 'false'], true) ? $consent : '';
+    $fields['device'] = boblift_inquiry_device(mb_substr(sanitize_text_field(wp_unslash((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''))), 0, 512), ($_POST['boblift_touch'] ?? '') === '1');
+    $fields['channel'] = implode(' · ', array_filter(boblift_inquiry_channel($fields), 'strlen'));
+    $client_ip = boblift_inquiry_client_ip();
+    $fields['ip'] = boblift_inquiry_store_ip() ? $client_ip : '';
 
     if ($fields['email'] === '' || !is_email($fields['email'])) {
         boblift_catalog_fail((string) ($catalog_ui['requiredFields'] ?? 'Please enter a valid email address.'));
+    }
+    // The Cloudflare check of the inquiry form (表单安全 → Turnstile), with its translated message.
+    if (!boblift_verify_turnstile()) {
+        $quote_ui = function_exists('boblift_site_ui') ? boblift_site_ui('quoteForm') : [];
+        boblift_catalog_fail((string) ($quote_ui['messages']['verificationRequired'] ?? 'Please complete the verification and try again.'), 400);
     }
 
     $rate_key = boblift_catalog_rate_limit_key($fields['email']);
@@ -595,10 +621,13 @@ function boblift_handle_catalog_request(): void
     set_transient($rate_key, '1', 5 * MINUTE_IN_SECONDS);
 
     $customer_title = $fields['name'] !== '' ? $fields['name'] : ($fields['company'] !== '' ? $fields['company'] : $fields['email']);
+    // A sender on the inquiry blocklist (表单安全 → 询盘黑名单) is kept as a blocked draft and gets the usual answer, so the
+    // PDF link it could open anyway still shows; nothing is mailed to anyone and DingTalk is not told.
+    $block_reason = boblift_inquiry_block_reason($fields['email'], $client_ip);
     $post_id = wp_insert_post([
         'post_type' => 'inquiry',
-        'post_status' => 'publish',
-        'post_title' => sprintf('Catalog request from %s - %s', $customer_title, current_time('Y-m-d H:i')),
+        'post_status' => $block_reason !== '' ? 'draft' : 'publish',
+        'post_title' => sprintf('%sCatalog request from %s - %s', $block_reason !== '' ? '[已拦截] ' : '', $customer_title, current_time('Y-m-d H:i')),
     ], true);
 
     if (is_wp_error($post_id)) {
@@ -608,21 +637,14 @@ function boblift_handle_catalog_request(): void
     foreach ($fields as $key => $value) {
         update_post_meta((int) $post_id, '_' . $key, $value);
     }
-
-    $labels = [
-        'lead_type' => 'Lead type',
-        'name' => 'Name',
-        'email' => 'Email',
-        'phone' => 'WhatsApp / Phone',
-        'company' => 'Company',
-        'product' => 'Product',
-        'catalog_url' => 'Catalog URL',
-    ];
-    $lines = ['New BOB-LIFT PDF catalog request'];
-    foreach ($labels as $key => $label) {
-        $lines[] = $label . ': ' . ($fields[$key] !== '' ? $fields[$key] : '-');
+    if ($block_reason !== '') {
+        update_post_meta((int) $post_id, '_blocked', !boblift_inquiry_store_ip() && str_starts_with($block_reason, 'IP ') ? 'IP 黑名单' : $block_reason);
+        boblift_catalog_succeed($fields, (int) $post_id, $catalog_ui);
     }
-    wp_mail(get_option('admin_email'), (string) ($catalog_ui['adminMailSubject'] ?? 'New BOB-LIFT catalog request'), implode("\n", $lines), ['Reply-To: ' . $fields['email']]);
+
+    // The sales email is the inquiry's card (inc/inquiry-mail.php), headed as a catalog request; DingTalk gets it too.
+    boblift_send_inquiry_mail($fields, (int) $post_id);
+    do_action('boblift_inquiry_submitted', (int) $post_id, $fields);
 
     $product_label = $fields['product'] !== '' ? $fields['product'] : 'BOB-LIFT product';
     $customer_lines = [
@@ -638,9 +660,15 @@ function boblift_handle_catalog_request(): void
     $customer_lines[] = 'BOB-LIFT';
     wp_mail($fields['email'], sprintf((string) ($catalog_ui['customerMailSubject'] ?? 'Your BOB-LIFT %s catalog'), $product_label), implode("\n", $customer_lines));
 
+    boblift_catalog_succeed($fields, (int) $post_id, $catalog_ui);
+}
+
+/** The answer the catalog modal shows: the download link when there is a PDF, else that the team will send one. */
+function boblift_catalog_succeed(array $fields, int $post_id, array $catalog_ui): void
+{
     wp_send_json_success([
         'message' => $fields['catalog_url'] !== '' ? (string) ($catalog_ui['successText'] ?? 'Catalog request saved. We also sent the catalog link to your email.') : (string) ($catalog_ui['successNoFileToast'] ?? 'Request saved. We will email the PDF.'),
-        'id' => (int) $post_id,
+        'id' => $post_id,
         'downloadUrl' => $fields['catalog_url'],
     ]);
 }

@@ -431,6 +431,27 @@ function boblift_inquiry_mail_product_card(array $product): string
 }
 
 /**
+ * The catalog a visitor asked for, in the place of the product cards: its name, the product it was asked for on (when the
+ * button named one), and the PDF the visitor was given, or a note that there was none and the team has to send it.
+ */
+function boblift_inquiry_mail_catalog_card(array $fields): string
+{
+    $title = trim((string) ($fields['product'] ?? ''));
+    $url = trim((string) ($fields['catalog_url'] ?? ''));
+    $product = '';
+    $slug = trim((string) ($fields['product_slug'] ?? ''));
+    $post = $slug !== '' ? get_page_by_path(sanitize_title($slug), OBJECT, 'product') : null;
+    if ($post instanceof WP_Post) {
+        $english_id = function_exists('boblift_product_english_id') ? boblift_product_english_id($post->ID) : $post->ID;
+        $product = '<div style="padding-bottom:8px;font-size:14px;color:#475569;">产品页：<a href="' . esc_url((string) get_permalink($english_id)) . '" target="_blank" style="color:#215bdb;text-decoration:none;">' . esc_html(get_the_title($english_id)) . '</a></div>';
+    }
+    $file = $url !== ''
+        ? '<div style="font-size:14px;line-height:1.6;color:#475569;word-break:break-all;">PDF 已给客户（弹窗下载 + 邮件链接）：<a href="' . esc_url($url) . '" target="_blank" style="color:#215bdb;text-decoration:none;">' . esc_html((string) wp_basename((string) wp_parse_url($url, PHP_URL_PATH))) . '</a></div>'
+        : '<div style="font-size:14px;line-height:1.6;color:#b45309;font-weight:bold;">这个目录没有现成 PDF，客户在等我们发，请手动把目录发到客户邮箱。</div>';
+    return '<table width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:10px;border:1px solid #e3e8ef;border-radius:4px;border-collapse:separate;"><tr><td style="padding:16px 18px 14px;vertical-align:top;"><div style="padding-bottom:8px;font-size:17px;line-height:1.45;font-weight:bold;color:#0b1f33;">' . esc_html($title !== '' ? $title : 'BOB-LIFT 产品目录') . '</div>' . $product . $file . '</td></tr></table>';
+}
+
+/**
  * The page an inquiry was sent from, split for reading: the address without its query string, the page's title (sent by
  * the form, without the site name) and the query parameters (ad tags such as gclid) on their own.
  */
@@ -502,9 +523,15 @@ function boblift_inquiry_admin_mail(array $fields, int $post_id): array
         $rows[] = $row('老型号', esc_html($fields['legacy_models']) . '（需定制生产）');
     }
 
-    $products = boblift_inquiry_mail_products($fields);
+    // A PDF catalog request (inc/forms.php) is the same card with its own heading: the catalog asked for in place of the
+    // products, and no message, as the visitor writes none.
+    $catalog = ($fields['lead_type'] ?? '') === 'catalog_request';
+    $products = $catalog ? [] : boblift_inquiry_mail_products($fields);
     $product_html = $products ? implode('', array_map('boblift_inquiry_mail_product_card', $products)) : '<div style="padding:14px 18px;border:1px solid #e3e8ef;border-radius:4px;font-size:15px;color:#64748b;">未选择产品</div>';
-    $kind = $products ? '产品询盘' : '询盘表单';
+    $kind = $catalog ? '目录下载' : ($products ? '产品询盘' : '询盘表单');
+    if ($catalog) {
+        $product_html = boblift_inquiry_mail_catalog_card($fields);
+    }
     $entry = trim((string) ($fields['source_entry'] ?? ''));
     $source = boblift_inquiry_source_page($fields);
     $page_html = '—';
@@ -525,7 +552,7 @@ function boblift_inquiry_admin_mail(array $fields, int $post_id): array
     $channel_html = esc_html($channel) . $small($channel_detail);
     $device_parts = explode(' · ', (string) ($fields['device'] ?? ''), 2);
     $device_html = $device_parts[0] !== '' ? esc_html($device_parts[0]) . $small((string) ($device_parts[1] ?? '')) : '未能识别';
-    $message = trim((string) $fields['message']);
+    $message = $catalog ? '' : trim((string) $fields['message']);
     $message_block = $message !== '' ? $heading('留言') . '<tr><td style="padding:0 36px;"><div style="padding:16px 20px;background:#f5f7fa;border-radius:4px;font-size:16px;line-height:1.75;color:#0b1f33;word-break:break-word;">' . nl2br(esc_html($message), false) . '</div></td></tr>' : '';
     $admin_link = $post_id > 0 ? '<a href="' . esc_url(admin_url('post.php?post=' . $post_id . '&action=edit')) . '" style="color:#94a3b8;">网站后台「询盘」</a>' : '网站后台「询盘」';
     $host = esc_html((string) wp_parse_url(home_url(), PHP_URL_HOST));
@@ -535,9 +562,9 @@ function boblift_inquiry_admin_mail(array $fields, int $post_id): array
         . '<table width="660" cellspacing="0" cellpadding="0" style="width:660px;background:#ffffff;border:1px solid #e3e8ef;border-radius:4px;border-collapse:separate;overflow:hidden;text-align:left;">'
         . '<tr><td height="6" style="height:6px;background:#215bdb;font-size:0;line-height:0;">&nbsp;</td></tr>'
         . '<tr><td style="padding:22px 36px;border-bottom:1px solid #edf0f4;"><table width="100%" cellspacing="0" cellpadding="0"><tr><td style="vertical-align:middle;">' . boblift_inquiry_mail_logo() . '</td><td align="right" style="vertical-align:middle;font-size:13px;color:#64748b;">' . esc_html($time) . '</td></tr></table></td></tr>'
-        . '<tr><td style="padding:30px 36px 0;"><div style="font-size:26px;line-height:1.3;font-weight:bold;color:#0b1f33;">新询盘通知</div><div style="padding-top:10px;font-size:15px;line-height:1.7;color:#475569;">起重机站收到一条新询盘，内容如下，请及时跟进。</div></td></tr>'
+        . '<tr><td style="padding:30px 36px 0;"><div style="font-size:26px;line-height:1.3;font-weight:bold;color:#0b1f33;">' . ($catalog ? '新目录下载请求' : '新询盘通知') . '</div><div style="padding-top:10px;font-size:15px;line-height:1.7;color:#475569;">' . ($catalog ? '起重机站有客户留邮箱索取 PDF 目录，内容如下，请及时跟进。' : '起重机站收到一条新询盘，内容如下，请及时跟进。') . '</div></td></tr>'
         . '<tr><td style="padding:20px 36px 0;"><table width="100%" cellspacing="0" cellpadding="0" style="background:#f5f7fa;border-radius:4px;"><tr><td style="padding:14px 18px;"><div style="font-size:12px;color:#64748b;padding-bottom:6px;">来源页面 &nbsp;<span style="display:inline-block;padding:2px 8px;border-radius:2px;background:#e3ebfc;color:#215bdb;font-size:12px;font-weight:bold;">' . $kind . '</span>' . ($entry !== '' ? ' &nbsp;<span style="font-size:12px;color:#475569;">入口：' . esc_html($entry) . '</span>' : '') . '</div><div style="font-size:14px;line-height:1.6;word-break:break-all;">' . $page_html . '</div></td></tr></table></td></tr>'
-        . $heading('产品信息') . '<tr><td style="padding:0 36px;">' . $product_html . '</td></tr>'
+        . $heading($catalog ? '索取的目录' : '产品信息') . '<tr><td style="padding:0 36px;">' . $product_html . '</td></tr>'
         . $heading('客户信息') . '<tr><td style="padding:0 36px;"><table width="100%" cellspacing="0" cellpadding="0" style="border-top:1px solid #edf0f4;">' . implode('', $rows) . '</table></td></tr>'
         . $message_block
         . '<tr><td style="padding:24px 36px 0;"><table width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #edf0f4;border-radius:4px;border-collapse:separate;"><tr>' . $meta('来源渠道', $channel_html) . $meta('访问设备', $device_html) . $meta('来源国家', esc_html($country)) . '</tr><tr>' . $meta('页面语言', esc_html($language)) . $meta('提交时间', esc_html($time)) . $meta('IP 地址', $ip !== '' ? esc_html($ip) : '未能识别') . '</tr></table></td></tr>'
@@ -545,9 +572,12 @@ function boblift_inquiry_admin_mail(array $fields, int $post_id): array
         . '<tr><td align="center" style="padding:0 36px 32px;font-size:13px;line-height:1.6;color:#64748b;">也可以直接回复这封邮件，回信会发到 ' . esc_html($email) . '</td></tr>'
         . boblift_inquiry_attribution_block($fields)
         . '</table>'
-        . '<table width="660" cellspacing="0" cellpadding="0" style="width:660px;"><tr><td align="center" style="padding:18px 36px 0;font-size:12px;line-height:1.7;color:#94a3b8;">此邮件由 ' . $host . ' 询盘表单自动发送 · 副本见' . $admin_link . '</td></tr></table>'
+        . '<table width="660" cellspacing="0" cellpadding="0" style="width:660px;"><tr><td align="center" style="padding:18px 36px 0;font-size:12px;line-height:1.7;color:#94a3b8;">此邮件由 ' . $host . ($catalog ? ' 目录下载表单' : ' 询盘表单') . '自动发送 · 副本见' . $admin_link . '</td></tr></table>'
         . '</td></tr></table></body></html>';
 
+    if ($catalog) {
+        return ['【起重机站】客户索取目录，请及时跟进：' . $email, $body];
+    }
     $subject = '【起重机站】询盘飞奔而来，请及时跟进：' . $email;
     // A subject an editor saved in 站点文案 (quoteForm → messages → mailSubject) still wins over the branded default. Only the
     // source-language (English) options count: the sales team reads one subject whatever the visitor's language, and the
