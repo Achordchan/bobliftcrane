@@ -13,8 +13,9 @@ if (!defined('ABSPATH')) {
  *
  * Write, to the English product only: {"en": {"content": "<p>...</p>", "faq": [{"question": "...", "answer": "..."}]},
  * "zh": {...}, ...}. Each language named may send "content" (the whole body, HTML that wp_kses_post keeps unchanged),
- * "faq" (0 to 8 plain-text items, replacing that language's list; [] removes it) or both. The questions are shown in the
- * product page's "About the {model}" FAQ group after the generated ones. Languages not named are left as they are.
+ * "faq" (0 to 8 plain-text items, replacing that language's list; [] removes it), "seo_title" and "seo_description"
+ * (plain text, the page's title tag and meta description), in any combination. The questions are shown in the product
+ * page's "About the {model}" FAQ group after the generated ones. Languages not named are left as they are.
  * Only the field itself may be sent: a request with any other parameter is refused before anything is saved.
  *
  * Everything is checked before anything is written, under the per-post lock of every language version (the lock
@@ -46,7 +47,7 @@ function boblift_register_rest_product_copy_field(): void
             return true;
         },
         'schema' => [
-            'description' => 'Product questions by language; on the English product, write {"<language>": {"content", "faq"}} to replace the body and questions of each language named.',
+            'description' => 'Product questions by language; on the English product, write {"<language>": {"content", "faq", "seo_title", "seo_description"}} to replace them in each language named.',
             'type' => 'object',
             'context' => ['edit'],
         ],
@@ -124,10 +125,20 @@ function boblift_product_copy_plan(int $product_id, array $value): array|WP_Erro
         if (!current_user_can('edit_post', $id)) {
             return new WP_Error('rest_cannot_edit', sprintf('Sorry, you are not allowed to edit product %d.', $id), ['status' => rest_authorization_required_code()]);
         }
-        if (!is_array($parts) || $parts === [] || array_diff(array_keys($parts), ['content', 'faq']) !== []) {
-            return new WP_Error('boblift_copy_invalid', sprintf('"%s": send "content", "faq" or both, and nothing else.', $language), ['status' => 400]);
+        if (!is_array($parts) || $parts === [] || array_diff(array_keys($parts), ['content', 'faq', 'seo_title', 'seo_description']) !== []) {
+            return new WP_Error('boblift_copy_invalid', sprintf('"%s": send any of "content", "faq", "seo_title", "seo_description", and nothing else.', $language), ['status' => 400]);
         }
-        $step = ['id' => $id, 'content' => null, 'faq' => null];
+        $step = ['id' => $id, 'content' => null, 'faq' => null, 'seo' => []];
+        foreach (['seo_title' => '_seo_title', 'seo_description' => '_seo_description'] as $key => $meta_key) {
+            if (!array_key_exists($key, $parts)) {
+                continue;
+            }
+            $text = is_string($parts[$key]) ? trim($parts[$key]) : '';
+            if ($text === '' || sanitize_text_field($text) !== $text) {
+                return new WP_Error('boblift_copy_seo', sprintf('"%s" "%s" must be plain text.', $language, $key), ['status' => 400]);
+            }
+            $step['seo'][$meta_key] = $text;
+        }
         if (array_key_exists('content', $parts)) {
             $content = is_string($parts['content']) ? trim($parts['content']) : '';
             if ($content === '' || trim(wp_strip_all_tags($content)) === '') {
@@ -180,6 +191,9 @@ function boblift_rest_save_product_copy(int $product_id, array $value): bool|WP_
                 } else {
                     update_post_meta($step['id'], BOBLIFT_PRODUCT_COPY_FAQ_KEY, wp_slash((string) wp_json_encode($step['faq'], JSON_UNESCAPED_UNICODE)));
                 }
+            }
+            foreach ($step['seo'] as $meta_key => $text) {
+                update_post_meta($step['id'], $meta_key, wp_slash($text));
             }
             clean_post_cache($step['id']);
         }
