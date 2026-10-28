@@ -43,6 +43,10 @@ foreach ((array) ($visits['items'] ?? []) as $item) {
 $more = $groups[$more_key] ?? [];
 unset($groups[$more_key]);
 $country_count = count($groups);
+// More countries have visited than the photos are tagged with: show the set floor as "over N countries".
+$country_floor = boblift_visit_country_floor((int) get_queried_object_id());
+$country_over = $country_floor > $country_count;
+$country_shown = $country_over ? $country_floor : $country_count;
 if ($more) {
     $groups[$more_key] = $more;
 }
@@ -69,7 +73,7 @@ $wall_alt = $t($visits['label'] ?? 'Global Customer Visits');
         'label' => (string) ($visits['label'] ?? 'Global Customer Visits'),
         'title' => (string) ($visits['title'] ?? 'Welcoming partners to see how BOB-LIFT builds.'),
         'text' => (string) ($visits['text'] ?? ''),
-        'meta' => $country_count > 0 ? $country_count . ' ' . $t($visits['country_count_suffix'] ?? 'countries') : '',
+        'meta' => $country_count > 0 ? $country_shown . ($country_over ? '+' : '') . ' ' . $t($visits['country_count_suffix'] ?? 'countries') : '',
         'image' => boblift_image_setting_url($visits['hero_image'] ?? [], 'images/page-heroes/factory-campus.webp'),
         'image_alt' => $t($visits['hero_image_alt'] ?? 'The BOB-LIFT factory campus from the air'),
     ]);
@@ -82,7 +86,7 @@ $wall_alt = $t($visits['label'] ?? 'Global Customer Visits');
     <div class="grid gap-6 rounded border border-line bg-white p-6 shadow-card sm:p-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.6fr)] lg:items-center lg:gap-12 xl:p-10">
         <div>
             <p class="section-label mb-3"><?php echo esc_html($t($visits['countries_label'] ?? 'Visitors from')); ?></p>
-            <h2 id="visit-countries-title" class="text-[clamp(1.5rem,2.2vw,2.25rem)] font-black leading-[1.1] tracking-[-0.01em] text-ink"><?php echo esc_html(str_replace('{count}', (string) $country_count, $t($visits['countries_title'] ?? 'Customers from {count} countries have walked our workshop.'))); ?></h2>
+            <h2 id="visit-countries-title" class="text-[clamp(1.5rem,2.2vw,2.25rem)] font-black leading-[1.1] tracking-[-0.01em] text-ink"><?php echo esc_html(str_replace('{count}', (string) $country_shown, $country_over ? $t($visits['countries_title_over'] ?? 'Customers from over {count} countries have walked our workshop.') : $t($visits['countries_title'] ?? 'Customers from {count} countries have walked our workshop.'))); ?></h2>
         </div>
         <ul class="flex flex-wrap gap-2">
             <?php foreach (array_keys($groups) as $key) : if ($key === $more_key) { continue; } ?>

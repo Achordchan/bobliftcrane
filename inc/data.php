@@ -545,6 +545,7 @@ function boblift_about_page_defaults(): array
             'empty_text' => 'No customer visit photos have been added yet.',
             'countries_label' => 'Visitors from',
             'countries_title' => 'Customers from {count} countries have walked our workshop.',
+            'countries_title_over' => 'Customers from over {count} countries have walked our workshop.',
             'steps_label' => 'What a visit covers',
             'steps_title' => 'A working day in the factory, not a showroom tour.',
             'steps' => [
