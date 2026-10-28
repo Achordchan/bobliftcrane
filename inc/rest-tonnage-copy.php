@@ -18,7 +18,7 @@ if (!defined('ABSPATH')) {
  */
 function boblift_tonnage_copy_keys(): array
 {
-    return ['title' => 70, 'description' => 170, 'heading' => 80, 'lead' => 600];
+    return ['title' => 90, 'description' => 220, 'heading' => 100, 'lead' => 900];
 }
 
 /** The saved words of a tonnage page in the current language, each key present only when set. */
@@ -38,7 +38,7 @@ function boblift_tonnage_copy(int $size): array
 function boblift_tonnage_copy_clean(mixed $copy): array|WP_Error
 {
     $keys = boblift_tonnage_copy_keys();
-    $invalid = new WP_Error('boblift_tonnage_copy_invalid', 'Send "copy" with one or more of ' . implode(', ', array_keys($keys)) . ' as plain text (title up to 70 characters, description 170, heading 80, lead 600), or null.', ['status' => 400]);
+    $invalid = new WP_Error('boblift_tonnage_copy_invalid', 'Send "copy" with one or more of ' . implode(', ', array_keys($keys)) . ' as plain text (title up to 90 characters, description 220, heading 100, lead 900), or null.', ['status' => 400]);
     if (!is_array($copy) || $copy === [] || array_diff(array_keys($copy), array_keys($keys)) !== []) {
         return $invalid;
     }

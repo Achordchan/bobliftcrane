@@ -42,7 +42,7 @@ $check = static function (string $label, bool $ok) use (&$failures): void {
 $check('rejects an empty copy', is_wp_error(boblift_tonnage_copy_clean([])));
 $check('rejects an unknown key', is_wp_error(boblift_tonnage_copy_clean(['intro' => 'x'])));
 $check('rejects HTML', is_wp_error(boblift_tonnage_copy_clean(['lead' => '<b>x</b>'])));
-$check('rejects a title over 70 characters', is_wp_error(boblift_tonnage_copy_clean(['title' => str_repeat('a', 71)])));
+$check('rejects a title over 90 characters', is_wp_error(boblift_tonnage_copy_clean(['title' => str_repeat('a', 91)])));
 $check('keeps plain text', boblift_tonnage_copy_clean(['title' => ' 16 Ton Truck Crane | BOB-LIFT ']) === ['title' => '16 Ton Truck Crane | BOB-LIFT']);
 
 $GLOBALS['db'] = ['boblift_theme_options_en' => serialize(['site_ui' => ['productDetail' => ['faqItems' => [1]]], 'company' => 'x'])];
