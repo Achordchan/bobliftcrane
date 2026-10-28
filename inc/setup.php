@@ -1008,3 +1008,68 @@ function boblift_repair_upload_image_sources(string $content): string {
     }, $content);
 }
 add_filter('the_content', 'boblift_repair_upload_image_sources', 6);
+
+/**
+ * Pictures in the old imported news reached the site with alt="" (or none), so search engines and screen readers learn
+ * nothing from them. An article picture without alt text gets its media-library alt text on English pages, else the
+ * article's own title, which is in the page's language. Pictures marked decorative (role="presentation", aria-hidden)
+ * keep their empty alt.
+ */
+function boblift_fill_missing_image_alts(string $content): string {
+    // News articles only: that is where the imported pictures are. Pages keep whatever their editors wrote.
+    if (stripos($content, '<img') === false || !class_exists('WP_HTML_Tag_Processor') || !is_singular('post') || !in_the_loop()) {
+        return $content;
+    }
+    $post_id = (int) get_the_ID();
+    $title = $post_id > 0 ? trim(wp_strip_all_tags(html_entity_decode((string) get_the_title($post_id), ENT_QUOTES))) : '';
+    if ($title === '') {
+        return $content;
+    }
+    $english = !function_exists('boblift_current_language_slug') || boblift_current_language_slug() === 'en';
+    // WordPress's HTML tag processor finds only real <img> elements (not markup quoted inside another attribute), reads
+    // attributes as a browser does, and escapes the value it writes.
+    $processor = new WP_HTML_Tag_Processor($content);
+    while ($processor->next_tag('img')) {
+        $attribute = static function (string $name) use ($processor): string {
+            $value = $processor->get_attribute($name);
+            return is_string($value) ? $value : '';
+        };
+        // role="none" means the same as role="presentation"; role may list fallbacks, so any decorative token counts.
+        $decorative = array_intersect(preg_split('/\s+/', strtolower(trim($attribute('role')))) ?: [], ['presentation', 'none']) !== [];
+        // A picture placed with the block editor (wp-image-N) and given alt="" there was marked decorative on purpose;
+        // the imported pictures carry no such class.
+        $editor_decorative = $processor->get_attribute('alt') !== null && preg_match('/\bwp-image-\d+\b/', $attribute('class'));
+        if (trim($attribute('alt')) !== '' || $decorative || $editor_decorative || strtolower(trim($attribute('aria-hidden'))) === 'true') {
+            continue;
+        }
+        $alt = '';
+        if ($english) {
+            $id = preg_match('/\bwp-image-(\d+)\b/', $attribute('class'), $m) ? (int) $m[1] : 0;
+            $src = $attribute('src');
+            if ($id === 0 && $src !== '') {
+                // The lookup knows only an attachment's own file, so a generated size (photo-300x200.jpg) is tried as
+                // its original (photo.jpg), then as the big-image original WordPress keeps (photo-scaled.jpg).
+                $url = (string) preg_replace('/\?.*$/', '', str_replace('i0.wp.com/', '', $src));
+                // The lookup compares against the full uploads URL, so a root-relative or scheme-relative src is made whole.
+                if (str_starts_with($url, '//')) {
+                    $url = 'https:' . $url;
+                } elseif (str_starts_with($url, '/')) {
+                    // Against the site's origin only: a site in /site already has /site at the start of the path.
+                    $home = wp_parse_url(home_url());
+                    $url = ($home['scheme'] ?? 'https') . '://' . ($home['host'] ?? '') . (isset($home['port']) ? ':' . $home['port'] : '') . $url;
+                }
+                $original = (string) preg_replace('/-\d+x\d+(\.[a-z0-9]+)$/i', '$1', $url);
+                foreach (array_unique([$url, $original, (string) preg_replace('/(\.[a-z0-9]+)$/i', '-scaled$1', $original)]) as $candidate) {
+                    $id = (int) attachment_url_to_postid($candidate);
+                    if ($id > 0) {
+                        break;
+                    }
+                }
+            }
+            $alt = $id > 0 ? trim((string) get_post_meta($id, '_wp_attachment_image_alt', true)) : '';
+        }
+        $processor->set_attribute('alt', $alt !== '' ? $alt : $title);
+    }
+    return $processor->get_updated_html();
+}
+add_filter('the_content', 'boblift_fill_missing_image_alts', 7);
