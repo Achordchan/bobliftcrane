@@ -532,7 +532,8 @@ function boblift_legacy_links_rewrite_html(string $content, string $home, array 
             $url = $href;
         }
         // A language switcher's link names its own language; moving it into this page's language would break the switch.
-        $switches_language = (bool) preg_match('#\s(hreflang|lang|data-pll[\w-]*)=|lang-item|pll-#i', $m[1] . $m[4]);
+        // Same markers the Polytranslate rewriter keeps: hreflang/lang, rel="alternate" and the Polylang switcher classes.
+        $switches_language = (bool) preg_match('#\s(hreflang|lang|data-pll[\w-]*)=|\srel=(["\'])[^"\']*\balternate\b|\b(lang-item|current-lang|polylang|pll-[\w-]+)\b#i', $m[1] . $m[4]);
         if ($language_prefix !== '' && $site_page && !$switches_language) {
             $url_parts = parse_url($url);
             $url_host = strtolower((string) ($url_parts['host'] ?? $home));
