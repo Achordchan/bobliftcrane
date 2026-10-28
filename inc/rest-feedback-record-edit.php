@@ -10,8 +10,9 @@ if (!defined('ABSPATH')) {
  * Write {"edits": [{"lang": "en", "find": "…", "replace": "…"}, {"lang": "es", "after_last": "</table>", "insert": "<p>…</p>"}]}.
  * "find" must occur exactly once in that language's record and "after_last" at least once; text is matched against the
  * record as stored, which is what wp/v2/feedback returns in meta._feedback_record. The edits run in order, and one edit
- * that does not apply rejects the request before WordPress saves any part of it. The result goes through the record's
- * own sanitizing and is saved as a compare-and-set, so concurrent edits to one entry do not overwrite each other.
+ * that does not apply rejects the request. The field must be sent on its own, so nothing else in the request is saved
+ * either way. The result goes through the record's own sanitizing and is saved as a compare-and-set, so concurrent edits
+ * to one entry do not overwrite each other.
  */
 function boblift_feedback_record_apply_edits(array $records, mixed $edits): array|WP_Error
 {
@@ -56,18 +57,19 @@ function boblift_feedback_record_edit_stored(int $post_id): ?array
 }
 
 /**
- * Checks the edits before WordPress saves anything in the request, so a bad edit leaves the title and other meta of the
- * same request unsaved too. A request that also replaces meta._feedback_record is refused: the two would overwrite
- * each other.
+ * Checks the edits before WordPress saves anything in the request. A request carrying the edits carries nothing else,
+ * so a refused edit never leaves part of the request saved.
  */
 function boblift_feedback_record_edit_precheck($prepared_post, WP_REST_Request $request)
 {
     if (!$request->has_param('boblift_feedback_record_edit') || is_wp_error($prepared_post)) {
         return $prepared_post;
     }
-    $meta = $request->get_param('meta');
-    if (is_array($meta) && array_key_exists('_feedback_record', $meta)) {
-        return new WP_Error('boblift_record_edit_invalid', 'Send either meta._feedback_record or boblift_feedback_record_edit, not both.', ['status' => 400]);
+    // Only the edits may be sent: WordPress saves the post's own fields before this field's callback runs, so a title or
+    // meta sent alongside could be saved while the edits are then refused.
+    $sent = array_keys(array_merge((array) $request->get_body_params(), (array) $request->get_json_params()));
+    if (array_diff($sent, ['boblift_feedback_record_edit', 'id']) !== []) {
+        return new WP_Error('boblift_record_edit_invalid', 'Send boblift_feedback_record_edit on its own, without other fields; save those in a separate request.', ['status' => 400]);
     }
     $stored = boblift_feedback_record_edit_stored((int) $request->get_param('id'));
     if ($stored === null) {
