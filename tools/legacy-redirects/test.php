@@ -166,8 +166,8 @@ foreach (['/5-ton-crane.html' => '4-5', '/5-ton-crane' => '4-5', '/16-ton-crane.
 function esc_url(string $url): string { return str_replace('&', '&#038;', $url); }
 $live = static fn(string $path): bool => in_array(rtrim($path, '/'), ['/truck-mounted-crane', '/products.html', '/telescopic-boom-truck-mounted-cranes'], true);
 // -2/-3 suffixes WordPress added to clashing slugs in imported translations: the live page, or on through the rules.
-$live2 = static fn(string $path): bool => in_array(rtrim($path, '/'), ['/10-ton-knuckle-boom-marine-crane.html', '/forklift-fly-jib-cranes', '/news-2.html'], true);
-foreach (['/10-ton-knuckle-boom-marine-crane-2.html' => 'https://bobliftcrane.com/10-ton-knuckle-boom-marine-crane.html', '/10-ton-knuckle-boom-marine-crane-3.html' => 'https://bobliftcrane.com/10-ton-knuckle-boom-marine-crane.html', '/no-such-page-2.html' => null] as $pth => $want) {
+$live2 = static fn(string $path): bool => in_array(rtrim($path, '/'), ['/10-ton-knuckle-boom-marine-crane.html', '/forklift-fly-jib-cranes', '/news-2.html', '/some-renamed-post.html'], true);
+foreach (['/10-ton-knuckle-boom-marine-crane-2.html' => 'https://bobliftcrane.com/10-ton-knuckle-boom-marine-crane.html', '/10-ton-knuckle-boom-marine-crane-3.html' => 'https://bobliftcrane.com/10-ton-knuckle-boom-marine-crane.html', '/3-2-ton-forklift-fly-jib-crane-3.html' => null, '/some-renamed-post-2.html' => null] as $pth => $want) {
     $got = boblift_legacy_redirect_resolve('bobliftcrane.com', $pth, $config, $base, $live2);
     if ($got !== $want) { echo "FAIL suffix $pth -> " . var_export($got, true) . "\n"; $fail++; }
 }
