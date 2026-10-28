@@ -249,7 +249,8 @@ function boblift_news_related_products(string $title, string $content, int $limi
 function boblift_news_article_faq(string $content): array
 {
     $heading = '/\bFAQs?\b|frequently asked|常见问题|常見問題|よくある(?:ご)?質問|preguntas frecuentes|часто задаваемые вопросы|questions fréquentes|foire aux questions|الأسئلة الشائعة|الأسئلة المتكررة/iu';
-    $text = static fn(string $html): string => trim((string) preg_replace('/\s+/u', ' ', html_entity_decode(wp_strip_all_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8')));
+    // A space after each block keeps list items and paragraphs apart once the tags are gone ("8 m).About 1 t").
+    $text = static fn(string $html): string => trim((string) preg_replace('/\s+/u', ' ', html_entity_decode(wp_strip_all_tags((string) preg_replace('#</(?:li|p|h[1-6]|dd|dt|td|th|tr|div|blockquote)>#i', '$0 ', $html)), ENT_QUOTES | ENT_HTML5, 'UTF-8')));
     $sections = preg_split('#(<h2\b[^>]*>.*?</h2>)#is', $content, -1, PREG_SPLIT_DELIM_CAPTURE) ?: [];
     $items = [];
     for ($i = 1; $i < count($sections) - 1; $i += 2) {
