@@ -9,7 +9,7 @@ if ($wp_includes === '' || !is_file($wp_includes . '/html-api/class-wp-html-tag-
 function __($s){return $s;} function _doing_it_wrong(){} function wp_kses_uri_attributes(){return ['href','src'];} function esc_url($s){return htmlspecialchars($s,ENT_QUOTES);} function wp_has_noncharacters($s){return false;}
 require $wp_includes . '/class-wp-token-map.php';
 foreach (['span','text-replacement','attribute-token','decoder','tag-processor'] as $part) { require $wp_includes . "/html-api/class-wp-html-$part.php"; }
-function in_the_loop(){return true;} function is_singular(){return true;} function get_the_ID(){return 5;}
+function in_the_loop(){return true;} function is_singular($type=''){return $type===($GLOBALS['type'] ?? 'post');} function get_the_ID(){return 5;}
 function get_the_title($i){return $GLOBALS['t'];} function wp_strip_all_tags($s){return strip_tags($s);}
 function esc_attr($s){return htmlspecialchars($s,ENT_QUOTES);} // Like WordPress, only an attachment's own file URL resolves (5.jpg, big-scaled.jpg), never a generated size.
 function attachment_url_to_postid($u){return in_array($u,['/u/5.jpg','/u/big-scaled.jpg','https://bobliftcrane.com/u/5.jpg'],true)?77:0;}
@@ -26,7 +26,9 @@ $cases=[
 '<img src="/z.jpg" alt=Kept>'=>'<img src="/z.jpg" alt=Kept>',
 '<img src="/d.jpg" alt="" role="presentation">'=>'<img src="/d.jpg" alt="" role="presentation">',
 '<img src="/d.jpg" aria-hidden=\'true\'>'=>'<img src="/d.jpg" aria-hidden=\'true\'>',
-'<img class="x wp-image-77" src="/q.jpg" alt=" ">'=>'<img class="x wp-image-77" src="/q.jpg" alt="Crane on deck">',
+'<img class="x wp-image-77" src="/q.jpg" alt=" ">'=>'<img class="x wp-image-77" src="/q.jpg" alt=" ">',
+'<img class="x wp-image-77" src="/q.jpg" alt="">'=>'<img class="x wp-image-77" src="/q.jpg" alt="">',
+'<img class="x wp-image-77" src="/q.jpg">'=>'<img alt="Crane on deck" class="x wp-image-77" src="/q.jpg">',
 '<img src="/a.jpg" data-alt="Real" alt="">'=>'<img src="/a.jpg" data-alt="Real" alt="$10,000 truck crane &amp; &quot;x&quot;">',
 '<img alt="Lifting capacity > 5 tonnes" src="/crane.jpg">'=>'<img alt="Lifting capacity > 5 tonnes" src="/crane.jpg">',
 '<img title="alt=\'\'" src="/t.jpg">'=>'<img alt="$10,000 truck crane &amp; &quot;x&quot;" title="alt=\'\'" src="/t.jpg">',
@@ -42,4 +44,6 @@ $cases=[
 '<img src="/d.jpg" role="NONE presentation">'=>'<img src="/d.jpg" role="NONE presentation">',
 '<img src="/d.jpg" role="img">'=>'<img alt="$10,000 truck crane &amp; &quot;x&quot;" src="/d.jpg" role="img">',
 ];
-$f=0; foreach($cases as $in=>$want){$g=boblift_fill_missing_image_alts($in); if($g!==$want){echo "FAIL $in\n  got  $g\n  want $want\n";$f++;}} echo $f ? "$f FAILED\n" : "all ok\n"; exit($f ? 1 : 0);
+$f=0; foreach($cases as $in=>$want){$g=boblift_fill_missing_image_alts($in); if($g!==$want){echo "FAIL $in\n  got  $g\n  want $want\n";$f++;}} // Pages keep their images exactly as their editors left them.
+$GLOBALS['type']='page'; if(boblift_fill_missing_image_alts('<img src="/y.jpg" alt="">')!=='<img src="/y.jpg" alt="">'){echo "FAIL page image changed\n";$f++;}
+echo $f ? "$f FAILED\n" : "all ok\n"; exit($f ? 1 : 0);

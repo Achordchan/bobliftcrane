@@ -1016,7 +1016,8 @@ add_filter('the_content', 'boblift_repair_upload_image_sources', 6);
  * keep their empty alt.
  */
 function boblift_fill_missing_image_alts(string $content): string {
-    if (stripos($content, '<img') === false || !class_exists('WP_HTML_Tag_Processor') || !is_singular() || !in_the_loop()) {
+    // News articles only: that is where the imported pictures are. Pages keep whatever their editors wrote.
+    if (stripos($content, '<img') === false || !class_exists('WP_HTML_Tag_Processor') || !is_singular('post') || !in_the_loop()) {
         return $content;
     }
     $post_id = (int) get_the_ID();
@@ -1035,7 +1036,10 @@ function boblift_fill_missing_image_alts(string $content): string {
         };
         // role="none" means the same as role="presentation"; role may list fallbacks, so any decorative token counts.
         $decorative = array_intersect(preg_split('/\s+/', strtolower(trim($attribute('role')))) ?: [], ['presentation', 'none']) !== [];
-        if (trim($attribute('alt')) !== '' || $decorative || strtolower(trim($attribute('aria-hidden'))) === 'true') {
+        // A picture placed with the block editor (wp-image-N) and given alt="" there was marked decorative on purpose;
+        // the imported pictures carry no such class.
+        $editor_decorative = $processor->get_attribute('alt') !== null && preg_match('/\bwp-image-\d+\b/', $attribute('class'));
+        if (trim($attribute('alt')) !== '' || $decorative || $editor_decorative || strtolower(trim($attribute('aria-hidden'))) === 'true') {
             continue;
         }
         $alt = '';
