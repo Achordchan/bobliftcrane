@@ -204,7 +204,8 @@ if ($sitemap_capacity_links !== []) {
 }
 
 $news_categories = get_terms(['taxonomy' => 'category', 'hide_empty' => true, 'orderby' => 'count', 'order' => 'DESC']);
-$news_categories = is_wp_error($news_categories) ? [] : array_values(array_filter($news_categories, static fn($term): bool => $term instanceof WP_Term && $term->slug !== 'uncategorized'));
+// Retired categories (Marine Solution...) only redirect to the group they joined, so they are not listed.
+$news_categories = is_wp_error($news_categories) ? [] : array_values(array_filter($news_categories, static fn($term): bool => $term instanceof WP_Term && $term->slug !== 'uncategorized' && !(function_exists('boblift_seo_retired_news_categories') && isset(boblift_seo_retired_news_categories()[boblift_source_term_slug($term)]))));
 $news = get_posts(['post_type' => 'post', 'post_status' => 'publish', 'numberposts' => 80, 'orderby' => 'date', 'order' => 'DESC']);
 $cases = get_posts(['post_type' => 'case', 'post_status' => 'publish', 'numberposts' => 80, 'orderby' => 'date', 'order' => 'DESC']);
 

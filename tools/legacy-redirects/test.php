@@ -3,6 +3,7 @@
 define('ABSPATH', __DIR__);
 function get_template_directory(): string { return dirname(__DIR__, 2); }
 function add_action(...$args): void {}
+function add_filter(...$args): void {}
 function get_option(string $name, $default = false) { return $GLOBALS['saved_option'] ?? $default; }
 require __DIR__ . '/../../inc/legacy-redirects.php';
 
@@ -160,6 +161,28 @@ if (boblift_legacy_redirects_has_custom()) { echo "FAIL absent option reported a
 // Theme fallback for old tonnage pages the rules do not catch (/N-ton-crane.html).
 foreach (['/5-ton-crane.html' => '4-5', '/5-ton-crane' => '4-5', '/16-ton-crane.html' => '12-16', '/7-ton-crane.html' => null, '/5-ton-cranes.html' => null] as $path => $want) {
     if (boblift_old_tonnage_bin($path) !== $want) { echo "FAIL tonnage bin $path\n"; $fail++; }
+}
+// Links saved in content: www and old slugs point where they redirect; live pages, other sites and the rest stay as they are.
+function esc_url(string $url): string { return str_replace('&', '&#038;', $url); }
+$live = static fn(string $path): bool => in_array(rtrim($path, '/'), ['/truck-mounted-crane', '/products.html', '/telescopic-boom-truck-mounted-cranes'], true);
+// -2/-3 suffixes WordPress added to clashing slugs in imported translations: the live page, or on through the rules.
+$live2 = static fn(string $path): bool => in_array(rtrim($path, '/'), ['/10-ton-knuckle-boom-marine-crane.html', '/forklift-fly-jib-cranes', '/news-2.html'], true);
+foreach (['/10-ton-knuckle-boom-marine-crane-2.html' => 'https://bobliftcrane.com/10-ton-knuckle-boom-marine-crane.html', '/10-ton-knuckle-boom-marine-crane-3.html' => 'https://bobliftcrane.com/10-ton-knuckle-boom-marine-crane.html', '/no-such-page-2.html' => null] as $pth => $want) {
+    $got = boblift_legacy_redirect_resolve('bobliftcrane.com', $pth, $config, $base, $live2);
+    if ($got !== $want) { echo "FAIL suffix $pth -> " . var_export($got, true) . "\n"; $fail++; }
+}
+foreach ([
+    '<a href="https://www.bobliftcrane.com/truck-mounted-crane">x</a>' => '<a href="https://bobliftcrane.com/truck-mounted-crane">x</a>',
+    '<a class="c" href="https://www.bobliftcrane.com/telescopic-boom-truck-mounted-crane">x</a>' => '<a class="c" href="https://bobliftcrane.com/telescopic-boom-truck-mounted-cranes">x</a>',
+    '<a href="/telescopic-boom-truck-mounted-crane#models">x</a>' => '<a href="https://bobliftcrane.com/telescopic-boom-truck-mounted-cranes#models">x</a>',
+    '<a href="https://www.bobliftcrane.com/products.html?a=1&amp;b=2">x</a>' => '<a href="https://bobliftcrane.com/products.html?a=1&#038;b=2">x</a>',
+    '<a href="/truck-mounted-crane">x</a>' => '<a href="/truck-mounted-crane">x</a>',
+    '<a href="https://bobliftloader.com/telescopic-boom-truck-mounted-crane">x</a>' => '<a href="https://bobliftloader.com/telescopic-boom-truck-mounted-crane">x</a>',
+    '<a href="https://www.bobliftcrane.com/wp-content/uploads/a.pdf">x</a>' => '<a href="https://bobliftcrane.com/wp-content/uploads/a.pdf">x</a>',
+    '<img src="https://www.bobliftcrane.com/a.png">' => '<img src="https://www.bobliftcrane.com/a.png">',
+] as $in => $want) {
+    $got = boblift_legacy_links_rewrite_html($in, 'bobliftcrane.com', $config, $live);
+    if ($got !== $want) { echo "FAIL link rewrite $in -> $got\n"; $fail++; }
 }
 echo $fail ? "$fail FAILED\n" : "effective-host ok\n";
 exit($fail ? 1 : 0);

@@ -50,6 +50,7 @@
   "language_host_prefix": {"fr": "fr", "es": "es", "ru": "ru", "sa": "ar"},
  "path_fallbacks": [
   {"match": "^/index(/.*)?$", "to": "/", "note": "SaaS 字母索引页 /index/alphabet-X.html"},
+  {"match": "^(/[^/]+)-[23]\\.html$", "to": "$1.html", "rerun": true, "note": "本地导入的日/中文章把产品链接写成 -2/-3 后缀（slug 冲突时 WP 自动加的），去掉后缀再按规则走"},
   {"match": "^(/.+?)-p\\d+(\\.html)?$", "to": "$1$2", "rerun": true, "note": "分页 /x-p2、/x-p3.html：去掉页码再按规则走"},
   {"match": "^/[^/]*marine[^/]*-pc\\d+\\.html$", "to": "/marine-crane", "note": "旧站分类 id 地址"},
   {"match": "-pc\\d+\\.html$", "to": "/products.html", "note": "旧站分类 id 地址"},
