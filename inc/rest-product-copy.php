@@ -180,12 +180,11 @@ function boblift_rest_save_product_copy(int $product_id, array $value): bool|WP_
             return $plan;
         }
         $saved = boblift_product_copy_apply($plan);
-        if (is_wp_error($saved)) {
-            // Nothing of a failed request stays: drop whatever the cache picked up from the rolled-back writes.
-            foreach ($group as $id) {
-                clean_post_cache($id);
-                wp_cache_delete($id, 'post_meta');
-            }
+        // After the commit or the rollback: a page request during the transaction may have cached the old rows,
+        // and after a rollback the cache may hold the discarded writes.
+        foreach ($group as $id) {
+            clean_post_cache($id);
+            wp_cache_delete($id, 'post_meta');
         }
         return $saved;
     } finally {
@@ -259,7 +258,11 @@ function boblift_product_copy_write_content(int $id, string $content): true|WP_E
         return new WP_Error('boblift_copy_write', sprintf('The body of product %d was not saved (%s); try again.', $id, $done === false ? $wpdb->last_error : 'it changed meanwhile'), ['status' => $done === false ? 500 : 409]);
     }
     clean_post_cache($id);
-    wp_save_post_revision($id);
+    // A revision is part of the save; null or 0 only means revisions are off or nothing changed.
+    $revision = wp_save_post_revision($id);
+    if (is_wp_error($revision)) {
+        return new WP_Error('boblift_copy_write', sprintf('The revision of product %d was not saved (%s); try again.', $id, $revision->get_error_message()), ['status' => 500]);
+    }
     return true;
 }
 
