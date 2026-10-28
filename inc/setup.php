@@ -1008,3 +1008,38 @@ function boblift_repair_upload_image_sources(string $content): string {
     }, $content);
 }
 add_filter('the_content', 'boblift_repair_upload_image_sources', 6);
+
+/**
+ * Pictures in the old imported news reached the site with alt="" (or none), so search engines and screen readers learn
+ * nothing from them. An article picture without alt text gets its media-library alt text on English pages, else the
+ * article's own title, which is in the page's language. Pictures marked decorative (role="presentation", aria-hidden)
+ * keep their empty alt.
+ */
+function boblift_fill_missing_image_alts(string $content): string {
+    if (stripos($content, '<img') === false || !is_singular() || !in_the_loop()) {
+        return $content;
+    }
+    $post_id = (int) get_the_ID();
+    $title = $post_id > 0 ? trim(wp_strip_all_tags(html_entity_decode((string) get_the_title($post_id), ENT_QUOTES))) : '';
+    if ($title === '') {
+        return $content;
+    }
+    $english = !function_exists('boblift_current_language_slug') || boblift_current_language_slug() === 'en';
+    return (string) preg_replace_callback('/<img\b[^>]*>/i', static function (array $tag) use ($title, $english): string {
+        if (preg_match('/\salt=(["\'])\s*[^"\'\s][^"\']*\1/i', $tag[0]) || preg_match('/\s(?:role=(["\'])presentation\1|aria-hidden=(["\'])true\2)/i', $tag[0])) {
+            return $tag[0];
+        }
+        $alt = '';
+        if ($english) {
+            $id = preg_match('/\bwp-image-(\d+)\b/', $tag[0], $m) ? (int) $m[1] : 0;
+            if ($id === 0 && preg_match('/\ssrc=(["\'])([^"\']+)\1/i', $tag[0], $m)) {
+                $id = (int) attachment_url_to_postid((string) preg_replace('/\?.*$/', '', str_replace('i0.wp.com/', '', $m[2])));
+            }
+            $alt = $id > 0 ? trim((string) get_post_meta($id, '_wp_attachment_image_alt', true)) : '';
+        }
+        $alt = esc_attr($alt !== '' ? $alt : $title);
+        $tag_without_alt = (string) preg_replace('/\salt=(["\'])\s*\1/i', '', $tag[0]);
+        return (string) preg_replace('/^<img\b/i', '<img alt="' . $alt . '"', $tag_without_alt);
+    }, $content);
+}
+add_filter('the_content', 'boblift_fill_missing_image_alts', 7);
