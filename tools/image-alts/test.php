@@ -18,5 +18,9 @@ $cases=[
 '<img src="/d.jpg" aria-hidden=\'true\'>'=>'<img src="/d.jpg" aria-hidden=\'true\'>',
 '<img class="x wp-image-77" src="/q.jpg" alt=" ">'=>'<img alt="Crane on deck" class="x wp-image-77" src="/q.jpg">',
 '<img src="/a.jpg" data-alt="Real" alt="">'=>'<img alt="$10,000 truck crane &amp; &quot;x&quot;" src="/a.jpg" data-alt="Real">',
+'<img alt="Lifting capacity > 5 tonnes" src="/crane.jpg">'=>'<img alt="Lifting capacity > 5 tonnes" src="/crane.jpg">',
+'<img title="alt=\'\'" src="/t.jpg">'=>'<img alt="$10,000 truck crane &amp; &quot;x&quot;" title="alt=\'\'" src="/t.jpg">',
+'<img title=\'has alt="" inside\' alt="" src="/t.jpg">'=>'<img alt="$10,000 truck crane &amp; &quot;x&quot;" title=\'has alt="" inside\' src="/t.jpg">',
+'<p>a > b</p><img src="/y.jpg"><p>c</p>'=>'<p>a > b</p><img alt="$10,000 truck crane &amp; &quot;x&quot;" src="/y.jpg"><p>c</p>',
 ];
 $f=0; foreach($cases as $in=>$want){$g=boblift_fill_missing_image_alts($in); if($g!==$want){echo "FAIL $in\n  got  $g\n  want $want\n";$f++;}} echo $f ? "$f FAILED\n" : "all ok\n"; exit($f ? 1 : 0);

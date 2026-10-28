@@ -1025,29 +1025,43 @@ function boblift_fill_missing_image_alts(string $content): string {
         return $content;
     }
     $english = !function_exists('boblift_current_language_slug') || boblift_current_language_slug() === 'en';
-    // An attribute's value, read by its own delimiter: alt="Crane's boom" and alt='12" reach' are whole values.
-    $attribute = static function (string $tag, string $name): ?string {
-        if (!preg_match('/\s' . $name . '\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s"\'>]+))/i', $tag, $m)) {
-            return preg_match('/\s' . $name . '(?=[\s>\/])/i', $tag) ? '' : null;
+    // A whole <img> tag, quotes respected: alt="Capacity > 5 t" does not end the tag at its ">".
+    return (string) preg_replace_callback('/<img\b((?:[^>"\']|"[^"]*"|\'[^\']*\')*)>/i', static function (array $tag) use ($title, $english): string {
+        // Its attributes in order, each as written (leading space included) plus its lowercased name and decoded value,
+        // so text inside one attribute's quotes (title="alt=''") is never read as another attribute.
+        preg_match_all('/\s*([^\s=\/>"\']+)(?:\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s"\'>]+)))?|\s*\/|\s+/', $tag[1], $tokens, PREG_SET_ORDER);
+        $attributes = [];
+        foreach ($tokens as $token) {
+            $name = isset($token[1]) ? strtolower($token[1]) : '';
+            $attributes[] = ['raw' => $token[0], 'name' => $name, 'value' => html_entity_decode(($token[2] ?? '') . ($token[3] ?? '') . ($token[4] ?? ''), ENT_QUOTES)];
         }
-        return html_entity_decode(($m[1] ?? '') . ($m[2] ?? '') . ($m[3] ?? ''), ENT_QUOTES);
-    };
-    return (string) preg_replace_callback('/<img\b[^>]*>/i', static function (array $tag) use ($title, $english, $attribute): string {
-        if (trim((string) $attribute($tag[0], 'alt')) !== '' || strtolower((string) $attribute($tag[0], 'role')) === 'presentation' || strtolower((string) $attribute($tag[0], 'aria-hidden')) === 'true') {
+        // A tag the reader cannot account for character by character is left exactly as it was written.
+        if (implode('', array_column($attributes, 'raw')) !== $tag[1]) {
+            return $tag[0];
+        }
+        $value = static function (string $name) use ($attributes): ?string {
+            foreach ($attributes as $attribute) {
+                if ($attribute['name'] === $name) {
+                    return $attribute['value'];
+                }
+            }
+            return null;
+        };
+        if (trim((string) $value('alt')) !== '' || strtolower((string) $value('role')) === 'presentation' || strtolower((string) $value('aria-hidden')) === 'true') {
             return $tag[0];
         }
         $alt = '';
         if ($english) {
-            $id = preg_match('/\bwp-image-(\d+)\b/', (string) $attribute($tag[0], 'class'), $m) ? (int) $m[1] : 0;
-            $src = (string) $attribute($tag[0], 'src');
+            $id = preg_match('/\bwp-image-(\d+)\b/', (string) $value('class'), $m) ? (int) $m[1] : 0;
+            $src = (string) $value('src');
             if ($id === 0 && $src !== '') {
                 $id = (int) attachment_url_to_postid((string) preg_replace('/\?.*$/', '', str_replace('i0.wp.com/', '', $src)));
             }
             $alt = $id > 0 ? trim((string) get_post_meta($id, '_wp_attachment_image_alt', true)) : '';
         }
-        // The empty alt goes, then the new one is put straight after "<img" (concatenated, so "$10" stays literal text).
-        $tag_without_alt = (string) preg_replace('/\salt(?:\s*=\s*(?:"\s*"|\'\s*\'))?(?=[\s>\/])/i', '', $tag[0]);
-        return '<img alt="' . esc_attr($alt !== '' ? $alt : $title) . '"' . substr($tag_without_alt, 4);
+        // The empty alt goes, the new one goes first, and the rest is kept as written (concatenated, so "$10" stays text).
+        $rest = implode('', array_map(static fn(array $attribute): string => $attribute['raw'], array_filter($attributes, static fn(array $attribute): bool => $attribute['name'] !== 'alt')));
+        return '<img alt="' . esc_attr($alt !== '' ? $alt : $title) . '"' . $rest . '>';
     }, $content);
 }
 add_filter('the_content', 'boblift_fill_missing_image_alts', 7);
