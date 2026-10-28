@@ -14,6 +14,10 @@ if (!defined('ABSPATH')) {
  *     Extra photos for the Global Customer Visits page, a JSON array of {id, country, title} rows (id = media library
  *     item). They are shown before the photos saved in the About page settings; the English page's list is used for
  *     every language unless a translation has its own.
+ *   POST /wp/v2/pages/<id> {"meta": {"_boblift_visit_country_count": 40}}
+ *     The country count the Global Customer Visits page shows when more countries have visited than its photos are
+ *     tagged with ("over 40 countries"). 0 = count the country tags. Read from the English page unless a translation
+ *     sets its own.
  *
  * A request with a malformed value is refused before anything is saved.
  */
@@ -43,6 +47,14 @@ function boblift_register_gallery_rest_meta(): void
             }
             return wp_json_encode($items, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]';
         },
+        'auth_callback' => $auth,
+    ]);
+    register_post_meta('page', '_boblift_visit_country_count', [
+        'type' => 'integer',
+        'single' => true,
+        'default' => 0,
+        'show_in_rest' => true,
+        'sanitize_callback' => 'absint',
         'auth_callback' => $auth,
     ]);
     // The core REST API only exposes registered meta on post types that support custom fields.
@@ -94,6 +106,16 @@ add_filter('rest_pre_insert_product', static fn($prepared, $request) => boblift_
 add_filter('rest_pre_insert_page', static fn($prepared, $request) => boblift_validate_gallery_rest_meta($prepared, $request, '_boblift_visit_items', ['id', 'country', 'title'], 'id'), 10, 2);
 
 /** Visit photos added over REST to this page (or to its English version), as Global Customer Visits items. */
+/** The visits page's "over N countries" floor (0 = none), falling back to the English page. */
+function boblift_visit_country_floor(int $page_id): int
+{
+    $floor = absint(get_post_meta($page_id, '_boblift_visit_country_count', true));
+    if (!$floor && function_exists('pll_get_post') && ($english = (int) pll_get_post($page_id, 'en')) && $english !== $page_id) {
+        $floor = absint(get_post_meta($english, '_boblift_visit_country_count', true));
+    }
+    return $floor;
+}
+
 function boblift_rest_visit_items(int $page_id): array
 {
     $rows = boblift_case_rest_rows(get_post_meta($page_id, '_boblift_visit_items', true)) ?? [];
