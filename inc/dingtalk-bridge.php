@@ -76,9 +76,18 @@ function boblift_dingtalk_inquiry(int $post_id, array $fields): void
     }
     $links[] = ['label' => '📋 后台查看', 'url' => admin_url('post.php?post=' . $post_id . '&action=edit')];
 
+    // A PDF catalog request (inc/forms.php) is told apart by its title, with the PDF it asked for, or a note that the team
+    // has to send one.
+    $catalog = ($fields['lead_type'] ?? '') === 'catalog_request';
+    if ($catalog) {
+        $rows = array_values(array_filter($rows, static fn(array $row): bool => $row['label'] !== '留言'));
+        $url = trim((string) ($fields['catalog_url'] ?? ''));
+        $rows[] = $url !== '' ? ['label' => '目录文件', 'value' => $url, 'long' => true] : ['label' => '目录文件', 'value' => '没有现成 PDF，请手动发给客户', 'long' => true];
+    }
+
     achord_dingtalk_dispatch([
         // Its own title, so the group can tell this site's inquiries from the loader site's at a glance.
-        'title' => '🏗️ 起重机站新询盘',
+        'title' => $catalog ? '📘 起重机站目录下载' : '🏗️ 起重机站新询盘',
         'headline' => trim((string) ($fields['product'] ?? '')),
         'fields' => $rows,
         'meta' => $meta,

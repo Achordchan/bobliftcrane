@@ -2143,6 +2143,9 @@
       qs('[data-catalog-product-slug-field]', form).value = trigger?.dataset?.catalogProductSlug || '';
       const catalogUrl = trigger?.dataset?.catalogUrl || '';
       qs('[data-catalog-url-field]', form).value = catalogUrl;
+      // Which button opened the form, named in the sales email as the inquiry modal names its own.
+      const sourceField = qs('[data-catalog-source-field]', form);
+      if (sourceField) sourceField.value = ((trigger instanceof HTMLElement && (trigger.getAttribute('aria-label') || trigger.innerText)) || '').replace(/\s+/g, ' ').trim().slice(0, 120);
       const description = qs('[data-catalog-description]', catalogModal);
       const directText = catalogModal.dataset.catalogDirectText || '';
       if (description) description.textContent = catalogUrl ? (directText || catalogText('description', 'Enter your email to receive the PDF catalog. The download link will appear immediately after submission.')) : catalogText('noFileDescription', 'Enter your email and our team will send the correct PDF catalog to you shortly.');
@@ -2168,6 +2171,10 @@
     catalogModal.classList.add('flex');
     catalogModal.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
+    // The same Cloudflare check as the inquiry form, loaded only once the modal opens.
+    renderLazyTurnstile(form || catalogModal).then(() => resetTurnstile(form || catalogModal)).catch((error) => {
+      catalogModalStatus(error.message || quoteFormMessage('verificationLoadFailed', 'Verification could not be loaded. Please try again.'), 'error');
+    });
     window.setTimeout(() => qs('[role="dialog"]', catalogModal)?.focus(), 0);
   };
   const closeCatalogModal = () => {
@@ -2219,6 +2226,17 @@
       window.setTimeout(() => form.reportValidity(), 0);
       return;
     }
+    if (qsa('[data-turnstile-widget]', form).some((widget) => !widget.dataset.turnstileWidgetId)) {
+      catalogModalStatus(quoteFormMessage('verificationLoading', 'Loading verification...'), 'info');
+      try {
+        await renderLazyTurnstile(form);
+      } catch (error) {
+        catalogModalStatus(error.message || quoteFormMessage('verificationLoadFailed', 'Verification could not be loaded. Please try again.'), 'error');
+        return;
+      }
+      catalogModalStatus(quoteFormMessage('verificationSubmitAgain', 'Please complete the verification and submit again.'), 'error');
+      return;
+    }
     const submit = qs('[data-catalog-submit]', form);
     form.dataset.submitting = 'true';
     submit?.setAttribute('disabled', 'disabled');
@@ -2244,6 +2262,7 @@
       const message = data?.data?.message || catalogText('successText', 'Catalog request saved. We also sent the catalog link to your email.');
       form.dataset.submitting = 'false';
       submit?.removeAttribute('disabled');
+      resetTurnstile(form);
       if (downloadUrl && downloadLink) {
         downloadLink.href = downloadUrl;
         downloadLink.classList.remove('hidden');
@@ -2260,6 +2279,7 @@
       form.dataset.submitting = 'false';
       catalogModalStatus(error.message || catalogText('saveFailed', 'The catalog request could not be saved. Please try again.'), 'error');
       submit?.removeAttribute('disabled');
+      resetTurnstile(form);
     }
   });
 
@@ -4711,7 +4731,7 @@
     // Capture phase: runs before the inquiry modal builds its FormData and before the contact form posts.
     document.addEventListener('submit', (event) => {
       const form = event.target;
-      if (!(form instanceof HTMLFormElement) || !form.matches('[data-quote-form]')) return;
+      if (!(form instanceof HTMLFormElement) || !form.matches('[data-quote-form], [data-catalog-form]')) return;
       settleAttribution();
       fillAttribution(form);
     }, true);
@@ -4843,7 +4863,7 @@
     if (!choice) askedHere(banner.dataset.regions).then((ask) => { if (ask && !choice && banner.hidden) open(false); });
   };
 
-  // Sent with every inquiry whatever the cookie choice, since nothing is kept in the browser for them: the site that linked
+  // Sent with every inquiry and catalog request whatever the cookie choice, since nothing is kept in the browser for them: the site that linked
   // to this page, whether advertising is agreed to (so the mail can say why no ad source is known) and whether the screen
   // takes touch (iPadOS Safari presents itself as a Mac). inc/forms.php reads them.
   const fillContext = (form) => {
@@ -4866,7 +4886,7 @@
 
   const init = () => {
     document.addEventListener('submit', (event) => {
-      if (event.target instanceof HTMLFormElement && event.target.matches('[data-quote-form]')) fillContext(event.target);
+      if (event.target instanceof HTMLFormElement && event.target.matches('[data-quote-form], [data-catalog-form]')) fillContext(event.target);
     }, true);
     // Attribution exists only while the Google tag is configured (inc/consent.php sets the flag); with tracking turned off
     // nothing is collected and any record kept earlier is dropped, whatever an old consent cookie says.
