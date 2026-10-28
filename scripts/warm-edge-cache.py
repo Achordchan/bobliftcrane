@@ -13,9 +13,11 @@ import urllib.request
 
 SITE = sys.argv[1] if len(sys.argv) > 1 else "https://bobliftcrane.com"
 HEADERS = {"User-Agent": "BOB-LIFT deploy cache warmer"}
+rate_limited = 0
 
 
 def fetch(url: str) -> tuple[int, bytes]:
+    global rate_limited
     for attempt in range(4):
         try:
             with urllib.request.urlopen(urllib.request.Request(url, headers=HEADERS), timeout=60) as response:
@@ -23,6 +25,7 @@ def fetch(url: str) -> tuple[int, bytes]:
         except urllib.error.HTTPError as error:
             if error.code != 429:
                 return error.code, b""
+            rate_limited += 1
             time.sleep(20 * (attempt + 1))
         except OSError:
             time.sleep(5)
@@ -54,7 +57,7 @@ def main() -> int:
             failed += 1
             print(f"{url} returned {status}")
         time.sleep(0.6)
-    print(f"warmed {len(urls) - failed} of {len(urls)} URLs, {failed_sitemaps} sitemaps unreadable")
+    print(f"warmed {len(urls) - failed} of {len(urls)} URLs, {failed_sitemaps} sitemaps unreadable, {rate_limited} requests rate-limited (429)")
     # Any skipped sitemap or page means some pages may still be stale, so the run fails and shows up in Actions.
     return 1 if failed or failed_sitemaps else 0
 

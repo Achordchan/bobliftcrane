@@ -11,6 +11,13 @@ on:
 jobs:
   Warm-Edge-Cache:
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    # Each run requests all ~1,800 sitemap URLs over ~30 minutes. Several deploys in a row used to start a run each,
+    # and the overlapping runs pushed the site over the host's rate limit, so visitors were served 429. Only the newest
+    # run is needed (it warms the latest deploy), so a new one cancels the one in progress. This sits on the job, after
+    # the `if`, so a failed or cancelled publish (whose job is skipped) cannot cancel a warmer that is still needed.
+    concurrency:
+      group: warm-edge-cache
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
