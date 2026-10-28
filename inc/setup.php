@@ -1050,6 +1050,12 @@ function boblift_fill_missing_image_alts(string $content): string {
                 // The lookup knows only an attachment's own file, so a generated size (photo-300x200.jpg) is tried as
                 // its original (photo.jpg), then as the big-image original WordPress keeps (photo-scaled.jpg).
                 $url = (string) preg_replace('/\?.*$/', '', str_replace('i0.wp.com/', '', $src));
+                // The lookup compares against the full uploads URL, so a root-relative or scheme-relative src is made whole.
+                if (str_starts_with($url, '//')) {
+                    $url = 'https:' . $url;
+                } elseif (str_starts_with($url, '/')) {
+                    $url = untrailingslashit(home_url()) . $url;
+                }
                 $original = (string) preg_replace('/-\d+x\d+(\.[a-z0-9]+)$/i', '$1', $url);
                 foreach (array_unique([$url, $original, (string) preg_replace('/(\.[a-z0-9]+)$/i', '-scaled$1', $original)]) as $candidate) {
                     $id = (int) attachment_url_to_postid($candidate);
