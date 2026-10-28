@@ -177,6 +177,8 @@ foreach ([
     '<a href="/telescopic-boom-truck-mounted-crane#models">x</a>' => '<a href="https://bobliftcrane.com/telescopic-boom-truck-mounted-cranes#models">x</a>',
     '<a href="https://www.bobliftcrane.com/products.html?a=1&amp;b=2">x</a>' => '<a href="https://bobliftcrane.com/products.html?a=1&#038;b=2">x</a>',
     '<a href="/truck-mounted-crane">x</a>' => '<a href="/truck-mounted-crane">x</a>',
+    '<a data-href="/telescopic-boom-truck-mounted-crane" href="https://www.bobliftcrane.com/telescopic-boom-truck-mounted-crane">x</a>' => '<a data-href="/telescopic-boom-truck-mounted-crane" href="https://bobliftcrane.com/telescopic-boom-truck-mounted-cranes">x</a>',
+    "<a\nhref=\"https://www.bobliftcrane.com/products.html\">x</a>" => "<a\nhref=\"https://bobliftcrane.com/products.html\">x</a>",
     '<a href="https://www.bobliftcrane.com">x</a>' => '<a href="https://bobliftcrane.com">x</a>',
     '<a href="https://www.bobliftcrane.com#contact">x</a>' => '<a href="https://bobliftcrane.com#contact">x</a>',
     '<a href="https://bobliftcrane.com">x</a>' => '<a href="https://bobliftcrane.com">x</a>',

@@ -491,7 +491,7 @@ function boblift_legacy_links_rewrite(string $content): string
 function boblift_legacy_links_rewrite_html(string $content, string $home, array $config, callable $path_exists, ?callable $article_by_id = null): string
 {
     $home = strtolower($home);
-    return (string) preg_replace_callback('#(<a\s[^>]*?href=)(["\'])([^"\']+)\2#i', static function (array $m) use ($home, $config, $path_exists, $article_by_id): string {
+    return (string) preg_replace_callback('#(<a(?:\s[^>]*?)?\shref=)(["\'])([^"\']+)\2#i', static function (array $m) use ($home, $config, $path_exists, $article_by_id): string {
         $href = html_entity_decode($m[3], ENT_QUOTES);
         $parts = parse_url($href);
         $host = strtolower((string) ($parts['host'] ?? ''));
