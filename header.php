@@ -290,7 +290,16 @@ foreach ($languages as $language) {
     }
 }
 ?>
-<?php if ($show_top_bar) : ?>
+<?php $top_bar_event = $show_top_bar && function_exists('boblift_top_bar_live_event') ? boblift_top_bar_live_event($top_bar) : null; ?>
+<?php if ($top_bar_event) : ?>
+    <?php // A live event notice (inc/rest-top-bar.php) takes the bar's place; phones show the short words so it stays one line. ?>
+    <div class="flex items-center justify-center gap-2 bg-navy px-4 py-3 text-center text-[11px] font-normal leading-5 text-white/85 sm:gap-3 md:text-xs">
+        <?php if ($top_bar_event['badge_label'] !== '') : ?><span class="shrink-0 rounded-sm bg-gold px-2 text-[10px] font-black uppercase leading-5 tracking-[0.08em] text-navy"><?php echo esc_html($top_bar_event['badge_label']); ?></span><?php endif; ?>
+        <span class="min-w-0<?php echo $top_bar_event['short_text'] !== '' ? ' hidden sm:inline' : ''; ?>"><?php echo esc_html($top_bar_event['text']); ?></span>
+        <?php if ($top_bar_event['short_text'] !== '') : ?><span class="min-w-0 truncate sm:hidden"><?php echo esc_html($top_bar_event['short_text']); ?></span><?php endif; ?>
+        <?php if ($top_bar_event['link_label'] !== '' && $top_bar_event['link_href'] !== '') : ?><a class="-my-3 inline-block shrink-0 py-3 text-gold" href="<?php echo esc_url(boblift_url($top_bar_event['link_href'])); ?>"><?php echo esc_html($top_bar_event['link_label']); ?></a><?php endif; ?>
+    </div>
+<?php elseif ($show_top_bar) : ?>
     <div class="bg-navy px-4 py-3 text-center text-[11px] font-normal leading-5 text-white/85 md:text-xs"><?php // Phones drop the highlight so the bar stays on one line. ?><span class="hidden text-gold sm:inline"><?php echo esc_html($top_bar['highlight'] ?? 'Global Lifting Solutions.'); ?> </span><?php echo esc_html($top_bar['text'] ?? 'Exported to 120+ Countries Worldwide.'); ?><a class="-my-3 ms-3 inline-block py-3 text-gold md:ms-5" href="<?php echo esc_url(boblift_url($top_bar['link_href'] ?? '/about')); ?>"><?php echo esc_html($top_bar['link_label'] ?? 'Learn More +'); ?></a></div>
 <?php endif; ?>
 <?php // The announcement bar scrolls away; the navigation below stays at the top of the window. ?>
