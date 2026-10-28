@@ -253,6 +253,16 @@ function boblift_current_product_category_term(): ?WP_Term
     return null;
 }
 
+// Search results cut titles at about 60 characters; a long title loses the brand suffix before it loses its words.
+function boblift_seo_trim_brand_suffix(string $title, int $limit = 60): string
+{
+    if (mb_strlen($title) <= $limit) {
+        return $title;
+    }
+    $trimmed = (string) preg_replace('/\s+[–—|\-]\s+BOB-LIFT$/u', '', $title);
+    return $trimmed !== '' ? $trimmed : $title;
+}
+
 function boblift_document_title_parts(array $title): array
 {
     $seo_title = '';
@@ -291,7 +301,7 @@ function boblift_document_title_parts(array $title): array
     }
 
     if ($seo_title !== '') {
-        $title['title'] = $seo_title;
+        $title['title'] = boblift_seo_trim_brand_suffix($seo_title);
         unset($title['site'], $title['tagline']);
     }
 

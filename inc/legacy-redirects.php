@@ -484,14 +484,24 @@ function boblift_legacy_links_rewrite(string $content): string
     if ($home === '' || stripos($content, 'href=') === false) {
         return $content;
     }
-    return boblift_legacy_links_rewrite_html($content, $home, boblift_legacy_redirects_config(), 'boblift_legacy_redirect_is_live_path', 'boblift_legacy_redirect_article_by_id');
+    // Translations imported from the old site link the English pages; in a translation they lead to that language's page.
+    $languages = function_exists('boblift_prefixed_languages') ? boblift_prefixed_languages() : [];
+    $post_id = (int) get_the_ID();
+    $language = $post_id > 0 && function_exists('pll_get_post_language') ? (string) pll_get_post_language($post_id, 'slug') : '';
+    $prefix = in_array($language, $languages, true) ? (function_exists('boblift_language_path_base') ? boblift_language_path_base() : '') . $language : '';
+    return boblift_legacy_links_rewrite_html($content, $home, boblift_legacy_redirects_config(), 'boblift_legacy_redirect_is_live_path', 'boblift_legacy_redirect_article_by_id', $prefix, $languages);
 }
 
-/** The rewrite itself, with the site host, the rules and the two lookups passed in (tools/legacy-redirects/test.php runs it). */
-function boblift_legacy_links_rewrite_html(string $content, string $home, array $config, callable $path_exists, ?callable $article_by_id = null): string
+/**
+ * The rewrite itself, with the site host, the rules and the lookups passed in (tools/legacy-redirects/test.php runs it).
+ * $language_prefix ('ja', or 'language/ja' with a language base) is the language directory of the content being shown;
+ * a link to a page outside every one of $languages then moves into that directory when the translation is live there.
+ */
+function boblift_legacy_links_rewrite_html(string $content, string $home, array $config, callable $path_exists, ?callable $article_by_id = null, string $language_prefix = '', array $languages = []): string
 {
     $home = strtolower($home);
-    return (string) preg_replace_callback('#(<a(?:\s[^>]*?)?\shref=)(["\'])([^"\']+)\2#i', static function (array $m) use ($home, $config, $path_exists, $article_by_id): string {
+    $language_prefix = trim($language_prefix, '/');
+    return (string) preg_replace_callback('#(<a(?:\s[^>]*?)?\shref=)(["\'])([^"\']+)\2([^>]*)#i', static function (array $m) use ($home, $config, $path_exists, $article_by_id, $language_prefix, $languages): string {
         $href = html_entity_decode($m[3], ENT_QUOTES);
         $parts = parse_url($href);
         $host = strtolower((string) ($parts['host'] ?? ''));
@@ -500,8 +510,9 @@ function boblift_legacy_links_rewrite_html(string $content, string $home, array 
             return $m[0];
         }
         $path = (string) ($parts['path'] ?? '') ?: '/'; // https://www.bobliftcrane.com is the home page
+        $site_page = !preg_match('#^/(wp-admin|wp-json|wp-content|wp-includes)/#', $path);
         $target = null;
-        if (!preg_match('#^/(wp-admin|wp-json|wp-content|wp-includes)/#', $path)) {
+        if ($site_page) {
             $target = boblift_legacy_redirect_rule_target($path, $config) === null ? boblift_legacy_redirect_resolve_in_language_directory($home, $path, $config) : null;
             $target ??= boblift_legacy_redirect_resolve($home, $path, $config, 'https://' . $home, $path_exists, $article_by_id);
             // As on a request: a page the site really serves is never taken over by a rule.
@@ -518,9 +529,25 @@ function boblift_legacy_links_rewrite_html(string $content, string $home, array 
         } elseif ($host === 'www.' . $home) {
             $url = 'https://' . $home . substr($href, stripos($href, $host) + strlen($host));
         } else {
-            return $m[0];
+            $url = $href;
         }
-        return $m[1] . $m[2] . esc_url($url) . $m[2];
+        // A language switcher's link names its own language; moving it into this page's language would break the switch.
+        // Same markers the Polytranslate rewriter keeps: hreflang/lang, rel="alternate" and the Polylang switcher classes.
+        $switches_language = (bool) preg_match('#\s(hreflang|lang|data-pll[\w-]*)=|\srel=(["\'])[^"\']*\balternate\b|\b(lang-item|current-lang|polylang|pll-[\w-]+)\b#i', $m[1] . $m[4]);
+        if ($language_prefix !== '' && $site_page && !$switches_language) {
+            $url_parts = parse_url($url);
+            $url_host = strtolower((string) ($url_parts['host'] ?? $home));
+            $url_path = (string) ($url_parts['path'] ?? '') ?: '/';
+            $base = substr($language_prefix, 0, (int) strrpos('/' . $language_prefix, '/'));
+            $in_language = (bool) preg_match('#^/' . preg_quote($base, '#') . '(' . implode('|', array_map(static fn($slug) => preg_quote((string) $slug, '#'), $languages ?: ['-'])) . ')(/|$)#', $url_path);
+            $localized = '/' . $language_prefix . ($url_path === '/' ? '/' : $url_path);
+            if ($url_host === $home && !$in_language && $path_exists(rtrim($localized, '/') ?: '/')) {
+                // Keep a root-relative link relative, and an absolute one on its own scheme and port.
+                $origin = isset($url_parts['host']) ? ($url_parts['scheme'] ?? 'https') . '://' . $url_parts['host'] . (isset($url_parts['port']) ? ':' . $url_parts['port'] : '') : '';
+                $url = $origin . $localized . (isset($url_parts['query']) ? '?' . $url_parts['query'] : '') . (isset($url_parts['fragment']) ? '#' . $url_parts['fragment'] : '');
+            }
+        }
+        return $url === $href ? $m[0] : $m[1] . $m[2] . esc_url($url) . $m[2] . $m[4];
     }, $content);
 }
 add_filter('the_content', 'boblift_legacy_links_rewrite', 30);
