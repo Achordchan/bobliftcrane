@@ -1067,6 +1067,10 @@ function boblift_fill_missing_image_alts(string $content): string {
                 }
             }
             $alt = $id > 0 ? trim((string) get_post_meta($id, '_wp_attachment_image_alt', true)) : '';
+            // Imported uploads often have their file name ("5.jpg") as alt text, which says nothing; the title does.
+            if (preg_match('/^[\w.-]+\.(?:jpe?g|png|gif|webp|avif|svg)$/i', $alt)) {
+                $alt = '';
+            }
         }
         $processor->set_attribute('alt', $alt !== '' ? $alt : $title);
     }
