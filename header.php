@@ -50,10 +50,19 @@ foreach ((array) ($site_switcher_ui['sites'] ?? []) as $site) {
         'url' => $site_url,
         'current' => $site_current,
         'mark' => (string) ($site['mark'] ?? $site_switcher_defaults[(string) ($site['domain'] ?? '')]['mark'] ?? mb_substr((string) $site['label'], 0, 1)),
+        // A real photo of the site's product shows in place of the letter; saved lists without one take the built-in photo for that domain.
+        'image' => (string) (($site['image'] ?? '') ?: ($site_switcher_defaults[(string) ($site['domain'] ?? '')]['image'] ?? '')),
         'description' => (string) ($site['description'] ?? boblift_localized_static_text((string) ($site_switcher_defaults[(string) ($site['domain'] ?? '')]['description'] ?? ''))),
     ];
 }
 // Links to a sister site open the leave dialog in footer.php first.
+// The site's square in the switcher: its photo when it has one, else its letter.
+$site_mark_html = static function (array $site, string $letter_class): string {
+    if ($site['image'] !== '') {
+        return '<span class="size-11 shrink-0 overflow-hidden rounded-sm bg-mist ' . ($site['current'] ? 'ring-2 ring-navy' : 'border border-line') . '" aria-hidden="true">' . boblift_img_from_setting($site['image'], '', '', 'block size-full object-cover', ['width' => 44, 'height' => 44, 'decoding' => 'async']) . '</span>';
+    }
+    return '<span class="grid size-9 shrink-0 place-items-center rounded-sm ' . $letter_class . ' text-sm font-black" aria-hidden="true">' . esc_html($site['mark']) . '</span>';
+};
 $site_leave_attrs = static fn(array $site): string => ' data-leave-site data-leave-name="' . esc_attr($site['label']) . '" data-leave-domain="' . esc_attr($site['domain']) . '"';
 $site_switcher_current = array_values(array_filter($site_switcher_items, static fn(array $site): bool => $site['current']))[0] ?? [];
 $search_query = is_search() ? get_search_query() : '';
@@ -322,7 +331,7 @@ foreach ($languages as $language) {
                                 <p class="px-3 pb-1.5 pt-2 text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html($site_switcher_ui['title'] ?? 'BOB-LIFT sites'); ?></p>
                                 <?php foreach ($site_switcher_items as $site) : ?>
                                     <a class="flex items-center gap-3 rounded-sm px-3 py-2.5 outline-none transition hover:bg-mist focus-visible:bg-mist <?php echo $site['current'] ? 'bg-mist' : ''; ?>" href="<?php echo esc_url($site['url']); ?>"<?php echo $site['current'] ? ' aria-current="true"' : $site_leave_attrs($site); ?>>
-                                        <span class="grid size-9 shrink-0 place-items-center rounded-sm <?php echo $site['current'] ? 'bg-navy text-white' : 'border border-line bg-white text-navy'; ?> text-sm font-black" aria-hidden="true"><?php echo esc_html($site['mark']); ?></span>
+                                        <?php echo $site_mark_html($site, $site['current'] ? 'bg-navy text-white' : 'border border-line bg-white text-navy'); ?>
                                         <span class="min-w-0 flex-1">
                                             <span class="block truncate text-[11px] font-normal text-slate-500"><?php echo esc_html($site['domain']); ?></span>
                                             <span class="block truncate text-sm font-black text-ink"><?php echo esc_html($site['label']); ?></span>
@@ -552,7 +561,7 @@ foreach ($languages as $language) {
                 <p class="px-2 pb-1.5 text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html($site_switcher_ui['mobileTitle'] ?? 'Other BOB-LIFT sites'); ?></p>
                 <?php foreach ($site_switcher_others as $site) : ?>
                     <a class="flex items-center justify-between gap-3 rounded px-2 py-2.5 transition hover:bg-[#f7fbff]" href="<?php echo esc_url($site['url']); ?>"<?php echo $site_leave_attrs($site); ?>>
-                        <span class="grid size-9 shrink-0 place-items-center rounded-sm border border-line bg-white text-sm font-black text-navy" aria-hidden="true"><?php echo esc_html($site['mark']); ?></span>
+                        <?php echo $site_mark_html($site, 'border border-line bg-white text-navy'); ?>
                         <span class="min-w-0 flex-1"><span class="block text-sm font-black text-ink"><?php echo esc_html($site['label']); ?></span><span class="block text-xs font-normal text-slate-500"><?php echo esc_html($site['description'] !== '' ? $site['description'] : $site['domain']); ?></span></span>
                         <?php echo boblift_icon('arrow-up-right', 'h-4 w-4 shrink-0 text-slate-500'); ?>
                     </a>
