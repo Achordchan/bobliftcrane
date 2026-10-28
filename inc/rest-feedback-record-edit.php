@@ -67,8 +67,9 @@ function boblift_feedback_record_edit_precheck($prepared_post, WP_REST_Request $
     }
     // Only the edits may be sent: WordPress saves the post's own fields before this field's callback runs, so a title or
     // meta sent alongside could be saved while the edits are then refused.
-    $sent = array_keys(array_merge((array) $request->get_body_params(), (array) $request->get_json_params()));
-    if (array_diff($sent, ['boblift_feedback_record_edit', 'id']) !== []) {
+    // The query string counts too: WordPress takes update fields from it as well. Request controls that write nothing pass.
+    $sent = array_keys(array_merge((array) $request->get_query_params(), (array) $request->get_body_params(), (array) $request->get_json_params()));
+    if (array_diff($sent, ['boblift_feedback_record_edit', 'id', 'context', '_fields', '_envelope', '_method', '_locale', '_embed', '_wpnonce', 'rest_route']) !== []) {
         return new WP_Error('boblift_record_edit_invalid', 'Send boblift_feedback_record_edit on its own, without other fields; save those in a separate request.', ['status' => 400]);
     }
     $stored = boblift_feedback_record_edit_stored((int) $request->get_param('id'));
