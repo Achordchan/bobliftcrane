@@ -575,16 +575,14 @@ function boblift_inquiry_admin_mail(array $fields, int $post_id): array
         . '<table width="660" cellspacing="0" cellpadding="0" style="width:660px;"><tr><td align="center" style="padding:18px 36px 0;font-size:12px;line-height:1.7;color:#94a3b8;">此邮件由 ' . $host . ($catalog ? ' 目录下载表单' : ' 询盘表单') . '自动发送 · 副本见' . $admin_link . '</td></tr></table>'
         . '</td></tr></table></body></html>';
 
-    if ($catalog) {
-        return ['【起重机站】客户索取目录，请及时跟进：' . $email, $body];
-    }
-    $subject = '【起重机站】询盘飞奔而来，请及时跟进：' . $email;
+    $subject = ($catalog ? '【起重机站】客户索取目录，请及时跟进：' : '【起重机站】询盘飞奔而来，请及时跟进：') . $email;
     // A subject an editor saved in 站点文案 (quoteForm → messages → mailSubject) still wins over the branded default. Only the
     // source-language (English) options count: the sales team reads one subject whatever the visitor's language, and the
     // translated copies hold machine translations of the old default (e.g. 新的 BOB-LIFT 询价), not a choice.
     $source_options = get_option('boblift_theme_options', []);
-    $saved_subject = trim((string) (is_array($source_options) ? ($source_options['site_ui']['quoteForm']['messages']['mailSubject'] ?? '') : ''));
-    if ($saved_subject !== '' && $saved_subject !== 'New BOB-LIFT inquiry') {
+    // A catalog request reads its own saved subject (产品详情 → catalogLead → adminMailSubject) the same way.
+    $saved_subject = trim((string) (is_array($source_options) ? ($catalog ? ($source_options['site_ui']['productDetail']['catalogLead']['adminMailSubject'] ?? '') : ($source_options['site_ui']['quoteForm']['messages']['mailSubject'] ?? '')) : ''));
+    if ($saved_subject !== '' && $saved_subject !== ($catalog ? 'New BOB-LIFT catalog request' : 'New BOB-LIFT inquiry')) {
         $subject = $saved_subject;
     }
     return [$subject, $body];
