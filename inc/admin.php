@@ -2336,6 +2336,14 @@ function boblift_global_settings_page(): void
         <?php boblift_admin_input('top_bar.text', $options, '普通文案'); ?>
         <?php boblift_admin_input('top_bar.link_label', $options, '链接文字'); ?>
         <?php boblift_admin_link_input('top_bar.link_href', $options, '链接地址'); ?>
+        <h4>展会 / 活动公告（填了“公告文案”且在显示日期内时，替换上面的常规文案）</h4>
+        <?php boblift_admin_input('top_bar.event.badge_label', $options, '金色标签（如 BAUMA CHINA 2026，可留空）'); ?>
+        <?php boblift_admin_input('top_bar.event.text', $options, '公告文案（电脑显示，90 个字符以内）'); ?>
+        <?php boblift_admin_input('top_bar.event.short_text', $options, '手机文案（25 个字符以内，留空则手机也用公告文案）'); ?>
+        <?php boblift_admin_input('top_bar.event.link_label', $options, '公告链接文字'); ?>
+        <?php boblift_admin_link_input('top_bar.event.link_href', $options, '公告链接地址'); ?>
+        <?php boblift_admin_input('top_bar.event.starts_on', $options, '开始日期（格式 2026-11-01，中国时间，留空表示立即显示）'); ?>
+        <?php boblift_admin_input('top_bar.event.ends_on', $options, '结束日期（格式 2026-11-27，当天仍显示、次日起恢复常规文案；留空表示一直显示）'); ?>
     <?php boblift_admin_settings_panel_end(); ?>
     <?php boblift_admin_settings_panel_start('底部 CTA', '对应多数页面 Footer 上方的大图询盘横幅。'); ?>
         <?php boblift_admin_input('final_cta.label', $options, '小标签'); ?>
