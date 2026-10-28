@@ -53,5 +53,6 @@ require_once get_template_directory() . '/inc/rest-legal-pages.php';
 require_once get_template_directory() . '/inc/rest-filter-bins.php';
 require_once get_template_directory() . '/inc/rest-top-bar.php';
 require_once get_template_directory() . '/inc/rest-product-faq.php';
+require_once get_template_directory() . '/inc/rest-feedback-record-edit.php';
 require_once get_template_directory() . '/inc/rest-tonnage-copy.php';
 require_once get_template_directory() . '/inc/polylang-rewrites.php';

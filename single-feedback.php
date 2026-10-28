@@ -23,6 +23,8 @@ $caption = implode(' · ', array_filter([$feedback['model'], $feedback['country'
 $counts = boblift_feedback_counts_text($feedback);
 $first = $media[0] ?? null;
 $pad = static fn(int $n): string => str_pad((string) $n, 2, '0', STR_PAD_LEFT);
+// A written delivery record carries its own headline; plain entries keep the model as the heading.
+$record_title = boblift_feedback_record(get_the_ID()) !== '' ? (string) preg_replace('/\s*\|\s*BOB-LIFT$/', '', boblift_feedback_seo_text(get_the_ID(), 'title')) : '';
 
 // More feedback: same model first, then same country, then the rest in list order.
 $others = array_values(array_filter(boblift_feedback_items(), static fn(array $item): bool => $item['id'] !== $feedback['id']));
@@ -44,8 +46,13 @@ $others = array_slice($others, 0, 4);
 
     <header class="mt-5 flex flex-col gap-5 border-b border-line pb-5 md:mt-6 md:flex-row md:items-end md:justify-between md:pb-6">
         <div class="min-w-0">
-            <p class="boblift-kicker"><?php echo esc_html($feedback_label); ?></p>
-            <h1 class="mt-3 text-4xl font-black leading-none tracking-[-0.02em] text-ink md:text-[3.25rem]"><?php echo esc_html($feedback['model']); ?></h1>
+            <?php if ($record_title !== '') : ?>
+                <p class="boblift-kicker"><?php echo esc_html($feedback_label . ' · ' . $feedback['model']); ?></p>
+                <h1 class="mt-3 max-w-[22ch] text-3xl font-black leading-tight tracking-[-0.02em] text-ink md:text-[2.5rem]"><?php echo esc_html($record_title); ?></h1>
+            <?php else : ?>
+                <p class="boblift-kicker"><?php echo esc_html($feedback_label); ?></p>
+                <h1 class="mt-3 text-4xl font-black leading-none tracking-[-0.02em] text-ink md:text-[3.25rem]"><?php echo esc_html($feedback['model']); ?></h1>
+            <?php endif; ?>
             <?php if ($feedback['note'] !== '') : ?><p class="mt-3 text-base font-normal text-slate-600 md:text-lg"><?php echo esc_html($feedback['note']); ?></p><?php endif; ?>
         </div>
         <dl class="grid shrink-0 grid-cols-2 gap-x-10 gap-y-1 text-sm md:text-right">
@@ -89,7 +96,7 @@ $others = array_slice($others, 0, 4);
             <div class="boblift-feedback-thumbs mt-3 flex gap-2 overflow-x-auto pb-1 lg:mt-0" data-feedback-thumbs>
                 <?php foreach ($media as $index => $item) : ?>
                     <button class="boblift-feedback-thumb<?php echo $index === 0 ? ' is-active' : ''; ?>" type="button" data-feedback-thumb="<?php echo esc_attr((string) $index); ?>" aria-pressed="<?php echo $index === 0 ? 'true' : 'false'; ?>" aria-label="<?php echo esc_attr($pad($index + 1) . ' / ' . $pad($total)); ?>">
-                        <?php if ($item['thumb'] !== '') : ?><img class="h-full w-full object-cover" src="<?php echo esc_url($item['thumb']); ?>" alt="" loading="lazy" decoding="async"><?php endif; ?>
+                        <?php if ($item['thumb'] !== '') : ?><img class="h-full w-full object-cover" src="<?php echo esc_url($item['thumb']); ?>" alt="<?php echo esc_attr($caption . ' · ' . $pad($index + 1)); ?>" loading="lazy" decoding="async"><?php endif; ?>
                         <?php if ($item['type'] === 'video') : ?><span class="absolute inset-0 grid place-items-center bg-[#071f42]/35 text-white"><?php echo boblift_icon('play', 'h-4 w-4'); ?></span><?php endif; ?>
                     </button>
                 <?php endforeach; ?>
