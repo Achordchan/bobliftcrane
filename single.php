@@ -167,6 +167,9 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
                                 <p class="mt-1 text-xs font-normal leading-5 text-slate-500"><?php echo esc_html((string) ($article_ui['authorText'] ?? '')); ?></p>
                             </div>
                         </div>
+                        <?php if (!empty($article_ui['authorBio'])) : ?>
+                            <p class="mt-3 text-xs font-normal leading-5 text-slate-600"><?php echo esc_html((string) $article_ui['authorBio']); ?></p>
+                        <?php endif; ?>
                         <dl class="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-line pt-4 text-xs">
                             <div>
                                 <dt class="font-bold text-slate-500"><?php echo esc_html((string) ($article_ui['publishedLabel'] ?? 'Published')); ?></dt>

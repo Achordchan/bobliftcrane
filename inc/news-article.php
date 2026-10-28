@@ -321,6 +321,8 @@ function boblift_news_article_schema_graph(WP_Post $post): array
             '@id' => $home . '/#achord-chan',
             'name' => trim((string) ($article_ui['authorName'] ?? '')) ?: 'Achord Chan',
             'jobTitle' => 'Product Operations Director',
+            'description' => trim((string) ($article_ui['authorBio'] ?? '')),
+            'knowsAbout' => ['Truck-mounted cranes', 'Marine cranes', 'Construction machinery'],
             'url' => boblift_url('/about.html'),
             'image' => boblift_asset('images/authors/achord-chan.webp'),
             'worksFor' => ['@id' => $home . '/#organization'],
