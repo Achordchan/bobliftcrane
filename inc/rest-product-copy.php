@@ -170,35 +170,76 @@ function boblift_rest_save_product_copy(int $product_id, array $value): bool|WP_
         return new WP_Error('boblift_copy_busy', 'Another save of this product is in progress; nothing was saved, try again.', ['status' => 409]);
     }
     try {
+        // Rows read before the locks (core's permission checks, the pre-insert check) may be stale now.
+        foreach ($group as $id) {
+            clean_post_cache($id);
+        }
         $plan = boblift_product_copy_plan($product_id, $value);
         if (is_wp_error($plan)) {
             return $plan;
         }
         foreach ($plan as $step) {
-            if ($step['content'] !== null && $step['content'] !== (string) get_post_field('post_content', $step['id'], 'raw')) {
-                // Only the body column changes; the core guard is cleared so this save is not held to the stored row.
-                $guard = boblift_product_specs_core_guard();
-                boblift_product_specs_core_guard(0);
-                $saved = wp_update_post(wp_slash(['ID' => $step['id'], 'post_content' => $step['content']]), true);
-                boblift_product_specs_core_guard($guard);
+            $id = $step['id'];
+            if ($step['content'] !== null) {
+                $saved = boblift_product_copy_write_content($id, $step['content']);
                 if (is_wp_error($saved)) {
                     return $saved;
                 }
             }
             if ($step['faq'] !== null) {
-                if ($step['faq'] === []) {
-                    delete_post_meta($step['id'], BOBLIFT_PRODUCT_COPY_FAQ_KEY);
-                } else {
-                    update_post_meta($step['id'], BOBLIFT_PRODUCT_COPY_FAQ_KEY, wp_slash((string) wp_json_encode($step['faq'], JSON_UNESCAPED_UNICODE)));
+                $saved = boblift_product_copy_write_meta($id, BOBLIFT_PRODUCT_COPY_FAQ_KEY, $step['faq'] === [] ? null : (string) wp_json_encode($step['faq'], JSON_UNESCAPED_UNICODE));
+                if (is_wp_error($saved)) {
+                    return $saved;
                 }
             }
             foreach ($step['seo'] as $meta_key => $text) {
-                update_post_meta($step['id'], $meta_key, wp_slash($text));
+                $saved = boblift_product_copy_write_meta($id, $meta_key, $text);
+                if (is_wp_error($saved)) {
+                    return $saved;
+                }
             }
-            clean_post_cache($step['id']);
+            clean_post_cache($id);
         }
         return true;
     } finally {
         boblift_product_specs_locks(array_values($group), false);
     }
+}
+
+/**
+ * Writes the body column only, as a compare-and-set on the row read under the lock, so the title, excerpt and every
+ * other column stay exactly as stored. The body itself already passed wp_kses_post unchanged (boblift_product_copy_plan()).
+ */
+function boblift_product_copy_write_content(int $id, string $content): true|WP_Error
+{
+    global $wpdb;
+    $stored = $wpdb->get_var($wpdb->prepare("SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id));
+    if (!is_string($stored)) {
+        return new WP_Error('boblift_copy_write', sprintf('Product %d could not be read; try again.', $id), ['status' => 500]);
+    }
+    if ($stored === $content) {
+        return true;
+    }
+    $done = $wpdb->query($wpdb->prepare("UPDATE {$wpdb->posts} SET post_content = %s, post_modified = %s, post_modified_gmt = %s WHERE ID = %d AND BINARY post_content = BINARY %s", $content, current_time('mysql'), current_time('mysql', true), $id, $stored));
+    if ($done !== 1) {
+        return new WP_Error('boblift_copy_write', sprintf('The body of product %d was not saved (%s); try again.', $id, $done === false ? $wpdb->last_error : 'it changed meanwhile'), ['status' => $done === false ? 500 : 409]);
+    }
+    clean_post_cache($id);
+    wp_save_post_revision($id);
+    return true;
+}
+
+/** Sets (or, with null, deletes) one meta value and checks that the stored value is now the one requested. */
+function boblift_product_copy_write_meta(int $id, string $key, ?string $value): true|WP_Error
+{
+    if ($value === null) {
+        delete_post_meta($id, $key);
+    } else {
+        update_post_meta($id, $key, wp_slash($value));
+    }
+    wp_cache_delete($id, 'post_meta');
+    $now = get_post_meta($id, $key, false);
+    // A key stored in several rows gets the value in each (update_post_meta() changes them all).
+    $ok = $value === null ? $now === [] : $now !== [] && array_unique($now) === [$value];
+    return $ok ? true : new WP_Error('boblift_copy_write', sprintf('"%s" of product %d was not saved; try again.', $key, $id), ['status' => 500]);
 }
