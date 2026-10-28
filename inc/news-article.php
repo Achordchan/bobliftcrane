@@ -334,7 +334,8 @@ function boblift_news_article_schema_graph(WP_Post $post): array
             'dateModified' => get_post_modified_time('c', true, $post),
             'inLanguage' => get_bloginfo('language'),
             'mainEntityOfPage' => ['@type' => 'WebPage', '@id' => $url],
-            'author' => ['@id' => $person['@id']],
+            // Named in full here as well as in the graph, so readers that do not resolve @id still see the author.
+            'author' => $person,
             'publisher' => [
                 '@type' => 'Organization',
                 '@id' => $home . '/#organization',
@@ -371,3 +372,14 @@ function boblift_news_article_schema_graph(WP_Post $post): array
 
     return $nodes === [] ? [] : ['@context' => 'https://schema.org', '@graph' => $nodes];
 }
+
+/** The author meta tag on news articles, matching the Article author in the JSON-LD graph. */
+function boblift_news_article_author_meta(): void
+{
+    if (!is_singular('post') || post_password_required()) {
+        return;
+    }
+    $name = trim((string) (boblift_site_ui('newsArticle')['authorName'] ?? '')) ?: 'Achord Chan';
+    echo '<meta name="author" content="' . esc_attr($name) . '">' . "\n";
+}
+add_action('wp_head', 'boblift_news_article_author_meta', 4);
