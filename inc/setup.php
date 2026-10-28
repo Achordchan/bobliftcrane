@@ -1054,7 +1054,9 @@ function boblift_fill_missing_image_alts(string $content): string {
                 if (str_starts_with($url, '//')) {
                     $url = 'https:' . $url;
                 } elseif (str_starts_with($url, '/')) {
-                    $url = untrailingslashit(home_url()) . $url;
+                    // Against the site's origin only: a site in /site already has /site at the start of the path.
+                    $home = wp_parse_url(home_url());
+                    $url = ($home['scheme'] ?? 'https') . '://' . ($home['host'] ?? '') . (isset($home['port']) ? ':' . $home['port'] : '') . $url;
                 }
                 $original = (string) preg_replace('/-\d+x\d+(\.[a-z0-9]+)$/i', '$1', $url);
                 foreach (array_unique([$url, $original, (string) preg_replace('/(\.[a-z0-9]+)$/i', '-scaled$1', $original)]) as $candidate) {

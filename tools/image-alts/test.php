@@ -13,7 +13,7 @@ function in_the_loop(){return true;} function is_singular($type=''){return $type
 function get_the_title($i){return $GLOBALS['t'];} function wp_strip_all_tags($s){return strip_tags($s);}
 function esc_attr($s){return htmlspecialchars($s,ENT_QUOTES);} // Like WordPress, only an attachment's own file URL resolves (5.jpg, big-scaled.jpg), never a generated size.
 function attachment_url_to_postid($u){return in_array($u,['https://bobliftcrane.com/u/5.jpg','https://bobliftcrane.com/u/big-scaled.jpg'],true)?77:0;}
-function home_url(){return 'https://bobliftcrane.com';} function untrailingslashit($s){return rtrim($s,'/');}
+function home_url(){return $GLOBALS['home'] ?? 'https://bobliftcrane.com';} function wp_parse_url($u){return parse_url($u);}
 function get_post_meta($id,$k,$s){return $id===77?'Crane on deck':'';} function add_filter(){}
 $GLOBALS['lang']='en'; $GLOBALS['t']='$10,000 truck crane & "x"'; function boblift_current_language_slug(){return $GLOBALS['lang'];}
 eval(preg_replace('/^.*?(function boblift_fill_missing_image_alts.*?\n}\n).*$/s','$1',file_get_contents(__DIR__ . '/../../inc/setup.php')));
@@ -46,6 +46,10 @@ $cases=[
 '<img src="/d.jpg" role="img">'=>'<img alt="$10,000 truck crane &amp; &quot;x&quot;" src="/d.jpg" role="img">',
 '<img src="//bobliftcrane.com/u/5.jpg">'=>'<img alt="Crane on deck" src="//bobliftcrane.com/u/5.jpg">',
 ];
-$f=0; foreach($cases as $in=>$want){$g=boblift_fill_missing_image_alts($in); if($g!==$want){echo "FAIL $in\n  got  $g\n  want $want\n";$f++;}} // Pages keep their images exactly as their editors left them.
+$f=0; foreach($cases as $in=>$want){$g=boblift_fill_missing_image_alts($in); if($g!==$want){echo "FAIL $in\n  got  $g\n  want $want\n";$f++;}} // A site installed in a subdirectory: the root-relative path already carries it.
+$GLOBALS['home']='https://bobliftcrane.com/site';
+if(boblift_fill_missing_image_alts('<img src="/u/5.jpg">')!=='<img alt="Crane on deck" src="/u/5.jpg">'){echo "FAIL subdirectory home\n";$f++;}
+unset($GLOBALS['home']);
+// Pages keep their images exactly as their editors left them.
 $GLOBALS['type']='page'; if(boblift_fill_missing_image_alts('<img src="/y.jpg" alt="">')!=='<img src="/y.jpg" alt="">'){echo "FAIL page image changed\n";$f++;}
 echo $f ? "$f FAILED\n" : "all ok\n"; exit($f ? 1 : 0);
