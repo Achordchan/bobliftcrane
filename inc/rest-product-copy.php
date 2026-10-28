@@ -19,7 +19,8 @@ if (!defined('ABSPATH')) {
  * Only the field itself may be sent: a request with any other parameter is refused before anything is saved.
  *
  * Everything is checked before anything is written, under the per-post lock of every language version (the lock
- * boblift_specs and boblift_content_insert take); each changed body leaves a revision.
+ * boblift_specs and boblift_content_insert take), and written in one database transaction, so a failed request leaves
+ * nothing behind; each changed body leaves a revision.
  */
 const BOBLIFT_PRODUCT_COPY_FAQ_KEY = '_boblift_model_faq';
 
@@ -178,32 +179,65 @@ function boblift_rest_save_product_copy(int $product_id, array $value): bool|WP_
         if (is_wp_error($plan)) {
             return $plan;
         }
-        foreach ($plan as $step) {
-            $id = $step['id'];
-            if ($step['content'] !== null) {
-                $saved = boblift_product_copy_write_content($id, $step['content']);
-                if (is_wp_error($saved)) {
-                    return $saved;
-                }
+        $saved = boblift_product_copy_apply($plan);
+        if (is_wp_error($saved)) {
+            // Nothing of a failed request stays: drop whatever the cache picked up from the rolled-back writes.
+            foreach ($group as $id) {
+                clean_post_cache($id);
+                wp_cache_delete($id, 'post_meta');
             }
-            if ($step['faq'] !== null) {
-                $saved = boblift_product_copy_write_meta($id, BOBLIFT_PRODUCT_COPY_FAQ_KEY, $step['faq'] === [] ? null : (string) wp_json_encode($step['faq'], JSON_UNESCAPED_UNICODE));
-                if (is_wp_error($saved)) {
-                    return $saved;
-                }
-            }
-            foreach ($step['seo'] as $meta_key => $text) {
-                $saved = boblift_product_copy_write_meta($id, $meta_key, $text);
-                if (is_wp_error($saved)) {
-                    return $saved;
-                }
-            }
-            clean_post_cache($id);
         }
-        return true;
+        return $saved;
     } finally {
         boblift_product_specs_locks(array_values($group), false);
     }
+}
+
+/** Writes a checked plan in one database transaction (bodies, revisions and meta), rolled back on any failure. */
+function boblift_product_copy_apply(array $plan): true|WP_Error
+{
+    global $wpdb;
+    if ($wpdb->query('START TRANSACTION') === false) {
+        return new WP_Error('boblift_copy_write', 'Nothing was saved: the database transaction could not start; try again.', ['status' => 500]);
+    }
+    $saved = boblift_product_copy_apply_steps($plan);
+    if (is_wp_error($saved)) {
+        $wpdb->query('ROLLBACK');
+        return $saved;
+    }
+    if ($wpdb->query('COMMIT') === false) {
+        $wpdb->query('ROLLBACK');
+        return new WP_Error('boblift_copy_write', 'Nothing was saved: the database transaction could not be committed; try again.', ['status' => 500]);
+    }
+    return true;
+}
+
+/** The writes of a plan, in order; the first failure stops them. */
+function boblift_product_copy_apply_steps(array $plan): true|WP_Error
+{
+    foreach ($plan as $step) {
+        $id = $step['id'];
+        if ($step['content'] !== null) {
+            $saved = boblift_product_copy_write_content($id, $step['content']);
+            if (is_wp_error($saved)) {
+                return $saved;
+            }
+        }
+        if ($step['faq'] !== null) {
+            $saved = boblift_product_copy_write_meta($id, BOBLIFT_PRODUCT_COPY_FAQ_KEY, $step['faq'] === [] ? null : (string) wp_json_encode($step['faq'], JSON_UNESCAPED_UNICODE));
+            if (is_wp_error($saved)) {
+                return $saved;
+            }
+        }
+        foreach ($step['seo'] as $meta_key => $text) {
+            $saved = boblift_product_copy_write_meta($id, $meta_key, $text);
+            if (is_wp_error($saved)) {
+                return $saved;
+            }
+        }
+        clean_post_cache($id);
+    }
+    return true;
 }
 
 /**
