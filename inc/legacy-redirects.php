@@ -501,7 +501,7 @@ function boblift_legacy_links_rewrite_html(string $content, string $home, array 
 {
     $home = strtolower($home);
     $language_prefix = trim($language_prefix, '/');
-    return (string) preg_replace_callback('#(<a(?:\s[^>]*?)?\shref=)(["\'])([^"\']+)\2#i', static function (array $m) use ($home, $config, $path_exists, $article_by_id, $language_prefix, $languages): string {
+    return (string) preg_replace_callback('#(<a(?:\s[^>]*?)?\shref=)(["\'])([^"\']+)\2([^>]*)#i', static function (array $m) use ($home, $config, $path_exists, $article_by_id, $language_prefix, $languages): string {
         $href = html_entity_decode($m[3], ENT_QUOTES);
         $parts = parse_url($href);
         $host = strtolower((string) ($parts['host'] ?? ''));
@@ -531,7 +531,9 @@ function boblift_legacy_links_rewrite_html(string $content, string $home, array 
         } else {
             $url = $href;
         }
-        if ($language_prefix !== '' && $site_page) {
+        // A language switcher's link names its own language; moving it into this page's language would break the switch.
+        $switches_language = (bool) preg_match('#\s(hreflang|lang|data-pll[\w-]*)=|lang-item|pll-#i', $m[1] . $m[4]);
+        if ($language_prefix !== '' && $site_page && !$switches_language) {
             $url_parts = parse_url($url);
             $url_host = strtolower((string) ($url_parts['host'] ?? $home));
             $url_path = (string) ($url_parts['path'] ?? '') ?: '/';
@@ -539,10 +541,12 @@ function boblift_legacy_links_rewrite_html(string $content, string $home, array 
             $in_language = (bool) preg_match('#^/' . preg_quote($base, '#') . '(' . implode('|', array_map(static fn($slug) => preg_quote((string) $slug, '#'), $languages ?: ['-'])) . ')(/|$)#', $url_path);
             $localized = '/' . $language_prefix . ($url_path === '/' ? '/' : $url_path);
             if ($url_host === $home && !$in_language && $path_exists(rtrim($localized, '/') ?: '/')) {
-                $url = 'https://' . $home . $localized . (isset($url_parts['query']) ? '?' . $url_parts['query'] : '') . (isset($url_parts['fragment']) ? '#' . $url_parts['fragment'] : '');
+                // Keep a root-relative link relative, and an absolute one on its own scheme and port.
+                $origin = isset($url_parts['host']) ? ($url_parts['scheme'] ?? 'https') . '://' . $url_parts['host'] . (isset($url_parts['port']) ? ':' . $url_parts['port'] : '') : '';
+                $url = $origin . $localized . (isset($url_parts['query']) ? '?' . $url_parts['query'] : '') . (isset($url_parts['fragment']) ? '#' . $url_parts['fragment'] : '');
             }
         }
-        return $url === $href ? $m[0] : $m[1] . $m[2] . esc_url($url) . $m[2];
+        return $url === $href ? $m[0] : $m[1] . $m[2] . esc_url($url) . $m[2] . $m[4];
     }, $content);
 }
 add_filter('the_content', 'boblift_legacy_links_rewrite', 30);

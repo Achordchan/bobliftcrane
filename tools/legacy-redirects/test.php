@@ -192,7 +192,13 @@ foreach ([
 // In a translation, links to English pages move into its language directory when that translation is live.
 $live_ja = static fn(string $path): bool => in_array(rtrim($path, '/'), ['/truck-mounted-crane', '/telescopic-boom-truck-mounted-cranes', '/ja/telescopic-boom-truck-mounted-cranes', '/ja/contact.html', '/contact.html', '/products.html', '/ja', '/fr/contact.html'], true);
 foreach ([
-    '<a href="/contact.html#form">x</a>' => '<a href="https://bobliftcrane.com/ja/contact.html#form">x</a>',
+    '<a href="/contact.html#form">x</a>' => '<a href="/ja/contact.html#form">x</a>',
+    '<a class="btn" href="/contact.html" target="_blank">x</a>' => '<a class="btn" href="/ja/contact.html" target="_blank">x</a>',
+    '<a href="http://bobliftcrane.com:8080/contact.html">x</a>' => '<a href="http://bobliftcrane.com:8080/ja/contact.html">x</a>',
+    '<a hreflang="en" href="/contact.html">English</a>' => '<a hreflang="en" href="/contact.html">English</a>',
+    '<a href="/contact.html" lang="en">English</a>' => '<a href="/contact.html" lang="en">English</a>',
+    '<li class="lang-item"><a lang="en-US" hreflang="en-US" href="/contact.html">English</a></li>' => '<li class="lang-item"><a lang="en-US" hreflang="en-US" href="/contact.html">English</a></li>',
+    '<a class="pll-switch" href="/contact.html">English</a>' => '<a class="pll-switch" href="/contact.html">English</a>',
     '<a href="https://www.bobliftcrane.com/telescopic-boom-truck-mounted-crane">x</a>' => '<a href="https://bobliftcrane.com/ja/telescopic-boom-truck-mounted-cranes">x</a>',
     '<a href="https://bobliftcrane.com/products.html">x</a>' => '<a href="https://bobliftcrane.com/products.html">x</a>',
     '<a href="https://bobliftcrane.com/">x</a>' => '<a href="https://bobliftcrane.com/ja/">x</a>',
