@@ -1,6 +1,7 @@
 <?php
 return [
     'ja' => [
+        'Achord Chan has more than ten years in construction machinery, including ten years with truck-mounted cranes and more than six with marine cranes. Achord leads website operations and development at BOB-LIFT.' => 'Achord Chan氏は建設機械分野で10年以上の経験を持ち、そのうちトラック搭載型クレーン（随車クレーン）に10年、船舶用クレーンに6年以上携わってきました。BOB-LIFTではウェブサイトの運営と開発を統括しています。',
         'BOB-LIFT Editorial Team' => 'BOB-LIFT 編集部',
         'Written by our engineering and sales teams in Xuzhou, China.' => '中国・徐州のエンジニアと営業チームが執筆しています。',
         'Product Operations Director, BOB-LIFT' => 'BOB-LIFT 製品運営ディレクター',
@@ -22,6 +23,7 @@ return [
         'Stand design rendering. The final build may differ in detail.' => '展示ブースのデザインイメージです。実際の施工は細部が異なる場合があります。',
     ],
     'zh' => [
+        'Achord Chan has more than ten years in construction machinery, including ten years with truck-mounted cranes and more than six with marine cranes. Achord leads website operations and development at BOB-LIFT.' => 'Achord Chan 在工程机械领域拥有十余年的从业经验，其中随车吊十年，船用起重机六年以上。Achord 负责 BOB-LIFT 的网站运营与建设工作。',
         'BOB-LIFT Editorial Team' => 'BOB-LIFT 编辑部',
         'Written by our engineering and sales teams in Xuzhou, China.' => '由徐州工厂的工程与销售团队撰写。',
         'Product Operations Director, BOB-LIFT' => 'BOB-LIFT 产品运营总监',
@@ -44,6 +46,7 @@ return [
         'Stand design rendering. The final build may differ in detail.' => '展台设计效果图，最终搭建的细节可能有所不同。',
     ],
     'es' => [
+        'Achord Chan has more than ten years in construction machinery, including ten years with truck-mounted cranes and more than six with marine cranes. Achord leads website operations and development at BOB-LIFT.' => 'Achord Chan cuenta con más de diez años de experiencia en el sector de la maquinaria de construcción, incluidos diez años en el ámbito de las grúas montadas en camión y más de seis en el de las grúas marinas. Achord dirige las operaciones y el desarrollo del sitio web de BOB-LIFT.',
         'Product Operations Director, BOB-LIFT' => 'Director de Operaciones de Producto, BOB-LIFT',
         'News secondary navigation' => 'Navegación secundaria de noticias',
         'News pagination' => 'Paginación de noticias',
@@ -52,6 +55,7 @@ return [
         'Stand design rendering. The final build may differ in detail.' => 'Representación del diseño del stand. El resultado final puede presentar diferencias en los detalles.',
     ],
     'ru' => [
+        'Achord Chan has more than ten years in construction machinery, including ten years with truck-mounted cranes and more than six with marine cranes. Achord leads website operations and development at BOB-LIFT.' => 'Achord Chan имеет более десяти лет опыта работы в сфере строительной техники, в том числе десять лет — с кранами-манипуляторами и более шести лет — с судовыми кранами. Achord руководит работой и развитием веб-сайта компании BOB-LIFT.',
         'Product Operations Director, BOB-LIFT' => 'Директор по продуктовым операциям, BOB-LIFT',
         'News secondary navigation' => 'Дополнительная навигация по новостям',
         'News pagination' => 'Страницы новостей',
@@ -60,6 +64,7 @@ return [
         'Stand design rendering. The final build may differ in detail.' => 'Визуализация дизайна стенда. Окончательный вариант может отличаться в деталях.',
     ],
     'fr' => [
+        'Achord Chan has more than ten years in construction machinery, including ten years with truck-mounted cranes and more than six with marine cranes. Achord leads website operations and development at BOB-LIFT.' => 'Achord Chan possède plus de dix ans d\'expérience dans le secteur des engins de chantier, dont dix ans dans le domaine des grues montées sur camion et plus de six ans dans celui des grues marines. Achord dirige l\'exploitation et le développement du site web de BOB-LIFT.',
         'Product Operations Director, BOB-LIFT' => 'Directeur des opérations produit, BOB-LIFT',
         'News secondary navigation' => 'Navigation secondaire des actualités',
         'News pagination' => 'Pagination des actualités',
@@ -68,6 +73,7 @@ return [
         'Stand design rendering. The final build may differ in detail.' => 'Rendu de conception du stand. La réalisation finale peut présenter des différences au niveau des détails.',
     ],
     'ar' => [
+        'Achord Chan has more than ten years in construction machinery, including ten years with truck-mounted cranes and more than six with marine cranes. Achord leads website operations and development at BOB-LIFT.' => 'يتمتع Achord Chan بخبرة تزيد عن عشر سنوات في مجال آلات البناء، منها عشر سنوات في مجال الرافعات المثبتة على الشاحنات وأكثر من ست سنوات في مجال الرافعات البحرية. ويقود Achord عمليات تشغيل وتطوير الموقع الإلكتروني في شركة BOB-LIFT.',
         'Product Operations Director, BOB-LIFT' => 'مدير عمليات المنتجات، BOB-LIFT',
         'News secondary navigation' => 'التنقل الفرعي للأخبار',
         'News pagination' => 'ترقيم صفحات الأخبار',
