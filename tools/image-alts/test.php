@@ -16,7 +16,7 @@ function attachment_url_to_postid($u){return in_array($u,['https://bobliftcrane.
 function home_url(){return $GLOBALS['home'] ?? 'https://bobliftcrane.com';} function wp_parse_url($u){return parse_url($u);}
 function get_post_meta($id,$k,$s){return $id===77?'Crane on deck':($id===78?'5_big-1.JPG':'');} function add_filter(){}
 $GLOBALS['lang']='en'; $GLOBALS['t']='$10,000 truck crane & "x"'; function boblift_current_language_slug(){return $GLOBALS['lang'];}
-eval(preg_replace('/^.*?(function boblift_fill_missing_image_alts.*?\n}\n).*$/s','$1',file_get_contents(__DIR__ . '/../../inc/setup.php')));
+eval(preg_replace('/^.*?(function boblift_alt_is_file_name.*?\nfunction boblift_fill_missing_image_alts.*?\n}\n).*$/s','$1',file_get_contents(__DIR__ . '/../../inc/setup.php')));
 $cases=[
 '<img src="/u/5.jpg" alt="">'=>'<img src="/u/5.jpg" alt="Crane on deck">',
 '<img alt="" src="/x/8.jpg">'=>'<img alt="$10,000 truck crane &amp; &quot;x&quot;" src="/x/8.jpg">',
@@ -46,6 +46,9 @@ $cases=[
 '<img src="/d.jpg" role="img">'=>'<img alt="$10,000 truck crane &amp; &quot;x&quot;" src="/d.jpg" role="img">',
 '<img src="//bobliftcrane.com/u/5.jpg">'=>'<img alt="Crane on deck" src="//bobliftcrane.com/u/5.jpg">',
 '<img src="/u/named.jpg" alt="">'=>'<img src="/u/named.jpg" alt="$10,000 truck crane &amp; &quot;x&quot;">',
+'<img src="/y.jpg" alt="5.jpg">'=>'<img src="/y.jpg" alt="$10,000 truck crane &amp; &quot;x&quot;">',
+'<img src="/y.jpg" alt="Crane 5.jpg sample">'=>'<img src="/y.jpg" alt="Crane 5.jpg sample">',
+'<img class="wp-image-77" src="/q.jpg" alt="5.jpg">'=>'<img class="wp-image-77" src="/q.jpg" alt="Crane on deck">',
 ];
 $f=0; foreach($cases as $in=>$want){$g=boblift_fill_missing_image_alts($in); if($g!==$want){echo "FAIL $in\n  got  $g\n  want $want\n";$f++;}} // A site installed in a subdirectory: the root-relative path already carries it.
 $GLOBALS['home']='https://bobliftcrane.com/site';
