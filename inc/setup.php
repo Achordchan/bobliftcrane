@@ -1055,7 +1055,16 @@ function boblift_fill_missing_image_alts(string $content): string {
             $id = preg_match('/\bwp-image-(\d+)\b/', (string) $value('class'), $m) ? (int) $m[1] : 0;
             $src = (string) $value('src');
             if ($id === 0 && $src !== '') {
-                $id = (int) attachment_url_to_postid((string) preg_replace('/\?.*$/', '', str_replace('i0.wp.com/', '', $src)));
+                // The lookup knows only an attachment's own file, so a generated size (photo-300x200.jpg) is tried as
+                // its original (photo.jpg), then as the big-image original WordPress keeps (photo-scaled.jpg).
+                $url = (string) preg_replace('/\?.*$/', '', str_replace('i0.wp.com/', '', $src));
+                $original = (string) preg_replace('/-\d+x\d+(\.[a-z0-9]+)$/i', '$1', $url);
+                foreach (array_unique([$url, $original, (string) preg_replace('/(\.[a-z0-9]+)$/i', '-scaled$1', $original)]) as $candidate) {
+                    $id = (int) attachment_url_to_postid($candidate);
+                    if ($id > 0) {
+                        break;
+                    }
+                }
             }
             $alt = $id > 0 ? trim((string) get_post_meta($id, '_wp_attachment_image_alt', true)) : '';
         }
