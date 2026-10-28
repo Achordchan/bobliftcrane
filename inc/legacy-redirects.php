@@ -473,6 +473,58 @@ function boblift_legacy_redirects_run(): void
 // template_redirect (not init): post types and taxonomies are registered by then, which the live-path guard needs.
 add_action('template_redirect', 'boblift_legacy_redirects_run', 0);
 
+/**
+ * Links saved in old content still name the old addresses: the www host (360 links in 226 English articles in 10-2026) and
+ * old slugs that a rule above redirects (/telescopic-boom-truck-mounted-crane). Each one costs readers and crawlers a hop,
+ * and the www ones keep telling Google the www host is still in use. They are pointed at where they redirect, on output only.
+ */
+function boblift_legacy_links_rewrite(string $content): string
+{
+    $home = (string) parse_url(home_url('/'), PHP_URL_HOST);
+    if ($home === '' || stripos($content, 'href=') === false) {
+        return $content;
+    }
+    return boblift_legacy_links_rewrite_html($content, $home, boblift_legacy_redirects_config(), 'boblift_legacy_redirect_is_live_path', 'boblift_legacy_redirect_article_by_id');
+}
+
+/** The rewrite itself, with the site host, the rules and the two lookups passed in (tools/legacy-redirects/test.php runs it). */
+function boblift_legacy_links_rewrite_html(string $content, string $home, array $config, callable $path_exists, ?callable $article_by_id = null): string
+{
+    $home = strtolower($home);
+    return (string) preg_replace_callback('#(<a(?:\s[^>]*?)?\shref=)(["\'])([^"\']+)\2#i', static function (array $m) use ($home, $config, $path_exists, $article_by_id): string {
+        $href = html_entity_decode($m[3], ENT_QUOTES);
+        $parts = parse_url($href);
+        $host = strtolower((string) ($parts['host'] ?? ''));
+        $relative = $host === '' && !isset($parts['scheme']) && str_starts_with($href, '/') && !str_starts_with($href, '//');
+        if (!$relative && $host !== $home && $host !== 'www.' . $home) {
+            return $m[0];
+        }
+        $path = (string) ($parts['path'] ?? '') ?: '/'; // https://www.bobliftcrane.com is the home page
+        $target = null;
+        if (!preg_match('#^/(wp-admin|wp-json|wp-content|wp-includes)/#', $path)) {
+            $target = boblift_legacy_redirect_rule_target($path, $config) === null ? boblift_legacy_redirect_resolve_in_language_directory($home, $path, $config) : null;
+            $target ??= boblift_legacy_redirect_resolve($home, $path, $config, 'https://' . $home, $path_exists, $article_by_id);
+            // As on a request: a page the site really serves is never taken over by a rule.
+            if ($target !== null && $path_exists($path)) {
+                $target = null;
+            }
+        }
+        if ($target !== null) {
+            parse_str((string) ($parts['query'] ?? ''), $params);
+            $url = boblift_legacy_redirect_merge_query($target, $params);
+            if (isset($parts['fragment']) && !str_contains($url, '#')) {
+                $url .= '#' . $parts['fragment'];
+            }
+        } elseif ($host === 'www.' . $home) {
+            $url = 'https://' . $home . substr($href, stripos($href, $host) + strlen($host));
+        } else {
+            return $m[0];
+        }
+        return $m[1] . $m[2] . esc_url($url) . $m[2];
+    }, $content);
+}
+add_filter('the_content', 'boblift_legacy_links_rewrite', 30);
+
 /** Returns a description of the first redirect cycle among enabled rules that stay on the site (relative, or absolute on one of $site_hosts), or null. */
 function boblift_legacy_redirects_find_cycle(array $rules, array $site_hosts = []): ?string
 {
