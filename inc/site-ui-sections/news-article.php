@@ -4,6 +4,7 @@ return [
     'newsArticle' => [
         'authorName' => 'Achord Chan',
         'authorText' => 'Product Operations Director, BOB-LIFT',
+        'authorHeading' => 'About the author',
         'authorBio' => 'Achord Chan has more than ten years in construction machinery, including ten years with truck-mounted cranes and more than six with marine cranes. Achord leads website operations and development at BOB-LIFT.',
         'publishedLabel' => 'Published',
         'updatedLabel' => 'Updated',

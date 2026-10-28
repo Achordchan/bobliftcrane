@@ -159,7 +159,10 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
         </div>
 
         <aside class="flex min-w-0 flex-col gap-4" aria-label="<?php echo esc_attr((string) ($ui['summary'] ?? 'Article Summary')); ?>">
-                    <section class="hidden rounded border border-line bg-white p-5 lg:block">
+                    <section class="rounded border border-line bg-white p-5">
+                        <?php if (!empty($article_ui['authorHeading'])) : ?>
+                            <p class="mb-3 text-xs font-bold uppercase tracking-wide text-slate-500"><?php echo esc_html((string) $article_ui['authorHeading']); ?></p>
+                        <?php endif; ?>
                         <div class="flex items-center gap-3">
                             <img class="h-11 w-11 shrink-0 rounded-sm bg-mist object-cover" src="<?php echo esc_url(boblift_asset('images/authors/achord-chan.webp')); ?>" alt="<?php echo esc_attr((string) ($article_ui['authorName'] ?? 'Achord Chan')); ?>" width="44" height="44" loading="lazy" decoding="async">
                             <div class="min-w-0">
