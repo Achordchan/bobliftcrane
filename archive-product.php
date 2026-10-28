@@ -55,7 +55,7 @@ $banner_default = [
     'imageAlt' => $archive_banner_custom ? (string) ($product_archive['image_alt'] ?? '') : boblift_localized_static_text('BOB-LIFT knuckle boom crane in the factory yard'),];
 $banner_default['srcset'] = boblift_image_srcset(boblift_image_cdn_original($banner_default['image']));
 if ($tonnage > 0) {
-    $banner_default['title'] = boblift_tonnage_heading($tonnage);
+    $banner_default['title'] = boblift_tonnage_page_heading($tonnage);
     $banner_default['text'] = boblift_tonnage_intro($tonnage);
 }
 // A category page shows its own banner only: switching category loads that category's page.
