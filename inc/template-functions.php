@@ -814,7 +814,11 @@ function boblift_text_has_untranslated_english(string $html): bool
 {
     $text = html_entity_decode(wp_strip_all_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
     $text = preg_replace('/\b(?:BOB[- ]?LIFT|SQ\d+[A-Z0-9]*|KW|MPa|L\/?min|kg|mm|m3?|EAEU|ISO|CE)\b/i', ' ', $text) ?? $text;
-    return (bool) preg_match('/\b[A-Za-z][a-z]{2,}(?:\s+[A-Za-z][a-z]{2,}){2,}\b/', $text);
+    // Spanish and French are written in plain Latin words too, so a run of such words proves nothing: only English
+    // function words count, and they must make up a real share of the Latin-script words (in English text they are a quarter).
+    $latin_words = preg_match_all('/\b[A-Za-z]{2,}\b/', $text);
+    $english_words = preg_match_all('/\b(?:the|and|with|your|which|this|that|from|are|for|its|it|is|of|to|by|has|can)\b/i', $text);
+    return $english_words >= 3 && $english_words >= 0.1 * $latin_words;
 }
 
 function boblift_normalize_product_applications(array $applications): array
