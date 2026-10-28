@@ -189,5 +189,20 @@ foreach ([
     $got = boblift_legacy_links_rewrite_html($in, 'bobliftcrane.com', $config, $live);
     if ($got !== $want) { echo "FAIL link rewrite $in -> $got\n"; $fail++; }
 }
+// In a translation, links to English pages move into its language directory when that translation is live.
+$live_ja = static fn(string $path): bool => in_array(rtrim($path, '/'), ['/truck-mounted-crane', '/telescopic-boom-truck-mounted-cranes', '/ja/telescopic-boom-truck-mounted-cranes', '/ja/contact.html', '/contact.html', '/products.html', '/ja', '/fr/contact.html'], true);
+foreach ([
+    '<a href="/contact.html#form">x</a>' => '<a href="https://bobliftcrane.com/ja/contact.html#form">x</a>',
+    '<a href="https://www.bobliftcrane.com/telescopic-boom-truck-mounted-crane">x</a>' => '<a href="https://bobliftcrane.com/ja/telescopic-boom-truck-mounted-cranes">x</a>',
+    '<a href="https://bobliftcrane.com/products.html">x</a>' => '<a href="https://bobliftcrane.com/products.html">x</a>',
+    '<a href="https://bobliftcrane.com/">x</a>' => '<a href="https://bobliftcrane.com/ja/">x</a>',
+    '<a href="/fr/contact.html">x</a>' => '<a href="/fr/contact.html">x</a>',
+    '<a href="/ja/contact.html">x</a>' => '<a href="/ja/contact.html">x</a>',
+    '<a href="https://bobliftcrane.com/wp-content/uploads/a.pdf">x</a>' => '<a href="https://bobliftcrane.com/wp-content/uploads/a.pdf">x</a>',
+] as $in => $want) {
+    $got = boblift_legacy_links_rewrite_html($in, 'bobliftcrane.com', $config, $live_ja, null, 'ja', ['ja', 'zh', 'fr']);
+    if ($got !== $want) { echo "FAIL ja link $in -> $got\n"; $fail++; }
+}
+if (boblift_legacy_links_rewrite_html('<a href="/contact.html">x</a>', 'bobliftcrane.com', $config, $live_ja, null, 'language/ja', ['ja']) !== '<a href="/contact.html">x</a>') { echo "FAIL language base: not live, unchanged\n"; $fail++; }
 echo $fail ? "$fail FAILED\n" : "effective-host ok\n";
 exit($fail ? 1 : 0);
