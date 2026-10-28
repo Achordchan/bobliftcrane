@@ -102,6 +102,10 @@ function boblift_feedback_record_edit_save(int $post_id, mixed $edits): true|WP_
         }
         // The record's own sanitizing (KSES per language), as a meta write through REST would apply it.
         $value = sanitize_meta('_feedback_record', (string) wp_json_encode($edited, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), 'post', 'feedback');
+        // Sanitizing can strip the whole change (a disallowed attribute, say); then there is nothing to write.
+        if ($value === $stored['raw']) {
+            return true;
+        }
         $done = $wpdb->query($wpdb->prepare("UPDATE {$wpdb->postmeta} SET meta_value = %s WHERE meta_id = %d AND BINARY meta_value = BINARY %s", $value, $stored['meta_id'], $stored['raw']));
         if ($done) {
             wp_cache_delete($post_id, 'post_meta');
