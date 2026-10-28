@@ -275,7 +275,8 @@ function boblift_feedback_record_schema(): void
         'dateModified' => get_post_modified_time('c', true, $post),
         'inLanguage' => get_bloginfo('language'),
         'mainEntityOfPage' => ['@type' => 'WebPage', '@id' => $url],
-        'author' => ['@id' => $person['@id']],
+        // Named in full here as well as in the graph, so readers that do not resolve @id still see the author.
+        'author' => $person,
         'publisher' => [
             '@type' => 'Organization',
             '@id' => $home . '/#organization',
@@ -288,3 +289,14 @@ function boblift_feedback_record_schema(): void
     echo '<script type="application/ld+json">' . wp_json_encode(['@context' => 'https://schema.org', '@graph' => [$article, $person]], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) . "</script>\n";
 }
 add_action('wp_head', 'boblift_feedback_record_schema', 4);
+
+function boblift_feedback_record_author_meta(): void
+{
+    $post = get_queried_object();
+    if (!is_singular('feedback') || !$post instanceof WP_Post || post_password_required($post) || boblift_feedback_record($post->ID) === '') {
+        return;
+    }
+    $name = trim((string) (boblift_site_ui('newsArticle')['authorName'] ?? '')) ?: 'Achord Chan';
+    echo '<meta name="author" content="' . esc_attr($name) . '">' . "\n";
+}
+add_action('wp_head', 'boblift_feedback_record_author_meta', 4);
