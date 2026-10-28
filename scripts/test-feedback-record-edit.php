@@ -20,8 +20,13 @@ function add_filter(...$args): void
 // Stands in for the REST request: the parameters the edit field arrives with, by source.
 class WP_REST_Request
 {
-    public function __construct(private array $query = [], private array $body = [], private array $json = [])
+    // The update route's args, as WordPress registers them for the feedback type (a sample of the writable ones).
+    public function __construct(private array $query = [], private array $body = [], private array $json = [], private array $args = ['id' => [], 'context' => [], 'title' => [], 'status' => [], 'meta' => [], 'boblift_feedback_record_edit' => []])
     {
+    }
+    public function get_attributes(): array
+    {
+        return ['args' => $this->args];
     }
     public function has_param(string $key): bool
     {
@@ -80,6 +85,20 @@ $refused = static fn($result): bool => is_wp_error($result) && str_contains($res
 $check('edits with meta in the query string are refused before any save', $refused(boblift_feedback_record_edit_precheck(new stdClass(), new WP_REST_Request(['meta' => ['_feedback_record' => '{}']], [], ['boblift_feedback_record_edit' => $edit]))));
 $check('edits with a title in the body are refused before any save', $refused(boblift_feedback_record_edit_precheck(new stdClass(), new WP_REST_Request([], ['title' => 'x'], ['boblift_feedback_record_edit' => $edit]))));
 $check('edits with meta in the JSON are refused before any save', $refused(boblift_feedback_record_edit_precheck(new stdClass(), new WP_REST_Request([], [], ['boblift_feedback_record_edit' => $edit, 'meta' => ['_feedback_record' => '{}']]))));
+// A database with no stored record: a request that gets past the field check stops at the record lookup instead.
+$wpdb = new class {
+    public string $postmeta = 'postmeta';
+    public function prepare(string $query, ...$args): string
+    {
+        return $query;
+    }
+    public function get_row(string $query): ?object
+    {
+        return null;
+    }
+};
+$check('a parameter the route does not accept (a connector\'s post_type) is not refused', !$refused(boblift_feedback_record_edit_precheck(new stdClass(), new WP_REST_Request(['post_type' => 'feedback', 'user_confirmed' => true], [], ['boblift_feedback_record_edit' => $edit]))));
+$check('the refusal names the other fields', ($named = boblift_feedback_record_edit_precheck(new stdClass(), new WP_REST_Request([], ['title' => 'x', 'status' => 'draft'], ['boblift_feedback_record_edit' => $edit]))) instanceof WP_Error && str_contains($named->message, 'title, status'));
 $plain = new stdClass();
 $check('requests without the edit field pass untouched', boblift_feedback_record_edit_precheck($plain, new WP_REST_Request([], ['title' => 'x'])) === $plain);
 exit($fail ? 1 : 0);
