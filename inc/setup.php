@@ -1033,7 +1033,9 @@ function boblift_fill_missing_image_alts(string $content): string {
             $value = $processor->get_attribute($name);
             return is_string($value) ? $value : '';
         };
-        if (trim($attribute('alt')) !== '' || strtolower($attribute('role')) === 'presentation' || strtolower($attribute('aria-hidden')) === 'true') {
+        // role="none" means the same as role="presentation"; role may list fallbacks, so any decorative token counts.
+        $decorative = array_intersect(preg_split('/\s+/', strtolower(trim($attribute('role')))) ?: [], ['presentation', 'none']) !== [];
+        if (trim($attribute('alt')) !== '' || $decorative || strtolower(trim($attribute('aria-hidden'))) === 'true') {
             continue;
         }
         $alt = '';

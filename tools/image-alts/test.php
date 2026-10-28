@@ -38,5 +38,8 @@ $cases=[
 '<img src="/u/other-300x200.jpg">'=>'<img alt="$10,000 truck crane &amp; &quot;x&quot;" src="/u/other-300x200.jpg">',
 '<div data-preview="<img src=\'/photo.jpg\'>"><img src="/y.jpg"></div>'=>'<div data-preview="<img src=\'/photo.jpg\'>"><img alt="$10,000 truck crane &amp; &quot;x&quot;" src="/y.jpg"></div>',
 '<!-- <img src="/c.jpg"> --><img src="/y.jpg">'=>'<!-- <img src="/c.jpg"> --><img alt="$10,000 truck crane &amp; &quot;x&quot;" src="/y.jpg">',
+'<img src="/d.jpg" alt="" role="none">'=>'<img src="/d.jpg" alt="" role="none">',
+'<img src="/d.jpg" role="NONE presentation">'=>'<img src="/d.jpg" role="NONE presentation">',
+'<img src="/d.jpg" role="img">'=>'<img alt="$10,000 truck crane &amp; &quot;x&quot;" src="/d.jpg" role="img">',
 ];
 $f=0; foreach($cases as $in=>$want){$g=boblift_fill_missing_image_alts($in); if($g!==$want){echo "FAIL $in\n  got  $g\n  want $want\n";$f++;}} echo $f ? "$f FAILED\n" : "all ok\n"; exit($f ? 1 : 0);
