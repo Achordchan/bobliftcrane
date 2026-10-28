@@ -495,11 +495,11 @@ function boblift_legacy_links_rewrite_html(string $content, string $home, array 
         $href = html_entity_decode($m[3], ENT_QUOTES);
         $parts = parse_url($href);
         $host = strtolower((string) ($parts['host'] ?? ''));
-        $path = (string) ($parts['path'] ?? '');
         $relative = $host === '' && !isset($parts['scheme']) && str_starts_with($href, '/') && !str_starts_with($href, '//');
-        if ((!$relative && $host !== $home && $host !== 'www.' . $home) || $path === '') {
+        if (!$relative && $host !== $home && $host !== 'www.' . $home) {
             return $m[0];
         }
+        $path = (string) ($parts['path'] ?? '') ?: '/'; // https://www.bobliftcrane.com is the home page
         $target = null;
         if (!preg_match('#^/(wp-admin|wp-json|wp-content|wp-includes)/#', $path)) {
             $target = boblift_legacy_redirect_rule_target($path, $config) === null ? boblift_legacy_redirect_resolve_in_language_directory($home, $path, $config) : null;
