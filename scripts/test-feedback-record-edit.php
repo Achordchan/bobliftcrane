@@ -17,6 +17,33 @@ function add_action(...$args): void
 function add_filter(...$args): void
 {
 }
+// Stands in for the REST request: the parameters the edit field arrives with, by source.
+class WP_REST_Request
+{
+    public function __construct(private array $query = [], private array $body = [], private array $json = [])
+    {
+    }
+    public function has_param(string $key): bool
+    {
+        return array_key_exists($key, $this->json + $this->body + $this->query);
+    }
+    public function get_param(string $key): mixed
+    {
+        return ($this->json + $this->body + $this->query)[$key] ?? null;
+    }
+    public function get_query_params(): array
+    {
+        return $this->query;
+    }
+    public function get_body_params(): array
+    {
+        return $this->body;
+    }
+    public function get_json_params(): ?array
+    {
+        return $this->json;
+    }
+}
 require dirname(__DIR__) . '/inc/rest-feedback-record-edit.php';
 
 $fail = 0;
@@ -48,4 +75,11 @@ $check('edits see the result of the edits before them', !is_wp_error($two = bobl
     ['lang' => 'en', 'find' => 'End', 'replace' => 'Fin'],
     ['lang' => 'en', 'find' => 'Fin', 'replace' => 'Done'],
 ])) && str_ends_with($two['en'], '<p>Done</p>'));
+$edit = ['edits' => [['lang' => 'en', 'find' => 'End', 'replace' => 'Fin']]];
+$refused = static fn($result): bool => is_wp_error($result) && str_contains($result->message, 'on its own');
+$check('edits with meta in the query string are refused before any save', $refused(boblift_feedback_record_edit_precheck(new stdClass(), new WP_REST_Request(['meta' => ['_feedback_record' => '{}']], [], ['boblift_feedback_record_edit' => $edit]))));
+$check('edits with a title in the body are refused before any save', $refused(boblift_feedback_record_edit_precheck(new stdClass(), new WP_REST_Request([], ['title' => 'x'], ['boblift_feedback_record_edit' => $edit]))));
+$check('edits with meta in the JSON are refused before any save', $refused(boblift_feedback_record_edit_precheck(new stdClass(), new WP_REST_Request([], [], ['boblift_feedback_record_edit' => $edit, 'meta' => ['_feedback_record' => '{}']]))));
+$plain = new stdClass();
+$check('requests without the edit field pass untouched', boblift_feedback_record_edit_precheck($plain, new WP_REST_Request([], ['title' => 'x'])) === $plain);
 exit($fail ? 1 : 0);
