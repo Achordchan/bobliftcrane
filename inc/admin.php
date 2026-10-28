@@ -1007,6 +1007,9 @@ function boblift_global_customer_visits_page_meta_box(WP_Post $post): void
     $about = function_exists('boblift_mls_section_options') ? boblift_mls_section_options('about_page', $language) : boblift_about_page_options();
     $visits = is_array($about['customer_visits'] ?? null) ? $about['customer_visits'] : [];
     boblift_render_customer_visits_page_fields($visits, 'boblift_global_customer_visits_page');
+    $floor = absint(get_post_meta($post->ID, '_boblift_visit_country_count', true));
+    echo '<p><label for="boblift-visit-country-count"><strong>对外国家数</strong></label><br><input type="number" min="0" step="1" id="boblift-visit-country-count" name="boblift_visit_country_count" value="' . esc_attr($floor ?: '') . '" style="width:8em"> ';
+    echo '<span class="description">还有国家未确认的来访照片时填，如 40，页面显示「超过 40 个国家」；比照片上的国家数小或留空时按国家标签自动计数。其他语种留空则沿用英文页。</span></p>';
     echo '</div>';
 }
 
@@ -1400,6 +1403,7 @@ function boblift_render_customer_visits_page_fields(array $visits, string $base)
         echo '<p class="boblift-admin-note">国家列表和国家数量根据下方图片填写的“来访国家”自动生成。{count} 会替换为国家数量。</p>';
         boblift_admin_input('countries_label', $visits, '国家区标签', $base);
         boblift_admin_input('countries_title', $visits, '国家区标题', $base);
+        boblift_admin_input('countries_title_over', $visits, '国家区标题（填了下方「对外国家数」时用，如 over {count} countries）', $base);
         boblift_admin_input('steps_label', $visits, '参观内容标签', $base);
         boblift_admin_input('steps_title', $visits, '参观内容标题', $base);
         for ($i = 0; $i < 4; $i++) {
@@ -1751,6 +1755,9 @@ function boblift_save_global_customer_visits_page_meta_box(int $post_id, WP_Post
         return;
     }
 
+    if (isset($_POST['boblift_visit_country_count'])) {
+        update_post_meta($post_id, '_boblift_visit_country_count', absint(wp_unslash($_POST['boblift_visit_country_count'])));
+    }
     $posted = wp_unslash($_POST['boblift_global_customer_visits_page']);
     $sanitized = boblift_sanitize_options_recursive(['about_page' => ['customer_visits' => $posted]]);
     if (isset($sanitized['about_page']['customer_visits']['items']) && is_array($sanitized['about_page']['customer_visits']['items'])) {

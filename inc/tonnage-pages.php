@@ -173,9 +173,19 @@ function boblift_tonnage_heading(int $size): string
     return str_replace('{n}', (string) $size, boblift_localized_static_text('{n} Ton Cranes'));
 }
 
+/** The page's H1: the heading saved for it in this language (boblift_tonnage_copy), else the shared name. */
+function boblift_tonnage_page_heading(int $size): string
+{
+    return boblift_tonnage_copy($size)['heading'] ?? boblift_tonnage_heading($size);
+}
+
 /** "5 Ton Crane: Truck Mounted & Marine Models | BOB-LIFT", naming only the families the page really lists. */
 function boblift_tonnage_title(int $size): string
 {
+    $saved = boblift_tonnage_copy($size)['title'] ?? '';
+    if ($saved !== '') {
+        return $saved;
+    }
     $data = boblift_tonnage_page_data($size);
     $truck = in_array('truck-mounted-crane', $data['families'], true);
     $marine = in_array('marine-crane', $data['families'], true);
@@ -188,6 +198,10 @@ function boblift_tonnage_title(int $size): string
 /** The meta description, its model list shortened until it fits 160 characters. */
 function boblift_tonnage_description(int $size): string
 {
+    $saved = boblift_tonnage_copy($size)['description'] ?? '';
+    if ($saved !== '') {
+        return $saved;
+    }
     $data = boblift_tonnage_page_data($size);
     $template = boblift_localized_static_text($data['count'] === 1
         ? 'The BOB-LIFT {models} is rated {range}. Lifting moment, self weight and reach from the factory drawings. Request a quote.'
@@ -203,18 +217,23 @@ function boblift_tonnage_description(int $size): string
     return mb_strimwidth($text ?? '', 0, 160, '…');
 }
 
-/** The intro under the heading: how many models, in which categories, which ones, and their moment and weight ranges. */
+/**
+ * The intro under the heading: the lead saved for the page in this language, if any, then how many models, in which
+ * categories, which ones, and their moment and weight ranges.
+ */
 function boblift_tonnage_intro(int $size): string
 {
     $data = boblift_tonnage_page_data($size);
     $t = static fn(string $text): string => boblift_localized_static_text($text);
-    $sentences = [str_replace(
+    $lead = boblift_tonnage_copy($size)['lead'] ?? '';
+    $sentences = $lead !== '' ? [$lead] : [];
+    $sentences[] = str_replace(
         ['{count}', '{range}', '{categories}', '{models}'],
         [(string) $data['count'], $data['range'], boblift_tonnage_list($data['categories']), boblift_tonnage_list($data['models'])],
         $t($data['count'] === 1
             ? 'BOB-LIFT builds one current crane model rated {range}, in {categories}: {models}.'
             : 'BOB-LIFT builds {count} current crane models rated {range}, in {categories}: {models}.')
-    )];
+    );
     if ($data['moment'] !== '') {
         $sentences[] = str_replace('{moment}', $data['moment'], $t('Lifting moment {moment}.'));
     }
