@@ -332,6 +332,8 @@ if ($buying_terms) {
 }
 // Model questions from the data, shown as their own group beside the shared ones.
 $model_faqs = boblift_product_guide_faqs($product, $product_guide, $crane_family, $hero_terms_apply);
+// The product's own questions (boblift_product_copy, inc/rest-product-copy.php) follow the generated ones.
+$model_faqs = array_merge($model_faqs, boblift_product_copy_faq((int) get_the_ID()));
 $cases_ui = boblift_site_ui('casesPage');
 $product_cases = boblift_product_cases(get_the_ID());
 $product_feedback = boblift_product_feedback(get_the_ID());
@@ -943,6 +945,19 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
             ], static fn(array $group): bool => $group['items'] !== []));
             $faq_help_column = count($faq_groups) > 1 ? 0 : 1;
             ?>
+            <?php if ($model_faqs) : ?>
+                <?php // FAQPage data for this model's own questions only; the shared ones repeat on every product. ?>
+                <script type="application/ld+json"><?php echo wp_json_encode([
+                    '@context' => 'https://schema.org',
+                    '@type' => 'FAQPage',
+                    '@id' => get_permalink() . '#faq',
+                    'mainEntity' => array_map(static fn(array $faq): array => [
+                        '@type' => 'Question',
+                        'name' => (string) $faq['question'],
+                        'acceptedAnswer' => ['@type' => 'Answer', 'text' => (string) $faq['answer']],
+                    ], $model_faqs),
+                ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG); ?></script>
+            <?php endif; ?>
             <section id="faq" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card" aria-labelledby="faq-title">
                 <div class="border-b border-[#E6EDF5] px-4 py-5 sm:p-6 md:p-8">
                     <p class="boblift-kicker"><?php echo esc_html($ui['faqLabel'] ?? 'FAQ'); ?></p>
