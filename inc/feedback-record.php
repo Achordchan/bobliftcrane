@@ -192,3 +192,99 @@ function boblift_feedback_record_polylang_hreflang(array $hreflangs): array
     return is_singular('feedback') ? [] : $hreflangs;
 }
 add_filter('pll_rel_hreflang_attributes', 'boblift_feedback_record_polylang_hreflang', 20);
+
+/**
+ * A written-up entry is an article in its own right: its record's title and description, and the first customer photo,
+ * become the social preview (Jetpack otherwise shows "Model · Country" and the site's generic image), and the page gets
+ * an Article node signed by the record's author, with the customer photos as its images.
+ */
+function boblift_feedback_record_photos(WP_Post $post, int $limit = 3): array
+{
+    $photos = [];
+    foreach (array_filter(array_map('intval', explode(',', (string) get_post_meta($post->ID, '_feedback_media', true)))) as $id) {
+        $image = wp_attachment_is('image', $id) ? wp_get_attachment_image_src($id, 'full') : false;
+        if (is_array($image) && (string) $image[0] !== '') {
+            $photos[] = ['url' => (string) $image[0], 'width' => (int) $image[1], 'height' => (int) $image[2]];
+        }
+        if (count($photos) >= $limit) {
+            break;
+        }
+    }
+    return $photos;
+}
+
+function boblift_feedback_record_social_tags($tags)
+{
+    $post = get_queried_object();
+    if (!is_array($tags) || !is_singular('feedback') || !$post instanceof WP_Post || post_password_required($post) || boblift_feedback_record($post->ID) === '') {
+        return $tags;
+    }
+    $title = boblift_feedback_seo_text($post->ID, 'title');
+    $description = boblift_feedback_seo_text($post->ID, 'description');
+    if ($title !== '') {
+        $tags['og:title'] = $title;
+        $tags['twitter:text:title'] = $title;
+        $tags['twitter:title'] = $title;
+    }
+    if ($description !== '') {
+        $tags['og:description'] = $description;
+        $tags['twitter:description'] = $description;
+    }
+    $photo = boblift_feedback_record_photos($post, 1)[0] ?? null;
+    if ($photo) {
+        $alt = $title !== '' ? (string) preg_replace('/\s*\|\s*BOB-LIFT$/', '', $title) : (string) get_the_title($post);
+        $tags['og:image'] = $photo['url'];
+        $tags['og:image:width'] = $photo['width'];
+        $tags['og:image:height'] = $photo['height'];
+        $tags['og:image:alt'] = $alt;
+        $tags['twitter:image'] = $photo['url'];
+        $tags['twitter:image:alt'] = $alt;
+        $tags['twitter:card'] = 'summary_large_image';
+    }
+    $tags['og:type'] = 'article';
+    return $tags;
+}
+// After the theme's other Open Graph filters (20, 30), so the record's values are the ones printed.
+add_filter('jetpack_open_graph_tags', 'boblift_feedback_record_social_tags', 40);
+
+function boblift_feedback_record_schema(): void
+{
+    $post = get_queried_object();
+    if (!is_singular('feedback') || !$post instanceof WP_Post || post_password_required($post) || boblift_feedback_record($post->ID) === '') {
+        return;
+    }
+    $home = untrailingslashit((string) get_option('home'));
+    $url = (string) get_permalink($post);
+    $title = (string) preg_replace('/\s*\|\s*BOB-LIFT$/', '', boblift_feedback_seo_text($post->ID, 'title'));
+    $article_ui = boblift_site_ui('newsArticle');
+    $person = [
+        '@type' => 'Person',
+        '@id' => $home . '/#achord-chan',
+        'name' => trim((string) ($article_ui['authorName'] ?? '')) ?: 'Achord Chan',
+        'jobTitle' => 'Product Operations Director',
+        'url' => boblift_url('/about.html'),
+        'image' => boblift_asset('images/authors/achord-chan.webp'),
+        'worksFor' => ['@id' => $home . '/#organization'],
+    ];
+    $article = array_filter([
+        '@type' => 'Article',
+        '@id' => $url . '#article',
+        'headline' => $title !== '' ? $title : (string) get_the_title($post),
+        'description' => boblift_feedback_seo_text($post->ID, 'description'),
+        'datePublished' => get_post_time('c', true, $post),
+        'dateModified' => get_post_modified_time('c', true, $post),
+        'inLanguage' => get_bloginfo('language'),
+        'mainEntityOfPage' => ['@type' => 'WebPage', '@id' => $url],
+        'author' => ['@id' => $person['@id']],
+        'publisher' => [
+            '@type' => 'Organization',
+            '@id' => $home . '/#organization',
+            'name' => 'BOB-LIFT',
+            'url' => $home . '/',
+            'logo' => ['@type' => 'ImageObject', 'url' => boblift_asset('images/bob-lift-logo.png')],
+        ],
+        'image' => array_map(static fn(array $photo): array => ['@type' => 'ImageObject'] + $photo, boblift_feedback_record_photos($post)),
+    ]);
+    echo '<script type="application/ld+json">' . wp_json_encode(['@context' => 'https://schema.org', '@graph' => [$article, $person]], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) . "</script>\n";
+}
+add_action('wp_head', 'boblift_feedback_record_schema', 4);
