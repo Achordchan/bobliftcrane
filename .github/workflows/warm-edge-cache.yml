@@ -8,6 +8,12 @@ on:
     workflows: ["Publish Website"]
     types: [completed]
   workflow_dispatch:
+# Each run requests all ~1,800 sitemap URLs over ~30 minutes. Several deploys in a row used to start a run each, and
+# the overlapping runs pushed the site over the host's rate limit, so visitors were served 429. Only the newest run is
+# needed (it warms the latest deploy), so a new run cancels the one in progress.
+concurrency:
+  group: warm-edge-cache
+  cancel-in-progress: true
 jobs:
   Warm-Edge-Cache:
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
