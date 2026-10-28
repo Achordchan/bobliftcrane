@@ -1025,21 +1025,29 @@ function boblift_fill_missing_image_alts(string $content): string {
         return $content;
     }
     $english = !function_exists('boblift_current_language_slug') || boblift_current_language_slug() === 'en';
-    return (string) preg_replace_callback('/<img\b[^>]*>/i', static function (array $tag) use ($title, $english): string {
-        if (preg_match('/\salt=(["\'])\s*[^"\'\s][^"\']*\1/i', $tag[0]) || preg_match('/\s(?:role=(["\'])presentation\1|aria-hidden=(["\'])true\2)/i', $tag[0])) {
+    // An attribute's value, read by its own delimiter: alt="Crane's boom" and alt='12" reach' are whole values.
+    $attribute = static function (string $tag, string $name): ?string {
+        if (!preg_match('/\s' . $name . '\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s"\'>]+))/i', $tag, $m)) {
+            return preg_match('/\s' . $name . '(?=[\s>\/])/i', $tag) ? '' : null;
+        }
+        return html_entity_decode(($m[1] ?? '') . ($m[2] ?? '') . ($m[3] ?? ''), ENT_QUOTES);
+    };
+    return (string) preg_replace_callback('/<img\b[^>]*>/i', static function (array $tag) use ($title, $english, $attribute): string {
+        if (trim((string) $attribute($tag[0], 'alt')) !== '' || strtolower((string) $attribute($tag[0], 'role')) === 'presentation' || strtolower((string) $attribute($tag[0], 'aria-hidden')) === 'true') {
             return $tag[0];
         }
         $alt = '';
         if ($english) {
-            $id = preg_match('/\bwp-image-(\d+)\b/', $tag[0], $m) ? (int) $m[1] : 0;
-            if ($id === 0 && preg_match('/\ssrc=(["\'])([^"\']+)\1/i', $tag[0], $m)) {
-                $id = (int) attachment_url_to_postid((string) preg_replace('/\?.*$/', '', str_replace('i0.wp.com/', '', $m[2])));
+            $id = preg_match('/\bwp-image-(\d+)\b/', (string) $attribute($tag[0], 'class'), $m) ? (int) $m[1] : 0;
+            $src = (string) $attribute($tag[0], 'src');
+            if ($id === 0 && $src !== '') {
+                $id = (int) attachment_url_to_postid((string) preg_replace('/\?.*$/', '', str_replace('i0.wp.com/', '', $src)));
             }
             $alt = $id > 0 ? trim((string) get_post_meta($id, '_wp_attachment_image_alt', true)) : '';
         }
-        $alt = esc_attr($alt !== '' ? $alt : $title);
-        $tag_without_alt = (string) preg_replace('/\salt=(["\'])\s*\1/i', '', $tag[0]);
-        return (string) preg_replace('/^<img\b/i', '<img alt="' . $alt . '"', $tag_without_alt);
+        // The empty alt goes, then the new one is put straight after "<img" (concatenated, so "$10" stays literal text).
+        $tag_without_alt = (string) preg_replace('/\salt(?:\s*=\s*(?:"\s*"|\'\s*\'))?(?=[\s>\/])/i', '', $tag[0]);
+        return '<img alt="' . esc_attr($alt !== '' ? $alt : $title) . '"' . substr($tag_without_alt, 4);
     }, $content);
 }
 add_filter('the_content', 'boblift_fill_missing_image_alts', 7);
