@@ -15,7 +15,9 @@ if (!defined('ABSPATH')) {
  * "zh": {...}, ...}. Each language named may send "content" (the whole body, HTML that wp_kses_post keeps unchanged),
  * "faq" (0 to 8 plain-text items, replacing that language's list; [] removes it), "seo_title" and "seo_description"
  * (plain text, the page's title tag and meta description), in any combination. The questions are shown in the product
- * page's "About the {model}" FAQ group after the generated ones. Languages not named are left as they are.
+ * page's "About the {model}" FAQ group after the generated ones. Languages not named are left as they are. Sending a
+ * body also ticks that language's "show the body on the product page" box (_detail_body_ready): the body was written
+ * on purpose, so a translation whose box an editor left unticked does not keep hiding it.
  * Only the field itself may be sent: a request with any other parameter is refused before anything is saved.
  *
  * Everything is checked before anything is written, under the per-post lock of every language version (the lock
@@ -218,6 +220,10 @@ function boblift_product_copy_apply_steps(array $plan): true|WP_Error
         $id = $step['id'];
         if ($step['content'] !== null) {
             $saved = boblift_product_copy_write_content($id, $step['content']);
+            if (is_wp_error($saved)) {
+                return $saved;
+            }
+            $saved = boblift_product_copy_write_meta($id, '_detail_body_ready', '1');
             if (is_wp_error($saved)) {
                 return $saved;
             }
