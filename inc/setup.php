@@ -1015,6 +1015,10 @@ add_filter('the_content', 'boblift_repair_upload_image_sources', 6);
  * article's own title, which is in the page's language. Pictures marked decorative (role="presentation", aria-hidden)
  * keep their empty alt.
  */
+function boblift_alt_is_file_name(string $alt): bool {
+    return (bool) preg_match('/^[\w.-]+\.(?:jpe?g|png|gif|webp|avif|svg)$/i', trim($alt));
+}
+
 function boblift_fill_missing_image_alts(string $content): string {
     // News articles only: that is where the imported pictures are. Pages keep whatever their editors wrote.
     if (stripos($content, '<img') === false || !class_exists('WP_HTML_Tag_Processor') || !is_singular('post') || !in_the_loop()) {
@@ -1036,10 +1040,12 @@ function boblift_fill_missing_image_alts(string $content): string {
         };
         // role="none" means the same as role="presentation"; role may list fallbacks, so any decorative token counts.
         $decorative = array_intersect(preg_split('/\s+/', strtolower(trim($attribute('role')))) ?: [], ['presentation', 'none']) !== [];
+        // An alt that is only the file name ("5.jpg", from the old site's export) counts as missing.
+        $written_alt = trim($attribute('alt'));
         // A picture placed with the block editor (wp-image-N) and given alt="" there was marked decorative on purpose;
         // the imported pictures carry no such class.
-        $editor_decorative = $processor->get_attribute('alt') !== null && preg_match('/\bwp-image-\d+\b/', $attribute('class'));
-        if (trim($attribute('alt')) !== '' || $decorative || $editor_decorative || strtolower(trim($attribute('aria-hidden'))) === 'true') {
+        $editor_decorative = $processor->get_attribute('alt') !== null && $written_alt === '' && preg_match('/\bwp-image-\d+\b/', $attribute('class'));
+        if (($written_alt !== '' && !boblift_alt_is_file_name($written_alt)) || $decorative || $editor_decorative || strtolower(trim($attribute('aria-hidden'))) === 'true') {
             continue;
         }
         $alt = '';
@@ -1068,7 +1074,7 @@ function boblift_fill_missing_image_alts(string $content): string {
             }
             $alt = $id > 0 ? trim((string) get_post_meta($id, '_wp_attachment_image_alt', true)) : '';
             // Imported uploads often have their file name ("5.jpg") as alt text, which says nothing; the title does.
-            if (preg_match('/^[\w.-]+\.(?:jpe?g|png|gif|webp|avif|svg)$/i', $alt)) {
+            if (boblift_alt_is_file_name($alt)) {
                 $alt = '';
             }
         }
