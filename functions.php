@@ -31,6 +31,7 @@ require_once get_template_directory() . '/inc/consent.php';
 require_once get_template_directory() . '/inc/dingtalk-bridge.php';
 require_once get_template_directory() . '/inc/brochures.php';
 require_once get_template_directory() . '/inc/news-article.php';
+require_once get_template_directory() . '/inc/news-pinning.php';
 require_once get_template_directory() . '/inc/legal-pages.php';
 require_once get_template_directory() . '/inc/brand-wordmark.php';
 require_once get_template_directory() . '/inc/admin.php';

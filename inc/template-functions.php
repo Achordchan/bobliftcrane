@@ -1566,6 +1566,16 @@ function boblift_articles(string $category_slug = '', int $posts_per_page = 12):
     }
     $query = new WP_Query($query_args);
     if ($query->have_posts()) {
+        // Pinned posts lead, newest pinned first (inc/news-pinning.php); the rest keep their date order.
+        $pinned = function_exists('boblift_pinned_post_ids') ? boblift_pinned_post_ids($category_slug) : [];
+        $posts = $query->posts;
+        if ($pinned !== []) {
+            $rest = array_values(array_filter($posts, static fn(WP_Post $post): bool => !in_array($post->ID, $pinned, true)));
+            $posts = array_merge(array_map('get_post', $pinned), $rest);
+            if ($posts_per_page > 0) {
+                $posts = array_slice($posts, 0, $posts_per_page);
+            }
+        }
         return array_map(static function (WP_Post $post): array {
             $news_ui = function_exists('boblift_site_ui') ? boblift_site_ui('newsDetail') : [];
             $post_category = get_the_category($post->ID)[0] ?? null;
@@ -1585,7 +1595,7 @@ function boblift_articles(string $category_slug = '', int $posts_per_page = 12):
                 'content' => post_password_required($post) ? '' : boblift_localize_product_text_fragments(apply_filters('the_content', $post->post_content)),
                 'url' => get_permalink($post),
             ];
-        }, $query->posts);
+        }, $posts);
     }
     if ($category_slug !== '') {
         return [];
