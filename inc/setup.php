@@ -917,24 +917,60 @@ add_filter('wpl_is_likes_visible', '__return_false');
 /*
  * Stylesheets that plugins enqueue for parts of the page this theme never prints: Jetpack's "Share this" buttons and
  * their logo font (switched off above), Jetpack's comment form (no template calls comments_template()) and the
- * Gravatar profile-card patterns (no page uses those blocks). Each one is render-blocking in <head>, so a post that loaded
- * all of them waited about 0.7 s longer on a phone for styles that match nothing. Matched by file rather than by handle,
- * as the handles are the plugins' own and have changed between releases.
+ * Gravatar profile-card patterns, as long as no saved content uses those blocks (see boblift_gravatar_blocks_in_use()).
+ * Each one is render-blocking in <head>, so a post that loaded all of them waited about 0.7 s longer on a phone for
+ * styles that match nothing. Matched by file rather than by handle, as the handles are the plugins' own and have changed
+ * between releases.
  */
 function boblift_drop_unused_plugin_styles(): void
 {
     if (is_admin()) {
         return;
     }
+    $files = 'modules/sharedaddy/sharing\.css|social-logos/social-logos(?:\.min)?\.css|jetpack-comments/build/comments\.css';
+    if (!is_preview() && !boblift_gravatar_blocks_in_use()) {
+        $files .= '|gravatar-enhanced/build/patterns-[a-z]+\.css';
+    }
     $styles = wp_styles();
     foreach ($styles->queue as $handle) {
         $src = (string) ($styles->registered[$handle]->src ?? '');
-        if (preg_match('~/(?:modules/sharedaddy/sharing\.css|social-logos/social-logos(?:\.min)?\.css|jetpack-comments/build/comments\.css|gravatar-enhanced/build/patterns-[a-z]+\.css)$~', (string) strtok($src, '?'))) {
+        if (preg_match('~/(?:' . $files . ')$~', (string) strtok($src, '?'))) {
             wp_dequeue_style($handle);
         }
     }
 }
 add_action('wp_print_styles', 'boblift_drop_unused_plugin_styles', 100);
+
+/*
+ * Whether any saved post, page, synced pattern or template holds a Gravatar block or profile-card pattern (their markup
+ * carries a gravatar-… class or a wp:gravatar/… block comment). The home page and the lists print other posts' text,
+ * so the answer is for the whole site, not the page being shown. Kept for a day, and forgotten whenever content is saved
+ * or deleted; a draft being previewed always keeps the styles.
+ */
+function boblift_gravatar_blocks_in_use(): bool
+{
+    $known = get_transient('boblift_gravatar_blocks_in_use');
+    if ($known === 'yes' || $known === 'no') {
+        return $known === 'yes';
+    }
+    global $wpdb;
+    $found = $wpdb->get_var($wpdb->prepare(
+        "SELECT ID FROM {$wpdb->posts} WHERE post_status NOT IN ('trash', 'auto-draft') AND post_type <> 'revision' AND (post_content LIKE %s OR post_content LIKE %s) LIMIT 1",
+        '%' . $wpdb->esc_like('gravatar-') . '%',
+        '%' . $wpdb->esc_like('wp:gravatar/') . '%'
+    ));
+    // A failed query counts as "in use", so the styles stay rather than go missing.
+    $in_use = $found !== null || $wpdb->last_error !== '';
+    set_transient('boblift_gravatar_blocks_in_use', $in_use ? 'yes' : 'no', DAY_IN_SECONDS);
+    return $in_use;
+}
+
+function boblift_forget_gravatar_blocks_in_use(): void
+{
+    delete_transient('boblift_gravatar_blocks_in_use');
+}
+add_action('save_post', 'boblift_forget_gravatar_blocks_in_use');
+add_action('deleted_post', 'boblift_forget_gravatar_blocks_in_use');
 
 /**
  * Jetpack's Carousel (the full-screen lightbox for pictures in a post's text) loads whenever any text with a picture
