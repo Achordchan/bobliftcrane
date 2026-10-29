@@ -2161,9 +2161,9 @@
      "original": "Wrap the crane",
      "text": "تغليف الرافعة"
     },
-    "225070844eeb": {
-     "original": "Cranes that ship without a chassis are wrapped in stretch film before they leave the workshop.",
-     "text": "تُلف الرافعات التي تُشحن بدون هيكل شاحنة بغشاء مطاطي قبل مغادرة الورشة."
+    "a3c0061a2858": {
+     "original": "Cranes are wrapped in stretch film before they leave the workshop.",
+     "text": "يتم تغليف الرافعات بغلاف بلاستيكي مرن قبل خروجها من الورشة."
     },
     "e3d001ca3d2d": {
      "original": "Load the container",
@@ -2192,10 +2192,6 @@
     "2ca9643fade2": {
      "original": "Which port or country is it going to?",
      "text": "إلى أي ميناء أو دولة ستُشحن؟"
-    },
-    "4789d7d2cc52": {
-     "original": "Will the crane ship on its own or mounted on a chassis?",
-     "text": "هل ستُشحن الرافعة منفردة أم مركّبة على هيكل؟"
     },
     "e16637258ffb": {
      "original": "Which crane model and lifting capacity do you need?",

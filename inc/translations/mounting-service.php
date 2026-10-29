@@ -22,7 +22,7 @@ return [
         'Line up the order' => 'ご注文分を並べる',
         'Every crane in an order is tested, set on its base or a pallet and lined up in the hall before packing.' => 'ご注文のクレーンはすべて試験を終え、台座またはパレットに載せて、梱包前に工場内に並べます。',
         'Wrap the crane' => 'クレーンを梱包する',
-        'Cranes that ship without a chassis are wrapped in stretch film before they leave the workshop.' => 'シャシーなしで出荷するクレーンは、工場を出る前にストレッチフィルムで包みます。',
+        'Cranes are wrapped in stretch film before they leave the workshop.' => 'クレーンは、工場を出荷する前にストレッチフィルムで包まれます。',
         'Load the container' => 'コンテナに積み込む',
         'A hoist or a forklift moves each packed crane into the container.' => '梱包したクレーンは、ホイストまたはフォークリフトでコンテナに運び込みます。',
         'Before we quote' => 'お見積りの前に',
@@ -30,7 +30,6 @@ return [
         'Answer these questions in your inquiry and our sales team will go through the options with you.' => 'お問い合わせで次の点をお知らせください。営業担当が選択肢を一緒に確認します。',
         'Which truck or chassis will carry the crane?' => 'クレーンを載せるトラックまたはシャシーは何ですか。',
         'Which port or country is it going to?' => '届け先の港または国はどこですか。',
-        'Will the crane ship on its own or mounted on a chassis?' => 'クレーン単体で出荷しますか、シャシーに架装して出荷しますか。',
         'Which crane model and lifting capacity do you need?' => '必要なクレーンの型式と吊り上げ能力は何ですか。',
         'Planning a truck-mounted order?' => 'トラック架装のご注文をご検討ですか。',
         'Tell us the chassis, the destination and the crane model. Our sales team will get back to you.' => 'シャシー、届け先、クレーンの型式をお知らせください。営業担当からご連絡します。',
@@ -91,7 +90,7 @@ return [
         'Line up the order' => '整单备货',
         'Every crane in an order is tested, set on its base or a pallet and lined up in the hall before packing.' => '同一订单的起重机逐台测试完毕，装上底座或托盘，在车间排好再打包。',
         'Wrap the crane' => '缠膜包装',
-        'Cranes that ship without a chassis are wrapped in stretch film before they leave the workshop.' => '不带底盘发货的起重机，出车间前先用缠绕膜包好。',
+        'Cranes are wrapped in stretch film before they leave the workshop.' => '起重机在离开车间前会被用拉伸膜包裹起来。',
         'Load the container' => '装入集装箱',
         'A hoist or a forklift moves each packed crane into the container.' => '包好的起重机由行车或叉车逐台送入集装箱。',
         'Before we quote' => '报价之前',
@@ -99,7 +98,6 @@ return [
         'Answer these questions in your inquiry and our sales team will go through the options with you.' => '请在询盘中回答以下问题，业务员会和你一起确认可行的方案。',
         'Which truck or chassis will carry the crane?' => '起重机装在哪种卡车或底盘上？',
         'Which port or country is it going to?' => '目的港或目的国是哪里？',
-        'Will the crane ship on its own or mounted on a chassis?' => '起重机单独发货，还是装在底盘上一起发货？',
         'Which crane model and lifting capacity do you need?' => '需要哪种起重机型号和起重量？',
         'Planning a truck-mounted order?' => '打算订购随车吊？',
         'Tell us the chassis, the destination and the crane model. Our sales team will get back to you.' => '告诉我们底盘、目的地和起重机型号，业务员会联系你。',
@@ -139,15 +137,19 @@ return [
         'Service and operation' => '售后与操作',
     ],
     'es' => [
+        'Cranes are wrapped in stretch film before they leave the workshop.' => 'Las grúas se envuelven en film estirable antes de salir del taller.',
         '{count} steps' => '{count} pasos',
     ],
     'ru' => [
+        'Cranes are wrapped in stretch film before they leave the workshop.' => 'Перед отправкой с завода краны обматывают стретч-пленкой.',
         '{count} steps' => 'Этапов: {count}',
     ],
     'fr' => [
+        'Cranes are wrapped in stretch film before they leave the workshop.' => 'Les grues sont emballées dans du film étirable avant de quitter l’atelier.',
         '{count} steps' => '{count} étapes',
     ],
     'ar' => [
+        'Cranes are wrapped in stretch film before they leave the workshop.' => 'يتم تغليف الرافعات بغلاف بلاستيكي مرن قبل خروجها من الورشة.',
         '{count} steps' => 'عدد الخطوات: {count}',
     ],
 ];
