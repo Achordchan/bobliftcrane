@@ -1209,7 +1209,9 @@ add_filter('the_content', 'boblift_fill_missing_image_alts', 7);
  * A video's cover picture (poster) is downloaded with the page even though the video itself waits for a click
  * (preload="none"), and the editor saves it as the uploaded JPEG. It goes through the image CDN like the article's other
  * pictures (boblift_image_resized(): WebP where the browser takes it, at most 720 pixels wide, unchanged where the CDN
- * cannot help), so a post with two vertical videos saves about 200 KB.
+ * cannot help), so a post with two vertical videos saves about 200 KB. Only a video that states its own width and height
+ * gets the smaller copy: one without them takes its size from the poster until the video loads (the article styles leave
+ * its width to the browser), so a 720-pixel poster would shrink a wide player.
  */
 function boblift_cdn_video_posters(string $content): string
 {
@@ -1220,7 +1222,9 @@ function boblift_cdn_video_posters(string $content): string
     $changed = false;
     while ($processor->next_tag('video')) {
         $poster = $processor->get_attribute('poster');
-        if (!is_string($poster) || $poster === '') {
+        $width = $processor->get_attribute('width');
+        $height = $processor->get_attribute('height');
+        if (!is_string($poster) || $poster === '' || !is_string($width) || !is_string($height) || (int) $width < 1 || (int) $height < 1 || !ctype_digit($width) || !ctype_digit($height)) {
             continue;
         }
         $resized = boblift_image_resized(boblift_image_cdn_original($poster), 720);
