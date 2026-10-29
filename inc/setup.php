@@ -131,23 +131,43 @@ add_filter('css_do_concat', 'boblift_theme_css_no_concat', 10, 2);
  * at the same spot in the cascade as media="print", switched to "all" once it arrives (noscript keeps the plain link).
  * theme.js measures the layout when it starts (the header menu, carousels, the about page's scroll scenes), so it waits
  * for the full stylesheet through window.bobliftWhenStyled; if the file fails to load it runs anyway.
+ *
+ * The switch is one inline script printed through wp_get_inline_script_tag(), so a nonce added there for a Content
+ * Security Policy reaches it, and there are no inline event handlers (which such a policy blocks even when scripts
+ * carry a nonce). It catches the file however it ends: loaded or failed before the script ran, loading or failing after,
+ * or at the latest the page's load event. A policy this response already sends from PHP keeps the plain render-blocking
+ * link, as nothing here can tell whether it lets the script run.
  */
 function boblift_theme_css_tag($tag, $handle = '', $href = '')
 {
     // A _static bundle may be passed with a list of handles: anything but the theme's own tag is left alone.
-    if ($handle !== 'boblift-theme' || !is_string($tag) || !is_string($href) || $href === '' || is_admin()) {
+    if ($handle !== 'boblift-theme' || !is_string($tag) || !is_string($href) || $href === '' || is_admin() || boblift_sends_csp()) {
         return $tag;
     }
     $critical = boblift_critical_css();
     if ($critical === '') {
         return $tag;
     }
-    $gate = 'window.bobliftWhenStyled=function(f){var l=document.getElementById("boblift-theme-css");if(!l||l.media==="all"){f();return}(window.bobliftStyledQueue=window.bobliftStyledQueue||[]).push(f)};';
-    $done = 'this.onload=this.onerror=null;this.media=\'all\';var q=window.bobliftStyledQueue||[];window.bobliftStyledQueue=[];q.forEach(function(f){f()})';
+    $switch = '(function(){var l=document.getElementById("boblift-theme-css"),q=[],done=!l;'
+        . 'function go(){if(done)return;done=true;l.media="all";var r=q;q=[];r.forEach(function(f){f()})}'
+        . 'window.bobliftWhenStyled=function(f){done?f():q.push(f)};'
+        . 'if(done)return;l.addEventListener("load",go);l.addEventListener("error",go);window.addEventListener("load",go);'
+        . 'if(l.sheet)go()})();';
     return '<style id="boblift-critical-css">' . $critical . "</style>\n"
-        . '<script>' . $gate . "</script>\n"
-        . '<link rel="stylesheet" id="boblift-theme-css" href="' . esc_url($href) . '" media="print" onload="' . esc_attr($done) . '" onerror="' . esc_attr($done) . "\">\n"
+        . '<link rel="stylesheet" id="boblift-theme-css" href="' . esc_url($href) . "\" media=\"print\">\n"
+        . wp_get_inline_script_tag($switch)
         . '<noscript><link rel="stylesheet" href="' . esc_url($href) . "\"></noscript>\n";
+}
+
+/* Whether this response already carries a Content-Security-Policy header (a report-only one blocks nothing). */
+function boblift_sends_csp(): bool
+{
+    foreach (headers_list() as $header) {
+        if (stripos($header, 'content-security-policy:') === 0) {
+            return true;
+        }
+    }
+    return false;
 }
 add_filter('style_loader_tag', 'boblift_theme_css_tag', 10, 3);
 
