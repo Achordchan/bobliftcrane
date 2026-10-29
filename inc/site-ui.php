@@ -1146,7 +1146,7 @@ function boblift_site_ui_defaults(?string $section = null): array
             'sites' => [
                 ['label' => 'BOB-LIFT', 'short' => 'BOB-LIFT', 'mark' => 'B', 'description' => 'The company, its factory and the full range', 'domain' => 'boblift.com', 'image' => 'images/site-switcher/boblift-logo.webp', 'url' => 'https://boblift.com/'],
                 ['label' => 'Cranes', 'short' => 'Cranes', 'mark' => 'C', 'description' => 'Truck-mounted, marine and pickup cranes', 'domain' => 'bobliftcrane.com', 'image' => 'images/site-switcher/cranes.webp', 'current' => true],
-                ['label' => 'Loader', 'short' => 'Loader', 'mark' => 'L', 'description' => 'Mini skid steer loaders and mini dumpers', 'domain' => 'bobliftloader.com', 'image' => 'images/site-switcher/loader.webp', 'url' => 'https://bobliftloader.com/'],
+                ['label' => 'Loader', 'short' => 'Loader', 'mark' => 'L', 'description' => 'Mini skid steer loaders and mini dumpers', 'domain' => 'bobliftloader.com', 'image' => 'images/site-switcher/loader-bl360.webp', 'url' => 'https://bobliftloader.com/'],
             ],
         ],
         'newsPage' => [
