@@ -99,6 +99,7 @@ if (!$display_facts) {
     ]));
 }
 $case_products = boblift_item_related_products($post_id);
+$quote_attrs = boblift_item_inquiry_attrs($case_products, $product_name);
 $quote_url = boblift_url($product_name !== '' ? '/contact.html?product=' . rawurlencode($product_name) . '#inquiry' : '/contact.html#inquiry');
 
 $related_query = new WP_Query([
@@ -319,7 +320,7 @@ if (count($related_cards) < 3 && function_exists('boblift_feedback_items')) {
                         <?php endforeach; ?>
                     </ul>
                 <?php elseif ($product_name !== '') : ?><p class="mt-2 text-sm leading-6 text-slate-600"><?php echo esc_html($product_name); ?></p><?php endif; ?>
-                <a class="btn-primary mt-5 w-full justify-center rounded-sm" href="<?php echo esc_url($quote_url); ?>" data-inquiry-modal-open data-inquiry-source="案例详情"<?php echo $product_name !== '' ? ' data-inquiry-product="' . esc_attr($product_name) . '"' : ''; ?>><?php echo esc_html($ui['discussSimilarLabel'] ?? 'Discuss Similar Project'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4 text-gold'); ?></a>
+                <a class="btn-primary mt-5 w-full justify-center rounded-sm" href="<?php echo esc_url($quote_url); ?>" data-inquiry-modal-open data-inquiry-source="案例详情"<?php echo $quote_attrs; ?>><?php echo esc_html($ui['discussSimilarLabel'] ?? 'Discuss Similar Project'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4 text-gold'); ?></a>
                 <a class="mt-4 inline-flex items-center gap-1.5 text-sm font-black text-blue-700 transition hover:text-ink" href="<?php echo esc_url($cases_url); ?>"><?php echo boblift_icon('chevron-left', 'h-4 w-4 rtl:-scale-x-100'); ?><?php echo esc_html($ui['backLabel'] ?? 'Back to Case Center'); ?></a>
             </div>
         </aside>
@@ -327,7 +328,7 @@ if (count($related_cards) < 3 && function_exists('boblift_feedback_items')) {
 
         <div class="mt-14 flex flex-col gap-4 rounded border border-line bg-mist p-5 sm:flex-row sm:items-center sm:justify-between md:mt-20 md:p-6 lg:hidden">
             <p class="text-lg font-black leading-snug text-ink"><?php echo esc_html($ui['similarProjectPrompt'] ?? 'Planning a similar project?'); ?></p>
-            <a class="btn-primary rounded-sm" href="<?php echo esc_url($quote_url); ?>" data-inquiry-modal-open data-inquiry-source="案例详情"<?php echo $product_name !== '' ? ' data-inquiry-product="' . esc_attr($product_name) . '"' : ''; ?>><?php echo esc_html($ui['discussSimilarLabel'] ?? 'Discuss Similar Project'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4 text-gold'); ?></a>
+            <a class="btn-primary rounded-sm" href="<?php echo esc_url($quote_url); ?>" data-inquiry-modal-open data-inquiry-source="案例详情"<?php echo $quote_attrs; ?>><?php echo esc_html($ui['discussSimilarLabel'] ?? 'Discuss Similar Project'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4 text-gold'); ?></a>
         </div>
     </div>
 

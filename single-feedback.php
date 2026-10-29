@@ -45,10 +45,10 @@ $others = array_slice($others, 0, 4);
     </nav>
 
     <header class="mt-5 flex flex-col gap-5 border-b border-line pb-5 md:mt-6 md:flex-row md:items-end md:justify-between md:pb-6">
-        <div class="min-w-0">
+        <div class="min-w-0 md:flex-1">
             <?php if ($record_title !== '') : ?>
                 <p class="boblift-kicker"><?php echo esc_html($feedback_label . ' · ' . $feedback['model']); ?></p>
-                <h1 class="mt-3 max-w-[22ch] text-3xl font-black leading-tight tracking-[-0.02em] text-ink md:text-[2.5rem]"><?php echo esc_html($record_title); ?></h1>
+                <h1 class="mt-3 text-3xl [text-wrap:balance] font-black leading-tight tracking-[-0.02em] text-ink md:text-[2.5rem]"><?php echo esc_html($record_title); ?></h1>
             <?php else : ?>
                 <p class="boblift-kicker"><?php echo esc_html($feedback_label); ?></p>
                 <h1 class="mt-3 text-4xl font-black leading-none tracking-[-0.02em] text-ink md:text-[3.25rem]"><?php echo esc_html($feedback['model']); ?></h1>
@@ -121,6 +121,7 @@ $others = array_slice($others, 0, 4);
     $body_html = (string) ob_get_clean();
     $feedback_products = boblift_item_related_products(get_the_ID());
     $quote_url = boblift_url('/contact.html?product=' . rawurlencode($feedback['model']) . '#inquiry');
+    $quote_attrs = boblift_item_inquiry_attrs($feedback_products, (string) $feedback['model']);
     $ask_model = str_replace('{model}', $feedback['model'], $ui['askModelTemplate'] ?? 'Interested in the {model}?');
     ?>
 
@@ -162,7 +163,7 @@ $others = array_slice($others, 0, 4);
                             <?php endforeach; ?>
                         </ul>
                     <?php endif; ?>
-                    <a class="btn-primary mt-5 w-full justify-center rounded-sm" href="<?php echo esc_url($quote_url); ?>" data-inquiry-modal-open data-inquiry-source="客户反馈详情" data-inquiry-product="<?php echo esc_attr($feedback['model']); ?>"><?php echo esc_html($ui['getQuoteLabel'] ?? 'Get a Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4 text-gold'); ?></a>
+                    <a class="btn-primary mt-5 w-full justify-center rounded-sm" href="<?php echo esc_url($quote_url); ?>" data-inquiry-modal-open data-inquiry-source="客户反馈详情"<?php echo $quote_attrs; ?>><?php echo esc_html($ui['getQuoteLabel'] ?? 'Get a Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4 text-gold'); ?></a>
                     <a class="mt-4 inline-flex items-center gap-1.5 text-sm font-black text-blue-700 transition hover:text-ink" href="<?php echo esc_url($feedback_list_url); ?>"><?php echo boblift_icon('chevron-left', 'h-4 w-4 rtl:-scale-x-100'); ?><?php echo esc_html($ui['moreFeedbackLabel'] ?? 'More customer feedback'); ?></a>
                 </div>
             </aside>
@@ -178,7 +179,7 @@ $others = array_slice($others, 0, 4);
         <div class="mt-12 flex flex-col gap-4 rounded border border-line bg-mist p-5 sm:flex-row sm:items-center sm:justify-between md:mt-16 md:p-6">
             <p class="text-lg font-black leading-snug text-ink"><?php echo esc_html($ask_model); ?></p>
             <div class="flex flex-wrap gap-3">
-                <a class="btn-primary rounded-sm" href="<?php echo esc_url($quote_url); ?>" data-inquiry-modal-open data-inquiry-source="客户反馈详情" data-inquiry-product="<?php echo esc_attr($feedback['model']); ?>"><?php echo esc_html($ui['getQuoteLabel'] ?? 'Get a Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4 text-gold'); ?></a>
+                <a class="btn-primary rounded-sm" href="<?php echo esc_url($quote_url); ?>" data-inquiry-modal-open data-inquiry-source="客户反馈详情"<?php echo $quote_attrs; ?>><?php echo esc_html($ui['getQuoteLabel'] ?? 'Get a Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4 text-gold'); ?></a>
             </div>
         </div>
     </div>

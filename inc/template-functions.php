@@ -1863,6 +1863,40 @@ function boblift_item_related_products(int $post_id, int $limit = 3): array
     return array_slice(array_values($products), 0, $limit);
 }
 
+/*
+ * The inquiry button's product attributes on a case or feedback page: the products shown beside the text, each with its
+ * title in the page's language and its photo, so the form lists them as the product pages do. Without a published
+ * product (an older model, a marine model with no page) the named model goes as plain text.
+ */
+function boblift_item_inquiry_attrs(array $products, string $fallback): string
+{
+    $items = [];
+    foreach ($products as $product) {
+        if (!$product instanceof WP_Post) {
+            continue;
+        }
+        $english_id = boblift_product_english_id($product->ID);
+        $image = function_exists('boblift_inquiry_mail_product_image') ? boblift_inquiry_mail_product_image($english_id, $product->ID) : '';
+        $item = [
+            'id' => (string) $product->ID,
+            'title' => get_the_title($product),
+            'slug' => (string) $product->post_name,
+            'image' => $image !== '' ? $image : boblift_post_thumbnail_url($product, ''),
+            'detailUrl' => (string) get_permalink($product),
+        ];
+        if (function_exists('boblift_product_is_legacy') && boblift_product_is_legacy($english_id)) {
+            $item['badge'] = boblift_localized_static_text('Previous model');
+        }
+        $items[] = $item;
+    }
+    if (!$items) {
+        return $fallback !== '' ? ' data-inquiry-product="' . esc_attr($fallback) . '"' : '';
+    }
+    return ' data-inquiry-product="' . esc_attr(implode('; ', array_column($items, 'title'))) . '"'
+        . ' data-inquiry-product-slug="' . esc_attr(implode(',', array_column($items, 'slug'))) . '"'
+        . ' data-inquiry-products="' . esc_attr((string) wp_json_encode($items, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)) . '"';
+}
+
 // "Products in this case" cards for case and feedback pages: photo, name, model, two spec rows and a link to the product.
 function boblift_render_item_products(array $products, string $heading): void
 {
