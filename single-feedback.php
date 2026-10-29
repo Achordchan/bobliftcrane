@@ -45,10 +45,10 @@ $others = array_slice($others, 0, 4);
     </nav>
 
     <header class="mt-5 flex flex-col gap-5 border-b border-line pb-5 md:mt-6 md:flex-row md:items-end md:justify-between md:pb-6">
-        <div class="min-w-0">
+        <div class="min-w-0 md:flex-1">
             <?php if ($record_title !== '') : ?>
                 <p class="boblift-kicker"><?php echo esc_html($feedback_label . ' · ' . $feedback['model']); ?></p>
-                <h1 class="mt-3 max-w-[22ch] text-3xl font-black leading-tight tracking-[-0.02em] text-ink md:text-[2.5rem]"><?php echo esc_html($record_title); ?></h1>
+                <h1 class="mt-3 text-3xl [text-wrap:balance] font-black leading-tight tracking-[-0.02em] text-ink md:text-[2.5rem]"><?php echo esc_html($record_title); ?></h1>
             <?php else : ?>
                 <p class="boblift-kicker"><?php echo esc_html($feedback_label); ?></p>
                 <h1 class="mt-3 text-4xl font-black leading-none tracking-[-0.02em] text-ink md:text-[3.25rem]"><?php echo esc_html($feedback['model']); ?></h1>
