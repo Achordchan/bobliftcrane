@@ -7,6 +7,7 @@
     "build:css": "tailwindcss -c tailwind.config.js -i assets/css/input.css -o assets/css/theme.css --minify",
     "watch:css": "tailwindcss -c tailwind.config.js -i assets/css/input.css -o assets/css/theme.css --watch",
     "build:js": "node scripts/build-js.mjs",
+    "build:critical": "node scripts/build-critical-css.js",
     "start:wp": "./start.sh"
   },
   "devDependencies": {

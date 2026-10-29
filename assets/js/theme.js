@@ -1,3 +1,24 @@
+// Started once theme.css applies: when its critical rules were printed in its place, the full file arrives after the
+// first paint and inc/setup.php's window.bobliftWhenStyled holds this back until then, as it measures the layout. If that
+// inline script never ran (a Content Security Policy that blocks inline scripts), theme.css is still waiting as
+// media="print", so this switches it on itself: once it has loaded or failed, or at the latest on the page's load event.
+((run) => {
+  if (window.bobliftWhenStyled) return window.bobliftWhenStyled(run);
+  const link = document.getElementById('boblift-theme-css');
+  if (!link || link.media === 'all') return run();
+  let done = false;
+  const go = () => {
+    if (done) return;
+    done = true;
+    link.media = 'all';
+    run();
+  };
+  link.addEventListener('load', go);
+  link.addEventListener('error', go);
+  window.addEventListener('load', go);
+  if (link.sheet || document.readyState === 'complete') go();
+  return undefined;
+})(() => {
 (() => {
   const qs = (selector, root = document) => root.querySelector(selector);
   const qsa = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -4903,3 +4924,4 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();
+});

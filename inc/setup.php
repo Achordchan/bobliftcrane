@@ -88,6 +88,90 @@ function boblift_assets(): void
 }
 add_action('wp_enqueue_scripts', 'boblift_assets');
 
+/*
+ * The rules of theme.css that the site's pages use (one of each template and language, shown before theme.js runs and
+ * after), written by scripts/build-critical-css.js into assets/css/critical.css with the SHA-1 of the theme.css it was cut from on its first line. Only while that still
+ * matches is it used; after any change to theme.css this returns '' and the stylesheet loads exactly as before
+ * (render-blocking in <head>) until the file is rebuilt. Font addresses are made whole: the rules are printed in the page.
+ */
+function boblift_critical_css(): string
+{
+    static $css = null;
+    if ($css !== null) {
+        return $css;
+    }
+    $file = get_template_directory() . '/assets/css/critical.css';
+    $source = get_template_directory() . '/assets/css/theme.css';
+    $css = '';
+    if (!is_readable($file) || !is_readable($source) || (defined('BOBLIFT_CRITICAL_CSS') && !BOBLIFT_CRITICAL_CSS)) {
+        return $css;
+    }
+    $text = (string) file_get_contents($file);
+    $newline = strpos($text, "\n");
+    if ($newline === false || preg_match('/sha1:([0-9a-f]{40})/', substr($text, 0, $newline), $match) !== 1 || !hash_equals($match[1], (string) sha1_file($source))) {
+        return $css;
+    }
+    $body = trim(substr($text, $newline + 1));
+    // Nothing in it may close the <style> element it is printed in.
+    if ($body === '' || stripos($body, '</style') !== false) {
+        return $css;
+    }
+    return $css = str_replace('url(../', 'url(' . get_template_directory_uri() . '/assets/', $body);
+}
+
+/* With the critical rules available theme.css is printed on its own, not merged into a WordPress.com _static bundle. */
+function boblift_theme_css_no_concat($do_concat, $handle = '')
+{
+    return $handle === 'boblift-theme' && boblift_critical_css() !== '' ? false : $do_concat;
+}
+add_filter('css_do_concat', 'boblift_theme_css_no_concat', 10, 2);
+
+/*
+ * theme.css without holding up the first paint: the critical rules are printed in its place, and the full file loads
+ * at the same spot in the cascade as media="print", switched to "all" once it arrives (noscript keeps the plain link).
+ * theme.js measures the layout when it starts (the header menu, carousels, the about page's scroll scenes), so it waits
+ * for the full stylesheet through window.bobliftWhenStyled; if the file fails to load it runs anyway.
+ *
+ * The switch is one inline script printed through wp_get_inline_script_tag(), so a nonce added there for a Content
+ * Security Policy reaches it, and there are no inline event handlers (which such a policy blocks even when scripts
+ * carry a nonce). It catches the file however it ends: loaded or failed before the script ran, loading or failing after,
+ * or at the latest the page's load event. Should a policy set outside PHP (the web server, a CDN) block it all the same,
+ * theme.js, an ordinary external file, finds the stylesheet still waiting and switches it on itself. A policy this
+ * response already sends from PHP keeps the plain render-blocking link.
+ */
+function boblift_theme_css_tag($tag, $handle = '', $href = '')
+{
+    // A _static bundle may be passed with a list of handles: anything but the theme's own tag is left alone.
+    if ($handle !== 'boblift-theme' || !is_string($tag) || !is_string($href) || $href === '' || is_admin() || boblift_sends_csp()) {
+        return $tag;
+    }
+    $critical = boblift_critical_css();
+    if ($critical === '') {
+        return $tag;
+    }
+    $switch = '(function(){var l=document.getElementById("boblift-theme-css"),q=[],done=!l;'
+        . 'function go(){if(done)return;done=true;l.media="all";var r=q;q=[];r.forEach(function(f){f()})}'
+        . 'window.bobliftWhenStyled=function(f){done?f():q.push(f)};'
+        . 'if(done)return;l.addEventListener("load",go);l.addEventListener("error",go);window.addEventListener("load",go);'
+        . 'if(l.sheet)go()})();';
+    return '<style id="boblift-critical-css">' . $critical . "</style>\n"
+        . '<link rel="stylesheet" id="boblift-theme-css" href="' . esc_url($href) . "\" media=\"print\">\n"
+        . wp_get_inline_script_tag($switch)
+        . '<noscript><link rel="stylesheet" href="' . esc_url($href) . "\"></noscript>\n";
+}
+
+/* Whether this response already carries a Content-Security-Policy header (a report-only one blocks nothing). */
+function boblift_sends_csp(): bool
+{
+    foreach (headers_list() as $header) {
+        if (stripos($header, 'content-security-policy:') === 0) {
+            return true;
+        }
+    }
+    return false;
+}
+add_filter('style_loader_tag', 'boblift_theme_css_tag', 10, 3);
+
 function boblift_font_preload(): void
 {
     foreach (['barlow-400-latin.woff2', 'barlow-600-latin.woff2'] as $file) {
@@ -851,6 +935,64 @@ add_action('template_redirect', 'boblift_redirect_category_query_to_category_pag
 add_filter('sharing_show', '__return_false');
 add_filter('wpl_is_likes_visible', '__return_false');
 
+/*
+ * Stylesheets that plugins enqueue for parts of the page this theme never prints: Jetpack's "Share this" buttons and
+ * their logo font (switched off above), Jetpack's comment form (no template calls comments_template()) and the
+ * Gravatar profile-card patterns, as long as no saved content uses those blocks (see boblift_gravatar_blocks_in_use()).
+ * Each one is render-blocking in <head>, so a post that loaded all of them waited about 0.7 s longer on a phone for
+ * styles that match nothing. Matched by file rather than by handle, as the handles are the plugins' own and have changed
+ * between releases.
+ */
+function boblift_drop_unused_plugin_styles(): void
+{
+    if (is_admin()) {
+        return;
+    }
+    $files = 'modules/sharedaddy/sharing\.css|social-logos/social-logos(?:\.min)?\.css|jetpack-comments/build/comments\.css';
+    if (!is_preview() && !boblift_gravatar_blocks_in_use()) {
+        $files .= '|gravatar-enhanced/build/patterns-[a-z]+\.css';
+    }
+    $styles = wp_styles();
+    foreach ($styles->queue as $handle) {
+        $src = (string) ($styles->registered[$handle]->src ?? '');
+        if (preg_match('~/(?:' . $files . ')$~', (string) strtok($src, '?'))) {
+            wp_dequeue_style($handle);
+        }
+    }
+}
+add_action('wp_print_styles', 'boblift_drop_unused_plugin_styles', 100);
+
+/*
+ * Whether any saved post, page, synced pattern or template holds a Gravatar block or profile-card pattern (their markup
+ * carries a gravatar-… class or a wp:gravatar/… block comment). The home page and the lists print other posts' text,
+ * so the answer is for the whole site, not the page being shown. Kept for a day, and forgotten whenever content is saved
+ * or deleted; a draft being previewed always keeps the styles.
+ */
+function boblift_gravatar_blocks_in_use(): bool
+{
+    $known = get_transient('boblift_gravatar_blocks_in_use');
+    if ($known === 'yes' || $known === 'no') {
+        return $known === 'yes';
+    }
+    global $wpdb;
+    $found = $wpdb->get_var($wpdb->prepare(
+        "SELECT ID FROM {$wpdb->posts} WHERE post_status NOT IN ('trash', 'auto-draft') AND post_type <> 'revision' AND (post_content LIKE %s OR post_content LIKE %s) LIMIT 1",
+        '%' . $wpdb->esc_like('gravatar-') . '%',
+        '%' . $wpdb->esc_like('wp:gravatar/') . '%'
+    ));
+    // A failed query counts as "in use", so the styles stay rather than go missing.
+    $in_use = $found !== null || $wpdb->last_error !== '';
+    set_transient('boblift_gravatar_blocks_in_use', $in_use ? 'yes' : 'no', DAY_IN_SECONDS);
+    return $in_use;
+}
+
+function boblift_forget_gravatar_blocks_in_use(): void
+{
+    delete_transient('boblift_gravatar_blocks_in_use');
+}
+add_action('save_post', 'boblift_forget_gravatar_blocks_in_use');
+add_action('deleted_post', 'boblift_forget_gravatar_blocks_in_use');
+
 /**
  * Jetpack's Carousel (the full-screen lightbox for pictures in a post's text) loads whenever any text with a picture
  * goes through the_content, which the home page and the lists do for every card they build. Only the templates that print
@@ -1083,3 +1225,34 @@ function boblift_fill_missing_image_alts(string $content): string {
     return $processor->get_updated_html();
 }
 add_filter('the_content', 'boblift_fill_missing_image_alts', 7);
+
+/*
+ * A video's cover picture (poster) is downloaded with the page even though the video itself waits for a click
+ * (preload="none"), and the editor saves it as the uploaded JPEG. It goes through the image CDN like the article's other
+ * pictures (boblift_image_resized(): WebP where the browser takes it, unchanged where the CDN cannot help), so a post
+ * with two vertical videos downloads far less. The poster keeps its own pixel size: until the video loads, the player
+ * takes its size from the poster (the article styles set width and height to auto, over the tag's own attributes), so a
+ * narrower copy would shrink the player and make it jump when playback starts.
+ */
+function boblift_cdn_video_posters(string $content): string
+{
+    if (!str_contains($content, 'poster=') || !class_exists('WP_HTML_Tag_Processor')) {
+        return $content;
+    }
+    $processor = new WP_HTML_Tag_Processor($content);
+    $changed = false;
+    while ($processor->next_tag('video')) {
+        $poster = $processor->get_attribute('poster');
+        if (!is_string($poster) || $poster === '') {
+            continue;
+        }
+        // Width 0: format and quality only, never a resize.
+        $resized = boblift_image_resized(boblift_image_cdn_original($poster), 0);
+        if ($resized !== $poster && $resized !== boblift_image_cdn_original($poster)) {
+            $processor->set_attribute('poster', $resized);
+            $changed = true;
+        }
+    }
+    return $changed ? $processor->get_updated_html() : $content;
+}
+add_filter('the_content', 'boblift_cdn_video_posters', 8);

@@ -1,0 +1,51 @@
+# Pages scripts/build-critical-css.js reads (one path per line); one of each template, in English, Arabic (right-to-left)
+# and the other languages' home pages, so the critical rules cover every page's top. A number after a path is the HTTP
+# status it must answer with (200 when left out); any other answer stops the build.
+/
+/products.html
+/telescopic-boom-truck-mounted-cranes
+/marine-crane
+/5-ton-telescopic-boom-truck-mounted-crane.html
+/10-ton-crane.html
+/about.html
+/buy-truck-mounted-crane-from-china.html
+/bauma-china-2026-bob-lift-cranes.html
+/news.html
+/cases.html
+/cases.html?tab=customer_feedback
+/cases/maldives-harbour-telescopic-marine-cranes/
+/feedback/congo-sq10sa4/
+/contact.html
+/quote.html
+/factory-tour.html
+/global-customer-visits.html
+/service.html
+/videos.html
+/why-choose-us.html
+/sitemap.html
+/privacy-policy.html
+/social-media.html
+/quality-testing.html
+/mounting-shipping.html
+/telescopic-spider-crane.html
+/no-such-page-xyz.html 404
+/ar/
+/ar/10-ton-crane.html
+/ar/about.html
+/zh/
+/zh/about.html
+/ja/
+/ru/
+/es/
+/fr/
+/?s=crane
+/?s=zzqxv
+/?s=
+/ar/?s=crane
+/success.html
+/terms-of-use.html
+/news.html?news_category=company-news
+/industry-insight.html
+/marine-solution.html
+/public-welfare.html
+/20-units-delivered-in-a-batch-setting-a-new-standard-for-efficient-operations-id07709265.html
