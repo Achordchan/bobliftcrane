@@ -1639,9 +1639,13 @@ function boblift_site_ui_retire_chassis_delivery_copy(array $merged): array
         'La grue sera-t-elle expédiée seule ou montée sur un châssis ?',
         'هل ستُشحن الرافعة منفردة أم مركّبة على هيكل؟',
     ];
+    // Translations may use non-breaking spaces or curly apostrophes, so compare on a normalised form.
+    $normalise = static fn($text): string => str_replace(['’', '‘'], "'", trim((string) preg_replace('/[\s\x{00A0}\x{202F}]+/u', ' ', (string) $text)));
+    $retired_wrap = array_map($normalise, $retired_wrap);
+    $retired_needs = array_map($normalise, $retired_needs);
     if (is_array($mounting['packSteps'] ?? null)) {
         foreach ($mounting['packSteps'] as $index => $step) {
-            if (is_array($step) && in_array(trim((string) ($step['text'] ?? '')), $retired_wrap, true)) {
+            if (is_array($step) && in_array($normalise($step['text'] ?? ''), $retired_wrap, true)) {
                 $mounting['packSteps'][$index]['text'] = 'Cranes are wrapped in stretch film before they leave the workshop.';
             }
         }
@@ -1649,7 +1653,7 @@ function boblift_site_ui_retire_chassis_delivery_copy(array $merged): array
     if (is_array($mounting['needs'] ?? null)) {
         $mounting['needs'] = array_values(array_filter(
             $mounting['needs'],
-            static fn($need): bool => !in_array(trim((string) $need), $retired_needs, true)
+            static fn($need): bool => !in_array($normalise($need), $retired_needs, true)
         ));
     }
     if ($mounting !== []) {
