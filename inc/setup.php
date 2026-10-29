@@ -88,6 +88,69 @@ function boblift_assets(): void
 }
 add_action('wp_enqueue_scripts', 'boblift_assets');
 
+/*
+ * The rules of theme.css that the site's pages use (one of each template and language, shown before theme.js runs and
+ * after), written by scripts/build-critical-css.js into assets/css/critical.css with the SHA-1 of the theme.css it was cut from on its first line. Only while that still
+ * matches is it used; after any change to theme.css this returns '' and the stylesheet loads exactly as before
+ * (render-blocking in <head>) until the file is rebuilt. Font addresses are made whole: the rules are printed in the page.
+ */
+function boblift_critical_css(): string
+{
+    static $css = null;
+    if ($css !== null) {
+        return $css;
+    }
+    $file = get_template_directory() . '/assets/css/critical.css';
+    $source = get_template_directory() . '/assets/css/theme.css';
+    $css = '';
+    if (!is_readable($file) || !is_readable($source) || (defined('BOBLIFT_CRITICAL_CSS') && !BOBLIFT_CRITICAL_CSS)) {
+        return $css;
+    }
+    $text = (string) file_get_contents($file);
+    $newline = strpos($text, "\n");
+    if ($newline === false || preg_match('/sha1:([0-9a-f]{40})/', substr($text, 0, $newline), $match) !== 1 || !hash_equals($match[1], (string) sha1_file($source))) {
+        return $css;
+    }
+    $body = trim(substr($text, $newline + 1));
+    // Nothing in it may close the <style> element it is printed in.
+    if ($body === '' || stripos($body, '</style') !== false) {
+        return $css;
+    }
+    return $css = str_replace('url(../', 'url(' . get_template_directory_uri() . '/assets/', $body);
+}
+
+/* With the critical rules available theme.css is printed on its own, not merged into a WordPress.com _static bundle. */
+function boblift_theme_css_no_concat($do_concat, $handle = '')
+{
+    return $handle === 'boblift-theme' && boblift_critical_css() !== '' ? false : $do_concat;
+}
+add_filter('css_do_concat', 'boblift_theme_css_no_concat', 10, 2);
+
+/*
+ * theme.css without holding up the first paint: the critical rules are printed in its place, and the full file loads
+ * at the same spot in the cascade as media="print", switched to "all" once it arrives (noscript keeps the plain link).
+ * theme.js measures the layout when it starts (the header menu, carousels, the about page's scroll scenes), so it waits
+ * for the full stylesheet through window.bobliftWhenStyled; if the file fails to load it runs anyway.
+ */
+function boblift_theme_css_tag($tag, $handle = '', $href = '')
+{
+    // A _static bundle may be passed with a list of handles: anything but the theme's own tag is left alone.
+    if ($handle !== 'boblift-theme' || !is_string($tag) || !is_string($href) || $href === '' || is_admin()) {
+        return $tag;
+    }
+    $critical = boblift_critical_css();
+    if ($critical === '') {
+        return $tag;
+    }
+    $gate = 'window.bobliftWhenStyled=function(f){var l=document.getElementById("boblift-theme-css");if(!l||l.media==="all"){f();return}(window.bobliftStyledQueue=window.bobliftStyledQueue||[]).push(f)};';
+    $done = 'this.onload=this.onerror=null;this.media=\'all\';var q=window.bobliftStyledQueue||[];window.bobliftStyledQueue=[];q.forEach(function(f){f()})';
+    return '<style id="boblift-critical-css">' . $critical . "</style>\n"
+        . '<script>' . $gate . "</script>\n"
+        . '<link rel="stylesheet" id="boblift-theme-css" href="' . esc_url($href) . '" media="print" onload="' . esc_attr($done) . '" onerror="' . esc_attr($done) . "\">\n"
+        . '<noscript><link rel="stylesheet" href="' . esc_url($href) . "\"></noscript>\n";
+}
+add_filter('style_loader_tag', 'boblift_theme_css_tag', 10, 3);
+
 function boblift_font_preload(): void
 {
     foreach (['barlow-400-latin.woff2', 'barlow-600-latin.woff2'] as $file) {
@@ -851,6 +914,28 @@ add_action('template_redirect', 'boblift_redirect_category_query_to_category_pag
 add_filter('sharing_show', '__return_false');
 add_filter('wpl_is_likes_visible', '__return_false');
 
+/*
+ * Stylesheets that plugins enqueue for parts of the page this theme never prints: Jetpack's "Share this" buttons and
+ * their logo font (switched off above), Jetpack's comment form (no template calls comments_template()) and the
+ * Gravatar profile-card patterns (no page uses those blocks). Each one is render-blocking in <head>, so a post that loaded
+ * all of them waited about 0.7 s longer on a phone for styles that match nothing. Matched by file rather than by handle,
+ * as the handles are the plugins' own and have changed between releases.
+ */
+function boblift_drop_unused_plugin_styles(): void
+{
+    if (is_admin()) {
+        return;
+    }
+    $styles = wp_styles();
+    foreach ($styles->queue as $handle) {
+        $src = (string) ($styles->registered[$handle]->src ?? '');
+        if (preg_match('~/(?:modules/sharedaddy/sharing\.css|social-logos/social-logos(?:\.min)?\.css|jetpack-comments/build/comments\.css|gravatar-enhanced/build/patterns-[a-z]+\.css)$~', (string) strtok($src, '?'))) {
+            wp_dequeue_style($handle);
+        }
+    }
+}
+add_action('wp_print_styles', 'boblift_drop_unused_plugin_styles', 100);
+
 /**
  * Jetpack's Carousel (the full-screen lightbox for pictures in a post's text) loads whenever any text with a picture
  * goes through the_content, which the home page and the lists do for every card they build. Only the templates that print
@@ -1083,3 +1168,31 @@ function boblift_fill_missing_image_alts(string $content): string {
     return $processor->get_updated_html();
 }
 add_filter('the_content', 'boblift_fill_missing_image_alts', 7);
+
+/*
+ * A video's cover picture (poster) is downloaded with the page even though the video itself waits for a click
+ * (preload="none"), and the editor saves it as the uploaded JPEG. It goes through the image CDN like the article's other
+ * pictures (boblift_image_resized(): WebP where the browser takes it, at most 720 pixels wide, unchanged where the CDN
+ * cannot help), so a post with two vertical videos saves about 200 KB.
+ */
+function boblift_cdn_video_posters(string $content): string
+{
+    if (!str_contains($content, 'poster=') || !class_exists('WP_HTML_Tag_Processor')) {
+        return $content;
+    }
+    $processor = new WP_HTML_Tag_Processor($content);
+    $changed = false;
+    while ($processor->next_tag('video')) {
+        $poster = $processor->get_attribute('poster');
+        if (!is_string($poster) || $poster === '') {
+            continue;
+        }
+        $resized = boblift_image_resized(boblift_image_cdn_original($poster), 720);
+        if ($resized !== $poster && $resized !== boblift_image_cdn_original($poster)) {
+            $processor->set_attribute('poster', $resized);
+            $changed = true;
+        }
+    }
+    return $changed ? $processor->get_updated_html() : $content;
+}
+add_filter('the_content', 'boblift_cdn_video_posters', 8);

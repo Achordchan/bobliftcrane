@@ -8,6 +8,7 @@ This repository is a WordPress classic theme for BOB-LIFT. Templates live at the
 
 - `npm run build:css` — builds minified Tailwind CSS from `assets/css/input.css` to `assets/css/theme.css`.
 - `npm run watch:css` — watches Tailwind classes during active UI work.
+- `npm run build:critical` — after `build:css`, rewrites `assets/css/critical.css` (the theme.css rules printed in `<head>` so theme.css loads after the first paint) from the pages in `scripts/critical-css-pages.txt` on the local site; needs Playwright. A critical.css cut from an older theme.css is ignored and theme.css loads render-blocking again, so rebuild it whenever theme.css changes.
 - `npm run start:wp` — starts local WordPress at `http://localhost:8080` using `.wordpress` as the document root.
 - `php -l path/to/file.php` — checks PHP syntax for edited templates and helpers.
 - `node --check assets/js/theme.js` — checks JavaScript syntax after script changes.

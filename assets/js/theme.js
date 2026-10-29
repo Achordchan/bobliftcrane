@@ -1,3 +1,6 @@
+// Started once theme.css applies: when its critical rules were printed in its place, the full file arrives after the
+// first paint and inc/setup.php's window.bobliftWhenStyled holds this back until then, as it measures the layout.
+(window.bobliftWhenStyled || ((run) => run()))(() => {
 (() => {
   const qs = (selector, root = document) => root.querySelector(selector);
   const qsa = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -4903,3 +4906,4 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();
+});
