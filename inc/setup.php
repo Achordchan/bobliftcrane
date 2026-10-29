@@ -135,8 +135,9 @@ add_filter('css_do_concat', 'boblift_theme_css_no_concat', 10, 2);
  * The switch is one inline script printed through wp_get_inline_script_tag(), so a nonce added there for a Content
  * Security Policy reaches it, and there are no inline event handlers (which such a policy blocks even when scripts
  * carry a nonce). It catches the file however it ends: loaded or failed before the script ran, loading or failing after,
- * or at the latest the page's load event. A policy this response already sends from PHP keeps the plain render-blocking
- * link, as nothing here can tell whether it lets the script run.
+ * or at the latest the page's load event. Should a policy set outside PHP (the web server, a CDN) block it all the same,
+ * theme.js, an ordinary external file, finds the stylesheet still waiting and switches it on itself. A policy this
+ * response already sends from PHP keeps the plain render-blocking link.
  */
 function boblift_theme_css_tag($tag, $handle = '', $href = '')
 {
