@@ -1617,35 +1617,19 @@ function boblift_site_ui_legacy_overrides(array $saved): array
 }
 
 // The mounting page used to offer cranes shipped on a chassis. Saved settings may still hold that copy,
-// in English or in any of the six translations shipped at the time, so swap it for the current default.
+// in English or in a translation saved per language (worded in many ways), so match it by meaning:
+// a packing step that mentions a chassis, and an inquiry question that pairs a chassis with shipping alone.
 function boblift_site_ui_retire_chassis_delivery_copy(array $merged): array
 {
     $mounting = is_array($merged['mountingShipping'] ?? null) ? $merged['mountingShipping'] : [];
-    $retired_wrap = [
-        'Cranes that ship without a chassis are wrapped in stretch film before they leave the workshop.',
-        'シャシーなしで出荷するクレーンは、工場を出る前にストレッチフィルムで包みます。',
-        '不带底盘发货的起重机，出车间前先用缠绕膜包好。',
-        'Las grúas que se envían sin chasis se envuelven con film estirable antes de salir del taller.',
-        'Краны, которые отправляются без шасси, обматывают стретч-плёнкой перед выходом из цеха.',
-        "Les grues expédiées sans châssis sont emballées sous film étirable avant de quitter l'atelier.",
-        'تُلف الرافعات التي تُشحن بدون هيكل شاحنة بغشاء مطاطي قبل مغادرة الورشة.',
-    ];
-    $retired_needs = [
-        'Will the crane ship on its own or mounted on a chassis?',
-        'クレーン単体で出荷しますか、シャシーに架装して出荷しますか。',
-        '起重机单独发货，还是装在底盘上一起发货？',
-        '¿La grúa se enviará sola o montada en un chasis?',
-        'Кран отправляется отдельно или смонтированным на шасси?',
-        'La grue sera-t-elle expédiée seule ou montée sur un châssis ?',
-        'هل ستُشحن الرافعة منفردة أم مركّبة على هيكل؟',
-    ];
-    // Translations may use non-breaking spaces or curly apostrophes, so compare on a normalised form.
-    $normalise = static fn($text): string => str_replace(['’', '‘'], "'", trim((string) preg_replace('/[\s\x{00A0}\x{202F}]+/u', ' ', (string) $text)));
-    $retired_wrap = array_map($normalise, $retired_wrap);
-    $retired_needs = array_map($normalise, $retired_needs);
+    $chassis = '/chassis|châssis|chasis|шасси|底盘|底盤|シャーシ|シャシー|هيكل/iu';
+    $alone = '/on its own|alone|separately|单独|單獨|単体|単独|por separado|\bsola\b|\bsolo\b|отдельно|\bseule?\b|منفرد|وحده|وحدها/iu';
+    // Saved translations may carry non-breaking or repeated spaces, so collapse them before matching.
+    $normalise = static fn($text): string => trim((string) preg_replace('/[\s\x{00A0}\x{202F}]+/u', ' ', (string) $text));
     if (is_array($mounting['packSteps'] ?? null)) {
         foreach ($mounting['packSteps'] as $index => $step) {
-            if (is_array($step) && in_array($normalise($step['text'] ?? ''), $retired_wrap, true)) {
+            $key = is_array($step) ? (string) ($step['key'] ?? 'wrap') : '';
+            if ($key === 'wrap' && preg_match($chassis, $normalise($step['text'] ?? ''))) {
                 $mounting['packSteps'][$index]['text'] = 'Cranes are wrapped in stretch film before they leave the workshop.';
             }
         }
@@ -1653,7 +1637,7 @@ function boblift_site_ui_retire_chassis_delivery_copy(array $merged): array
     if (is_array($mounting['needs'] ?? null)) {
         $mounting['needs'] = array_values(array_filter(
             $mounting['needs'],
-            static fn($need): bool => !in_array($normalise($need), $retired_needs, true)
+            static fn($need): bool => !(preg_match($chassis, $normalise($need)) && preg_match($alone, $normalise($need)))
         ));
     }
     if ($mounting !== []) {
