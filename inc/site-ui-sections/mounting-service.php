@@ -19,7 +19,7 @@ return [
         'packTitle' => 'Packing and container loading',
         'packSteps' => [
             ['key' => 'batch', 'title' => 'Line up the order', 'text' => 'Every crane in an order is tested, set on its base or a pallet and lined up in the hall before packing.'],
-            ['key' => 'wrap', 'title' => 'Wrap the crane', 'text' => 'Cranes that ship without a chassis are wrapped in stretch film before they leave the workshop.'],
+            ['key' => 'wrap', 'title' => 'Wrap the crane', 'text' => 'Cranes are wrapped in stretch film before they leave the workshop.'],
             ['key' => 'load', 'title' => 'Load the container', 'text' => 'A hoist or a forklift moves each packed crane into the container.'],
         ],
         'needsLabel' => 'Before we quote',
@@ -28,7 +28,6 @@ return [
         'needs' => [
             'Which truck or chassis will carry the crane?',
             'Which port or country is it going to?',
-            'Will the crane ship on its own or mounted on a chassis?',
             'Which crane model and lifting capacity do you need?',
         ],
         'ctaTitle' => 'Planning a truck-mounted order?',

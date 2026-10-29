@@ -2161,9 +2161,9 @@
      "original": "Wrap the crane",
      "text": "Envolver la grúa"
     },
-    "225070844eeb": {
-     "original": "Cranes that ship without a chassis are wrapped in stretch film before they leave the workshop.",
-     "text": "Las grúas que se envían sin chasis se envuelven con film estirable antes de salir del taller."
+    "a3c0061a2858": {
+     "original": "Cranes are wrapped in stretch film before they leave the workshop.",
+     "text": "Las grúas se envuelven en film estirable antes de salir del taller."
     },
     "e3d001ca3d2d": {
      "original": "Load the container",
@@ -2192,10 +2192,6 @@
     "2ca9643fade2": {
      "original": "Which port or country is it going to?",
      "text": "¿A qué puerto o país se envía?"
-    },
-    "4789d7d2cc52": {
-     "original": "Will the crane ship on its own or mounted on a chassis?",
-     "text": "¿La grúa se enviará sola o montada en un chasis?"
     },
     "e16637258ffb": {
      "original": "Which crane model and lifting capacity do you need?",

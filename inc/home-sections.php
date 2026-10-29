@@ -107,7 +107,7 @@ function boblift_render_home_faq(): void
         ['What is the minimum order?', 'One unit: you can order a single crane.', null],
         ['Which certificates do you hold?', 'BOB-LIFT holds CE certificates for its cranes, the EAC certificate of conformity, and ISO 9001 and ISO 14001 management certificates. You can view the scans on our About page.', ['All certificates and patents', boblift_url('/about.html#about-certifications')]],
         ['Can I visit the factory before ordering?', 'Yes. Our own 37,000 m² factory is in Xuzhou, Jiangsu, China. Contact us to arrange a visit.', null],
-        ['Can the crane be matched to my truck or vessel?', 'Yes. Tell us your truck chassis or deck layout and the loads you lift, and we configure the crane for it. We can also mount the crane on the truck and arrange export shipping.', null],
+        ['Can the crane be matched to my truck or vessel?', 'Yes. Tell us your truck chassis or deck layout and the loads you lift, and we configure the crane for it. We also arrange export shipping.', null],
         ['Which countries do you export to?', 'BOB-LIFT cranes have been exported to more than 120 countries.', null],
     ];
     $schema = [
