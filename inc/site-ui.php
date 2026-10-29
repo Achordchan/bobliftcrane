@@ -1624,10 +1624,12 @@ function boblift_site_ui_retire_chassis_delivery_copy(array $merged): array
     $mounting = is_array($merged['mountingShipping'] ?? null) ? $merged['mountingShipping'] : [];
     $chassis = '/chassis|châssis|chasis|шасси|底盘|底盤|シャーシ|シャシー|هيكل/iu';
     $alone = '/on its own|alone|separately|单独|單獨|単体|単独|por separado|\bsola\b|\bsolo\b|отдельно|\bseule?\b|منفرد|وحده|وحدها/iu';
+    // Saved translations may carry non-breaking or repeated spaces, so collapse them before matching.
+    $normalise = static fn($text): string => trim((string) preg_replace('/[\s\x{00A0}\x{202F}]+/u', ' ', (string) $text));
     if (is_array($mounting['packSteps'] ?? null)) {
         foreach ($mounting['packSteps'] as $index => $step) {
             $key = is_array($step) ? (string) ($step['key'] ?? 'wrap') : '';
-            if ($key === 'wrap' && preg_match($chassis, (string) ($step['text'] ?? ''))) {
+            if ($key === 'wrap' && preg_match($chassis, $normalise($step['text'] ?? ''))) {
                 $mounting['packSteps'][$index]['text'] = 'Cranes are wrapped in stretch film before they leave the workshop.';
             }
         }
@@ -1635,7 +1637,7 @@ function boblift_site_ui_retire_chassis_delivery_copy(array $merged): array
     if (is_array($mounting['needs'] ?? null)) {
         $mounting['needs'] = array_values(array_filter(
             $mounting['needs'],
-            static fn($need): bool => !(preg_match($chassis, (string) $need) && preg_match($alone, (string) $need))
+            static fn($need): bool => !(preg_match($chassis, $normalise($need)) && preg_match($alone, $normalise($need)))
         ));
     }
     if ($mounting !== []) {
