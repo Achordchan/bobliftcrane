@@ -37,3 +37,14 @@
 /ru/
 /es/
 /fr/
+/?s=crane
+/?s=zzqxv
+/?s=
+/ar/?s=crane
+/success.html
+/terms-of-use.html
+/news.html?news_category=company-news
+/industry-insight.html
+/marine-solution.html
+/public-welfare.html
+/20-units-delivered-in-a-batch-setting-a-new-standard-for-efficient-operations-id07709265.html

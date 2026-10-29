@@ -108,7 +108,8 @@ function buildCritical(css, kept) {
   }
   const body = root.toString().replace(/\n/g, '');
   if (/<\/style/i.test(body)) throw new Error('theme.css contains "</style"; it cannot be printed in the page.');
-  const hash = crypto.createHash('sha1').update(fs.readFileSync(THEME_CSS)).digest('hex');
+  // The hash of the very text the rules were cut from, so a theme.css rebuilt meanwhile never vouches for them.
+  const hash = crypto.createHash('sha1').update(css).digest('hex');
   return `/*! theme.css sha1:${hash} */\n${body}\n`;
 }
 
@@ -140,6 +141,11 @@ async function main() {
   await browser.close();
   if (process.exitCode) {
     console.error('\nNot written: every page must load.');
+    return;
+  }
+  if (fs.readFileSync(THEME_CSS, 'utf8') !== css) {
+    console.error('\ntheme.css changed while the pages were read; not written. Run this again once it is built.');
+    process.exitCode = 1;
     return;
   }
   const output = buildCritical(css, kept);
