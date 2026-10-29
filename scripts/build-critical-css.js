@@ -126,12 +126,22 @@ async function main() {
   for (const { path: page, status } of pages) {
     for (const viewport of VIEWPORTS) {
       const context = await browser.newContext({ viewport, reducedMotion: 'reduce' });
+      // The page gets the very theme.css read above (and hashed below), whatever copy the site would serve; a page that
+      // does not ask for it on its own (a combined _static bundle, say) cannot be measured against it and stops the build.
+      let servedThemeCss = 0;
+      await context.route(/\/assets\/css\/theme\.css(?:\?|$)/, (route) => {
+        servedThemeCss++;
+        return route.fulfill({ status: 200, contentType: 'text/css; charset=utf-8', body: css });
+      });
       const tab = await context.newPage();
       try {
         const response = await tab.goto(site + page, { waitUntil: 'load', timeout: 120000 });
         // An error page in place of the template would leave that template's rules out, so a wrong status stops the build.
         if (!response || response.status() !== status) throw new Error(`answered ${response ? response.status() : 'nothing'}, expected ${status}`);
         await tab.waitForTimeout(1500);
+        if (!servedThemeCss) throw new Error('never requested assets/css/theme.css on its own');
+        // Rules from an older critical.css printed by the site must not decide what counts as shown.
+        await tab.evaluate(() => document.getElementById('boblift-critical-css')?.remove());
         (await tab.evaluate(collectInPage, { selectors })).forEach((index) => kept.add(index));
         process.stdout.write('.');
       } catch (error) {
