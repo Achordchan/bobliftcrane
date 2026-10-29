@@ -1617,7 +1617,7 @@ function boblift_site_ui_legacy_overrides(array $saved): array
 }
 
 // The mounting page used to offer cranes shipped on a chassis. Saved settings may still hold that copy,
-// in English or in the translation that was saved at the time, so swap it for the current default.
+// in English or in any of the six translations shipped at the time, so swap it for the current default.
 function boblift_site_ui_retire_chassis_delivery_copy(array $merged): array
 {
     $mounting = is_array($merged['mountingShipping'] ?? null) ? $merged['mountingShipping'] : [];
@@ -1625,11 +1625,19 @@ function boblift_site_ui_retire_chassis_delivery_copy(array $merged): array
         'Cranes that ship without a chassis are wrapped in stretch film before they leave the workshop.',
         'シャシーなしで出荷するクレーンは、工場を出る前にストレッチフィルムで包みます。',
         '不带底盘发货的起重机，出车间前先用缠绕膜包好。',
+        'Las grúas que se envían sin chasis se envuelven con film estirable antes de salir del taller.',
+        'Краны, которые отправляются без шасси, обматывают стретч-плёнкой перед выходом из цеха.',
+        "Les grues expédiées sans châssis sont emballées sous film étirable avant de quitter l'atelier.",
+        'تُلف الرافعات التي تُشحن بدون هيكل شاحنة بغشاء مطاطي قبل مغادرة الورشة.',
     ];
     $retired_needs = [
         'Will the crane ship on its own or mounted on a chassis?',
         'クレーン単体で出荷しますか、シャシーに架装して出荷しますか。',
         '起重机单独发货，还是装在底盘上一起发货？',
+        '¿La grúa se enviará sola o montada en un chasis?',
+        'Кран отправляется отдельно или смонтированным на шасси?',
+        'La grue sera-t-elle expédiée seule ou montée sur un châssis ?',
+        'هل ستُشحن الرافعة منفردة أم مركّبة على هيكل؟',
     ];
     if (is_array($mounting['packSteps'] ?? null)) {
         foreach ($mounting['packSteps'] as $index => $step) {
