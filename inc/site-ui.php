@@ -1616,6 +1616,40 @@ function boblift_site_ui_legacy_overrides(array $saved): array
     return $overrides;
 }
 
+// The mounting page used to offer cranes shipped on a chassis. Saved settings may still hold that copy,
+// in English or in the translation that was saved at the time, so swap it for the current default.
+function boblift_site_ui_retire_chassis_delivery_copy(array $merged): array
+{
+    $mounting = is_array($merged['mountingShipping'] ?? null) ? $merged['mountingShipping'] : [];
+    $retired_wrap = [
+        'Cranes that ship without a chassis are wrapped in stretch film before they leave the workshop.',
+        'シャシーなしで出荷するクレーンは、工場を出る前にストレッチフィルムで包みます。',
+        '不带底盘发货的起重机，出车间前先用缠绕膜包好。',
+    ];
+    $retired_needs = [
+        'Will the crane ship on its own or mounted on a chassis?',
+        'クレーン単体で出荷しますか、シャシーに架装して出荷しますか。',
+        '起重机单独发货，还是装在底盘上一起发货？',
+    ];
+    if (is_array($mounting['packSteps'] ?? null)) {
+        foreach ($mounting['packSteps'] as $index => $step) {
+            if (is_array($step) && in_array(trim((string) ($step['text'] ?? '')), $retired_wrap, true)) {
+                $mounting['packSteps'][$index]['text'] = 'Cranes are wrapped in stretch film before they leave the workshop.';
+            }
+        }
+    }
+    if (is_array($mounting['needs'] ?? null)) {
+        $mounting['needs'] = array_values(array_filter(
+            $mounting['needs'],
+            static fn($need): bool => !in_array(trim((string) $need), $retired_needs, true)
+        ));
+    }
+    if ($mounting !== []) {
+        $merged['mountingShipping'] = $mounting;
+    }
+    return $merged;
+}
+
 function boblift_site_ui(?string $section = null): array
 {
     static $cache = [];
@@ -1630,6 +1664,7 @@ function boblift_site_ui(?string $section = null): array
         $raw_site_ui = is_array($raw['site_ui'] ?? null) ? $raw['site_ui'] : [];
         $overrides = boblift_site_ui_legacy_overrides($raw_site_ui);
         $merged = array_replace_recursive($merged, $overrides);
+        $merged = boblift_site_ui_retire_chassis_delivery_copy($merged);
         // Saved (or migrated) filter bins replace the default list rather than merging into it: their keys are the ranges.
         $raw_archive = is_array($raw_site_ui['productArchive'] ?? null) ? $raw_site_ui['productArchive'] : [];
         foreach (['capacityBins', 'momentBins', 'weightBins'] as $bins_key) {
