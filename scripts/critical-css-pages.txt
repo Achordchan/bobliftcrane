@@ -1,5 +1,6 @@
 # Pages scripts/build-critical-css.js reads (one path per line); one of each template, in English, Arabic (right-to-left)
-# and the other languages' home pages, so the critical rules cover every page's top.
+# and the other languages' home pages, so the critical rules cover every page's top. A number after a path is the HTTP
+# status it must answer with (200 when left out); any other answer stops the build.
 /
 /products.html
 /telescopic-boom-truck-mounted-cranes
@@ -27,7 +28,7 @@
 /quality-testing.html
 /mounting-shipping.html
 /telescopic-spider-crane.html
-/no-such-page-xyz.html
+/no-such-page-xyz.html 404
 /ar/
 /ar/10-ton-crane.html
 /ar/about.html

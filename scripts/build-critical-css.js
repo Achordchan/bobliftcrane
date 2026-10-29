@@ -117,16 +117,20 @@ async function main() {
   const site = (process.argv[2] || 'http://localhost:8080').replace(/\/$/, '');
   const css = fs.readFileSync(THEME_CSS, 'utf8');
   const selectors = styleRules(postcss.parse(css)).map((rule) => rule.selectors);
-  const pages = fs.readFileSync(PAGES, 'utf8').split('\n').map((line) => line.trim()).filter((line) => line && !line.startsWith('#'));
+  // One path per line, optionally followed by the HTTP status it must answer with (200 when left out).
+  const pages = fs.readFileSync(PAGES, 'utf8').split('\n').map((line) => line.trim()).filter((line) => line && !line.startsWith('#'))
+    .map((line) => { const [pagePath, status] = line.split(/\s+/); return { path: pagePath, status: Number(status || 200) }; });
   const { chromium } = require('playwright');
   const browser = await chromium.launch();
   const kept = new Set();
-  for (const page of pages) {
+  for (const { path: page, status } of pages) {
     for (const viewport of VIEWPORTS) {
       const context = await browser.newContext({ viewport, reducedMotion: 'reduce' });
       const tab = await context.newPage();
       try {
-        await tab.goto(site + page, { waitUntil: 'load', timeout: 120000 });
+        const response = await tab.goto(site + page, { waitUntil: 'load', timeout: 120000 });
+        // An error page in place of the template would leave that template's rules out, so a wrong status stops the build.
+        if (!response || response.status() !== status) throw new Error(`answered ${response ? response.status() : 'nothing'}, expected ${status}`);
         await tab.waitForTimeout(1500);
         (await tab.evaluate(collectInPage, { selectors })).forEach((index) => kept.add(index));
         process.stdout.write('.');
