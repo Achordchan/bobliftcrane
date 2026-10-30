@@ -4903,3 +4903,126 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();
+
+// Language suggestion: when the visitor's browser prefers another language the site has, and this page has a copy in it
+// (the hreflang links in the head), a small card offers that copy. Nothing redirects, so search engines and the page cache
+// see every page as before. Closing the card, taking it, or picking a language in the header menu is remembered.
+(() => {
+  const STORAGE_KEY = 'bobliftLanguageChoice';
+  // Each card speaks the language it offers, so these cannot come from the page's own translations.
+  const MESSAGES = {
+    en: { text: 'This page is also available in English.', action: 'View in English', close: 'Close' },
+    ja: { text: 'このページは日本語でもご覧いただけます。', action: '日本語版を表示', close: '閉じる' },
+    zh: { text: '本页面也有中文版本。', action: '查看中文版本', close: '关闭' },
+    es: { text: 'Esta página también está disponible en español.', action: 'Ver en español', close: 'Cerrar' },
+    ru: { text: 'Эта страница также доступна на русском языке.', action: 'Просмотреть на русском языке', close: 'Закрыть' },
+    fr: { text: 'Cette page est également disponible en français.', action: 'Afficher en français', close: 'Fermer' },
+    ar: { text: 'هذه الصفحة متاحة أيضًا باللغة العربية.', action: 'عرض باللغة العربية', close: 'إغلاق' }
+  };
+  const RTL = ['ar'];
+  const primary = (tag) => String(tag || '').trim().toLowerCase().split(/[-_]/)[0];
+
+  const remember = (language) => {
+    try { localStorage.setItem(STORAGE_KEY, language); } catch { /* asked again on the next page */ }
+  };
+  const remembered = () => {
+    try { return localStorage.getItem(STORAGE_KEY); } catch { return 'unknown'; }
+  };
+  const report = (action, language) => {
+    if (typeof window.gtag === 'function') window.gtag('event', 'language_suggestion', { suggestion_action: action, suggested_language: language, transport_type: 'beacon' });
+  };
+
+  // The page's copies by language, from the same hreflang links search engines read (x-default is left out).
+  const copies = () => {
+    const found = {};
+    document.querySelectorAll('link[rel="alternate"][hreflang][href]').forEach((link) => {
+      const language = primary(link.hreflang);
+      if (MESSAGES[language] && !found[language]) found[language] = link.href;
+    });
+    return found;
+  };
+
+  // The first browser language the site has decides; one that is this page's language means no card.
+  const suggestion = () => {
+    const current = primary(document.documentElement.lang) || 'en';
+    const preferred = (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language]).map(primary);
+    const wanted = preferred.find((language) => MESSAGES[language]);
+    if (!wanted || wanted === current) return null;
+    const href = copies()[wanted];
+    if (!href || new URL(href, location.href).pathname === location.pathname) return null;
+    return { current, language: wanted, href };
+  };
+
+  const show = ({ current, language, href }) => {
+    const words = MESSAGES[language];
+    const card = document.createElement('aside');
+    // Fixed to the page's start corner whatever the card's own direction, clear of the back-to-top button at the other.
+    const side = document.documentElement.dir === 'rtl' ? 'lg:right-[48px]' : 'lg:left-[48px]';
+    card.className = `boblift-language-suggest fixed inset-x-4 z-[260] translate-y-3 rounded border border-line bg-white p-4 pe-14 text-ink opacity-0 shadow-raised transition duration-300 motion-reduce:transition-none lg:inset-x-auto lg:bottom-8 lg:w-[400px] ${side}`;
+    card.lang = language;
+    card.dir = RTL.includes(language) ? 'rtl' : 'ltr';
+    card.setAttribute('aria-label', words.text);
+    card.innerHTML = '<p class="text-sm font-semibold leading-6" data-language-suggest-text></p>'
+      + '<a class="mt-3 inline-flex min-h-11 items-center rounded-sm bg-navy px-4 text-sm font-black text-white transition hover:bg-[#0b2d5b] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/30" data-language-suggest-accept></a>'
+      + '<button class="absolute end-1.5 top-1.5 grid size-11 place-items-center rounded-sm text-slate-500 transition hover:bg-mist hover:text-ink focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/20" type="button" data-language-suggest-close><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>';
+    card.querySelector('[data-language-suggest-text]').textContent = words.text;
+    const accept = card.querySelector('[data-language-suggest-accept]');
+    accept.textContent = words.action;
+    accept.href = href;
+    accept.hreflang = language;
+    const close = card.querySelector('[data-language-suggest-close]');
+    close.setAttribute('aria-label', words.close);
+
+    // Below 1024px the contact bar sits along the bottom edge; the card stays just above it.
+    const bar = document.querySelector('.boblift-floating-contact-bar');
+    const place = () => {
+      const docked = window.innerWidth < 1024 && bar && bar.getBoundingClientRect().height > 0;
+      card.style.bottom = docked ? `${Math.round(bar.getBoundingClientRect().height) + 12}px` : '';
+    };
+    place();
+    window.addEventListener('resize', place, { passive: true });
+
+    const hide = () => {
+      card.classList.add('opacity-0', 'translate-y-3');
+      window.removeEventListener('resize', place);
+      window.setTimeout(() => card.remove(), 300);
+    };
+    accept.addEventListener('click', () => {
+      remember(language);
+      report('accept', language);
+    });
+    close.addEventListener('click', () => {
+      remember(current);
+      report('dismiss', language);
+      hide();
+    });
+    card.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') close.click();
+    });
+
+    // The cookie notice (inc/consent.php) shares the corner and comes first: the card steps aside while it is open.
+    const consent = document.querySelector('[data-consent-banner]');
+    if (consent) {
+      const stepAside = () => { card.style.display = consent.hidden ? '' : 'none'; };
+      stepAside();
+      new MutationObserver(stepAside).observe(consent, { attributes: true, attributeFilter: ['hidden'] });
+    }
+
+    document.body.append(card);
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => card.classList.remove('opacity-0', 'translate-y-3')));
+  };
+
+  const init = () => {
+    // A language picked in the header menu is the visitor's answer too.
+    document.addEventListener('click', (event) => {
+      const link = event.target instanceof Element ? event.target.closest('#language-menu a[hreflang]') : null;
+      if (link) remember(primary(link.getAttribute('hreflang')));
+    });
+    // Crawlers see every page as it is, without the card.
+    if (/bot|crawl|spider|slurp/i.test(navigator.userAgent) || remembered()) return;
+    const offer = suggestion();
+    if (offer) window.setTimeout(() => show(offer), 1200);
+  };
+  if (document.readyState === 'complete') init();
+  else window.addEventListener('load', init, { once: true });
+})();
