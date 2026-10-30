@@ -4990,6 +4990,7 @@
     accept.addEventListener('click', () => {
       remember(language);
       report('accept', language);
+      hide();
     });
     close.addEventListener('click', () => {
       remember(current);
@@ -5016,6 +5017,11 @@
   document.addEventListener('click', (event) => {
     const link = event.target instanceof Element ? event.target.closest('#language-menu a[hreflang]') : null;
     if (link) remember(primary(link.getAttribute('hreflang')));
+  });
+
+  // A page restored from the back/forward cache keeps its card; drop it once a choice has been saved (e.g. in another tab).
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted && remembered()) document.querySelectorAll('.boblift-language-suggest').forEach((card) => card.remove());
   });
 
   const init = () => {
