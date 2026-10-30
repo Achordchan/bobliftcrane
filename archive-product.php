@@ -347,7 +347,36 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
             'attrs' => 'data-product-banner data-banner-default="' . esc_attr(wp_json_encode($banner_default, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)) . '" data-banner-categories="' . esc_attr(wp_json_encode($banner_categories, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)) . '"',
         ]);
         $filter_bar();
+        // Phones and tablets have no filter bar: a category page shows its sub-categories (a sub-category page its
+        // siblings) as tap targets, the all-products list its categories, so they stay one tap away instead of behind Filter.
+        $mobile_parent = null;
+        foreach ($category_filter_tree as $item) {
+            if ($item['slug'] === $active_parent && !empty($item['children'])) {
+                $mobile_parent = $item;
+            }
+        }
+        $mobile_category_links = [];
+        if ($mobile_parent) {
+            $mobile_category_links[] = [(string) $mobile_parent['slug'], (string) ($archive_ui['allInCategoryLabel'] ?? 'All'), (int) ($mobile_parent['count'] ?? 0)];
+            foreach ($mobile_parent['children'] as $child) {
+                $child_slug = (string) ($child['slug'] ?? '');
+                if (($category_counts[$child_slug] ?? 0) > 0) {
+                    $mobile_category_links[] = [$child_slug, (string) ($child['title'] ?? $child_slug), (int) $category_counts[$child_slug]];
+                }
+            }
+        } elseif ($on_all_products) {
+            foreach ($category_filter_tree as $item) {
+                $mobile_category_links[] = [(string) $item['slug'], (string) $item['title'], (int) ($item['count'] ?? 0)];
+            }
+        }
         ?>
+        <?php if (count($mobile_category_links) > 1) : ?>
+            <nav class="mb-4 grid grid-cols-2 gap-2 md:flex md:flex-wrap lg:hidden" aria-label="<?php echo esc_attr($mobile_parent ? (string) $mobile_parent['title'] : ($archive_ui['categoryFilterLabel'] ?? 'Product Category')); ?>" data-category-mobile-tabs>
+                <?php foreach ($mobile_category_links as [$link_slug, $link_label, $link_count]) : ?>
+                    <a class="boblift-category-subtab h-auto min-h-11 justify-between py-2 leading-tight" href="<?php echo esc_url($category_link($link_slug)); ?>" data-category-link="<?php echo esc_attr($link_slug); ?>"<?php echo $current_attr($link_slug === $initial_category); ?>><span class="min-w-0"><?php echo esc_html($link_label); ?></span><span class="shrink-0" data-tab-count><?php echo esc_html((string) $link_count); ?></span></a>
+                <?php endforeach; ?>
+            </nav>
+        <?php endif; ?>
         <?php if ($capacity_links) : ?>
             <nav id="by-capacity" class="mb-6 flex scroll-mt-6 items-center gap-3 lg:mb-7" aria-label="<?php echo esc_attr(boblift_localized_static_text('Browse by capacity')); ?>">
                 <span class="shrink-0 text-sm font-black text-slate-500"><?php echo esc_html(boblift_localized_static_text('Browse by capacity')); ?></span>
