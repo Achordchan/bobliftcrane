@@ -114,6 +114,11 @@ function boblift_language_options(): array
         return boblift_mls_language_visible_in_switcher($code);
     }));
 
+    // The switcher lists languages by market priority rather than Polylang's own order; a language not named here goes last.
+    $order = array_flip(['en', 'es', 'zh', 'ru', 'fr', 'ar', 'ja']);
+    $position = static fn(array $language): int => $order[(string) ($language['slug'] ?? '')] ?? count($order);
+    usort($languages, static fn(array $a, array $b): int => $position($a) <=> $position($b));
+
     return array_values(array_map(static function (array $language) use ($markets, $regional_market): array {
         $code = (string) ($language['slug'] ?? 'en');
         return [
