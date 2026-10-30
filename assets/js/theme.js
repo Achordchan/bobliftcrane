@@ -4958,7 +4958,7 @@
     const card = document.createElement('aside');
     // Fixed to the page's start corner whatever the card's own direction, clear of the back-to-top button at the other.
     const side = document.documentElement.dir === 'rtl' ? 'lg:right-[48px]' : 'lg:left-[48px]';
-    card.className = `boblift-language-suggest fixed inset-x-4 z-[260] translate-y-3 rounded border border-line bg-white p-4 pe-14 text-ink opacity-0 shadow-raised transition duration-300 motion-reduce:transition-none lg:inset-x-auto lg:bottom-8 lg:w-[400px] ${side}`;
+    card.className = `boblift-language-suggest fixed inset-x-4 bottom-4 z-[260] translate-y-3 rounded border border-line bg-white p-4 pe-14 text-ink opacity-0 shadow-raised transition duration-300 motion-reduce:transition-none lg:inset-x-auto lg:bottom-8 lg:w-[400px] ${side}`;
     card.lang = language;
     card.dir = RTL.includes(language) ? 'rtl' : 'ltr';
     card.setAttribute('aria-label', words.text);
@@ -4973,7 +4973,7 @@
     const close = card.querySelector('[data-language-suggest-close]');
     close.setAttribute('aria-label', words.close);
 
-    // Below 1024px the contact bar sits along the bottom edge; the card stays just above it.
+    // Below 1024px the contact bar sits along the bottom edge; the card stays just above it (bottom-4 when there is none).
     const bar = document.querySelector('.boblift-floating-contact-bar');
     const place = () => {
       const docked = window.innerWidth < 1024 && bar && bar.getBoundingClientRect().height > 0;
@@ -5012,12 +5012,13 @@
     window.requestAnimationFrame(() => window.requestAnimationFrame(() => card.classList.remove('opacity-0', 'translate-y-3')));
   };
 
+  // A language picked in the header menu is the visitor's answer too, even before the page has finished loading.
+  document.addEventListener('click', (event) => {
+    const link = event.target instanceof Element ? event.target.closest('#language-menu a[hreflang]') : null;
+    if (link) remember(primary(link.getAttribute('hreflang')));
+  });
+
   const init = () => {
-    // A language picked in the header menu is the visitor's answer too.
-    document.addEventListener('click', (event) => {
-      const link = event.target instanceof Element ? event.target.closest('#language-menu a[hreflang]') : null;
-      if (link) remember(primary(link.getAttribute('hreflang')));
-    });
     // Crawlers see every page as it is, without the card.
     if (/bot|crawl|spider|slurp/i.test(navigator.userAgent) || remembered()) return;
     const offer = suggestion();
