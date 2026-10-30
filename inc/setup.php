@@ -100,7 +100,7 @@ add_action('wp_head', 'boblift_font_preload', 2);
 
 function boblift_localize_seo_text(string $text): string
 {
-    // English search text is written as it should appear; the phrase map would turn "Ship Cranes" into "Marine Crane".
+    // English search text is written as it should appear; the phrase map would turn "Cranes for Truck" into "Truck Mounted Crane".
     if ($text === '' || (function_exists('boblift_current_language_slug') && boblift_current_language_slug() === 'en')) {
         return $text;
     }

@@ -700,7 +700,8 @@ function boblift_product_phrase_translation_map(): array
         'truck-mounted-crane' => ['Truck Mounted Crane', 'Truck Mounted Cranes', 'Cranes for Truck'],
         'knuckle-boom-truck-mounted-cranes' => ['Knuckle Boom Truck Mounted Crane', 'Knuckle Boom Truck Mounted Cranes'],
         'telescopic-boom-truck-mounted-cranes' => ['Telescopic Boom Truck Mounted Crane', 'Telescopic Boom Truck Mounted Cranes'],
-        'marine-crane' => ['Marine Crane', 'Marine Cranes', 'Ship Crane', 'Ship Cranes'],
+        // "Ship Crane" is a different search term, not an old name: articles that target it must keep it.
+        'marine-crane' => ['Marine Crane', 'Marine Cranes'],
         'knuckle-boom-marine-cranes' => ['Knuckle Boom Marine Crane', 'Knuckle Boom Marine Cranes'],
         'telescopic-boom-marine-cranes' => ['Telescopic Boom Marine Crane', 'Telescopic Boom Marine Cranes'],
         'pickup-cranes' => ['Pickup Crane', 'Pickup Cranes'],
