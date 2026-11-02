@@ -28,6 +28,10 @@ return [
                 'title' => 'Spider Cranes Brochure',
                 'text' => 'Compact crawler spider cranes from the BLS and BLZ series, with working radius, lifting height and weight.',
             ],
+            'electric' => [
+                'title' => 'Electric Mini Cranes Brochure',
+                'text' => 'SQ1Z-E and SQ2Z-E electric mini cranes, 1 and 2 ton, with load charts, bolt patterns and remote or lever control.',
+            ],
         ],
     ],
 ];

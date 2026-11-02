@@ -18,6 +18,8 @@ return [
         'Knuckle boom and telescopic marine cranes with load charts, dimension drawings, power systems and project cases.' => '折りたたみ式・伸縮ブーム式の船用クレーンを、荷重表、寸法図、動力システム、納入事例とともに掲載しています。',
         'Spider Cranes Brochure' => 'スパイダークレーン カタログ',
         'Compact crawler spider cranes from the BLS and BLZ series, with working radius, lifting height and weight.' => 'BLS・BLZ シリーズのコンパクトなクローラー式スパイダークレーンを、作業半径、揚程、質量とともに掲載しています。',
+        'Electric Mini Cranes Brochure' => '電動ミニクレーン カタログ',
+        'SQ1Z-E and SQ2Z-E electric mini cranes, 1 and 2 ton, with load charts, bolt patterns and remote or lever control.' => 'SQ1Z-E・SQ2Z-E 電動ミニクレーン（1 トン・2 トン）を、荷重表、ボルト配置図、リモコン／レバー操作とともに掲載しています。',
     ],
     'zh' => [
         'Brochures' => '产品册',
@@ -37,5 +39,23 @@ return [
         'Knuckle boom and telescopic marine cranes with load charts, dimension drawings, power systems and project cases.' => '折臂式和伸缩臂式船用起重机，附起重性能表、外形尺寸图、动力系统和项目案例。',
         'Spider Cranes Brochure' => '蜘蛛吊产品册',
         'Compact crawler spider cranes from the BLS and BLZ series, with working radius, lifting height and weight.' => 'BLS、BLZ 系列履带式小型蜘蛛吊，列出工作半径、起升高度和整机重量。',
+        'Electric Mini Cranes Brochure' => '电动小吊机产品册',
+        'SQ1Z-E and SQ2Z-E electric mini cranes, 1 and 2 ton, with load charts, bolt patterns and remote or lever control.' => 'SQ1Z-E、SQ2Z-E 电动小吊机（1 吨、2 吨），附起重性能表、安装螺栓图，可选遥控或手柄操作。',
+    ],
+    'es' => [
+        'Electric Mini Cranes Brochure' => 'Folleto de minigrúas eléctricas',
+        'SQ1Z-E and SQ2Z-E electric mini cranes, 1 and 2 ton, with load charts, bolt patterns and remote or lever control.' => 'Minigrúas eléctricas SQ1Z-E y SQ2Z-E, de 1 y 2 toneladas, con tablas de carga, esquemas de fijación y mando a distancia o mediante palanca.',
+    ],
+    'fr' => [
+        'Electric Mini Cranes Brochure' => 'Brochure des mini-grues électriques',
+        'SQ1Z-E and SQ2Z-E electric mini cranes, 1 and 2 ton, with load charts, bolt patterns and remote or lever control.' => 'Mini-grues électriques SQ1Z-E et SQ2Z-E, d\'une capacité de 1 et 2 tonnes, avec tableaux de charge, gabarits de boulonnage et commande à distance ou par levier.',
+    ],
+    'ru' => [
+        'Electric Mini Cranes Brochure' => 'Брошюра: электрические мини-краны',
+        'SQ1Z-E and SQ2Z-E electric mini cranes, 1 and 2 ton, with load charts, bolt patterns and remote or lever control.' => 'Электрические мини-краны SQ1Z-E и SQ2Z-E грузоподъемностью 1 и 2 тонны, с таблицами грузоподъемности, схемами расположения болтов и дистанционным или рычажным управлением.',
+    ],
+    'ar' => [
+        'Electric Mini Cranes Brochure' => 'كتيب الرافعات الكهربائية الصغيرة',
+        'SQ1Z-E and SQ2Z-E electric mini cranes, 1 and 2 ton, with load charts, bolt patterns and remote or lever control.' => 'الرافعات الكهربائية الصغيرة من طرازي SQ1Z-E وSQ2Z-E، بسعة 1 و2 طن، مزودة بجداول الحمولة، وأنماط تثبيت البراغي، والتحكم عن بُعد أو بواسطة ذراع التحكم.',
     ],
 ];
