@@ -7,6 +7,8 @@ if (!defined('ABSPATH')) {
  * Downloadable brochures. The PDFs live in assets/downloads/ and are built from the print brochures
  * (contact block already carries the public phone number). Copy comes from inc/site-ui-sections/brochures.php.
  * "pages" is the PDF page count (each PDF page is a two-page spread, except the spider leaflet).
+ * A brochure with "attachment" lives in the media library instead: the value is the attachment's slug, and the card
+ * only shows once that PDF has been uploaded (so the theme can ship before the file).
  */
 function boblift_brochure_files(): array
 {
@@ -14,6 +16,7 @@ function boblift_brochure_files(): array
         'truck' => ['file' => 'bob-lift-truck-mounted-cranes-2026.pdf', 'cover' => 'images/brochures/bob-lift-truck-mounted-cranes-2026-cover.webp', 'pages' => 22],
         'marine' => ['file' => 'bob-lift-marine-cranes-2026.pdf', 'cover' => 'images/brochures/bob-lift-marine-cranes-2026-cover.webp', 'pages' => 12],
         'spider' => ['file' => 'bob-lift-spider-cranes-2026.pdf', 'cover' => 'images/brochures/bob-lift-spider-cranes-2026-cover.webp', 'pages' => 2],
+        'electric' => ['attachment' => 'bob-lift-electric-mini-cranes-2026', 'file' => 'bob-lift-electric-mini-cranes-2026.pdf', 'cover' => 'images/brochures/bob-lift-electric-mini-cranes-2026-cover.webp', 'pages' => 8],
     ];
 }
 
@@ -48,6 +51,9 @@ function boblift_brochure_family_of_source_slug(string $source): string
     if ($source === 'spider-cranes') {
         return 'spider';
     }
+    if ($source === 'electric-mini-cranes') {
+        return 'electric';
+    }
     if ($source === 'truck-mounted-crane' || str_ends_with($source, 'truck-mounted-cranes') || in_array($source, ['pickup-cranes', 'timber-cranes', 'forklift-fly-jib-cranes'], true)) {
         return 'truck';
     }
@@ -77,22 +83,49 @@ function boblift_brochure_items(array $families = []): array
         if ($families && !in_array($key, $families, true)) {
             continue;
         }
-        $path = get_template_directory() . '/assets/downloads/' . $definition['file'];
-        if (!is_readable($path)) {
+        $source = boblift_brochure_source($definition);
+        if (!$source) {
             continue;
         }
         $items[$key] = [
             'key' => $key,
             'title' => (string) ($copy[$key]['title'] ?? $key),
             'text' => (string) ($copy[$key]['text'] ?? ''),
-            'url' => boblift_asset('downloads/' . $definition['file']),
+            'url' => $source['url'],
             'file' => $definition['file'],
             'cover' => boblift_asset($definition['cover']),
             'pages' => (int) $definition['pages'],
-            'size' => size_format((int) filesize($path), 1),
+            'size' => $source['size'],
         ];
     }
     return $items;
+}
+
+/** Where a brochure's PDF is: url and formatted size, or null when the file is not there (yet). */
+function boblift_brochure_source(array $definition): ?array
+{
+    $slug = (string) ($definition['attachment'] ?? '');
+    if ($slug === '') {
+        $path = get_template_directory() . '/assets/downloads/' . $definition['file'];
+        return is_readable($path) ? ['url' => boblift_asset('downloads/' . $definition['file']), 'size' => size_format((int) filesize($path), 1)] : null;
+    }
+    static $found = [];
+    if (!array_key_exists($slug, $found)) {
+        $found[$slug] = null;
+        $ids = get_posts(['post_type' => 'attachment', 'post_status' => 'inherit', 'name' => $slug, 'post_mime_type' => 'application/pdf', 'posts_per_page' => 1, 'fields' => 'ids', 'no_found_rows' => true, 'suppress_filters' => true]);
+        $id = (int) ($ids[0] ?? 0);
+        $url = $id ? (string) wp_get_attachment_url($id) : '';
+        if ($url !== '') {
+            $meta = wp_get_attachment_metadata($id);
+            $bytes = (int) (is_array($meta) ? ($meta['filesize'] ?? 0) : 0);
+            if (!$bytes) {
+                $file = get_attached_file($id);
+                $bytes = $file && is_readable($file) ? (int) filesize($file) : 0;
+            }
+            $found[$slug] = ['url' => $url, 'size' => $bytes ? size_format($bytes, 1) : ''];
+        }
+    }
+    return $found[$slug];
 }
 
 /**
@@ -146,6 +179,7 @@ function boblift_render_brochures(array $args = []): void
                 str_replace('{count}', (string) $item['pages'], (string) ($ui['pagesLabel'] ?? '{count} pages')),
                 (string) $item['size'],
             ];
+            $meta = array_values(array_filter($meta, 'strlen'));
             ?>
             <?php // On a product page the one brochure is the whole block: its cover beside its title, no card inside the card. ?>
             <div class="grid grid-cols-[88px_minmax(0,1fr)] items-start gap-5 sm:grid-cols-[140px_minmax(0,1fr)] sm:items-center sm:gap-8 lg:grid-cols-[170px_minmax(0,1fr)] lg:gap-12" data-brochure-card data-brochure-family="<?php echo esc_attr($item['key']); ?>">
@@ -184,6 +218,7 @@ function boblift_render_brochures(array $args = []): void
                     str_replace('{count}', (string) $item['pages'], (string) ($ui['pagesLabel'] ?? '{count} pages')),
                     (string) $item['size'],
                 ];
+                $meta = array_values(array_filter($meta, 'strlen'));
                 ?>
                 <article class="<?php echo $hidden ? 'hidden' : 'flex'; ?> gap-4 rounded border border-line <?php echo esc_attr($card_bg); ?> p-4 shadow-card<?php echo $item_key === $last_key ? ' ' . esc_attr(trim($last_span_class)) : ''; ?>" data-brochure-card data-brochure-family="<?php echo esc_attr($item['key']); ?>">
                     <a class="block w-24 shrink-0 self-start sm:w-28" data-brochure-cover href="<?php echo esc_url($item['url']); ?>" download="<?php echo esc_attr($item['file']); ?>" tabindex="-1" aria-hidden="true">
