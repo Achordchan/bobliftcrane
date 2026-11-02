@@ -260,7 +260,7 @@ function boblift_product_videos(int $product_id): array
 // Films written into a product's body (a Video block or a Custom HTML figure) play in the product page's video column, so
 // they are lifted out of the copy: returns the body without them and each film as a player entry, in body order. The player
 // only has a URL, a poster and a plain title, so only a figure holding exactly that moves: one video with no children, an
-// optional unlinked caption, no anchor, a poster, and URLs that are not page-relative. Anything else stays in the body. An
+// optional plain-text caption, no anchor, a poster, and URLs that are not page-relative. Anything else stays in the body. An
 // uncaptioned film is named after the product.
 function boblift_split_body_videos(string $html, string $fallback_label = ''): array
 {
@@ -279,10 +279,10 @@ function boblift_split_body_videos(string $html, string $fallback_label = ''): a
         $src = $attribute($parts[2], 'src');
         $poster = $attribute($parts[2], 'poster');
         $caption_html = $parts[4] ?? '';
-        if (!$portable($src) || !$portable($poster) || stripos($caption_html, '<a') !== false || $attribute($parts[1], 'id') !== '' || $attribute($parts[2], 'id') !== '' || $attribute(' ' . ($parts[3] ?? ''), 'id') !== '') {
+        if (!$portable($src) || !$portable($poster) || str_contains($caption_html, '<') || $attribute($parts[1], 'id') !== '' || $attribute($parts[2], 'id') !== '' || $attribute(' ' . ($parts[3] ?? ''), 'id') !== '') {
             return $figure[0];
         }
-        $caption = trim(html_entity_decode(wp_strip_all_tags($caption_html), ENT_QUOTES, 'UTF-8'));
+        $caption = trim(html_entity_decode($caption_html, ENT_QUOTES, 'UTF-8'));
         $videos[] = ['key' => 'body-' . count($videos), 'group' => 'product', 'title' => $caption, 'label' => $caption, 'player' => 'local', 'youtube' => '', 'src' => $src, 'src_mobile' => '', 'poster_src' => $poster, 'duration' => 0];
         return '';
     }, $html);
