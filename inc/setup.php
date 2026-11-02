@@ -1172,3 +1172,38 @@ function boblift_cdn_video_posters(string $content): string
     return $changed ? $processor->get_updated_html() : $content;
 }
 add_filter('the_content', 'boblift_cdn_video_posters', 8);
+
+/*
+ * A portrait (phone-shot) video in a story is marked so the article styles can lay it out beside its caption instead of
+ * as a narrow strip in the middle of the column. Some figures already carry bl-video-vertical from the editor; the
+ * others are recognised by the video's own width and height attributes (or its 9/16 aspect-ratio style). Only plain
+ * video figures holding a single video are touched.
+ */
+function boblift_mark_portrait_videos(string $content): string
+{
+    if (!str_contains($content, 'wp-block-video')) {
+        return $content;
+    }
+    // The class attribute may be quoted with " or ' (classic or REST-inserted HTML).
+    $figure = '/<figure\b(?<before>[^>]*\bclass=)(?<q>["\'])(?<class>(?:(?!\k<q>).)*\bwp-block-video\b(?:(?!\k<q>).)*)\k<q>(?<after>[^>]*)>(?<inner>.*?)<\/figure>/is';
+    return (string) preg_replace_callback($figure, static function (array $m): string {
+        if (preg_match('/\bbl-video-vertical\b/', $m['class']) || substr_count(strtolower($m['inner']), '<video') !== 1) {
+            return $m[0];
+        }
+        if (!preg_match('/<video\b[^>]*>/i', $m['inner'], $tag)) {
+            return $m[0];
+        }
+        $portrait = false;
+        if (preg_match('/\bwidth=["\']?(\d+)/i', $tag[0], $w) && preg_match('/\bheight=["\']?(\d+)/i', $tag[0], $h)) {
+            $portrait = (int) $w[1] > 0 && (int) $h[1] > (int) $w[1];
+        } elseif (preg_match('/aspect-ratio:\s*(\d*\.?\d+)(?:\s*\/\s*(\d*\.?\d+))?/i', $tag[0], $r)) {
+            // "9/16", "720 / 1280" or a single number such as "0.5625" (its denominator is 1).
+            $portrait = (float) $r[1] > 0 && (float) ($r[2] ?? 1) > (float) $r[1];
+        }
+        if (!$portrait) {
+            return $m[0];
+        }
+        return '<figure' . $m['before'] . $m['q'] . $m['class'] . ' bl-video-vertical' . $m['q'] . $m['after'] . '>' . $m['inner'] . '</figure>';
+    }, $content);
+}
+add_filter('the_content', 'boblift_mark_portrait_videos', 9);

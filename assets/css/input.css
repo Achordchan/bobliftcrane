@@ -1790,6 +1790,19 @@ img { max-width: 100%; }
 .boblift-article-body iframe { aspect-ratio: 16 / 9; width: 100%; }
 .boblift-article-body figure { margin-left: 0; margin-right: 0; }
 .boblift-article-body figcaption { margin-top: .5rem; color: #64748b; font-size: .875rem; line-height: 1.5; text-align: center; }
+/* A portrait (phone-shot) video sits beside its caption in a light panel on wider screens and above it on phones; either
+   way the caption keeps the text width instead of being squeezed to the player's width. The editor's inline width and
+   centring on these figures are overridden. */
+.boblift-article-body figure.bl-video-vertical { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .875rem 2.5rem; width: auto !important; max-width: none !important; margin: 2rem 0 !important; }
+/* Side by side only while the caption still gets 18rem next to the player; in a narrow column (phone, Columns block) it wraps under the video. */
+.boblift-article-body figure.bl-video-vertical video { flex: 0 1 280px; width: 280px !important; max-width: 100%; max-height: none; margin: 0; }
+.boblift-article-body figure.bl-video-vertical figcaption { flex: 1 1 18rem; min-width: 0; margin-top: 0; color: #475569; font-size: .9375rem; line-height: 1.6; text-align: start !important; }
+@media (min-width: 768px) {
+  .boblift-article-body figure.bl-video-vertical { border: 1px solid var(--line, #e5e7eb); border-radius: 6px; background: #f8fafc; padding: 1.5rem; }
+  .boblift-article-body figure.bl-video-vertical video { flex-basis: 300px; width: 300px !important; }
+  .boblift-article-body figure.bl-video-vertical figcaption { font-size: 1.0625rem; line-height: 1.7; }
+  .boblift-article-body figure.bl-video-vertical figcaption::before { content: ""; display: block; width: 2.5rem; height: 3px; margin-bottom: 1rem; border-radius: 2px; background: var(--gold, #f59a3c); }
+}
 /* A table only as wide as its content is centred; a wider one fills the column and scrolls sideways. */
 .boblift-article-body table { display: block; width: fit-content; max-width: 100%; margin-inline: auto; overflow-x: auto; border-collapse: collapse; font-size: .9375rem; line-height: 1.5; }
 .boblift-article-body th, .boblift-article-body td { border: 1px solid var(--line, #e5e7eb); padding: .55rem .75rem; text-align: start; vertical-align: top; }
