@@ -258,8 +258,9 @@ function boblift_product_videos(int $product_id): array
 }
 
 // Films written into a product's body (a Video block or a Custom HTML figure) play in the product page's video column, so
-// they are lifted out of the copy: returns the body without them and each film as a player entry, in body order.
-function boblift_split_body_videos(string $html): array
+// they are lifted out of the copy: returns the body without them and each film as a player entry, in body order. The player
+// has no subtitle tracks, so a film with a <track> stays in the body. An uncaptioned film is named after the product.
+function boblift_split_body_videos(string $html, string $fallback_label = ''): array
 {
     $videos = [];
     if (stripos($html, 'wp-block-video') === false) {
@@ -269,20 +270,25 @@ function boblift_split_body_videos(string $html): array
         return preg_match('/\\s' . $name . '\\s*=\\s*(["\'])(.*?)\\1/is', $tag, $match) ? html_entity_decode($match[2], ENT_QUOTES, 'UTF-8') : '';
     };
     $body = preg_replace_callback('#<figure\\b[^>]*\\bwp-block-video\\b[^>]*>.*?</figure>#is', static function (array $figure) use (&$videos, $attribute): string {
-        if (!preg_match('#<video\\b[^>]*>#i', $figure[0], $tag) || ($src = $attribute($tag[0], 'src')) === '') {
+        if (stripos($figure[0], '<track') !== false || !preg_match('#<video\\b[^>]*>#i', $figure[0], $tag) || ($src = $attribute($tag[0], 'src')) === '') {
             return $figure[0];
         }
         $caption = preg_match('#<figcaption\\b[^>]*>(.*?)</figcaption>#is', $figure[0], $match) ? trim(html_entity_decode(wp_strip_all_tags($match[1]), ENT_QUOTES, 'UTF-8')) : '';
-        $videos[] = ['key' => 'body-' . count($videos), 'group' => 'product', 'title' => $caption, 'label' => $caption, 'player' => 'local', 'youtube' => '', 'src' => $src, 'src_mobile' => '', 'poster' => $attribute($tag[0], 'poster'), 'duration' => 0];
+        $videos[] = ['key' => 'body-' . count($videos), 'group' => 'product', 'title' => $caption, 'label' => $caption, 'player' => 'local', 'youtube' => '', 'src' => $src, 'src_mobile' => '', 'poster_src' => $attribute($tag[0], 'poster'), 'duration' => 0];
         return '';
     }, $html);
+    foreach ($videos as $index => $video) {
+        if ($video['label'] === '') {
+            $videos[$index]['label'] = trim($fallback_label . (count($videos) > 1 ? ' ' . ($index + 1) : ''));
+        }
+    }
     return [is_string($body) ? $body : $html, $videos];
 }
 
-// A library film's poster is a theme asset; a film from the product body carries a full URL.
-function boblift_video_poster_src(string $poster): string
+// A library film's poster is a theme asset; a film from the product body keeps the poster URL it was written with.
+function boblift_video_poster_src(array $video): string
 {
-    return $poster === '' || preg_match('#^(https?:)?/#i', $poster) ? $poster : boblift_asset($poster);
+    return (string) ($video['poster_src'] ?? boblift_asset((string) ($video['poster'] ?? '')));
 }
 
 function boblift_video_duration_label(array $video): string

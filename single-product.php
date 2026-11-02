@@ -212,7 +212,7 @@ $faqs = array_values(array_filter(array_map(static function ($faq): ?array {
 // Imported old-site copy stays hidden until a product is reviewed (saved after its import, or ticked in the editor); products that already had their own content keep showing it. See boblift_product_content_ready().
 $detail_body_html = boblift_product_content_ready(get_the_ID(), '_detail_body_ready') ? trim((string) ($product['content'] ?? '')) : '';
 // Text, or media-only bodies (images, galleries, embedded video), count as content.
-[$detail_body_html, $product_body_videos] = boblift_split_body_videos($detail_body_html);
+[$detail_body_html, $product_body_videos] = boblift_split_body_videos($detail_body_html, get_the_title());
 $detail_body_html = trim(wp_strip_all_tags($detail_body_html)) !== '' || preg_match('/<(img|figure|video|audio|iframe|picture|embed|object)\b/i', $detail_body_html) ? $detail_body_html : '';
 // Body layout: text before the first h3 is the lead (left); each h3 section stacks in the right column,
 // so a short body fills the card width instead of one narrow column.
@@ -644,14 +644,14 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                                 esc_url($video['src']),
                                 esc_attr($video['youtube']),
                                 esc_attr((string) $video['label']),
-                                esc_url(boblift_video_poster_src((string) $video['poster']))
+                                esc_url(boblift_video_poster_src($video))
                             );
                         ?>
                             <?php // Films play in place; a list below switches between them. Old shared links to #video land here. ?>
                             <div id="video" class="mt-6 scroll-mt-24 lg:mt-8" data-inline-videos>
                                 <div class="relative aspect-video overflow-hidden rounded-sm bg-[#071f42]" data-inline-video-stage>
                                     <button class="group absolute inset-0 block w-full focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-200" type="button" data-inline-video-play <?php echo $video_attrs($first_video); ?> aria-label="<?php echo esc_attr((string) $first_video['label']); ?>">
-                                        <img class="absolute inset-0 h-full w-full object-cover" src="<?php echo esc_url(boblift_video_poster_src((string) $first_video['poster'])); ?>" alt="" loading="lazy" decoding="async" data-inline-video-poster>
+                                        <img class="absolute inset-0 h-full w-full object-cover" src="<?php echo esc_url(boblift_video_poster_src($first_video)); ?>" alt="" loading="lazy" decoding="async" data-inline-video-poster>
                                         <span class="absolute inset-0 m-auto grid size-14 place-items-center rounded-sm bg-white/90 text-[#071f42] shadow-card transition group-hover:bg-white"><?php echo boblift_icon('play', 'h-6 w-6'); ?></span>
                                     </button>
                                 </div>
@@ -664,7 +664,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                                             <li class="w-24 sm:w-28">
                                                 <button class="group block w-full text-start focus-visible:outline-none" type="button" data-inline-video-item <?php echo $video_attrs($video); ?> aria-pressed="<?php echo $index === 0 ? 'true' : 'false'; ?>">
                                                     <span class="relative block aspect-video overflow-hidden rounded-sm bg-[#071f42] ring-2 ring-transparent transition group-hover:ring-blue-300 group-focus-visible:ring-blue-400 group-aria-pressed:ring-[#0B3F7D]">
-                                                        <img class="absolute inset-0 h-full w-full object-cover" src="<?php echo esc_url(boblift_video_poster_src((string) $video['poster'])); ?>" alt="" loading="lazy" decoding="async">
+                                                        <img class="absolute inset-0 h-full w-full object-cover" src="<?php echo esc_url(boblift_video_poster_src($video)); ?>" alt="" loading="lazy" decoding="async">
                                                         <span class="absolute inset-0 m-auto grid size-6 place-items-center rounded-full bg-white/85 text-[#071f42]"><?php echo boblift_icon('play', 'h-3 w-3'); ?></span>
                                                     </span>
                                                     <span class="mt-1.5 line-clamp-2 text-[11px] font-semibold leading-4 text-slate-500 group-aria-pressed:text-[#071f42]"><?php echo esc_html((string) $video['label']); ?></span>
