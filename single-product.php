@@ -655,7 +655,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                                         <span class="absolute inset-0 m-auto grid size-14 place-items-center rounded-sm bg-white/90 text-[#071f42] shadow-card transition group-hover:bg-white"><?php echo boblift_icon('play', 'h-6 w-6'); ?></span>
                                     </button>
                                 </div>
-                                <p class="sr-only" data-inline-video-caption><?php echo esc_html((string) $first_video['label']); ?></p>
+                                <?php // A lone film has no list below to carry its title. ?><p class="<?php echo count($product_videos) > 1 ? 'sr-only' : 'mt-2 text-xs font-normal leading-5 text-slate-500'; ?>" data-inline-video-caption><?php echo esc_html((string) $first_video['label']); ?></p>
                                 <?php if (count($product_videos) > 1) : ?>
                                     <?php // A strip of small thumbnails, each with its title, like a playlist under the player. ?>
                                     <p class="mt-4 text-[11px] font-black uppercase tracking-[0.14em] text-[#071f42] rtl:tracking-normal"><?php echo esc_html($video_ui['moreVideosLabel'] ?? 'Videos'); ?><span class="ms-2 font-semibold text-slate-500 [font-variant-numeric:tabular-nums]"><?php echo esc_html((string) count($product_videos)); ?></span></p>
