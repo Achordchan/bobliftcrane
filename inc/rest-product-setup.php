@@ -34,7 +34,8 @@ if (!defined('ABSPATH')) {
  * 2. boblift_term_translation on wp/v2/product_category, sent when creating the category or on its own:
  *    {"lang": "en", "sort": 40}                          files the category in English (sort: its place in the lists);
  *    {"lang": "zh", "source": 61}                        files it as the "zh" translation of English category 61, with
- *       the source's slug and, as its parent, the parent's "zh" translation. Name and description are sent as usual.
+ *       the source's slug (when languages have their own URLs, Polylang force_lang 1-3; otherwise a unique slug) and,
+ *       as its parent, the parent's "zh" translation. Name and description are sent as usual.
  *
  * Every value is checked before anything is written; a create request whose value is refused creates nothing.
  */
@@ -405,7 +406,7 @@ function boblift_term_translation_check(int $term_id, array $value): array|WP_Er
             return new WP_Error('boblift_term_translation_parent', 'The parent of the source has no ' . $lang . ' translation.', ['status' => 400]);
         }
         // Checked before anything changes: an update that is refused afterwards would not be rolled back.
-        if (!boblift_term_slug_free_in_language($source->slug, 'product_category', $lang, $term_id)) {
+        if (boblift_languages_have_own_urls() && !boblift_term_slug_free_in_language($source->slug, 'product_category', $lang, $term_id)) {
             return new WP_Error('boblift_term_translation_slug', sprintf('Another %s category already uses the slug "%s".', $lang, $source->slug), ['status' => 409]);
         }
     } elseif ($lang !== 'en') {
@@ -418,14 +419,27 @@ function boblift_term_translation_check(int $term_id, array $value): array|WP_Er
     return ['lang' => $lang, 'source' => $source, 'sort' => $sort];
 }
 
-// Runs before the terms controller inserts a new category: a refused boblift_term_translation creates nothing.
+// Runs before the terms controller writes anything: on a create or an update of a category (name, parent, description
+// are saved before additional fields), a refused boblift_term_translation leaves the category as it was.
 add_filter('rest_request_before_callbacks', static function ($response, $handler, WP_REST_Request $request) {
-    if ($request->get_method() !== 'POST' || !preg_match('#^/wp/v2/product_category/?$#', $request->get_route()) || !is_array($request['boblift_term_translation'])) {
+    if (is_wp_error($response) || !in_array($request->get_method(), ['POST', 'PUT', 'PATCH'], true) || !is_array($request['boblift_term_translation'])
+        || !preg_match('#^/wp/v2/product_category(?:/(\d+))?/?$#', $request->get_route(), $match)) {
         return $response;
     }
-    $checked = boblift_term_translation_check(0, $request['boblift_term_translation']);
+    $term_id = (int) ($match[1] ?? 0);
+    if ($term_id > 0 && !get_term($term_id, 'product_category') instanceof WP_Term) {
+        return $response;
+    }
+    $checked = boblift_term_translation_check($term_id, $request['boblift_term_translation']);
     return is_wp_error($checked) ? $checked : $response;
 }, 20, 3);
+
+/** True when each language has its own addresses (directory, subdomain or domain: Polylang force_lang 1-3), so a translation may share the English slug. */
+function boblift_languages_have_own_urls(): bool
+{
+    $force_lang = (int) (((array) get_option('polylang', []))['force_lang'] ?? 0);
+    return $force_lang >= 1 && $force_lang <= 3;
+}
 
 function boblift_rest_save_term_translation(WP_Term $term, array $value): true|WP_Error
 {
@@ -468,7 +482,12 @@ function boblift_rest_save_term_translation(WP_Term $term, array $value): true|W
     }
     // The English slug under the language prefix (/zh/<slug>), as every other category translation has. Core and free
     // Polylang would suffix it, since a term in another language holds it, so it is written directly once no term in this
-    // language holds it (the check inc/polylang-slugs.php uses for the same rule).
+    // language holds it (the check inc/polylang-slugs.php uses for the same rule). Only where languages have their own
+    // addresses: when the language comes from the content, a shared slug would give both categories one archive URL, so
+    // the unique slug stays.
+    if (!boblift_languages_have_own_urls()) {
+        return true;
+    }
     if ($term->slug !== $source->slug) {
         global $wpdb;
         $wpdb->update($wpdb->terms, ['slug' => $source->slug], ['term_id' => $term->term_id]);
