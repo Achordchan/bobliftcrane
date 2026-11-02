@@ -259,7 +259,8 @@ function boblift_product_videos(int $product_id): array
 
 // Films written into a product's body (a Video block or a Custom HTML figure) play in the product page's video column, so
 // they are lifted out of the copy: returns the body without them and each film as a player entry, in body order. The player
-// has no subtitle tracks, so a film with a <track> stays in the body. An uncaptioned film is named after the product.
+// has no subtitle tracks, so a film with a <track> stays in the body, as does one with a page-relative URL. An uncaptioned
+// film is named after the product.
 function boblift_split_body_videos(string $html, string $fallback_label = ''): array
 {
     $videos = [];
@@ -273,8 +274,13 @@ function boblift_split_body_videos(string $html, string $fallback_label = ''): a
         if (stripos($figure[0], '<track') !== false || !preg_match('#<video\\b[^>]*>#i', $figure[0], $tag) || ($src = $attribute($tag[0], 'src')) === '') {
             return $figure[0];
         }
+        $poster = $attribute($tag[0], 'poster');
+        // esc_url() in the player would turn a page-relative URL into a host name.
+        if (!preg_match('#^(https?:)?/#i', $src) || ($poster !== '' && !preg_match('#^(https?:)?/#i', $poster))) {
+            return $figure[0];
+        }
         $caption = preg_match('#<figcaption\\b[^>]*>(.*?)</figcaption>#is', $figure[0], $match) ? trim(html_entity_decode(wp_strip_all_tags($match[1]), ENT_QUOTES, 'UTF-8')) : '';
-        $videos[] = ['key' => 'body-' . count($videos), 'group' => 'product', 'title' => $caption, 'label' => $caption, 'player' => 'local', 'youtube' => '', 'src' => $src, 'src_mobile' => '', 'poster_src' => $attribute($tag[0], 'poster'), 'duration' => 0];
+        $videos[] = ['key' => 'body-' . count($videos), 'group' => 'product', 'title' => $caption, 'label' => $caption, 'player' => 'local', 'youtube' => '', 'src' => $src, 'src_mobile' => '', 'poster_src' => $poster, 'duration' => 0];
         return '';
     }, $html);
     foreach ($videos as $index => $video) {
