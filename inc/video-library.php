@@ -258,9 +258,10 @@ function boblift_product_videos(int $product_id): array
 }
 
 // Films written into a product's body (a Video block or a Custom HTML figure) play in the product page's video column, so
-// they are lifted out of the copy: returns the body without them and each film as a player entry, in body order. An
-// uncaptioned film is named after the product. The player only has a URL, a poster and a plain title, so a film stays in the
-// body when it would lose something there: subtitle tracks, a linked caption, no poster, or a page-relative URL.
+// they are lifted out of the copy: returns the body without them and each film as a player entry, in body order. The player
+// only has a URL, a poster and a plain title, so only a figure holding exactly that moves: one video with no children, an
+// optional unlinked caption, no anchor, a poster, and URLs that are not page-relative. Anything else stays in the body. An
+// uncaptioned film is named after the product.
 function boblift_split_body_videos(string $html, string $fallback_label = ''): array
 {
     $videos = [];
@@ -268,19 +269,17 @@ function boblift_split_body_videos(string $html, string $fallback_label = ''): a
         return [$html, $videos];
     }
     $attribute = static function (string $tag, string $name): string {
-        return preg_match('/\\s' . $name . '\\s*=\\s*(["\'])(.*?)\\1/is', $tag, $match) ? html_entity_decode($match[2], ENT_QUOTES, 'UTF-8') : '';
+        return preg_match('/\s' . $name . '\s*=\s*(["\'])(.*?)\1/is', $tag, $match) ? html_entity_decode($match[2], ENT_QUOTES, 'UTF-8') : '';
     };
-    $body = preg_replace_callback('#<figure\\b[^>]*\\bwp-block-video\\b[^>]*>.*?</figure>#is', static function (array $figure) use (&$videos, $attribute): string {
-        if (stripos($figure[0], '<track') !== false || !preg_match('#<video\\b[^>]*>#i', $figure[0], $tag) || ($src = $attribute($tag[0], 'src')) === '') {
+    $portable = static fn(string $url): bool => (bool) preg_match('#^(https?:)?/#i', $url);
+    $body = preg_replace_callback('#<figure\b[^>]*\bwp-block-video\b[^>]*>.*?</figure>#is', static function (array $figure) use (&$videos, $attribute, $portable): string {
+        if (!preg_match('#^(<figure\b[^>]*>)\s*(<video\b[^>]*>)\s*</video>\s*(?:<figcaption\b([^>]*)>(.*?)</figcaption>\s*)?</figure>$#is', $figure[0], $parts)) {
             return $figure[0];
         }
-        $poster = $attribute($tag[0], 'poster');
-        // esc_url() in the player would turn a page-relative URL into a host name.
-        if (!preg_match('#^(https?:)?/#i', $src) || !preg_match('#^(https?:)?/#i', $poster)) {
-            return $figure[0];
-        }
-        $caption_html = preg_match('#<figcaption\\b[^>]*>(.*?)</figcaption>#is', $figure[0], $match) ? $match[1] : '';
-        if (stripos($caption_html, '<a') !== false) {
+        $src = $attribute($parts[2], 'src');
+        $poster = $attribute($parts[2], 'poster');
+        $caption_html = $parts[4] ?? '';
+        if (!$portable($src) || !$portable($poster) || stripos($caption_html, '<a') !== false || $attribute($parts[1], 'id') !== '' || $attribute($parts[2], 'id') !== '' || $attribute(' ' . ($parts[3] ?? ''), 'id') !== '') {
             return $figure[0];
         }
         $caption = trim(html_entity_decode(wp_strip_all_tags($caption_html), ENT_QUOTES, 'UTF-8'));
