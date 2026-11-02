@@ -144,82 +144,42 @@ function boblift_compare_models_prepare(array $models): array
  * colours), this_id (the page's own model, not linked), status (tag each column current or previous), ask (an inquiry
  * button under each previous model).
  */
-/** The comparison for two or three models: one card each, the same figures in the same order so they line up across. */
-function boblift_render_model_cards(array $models, string $labelled_by, array $rows, array $options = []): void
-{
-    $t = static fn(string $text): string => boblift_localized_static_text($text);
-    $this_id = (int) ($options['this_id'] ?? 0);
-    $status = !empty($options['status']);
-    $ask = !empty($options['ask']);
-    $columns = count($models) === 3 ? 'md:grid-cols-2 xl:grid-cols-3' : 'md:grid-cols-2';
-    ?>
-    <ul class="grid gap-4 <?php echo esc_attr($columns); ?>" role="list" aria-labelledby="<?php echo esc_attr($labelled_by); ?>">
-        <?php foreach ($models as $item) :
-            $is_this = $item['id'] === $this_id;
-            ?>
-            <li class="flex flex-col rounded border <?php echo $is_this ? 'border-[#BFD3EA] bg-[#F5F8FC]' : 'border-[#E5E7EB] bg-white'; ?> p-4 sm:p-5">
-                <div class="flex items-center gap-4 sm:gap-5">
-                    <span class="flex h-24 w-28 shrink-0 items-center justify-center overflow-hidden rounded-sm bg-[#F8FAFC] sm:h-28 sm:w-36"><img class="h-full w-full object-contain" src="<?php echo esc_url($item['image']); ?>" alt="<?php echo esc_attr(trim((string) $item['title']) ?: (string) $item['model']); ?>" loading="lazy" decoding="async"></span>
-                    <div class="min-w-0">
-                        <?php if ($status) : ?>
-                            <span class="mb-2 inline-flex items-center rounded-sm px-2 py-1 text-[11px] font-black uppercase leading-none tracking-[0.08em] <?php echo $item['legacy'] ? 'bg-[#EEF1F5] text-slate-600' : 'bg-blue-50 text-blue-700'; ?>"><?php echo esc_html($t($item['legacy'] ? 'Previous model' : 'Current model')); ?></span>
-                        <?php endif; ?>
-                        <?php if ($is_this) : ?>
-                            <p class="flex flex-wrap items-center gap-x-2 text-lg font-black text-ink"><?php echo esc_html($item['model']); ?><span class="text-[11px] font-black uppercase tracking-[0.1em] text-slate-500"><?php echo esc_html($t('This model')); ?></span></p>
-                        <?php else : ?>
-                            <a class="inline-flex items-center gap-1 text-lg font-black text-ink transition hover:text-blue-700" href="<?php echo esc_url($item['url']); ?>"><?php echo esc_html($item['model']); ?><?php echo boblift_icon('arrow-up-right', 'h-3.5 w-3.5 shrink-0 text-slate-500 rtl:-scale-x-100'); ?></a>
-                        <?php endif; ?>
-                        <p class="mt-1 line-clamp-2 text-xs leading-5 text-slate-500"><?php echo esc_html((string) $item['title']); ?></p>
-                    </div>
-                </div>
-                <dl class="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-[#E5E7EB] pt-4 <?php echo esc_attr([2 => 'sm:grid-cols-2', 3 => 'sm:grid-cols-3 md:grid-cols-2 xl:grid-cols-3', 4 => 'sm:grid-cols-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4'][min(4, max(2, count($rows)))]); ?>">
-                    <?php foreach ($rows as $key => $label) : ?>
-                        <div class="min-w-0"><dt class="text-xs font-semibold leading-4 text-slate-500"><?php echo esc_html($label); ?></dt><dd class="mt-1 break-words text-base font-black leading-5 text-ink [font-variant-numeric:tabular-nums]" dir="ltr"><?php echo esc_html((string) ($item[$key] ?: '–')); ?></dd></div>
-                    <?php endforeach; ?>
-                </dl>
-                <?php if ($ask && !$item['legacy'] && !$is_this) : ?>
-                    <a class="mt-4 inline-flex h-10 w-fit items-center gap-1.5 rounded-sm bg-[#071f42] px-4 text-sm font-black text-white transition hover:bg-[#0B3F7D]" href="<?php echo esc_url($item['url']); ?>"><?php echo esc_html(str_replace('{model}', (string) $item['model'], $t('View {model}'))); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></a>
-                <?php endif; ?>
-                <?php if ($ask && $item['legacy']) : ?>
-                    <button class="mt-4 inline-flex w-fit items-center gap-1.5 text-sm font-black text-blue-700 transition hover:text-[#071f42]" type="button" data-inquiry-modal-open data-inquiry-source="历史型号" data-inquiry-product="<?php echo esc_attr((string) $item['title']); ?>" data-inquiry-products="<?php echo esc_attr(boblift_inquiry_product_payload((int) $item['id'], (string) $item['title'], (string) $item['image'])); ?>"><?php echo esc_html($t('Ask about this model')); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 shrink-0 rtl:rotate-180'); ?></button>
-                <?php endif; ?>
-            </li>
-        <?php endforeach; ?>
-    </ul>
-    <?php
-}
-
 function boblift_render_model_table(array $models, string $labelled_by, array $options = []): void
 {
     $t = static fn(string $text): string => boblift_localized_static_text($text);
     $this_id = (int) ($options['this_id'] ?? 0);
     $status = !empty($options['status']);
     $ask = !empty($options['ask']);
-    // A row shows only when at least one model has the figure.
-    $rows = array_filter([
-        'capacity_label' => $t('Capacity'),
-        'moment' => $t('Max lifting moment'),
-        'weight' => $t('Self weight'),
-        'sections_label' => $t('Boom sections'),
-    ], static fn(string $label, string $key): bool => (bool) array_filter(array_column($models, $key)), ARRAY_FILTER_USE_BOTH);
-    // Then every other spec-table row any of the models has, in the order the tables list them.
-    foreach ($models as $index => $item) {
-        foreach ((array) ($item['extra'] ?? []) as $english_label => $spec) {
-            $key = 'extra:' . $english_label;
-            $rows[$key] ??= $spec['label'];
-        }
-    }
-    foreach ($models as $index => $item) {
-        foreach ($rows as $key => $label) {
-            if (str_starts_with($key, 'extra:')) {
-                $models[$index][$key] = (string) ($item['extra'][substr($key, 6)]['value'] ?? '');
+    // The figures buyers choose a crane by, at most eight, in one order for every range; a row shows only when at least
+    // one model has the figure. The full table is one click away on each model's page.
+    $picks = [
+        'capacity_label' => ['label' => 'Capacity', 'from' => []],
+        'moment' => ['label' => 'Max lifting moment', 'from' => []],
+        'compare:radius' => ['label' => 'Max working radius', 'from' => ['Max Working Radius', 'Max Working Range', 'Max Working Distance', 'drawing:radius']],
+        'compare:height' => ['label' => 'Max lifting height', 'from' => ['Max Lifting Height', 'Max Lifting Height (from ground)', 'Working Height', 'drawing:height']],
+        'sections_label' => ['label' => 'Boom sections', 'from' => []],
+        'compare:rotation' => ['label' => 'Rotation angle', 'from' => ['Rotation Angle']],
+        'compare:power' => ['label' => 'Power', 'from' => ['Recommended Power', 'Motor Power']],
+        'weight' => ['label' => 'Self weight', 'from' => []],
+    ];
+    $rows = [];
+    foreach ($picks as $key => $pick) {
+        foreach ($models as $index => $item) {
+            if ($pick['from'] !== []) {
+                $value = '';
+                // The first source the model has: its own spec row before the figure read off its drawing.
+                foreach ($pick['from'] as $source) {
+                    $value = trim((string) ($item['extra'][$source]['value'] ?? ''));
+                    if ($value !== '') {
+                        break;
+                    }
+                }
+                $models[$index][$key] = $value;
             }
         }
-    }
-    // Two or three models compare better as cards side by side: a table column that wide stretches a small photo.
-    if (count($models) <= 3) {
-        boblift_render_model_cards($models, $labelled_by, $rows, $options);
-        return;
+        if (array_filter(array_column($models, $key))) {
+            $rows[$key] = $t($pick['label']);
+        }
     }
     $label_cell = 'sticky start-0 z-10 w-[132px] min-w-[132px] border-e border-[#E5E7EB] px-4 text-start text-[13px] font-semibold text-slate-500 sm:w-[180px] sm:min-w-[180px] sm:px-5 ' . (string) ($options['label_class'] ?? 'bg-[#F8FAFC]');
     $ask_label = $t('Ask about this model');
@@ -232,19 +192,19 @@ function boblift_render_model_table(array $models, string $labelled_by, array $o
                     <?php foreach ($models as $item) :
                         $is_this = $item['id'] === $this_id;
                         ?>
-                        <th class="min-w-[164px] border-b-2 border-b-ink px-4 pb-4 pt-5 text-start align-bottom font-normal <?php echo $is_this ? 'bg-[#F5F8FC]' : ''; ?>" scope="col">
+                        <th class="min-w-[180px] border-b-2 border-b-ink px-4 pb-4 pt-5 text-start align-bottom font-normal <?php echo $is_this ? 'bg-[#F5F8FC]' : ''; ?>" scope="col">
                             <?php if ($status) : ?>
                                 <span class="mb-3 inline-flex items-center rounded-sm px-2 py-1 text-[11px] font-black uppercase leading-none tracking-[0.08em] <?php echo $item['legacy'] ? 'bg-[#EEF1F5] text-slate-600' : 'bg-blue-50 text-blue-700'; ?>"><?php echo esc_html($t($item['legacy'] ? 'Previous model' : 'Current model')); ?></span>
                             <?php endif; ?>
                             <?php if ($is_this) : ?>
                                 <span class="block">
-                                    <span class="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-sm bg-white"><img class="h-full w-full object-contain" src="<?php echo esc_url($item['image']); ?>" alt="<?php echo esc_attr(trim((string) $item['title']) ?: (string) $item['model']); ?>" loading="lazy" decoding="async"></span>
+                                    <span class="flex h-24 w-36 items-center sm:h-28 sm:w-40 justify-center overflow-hidden rounded-sm bg-white"><img class="h-full w-full object-contain" src="<?php echo esc_url($item['image']); ?>" alt="<?php echo esc_attr(trim((string) $item['title']) ?: (string) $item['model']); ?>" loading="lazy" decoding="async"></span>
                                     <span class="mt-3 flex items-center gap-2 text-base font-black text-ink"><?php echo esc_html($item['model']); ?><span class="text-[11px] font-black uppercase tracking-[0.1em] text-slate-500"><?php echo esc_html($t('This model')); ?></span></span>
                                     <span class="mt-1 line-clamp-2 block text-xs leading-5 text-slate-500"><?php echo esc_html((string) $item['title']); ?></span>
                                 </span>
                             <?php else : ?>
                                 <a class="group block" href="<?php echo esc_url($item['url']); ?>">
-                                    <span class="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-sm bg-[#F8FAFC]"><img class="h-full w-full object-contain transition duration-500 group-hover:scale-[1.04]" src="<?php echo esc_url($item['image']); ?>" alt="<?php echo esc_attr(trim((string) $item['title']) ?: (string) $item['model']); ?>" loading="lazy" decoding="async"></span>
+                                    <span class="flex h-24 w-36 items-center sm:h-28 sm:w-40 justify-center overflow-hidden rounded-sm bg-[#F8FAFC]"><img class="h-full w-full object-contain transition duration-500 group-hover:scale-[1.04]" src="<?php echo esc_url($item['image']); ?>" alt="<?php echo esc_attr(trim((string) $item['title']) ?: (string) $item['model']); ?>" loading="lazy" decoding="async"></span>
                                     <span class="mt-3 flex items-center gap-1 text-base font-black text-ink transition group-hover:text-blue-700"><?php echo esc_html($item['model']); ?><?php echo boblift_icon('arrow-up-right', 'h-3.5 w-3.5 shrink-0 text-slate-500 transition group-hover:text-blue-700 rtl:-scale-x-100'); ?></span>
                                     <span class="mt-1 line-clamp-2 block text-xs leading-5 text-slate-500"><?php echo esc_html((string) $item['title']); ?></span>
                                 </a>
@@ -258,17 +218,16 @@ function boblift_render_model_table(array $models, string $labelled_by, array $o
                     <tr class="group/row">
                         <th class="<?php echo esc_attr($label_cell); ?> border-b py-3.5" scope="row"><?php echo esc_html($label); ?></th>
                         <?php foreach ($models as $item) : ?>
-                            <td class="boblift-spec-cell <?php echo $ask ? '' : 'group-last/row:border-b-0'; ?> <?php echo $item['id'] === $this_id ? 'bg-[#F5F8FC]' : ''; ?>"><?php echo esc_html((string) ($item[$key] ?: '–')); ?></td>
+                            <td class="boblift-spec-cell <?php echo $item['id'] === $this_id ? 'bg-[#F5F8FC]' : ''; ?>"><?php echo esc_html((string) ($item[$key] ?: '–')); ?></td>
                         <?php endforeach; ?>
                     </tr>
                 <?php endforeach; ?>
-                <?php if ($ask) : ?>
+                <?php // The last row holds the actions: the full specifications of a current model, or (with ask) an inquiry about a previous one. ?>
                     <tr>
-                        <?php // The last row holds the actions: ask about a previous model, or go to a current one. ?>
                         <th class="<?php echo esc_attr($label_cell); ?> py-3.5" scope="row"><span class="sr-only"><?php echo esc_html($t('Built to order')); ?></span></th>
                         <?php foreach ($models as $item) : ?>
                             <td class="px-4 py-3.5 <?php echo $item['id'] === $this_id ? 'bg-[#F5F8FC]' : ''; ?>">
-                                <?php if ($item['legacy']) : ?>
+                                <?php if ($ask && $item['legacy']) : ?>
                                     <button class="inline-flex items-center gap-1.5 text-start text-sm font-black text-blue-700 transition hover:text-[#071f42]" type="button" data-inquiry-modal-open data-inquiry-source="历史型号" data-inquiry-product="<?php echo esc_attr((string) $item['title']); ?>" data-inquiry-products="<?php echo esc_attr(boblift_inquiry_product_payload((int) $item['id'], (string) $item['title'], (string) $item['image'])); ?>"><?php echo esc_html($ask_label); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 shrink-0 rtl:rotate-180'); ?></button>
                                 <?php elseif ($item['id'] !== $this_id) : ?>
                                     <a class="inline-flex items-center gap-1.5 text-sm font-black text-[#071f42] transition hover:text-blue-700" href="<?php echo esc_url($item['url']); ?>"><?php echo esc_html(str_replace('{model}', (string) $item['model'], $t('View {model}'))); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 shrink-0 rtl:rotate-180'); ?></a>
@@ -278,7 +237,6 @@ function boblift_render_model_table(array $models, string $labelled_by, array $o
                             </td>
                         <?php endforeach; ?>
                     </tr>
-                <?php endif; ?>
             </tbody>
         </table>
     </div>
@@ -309,7 +267,7 @@ function boblift_render_archive_compare_block(WP_Term $term): void
                 <p class="section-label"><?php echo esc_html(str_replace('{range}', $term->name, $t('Published figures · {range}'))); ?></p>
                 <h2 id="<?php echo esc_attr($id); ?>" class="mt-3 text-[clamp(1.75rem,2.8vw,3rem)] font-black leading-[1.05] tracking-[-0.015em] text-ink"><?php echo esc_html($t('Compare the range')); ?></h2>
             </div>
-            <p class="max-w-[46ch] text-sm leading-6 text-slate-600 lg:col-span-5 lg:justify-self-end"><?php echo esc_html($t('Figures from the BOB-LIFT technical sheets. Confirm the configuration for your truck or vessel with our team.')); ?></p>
+            <p class="max-w-[46ch] text-sm leading-6 text-slate-600 lg:col-span-5 lg:justify-self-end"><?php echo esc_html($t('Figures from the BOB-LIFT technical drawings. Confirm the final specification with our team before ordering.')); ?></p>
         </div>
         <div class="mt-6 lg:mt-8"><?php boblift_render_model_table(boblift_compare_models_prepare($models), $id); ?></div>
     </section>
