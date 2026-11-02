@@ -1140,20 +1140,20 @@ function boblift_product_category_group_definitions(): array
     ];
 }
 
-// Product list banner photos. Each top-level product family has a built-in photo in
-// assets/images/product-banners/ named after its English slug; a subcategory uses its family's photo.
+// Product list banner photos, built into assets/images/product-banners/ and named after a category's English slug. A
+// category uses its own photo when there is one (tail-lift, electric-mini-cranes), else the nearest ancestor's, so a
+// subcategory without a photo of its own shows its family's.
 function boblift_product_banner_builtin_photo(?WP_Term $term = null): string
 {
-    $family = 'default';
-    if ($term instanceof WP_Term) {
-        $ancestors = get_ancestors($term->term_id, 'product_category', 'taxonomy');
-        $top = $ancestors ? get_term((int) end($ancestors), 'product_category') : $term;
-        if ($top instanceof WP_Term) {
-            $family = sanitize_key(boblift_source_term_slug($top));
+    $chain = $term instanceof WP_Term ? array_merge([$term->term_id], array_map('intval', get_ancestors($term->term_id, 'product_category', 'taxonomy'))) : [];
+    foreach ($chain as $term_id) {
+        $item = get_term($term_id, 'product_category');
+        $path = $item instanceof WP_Term ? 'images/product-banners/' . sanitize_key(boblift_source_term_slug($item)) . '.jpg' : '';
+        if ($path !== '' && is_readable(boblift_asset_path($path))) {
+            return $path;
         }
     }
-    $path = 'images/product-banners/' . $family . '.jpg';
-    return is_readable(boblift_asset_path($path)) ? $path : 'images/product-banners/default.jpg';
+    return 'images/product-banners/default.jpg';
 }
 
 /** Card pictures the importer writes into _boblift_image for every category; they are not banners an editor chose. */
