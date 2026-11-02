@@ -1184,11 +1184,13 @@ function boblift_mark_portrait_videos(string $content): string
     if (!str_contains($content, 'wp-block-video')) {
         return $content;
     }
-    return (string) preg_replace_callback('/<figure\b([^>]*\bclass="([^"]*\bwp-block-video\b[^"]*)"[^>]*)>(.*?)<\/figure>/is', static function (array $m): string {
-        if (preg_match('/\bbl-video-vertical\b/', $m[2]) || substr_count(strtolower($m[3]), '<video') !== 1) {
+    // The class attribute may be quoted with " or ' (classic or REST-inserted HTML).
+    $figure = '/<figure\b(?<before>[^>]*\bclass=)(?<q>["\'])(?<class>(?:(?!\k<q>).)*\bwp-block-video\b(?:(?!\k<q>).)*)\k<q>(?<after>[^>]*)>(?<inner>.*?)<\/figure>/is';
+    return (string) preg_replace_callback($figure, static function (array $m): string {
+        if (preg_match('/\bbl-video-vertical\b/', $m['class']) || substr_count(strtolower($m['inner']), '<video') !== 1) {
             return $m[0];
         }
-        if (!preg_match('/<video\b[^>]*>/i', $m[3], $tag)) {
+        if (!preg_match('/<video\b[^>]*>/i', $m['inner'], $tag)) {
             return $m[0];
         }
         $portrait = false;
@@ -1200,8 +1202,7 @@ function boblift_mark_portrait_videos(string $content): string
         if (!$portrait) {
             return $m[0];
         }
-        $attrs = str_replace('class="' . $m[2] . '"', 'class="' . $m[2] . ' bl-video-vertical"', $m[1]);
-        return '<figure' . $attrs . '>' . $m[3] . '</figure>';
+        return '<figure' . $m['before'] . $m['q'] . $m['class'] . ' bl-video-vertical' . $m['q'] . $m['after'] . '>' . $m['inner'] . '</figure>';
     }, $content);
 }
 add_filter('the_content', 'boblift_mark_portrait_videos', 9);

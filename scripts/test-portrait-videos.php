@@ -10,6 +10,8 @@ $cases = [
     ['<figure class="wp-block-video"><video style="aspect-ratio:9/16" src="a.mp4"></video></figure>', true],
     ['<figure class="wp-block-video"><video height="1080" style="aspect-ratio: 1920 / 1080;" width="1920" src="a.mp4"></video></figure>', false],
     ['<figure class="wp-block-video"><video src="a.mp4"></video></figure>', false],
+    ["<figure class='wp-block-video'><video width=\"720\" height=\"1280\"></video></figure>", true],
+    ['<figure id="v" class="wp-block-video aligncenter" style="width:340px"><video width="720" height="1280"></video></figure>', true],
     ['<figure class="wp-block-video"><video width="720" height="1280"></video><video width="720" height="1280"></video></figure>', false],
 ];
 foreach ($cases as [$html, $portrait]) {
@@ -18,5 +20,7 @@ foreach ($cases as [$html, $portrait]) {
 }
 $already = '<figure class="wp-block-video bl-video-vertical" style="max-width:340px"><video width="720" height="1280"></video></figure>';
 if (boblift_mark_portrait_videos($already) !== $already) { $failed++; echo "already marked should stay as is\n"; }
+$single = boblift_mark_portrait_videos("<figure class='wp-block-video'><video width=\"720\" height=\"1280\"></video></figure>");
+if (!str_contains($single, "class='wp-block-video bl-video-vertical'")) { $failed++; echo "single quotes should be kept: $single\n"; }
 echo $failed ? "$failed failed\n" : "ok\n";
 exit($failed ? 1 : 0);

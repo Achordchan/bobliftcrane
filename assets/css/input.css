@@ -1793,7 +1793,7 @@ img { max-width: 100%; }
 /* A portrait (phone-shot) video sits beside its caption in a light panel on wider screens and above it on phones; either
    way the caption keeps the text width instead of being squeezed to the player's width. The editor's inline width and
    centring on these figures are overridden. */
-.boblift-article-body figure.bl-video-vertical { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; gap: .875rem; max-width: none !important; margin: 2rem 0 !important; }
+.boblift-article-body figure.bl-video-vertical { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; gap: .875rem; width: auto !important; max-width: none !important; margin: 2rem 0 !important; }
 .boblift-article-body figure.bl-video-vertical video { width: min(100%, 280px) !important; max-height: none; margin: 0; }
 .boblift-article-body figure.bl-video-vertical figcaption { justify-self: stretch; margin-top: 0; color: #475569; font-size: .9375rem; line-height: 1.6; text-align: start !important; }
 @media (min-width: 768px) {
