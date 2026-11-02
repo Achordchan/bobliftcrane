@@ -351,6 +351,13 @@ function boblift_inquiry_mail_products(array $fields): array
         $seen[$english_id] = true;
         $title = get_the_title($english_id);
         $model = function_exists('boblift_clean_product_model') ? boblift_clean_product_model((string) get_post_meta($english_id, '_model', true), $title) : (string) get_post_meta($english_id, '_model', true);
+        // A page that covers several versions (SQ2Z-E) sends the chosen one in the product name: the mail names that model.
+        foreach (function_exists('boblift_model_variants') ? boblift_model_variants($model) : [] as $variant) {
+            if (preg_match('/(?<![A-Z0-9])' . preg_quote($variant['model'], '/') . '(?![A-Z0-9])/i', (string) ($fields['product'] ?? ''))) {
+                $model = $variant['model'];
+                break;
+            }
+        }
         // 'lang' => '' keeps Polylang from limiting the terms to the language of the page the inquiry came from.
         $terms = wp_get_object_terms($english_id, 'product_category', ['fields' => 'names', 'lang' => '']);
         $products[] = [
