@@ -83,8 +83,9 @@ function boblift_register_rest_product_setup_fields(): void
         },
         'update_callback' => static function ($value, WP_Post $post, string $field, WP_REST_Request $request) {
             try {
-                $saved = boblift_rest_save_product_setup($post, is_array($value) ? $value : []);
-                if (is_wp_error($saved) && $request->get_method() === 'POST' && empty($request['id'])) {
+                $creating = $request->get_method() === 'POST' && empty($request['id']);
+                $saved = boblift_rest_save_product_setup($post, is_array($value) ? $value : [], $creating);
+                if (is_wp_error($saved) && $creating) {
                     wp_delete_post($post->ID, true);
                 }
                 return $saved;
@@ -109,8 +110,9 @@ function boblift_register_rest_product_setup_fields(): void
         },
         'update_callback' => static function ($value, WP_Term $term, string $field, WP_REST_Request $request) {
             try {
-                $saved = boblift_rest_save_term_translation($term, is_array($value) ? $value : []);
-                if (is_wp_error($saved) && $request->get_method() === 'POST' && empty($request['id'])) {
+                $creating = $request->get_method() === 'POST' && empty($request['id']);
+                $saved = boblift_rest_save_term_translation($term, is_array($value) ? $value : [], $creating);
+                if (is_wp_error($saved) && $creating) {
                     wp_delete_term($term->term_id, $term->taxonomy);
                 }
                 return $saved;
@@ -237,7 +239,7 @@ function boblift_product_setup_meta_value(string $key, mixed $value): string|WP_
  *
  * @return array{lang: string, source: ?WP_Post, meta: array<string, string>}|WP_Error
  */
-function boblift_product_setup_check(int $post_id, array $value): array|WP_Error
+function boblift_product_setup_check(int $post_id, array $value, bool $creating = false): array|WP_Error
 {
     if (!function_exists('pll_set_post_language') || !function_exists('pll_save_post_translations') || !function_exists('pll_languages_list')) {
         return new WP_Error('boblift_product_setup_polylang', 'Polylang is not active.', ['status' => 500]);
@@ -259,7 +261,8 @@ function boblift_product_setup_check(int $post_id, array $value): array|WP_Error
         if (!current_user_can('edit_post', $source->ID)) {
             return new WP_Error('rest_cannot_edit', 'Sorry, you are not allowed to edit the source product.', ['status' => rest_authorization_required_code()]);
         }
-        $stored = $post_id > 0 ? (string) pll_get_post_language($post_id) : '';
+        // A product this request just inserted may carry Polylang's default language; the requested one replaces it.
+        $stored = $post_id > 0 && !$creating ? (string) pll_get_post_language($post_id) : '';
         if ($stored !== '' && $stored !== $lang) {
             return new WP_Error('boblift_product_setup_lang', sprintf('This product is in "%s"; its language cannot be changed here.', $stored), ['status' => 400]);
         }
@@ -278,7 +281,7 @@ function boblift_product_setup_check(int $post_id, array $value): array|WP_Error
         // Without "source" the request only writes meta: it may file a product that has no language yet in English, or
         // name the language the product already has. Moving a product to another language would leave its translation
         // group and its slug (shared with the English product) inconsistent.
-        $stored = $post_id > 0 ? (string) pll_get_post_language($post_id) : '';
+        $stored = $post_id > 0 && !$creating ? (string) pll_get_post_language($post_id) : '';
         if ($stored !== '' && $stored !== $lang) {
             return new WP_Error('boblift_product_setup_lang', sprintf('This product is in "%s"; its language cannot be changed here.', $stored), ['status' => 400]);
         }
@@ -322,12 +325,12 @@ function boblift_rest_pre_insert_product_setup(stdClass|WP_Error $prepared, WP_R
 }
 add_filter('rest_pre_insert_product', 'boblift_rest_pre_insert_product_setup', 5, 2);
 
-function boblift_rest_save_product_setup(WP_Post $post, array $value): true|WP_Error
+function boblift_rest_save_product_setup(WP_Post $post, array $value, bool $creating = false): true|WP_Error
 {
     if (!current_user_can('edit_post', $post->ID)) {
         return new WP_Error('rest_cannot_edit', 'Sorry, you are not allowed to edit this product.', ['status' => rest_authorization_required_code()]);
     }
-    $checked = boblift_product_setup_check($post->ID, $value);
+    $checked = boblift_product_setup_check($post->ID, $value, $creating);
     if (is_wp_error($checked)) {
         return $checked;
     }
@@ -371,7 +374,7 @@ function boblift_rest_save_product_setup(WP_Post $post, array $value): true|WP_E
  *
  * @return array{lang: string, source: ?WP_Term, sort: ?int}|WP_Error
  */
-function boblift_term_translation_check(int $term_id, array $value): array|WP_Error
+function boblift_term_translation_check(int $term_id, array $value, bool $creating = false): array|WP_Error
 {
     if (!function_exists('pll_set_term_language') || !function_exists('pll_save_term_translations') || !function_exists('pll_languages_list')) {
         return new WP_Error('boblift_term_translation_polylang', 'Polylang is not active.', ['status' => 500]);
@@ -412,7 +415,8 @@ function boblift_term_translation_check(int $term_id, array $value): array|WP_Er
     } elseif ($lang !== 'en') {
         return new WP_Error('boblift_term_translation_source', 'A category in another language than English needs "source", its English category.', ['status' => 400]);
     }
-    $stored = $term_id > 0 ? (string) pll_get_term_language($term_id) : '';
+    // A category this request just inserted may carry Polylang's default language; the requested one replaces it.
+    $stored = $term_id > 0 && !$creating ? (string) pll_get_term_language($term_id) : '';
     if ($stored !== '' && $stored !== $lang) {
         return new WP_Error('boblift_term_translation_lang', sprintf('This category is in "%s"; its language cannot be changed here.', $stored), ['status' => 400]);
     }
@@ -430,9 +434,26 @@ add_filter('rest_request_before_callbacks', static function ($response, $handler
     if ($term_id > 0 && !get_term($term_id, 'product_category') instanceof WP_Term) {
         return $response;
     }
+    // Held from here through the field callback (released there or after the callbacks), so two requests cannot both pass
+    // this check and then have one refused after the controller has saved its name, description or parent.
+    if (!boblift_rest_translation_lock(true)) {
+        return new WP_Error('boblift_translation_busy', 'Another request is writing a translation; try again.', ['status' => 409]);
+    }
     $checked = boblift_term_translation_check($term_id, $request['boblift_term_translation']);
-    return is_wp_error($checked) ? $checked : $response;
+    if (is_wp_error($checked)) {
+        boblift_rest_translation_lock(false);
+        return $checked;
+    }
+    return $response;
 }, 20, 3);
+
+// Releases the translation lock when the controller stopped before the field callback (which releases it otherwise).
+add_filter('rest_request_after_callbacks', static function ($response) {
+    if (function_exists('boblift_rest_translation_lock')) {
+        boblift_rest_translation_lock(false);
+    }
+    return $response;
+}, 20);
 
 /** True when each language has its own addresses (directory, subdomain or domain: Polylang force_lang 1-3), so a translation may share the English slug. */
 function boblift_languages_have_own_urls(): bool
@@ -441,7 +462,7 @@ function boblift_languages_have_own_urls(): bool
     return $force_lang >= 1 && $force_lang <= 3;
 }
 
-function boblift_rest_save_term_translation(WP_Term $term, array $value): true|WP_Error
+function boblift_rest_save_term_translation(WP_Term $term, array $value, bool $creating = false): true|WP_Error
 {
     if (!current_user_can('manage_categories')) {
         return new WP_Error('rest_cannot_edit', 'Sorry, you are not allowed to edit categories.', ['status' => rest_authorization_required_code()]);
@@ -449,7 +470,7 @@ function boblift_rest_save_term_translation(WP_Term $term, array $value): true|W
     if (!boblift_rest_translation_lock(true)) {
         return new WP_Error('boblift_translation_busy', 'Another request is writing a translation; try again.', ['status' => 409]);
     }
-    $checked = boblift_term_translation_check($term->term_id, $value);
+    $checked = boblift_term_translation_check($term->term_id, $value, $creating);
     if (is_wp_error($checked)) {
         return $checked;
     }
