@@ -542,7 +542,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                     <?php foreach ($spec_sections as $spec_section) :
                         // A value too long for half a row (a configuration, a bolt pattern) takes a whole row, after the short
                         // figures, so it reads on one or two lines instead of being squeezed into three.
-                        $spec_is_long = static fn(array $row): bool => mb_strwidth(trim((string) ($row['value'] ?? ''))) > 20;
+                        $spec_is_long = static fn(array $row): bool => boblift_text_width(trim((string) ($row['value'] ?? ''))) > 20;
                         $spec_short = array_values(array_filter($spec_section['rows'], static fn(array $row): bool => !$spec_is_long($row)));
                         $spec_long = array_values(array_filter($spec_section['rows'], $spec_is_long));
                         $spec_rows = array_merge($spec_short, $spec_long);

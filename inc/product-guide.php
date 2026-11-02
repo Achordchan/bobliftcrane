@@ -316,6 +316,13 @@ function boblift_product_drawing_data(int $product_id): array
  */
 function boblift_product_drawing_rows_unique(int $product_id, array $rows): array
 {
+    // The English rows stand for this page's rows only while this language's table follows the English one row for row;
+    // a translated table that does not keeps every drawing figure, since it may lack the row the English table has.
+    $english = boblift_decode_meta(get_post_meta(boblift_product_english_id($product_id), '_specs', true), []);
+    $local = boblift_decode_meta(get_post_meta($product_id, '_specs', true), []);
+    if (!is_array($english) || !is_array($local) || !boblift_spec_rows_aligned($local, $english)) {
+        return $rows;
+    }
     $covered = [
         'radius' => ['Max Working Radius', 'Max Working Range', 'Max Working Distance'],
         'height' => ['Max Lifting Height', 'Max Lifting Height (from ground)', 'Working Height'],
@@ -328,6 +335,17 @@ function boblift_product_drawing_rows_unique(int $product_id, array $rows): arra
         }
         return true;
     }));
+}
+
+/** Display width of a text: East Asian wide characters count as two, as mb_strwidth() counts them (mbstring is optional). */
+function boblift_text_width(string $text): int
+{
+    if (function_exists('mb_strwidth')) {
+        return mb_strwidth($text);
+    }
+    $chars = preg_split('//u', $text, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+    $wide = preg_match_all('/[\x{1100}-\x{115F}\x{2E80}-\x{A4CF}\x{AC00}-\x{D7A3}\x{F900}-\x{FAFF}\x{FE30}-\x{FE4F}\x{FF00}-\x{FF60}\x{FFE0}-\x{FFE6}]/u', $text);
+    return count($chars) + (int) $wide;
 }
 
 /**
