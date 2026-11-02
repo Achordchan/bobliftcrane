@@ -508,8 +508,28 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                 $spec_range_link = $related_term instanceof WP_Term ? get_term_link($related_term) : '';
                 ?>
                 <?php
-                if (!empty($drawing_data['rows'])) {
-                    $spec_sections[] = ['label' => boblift_localized_static_text('Reach and outriggers'), 'rows' => $drawing_data['rows']];
+                // Figures read off the drawing join the groups they belong to (reach, height and boom angle under Lifting, the
+                // outrigger span under Machine) instead of a group of their own, and a figure the table already gives is not
+                // repeated. A product without outriggers has no span on its drawing, so it shows no outrigger row.
+                // Named like the table's own rows (Max Working Radius, not Max. radius), so the merged rows read as one table.
+                $drawing_labels = ['radius' => 'Max Working Radius', 'height' => 'Max Lifting Height', 'angle' => 'Max Boom Angle', 'span' => 'Outrigger Span'];
+                foreach (boblift_product_drawing_rows_unique((int) get_the_ID(), $drawing_data['rows'] ?? []) as $drawing_row) {
+                    if (isset($drawing_labels[$drawing_row['key'] ?? ''])) {
+                        $drawing_row['label'] = boblift_localized_static_text($drawing_labels[$drawing_row['key']]);
+                    }
+                    $drawing_group = ($drawing_row['key'] ?? '') === 'span' ? 'machine' : 'lifting';
+                    $drawing_index = $spec_groups ? array_search($drawing_group, array_column($spec_sections, 'key'), true) : 0;
+                    if ($drawing_index === false) {
+                        $drawing_section = ['key' => $drawing_group, 'label' => boblift_localized_static_text($drawing_group === 'machine' ? 'Machine' : 'Lifting'), 'rows' => []];
+                        if ($drawing_group === 'machine') {
+                            $spec_sections[] = $drawing_section;
+                            $drawing_index = count($spec_sections) - 1;
+                        } else {
+                            array_unshift($spec_sections, $drawing_section);
+                            $drawing_index = 0;
+                        }
+                    }
+                    $spec_sections[$drawing_index]['rows'][] = $drawing_row;
                 }
                 ?>
                 <div class="min-w-0 <?php echo $drawings ? '' : 'border-t border-[#E6EDF5]'; ?>">
@@ -520,8 +540,14 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                     $spec_fill = ['sm' => [2 => 'sm:col-span-2'], 'lg' => [2 => 'lg:col-span-2', 3 => 'lg:col-span-3']];
                     ?>
                     <?php foreach ($spec_sections as $spec_section) :
-                        $spec_rows = array_values($spec_section['rows']);
-                        $spec_ones = array_fill(0, count($spec_rows), 1);
+                        // A value too long for half a row (a configuration, a bolt pattern) takes a whole row, after the short
+                        // figures, so it reads on one or two lines instead of being squeezed into three.
+                        $spec_is_long = static fn(array $row): bool => mb_strwidth(trim((string) ($row['value'] ?? ''))) > 20;
+                        $spec_short = array_values(array_filter($spec_section['rows'], static fn(array $row): bool => !$spec_is_long($row)));
+                        $spec_long = array_values(array_filter($spec_section['rows'], $spec_is_long));
+                        $spec_rows = array_merge($spec_short, $spec_long);
+                        $spec_ones = array_fill(0, count($spec_short), 1);
+                        $spec_full = 'sm:col-span-2' . ($spec_cols === 3 ? ' lg:col-span-3' : '');
                         ?>
                         <?php if ($spec_section['label'] !== '') : ?>
                             <h3 class="border-b border-[#E6EDF5] bg-[#F8FAFC] px-4 py-2 sm:px-6 text-[11px] font-black uppercase tracking-[0.14em] text-slate-500 rtl:tracking-normal md:px-8"><?php echo esc_html($spec_section['label']); ?></h3>
@@ -530,7 +556,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                             <?php foreach ($spec_rows as $spec_index => $spec) :
                                 [$spec_number, $spec_unit] = $hero_spec_parts((string) $spec['value']);
                                 $spec_is_model = !$spec_groups && $hero_model !== '' && $spec === $technical_specs[0];
-                                $spec_last = $spec_index === count($spec_rows) - 1 ? trim(($spec_fill['sm'][boblift_grid_last_item_span($spec_ones, 2)] ?? '') . ' ' . ($spec_cols === 3 ? ($spec_fill['lg'][boblift_grid_last_item_span($spec_ones, 3)] ?? 'lg:col-span-1') : '')) : '';
+                                $spec_last = $spec_index >= count($spec_short) ? $spec_full : ($spec_index === count($spec_short) - 1 ? trim(($spec_fill['sm'][boblift_grid_last_item_span($spec_ones, 2)] ?? '') . ' ' . ($spec_cols === 3 ? ($spec_fill['lg'][boblift_grid_last_item_span($spec_ones, 3)] ?? 'lg:col-span-1') : '')) : '');
                             ?>
                                 <div class="flex min-w-0 items-baseline justify-between gap-4 border-b border-[#E6EDF5] px-4 py-2.5 sm:px-6 sm:py-3 md:px-8 <?php echo esc_attr($spec_last); ?> <?php echo $spec_is_model ? 'bg-[#F5F8FC]' : ''; ?>">
                                     <dt class="min-w-0 text-sm font-normal leading-5 text-slate-500"><?php echo esc_html($spec['label']); ?></dt>
@@ -541,14 +567,14 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                         </dl>
                     <?php endforeach; ?>
                     <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-[#E6EDF5] px-4 py-4 sm:px-6 md:px-8">
-                        <p class="max-w-xl text-xs font-normal leading-5 text-slate-500"><?php echo esc_html(boblift_localized_static_text('Figures from the BOB-LIFT brochure for this range. Confirm the final specification with our team before ordering.')); ?></p>
+                        <p class="max-w-xl text-xs font-normal leading-5 text-slate-500"><?php echo esc_html(boblift_localized_static_text('Figures from the BOB-LIFT technical drawings. Confirm the final specification with our team before ordering.')); ?></p>
                         <?php if (is_string($spec_range_link) && $spec_range_link !== '') : ?>
                             <a class="inline-flex shrink-0 items-center gap-1.5 text-sm font-black text-blue-700 transition hover:text-[#071f42]" href="<?php echo esc_url($spec_range_link); ?>"><?php echo esc_html(str_replace('{range}', $related_term->name, boblift_localized_static_text('Compare all {range}'))); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></a>
                         <?php endif; ?>
                     </div>
                 </div>
                 <?php if ($drawings) : ?>
-                    <div id="drawing" class="flex scroll-mt-24 flex-col justify-center gap-6 border-t border-[#E6EDF5] px-4 py-5 sm:p-6 md:p-8 lg:-ms-px lg:border-s lg:border-t-0">
+                    <div id="drawing" class="flex scroll-mt-24 flex-col justify-start gap-6 border-t border-[#E6EDF5] px-4 py-5 sm:p-6 md:p-8 lg:-ms-px lg:border-s lg:border-t-0">
                         <p class="boblift-kicker"><?php echo esc_html($ui['drawingTitle'] ?? 'Dimensions and load chart'); ?></p>
                         <?php // Two drawings sit side by side; every drawing is capped in height, so a portrait sheet stays a preview and opens full size on click.
                         // On phones several drawings become a swipe row at nearly the card's width, with the next one peeking in, instead of two thumbnails,

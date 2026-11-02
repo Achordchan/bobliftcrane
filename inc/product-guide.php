@@ -311,6 +311,26 @@ function boblift_product_drawing_data(int $product_id): array
 }
 
 /**
+ * The drawing figures the spec table does not already give: a reach or height row in the table (Max Working Radius,
+ * Max Lifting Height, ...) is the same figure, so the drawing's row is left out rather than shown twice.
+ */
+function boblift_product_drawing_rows_unique(int $product_id, array $rows): array
+{
+    $covered = [
+        'radius' => ['Max Working Radius', 'Max Working Range', 'Max Working Distance'],
+        'height' => ['Max Lifting Height', 'Max Lifting Height (from ground)', 'Working Height'],
+    ];
+    return array_values(array_filter($rows, static function (array $row) use ($covered, $product_id): bool {
+        foreach ($covered[$row['key'] ?? ''] ?? [] as $label) {
+            if (boblift_product_english_spec($product_id, $label) !== '') {
+                return false;
+            }
+        }
+        return true;
+    }));
+}
+
+/**
  * Whether a translated spec table still follows the English one row for row: same length, and the first figure of
  * each row equal to the English row's (figures survive translation). Only then can a translated row stand for the
  * English row at its position.
@@ -355,8 +375,10 @@ function boblift_product_spec_groups(int $product_id, array $rows, bool $has_mod
             return [];
         }
     }
-    $lifting = ['Max Lifting Capacity', 'Max Lifting Moment', 'Rotation Angle', 'Max Working Radius', 'Max Working Range', 'Min Working Range', 'Max Lifting Height', 'Max Lifting Height (from ground)', 'Working Height', 'Lifting Angle', 'Boom Type', 'Boom Sections', 'Winch', 'Matching Forklifts'];
-    $hydraulics = ['Recommended Power', 'Hydraulic System Flow', 'Hydraulic System Pressure', 'Rated Working Pressure', 'Rated Flow', 'Oil Tank Capacity'];
+    // Performance (what it lifts, how far, how high) under Lifting; what drives it under Hydraulics and power; the rest is
+    // the machine itself (weight, size, mounting, control).
+    $lifting = ['Max Lifting Capacity', 'Max Lifting Moment', 'Load at Max Radius', 'Rotation Angle', 'Max Working Radius', 'Max Working Range', 'Min Working Range', 'Max Working Distance', 'Min Working Distance', 'Max Lifting Height', 'Max Lifting Height (from ground)', 'Working Height', 'Lifting Angle', 'Boom', 'Boom Type', 'Boom Sections', 'Winch', 'Matching Forklifts'];
+    $hydraulics = ['Recommended Power', 'Hydraulic System Flow', 'Hydraulic System Pressure', 'Rated Working Pressure', 'Rated Flow', 'Oil Tank Capacity', 'Motor Power', 'Voltage', 'Battery', 'Drive', 'Cylinders'];
     $groups = [
         'lifting' => ['label' => boblift_localized_static_text('Lifting'), 'rows' => []],
         'hydraulics' => ['label' => boblift_localized_static_text('Hydraulics and power'), 'rows' => []],
@@ -367,6 +389,9 @@ function boblift_product_spec_groups(int $product_id, array $rows, bool $has_mod
         $label = trim((string) $english[$index]['label']);
         $key = in_array($label, $lifting, true) ? 'lifting' : (in_array($label, $hydraulics, true) ? 'hydraulics' : 'machine');
         $groups[$key]['rows'][] = $row;
+    }
+    foreach ($groups as $key => $group) {
+        $groups[$key]['key'] = $key;
     }
     $groups = array_values(array_filter($groups, static fn(array $group): bool => $group['rows'] !== []));
     // A single group adds a heading and nothing else.
