@@ -257,6 +257,34 @@ function boblift_product_videos(int $product_id): array
     return $videos;
 }
 
+// Films written into a product's body (a Video block or a Custom HTML figure) play in the product page's video column, so
+// they are lifted out of the copy: returns the body without them and each film as a player entry, in body order.
+function boblift_split_body_videos(string $html): array
+{
+    $videos = [];
+    if (stripos($html, 'wp-block-video') === false) {
+        return [$html, $videos];
+    }
+    $attribute = static function (string $tag, string $name): string {
+        return preg_match('/\\s' . $name . '\\s*=\\s*(["\'])(.*?)\\1/is', $tag, $match) ? html_entity_decode($match[2], ENT_QUOTES, 'UTF-8') : '';
+    };
+    $body = preg_replace_callback('#<figure\\b[^>]*\\bwp-block-video\\b[^>]*>.*?</figure>#is', static function (array $figure) use (&$videos, $attribute): string {
+        if (!preg_match('#<video\\b[^>]*>#i', $figure[0], $tag) || ($src = $attribute($tag[0], 'src')) === '') {
+            return $figure[0];
+        }
+        $caption = preg_match('#<figcaption\\b[^>]*>(.*?)</figcaption>#is', $figure[0], $match) ? trim(html_entity_decode(wp_strip_all_tags($match[1]), ENT_QUOTES, 'UTF-8')) : '';
+        $videos[] = ['key' => 'body-' . count($videos), 'group' => 'product', 'title' => $caption, 'label' => $caption, 'player' => 'local', 'youtube' => '', 'src' => $src, 'src_mobile' => '', 'poster' => $attribute($tag[0], 'poster'), 'duration' => 0];
+        return '';
+    }, $html);
+    return [is_string($body) ? $body : $html, $videos];
+}
+
+// A library film's poster is a theme asset; a film from the product body carries a full URL.
+function boblift_video_poster_src(string $poster): string
+{
+    return $poster === '' || preg_match('#^(https?:)?/#i', $poster) ? $poster : boblift_asset($poster);
+}
+
 function boblift_video_duration_label(array $video): string
 {
     $seconds = (int) ($video['duration'] ?? 0);
