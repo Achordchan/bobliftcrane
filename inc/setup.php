@@ -1172,3 +1172,36 @@ function boblift_cdn_video_posters(string $content): string
     return $changed ? $processor->get_updated_html() : $content;
 }
 add_filter('the_content', 'boblift_cdn_video_posters', 8);
+
+/*
+ * A portrait (phone-shot) video in a story is marked so the article styles can lay it out beside its caption instead of
+ * as a narrow strip in the middle of the column. Some figures already carry bl-video-vertical from the editor; the
+ * others are recognised by the video's own width and height attributes (or its 9/16 aspect-ratio style). Only plain
+ * video figures holding a single video are touched.
+ */
+function boblift_mark_portrait_videos(string $content): string
+{
+    if (!str_contains($content, 'wp-block-video')) {
+        return $content;
+    }
+    return (string) preg_replace_callback('/<figure\b([^>]*\bclass="([^"]*\bwp-block-video\b[^"]*)"[^>]*)>(.*?)<\/figure>/is', static function (array $m): string {
+        if (preg_match('/\bbl-video-vertical\b/', $m[2]) || substr_count(strtolower($m[3]), '<video') !== 1) {
+            return $m[0];
+        }
+        if (!preg_match('/<video\b[^>]*>/i', $m[3], $tag)) {
+            return $m[0];
+        }
+        $portrait = false;
+        if (preg_match('/\bwidth=["\']?(\d+)/i', $tag[0], $w) && preg_match('/\bheight=["\']?(\d+)/i', $tag[0], $h)) {
+            $portrait = (int) $w[1] > 0 && (int) $h[1] > (int) $w[1];
+        } elseif (preg_match('/aspect-ratio:\s*(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)/i', $tag[0], $r)) {
+            $portrait = (float) $r[2] > (float) $r[1];
+        }
+        if (!$portrait) {
+            return $m[0];
+        }
+        $attrs = str_replace('class="' . $m[2] . '"', 'class="' . $m[2] . ' bl-video-vertical"', $m[1]);
+        return '<figure' . $attrs . '>' . $m[3] . '</figure>';
+    }, $content);
+}
+add_filter('the_content', 'boblift_mark_portrait_videos', 9);

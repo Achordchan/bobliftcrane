@@ -1,0 +1,22 @@
+<?php
+// php scripts/test-portrait-videos.php: which video figures in a story are marked as portrait (bl-video-vertical).
+function add_filter(...$args) {}
+$src = file_get_contents(__DIR__ . '/../inc/setup.php');
+preg_match('/function boblift_mark_portrait_videos.*?\n}\n/s', $src, $m);
+eval($m[0]);
+$failed = 0;
+$cases = [
+    ['<figure class="wp-block-video"><video width="720" height="1280" src="a.mp4"></video><figcaption>c</figcaption></figure>', true],
+    ['<figure class="wp-block-video"><video style="aspect-ratio:9/16" src="a.mp4"></video></figure>', true],
+    ['<figure class="wp-block-video"><video height="1080" style="aspect-ratio: 1920 / 1080;" width="1920" src="a.mp4"></video></figure>', false],
+    ['<figure class="wp-block-video"><video src="a.mp4"></video></figure>', false],
+    ['<figure class="wp-block-video"><video width="720" height="1280"></video><video width="720" height="1280"></video></figure>', false],
+];
+foreach ($cases as [$html, $portrait]) {
+    $out = boblift_mark_portrait_videos($html);
+    if (substr_count($out, 'bl-video-vertical') !== ($portrait ? 1 : 0)) { $failed++; echo "wrong: $html\n"; }
+}
+$already = '<figure class="wp-block-video bl-video-vertical" style="max-width:340px"><video width="720" height="1280"></video></figure>';
+if (boblift_mark_portrait_videos($already) !== $already) { $failed++; echo "already marked should stay as is\n"; }
+echo $failed ? "$failed failed\n" : "ok\n";
+exit($failed ? 1 : 0);
