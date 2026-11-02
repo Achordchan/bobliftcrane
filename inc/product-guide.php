@@ -311,6 +311,44 @@ function boblift_product_drawing_data(int $product_id): array
 }
 
 /**
+ * The drawing figures the spec table does not already give: a reach or height row in the table (Max Working Radius,
+ * Max Lifting Height, ...) is the same figure, so the drawing's row is left out rather than shown twice.
+ */
+function boblift_product_drawing_rows_unique(int $product_id, array $rows): array
+{
+    // The English rows stand for this page's rows only while this language's table follows the English one row for row;
+    // a translated table that does not keeps every drawing figure, since it may lack the row the English table has.
+    $english = boblift_decode_meta(get_post_meta(boblift_product_english_id($product_id), '_specs', true), []);
+    $local = boblift_decode_meta(get_post_meta($product_id, '_specs', true), []);
+    if (!is_array($english) || !is_array($local) || !boblift_spec_rows_aligned($local, $english)) {
+        return $rows;
+    }
+    $covered = [
+        'radius' => ['Max Working Radius', 'Max Working Range', 'Max Working Distance'],
+        'height' => ['Max Lifting Height', 'Max Lifting Height (from ground)', 'Working Height'],
+    ];
+    return array_values(array_filter($rows, static function (array $row) use ($covered, $product_id): bool {
+        foreach ($covered[$row['key'] ?? ''] ?? [] as $label) {
+            if (boblift_product_english_spec($product_id, $label) !== '') {
+                return false;
+            }
+        }
+        return true;
+    }));
+}
+
+/** Display width of a text: East Asian wide characters count as two, as mb_strwidth() counts them (mbstring is optional). */
+function boblift_text_width(string $text): int
+{
+    if (function_exists('mb_strwidth')) {
+        return mb_strwidth($text);
+    }
+    $chars = preg_split('//u', $text, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+    $wide = preg_match_all('/[\x{1100}-\x{115F}\x{2E80}-\x{A4CF}\x{AC00}-\x{D7A3}\x{F900}-\x{FAFF}\x{FE30}-\x{FE4F}\x{FF00}-\x{FF60}\x{FFE0}-\x{FFE6}]/u', $text);
+    return count($chars) + (int) $wide;
+}
+
+/**
  * Whether a translated spec table still follows the English one row for row: same length, and the first figure of
  * each row equal to the English row's (figures survive translation). Only then can a translated row stand for the
  * English row at its position.
@@ -355,8 +393,10 @@ function boblift_product_spec_groups(int $product_id, array $rows, bool $has_mod
             return [];
         }
     }
-    $lifting = ['Max Lifting Capacity', 'Max Lifting Moment', 'Rotation Angle', 'Max Working Radius', 'Max Working Range', 'Min Working Range', 'Max Lifting Height', 'Max Lifting Height (from ground)', 'Working Height', 'Lifting Angle', 'Boom Type', 'Boom Sections', 'Winch', 'Matching Forklifts'];
-    $hydraulics = ['Recommended Power', 'Hydraulic System Flow', 'Hydraulic System Pressure', 'Rated Working Pressure', 'Rated Flow', 'Oil Tank Capacity'];
+    // Performance (what it lifts, how far, how high) under Lifting; what drives it under Hydraulics and power; the rest is
+    // the machine itself (weight, size, mounting, control).
+    $lifting = ['Max Lifting Capacity', 'Max Lifting Moment', 'Load at Max Radius', 'Rotation Angle', 'Max Working Radius', 'Max Working Range', 'Min Working Range', 'Max Working Distance', 'Min Working Distance', 'Max Lifting Height', 'Max Lifting Height (from ground)', 'Working Height', 'Lifting Angle', 'Boom', 'Boom Type', 'Boom Sections', 'Winch', 'Matching Forklifts'];
+    $hydraulics = ['Recommended Power', 'Hydraulic System Flow', 'Hydraulic System Pressure', 'Rated Working Pressure', 'Rated Flow', 'Oil Tank Capacity', 'Motor Power', 'Voltage', 'Battery', 'Drive', 'Cylinders'];
     $groups = [
         'lifting' => ['label' => boblift_localized_static_text('Lifting'), 'rows' => []],
         'hydraulics' => ['label' => boblift_localized_static_text('Hydraulics and power'), 'rows' => []],
@@ -367,6 +407,9 @@ function boblift_product_spec_groups(int $product_id, array $rows, bool $has_mod
         $label = trim((string) $english[$index]['label']);
         $key = in_array($label, $lifting, true) ? 'lifting' : (in_array($label, $hydraulics, true) ? 'hydraulics' : 'machine');
         $groups[$key]['rows'][] = $row;
+    }
+    foreach ($groups as $key => $group) {
+        $groups[$key]['key'] = $key;
     }
     $groups = array_values(array_filter($groups, static fn(array $group): bool => $group['rows'] !== []));
     // A single group adds a heading and nothing else.

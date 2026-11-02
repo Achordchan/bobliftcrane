@@ -23,6 +23,12 @@ if (!defined('ABSPATH')) {
  *              occur exactly once (not counting occurrences inside an occurrence of "to"), in page text: never inside a
  *              tag, attribute, comment, script or style. When it no longer occurs and "to" does, the item is already
  *              done and is skipped.
+ *   "restore": [{"label": "Max Lifting Capacity", "value": "2500 kg"}, ...] writes the whole English table, only while the
+ *              English table has no rows (an emptied table cannot take "set" or "insert", which name rows). A map
+ *              {"en": [...], "es": [...], ...} also fills the named translations, each only while its own table is
+ *              empty. Every translation, given or kept, must follow the English rows row for row
+ *              (boblift_spec_rows_aligned()). Cannot be combined with "set" or "insert". Sending it again once the
+ *              tables hold exactly these rows does nothing.
  * Only the field itself may be sent: a request with any other parameter is refused before anything is saved.
  *
  * The request takes the per-post lock of every language version (the lock boblift_content_insert and every REST save
@@ -216,6 +222,58 @@ function boblift_product_specs_plan_rows(array $tables, array $value): array|WP_
     return array_filter($new, static fn(array $rows, string $language): bool => $rows !== $tables[$language], ARRAY_FILTER_USE_BOTH);
 }
 
+/**
+ * The tables a "restore" request writes, as language => rows: only the languages whose table changes, [] when every given
+ * table already holds exactly its rows; or an error when a given table has other rows, a row is not a label and a value,
+ * or a table does not follow the English rows row for row.
+ */
+function boblift_product_specs_plan_restore(array $tables, $restore): array|WP_Error
+{
+    // A plain list is the English table; a map gives the English table and the emptied translations to fill with it.
+    $given = is_array($restore) && array_is_list($restore) ? ['en' => $restore] : $restore;
+    if (!is_array($given) || !is_array($given['en'] ?? null)) {
+        return new WP_Error('boblift_specs_restore', '"restore" needs a list of {"label", "value"} rows, or a map of such lists by language with "en".', ['status' => 400]);
+    }
+    if (array_diff_key($given, $tables) !== []) {
+        return new WP_Error('boblift_specs_language', sprintf('"restore" names languages this product does not have: %s.', implode(', ', array_keys(array_diff_key($given, $tables)))), ['status' => 400]);
+    }
+    $new = [];
+    foreach ($given as $language => $list) {
+        if (!is_array($list) || $list === [] || !array_is_list($list)) {
+            return new WP_Error('boblift_specs_restore', sprintf('"restore" needs a list of {"label", "value"} rows for %s.', $language), ['status' => 400]);
+        }
+        foreach ($list as $row) {
+            $label = is_array($row) ? sanitize_text_field((string) ($row['label'] ?? '')) : '';
+            $text = is_array($row) ? sanitize_text_field((string) ($row['value'] ?? '')) : '';
+            if ($label === '' || $text === '') {
+                return new WP_Error('boblift_specs_restore', sprintf('Every "restore" row needs a non-empty "label" and "value" (%s).', $language), ['status' => 400]);
+            }
+            $new[$language][] = ['label' => $label, 'value' => $text];
+        }
+        $labels = array_column($new[$language], 'label');
+        if (count($labels) !== count(array_unique($labels))) {
+            return new WP_Error('boblift_specs_restore', sprintf('"restore" names the same %s label twice.', $language), ['status' => 400]);
+        }
+    }
+    $changes = [];
+    foreach ($new as $language => $rows) {
+        if ($tables[$language] === $rows) {
+            continue;
+        }
+        $filled = array_filter($tables[$language], static fn($row): bool => is_array($row) && (trim((string) ($row['label'] ?? '')) !== '' || trim((string) ($row['value'] ?? '')) !== ''));
+        if ($filled !== []) {
+            return new WP_Error('boblift_specs_restore', sprintf('The %s table has %d rows; "restore" only fills an empty one (use "set" or "insert").', $language, count($filled)), ['status' => 409]);
+        }
+        $changes[$language] = $rows;
+    }
+    foreach ($tables as $language => $rows) {
+        if ($language !== 'en' && !boblift_spec_rows_aligned($new[$language] ?? $rows, $new['en'])) {
+            return new WP_Error('boblift_specs_aligned', sprintf('The %s table does not follow the restored English rows row for row; nothing was saved.', $language), ['status' => 409]);
+        }
+    }
+    return $changes;
+}
+
 /** The stored meta row (meta_id and value) of one key, read past the object cache; null when there is none. */
 function boblift_product_specs_meta_row(int $post_id, string $key): ?array
 {
@@ -392,6 +450,11 @@ function boblift_product_specs_commit(array $group, array $rows, array $texts, a
     // post's lock is released, makes the write match nothing and the whole request roll back.
     $queries = [];
     foreach ($rows as $language => $table) {
+        if ($spec_meta[$language] === null) {
+            // No _specs row yet (only a restored table gets here): add one unless another save just did.
+            $queries[] = $wpdb->prepare("INSERT INTO {$wpdb->postmeta} (post_id, meta_key, meta_value) SELECT %d, '_specs', %s FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM (SELECT meta_id FROM {$wpdb->postmeta} WHERE post_id = %d AND meta_key = '_specs') AS existing)", $group[$language], (string) wp_json_encode($table, JSON_UNESCAPED_UNICODE), $group[$language]);
+            continue;
+        }
         $queries[] = $wpdb->prepare("UPDATE {$wpdb->postmeta} SET meta_value = %s WHERE meta_id = %d AND BINARY meta_value = BINARY %s", (string) wp_json_encode($table, JSON_UNESCAPED_UNICODE), $spec_meta[$language]['id'], $spec_meta[$language]['value']);
     }
     foreach ($texts as $language => $changes) {
@@ -451,12 +514,19 @@ function boblift_product_specs_plan(int $product_id, array $value): array|WP_Err
         $spec_meta[$language] = boblift_product_specs_meta_row($id, '_specs');
         $tables[$language] = array_values((array) boblift_decode_meta($spec_meta[$language]['value'] ?? '', []));
     }
-    $rows = isset($value['set']) || isset($value['insert']) ? boblift_product_specs_plan_rows($tables, $value) : [];
+    if (isset($value['restore'])) {
+        $rows = isset($value['set']) || isset($value['insert'])
+            ? new WP_Error('boblift_specs_restore', '"restore" cannot be combined with "set" or "insert".', ['status' => 400])
+            : boblift_product_specs_plan_restore($tables, $value['restore']);
+    } else {
+        $rows = isset($value['set']) || isset($value['insert']) ? boblift_product_specs_plan_rows($tables, $value) : [];
+    }
     if (is_wp_error($rows)) {
         return $rows;
     }
     foreach (array_keys($rows) as $language) {
-        if ($spec_meta[$language] === null) {
+        // Only a restored table may be written where no _specs row is stored yet.
+        if ($spec_meta[$language] === null && !isset($value['restore'])) {
             return new WP_Error('boblift_specs_missing', sprintf('The %s product has no spec table to change.', $language), ['status' => 409]);
         }
     }
