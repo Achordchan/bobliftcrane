@@ -1196,8 +1196,9 @@ function boblift_mark_portrait_videos(string $content): string
         $portrait = false;
         if (preg_match('/\bwidth=["\']?(\d+)/i', $tag[0], $w) && preg_match('/\bheight=["\']?(\d+)/i', $tag[0], $h)) {
             $portrait = (int) $w[1] > 0 && (int) $h[1] > (int) $w[1];
-        } elseif (preg_match('/aspect-ratio:\s*(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)/i', $tag[0], $r)) {
-            $portrait = (float) $r[2] > (float) $r[1];
+        } elseif (preg_match('/aspect-ratio:\s*(\d*\.?\d+)(?:\s*\/\s*(\d*\.?\d+))?/i', $tag[0], $r)) {
+            // "9/16", "720 / 1280" or a single number such as "0.5625" (its denominator is 1).
+            $portrait = (float) $r[1] > 0 && (float) ($r[2] ?? 1) > (float) $r[1];
         }
         if (!$portrait) {
             return $m[0];
