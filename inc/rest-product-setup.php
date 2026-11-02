@@ -258,6 +258,10 @@ function boblift_product_setup_check(int $post_id, array $value): array|WP_Error
         if (!current_user_can('edit_post', $source->ID)) {
             return new WP_Error('rest_cannot_edit', 'Sorry, you are not allowed to edit the source product.', ['status' => rest_authorization_required_code()]);
         }
+        $stored = $post_id > 0 ? (string) pll_get_post_language($post_id) : '';
+        if ($stored !== '' && $stored !== $lang) {
+            return new WP_Error('boblift_product_setup_lang', sprintf('This product is in "%s"; its language cannot be changed here.', $stored), ['status' => 400]);
+        }
         $existing = (int) pll_get_post($source->ID, $lang);
         if ($existing > 0 && $existing !== $post_id && get_post($existing) instanceof WP_Post) {
             return new WP_Error('boblift_product_setup_exists', 'The source already has a ' . $lang . ' translation (ID ' . $existing . ').', ['status' => 409]);
@@ -269,8 +273,17 @@ function boblift_product_setup_check(int $post_id, array $value): array|WP_Error
                 return new WP_Error('boblift_product_setup_category', 'These categories of the source have no ' . $lang . ' translation: ' . implode(', ', $missing) . '.', ['status' => 400]);
             }
         }
-    } elseif ($lang !== 'en' && ($post_id <= 0 || (int) pll_get_post($post_id, 'en') <= 0)) {
-        return new WP_Error('boblift_product_setup_source', 'A product in another language than English needs "source", its English product.', ['status' => 400]);
+    } else {
+        // Without "source" the request only writes meta: it may file a product that has no language yet in English, or
+        // name the language the product already has. Moving a product to another language would leave its translation
+        // group and its slug (shared with the English product) inconsistent.
+        $stored = $post_id > 0 ? (string) pll_get_post_language($post_id) : '';
+        if ($stored !== '' && $stored !== $lang) {
+            return new WP_Error('boblift_product_setup_lang', sprintf('This product is in "%s"; its language cannot be changed here.', $stored), ['status' => 400]);
+        }
+        if ($stored === '' && $lang !== 'en') {
+            return new WP_Error('boblift_product_setup_source', 'A product in another language than English needs "source", its English product.', ['status' => 400]);
+        }
     }
     $meta = $value['meta'] ?? [];
     if (!is_array($meta) || ($meta !== [] && array_is_list($meta))) {
@@ -391,8 +404,16 @@ function boblift_term_translation_check(int $term_id, array $value): array|WP_Er
         if ($source->parent > 0 && (int) pll_get_term($source->parent, $lang) <= 0) {
             return new WP_Error('boblift_term_translation_parent', 'The parent of the source has no ' . $lang . ' translation.', ['status' => 400]);
         }
+        // Checked before anything changes: an update that is refused afterwards would not be rolled back.
+        if (!boblift_term_slug_free_in_language($source->slug, 'product_category', $lang, $term_id)) {
+            return new WP_Error('boblift_term_translation_slug', sprintf('Another %s category already uses the slug "%s".', $lang, $source->slug), ['status' => 409]);
+        }
     } elseif ($lang !== 'en') {
         return new WP_Error('boblift_term_translation_source', 'A category in another language than English needs "source", its English category.', ['status' => 400]);
+    }
+    $stored = $term_id > 0 ? (string) pll_get_term_language($term_id) : '';
+    if ($stored !== '' && $stored !== $lang) {
+        return new WP_Error('boblift_term_translation_lang', sprintf('This category is in "%s"; its language cannot be changed here.', $stored), ['status' => 400]);
     }
     return ['lang' => $lang, 'source' => $source, 'sort' => $sort];
 }
@@ -438,14 +459,17 @@ function boblift_rest_save_term_translation(WP_Term $term, array $value): true|W
         if (is_wp_error($updated)) {
             return $updated;
         }
+        // The parent change may have suffixed the slug; decide on the slug from the stored term.
+        clean_term_cache($term->term_id, 'product_category');
+        $reloaded = get_term($term->term_id, 'product_category');
+        if ($reloaded instanceof WP_Term) {
+            $term = $reloaded;
+        }
     }
     // The English slug under the language prefix (/zh/<slug>), as every other category translation has. Core and free
     // Polylang would suffix it, since a term in another language holds it, so it is written directly once no term in this
     // language holds it (the check inc/polylang-slugs.php uses for the same rule).
     if ($term->slug !== $source->slug) {
-        if (!boblift_term_slug_free_in_language($source->slug, 'product_category', $lang, $term->term_id)) {
-            return new WP_Error('boblift_term_translation_slug', sprintf('Another %s category already uses the slug "%s".', $lang, $source->slug), ['status' => 409]);
-        }
         global $wpdb;
         $wpdb->update($wpdb->terms, ['slug' => $source->slug], ['term_id' => $term->term_id]);
         clean_term_cache($term->term_id, 'product_category');
