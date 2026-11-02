@@ -1135,7 +1135,7 @@ function boblift_product_category_group_definitions(): array
         [
             'slug' => 'other-cranes',
             'title' => 'Other Cranes',
-            'children' => ['spider-cranes', 'timber-cranes'],
+            'children' => ['spider-cranes', 'timber-cranes', 'electric-mini-cranes'],
         ],
     ];
 }

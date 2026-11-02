@@ -24,6 +24,7 @@ function boblift_archive_article_patterns(): array
         'spider-cranes' => '/spider/i',
         'timber-cranes' => '/timber|forestry|log(?:ging)? crane/i',
         'tail-lift' => '/tail ?lift/i',
+        'electric-mini-cranes' => '/electric (?:mini )?crane|mini crane/i',
     ];
 }
 
