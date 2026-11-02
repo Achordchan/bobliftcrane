@@ -263,8 +263,8 @@
    ]
   ],
   "max_boom_angle_deg": null,
-  "max_height_approx": true,
-  "max_height_m": 7.5,
+  "max_height_approx": false,
+  "max_height_m": null,
   "max_radius_m": 5.4,
   "outrigger_span_mm": null
  },
