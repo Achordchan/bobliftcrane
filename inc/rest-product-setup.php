@@ -216,7 +216,10 @@ function boblift_product_setup_meta_value(string $key, mixed $value): string|WP_
                 }
             }
             if (array_key_exists('max_height_approx', $value)) {
-                $data['max_height_approx'] = (bool) $value['max_height_approx'];
+                if (!is_bool($value['max_height_approx'])) {
+                    return $bad('max_height_approx is true or false');
+                }
+                $data['max_height_approx'] = $value['max_height_approx'];
             }
             if (isset($value['outrigger_span_mm'])) {
                 $span = trim((string) $value['outrigger_span_mm']);
