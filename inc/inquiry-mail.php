@@ -351,13 +351,7 @@ function boblift_inquiry_mail_products(array $fields): array
         $seen[$english_id] = true;
         $title = get_the_title($english_id);
         $model = function_exists('boblift_clean_product_model') ? boblift_clean_product_model((string) get_post_meta($english_id, '_model', true), $title) : (string) get_post_meta($english_id, '_model', true);
-        // A page that covers several versions (SQ2Z-E) sends the chosen one in the product name: the mail names that model.
-        foreach (function_exists('boblift_model_variants') ? boblift_model_variants($model) : [] as $variant) {
-            if (preg_match('/(?<![A-Z0-9])' . preg_quote($variant['model'], '/') . '(?![A-Z0-9])/i', (string) ($fields['product'] ?? ''))) {
-                $model = $variant['model'];
-                break;
-            }
-        }
+        $model = boblift_inquiry_chosen_variant($model, (string) ($fields['product'] ?? ''));
         // 'lang' => '' keeps Polylang from limiting the terms to the language of the page the inquiry came from.
         $terms = wp_get_object_terms($english_id, 'product_category', ['fields' => 'names', 'lang' => '']);
         $products[] = [
@@ -372,6 +366,26 @@ function boblift_inquiry_mail_products(array $fields): array
         $products[] = ['title' => trim((string) $fields['product']), 'model' => '', 'type' => '', 'url' => '', 'image' => ''];
     }
     return $products;
+}
+
+/**
+ * The version of $model the buyer chose, or $model. A page that covers several versions (SQ2Z-E: SQ2Z-EM, SQ2Z-ER) adds
+ * the chosen one at the end of the product name it sends ("2 Ton Electric Mini Crane SQ2Z-ER"). The name before it may
+ * itself list versions ("SQ2Z-EM / SQ2Z-ER ..."), so the version written last is the choice, not the first one found.
+ */
+function boblift_inquiry_chosen_variant(string $model, string $product_text): string
+{
+    $chosen = $model;
+    $chosen_at = -1;
+    foreach (function_exists('boblift_model_variants') ? boblift_model_variants($model) : [] as $variant) {
+        if (preg_match_all('/(?<![A-Z0-9])' . preg_quote($variant['model'], '/') . '(?![A-Z0-9])/i', $product_text, $found, PREG_OFFSET_CAPTURE)) {
+            $at = (int) end($found[0])[1];
+            if ($at > $chosen_at) {
+                [$chosen, $chosen_at] = [$variant['model'], $at];
+            }
+        }
+    }
+    return $chosen;
 }
 
 /**

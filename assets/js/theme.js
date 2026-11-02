@@ -5045,8 +5045,13 @@
     let current = (options.find((option) => option.getAttribute('aria-checked') === 'true') || options[0]).dataset.productVariant || '';
     const on = ['border-[#071f42]', 'bg-[#071f42]', 'text-white'];
     const off = ['border-[#D5DEE9]', 'bg-white', 'text-[#071f42]', 'hover:border-blue-300'];
-    // Names the chosen model in place of the previous one: "2 Ton Electric Mini Crane SQ2Z-ER" -> "... SQ2Z-EM".
-    const swap = (text, next) => (current && text.includes(current) ? text.split(current).join(next) : text);
+    // Names the chosen model in place of the previous one: "2 Ton Electric Mini Crane SQ2Z-ER" -> "... SQ2Z-EM". Only the
+    // model the page put there changes, so a title that itself lists both versions keeps its text: the quote titles end
+    // with it (last occurrence), WhatsApp and mail start with it (first occurrence).
+    const swap = (text, next, last = false) => {
+      const at = current ? (last ? text.lastIndexOf(current) : text.indexOf(current)) : -1;
+      return at < 0 ? text : text.slice(0, at) + next + text.slice(at + current.length);
+    };
 
     const choose = (option, focus = false) => {
       const next = option.dataset.productVariant || '';
@@ -5062,8 +5067,8 @@
         let items;
         try { items = JSON.parse(button.dataset.inquiryProducts || '[]'); } catch (error) { return; }
         if (!Array.isArray(items) || !items.some((item) => item && item.slug === slug)) return;
-        button.dataset.inquiryProducts = JSON.stringify(items.map((item) => (item && item.slug === slug ? { ...item, title: swap(String(item.title || ''), next) } : item)));
-        if (button.dataset.inquiryProduct) button.dataset.inquiryProduct = swap(button.dataset.inquiryProduct, next);
+        button.dataset.inquiryProducts = JSON.stringify(items.map((item) => (item && item.slug === slug ? { ...item, title: swap(String(item.title || ''), next, true) } : item)));
+        if (button.dataset.inquiryProduct) button.dataset.inquiryProduct = swap(button.dataset.inquiryProduct, next, true);
       });
       document.querySelectorAll('[data-product-variant-href]').forEach((link) => {
         link.setAttribute('href', swap(link.getAttribute('href') || '', next));
