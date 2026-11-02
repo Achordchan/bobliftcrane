@@ -23,6 +23,11 @@ if (!defined('ABSPATH')) {
  *              occur exactly once (not counting occurrences inside an occurrence of "to"), in page text: never inside a
  *              tag, attribute, comment, script or style. When it no longer occurs and "to" does, the item is already
  *              done and is skipped.
+ *   "restore": [{"label": "Max Lifting Capacity", "value": "2500 kg"}, ...] writes the whole English table, only while the
+ *              English table has no rows (an emptied table cannot take "set" or "insert", which name rows). Every
+ *              translation keeps its own rows and must already follow the given rows row for row
+ *              (boblift_spec_rows_aligned()), so the restored English table is checked against them. Cannot be combined
+ *              with "set" or "insert". Sending it again once the table holds exactly these rows does nothing.
  * Only the field itself may be sent: a request with any other parameter is refused before anything is saved.
  *
  * The request takes the per-post lock of every language version (the lock boblift_content_insert and every REST save
@@ -216,6 +221,44 @@ function boblift_product_specs_plan_rows(array $tables, array $value): array|WP_
     return array_filter($new, static fn(array $rows, string $language): bool => $rows !== $tables[$language], ARRAY_FILTER_USE_BOTH);
 }
 
+/**
+ * The English table a "restore" request writes: ['en' => rows], [] when the table already holds exactly these rows, or an
+ * error when the English table has other rows, a row is not a label and a value, or a translation does not follow them.
+ */
+function boblift_product_specs_plan_restore(array $tables, $restore): array|WP_Error
+{
+    if (!is_array($restore) || $restore === [] || !array_is_list($restore)) {
+        return new WP_Error('boblift_specs_restore', '"restore" needs a list of {"label", "value"} rows.', ['status' => 400]);
+    }
+    $new = [];
+    foreach ($restore as $row) {
+        $label = is_array($row) ? sanitize_text_field((string) ($row['label'] ?? '')) : '';
+        $text = is_array($row) ? sanitize_text_field((string) ($row['value'] ?? '')) : '';
+        if ($label === '' || $text === '') {
+            return new WP_Error('boblift_specs_restore', 'Every "restore" row needs a non-empty "label" and "value".', ['status' => 400]);
+        }
+        $new[] = ['label' => $label, 'value' => $text];
+    }
+    $labels = array_column($new, 'label');
+    if (count($labels) !== count(array_unique($labels))) {
+        return new WP_Error('boblift_specs_restore', '"restore" names the same label twice.', ['status' => 400]);
+    }
+    $english = $tables['en'];
+    if ($english === $new) {
+        return [];
+    }
+    $filled = array_filter($english, static fn($row): bool => is_array($row) && (trim((string) ($row['label'] ?? '')) !== '' || trim((string) ($row['value'] ?? '')) !== ''));
+    if ($filled !== []) {
+        return new WP_Error('boblift_specs_restore', sprintf('The English table has %d rows; "restore" only fills an empty one (use "set" or "insert").', count($filled)), ['status' => 409]);
+    }
+    foreach ($tables as $language => $rows) {
+        if ($language !== 'en' && !boblift_spec_rows_aligned($rows, $new)) {
+            return new WP_Error('boblift_specs_aligned', sprintf('The %s table does not follow the restored rows row for row; nothing was saved.', $language), ['status' => 409]);
+        }
+    }
+    return ['en' => $new];
+}
+
 /** The stored meta row (meta_id and value) of one key, read past the object cache; null when there is none. */
 function boblift_product_specs_meta_row(int $post_id, string $key): ?array
 {
@@ -392,6 +435,11 @@ function boblift_product_specs_commit(array $group, array $rows, array $texts, a
     // post's lock is released, makes the write match nothing and the whole request roll back.
     $queries = [];
     foreach ($rows as $language => $table) {
+        if ($spec_meta[$language] === null) {
+            // No _specs row yet (only a restored English table gets here): add one unless another save just did.
+            $queries[] = $wpdb->prepare("INSERT INTO {$wpdb->postmeta} (post_id, meta_key, meta_value) SELECT %d, '_specs', %s FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM (SELECT meta_id FROM {$wpdb->postmeta} WHERE post_id = %d AND meta_key = '_specs') AS existing)", $group[$language], (string) wp_json_encode($table, JSON_UNESCAPED_UNICODE), $group[$language]);
+            continue;
+        }
         $queries[] = $wpdb->prepare("UPDATE {$wpdb->postmeta} SET meta_value = %s WHERE meta_id = %d AND BINARY meta_value = BINARY %s", (string) wp_json_encode($table, JSON_UNESCAPED_UNICODE), $spec_meta[$language]['id'], $spec_meta[$language]['value']);
     }
     foreach ($texts as $language => $changes) {
@@ -451,12 +499,19 @@ function boblift_product_specs_plan(int $product_id, array $value): array|WP_Err
         $spec_meta[$language] = boblift_product_specs_meta_row($id, '_specs');
         $tables[$language] = array_values((array) boblift_decode_meta($spec_meta[$language]['value'] ?? '', []));
     }
-    $rows = isset($value['set']) || isset($value['insert']) ? boblift_product_specs_plan_rows($tables, $value) : [];
+    if (isset($value['restore'])) {
+        $rows = isset($value['set']) || isset($value['insert'])
+            ? new WP_Error('boblift_specs_restore', '"restore" cannot be combined with "set" or "insert".', ['status' => 400])
+            : boblift_product_specs_plan_restore($tables, $value['restore']);
+    } else {
+        $rows = isset($value['set']) || isset($value['insert']) ? boblift_product_specs_plan_rows($tables, $value) : [];
+    }
     if (is_wp_error($rows)) {
         return $rows;
     }
     foreach (array_keys($rows) as $language) {
-        if ($spec_meta[$language] === null) {
+        // Only a restored English table may be written where no _specs row is stored yet.
+        if ($spec_meta[$language] === null && !($language === 'en' && isset($value['restore']))) {
             return new WP_Error('boblift_specs_missing', sprintf('The %s product has no spec table to change.', $language), ['status' => 409]);
         }
     }
