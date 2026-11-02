@@ -262,3 +262,27 @@ function boblift_apply_product_data_2026_10(): void
     wp_cache_delete($lock, 'options');
 }
 add_action('init', 'boblift_apply_product_data_2026_10', 41);
+
+/**
+ * CC85: the technical department gives its height in the spec table (8400 mm with a 3 m mast, 9900 mm with a 4.5 m mast), so
+ * the "≈ 7.5 m" read off the chart comes off the English product, which every translation reads.
+ */
+function boblift_apply_cc85_chart_height(): void
+{
+    $flag = 'boblift_product_data_cc85_height_v1';
+    if (get_option($flag) !== false || get_option('boblift_product_data_2026_10_v1') === false || !post_type_exists('product')) {
+        return;
+    }
+    $id = boblift_product_data_english_id('CC85');
+    if ($id <= 0) {
+        return;
+    }
+    $figures = json_decode((string) get_post_meta($id, '_boblift_drawing_data', true), true);
+    if (is_array($figures)) {
+        $figures['max_height_m'] = null;
+        $figures['max_height_approx'] = false;
+        update_post_meta($id, '_boblift_drawing_data', wp_slash((string) wp_json_encode($figures)));
+    }
+    update_option($flag, time(), false);
+}
+add_action('init', 'boblift_apply_cc85_chart_height', 42);
