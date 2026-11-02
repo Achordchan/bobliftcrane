@@ -278,7 +278,7 @@ function boblift_split_body_videos(string $html, string $fallback_label = ''): a
         $names = preg_split('/\s+/', trim((string) preg_replace('/\s*=\s*(?:"[^"]*"|\'[^\']*\')/s', '', $attributes)), -1, PREG_SPLIT_NO_EMPTY);
         return !array_diff(array_map('strtolower', (array) $names), $allowed);
     };
-    $body = preg_replace_callback('#<figure\b[^>]*\bwp-block-video\b[^>]*>.*?</figure>#is', static function (array $figure) use (&$videos, $attribute, $portable, $only): string {
+    $body = preg_replace_callback('#<!--.*?-->(*SKIP)(*FAIL)|<figure\b[^>]*\bwp-block-video\b[^>]*>.*?</figure>#is', static function (array $figure) use (&$videos, $attribute, $portable, $only): string {
         if (!preg_match('#^<figure\b([^>]*)>\s*<video\b([^>]*)>\s*</video>\s*(?:<figcaption\b([^>]*)>(.*?)</figcaption>\s*)?</figure>$#is', $figure[0], $parts)) {
             return $figure[0];
         }
