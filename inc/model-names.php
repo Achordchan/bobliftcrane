@@ -4,6 +4,7 @@
  *
  * Truck cranes: SQ + capacity class in tons + Z (knuckle) or S (telescopic) + A and the boom count; marine versions
  * add T, a winch adds J, flip-over outriggers add F. Forklift fly jibs: CC + lifting height class.
+ * Electric mini cranes: SQ + capacity + Z (knuckle) + -E (electric) + M (manual levers) or R (wireless remote).
  * Only these patterns are decoded; SQZ, BLZ, timber, spider and other names stay as they are until their rules are known.
  * Product pages show the parts and link to the key on the product archive (#model-names).
  */
@@ -32,6 +33,22 @@ function boblift_model_parts(string $model): array
         }
         return $parts;
     }
+    // Electric mini cranes (2026-11-02): SQ + capacity in tons + Z + -E (electric drive) + M (manual levers) or R (wireless
+    // remote). One page covers both controls (SQ1Z-E), so a name without M or R shows both. Z is the knuckle (folding) boom.
+    if (preg_match('/^SQ(?<capacity>\d+(?:\.\d+)?)Z-E(?<control>[MR]?)$/', $model, $m)) {
+        $control = match ($m['control']) {
+            'M' => ['M', $t('Manual levers')],
+            'R' => ['R', $t('Wireless remote')],
+            default => ['M / R', $t('M manual levers, R wireless remote')],
+        };
+        return [
+            ['SQ', $t('BOB-LIFT crane')],
+            [$m['capacity'], str_replace('{capacity}', $m['capacity'], $t('{capacity} t capacity class'))],
+            ['Z', $t('Knuckle boom')],
+            ['E', $t('Electric drive')],
+            $control,
+        ];
+    }
     if (preg_match('/^CC(\d+)$/', $model, $m)) {
         return [['CC', $t('Forklift fly jib crane')], [$m[1], $t('Maximum lifting height class')]];
     }
@@ -55,6 +72,57 @@ function boblift_render_model_decode(string $model): void
                 </div>
             <?php endforeach; ?>
         </dl>
+    </div>
+    <?php
+}
+
+/**
+ * The orderable versions of a model that one product page covers, for the version choice under the product title
+ * (user, 2026-11-02): [['model' => 'SQ2Z-ER', 'code' => 'R', 'label' => 'Wireless remote', 'default' => true], ...].
+ * Only electric mini cranes (SQ1Z-E: SQ1Z-EM manual levers, SQ1Z-ER wireless remote) have them; the wireless version is
+ * the default because the photos show it. Empty for every other model.
+ */
+function boblift_model_variants(string $model): array
+{
+    if (!preg_match('/^SQ\d+(?:\.\d+)?Z-E$/', $model)) {
+        return [];
+    }
+    return [
+        ['model' => $model . 'M', 'code' => 'M', 'label' => boblift_localized_static_text('Manual levers'), 'default' => false],
+        ['model' => $model . 'R', 'code' => 'R', 'label' => boblift_localized_static_text('Wireless remote'), 'default' => true],
+    ];
+}
+
+/** The version of $model that is chosen when the page opens, or null. */
+function boblift_model_default_variant(string $model): ?array
+{
+    foreach (boblift_model_variants($model) as $variant) {
+        if ($variant['default']) {
+            return $variant;
+        }
+    }
+    return null;
+}
+
+/** The version choice under the product title: a radio group the theme script wires to the quote buttons. */
+function boblift_render_model_variants(string $model, string $product_slug): void
+{
+    $variants = boblift_model_variants($model);
+    if (!$variants) {
+        return;
+    }
+    $legend = boblift_localized_static_text('Choose the controls');
+    ?>
+    <div class="boblift-model-variants mt-5" data-product-variants data-product-variants-slug="<?php echo esc_attr($product_slug); ?>" data-product-variants-base="<?php echo esc_attr($model); ?>">
+        <p class="text-[11px] font-black uppercase leading-4 tracking-[0.12em] text-slate-500 rtl:tracking-normal" id="boblift-model-variants-label"><?php echo esc_html($legend); ?></p>
+        <div class="mt-2 flex flex-wrap gap-2" role="radiogroup" aria-labelledby="boblift-model-variants-label">
+            <?php foreach ($variants as $variant) : $checked = $variant['default']; ?>
+                <button class="boblift-model-variant inline-flex min-h-11 flex-col items-start justify-center gap-0.5 rounded-sm border px-3.5 py-2 text-start transition sm:flex-row sm:items-center sm:gap-2 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-100 <?php echo $checked ? 'border-[#071f42] bg-[#071f42] text-white' : 'border-[#D5DEE9] bg-white text-[#071f42] hover:border-blue-300'; ?>" type="button" role="radio" aria-checked="<?php echo $checked ? 'true' : 'false'; ?>" tabindex="<?php echo $checked ? '0' : '-1'; ?>" data-product-variant="<?php echo esc_attr($variant['model']); ?>" data-product-variant-code="<?php echo esc_attr($variant['code']); ?>" data-product-variant-label="<?php echo esc_attr($variant['label']); ?>">
+                    <span class="text-sm font-black [font-variant-numeric:tabular-nums]"><?php echo esc_html($variant['model']); ?></span>
+                    <span class="text-[13px] font-normal opacity-80"><?php echo esc_html($variant['label']); ?></span>
+                </button>
+            <?php endforeach; ?>
+        </div>
     </div>
     <?php
 }

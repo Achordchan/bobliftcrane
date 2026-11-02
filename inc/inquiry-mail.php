@@ -351,6 +351,7 @@ function boblift_inquiry_mail_products(array $fields): array
         $seen[$english_id] = true;
         $title = get_the_title($english_id);
         $model = function_exists('boblift_clean_product_model') ? boblift_clean_product_model((string) get_post_meta($english_id, '_model', true), $title) : (string) get_post_meta($english_id, '_model', true);
+        $model = boblift_inquiry_chosen_variant((int) $english_id, $model, (string) ($fields['product'] ?? ''));
         // 'lang' => '' keeps Polylang from limiting the terms to the language of the page the inquiry came from.
         $terms = wp_get_object_terms($english_id, 'product_category', ['fields' => 'names', 'lang' => '']);
         $products[] = [
@@ -365,6 +366,38 @@ function boblift_inquiry_mail_products(array $fields): array
         $products[] = ['title' => trim((string) $fields['product']), 'model' => '', 'type' => '', 'url' => '', 'image' => ''];
     }
     return $products;
+}
+
+/**
+ * The version of $model the buyer chose, or $model. A page that covers several versions (SQ2Z-E: SQ2Z-EM, SQ2Z-ER) sends
+ * the product's own title with the chosen version added after it ("2 Ton Electric Mini Crane SQ2Z-ER"). Only that exact
+ * shape counts as a choice: a name the form sent without one, such as a title that itself lists the versions or a quote
+ * list saved before the choice existed, keeps the base model.
+ */
+function boblift_inquiry_chosen_variant(int $product_id, string $model, string $product_text): string
+{
+    $variants = function_exists('boblift_model_variants') ? boblift_model_variants($model) : [];
+    if (!$variants) {
+        return $model;
+    }
+    $ids = function_exists('pll_get_post_translations') ? array_values((array) pll_get_post_translations($product_id)) : [];
+    $titles = [];
+    foreach (array_unique(array_merge([$product_id], array_map('intval', $ids))) as $id) {
+        $title = strtolower(trim(html_entity_decode(get_the_title($id), ENT_QUOTES, 'UTF-8')));
+        if ($title !== '') {
+            $titles[$title] = true;
+        }
+    }
+    foreach (array_filter(array_map('trim', explode(';', $product_text))) as $entry) {
+        foreach ($variants as $variant) {
+            $suffix = ' ' . strtolower($variant['model']);
+            $entry_lower = strtolower($entry);
+            if (str_ends_with($entry_lower, $suffix) && isset($titles[trim(substr($entry_lower, 0, -strlen($suffix)))])) {
+                return $variant['model'];
+            }
+        }
+    }
+    return $model;
 }
 
 /**

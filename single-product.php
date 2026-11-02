@@ -26,9 +26,13 @@ $image_url = static function (string $image): string {
     return str_starts_with($image, 'http') ? $image : boblift_asset($image);
 };
 $main_image = boblift_product_image($product);
+// A page that covers several versions (SQ2Z-E: SQ2Z-EM and SQ2Z-ER) asks for the chosen one: the quote buttons, WhatsApp and
+// mail name it, and the version choice under the title changes it (inc/model-names.php, assets/js/theme.js).
+$model_variant = boblift_model_default_variant(trim((string) ($product['model'] ?? '')));
+$inquiry_product_title = trim((string) ($product['title'] ?? '') . ($model_variant ? ' ' . $model_variant['model'] : ''));
 $inquiry_products_payload = wp_json_encode([[
     'id' => (string) ($product['id'] ?? ($product['slug'] ?? $product['title'])),
-    'title' => (string) ($product['title'] ?? ''),
+    'title' => $inquiry_product_title,
     'slug' => (string) ($product['slug'] ?? ''),
     'image' => (string) $main_image,
     'category' => (string) ($product['category_title'] ?? 'BOB-LIFT'),
@@ -56,7 +60,8 @@ $hero_pdf_label = boblift_localized_static_text('Download PDF');
 $hero_whatsapp_href = '';
 $hero_whatsapp_number = (string) (boblift_contact_settings()['whatsappNumber'] ?? '');
 if ($hero_whatsapp_number !== '') {
-    $hero_whatsapp_product = trim(($product['model'] ?? '') !== '' && strcasecmp((string) $product['model'], (string) ($product['title'] ?? '')) !== 0 ? $product['model'] . ' (' . ($product['title'] ?? '') . ')' : (string) ($product['title'] ?? ''));
+    $whatsapp_model = (string) ($model_variant['model'] ?? ($product['model'] ?? ''));
+    $hero_whatsapp_product = trim($whatsapp_model !== '' && strcasecmp($whatsapp_model, (string) ($product['title'] ?? '')) !== 0 ? $whatsapp_model . ' (' . ($product['title'] ?? '') . ')' : (string) ($product['title'] ?? ''));
     $hero_whatsapp_href = 'https://wa.me/' . $hero_whatsapp_number . '?text=' . rawurlencode('Hello BOB-LIFT, I would like a quote for the ' . $hero_whatsapp_product . ': ' . ($product['detail_url'] ?? get_permalink()));
 }
 // Written out under the buttons, so visitors can also copy them: "8615852499415" reads as "+86 158 5249 9415".
@@ -397,6 +402,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                         </div>
                     <?php endif; ?>
                     <?php boblift_render_model_decode($hero_model); ?>
+                    <?php boblift_render_model_variants($hero_model, (string) ($product['slug'] ?? '')); ?>
                     <dl class="mt-6 grid grid-cols-2 border-y border-[#D5DEE9] sm:grid-cols-4 lg:mt-7">
                         <?php foreach ($hero_specs as $index => $spec) :
                             [$spec_number, $spec_unit] = $hero_spec_parts((string) ($spec['value'] ?? ''));
@@ -412,7 +418,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                         <a class="mt-4 inline-flex items-center gap-1.5 text-sm font-black text-blue-700 transition hover:text-[#071f42]" href="<?php echo esc_url(boblift_tonnage_url($hero_tonnage)); ?>"><?php echo esc_html(boblift_tonnage_see_all_label($hero_tonnage, $hero_capacity)); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></a>
                     <?php endif; ?>
                     <div class="boblift-product-hero-actions mt-6 flex flex-wrap items-center gap-2.5 sm:gap-3 lg:mt-7">
-                        <button class="boblift-product-hero-request inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-sm bg-[#071f42] px-6 text-sm font-black text-white transition hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页首屏" data-inquiry-product="<?php echo esc_attr($product['title']); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html($ui['requestQuoteLabel'] ?? 'Request Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
+                        <button class="boblift-product-hero-request inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-sm bg-[#071f42] px-6 text-sm font-black text-white transition hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页首屏" data-inquiry-product="<?php echo esc_attr($inquiry_product_title); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html($ui['requestQuoteLabel'] ?? 'Request Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
                         <?php if ($hero_pdf_url !== '') : ?>
                             <a class="boblift-product-hero-pdf inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-sm border border-[#D5DEE9] bg-white px-5 text-sm font-black text-[#0B3F7D] transition hover:border-blue-300" href="<?php echo esc_url($hero_pdf_url); ?>" <?php echo $hero_pdf_file !== '' ? 'download="' . esc_attr($hero_pdf_file) . '"' : 'target="_blank" rel="noopener"'; ?>><?php echo boblift_icon('download', 'h-4 w-4'); ?><?php echo esc_html($hero_pdf_label); ?><?php if ($hero_pdf_size !== '') : ?><span class="hidden text-xs font-bold text-slate-500 sm:inline"><?php echo esc_html($hero_pdf_size); ?></span><?php endif; ?></a>
                         <?php endif; ?>
@@ -421,10 +427,10 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                         <div class="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
                             <span class="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(boblift_localized_static_text('Or message us')); ?></span>
                             <?php if ($hero_whatsapp_href !== '') : ?>
-                                <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 font-black text-[#071f42] transition hover:border-[#25D366]" href="<?php echo esc_url($hero_whatsapp_href); ?>" target="_blank" rel="noopener"><?php echo boblift_icon('whatsapp', 'h-4 w-4 text-[#25D366]'); ?><span class="[font-variant-numeric:tabular-nums]"><?php echo esc_html($hero_whatsapp_display); ?></span></a>
+                                <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 font-black text-[#071f42] transition hover:border-[#25D366]" href="<?php echo esc_url($hero_whatsapp_href); ?>" target="_blank" rel="noopener"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?>><?php echo boblift_icon('whatsapp', 'h-4 w-4 text-[#25D366]'); ?><span class="[font-variant-numeric:tabular-nums]"><?php echo esc_html($hero_whatsapp_display); ?></span></a>
                             <?php endif; ?>
                             <?php if ($hero_email !== '') : ?>
-                                <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 font-black text-[#071f42] transition hover:border-blue-500" href="<?php echo esc_url('mailto:' . $hero_email . '?subject=' . rawurlencode('BOB-LIFT quote: ' . ($hero_model !== '' ? $hero_model : $product_title))); ?>"><?php echo boblift_icon('mail', 'h-4 w-4 text-slate-500'); ?><?php echo esc_html($hero_email); ?></a>
+                                <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 font-black text-[#071f42] transition hover:border-blue-500" href="<?php echo esc_url('mailto:' . $hero_email . '?subject=' . rawurlencode('BOB-LIFT quote: ' . ($model_variant['model'] ?? ($hero_model !== '' ? $hero_model : $product_title)))); ?>"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?>><?php echo boblift_icon('mail', 'h-4 w-4 text-slate-500'); ?><?php echo esc_html($hero_email); ?></a>
                             <?php endif; ?>
                         </div>
                     <?php endif; ?>
@@ -991,9 +997,9 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                                     <p class="text-[15px] font-black text-[#071f42] sm:text-base"><?php echo esc_html(boblift_localized_static_text('Not answered here?')); ?></p>
                                     <p class="mt-1.5 text-sm font-normal leading-6 text-slate-600"><?php echo esc_html(boblift_localized_static_text('Send us your question and our team replies with answers for your site.')); ?></p>
                                     <div class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-3">
-                                        <button class="inline-flex h-11 items-center justify-center gap-2 rounded-sm bg-[#071f42] px-5 text-sm font-black text-white transition hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页常见问题" data-inquiry-product="<?php echo esc_attr($product['title']); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html(boblift_localized_static_text('Ask a question')); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
+                                        <button class="inline-flex h-11 items-center justify-center gap-2 rounded-sm bg-[#071f42] px-5 text-sm font-black text-white transition hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页常见问题" data-inquiry-product="<?php echo esc_attr($inquiry_product_title); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html(boblift_localized_static_text('Ask a question')); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
                                         <?php if ($hero_whatsapp_href !== '') : ?>
-                                            <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 text-sm font-black text-[#071f42] transition hover:border-[#25D366]" href="<?php echo esc_url($hero_whatsapp_href); ?>" target="_blank" rel="noopener"><?php echo boblift_icon('whatsapp', 'h-4 w-4 text-[#25D366]'); ?><span class="[font-variant-numeric:tabular-nums]"><?php echo esc_html($hero_whatsapp_display); ?></span></a>
+                                            <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 text-sm font-black text-[#071f42] transition hover:border-[#25D366]" href="<?php echo esc_url($hero_whatsapp_href); ?>" target="_blank" rel="noopener"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?>><?php echo boblift_icon('whatsapp', 'h-4 w-4 text-[#25D366]'); ?><span class="[font-variant-numeric:tabular-nums]"><?php echo esc_html($hero_whatsapp_display); ?></span></a>
                                         <?php endif; ?>
                                     </div>
                                 </div>
@@ -1065,7 +1071,7 @@ if (str_contains(strtolower($quote_description), 'truck chassis')) {
                         </div>
                     </div>
                     <div class="boblift-product-quote-actions flex flex-wrap gap-3 lg:justify-end">
-                        <button class="boblift-product-quote-action boblift-product-quote-action-primary inline-flex h-14 items-center justify-center gap-3 rounded-sm bg-[#071f42] px-7 text-sm font-black text-white transition hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页询价区" data-inquiry-product="<?php echo esc_attr($product['title']); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html($ui['requestQuoteLabel'] ?? 'Request Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
+                        <button class="boblift-product-quote-action boblift-product-quote-action-primary inline-flex h-14 items-center justify-center gap-3 rounded-sm bg-[#071f42] px-7 text-sm font-black text-white transition hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页询价区" data-inquiry-product="<?php echo esc_attr($inquiry_product_title); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html($ui['requestQuoteLabel'] ?? 'Request Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
                         <a class="boblift-product-quote-action boblift-product-quote-action-secondary inline-flex h-14 items-center justify-center gap-3 rounded-sm border border-blue-100 bg-white/70 px-7 text-sm font-black text-[#0B3F7D] transition hover:border-blue-300" href="<?php echo esc_url($contact_url); ?>"><?php echo esc_html($ui['contactEngineerLabel'] ?? 'Contact Engineer'); ?> <?php echo boblift_icon('mail', 'h-4 w-4'); ?></a>
                     </div>
                 </div>

@@ -5033,3 +5033,60 @@
   if (document.readyState === 'complete') init();
   else window.addEventListener('load', init, { once: true });
 })();
+
+// Version choice under a product title (inc/model-names.php, boblift_render_model_variants): SQ2Z-EM or SQ2Z-ER on the
+// SQ2Z-E page. The chosen model goes into this product's quote buttons (title and quote list item), its WhatsApp message
+// and its mail subject. The address and the photos stay the same.
+(() => {
+  document.querySelectorAll('[data-product-variants]').forEach((root) => {
+    const options = [...root.querySelectorAll('[data-product-variant]')];
+    if (!options.length) return;
+    const slug = root.dataset.productVariantsSlug || '';
+    let current = (options.find((option) => option.getAttribute('aria-checked') === 'true') || options[0]).dataset.productVariant || '';
+    const on = ['border-[#071f42]', 'bg-[#071f42]', 'text-white'];
+    const off = ['border-[#D5DEE9]', 'bg-white', 'text-[#071f42]', 'hover:border-blue-300'];
+    // Names the chosen model in place of the previous one: "2 Ton Electric Mini Crane SQ2Z-ER" -> "... SQ2Z-EM". Only the
+    // model the page put there changes, so a title that itself lists both versions keeps its text: the quote titles end
+    // with it (last occurrence), WhatsApp and mail start with it (first occurrence).
+    const swap = (text, next, last = false) => {
+      const at = current ? (last ? text.lastIndexOf(current) : text.indexOf(current)) : -1;
+      return at < 0 ? text : text.slice(0, at) + next + text.slice(at + current.length);
+    };
+
+    const choose = (option, focus = false) => {
+      const next = option.dataset.productVariant || '';
+      if (!next || next === current) return;
+      options.forEach((item) => {
+        const checked = item === option;
+        item.setAttribute('aria-checked', checked ? 'true' : 'false');
+        item.tabIndex = checked ? 0 : -1;
+        item.classList.remove(...(checked ? off : on));
+        item.classList.add(...(checked ? on : off));
+      });
+      document.querySelectorAll('[data-inquiry-products]').forEach((button) => {
+        let items;
+        try { items = JSON.parse(button.dataset.inquiryProducts || '[]'); } catch (error) { return; }
+        if (!Array.isArray(items) || !items.some((item) => item && item.slug === slug)) return;
+        button.dataset.inquiryProducts = JSON.stringify(items.map((item) => (item && item.slug === slug ? { ...item, title: swap(String(item.title || ''), next, true) } : item)));
+        if (button.dataset.inquiryProduct) button.dataset.inquiryProduct = swap(button.dataset.inquiryProduct, next, true);
+      });
+      document.querySelectorAll('[data-product-variant-href]').forEach((link) => {
+        link.setAttribute('href', swap(link.getAttribute('href') || '', next));
+      });
+      current = next;
+      if (focus) option.focus();
+    };
+
+    options.forEach((option, index) => {
+      option.addEventListener('click', () => choose(option));
+      // Arrow keys move along the group, as in any radio group.
+      option.addEventListener('keydown', (event) => {
+        const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key];
+        if (!step) return;
+        event.preventDefault();
+        const rtl = getComputedStyle(root).direction === 'rtl' && (event.key === 'ArrowRight' || event.key === 'ArrowLeft');
+        choose(options[(index + (rtl ? -step : step) + options.length) % options.length], true);
+      });
+    });
+  });
+})();

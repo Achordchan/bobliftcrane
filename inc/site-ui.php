@@ -1827,6 +1827,11 @@ function boblift_render_floating_contact_button(array $button, array $contact, a
         if (is_singular('product') && $current_post instanceof WP_Post && function_exists('boblift_product_from_post')) {
             $product = boblift_product_from_post($current_post);
             $product_title = (string) ($product['title'] ?? get_the_title($current_post));
+            // A page with versions (SQ2Z-E) asks for the one chosen when it opens; the version choice updates it.
+            $product_variant = function_exists('boblift_model_default_variant') ? boblift_model_default_variant(trim((string) ($product['model'] ?? ''))) : null;
+            if ($product_variant) {
+                $product_title .= ' ' . $product_variant['model'];
+            }
             $product_slug = (string) ($product['slug'] ?? $current_post->post_name);
             $product_item = [
                 'id' => (string) ($product['id'] ?? ($product_slug !== '' ? $product_slug : (string) $current_post->ID)),
