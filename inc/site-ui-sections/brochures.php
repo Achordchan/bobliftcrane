@@ -32,6 +32,10 @@ return [
                 'title' => 'Electric Mini Cranes Brochure',
                 'text' => 'SQ1Z-E and SQ2Z-E electric mini cranes, 1 and 2 ton, with load charts, bolt patterns and remote or lever control.',
             ],
+            'forklift' => [
+                'title' => 'Forklift Fly Jib Cranes Brochure',
+                'text' => 'CC85, CC105, CC125 and CC145 forklift fly jib cranes, 2.3 to 4.9 ton, with load charts, matching forklifts and lifting heights.',
+            ],
         ],
     ],
 ];
