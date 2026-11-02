@@ -81,7 +81,7 @@ function boblift_product_crane_terms_apply(int $product_id): bool
     $cranes = [
         'truck-mounted-crane', 'knuckle-boom-truck-mounted-cranes', 'telescopic-boom-truck-mounted-cranes', 'pickup-cranes',
         'marine-crane', 'knuckle-boom-marine-cranes', 'telescopic-boom-marine-cranes',
-        'other-cranes', 'spider-cranes', 'timber-cranes',
+        'other-cranes', 'spider-cranes', 'timber-cranes', 'electric-mini-cranes',
     ];
     return (bool) array_intersect($lineage, $cranes)
         && !array_intersect($lineage, ['aerial-work-platform', 'tail-lift', 'forklift-fly-jib-cranes']);
