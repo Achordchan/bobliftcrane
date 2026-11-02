@@ -358,9 +358,8 @@ function boblift_rest_save_product_setup(WP_Post $post, array $value, bool $crea
         }
         $terms = wp_get_post_terms($source->ID, 'product_category', ['fields' => 'ids']);
         $local = array_values(array_filter(array_map(static fn(int $id): int => (int) pll_get_term($id, $lang), is_array($terms) ? $terms : [])));
-        if ($local) {
-            wp_set_object_terms($post->ID, $local, 'product_category');
-        }
+        // Also when empty: the translation leaves the families its source no longer belongs to.
+        wp_set_object_terms($post->ID, $local, 'product_category');
         // A product translation keeps the English slug under its language prefix (inc/polylang-slugs.php).
         if ($post->post_name !== $source->post_name) {
             wp_update_post(['ID' => $post->ID, 'post_name' => $source->post_name]);
@@ -511,6 +510,10 @@ function boblift_rest_save_term_translation(WP_Term $term, array $value, bool $c
     }
     if ($term->slug !== $source->slug) {
         global $wpdb;
+        // An existing category keeps answering at its old address (boblift_redirect_replaced_term_slug()).
+        if (!$creating && $term->slug !== '') {
+            add_term_meta($term->term_id, '_boblift_old_slug', $term->slug);
+        }
         $wpdb->update($wpdb->terms, ['slug' => $source->slug], ['term_id' => $term->term_id]);
         clean_term_cache($term->term_id, 'product_category');
         boblift_flush_product_category_rewrites();
@@ -521,3 +524,33 @@ function boblift_rest_save_term_translation(WP_Term $term, array $value, bool $c
     }
     return true;
 }
+
+/**
+ * A category address with a slug that boblift_term_translation replaced (/zh/dian-dong-mini after the category took
+ * electric-mini-cranes) answers with a 301 to the category's current address in that language.
+ */
+function boblift_redirect_replaced_term_slug(): void
+{
+    if (!is_404() || !function_exists('boblift_request_url_language')) {
+        return;
+    }
+    $language = boblift_request_url_language();
+    $segment = rawurlencode(rawurldecode((string) preg_replace('/\.html$/', '', basename((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH)))));
+    if ($segment === '') {
+        return;
+    }
+    $terms = get_terms(['taxonomy' => 'product_category', 'hide_empty' => false, 'lang' => '',
+        'meta_query' => [['key' => '_boblift_old_slug', 'value' => strtolower($segment)]]]);
+    // Only the category that had this address in the requested language.
+    $terms = array_values(array_filter(is_array($terms) ? $terms : [], static fn($term): bool => $term instanceof WP_Term
+        && (!function_exists('pll_get_term_language') || (string) pll_get_term_language($term->term_id) === $language)));
+    if ($terms) {
+        $link = get_term_link($terms[0]);
+        if (!is_wp_error($link)) {
+            $query = (string) parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_QUERY);
+            wp_safe_redirect($link . ($query !== '' ? (str_contains($link, '?') ? '&' : '?') . $query : ''), 301);
+            exit;
+        }
+    }
+}
+add_action('template_redirect', 'boblift_redirect_replaced_term_slug', 1);
