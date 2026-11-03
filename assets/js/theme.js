@@ -1777,7 +1777,13 @@
     const abort = typeof AbortController === 'function' ? new AbortController() : null;
     const timer = abort ? window.setTimeout(() => abort.abort(), 5000) : null;
     try {
-      const response = await fetch(`/?boblift_fresh_nonce=${kind}&t=${Date.now()}`, {
+      // Same WordPress address the form posts to (its action), so a site under a subdirectory asks itself.
+      const url = new URL(form.getAttribute('action') || '/', window.location.href);
+      url.search = '';
+      url.hash = '';
+      url.searchParams.set('boblift_fresh_nonce', kind);
+      url.searchParams.set('t', String(Date.now()));
+      const response = await fetch(url.toString(), {
         credentials: 'same-origin',
         cache: 'no-store',
         headers: { Accept: 'application/json' },

@@ -5,7 +5,8 @@ if (!defined('ABSPATH')) {
 
 function boblift_inquiry_action_url(): string
 {
-    return esc_url('/?boblift_inquiry_submit=1');
+    // The site's own address without a language prefix (home_url() gets one from Polylang), so it also works under a subdirectory.
+    return esc_url(untrailingslashit((string) get_option('home')) . '/?boblift_inquiry_submit=1');
 }
 
 function boblift_country_detect_url(): string
@@ -42,7 +43,7 @@ function boblift_inquiry_success_url(): string
 
 function boblift_catalog_action_url(): string
 {
-    return esc_url('/?boblift_catalog_request=1');
+    return esc_url(untrailingslashit((string) get_option('home')) . '/?boblift_catalog_request=1');
 }
 
 function boblift_catalog_fail(string $message, int $status = 400): void
