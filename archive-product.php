@@ -429,9 +429,36 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
             </div>
             <?php if ($initial_category !== '' && $products) :
                 // A category page's current models as an ItemList, in the order the grid lists them.
-                $item_list = ['@context' => 'https://schema.org', '@type' => 'ItemList', 'itemListElement' => array_map(static fn(int $index, array $product): array => ['@type' => 'ListItem', 'position' => $index + 1, 'url' => boblift_product_url($product), 'name' => (string) ($product['title'] ?? '')], array_keys($products), $products)];
+                // The page itself is a CollectionPage of that list, with a breadcrumb Home / Products / [parent group] / category.
+                $collection_url = (string) ($category_url_map[$initial_category] ?? boblift_public_path_url('/' . $initial_category));
+                $site_home = home_url('/');
+                $item_list = ['@type' => 'ItemList', '@id' => $collection_url . '#itemlist', 'numberOfItems' => count($products), 'itemListElement' => array_map(static fn(int $index, array $product): array => ['@type' => 'ListItem', 'position' => $index + 1, 'url' => boblift_product_url($product), 'name' => (string) ($product['title'] ?? '')], array_keys($products), $products)];
+                $crumb_title = static function (string $slug) use ($categories): string {
+                    foreach ($categories as $crumb_category) {
+                        if ((string) ($crumb_category['slug'] ?? '') === $slug) {
+                            return (string) ($crumb_category['title'] ?? '');
+                        }
+                    }
+                    return '';
+                };
+                $crumbs = [[boblift_localized_static_text('Home'), boblift_public_path_url('/')], [boblift_localized_static_text('Products'), boblift_product_archive_url()]];
+                foreach ($category_hierarchy as $crumb_group) {
+                    $crumb_parent = (string) ($crumb_group['slug'] ?? '');
+                    $crumb_children = array_map(static fn(array $child): string => (string) ($child['slug'] ?? ''), (array) ($crumb_group['children'] ?? []));
+                    if ($crumb_parent !== '' && $crumb_parent !== $initial_category && in_array($initial_category, $crumb_children, true)) {
+                        $crumbs[] = [$crumb_title($crumb_parent) ?: (string) ($crumb_group['title'] ?? ''), (string) ($category_url_map[$crumb_parent] ?? boblift_public_path_url('/' . $crumb_parent))];
+                        break;
+                    }
+                }
+                $collection_name = $crumb_title($initial_category);
+                $crumbs[] = [$collection_name, $collection_url];
+                $collection_graph = ['@context' => 'https://schema.org', '@graph' => [
+                    ['@type' => 'CollectionPage', '@id' => $collection_url . '#webpage', 'url' => $collection_url, 'name' => $collection_name, 'inLanguage' => get_bloginfo('language'), 'isPartOf' => ['@id' => $site_home . '#website'], 'about' => ['@id' => $site_home . '#organization'], 'breadcrumb' => ['@id' => $collection_url . '#breadcrumb'], 'mainEntity' => ['@id' => $collection_url . '#itemlist']],
+                    ['@type' => 'BreadcrumbList', '@id' => $collection_url . '#breadcrumb', 'itemListElement' => array_map(static fn(int $index, array $crumb): array => ['@type' => 'ListItem', 'position' => $index + 1, 'name' => $crumb[0], 'item' => $crumb[1]], array_keys($crumbs), $crumbs)],
+                    $item_list,
+                ]];
                 ?>
-                <script type="application/ld+json"><?php echo wp_json_encode($item_list, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG); ?></script>
+                <script type="application/ld+json"><?php echo wp_json_encode($collection_graph, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG); ?></script>
             <?php endif; ?>
             <div class="hidden min-h-[420px] flex-col items-center justify-center rounded border border-dashed border-[#CBD5E1] bg-white px-6 text-center shadow-card" data-product-empty><span class="inline-flex h-14 w-14 items-center justify-center rounded-sm bg-blue-50 text-blue-700"><?php echo boblift_icon('search-x', 'h-7 w-7'); ?></span><h2 class="mt-5 text-2xl font-black tracking-[-0.015em] text-[#0B1B33]"><?php echo esc_html($archive_ui['emptyTitle'] ?? 'No matching products found'); ?></h2><p class="mt-3 max-w-md text-sm font-normal leading-6 text-slate-600"><?php echo esc_html($archive_ui['emptyText'] ?? 'Try adjusting your filters or contact us for a custom lifting solution.'); ?></p><button class="mt-6 min-h-12 rounded-sm bg-[#0B1B33] px-6 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-[#0B3F7D]" type="button" data-filter-reset><?php echo esc_html($archive_ui['clearFiltersLabel'] ?? 'Clear Filters'); ?></button><p class="mt-5 text-sm text-slate-500"><?php echo esc_html(boblift_localized_static_text('Looking for loaders or dumpers?')); ?> <a class="font-black text-blue-700 underline-offset-4 hover:underline" href="https://bobliftloader.com/" data-leave-site data-leave-name="Loader" data-leave-domain="bobliftloader.com" target="_blank" rel="noopener">bobliftloader.com</a></p></div>
             <nav class="mt-8 flex flex-wrap items-center justify-center gap-1.5 sm:gap-2" aria-label="<?php echo esc_attr($archive_ui['paginationLabel'] ?? 'Product pagination'); ?>" data-product-pagination></nav>
