@@ -2049,9 +2049,60 @@
       return flag === '1';
     }
   })();
+  // In full-screen mode the form is not laid over the page at all: everything else on the page is hidden and the form
+  // sits in the normal page flow, so the phone treats it as an ordinary page with a form. iOS then moves it for the
+  // keyboard the way it does any page, with no fixed layer to shift, squeeze or cut off. Closing puts the page back
+  // where it was.
+  const inquiryPageQuery = window.matchMedia('(max-width: 767px)');
+  let inquiryPageState = null;
+  const enterInquiryPage = () => {
+    if (inquiryPageState) return;
+    // Read before hiding anything: the shorter page would already have scrolled back to the top.
+    const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+    const hidden = [];
+    for (let node = inquiryModal; node.parentElement && node !== document.body; node = node.parentElement) {
+      Array.from(node.parentElement.children).forEach((sibling) => {
+        if (sibling === node || ['SCRIPT', 'STYLE', 'LINK', 'TEMPLATE'].includes(sibling.tagName)) return;
+        if (sibling.classList.contains('boblift-inquiry-page-hidden')) return;
+        sibling.classList.add('boblift-inquiry-page-hidden');
+        hidden.push(sibling);
+      });
+    }
+    inquiryPageState = { scrollY, hidden };
+    document.documentElement.classList.add('boblift-inquiry-page-open');
+    // Instant: the site scrolls smoothly by default, which would sweep the whole page past on the way.
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  };
+  const leaveInquiryPage = () => {
+    if (!inquiryPageState) return;
+    const { scrollY, hidden } = inquiryPageState;
+    inquiryPageState = null;
+    hidden.forEach((element) => element.classList.remove('boblift-inquiry-page-hidden'));
+    document.documentElement.classList.remove('boblift-inquiry-page-open');
+    const restore = () => window.scrollTo({ top: scrollY, left: 0, behavior: 'instant' });
+    restore();
+    window.requestAnimationFrame(restore); // again once the page has laid out in full
+  };
+  // Page mode on phones, the scroll-locked sheet elsewhere. Also re-run when the breakpoint flips while open (rotation),
+  // so the class, the hidden page and the scroll lock always change together.
+  const applyInquiryMode = () => {
+    const asPage = inquiryFullscreenEnabled && inquiryPageQuery.matches;
+    inquiryModal.classList.toggle('is-inquiry-fullscreen', asPage);
+    if (asPage) {
+      unlockInquiryPageScroll();
+      enterInquiryPage();
+    } else {
+      leaveInquiryPage();
+      lockInquiryPageScroll();
+    }
+  };
+  if (inquiryFullscreenEnabled) {
+    inquiryPageQuery.addEventListener?.('change', () => {
+      if (inquiryModal?.getAttribute('aria-hidden') === 'false') applyInquiryMode();
+    });
+  }
   const openInquiryModal = (trigger = null) => {
     if (!inquiryModal) return;
-    inquiryModal.classList.toggle('is-inquiry-fullscreen', inquiryFullscreenEnabled);
     inquiryModalLastFocus = trigger instanceof HTMLElement ? trigger : document.activeElement;
     const form = qs('[data-inquiry-modal-form]', inquiryModal);
     const success = qs('[data-inquiry-modal-success]', inquiryModal);
@@ -2106,7 +2157,7 @@
     inquiryModal.classList.remove('hidden');
     inquiryModal.classList.add('flex');
     inquiryModal.setAttribute('aria-hidden', 'false');
-    lockInquiryPageScroll();
+    applyInquiryMode();
     renderLazyTurnstile(form || inquiryModal).then(() => {
       resetTurnstile(form || inquiryModal);
     }).catch((error) => {
@@ -2121,6 +2172,8 @@
     initInquiryCharacters()?.reset();
     inquiryModal.setAttribute('aria-hidden', 'true');
     unlockInquiryPageScroll();
+    leaveInquiryPage();
+    inquiryModal.classList.remove('is-inquiry-fullscreen');
     if (inquiryModalLastFocus instanceof HTMLElement) inquiryModalLastFocus.focus({ preventScroll: true });
   };
   const validateInquiryModalForm = () => {
