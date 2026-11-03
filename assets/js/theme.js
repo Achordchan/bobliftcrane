@@ -2034,8 +2034,24 @@
     }
     if (qs('.cf-turnstile', scope)) window.turnstile.reset();
   };
+  // Phones get the inquiry form as a full-screen page instead of a sheet rising from the bottom (the sheet fought the iOS
+  // keyboard). Trial switch for now: ?fs=1 turns it on for this browser, ?fs=0 turns it off; ordinary visitors keep the
+  // sheet until it is switched on for everyone here. Same form, same fields, same submit and tracking either way.
+  const INQUIRY_FULLSCREEN_FOR_EVERYONE = false;
+  const inquiryFullscreenEnabled = (() => {
+    if (INQUIRY_FULLSCREEN_FOR_EVERYONE) return true;
+    const flag = new URLSearchParams(window.location.search).get('fs');
+    try {
+      if (flag === '1') window.localStorage.setItem('boblift_inquiry_fs', '1');
+      if (flag === '0') window.localStorage.removeItem('boblift_inquiry_fs');
+      return window.localStorage.getItem('boblift_inquiry_fs') === '1';
+    } catch (error) {
+      return flag === '1';
+    }
+  })();
   const openInquiryModal = (trigger = null) => {
     if (!inquiryModal) return;
+    inquiryModal.classList.toggle('is-inquiry-fullscreen', inquiryFullscreenEnabled);
     inquiryModalLastFocus = trigger instanceof HTMLElement ? trigger : document.activeElement;
     const form = qs('[data-inquiry-modal-form]', inquiryModal);
     const success = qs('[data-inquiry-modal-success]', inquiryModal);
