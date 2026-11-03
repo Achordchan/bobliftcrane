@@ -24,6 +24,7 @@ function do_action($h, ...$a) { $list = $GLOBALS['filters'][$h] ?? []; ksort($li
 function add_theme_support($f, ...$args) { $GLOBALS['theme_support'][$f] = $args ?: true; }
 function get_theme_support($f) { return $GLOBALS['theme_support'][$f] ?? false; }
 function current_theme_supports($f) { return isset($GLOBALS['theme_support'][$f]); }
+function did_action($h) { return $GLOBALS['did_init'] ?? 1; }
 function get_option($k, $d = false) { return $GLOBALS['options'][$k] ?? $d; }
 function wp_parse_url($u, $c = -1) { return parse_url($u, $c); }
 function home_url($p = '') { return 'https://bobliftcrane.com' . $p; }
@@ -82,6 +83,10 @@ $check = static function (bool $ok, string $what) use (&$failures): void {
 $check(!boblift_inquiry_plugin(), 'nothing handed over before the theme declares support');
 do_action('after_setup_theme');
 $check(boblift_inquiry_plugin(), 'the theme hands inquiries to the plugin once it is loaded');
+$GLOBALS['did_init'] = 0;
+$early = achord_inquiry_config();
+$check($early['success_url'] === '' && $early['fallback_url'] === '', 'no addresses worked out before init (routes and taxonomies are not ready)');
+$GLOBALS['did_init'] = 1;
 $config = achord_inquiry_config();
 $check($config['prefix'] === 'boblift_' && $config['post_type'] === 'inquiry' && $config['rest_base'] === 'inquiries' && $config['rest_record'] === 'boblift_inquiry', 'old posted names, post type, route and record kept');
 $check($config['dingtalk_source'] === 'boblift:inquiry' && $config['site_label'] === '起重机站' && $config['attribution_key'] === 'boblift_attribution', 'DingTalk source, site label and stored ad record kept');

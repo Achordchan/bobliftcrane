@@ -11,10 +11,17 @@
  */
 function boblift_product_category_root_request_fallback(array $vars): array
 {
-    foreach (['boblift_product_category', 'boblift_custom_url', 'boblift_html_slug', 'boblift_tonnage', 'feed', 'sitemap'] as $key) {
+    // boblift_custom_url is not skipped: a category whose address is also a custom route arrives with it, and when that
+    // route cannot be resolved the request would otherwise end as the news list.
+    foreach (['boblift_product_category', 'boblift_html_slug', 'boblift_tonnage', 'feed', 'sitemap'] as $key) {
         if (!empty($vars[$key])) {
             return $vars;
         }
+    }
+    // A custom route that resolves keeps its configured destination; only one that resolves to nothing falls through.
+    $custom = (string) ($vars['boblift_custom_url'] ?? '');
+    if ($custom !== '' && function_exists('boblift_resolve_custom_url_request') && boblift_resolve_custom_url_request($custom)) {
+        return $vars;
     }
     $path = (string) wp_parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
     $home_path = rtrim((string) wp_parse_url((string) get_option('home'), PHP_URL_PATH), '/');

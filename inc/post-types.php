@@ -1293,6 +1293,19 @@ function boblift_public_custom_url_routes(): array
     if (is_array($routes)) {
         return $routes;
     }
+    // Asked before init (the inquiry plugin reads its config in after_setup_theme), product_category is not registered yet
+    // and its terms' addresses would be missing for the rest of the request: /marine-crane/ then resolved to nothing and
+    // showed the news list. Such an early answer is not kept.
+    if (!taxonomy_exists('product_category')) {
+        $early = [];
+        foreach (get_posts(['post_type' => 'page', 'post_status' => 'any', 'numberposts' => -1, 'fields' => 'ids', 'meta_key' => '_boblift_public_url']) as $page_id) {
+            $path = boblift_normalize_public_path((string) get_post_meta((int) $page_id, '_boblift_public_url', true));
+            if ($path !== '') {
+                $early[ltrim($path, '/')] = 'page:' . (int) $page_id;
+            }
+        }
+        return $early;
+    }
     $routes = [];
     $pages = get_posts(['post_type' => 'page', 'post_status' => 'any', 'numberposts' => -1, 'fields' => 'ids', 'meta_key' => '_boblift_public_url']);
     foreach ($pages as $page_id) {

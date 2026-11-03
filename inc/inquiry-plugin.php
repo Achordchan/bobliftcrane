@@ -43,7 +43,10 @@ add_action('after_setup_theme', static function (): void {
 
 // Addresses that follow the visitor's language, worked out when they are asked for (after the posted language is set).
 add_filter('achord_inquiry_config', static function (array $config): array {
-    if (!current_theme_supports('achord-inquiry')) {
+    // The plugin reads its config from after_setup_theme on every request. The addresses below need the taxonomies,
+    // Polylang's language and the theme's routes, which are only ready from init; worked out earlier they filled the
+    // routes cache without the categories and every category page showed the news list while the plugin was active.
+    if (!current_theme_supports('achord-inquiry') || !did_action('init')) {
         return $config;
     }
     $config['success_url'] = boblift_inquiry_success_url();
