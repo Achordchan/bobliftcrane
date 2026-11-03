@@ -1508,6 +1508,75 @@ img { max-width: 100%; }
     overflow-y: visible;
   }
 }
+/* Phones, full-screen inquiry (is-inquiry-fullscreen, see theme.js): the dialog fills the screen like a page, the
+   form scrolls inside it and its title row with the close button stays at the top. While the keyboard is up the modal
+   itself is sized to the visible area (syncInquiryViewport), so the dialog follows it with height: 100%. */
+@media (max-width: 767px) {
+  .boblift-inquiry-modal.is-inquiry-fullscreen {
+    align-items: stretch;
+    background: #fff;
+    backdrop-filter: none;
+  }
+  .boblift-inquiry-modal.is-inquiry-fullscreen .boblift-inquiry-dialog,
+  .boblift-inquiry-modal.is-inquiry-fullscreen.is-inquiry-extra-open .boblift-inquiry-dialog {
+    height: 100%;
+    max-height: none;
+    max-width: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding-top: env(safe-area-inset-top);
+  }
+  .boblift-inquiry-modal.is-inquiry-fullscreen[aria-hidden="false"] .boblift-inquiry-dialog {
+    animation: inquiryModalFullIn .18s ease both;
+  }
+  @keyframes inquiryModalFullIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  /* The whole dialog scrolls as one page: the selected products scroll away and leave room for the fields while the
+     keyboard is up, instead of holding the top third of a short screen. */
+  .boblift-inquiry-modal.is-inquiry-fullscreen .boblift-inquiry-dialog {
+    display: block;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .boblift-inquiry-modal.is-inquiry-fullscreen .boblift-inquiry-layout,
+  .boblift-inquiry-modal.is-inquiry-fullscreen.is-inquiry-extra-open .boblift-inquiry-layout,
+  .boblift-inquiry-modal.is-inquiry-fullscreen.has-selected-products .boblift-inquiry-layout {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: 100%;
+    max-height: none;
+  }
+  .boblift-inquiry-modal.is-inquiry-fullscreen.has-selected-products .boblift-inquiry-products-panel {
+    flex: none;
+  }
+  .boblift-inquiry-modal.is-inquiry-fullscreen .boblift-inquiry-modal-form,
+  .boblift-inquiry-modal.is-inquiry-fullscreen.has-selected-products .boblift-inquiry-modal-form {
+    flex: 1 0 auto;
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    padding-top: 0;
+    padding-bottom: max(24px, env(safe-area-inset-bottom));
+  }
+  .boblift-inquiry-modal.is-inquiry-fullscreen .boblift-inquiry-modal-form :is(input, textarea, select) {
+    scroll-margin-top: 96px;
+    scroll-margin-bottom: 16px;
+  }
+  .boblift-inquiry-modal.is-inquiry-fullscreen .boblift-inquiry-modal-form > .flex:first-of-type {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    margin-inline: -16px;
+    padding: 14px 16px 10px;
+    background: #fff;
+    box-shadow: 0 1px 0 #E5E7EB;
+  }
+}
 @media (min-width: 380px) and (max-width: 767px) {
   .boblift-inquiry-primary-fields {
     grid-template-columns: repeat(2, minmax(0, 1fr));
