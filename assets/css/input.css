@@ -1508,20 +1508,36 @@ img { max-width: 100%; }
     overflow-y: visible;
   }
 }
-/* Phones, full-screen inquiry (is-inquiry-fullscreen, see theme.js): the dialog fills the screen like a page, the
-   form scrolls inside it and its title row with the close button stays at the top. While the keyboard is up the modal
-   itself is sized to the visible area (syncInquiryViewport), so the dialog follows it with height: 100%. */
+/* Phones, full-screen inquiry (is-inquiry-fullscreen, see enterInquiryPage in theme.js): the rest of the page is hidden
+   and the form is an ordinary page in the document flow, scrolled by the page itself, with its title row and close
+   button kept at the top. Nothing is fixed, so the iOS keyboard has nothing to shift or cut off. */
+.boblift-inquiry-page-hidden {
+  display: none !important;
+}
 @media (max-width: 767px) {
+  html.boblift-inquiry-page-open,
+  html.boblift-inquiry-page-open body {
+    background: #fff;
+  }
   .boblift-inquiry-modal.is-inquiry-fullscreen {
-    align-items: stretch;
+    position: relative;
+    inset: auto;
+    display: block;
+    min-height: 100dvh;
     background: #fff;
     backdrop-filter: none;
   }
+  .boblift-inquiry-modal.is-inquiry-fullscreen > [data-inquiry-modal-close] {
+    display: none;
+  }
   .boblift-inquiry-modal.is-inquiry-fullscreen .boblift-inquiry-dialog,
   .boblift-inquiry-modal.is-inquiry-fullscreen.is-inquiry-extra-open .boblift-inquiry-dialog {
-    height: 100%;
+    display: block;
+    height: auto;
+    min-height: 100dvh;
     max-height: none;
     max-width: none;
+    overflow: visible;
     border-radius: 0;
     box-shadow: none;
     padding-top: env(safe-area-inset-top);
@@ -1533,23 +1549,15 @@ img { max-width: 100%; }
     from { opacity: 0; }
     to { opacity: 1; }
   }
-  /* The whole dialog scrolls as one page: the selected products scroll away and leave room for the fields while the
-     keyboard is up, instead of holding the top third of a short screen. */
-  .boblift-inquiry-modal.is-inquiry-fullscreen .boblift-inquiry-dialog {
-    display: block;
-    overflow-x: hidden;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
-  }
   .boblift-inquiry-modal.is-inquiry-fullscreen .boblift-inquiry-layout,
   .boblift-inquiry-modal.is-inquiry-fullscreen.is-inquiry-extra-open .boblift-inquiry-layout,
   .boblift-inquiry-modal.is-inquiry-fullscreen.has-selected-products .boblift-inquiry-layout {
     display: flex;
     flex-direction: column;
     height: auto;
-    min-height: 100%;
+    min-height: 100dvh;
     max-height: none;
+    overflow: visible;
   }
   .boblift-inquiry-modal.is-inquiry-fullscreen.has-selected-products .boblift-inquiry-products-panel {
     flex: none;
