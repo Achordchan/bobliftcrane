@@ -2083,10 +2083,26 @@
     restore();
     window.requestAnimationFrame(restore); // again once the page has laid out in full
   };
-  const openInquiryModal = (trigger = null) => {
-    if (!inquiryModal) return;
+  // Page mode on phones, the scroll-locked sheet elsewhere. Also re-run when the breakpoint flips while open (rotation),
+  // so the class, the hidden page and the scroll lock always change together.
+  const applyInquiryMode = () => {
     const asPage = inquiryFullscreenEnabled && inquiryPageQuery.matches;
     inquiryModal.classList.toggle('is-inquiry-fullscreen', asPage);
+    if (asPage) {
+      unlockInquiryPageScroll();
+      enterInquiryPage();
+    } else {
+      leaveInquiryPage();
+      lockInquiryPageScroll();
+    }
+  };
+  if (inquiryFullscreenEnabled) {
+    inquiryPageQuery.addEventListener?.('change', () => {
+      if (inquiryModal?.getAttribute('aria-hidden') === 'false') applyInquiryMode();
+    });
+  }
+  const openInquiryModal = (trigger = null) => {
+    if (!inquiryModal) return;
     inquiryModalLastFocus = trigger instanceof HTMLElement ? trigger : document.activeElement;
     const form = qs('[data-inquiry-modal-form]', inquiryModal);
     const success = qs('[data-inquiry-modal-success]', inquiryModal);
@@ -2141,8 +2157,7 @@
     inquiryModal.classList.remove('hidden');
     inquiryModal.classList.add('flex');
     inquiryModal.setAttribute('aria-hidden', 'false');
-    if (asPage) enterInquiryPage();
-    else lockInquiryPageScroll();
+    applyInquiryMode();
     renderLazyTurnstile(form || inquiryModal).then(() => {
       resetTurnstile(form || inquiryModal);
     }).catch((error) => {
