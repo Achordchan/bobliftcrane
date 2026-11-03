@@ -296,6 +296,15 @@ $model_history = $related_term instanceof WP_Term ? boblift_product_model_histor
 $process_slugs = boblift_product_category_lineage(get_the_ID());
 // Generated range guide, spec groups and model FAQs (inc/product-guide.php), for truck and marine cranes with a decoded model code.
 $crane_family = boblift_product_crane_family($process_slugs);
+// Marine, spider, electric mini and forklift jib cranes get their own ordering questions and quote banner: the saved ones talk about truck chassis.
+$ordering_faq_family = boblift_product_ordering_faq_family($process_slugs);
+if ($ordering_faq_family !== '') {
+    // A list saved for the family in this language (boblift_product_faq REST field) wins over the theme's list.
+    $family_saved_faqs = $ui['faqItemsByFamily'][$ordering_faq_family] ?? null;
+    $faqs = is_array($family_saved_faqs) && $family_saved_faqs !== []
+        ? array_values(array_filter(array_map(static fn($faq): ?array => is_array($faq) && trim((string) ($faq['question'] ?? '')) !== '' && trim((string) ($faq['answer'] ?? '')) !== '' ? ['question' => (string) $faq['question'], 'answer' => (string) $faq['answer']] : null, $family_saved_faqs)))
+        : boblift_product_ordering_faqs($ordering_faq_family);
+}
 $product_guide = boblift_product_guide($product, $crane_family, $related_term);
 if ($model_history) {
     // Model history sets the same capacity class side by side, previous models included.
@@ -365,6 +374,11 @@ if (str_contains(strtolower($quote_title), 'truck crane')) {
 $quote_description = (string) ($ui['quoteDescription'] ?? 'Send your working radius, load requirement, site access, destination country, and delivery schedule. BOB-LIFT will help match a practical configuration.');
 if (str_contains(strtolower($quote_description), 'truck chassis')) {
     $quote_description = 'Send your working radius, load requirement, site access, destination country, and delivery schedule. BOB-LIFT will help match a practical configuration.';
+}
+$family_quote_copy = boblift_product_quote_copy($ordering_faq_family);
+if ($family_quote_copy) {
+    $quote_title = $family_quote_copy['title'];
+    $quote_description = $family_quote_copy['text'];
 }
 ?>
 <div class="boblift-product-cinema bg-[#F5F7FB] text-[#0B1B33]">

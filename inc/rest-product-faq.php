@@ -15,14 +15,26 @@ if (!defined('ABSPATH')) {
  * Write {"items": [{"question": "...", "answer": "..."}, ...]} replaces the language's whole list (1 to 12 items, plain
  * text); {"items": null} drops the saved list so the theme's list applies (English only: the theme's list has no
  * translations). The write is a compare-and-set on the stored option row, retried when another save changed it.
+ *
+ * Marine, spider, electric mini and forklift jib crane pages show their own list instead (boblift_product_ordering_faqs()
+ * in inc/product-guide.php). The read lists them under "families" ({"marine": {"source", "items"}, ...}); a write with
+ * "family" (marine, spider, electric-mini, fly-jib) saves that family's list in site_ui.productDetail.faqItemsByFamily,
+ * and {"family": ..., "items": null} drops it so the theme's translated list applies again, in any language.
  */
-function boblift_product_faq_shown(array $options): array
+function boblift_product_faq_shown(array $options, string $language = 'en'): array
 {
     $saved = $options['site_ui']['productDetail']['faqItems'] ?? null;
-    if (is_array($saved) && $saved !== []) {
-        return ['source' => 'saved', 'items' => array_values($saved)];
+    $shown = is_array($saved) && $saved !== []
+        ? ['source' => 'saved', 'items' => array_values($saved)]
+        : ['source' => 'default', 'items' => array_values((array) (boblift_site_ui_defaults()['productDetail']['faqItems'] ?? []))];
+    $shown['families'] = [];
+    foreach (boblift_product_ordering_faq_families() as $family) {
+        $family_saved = $options['site_ui']['productDetail']['faqItemsByFamily'][$family] ?? null;
+        $shown['families'][$family] = is_array($family_saved) && $family_saved !== []
+            ? ['source' => 'saved', 'items' => array_values($family_saved)]
+            : ['source' => 'default', 'items' => boblift_product_ordering_faqs($family, $language)];
     }
-    return ['source' => 'default', 'items' => array_values((array) (boblift_site_ui_defaults()['productDetail']['faqItems'] ?? []))];
+    return $shown;
 }
 
 function boblift_product_faq_clean(mixed $items): array|WP_Error
@@ -46,7 +58,7 @@ function boblift_product_faq_clean(mixed $items): array|WP_Error
     return $clean;
 }
 
-function boblift_product_faq_save(string $language, ?array $items): true|WP_Error
+function boblift_product_faq_save(string $language, ?array $items, string $family = ''): true|WP_Error
 {
     global $wpdb;
     for ($attempt = 0; $attempt < 5; $attempt++) {
@@ -54,7 +66,19 @@ function boblift_product_faq_save(string $language, ?array $items): true|WP_Erro
         $options = $stored['options'];
         $options['site_ui'] = is_array($options['site_ui'] ?? null) ? $options['site_ui'] : [];
         $detail = is_array($options['site_ui']['productDetail'] ?? null) ? $options['site_ui']['productDetail'] : [];
-        if ($items === null) {
+        if ($family !== '') {
+            $by_family = is_array($detail['faqItemsByFamily'] ?? null) ? $detail['faqItemsByFamily'] : [];
+            if ($items === null) {
+                unset($by_family[$family]);
+            } else {
+                $by_family[$family] = $items;
+            }
+            if ($by_family === []) {
+                unset($detail['faqItemsByFamily']);
+            } else {
+                $detail['faqItemsByFamily'] = $by_family;
+            }
+        } elseif ($items === null) {
             unset($detail['faqItems']);
         } else {
             $detail['faqItems'] = $items;
@@ -85,7 +109,8 @@ function boblift_product_faq_register_page_field(): void
             if (!$page instanceof WP_Post || !current_user_can('manage_options')) {
                 return null;
             }
-            return boblift_product_faq_shown(boblift_filter_bins_stored(boblift_filter_bins_page_language($page))['options']);
+            $language = boblift_filter_bins_page_language($page);
+            return boblift_product_faq_shown(boblift_filter_bins_stored($language)['options'], $language);
         },
         'update_callback' => static function ($value, WP_Post $post) {
             if (!current_user_can('manage_options')) {
@@ -95,9 +120,13 @@ function boblift_product_faq_register_page_field(): void
                 return new WP_Error('boblift_faq_invalid', 'Send {"items": [...]} or {"items": null}.', ['status' => 400]);
             }
             $language = boblift_filter_bins_page_language($post);
+            $family = $value['family'] ?? '';
+            if (!is_string($family) || ($family !== '' && !in_array($family, boblift_product_ordering_faq_families(), true))) {
+                return new WP_Error('boblift_faq_invalid', 'family must be one of: ' . implode(', ', boblift_product_ordering_faq_families()) . '.', ['status' => 400]);
+            }
             $items = $value['items'];
             if ($items === null) {
-                if ($language !== 'en') {
+                if ($language !== 'en' && $family === '') {
                     return new WP_Error('boblift_faq_invalid', 'Only English can fall back to the theme\'s list; send this language\'s items instead.', ['status' => 400]);
                 }
             } else {
@@ -106,11 +135,11 @@ function boblift_product_faq_register_page_field(): void
                     return $items;
                 }
             }
-            $saved = boblift_product_faq_save($language, $items);
+            $saved = boblift_product_faq_save($language, $items, $family);
             return is_wp_error($saved) ? $saved : true;
         },
         'schema' => [
-            'description' => 'Product page "Ordering and service" questions of this page\'s language. Write {"items": [{"question": ..., "answer": ...}] | null}.',
+            'description' => 'Product page "Ordering and service" questions of this page\'s language. Write {"items": [{"question": ..., "answer": ...}] | null}, with "family" (marine, spider, electric-mini, fly-jib) for that family\'s own list.',
             'type' => ['object', 'null'],
             'context' => ['edit'],
         ],
