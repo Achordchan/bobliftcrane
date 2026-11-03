@@ -1419,17 +1419,17 @@ img { max-width: 100%; }
 @media (max-width: 767px) {
   .boblift-inquiry-dialog {
     height: auto;
-    max-height: 94dvh;
+    max-height: min(94dvh, var(--boblift-inquiry-vh, 94dvh));
   }
   .boblift-inquiry-layout {
     min-height: 0;
-    max-height: 94dvh;
+    max-height: min(94dvh, var(--boblift-inquiry-vh, 94dvh));
     grid-template-rows: auto;
   }
   .boblift-inquiry-modal-form {
     min-height: 0;
     height: auto;
-    max-height: 94dvh;
+    max-height: min(94dvh, var(--boblift-inquiry-vh, 94dvh));
     padding: 16px;
   }
   .boblift-inquiry-modal-form > .flex:first-of-type {
@@ -1497,7 +1497,7 @@ img { max-width: 100%; }
     line-height: 1.2;
   }
   .boblift-inquiry-modal.is-inquiry-extra-open .boblift-inquiry-dialog {
-    height: 94dvh;
+    height: min(94dvh, var(--boblift-inquiry-vh, 94dvh));
   }
   .boblift-inquiry-modal.is-inquiry-extra-open .boblift-inquiry-layout {
     height: 100%;

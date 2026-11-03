@@ -1250,20 +1250,43 @@
   let inquiryCharacterApi = null;
   let inquiryModalSelectedProducts = [];
   let inquiryScrollLock = null;
-  // iOS Safari scrolls the window to show a focused field even while the body is pinned (position: fixed). When the
-  // keyboard closes the window can stay scrolled, and then the fixed dialog is drawn in one place but takes taps in
-  // another: the Turnstile box and the fields stop responding. While the dialog is open, put the window back at the top.
-  let inquiryViewportTimer = 0;
-  const realignInquiryViewport = () => {
-    window.clearTimeout(inquiryViewportTimer);
-    inquiryViewportTimer = window.setTimeout(() => {
-      if (inquiryScrollLock && (window.scrollY || document.documentElement.scrollTop)) window.scrollTo(0, 0);
-    }, 60);
+  // iOS Safari does not shrink a fixed dialog when the keyboard opens: it pans the visible area over the page instead,
+  // so the sheet jumps up and down from field to field and, once panned, takes taps in a different place from where it is
+  // drawn. While the dialog is open it is pinned to the visible area (visualViewport): same top, same height. The
+  // fields then scroll inside the form, and the focused one is brought into view there, so there is nothing to pan.
+  let inquiryViewportFrame = 0;
+  const syncInquiryViewport = () => {
+    window.cancelAnimationFrame(inquiryViewportFrame);
+    inquiryViewportFrame = window.requestAnimationFrame(() => {
+      const viewport = window.visualViewport;
+      if (!inquiryScrollLock || !inquiryModal || !viewport) return;
+      inquiryModal.style.top = `${Math.round(viewport.offsetTop)}px`;
+      inquiryModal.style.bottom = 'auto';
+      inquiryModal.style.height = `${Math.round(viewport.height)}px`;
+      inquiryModal.style.setProperty('--boblift-inquiry-vh', `${Math.round(viewport.height)}px`);
+    });
+  };
+  const keepInquiryFieldInView = (event) => {
+    const field = event.target;
+    if (!inquiryScrollLock || !inquiryModal?.contains(field) || !field.matches?.('input, textarea, select')) return;
+    // After the keyboard has finished opening (and the dialog has followed it), show the field inside the form.
+    window.setTimeout(() => {
+      syncInquiryViewport();
+      window.requestAnimationFrame(() => {
+        if (document.activeElement === field) field.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      });
+    }, 320);
+  };
+  const clearInquiryViewport = () => {
+    window.cancelAnimationFrame(inquiryViewportFrame);
+    if (!inquiryModal) return;
+    ['top', 'bottom', 'height', '--boblift-inquiry-vh'].forEach((property) => inquiryModal.style.removeProperty(property));
   };
   const lockInquiryPageScroll = () => {
     if (inquiryScrollLock) return;
-    document.addEventListener('focusout', realignInquiryViewport, true);
-    window.visualViewport?.addEventListener('resize', realignInquiryViewport);
+    window.visualViewport?.addEventListener('resize', syncInquiryViewport);
+    window.visualViewport?.addEventListener('scroll', syncInquiryViewport);
+    document.addEventListener('focusin', keepInquiryFieldInView, true);
     const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
     inquiryScrollLock = {
       scrollY,
@@ -1286,14 +1309,16 @@
     document.body.style.left = '0';
     document.body.style.right = '0';
     document.body.style.width = '100%';
+    syncInquiryViewport();
   };
   const unlockInquiryPageScroll = () => {
     if (!inquiryScrollLock) return;
     const { scrollY, htmlOverflow, bodyOverflow, bodyPosition, bodyTop, bodyLeft, bodyRight, bodyWidth, htmlScrollBehavior, bodyScrollBehavior } = inquiryScrollLock;
     inquiryScrollLock = null;
-    window.clearTimeout(inquiryViewportTimer);
-    document.removeEventListener('focusout', realignInquiryViewport, true);
-    window.visualViewport?.removeEventListener('resize', realignInquiryViewport);
+    window.visualViewport?.removeEventListener('resize', syncInquiryViewport);
+    window.visualViewport?.removeEventListener('scroll', syncInquiryViewport);
+    document.removeEventListener('focusin', keepInquiryFieldInView, true);
+    clearInquiryViewport();
     document.documentElement.classList.remove('boblift-inquiry-scroll-locked');
     document.body.classList.remove('boblift-inquiry-scroll-locked');
     document.documentElement.style.overflow = htmlOverflow;
