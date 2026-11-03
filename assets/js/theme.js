@@ -1259,7 +1259,7 @@
     window.cancelAnimationFrame(inquiryViewportFrame);
     inquiryViewportFrame = window.requestAnimationFrame(() => {
       const viewport = window.visualViewport;
-      if (!inquiryScrollLock || !inquiryModal || !viewport) return;
+      if (!inquiryScrollLock?.pinned || !inquiryModal || !viewport) return;
       // Only while the keyboard is up. With it closed the dialog goes back to its normal bottom sheet: iOS can leave a
       // stale offsetTop behind after the keyboard closes, and pinning to it pushed the sheet half off the screen.
       // Compared with the tallest visible area seen at this width, since some browsers shrink innerHeight with the keyboard.
@@ -1301,14 +1301,31 @@
     if (!inquiryModal) return;
     ['top', 'bottom', 'height', '--boblift-inquiry-vh'].forEach((property) => inquiryModal.style.removeProperty(property));
   };
+  // Any touch-capable device needs the body pinned in place (iOS scrolls the page under an overflow:hidden root) and the
+  // keyboard handling below, including an iPad with a trackpad, whose primary pointer reports fine. Only a screen with
+  // no touch input at all skips it: there just the root stops scrolling, so the sticky header and section tabs stay
+  // where they are instead of sliding away with a pinned body. scrollbar-gutter keeps the page from shifting sideways
+  // where the scrollbar takes up room.
+  const inquiryNeedsPinnedBody = () => (navigator.maxTouchPoints || 0) > 0 || window.matchMedia('(any-pointer: coarse)').matches;
   const lockInquiryPageScroll = () => {
     if (inquiryScrollLock) return;
+    if (!inquiryNeedsPinnedBody()) {
+      inquiryScrollLock = {
+        pinned: false,
+        htmlOverflow: document.documentElement.style.overflow,
+        htmlScrollbarGutter: document.documentElement.style.scrollbarGutter,
+      };
+      document.documentElement.style.scrollbarGutter = 'stable';
+      document.documentElement.style.overflow = 'hidden';
+      return;
+    }
     window.visualViewport?.addEventListener('resize', syncInquiryViewport);
     window.visualViewport?.addEventListener('scroll', syncInquiryViewport);
     document.addEventListener('focusin', keepInquiryFieldInView, true);
     document.addEventListener('focusout', resyncInquiryViewportLater, true);
     const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
     inquiryScrollLock = {
+      pinned: true,
       scrollY,
       htmlOverflow: document.documentElement.style.overflow,
       bodyOverflow: document.body.style.overflow,
@@ -1333,6 +1350,12 @@
   };
   const unlockInquiryPageScroll = () => {
     if (!inquiryScrollLock) return;
+    if (!inquiryScrollLock.pinned) {
+      document.documentElement.style.overflow = inquiryScrollLock.htmlOverflow;
+      document.documentElement.style.scrollbarGutter = inquiryScrollLock.htmlScrollbarGutter;
+      inquiryScrollLock = null;
+      return;
+    }
     const { scrollY, htmlOverflow, bodyOverflow, bodyPosition, bodyTop, bodyLeft, bodyRight, bodyWidth, htmlScrollBehavior, bodyScrollBehavior } = inquiryScrollLock;
     inquiryScrollLock = null;
     window.visualViewport?.removeEventListener('resize', syncInquiryViewport);
