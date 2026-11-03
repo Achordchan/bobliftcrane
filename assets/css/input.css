@@ -1449,9 +1449,17 @@ img { max-width: 100%; }
     height: 44px;
     width: 44px;
   }
+  /* Phones: the whole form column scrolls as one. The fields keep their full height (flex: none), so a short
+     screen (product panel on top, keyboard open) never squeezes them over the Turnstile box and Send button,
+     which left "Verify you are human" untappable. */
+  .boblift-inquiry-modal-form {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
   .boblift-inquiry-fields-scroll {
     align-content: start;
-    flex: 0 1 auto;
+    flex: none;
     margin-top: 14px;
     gap: 10px;
     overflow-y: visible;
@@ -1496,8 +1504,8 @@ img { max-width: 100%; }
     grid-template-rows: minmax(0, 1fr) auto;
   }
   .boblift-inquiry-modal.is-inquiry-extra-open .boblift-inquiry-fields-scroll {
-    flex: 1 1 0%;
-    overflow-y: auto;
+    flex: none;
+    overflow-y: visible;
   }
 }
 @media (min-width: 380px) and (max-width: 767px) {
