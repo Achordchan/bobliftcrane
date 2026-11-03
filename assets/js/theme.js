@@ -5132,7 +5132,6 @@
   const sameTabArea = [
     'nav', '[role="tablist"]', '[data-same-tab-area]', '[data-filter-bar]', '[data-filter-drawer]',
     '[data-filter-chips-row]', '[data-category-subtabs]', '[data-category-mobile-tabs]',
-    '[data-news-filter-root]', '[data-video-filter-root]',
   ].join(',');
   const sameTabLink = [
     '[download]', '[target]', '[hreflang]', '[role="tab"]', '[data-same-tab]', '[data-inquiry-modal-open]',
