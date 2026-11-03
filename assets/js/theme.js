@@ -1250,8 +1250,20 @@
   let inquiryCharacterApi = null;
   let inquiryModalSelectedProducts = [];
   let inquiryScrollLock = null;
+  // iOS Safari scrolls the window to show a focused field even while the body is pinned (position: fixed). When the
+  // keyboard closes the window can stay scrolled, and then the fixed dialog is drawn in one place but takes taps in
+  // another: the Turnstile box and the fields stop responding. While the dialog is open, put the window back at the top.
+  let inquiryViewportTimer = 0;
+  const realignInquiryViewport = () => {
+    window.clearTimeout(inquiryViewportTimer);
+    inquiryViewportTimer = window.setTimeout(() => {
+      if (inquiryScrollLock && (window.scrollY || document.documentElement.scrollTop)) window.scrollTo(0, 0);
+    }, 60);
+  };
   const lockInquiryPageScroll = () => {
     if (inquiryScrollLock) return;
+    document.addEventListener('focusout', realignInquiryViewport, true);
+    window.visualViewport?.addEventListener('resize', realignInquiryViewport);
     const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
     inquiryScrollLock = {
       scrollY,
@@ -1279,6 +1291,9 @@
     if (!inquiryScrollLock) return;
     const { scrollY, htmlOverflow, bodyOverflow, bodyPosition, bodyTop, bodyLeft, bodyRight, bodyWidth, htmlScrollBehavior, bodyScrollBehavior } = inquiryScrollLock;
     inquiryScrollLock = null;
+    window.clearTimeout(inquiryViewportTimer);
+    document.removeEventListener('focusout', realignInquiryViewport, true);
+    window.visualViewport?.removeEventListener('resize', realignInquiryViewport);
     document.documentElement.classList.remove('boblift-inquiry-scroll-locked');
     document.body.classList.remove('boblift-inquiry-scroll-locked');
     document.documentElement.style.overflow = htmlOverflow;
