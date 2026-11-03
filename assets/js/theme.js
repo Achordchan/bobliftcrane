@@ -5123,4 +5123,34 @@
       });
     });
   });
+
+  // Links in the page body (articles, product details, cards, other sites, PDFs) open in a new tab so the
+  // visitor keeps the page they were reading. Site controls stay in this tab: menus, breadcrumbs, pagination,
+  // filters and category tabs, in-page anchors, downloads and the links that open a dialog. Listening on window
+  // runs after every other click handler, so a link another script already handled is left alone; the target
+  // is set just before the browser follows the link, which also covers cards rendered later by scripts.
+  const sameTabArea = [
+    'nav', '[role="tablist"]', '[data-same-tab-area]', '[data-filter-bar]', '[data-filter-drawer]',
+    '[data-filter-chips-row]', '[data-category-subtabs]', '[data-category-mobile-tabs]',
+    '[data-news-filter-root]', '[data-video-filter-root]',
+  ].join(',');
+  const sameTabLink = [
+    '[download]', '[target]', '[hreflang]', '[role="tab"]', '[data-same-tab]', '[data-inquiry-modal-open]',
+    '[data-catalog-modal-open]', '[data-leave-site]', '[data-language-suggest-accept]', '[data-category-link]',
+    '[data-category-tab]', '[data-capacity-chip]', '[data-product-category-tab]', '[data-home-hero-tab]',
+    '[data-news-filter-button]', '[data-video-filter]', '.product-filter-option',
+  ].join(',');
+  window.addEventListener('click', (event) => {
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    const link = event.target instanceof Element ? event.target.closest('a[href]') : null;
+    if (!link || !link.closest('main') || link.matches(sameTabLink) || link.closest(sameTabArea)) return;
+    if (link.protocol !== 'http:' && link.protocol !== 'https:') return;
+    // A link back to this same page (or a spot on it) only scrolls.
+    if (link.origin === window.location.origin && link.pathname === window.location.pathname
+      && link.search === window.location.search) return;
+    link.target = '_blank';
+    const rel = new Set((link.rel || '').split(/\s+/).filter(Boolean));
+    rel.add('noopener');
+    link.rel = [...rel].join(' ');
+  });
 })();

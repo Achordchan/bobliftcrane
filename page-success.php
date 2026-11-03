@@ -17,7 +17,7 @@ $ui = boblift_site_ui('successPage');
         <h1 class="mt-4 text-4xl font-black leading-tight tracking-[-0.02em] text-ink md:text-6xl"><?php echo esc_html($ui['title'] ?? 'Thank you for your inquiry.'); ?></h1>
         <p class="mx-auto mt-5 max-w-2xl text-base font-normal leading-8 text-slate-600 md:text-lg"><?php echo esc_html($ui['description'] ?? 'Your request has been received. The BOB-LIFT team will review your project details and contact you soon.'); ?></p>
         <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            <a class="inline-flex h-12 items-center justify-center gap-2 rounded-sm bg-navy px-7 text-sm font-black text-white shadow-card transition hover:-translate-y-0.5 hover:bg-[#0b2d5b]" href="<?php echo esc_url(home_url('/')); ?>"><?php echo esc_html($ui['backHomeLabel'] ?? 'Back to Home'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
+            <a data-same-tab class="inline-flex h-12 items-center justify-center gap-2 rounded-sm bg-navy px-7 text-sm font-black text-white shadow-card transition hover:-translate-y-0.5 hover:bg-[#0b2d5b]" href="<?php echo esc_url(home_url('/')); ?>"><?php echo esc_html($ui['backHomeLabel'] ?? 'Back to Home'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
             <a class="inline-flex h-12 items-center justify-center gap-2 rounded-sm border border-line bg-white px-7 text-sm font-black text-ink transition hover:-translate-y-0.5 hover:border-blue-200 hover:text-blue-700" href="<?php echo esc_url(function_exists('boblift_product_archive_url') ? boblift_product_archive_url() : home_url('/products.html')); ?>"><?php echo esc_html($ui['browseProductsLabel'] ?? 'Browse Products'); ?></a>
         </div>
     </div>

@@ -164,7 +164,7 @@ $others = array_slice($others, 0, 4);
                         </ul>
                     <?php endif; ?>
                     <a class="btn-primary mt-5 w-full justify-center rounded-sm" href="<?php echo esc_url($quote_url); ?>" data-inquiry-modal-open data-inquiry-source="客户反馈详情"<?php echo $quote_attrs; ?>><?php echo esc_html($ui['getQuoteLabel'] ?? 'Get a Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4 text-gold'); ?></a>
-                    <a class="mt-4 inline-flex items-center gap-1.5 text-sm font-black text-blue-700 transition hover:text-ink" href="<?php echo esc_url($feedback_list_url); ?>"><?php echo boblift_icon('chevron-left', 'h-4 w-4 rtl:-scale-x-100'); ?><?php echo esc_html($ui['moreFeedbackLabel'] ?? 'More customer feedback'); ?></a>
+                    <a data-same-tab class="mt-4 inline-flex items-center gap-1.5 text-sm font-black text-blue-700 transition hover:text-ink" href="<?php echo esc_url($feedback_list_url); ?>"><?php echo boblift_icon('chevron-left', 'h-4 w-4 rtl:-scale-x-100'); ?><?php echo esc_html($ui['moreFeedbackLabel'] ?? 'More customer feedback'); ?></a>
                 </div>
             </aside>
         <?php endif; ?>
