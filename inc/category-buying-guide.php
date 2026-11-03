@@ -68,7 +68,7 @@ add_action('init', 'boblift_register_buying_guide_meta');
  * Adds questions to a guide's FAQ without resending the whole guide: write a JSON list [{"q": "", "a": ""}] to the term
  * meta _boblift_buying_guide_faq_add (REST: {"meta": {"_boblift_buying_guide_faq_add": "[...]"}}). Each question whose
  * text is not already in the FAQ (case-insensitive) is appended to _boblift_buying_guide, then the key is cleared, so it
- * reads back as '' and the next write is applied again.
+ * reads back as '' and the next write is applied again; a key that reads back non-empty was not applied (see below).
  */
 function boblift_buying_guide_faq_add_sanitize($value): string
 {
@@ -98,26 +98,52 @@ function boblift_apply_buying_guide_faq_add($meta_id, $term_id, $meta_key, $meta
     if ($meta_key !== '_boblift_buying_guide_faq_add') {
         return;
     }
+    global $wpdb;
     $term_id = (int) $term_id;
     $items = json_decode((string) $meta_value, true);
-    delete_term_meta($term_id, '_boblift_buying_guide_faq_add');
     if (!is_array($items) || $items === []) {
+        delete_term_meta($term_id, '_boblift_buying_guide_faq_add');
         return;
     }
-    $guide = json_decode((string) get_term_meta($term_id, '_boblift_buying_guide', true), true);
-    $guide = is_array($guide) ? $guide : [];
-    $faq = array_values((array) ($guide['faq'] ?? []));
-    $asked = array_map(static fn($item): string => mb_strtolower(trim((string) ($item['q'] ?? ''))), $faq);
-    foreach ($items as $item) {
-        $question = mb_strtolower(trim((string) ($item['q'] ?? '')));
-        if ($question !== '' && !in_array($question, $asked, true)) {
-            $faq[] = ['q' => (string) $item['q'], 'a' => (string) ($item['a'] ?? '')];
-            $asked[] = $question;
-        }
+    // Appends to one term run one at a time (a MySQL named lock), and each save is a compare-and-set on the guide as it
+    // was read, so neither a concurrent append nor a whole-guide save in between is overwritten: a changed guide is read
+    // again and merged again. If the lock or the save does not go through, the request's list stays in the key, so a
+    // read-back that is not '' shows the questions were not added.
+    $lock = 'boblift_buying_guide_' . $term_id;
+    if ((int) $wpdb->get_var($wpdb->prepare('SELECT GET_LOCK(%s, 10)', $lock)) !== 1) {
+        return;
     }
-    $guide['faq'] = $faq;
-    // update_metadata() unslashes the value; slash it so the escaped quotes inside the JSON survive.
-    update_term_meta($term_id, '_boblift_buying_guide', wp_slash((string) wp_json_encode($guide, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)));
+    try {
+        for ($attempt = 0; $attempt < 3; $attempt++) {
+            wp_cache_delete($term_id, 'term_meta');
+            $stored = (string) get_term_meta($term_id, '_boblift_buying_guide', true);
+            $guide = json_decode($stored, true);
+            $guide = is_array($guide) ? $guide : [];
+            $faq = array_values((array) ($guide['faq'] ?? []));
+            $asked = array_map(static fn($item): string => mb_strtolower(trim((string) ($item['q'] ?? ''))), $faq);
+            foreach ($items as $item) {
+                $question = mb_strtolower(trim((string) ($item['q'] ?? '')));
+                if ($question !== '' && !in_array($question, $asked, true)) {
+                    $faq[] = ['q' => (string) $item['q'], 'a' => (string) ($item['a'] ?? '')];
+                    $asked[] = $question;
+                }
+            }
+            if (count($faq) === count((array) ($guide['faq'] ?? []))) {
+                delete_term_meta($term_id, '_boblift_buying_guide_faq_add');
+                return;
+            }
+            $guide['faq'] = $faq;
+            // update_metadata() unslashes the value; slash it so the escaped quotes inside the JSON survive. With a
+            // previous value (compared as stored, not unslashed) it updates only the row that still holds it; '' adds the row.
+            $saved = update_term_meta($term_id, '_boblift_buying_guide', wp_slash((string) wp_json_encode($guide, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)), $stored);
+            if ($saved !== false) {
+                delete_term_meta($term_id, '_boblift_buying_guide_faq_add');
+                return;
+            }
+        }
+    } finally {
+        $wpdb->query($wpdb->prepare('SELECT RELEASE_LOCK(%s)', $lock));
+    }
 }
 add_action('added_term_meta', 'boblift_apply_buying_guide_faq_add', 10, 4);
 add_action('updated_term_meta', 'boblift_apply_buying_guide_faq_add', 10, 4);
