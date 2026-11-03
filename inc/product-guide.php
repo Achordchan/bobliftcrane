@@ -485,3 +485,88 @@ function boblift_product_guide_faqs(array $product, array $guide, string $family
     }
     return $faqs;
 }
+
+/**
+ * Which "Ordering and service" questions a product page shows: the saved list (site_ui.productDetail.faqItems) is
+ * written for truck mounted equipment and talks about chassis and truck mounting, so marine, spider, electric mini and
+ * forklift jib cranes get their own list instead. '' means the saved list applies.
+ */
+function boblift_product_ordering_faq_family(array $english_slugs): string
+{
+    if (boblift_product_crane_family($english_slugs) === 'marine') {
+        return 'marine';
+    }
+    foreach (['spider-cranes' => 'spider', 'electric-mini-cranes' => 'electric-mini', 'forklift-fly-jib-cranes' => 'fly-jib'] as $slug => $family) {
+        if (in_array($slug, $english_slugs, true)) {
+            return $family;
+        }
+    }
+    return '';
+}
+
+/**
+ * The family's own "Ordering and service" questions, in this page's language (inc/translations/product-ordering-faq.php).
+ * Facts only: warranty, reply and parts times and training as confirmed by the factory on 2026-10-27; the 12-month
+ * warranty is not stated for forklift jib cranes, which the crane order terms do not cover.
+ */
+function boblift_product_ordering_faqs(string $family): array
+{
+    $delivery = ['What is the delivery time, and which documents come with the order?', 'Lead time depends on the configuration, order quantity and destination, and we confirm it in writing with your quotation. Each order ships with a commercial invoice, packing list and bill of lading, plus the product documents required for the confirmed order.'];
+    $training = ['Is operator training provided?', 'There is no operator training at delivery. Your technicians are welcome at our factory in Xuzhou to learn the crane, the manual comes in English with other languages on request before the order, and our Service & Operation page has short videos on checks before and during lifting.'];
+    $service = ['What after-sales support is available?', 'Cranes carry a 12-month warranty. Send the model, serial number and a photo or video of the issue: we reply within 12 hours, guide the repair by video and ship common spare parts within 48 hours.'];
+    $custom = ['Can the crane be customized for our working conditions?', 'Tell us the lifting work, the site and the requirements of the destination country, and we confirm what can be adjusted before quotation.'];
+    $lists = [
+        'marine' => [
+            ['Which configuration should we choose for this model?', 'Send the load, the outreach you need over the ship\'s side, the vessel type and where the crane will stand on deck. Our engineers confirm a practical model and mounting before quotation.'],
+            ['How is the crane mounted on the vessel?', 'The crane stands on its base plate, fixed to the deck or to a raised pedestal, and the base plate size is on the product drawing. Send us the deck structure at the crane position: we adapt the mounting to your vessel and confirm it with you.'],
+            ['Does this crane suit our sea conditions?', 'Tell us where the vessel works, whether you lift in port or at sea, and the conditions you expect during lifting. Our engineers check them against the load chart and confirm whether this model suits the job before quotation.'],
+            ['How is the crane protected against corrosion?', 'Tell us whether the vessel works in salt water or fresh water and where the crane sits on deck. We confirm the paint and surface protection for your conditions in writing with the quotation.'],
+            $delivery,
+            ['Do you help with installation and after-sales service?', 'Your shipyard fits the crane with our installation guidance and remote technical support. Cranes carry a 12-month warranty, we reply to service requests within 12 hours, and common spare parts ship within 48 hours.'],
+        ],
+        'spider' => [
+            ['Which configuration should we choose for this model?', 'Send the heaviest load, the working radius and height, and the narrowest doorway, corridor or lift the crane must pass through. Our engineers confirm a practical configuration before quotation.'],
+            ['What does a spider crane need on site?', 'A spider crane stands on its own outrigger legs instead of a truck. Check that the ground or floor under each leg can carry the load, and read the load chart at the radius you need. Send us the site details and we confirm the setup with you.'],
+            $custom,
+            $delivery,
+            $training,
+            $service,
+        ],
+        'electric-mini' => [
+            ['Which configuration should we choose for this model?', 'Send the load, the working radius, where the crane will be fixed and the destination country. We confirm whether the 1 t or 2 t size, with lever or wireless remote control, suits the job before quotation.'],
+            ['How is the crane mounted and powered?', 'The crane bolts to a vehicle bed or a fixed base, and a base cart with side outriggers is available as an option. A 12 V electric-hydraulic power unit drives it from a battery, so it needs no truck power take-off.'],
+            $custom,
+            $delivery,
+            $training,
+            $service,
+        ],
+        'fly-jib' => [
+            ['Which configuration should we choose for this model?', 'Send your forklift model, its rated capacity and load center, the mast height, and the load and reach you need. Our engineers confirm the jib size before quotation.'],
+            ['How does the jib crane fit our forklift?', 'The crane frame hangs on the fork carriage where the forks normally sit, and the boom runs from the forklift\'s auxiliary hydraulic circuit. Send a side photo of the forklift, its data plate and whether it has an auxiliary circuit, and our engineers confirm the fit.'],
+            $delivery,
+            $training,
+            ['What after-sales support is available?', 'Send the model, serial number and a photo or video of the issue; our team guides the repair and ships the parts.'],
+        ],
+    ];
+    return array_map(static fn(array $item): array => [
+        'question' => boblift_localized_static_text($item[0]),
+        'answer' => boblift_localized_static_text($item[1]),
+    ], $lists[$family] ?? []);
+}
+
+/**
+ * The family's quote banner title and text, in this page's language; null for the saved truck wording.
+ */
+function boblift_product_quote_copy(string $family): ?array
+{
+    $copy = [
+        'marine' => ['Need a crane matched to your vessel and lifting task?', 'Send the load, the outreach over the ship\'s side, the vessel type, the crane position on deck and the destination port. BOB-LIFT will help match a practical configuration.'],
+        'spider' => ['Need a spider crane matched to your site and lifting task?', 'Send the load, the working radius and height, the narrowest doorway or passage on site and the destination country. BOB-LIFT will help match a practical configuration.'],
+        'electric-mini' => ['Need a mini crane matched to your vehicle or workshop?', 'Send the load, the working radius, where the crane will be fixed and the destination country. BOB-LIFT will help match a practical configuration.'],
+        'fly-jib' => ['Need a jib crane matched to your forklift?', 'Send your forklift model and rated capacity, the mast height, the load and reach you need and the destination country. BOB-LIFT will help match a practical configuration.'],
+    ];
+    if (!isset($copy[$family])) {
+        return null;
+    }
+    return ['title' => boblift_localized_static_text($copy[$family][0]), 'text' => boblift_localized_static_text($copy[$family][1])];
+}
