@@ -154,7 +154,7 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
 
             <div class="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6 text-sm font-bold text-slate-500">
                 <span><?php echo esc_html((string) ($article_ui['updatedLabel'] ?? 'Updated')); ?> <time datetime="<?php echo esc_attr($modified); ?>"><?php echo esc_html($modified); ?></time></span>
-                <a class="inline-flex items-center gap-2 text-navy transition hover:text-blue-700" href="<?php echo esc_url($news_url); ?>"><?php echo boblift_icon('chevron-left', 'h-4 w-4 rtl:rotate-180'); ?><?php echo esc_html((string) ($article_ui['backLabel'] ?? 'Back to News')); ?></a>
+                <a data-same-tab class="inline-flex items-center gap-2 text-navy transition hover:text-blue-700" href="<?php echo esc_url($news_url); ?>"><?php echo boblift_icon('chevron-left', 'h-4 w-4 rtl:rotate-180'); ?><?php echo esc_html((string) ($article_ui['backLabel'] ?? 'Back to News')); ?></a>
             </div>
         </div>
 
