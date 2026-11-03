@@ -277,6 +277,21 @@ $nav_contact_item = [
     'href' => '/contact.html',
 ];
 $nav_items = array_merge(array_values($nav_by_key), [$nav_contact_item]);
+// A child that only jumps to a section of another top-level page (Services > Brochures is /products.html#brochures)
+// must not light up its parent while the visitor is on that page: there the page's own top-level item is the active one.
+$nav_top_level_keys = [$nav_path_key(boblift_product_archive_path())];
+foreach ($nav_items as $nav_top_item) {
+    $nav_top_level_keys[] = $nav_path_key((string) ($nav_top_item['href'] ?? ''));
+}
+$nav_child_marks_parent = static function (array $child, array $parent) use ($nav_href_matches_current, $nav_path_key, $nav_top_level_keys): bool {
+    $child_href = (string) ($child['href'] ?? '');
+    if (!$nav_href_matches_current($child_href, true)) {
+        return false;
+    }
+    $child_key = $nav_path_key($child_href);
+    $foreign_page = $child_key !== $nav_path_key((string) ($parent['href'] ?? '')) && in_array($child_key, $nav_top_level_keys, true);
+    return !(!empty(wp_parse_url($child_href)['fragment']) && $foreign_page);
+};
 // Video Center and Social Media follow the news categories, after a divider.
 $news_menu_items[] = array_merge($nav_page_child('videos', 'Video Center'), ['divider' => true, 'active' => $nav_href_matches_current('/videos.html')]);
 $news_menu_items[] = array_merge($nav_page_child('social-media', 'Social Media'), ['active' => $nav_href_matches_current('/social-media.html')]);
@@ -368,7 +383,7 @@ foreach ($languages as $language) {
                     }
                     if ($has_children) {
                         foreach ($children as $child) {
-                            if ($nav_href_matches_current((string) ($child['href'] ?? ''), true)) {
+                            if ($nav_child_marks_parent($child, $item)) {
                                 $active = true;
                                 break;
                             }
@@ -481,7 +496,7 @@ foreach ($languages as $language) {
                 $mobile_news_open = $mobile_is_news_item && ($current_path === 'news' || $current_path === 'news.html' || is_page_template('page-news.php') || is_singular('post'));
                 $mobile_children_open = false;
                 foreach ($mobile_children as $mobile_child) {
-                    if ($nav_href_matches_current((string) ($mobile_child['href'] ?? ''), true)) {
+                    if ($nav_child_marks_parent($mobile_child, $item)) {
                         $mobile_children_open = true;
                         break;
                     }
