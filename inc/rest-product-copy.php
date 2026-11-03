@@ -252,7 +252,10 @@ function boblift_product_copy_apply_steps(array $plan): true|WP_Error
 function boblift_product_copy_write_content(int $id, string $content): true|WP_Error
 {
     global $wpdb;
-    $stored = $wpdb->get_var($wpdb->prepare("SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id));
+    // get_row(), not get_var(): get_var() returns null for an empty body, which is a real, writable state
+    // (translations imported without a body), not a failed read.
+    $row = $wpdb->get_row($wpdb->prepare("SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id));
+    $stored = is_object($row) ? $row->post_content : null;
     if (!is_string($stored)) {
         return new WP_Error('boblift_copy_write', sprintf('Product %d could not be read; try again.', $id), ['status' => 500]);
     }
