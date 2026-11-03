@@ -491,6 +491,12 @@ function boblift_product_guide_faqs(array $product, array $guide, string $family
  * written for truck mounted equipment and talks about chassis and truck mounting, so marine, spider, electric mini and
  * forklift jib cranes get their own list instead. '' means the saved list applies.
  */
+/** The families with their own "Ordering and service" list (see boblift_product_ordering_faq_family()). */
+function boblift_product_ordering_faq_families(): array
+{
+    return ['marine', 'spider', 'electric-mini', 'fly-jib'];
+}
+
 function boblift_product_ordering_faq_family(array $english_slugs): string
 {
     if (boblift_product_crane_family($english_slugs) === 'marine') {
@@ -505,11 +511,13 @@ function boblift_product_ordering_faq_family(array $english_slugs): string
 }
 
 /**
- * The family's own "Ordering and service" questions, in this page's language (inc/translations/product-ordering-faq.php).
+ * The theme's "Ordering and service" questions for the family, in this page's language or $language
+ * (inc/translations/product-ordering-faq.php). A list saved for the family (site_ui.productDetail.faqItemsByFamily,
+ * written through the boblift_product_faq REST field) replaces it on the page.
  * Facts only: warranty, reply and parts times and training as confirmed by the factory on 2026-10-27; the 12-month
  * warranty is not stated for forklift jib cranes, which the crane order terms do not cover.
  */
-function boblift_product_ordering_faqs(string $family): array
+function boblift_product_ordering_faqs(string $family, ?string $language = null): array
 {
     $delivery = ['What is the delivery time, and which documents come with the order?', 'Lead time depends on the configuration, order quantity and destination, and we confirm it in writing with your quotation. Each order ships with a commercial invoice, packing list and bill of lading, plus the product documents required for the confirmed order.'];
     $training = ['Is operator training provided?', 'There is no operator training at delivery. Your technicians are welcome at our factory in Xuzhou to learn the crane, the manual comes in English with other languages on request before the order, and our Service & Operation page has short videos on checks before and during lifting.'];
@@ -549,8 +557,8 @@ function boblift_product_ordering_faqs(string $family): array
         ],
     ];
     return array_map(static fn(array $item): array => [
-        'question' => boblift_localized_static_text($item[0]),
-        'answer' => boblift_localized_static_text($item[1]),
+        'question' => boblift_localized_static_text($item[0], $language),
+        'answer' => boblift_localized_static_text($item[1], $language),
     ], $lists[$family] ?? []);
 }
 

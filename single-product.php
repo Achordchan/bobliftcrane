@@ -299,7 +299,11 @@ $crane_family = boblift_product_crane_family($process_slugs);
 // Marine, spider, electric mini and forklift jib cranes get their own ordering questions and quote banner: the saved ones talk about truck chassis.
 $ordering_faq_family = boblift_product_ordering_faq_family($process_slugs);
 if ($ordering_faq_family !== '') {
-    $faqs = boblift_product_ordering_faqs($ordering_faq_family);
+    // A list saved for the family in this language (boblift_product_faq REST field) wins over the theme's list.
+    $family_saved_faqs = $ui['faqItemsByFamily'][$ordering_faq_family] ?? null;
+    $faqs = is_array($family_saved_faqs) && $family_saved_faqs !== []
+        ? array_values(array_filter(array_map(static fn($faq): ?array => is_array($faq) && trim((string) ($faq['question'] ?? '')) !== '' && trim((string) ($faq['answer'] ?? '')) !== '' ? ['question' => (string) $faq['question'], 'answer' => (string) $faq['answer']] : null, $family_saved_faqs)))
+        : boblift_product_ordering_faqs($ordering_faq_family);
 }
 $product_guide = boblift_product_guide($product, $crane_family, $related_term);
 if ($model_history) {
