@@ -161,6 +161,10 @@ add_filter('achord_inquiry_mail_subject', static function (string $subject, arra
     return $saved !== '' && $saved !== ($catalog ? 'New BOB-LIFT catalog request' : 'New BOB-LIFT inquiry') ? $saved : $subject;
 }, 10, 2);
 
+// A trusted-proxy setup hooked on boblift_inquiry_client_ip keeps resolving the visitor's address under the plugin, for
+// plugin submissions and catalog requests alike (both go through achord_inquiry_client_ip).
+add_filter('achord_inquiry_client_ip', static fn(string $ip, string $peer = ''): string => (string) apply_filters('boblift_inquiry_client_ip', $ip, $peer), 10, 2);
+
 // Until 询盘设置 names an address: 联系方式 → email, else info@boblift.com, as before.
 add_filter('achord_inquiry_recipient', static fn(): string => boblift_inquiry_recipient());
 

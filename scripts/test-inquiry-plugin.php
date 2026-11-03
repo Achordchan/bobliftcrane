@@ -102,6 +102,12 @@ $check($sent['legacy_models'] === 'SQ5SA3', 'discontinued models worked out from
 
 $options = achord_inquiry_options();
 $check($options['turnstile_site_key'] === 'site-k' && $options['turnstile_enabled'] === '1' && $options['blocklist'] === '@spam.test' && $options['store_ip'] === '1', '表单安全 settings stand in until 询盘设置 is saved');
+add_filter('boblift_inquiry_client_ip', static fn($ip, $peer) => $peer === '10.0.0.5' ? '198.51.100.7' : $ip, 10, 2);
+$_SERVER['REMOTE_ADDR'] = '10.0.0.5';
+$check(achord_inquiry_client_ip() === '198.51.100.7', 'a boblift_inquiry_client_ip proxy filter still resolves the visitor');
+$_SERVER['REMOTE_ADDR'] = '203.0.113.9';
+$check(achord_inquiry_client_ip() === '203.0.113.9', 'without a proxy match the peer address stands');
+unset($_SERVER['REMOTE_ADDR']);
 $check(achord_inquiry_recipient() === 'sales@boblift.com', 'the 联系方式 email stays the recipient');
 
 $inquiry = ['name' => 'Ana', 'email' => 'ana@example.com', 'product' => 'SQ5SA3 Boom Crane', 'product_slug' => 'sq5sa3', 'legacy_models' => 'SQ5SA3', 'quantity' => '2', 'truck_model' => 'Isuzu', 'message' => 'Price please', 'source_page' => 'https://bobliftcrane.com/es/product/sq5sa3/'];
