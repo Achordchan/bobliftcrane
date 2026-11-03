@@ -4,7 +4,8 @@ $footer = $options['footer'] ?? [];
 $branding = $options['branding'] ?? [];
 $contact = $options['contact'] ?? [];
 $cta = $options['final_cta'] ?? [];
-// Pages that already end in their own contact or plan-a-visit panel skip the footer CTA. Japanese and
+// Pages that already end in their own contact or plan-a-visit panel skip the footer CTA, as does the thank-you page
+// (the visitor has just sent an inquiry). Japanese and
 // Chinese copies carry suffixed slugs (about-2, about-3), so the check uses the English page's slug.
 $cta_page_slug = '';
 if (is_page()) {
@@ -13,7 +14,7 @@ if (is_page()) {
     $cta_page_slug = (string) get_post_field('post_name', $cta_source_id);
 }
 // The product list skips it too: every card has its own quote button and the contact bar stays on screen.
-$show_cta = !in_array($cta_page_slug, ['products', 'about', 'why-choose-us', 'quote', 'contact', 'social-media', 'factory-tour', 'quality-testing', 'mounting-shipping', 'service', 'public-welfare', 'global-customer-visits', 'privacy-policy', 'terms-of-use', 'sitemap'], true) && !is_page_template(['page-about.php', 'page-why-choose-us.php', 'page-social-media.php', 'page-factory-tour.php', 'page-quality-testing.php', 'page-mounting-shipping.php', 'page-service.php', 'page-public-welfare.php', 'page-global-customer-visits.php', 'page-privacy-policy.php', 'page-terms-of-use.php', 'page-sitemap.php']) && !is_post_type_archive('product') && (string) get_query_var('boblift_product_category') === '' && (string) get_query_var('boblift_tonnage') === '' && !is_singular('product');
+$show_cta = !in_array($cta_page_slug, ['products', 'about', 'why-choose-us', 'quote', 'contact', 'social-media', 'factory-tour', 'quality-testing', 'mounting-shipping', 'service', 'public-welfare', 'global-customer-visits', 'privacy-policy', 'terms-of-use', 'sitemap', 'success'], true) && !is_page_template(['page-about.php', 'page-why-choose-us.php', 'page-social-media.php', 'page-factory-tour.php', 'page-quality-testing.php', 'page-mounting-shipping.php', 'page-service.php', 'page-public-welfare.php', 'page-global-customer-visits.php', 'page-privacy-policy.php', 'page-terms-of-use.php', 'page-sitemap.php', 'page-success.php']) && !is_post_type_archive('product') && (string) get_query_var('boblift_product_category') === '' && (string) get_query_var('boblift_tonnage') === '' && !is_singular('product');
 $email = $contact['email'] ?? 'info@boblift.com';
 $phone = $contact['phone'] ?? '+86 15852499415';
 $phone_href = $contact['phone_href'] ?? ('tel:' . preg_replace('/[^\d+]+/', '', $phone));
