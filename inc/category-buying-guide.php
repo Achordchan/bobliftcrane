@@ -64,6 +64,64 @@ function boblift_register_buying_guide_meta(): void
 }
 add_action('init', 'boblift_register_buying_guide_meta');
 
+/**
+ * Adds questions to a guide's FAQ without resending the whole guide: write a JSON list [{"q": "", "a": ""}] to the term
+ * meta _boblift_buying_guide_faq_add (REST: {"meta": {"_boblift_buying_guide_faq_add": "[...]"}}). Each question whose
+ * text is not already in the FAQ (case-insensitive) is appended to _boblift_buying_guide, then the key is cleared, so it
+ * reads back as '' and the next write is applied again.
+ */
+function boblift_buying_guide_faq_add_sanitize($value): string
+{
+    $items = json_decode(is_string($value) ? $value : '', true);
+    if (!is_array($items) || ($items !== [] && !isset($items[0]))) {
+        return '';
+    }
+    $items = array_values(array_filter($items, static fn($item): bool => is_array($item) && trim((string) ($item['q'] ?? '')) !== '' && trim((string) ($item['a'] ?? '')) !== ''));
+    return $items ? (string) wp_json_encode($items, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : '';
+}
+
+function boblift_register_buying_guide_faq_add_meta(): void
+{
+    register_term_meta('product_category', '_boblift_buying_guide_faq_add', [
+        'type' => 'string',
+        'single' => true,
+        'default' => '',
+        'show_in_rest' => true,
+        'sanitize_callback' => 'boblift_buying_guide_faq_add_sanitize',
+        'auth_callback' => static fn(): bool => current_user_can('manage_categories'),
+    ]);
+}
+add_action('init', 'boblift_register_buying_guide_faq_add_meta');
+
+function boblift_apply_buying_guide_faq_add($meta_id, $term_id, $meta_key, $meta_value): void
+{
+    if ($meta_key !== '_boblift_buying_guide_faq_add') {
+        return;
+    }
+    $term_id = (int) $term_id;
+    $items = json_decode((string) $meta_value, true);
+    delete_term_meta($term_id, '_boblift_buying_guide_faq_add');
+    if (!is_array($items) || $items === []) {
+        return;
+    }
+    $guide = json_decode((string) get_term_meta($term_id, '_boblift_buying_guide', true), true);
+    $guide = is_array($guide) ? $guide : [];
+    $faq = array_values((array) ($guide['faq'] ?? []));
+    $asked = array_map(static fn($item): string => mb_strtolower(trim((string) ($item['q'] ?? ''))), $faq);
+    foreach ($items as $item) {
+        $question = mb_strtolower(trim((string) ($item['q'] ?? '')));
+        if ($question !== '' && !in_array($question, $asked, true)) {
+            $faq[] = ['q' => (string) $item['q'], 'a' => (string) ($item['a'] ?? '')];
+            $asked[] = $question;
+        }
+    }
+    $guide['faq'] = $faq;
+    // update_metadata() unslashes the value; slash it so the escaped quotes inside the JSON survive.
+    update_term_meta($term_id, '_boblift_buying_guide', wp_slash((string) wp_json_encode($guide, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)));
+}
+add_action('added_term_meta', 'boblift_apply_buying_guide_faq_add', 10, 4);
+add_action('updated_term_meta', 'boblift_apply_buying_guide_faq_add', 10, 4);
+
 /** The guide of a category term (its own language), or [] when it has none. */
 function boblift_buying_guide(WP_Term $term): array
 {
