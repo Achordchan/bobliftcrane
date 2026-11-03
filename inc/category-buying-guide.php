@@ -64,6 +64,127 @@ function boblift_register_buying_guide_meta(): void
 }
 add_action('init', 'boblift_register_buying_guide_meta');
 
+/**
+ * Adds questions to a guide's FAQ without resending the whole guide: write a JSON list [{"q": "", "a": ""}] to the term
+ * meta _boblift_buying_guide_faq_add (REST: {"meta": {"_boblift_buying_guide_faq_add": "[...]"}}). Each question whose
+ * text is not already in the FAQ (case-insensitive) is appended to _boblift_buying_guide, which must already exist.
+ * The key is always cleared, so it reads back as '' and the same request sent again is applied again. When the
+ * questions could not be saved, the read-only meta _boblift_buying_guide_faq_add_error says why (cleared again by the
+ * next append that goes through).
+ */
+function boblift_buying_guide_faq_add_sanitize($value): string
+{
+    $items = json_decode(is_string($value) ? $value : '', true);
+    if (!is_array($items) || ($items !== [] && !isset($items[0]))) {
+        return '';
+    }
+    $items = array_values(array_filter($items, static fn($item): bool => is_array($item) && trim((string) ($item['q'] ?? '')) !== '' && trim((string) ($item['a'] ?? '')) !== ''));
+    return $items ? (string) wp_json_encode($items, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : '';
+}
+
+function boblift_register_buying_guide_faq_add_meta(): void
+{
+    register_term_meta('product_category', '_boblift_buying_guide_faq_add', [
+        'type' => 'string',
+        'single' => true,
+        'default' => '',
+        'show_in_rest' => true,
+        'sanitize_callback' => 'boblift_buying_guide_faq_add_sanitize',
+        'auth_callback' => static fn(): bool => current_user_can('manage_categories'),
+    ]);
+}
+add_action('init', 'boblift_register_buying_guide_faq_add_meta');
+
+function boblift_register_buying_guide_faq_add_error_meta(): void
+{
+    register_term_meta('product_category', '_boblift_buying_guide_faq_add_error', [
+        'type' => 'string',
+        'single' => true,
+        'default' => '',
+        'show_in_rest' => true,
+        'auth_callback' => '__return_false',
+    ]);
+}
+add_action('init', 'boblift_register_buying_guide_faq_add_error_meta');
+
+/**
+ * Saves the guide only if its row still holds $stored, byte for byte: one UPDATE ... WHERE value, so a save in between
+ * makes it match nothing. It never creates the row: appends only go to a category that already has a guide, so the
+ * first guide of a category is always a whole-guide save and two writers can never both insert one. Returns whether it saved.
+ */
+function boblift_buying_guide_compare_and_set(int $term_id, string $stored, string $value): bool
+{
+    global $wpdb;
+    $meta_id = (int) $wpdb->get_var($wpdb->prepare("SELECT meta_id FROM {$wpdb->termmeta} WHERE term_id = %d AND meta_key = '_boblift_buying_guide' ORDER BY meta_id LIMIT 1", $term_id));
+    $saved = $meta_id > 0 && (int) $wpdb->query($wpdb->prepare("UPDATE {$wpdb->termmeta} SET meta_value = %s WHERE meta_id = %d AND BINARY meta_value = BINARY %s", $value, $meta_id, $stored)) === 1;
+    wp_cache_delete($term_id, 'term_meta');
+    return $saved;
+}
+
+/** A question's text for the duplicate check: trimmed and lower-cased (byte-wise when mbstring is missing). */
+function boblift_buying_guide_question_key(string $question): string
+{
+    $question = trim($question);
+    return function_exists('mb_strtolower') ? mb_strtolower($question, 'UTF-8') : strtolower($question);
+}
+
+function boblift_apply_buying_guide_faq_add($meta_id, $term_id, $meta_key, $meta_value): void
+{
+    if ($meta_key !== '_boblift_buying_guide_faq_add') {
+        return;
+    }
+    global $wpdb;
+    $term_id = (int) $term_id;
+    $items = json_decode((string) $meta_value, true);
+    delete_term_meta($term_id, '_boblift_buying_guide_faq_add');
+    if (!is_array($items) || $items === []) {
+        return;
+    }
+    // Appends to one term run one at a time (a MySQL named lock), and each save is a compare-and-set on the guide as it
+    // was read (boblift_buying_guide_compare_and_set()), so neither a concurrent append nor a whole-guide save in between
+    // is overwritten: a changed guide is read again and merged again.
+    $error = 'Could not take the lock for this category; send the questions again.';
+    $lock = 'boblift_buying_guide_' . $term_id;
+    if ((int) $wpdb->get_var($wpdb->prepare('SELECT GET_LOCK(%s, 10)', $lock)) === 1) {
+        $error = 'The guide kept changing while the questions were added; send them again.';
+        try {
+            for ($attempt = 0; $attempt < 3; $attempt++) {
+                wp_cache_delete($term_id, 'term_meta');
+                $stored = (string) get_term_meta($term_id, '_boblift_buying_guide', true);
+                $guide = json_decode($stored, true);
+                if (!is_array($guide) || $guide === []) {
+                    $error = 'This category has no buying guide yet; save the whole guide (_boblift_buying_guide) first.';
+                    break;
+                }
+                $faq = array_values((array) ($guide['faq'] ?? []));
+                $before = count($faq);
+                $asked = array_map(static fn($item): string => boblift_buying_guide_question_key((string) ($item['q'] ?? '')), $faq);
+                foreach ($items as $item) {
+                    $question = boblift_buying_guide_question_key((string) ($item['q'] ?? ''));
+                    if ($question !== '' && !in_array($question, $asked, true)) {
+                        $faq[] = ['q' => (string) $item['q'], 'a' => (string) ($item['a'] ?? '')];
+                        $asked[] = $question;
+                    }
+                }
+                $guide['faq'] = $faq;
+                if (count($faq) === $before || boblift_buying_guide_compare_and_set($term_id, $stored, boblift_buying_guide_sanitize((string) wp_json_encode($guide, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)))) {
+                    $error = '';
+                    break;
+                }
+            }
+        } finally {
+            $wpdb->query($wpdb->prepare('SELECT RELEASE_LOCK(%s)', $lock));
+        }
+    }
+    if ($error === '') {
+        delete_term_meta($term_id, '_boblift_buying_guide_faq_add_error');
+    } else {
+        update_term_meta($term_id, '_boblift_buying_guide_faq_add_error', $error);
+    }
+}
+add_action('added_term_meta', 'boblift_apply_buying_guide_faq_add', 10, 4);
+add_action('updated_term_meta', 'boblift_apply_buying_guide_faq_add', 10, 4);
+
 /** The guide of a category term (its own language), or [] when it has none. */
 function boblift_buying_guide(WP_Term $term): array
 {
