@@ -2158,6 +2158,7 @@
     inquiryModal.setAttribute('aria-hidden', 'true');
     unlockInquiryPageScroll();
     leaveInquiryPage();
+    inquiryModal.classList.remove('is-inquiry-fullscreen');
     if (inquiryModalLastFocus instanceof HTMLElement) inquiryModalLastFocus.focus({ preventScroll: true });
   };
   const validateInquiryModalForm = () => {
