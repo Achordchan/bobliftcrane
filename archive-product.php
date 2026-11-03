@@ -149,6 +149,17 @@ foreach ($products as $index => $product) {
 }
 uksort($products, static fn(int $a, int $b): int => $product_order[$a] <=> $product_order[$b]);
 $products = array_values($products);
+// The listing opens sorted by capacity, low to high. Each card keeps its "Recommended" rank so the sort menu can restore
+// that order; models without a listing capacity go last, and equal capacities keep the recommended order.
+foreach ($products as $index => &$product) {
+    $product['recommended_rank'] = $index;
+}
+unset($product);
+$default_sort = isset($sort_options['capacityAsc']) ? 'capacityAsc' : 'recommended';
+if ($default_sort === 'capacityAsc') {
+    $listing_capacity = static fn(array $product): float => (float) ($product['filter_values']['capacity'] ?? 0) > 0 ? (float) $product['filter_values']['capacity'] : PHP_FLOAT_MAX;
+    usort($products, static fn(array $a, array $b): int => ($listing_capacity($a) <=> $listing_capacity($b)) ?: ($a['recommended_rank'] <=> $b['recommended_rank']));
+}
 // The tabs count every product; a category page lists only its own: the category and, for a parent, its sub-categories.
 $all_product_count = count($products);
 $scope_slugs = [];
@@ -401,10 +412,10 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
                 <div class="boblift-product-mobile-tools relative flex w-full items-center gap-2 md:w-auto md:gap-3" data-sort-dropdown>
                     <button class="boblift-product-filter-button inline-flex h-12 items-center gap-2 rounded-sm border border-[#D8DEE8] bg-white px-5 text-sm font-black text-[#0B1B33] shadow-card transition hover:border-blue-300 hover:text-blue-700 lg:hidden" type="button" data-filter-drawer-open><?php echo boblift_icon('sliders-horizontal', 'h-4 w-4'); ?><?php echo esc_html($archive_ui['filterButtonLabel'] ?? 'Filter'); ?></button>
                     <span class="boblift-product-sort-label text-sm font-black text-slate-500"><?php echo esc_html($archive_ui['sortByLabel'] ?? 'Sort by:'); ?></span>
-                    <button class="boblift-product-sort-trigger inline-flex h-12 min-w-[240px] items-center justify-between gap-4 rounded-sm border border-[#D8DEE8] bg-white px-4 text-start text-sm font-black text-[#0B1B33] shadow-card transition hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100" type="button" aria-haspopup="listbox" aria-expanded="false" data-sort-products data-sort-trigger data-sort-value="recommended"><span data-sort-label><?php echo esc_html($sort_options['recommended'] ?? 'Recommended'); ?></span><?php echo boblift_icon('chevron-down', 'h-4 w-4 text-slate-500 transition'); ?></button>
+                    <button class="boblift-product-sort-trigger inline-flex h-12 min-w-[240px] items-center justify-between gap-4 rounded-sm border border-[#D8DEE8] bg-white px-4 text-start text-sm font-black text-[#0B1B33] shadow-card transition hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100" type="button" aria-haspopup="listbox" aria-expanded="false" data-sort-products data-sort-trigger data-sort-value="<?php echo esc_attr($default_sort); ?>"><span data-sort-label><?php echo esc_html($sort_options[$default_sort] ?? 'Recommended'); ?></span><?php echo boblift_icon('chevron-down', 'h-4 w-4 text-slate-500 transition'); ?></button>
                     <div class="absolute end-0 top-[calc(100%+10px)] z-50 hidden w-[240px] overflow-hidden rounded border border-[#DDE5EF] bg-white p-2 shadow-raised" role="listbox" data-sort-menu>
                         <?php foreach ($sort_options as $value => $label) : ?>
-                            <button class="flex min-h-10 w-full items-center justify-between gap-3 rounded-sm px-3 text-start text-sm font-black transition <?php echo $value === 'recommended' ? 'bg-blue-50 text-blue-700' : 'text-[#0B1B33] hover:bg-[#F8FAFC]'; ?>" type="button" role="option" aria-selected="<?php echo $value === 'recommended' ? 'true' : 'false'; ?>" data-sort-option="<?php echo esc_attr($value); ?>"><span><?php echo esc_html($label); ?></span><span class="<?php echo $value === 'recommended' ? 'inline-flex' : 'hidden'; ?>" data-sort-check><?php echo boblift_icon('check', 'h-4 w-4'); ?></span></button>
+                            <button class="flex min-h-10 w-full items-center justify-between gap-3 rounded-sm px-3 text-start text-sm font-black transition <?php echo $value === $default_sort ? 'bg-blue-50 text-blue-700' : 'text-[#0B1B33] hover:bg-[#F8FAFC]'; ?>" type="button" role="option" aria-selected="<?php echo $value === $default_sort ? 'true' : 'false'; ?>" data-sort-option="<?php echo esc_attr($value); ?>"><span><?php echo esc_html($label); ?></span><span class="<?php echo $value === $default_sort ? 'inline-flex' : 'hidden'; ?>" data-sort-check><?php echo boblift_icon('check', 'h-4 w-4'); ?></span></button>
                         <?php endforeach; ?>
                     </div>
                 </div>
