@@ -2057,6 +2057,8 @@
   let inquiryPageState = null;
   const enterInquiryPage = () => {
     if (inquiryPageState) return;
+    // Read before hiding anything: the shorter page would already have scrolled back to the top.
+    const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
     const hidden = [];
     for (let node = inquiryModal; node.parentElement && node !== document.body; node = node.parentElement) {
       Array.from(node.parentElement.children).forEach((sibling) => {
@@ -2066,9 +2068,10 @@
         hidden.push(sibling);
       });
     }
-    inquiryPageState = { scrollY: window.scrollY || document.documentElement.scrollTop || 0, hidden };
+    inquiryPageState = { scrollY, hidden };
     document.documentElement.classList.add('boblift-inquiry-page-open');
-    window.scrollTo(0, 0);
+    // Instant: the site scrolls smoothly by default, which would sweep the whole page past on the way.
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   };
   const leaveInquiryPage = () => {
     if (!inquiryPageState) return;
@@ -2076,7 +2079,9 @@
     inquiryPageState = null;
     hidden.forEach((element) => element.classList.remove('boblift-inquiry-page-hidden'));
     document.documentElement.classList.remove('boblift-inquiry-page-open');
-    window.scrollTo(0, scrollY);
+    const restore = () => window.scrollTo({ top: scrollY, left: 0, behavior: 'instant' });
+    restore();
+    window.requestAnimationFrame(restore); // again once the page has laid out in full
   };
   const openInquiryModal = (trigger = null) => {
     if (!inquiryModal) return;
