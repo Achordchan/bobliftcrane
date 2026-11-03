@@ -1260,6 +1260,20 @@
     inquiryViewportFrame = window.requestAnimationFrame(() => {
       const viewport = window.visualViewport;
       if (!inquiryScrollLock || !inquiryModal || !viewport) return;
+      // Only while the keyboard is up. With it closed the dialog goes back to its normal bottom sheet: iOS can leave a
+      // stale offsetTop behind after the keyboard closes, and pinning to it pushed the sheet half off the screen.
+      // Compared with the tallest visible area seen at this width, since some browsers shrink innerHeight with the keyboard.
+      if (inquiryScrollLock.viewportWidth !== window.innerWidth) {
+        inquiryScrollLock.viewportWidth = window.innerWidth;
+        inquiryScrollLock.fullHeight = 0;
+      }
+      inquiryScrollLock.fullHeight = Math.max(inquiryScrollLock.fullHeight || 0, window.innerHeight, viewport.height);
+      const keyboardOpen = inquiryScrollLock.fullHeight - viewport.height >= 80;
+      if (!keyboardOpen) {
+        ['top', 'bottom', 'height', '--boblift-inquiry-vh'].forEach((property) => inquiryModal.style.removeProperty(property));
+        if (window.scrollY || document.documentElement.scrollTop) window.scrollTo(0, 0);
+        return;
+      }
       inquiryModal.style.top = `${Math.round(viewport.offsetTop)}px`;
       inquiryModal.style.bottom = 'auto';
       inquiryModal.style.height = `${Math.round(viewport.height)}px`;
@@ -1277,6 +1291,11 @@
       });
     }, 320);
   };
+  // The keyboard closing fires its viewport events early on iOS; check again once it has settled.
+  const resyncInquiryViewportLater = (event) => {
+    if (!inquiryScrollLock || !inquiryModal?.contains(event.target)) return;
+    window.setTimeout(syncInquiryViewport, 350);
+  };
   const clearInquiryViewport = () => {
     window.cancelAnimationFrame(inquiryViewportFrame);
     if (!inquiryModal) return;
@@ -1287,6 +1306,7 @@
     window.visualViewport?.addEventListener('resize', syncInquiryViewport);
     window.visualViewport?.addEventListener('scroll', syncInquiryViewport);
     document.addEventListener('focusin', keepInquiryFieldInView, true);
+    document.addEventListener('focusout', resyncInquiryViewportLater, true);
     const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
     inquiryScrollLock = {
       scrollY,
@@ -1318,6 +1338,7 @@
     window.visualViewport?.removeEventListener('resize', syncInquiryViewport);
     window.visualViewport?.removeEventListener('scroll', syncInquiryViewport);
     document.removeEventListener('focusin', keepInquiryFieldInView, true);
+    document.removeEventListener('focusout', resyncInquiryViewportLater, true);
     clearInquiryViewport();
     document.documentElement.classList.remove('boblift-inquiry-scroll-locked');
     document.body.classList.remove('boblift-inquiry-scroll-locked');
