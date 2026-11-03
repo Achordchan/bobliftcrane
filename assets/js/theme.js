@@ -1301,14 +1301,15 @@
     if (!inquiryModal) return;
     ['top', 'bottom', 'height', '--boblift-inquiry-vh'].forEach((property) => inquiryModal.style.removeProperty(property));
   };
-  // Touch screens need the body pinned in place (iOS scrolls the page under an overflow:hidden root) and the keyboard
-  // handling below. A mouse-and-keyboard screen does not: there only the root stops scrolling, so the sticky header and
-  // section tabs stay where they are instead of sliding away with a pinned body. scrollbar-gutter keeps the page from
-  // shifting sideways where the scrollbar takes up room.
-  const inquiryPinBodyQuery = window.matchMedia('(pointer: coarse)');
+  // Any touch-capable device needs the body pinned in place (iOS scrolls the page under an overflow:hidden root) and the
+  // keyboard handling below, including an iPad with a trackpad, whose primary pointer reports fine. Only a screen with
+  // no touch input at all skips it: there just the root stops scrolling, so the sticky header and section tabs stay
+  // where they are instead of sliding away with a pinned body. scrollbar-gutter keeps the page from shifting sideways
+  // where the scrollbar takes up room.
+  const inquiryNeedsPinnedBody = () => (navigator.maxTouchPoints || 0) > 0 || window.matchMedia('(any-pointer: coarse)').matches;
   const lockInquiryPageScroll = () => {
     if (inquiryScrollLock) return;
-    if (!inquiryPinBodyQuery.matches) {
+    if (!inquiryNeedsPinnedBody()) {
       inquiryScrollLock = {
         pinned: false,
         htmlOverflow: document.documentElement.style.overflow,
