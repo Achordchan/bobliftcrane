@@ -58,6 +58,10 @@ function boblift_catalog_rate_limit_key(string $email): string
 
 function boblift_turnstile_config(): array
 {
+    // The plugin's settings (询盘设置) once it takes the inquiries, so the box drawn here is the one it checks.
+    if (boblift_inquiry_plugin()) {
+        return achord_inquiry_turnstile_config();
+    }
     $options = function_exists('boblift_form_security_options') ? boblift_form_security_options() : [];
     $enabled = (string) ($options['turnstile_enabled'] ?? '0') === '1';
     $local_mode = (string) ($options['turnstile_local_mode'] ?? '0') === '1';
@@ -542,6 +546,9 @@ add_action('init', 'boblift_handle_country_detect_front_controller', 0);
 
 function boblift_verify_turnstile(): bool
 {
+    if (boblift_inquiry_plugin()) {
+        return achord_inquiry_verify_turnstile();
+    }
     if (!boblift_turnstile_is_enabled()) {
         return true;
     }
@@ -689,6 +696,11 @@ add_action('admin_post_nopriv_boblift_request_catalog', 'boblift_handle_catalog_
 
 function boblift_handle_inquiry(): void
 {
+    // The inquiry plugin takes the same form (same names) when it is active (inc/inquiry-plugin.php).
+    if (boblift_inquiry_plugin()) {
+        achord_inquiry_handle();
+        return;
+    }
     boblift_switch_to_posted_language();
     if (!isset($_POST['boblift_inquiry_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['boblift_inquiry_nonce'])), 'boblift_submit_inquiry')) {
         if (boblift_inquiry_wants_json()) {
@@ -887,6 +899,10 @@ function boblift_quote_page_customized(?string $language = null): bool
 
 function boblift_handle_inquiry_front_controller(): void
 {
+    // The plugin answers the same address itself.
+    if (boblift_inquiry_plugin()) {
+        return;
+    }
     if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
         return;
     }

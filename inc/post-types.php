@@ -40,7 +40,8 @@ function boblift_register_content_types(): void
         'supports' => ['title', 'editor', 'excerpt', 'thumbnail', 'revisions', 'page-attributes'],
     ]);
 
-    register_post_type('inquiry', [
+    // With the inquiry plugin active it registers the type (inc/inquiry-plugin.php).
+    if (!boblift_inquiry_plugin()) register_post_type('inquiry', [
         'labels' => boblift_post_type_labels('询盘', '询盘'),
         'public' => false,
         'show_ui' => true,
@@ -752,7 +753,9 @@ function boblift_register_meta_boxes(): void
 {
     add_meta_box('boblift_product_details', '产品参数', 'boblift_product_meta_box', 'product', 'normal', 'high');
     add_meta_box('boblift_case_details', '案例详情', 'boblift_case_meta_box', 'case', 'normal', 'high');
-    add_meta_box('boblift_inquiry_details', '询盘详情', 'boblift_inquiry_meta_box', 'inquiry', 'normal', 'high');
+    if (!boblift_inquiry_plugin()) {
+        add_meta_box('boblift_inquiry_details', '询盘详情', 'boblift_inquiry_meta_box', 'inquiry', 'normal', 'high');
+    }
     add_meta_box('boblift_feedback_details', '反馈内容', 'boblift_feedback_meta_box', 'feedback', 'normal', 'high');
 }
 add_action('add_meta_boxes', 'boblift_register_meta_boxes');

@@ -6,6 +6,7 @@ if (!defined('ABSPATH')) {
 require_once get_template_directory() . '/inc/fatal-log.php';
 require_once get_template_directory() . '/inc/site-ui.php';
 require_once get_template_directory() . '/inc/data.php';
+require_once get_template_directory() . '/inc/inquiry-plugin.php';
 require_once get_template_directory() . '/inc/post-types.php';
 require_once get_template_directory() . '/inc/product-lifecycle.php';
 require_once get_template_directory() . '/inc/case-rest.php';
