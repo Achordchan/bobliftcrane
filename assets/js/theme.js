@@ -2122,9 +2122,7 @@
         throw new Error(title ? `The server returned ${title}. Please refresh and try again.` : quoteFormMessage('serverInvalid', 'The server returned an invalid response. Please refresh and try again.'));
       }
       if (!response.ok || !data.success) throw new Error(data?.data?.message || quoteFormMessage('saveFailed', 'The inquiry could not be sent.'));
-      // The status box above the fields already says it was sent; the footer row has no room for a second notice.
-      inquiryModalStatus(data?.data?.message || quoteFormText('successInlineText', 'Inquiry sent. Our team will contact you soon.'), 'success');
-      initInquiryCharacters()?.success();
+      // No success notice here: the thank-you page says it. The form keeps showing "Sending..." until it opens.
       form.dataset.submitted = 'true';
       if (form.dataset.clearQuoteListOnSuccess === 'true') window.bobliftQuoteList?.clear();
       resetTurnstile(form);
