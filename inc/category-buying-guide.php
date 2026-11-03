@@ -123,6 +123,13 @@ function boblift_buying_guide_compare_and_set(int $term_id, string $stored, stri
     return $saved;
 }
 
+/** A question's text for the duplicate check: trimmed and lower-cased (byte-wise when mbstring is missing). */
+function boblift_buying_guide_question_key(string $question): string
+{
+    $question = trim($question);
+    return function_exists('mb_strtolower') ? mb_strtolower($question, 'UTF-8') : strtolower($question);
+}
+
 function boblift_apply_buying_guide_faq_add($meta_id, $term_id, $meta_key, $meta_value): void
 {
     if ($meta_key !== '_boblift_buying_guide_faq_add') {
@@ -150,9 +157,9 @@ function boblift_apply_buying_guide_faq_add($meta_id, $term_id, $meta_key, $meta
                 $guide = is_array($guide) ? $guide : [];
                 $faq = array_values((array) ($guide['faq'] ?? []));
                 $before = count($faq);
-                $asked = array_map(static fn($item): string => mb_strtolower(trim((string) ($item['q'] ?? ''))), $faq);
+                $asked = array_map(static fn($item): string => boblift_buying_guide_question_key((string) ($item['q'] ?? '')), $faq);
                 foreach ($items as $item) {
-                    $question = mb_strtolower(trim((string) ($item['q'] ?? '')));
+                    $question = boblift_buying_guide_question_key((string) ($item['q'] ?? ''));
                     if ($question !== '' && !in_array($question, $asked, true)) {
                         $faq[] = ['q' => (string) $item['q'], 'a' => (string) ($item['a'] ?? '')];
                         $asked[] = $question;
