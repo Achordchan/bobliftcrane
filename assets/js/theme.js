@@ -3266,7 +3266,7 @@
       qs('[data-filter-dropdown-panel]', dropdown)?.classList.toggle('hidden', !open);
       qs('[data-filter-dropdown-trigger]', dropdown)?.setAttribute('aria-expanded', String(open));
     };
-    const getSortMode = () => sortTrigger?.dataset.sortValue || 'recommended';
+    const getSortMode = () => sortTrigger?.dataset.sortValue || 'capacityAsc';
     const cardOrder = new Map(cards.map((card, index) => [card, index]));
     const sortedCards = () => [...cards].sort((a, b) => {
       const av = Number(a.dataset.capacity || 0);
@@ -3282,7 +3282,11 @@
       if (mode === 'capacityDesc') return (bv > 0 ? bv : -1) - (av > 0 ? av : -1);
       if (mode === 'popular') return bp - ap;
       if (mode === 'newest') return bd - ad;
-      // Recommended keeps the server order: featured, then families in tab order, largest first.
+      // Recommended restores the server's rank (featured, then families in tab order, largest first); the page itself opens
+      // sorted by capacity, low to high, so the DOM order is not the recommended one.
+      const ar = a.dataset.recommendedRank;
+      const br = b.dataset.recommendedRank;
+      if (ar !== undefined && br !== undefined) return Number(ar) - Number(br);
       return bf - af || cardOrder.get(a) - cardOrder.get(b);
     });
     const renderPagination = (totalPages) => {
