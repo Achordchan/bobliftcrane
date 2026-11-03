@@ -56,8 +56,8 @@ function boblift_floating_contact_button_defaults(): array
 {
     return [
         ['enabled' => '1', 'type' => 'quote', 'label' => 'Quote', 'href' => '', 'icon' => 'send', 'target' => ''],
-        ['enabled' => '1', 'type' => 'email', 'label' => 'Email', 'href' => 'mailto:{email}', 'icon' => 'mail', 'target' => ''],
         ['enabled' => '1', 'type' => 'whatsapp', 'label' => 'WhatsApp', 'href' => 'https://wa.me/{whatsapp}', 'icon' => 'whatsapp', 'target' => '_blank'],
+        ['enabled' => '1', 'type' => 'email', 'label' => 'Email', 'href' => 'mailto:{email}', 'icon' => 'mail', 'target' => ''],
         ['enabled' => '1', 'type' => 'telegram', 'label' => 'Telegram', 'href' => '', 'icon' => 'telegram', 'target' => '_blank'],
         ['enabled' => '1', 'type' => 'phone', 'label' => 'Call', 'href' => '{phone_href}', 'icon' => 'phone-call', 'target' => ''],
         ['enabled' => '1', 'type' => 'wechat', 'label' => 'WeChat', 'href' => '', 'icon' => 'qr', 'target' => ''],
