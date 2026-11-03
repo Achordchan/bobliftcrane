@@ -19,6 +19,9 @@ if (!defined('ABSPATH')) {
 /** Whether inquiries keep the sender's IP: off until every language's privacy policy says they do (表单安全). */
 function boblift_inquiry_store_ip(): bool
 {
+    if (boblift_inquiry_plugin()) {
+        return achord_inquiry_store_ip();
+    }
     $options = function_exists('boblift_form_security_options') ? boblift_form_security_options() : [];
     return (string) ($options['inquiry_store_ip'] ?? '0') === '1';
 }
@@ -63,6 +66,10 @@ function boblift_inquiry_valid_range(string $range): bool
 /** Why this sender is blocked (e.g. 邮箱 spam@example.com), or '' when nothing on the blocklist matches. */
 function boblift_inquiry_block_reason(string $email, string $ip): string
 {
+    // The plugin's blocklist (询盘设置, or 表单安全 until that is saved) once it takes the inquiries.
+    if (boblift_inquiry_plugin()) {
+        return achord_inquiry_block_reason($email, $ip);
+    }
     $email = boblift_inquiry_mailbox($email);
     $domain = str_contains($email, '@') ? substr($email, (int) strrpos($email, '@')) : '';
     foreach (boblift_inquiry_blocklist() as $entry) {
@@ -173,6 +180,9 @@ function boblift_inquiry_record(int $post_id): array
 // Published as meta.boblift_inquiry, which tools that read only core fields and registered meta (the WordPress.com
 // connector) can see. Nothing is stored under that key: reading it builds the record from the inquiry's own fields.
 add_action('init', static function (): void {
+    if (boblift_inquiry_plugin()) {
+        return;
+    }
     register_post_meta('inquiry', 'boblift_inquiry', [
         'type' => 'object',
         'single' => true,
@@ -183,7 +193,7 @@ add_action('init', static function (): void {
 }, 20);
 
 add_filter('get_post_metadata', static function ($value, $post_id, $key) {
-    if ($key !== 'boblift_inquiry' || get_post_type((int) $post_id) !== 'inquiry') {
+    if (boblift_inquiry_plugin() || $key !== 'boblift_inquiry' || get_post_type((int) $post_id) !== 'inquiry') {
         return $value;
     }
     return [boblift_inquiries_can_read() ? boblift_inquiry_record((int) $post_id) : []];
@@ -191,6 +201,9 @@ add_filter('get_post_metadata', static function ($value, $post_id, $key) {
 
 // The same record as a top-level field, as #161 first published it.
 add_action('rest_api_init', static function (): void {
+    if (boblift_inquiry_plugin()) {
+        return;
+    }
     register_rest_field('inquiry', 'boblift_inquiry', [
         'get_callback' => static fn(array $post): array => boblift_inquiries_can_read() ? boblift_inquiry_record((int) $post['id']) : [],
         'schema' => ['type' => 'object', 'context' => ['edit'], 'readonly' => true, 'additionalProperties' => true],
@@ -204,6 +217,9 @@ add_action('add_meta_boxes_inquiry', static function (): void {
 
 // The default list shows blocked drafts too, so a blocked inquiry can be checked; an explicit status still narrows it.
 add_filter('rest_inquiry_query', static function (array $args, $request): array {
+    if (boblift_inquiry_plugin()) {
+        return $args;
+    }
     if (!array_key_exists('status', $request->get_query_params())) {
         $args['post_status'] = ['publish', 'draft'];
     }

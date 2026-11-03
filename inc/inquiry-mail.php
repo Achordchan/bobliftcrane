@@ -274,6 +274,9 @@ function boblift_ip_in_range(string $ip, string $range): bool
  */
 function boblift_inquiry_client_ip(): string
 {
+    if (boblift_inquiry_plugin()) {
+        return achord_inquiry_client_ip();
+    }
     return (string) apply_filters('boblift_inquiry_client_ip', boblift_inquiry_resolve_client_ip(), sanitize_text_field((string) ($_SERVER['REMOTE_ADDR'] ?? '')));
 }
 
@@ -624,6 +627,11 @@ function boblift_inquiry_admin_mail(array $fields, int $post_id): array
 /** Send the sales notification for a saved inquiry. */
 function boblift_send_inquiry_mail(array $fields, int $post_id): void
 {
+    // The plugin's card email and DingTalk message (the catalog request comes through here) once it takes the inquiries.
+    if (boblift_inquiry_plugin()) {
+        achord_inquiry_notify($post_id, $fields);
+        return;
+    }
     // The form is handled on init priority 0, before the theme registers products and their categories; the product
     // card needs both (its type and permalink).
     if (!taxonomy_exists('product_category') && function_exists('boblift_register_taxonomies')) {
