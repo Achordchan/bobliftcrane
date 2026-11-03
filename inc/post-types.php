@@ -1271,7 +1271,10 @@ function boblift_product_category_root_rewrite_slugs(): array
     if (!function_exists('get_terms')) {
         return [];
     }
-    $terms = get_terms(['taxonomy' => 'product_category', 'hide_empty' => false]);
+    // 'lang' => '': every language's categories. Rewrite rules are rebuilt in whatever request flushes them (an admin
+    // screen, a REST call, a plugin being switched on or off), and there Polylang would otherwise keep only the terms of
+    // that request's language, leaving the other categories without a rule (/marine-crane/ then showed the news list).
+    $terms = get_terms(['taxonomy' => 'product_category', 'hide_empty' => false, 'lang' => '']);
     if (is_wp_error($terms) || empty($terms)) {
         return [];
     }
