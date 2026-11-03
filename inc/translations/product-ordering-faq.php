@@ -3,6 +3,7 @@
 // jib cranes (boblift_product_ordering_faqs() and boblift_product_quote_copy() in inc/product-guide.php). DeepL, 2026-11-03.
 return [
     'ja' => [
+        'Send the model, serial number and a photo or video of the issue; our team guides the repair and ships the parts.' => '機種名、シリアル番号、不具合の写真または動画をお送りください。当社チームが修理をご案内し、部品を発送します。',
         'What is the delivery time, and which documents come with the order?' => '納期はどのくらいですか？また、注文品にはどのような書類が付きますか？',
         'Lead time depends on the configuration, order quantity and destination, and we confirm it in writing with your quotation. Each order ships with a commercial invoice, packing list and bill of lading, plus the product documents required for the confirmed order.' => '納期は、構成、注文数量、配送先によって異なり、お見積書にて書面でご確認いたします。ご注文品には、商業送り状、梱包明細書、船荷証券に加え、確定したご注文に必要な製品関連書類を添えて発送いたします。',
         'Is operator training provided?' => 'オペレーター向けの研修は実施されていますか？',
@@ -40,6 +41,7 @@ return [
         'Send your forklift model and rated capacity, the mast height, the load and reach you need and the destination country. BOB-LIFT will help match a practical configuration.' => 'お使いのフォークリフトの機種と定格荷重、マストの高さ、必要な吊り荷重量とリーチ、および仕向国をお知らせください。BOB-LIFTが、実用的な構成をご提案いたします。',
     ],
     'zh' => [
+        'Send the model, serial number and a photo or video of the issue; our team guides the repair and ships the parts.' => '发来型号、出厂编号和故障照片或视频，我们会指导维修并寄出配件。',
         'What is the delivery time, and which documents come with the order?' => '交货期多久？订单附带哪些文件？',
         'Lead time depends on the configuration, order quantity and destination, and we confirm it in writing with your quotation. Each order ships with a commercial invoice, packing list and bill of lading, plus the product documents required for the confirmed order.' => '交货期取决于配置、订购数量和目的地，我们会随报价单书面确认。每笔订单发货时均附有商业发票、装箱单和提单，以及已确认订单所需的产品文件。',
         'Is operator training provided?' => '是否提供操作员培训？',
@@ -77,6 +79,7 @@ return [
         'Send your forklift model and rated capacity, the mast height, the load and reach you need and the destination country. BOB-LIFT will help match a practical configuration.' => '请提供叉车型号和额定载重、门架高度、所需吊重和作业半径以及目的地国家。BOB-LIFT 将协助匹配实用配置。',
     ],
     'es' => [
+        'Send the model, serial number and a photo or video of the issue; our team guides the repair and ships the parts.' => 'Envíenos el modelo, el número de serie y una foto o un video del problema; nuestro equipo le guía en la reparación y envía los repuestos.',
         'What is the delivery time, and which documents come with the order?' => '¿Cuál es el plazo de entrega y qué documentos se incluyen con el pedido?',
         'Lead time depends on the configuration, order quantity and destination, and we confirm it in writing with your quotation. Each order ships with a commercial invoice, packing list and bill of lading, plus the product documents required for the confirmed order.' => 'El plazo de entrega depende de la configuración, la cantidad del pedido y el destino, y lo confirmamos por escrito junto con su presupuesto. Cada pedido se envía acompañado de una factura comercial, una lista de embalaje y un conocimiento de embarque, además de la documentación del producto necesaria para el pedido confirmado.',
         'Is operator training provided?' => '¿Se imparte formación a los operadores?',
@@ -114,6 +117,7 @@ return [
         'Send your forklift model and rated capacity, the mast height, the load and reach you need and the destination country. BOB-LIFT will help match a practical configuration.' => 'Indíquenos el modelo de su carretilla elevadora y su capacidad nominal, la altura del mástil, la carga y el alcance que necesita, así como el país de destino. BOB-LIFT le ayudará a encontrar una configuración adecuada.',
     ],
     'ru' => [
+        'Send the model, serial number and a photo or video of the issue; our team guides the repair and ships the parts.' => 'Пришлите модель, серийный номер и фото или видео неисправности — мы подскажем, как отремонтировать, и отправим запчасти.',
         'What is the delivery time, and which documents come with the order?' => 'Каковы сроки доставки и какие документы прилагаются к заказу?',
         'Lead time depends on the configuration, order quantity and destination, and we confirm it in writing with your quotation. Each order ships with a commercial invoice, packing list and bill of lading, plus the product documents required for the confirmed order.' => 'Срок поставки зависит от конфигурации, объема заказа и пункта назначения; мы подтверждаем его в письменной форме вместе с коммерческим предложением. Каждый заказ отгружается с коммерческим счетом-фактурой, упаковочным листом и коносаментом, а также с документами на продукцию, необходимыми для подтвержденного заказа.',
         'Is operator training provided?' => 'Проводится ли обучение операторов?',
@@ -151,6 +155,7 @@ return [
         'Send your forklift model and rated capacity, the mast height, the load and reach you need and the destination country. BOB-LIFT will help match a practical configuration.' => 'Укажите модель вашего вилочного погрузчика и его номинальную грузоподъёмность, высоту мачты, требуемые вес груза и вылет, а также страну назначения. Компания BOB-LIFT поможет подобрать подходящую конфигурацию.',
     ],
     'fr' => [
+        'Send the model, serial number and a photo or video of the issue; our team guides the repair and ships the parts.' => 'Envoyez le modèle, le numéro de série et une photo ou vidéo du problème ; notre équipe vous guide pour la réparation et expédie les pièces.',
         'What is the delivery time, and which documents come with the order?' => 'Quel est le délai de livraison, et quels documents sont fournis avec la commande ?',
         'Lead time depends on the configuration, order quantity and destination, and we confirm it in writing with your quotation. Each order ships with a commercial invoice, packing list and bill of lading, plus the product documents required for the confirmed order.' => 'Le délai de livraison dépend de la configuration, de la quantité commandée et de la destination ; nous vous le confirmons par écrit dans votre devis. Chaque commande est expédiée accompagnée d\'une facture commerciale, d\'une liste de colisage et d\'un connaissement, ainsi que des documents relatifs aux produits requis pour la commande confirmée.',
         'Is operator training provided?' => 'Une formation est-elle dispensée aux opérateurs ?',
@@ -188,6 +193,7 @@ return [
         'Send your forklift model and rated capacity, the mast height, the load and reach you need and the destination country. BOB-LIFT will help match a practical configuration.' => 'Indiquez-nous le modèle et la capacité nominale de votre chariot élévateur, la hauteur du mât, la charge et la portée dont vous avez besoin, ainsi que le pays de destination. BOB-LIFT vous aidera à trouver une configuration adaptée.',
     ],
     'ar' => [
+        'Send the model, serial number and a photo or video of the issue; our team guides the repair and ships the parts.' => 'أرسل الطراز والرقم التسلسلي وصورة أو فيديو للمشكلة؛ وسيرشدك فريقنا في الإصلاح ويشحن قطع الغيار.',
         'What is the delivery time, and which documents come with the order?' => 'ما هي مدة التسليم، وما هي المستندات المرفقة بالطلب؟',
         'Lead time depends on the configuration, order quantity and destination, and we confirm it in writing with your quotation. Each order ships with a commercial invoice, packing list and bill of lading, plus the product documents required for the confirmed order.' => 'تعتمد مدة التسليم على التكوين وكمية الطلب والوجهة، ونقوم بتأكيدها كتابةً مع عرض الأسعار الخاص بكم. ويتم شحن كل طلب مصحوبًا بفاتورة تجارية وقائمة التعبئة وسند الشحن، بالإضافة إلى المستندات الخاصة بالمنتج المطلوبة للطلب المؤكد.',
         'Is operator training provided?' => 'هل يتم توفير تدريب للمشغلين؟',
