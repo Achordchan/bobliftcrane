@@ -5,7 +5,8 @@ if (!defined('ABSPATH')) {
 
 function boblift_inquiry_action_url(): string
 {
-    return esc_url('/?boblift_inquiry_submit=1');
+    // The site's own address without a language prefix (home_url() gets one from Polylang), so it also works under a subdirectory.
+    return esc_url(untrailingslashit((string) get_option('home')) . '/?boblift_inquiry_submit=1');
 }
 
 function boblift_country_detect_url(): string
@@ -42,7 +43,7 @@ function boblift_inquiry_success_url(): string
 
 function boblift_catalog_action_url(): string
 {
-    return esc_url('/?boblift_catalog_request=1');
+    return esc_url(untrailingslashit((string) get_option('home')) . '/?boblift_catalog_request=1');
 }
 
 function boblift_catalog_fail(string $message, int $status = 400): void
@@ -369,7 +370,7 @@ function boblift_render_inquiry_modal(): void
                     </div>
 
                     <div class="mt-4 shrink-0 border-t border-line pt-4"><div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div class="hidden rounded border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-bold leading-6 text-emerald-800" data-inquiry-modal-success><?php echo boblift_icon('check-circle', 'mr-2 inline h-4 w-4'); ?><?php echo esc_html($ui['successInlineText'] ?? 'Inquiry sent. Our team will contact you soon.'); ?></div>
+                        <div class="hidden rounded border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-bold leading-6 text-emerald-800 sm:flex-1" data-inquiry-modal-success><?php echo boblift_icon('check-circle', 'mr-2 inline h-4 w-4'); ?><?php echo esc_html($ui['successInlineText'] ?? 'Inquiry sent. Our team will contact you soon.'); ?></div>
                         <?php boblift_render_turnstile_widget('mt-0 shrink-0', true); ?>
                         <button class="h-12 rounded-sm bg-navy px-7 text-sm font-black text-white shadow-card transition hover:-translate-y-0.5 hover:bg-[#0b2d5b] disabled:cursor-not-allowed disabled:opacity-60 sm:ms-auto" type="submit" data-inquiry-modal-submit><?php echo esc_html($ui['submitLabel'] ?? 'Send Inquiry'); ?> <?php echo boblift_icon('send', 'ms-1 inline h-4 w-4'); ?></button>
                     </div></div>
@@ -896,6 +897,24 @@ function boblift_quote_page_customized(?string $language = null): bool
     }
     return false;
 }
+
+/**
+ * A fresh nonce for the inquiry or catalog form, fetched by the form's script right before it posts. Pages are served
+ * from the edge cache, so the nonce printed in them can be older than its 24 hours, or made for a signed-out visitor while
+ * the sender is signed in; either way the post would be turned away as an invalid request. Never cached.
+ */
+function boblift_handle_fresh_nonce_front_controller(): void
+{
+    $form = isset($_GET['boblift_fresh_nonce']) ? sanitize_key((string) wp_unslash($_GET['boblift_fresh_nonce'])) : '';
+    $actions = ['inquiry' => 'boblift_submit_inquiry', 'catalog' => 'boblift_catalog_request'];
+    if ($form === '' || !isset($actions[$form])) {
+        return;
+    }
+    nocache_headers();
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0, private');
+    wp_send_json_success(['nonce' => wp_create_nonce($actions[$form])]);
+}
+add_action('init', 'boblift_handle_fresh_nonce_front_controller', 0);
 
 function boblift_handle_inquiry_front_controller(): void
 {
