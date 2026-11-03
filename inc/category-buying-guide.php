@@ -67,9 +67,10 @@ add_action('init', 'boblift_register_buying_guide_meta');
 /**
  * Adds questions to a guide's FAQ without resending the whole guide: write a JSON list [{"q": "", "a": ""}] to the term
  * meta _boblift_buying_guide_faq_add (REST: {"meta": {"_boblift_buying_guide_faq_add": "[...]"}}). Each question whose
- * text is not already in the FAQ (case-insensitive) is appended to _boblift_buying_guide. The key is always cleared, so
- * it reads back as '' and the same request sent again is applied again. When the questions could not be saved, the
- * read-only meta _boblift_buying_guide_faq_add_error says so (cleared again by the next append that goes through).
+ * text is not already in the FAQ (case-insensitive) is appended to _boblift_buying_guide, which must already exist.
+ * The key is always cleared, so it reads back as '' and the same request sent again is applied again. When the
+ * questions could not be saved, the read-only meta _boblift_buying_guide_faq_add_error says why (cleared again by the
+ * next append that goes through).
  */
 function boblift_buying_guide_faq_add_sanitize($value): string
 {
@@ -107,18 +108,15 @@ function boblift_register_buying_guide_faq_add_error_meta(): void
 add_action('init', 'boblift_register_buying_guide_faq_add_error_meta');
 
 /**
- * Saves the guide only if its row still holds $stored, byte for byte (no row when $stored is ''): one INSERT ... WHERE
- * NOT EXISTS or one UPDATE ... WHERE value, so a save in between makes it match nothing. Returns whether it saved.
+ * Saves the guide only if its row still holds $stored, byte for byte: one UPDATE ... WHERE value, so a save in between
+ * makes it match nothing. It never creates the row: appends only go to a category that already has a guide, so the
+ * first guide of a category is always a whole-guide save and two writers can never both insert one. Returns whether it saved.
  */
 function boblift_buying_guide_compare_and_set(int $term_id, string $stored, string $value): bool
 {
     global $wpdb;
-    $row = $wpdb->get_row($wpdb->prepare("SELECT meta_id, meta_value FROM {$wpdb->termmeta} WHERE term_id = %d AND meta_key = '_boblift_buying_guide' ORDER BY meta_id LIMIT 1", $term_id), ARRAY_A);
-    if (!$row) {
-        $saved = $stored === '' && (int) $wpdb->query($wpdb->prepare("INSERT INTO {$wpdb->termmeta} (term_id, meta_key, meta_value) SELECT %d, '_boblift_buying_guide', %s FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM (SELECT meta_id FROM {$wpdb->termmeta} WHERE term_id = %d AND meta_key = '_boblift_buying_guide') AS existing)", $term_id, $value, $term_id)) === 1;
-    } else {
-        $saved = (int) $wpdb->query($wpdb->prepare("UPDATE {$wpdb->termmeta} SET meta_value = %s WHERE meta_id = %d AND BINARY meta_value = BINARY %s", $value, (int) $row['meta_id'], $stored)) === 1;
-    }
+    $meta_id = (int) $wpdb->get_var($wpdb->prepare("SELECT meta_id FROM {$wpdb->termmeta} WHERE term_id = %d AND meta_key = '_boblift_buying_guide' ORDER BY meta_id LIMIT 1", $term_id));
+    $saved = $meta_id > 0 && (int) $wpdb->query($wpdb->prepare("UPDATE {$wpdb->termmeta} SET meta_value = %s WHERE meta_id = %d AND BINARY meta_value = BINARY %s", $value, $meta_id, $stored)) === 1;
     wp_cache_delete($term_id, 'term_meta');
     return $saved;
 }
@@ -154,7 +152,10 @@ function boblift_apply_buying_guide_faq_add($meta_id, $term_id, $meta_key, $meta
                 wp_cache_delete($term_id, 'term_meta');
                 $stored = (string) get_term_meta($term_id, '_boblift_buying_guide', true);
                 $guide = json_decode($stored, true);
-                $guide = is_array($guide) ? $guide : [];
+                if (!is_array($guide) || $guide === []) {
+                    $error = 'This category has no buying guide yet; save the whole guide (_boblift_buying_guide) first.';
+                    break;
+                }
                 $faq = array_values((array) ($guide['faq'] ?? []));
                 $before = count($faq);
                 $asked = array_map(static fn($item): string => boblift_buying_guide_question_key((string) ($item['q'] ?? '')), $faq);
