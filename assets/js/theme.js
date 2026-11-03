@@ -1770,6 +1770,27 @@
     status.classList.toggle('bg-emerald-50', tone === 'success');
     status.classList.toggle('text-emerald-800', tone === 'success');
   };
+  // Cached pages can carry a nonce that is too old, or made for a signed-out visitor; swap in a fresh one before posting.
+  const refreshFormNonce = async (form, kind) => {
+    const field = form?.querySelector(kind === 'catalog' ? 'input[name="boblift_catalog_nonce"]' : 'input[name="boblift_inquiry_nonce"]');
+    if (!field) return;
+    const abort = typeof AbortController === 'function' ? new AbortController() : null;
+    const timer = abort ? window.setTimeout(() => abort.abort(), 5000) : null;
+    try {
+      const response = await fetch(`/?boblift_fresh_nonce=${kind}&t=${Date.now()}`, {
+        credentials: 'same-origin',
+        cache: 'no-store',
+        headers: { Accept: 'application/json' },
+        signal: abort?.signal,
+      });
+      const data = await response.json();
+      if (response.ok && data?.success && typeof data.data?.nonce === 'string' && data.data.nonce) field.value = data.data.nonce;
+    } catch (error) {
+      // Keep the printed nonce; the server says so if it is no longer valid.
+    } finally {
+      if (timer) window.clearTimeout(timer);
+    }
+  };
   const updateInquiryModalProductSlug = () => {
     if (!inquiryModal) return;
     const productField = qs('[data-quote-field="product"]', inquiryModal);
@@ -2078,6 +2099,7 @@
     inquiryModalStatus(quoteFormMessage('saving', 'Sending your inquiry...'), 'info');
     initInquiryCharacters()?.submitting();
     try {
+      await refreshFormNonce(form, 'inquiry');
       const endpoint = form.getAttribute('action') || '/?boblift_inquiry_submit=1';
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -2242,6 +2264,7 @@
     submit?.setAttribute('disabled', 'disabled');
     catalogModalStatus(catalogText('saving', 'Saving your catalog request...'), 'info');
     try {
+      await refreshFormNonce(form, 'catalog');
       const response = await fetch(form.getAttribute('action') || '/?boblift_catalog_request=1', {
         method: 'POST',
         body: new FormData(form),
@@ -2612,6 +2635,9 @@
         }
         form.dataset.submitting = 'true';
         qsa('button[type="submit"]', form).forEach((button) => button.setAttribute('disabled', 'disabled'));
+        // Post once the nonce is fresh; form.submit() sends it without firing submit again.
+        event.preventDefault();
+        refreshFormNonce(form, 'inquiry').then(() => HTMLFormElement.prototype.submit.call(form));
       });
     }
     updateLinks();
