@@ -2247,6 +2247,8 @@ function boblift_floating_contact_icon_choices(): array
 function boblift_admin_floating_contact_buttons_editor(array $options): void
 {
     $buttons = is_array($options['floating_contact_buttons'] ?? null) ? $options['floating_contact_buttons'] : (function_exists('boblift_floating_contact_button_defaults') ? boblift_floating_contact_button_defaults() : []);
+    // Same order the front end shows, so saving stores it (see boblift_floating_contact_whatsapp_first()).
+    $buttons = function_exists('boblift_floating_contact_whatsapp_first') ? boblift_floating_contact_whatsapp_first($buttons) : $buttons;
     ?>
     <div class="boblift-floating-contact-editor" data-floating-contact-editor>
         <p class="boblift-admin-note">这里控制前台悬浮客服按钮。配置保存在当前语言下，切换后台语言后可维护不同语言的按钮文字和链接。</p>
