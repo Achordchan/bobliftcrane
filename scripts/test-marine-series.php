@@ -8,6 +8,10 @@ function apply_filters(string $hook, $value, ...$args)
 {
     return $value;
 }
+function boblift_localized_static_text(string $text): string
+{
+    return $text;
+}
 require __DIR__ . '/../inc/marine-series.php';
 
 $failures = 0;
@@ -75,6 +79,32 @@ $check('unknown model falls back', 'SQ08ZA3TJ+1', boblift_marine_requested_model
 // Hidden configurations keep their ids back and ask for no image.
 $hidden = boblift_marine_hidden_block('<article id="technical" class="a"><img loading="eager" fetchpriority="high" src="x"><span id="details"></span></article>');
 $check('hidden block', '<article data-vid="technical" class="a"><img loading="lazy" src="x"><span data-vid="details"></span></article>', $hidden);
+
+// Figures and the words made from them.
+$check('kilograms', 3950, boblift_marine_kilograms('3950 kg'));
+$check('no guess from other units', null, boblift_marine_kilograms('4 t'));
+$check('thousands', '12,000 kg', boblift_marine_format_kg(12000));
+$check('approximate height', ['≈ 16.5', 'm'], boblift_marine_figure_parts('≈ 16.5 m'));
+$figures = static fn(?int $weight, ?string $radius = null, ?string $height = null): array => ['weight' => $weight, 'capacity' => 12000, 'moment' => '27 t·m', 'radius' => $radius, 'height' => $height];
+$check('changing figures first', ['weight', 'radius', 'height', 'capacity'], array_column(boblift_marine_hero_figures($figures(4350, '14.5 m', '≈ 16.5 m')), 'key'));
+$check('only figures the data has', ['weight', 'capacity', 'moment'], array_column(boblift_marine_hero_figures($figures(3900)), 'key'));
+$twelve = [];
+foreach (['SQ12ZA4T' => 3900, 'SQ12ZA4TJ' => 3950, 'SQ12ZA5T' => 4200, 'SQ12ZA5TJ' => 4400, 'SQ12ZA6T' => 4350] as $model => $weight) {
+    $twelve[] = ['model' => $model, 'values' => boblift_marine_parse_model($model), 'figures' => $figures($weight, $model === 'SQ12ZA6T' ? '14.5 m' : null)];
+}
+$dimensions = boblift_marine_series_dimensions($twelve);
+$a6 = $twelve[4]['values'];
+$a4j = $twelve[1]['values'];
+$check('no J on A6', ['winch|1'], boblift_marine_unavailable_choices($twelve, $dimensions, $a6));
+$check('A6 with winch does not exist', ['sections|A6'], boblift_marine_unavailable_choices($twelve, $dimensions, $a4j));
+$check('note under winch', ['winch' => 'A6 is built without a winch only'], boblift_marine_combination_notes($twelve, $dimensions, $a6));
+$check('note under sections', ['sections' => 'A6 is built without a winch only'], boblift_marine_combination_notes($twelve, $dimensions, $a4j));
+$check('winch weight', '+50 kg', boblift_marine_winch_difference($twelve, $a4j));
+$check('no pair, no difference', '', boblift_marine_winch_difference($twelve, $a6));
+$check('reach when the section has it', ['A6', 'reach 14.5 m'], boblift_marine_choice_label('sections', 'A6', $twelve));
+$check('booms otherwise', ['A4', '3 hydraulic booms'], boblift_marine_choice_label('sections', 'A4', $twelve));
+$check('difference from the series model', "Self weight \u{2066}−400 kg\u{2069} · With winch", boblift_marine_configuration_difference($twelve[1], $twelve[4]));
+$check('no difference from itself', '', boblift_marine_configuration_difference($twelve[4], $twelve[4]));
 
 echo $failures === 0 ? "ok\n" : "{$failures} failed\n";
 exit($failures === 0 ? 0 : 1);

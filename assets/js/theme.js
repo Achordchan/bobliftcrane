@@ -5256,7 +5256,17 @@
     return best;
   };
 
+  const compare = document.querySelector('[data-cfg-compare]');
+  const shownFigures = () => {
+    const figures = {};
+    document.querySelectorAll('[data-cfg-block="keyspecs"] [data-cfg-variant]:not([hidden]) [data-cfg-cell]').forEach((cell) => {
+      figures[cell.dataset.cfgCell] = cell.dataset.cfgCellValue;
+    });
+    return figures;
+  };
+
   const apply = (variant, updateAddress) => {
+    const previousFigures = shownFigures();
     current = variant;
     document.querySelectorAll('[data-cfg-block]').forEach((block) => {
       [...block.children].forEach((holder) => {
@@ -5280,7 +5290,7 @@
       const group = button.dataset.cfgGroup;
       const value = button.dataset.cfgValue;
       const selected = variant.values[group] === value;
-      const exists = variants.some((other) => other.values[group] === value && data.dimensions.every((name) => name === group || other.values[name] === variant.values[name]));
+      const exists = !(variant.unavailable || []).includes(`${group}|${value}`);
       button.setAttribute('aria-checked', selected ? 'true' : 'false');
       button.tabIndex = selected ? 0 : -1;
       button.classList.remove(...(selected ? off : on));
@@ -5289,9 +5299,46 @@
       if (exists) button.removeAttribute('title');
       else button.title = data.unavailable || '';
     });
-    document.querySelectorAll('[data-cfg-title], [data-cfg-model]').forEach((element) => {
+    document.querySelectorAll('[data-cfg-title]').forEach((element) => {
       element.textContent = variant.model;
     });
+    root.querySelectorAll('[data-cfg-note]').forEach((note) => {
+      const text = (variant.notes || {})[note.dataset.cfgNote] || '';
+      note.textContent = text;
+      note.hidden = !text;
+    });
+    root.querySelectorAll('[data-cfg-winch-difference]').forEach((element) => {
+      element.textContent = variant.winch || '';
+    });
+    root.querySelectorAll('[data-cfg-summary]').forEach((element) => {
+      element.textContent = variant.summary || '';
+    });
+    root.querySelectorAll('[data-cfg-summary-line]').forEach((line) => {
+      line.hidden = !variant.summary;
+    });
+    // The comparison table stays with the shown specifications, its row marking the choice.
+    const shownTechnical = document.querySelector('[data-cfg-block="technical"] [data-cfg-variant]:not([hidden]) article');
+    if (compare && shownTechnical && shownTechnical.children[0] && compare.parentElement !== shownTechnical) {
+      shownTechnical.children[0].after(compare);
+    }
+    if (compare) {
+      compare.querySelectorAll('[data-cfg-row]').forEach((row) => {
+        const selected = row.dataset.cfgRow === variant.model;
+        row.classList.toggle('bg-[#EEF3F9]', selected);
+        row.classList.toggle('font-black', selected);
+        if (selected) row.setAttribute('aria-current', 'true');
+        else row.removeAttribute('aria-current');
+      });
+    }
+    if (updateAddress) {
+      document.querySelectorAll('[data-cfg-block="keyspecs"] [data-cfg-variant]:not([hidden]) [data-cfg-cell]').forEach((cell) => {
+        const before = previousFigures[cell.dataset.cfgCell];
+        if (before === cell.dataset.cfgCellValue) return;
+        cell.classList.remove('boblift-cfg-flash');
+        void cell.offsetWidth;
+        cell.classList.add('boblift-cfg-flash');
+      });
+    }
     if (variant.inquiry) {
       document.querySelectorAll('[data-inquiry-products]').forEach((button) => {
         let items;
@@ -5314,6 +5361,18 @@
       window.dispatchEvent(new Event('resize'));
     }
   };
+
+  if (compare) {
+    compare.addEventListener('click', (event) => {
+      const row = event.target.closest('[data-cfg-row]');
+      const variant = row && variants.find((item) => item.model === row.dataset.cfgRow);
+      if (!variant) return;
+      // The model's link is for new tabs and search engines; a plain click switches in place.
+      if (event.metaKey || event.ctrlKey || event.shiftKey) return;
+      event.preventDefault();
+      if (variant !== current) apply(variant, true);
+    });
+  }
 
   buttons.forEach((button) => {
     button.addEventListener('click', () => {

@@ -108,6 +108,10 @@ $spec_icon = static function (array $spec): string {
 };
 // The hero strip takes the first four short values; long ones (two mast heights) stay in the spec table.
 $hero_specs = array_slice(array_values(array_filter($specs, static fn($spec): bool => is_array($spec) && ($spec['label'] ?? '') !== '' && ($spec['value'] ?? '') !== '' && mb_strlen((string) $spec['value']) <= 16)), 0, 4);
+// A marine series leads with what differs between its configurations; what they share stays in the specifications.
+if ($marine_page) {
+    $hero_specs = boblift_marine_hero_figures(boblift_marine_product_figures((int) $marine_member['en_id'])) ?: $hero_specs;
+}
 $review_status = (string) ($product['parameter_review_status'] ?? 'verified-from-source');
 $review_status_labels = is_array($ui['statusLabels'] ?? null) ? $ui['statusLabels'] : [];
 $review_status_label = (string) ($review_status_labels[$review_status] ?? ($review_status_labels['verified-from-source'] ?? 'Verified from source'));
@@ -406,7 +410,7 @@ if ($family_quote_copy) {
         <div class="pointer-events-none absolute inset-0 boblift-cinema-grid opacity-40"></div>
         <div class="page-shell relative z-10 py-6 md:py-8 lg:py-10">
             <?php // The configuration box makes the text column tall: the photo stays at its top instead of drifting to the middle. ?>
-            <div class="grid grid-cols-1 <?php echo $marine_page ? 'items-start' : 'items-center'; ?> gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-10 xl:gap-14">
+            <div class="grid grid-cols-1 <?php echo $marine_page ? 'items-stretch' : 'items-center'; ?> gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-10 xl:gap-14">
                 <div class="relative z-20 order-2 min-w-0 lg:order-1">
                     <p class="boblift-kicker boblift-product-hero-kicker"><?php echo esc_html($product['category_title'] ?? 'BOB-LIFT Product'); ?></p>
                     <?php // The full name sits inside the h1 with the model, so the heading keeps the product keyword the old site ranked on. ?>
@@ -436,25 +440,27 @@ if ($family_quote_copy) {
                         </div>
                     <?php endif; ?>
                     <?php boblift_marine_block_open('decode'); ?>
-                    <?php boblift_render_model_decode($hero_model); ?>
+                    <?php if ($marine_page) { boblift_marine_render_compact_decode($hero_model); } else { boblift_render_model_decode($hero_model); } ?>
                     <?php boblift_marine_block_close('decode'); ?>
-                    <?php boblift_marine_render_configurator(); ?>
                     <?php boblift_render_model_variants($hero_model, (string) ($product['slug'] ?? '')); ?>
                     <?php boblift_marine_block_open('keyspecs'); ?>
-                    <dl class="mt-6 grid grid-cols-2 border-y border-[#D5DEE9] sm:grid-cols-4 lg:mt-7">
+                    <dl class="mt-6 grid grid-cols-2 border-y border-[#D5DEE9] <?php echo $marine_page && count($hero_specs) === 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-4'; ?> lg:mt-7">
                         <?php foreach ($hero_specs as $index => $spec) :
-                            [$spec_number, $spec_unit] = $hero_spec_parts((string) ($spec['value'] ?? ''));
+                            [$spec_number, $spec_unit] = $marine_page ? boblift_marine_figure_parts((string) ($spec['value'] ?? '')) : $hero_spec_parts((string) ($spec['value'] ?? ''));
                         ?>
-                            <div class="flex min-w-0 flex-col py-4 pr-3 <?php echo $index % 2 === 1 ? 'border-l border-[#D5DEE9] ps-4' : ''; ?> <?php echo $index >= 2 ? 'border-t border-[#D5DEE9] sm:border-t-0' : ''; ?> <?php echo $index === 2 ? 'sm:border-l sm:ps-4' : ''; ?>">
+                            <div class="flex min-w-0 flex-col py-4 pr-3 <?php echo $index % 2 === 1 ? 'border-l border-[#D5DEE9] ps-4' : ''; ?> <?php echo $index >= 2 ? 'border-t border-[#D5DEE9] sm:border-t-0' : ''; ?> <?php echo $index === 2 ? 'sm:border-l sm:ps-4' : ''; ?>"<?php echo $marine_page ? ' data-cfg-cell="' . esc_attr((string) ($spec['key'] ?? '')) . '" data-cfg-cell-value="' . esc_attr((string) ($spec['value'] ?? '')) . '"' : ''; ?>>
                                 <dt class="text-[10px] font-black uppercase leading-4 tracking-[0.12em] text-slate-500"><?php echo esc_html($spec['label']); ?></dt>
                                 <dd class="mt-auto break-words pt-1.5 font-black leading-tight text-[#071f42] [font-variant-numeric:tabular-nums]"><span class="<?php echo ($spec_unit !== '' || mb_strlen($spec_number) <= 8) ? 'text-[clamp(22px,1.9vw,32px)]' : 'text-base'; ?>"><?php echo esc_html($spec_number); ?></span><?php if ($spec_unit !== '') : ?><span class="<?php echo $spec_unit === '°' ? '' : 'ms-1'; ?> whitespace-nowrap text-sm font-bold text-slate-500"><?php echo esc_html($spec_unit); ?></span><?php endif; ?></dd>
                             </div>
                         <?php endforeach; ?>
                     </dl>
                     <?php boblift_marine_block_close('keyspecs'); ?>
+                    <?php boblift_marine_render_configurator(); ?>
+                    <?php if (!$marine_page) : ?>
                     <?php // The tonnage page of this model's capacity bin (inc/tonnage-pages.php); none for models rated by working height. ?>
                     <?php $hero_capacity = function_exists('boblift_product_listing_capacity') ? boblift_product_listing_capacity($product) : 0.0; $hero_tonnage = function_exists('boblift_tonnage_size_for_capacity') ? boblift_tonnage_size_for_capacity($hero_capacity) : 0; if ($hero_tonnage > 0) : ?>
                         <a class="mt-4 inline-flex items-center gap-1.5 text-sm font-black text-blue-700 transition hover:text-[#071f42]" href="<?php echo esc_url(boblift_tonnage_url($hero_tonnage)); ?>"><?php echo esc_html(boblift_tonnage_see_all_label($hero_tonnage, $hero_capacity)); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></a>
+                    <?php endif; ?>
                     <?php endif; ?>
                     <div class="boblift-product-hero-actions mt-6 flex flex-wrap items-center gap-2.5 sm:gap-3 lg:mt-7">
                         <button class="boblift-product-hero-request inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-sm bg-[#071f42] px-6 text-sm font-black text-white transition hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页首屏" data-inquiry-product="<?php echo esc_attr($inquiry_product_title); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html($ui['requestQuoteLabel'] ?? 'Request Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
@@ -472,6 +478,11 @@ if ($family_quote_copy) {
                                 <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 font-black text-[#071f42] transition hover:border-blue-500" href="<?php echo esc_url($hero_mail_href); ?>"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?><?php echo $marine_page ? ' data-series-mail' : ''; ?>><?php echo boblift_icon('mail', 'h-4 w-4 text-slate-500'); ?><?php echo esc_html($hero_email); ?></a>
                             <?php endif; ?>
                         </div>
+                    <?php endif; ?>
+                    <?php if ($marine_page) : ?>
+                    <?php $hero_capacity = function_exists('boblift_product_listing_capacity') ? boblift_product_listing_capacity($product) : 0.0; $hero_tonnage = function_exists('boblift_tonnage_size_for_capacity') ? boblift_tonnage_size_for_capacity($hero_capacity) : 0; if ($hero_tonnage > 0) : ?>
+                        <a class="mt-4 inline-flex items-center gap-1.5 text-sm font-black text-blue-700 transition hover:text-[#071f42]" href="<?php echo esc_url(boblift_tonnage_url($hero_tonnage)); ?>"><?php echo esc_html(boblift_tonnage_see_all_label($hero_tonnage, $hero_capacity)); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></a>
+                    <?php endif; ?>
                     <?php endif; ?>
                     <?php if ($hero_terms_apply) : ?>
                         <div class="mt-6 border-t border-[#D5DEE9] pt-5">
@@ -550,6 +561,7 @@ if ($family_quote_copy) {
                         <?php endif; ?>
                     </div>
                 </div>
+                <?php if ($marine_page) { boblift_marine_render_compare((string) $marine_member['model']); } ?>
                 <?php // With drawings, the specs take the left half and the drawings the right, as on the loader site, so a wide drawing is not blown up to the full card width. ?>
                 <?php if ($drawings) : ?><div class="grid grid-cols-[minmax(0,1fr)] border-t border-[#E6EDF5] lg:grid-cols-2"><?php endif; ?>
                 <?php
