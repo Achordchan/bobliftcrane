@@ -464,6 +464,19 @@
       "banner_title": "Forklift Fly Jib Cranes"
     },
     {
+      "slug": "electric-mini-cranes",
+      "title": "Electric Mini Cranes",
+      "short_title": "Electric Mini Cranes",
+      "description": "Electric Mini Cranes from the BOB-LIFT product catalog.",
+      "image": "",
+      "icon": "electric-mini-crane",
+      "group": "Electric Mini Cranes",
+      "menu_group": "compact-attachments",
+      "sort": 70,
+      "banner_label": "BOB-LIFT Product Range",
+      "banner_title": "Electric Mini Cranes"
+    },
+    {
       "slug": "aerial-work-platform",
       "title": "Aerial Work Platform",
       "short_title": "Aerial Work Platform",
