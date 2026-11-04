@@ -3,7 +3,7 @@
 // Translated with DeepL; category words follow each language's product category names.
 return [
     'ja' => [
-        'Truck Cranes' => 'トラック搭載クレーン',
+        'Truck Cranes' => 'トラッククレーン',
         'Mini Cranes' => '電動ミニクレーン',
         'Electric mini cranes, lift anywhere.' => '電動ミニクレーン、どこでも吊り上げ。',
         '1 t and 2 t folding-boom electric cranes on 12/24 V DC power with 360° slewing, worked by hand levers or a wireless remote. Bolt one to a vehicle bed, a workshop floor or the optional wheeled trolley.' => '12/24 V DC 電源駆動の 1 t・2 t 折りたたみブーム式電動クレーン。360° 旋回し、ハンドレバーまたはワイヤレスリモコンで操作します。車両の荷台、作業場の床、オプションのキャスター付き台車にボルトで固定して使えます。',
