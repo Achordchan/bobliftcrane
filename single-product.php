@@ -907,7 +907,7 @@ if ($family_quote_copy) {
                                             <p class="mt-1 text-[11px] font-black uppercase tracking-[0.1em] text-slate-500"><?php echo esc_html(implode(' · ', array_filter(['PDF', str_replace('{count}', (string) $buying_brochure['pages'], (string) ($brochure_ui['pagesLabel'] ?? '{count} pages')), (string) $buying_brochure['size']]))); ?></p>
                                             <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
                                                 <a class="inline-flex items-center gap-1.5 font-black text-[#0B3F7D] transition hover:text-blue-700" href="<?php echo esc_url($buying_brochure['url']); ?>" download="<?php echo esc_attr($buying_brochure['file']); ?>"><?php echo boblift_icon('download', 'h-4 w-4'); ?><?php echo esc_html((string) ($brochure_ui['downloadLabel'] ?? 'Download PDF')); ?></a>
-                                                <button class="font-black text-blue-700 transition hover:text-[#071f42]" type="button" data-catalog-modal-open data-catalog-product="<?php echo esc_attr($product_title); ?>" data-catalog-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-catalog-url="<?php echo esc_url($buying_brochure['url']); ?>"><?php echo esc_html((string) ($brochure_ui['emailLabel'] ?? 'Email me a copy')); ?></button>
+                                                <?php echo boblift_brochure_quote_button($buying_brochure, ['product' => $product_title, 'product_slug' => (string) ($product['slug'] ?? '')], 'font-black text-blue-700 transition hover:text-[#071f42]'); ?>
                                             </div>
                                         </div>
                                     </li>
