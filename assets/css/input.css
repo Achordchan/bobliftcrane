@@ -1979,6 +1979,10 @@ img { max-width: 100%; }
   [data-cfg-block="gallery"] .boblift-product-stage img {
     object-position: center;
   }
+  /* The photo no longer stands on the stage's floor, so the floor line and its shadow go. */
+  [data-cfg-block="gallery"] .boblift-product-stage > span {
+    display: none;
+  }
 }
 @keyframes boblift-cfg-flash {
   from { background-color: rgb(219 234 254); }

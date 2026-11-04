@@ -635,20 +635,19 @@ function boblift_marine_choice_label(string $dimension, string $value, array $me
     return [$value, ''];
 }
 
-/** The model name in one line under the title; each part explains itself on hover or tap. */
+/** The model name part by part under the title: three to a row, each with its meaning in plain sight. */
 function boblift_marine_render_compact_decode(string $model): void
 {
     $parts = boblift_model_parts($model);
     if (!$parts) {
         return;
     }
-    $count = count($parts);
     ?>
-    <dl class="boblift-model-decode-compact mt-4 inline-flex max-w-full rounded-sm border border-[#D5DEE9] bg-white/70" dir="ltr">
-        <?php foreach ($parts as $index => [$code, $meaning]) : ?>
-            <div class="group relative flex h-9 min-w-9 cursor-help items-center justify-center px-2 outline-none <?php echo $index > 0 ? 'border-s border-[#D5DEE9]' : ''; ?> hover:bg-[#EEF3F9] focus:bg-[#EEF3F9]" tabindex="0">
-                <dt class="text-[13px] font-black leading-none text-[#071f42] [font-variant-numeric:tabular-nums]"><?php echo esc_html($code); ?></dt>
-                <dd class="invisible absolute top-full z-40 mt-1 w-max max-w-[14rem] rounded-sm border border-[#D5DEE9] bg-white px-2.5 py-1.5 text-[12px] font-normal leading-4 text-slate-700 shadow-card group-hover:visible group-focus:visible <?php echo $index >= $count / 2 ? 'end-0' : 'start-0'; ?>"><?php echo esc_html($meaning); ?></dd>
+    <dl class="boblift-model-decode-compact mt-4 grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
+        <?php foreach ($parts as [$code, $meaning]) : ?>
+            <div class="flex min-w-0 items-start gap-2">
+                <dt class="inline-flex h-6 min-w-6 shrink-0 items-center justify-center rounded-sm bg-[#071f42] px-1.5 text-[12px] font-black leading-none tracking-[0.02em] text-white [font-variant-numeric:tabular-nums]" dir="ltr"><?php echo esc_html($code); ?></dt>
+                <dd class="min-w-0 pt-[3px] text-[13px] font-normal leading-[1.35] text-slate-600"><?php echo esc_html($meaning); ?></dd>
             </div>
         <?php endforeach; ?>
     </dl>
