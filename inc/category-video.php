@@ -115,7 +115,9 @@ function boblift_category_video_schema(array $video): array
 /**
  * The category's intro, film and brochure as one block inside .boblift-archive-about. Desktop: two columns, the heading
  * with the film right under it on the left, the intro paragraphs with the brochure strip at the foot on the right, the
- * strip's bottom on the film's bottom when the text is the shorter side. Phones stack heading, film, text, strip.
+ * strip's bottom on the film's bottom when the text is the shorter side. From 1600px the film is capped at 40rem and the
+ * text steps up, since a wider film grows taller faster than the text shortens; this keeps the hole above the strip
+ * small on wide screens. Phones stack heading, film, text, strip.
  * $intro is ['slug' => …, 'title' => …, 'paragraphs' => […]] from the category; without paragraphs the film's own title,
  * text and points stand in. $brochure is an item of boblift_brochure_items() or null.
  * The player is the product page's in-place player (data-inline-videos in theme.js): poster and play button until clicked.
@@ -140,7 +142,7 @@ function boblift_render_category_video(WP_Term $term, ?array $brochure = null, a
     $schema = boblift_category_video_schema($video);
     ?>
     <section id="category-video" class="mt-12 scroll-mt-24 lg:mt-16" data-category-video data-category-intro="<?php echo esc_attr($slug); ?>" aria-labelledby="<?php echo esc_attr($title_id); ?>">
-        <div class="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-x-[clamp(2.5rem,4vw,4rem)]">
+        <div class="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] min-[1600px]:grid-cols-[minmax(0,40rem)_minmax(0,1fr)] lg:gap-x-[clamp(2.5rem,4vw,4rem)]">
             <div class="min-w-0">
                 <h2 id="<?php echo esc_attr($title_id); ?>" class="text-[clamp(1.4rem,2vw,2rem)] font-black leading-tight tracking-[-0.01em] text-[#0B1B33]"><?php echo esc_html($heading); ?></h2>
                 <div class="mt-6 overflow-hidden rounded border border-[#E5E7EB] shadow-card" data-inline-videos>
@@ -154,7 +156,7 @@ function boblift_render_category_video(WP_Term $term, ?array $brochure = null, a
             </div>
             <div class="flex min-w-0 flex-col">
                 <?php foreach ($paragraphs as $index => $paragraph) : ?>
-                    <p class="<?php echo $index ? 'mt-4 lg:mt-3' : 'lg:mt-0'; ?> text-sm font-normal leading-7 text-slate-600 md:text-base"><?php echo esc_html($paragraph); ?></p>
+                    <p class="<?php echo $index ? 'mt-4 lg:mt-3' : 'lg:mt-0'; ?> text-sm font-normal leading-7 text-slate-600 md:text-base min-[1600px]:text-[1.0625rem] min-[1600px]:leading-[1.9]"><?php echo esc_html($paragraph); ?></p>
                 <?php endforeach; ?>
                 <?php if ($points) : ?>
                     <ul class="mt-5 grid gap-2.5">
