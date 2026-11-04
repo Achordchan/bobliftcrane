@@ -80,13 +80,15 @@ function boblift_video_center_product_videos(): array
     return $videos;
 }
 
-function boblift_video_center_flush_products(int $post_id): void
+// The hook passes the post as it was, so a product deleted for good (its row already gone) still clears the list.
+function boblift_video_center_flush_products(int $post_id, mixed $post = null): void
 {
-    if (get_post_type($post_id) === 'product') {
+    $type = is_object($post) && isset($post->post_type) ? (string) $post->post_type : get_post_type($post_id);
+    if ($type === 'product') {
         update_option('boblift_video_center_rev', (int) get_option('boblift_video_center_rev', 0) + 1, false);
     }
 }
-add_action('clean_post_cache', 'boblift_video_center_flush_products');
+add_action('clean_post_cache', 'boblift_video_center_flush_products', 10, 2);
 
 function boblift_video_center_clean_extra(mixed $items): array|WP_Error
 {

@@ -4,7 +4,7 @@
 define('ABSPATH', __DIR__);
 define('HOUR_IN_SECONDS', 3600);
 class WP_Error { public function __construct(public string $code = '', public string $message = '', public array $data = []) {} }
-class WP_Post { public int $ID = 0; public string $post_content = ''; public string $post_title = ''; public string $post_password = ''; }
+class WP_Post { public int $ID = 0; public string $post_content = ''; public string $post_title = ''; public string $post_password = ''; public string $post_type = 'product'; }
 function is_wp_error($v) { return $v instanceof WP_Error; }
 function add_action(...$args) {}
 function add_filter(...$args) {}
@@ -47,8 +47,11 @@ $check(($v[1]['src'] ?? '') === 'https://v/jib.mp4' && $v[1]['label'] === 'P2' &
 $check(($v[2]['label'] ?? '') === 'Mini' && ($v[2]['poster_src'] ?? '') === 'https://x/p.jpg', 'poster kept');
 $posts = [];
 $check(count(boblift_video_center_product_videos()) === 3, 'cached');
-boblift_video_center_flush_products(1);
-$check(boblift_video_center_product_videos() === [], 'a product save drops the cache');
+$deleted = new WP_Post();
+$deleted->ID = -7;
+$deleted->post_type = 'product';
+boblift_video_center_flush_products(-7, $deleted);
+$check(boblift_video_center_product_videos() === [], 'deleting a product (row gone) drops the cache');
 
 $good = ['src' => 'https://videos.files.wordpress.com/a/b.mp4', 'poster' => 'https://bobliftcrane.com/p.jpg', 'title' => 'CC85 demo', 'group' => 'product'];
 $check(boblift_video_center_clean_extra([$good]) === [$good], 'valid item');
