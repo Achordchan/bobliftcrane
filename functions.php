@@ -69,6 +69,7 @@ $boblift_theme_modules = [
     'rest-feedback-record-edit.php',
     'rest-tonnage-copy.php',
     'polylang-rewrites.php',
+    'family-layout-migration.php',
 ];
 
 $boblift_theme_dir = get_template_directory();
