@@ -189,11 +189,10 @@ function boblift_videos_in_group(string ...$groups): array
     return $items;
 }
 
-// What a product is for matching videos: truck or marine, boom type and max lifting capacity.
-function boblift_product_video_match(int $product_id): ?array
+// Truck or marine for a product, from its categories and their ancestors ('' for every other family).
+// A crane filed only under a custom child category still belongs to its family.
+function boblift_product_video_use(int $english_id): string
 {
-    $english_id = function_exists('boblift_product_english_id') ? boblift_product_english_id($product_id) : $product_id;
-    // Assigned terms and their ancestors: a crane filed only under a custom child category still belongs to its family.
     $terms = get_the_terms($english_id, 'product_category');
     $categories = [];
     foreach (is_array($terms) ? $terms : [] as $term) {
@@ -213,6 +212,14 @@ function boblift_product_video_match(int $product_id): ?array
             $use = 'marine';
         }
     }
+    return $use;
+}
+
+// What a product is for matching videos: truck or marine, boom type and max lifting capacity.
+function boblift_product_video_match(int $product_id): ?array
+{
+    $english_id = function_exists('boblift_product_english_id') ? boblift_product_english_id($product_id) : $product_id;
+    $use = boblift_product_video_use($english_id);
     $boom = (string) get_post_meta($english_id, '_boom_type', true);
     $capacity = (float) (boblift_product_filter_values($english_id)['capacity'] ?? 0);
     return $use === '' || $capacity <= 0 ? null : ['use' => $use, 'boom' => $boom, 'capacity' => $capacity];
@@ -322,7 +329,7 @@ function boblift_render_video_card(array $video, string $class = ''): void
     ?>
     <button class="group flex w-full min-w-0 flex-col overflow-hidden rounded border border-line bg-white text-left shadow-card transition duration-300 hover:-translate-y-0.5 hover:border-blue-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-100 <?php echo esc_attr($class); ?>" type="button" data-video-open data-video-player="<?php echo esc_attr($video['player']); ?>" data-video-src="<?php echo esc_url($video['src']); ?>" data-video-youtube="<?php echo esc_attr($video['youtube']); ?>" data-video-title="<?php echo esc_attr($label); ?>"<?php echo $portrait ? ' data-video-portrait' : ''; ?>>
         <span class="relative block aspect-video overflow-hidden bg-navy">
-            <img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" src="<?php echo esc_url(boblift_asset($video['poster'])); ?>" alt="" loading="lazy" decoding="async">
+            <img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" src="<?php echo esc_url(boblift_video_poster_src($video)); ?>" alt="" loading="lazy" decoding="async">
             <span class="absolute inset-0 m-auto grid size-9 place-items-center rounded-sm bg-white/90 text-navy shadow-card transition group-hover:bg-white sm:size-12"><?php echo boblift_icon('play', 'h-4 w-4 sm:h-5 sm:w-5'); ?></span>
             <?php if ($duration !== '') : ?><span class="absolute bottom-2 right-2 rounded-sm bg-navy/80 px-1.5 py-0.5 text-[11px] font-black tabular-nums text-white"><?php echo esc_html($duration); ?></span><?php endif; ?>
         </span>

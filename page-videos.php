@@ -8,13 +8,26 @@ $ui = boblift_site_ui('videoCenter');
 $groups = [
     'truck' => (string) ($ui['truckLabel'] ?? 'Truck mounted cranes'),
     'marine' => (string) ($ui['marineLabel'] ?? 'Marine cranes'),
+    'product' => (string) ($ui['otherCranesLabel'] ?? boblift_localized_static_text('Other cranes')),
     'test' => (string) ($ui['testLabel'] ?? 'Tests and quality'),
     'factory' => (string) ($ui['factoryLabel'] ?? 'Factory video'),
     'service' => (string) ($ui['serviceLabel'] ?? boblift_localized_static_text('Service and operation')),
 ];
-// Aerial loops join the factory tab; the tab only lists groups that have a playable video.
+// Extra films saved on this page and films from product pages come first (newest products first), then the theme's
+// library (inc/video-center.php). Aerial loops join the factory tab; the tab only lists groups that have a playable video.
 $videos = [];
-foreach (boblift_videos_in_group('truck', 'marine', 'test', 'factory', 'service', 'aerial') as $video) {
+$seen_sources = [];
+$listed = array_merge(
+    boblift_video_center_extra_videos((int) get_queried_object_id()),
+    boblift_video_center_product_videos(),
+    boblift_videos_in_group('truck', 'marine', 'test', 'factory', 'service', 'aerial')
+);
+foreach ($listed as $video) {
+    $source = (string) ($video['src'] ?: $video['youtube']);
+    if ($source !== '' && isset($seen_sources[$source])) {
+        continue;
+    }
+    $seen_sources[$source] = true;
     $video['tab'] = $video['group'] === 'aerial' ? 'factory' : $video['group'];
     $videos[] = $video;
 }
