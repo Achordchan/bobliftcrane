@@ -51,7 +51,8 @@ function boblift_video_center_product_videos(): array
     $videos = [];
     $seen = [];
     foreach (get_posts($args) as $post) {
-        if (stripos((string) $post->post_content, 'wp-block-video') === false || post_password_required($post)) {
+        // The list is cached for every visitor, so a protected product stays out whoever loads the page.
+        if (stripos((string) $post->post_content, 'wp-block-video') === false || (string) $post->post_password !== '') {
             continue;
         }
         // The product page shows its body (and so its films) only once the body is switched on.

@@ -4,7 +4,7 @@
 define('ABSPATH', __DIR__);
 define('HOUR_IN_SECONDS', 3600);
 class WP_Error { public function __construct(public string $code = '', public string $message = '', public array $data = []) {} }
-class WP_Post { public int $ID = 0; public string $post_content = ''; public string $post_title = ''; }
+class WP_Post { public int $ID = 0; public string $post_content = ''; public string $post_title = ''; public string $post_password = ''; }
 function is_wp_error($v) { return $v instanceof WP_Error; }
 function add_action(...$args) {}
 function add_filter(...$args) {}
@@ -19,7 +19,6 @@ function get_transient($k) { global $transients; return $transients[$k] ?? false
 function set_transient($k, $v) { global $transients; $transients[$k] = $v; }
 function get_post_type($id) { return $id > 0 ? 'product' : 'page'; }
 function boblift_current_language_slug() { return 'en'; }
-function post_password_required($p) { return false; }
 function boblift_product_content_ready($id, $flag) { return $id !== 4; }
 function get_the_title($p) { return $p->post_title; }
 class WP_Term { public int $term_id = 0; public function __construct(public string $slug = '') {} }
@@ -27,11 +26,12 @@ function get_the_terms($id, $tax) { $slug = [1 => 'knuckle-boom-truck-mounted-cr
 function get_ancestors(...$args) { return []; }
 $fig = static fn(string $src, string $cap = '') => '<figure class="wp-block-video"><video controls poster="https://x/p.jpg" src="https://v/' . $src . '.mp4"></video>' . ($cap !== '' ? '<figcaption>' . $cap . '</figcaption>' : '') . '</figure>';
 $posts = [];
-foreach ([[1, $fig('a', 'SQ5 film')], [2, '<p>x</p>' . $fig('jib')], [3, $fig('jib', 'Other cap') . $fig('mini', 'Mini')], [4, $fig('hidden')], [5, '<p>no film</p>']] as [$id, $content]) {
+foreach ([[1, $fig('a', 'SQ5 film')], [2, '<p>x</p>' . $fig('jib')], [3, $fig('jib', 'Other cap') . $fig('mini', 'Mini')], [4, $fig('hidden')], [5, '<p>no film</p>'], [6, $fig('locked')]] as [$id, $content]) {
     $p = new WP_Post();
     $p->ID = $id;
     $p->post_content = $content;
     $p->post_title = "P$id";
+    $p->post_password = $id === 6 ? 'secret' : '';
     $posts[] = $p;
 }
 function get_posts($args) { global $posts; return $posts; }
@@ -41,7 +41,7 @@ $failed = 0;
 $check = static function (bool $ok, string $what) use (&$failed) { if (!$ok) { $failed++; echo "fail: $what\n"; } };
 
 $v = boblift_video_center_product_videos();
-$check(count($v) === 3, 'three distinct films (shared film once, unready product skipped)');
+$check(count($v) === 3, 'three distinct films (shared film once, unready and protected products skipped)');
 $check(($v[0]['label'] ?? '') === 'SQ5 film' && $v[0]['group'] === 'truck', 'captioned truck film');
 $check(($v[1]['src'] ?? '') === 'https://v/jib.mp4' && $v[1]['label'] === 'P2' && $v[1]['group'] === 'product', 'uncaptioned film named after its product, other family');
 $check(($v[2]['label'] ?? '') === 'Mini' && ($v[2]['poster_src'] ?? '') === 'https://x/p.jpg', 'poster kept');
