@@ -643,7 +643,7 @@ function boblift_marine_render_compact_decode(string $model): void
         return;
     }
     ?>
-    <dl class="boblift-model-decode-compact mt-4 grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
+    <dl class="boblift-model-decode-compact mt-4 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-[#D5DEE9] pt-4 sm:grid-cols-3">
         <?php foreach ($parts as [$code, $meaning]) : ?>
             <div class="flex min-w-0 items-start gap-2">
                 <dt class="inline-flex h-6 min-w-6 shrink-0 items-center justify-center rounded-sm bg-[#071f42] px-1.5 text-[12px] font-black leading-none tracking-[0.02em] text-white [font-variant-numeric:tabular-nums]" dir="ltr"><?php echo esc_html($code); ?></dt>
@@ -734,9 +734,31 @@ function boblift_marine_render_configurator(): void
     <?php
 }
 
+/** What sets a configuration apart in the comparison: "A4 · With winch", with +1 only where the series differs on it. */
+function boblift_marine_compare_label(array $values, array $dimensions): string
+{
+    return implode(' · ', array_filter([
+        isset($dimensions['sections']) ? (string) $values['sections'] : '',
+        isset($dimensions['winch']) ? boblift_marine_text($values['winch'] === '1' ? 'With winch' : 'No winch') : '',
+        isset($dimensions['manual']) && $values['manual'] === '1' ? '+1' : '',
+    ]));
+}
+
+/** The figures worth comparing: those at least two configurations give. [[label, key], ...]. */
+function boblift_marine_compare_columns(array $members): array
+{
+    $columns = [];
+    foreach (['weight' => 'Self weight', 'radius' => 'Max reach', 'height' => 'Lifting height'] as $key => $label) {
+        if (count(array_filter($members, static fn(array $member): bool => ($member['figures'][$key] ?? null) !== null)) >= 2) {
+            $columns[] = [$label, $key];
+        }
+    }
+    return $columns;
+}
+
 /**
- * The comparison table at the top of the specifications. It is printed once, in the shown configuration's block, and
- * the theme script moves it along with the choice. A column nobody has a value for is left out.
+ * The configurations compared at the top of the specifications: each row picks that configuration. Printed once, in the shown
+ * configuration's block; the theme script moves it along with the choice.
  */
 function boblift_marine_render_compare(string $model): void
 {
@@ -744,42 +766,40 @@ function boblift_marine_render_compare(string $model): void
     if (!$state || $state['active'] !== $model || count($state['series']['members']) < 2) {
         return;
     }
-    $t = static fn(string $text): string => boblift_marine_text($text);
     $members = boblift_marine_members_with_figures($state['series']);
-    $any = static fn(callable $pick): bool => (bool) array_filter($members, static fn(array $member): bool => (string) $pick($member) !== '');
-    $columns = array_filter([
-        ['Boom sections', static fn(array $member): string => (string) $member['values']['sections']],
-        ['Winch', static fn(array $member): string => $member['values']['winch'] === '' ? '' : boblift_marine_text($member['values']['winch'] === '1' ? 'With winch' : 'No winch')],
-        ['Manual extension', static fn(array $member): string => $member['values']['manual'] === '1' ? '+1' : ''],
-        ['Self weight', static fn(array $member): string => $member['figures']['weight'] !== null ? boblift_marine_format_kg($member['figures']['weight']) : ''],
-        ['Max reach', static fn(array $member): string => (string) $member['figures']['radius']],
-        ['Lifting height', static fn(array $member): string => (string) $member['figures']['height']],
-    ], static fn(array $column): bool => $any($column[1]));
+    $dimensions = boblift_marine_series_dimensions($members);
+    $columns = boblift_marine_compare_columns($members);
+    $labelled = (bool) array_intersect(['sections', 'winch', 'manual'], array_keys($dimensions));
     $missing = false;
     ?>
-    <div class="border-t border-[#E6EDF5] px-4 py-5 sm:px-6 md:px-8" data-cfg-compare>
-        <h3 class="text-sm font-black text-[#071f42]"><?php echo esc_html($t('Compare configurations')); ?></h3>
-        <div class="-mx-4 mt-3 overflow-x-auto px-4 [scrollbar-width:thin] sm:mx-0 sm:px-0">
-            <table class="w-full min-w-[560px] border-collapse text-start text-sm [font-variant-numeric:tabular-nums]">
+    <div data-cfg-compare>
+        <h3 class="border-b border-[#E6EDF5] bg-[#F8FAFC] px-4 py-2 text-[11px] font-black uppercase tracking-[0.14em] text-slate-500 rtl:tracking-normal sm:px-6 md:px-8"><?php echo esc_html(boblift_marine_text('Compare configurations')); ?></h3>
+        <div class="overflow-x-auto [scrollbar-width:thin]">
+            <table class="w-full min-w-[340px] border-collapse text-sm [font-variant-numeric:tabular-nums]">
                 <thead>
-                    <tr class="border-b border-[#D5DEE9] text-[11px] font-black uppercase tracking-[0.08em] text-slate-500 rtl:tracking-normal">
-                        <th class="py-2 pe-4 text-start" scope="col"><?php echo esc_html($t('Model')); ?></th>
-                        <?php foreach ($columns as [$label]) : ?><th class="py-2 pe-4 text-start" scope="col"><?php echo esc_html($t($label)); ?></th><?php endforeach; ?>
+                    <tr class="border-b border-[#E6EDF5] text-xs font-semibold text-slate-500">
+                        <th class="py-2 pe-3 ps-4 text-start font-semibold sm:ps-6 md:ps-8" scope="col"><?php echo esc_html(boblift_marine_text('Model')); ?></th>
+                        <?php if ($labelled) : ?><th class="py-2 pe-3 text-start font-semibold" scope="col"><?php echo esc_html(boblift_marine_text('Configuration')); ?></th><?php endif; ?>
+                        <?php foreach ($columns as $index => [$label]) : ?><th class="py-2 text-end font-semibold <?php echo $index === count($columns) - 1 ? 'pe-4 sm:pe-6 md:pe-8' : 'pe-3'; ?>" scope="col"><?php echo esc_html(boblift_marine_text($label)); ?></th><?php endforeach; ?>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($members as $member) : $current = $member['model'] === $state['active']; ?>
-                        <tr class="cursor-pointer border-b border-[#E6EDF5] transition-colors hover:bg-[#F5F8FC] <?php echo $current ? 'bg-[#EEF3F9] font-black' : ''; ?>" data-cfg-row="<?php echo esc_attr($member['model']); ?>"<?php echo $current ? ' aria-current="true"' : ''; ?>>
-                            <th class="py-2.5 pe-4 text-start font-black text-[#071f42]" scope="row" dir="ltr"><a class="hover:text-blue-700" href="<?php echo esc_url($member['url']); ?>"><?php echo esc_html($member['model']); ?></a></th>
-                            <?php foreach ($columns as [, $pick]) : $value = (string) $pick($member); $missing = $missing || $value === ''; ?>
-                                <td class="whitespace-nowrap py-2.5 pe-4 text-[#071f42]"><?php echo $value !== '' ? esc_html($value) : '<span class="text-slate-400">—</span>'; ?></td>
+                        <tr class="boblift-cfg-row cursor-pointer border-b border-[#E6EDF5] text-[#071f42] transition-colors hover:bg-[#F5F8FC]" data-cfg-row="<?php echo esc_attr($member['model']); ?>"<?php echo $current ? ' aria-current="true"' : ''; ?>>
+                            <th class="py-2.5 pe-3 ps-4 text-start font-black sm:ps-6 md:ps-8" scope="row"><a class="inline-flex items-center gap-2.5 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400" href="<?php echo esc_url($member['url']); ?>" dir="ltr"><span class="boblift-cfg-dot" aria-hidden="true"></span><?php echo esc_html($member['model']); ?></a></th>
+                            <?php if ($labelled) : ?><td class="whitespace-nowrap py-2.5 pe-3"><?php echo esc_html(boblift_marine_compare_label($member['values'], $dimensions)); ?></td><?php endif; ?>
+                            <?php foreach ($columns as $index => [, $key]) :
+                                $value = $member['figures'][$key];
+                                $missing = $missing || $value === null;
+                                ?>
+                                <td class="whitespace-nowrap py-2.5 text-end <?php echo $index === count($columns) - 1 ? 'pe-4 sm:pe-6 md:pe-8' : 'pe-3'; ?>" dir="ltr"><?php echo $value === null ? '<span class="text-slate-400">—</span>' : esc_html($key === 'weight' ? boblift_marine_format_kg($value) : (string) $value); ?></td>
                             <?php endforeach; ?>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
-        <?php if ($missing) : ?><p class="mt-2 text-xs leading-5 text-slate-500"><?php echo esc_html($t('—: not listed here, see the drawing for this configuration.')); ?></p><?php endif; ?>
+        <?php if ($missing) : ?><p class="border-b border-[#E6EDF5] px-4 py-2 text-xs leading-5 text-slate-500 sm:px-6 md:px-8"><?php echo esc_html(boblift_marine_text('—: not listed here, see the drawing for this configuration.')); ?></p><?php endif; ?>
     </div>
     <?php
 }

@@ -5317,15 +5317,11 @@
       line.hidden = !variant.summary;
     });
     // The comparison table stays with the shown specifications, its row marking the choice.
-    const shownTechnical = document.querySelector('[data-cfg-block="technical"] [data-cfg-variant]:not([hidden]) article');
-    if (compare && shownTechnical && shownTechnical.children[0] && compare.parentElement !== shownTechnical) {
-      shownTechnical.children[0].after(compare);
-    }
+    const compareSlot = document.querySelector('[data-cfg-block="technical"] [data-cfg-variant]:not([hidden]) [data-cfg-compare-slot]');
+    if (compare && compareSlot && compare.parentElement !== compareSlot) compareSlot.append(compare);
     if (compare) {
       compare.querySelectorAll('[data-cfg-row]').forEach((row) => {
         const selected = row.dataset.cfgRow === variant.model;
-        row.classList.toggle('bg-[#EEF3F9]', selected);
-        row.classList.toggle('font-black', selected);
         if (selected) row.setAttribute('aria-current', 'true');
         else row.removeAttribute('aria-current');
       });

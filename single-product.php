@@ -448,9 +448,7 @@ if ($family_quote_copy) {
                             <?php endif; ?>
                         </div>
                     <?php endif; ?>
-                    <?php boblift_marine_block_open('decode'); ?>
-                    <?php if ($marine_page) { boblift_marine_render_compact_decode($hero_model); } else { boblift_render_model_decode($hero_model); } ?>
-                    <?php boblift_marine_block_close('decode'); ?>
+                    <?php if (!$marine_page) { boblift_render_model_decode($hero_model); } ?>
                     <?php boblift_render_model_variants($hero_model, (string) ($product['slug'] ?? '')); ?>
                     <?php boblift_marine_block_open('keyspecs'); ?>
                     <dl class="mt-6 grid grid-cols-2 border-y border-[#D5DEE9] <?php echo $marine_page && count($hero_specs) === 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-4'; ?> lg:mt-7">
@@ -480,12 +478,12 @@ if ($family_quote_copy) {
                             <?php endif; ?>
                         </div>
                         <?php if ($hero_whatsapp_href !== '' || $hero_email !== '') : ?>
-                            <div class="mt-3 grid grid-cols-2 gap-3" aria-label="<?php echo esc_attr(boblift_localized_static_text('Or message us')); ?>">
+                            <div class="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
                                 <?php if ($hero_whatsapp_href !== '') : ?>
-                                    <a class="inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-sm border border-[#E2E8F0] bg-white/60 px-3 text-sm font-semibold text-[#071f42] transition hover:border-blue-300" href="<?php echo esc_url($hero_whatsapp_href); ?>" target="_blank" rel="noopener"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?><?php echo $marine_page ? ' data-series-whatsapp' : ''; ?>><?php echo boblift_icon('whatsapp', 'h-4 w-4 text-[#25D366]'); ?><span class="[font-variant-numeric:tabular-nums]"><?php echo esc_html($hero_whatsapp_display); ?></span></a>
+                                    <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 font-semibold text-[#071f42] transition hover:border-blue-500 hover:text-blue-700" href="<?php echo esc_url($hero_whatsapp_href); ?>" target="_blank" rel="noopener"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?><?php echo $marine_page ? ' data-series-whatsapp' : ''; ?>><?php echo boblift_icon('whatsapp', 'h-4 w-4 text-[#25D366]'); ?><span class="[font-variant-numeric:tabular-nums]"><?php echo esc_html($hero_whatsapp_display); ?></span></a>
                                 <?php endif; ?>
                                 <?php if ($hero_email !== '') : ?>
-                                    <a class="inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-sm border border-[#E2E8F0] bg-white/60 px-3 text-sm font-semibold text-[#071f42] transition hover:border-blue-300" href="<?php echo esc_url($hero_mail_href); ?>"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?><?php echo $marine_page ? ' data-series-mail' : ''; ?>><?php echo boblift_icon('mail', 'h-4 w-4 text-slate-500'); ?><?php echo esc_html($hero_email); ?></a>
+                                    <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 font-semibold text-[#071f42] transition hover:border-blue-500 hover:text-blue-700" href="<?php echo esc_url($hero_mail_href); ?>"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?><?php echo $marine_page ? ' data-series-mail' : ''; ?>><?php echo boblift_icon('mail', 'h-4 w-4 text-slate-500'); ?><?php echo esc_html($hero_email); ?></a>
                                 <?php endif; ?>
                             </div>
                         <?php endif; ?>
@@ -518,6 +516,10 @@ if ($family_quote_copy) {
                             <?php if (!$marine_page) : ?><p class="mt-3 text-xs font-normal leading-5 text-slate-500"><?php echo esc_html(boblift_localized_static_text('Confirm your configuration and current availability with our team.')); ?></p><?php endif; ?>
                         </div>
                     <?php endif; ?>
+                    <?php // A series explains its model name last: the choice and the quote come first. ?>
+                    <?php boblift_marine_block_open('decode'); ?>
+                    <?php if ($marine_page) { boblift_marine_render_compact_decode($hero_model); } ?>
+                    <?php boblift_marine_block_close('decode'); ?>
                 </div>
                 <?php boblift_marine_block_open('gallery'); ?>
                 <div class="relative order-1 min-w-0 lg:order-2" data-product-hero-gallery-root data-product-hero-active-index="0">
@@ -585,7 +587,6 @@ if ($family_quote_copy) {
                         <?php endif; ?>
                     </div>
                 </div>
-                <?php if ($marine_page) { boblift_marine_render_compare((string) $marine_member['model']); } ?>
                 <?php // With drawings, the specs take the left half and the drawings the right, as on the loader site, so a wide drawing is not blown up to the full card width. ?>
                 <?php if ($drawings) : ?><div class="grid grid-cols-[minmax(0,1fr)] border-t border-[#E6EDF5] lg:grid-cols-2"><?php endif; ?>
                 <?php
@@ -619,6 +620,7 @@ if ($family_quote_copy) {
                 }
                 ?>
                 <div class="min-w-0 <?php echo $drawings ? '' : 'border-t border-[#E6EDF5]'; ?>">
+                    <?php if ($marine_page) : ?><div data-cfg-compare-slot><?php boblift_marine_render_compare((string) $marine_member['model']); ?></div><?php endif; ?>
                     <?php
                     // A spec sheet, not tiles: label and value on one line, two columns (three without drawings on wide screens),
                     // so fourteen figures fit in the height four tile rows took. The last row of a group fills what is left of its line.
@@ -641,6 +643,9 @@ if ($family_quote_copy) {
                         <dl class="grid grid-cols-1 sm:grid-cols-2 <?php echo $spec_cols === 3 ? 'lg:grid-cols-3' : ''; ?>">
                             <?php foreach ($spec_rows as $spec_index => $spec) :
                                 [$spec_number, $spec_unit] = $hero_spec_parts((string) $spec['value']);
+                                if ($marine_page && preg_match('/^\d{4,}$/', $spec_number)) {
+                                    $spec_number = number_format((int) $spec_number, 0, '.', ',');
+                                }
                                 $spec_is_model = !$spec_groups && $hero_model !== '' && $spec === $technical_specs[0];
                                 $spec_last = $spec_index >= count($spec_short) ? $spec_full : ($spec_index === count($spec_short) - 1 ? trim(($spec_fill['sm'][boblift_grid_last_item_span($spec_ones, 2)] ?? '') . ' ' . ($spec_cols === 3 ? ($spec_fill['lg'][boblift_grid_last_item_span($spec_ones, 3)] ?? 'lg:col-span-1') : '')) : '');
                             ?>

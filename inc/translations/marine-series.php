@@ -1,6 +1,7 @@
 <?php
 return [
     'ja' => [
+        'cfg|Configuration' => '構成',
         'cfg|Compared with {model}' => '{model} との比較',
         'cfg|Self weight' => '自重',
         'cfg|Max reach' => '最大作業半径',
@@ -31,6 +32,7 @@ return [
         'cfg|Winch (J) on every configuration' => 'すべての構成にウィンチ（J）を装備',
     ],
     'zh' => [
+        'cfg|Configuration' => '配置',
         'cfg|Compared with {model}' => '相比 {model}',
         'cfg|Self weight' => '自重',
         'cfg|Max reach' => '最大幅度',
@@ -61,6 +63,7 @@ return [
         'cfg|Winch (J) on every configuration' => '所有配置均带卷扬（J）',
     ],
     'es' => [
+        'cfg|Configuration' => 'Configuración',
         'cfg|Compared with {model}' => 'Comparado con {model}',
         'cfg|Self weight' => 'Peso propio',
         'cfg|Max reach' => 'Alcance máximo',
@@ -91,6 +94,7 @@ return [
         'cfg|Winch (J) on every configuration' => 'Cabrestante (J) en todas las configuraciones',
     ],
     'ru' => [
+        'cfg|Configuration' => 'Конфигурация',
         'cfg|Compared with {model}' => 'По сравнению с {model}',
         'cfg|Self weight' => 'Собственный вес',
         'cfg|Max reach' => 'Макс. вылет',
@@ -121,6 +125,7 @@ return [
         'cfg|Winch (J) on every configuration' => 'Лебедка (J) в каждой конфигурации',
     ],
     'fr' => [
+        'cfg|Configuration' => 'Configuration',
         'cfg|Compared with {model}' => 'Par rapport à {model}',
         'cfg|Self weight' => 'Poids propre',
         'cfg|Max reach' => 'Portée maximale',
@@ -151,6 +156,7 @@ return [
         'cfg|Winch (J) on every configuration' => 'Treuil (J) sur toutes les configurations',
     ],
     'ar' => [
+        'cfg|Configuration' => 'التكوين',
         'cfg|Compared with {model}' => 'مقارنة بـ {model}',
         'cfg|Self weight' => 'الوزن الذاتي',
         'cfg|Max reach' => 'المدى الأقصى',

@@ -104,6 +104,8 @@ $check('no pair, no difference', '', boblift_marine_winch_difference($twelve, $a
 $check('reach when the section has it', ['A6', 'reach 14.5 m'], boblift_marine_choice_label('sections', 'A6', $twelve));
 $check('booms otherwise', ['A4', '3 hydraulic booms'], boblift_marine_choice_label('sections', 'A4', $twelve));
 $check('difference from the series model', "Self weight \u{2066}−400 kg\u{2069} · With winch", boblift_marine_configuration_difference($twelve[1], $twelve[4]));
+$check('compare label', 'A4 · With winch', boblift_marine_compare_label($a4j, $dimensions));
+$check('a figure only one configuration has stays out of the comparison', [['Self weight', 'weight']], boblift_marine_compare_columns($twelve));
 $check('no difference from itself', '', boblift_marine_configuration_difference($twelve[4], $twelve[4]));
 
 echo $failures === 0 ? "ok\n" : "{$failures} failed\n";
