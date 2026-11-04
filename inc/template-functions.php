@@ -753,8 +753,12 @@ function boblift_localize_product_text_fragments(mixed $value): mixed
         return $value;
     }
 
+    // "Cranes for Truck" is the old category name: only the title-case name is renamed.
+    // Lowercase prose such as "cranes for truck chassis" must stay as written.
+    $case_sensitive_phrases = ['Cranes for Truck' => true];
     foreach (boblift_product_phrase_translation_map() as $phrase => $replacement) {
-        $value = preg_replace('/(?<![A-Za-z])' . preg_quote($phrase, '/') . '(?![A-Za-z])/i', $replacement, $value) ?? $value;
+        $flags = isset($case_sensitive_phrases[$phrase]) ? '' : 'i';
+        $value = preg_replace('/(?<![A-Za-z])' . preg_quote($phrase, '/') . '(?![A-Za-z])/' . $flags, $replacement, $value) ?? $value;
     }
 
     $static_phrases = [
