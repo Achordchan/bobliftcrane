@@ -86,7 +86,10 @@ function boblift_import_current_content(): void
             $term_id = is_array($term) ? (int) $term['term_id'] : (int) $term;
             wp_update_term($term_id, 'product_category', ['name' => $category_title, 'description' => $category['description'] ?? '']);
             update_term_meta($term_id, '_boblift_icon', $category['icon'] ?? 'truck-crane');
-            update_term_meta($term_id, '_boblift_image', $category['image'] ?? '');
+            // A seed category without a picture keeps the one already saved on the term.
+            if ((string) ($category['image'] ?? '') !== '' || (string) get_term_meta($term_id, '_boblift_image', true) === '') {
+                update_term_meta($term_id, '_boblift_image', $category['image'] ?? '');
+            }
             update_term_meta($term_id, '_boblift_sort', $category['sort'] ?? 100);
         }
     }
