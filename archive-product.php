@@ -79,6 +79,32 @@ foreach ($categories as $category) {
     $banner_categories[$slug]['srcset'] = boblift_image_srcset(boblift_image_cdn_original($banner_categories[$slug]['image']));
 }
 $banner_initial = $initial_category !== '' ? $banner_categories[$initial_category] : $banner_default;
+// A category nested two levels down (Other Cranes > Aerial Work Platform > Truck Mounted Aerial Work Platform) still
+// belongs to its ancestors: each product also counts under, and is listed on, every ancestor of its categories.
+$category_ancestor_slugs = [];
+$language_terms = get_terms(['taxonomy' => 'product_category', 'hide_empty' => false]);
+if (!is_wp_error($language_terms)) {
+    $language_terms = array_values(array_filter($language_terms, static fn($term): bool => $term instanceof WP_Term && (!function_exists('boblift_term_matches_current_language') || boblift_term_matches_current_language($term))));
+    $language_term_by_id = [];
+    foreach ($language_terms as $term) {
+        $language_term_by_id[(int) $term->term_id] = $term;
+    }
+    foreach ($language_terms as $term) {
+        $ancestors = [];
+        for ($parent = (int) $term->parent, $guard = 0; $parent > 0 && isset($language_term_by_id[$parent]) && $guard < 10; $parent = (int) $language_term_by_id[$parent]->parent, $guard++) {
+            $ancestors[] = $language_term_by_id[$parent]->slug;
+        }
+        $category_ancestor_slugs[$term->slug] = $ancestors;
+    }
+}
+foreach ($products as $index => $product) {
+    $own = array_values(array_filter(array_map('strval', $product['categories'] ?? [($product['category'] ?? '')])));
+    $with_ancestors = $own;
+    foreach ($own as $slug) {
+        $with_ancestors = array_merge($with_ancestors, $category_ancestor_slugs[$slug] ?? []);
+    }
+    $products[$index]['categories'] = array_values(array_unique($with_ancestors));
+}
 foreach ($products as $product) {
     $product_key = (string) ($product['id'] ?? $product['slug'] ?? $product['title'] ?? wp_unique_id('product_'));
     $product_categories = array_values(array_unique(array_filter(array_map('strval', $product['categories'] ?? [($product['category'] ?? '')]))));

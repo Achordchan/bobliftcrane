@@ -1547,6 +1547,8 @@ function boblift_home_page_meta_box(WP_Post $post): void
     $home = function_exists('boblift_mls_section_options') ? boblift_mls_section_options('home', $language) : (boblift_options()['home'] ?? []);
     // Show the slides with legacy photos carried in, so saving them keeps those photos (and stores the migration marker).
     $home = function_exists('boblift_migrate_legacy_hero_slides') ? (boblift_migrate_legacy_hero_slides(['home' => $home])['home'] ?? $home) : $home;
+    // The same new default slides the front page shows, so saving the settings keeps them.
+    $home = function_exists('boblift_add_new_default_hero_slides') ? (boblift_add_new_default_hero_slides(['home' => $home])['home'] ?? $home) : $home;
     boblift_render_home_page_fields($home, 'boblift_home_page');
     echo '</div>';
 }

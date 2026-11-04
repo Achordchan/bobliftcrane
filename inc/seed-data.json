@@ -253,13 +253,22 @@
             "image_alt": "BOB-LIFT knuckle boom marine crane lifting a cargo container on a supply vessel"
           },
           {
-            "tab": "Truck Mounted Cranes",
+            "tab": "Truck Cranes",
             "title": "Truck mounted cranes, built to lift.",
             "text": "Knuckle boom and telescopic truck cranes from 800 kg to 50 t, built in our 37,000 m² factory in Xuzhou and exported to 120+ countries.",
             "primary_label": "View Truck Cranes",
             "primary_href": "/truck-mounted-crane",
             "image": "images/page-heroes/home-site.webp",
             "image_alt": "BOB-LIFT knuckle boom truck crane lifting a precast concrete panel"
+          },
+          {
+            "tab": "Mini Cranes",
+            "title": "Electric mini cranes, lift anywhere.",
+            "text": "1 t and 2 t folding-boom electric cranes on 12/24 V DC power with 360° slewing, worked by hand levers or a wireless remote. Bolt one to a vehicle bed, a workshop floor or the optional wheeled trolley.",
+            "primary_label": "View Electric Mini Cranes",
+            "primary_href": "/electric-mini-cranes",
+            "image": "images/page-heroes/home-electric-mini.webp",
+            "image_alt": "Illustration: BOB-LIFT 1 t electric mini crane on its wheeled trolley lifting a crate in a warehouse"
           }
         ]
       },

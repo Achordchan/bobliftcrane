@@ -828,7 +828,36 @@ function boblift_about_nav_moved_defaults(): array
 
 function boblift_options(): array
 {
-    return boblift_migrate_legacy_hero_slides(boblift_merged_options());
+    return boblift_add_new_default_hero_slides(boblift_migrate_legacy_hero_slides(boblift_merged_options()));
+}
+
+/**
+ * A hero still saved as the original two slides (marine, then truck cranes, by their button links) gains the slides added
+ * to the defaults since, and the truck slide's tab takes the shorter default label so three tabs fit one line. A hero
+ * edited in any other way is left as saved. Applied on read, like the legacy migration above, so every language picks it
+ * up; saving the home settings then stores the slides as shown.
+ */
+function boblift_add_new_default_hero_slides(array $options): array
+{
+    $slides = $options['home']['hero']['slides'] ?? null;
+    if (!is_array($slides) || !array_is_list($slides) || count($slides) !== 2) {
+        return $options;
+    }
+    $href = static fn(mixed $slide): string => is_array($slide) ? rtrim((string) wp_parse_url((string) ($slide['primary_href'] ?? ''), PHP_URL_PATH), '/') : '';
+    if ($href($slides[0]) !== '/marine-crane' || $href($slides[1]) !== '/truck-mounted-crane') {
+        return $options;
+    }
+    $defaults = boblift_default_options()['home']['hero']['slides'] ?? [];
+    if (!is_array($defaults) || count($defaults) <= 2) {
+        return $options;
+    }
+    if (trim((string) ($slides[1]['tab'] ?? '')) === 'Truck Mounted Cranes') {
+        $options['home']['hero']['slides'][1]['tab'] = (string) ($defaults[1]['tab'] ?? 'Truck Mounted Cranes');
+    }
+    foreach (array_slice($defaults, 2) as $slide) {
+        $options['home']['hero']['slides'][] = $slide;
+    }
+    return $options;
 }
 
 function boblift_merged_options(): array
@@ -1128,6 +1157,11 @@ function boblift_product_category_group_definitions(): array
             'children' => ['knuckle-boom-marine-cranes', 'telescopic-boom-marine-cranes'],
         ],
         [
+            'slug' => 'electric-mini-cranes',
+            'title' => 'Electric Mini Cranes',
+            'children' => [],
+        ],
+        [
             'slug' => 'aerial-work-platform',
             'title' => 'Aerial Work Platform',
             'children' => ['truck-mounted-aerial-work-platform'],
@@ -1135,7 +1169,7 @@ function boblift_product_category_group_definitions(): array
         [
             'slug' => 'other-cranes',
             'title' => 'Other Cranes',
-            'children' => ['spider-cranes', 'timber-cranes', 'electric-mini-cranes'],
+            'children' => ['spider-cranes', 'timber-cranes'],
         ],
     ];
 }
@@ -1580,12 +1614,13 @@ function boblift_tonnes_label(float $value): string
     return rtrim(rtrim(number_format($value, 2, '.', ''), '0'), '.');
 }
 
-// A forklift fly jib hoists a hanging load, so it counts as a crane attachment. Aerial work platforms lift
-// people (特种设备目录 / EN 280 / OSHA 1926.1400(c)(5) keep them apart from cranes) and tail lifts raise loads
-// onto a truck bed, so both sit under their own "other lifting equipment" label.
+// Every crane family, the forklift fly jib included, lists in its category sort order (truck, marine, fly jib,
+// electric mini, other). Aerial work platforms lift people (特种设备目录 / EN 280 / OSHA 1926.1400(c)(5) keep them
+// apart from cranes) and tail lifts raise loads onto a truck bed, so either one, when it is a family of its own,
+// sits after the cranes under its own "other lifting equipment" label.
 function boblift_product_family_group(string $source_slug): string
 {
-    return ['forklift-fly-jib-cranes' => 'attachment', 'aerial-work-platform' => 'access', 'tail-lift' => 'access'][$source_slug] ?? 'crane';
+    return ['aerial-work-platform' => 'access', 'tail-lift' => 'access'][$source_slug] ?? 'crane';
 }
 
 function boblift_product_family_group_label(string $group): string
