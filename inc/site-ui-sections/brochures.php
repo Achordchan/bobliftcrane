@@ -7,7 +7,7 @@ return [
         'productTitle' => 'Download the brochure for this range',
         'text' => 'Load charts, dimension drawings and specification tables for each crane family, as a PDF you can save, print or forward.',
         'downloadLabel' => 'Download PDF',
-        'emailLabel' => 'Email me a copy',
+        'quoteLabel' => 'Get a quote for this range',
         'pdfLabel' => 'PDF',
         'languageLabel' => 'EN',
         'pagesLabel' => '{count} pages',

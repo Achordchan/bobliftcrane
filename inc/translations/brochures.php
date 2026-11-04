@@ -1,6 +1,7 @@
 <?php
 return [
     'ja' => [
+        'Get a quote for this range' => 'このシリーズの見積もりを依頼',
         'Brochures' => 'カタログ',
         'Download the BOB-LIFT brochures' => 'BOB-LIFT カタログのダウンロード',
         'Download the brochure for this range' => 'このシリーズのカタログをダウンロード',
@@ -24,6 +25,7 @@ return [
         'CC85, CC105, CC125 and CC145 forklift fly jib cranes, 2.3 to 4.9 ton, with load charts, matching forklifts and lifting heights.' => 'フォークリフト用フライジブクレーン CC85・CC105・CC125・CC145（2.3～4.9 トン）を、荷重表、対応フォークリフト、揚程とともに掲載しています。',
     ],
     'zh' => [
+        'Get a quote for this range' => '按这本手册询价',
         'Brochures' => '产品册',
         'Download the BOB-LIFT brochures' => '下载 BOB-LIFT 产品册',
         'Download the brochure for this range' => '下载本系列产品册',
@@ -47,24 +49,28 @@ return [
         'CC85, CC105, CC125 and CC145 forklift fly jib cranes, 2.3 to 4.9 ton, with load charts, matching forklifts and lifting heights.' => 'CC85、CC105、CC125、CC145 叉车飞臂起重机（2.3–4.9 吨），附起重性能表、适配叉车和起升高度。',
     ],
     'es' => [
+        'Get a quote for this range' => 'Solicita un presupuesto para esta gama',
         'Electric Mini Cranes Brochure' => 'Folleto de minigrúas eléctricas',
         'SQ1Z-E and SQ2Z-E electric mini cranes, 1 and 2 ton, with load charts, bolt patterns and remote or lever control.' => 'Minigrúas eléctricas SQ1Z-E y SQ2Z-E, de 1 y 2 toneladas, con tablas de carga, esquemas de fijación y mando a distancia o mediante palanca.',
         'Forklift Fly Jib Cranes Brochure' => 'Folleto de grúas con plumín para carretilla elevadora',
         'CC85, CC105, CC125 and CC145 forklift fly jib cranes, 2.3 to 4.9 ton, with load charts, matching forklifts and lifting heights.' => 'Grúas con plumín para carretilla elevadora CC85, CC105, CC125 y CC145, de 2,3 a 4,9 toneladas, con tablas de carga, carretillas compatibles y alturas de elevación.',
     ],
     'fr' => [
+        'Get a quote for this range' => 'Demandez un devis pour cette gamme',
         'Electric Mini Cranes Brochure' => 'Brochure des mini-grues électriques',
         'SQ1Z-E and SQ2Z-E electric mini cranes, 1 and 2 ton, with load charts, bolt patterns and remote or lever control.' => 'Mini-grues électriques SQ1Z-E et SQ2Z-E, d\'une capacité de 1 et 2 tonnes, avec tableaux de charge, gabarits de boulonnage et commande à distance ou par levier.',
         'Forklift Fly Jib Cranes Brochure' => 'Brochure des grues fly jib pour chariot élévateur',
         'CC85, CC105, CC125 and CC145 forklift fly jib cranes, 2.3 to 4.9 ton, with load charts, matching forklifts and lifting heights.' => 'Grues fly jib pour chariot élévateur CC85, CC105, CC125 et CC145, de 2,3 à 4,9 tonnes, avec tableaux de charge, chariots élévateurs compatibles et hauteurs de levage.',
     ],
     'ru' => [
+        'Get a quote for this range' => 'Получить расценки на эту серию',
         'Electric Mini Cranes Brochure' => 'Брошюра: электрические мини-краны',
         'SQ1Z-E and SQ2Z-E electric mini cranes, 1 and 2 ton, with load charts, bolt patterns and remote or lever control.' => 'Электрические мини-краны SQ1Z-E и SQ2Z-E грузоподъемностью 1 и 2 тонны, с таблицами грузоподъемности, схемами расположения болтов и дистанционным или рычажным управлением.',
         'Forklift Fly Jib Cranes Brochure' => 'Брошюра: краны флай-джиб для вилочных погрузчиков',
         'CC85, CC105, CC125 and CC145 forklift fly jib cranes, 2.3 to 4.9 ton, with load charts, matching forklifts and lifting heights.' => 'Краны флай-джиб для вилочных погрузчиков CC85, CC105, CC125 и CC145 грузоподъемностью от 2,3 до 4,9 т, с таблицами грузоподъемности, подходящими погрузчиками и высотой подъема.',
     ],
     'ar' => [
+        'Get a quote for this range' => 'احصل على عرض أسعار لهذه المجموعة',
         'Electric Mini Cranes Brochure' => 'كتيب الرافعات الكهربائية الصغيرة',
         'SQ1Z-E and SQ2Z-E electric mini cranes, 1 and 2 ton, with load charts, bolt patterns and remote or lever control.' => 'الرافعات الكهربائية الصغيرة من طرازي SQ1Z-E وSQ2Z-E، بسعة 1 و2 طن، مزودة بجداول الحمولة، وأنماط تثبيت البراغي، والتحكم عن بُعد أو بواسطة ذراع التحكم.',
         'Forklift Fly Jib Cranes Brochure' => 'كتيب رافعات بذراع فلاي جيب للرافعة الشوكية',

@@ -133,8 +133,34 @@ function boblift_brochure_source(array $definition): ?array
 }
 
 /**
+ * "Get a quote for this range": opens the inquiry modal with the brochure (or, on a product page, the product) already
+ * picked, its cover as the thumbnail. The PDF itself stays a free download with no form in front of it.
+ */
+function boblift_brochure_quote_button(array $item, array $args, string $class): string
+{
+    $ui = boblift_site_ui('brochures');
+    $title = (string) (($args['product'] ?? '') !== '' ? $args['product'] : $item['title']);
+    $slug = (string) ($args['product_slug'] ?? '');
+    $products = [[
+        'title' => $title,
+        'slug' => $slug,
+        'image' => (string) ($item['cover'] ?? ''),
+        'category' => (string) $item['title'],
+    ]];
+    return sprintf(
+        '<button class="%s" type="button" data-inquiry-modal-open data-inquiry-source="%s" data-inquiry-product="%s" data-inquiry-product-slug="%s" data-inquiry-products="%s">%s</button>',
+        esc_attr($class),
+        esc_attr('产品手册询价'),
+        esc_attr($title),
+        esc_attr($slug),
+        esc_attr((string) wp_json_encode($products, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)),
+        esc_html((string) ($ui['quoteLabel'] ?? 'Get a quote for this range'))
+    );
+}
+
+/**
  * Renders the brochure cards. Args: context ('archive' | 'product'), families (keys to show, empty = all),
- * source (lead source for the email link), product (title and slug for the email link).
+ * product and product_slug (on a product page, the product the quote button asks about; elsewhere it asks about the brochure itself).
  * On the archive the block follows the category filter: data-brochure-map maps every category slug to its family.
  */
 function boblift_render_brochures(array $args = []): void
@@ -197,7 +223,7 @@ function boblift_render_brochures(array $args = []): void
                     <p class="mt-3 text-[11px] font-black uppercase tracking-[0.1em] text-slate-500"><?php echo esc_html(implode(' · ', $meta)); ?></p>
                     <div class="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2">
                         <a class="inline-flex h-11 items-center justify-center gap-2 rounded-sm bg-navy px-5 text-sm font-black text-white transition hover:bg-[#0b2d5b]" href="<?php echo esc_url($item['url']); ?>" download="<?php echo esc_attr($item['file']); ?>" title="<?php echo esc_attr($download_title); ?>"><?php echo boblift_icon('download', 'h-4 w-4'); ?><?php echo esc_html((string) ($ui['downloadLabel'] ?? 'Download PDF')); ?></a>
-                        <button class="inline-flex h-11 items-center text-sm font-black text-blue-700 transition hover:text-navy" type="button" data-catalog-modal-open data-catalog-product="<?php echo esc_attr((string) ($args['product'] ?? $item['title'])); ?>" data-catalog-product-slug="<?php echo esc_attr((string) ($args['product_slug'] ?? '')); ?>" data-catalog-url="<?php echo esc_url($item['url']); ?>"><?php echo esc_html((string) ($ui['emailLabel'] ?? 'Email me a copy')); ?></button>
+                        <?php echo boblift_brochure_quote_button($item, $args, 'inline-flex h-11 items-center text-sm font-black text-blue-700 transition hover:text-navy'); ?>
                     </div>
                 </div>
             </div>
@@ -209,11 +235,8 @@ function boblift_render_brochures(array $args = []): void
         </div>
         <div class="mt-6 grid gap-4 <?php echo $is_archive ? 'md:grid-cols-2 min-[1700px]:grid-cols-3' : 'md:grid-cols-2 xl:grid-cols-3'; ?>" data-brochure-grid>
             <?php
-            // The last card fills what is left of its row, so an odd count leaves no empty cell (two columns, three from 1700px on the archive).
-            $spans = array_fill(0, count($items), 1);
-            $last_span_class = [1 => '', 2 => 'md:col-span-2'][boblift_grid_last_item_span($spans, 2)] . ' ' . ($is_archive ? [1 => 'min-[1700px]:col-span-1', 2 => 'min-[1700px]:col-span-2', 3 => 'min-[1700px]:col-span-3'] : [1 => 'xl:col-span-1', 2 => 'xl:col-span-2', 3 => 'xl:col-span-3'])[boblift_grid_last_item_span($spans, 3)];
-            $last_key = array_key_last($items);
-            foreach ($items as $item_key => $item) :
+            // Equal columns on every row: a short last row keeps its cards at column width instead of stretching one across, so buttons and covers line up with the row above.
+            foreach ($items as $item) :
                 $hidden = $is_archive && $initial_family !== '' && $initial_family !== $item['key'];
                 $download_title = str_replace('{title}', $item['title'], (string) ($ui['downloadTitleTemplate'] ?? 'Download {title} as PDF'));
                 $meta = [
@@ -224,7 +247,7 @@ function boblift_render_brochures(array $args = []): void
                 ];
                 $meta = array_values(array_filter($meta, 'strlen'));
                 ?>
-                <article class="<?php echo $hidden ? 'hidden' : 'flex'; ?> gap-4 rounded border border-line <?php echo esc_attr($card_bg); ?> p-4 shadow-card<?php echo $item_key === $last_key ? ' ' . esc_attr(trim($last_span_class)) : ''; ?>" data-brochure-card data-brochure-family="<?php echo esc_attr($item['key']); ?>">
+                <article class="<?php echo $hidden ? 'hidden' : 'flex'; ?> gap-4 rounded border border-line <?php echo esc_attr($card_bg); ?> p-4 shadow-card" data-brochure-card data-brochure-family="<?php echo esc_attr($item['key']); ?>">
                     <a class="block w-24 shrink-0 self-start sm:w-28" data-brochure-cover href="<?php echo esc_url($item['url']); ?>" download="<?php echo esc_attr($item['file']); ?>" tabindex="-1" aria-hidden="true">
                         <img class="aspect-[520/711] w-full rounded-sm border border-line bg-white object-cover" src="<?php echo esc_url($item['cover']); ?>" width="520" height="711" alt="" loading="lazy" decoding="async">
                     </a>
@@ -238,7 +261,7 @@ function boblift_render_brochures(array $args = []): void
                         <p class="mt-2 text-sm font-normal leading-6 text-slate-600"><?php echo esc_html($item['text']); ?></p>
                         <div class="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 pt-4">
                             <a class="inline-flex h-11 items-center justify-center gap-2 rounded-sm bg-navy px-5 text-sm font-black text-white transition hover:bg-[#0b2d5b]" href="<?php echo esc_url($item['url']); ?>" download="<?php echo esc_attr($item['file']); ?>" title="<?php echo esc_attr($download_title); ?>"><?php echo boblift_icon('download', 'h-4 w-4'); ?><?php echo esc_html((string) ($ui['downloadLabel'] ?? 'Download PDF')); ?></a>
-                            <button class="inline-flex h-11 items-center text-sm font-black text-blue-700 transition hover:text-navy" type="button" data-catalog-modal-open data-catalog-product="<?php echo esc_attr((string) ($args['product'] ?? $item['title'])); ?>" data-catalog-product-slug="<?php echo esc_attr((string) ($args['product_slug'] ?? '')); ?>" data-catalog-url="<?php echo esc_url($item['url']); ?>"><?php echo esc_html((string) ($ui['emailLabel'] ?? 'Email me a copy')); ?></button>
+                            <?php echo boblift_brochure_quote_button($item, $args, 'inline-flex h-11 items-center text-sm font-black text-blue-700 transition hover:text-navy'); ?>
                         </div>
                     </div>
                 </article>
