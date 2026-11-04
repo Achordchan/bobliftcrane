@@ -513,6 +513,13 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
                 </section>
             <?php endforeach; ?>
             <?php boblift_render_brochures(['context' => 'archive', 'initial_category' => $initial_category]); ?>
+            <?php
+            // The category's film (inc/category-video.php): a full-width card under the intro and brochure.
+            $video_term = $initial_category !== '' && function_exists('boblift_render_category_video') ? boblift_archive_term($initial_category) : null;
+            if ($video_term) {
+                boblift_render_category_video($video_term['term']);
+            }
+            ?>
         </div>
         <?php boblift_render_archive_extras(array_values(array_filter($categories, static fn(array $item): bool => $initial_category !== '' && (string) ($item['slug'] ?? '') === $initial_category)), $initial_category); ?>
         <?php
