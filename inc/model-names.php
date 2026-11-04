@@ -17,7 +17,8 @@ function boblift_model_parts(string $model): array
         $capacity = str_starts_with($m['capacity'], '0') && !str_contains($m['capacity'], '.') ? '0.' . substr($m['capacity'], 1) : $m['capacity'];
         $hydraulic = (int) $m['count'] - 1;
         $parts = [
-            ['SQ', $t('Truck mounted crane')],
+            // The marine versions (T) are not truck cranes; SQ is the maker's prefix.
+            ['SQ', $t($m['marine'] !== '' ? 'BOB-LIFT crane' : 'Truck mounted crane')],
             [$m['capacity'], str_replace('{capacity}', $capacity, $t('{capacity} t capacity class'))],
             [$m['boom'], $t($m['boom'] === 'Z' ? 'Knuckle boom' : 'Telescopic boom')],
             ['A' . $m['count'], str_replace('{count}', (string) $hydraulic, $t($hydraulic === 1 ? '1 main boom + 1 hydraulic boom' : '1 main boom + {count} hydraulic booms'))],

@@ -2713,6 +2713,11 @@
         if (visible?.target?.id) activateProductSectionLink(visible.target.id);
       }, { rootMargin: '-25% 0px -60% 0px', threshold: [0.08, 0.22, 0.4] });
       sections.forEach((section) => observer.observe(section));
+      // A marine series page moves the section ids to the chosen configuration's blocks.
+      window.addEventListener('boblift:series-change', () => {
+        observer.disconnect();
+        sectionIds.map((id) => document.getElementById(id)).filter(Boolean).forEach((section) => observer.observe(section));
+      });
     }
     const currentHash = window.location.hash ? window.location.hash.slice(1) : sectionIds[0];
     if (currentHash) activateProductSectionLink(currentHash);
@@ -5219,6 +5224,121 @@
   };
   if (document.readyState === 'complete') init();
   else window.addEventListener('load', init, { once: true });
+})();
+
+// Marine series page (inc/marine-series.php): every configuration's blocks are in the page, this only shows the chosen one.
+// A choice the current configuration has no version of is dashed; picking it goes to the closest real configuration.
+(() => {
+  const root = document.querySelector('[data-series-config]');
+  const dataNode = root && root.querySelector('[data-series-data]');
+  if (!dataNode) return;
+  let data;
+  try { data = JSON.parse(dataNode.textContent || '{}'); } catch (error) { return; }
+  const variants = Array.isArray(data.variants) ? data.variants : [];
+  if (!variants.length) return;
+  const slugs = variants.map((variant) => variant.slug);
+  const buttons = [...root.querySelectorAll('[data-cfg-group]')];
+  const on = ['border-[#071f42]', 'bg-[#071f42]', 'text-white'];
+  const off = ['border-[#D5DEE9]', 'bg-white', 'text-[#071f42]', 'hover:border-blue-300'];
+  let current = null;
+
+  const closest = (group, value) => {
+    const candidates = variants.filter((variant) => variant.values[group] === value);
+    let best = null;
+    let bestScore = -1;
+    candidates.forEach((variant) => {
+      const score = data.dimensions.filter((name) => name !== group && variant.values[name] === current.values[name]).length;
+      if (score > bestScore) {
+        best = variant;
+        bestScore = score;
+      }
+    });
+    return best;
+  };
+
+  const apply = (variant, updateAddress) => {
+    current = variant;
+    document.querySelectorAll('[data-cfg-block]').forEach((block) => {
+      [...block.children].forEach((holder) => {
+        const active = holder.getAttribute('data-cfg-variant') === variant.model;
+        holder.hidden = !active;
+        // Ids belong to the shown version only: #technical, #drawing and the rest must stay unique.
+        if (active) {
+          holder.querySelectorAll('[data-vid]').forEach((element) => {
+            element.id = element.getAttribute('data-vid');
+            element.removeAttribute('data-vid');
+          });
+        } else {
+          holder.querySelectorAll('[id]').forEach((element) => {
+            element.setAttribute('data-vid', element.id);
+            element.removeAttribute('id');
+          });
+        }
+      });
+    });
+    buttons.forEach((button) => {
+      const group = button.dataset.cfgGroup;
+      const value = button.dataset.cfgValue;
+      const selected = variant.values[group] === value;
+      const exists = variants.some((other) => other.values[group] === value && data.dimensions.every((name) => name === group || other.values[name] === variant.values[name]));
+      button.setAttribute('aria-checked', selected ? 'true' : 'false');
+      button.tabIndex = selected ? 0 : -1;
+      button.classList.remove(...(selected ? off : on));
+      button.classList.add(...(selected ? on : off));
+      button.classList.toggle('border-dashed', !exists);
+      if (exists) button.removeAttribute('title');
+      else button.title = data.unavailable || '';
+    });
+    document.querySelectorAll('[data-cfg-title], [data-cfg-model]').forEach((element) => {
+      element.textContent = variant.model;
+    });
+    if (variant.inquiry) {
+      document.querySelectorAll('[data-inquiry-products]').forEach((button) => {
+        let items;
+        try { items = JSON.parse(button.dataset.inquiryProducts || '[]'); } catch (error) { return; }
+        if (!Array.isArray(items) || !items.some((item) => item && slugs.includes(item.slug))) return;
+        button.dataset.inquiryProducts = JSON.stringify(items.map((item) => (item && slugs.includes(item.slug) ? variant.inquiry : item)));
+        if (button.dataset.inquiryProduct) button.dataset.inquiryProduct = variant.inquiry.title;
+        if (button.dataset.inquiryProductSlug) button.dataset.inquiryProductSlug = variant.slug;
+      });
+    }
+    if (variant.whatsapp) document.querySelectorAll('[data-series-whatsapp]').forEach((link) => link.setAttribute('href', variant.whatsapp));
+    if (variant.mail) document.querySelectorAll('[data-series-mail]').forEach((link) => link.setAttribute('href', variant.mail));
+    if (updateAddress) {
+      const url = new URL(window.location.href);
+      if (variant.model === data.default) url.searchParams.delete('model');
+      else url.searchParams.set('model', variant.model);
+      window.history.replaceState(window.history.state, '', url.toString());
+      // Blocks changed height, and the section tabs follow the elements that now hold the ids.
+      window.dispatchEvent(new CustomEvent('boblift:series-change'));
+      window.dispatchEvent(new Event('resize'));
+    }
+  };
+
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const group = button.dataset.cfgGroup;
+      const value = button.dataset.cfgValue;
+      if (current.values[group] === value) return;
+      const next = closest(group, value);
+      if (next) apply(next, true);
+    });
+    // Arrow keys move along the group, as in any radio group.
+    button.addEventListener('keydown', (event) => {
+      const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key];
+      if (!step) return;
+      event.preventDefault();
+      const peers = buttons.filter((peer) => peer.dataset.cfgGroup === button.dataset.cfgGroup);
+      const rtl = getComputedStyle(root).direction === 'rtl' && (event.key === 'ArrowRight' || event.key === 'ArrowLeft');
+      const target = peers[(peers.indexOf(button) + (rtl ? -step : step) + peers.length) % peers.length];
+      target.click();
+      const group = target.dataset.cfgGroup;
+      buttons.find((peer) => peer.dataset.cfgGroup === group && peer.getAttribute('aria-checked') === 'true')?.focus();
+    });
+  });
+
+  // The server already shows the requested configuration; this also points the quote buttons and links at it.
+  apply(variants.find((variant) => variant.model === data.active) || variants.find((variant) => variant.model === data.default) || variants[0], false);
 })();
 
 // Version choice under a product title (inc/model-names.php, boblift_render_model_variants): SQ2Z-EM or SQ2Z-ER on the

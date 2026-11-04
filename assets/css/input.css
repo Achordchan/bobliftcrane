@@ -1962,13 +1962,15 @@ img { max-width: 100%; }
 /* On phones the product page sections run edge to edge as bands, as on the loader site, instead of cards inside
    the 16px gutter: their copy then starts on the same 16px line as the hero above. */
 @media (max-width: 767px) {
-  .boblift-pd-stack > :is(article, section):not(#quote) {
+  .boblift-pd-stack > :is(article, section):not(#quote),
+  .boblift-pd-stack > [data-cfg-block] > [data-cfg-variant] > article {
     margin-inline: -16px;
     border-radius: 0;
     border-inline-width: 0;
     box-shadow: none;
   }
-  .boblift-pd-stack > :is(article, section):not(#quote) h2 {
+  .boblift-pd-stack > :is(article, section):not(#quote) h2,
+  .boblift-pd-stack > [data-cfg-block] > [data-cfg-variant] > article h2 {
     margin-top: 0.5rem;
     font-size: 1.375rem;
     line-height: 1.15;

@@ -1,5 +1,5 @@
 <?php
-$queried_product = get_queried_object();
+$queried_product = boblift_marine_series_capturing() ? get_post() : get_queried_object();
 if ($queried_product instanceof WP_Post && $queried_product->post_type === 'product' && post_password_required($queried_product)) {
     // Protected product: only the standard WordPress password form, before any specification, drawing or image is read.
     get_header();
@@ -7,7 +7,9 @@ if ($queried_product instanceof WP_Post && $queried_product->post_type === 'prod
     get_footer();
     return;
 }
-get_header();
+if (!boblift_marine_series_capturing()) {
+    get_header();
+}
 // The routed product is already the one for this language; a slug lookup could return the English product it shares a slug with.
 $product = $queried_product instanceof WP_Post && $queried_product->post_type === 'product' && $queried_product->post_status === 'publish'
     ? boblift_product_from_post($queried_product)
@@ -22,6 +24,13 @@ if (!$product) {
     get_footer();
     return;
 }
+// A marine series page runs this template once per configuration first, keeping their blocks (inc/marine-series.php).
+$marine_series = boblift_marine_series_for_product((int) ($product['id'] ?? 0));
+$marine_member = $marine_series ? boblift_marine_series_member($marine_series, (int) $product['id']) : null;
+if ($marine_series && !boblift_marine_series_capturing() && !empty($marine_member['is_home'])) {
+    boblift_marine_series_begin($marine_series);
+}
+$marine_page = $marine_member && (boblift_marine_series_capturing() || !empty($marine_member['is_home']));
 $image_url = static function (string $image): string {
     return str_starts_with($image, 'http') ? $image : boblift_asset($image);
 };
@@ -30,16 +39,22 @@ $main_image = boblift_product_image($product);
 // mail name it, and the version choice under the title changes it (inc/model-names.php, assets/js/theme.js).
 $model_variant = boblift_model_default_variant(trim((string) ($product['model'] ?? '')));
 $inquiry_product_title = trim((string) ($product['title'] ?? '') . ($model_variant ? ' ' . $model_variant['model'] : ''));
-$inquiry_products_payload = wp_json_encode([[
+if ($marine_page && stripos($inquiry_product_title, (string) $marine_member['model']) === false) {
+    $inquiry_product_title .= ' ' . $marine_member['model'];
+}
+// A configuration's address is its series page with ?model=.
+$product_page_url = $marine_page ? (string) $marine_member['url'] : (string) ($product['detail_url'] ?? get_permalink());
+$inquiry_product_item = [
     'id' => (string) ($product['id'] ?? ($product['slug'] ?? $product['title'])),
     'title' => $inquiry_product_title,
     'slug' => (string) ($product['slug'] ?? ''),
     'image' => (string) $main_image,
     'category' => (string) ($product['category_title'] ?? 'BOB-LIFT'),
-    'detailUrl' => (string) ($product['detail_url'] ?? get_permalink()),
-    // The inquiry form marks a previous model, so the customer sees which one they ask about.
-    'badge' => boblift_product_is_legacy((int) get_the_ID()) ? boblift_localized_static_text('Previous model') : '',
-]], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: '[]';
+    'detailUrl' => $product_page_url,
+    // The inquiry form marks a previous model, so the customer sees which one they ask about. Marine series show none.
+    'badge' => !$marine_series && boblift_product_is_legacy((int) get_the_ID()) ? boblift_localized_static_text('Previous model') : '',
+];
+$inquiry_products_payload = wp_json_encode([$inquiry_product_item], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: '[]';
 $inquiry_url = $product['inquiry_url'] ?? boblift_url('/contact.html#inquiry');
 $contact_url = boblift_url('/contact');
 $ui = boblift_site_ui('productDetail');
@@ -62,7 +77,7 @@ $hero_whatsapp_number = (string) (boblift_contact_settings()['whatsappNumber'] ?
 if ($hero_whatsapp_number !== '') {
     $whatsapp_model = (string) ($model_variant['model'] ?? ($product['model'] ?? ''));
     $hero_whatsapp_product = trim($whatsapp_model !== '' && strcasecmp($whatsapp_model, (string) ($product['title'] ?? '')) !== 0 ? $whatsapp_model . ' (' . ($product['title'] ?? '') . ')' : (string) ($product['title'] ?? ''));
-    $hero_whatsapp_href = 'https://wa.me/' . $hero_whatsapp_number . '?text=' . rawurlencode('Hello BOB-LIFT, I would like a quote for the ' . $hero_whatsapp_product . ': ' . ($product['detail_url'] ?? get_permalink()));
+    $hero_whatsapp_href = 'https://wa.me/' . $hero_whatsapp_number . '?text=' . rawurlencode('Hello BOB-LIFT, I would like a quote for the ' . $hero_whatsapp_product . ': ' . $product_page_url);
 }
 // Written out under the buttons, so visitors can also copy them: "8615852499415" reads as "+86 158 5249 9415".
 $hero_contact = boblift_contact_settings();
@@ -72,6 +87,10 @@ $product_title = (string) ($product['title'] ?? '');
 $hero_model = trim((string) ($product['model'] ?? ''));
 $hero_title = $hero_model !== '' ? $hero_model : $product_title;
 $show_hero_full_name = $hero_model !== '' && strcasecmp($hero_model, $product_title) !== 0;
+$hero_mail_href = 'mailto:' . $hero_email . '?subject=' . rawurlencode('BOB-LIFT quote: ' . ($model_variant['model'] ?? ($hero_model !== '' ? $hero_model : $product_title)));
+if ($marine_page) {
+    boblift_marine_series_collect((string) $marine_member['model'], ['inquiry' => $inquiry_product_item, 'whatsapp' => $hero_whatsapp_href, 'mail' => $hero_mail_href, 'image' => (string) $main_image, 'name' => $product_title, 'description' => trim((string) ($product['short_description'] ?? ''))]);
+}
 $specs = $product['specs'] ?? [];
 $features = $product['features'] ?? [];
 if (!$features) {
@@ -290,8 +309,8 @@ if (is_array($related_terms) && $related_terms) {
     }
 }
 // Previous models (inc/product-lifecycle.php): this model beside the other configurations of its capacity.
-$is_legacy_model = boblift_product_is_legacy((int) get_the_ID());
-$model_history = $related_term instanceof WP_Term ? boblift_product_model_history((int) get_the_ID(), $related_term) : [];
+$is_legacy_model = !$marine_series && boblift_product_is_legacy((int) get_the_ID());
+$model_history = !$marine_series && $related_term instanceof WP_Term ? boblift_product_model_history((int) get_the_ID(), $related_term) : [];
 // The English product's categories with their ancestors, so a model filed under a sub-type still counts for its family and step set.
 $process_slugs = boblift_product_category_lineage(get_the_ID());
 // Generated range guide, spec groups and model FAQs (inc/product-guide.php), for truck and marine cranes with a decoded model code.
@@ -386,11 +405,12 @@ if ($family_quote_copy) {
         <?php // Old shared links to #photos land on the photos, now in the hero. ?><span id="photos" class="block scroll-mt-24" aria-hidden="true"></span>
         <div class="pointer-events-none absolute inset-0 boblift-cinema-grid opacity-40"></div>
         <div class="page-shell relative z-10 py-6 md:py-8 lg:py-10">
-            <div class="grid grid-cols-1 items-center gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-10 xl:gap-14">
+            <?php // The configuration box makes the text column tall: the photo stays at its top instead of drifting to the middle. ?>
+            <div class="grid grid-cols-1 <?php echo $marine_page ? 'items-start' : 'items-center'; ?> gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-10 xl:gap-14">
                 <div class="relative z-20 order-2 min-w-0 lg:order-1">
                     <p class="boblift-kicker boblift-product-hero-kicker"><?php echo esc_html($product['category_title'] ?? 'BOB-LIFT Product'); ?></p>
                     <?php // The full name sits inside the h1 with the model, so the heading keeps the product keyword the old site ranked on. ?>
-                    <h1 class="mt-3 text-[#071f42]"><span class="boblift-product-hero-title block text-[clamp(44px,4.4vw,84px)] font-black leading-[0.92] tracking-[-0.02em]"><?php echo esc_html($hero_title); ?></span><?php if ($show_hero_full_name) : ?><span class="mt-3 block text-[clamp(18px,1.35vw,24px)] font-medium leading-tight tracking-normal text-slate-700"><?php echo esc_html($product_title); ?></span><?php endif; ?></h1>
+                    <h1 class="mt-3 text-[#071f42]"><span class="boblift-product-hero-title block text-[clamp(44px,4.4vw,84px)] font-black leading-[0.92] tracking-[-0.02em]"<?php echo $marine_page ? ' data-cfg-title' : ''; ?>><?php echo esc_html($marine_page ? ($GLOBALS['boblift_marine_render']['active'] ?? $hero_title) : $hero_title); ?></span><?php if ($show_hero_full_name) : ?><span class="mt-3 block text-[clamp(18px,1.35vw,24px)] font-medium leading-tight tracking-normal text-slate-700"><?php echo esc_html($product_title); ?><?php if ($marine_page) : ?> <span class="whitespace-nowrap text-slate-500">(<?php echo esc_html(boblift_marine_series_label($marine_series['code'])); ?>)</span><?php endif; ?></span><?php endif; ?></h1>
                     <?php if ($is_legacy_model) :
                         $legacy_target = $model_history ? '#model-history' : ($related_term instanceof WP_Term && !is_wp_error(get_term_link($related_term)) ? (string) get_term_link($related_term) : boblift_product_archive_url());
                         // The current models of the same capacity (or the nearest), each a direct link: the way on from a previous model.
@@ -415,8 +435,12 @@ if ($family_quote_copy) {
                             <?php endif; ?>
                         </div>
                     <?php endif; ?>
+                    <?php boblift_marine_block_open('decode'); ?>
                     <?php boblift_render_model_decode($hero_model); ?>
+                    <?php boblift_marine_block_close('decode'); ?>
+                    <?php boblift_marine_render_configurator(); ?>
                     <?php boblift_render_model_variants($hero_model, (string) ($product['slug'] ?? '')); ?>
+                    <?php boblift_marine_block_open('keyspecs'); ?>
                     <dl class="mt-6 grid grid-cols-2 border-y border-[#D5DEE9] sm:grid-cols-4 lg:mt-7">
                         <?php foreach ($hero_specs as $index => $spec) :
                             [$spec_number, $spec_unit] = $hero_spec_parts((string) ($spec['value'] ?? ''));
@@ -427,6 +451,7 @@ if ($family_quote_copy) {
                             </div>
                         <?php endforeach; ?>
                     </dl>
+                    <?php boblift_marine_block_close('keyspecs'); ?>
                     <?php // The tonnage page of this model's capacity bin (inc/tonnage-pages.php); none for models rated by working height. ?>
                     <?php $hero_capacity = function_exists('boblift_product_listing_capacity') ? boblift_product_listing_capacity($product) : 0.0; $hero_tonnage = function_exists('boblift_tonnage_size_for_capacity') ? boblift_tonnage_size_for_capacity($hero_capacity) : 0; if ($hero_tonnage > 0) : ?>
                         <a class="mt-4 inline-flex items-center gap-1.5 text-sm font-black text-blue-700 transition hover:text-[#071f42]" href="<?php echo esc_url(boblift_tonnage_url($hero_tonnage)); ?>"><?php echo esc_html(boblift_tonnage_see_all_label($hero_tonnage, $hero_capacity)); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></a>
@@ -441,10 +466,10 @@ if ($family_quote_copy) {
                         <div class="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
                             <span class="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(boblift_localized_static_text('Or message us')); ?></span>
                             <?php if ($hero_whatsapp_href !== '') : ?>
-                                <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 font-black text-[#071f42] transition hover:border-[#25D366]" href="<?php echo esc_url($hero_whatsapp_href); ?>" target="_blank" rel="noopener"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?>><?php echo boblift_icon('whatsapp', 'h-4 w-4 text-[#25D366]'); ?><span class="[font-variant-numeric:tabular-nums]"><?php echo esc_html($hero_whatsapp_display); ?></span></a>
+                                <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 font-black text-[#071f42] transition hover:border-[#25D366]" href="<?php echo esc_url($hero_whatsapp_href); ?>" target="_blank" rel="noopener"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?><?php echo $marine_page ? ' data-series-whatsapp' : ''; ?>><?php echo boblift_icon('whatsapp', 'h-4 w-4 text-[#25D366]'); ?><span class="[font-variant-numeric:tabular-nums]"><?php echo esc_html($hero_whatsapp_display); ?></span></a>
                             <?php endif; ?>
                             <?php if ($hero_email !== '') : ?>
-                                <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 font-black text-[#071f42] transition hover:border-blue-500" href="<?php echo esc_url('mailto:' . $hero_email . '?subject=' . rawurlencode('BOB-LIFT quote: ' . ($model_variant['model'] ?? ($hero_model !== '' ? $hero_model : $product_title)))); ?>"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?>><?php echo boblift_icon('mail', 'h-4 w-4 text-slate-500'); ?><?php echo esc_html($hero_email); ?></a>
+                                <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 font-black text-[#071f42] transition hover:border-blue-500" href="<?php echo esc_url($hero_mail_href); ?>"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?><?php echo $marine_page ? ' data-series-mail' : ''; ?>><?php echo boblift_icon('mail', 'h-4 w-4 text-slate-500'); ?><?php echo esc_html($hero_email); ?></a>
                             <?php endif; ?>
                         </div>
                     <?php endif; ?>
@@ -459,6 +484,7 @@ if ($family_quote_copy) {
                         </div>
                     <?php endif; ?>
                 </div>
+                <?php boblift_marine_block_open('gallery'); ?>
                 <div class="relative order-1 min-w-0 lg:order-2" data-product-hero-gallery-root data-product-hero-active-index="0">
                     <div class="boblift-product-stage relative aspect-[4/3] overflow-hidden rounded border border-[#DDE7F2] bg-[linear-gradient(180deg,#FFFFFF_0%,#F2F6FB_62%,#E8EEF6_100%)] shadow-card lg:aspect-[5/4] xl:aspect-[4/3]" data-product-hotspot-stage>
                         <span class="pointer-events-none absolute inset-x-[8%] bottom-6 h-px bg-[#CBD6E3] sm:bottom-8 lg:bottom-10" aria-hidden="true"></span>
@@ -500,12 +526,14 @@ if ($family_quote_copy) {
                         </div>
                     <?php endif; ?>
                 </div>
+                <?php boblift_marine_block_close('gallery', 'relative order-1 min-w-0 lg:order-2'); ?>
             </div>
         </div>
     </section>
     <div class="sticky top-[var(--boblift-header-h)] z-30 border-y border-[#DDE7F2] bg-white shadow-card"><nav class="boblift-product-section-nav page-shell flex min-h-12 items-center overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] md:min-h-14 [&::-webkit-scrollbar]:hidden" aria-label="<?php echo esc_attr($ui['sectionNavLabel'] ?? 'Product detail sections'); ?>" data-product-section-nav><a class="boblift-cinema-nav-link grid h-12 min-w-12 shrink-0 place-items-center border-x border-[#DDE7F2] text-[#0B3F7D] md:h-14 md:min-w-14" href="#product-hero" data-product-section-link aria-label="<?php echo esc_attr($product['title'] ?? 'Product hero'); ?>"><?php echo boblift_icon('home', 'h-5 w-5'); ?></a><?php foreach ($anchors as $anchor) : ?><a class="boblift-cinema-nav-link flex h-12 min-w-max items-center justify-center border-e border-[#DDE7F2] px-3 text-xs font-black sm:px-4 md:h-14 text-[#334155] transition hover:bg-blue-50 hover:text-[#0B3F7D] md:px-6 md:text-sm" href="#<?php echo esc_attr($anchor['id']); ?>" data-product-section-link><?php echo esc_html($anchor['label']); ?></a><?php endforeach; ?></nav></div>
     <section class="bg-[#F5F7FB] py-8 md:py-12">
         <div class="boblift-pd-stack page-shell min-w-0 space-y-2 sm:space-y-6 md:space-y-8">
+            <?php boblift_marine_block_open('technical'); ?>
             <article id="technical" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card">
                 <div class="px-4 py-5 sm:p-6 md:p-8">
                     <div class="flex items-start justify-between gap-4">
@@ -663,6 +691,8 @@ if ($family_quote_copy) {
                 </div>
                 <?php endif; ?>
             </article>
+            <?php boblift_marine_block_close('technical'); ?>
+            <?php boblift_marine_block_open('overview'); ?>
             <?php if ($detail_body_html !== '' || $product_videos || $has_overview_copy) : ?>
                 <?php // overflow-clip, not hidden: a hidden overflow would trap the sticky video column. ?>
                 <article id="overview" class="scroll-mt-24 overflow-clip rounded border border-[#DDE7F2] bg-white shadow-card">
@@ -788,6 +818,15 @@ if ($family_quote_copy) {
                         <?php endif; ?>
                     </div>
                 </article>
+            <?php endif; ?>
+            <?php boblift_marine_block_close('overview'); ?>
+            <?php
+            // A configuration's run ends here: what follows is shared by the whole series page.
+            if (boblift_marine_series_capturing()) {
+                return;
+            }
+            if ($marine_page && ($marine_schema = boblift_marine_series_schema())) : ?>
+                <script type="application/ld+json"><?php echo wp_json_encode($marine_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG); ?></script>
             <?php endif; ?>
             <?php if ($brochure_features) : ?>
                 <?php
@@ -1039,7 +1078,7 @@ if ($family_quote_copy) {
                                     <div class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-3">
                                         <button class="inline-flex h-11 items-center justify-center gap-2 rounded-sm bg-[#071f42] px-5 text-sm font-black text-white transition hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页常见问题" data-inquiry-product="<?php echo esc_attr($inquiry_product_title); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html(boblift_localized_static_text('Ask a question')); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
                                         <?php if ($hero_whatsapp_href !== '') : ?>
-                                            <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 text-sm font-black text-[#071f42] transition hover:border-[#25D366]" href="<?php echo esc_url($hero_whatsapp_href); ?>" target="_blank" rel="noopener"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?>><?php echo boblift_icon('whatsapp', 'h-4 w-4 text-[#25D366]'); ?><span class="[font-variant-numeric:tabular-nums]"><?php echo esc_html($hero_whatsapp_display); ?></span></a>
+                                            <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 text-sm font-black text-[#071f42] transition hover:border-[#25D366]" href="<?php echo esc_url($hero_whatsapp_href); ?>" target="_blank" rel="noopener"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?><?php echo $marine_page ? ' data-series-whatsapp' : ''; ?>><?php echo boblift_icon('whatsapp', 'h-4 w-4 text-[#25D366]'); ?><span class="[font-variant-numeric:tabular-nums]"><?php echo esc_html($hero_whatsapp_display); ?></span></a>
                                         <?php endif; ?>
                                     </div>
                                 </div>

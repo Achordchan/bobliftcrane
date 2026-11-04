@@ -28,6 +28,7 @@ $boblift_theme_modules = [
     'video-library.php',
     'video-center.php',
     'model-names.php',
+    'marine-series.php',
     'product-guide.php',
     'product-archive-extras.php',
     'category-buying-guide.php',
