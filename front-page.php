@@ -84,8 +84,8 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
                         <?php foreach ($hero_slides as $index => $slide) : ?>
                             <button class="boblift-home-hero-tab relative flex min-h-11 items-baseline gap-1.5 border-t-2 border-line pt-3 text-start text-sm font-black leading-5 text-slate-500 transition-colors hover:text-navy aria-selected:text-ink" type="button" role="tab" id="home-hero-tab-<?php echo esc_attr((string) $index); ?>" aria-controls="home-hero-slide-<?php echo esc_attr((string) $index); ?>" aria-selected="<?php echo $index === 0 ? 'true' : 'false'; ?>" tabindex="<?php echo $index === 0 ? '0' : '-1'; ?>" data-home-hero-tab>
                                 <span class="boblift-home-hero-tab-bar absolute inset-x-0 -top-0.5 h-0.5 bg-navy" aria-hidden="true"></span>
-                                <span class="tabular-nums text-slate-500"><?php echo esc_html(sprintf('%02d', $index + 1)); ?></span>
-                                <span><?php echo esc_html(trim((string) ($slide['tab'] ?? ''))); ?></span>
+                                <span class="tabular-nums text-slate-500<?php echo $hero_count > 2 ? ' max-sm:hidden' : ''; ?>"><?php echo esc_html(sprintf('%02d', $index + 1)); ?></span>
+                                <span class="text-balance"><?php echo esc_html(trim((string) ($slide['tab'] ?? ''))); ?></span>
                             </button>
                         <?php endforeach; ?>
                     </div>
