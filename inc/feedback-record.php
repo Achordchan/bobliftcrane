@@ -91,14 +91,21 @@ function boblift_register_feedback_record_meta(): void
         ))),
         'auth_callback' => static fn($allowed, $meta_key, $post_id): bool => current_user_can('edit_post', (int) $post_id),
     ]);
-    // Model and country are read alongside the record, so a writer knows which entry it is working on.
-    foreach (['_feedback_model', '_feedback_country'] as $key) {
+    // Model and country are written the same way, so a new entry can be set up without the edit screen: the model as
+    // plain text ("SQ5SA4") and the country per language ({"en": "Kenya", "zh": "肯尼亚"}), as the edit screen saves them.
+    $plain = static fn($value): string => sanitize_text_field((string) $value);
+    $identity = [
+        '_feedback_model' => $plain,
+        '_feedback_country' => static fn($value): string => boblift_feedback_rest_language_map($value, $plain),
+    ];
+    foreach ($identity as $key => $sanitize) {
         register_post_meta('feedback', $key, [
             'type' => 'string',
             'single' => true,
             'default' => '',
-            'show_in_rest' => ['schema' => ['readonly' => true]],
-            'auth_callback' => '__return_false',
+            'show_in_rest' => true,
+            'sanitize_callback' => $sanitize,
+            'auth_callback' => static fn($allowed, $meta_key, $post_id): bool => current_user_can('edit_post', (int) $post_id),
         ]);
     }
     add_post_type_support('feedback', 'custom-fields');
