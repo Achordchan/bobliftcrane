@@ -835,10 +835,14 @@ function boblift_options(): array
  * A hero still saved as the original two slides (marine, then truck cranes, by their button links) gains the slides added
  * to the defaults since, and the truck slide's tab takes the shorter default label so three tabs fit one line. A hero
  * edited in any other way is left as saved. Applied on read, like the legacy migration above, so every language picks it
- * up; saving the home settings then stores the slides as shown.
+ * up. Saving the home settings (which show the added slides) stores the marker new_default_slides_seen, after which the
+ * saved slides are final: a slide removed there stays removed.
  */
 function boblift_add_new_default_hero_slides(array $options): array
 {
+    if (!empty($options['home']['hero']['new_default_slides_seen'])) {
+        return $options;
+    }
     $slides = $options['home']['hero']['slides'] ?? null;
     if (!is_array($slides) || !array_is_list($slides) || count($slides) !== 2) {
         return $options;

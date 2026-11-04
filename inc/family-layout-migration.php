@@ -33,8 +33,13 @@ function boblift_migrate_family_layout_2026_11(): void
         $by_source[$source][$language_of($term->term_id)] = (int) $term->term_id;
         $parent_of[(int) $term->term_id] = (int) $row->parent;
     }
-    $set_parent = static function (int $term_id, int $parent) use ($wpdb, &$parent_of): void {
-        $wpdb->update($wpdb->term_taxonomy, ['parent' => $parent], ['term_id' => $term_id, 'taxonomy' => 'product_category']);
+    // A failed write leaves the run unrecorded, so the next request tries again; moves already made no longer match.
+    $failed = false;
+    $set_parent = static function (int $term_id, int $parent) use ($wpdb, &$parent_of, &$failed): void {
+        if ($wpdb->update($wpdb->term_taxonomy, ['parent' => $parent], ['term_id' => $term_id, 'taxonomy' => 'product_category']) === false) {
+            $failed = true;
+            return;
+        }
         $parent_of[$term_id] = $parent;
         clean_term_cache($term_id, 'product_category');
     };
@@ -54,9 +59,15 @@ function boblift_migrate_family_layout_2026_11(): void
         $english = (int) ($by_source[$source]['en'] ?? $by_source[$source][''] ?? 0);
         if ($english > 0) {
             update_term_meta($english, '_boblift_sort', (string) $sort);
+            if ((string) get_term_meta($english, '_boblift_sort', true) !== (string) $sort) {
+                $failed = true;
+            }
         }
     }
     delete_option('product_category_children');
+    if ($failed) {
+        return;
+    }
     update_option(BOBLIFT_FAMILY_LAYOUT_OPTION, gmdate('c'), false);
 }
 // After Polylang has loaded its term languages.
