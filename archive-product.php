@@ -496,6 +496,12 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
 
         <div class="boblift-archive-about">
             <?php
+            // A category with a film (inc/category-video.php) shows its intro, film and brochure as one block instead.
+            $video_term = $initial_category !== '' && function_exists('boblift_render_category_video') ? boblift_archive_term($initial_category) : null;
+            $video_term = $video_term && boblift_category_video($video_term['term']) ? $video_term : null;
+            $video_intro = [];
+            ?>
+            <?php
             // The category introduction (edited on the category screen or through REST term meta), below the listing on its category's page only; on desktop the brochure sits beside it (see .boblift-archive-about).
             foreach ($categories as $intro_category) :
                 $intro_slug = (string) ($intro_category['slug'] ?? '');
@@ -504,6 +510,10 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
                     continue;
                 }
                 $intro_title = trim((string) ($intro_category['intro_title'] ?? ''));
+                if ($video_term) {
+                    $video_intro = ['slug' => $intro_slug, 'title' => $intro_title !== '' ? $intro_title : (string) ($intro_category['banner_title'] ?? $intro_category['title'] ?? ''), 'paragraphs' => $intro_paragraphs];
+                    continue;
+                }
             ?>
                 <section class="mt-12 max-w-[880px] lg:mt-16" data-category-intro="<?php echo esc_attr($intro_slug); ?>" aria-labelledby="category-intro-<?php echo esc_attr($intro_slug); ?>">
                     <h2 id="category-intro-<?php echo esc_attr($intro_slug); ?>" class="text-[clamp(1.4rem,2vw,2rem)] font-black leading-tight tracking-[-0.01em] text-[#0B1B33]"><?php echo esc_html($intro_title !== '' ? $intro_title : (string) ($intro_category['banner_title'] ?? $intro_category['title'] ?? '')); ?></h2>
@@ -513,19 +523,12 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
                 </section>
             <?php endforeach; ?>
             <?php
-            // The category's film (inc/category-video.php): a full-width card under the intro. When the category has both a
-            // film and a brochure, the brochure rides in the film card's footer instead of sitting half-width beside the intro.
-            $video_term = $initial_category !== '' && function_exists('boblift_render_category_video') ? boblift_archive_term($initial_category) : null;
-            $video_brochure = null;
-            if ($video_term && boblift_category_video($video_term['term'])) {
+            if ($video_term) {
                 $video_family = boblift_brochure_family_of_slug($initial_category);
                 $video_brochure = $video_family !== '' ? (boblift_brochure_items([$video_family])[$video_family] ?? null) : null;
-            }
-            if (!$video_brochure) {
+                boblift_render_category_video($video_term['term'], $video_brochure, $video_intro);
+            } else {
                 boblift_render_brochures(['context' => 'archive', 'initial_category' => $initial_category]);
-            }
-            if ($video_term) {
-                boblift_render_category_video($video_term['term'], $video_brochure);
             }
             ?>
         </div>

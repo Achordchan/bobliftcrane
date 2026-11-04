@@ -2842,20 +2842,8 @@ html:is(:lang(ru), :lang(uk), :lang(fr), :lang(es), :lang(de), :lang(it), :lang(
   /* Two equal halves: the intro runs up to the middle instead of stopping at its own reading width. */
   .boblift-archive-about:has(> [data-category-intro]:not([hidden])):has(> [data-brochures]:not(.hidden)) > [data-category-intro] { grid-column: 1; max-width: none; }
   .boblift-archive-about:has(> [data-category-intro]:not([hidden])) > [data-brochures] { grid-column: 2; grid-row: 1; margin-top: 4rem; }
-  /* The category film (inc/category-video.php) is one full-width row under both halves. */
+  /* The category film block (inc/category-video.php: intro, film and brochure) is one full-width row. */
   .boblift-archive-about > [data-category-video] { grid-column: 1 / -1; }
-  /* Intro above a full-width film card (its brochure rides in the card): the intro spans the same width, heading in the
-     left third and the paragraphs in the right two thirds, so both blocks share the card's left and right edges. */
-  .boblift-archive-about:has(> [data-category-video]):not(:has(> [data-brochures]:not(.hidden))) > [data-category-intro]:not([hidden]) {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
-    column-gap: clamp(2.5rem, 4vw, 4rem);
-    align-items: start;
-    max-width: none;
-  }
-  .boblift-archive-about:has(> [data-category-video]):not(:has(> [data-brochures]:not(.hidden))) > [data-category-intro] > h2 { grid-column: 1; grid-row: 1 / span 20; }
-  .boblift-archive-about:has(> [data-category-video]):not(:has(> [data-brochures]:not(.hidden))) > [data-category-intro] > p { grid-column: 2; }
-  .boblift-archive-about:has(> [data-category-video]):not(:has(> [data-brochures]:not(.hidden))) > [data-category-intro] > p:first-of-type { margin-top: 0; }
 }
 
 /* Phones: inline text links (arrow links, the contact numbers) are about 20px tall; an invisible area around them makes

@@ -1,7 +1,6 @@
 <?php
 return [
     'ja' => [
-        'Product video' => '製品動画',
         'Buying guide' => '購入ガイド',
         'Frequently asked questions' => 'よくあるご質問',
         'How much it lifts at each reach' => '作業半径ごとの吊り上げ能力',
@@ -66,7 +65,6 @@ return [
         'BOB-LIFT knuckle boom crane in the factory yard' => '工場敷地に置かれた BOB-LIFT ナックルブームクレーン',
     ],
     'zh' => [
-        'Product video' => '产品视频',
         'Buying guide' => '选型指南',
         'Frequently asked questions' => '常见问题',
         'How much it lifts at each reach' => '不同作业半径能吊多重',
@@ -132,7 +130,6 @@ return [
         'BOB-LIFT knuckle boom crane in the factory yard' => '停在工厂场地上的 BOB-LIFT 折臂起重机',
     ],
     'es' => [
-        'Product video' => 'Vídeo del producto',
         'Buying guide' => 'Guía de compra',
         'Frequently asked questions' => 'Preguntas frecuentes',
         'How much it lifts at each reach' => 'Cuánto levanta a cada alcance',
@@ -199,7 +196,6 @@ return [
         'BOB-LIFT Product Range' => 'Gama de productos BOB-LIFT',
     ],
     'ru' => [
-        'Product video' => 'Видео о продукте',
         'Buying guide' => 'Как выбрать',
         'Frequently asked questions' => 'Частые вопросы',
         'How much it lifts at each reach' => 'Сколько поднимает на каждом вылете',
@@ -266,7 +262,6 @@ return [
         'BOB-LIFT Product Range' => 'Продукция BOB-LIFT',
     ],
     'fr' => [
-        'Product video' => 'Vidéo produit',
         'Buying guide' => 'Guide d’achat',
         'Frequently asked questions' => 'Questions fréquentes',
         'How much it lifts at each reach' => 'Charge levée à chaque portée',
@@ -333,7 +328,6 @@ return [
         'BOB-LIFT Product Range' => 'Gamme de produits BOB-LIFT',
     ],
     'ar' => [
-        'Product video' => 'فيديو المنتج',
         'Buying guide' => 'دليل الشراء',
         'Frequently asked questions' => 'الأسئلة الشائعة',
         'How much it lifts at each reach' => 'الحمولة عند كل مدى',
