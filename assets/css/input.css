@@ -2840,7 +2840,7 @@ html:is(:lang(ru), :lang(uk), :lang(fr), :lang(es), :lang(de), :lang(it), :lang(
     align-items: start;
   }
   /* Two equal halves: the intro runs up to the middle instead of stopping at its own reading width. */
-  .boblift-archive-about:has(> [data-category-intro]:not([hidden])) > [data-category-intro] { grid-column: 1; max-width: none; }
+  .boblift-archive-about:has(> [data-category-intro]:not([hidden])):has(> [data-brochures]:not(.hidden)) > [data-category-intro] { grid-column: 1; max-width: none; }
   .boblift-archive-about:has(> [data-category-intro]:not([hidden])) > [data-brochures] { grid-column: 2; grid-row: 1; margin-top: 4rem; }
   /* The category film (inc/category-video.php) is one full-width row under both halves. */
   .boblift-archive-about > [data-category-video] { grid-column: 1 / -1; }

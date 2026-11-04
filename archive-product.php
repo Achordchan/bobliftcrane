@@ -512,12 +512,20 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
                     <?php endforeach; ?>
                 </section>
             <?php endforeach; ?>
-            <?php boblift_render_brochures(['context' => 'archive', 'initial_category' => $initial_category]); ?>
             <?php
-            // The category's film (inc/category-video.php): a full-width card under the intro and brochure.
+            // The category's film (inc/category-video.php): a full-width card under the intro. When the category has both a
+            // film and a brochure, the brochure rides in the film card's footer instead of sitting half-width beside the intro.
             $video_term = $initial_category !== '' && function_exists('boblift_render_category_video') ? boblift_archive_term($initial_category) : null;
+            $video_brochure = null;
+            if ($video_term && boblift_category_video($video_term['term'])) {
+                $video_family = boblift_brochure_family_of_slug($initial_category);
+                $video_brochure = $video_family !== '' ? (boblift_brochure_items([$video_family])[$video_family] ?? null) : null;
+            }
+            if (!$video_brochure) {
+                boblift_render_brochures(['context' => 'archive', 'initial_category' => $initial_category]);
+            }
             if ($video_term) {
-                boblift_render_category_video($video_term['term']);
+                boblift_render_category_video($video_term['term'], $video_brochure);
             }
             ?>
         </div>

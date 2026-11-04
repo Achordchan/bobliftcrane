@@ -124,11 +124,12 @@ function boblift_category_video_schema(array $video): array
 }
 
 /**
- * The film card on the category page, inside .boblift-archive-about after the intro and brochure (a full-width row there,
- * input.css). It reuses the product page's in-place player (data-inline-videos in theme.js): the poster and a play
- * button until clicked, so the film costs nothing until then.
+ * The film card on the category page, inside .boblift-archive-about after the intro (a full-width row there, input.css).
+ * It reuses the product page's in-place player (data-inline-videos in theme.js): the poster and a play button until
+ * clicked, so the film costs nothing until then. With $brochure (an item of boblift_brochure_items()) the category's
+ * brochure becomes the card's footer band, so the page shows one card instead of a half-width brochure beside the intro.
  */
-function boblift_render_category_video(WP_Term $term): void
+function boblift_render_category_video(WP_Term $term, ?array $brochure = null): void
 {
     $video = boblift_category_video($term);
     if (!$video) {
@@ -163,6 +164,30 @@ function boblift_render_category_video(WP_Term $term): void
                 <?php endif; ?>
             </div>
         </div>
+        <?php if ($brochure && function_exists('boblift_brochure_quote_button')) :
+            $brochure_ui = boblift_site_ui('brochures');
+            $brochure_meta = array_values(array_filter([
+                (string) ($brochure_ui['pdfLabel'] ?? 'PDF'),
+                (string) ($brochure_ui['languageLabel'] ?? 'EN'),
+                str_replace('{count}', (string) $brochure['pages'], (string) ($brochure_ui['pagesLabel'] ?? '{count} pages')),
+                (string) $brochure['size'],
+            ], 'strlen'));
+            $download_title = str_replace('{title}', $brochure['title'], (string) ($brochure_ui['downloadTitleTemplate'] ?? 'Download {title} as PDF'));
+            ?>
+            <div id="brochures" class="flex scroll-mt-24 flex-wrap items-center gap-x-6 gap-y-4 border-t border-[#E5E7EB] bg-[#F8FAFC] px-5 py-4 sm:px-8 lg:px-10 xl:px-12" data-category-video-brochure data-brochure-family="<?php echo esc_attr($brochure['key']); ?>">
+                <div class="flex min-w-0 flex-[1_1_20rem] items-center gap-4">
+                    <a class="block w-11 shrink-0" href="<?php echo esc_url($brochure['url']); ?>" download="<?php echo esc_attr($brochure['file']); ?>" tabindex="-1" aria-hidden="true"><img class="aspect-[520/711] w-full rounded-sm border border-line bg-white object-cover" src="<?php echo esc_url($brochure['cover']); ?>" width="520" height="711" alt="" loading="lazy" decoding="async"></a>
+                    <div class="min-w-0">
+                        <p class="font-black leading-snug text-ink"><?php echo esc_html($brochure['title']); ?></p>
+                        <p class="mt-1 text-[11px] font-black uppercase tracking-[0.1em] text-slate-500"><?php echo esc_html(implode(' · ', $brochure_meta)); ?></p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
+                    <a class="inline-flex h-11 items-center justify-center gap-2 rounded-sm bg-navy px-5 text-sm font-black text-white transition hover:bg-[#0b2d5b]" href="<?php echo esc_url($brochure['url']); ?>" download="<?php echo esc_attr($brochure['file']); ?>" title="<?php echo esc_attr($download_title); ?>"><?php echo boblift_icon('download', 'h-4 w-4'); ?><?php echo esc_html((string) ($brochure_ui['downloadLabel'] ?? 'Download PDF')); ?></a>
+                    <?php echo boblift_brochure_quote_button($brochure, [], 'inline-flex h-11 items-center text-sm font-black text-blue-700 transition hover:text-navy'); ?>
+                </div>
+            </div>
+        <?php endif; ?>
         <?php if ($schema) : ?>
             <script type="application/ld+json"><?php echo wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG); ?></script>
         <?php endif; ?>

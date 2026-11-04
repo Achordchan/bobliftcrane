@@ -11,6 +11,8 @@ function esc_html($v) { return htmlspecialchars((string) $v, ENT_QUOTES); }
 function wp_json_encode($v, $f = 0) { return json_encode($v, $f); }
 function boblift_icon($n, $c = '') { return '<svg></svg>'; }
 function boblift_localized_static_text($t) { return $t; }
+function boblift_site_ui($section) { return ['pdfLabel' => 'PDF', 'languageLabel' => 'EN', 'pagesLabel' => '{count} pages', 'downloadLabel' => 'Download PDF', 'downloadTitleTemplate' => 'Download {title} as PDF']; }
+function boblift_brochure_quote_button(array $item, array $args, string $class): string { return '<button data-inquiry-modal-open data-quote-for="' . $item['title'] . '">Get a quote for this range</button>'; }
 $meta = '';
 function get_term_meta($id, $key, $single) { global $meta; return $meta; }
 require __DIR__ . '/../inc/category-video.php';
@@ -48,4 +50,10 @@ ob_start(); boblift_render_category_video(new WP_Term()); $html = ob_get_clean()
 $check('card uses the in-place player', str_contains($html, 'data-inline-videos') && str_contains($html, 'data-inline-video-play') && str_contains($html, 'data-video-player="local"'));
 $check('card shows title, clock and points', str_contains($html, '>Forklift fly jib crane on video</h2>') && str_contains($html, '1:06') && substr_count($html, '<li ') === 4);
 $check('card prints the VideoObject', str_contains($html, '"@type":"VideoObject"'));
+$brochure = ['key' => 'forklift', 'title' => 'Forklift Fly Jib Cranes Brochure', 'url' => 'https://x/b.pdf', 'file' => 'b.pdf', 'cover' => 'https://x/c.webp', 'pages' => 8, 'size' => '2.5 MB'];
+$check('no brochure band unless one is passed', !str_contains($html, 'data-category-video-brochure'));
+ob_start(); boblift_render_category_video(new WP_Term(), $brochure); $html = ob_get_clean();
+$check('brochure band: title, chips, download and quote', str_contains($html, 'data-category-video-brochure') && str_contains($html, '>Forklift Fly Jib Cranes Brochure</p>') && str_contains($html, 'PDF · EN · 8 pages · 2.5 MB') && substr_count($html, 'download="b.pdf"') === 2 && str_contains($html, 'data-quote-for="Forklift Fly Jib Cranes Brochure"'));
+$check('brochure band keeps the #brochures anchor', str_contains($html, 'id="brochures"'));
+$check('band sits inside the card, before the VideoObject', strpos($html, 'data-category-video-brochure') < strpos($html, 'application/ld+json') && strrpos($html, '</section>') > strpos($html, 'data-category-video-brochure'));
 exit($failed ? 1 : 0);
