@@ -2706,19 +2706,22 @@
       });
     };
     const sectionIds = productSectionLinks.map((link) => (link.getAttribute('href') || '').replace('#', '')).filter(Boolean);
-    const sections = sectionIds.map((id) => document.getElementById(id)).filter(Boolean);
-    if ('IntersectionObserver' in window && sections.length) {
-      const observer = new IntersectionObserver((entries) => {
-        const visible = entries.filter((entry) => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-        if (visible?.target?.id) activateProductSectionLink(visible.target.id);
-      }, { rootMargin: '-25% 0px -60% 0px', threshold: [0.08, 0.22, 0.4] });
-      sections.forEach((section) => observer.observe(section));
-      // A marine series page moves the section ids to the chosen configuration's blocks.
-      window.addEventListener('boblift:series-change', () => {
-        observer.disconnect();
-        sectionIds.map((id) => document.getElementById(id)).filter(Boolean).forEach((section) => observer.observe(section));
+    // The tab of the last section whose top has passed just under the tab bar: unlike a share of the screen, this also works for
+    // a section much taller than the screen. Ids are looked up each time, since a series page moves them between configurations.
+    let spyFrame = 0;
+    const updateActiveSection = () => {
+      spyFrame = 0;
+      const line = (productSectionNav ? productSectionNav.getBoundingClientRect().bottom : 0) + 60;
+      let current = '';
+      sectionIds.forEach((id) => {
+        const section = document.getElementById(id);
+        if (section && section.getBoundingClientRect().height > 0 && section.getBoundingClientRect().top <= line) current = id;
       });
-    }
+      if (current) activateProductSectionLink(current);
+    };
+    window.addEventListener('scroll', () => {
+      if (!spyFrame) spyFrame = window.requestAnimationFrame(updateActiveSection);
+    }, { passive: true });
     const currentHash = window.location.hash ? window.location.hash.slice(1) : sectionIds[0];
     if (currentHash) activateProductSectionLink(currentHash);
   }
