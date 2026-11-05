@@ -3677,6 +3677,13 @@
       if (!configs.length) {
         // One model: its name, with nothing to switch.
         if (onlyModel) {
+          if (card.dataset.quickSeries) {
+            const series = document.createElement('span');
+            series.dir = 'auto';
+            series.className = 'inline-flex h-7 items-center text-[13px] font-normal text-slate-500';
+            series.textContent = card.dataset.quickSeries;
+            quickConfigs.append(series);
+          }
           const label = document.createElement('span');
           label.dir = 'auto';
           label.className = 'inline-flex h-7 items-center rounded-sm border border-[#D5DEE9] bg-[#F5F8FC] px-2 text-[12px] font-black text-[#071f42] [font-variant-numeric:tabular-nums]';

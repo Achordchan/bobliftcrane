@@ -618,10 +618,9 @@ function boblift_series_card_view(array $product): array
     return [
         'title' => $name !== '' ? $name : $title,
         'code' => $code,
-        // Beside the configuration labels: a crane with one model is named by its label alone.
-        'code_line' => $only !== '' ? '' : $code,
-        // Where no labels are shown: the model itself when it is the only one.
-        'code_short' => $only !== '' ? $only : $code,
+        // Beside the configuration labels: the series, unless the only label says the same (SL70, SQZ1000).
+        'code_line' => $only === $code ? '' : $code,
+        'only_model' => $only,
         'is_series' => $is_series,
         'configs' => $configs,
         'specs' => $specs,
