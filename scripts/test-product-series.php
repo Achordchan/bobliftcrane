@@ -150,6 +150,19 @@ $check('and does not make the other section look missing', [], boblift_series_un
 $check('and is told on the section', ['2 hydraulic booms +1', ''], boblift_series_choice_label('sections', 'A3', $mixed));
 $check('not on the one without', ['3 hydraulic booms', ''], boblift_series_choice_label('sections', 'A4', $mixed));
 
+// The two pickup cranes are one series of their own, chosen by their outriggers.
+$pickups = boblift_series_group_rows([
+    ['id' => 65, 'slug' => '800-kg-pickup-crane-with-outriggers', 'model' => 'SQ08ZA3+1', 'capacity' => 0.8, 'boom' => 'knuckle', 'legacy' => false, 'family' => 'pickup'],
+    ['id' => 5164, 'slug' => '800-kg-pickup-crane-without-outriggers', 'model' => 'SQ08ZA3', 'capacity' => 0.8, 'boom' => 'knuckle', 'legacy' => false, 'family' => 'pickup'],
+]);
+$check('pickup series', ['pickup-knuckle-0.8'], array_keys($pickups));
+$check('pickup page keeps its address', 65, $pickups['pickup-knuckle-0.8']['home']);
+$check('pickup code', 'SQ08Z', $pickups['pickup-knuckle-0.8']['code']);
+$pickup_members = array_map(static fn(array $row): array => $row + ['values' => boblift_series_parse_model($row['model']), 'figures' => $figures(300)], $pickups['pickup-knuckle-0.8']['members']);
+$check('pickup asks about the outriggers', ['manual' => ['0', '1']], boblift_series_dimensions($pickup_members));
+$check('in words', ['With outriggers', ''], boblift_series_choice_label('manual', '1', $pickup_members, 'pickup'));
+$check('elsewhere +1 stays', ['+1', ''], boblift_series_choice_label('manual', '1', $pickup_members, 'truck'));
+$check('pickup compare label', 'Without outriggers', boblift_series_compare_label($pickup_members[0]['values'], ['manual' => ['0', '1']], 'pickup'));
 $check('quote details follow the twin', 'Crane SQ12ZA6TJ', boblift_series_meta_for_twin(['inquiry' => ['title' => 'Crane SQ12ZA6T']], 'SQ12ZA6T', 'SQ12ZA6TJ', 'u')['inquiry']['title']);
 $check('winch weight', '+50 kg', boblift_series_winch_difference($twelve, $a4j));
 $check('no pair, no difference', '', boblift_series_winch_difference($twelve, $a6));

@@ -2,7 +2,7 @@
 /**
  * Crane series: one page per use, boom type and rated capacity, with the models of that class as configurations.
  *
- * Marine and truck mounted cranes are grouped; every other product keeps its own page. The series page is the product whose slug
+ * Marine, truck mounted and pickup cranes are grouped; every other product keeps its own page. The series page is the product whose slug
  * has no model suffix (12-ton-knuckle-boom-marine-crane). The other products of the group redirect to it with ?model=<model> and
  * leave the lists, the sitemap, the counts and the related models, but stay editable as products. Their posts remain the source
  * of each configuration's specifications, photos and drawings: single-product.php renders once per configuration and the blocks
@@ -136,7 +136,7 @@ function boblift_series_group_rows(array $rows): array
         usort($group['members'], static fn(array $a, array $b): int => strnatcmp($a['model'], $b['model']));
         $home = null;
         foreach ($group['members'] as $member) {
-            if (preg_match('/^\d[\d-]*-ton-(?:knuckle|telescopic)-boom-(?:marine|truck-mounted)-crane$/', (string) $member['slug'])) {
+            if (preg_match('/^\d[\d-]*-ton-(?:knuckle|telescopic)-boom-(?:marine|truck-mounted)-crane$|^800-kg-pickup-crane-with-outriggers$/', (string) $member['slug'])) {
                 $home = $member;
                 break;
             }
@@ -189,7 +189,7 @@ function boblift_series_all_have(array $members, string $dimension, string $valu
     return $members !== [] && !array_filter($members, static fn(array $member): bool => (string) ($member['values'][$dimension] ?? '') !== $value);
 }
 
-/** The English marine and truck mounted products with what grouping needs. */
+/** The English marine, truck mounted and pickup products with what grouping needs. */
 function boblift_series_rows(): array
 {
     if (!function_exists('pll_default_language')) {
@@ -202,7 +202,7 @@ function boblift_series_rows(): array
         FROM {$wpdb->posts} p
         JOIN {$wpdb->term_relationships} r ON r.object_id = p.ID
         JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = r.term_taxonomy_id AND tt.taxonomy = 'product_category'
-        JOIN {$wpdb->terms} t ON t.term_id = tt.term_id AND t.slug IN ('knuckle-boom-marine-cranes', 'telescopic-boom-marine-cranes', 'knuckle-boom-truck-mounted-cranes', 'telescopic-boom-truck-mounted-cranes')
+        JOIN {$wpdb->terms} t ON t.term_id = tt.term_id AND t.slug IN ('knuckle-boom-marine-cranes', 'telescopic-boom-marine-cranes', 'knuckle-boom-truck-mounted-cranes', 'telescopic-boom-truck-mounted-cranes', 'pickup-cranes')
         JOIN {$wpdb->term_relationships} lr ON lr.object_id = p.ID
         JOIN {$wpdb->term_taxonomy} ltt ON ltt.term_taxonomy_id = lr.term_taxonomy_id AND ltt.taxonomy = 'language'
         JOIN {$wpdb->terms} lt ON lt.term_id = ltt.term_id AND lt.slug = %s
@@ -217,8 +217,9 @@ function boblift_series_rows(): array
             'slug' => (string) $row['slug'],
             'model' => trim((string) get_post_meta($id, '_model', true)),
             'capacity' => (float) get_post_meta($id, '_capacity_value', true),
-            'family' => str_contains((string) $row['category'], 'marine') ? 'marine' : 'truck',
-            'boom' => str_starts_with((string) $row['category'], 'knuckle') ? 'knuckle' : 'telescopic',
+            'family' => str_contains((string) $row['category'], 'marine') ? 'marine' : ($row['category'] === 'pickup-cranes' ? 'pickup' : 'truck'),
+            // The pickup cranes are knuckle boom cranes (Z in the model name).
+            'boom' => str_starts_with((string) $row['category'], 'telescopic') ? 'telescopic' : 'knuckle',
             'legacy' => boblift_product_is_legacy($id),
         ];
     }
@@ -712,8 +713,12 @@ function boblift_series_booms_label(string $section): string
  * A choice in words, [label, small line]: the model name's codes are explained further down, so buttons do not repeat them. A
  * section count's small line is its reach, when every configuration with that count gives the same one.
  */
-function boblift_series_choice_label(string $dimension, string $value, array $members = []): array
+function boblift_series_choice_label(string $dimension, string $value, array $members = [], string $family = ''): array
 {
+    // On a pickup crane the two models differ by their outriggers: that is what a buyer chooses.
+    if ($dimension === 'manual' && $family === 'pickup') {
+        return [boblift_series_text($value === '1' ? 'With outriggers' : 'Without outriggers'), ''];
+    }
     if ($dimension === 'sections') {
         $own = array_filter($members, static fn(array $member): bool => ($member['values']['sections'] ?? '') === $value);
         $reaches = array_unique(array_map(static fn(array $member): string => (string) ($member['figures']['radius'] ?? ''), $own));
@@ -806,7 +811,7 @@ function boblift_series_render_configurator(): void
             $active = $member;
         }
     }
-    $headings = ['named' => $t('Model (moment class)'), 'sections' => $t('Boom sections'), 'winch' => $t('Winch'), 'manual' => $t('Manual extension (+1)')];
+    $headings = ['named' => $t('Model (moment class)'), 'sections' => $t('Boom sections'), 'winch' => $t('Winch'), 'manual' => $t($state['series']['family'] === 'pickup' ? 'Outriggers' : 'Manual extension (+1)')];
     $unavailable_text = $t('Not offered with the current choice: selecting it changes the other options');
     $base = $active;
     foreach ($members as $member) {
@@ -853,7 +858,7 @@ function boblift_series_render_configurator(): void
                 <p class="text-[11px] font-black uppercase leading-4 tracking-[0.12em] text-slate-500 rtl:tracking-normal" id="boblift-cfg-<?php echo esc_attr($dimension); ?>"><?php echo esc_html($headings[$dimension]); ?></p>
                 <div class="mt-1.5 flex flex-wrap gap-2" role="radiogroup" aria-labelledby="boblift-cfg-<?php echo esc_attr($dimension); ?>">
                     <?php foreach ($values as $value) :
-                        [$label, $detail] = boblift_series_choice_label($dimension, $value, $members);
+                        [$label, $detail] = boblift_series_choice_label($dimension, $value, $members, (string) $state['series']['family']);
                         $checked = ($active['values'][$dimension] ?? '') === $value;
                         $exists = !in_array($dimension . '|' . $value, $active_ui['unavailable'], true);
                         $is_winch_on = $dimension === 'winch' && $value === '1';
@@ -881,8 +886,11 @@ function boblift_series_render_configurator(): void
 }
 
 /** What sets a configuration apart in the comparison: "A4 · With winch", with +1 only where the series differs on it. */
-function boblift_series_compare_label(array $values, array $dimensions): string
+function boblift_series_compare_label(array $values, array $dimensions, string $family = ''): string
 {
+    if ($family === 'pickup' && isset($dimensions['manual'])) {
+        return boblift_series_text($values['manual'] === '1' ? 'With outriggers' : 'Without outriggers');
+    }
     return implode(' · ', array_filter([
         isset($dimensions['sections']) ? (string) $values['sections'] : '',
         isset($dimensions['winch']) ? boblift_series_text($values['winch'] === '1' ? 'With winch' : 'No winch') : '',
@@ -934,7 +942,7 @@ function boblift_series_render_compare(string $model): void
                     <?php foreach ($members as $member) : $current = $member['model'] === $state['active']; ?>
                         <tr class="boblift-cfg-row cursor-pointer border-b border-[#E6EDF5] text-[#071f42] transition-colors hover:bg-[#F5F8FC]" data-cfg-row="<?php echo esc_attr($member['model']); ?>"<?php echo $current ? ' aria-current="true"' : ''; ?>>
                             <th class="py-2.5 pe-3 ps-4 text-start font-black sm:ps-6 md:ps-8" scope="row"><a class="inline-flex items-center gap-2.5 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400" href="<?php echo esc_url($member['url']); ?>" dir="ltr"><span class="boblift-cfg-dot" aria-hidden="true"></span><?php echo esc_html($member['model']); ?></a></th>
-                            <?php if ($labelled) : ?><td class="whitespace-nowrap py-2.5 pe-3"><?php echo esc_html(boblift_series_compare_label($member['values'], $dimensions)); ?></td><?php endif; ?>
+                            <?php if ($labelled) : ?><td class="whitespace-nowrap py-2.5 pe-3"><?php echo esc_html(boblift_series_compare_label($member['values'], $dimensions, (string) $state['series']['family'])); ?></td><?php endif; ?>
                             <?php foreach ($columns as $index => [, $key]) :
                                 $value = $member['figures'][$key];
                                 $missing = $missing || $value === null;
@@ -1007,7 +1015,9 @@ function boblift_series_schema(): array
         if ($values['winch'] !== '' && $series['winch'] !== 'none') {
             $add($t('Winch'), $values['winch'] === '1' ? $t('With winch') : $t('No winch'));
         }
-        if ($values['manual'] === '1') {
+        if ($series['family'] === 'pickup') {
+            $add($t('Outriggers'), $t($values['manual'] === '1' ? 'With outriggers' : 'Without outriggers'));
+        } elseif ($values['manual'] === '1') {
             $add($t('Manual extension (+1)'), '+1');
         }
         $figures = boblift_series_product_figures((int) $member['en_id']);

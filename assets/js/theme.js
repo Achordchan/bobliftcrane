@@ -5340,6 +5340,11 @@
     document.querySelectorAll('[data-cfg-title]').forEach((element) => {
       element.textContent = variant.model;
     });
+    if (variant.name) {
+      document.querySelectorAll('[data-cfg-name]').forEach((element) => {
+        element.textContent = variant.name;
+      });
+    }
     applyDerived(variant, shownModel);
     root.querySelectorAll('[data-cfg-winch-difference]').forEach((element) => {
       element.textContent = variant.winch || '';
