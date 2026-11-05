@@ -1120,12 +1120,6 @@ function boblift_series_render_compact_decode(string $model, string $winch = 'op
     <?php
 }
 
-/** Whether the series page being rendered has anything to choose. */
-function boblift_series_has_choice(): bool
-{
-    return boblift_series_dimensions((array) ($GLOBALS['boblift_series_render']['variants'] ?? [])) !== [];
-}
-
 /** The configuration box, with the data the theme script switches from. A series of one has nothing to choose, so no box. */
 function boblift_series_render_configurator(): void
 {
@@ -1188,19 +1182,19 @@ function boblift_series_render_configurator(): void
     ];
     $active_ui = $ui($active);
     ?>
-    <div class="boblift-series-config mt-6 rounded-sm border border-[#D5DEE9] bg-white/70 p-4 sm:p-5" data-series-config>
+    <div class="boblift-series-config mt-7 rounded-sm border border-[#D5DEE9] bg-white/70 px-4 py-5 sm:px-5 sm:py-6" data-series-config>
         <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
             <p class="text-sm font-black text-[#071f42]"><?php echo esc_html($t('Choose your configuration')); ?></p>
             <p class="text-xs text-slate-500"><?php echo esc_html($count === 1 ? '' : str_replace('{count}', (string) $count, $t('{count} configurations in this series'))); ?></p>
         </div>
         <?php foreach ($dimensions as $dimension => $values) : ?>
-            <div class="mt-3.5">
+            <div class="mt-4">
                 <p class="text-[13px] font-semibold leading-4 text-slate-500" id="boblift-cfg-<?php echo esc_attr($dimension); ?>"><?php echo esc_html($headings[$dimension]); ?></p>
                 <?php $has_main_boom = $dimension === 'sections' && !array_filter($values, static fn(string $value): bool => !str_starts_with($value, 'A')); ?>
-                <div class="mt-1.5 flex flex-wrap items-stretch <?php echo $has_main_boom ? 'boblift-boom-row gap-1.5' : 'gap-2'; ?>">
+                <div class="mt-2 flex flex-wrap items-stretch <?php echo $has_main_boom ? 'boblift-boom-row gap-1.5' : 'gap-2'; ?>">
                 <?php // Every SQ model has one main boom, so the hydraulic booms read as what is added to it. BLZ's K is not confirmed yet. ?>
                 <?php if ($has_main_boom) : ?>
-                    <span class="inline-flex min-h-11 flex-col items-start justify-center rounded-sm border border-[#C9D6E6] bg-[#E8EDF3] px-2 py-1.5 text-start text-[#071f42]" data-boom-fixed><span class="text-[14px] font-bold leading-5"><?php echo esc_html($t('1 main boom')); ?></span><span class="text-[12px] font-normal leading-4 text-slate-600"><?php echo esc_html($t('Standard')); ?></span></span>
+                    <span class="inline-flex min-h-12 flex-col items-start justify-center rounded-sm border border-[#C9D6E6] bg-[#E8EDF3] px-2 py-1.5 text-start text-[#071f42]" data-boom-fixed><span class="text-[14px] font-bold leading-5"><?php echo esc_html($t('1 main boom')); ?></span><span class="text-[12px] font-normal leading-4 text-slate-600"><?php echo esc_html($t('Standard')); ?></span></span>
                     <span class="inline-flex items-center text-lg font-black text-slate-400" aria-hidden="true">+</span>
                 <?php endif; ?>
                 <div class="flex flex-wrap <?php echo $has_main_boom ? 'gap-1.5' : 'gap-2'; ?>" role="radiogroup" aria-labelledby="boblift-cfg-<?php echo esc_attr($dimension); ?>">
@@ -1210,7 +1204,7 @@ function boblift_series_render_configurator(): void
                         $exists = !in_array($dimension . '|' . $value, $active_ui['unavailable'], true);
                         $is_winch_on = $dimension === 'winch' && $value === '1';
                         ?>
-                        <button class="boblift-model-variant relative inline-flex min-h-11 flex-col items-start justify-center rounded-sm border <?php echo $has_main_boom ? 'px-2' : 'ps-3.5 pe-8'; ?> py-1.5 text-start transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-100 <?php echo $checked ? 'border-[#071f42] bg-[#071f42] text-white' : 'border-[#D5DEE9] bg-white text-[#071f42] hover:border-blue-300'; ?> <?php echo $exists ? '' : 'border-dashed'; ?>" type="button" role="radio" aria-checked="<?php echo $checked ? 'true' : 'false'; ?>" tabindex="<?php echo $checked ? '0' : '-1'; ?>" data-cfg-group="<?php echo esc_attr($dimension); ?>" data-cfg-value="<?php echo esc_attr($value); ?>"<?php echo $exists ? '' : ' title="' . esc_attr($unavailable_text) . '"'; ?>>
+                        <button class="boblift-model-variant relative inline-flex min-h-12 flex-col items-start justify-center rounded-sm border <?php echo $has_main_boom ? 'px-2' : 'ps-3.5 pe-8'; ?> py-1.5 text-start transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-100 <?php echo $checked ? 'border-[#071f42] bg-[#071f42] text-white' : 'border-[#D5DEE9] bg-white text-[#071f42] hover:border-blue-300'; ?> <?php echo $exists ? '' : 'border-dashed'; ?>" type="button" role="radio" aria-checked="<?php echo $checked ? 'true' : 'false'; ?>" tabindex="<?php echo $checked ? '0' : '-1'; ?>" data-cfg-group="<?php echo esc_attr($dimension); ?>" data-cfg-value="<?php echo esc_attr($value); ?>"<?php echo $exists ? '' : ' title="' . esc_attr($unavailable_text) . '"'; ?>>
                             <span class="<?php echo $has_main_boom ? 'text-[14px]' : 'text-sm'; ?> font-bold leading-5"><?php echo esc_html($label); ?></span>
                             <?php if ($detail !== '') : ?><span class="text-[12px] font-normal leading-4 opacity-80"><?php echo esc_html($detail); ?></span><?php endif; ?>
                             <?php if ($is_winch_on) : ?><span class="text-xs font-normal leading-4 opacity-80 [font-variant-numeric:tabular-nums]" dir="ltr" data-cfg-winch-difference<?php echo $active_ui['winch'] === '' ? ' hidden' : ''; ?>><?php echo esc_html($active_ui['winch']); ?></span><?php endif; ?>
