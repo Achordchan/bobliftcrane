@@ -471,8 +471,10 @@ if ($family_quote_copy) {
                     <?php endif; ?>
                     <?php if (!$series_page) { boblift_render_model_decode($hero_model); } ?>
                     <?php boblift_render_model_variants($hero_model, (string) ($product['slug'] ?? '')); ?>
+                    <?php // The choice comes first; the figures under it answer to it. ?>
+                    <?php boblift_series_render_configurator(); ?>
                     <?php boblift_series_block_open('keyspecs'); ?>
-                    <?php // Plain text with no boxes: only the configuration below is there to be clicked. ?>
+                    <?php // Plain text with no boxes: only the configuration above is there to be clicked. ?>
                     <dl class="mt-5 grid grid-cols-2 gap-x-4 gap-y-3 <?php echo $series_page ? 'sm:grid-cols-5' : 'sm:grid-cols-4'; ?> lg:mt-6">
                         <?php foreach ($hero_specs as $index => $spec) :
                             [$spec_number, $spec_unit] = $series_page ? boblift_series_figure_parts((string) ($spec['value'] ?? '')) : $hero_spec_parts((string) ($spec['value'] ?? ''));
@@ -487,7 +489,6 @@ if ($family_quote_copy) {
                         <p class="mt-2 text-xs leading-5 text-slate-500"><?php echo esc_html(boblift_series_text('—: see the drawing, confirmed with your quote')); ?></p>
                     <?php endif; ?>
                     <?php boblift_series_block_close('keyspecs'); ?>
-                    <?php boblift_series_render_configurator(); ?>
                     <?php if (!$series_page) : ?>
                     <?php // The tonnage page of this model's capacity bin (inc/tonnage-pages.php); none for models rated by working height. ?>
                     <?php $hero_capacity = function_exists('boblift_product_listing_capacity') ? boblift_product_listing_capacity($product) : 0.0; $hero_tonnage = function_exists('boblift_tonnage_size_for_capacity') ? boblift_tonnage_size_for_capacity($hero_capacity) : 0; if ($hero_tonnage > 0) : ?>
