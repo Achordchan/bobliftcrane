@@ -965,10 +965,6 @@ img { max-width: 100%; }
     padding: 13px 11px 12px;
   }
   .boblift-product-listing .product-card-title {
-    display: -webkit-box;
-    overflow: hidden;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
     font-size: 15px;
     line-height: 1.12;
     letter-spacing: -.015em;
@@ -1050,6 +1046,32 @@ img { max-width: 100%; }
    (aerial work platforms) whose models none of the spec filters apply to. */
 [data-legacy-view] [data-category-subtabs],
 [data-filter-bar]:has([data-filter-dropdowns].hidden) [data-category-subtabs] { padding-bottom: 1rem; }
+
+/* A title stays whole (its capacity may come last) and breaks evenly. CJK breaks at the space after the capacity, not inside a word. */
+.boblift-product-listing .product-card-title { text-wrap: balance; overflow-wrap: anywhere; }
+.boblift-product-listing .product-card-title:is(:lang(zh), :lang(ja)) { word-break: keep-all; }
+/* Grid view: the title, code, labels, figures and buttons of a row of cards share one set of rows, so they line up however long
+   each title runs. Six rows per card, and the gap between cards moves to a margin since a row gap would open inside a card too. */
+@supports (grid-template-rows: subgrid) {
+  .boblift-product-listing[data-view="grid"] .products-grid { row-gap: 0; }
+  .boblift-product-listing[data-view="grid"] .product-card:not(.hidden), .boblift-product-listing[data-view="grid"] .product-card-inner, .boblift-product-listing[data-view="grid"] .product-card-body, .boblift-product-listing[data-view="grid"] .product-card-head, .boblift-product-listing[data-view="grid"] .product-card-head > a, .boblift-product-listing[data-view="grid"] .product-card-bottom { display: grid; grid-template-rows: subgrid; row-gap: 0; }
+  /* Off-screen rendering cuts a card off from the shared rows; only one page of cards is displayed, so it costs little here. */
+  .boblift-product-listing[data-view="grid"] .product-card:not(.hidden) { grid-row: span 6; margin-bottom: 1.25rem; content-visibility: visible; contain-intrinsic-size: none; }
+  .boblift-product-listing[data-view="grid"] .product-card-inner { grid-row: 1 / -1; min-height: 0; }
+  .boblift-product-listing[data-view="grid"] .product-card-body { grid-row: 2 / span 5; }
+  .boblift-product-listing[data-view="grid"] .product-card-head { grid-row: 1 / span 3; gap: 0; }
+  .boblift-product-listing[data-view="grid"] .product-card-head > a { grid-row: 1 / span 2; }
+  .boblift-product-listing[data-view="grid"] .product-card-configs { grid-row: 3; align-self: start; }
+  .boblift-product-listing[data-view="grid"] .product-card-bottom { grid-row: 4 / span 2; margin-top: 0; }
+  .boblift-product-listing[data-view="grid"] .product-card-specs { grid-row: 1; }
+  .boblift-product-listing[data-view="grid"] .product-card-footer { grid-row: 2; margin-top: 0; }
+}
+@media (min-width: 1280px) {
+  @supports (grid-template-rows: subgrid) { .boblift-product-listing[data-view="grid"] .product-card:not(.hidden) { margin-bottom: 1.5rem; } }
+}
+@media (max-width: 767px) {
+  @supports (grid-template-rows: subgrid) { .boblift-product-listing[data-view="grid"] .product-card:not(.hidden) { margin-bottom: 12px; } }
+}
 
 /* List view: one row per model. The picture, then the name, configurations and figures, then the actions.
    Figures sit in fixed columns so values line up down the list. Below 1024px the actions go under the figures. */

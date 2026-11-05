@@ -1190,7 +1190,7 @@ if ($family_quote_copy) {
                                     <span class="relative block aspect-[4/3] overflow-hidden bg-[radial-gradient(circle_at_48%_34%,#ffffff_0%,#f8fafc_34%,#eef2f7_64%,#e2e8f0_100%)]"><img class="absolute inset-0 h-full w-full transition duration-500 group-hover:scale-[1.03] <?php echo esc_attr($related_fit); ?>" src="<?php echo esc_url($related_image); ?>" alt="<?php echo esc_attr((string) $related['title']); ?>" loading="lazy" decoding="async"></span>
                                     <span class="flex flex-1 flex-col p-3 sm:p-4">
                                         <span class="line-clamp-3 text-[15px] font-black leading-tight text-[#0B3F7D] transition group-hover:text-blue-700 sm:line-clamp-2 md:text-[17px]"><?php echo esc_html($related_view['title']); ?></span>
-                                        <?php if ($related_view['code'] !== '') : ?><span class="mt-1 block truncate text-xs leading-4 text-slate-500"><bdi><?php echo esc_html($related_view['code']); ?></bdi></span><?php endif; ?>
+                                        <?php if ($related_view['code_short'] !== '') : ?><span class="mt-1 block truncate text-xs leading-4 text-slate-500"><bdi><?php echo esc_html($related_view['code_short']); ?></bdi></span><?php endif; ?>
                                         <?php if ($related_specs) : ?>
                                             <span class="mt-3 grid grid-cols-2 gap-2 border-t border-[#E5E7EB] pt-3">
                                                 <?php foreach ($related_specs as $spec) : ?>

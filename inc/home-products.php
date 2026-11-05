@@ -576,7 +576,7 @@ function boblift_render_home_product_grid(array $category, int $index, array $se
                 <a class="group flex snap-start flex-col overflow-hidden rounded border border-line bg-white text-start shadow-card transition duration-300 [@media(hover:hover)]:hover:border-blue-300" href="<?php echo esc_url(boblift_product_url($product)); ?>">
                     <span class="relative block h-[110px] w-full overflow-hidden bg-[radial-gradient(circle_at_48%_34%,#ffffff_0%,#f8fafc_34%,#eef2f7_64%,#e2e8f0_100%)] sm:h-auto sm:aspect-[1.3/1] md:max-h-[190px] lg:max-h-[220px] 2xl:max-h-[260px]"><span class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_82%,rgba(15,23,42,0.12),transparent_44%)]"></span><img class="absolute inset-0 z-10 h-full w-full transition duration-300 group-hover:scale-[1.035] <?php echo $card_photo ? 'object-cover' : 'object-contain p-3 drop-shadow-[0_6px_8px_rgba(11,27,51,0.10)] sm:p-5'; ?>" <?php echo boblift_img_src($card_image, '(min-width: 1280px) 42vw, (min-width: 768px) 33vw, 42vw'); ?> alt="<?php echo esc_attr($product['title'] ?? ''); ?>" loading="lazy" decoding="async"></span>
                     <span class="mt-3 line-clamp-3 px-3 text-[15px] font-black leading-[1.15] text-ink sm:mt-5 sm:line-clamp-2 sm:px-6 sm:text-xl"><?php echo esc_html($card_view['title']); ?></span>
-                    <?php if ($card_view['code'] !== '') : ?><span class="mt-1 block truncate px-3 text-[12px] font-normal leading-4 text-slate-500 sm:px-6 sm:text-[13px]"><bdi><?php echo esc_html($card_view['code']); ?></bdi></span><?php endif; ?>
+                    <?php if ($card_view['code_short'] !== '') : ?><span class="mt-1 block truncate px-3 text-[12px] font-normal leading-4 text-slate-500 sm:px-6 sm:text-[13px]"><bdi><?php echo esc_html($card_view['code_short']); ?></bdi></span><?php endif; ?>
                     <span class="mx-3 mb-3 mt-auto block pt-3 sm:mx-6 sm:mb-5 sm:pt-4">
                         <span class="flex items-end gap-3 border-t border-line pt-3 sm:pt-4">
                             <?php if ($card_specs) : ?>
@@ -608,7 +608,7 @@ function boblift_render_home_product_grid(array $category, int $index, array $se
 function boblift_render_home_product_feature(array $product, array $section): void
 {
     $view = boblift_series_card_view($product);
-    $model = $view['code'];
+    $model = $view['code_short'];
     $specs = $view['figures'];
     $summary = trim(wp_strip_all_tags((string) ($product['short_description'] ?? '')));
     $detail_url = boblift_product_url($product);

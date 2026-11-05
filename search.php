@@ -105,7 +105,7 @@ $product_result = static function (array $product) use ($highlight, $view_detail
         </div>
         <div class="flex min-w-0 flex-1 flex-col p-4 sm:p-5">
             <h3 class="line-clamp-3 text-base font-black leading-tight text-[#0B3F7D] sm:line-clamp-2 sm:text-xl"><?php echo $highlight($view['title']); ?></h3>
-            <?php if ($view['code'] !== '') : ?><p class="mt-1 text-[13px] font-normal leading-5 text-slate-500"><bdi><?php echo $highlight($view['code']); ?></bdi></p><?php endif; ?>
+            <?php if ($view['code_line'] !== '') : ?><p class="mt-1 text-[13px] font-normal leading-5 text-slate-500"><bdi><?php echo $highlight($view['code_line']); ?></bdi></p><?php endif; ?>
             <?php if ($view['configs']) : // Plain labels: the whole card is one link, and a search for a model shows why it matched. ?>
                 <span class="mt-2 flex flex-wrap gap-1.5">
                     <?php foreach ($view['configs'] as $config) : ?>

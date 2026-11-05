@@ -546,6 +546,15 @@ function boblift_series_moment_in_tm(string $moment): string
     return preg_match('/^([\d.]+)\s*kN·m$/u', trim($moment), $match) ? rtrim(rtrim(number_format((float) $match[1] / 9.80665, 1, '.', ''), '0'), '.') . ' t·m' : $moment;
 }
 
+/** Phrases a title must not break inside, held together with non-breaking spaces ("Truck / Mounted Crane" reads badly). */
+function boblift_series_keep_phrases(string $title): string
+{
+    foreach (['Truck Mounted Crane', 'Knuckle Boom', 'Telescopic Boom', 'Marine Crane', 'Pickup Crane', 'Timber Crane', 'montada sobre camión', 'sur camion', 'pluma articulada', 'pluma telescópica', 'flèche articulée', 'flèche télescopique'] as $phrase) {
+        $title = str_ireplace($phrase, str_replace(' ', "\u{00A0}", $phrase), $title);
+    }
+    return $title;
+}
+
 /** A timber crane's card title: its capacity, and its arm length where the English product title gives one ("Arm Length 7600MM"). */
 function boblift_series_timber_title(float $capacity, string $english_title): string
 {
@@ -585,10 +594,13 @@ function boblift_series_card_view(array $product): array
     }
     $pickup = $is_series && $series['family'] === 'pickup';
     $configs = [];
-    if ($is_series && count($members) > 1) {
+    if (count($members) > 1) {
         foreach ($members as $member) {
             $configs[] = ['label' => $pickup ? boblift_series_text($member['values']['manual'] === '1' ? 'With outriggers' : 'Without outriggers') : (string) $member['model'], 'url' => (string) $member['url']];
         }
+    } elseif ((string) $members[0]['model'] !== '') {
+        // A crane with no other configuration still names its model; its address needs no ?model=.
+        $configs[] = ['label' => (string) $members[0]['model'], 'url' => (string) get_permalink($id)];
     }
     // One card stands for both pickup configurations, so its title leaves out "with outriggers".
     if ($pickup && ($specs['capacity']['value'] ?? '') === '800 kg') {
@@ -610,9 +622,16 @@ function boblift_series_card_view(array $product): array
     if ($figures === [] && function_exists('boblift_home_product_card_specs')) {
         $figures = boblift_home_product_card_specs($product);
     }
+    $code = $is_series ? boblift_series_label($series) : $model;
+    $name = boblift_series_keep_phrases($name);
+    $only = count($configs) === 1 ? $configs[0]['label'] : '';
     return [
         'title' => $name !== '' ? $name : $title,
-        'code' => $is_series ? boblift_series_label($series) : $model,
+        'code' => $code,
+        // Beside the configuration labels: a crane with one model is named by its label alone.
+        'code_line' => $only !== '' ? '' : $code,
+        // Where no labels are shown: the model itself when it is the only one.
+        'code_short' => $only !== '' ? $only : $code,
         'is_series' => $is_series,
         'configs' => $configs,
         'specs' => $specs,
@@ -691,7 +710,7 @@ function boblift_series_quick_view_configs(array $product): array
 function boblift_series_card_subtitle(array $view): string
 {
     $count = count($view['configs']);
-    return $view['code'] === '' ? '' : '<bdi>' . esc_html($view['code']) . '</bdi>' . ($count > 1 ? '<span class="mx-1">·</span>' . esc_html(str_replace('{count}', (string) $count, boblift_series_text('{count} configurations'))) : '');
+    return $view['code_line'] === '' ? '' : '<bdi>' . esc_html($view['code_line']) . '</bdi>' . ($count > 1 ? '<span class="mx-1">·</span>' . esc_html(str_replace('{count}', (string) $count, boblift_series_text('{count} configurations'))) : '');
 }
 
 /* -------------------------------------------------------------------------- *

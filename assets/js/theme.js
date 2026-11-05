@@ -3669,9 +3669,22 @@
       let configs = [];
       try { configs = JSON.parse(card.dataset.configs || '[]'); } catch { configs = []; }
       quickConfigs.replaceChildren();
-      quickConfigs.classList.toggle('hidden', !configs.length);
-      quickConfigs.classList.toggle('flex', Boolean(configs.length));
-      if (!configs.length) return;
+      if (quickTitle && card.dataset.quickName) quickTitle.textContent = card.dataset.quickName;
+      const onlyModel = !configs.length ? card.dataset.quickModel || '' : '';
+      const showRow = configs.length > 0 || onlyModel !== '';
+      quickConfigs.classList.toggle('hidden', !showRow);
+      quickConfigs.classList.toggle('flex', showRow);
+      if (!configs.length) {
+        // One model: its name, with nothing to switch.
+        if (onlyModel) {
+          const label = document.createElement('span');
+          label.dir = 'auto';
+          label.className = 'inline-flex h-7 items-center rounded-sm border border-[#D5DEE9] bg-[#F5F8FC] px-2 text-[12px] font-black text-[#071f42] [font-variant-numeric:tabular-nums]';
+          label.textContent = onlyModel;
+          quickConfigs.append(label);
+        }
+        return;
+      }
       configs.forEach((config) => {
         const button = document.createElement('button');
         button.type = 'button';
@@ -3682,7 +3695,6 @@
         button.addEventListener('click', () => showQuickConfig(card, config));
         quickConfigs.append(button);
       });
-      if (quickTitle) quickTitle.textContent = card.dataset.quickName || card.dataset.title || '';
       showQuickConfig(card, configs.find((config) => config.home) || configs[0]);
     };
     const openQuickView = (card) => {
