@@ -472,12 +472,12 @@ if ($family_quote_copy) {
                     <?php if (!$series_page) { boblift_render_model_decode($hero_model); } ?>
                     <?php boblift_render_model_variants($hero_model, (string) ($product['slug'] ?? '')); ?>
                     <?php boblift_series_block_open('keyspecs'); ?>
-                    <dl class="mt-6 grid grid-cols-2 border-y border-[#D5DEE9] <?php echo $series_page ? 'sm:grid-cols-5' : 'sm:grid-cols-4'; ?> lg:mt-7">
+                    <dl class="mt-5 grid grid-cols-2 rounded border border-[#DDE5EF] bg-[#F5F8FC] <?php echo $series_page ? 'sm:grid-cols-5' : 'sm:grid-cols-4'; ?> lg:mt-6">
                         <?php foreach ($hero_specs as $index => $spec) :
                             [$spec_number, $spec_unit] = $series_page ? boblift_series_figure_parts((string) ($spec['value'] ?? '')) : $hero_spec_parts((string) ($spec['value'] ?? ''));
                         ?>
-                            <div class="flex min-w-0 flex-col py-4 pr-3 <?php echo $index % 2 === 1 ? 'border-l border-[#D5DEE9] ps-4' : ''; ?> <?php echo $index >= 2 ? 'border-t border-[#D5DEE9] sm:border-t-0' : ''; ?> <?php echo $index === 2 ? 'sm:border-l sm:ps-4' : ''; ?> <?php echo $series_page && $index === 4 ? 'col-span-2 sm:col-span-1 sm:border-l sm:ps-4' : ''; ?><?php echo $series_page && $index === 3 ? ' sm:ps-3' : ''; ?><?php echo $series_page && $index === 2 ? ' sm:ps-3' : ''; ?>"<?php echo $series_page ? ' data-cfg-cell="' . esc_attr((string) ($spec['key'] ?? '')) . '" data-cfg-cell-value="' . esc_attr((string) ($spec['value'] ?? '')) . '"' : ''; ?>>
-                                <dt class="text-[12px] font-black uppercase leading-4 tracking-[0.12em] text-slate-500"><?php echo esc_html($spec['label']); ?></dt>
+                            <div class="flex min-w-0 flex-col py-2.5 pe-2 ps-3 <?php echo $index % 2 === 1 ? 'border-s border-[#DDE5EF]' : ''; ?> <?php echo $index >= 2 ? 'border-t border-[#DDE5EF] sm:border-t-0' : ''; ?> <?php echo $index === 2 ? 'sm:border-s' : ''; ?> <?php echo $series_page && $index === 4 ? 'col-span-2 sm:col-span-1 sm:border-s' : ''; ?>"<?php echo $series_page ? ' data-cfg-cell="' . esc_attr((string) ($spec['key'] ?? '')) . '" data-cfg-cell-value="' . esc_attr((string) ($spec['value'] ?? '')) . '"' : ''; ?>>
+                                <dt class="text-[13px] font-semibold leading-[1.25] text-slate-500"><?php echo esc_html($spec['label']); ?></dt>
                                 <dd class="mt-auto break-words pt-1.5 font-black leading-tight text-[#071f42] [font-variant-numeric:tabular-nums]"><span class="<?php echo $series_page ? 'text-[clamp(20px,1.5vw,28px)]' : (($spec_unit !== '' || mb_strlen($spec_number) <= 8) ? 'text-[clamp(22px,1.9vw,32px)]' : 'text-base'); ?><?php echo $spec_number === '—' ? ' text-slate-400' : ''; ?>"><?php echo esc_html($spec_number); ?></span><?php if ($spec_unit !== '') : ?><span class="<?php echo $spec_unit === '°' ? '' : 'ms-1'; ?> whitespace-nowrap text-sm font-bold text-slate-500"><?php echo esc_html($spec_unit); ?></span><?php endif; ?></dd>
                             </div>
                         <?php endforeach; ?>
@@ -504,14 +504,14 @@ if ($family_quote_copy) {
                                 <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 text-sm font-semibold text-[#071f42] transition hover:border-blue-500 hover:text-blue-700" href="<?php echo esc_url($hero_mail_href); ?>"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?><?php echo $series_page ? ' data-series-mail' : ''; ?>><?php echo boblift_icon('mail', 'h-4 w-4 text-slate-500'); ?><?php echo esc_html($hero_email); ?></a>
                             <?php endif; ?>
                         </div>
-                        <ul class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-[#D5DEE9] pt-3.5 text-[13px] text-slate-600">
+                        <ul class="mt-4 flex flex-wrap items-center justify-between gap-x-2 gap-y-2 border-t border-[#D5DEE9] pt-3.5 text-[13px] text-slate-600">
                             <?php if ($hero_pdf_url !== '') : ?>
-                                <li><a class="boblift-product-hero-pdf inline-flex items-center gap-1.5 border-b border-[#C9D6E6] pb-0.5 font-semibold text-[#071f42] transition hover:border-blue-500 hover:text-blue-700" href="<?php echo esc_url($hero_pdf_url); ?>" <?php echo $hero_pdf_file !== '' ? 'download="' . esc_attr($hero_pdf_file) . '"' : 'target="_blank" rel="noopener"'; ?>><?php echo boblift_icon('download', 'h-3.5 w-3.5'); ?><?php echo esc_html($hero_pdf_label); ?><?php if ($hero_pdf_size !== '') : ?><span class="font-normal text-slate-500"><?php echo esc_html($hero_pdf_size); ?></span><?php endif; ?></a></li>
+                                <li><a class="boblift-product-hero-pdf inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 font-semibold text-[#071f42] transition hover:border-blue-500 hover:text-blue-700" href="<?php echo esc_url($hero_pdf_url); ?>" <?php echo $hero_pdf_file !== '' ? 'download="' . esc_attr($hero_pdf_file) . '"' : 'target="_blank" rel="noopener"'; ?>><?php echo boblift_icon('download', 'h-4 w-4'); ?><?php echo esc_html($hero_pdf_label); ?><?php if ($hero_pdf_size !== '') : ?><span class="font-normal text-slate-500"><?php echo esc_html($hero_pdf_size); ?></span><?php endif; ?></a></li>
                             <?php endif; ?>
                             <?php if ($hero_terms_apply) : ?>
-                                <li class="inline-flex items-center gap-1.5"><?php echo boblift_icon('shield-check', 'h-3.5 w-3.5 text-[#0B3F7D]'); ?><?php echo esc_html(boblift_localized_static_text('12-month warranty')); ?></li>
-                                <li class="inline-flex items-center gap-1.5"><?php echo boblift_icon('package-check', 'h-3.5 w-3.5 text-[#0B3F7D]'); ?><?php echo esc_html(boblift_localized_static_text('Order from 1 unit')); ?></li>
-                                <li><a class="inline-flex items-center gap-1 border-b border-[#C9D6E6] pb-0.5 font-semibold text-[#071f42] transition hover:border-blue-500 hover:text-blue-700" href="#buying"><?php echo esc_html(boblift_localized_static_text('Shipping & warranty')); ?><?php echo boblift_icon('arrow-down', 'h-3.5 w-3.5'); ?></a></li>
+                                <li class="inline-flex items-center gap-2"><?php echo boblift_icon('shield-check', 'h-4 w-4 text-[#0B3F7D]'); ?><?php echo esc_html(boblift_localized_static_text('12-month warranty')); ?></li>
+                                <li class="inline-flex items-center gap-2"><?php echo boblift_icon('package-check', 'h-4 w-4 text-[#0B3F7D]'); ?><?php echo esc_html(boblift_localized_static_text('Order from 1 unit')); ?></li>
+                                <li><a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 font-semibold text-[#071f42] transition hover:border-blue-500 hover:text-blue-700" href="#buying"><?php echo esc_html(boblift_localized_static_text('Shipping & warranty')); ?><?php echo boblift_icon('arrow-down', 'h-4 w-4'); ?></a></li>
                             <?php endif; ?>
                         </ul>
                     <?php else : ?>
@@ -543,10 +543,6 @@ if ($family_quote_copy) {
                             <p class="mt-3 text-xs font-normal leading-5 text-slate-500"><?php echo esc_html(boblift_localized_static_text('Confirm your configuration and current availability with our team.')); ?></p>
                         </div>
                     <?php endif; ?>
-                    <?php // A series explains its model name last: the choice and the quote come first. ?>
-                    <?php boblift_series_block_open('decode'); ?>
-                    <?php if ($series_page) { boblift_series_render_compact_decode($hero_model, (string) $product_series['winch'], (int) $series_member['en_id']); } ?>
-                    <?php boblift_series_block_close('decode'); ?>
                 </div>
                 <?php boblift_series_block_open('gallery'); ?>
                 <div class="relative order-1 min-w-0 lg:order-2" data-product-hero-gallery-root data-product-hero-active-index="0">
@@ -613,6 +609,8 @@ if ($family_quote_copy) {
                             </dl>
                         <?php endif; ?>
                     </div>
+                    <?php // What the model name means, for whoever goes looking: the top of the page stays about the choice. ?>
+                    <?php if ($series_page) : ?><div class="mt-5"><h3 class="text-[13px] font-semibold text-slate-500"><?php echo esc_html(boblift_series_text('Model code explained')); ?></h3><?php boblift_series_render_compact_decode($hero_model, (string) $product_series['winch'], (int) $series_member['en_id']); ?></div><?php endif; ?>
                 </div>
                 <?php // With drawings, the specs take the left half and the drawings the right, as on the loader site, so a wide drawing is not blown up to the full card width. ?>
                 <?php

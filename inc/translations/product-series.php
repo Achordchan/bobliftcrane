@@ -1,6 +1,7 @@
 <?php
 return [
     'ja' => [
+        'cfg|Model code explained' => '型式の見方',
         'cfg|Get a Quote' => '見積もり依頼',
         'cfg|View Configurations' => '仕様バリエーション',
         'cfg|View Details' => '詳細を見る',
@@ -60,6 +61,7 @@ return [
         '{code} Series' => '{code} シリーズ',
     ],
     'zh' => [
+        'cfg|Model code explained' => '型号说明',
         'cfg|Get a Quote' => '获取报价',
         'cfg|View Configurations' => '查看不同配置',
         'cfg|View Details' => '查看详情',
@@ -119,6 +121,7 @@ return [
         '{code} Series' => '{code} 系列',
     ],
     'es' => [
+        'cfg|Model code explained' => 'Significado del modelo',
         'cfg|Get a Quote' => 'Pedir presupuesto',
         'cfg|View Configurations' => 'Ver configuraciones',
         'cfg|View Details' => 'Ver detalles',
@@ -178,6 +181,7 @@ return [
         '{code} Series' => 'Serie {code}',
     ],
     'ru' => [
+        'cfg|Model code explained' => 'Расшифровка модели',
         'cfg|Get a Quote' => 'Запросить КП',
         'cfg|View Configurations' => 'Все комплектации',
         'cfg|View Details' => 'Подробнее',
@@ -237,6 +241,7 @@ return [
         '{code} Series' => 'Серия {code}',
     ],
     'fr' => [
+        'cfg|Model code explained' => 'Lecture du modèle',
         'cfg|Get a Quote' => 'Demander un devis',
         'cfg|View Configurations' => 'Voir les versions',
         'cfg|View Details' => 'Voir les détails',
@@ -296,6 +301,7 @@ return [
         '{code} Series' => 'Série {code}',
     ],
     'ar' => [
+        'cfg|Model code explained' => 'دلالة رمز الطراز',
         'cfg|Get a Quote' => 'احصل على عرض سعر',
         'cfg|View Configurations' => 'عرض التكوينات',
         'cfg|View Details' => 'عرض التفاصيل',

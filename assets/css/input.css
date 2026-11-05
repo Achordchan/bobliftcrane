@@ -1010,6 +1010,21 @@ img { max-width: 100%; }
 .boblift-product-listing[data-view="grid"] .product-card-footer { display: flex; flex-wrap: wrap; gap: 8px; }
 .boblift-product-listing[data-view="grid"] .product-card-ctas > * { flex: 1 1 auto; padding-inline: 6px; white-space: nowrap; }
 .boblift-product-listing[data-view="grid"] .product-card-ctas svg { display: none; }
+/* A card too narrow for both buttons stacks them. By width, not language, so a whole row of cards does the same. */
+.boblift-product-listing[data-view="grid"] .product-card-body { container-type: inline-size; }
+@container (max-width: 270px) {
+  .boblift-product-listing[data-view="grid"] .product-card-footer { flex-direction: column; }
+  .boblift-product-listing[data-view="grid"] .product-card-ctas > * { width: 100%; }
+}
+
+.boblift-boom-row [role="radiogroup"] { flex: 3 1 auto; }
+.boblift-boom-row [data-boom-fixed] { flex: 1 1 auto; }
+.boblift-boom-row .boblift-model-variant { flex: 1 1 0; min-width: max-content; }
+.boblift-variant-check { display: none; position: absolute; inset-inline-end: 8px; top: 50%; width: 16px; height: 16px; margin-top: -8px; border-radius: 50%; background: #fff; }
+.boblift-variant-check::after { content: ""; position: absolute; left: 5px; top: 2.5px; width: 6px; height: 9px; border: solid #071f42; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+.boblift-model-variant[aria-checked="true"] .boblift-variant-check { display: block; }
+.boblift-boom-row .boblift-variant-check { top: auto; bottom: 6px; margin-top: 0; }
+@media (max-width: 639px) { .boblift-boom-row [data-boom-fixed] { flex: 0 0 auto; } }
 
 /* Previous models: a tab that toggles on its own beside the category tabs. While on, the selected category's previous models replace the
    grid (see boblift_render_legacy_panel()); the category tabs stay usable. */
