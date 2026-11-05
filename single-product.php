@@ -537,7 +537,8 @@ if ($family_quote_copy) {
                             <?php endforeach; ?>
                         <?php endif; ?>
                     </div>
-                    <?php if (count($hero_gallery_items) > 1) : ?>
+                    <?php // Always there, even for one photo: every configuration's gallery keeps one height. ?>
+                    <?php if ($hero_gallery_items) : ?>
                         <div class="mt-3 flex">
                             <div class="flex max-w-full items-center gap-2 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="<?php echo esc_attr($ui['photoGalleryTitle'] ?? 'Product Photos'); ?>">
                                 <?php foreach ($hero_gallery_items as $index => $item) : ?>
