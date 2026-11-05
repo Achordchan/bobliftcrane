@@ -2274,13 +2274,12 @@ function boblift_product_card(array $product, string $extra_class = '', bool $ea
                 <div class="product-card-head flex flex-col">
                 <?php // Named by the title and code it shows (an aria-label that left them out failed WCAG 2.5.3, label in name). ?>
                 <a class="block min-w-0" href="<?php echo esc_url($detail_url); ?>" title="<?php echo esc_attr($card_view['full_title']); ?>">
+                    <?php if ($card_view['eyebrow'] !== '') : ?><p class="product-card-eyebrow boblift-kicker mb-1.5 truncate"><?php echo esc_html($card_view['eyebrow']); ?></p><?php endif; ?>
                     <h2 aria-label="<?php echo esc_attr($card_view['full_title']); ?>" class="product-card-title line-clamp-2 text-[clamp(19px,1.45vw,23px)] font-black leading-[1.12] text-[#0B3F7D]"><?php echo esc_html($card_view['title']); ?></h2>
                     <?php $card_subtitle = boblift_series_card_subtitle($card_view); if ($card_subtitle !== '') : ?><p class="product-card-code mt-1.5 text-[13px] font-normal text-slate-500"><?php echo wp_kses($card_subtitle, ['bdi' => [], 'span' => ['class' => true]]); ?></p><?php endif; ?>
                 </a>
-                <?php if ($card_view['configs'] || $card_view['type'] !== '') : ?>
+                <?php if ($card_view['configs']) : ?>
                     <div class="product-card-configs mt-2.5 flex flex-wrap gap-1.5">
-                        <?php // What it is mounted on: plain text on a tint, so it does not read as one of the model buttons beside it. ?>
-                        <?php if ($card_view['type'] !== '') : ?><span dir="auto" class="product-card-type inline-flex h-7 items-center rounded-sm bg-[#E8EDF3] px-2 text-[12px] font-medium text-slate-600"><?php echo esc_html($card_view['type']); ?></span><?php endif; ?>
                         <?php foreach ($card_view['configs'] as $config) : ?>
                             <a dir="auto" class="inline-flex h-7 items-center rounded-sm border border-[#D5DEE9] bg-[#F5F8FC] px-2 text-[12px] font-black text-[#071f42] transition hover:border-blue-400 hover:text-blue-700 [font-variant-numeric:tabular-nums]" href="<?php echo esc_url($config['url']); ?>"><?php echo esc_html($config['label']); ?></a>
                         <?php endforeach; ?>

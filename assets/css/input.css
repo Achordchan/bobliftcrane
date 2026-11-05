@@ -982,7 +982,11 @@ img { max-width: 100%; }
     margin-top: 0;
     gap: 4px;
   }
-  .boblift-product-listing .product-card-configs a, .boblift-product-listing .product-card-type {
+  .boblift-product-listing .product-card-eyebrow {
+    margin-bottom: 4px;
+    font-size: 10px;
+  }
+  .boblift-product-listing .product-card-configs a {
     height: 24px;
     padding-inline: 5px;
     font-size: 11px;

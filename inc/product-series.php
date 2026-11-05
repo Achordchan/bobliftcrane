@@ -571,7 +571,7 @@ function boblift_series_short_title(float $capacity, string $boom): string
 
 /**
  * A card is named by what the crane is (capacity and type); the model or series code comes second.
- * Returns title, full_title, type, code, configs (label, url), specs (the four figures as ranges) and figures (the three a card shows).
+ * Returns title, full_title, eyebrow, code, configs (label, url), specs (the four figures as ranges) and figures (the three a card shows).
  */
 function boblift_series_card_view(array $product): array
 {
@@ -633,7 +633,8 @@ function boblift_series_card_view(array $product): array
         'title' => $name !== '' ? $name : $title,
         // The whole name, for link titles, screen readers and the quick view.
         'full_title' => $full_title,
-        'type' => $type,
+        // The line above the title: what it is mounted on, or for other cranes their category.
+        'eyebrow' => $type !== '' ? $type : trim((string) ($product['category_title'] ?? '')),
         'code' => $code,
         // Beside the configuration labels: the series, unless the only label says the same (SL70, SQZ1000).
         'code_line' => $only === $code ? '' : $code,
