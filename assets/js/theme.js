@@ -5299,6 +5299,26 @@
   else window.addEventListener('load', init, { once: true });
 })();
 
+// A row that scrolls sideways: the current item in view, and a fade at each end that has more to swipe to.
+(() => {
+  document.querySelectorAll('[data-scroll-row]').forEach((row) => {
+    const update = () => {
+      const moved = Math.abs(row.scrollLeft);
+      row.style.setProperty('--fade-start', moved > 2 ? '28px' : '0px');
+      row.style.setProperty('--fade-end', moved + row.clientWidth < row.scrollWidth - 2 ? '28px' : '0px');
+    };
+    const current = row.querySelector('[aria-current]');
+    if (current && row.scrollWidth > row.clientWidth) {
+      const from = row.getBoundingClientRect();
+      const item = current.getBoundingClientRect();
+      row.scrollLeft += item.left - from.left - (from.width - item.width) / 2;
+    }
+    row.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+  });
+})();
+
 // Marine series page (inc/product-series.php): every configuration's blocks are in the page, this only shows the chosen one.
 // A choice the current configuration has no version of is dashed; picking it goes to the closest real configuration.
 (() => {

@@ -210,5 +210,9 @@ $check('nothing', '', boblift_series_compare_range(['', '']));
 $check('kN·m converts', '9.2 t·m', boblift_series_moment_in_tm('90 kN·m'));
 $check('t·m stays', '13.2 t·m', boblift_series_moment_in_tm('13.2 t·m'));
 
+$check('sub-category short name', 'Knuckle Boom', boblift_series_subcategory_label('knuckle-boom-marine-cranes', 'Knuckle Boom Marine Cranes'));
+$check('and with a language suffix', 'Telescopic Boom', boblift_series_subcategory_label('telescopic-boom-truck-mounted-cranes-ja', 'x'));
+$check('others keep their name', 'Timber Cranes', boblift_series_subcategory_label('timber-cranes', 'Timber Cranes'));
+
 echo $failures === 0 ? "ok\n" : "{$failures} failed\n";
 exit($failures === 0 ? 0 : 1);

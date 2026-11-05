@@ -279,34 +279,7 @@ $filter_dropdown = static function (string $title, string $filter, array $items,
         </div>
     </div>
 <?php };
-// The category list switches page: each entry links to its category, the current one ticked; a parent's
-// sub-categories show under it while it or one of them is open.
-$category_filter_group = static function (array $tree) use ($category_counts, $archive_ui, $initial_category, $active_parent, $category_link, $current_attr, $all_product_count, $on_all_products): void {
-    $box = static fn(bool $on): string => '<span class="relative flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border ' . ($on ? 'border-[#0B3F7D] bg-[#0B3F7D]' : 'border-slate-300 bg-white') . '" aria-hidden="true"><span class="pointer-events-none absolute h-2.5 w-1.5 -translate-y-0.5 rotate-45 border-b-2 border-r-2 border-white' . ($on ? '' : ' opacity-0') . '"></span></span>';
-    ?>
-    <fieldset class="border-t border-[#E5E7EB] pt-6 first:border-t-0 first:pt-0">
-        <legend class="float-left mb-4 w-full text-base font-black text-[#0B1B33]"><?php echo esc_html($archive_ui['categoryFilterLabel'] ?? 'Product Category'); ?></legend>
-        <div class="clear-left space-y-3">
-            <?php // The desktop bar has an All Products tab; the drawer needs its own way back to the whole range. ?>
-            <a class="product-filter-option" href="<?php echo esc_url($category_link('')); ?>" data-category-link=""<?php echo $current_attr($on_all_products); ?>><?php echo $box($on_all_products); ?><span class="min-w-0 flex-1 font-black leading-snug"><?php echo esc_html($archive_ui['allCategoriesLabel'] ?? 'All Products'); ?></span><span class="shrink-0 text-xs font-black text-slate-500"><?php echo esc_html((string) $all_product_count); ?></span></a>
-            <?php $group_shown = 'crane'; foreach ($tree as $item) : $slug = (string) $item['slug']; $open = $slug === $active_parent; ?>
-                <?php if (($item['group'] ?? 'crane') !== $group_shown) : $group_shown = $item['group']; ?>
-                    <p class="border-t border-line pt-3 text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(boblift_product_family_group_label($group_shown)); ?></p>
-                <?php endif; ?>
-                <a class="product-filter-option" href="<?php echo esc_url($category_link($slug)); ?>" data-category-link="<?php echo esc_attr($slug); ?>"<?php echo $current_attr($slug === $initial_category); ?>><?php echo $box($open); ?><span class="min-w-0 flex-1 font-black leading-snug"><?php echo esc_html($item['title']); ?></span><span class="shrink-0 text-xs font-black text-slate-500"><?php echo esc_html((string) ($item['count'] ?? 0)); ?></span></a>
-                <?php if ($open && !empty($item['children'])) : ?>
-                    <div class="space-y-3">
-                        <?php foreach (($item['children'] ?? []) as $child) : $child_slug = (string) ($child['slug'] ?? ''); if (($category_counts[$child_slug] ?? 0) <= 0) { continue; } ?>
-                            <a class="product-filter-option ps-8 text-[0.92em]" href="<?php echo esc_url($category_link($child_slug)); ?>" data-category-link="<?php echo esc_attr($child_slug); ?>"<?php echo $current_attr($child_slug === $initial_category); ?>><?php echo $box($child_slug === $initial_category); ?><span class="min-w-0 flex-1 leading-snug"><?php echo esc_html($child['title'] ?? $child_slug); ?></span><span class="shrink-0 text-xs font-black text-slate-500"><?php echo esc_html((string) ($category_counts[$child_slug] ?? 0)); ?></span></a>
-                        <?php endforeach; ?>
-                    </div>
-                <?php endif; ?>
-            <?php endforeach; ?>
-        </div>
-    </fieldset>
-<?php };
-// Phones and tablets: every filter in one drawer.
-$filter_sidebar = static function () use ($filter_group, $category_filter_group, $category_filter_tree, $spec_filters, $spec_counts, $boom_options, $boom_counts, $archive_ui): void { ?>
+$filter_sidebar = static function () use ($filter_group, $category_filter_tree, $active_parent, $spec_filters, $spec_counts, $boom_options, $boom_counts, $archive_ui): void { ?>
     <aside class="boblift-product-filter-sidebar rounded border border-[#E5E7EB] bg-white p-6 shadow-card">
         <div class="boblift-product-filter-head mb-6 flex items-center justify-between gap-4">
             <h2 class="text-2xl font-black tracking-[-0.015em] text-[#0B1B33]"><?php echo esc_html($archive_ui['filtersTitle'] ?? 'Filters'); ?></h2>
@@ -318,8 +291,10 @@ $filter_sidebar = static function () use ($filter_group, $category_filter_group,
         <?php // An old tonnage link's capacity range (?capacity=4-5) has no tick box; it shows here so phones can see and clear it. ?>
         <div class="mb-6 hidden" data-filter-custom-capacity><button class="boblift-filter-chip" type="button" data-filter-custom-capacity-clear><span data-filter-custom-capacity-label></span><?php echo boblift_icon('x', 'h-3.5 w-3.5 text-slate-500'); ?></button></div>
         <div class="space-y-7"><?php
-            $category_filter_group($category_filter_tree);
-            $filter_group((string) ($archive_ui['boomFilterLabel'] ?? 'Boom Type'), 'boom', $boom_options, $boom_counts);
+            // Categories sit above the list on phones. Boom type only where no sub-category row already offers it.
+            if (!array_filter($category_filter_tree, static fn(array $item): bool => $item['slug'] === $active_parent && !empty($item['children']))) {
+                $filter_group((string) ($archive_ui['boomFilterLabel'] ?? 'Boom Type'), 'boom', $boom_options, $boom_counts);
+            }
             foreach ($spec_filters as $filter => $config) {
                 $filter_group($config['label'], $filter, $config['bins'], $spec_counts[$filter]);
             }
@@ -343,7 +318,7 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
             <div class="flex flex-wrap gap-2 px-6 pt-4" role="group" aria-label="<?php echo esc_attr($item['title']); ?>" data-category-subtabs="<?php echo esc_attr($item['slug']); ?>">
                 <a class="boblift-category-subtab" href="<?php echo esc_url($category_link((string) $item['slug'])); ?>" data-category-tab="<?php echo esc_attr($item['slug']); ?>"<?php echo $current_attr($item['slug'] === $initial_category); ?>><?php echo esc_html($archive_ui['allInCategoryLabel'] ?? 'All'); ?><span data-tab-count><?php echo esc_html((string) ($item['count'] ?? 0)); ?></span></a>
                 <?php foreach ($item['children'] as $child) : $child_slug = (string) ($child['slug'] ?? ''); if (($category_counts[$child_slug] ?? 0) <= 0) { continue; } ?>
-                    <a class="boblift-category-subtab" href="<?php echo esc_url($category_link($child_slug)); ?>" data-category-tab="<?php echo esc_attr($child_slug); ?>"<?php echo $current_attr($child_slug === $initial_category); ?>><?php echo esc_html($child['title'] ?? $child_slug); ?><span data-tab-count><?php echo esc_html((string) $category_counts[$child_slug]); ?></span></a>
+                    <a class="boblift-category-subtab" href="<?php echo esc_url($category_link($child_slug)); ?>" data-category-tab="<?php echo esc_attr($child_slug); ?>"<?php echo $current_attr($child_slug === $initial_category); ?>><?php echo esc_html(boblift_series_subcategory_label($child_slug, (string) ($child['title'] ?? $child_slug))); ?><span data-tab-count><?php echo esc_html((string) $category_counts[$child_slug]); ?></span></a>
                 <?php endforeach; ?>
             </div>
         <?php endforeach; ?>
@@ -398,19 +373,22 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
             foreach ($mobile_parent['children'] as $child) {
                 $child_slug = (string) ($child['slug'] ?? '');
                 if (($category_counts[$child_slug] ?? 0) > 0) {
-                    $mobile_category_links[] = [$child_slug, (string) ($child['title'] ?? $child_slug), (int) $category_counts[$child_slug]];
+                    $mobile_category_links[] = [$child_slug, boblift_series_subcategory_label($child_slug, (string) ($child['title'] ?? $child_slug)), (int) $category_counts[$child_slug]];
                 }
-            }
-        } elseif ($on_all_products) {
-            foreach ($category_filter_tree as $item) {
-                $mobile_category_links[] = [(string) $item['slug'], (string) $item['title'], (int) ($item['count'] ?? 0)];
             }
         }
         ?>
+        <?php // Phones and tablets: every family one swipe away, then its sub-categories. Only the fine filters sit behind the Filter button. ?>
+        <nav class="boblift-scroll-row mb-3 border-b border-[#E5E7EB] lg:hidden" aria-label="<?php echo esc_attr($archive_ui['categoryFilterLabel'] ?? 'Product Category'); ?>" data-scroll-row data-category-mobile-families>
+            <a class="boblift-category-tab h-11 shrink-0" href="<?php echo esc_url($category_link('')); ?>" data-category-link=""<?php echo $current_attr($on_all_products); ?>><?php echo esc_html($archive_ui['allCategoriesLabel'] ?? 'All Products'); ?></a>
+            <?php foreach ($category_filter_tree as $item) : ?>
+                <a class="boblift-category-tab h-11 shrink-0" href="<?php echo esc_url($category_link((string) $item['slug'])); ?>" data-category-link="<?php echo esc_attr($item['slug']); ?>"<?php echo $current_attr($item['slug'] === $active_parent); ?>><?php echo esc_html($item['title']); ?></a>
+            <?php endforeach; ?>
+        </nav>
         <?php if (count($mobile_category_links) > 1) : ?>
-            <nav class="mb-4 grid grid-cols-2 gap-2 md:flex md:flex-wrap lg:hidden" aria-label="<?php echo esc_attr($mobile_parent ? (string) $mobile_parent['title'] : ($archive_ui['categoryFilterLabel'] ?? 'Product Category')); ?>" data-category-mobile-tabs>
+            <nav class="boblift-scroll-row mb-4 gap-2 lg:hidden" aria-label="<?php echo esc_attr($mobile_parent ? (string) $mobile_parent['title'] : ($archive_ui['categoryFilterLabel'] ?? 'Product Category')); ?>" data-scroll-row data-category-mobile-tabs>
                 <?php foreach ($mobile_category_links as [$link_slug, $link_label, $link_count]) : ?>
-                    <a class="boblift-category-subtab h-auto min-h-11 justify-between py-2 leading-tight" href="<?php echo esc_url($category_link($link_slug)); ?>" data-category-link="<?php echo esc_attr($link_slug); ?>"<?php echo $current_attr($link_slug === $initial_category); ?>><span class="min-w-0"><?php echo esc_html($link_label); ?></span><span class="shrink-0" data-tab-count><?php echo esc_html((string) $link_count); ?></span></a>
+                    <a class="boblift-category-subtab shrink-0" href="<?php echo esc_url($category_link($link_slug)); ?>" data-category-link="<?php echo esc_attr($link_slug); ?>"<?php echo $current_attr($link_slug === $initial_category); ?>><?php echo esc_html($link_label); ?><span data-tab-count><?php echo esc_html((string) $link_count); ?></span></a>
                 <?php endforeach; ?>
             </nav>
         <?php endif; ?>

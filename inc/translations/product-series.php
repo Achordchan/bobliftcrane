@@ -1,6 +1,9 @@
 <?php
 return [
     'ja' => [
+        'cfg|Knuckle Boom' => 'ナックルブーム',
+        'cfg|Telescopic Boom' => '伸縮ブーム',
+        'cfg|Pickup' => 'ピックアップ',
         'cfg|{value} Ton Telescopic Boom' => '{value}トン 伸縮ブーム',
         'cfg|{value} Ton Knuckle Boom' => '{value}トン ナックルブーム',
         'cfg|Truck Mounted Crane' => 'トラック搭載クレーン',
@@ -53,6 +56,9 @@ return [
         '{code} Series' => '{code} シリーズ',
     ],
     'zh' => [
+        'cfg|Knuckle Boom' => '折臂',
+        'cfg|Telescopic Boom' => '伸缩臂',
+        'cfg|Pickup' => '皮卡吊',
         'cfg|{value} Ton Telescopic Boom' => '{value} 吨伸缩臂',
         'cfg|{value} Ton Knuckle Boom' => '{value} 吨折臂',
         'cfg|Truck Mounted Crane' => '随车吊',
@@ -105,6 +111,9 @@ return [
         '{code} Series' => '{code} 系列',
     ],
     'es' => [
+        'cfg|Knuckle Boom' => 'Pluma articulada',
+        'cfg|Telescopic Boom' => 'Pluma telescópica',
+        'cfg|Pickup' => 'Pickup',
         'cfg|{value} Ton Telescopic Boom' => 'Pluma telescópica de {value} t',
         'cfg|{value} Ton Knuckle Boom' => 'Pluma articulada de {value} t',
         'cfg|Truck Mounted Crane' => 'Grúa montada sobre camión',
@@ -157,6 +166,9 @@ return [
         '{code} Series' => 'Serie {code}',
     ],
     'ru' => [
+        'cfg|Knuckle Boom' => 'Шарнирная стрела',
+        'cfg|Telescopic Boom' => 'Телескопическая стрела',
+        'cfg|Pickup' => 'Для пикапа',
         'cfg|{value} Ton Telescopic Boom' => 'Телескопическая стрела {value} т',
         'cfg|{value} Ton Knuckle Boom' => 'Шарнирная стрела {value} т',
         'cfg|Truck Mounted Crane' => 'Кран-манипулятор',
@@ -209,6 +221,9 @@ return [
         '{code} Series' => 'Серия {code}',
     ],
     'fr' => [
+        'cfg|Knuckle Boom' => 'Flèche articulée',
+        'cfg|Telescopic Boom' => 'Flèche télescopique',
+        'cfg|Pickup' => 'Pick-up',
         'cfg|{value} Ton Telescopic Boom' => 'Flèche télescopique de {value} t',
         'cfg|{value} Ton Knuckle Boom' => 'Flèche articulée de {value} t',
         'cfg|Truck Mounted Crane' => 'Grue de chargement sur camion',
@@ -261,6 +276,9 @@ return [
         '{code} Series' => 'Série {code}',
     ],
     'ar' => [
+        'cfg|Knuckle Boom' => 'ذراع مفصلي',
+        'cfg|Telescopic Boom' => 'ذراع تلسكوبي',
+        'cfg|Pickup' => 'بيك أب',
         'cfg|{value} Ton Telescopic Boom' => 'ذراع تلسكوبي {value} طن',
         'cfg|{value} Ton Knuckle Boom' => 'ذراع مفصلي {value} طن',
         'cfg|Truck Mounted Crane' => 'رافعة مثبتة على شاحنة',

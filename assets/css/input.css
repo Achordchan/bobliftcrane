@@ -992,6 +992,20 @@ img { max-width: 100%; }
   .boblift-product-listing .product-card-specs > div + div { padding-inline-start: 6px; }
 }
 
+.boblift-scroll-row {
+  display: flex;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 var(--fade-start, 0), #000 calc(100% - var(--fade-end, 0)), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 var(--fade-start, 0), #000 calc(100% - var(--fade-end, 0)), transparent 100%);
+}
+.boblift-scroll-row::-webkit-scrollbar { display: none; }
+[dir="rtl"] .boblift-scroll-row {
+  -webkit-mask-image: linear-gradient(to left, transparent 0, #000 var(--fade-start, 0), #000 calc(100% - var(--fade-end, 0)), transparent 100%);
+  mask-image: linear-gradient(to left, transparent 0, #000 var(--fade-start, 0), #000 calc(100% - var(--fade-end, 0)), transparent 100%);
+}
+
 /* Previous models: a tab that toggles on its own beside the category tabs. While on, the selected category's previous models replace the
    grid (see boblift_render_legacy_panel()); the category tabs stay usable. */
 .boblift-legacy-panel { display: none; }

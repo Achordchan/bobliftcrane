@@ -553,6 +553,17 @@ function boblift_series_local_number(float $value): string
     return in_array(function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '', ['es', 'ru', 'fr'], true) ? str_replace('.', ',', $text) : $text;
 }
 
+/** A sub-category's button label: its family is already the tab above it. Other sub-categories keep their name. */
+function boblift_series_subcategory_label(string $slug, string $title): string
+{
+    return match (true) {
+        (bool) preg_match('/^knuckle-boom-(truck-mounted|marine)-cranes/', $slug) => boblift_series_text('Knuckle Boom'),
+        (bool) preg_match('/^telescopic-boom-(truck-mounted|marine)-cranes/', $slug) => boblift_series_text('Telescopic Boom'),
+        str_starts_with($slug, 'pickup-cranes') => boblift_series_text('Pickup'),
+        default => $title,
+    };
+}
+
 /** A timber crane's card title: its capacity, and its arm length where the English product title gives one ("Arm Length 7600MM"). */
 function boblift_series_timber_title(float $capacity, string $english_title): string
 {
