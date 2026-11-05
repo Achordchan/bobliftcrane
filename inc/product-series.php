@@ -1120,6 +1120,12 @@ function boblift_series_render_compact_decode(string $model, string $winch = 'op
     <?php
 }
 
+/** Whether the series page being rendered has anything to choose. */
+function boblift_series_has_choice(): bool
+{
+    return boblift_series_dimensions((array) ($GLOBALS['boblift_series_render']['variants'] ?? [])) !== [];
+}
+
 /** The configuration box, with the data the theme script switches from. A series of one has nothing to choose, so no box. */
 function boblift_series_render_configurator(): void
 {

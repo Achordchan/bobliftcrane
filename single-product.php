@@ -422,8 +422,10 @@ if ($family_quote_copy) {
         <div class="page-shell relative z-10 py-6 md:py-8 lg:py-10">
             <?php // The configuration box makes the text column tall: the photo stays at its top instead of drifting to the middle. ?>
             <div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-10 xl:gap-14">
-                <div class="relative z-20 order-2 min-w-0 lg:order-1 lg:self-center">
-                    <?php if ($series_page) : ?>
+                <?php // With a choice to make the column stays compact; with none it has room to breathe, and starts level with the photo. ?>
+                <?php $hero_has_choice = $series_page && boblift_series_has_choice(); ?>
+                <div class="relative z-20 order-2 min-w-0 lg:order-1 <?php echo $hero_has_choice ? 'lg:self-center' : ''; ?>">
+                    <?php if ($hero_has_choice) : ?>
                         <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                     <p class="boblift-kicker boblift-product-hero-kicker"><?php echo esc_html($product['category_title'] ?? 'BOB-LIFT Product'); ?></p>
                             <?php $hero_capacity = function_exists('boblift_product_listing_capacity') ? boblift_product_listing_capacity($product) : 0.0; $hero_tonnage = function_exists('boblift_tonnage_size_for_capacity') ? boblift_tonnage_size_for_capacity($hero_capacity) : 0; if ($hero_tonnage > 0) : ?>
@@ -475,13 +477,13 @@ if ($family_quote_copy) {
                     <?php boblift_series_render_configurator(); ?>
                     <?php boblift_series_block_open('keyspecs'); ?>
                     <?php // Plain text with no boxes: only the configuration above is there to be clicked. ?>
-                    <dl class="mt-5 grid grid-cols-2 gap-x-4 gap-y-3 <?php echo $series_page ? 'sm:grid-cols-5' : 'sm:grid-cols-4'; ?> lg:mt-6">
+                    <dl class="<?php echo $hero_has_choice ? 'mt-5 lg:mt-6' : 'mt-6 border-y border-[#D5DEE9] py-4 lg:mt-8 lg:py-5'; ?> grid grid-cols-2 gap-x-4 gap-y-3 <?php echo $series_page ? 'sm:grid-cols-5' : 'sm:grid-cols-4'; ?>">
                         <?php foreach ($hero_specs as $index => $spec) :
                             [$spec_number, $spec_unit] = $series_page ? boblift_series_figure_parts((string) ($spec['value'] ?? '')) : $hero_spec_parts((string) ($spec['value'] ?? ''));
                         ?>
                             <div class="flex min-w-0 flex-col<?php echo $series_page && $index === 4 ? ' col-span-2 sm:col-span-1' : ''; ?>"<?php echo $series_page ? ' data-cfg-cell="' . esc_attr((string) ($spec['key'] ?? '')) . '" data-cfg-cell-value="' . esc_attr((string) ($spec['value'] ?? '')) . '"' : ''; ?>>
                                 <dt class="text-[13px] font-semibold leading-[1.25] text-slate-500"><?php echo esc_html($spec['label']); ?></dt>
-                                <dd class="mt-auto break-words pt-1.5 font-black leading-tight text-[#071f42] [font-variant-numeric:tabular-nums]"><span class="<?php echo $series_page ? 'text-[clamp(20px,1.5vw,28px)]' : (($spec_unit !== '' || mb_strlen($spec_number) <= 8) ? 'text-[clamp(22px,1.9vw,32px)]' : 'text-base'); ?><?php echo $spec_number === '—' ? ' text-slate-400' : ''; ?>"><?php echo esc_html($spec_number); ?></span><?php if ($spec_unit !== '') : ?><span class="<?php echo $spec_unit === '°' ? '' : 'ms-1'; ?> whitespace-nowrap text-sm font-bold text-slate-500"><?php echo esc_html($spec_unit); ?></span><?php endif; ?></dd>
+                                <dd class="mt-auto break-words pt-1.5 font-black leading-tight text-[#071f42] [font-variant-numeric:tabular-nums]"><span class="<?php echo $hero_has_choice ? 'text-[clamp(20px,1.5vw,28px)]' : (($spec_unit !== '' || mb_strlen($spec_number) <= 8) ? 'text-[clamp(22px,1.9vw,32px)]' : 'text-base'); ?><?php echo $spec_number === '—' ? ' text-slate-400' : ''; ?>"><?php echo esc_html($spec_number); ?></span><?php if ($spec_unit !== '') : ?><span class="<?php echo $spec_unit === '°' ? '' : 'ms-1'; ?> whitespace-nowrap text-sm font-bold text-slate-500"><?php echo esc_html($spec_unit); ?></span><?php endif; ?></dd>
                             </div>
                         <?php endforeach; ?>
                     </dl>
@@ -489,13 +491,13 @@ if ($family_quote_copy) {
                         <p class="mt-2 text-xs leading-5 text-slate-500"><?php echo esc_html(boblift_series_text('—: see the drawing, confirmed with your quote')); ?></p>
                     <?php endif; ?>
                     <?php boblift_series_block_close('keyspecs'); ?>
-                    <?php if (!$series_page) : ?>
+                    <?php if (!$hero_has_choice) : ?>
                     <?php // The tonnage page of this model's capacity bin (inc/tonnage-pages.php); none for models rated by working height. ?>
                     <?php $hero_capacity = function_exists('boblift_product_listing_capacity') ? boblift_product_listing_capacity($product) : 0.0; $hero_tonnage = function_exists('boblift_tonnage_size_for_capacity') ? boblift_tonnage_size_for_capacity($hero_capacity) : 0; if ($hero_tonnage > 0) : ?>
                         <a class="mt-4 inline-flex items-center gap-1.5 text-sm font-black text-blue-700 transition hover:text-[#071f42]" href="<?php echo esc_url(boblift_tonnage_url($hero_tonnage)); ?>"><?php echo esc_html(boblift_tonnage_see_all_label($hero_tonnage, $hero_capacity)); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></a>
                     <?php endif; ?>
                     <?php endif; ?>
-                    <?php if ($series_page) : ?>
+                    <?php if ($hero_has_choice) : ?>
                         <?php // Quote and the two ways to message on one line; brochure and terms on one quiet line below. ?>
                         <div class="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
                             <button class="boblift-product-hero-request inline-flex h-12 w-full shrink-0 items-center justify-center gap-2 rounded-sm bg-[#071f42] px-7 sm:w-auto text-sm font-black text-white transition hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页首屏" data-inquiry-product="<?php echo esc_attr($inquiry_product_title); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html($ui['requestQuoteLabel'] ?? 'Request Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
@@ -535,7 +537,7 @@ if ($family_quote_copy) {
                         </div>
                     <?php endif; ?>
                                         <?php endif; ?>
-                    <?php if ($hero_terms_apply && !$series_page) : ?>
+                    <?php if ($hero_terms_apply && !$hero_has_choice) : ?>
                         <div class="mt-6 border-t border-[#D5DEE9] pt-5">
                             <ul class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-600">
                                 <li class="inline-flex items-center gap-2"><?php echo boblift_icon('shield-check', 'h-4 w-4 text-[#0B3F7D]'); ?><?php echo esc_html(boblift_localized_static_text('12-month warranty')); ?></li>
