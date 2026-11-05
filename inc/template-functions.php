@@ -2324,6 +2324,8 @@ function boblift_product_card(array $product, string $extra_class = '', bool $ea
                 <div class="product-card-inline-actions absolute bottom-3 end-6 z-20 flex gap-2"><button class="inline-flex h-9 w-9 items-center justify-center rounded-sm border border-[#E5E7EB] bg-white text-[#0B1B33] transition hover:border-blue-300 hover:text-blue-700" type="button" data-product-favorite aria-label="<?php echo esc_attr($add_quote_label); ?>"><?php echo boblift_icon('heart', 'h-[18px] w-[18px]'); ?></button><button class="inline-flex h-9 w-9 items-center justify-center rounded-sm border border-[#E5E7EB] bg-white text-[#0B1B33] transition hover:border-blue-300 hover:text-blue-700" type="button" data-product-quick-view aria-label="<?php echo esc_attr($quick_view_label . ' ' . $product['title']); ?>"><?php echo boblift_icon('eye', 'h-[18px] w-[18px]'); ?></button></div>
             </div>
             <div class="product-card-body flex flex-1 flex-col p-6">
+                <?php $card_option = boblift_series_card_option(); $card_view = $card_option !== '' ? boblift_series_card_view($product, $product_name) : []; ?>
+                <?php if ($card_option !== '') : boblift_series_render_card_option_head($card_option, $card_view, $detail_url); else : ?>
                 <div class="product-card-head flex items-start justify-between gap-3">
                 <?php // Named by the eyebrow and model it shows (an aria-label that left them out failed WCAG 2.5.3, label in name). ?>
                 <a class="block min-w-0 flex-1" href="<?php echo esc_url($detail_url); ?>">
@@ -2333,8 +2335,10 @@ function boblift_product_card(array $product, string $extra_class = '', bool $ea
                 </a>
                 </div>
                 <?php if ($series_card) { boblift_series_render_series_card_models($series_card); } ?>
+                <?php endif; ?>
                 <div class="product-card-bottom mt-auto">
-                <?php if ($card_specs) : ?>
+                <?php if ($card_option !== '') { boblift_series_render_card_option_specs($card_option, $card_view); } ?>
+                <?php if ($card_specs && $card_option === '') : ?>
                     <dl class="product-card-specs mt-5 grid grid-cols-2 gap-4 border-t border-[#E5E7EB] pt-4">
                         <?php foreach ($card_specs as $spec) : ?>
                             <div class="min-w-0"><dt class="truncate text-xs font-bold leading-4 text-slate-500"><?php echo esc_html($spec['label']); ?></dt><dd class="mt-1 truncate text-base font-black leading-5 text-[#0B1B33]" dir="ltr"><?php echo esc_html($spec['value']); ?></dd></div>

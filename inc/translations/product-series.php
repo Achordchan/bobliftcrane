@@ -1,6 +1,7 @@
 <?php
 return [
     'ja' => [
+        'cfg|800 kg Pickup Crane' => '800 kg ピックアップクレーン',
         'cfg|—: see the drawing, confirmed with your quote' => '—：図面をご確認ください。お見積もり時に確定します',
         'cfg|Outriggers' => 'アウトリガー',
         'cfg|With outriggers' => 'アウトリガー付き',
@@ -45,6 +46,7 @@ return [
         '{code} Series' => '{code} シリーズ',
     ],
     'zh' => [
+        'cfg|800 kg Pickup Crane' => '800 kg 皮卡起重机',
         'cfg|—: see the drawing, confirmed with your quote' => '以图纸为准，询价时确认',
         'cfg|Outriggers' => '支腿',
         'cfg|With outriggers' => '带支腿',
@@ -89,6 +91,7 @@ return [
         '{code} Series' => '{code} 系列',
     ],
     'es' => [
+        'cfg|800 kg Pickup Crane' => 'Grúa para pickup de 800 kg',
         'cfg|—: see the drawing, confirmed with your quote' => '—: consulte el plano; se confirma en su presupuesto',
         'cfg|Outriggers' => 'Estabilizadores',
         'cfg|With outriggers' => 'Con estabilizadores',
@@ -133,6 +136,7 @@ return [
         '{code} Series' => 'Serie {code}',
     ],
     'ru' => [
+        'cfg|800 kg Pickup Crane' => 'Кран для пикапа 800 кг',
         'cfg|—: see the drawing, confirmed with your quote' => '—: см. чертёж, уточняется в коммерческом предложении',
         'cfg|Outriggers' => 'Выносные опоры',
         'cfg|With outriggers' => 'С выносными опорами',
@@ -177,6 +181,7 @@ return [
         '{code} Series' => 'Серия {code}',
     ],
     'fr' => [
+        'cfg|800 kg Pickup Crane' => 'Grue pour pick-up de 800 kg',
         'cfg|—: see the drawing, confirmed with your quote' => '— : voir le plan, confirmé dans votre devis',
         'cfg|Outriggers' => 'Stabilisateurs',
         'cfg|With outriggers' => 'Avec stabilisateurs',
@@ -221,6 +226,7 @@ return [
         '{code} Series' => 'Série {code}',
     ],
     'ar' => [
+        'cfg|800 kg Pickup Crane' => 'رافعة بيك أب 800 كجم',
         'cfg|—: see the drawing, confirmed with your quote' => '—: راجع الرسم، ويُؤكَّد في عرض السعر',
         'cfg|Outriggers' => 'أذرع الدعم',
         'cfg|With outriggers' => 'مع أذرع الدعم',

@@ -5229,6 +5229,54 @@
   else window.addEventListener('load', init, { once: true });
 })();
 
+// Card option c: a configuration's label shows its photo and figures on the card, on hover or, on touch screens, on tap.
+(() => {
+  const groups = document.querySelectorAll('[data-card-options]');
+  if (!groups.length) return;
+  const show = (card, option) => {
+    const image = card.querySelector('.product-card-media img');
+    const source = option ? option.dataset.cardImage : card.dataset.cardImageDefault;
+    if (image && source) {
+      if (!card.dataset.cardImageDefault) card.dataset.cardImageDefault = image.currentSrc || image.src;
+      image.removeAttribute('srcset');
+      image.src = source;
+    }
+    let figures = {};
+    try { figures = option ? JSON.parse(option.dataset.cardFigures || '{}') : {}; } catch (error) { figures = {}; }
+    card.querySelectorAll('[data-card-figure]').forEach((cell) => {
+      const value = cell.querySelector('dd');
+      const shown = value && value.querySelector('bdi');
+      if (shown) shown.textContent = figures[cell.dataset.cardFigure] || (option ? '—' : value.dataset.cardFigureValue);
+    });
+    card.querySelectorAll('[data-card-option]').forEach((item) => {
+      item.classList.toggle('border-[#071f42]', item === option);
+    });
+  };
+  const touch = window.matchMedia('(hover: none)').matches;
+  groups.forEach((group) => {
+    const card = group.closest('.product-card');
+    group.querySelectorAll('[data-card-option]').forEach((option) => {
+      if (touch) {
+        option.addEventListener('click', (event) => {
+          if (option.classList.contains('border-[#071f42]')) return;
+          event.preventDefault();
+          event.stopPropagation();
+          show(card, option);
+        });
+      } else {
+        option.addEventListener('mouseenter', () => {
+          if (!card.dataset.cardImageDefault) {
+            const image = card.querySelector('.product-card-media img');
+            card.dataset.cardImageDefault = image ? (image.currentSrc || image.src) : '';
+          }
+          show(card, option);
+        });
+      }
+    });
+    if (!touch) group.addEventListener('mouseleave', () => show(card, null));
+  });
+})();
+
 // Marine series page (inc/product-series.php): every configuration's blocks are in the page, this only shows the chosen one.
 // A choice the current configuration has no version of is dashed; picking it goes to the closest real configuration.
 (() => {
