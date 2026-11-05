@@ -104,7 +104,7 @@ $product_result = static function (array $product) use ($highlight, $view_detail
             <img class="absolute inset-0 h-full w-full transition duration-500 group-hover:scale-[1.03] <?php echo esc_attr($image_class); ?>" src="<?php echo esc_url($image); ?>" alt="<?php echo esc_attr($title); ?>" loading="lazy" decoding="async">
         </div>
         <div class="flex min-w-0 flex-1 flex-col p-4 sm:p-5">
-            <?php if ($view['eyebrow'] !== '') : ?><p class="boblift-kicker mb-1 truncate"><?php echo esc_html($view['eyebrow']); ?></p><?php endif; ?>
+            <?php if ($view['eyebrow'] !== '') : ?><p class="boblift-kicker mb-1"><?php echo esc_html($view['eyebrow']); ?></p><?php endif; ?>
             <h3 class="line-clamp-3 text-base font-black leading-tight text-[#0B3F7D] sm:line-clamp-2 sm:text-xl"><?php echo $highlight($view['title']); ?></h3>
             <?php if ($view['code_line'] !== '') : ?><p class="mt-1 text-[13px] font-normal leading-5 text-slate-500"><bdi><?php echo $highlight($view['code_line']); ?></bdi></p><?php endif; ?>
             <?php if ($view['configs']) : // Plain labels: the whole card is one link, and a search for a model shows why it matched. ?>
