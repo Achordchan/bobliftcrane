@@ -509,6 +509,21 @@ function boblift_series_figure_range(array $values): string
     return ($approx ? '≈ ' : '') . $format($low) . ($high > $low ? '–' . $format($high) : '') . ' ' . $unit;
 }
 
+/** A timber crane's card title: its capacity, and its arm length where the English product title gives one ("Arm Length 7600MM"). */
+function boblift_series_timber_title(float $capacity, string $english_title): string
+{
+    $comma = in_array(function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '', ['es', 'ru', 'fr'], true);
+    $number = static function (float $value) use ($comma): string {
+        $text = rtrim(rtrim(number_format($value, 2, '.', ''), '0'), '.');
+        return $comma ? str_replace('.', ',', $text) : $text;
+    };
+    $title = str_replace('{value}', $number($capacity), boblift_series_text('{value} Ton Timber Crane'));
+    if (preg_match('/Arm Length\s*(\d+)\s*MM/i', $english_title, $match)) {
+        $title .= ' · ' . $number((int) $match[1] / 1000) . ' m';
+    }
+    return $title;
+}
+
 /**
  * A card is named by what the crane is (capacity and type); the model or series code comes second.
  * Returns title, code, configs (label, url), specs (the four figures as ranges) and figures (the three a card shows).
@@ -541,6 +556,11 @@ function boblift_series_card_view(array $product): array
     // One card stands for both pickup configurations, so its title leaves out "with outriggers".
     if ($pickup && ($specs['capacity']['value'] ?? '') === '800 kg') {
         $name = boblift_series_text('800 kg Pickup Crane');
+    }
+    // Timber crane titles name only the type, so the capacity tells the models apart (the product data stays as it is).
+    $capacity = (float) get_post_meta($english_id, '_capacity_value', true);
+    if (!$is_series && $capacity > 0 && has_term('timber-cranes', 'product_category', $english_id)) {
+        $name = boblift_series_timber_title($capacity, (string) get_post_field('post_title', $english_id));
     }
     // Three figures fit a line. A series title already names its capacity.
     $figures = $specs;
