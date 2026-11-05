@@ -5226,7 +5226,7 @@
   else window.addEventListener('load', init, { once: true });
 })();
 
-// Marine series page (inc/marine-series.php): every configuration's blocks are in the page, this only shows the chosen one.
+// Marine series page (inc/product-series.php): every configuration's blocks are in the page, this only shows the chosen one.
 // A choice the current configuration has no version of is dashed; picking it goes to the closest real configuration.
 (() => {
   const root = document.querySelector('[data-series-config]');

@@ -1,6 +1,7 @@
 <?php
 return [
     'ja' => [
+        'cfg|+1 manual extension on every configuration' => '全仕様に手動延長ブーム（+1）付き',
         'cfg|Knuckle boom marine cranes can be built with or without a winch.' => 'ナックルブーム式船舶用クレーンは、ウインチ付き・ウインチなしのどちらでも製作できます。',
         'cfg|Telescopic boom marine cranes come with a winch as standard.' => '伸縮ブーム式船舶用クレーンはウインチを標準装備しています。',
         'cfg|Winch included on every telescopic marine crane' => 'すべての伸縮ブーム式船舶用クレーンにウインチが付属します',
@@ -42,6 +43,7 @@ return [
         '{code} Series' => '{code} シリーズ',
     ],
     'zh' => [
+        'cfg|+1 manual extension on every configuration' => '所有配置均带 +1 手动臂',
         'Lifting moment class' => '起重力矩等级',
         'cfg|Lifting moment class ({value} on the drawing)' => '起重力矩等级（图纸 {value}）',
         'cfg|Model (moment class)' => '型号（力矩等级）',
@@ -83,6 +85,7 @@ return [
         '{code} Series' => '{code} 系列',
     ],
     'es' => [
+        'cfg|+1 manual extension on every configuration' => '+1 prolongación manual de pluma en todas las configuraciones',
         'cfg|Knuckle boom marine cranes can be built with or without a winch.' => 'Las grúas marinas de brazo articulado pueden fabricarse con o sin cabrestante.',
         'cfg|Telescopic boom marine cranes come with a winch as standard.' => 'Las grúas marinas de pluma telescópica incluyen un cabrestante de serie.',
         'cfg|Winch included on every telescopic marine crane' => 'Todas las grúas marinas telescópicas incluyen un cabrestante',
@@ -124,6 +127,7 @@ return [
         '{code} Series' => 'Serie {code}',
     ],
     'ru' => [
+        'cfg|+1 manual extension on every configuration' => '+1 ручной удлинитель стрелы во всех комплектациях',
         'cfg|Knuckle boom marine cranes can be built with or without a winch.' => 'Морские краны с шарнирно-сочленённой стрелой изготавливаются как с лебёдкой, так и без неё.',
         'cfg|Telescopic boom marine cranes come with a winch as standard.' => 'Морские краны с телескопической стрелой в стандартной комплектации оснащены лебёдкой.',
         'cfg|Winch included on every telescopic marine crane' => 'Каждый телескопический морской кран комплектуется лебёдкой',
@@ -165,6 +169,7 @@ return [
         '{code} Series' => 'Серия {code}',
     ],
     'fr' => [
+        'cfg|+1 manual extension on every configuration' => '+1 rallonge manuelle de flèche sur toutes les configurations',
         'cfg|Knuckle boom marine cranes can be built with or without a winch.' => 'Les grues marines à flèche articulée peuvent être livrées avec ou sans treuil.',
         'cfg|Telescopic boom marine cranes come with a winch as standard.' => 'Les grues marines à flèche télescopique sont équipées d\'un treuil de série.',
         'cfg|Winch included on every telescopic marine crane' => 'Un treuil est fourni avec chaque grue marine télescopique',
@@ -206,6 +211,7 @@ return [
         '{code} Series' => 'Série {code}',
     ],
     'ar' => [
+        'cfg|+1 manual extension on every configuration' => '+1 ذراع تمديد يدوي في جميع التكوينات',
         'cfg|Knuckle boom marine cranes can be built with or without a winch.' => 'يمكن تصنيع الرافعات البحرية ذات الذراع المفصلي مزودة بونش أو بدونه.',
         'cfg|Telescopic boom marine cranes come with a winch as standard.' => 'تأتي الرافعات البحرية ذات الذراع التلسكوبي مزودة بونش كتجهيز قياسي.',
         'cfg|Winch included on every telescopic marine crane' => 'كل رافعة بحرية تلسكوبية مزودة بونش',

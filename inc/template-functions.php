@@ -2285,8 +2285,8 @@ function boblift_product_card(array $product, string $extra_class = '', bool $ea
     }
     $card_eyebrow = $product_model !== '' ? $product_name : (string) ($product['category_title'] ?? 'BOB-LIFT');
     $card_heading = $product_model !== '' ? $product_model : $product_title;
-    // A marine series page stands for all its configurations (inc/marine-series.php).
-    $series_card = boblift_marine_series_card((int) ($product['id'] ?? 0));
+    // A marine series page stands for all its configurations (inc/product-series.php).
+    $series_card = boblift_series_card((int) ($product['id'] ?? 0));
     if ($series_card) {
         $card_heading = $series_card['code'];
     }
@@ -2332,7 +2332,7 @@ function boblift_product_card(array $product, string $extra_class = '', bool $ea
                     <p class="product-card-summary mt-3 hidden max-w-3xl text-sm font-normal leading-6 text-slate-600 lg:text-base lg:leading-7"><?php echo esc_html($product['short_description'] ?? ''); ?></p>
                 </a>
                 </div>
-                <?php if ($series_card) { boblift_marine_render_series_card_models($series_card); } ?>
+                <?php if ($series_card) { boblift_series_render_series_card_models($series_card); } ?>
                 <div class="product-card-bottom mt-auto">
                 <?php if ($card_specs) : ?>
                     <dl class="product-card-specs mt-5 grid grid-cols-2 gap-4 border-t border-[#E5E7EB] pt-4">
@@ -2496,7 +2496,7 @@ function boblift_search_products(string $query): array
     $words = array_values(array_filter(array_map('boblift_search_key', preg_split('/\s+/u', $query) ?: [])));
     $scored = [];
     foreach (boblift_all_products(true) as $index => $product) {
-        $models = array_filter(array_map('boblift_search_key', array_merge([(string) ($product['model'] ?? '')], boblift_marine_series_search_models((int) ($product['id'] ?? 0)), preg_split('/[,，、\/]+/u', (string) ($product['model_aliases'] ?? '')) ?: [])));
+        $models = array_filter(array_map('boblift_search_key', array_merge([(string) ($product['model'] ?? '')], boblift_series_search_models((int) ($product['id'] ?? 0)), preg_split('/[,，、\/]+/u', (string) ($product['model_aliases'] ?? '')) ?: [])));
         $score = 0;
         foreach ($models as $model) {
             if ($model === $key) {
