@@ -3634,7 +3634,7 @@
       apply({ resetPage: true });
       closeDrawer({ restore: false });
     };
-    const specMarkup = (specs) => specs.slice(0, 6).map((spec) => `<div class="min-w-0 border-b border-e border-[#E5E7EB] px-3 py-3 md:px-4"><dt class="text-[11px] font-normal leading-4 text-slate-500">${escapeHtml(spec.label || '')}</dt><dd class="mt-1 break-words text-base font-black leading-tight text-[#0B1B33] [font-variant-numeric:tabular-nums]"><bdi>${escapeHtml(String(spec.value || '-'))}</bdi></dd></div>`).join('');
+    const specMarkup = (specs) => specs.slice(0, 6).map((spec) => `<div class="min-w-0 border-b border-e border-[#E5E7EB] px-3 py-3 md:px-4"><dt class="text-[13px] font-normal leading-[1.25] text-slate-500">${escapeHtml(spec.label || '')}</dt><dd class="mt-1 break-words text-base font-black leading-tight text-[#0B1B33] [font-variant-numeric:tabular-nums]"><bdi>${escapeHtml(String(spec.value || '-'))}</bdi></dd></div>`).join('');
     const quickConfigs = qs('[data-quick-configs]', root);
     // A series card's quick view: one configuration at a time. Quote and details follow the one shown.
     const showQuickConfig = (card, config) => {
@@ -3686,7 +3686,7 @@
           }
           const label = document.createElement('span');
           label.dir = 'auto';
-          label.className = 'inline-flex h-7 items-center rounded-sm border border-[#D5DEE9] bg-[#F5F8FC] px-2 text-[12px] font-black text-[#071f42] [font-variant-numeric:tabular-nums]';
+          label.className = 'inline-flex h-7 items-center rounded-sm border border-[#D5DEE9] bg-[#F5F8FC] px-2 text-[13px] font-black text-[#071f42] [font-variant-numeric:tabular-nums]';
           label.textContent = onlyModel;
           quickConfigs.append(label);
         }
@@ -3697,7 +3697,7 @@
         button.type = 'button';
         button.dir = 'auto';
         button.dataset.model = config.model;
-        button.className = 'inline-flex h-7 items-center rounded-sm border px-2 text-[12px] font-black transition [font-variant-numeric:tabular-nums]';
+        button.className = 'inline-flex h-7 items-center rounded-sm border px-2 text-[13px] font-black transition [font-variant-numeric:tabular-nums]';
         button.textContent = config.label;
         button.addEventListener('click', () => showQuickConfig(card, config));
         quickConfigs.append(button);

@@ -1173,7 +1173,7 @@ function boblift_series_render_configurator(): void
         </div>
         <?php foreach ($dimensions as $dimension => $values) : ?>
             <div class="mt-3.5">
-                <p class="text-[11px] font-black uppercase leading-4 tracking-[0.12em] text-slate-500 rtl:tracking-normal" id="boblift-cfg-<?php echo esc_attr($dimension); ?>"><?php echo esc_html($headings[$dimension]); ?></p>
+                <p class="text-[12px] font-black uppercase leading-4 tracking-[0.12em] text-slate-500 rtl:tracking-normal" id="boblift-cfg-<?php echo esc_attr($dimension); ?>"><?php echo esc_html($headings[$dimension]); ?></p>
                 <div class="mt-1.5 flex flex-wrap gap-2" role="radiogroup" aria-labelledby="boblift-cfg-<?php echo esc_attr($dimension); ?>">
                     <?php foreach ($values as $value) :
                         [$label, $detail] = boblift_series_choice_label($dimension, $value, $members, (string) $state['series']['family']);
@@ -1248,7 +1248,7 @@ function boblift_series_render_compare(string $model): void
     $missing = false;
     ?>
     <div data-cfg-compare>
-        <h3 class="border-b border-[#E6EDF5] bg-[#F8FAFC] px-4 py-2 text-[11px] font-black uppercase tracking-[0.14em] text-slate-500 rtl:tracking-normal sm:px-6 md:px-8"><?php echo esc_html(boblift_series_text('Compare configurations')); ?></h3>
+        <h3 class="border-b border-[#E6EDF5] bg-[#F8FAFC] px-4 py-2 text-[12px] font-black uppercase tracking-[0.14em] text-slate-500 rtl:tracking-normal sm:px-6 md:px-8"><?php echo esc_html(boblift_series_text('Compare configurations')); ?></h3>
         <div class="overflow-x-auto [scrollbar-width:thin]">
             <table class="w-full min-w-[340px] border-collapse text-sm [font-variant-numeric:tabular-nums]">
                 <thead>

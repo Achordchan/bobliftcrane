@@ -450,7 +450,7 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
         </div>
 
         <div class="min-w-0 scroll-mt-6" data-products-results>
-            <div class="products-grid grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 xl:gap-6 min-[1700px]:grid-cols-4" data-products-grid>
+            <div class="products-grid grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:gap-6 min-[1700px]:grid-cols-4" data-products-grid>
                 <?php foreach ($products as $index => $product) : boblift_product_card($product, '', $index === 0); endforeach; ?>
             </div>
             <?php if ($initial_category !== '' && $products) :

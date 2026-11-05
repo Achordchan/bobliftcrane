@@ -110,14 +110,14 @@ $product_result = static function (array $product) use ($highlight, $view_detail
             <?php if ($view['configs']) : // Plain labels: the whole card is one link, and a search for a model shows why it matched. ?>
                 <span class="mt-2 flex flex-wrap gap-1.5">
                     <?php foreach ($view['configs'] as $config) : ?>
-                        <span dir="auto" class="inline-flex h-6 items-center rounded-sm border border-[#D5DEE9] bg-[#F5F8FC] px-1.5 text-[11px] font-black text-[#071f42]"><?php echo $highlight($config['label']); ?></span>
+                        <span dir="auto" class="inline-flex h-6 items-center rounded-sm border border-[#D5DEE9] bg-[#F5F8FC] px-1.5 text-[13px] font-black text-[#071f42]"><?php echo $highlight($config['label']); ?></span>
                     <?php endforeach; ?>
                 </span>
             <?php endif; ?>
             <?php if ($view['figures']) : ?>
                 <dl class="mt-3 grid gap-y-1 border-t border-[#E5E7EB] pt-3 sm:mt-4 sm:pt-4">
                     <?php foreach ($view['figures'] as $spec) : ?>
-                        <div class="flex min-w-0 items-baseline justify-between gap-2"><dt class="min-w-0 text-[11px] font-semibold leading-4 text-slate-500"><?php echo esc_html((string) $spec['label']); ?></dt><dd class="whitespace-nowrap text-[13px] font-black text-ink [font-variant-numeric:tabular-nums]"><bdi><?php echo esc_html((string) $spec['value']); ?></bdi></dd></div>
+                        <div class="flex min-w-0 items-baseline justify-between gap-2"><dt class="min-w-0 text-[13px] font-semibold leading-[1.25] text-slate-500"><?php echo esc_html((string) $spec['label']); ?></dt><dd class="whitespace-nowrap text-[15px] font-black text-ink [font-variant-numeric:tabular-nums]"><bdi><?php echo esc_html((string) $spec['value']); ?></bdi></dd></div>
                     <?php endforeach; ?>
                 </dl>
             <?php endif; ?>

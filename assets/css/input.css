@@ -60,12 +60,12 @@ img { max-width: 100%; }
   .btn-primary { @apply inline-flex items-center justify-center gap-3 rounded-sm bg-navy px-7 py-4 text-base font-bold text-white shadow-card transition duration-300 hover:-translate-y-0.5 hover:bg-[#0b2d5b]; }
   .btn-white { @apply inline-flex items-center justify-center gap-3 rounded-sm border border-line bg-white px-7 py-4 text-base font-bold text-ink shadow-card transition duration-300 hover:-translate-y-0.5; }
   /* The one small uppercase section label. Barlow ships 400/500/600 only, so 600 is the heaviest it draws. */
-  .section-label, .boblift-kicker { @apply text-[11px] font-semibold uppercase leading-[1.4] tracking-[0.18em] text-[#0B3F7D]; }
+  .section-label, .boblift-kicker { @apply text-[12px] font-semibold uppercase leading-[1.4] tracking-[0.18em] text-[#0B3F7D]; }
   /* On navy panels the label keeps the gold it had, so it stays legible. */
   .bg-navy .section-label, .bg-navy .boblift-kicker { @apply text-gold; }
   .card-hover { @apply transition duration-300 hover:-translate-y-2; }
   /* A figure cell of the model comparison tables (boblift_render_model_table()): repeated thousands of times per archive. */
-  .boblift-spec-cell { @apply whitespace-nowrap border-b border-[#E5E7EB] px-4 py-3.5 font-semibold text-ink [font-variant-numeric:tabular-nums]; }
+  .boblift-spec-cell { @apply whitespace-nowrap text-[15px] border-b border-[#E5E7EB] px-4 py-3.5 font-semibold text-ink [font-variant-numeric:tabular-nums]; }
   .nav-icon-btn { @apply inline-flex h-14 items-center justify-center gap-2 rounded-sm border border-line bg-white px-5 text-sm font-black text-navy shadow-card transition hover:-translate-y-0.5 hover:border-blue-200; }
   .boblift-video-tab { @apply inline-flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm border border-line bg-white px-4 text-sm font-black text-ink transition hover:border-ink/30 aria-pressed:border-navy aria-pressed:bg-navy aria-pressed:text-white; }
   .floating-contact-link { @apply relative grid size-11 shrink-0 place-items-center rounded-sm border border-line bg-white text-[11px] font-black text-navy transition hover:border-blue-200 hover:text-blue-700 lg:size-[40px] min-[1780px]:size-12; }
@@ -927,9 +927,9 @@ img { max-width: 100%; }
 }
 [dir="rtl"] .boblift-home-hero-tab-bar { transform-origin: right; }
 
-@media (max-width: 767px) {
+/* Phones: one card to a row, the picture lower so a card stays near one screen, three figures across. */
+@media (max-width: 639px) {
   .boblift-product-listing .products-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
   }
   .boblift-product-listing .product-card {
@@ -939,103 +939,57 @@ img { max-width: 100%; }
     transform: none;
   }
   .boblift-product-listing .product-card-media {
-    height: clamp(132px, 40vw, 158px);
+    height: auto;
+    aspect-ratio: 16 / 10;
   }
   .boblift-product-listing .product-card-media img {
     padding: 12px;
   }
-  .boblift-product-listing .product-card-head {
-    flex-direction: column;
-    gap: 8px;
-  }
-  .boblift-product-listing .product-card-inline-actions {
-    inset-block-end: 8px;
-    inset-inline-end: 11px;
-    gap: 4px;
-  }
-  .boblift-product-listing .product-card-inline-actions button {
-    width: 30px;
-    height: 30px;
-  }
-  .boblift-product-listing .product-card-inline-actions svg {
-    width: 15px;
-    height: 15px;
-  }
   .boblift-product-listing .product-card-body {
-    padding: 13px 11px 12px;
+    padding: 16px;
   }
   .boblift-product-listing .product-card-title {
-    display: -webkit-box;
-    overflow: hidden;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
-    font-size: 15px;
-    line-height: 1.12;
-    letter-spacing: -.015em;
-  }
-  .boblift-product-listing .product-card-code {
-    margin-top: 5px;
-    font-size: 11.5px;
-    line-height: 1.35;
-  }
-  .boblift-product-listing .product-card-configs {
-    margin-top: 0;
-    gap: 4px;
-  }
-  .boblift-product-listing .product-card-eyebrow {
-    margin-bottom: 4px;
-    font-size: 10px;
-    letter-spacing: .06em;
-  }
-  .boblift-product-listing .product-card-configs a {
-    height: 24px;
-    padding-inline: 5px;
-    font-size: 11px;
+    font-size: 20px;
+    line-height: 1.15;
   }
   .boblift-product-listing .product-card-specs {
-    grid-template-columns: minmax(0, 1fr);
-    margin-top: 10px;
-    gap: 3px;
-    padding-top: 9px;
-  }
-  .boblift-product-listing .product-card-specs > div {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 6px;
-  }
-  .boblift-product-listing .product-card-specs dt {
-    font-size: 10.5px;
-    line-height: 16px;
-  }
-  .boblift-product-listing .product-card-specs dd {
-    flex-shrink: 0;
-    margin-top: 0;
-    font-size: 12.5px;
-    line-height: 16px;
-  }
-  .boblift-product-listing .product-card-footer {
-    display: block;
+    grid-template-columns: minmax(max-content, .8fr) minmax(max-content, 1fr) minmax(max-content, 1.25fr);
+    margin-top: 12px;
     padding-top: 12px;
   }
-  .boblift-product-listing .product-card-ctas {
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
-  }
-  .boblift-product-listing .product-card-ctas button,
-  .boblift-product-listing .product-card-ctas a {
-    min-height: 40px;
+  .boblift-product-listing .product-card-specs > div {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
     gap: 4px;
-    border-radius: 2px;
-    padding-inline: 6px;
-    font-size: 11.5px;
-    letter-spacing: -.005em;
   }
-  .boblift-product-listing .product-card-ctas svg {
-    width: 12px;
-    height: 12px;
+  /* The value alone sets a column's width; the label wraps inside it. */
+  .boblift-product-listing .product-card-specs dt {
+    width: 0;
+    min-width: 100%;
   }
+  .boblift-product-listing .product-card-specs > div + div {
+    border-inline-start: 1px solid #E5E7EB;
+    padding-inline-start: 10px;
+  }
+  .boblift-product-listing .product-card-footer {
+    padding-top: 14px;
+  }
+  /* Room for the whole labels now. */
+  .boblift-product-listing .product-card-ctas button > span:first-of-type,
+  .boblift-product-listing .product-card-ctas a > span:first-of-type {
+    display: inline;
+  }
+  .boblift-product-listing .product-card-ctas button > span:last-of-type,
+  .boblift-product-listing .product-card-ctas a > span:nth-of-type(2) {
+    display: none;
+  }
+}
+
+.boblift-product-listing .product-card-eyebrow { letter-spacing: .08em; }
+
+@media (max-width: 379px) {
+  .boblift-product-listing .product-card-specs > div + div { padding-inline-start: 6px; }
 }
 
 /* Previous models: a tab that toggles on its own beside the category tabs. While on, the selected category's previous models replace the
@@ -1069,8 +1023,8 @@ img { max-width: 100%; }
 .boblift-product-listing[data-view="list"] .product-card-title { font-size: clamp(1.0625rem, 1.6vw, 1.375rem); line-height: 1.15; letter-spacing: 0; }
 .boblift-product-listing[data-view="list"] .product-card-specs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem 1rem; margin-top: .75rem; border-top: 0; padding-top: 0; }
 .boblift-product-listing[data-view="list"] .product-card-specs > div { flex-direction: column; align-items: flex-start; justify-content: flex-end; gap: .125rem; border-inline-start-width: 0; padding-inline-start: 0; }
-.boblift-product-listing[data-view="list"] .product-card-specs dt { font-size: 11px; line-height: 1rem; }
-.boblift-product-listing[data-view="list"] .product-card-specs dd { margin-top: 0; font-size: 14px; line-height: 1.25rem; }
+.boblift-product-listing[data-view="list"] .product-card-specs dt { font-size: 13px; line-height: 1.25; }
+.boblift-product-listing[data-view="list"] .product-card-specs dd { margin-top: 0; font-size: 15px; line-height: 1.25rem; }
 .boblift-product-listing[data-view="list"] .product-card-footer { display: flex; align-items: center; gap: .5rem; margin-top: .875rem; padding-top: 0; }
 .boblift-product-listing[data-view="list"] .product-card-list-actions { display: flex; gap: .5rem; }
 .boblift-product-listing[data-view="list"] .product-card-list-actions button { width: 2.5rem; height: 2.5rem; }
@@ -2126,7 +2080,7 @@ img { max-width: 100%; }
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    font-size: clamp(9px, 2.55vw, 10px);
+    font-size: 12px;
     letter-spacing: .08em;
     line-height: 1.25;
   }

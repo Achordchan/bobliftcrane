@@ -472,7 +472,7 @@ if ($family_quote_copy) {
                             [$spec_number, $spec_unit] = $series_page ? boblift_series_figure_parts((string) ($spec['value'] ?? '')) : $hero_spec_parts((string) ($spec['value'] ?? ''));
                         ?>
                             <div class="flex min-w-0 flex-col py-4 pr-3 <?php echo $index % 2 === 1 ? 'border-l border-[#D5DEE9] ps-4' : ''; ?> <?php echo $index >= 2 ? 'border-t border-[#D5DEE9] sm:border-t-0' : ''; ?> <?php echo $index === 2 ? 'sm:border-l sm:ps-4' : ''; ?> <?php echo $series_page && $index === 4 ? 'col-span-2 sm:col-span-1 sm:border-l sm:ps-4' : ''; ?><?php echo $series_page && $index === 3 ? ' sm:ps-3' : ''; ?><?php echo $series_page && $index === 2 ? ' sm:ps-3' : ''; ?>"<?php echo $series_page ? ' data-cfg-cell="' . esc_attr((string) ($spec['key'] ?? '')) . '" data-cfg-cell-value="' . esc_attr((string) ($spec['value'] ?? '')) . '"' : ''; ?>>
-                                <dt class="text-[10px] font-black uppercase leading-4 tracking-[0.12em] text-slate-500"><?php echo esc_html($spec['label']); ?></dt>
+                                <dt class="text-[12px] font-black uppercase leading-4 tracking-[0.12em] text-slate-500"><?php echo esc_html($spec['label']); ?></dt>
                                 <dd class="mt-auto break-words pt-1.5 font-black leading-tight text-[#071f42] [font-variant-numeric:tabular-nums]"><span class="<?php echo $series_page ? 'text-[clamp(20px,1.5vw,28px)]' : (($spec_unit !== '' || mb_strlen($spec_number) <= 8) ? 'text-[clamp(22px,1.9vw,32px)]' : 'text-base'); ?><?php echo $spec_number === '—' ? ' text-slate-400' : ''; ?>"><?php echo esc_html($spec_number); ?></span><?php if ($spec_unit !== '') : ?><span class="<?php echo $spec_unit === '°' ? '' : 'ms-1'; ?> whitespace-nowrap text-sm font-bold text-slate-500"><?php echo esc_html($spec_unit); ?></span><?php endif; ?></dd>
                             </div>
                         <?php endforeach; ?>
@@ -1178,7 +1178,7 @@ if ($family_quote_copy) {
                         <?php endif; ?>
                     </div>
                     <?php // Product cards, not article cards: the cut-out on the product backdrop, the capacity line, two figures and the way to the page. ?>
-                    <ul class="grid grid-cols-2 gap-3 px-4 py-5 sm:p-6 md:gap-5 md:p-8 lg:grid-cols-4">
+                    <ul class="grid grid-cols-1 gap-3 px-4 py-5 sm:grid-cols-2 sm:p-6 md:gap-5 md:p-8 lg:grid-cols-4">
                         <?php foreach ($related_products as $related) :
                             $related_view = boblift_series_card_view($related);
                             $related_image = boblift_product_image($related);
@@ -1189,12 +1189,12 @@ if ($family_quote_copy) {
                                 <a class="group flex h-full flex-col overflow-hidden rounded border border-[#E5E7EB] bg-white transition hover:-translate-y-0.5 hover:border-blue-200" href="<?php echo esc_url(boblift_product_url($related)); ?>" title="<?php echo esc_attr($related_view['full_title']); ?>">
                                     <span class="relative block aspect-[4/3] overflow-hidden bg-[radial-gradient(circle_at_48%_34%,#ffffff_0%,#f8fafc_34%,#eef2f7_64%,#e2e8f0_100%)]"><img class="absolute inset-0 h-full w-full transition duration-500 group-hover:scale-[1.03] <?php echo esc_attr($related_fit); ?>" src="<?php echo esc_url($related_image); ?>" alt="<?php echo esc_attr((string) $related['title']); ?>" loading="lazy" decoding="async"></span>
                                     <span class="flex flex-1 flex-col p-3 sm:p-4">
-                                        <span class="line-clamp-3 text-[15px] font-black leading-tight text-[#0B3F7D] transition group-hover:text-blue-700 sm:line-clamp-2 md:text-[17px]"><?php echo esc_html($related_view['title']); ?></span>
-                                        <?php if ($related_view['code'] !== '') : ?><span class="mt-1 block truncate text-xs leading-4 text-slate-500"><bdi><?php echo esc_html($related_view['code']); ?></bdi></span><?php endif; ?>
+                                        <span class="line-clamp-2 text-[18px] font-black leading-tight text-[#0B3F7D] transition group-hover:text-blue-700 md:text-[17px]"><?php echo esc_html($related_view['title']); ?></span>
+                                        <?php if ($related_view['code'] !== '') : ?><span class="mt-1 block truncate text-[13px] leading-4 text-slate-500"><bdi><?php echo esc_html($related_view['code']); ?></bdi></span><?php endif; ?>
                                         <?php if ($related_specs) : ?>
                                             <span class="mt-3 grid grid-cols-2 gap-2 border-t border-[#E5E7EB] pt-3">
                                                 <?php foreach ($related_specs as $spec) : ?>
-                                                    <span class="flex min-w-0 flex-col justify-end"><span class="block text-[11px] font-semibold leading-4 text-slate-500"><?php echo esc_html($spec['label']); ?></span><span class="mt-0.5 block truncate text-sm font-black text-[#071f42]"><bdi><?php echo esc_html($spec['value']); ?></bdi></span></span>
+                                                    <span class="flex min-w-0 flex-col justify-end"><span class="block text-[13px] font-semibold leading-[1.25] text-slate-500"><?php echo esc_html($spec['label']); ?></span><span class="mt-0.5 block truncate text-[15px] font-black text-[#071f42]"><bdi><?php echo esc_html($spec['value']); ?></bdi></span></span>
                                                 <?php endforeach; ?>
                                             </span>
                                         <?php endif; ?>
