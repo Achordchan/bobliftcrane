@@ -422,7 +422,7 @@ if ($family_quote_copy) {
         <div class="page-shell relative z-10 py-6 md:py-8 lg:py-10">
             <?php // The configuration box makes the text column tall: the photo stays at its top instead of drifting to the middle. ?>
             <div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-10 xl:gap-14">
-                <div class="relative z-20 order-2 min-w-0 lg:order-1">
+                <div class="relative z-20 order-2 min-w-0 lg:order-1 lg:self-center">
                     <?php if ($series_page) : ?>
                         <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                     <p class="boblift-kicker boblift-product-hero-kicker"><?php echo esc_html($product['category_title'] ?? 'BOB-LIFT Product'); ?></p>
@@ -548,7 +548,7 @@ if ($family_quote_copy) {
                 </div>
                 <?php boblift_series_block_open('gallery'); ?>
                 <div class="relative order-1 min-w-0 lg:order-2" data-product-hero-gallery-root data-product-hero-active-index="0">
-                    <div class="boblift-product-stage relative aspect-[4/3] overflow-hidden rounded border border-[#DDE7F2] bg-[linear-gradient(180deg,#FFFFFF_0%,#F2F6FB_62%,#E8EEF6_100%)] shadow-card lg:aspect-[5/4] xl:aspect-[4/3]" data-product-hotspot-stage>
+                    <div class="boblift-product-stage relative aspect-[4/3] overflow-hidden rounded border border-[#DDE7F2] bg-[linear-gradient(180deg,#FFFFFF_0%,#F2F6FB_62%,#E8EEF6_100%)] shadow-card w-full lg:aspect-[5/4] xl:aspect-[3/2] xl:max-h-[520px]" data-product-hotspot-stage>
                         <span class="pointer-events-none absolute inset-x-[8%] bottom-6 h-px bg-[#CBD6E3] sm:bottom-8 lg:bottom-10" aria-hidden="true"></span>
                         <span class="pointer-events-none absolute bottom-2 left-1/2 h-8 w-[58%] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgba(11,27,51,0.16),transparent)] sm:bottom-4 lg:bottom-6" aria-hidden="true"></span>
                         <div class="absolute inset-0">
