@@ -540,10 +540,10 @@ function boblift_series_compare_range(array $values): string
     return ($approx ? '≈ ' : '') . $format($low) . ($high > $low ? '–' . $format($high) : '') . ($unit === '' || $unit === '°' ? $unit : ' ' . $unit);
 }
 
-/** A lifting moment in t·m. The data has a few in kN·m: those convert, marked as approximate since no drawing prints the t·m. */
+/** A lifting moment in t·m, as every crane shows it. The data has a few in kN·m; the spec table keeps those as entered. */
 function boblift_series_moment_in_tm(string $moment): string
 {
-    return preg_match('/^([\d.]+)\s*kN·m$/u', trim($moment), $match) ? '≈ ' . rtrim(rtrim(number_format((float) $match[1] / 9.80665, 1, '.', ''), '0'), '.') . ' t·m' : $moment;
+    return preg_match('/^([\d.]+)\s*kN·m$/u', trim($moment), $match) ? rtrim(rtrim(number_format((float) $match[1] / 9.80665, 1, '.', ''), '0'), '.') . ' t·m' : $moment;
 }
 
 /** A timber crane's card title: its capacity, and its arm length where the English product title gives one ("Arm Length 7600MM"). */
@@ -666,7 +666,7 @@ function boblift_series_quick_view_configs(array $product): array
         $data = $rows[$member['model']];
         $specs = [];
         foreach ($labels as $key => $label) {
-            $value = $fields[$member['model']][$key]['value'] ?? '';
+            $value = boblift_series_moment_in_tm((string) ($fields[$member['model']][$key]['value'] ?? ''));
             $specs[] = ['label' => $label, 'value' => $value !== '' ? $value : '—'];
         }
         $title = trim((string) ($data['title'] ?? ''));
@@ -677,7 +677,8 @@ function boblift_series_quick_view_configs(array $product): array
             'slug' => (string) $member['slug'],
             // The quote names the configuration, whichever way its product title is written.
             'title' => stripos($title, (string) $member['model']) !== false ? $title : trim($title . ' (' . $member['model'] . ')'),
-            'summary' => trim((string) ($data['short_description'] ?? '')),
+            // The sentence states the moment too, and sits right above the grid.
+            'summary' => (string) preg_replace_callback('/\d[\d.]*\s*kN·m/u', static fn(array $match): string => boblift_series_moment_in_tm($match[0]), trim((string) ($data['short_description'] ?? ''))),
             'image' => $data ? boblift_product_image($data) : '',
             'specs' => $specs,
             'home' => (bool) $member['is_home'],
@@ -823,7 +824,7 @@ function boblift_series_product_figures(int $english_id): array
     return [
         'weight' => boblift_series_kilograms($rows['Self Weight'] ?? ''),
         'capacity' => boblift_series_kilograms($rows['Max Lifting Capacity'] ?? ''),
-        'moment' => ($rows['Max Lifting Moment'] ?? '') ?: null,
+        'moment' => boblift_series_moment_in_tm((string) ($rows['Max Lifting Moment'] ?? '')) ?: null,
         'radius' => ($drawing['radius'] ?? '') ?: (($rows['Max Working Radius'] ?? '') ?: null),
         'height' => ($drawing['height'] ?? '') ?: (($rows['Max Lifting Height'] ?? '') ?: null),
     ];

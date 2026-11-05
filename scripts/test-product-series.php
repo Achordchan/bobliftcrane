@@ -205,7 +205,7 @@ $check('rotation', '360–400°', boblift_series_compare_range(['400°', '360°'
 $check('one value', '360°', boblift_series_compare_range(['360°', '360°']));
 $check('different units stay as written', '9 t·m / 90 kN·m', boblift_series_compare_range(['9 t·m', '90 kN·m']));
 $check('nothing', '', boblift_series_compare_range(['', '']));
-$check('kN·m converts', '≈ 9.2 t·m', boblift_series_moment_in_tm('90 kN·m'));
+$check('kN·m converts', '9.2 t·m', boblift_series_moment_in_tm('90 kN·m'));
 $check('t·m stays', '13.2 t·m', boblift_series_moment_in_tm('13.2 t·m'));
 
 echo $failures === 0 ? "ok\n" : "{$failures} failed\n";
