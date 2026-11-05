@@ -1120,6 +1120,24 @@ function boblift_series_render_compact_decode(string $model, string $winch = 'op
     <?php
 }
 
+/**
+ * Models in the spec tables of the 2026 catalogues (assets/downloads, truck mounted pages 6-14, marine pages 4-12): the regular
+ * production models. The exact name only: a catalogue with SQ4ZA3TJ says nothing about SQ4ZA3T. The CE annex pages do not count.
+ */
+function boblift_series_catalogue_models(): array
+{
+    return ['BLZ129K4', 'BLZ90K5', 'BLZ90K5TJ', 'SQ08ZA3+1', 'SQ08ZA3TJ+1', 'SQ10SA4', 'SQ10SA4T', 'SQ10ZA6', 'SQ10ZA6TJ', 'SQ12SA4', 'SQ12SA4T', 'SQ12ZA6', 'SQ12ZA6T', 'SQ14SA5', 'SQ16SA5', 'SQ16SA5T', 'SQ1ZA3+1', 'SQ1ZA3TJ+1', 'SQ20SA5', 'SQ20SA5T', 'SQ2SA3', 'SQ2SA3T', 'SQ2ZA2TJ', 'SQ2ZA4', 'SQ3.2SA4', 'SQ3.2SA4T', 'SQ3.2ZA3', 'SQ3.2ZA3TJ', 'SQ3.2ZA4', 'SQ4SA3T', 'SQ4SA4', 'SQ4ZA3', 'SQ4ZA3TJ', 'SQ4ZA4', 'SQ5SA3', 'SQ5SA4', 'SQ5SA4T', 'SQ5ZA3', 'SQ5ZA3TJ', 'SQ5ZA4', 'SQ6.3SA4', 'SQ6.3SA4T', 'SQ6.3ZA4TJ', 'SQ6.3ZA5', 'SQ8SA5', 'SQ8SA5T', 'SQ8ZA6', 'SQ8ZA6TJ', 'SQZ330', 'SQZ330T', 'SQZ430', 'SQZ430T', 'SQZ500', 'SQZ500T', 'SQZ560', 'SQZ600', 'SQZ700', 'SQZ800'];
+}
+
+/** The opening of a configuration's status line, '' for none: from the catalogue, else that this is what the series compares against. */
+function boblift_series_status_text(string $model, bool $is_base): string
+{
+    if (in_array($model, boblift_series_catalogue_models(), true)) {
+        return boblift_series_text('Standard production model');
+    }
+    return $is_base ? boblift_series_text('Base configuration for this series') : '';
+}
+
 /** The configuration box, with the data the theme script switches from. A series of one has nothing to choose, so no box. */
 function boblift_series_render_configurator(): void
 {
@@ -1156,6 +1174,7 @@ function boblift_series_render_configurator(): void
     $compared = str_replace('{model}', $base['model'], $t('Compared with {model}'));
     $ui = static fn(array $member): array => [
         'summary' => boblift_series_configuration_difference($member, $base),
+        'status' => boblift_series_status_text($member['model'], $member['model'] === $base['model']),
         'unavailable' => boblift_series_unavailable_choices($members, $dimensions, $member['values']),
         'winch' => boblift_series_winch_difference($members, $member['values']),
     ];
@@ -1221,8 +1240,11 @@ function boblift_series_render_configurator(): void
         <?php if (boblift_series_all_have($members, 'manual', '1')) : ?>
             <p class="mt-3 text-[13px] text-slate-600"><?php echo esc_html($t('+1 manual extension on every configuration')); ?></p>
         <?php endif; ?>
-        <p class="mt-3.5 border-t border-[#E6EDF5] pt-3 text-[13px] leading-5 text-slate-600" aria-live="polite" data-cfg-summary-line<?php echo $active_ui['summary'] === '' ? ' hidden' : ''; ?>><span class="font-black text-[#071f42]"><?php echo esc_html($compared); ?>:</span> <span data-cfg-summary><?php echo esc_html($active_ui['summary']); ?></span></p>
+        <?php // Always as tall as the longest of these lines, so the page below stays put when the choice changes (theme.js). ?>
+        <div class="flow-root" data-cfg-summary-box>
+        <p class="mt-3.5 border-t border-[#E6EDF5] pt-3 text-[13px] leading-5 text-slate-600" aria-live="polite" data-cfg-summary-line<?php echo $active_ui['summary'] === '' && $active_ui['status'] === '' ? ' hidden' : ''; ?>><span class="font-semibold text-[#071f42]" data-cfg-status><?php echo esc_html($active_ui['status']); ?></span><span class="mx-1"<?php echo $active_ui['summary'] !== '' && $active_ui['status'] !== '' ? '' : ' hidden'; ?> data-cfg-status-gap>·</span><span<?php echo $active_ui['summary'] === '' ? ' hidden' : ''; ?> data-cfg-compare-text><span class="font-black text-[#071f42]"><?php echo esc_html($compared); ?>:</span> <span data-cfg-summary><?php echo esc_html($active_ui['summary']); ?></span></span></p>
         <p class="mt-1.5 text-[13px] leading-5 text-slate-600" data-cfg-weight-note<?php echo empty($active['derived']) ? ' hidden' : ''; ?>><?php echo !empty($active['derived']) ? esc_html($t($active['values']['winch'] === '1' ? 'Winch version: self weight confirmed with your quote' : 'No-winch version: self weight confirmed with your quote')) : ''; ?></p>
+        </div>
         <script type="application/json" data-series-data><?php echo wp_json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG); ?></script>
     </div>
     <?php

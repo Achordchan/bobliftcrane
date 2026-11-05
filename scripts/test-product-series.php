@@ -214,5 +214,11 @@ $check('sub-category short name', 'Knuckle Boom', boblift_series_subcategory_lab
 $check('and with a language suffix', 'Telescopic Boom', boblift_series_subcategory_label('telescopic-boom-truck-mounted-cranes-ja', 'x'));
 $check('others keep their name', 'Timber Cranes', boblift_series_subcategory_label('timber-cranes', 'Timber Cranes'));
 
+$check('in the catalogue', 'Standard production model', boblift_series_status_text('SQ1ZA3+1', true));
+$check('in the catalogue, not the base', 'Standard production model', boblift_series_status_text('SQ12ZA6', false));
+$check('not in it, the base', 'Base configuration for this series', boblift_series_status_text('SQZ1000', true));
+$check('not in it, not the base', '', boblift_series_status_text('SQ1ZA4', false));
+$check('the other winch version is not the catalogued one', '', boblift_series_status_text('SQ4ZA3T', false));
+
 echo $failures === 0 ? "ok\n" : "{$failures} failed\n";
 exit($failures === 0 ? 0 : 1);

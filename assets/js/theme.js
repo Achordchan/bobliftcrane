@@ -5389,10 +5389,6 @@
     document.querySelectorAll('[data-cfg-winch-row]').forEach((row) => {
       row.style.display = variant.derived && variant.values.winch === '0' ? 'none' : '';
     });
-    root.querySelectorAll('[data-cfg-weight-note]').forEach((note) => {
-      note.textContent = variant.weightNote || '';
-      note.hidden = !variant.weightNote;
-    });
     if (!variant.derived) return;
     const holders = [...document.querySelectorAll(`[data-cfg-variant="${CSS.escape(shownModel)}"]`)];
     holders.forEach((holder) => {
@@ -5400,6 +5396,37 @@
       holder.querySelectorAll('[data-cfg-cell="weight"] dd, [data-cfg-weight-row] dd').forEach((value) => patch(value, '<span class="text-[clamp(20px,1.5vw,28px)] text-slate-400">—</span>'));
     });
   };
+
+  // The compare lines change length with the choice: their box keeps the height of the longest.
+  const summaryBox = root.querySelector('[data-cfg-summary-box]');
+  let shownVariant = null;
+  const showSummary = (variant) => {
+    const status = variant.status || '';
+    const summary = variant.summary || '';
+    root.querySelectorAll('[data-cfg-status]').forEach((element) => { element.textContent = status; });
+    root.querySelectorAll('[data-cfg-status-gap]').forEach((element) => { element.hidden = !status || !summary; });
+    root.querySelectorAll('[data-cfg-compare-text]').forEach((element) => { element.hidden = !summary; });
+    root.querySelectorAll('[data-cfg-summary]').forEach((element) => { element.textContent = summary; });
+    root.querySelectorAll('[data-cfg-summary-line]').forEach((line) => { line.hidden = !status && !summary; });
+    root.querySelectorAll('[data-cfg-weight-note]').forEach((note) => {
+      note.textContent = variant.weightNote || '';
+      note.hidden = !variant.weightNote;
+    });
+  };
+  const reserveSummaryHeight = () => {
+    if (!summaryBox) return;
+    summaryBox.style.minHeight = '';
+    let tallest = 0;
+    (data.variants || []).forEach((item) => {
+      showSummary(item);
+      tallest = Math.max(tallest, summaryBox.offsetHeight);
+    });
+    showSummary(shownVariant || variants.find((item) => item.model === data.active) || variants[0]);
+    summaryBox.style.minHeight = `${tallest}px`;
+  };
+  reserveSummaryHeight();
+  window.addEventListener('resize', reserveSummaryHeight);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(reserveSummaryHeight);
 
   const apply = (variant, updateAddress) => {
     const previousFigures = shownFigures();
@@ -5452,12 +5479,8 @@
       element.textContent = variant.winch || '';
       element.hidden = !variant.winch;
     });
-    root.querySelectorAll('[data-cfg-summary]').forEach((element) => {
-      element.textContent = variant.summary || '';
-    });
-    root.querySelectorAll('[data-cfg-summary-line]').forEach((line) => {
-      line.hidden = !variant.summary;
-    });
+    shownVariant = variant;
+    showSummary(variant);
     // The comparison table stays with the shown specifications, its row marking the choice.
     const compareSlot = document.querySelector('[data-cfg-block="technical"] [data-cfg-variant]:not([hidden]) [data-cfg-compare-slot]');
     if (compare && compareSlot && compare.parentElement !== compareSlot) {

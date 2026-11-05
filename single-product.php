@@ -421,8 +421,8 @@ if ($family_quote_copy) {
         <div class="pointer-events-none absolute inset-0 boblift-cinema-grid opacity-40"></div>
         <div class="page-shell relative z-10 py-6 md:py-8 lg:py-10">
             <?php // The configuration box makes the text column tall: the photo stays at its top instead of drifting to the middle. ?>
-            <div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-10 xl:gap-14">
-                <div class="relative z-20 order-2 min-w-0 lg:order-1">
+            <div class="grid grid-cols-1 items-start gap-6 xl:items-stretch lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-10 xl:gap-14">
+                <div class="boblift-hero-text relative z-20 order-2 min-w-0 lg:order-1">
                         <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                     <p class="boblift-kicker boblift-product-hero-kicker"><?php echo esc_html($product['category_title'] ?? 'BOB-LIFT Product'); ?></p>
                             <?php $hero_capacity = function_exists('boblift_product_listing_capacity') ? boblift_product_listing_capacity($product) : 0.0; $hero_tonnage = function_exists('boblift_tonnage_size_for_capacity') ? boblift_tonnage_size_for_capacity($hero_capacity) : 0; if ($hero_tonnage > 0) : ?>
@@ -486,7 +486,7 @@ if ($family_quote_copy) {
                     <?php endif; ?>
                     <?php boblift_series_block_close('keyspecs'); ?>
                         <?php // Quote and the two ways to message on one line; brochure and terms on one quiet line below. ?>
-                        <div class="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
+                        <div class="boblift-hero-actions-row mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
                             <button class="boblift-product-hero-request inline-flex h-12 w-full shrink-0 items-center justify-center gap-2 rounded-sm bg-[#071f42] px-7 sm:w-auto text-sm font-black text-white transition hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页首屏" data-inquiry-product="<?php echo esc_attr($inquiry_product_title); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html($ui['requestQuoteLabel'] ?? 'Request Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
                             <?php if ($hero_whatsapp_href !== '') : ?>
                                 <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 text-sm font-semibold text-[#071f42] transition hover:border-blue-500 hover:text-blue-700" href="<?php echo esc_url($hero_whatsapp_href); ?>" target="_blank" rel="noopener"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?><?php echo $series_page ? ' data-series-whatsapp' : ''; ?>><?php echo boblift_icon('whatsapp', 'h-4 w-4 text-[#25D366]'); ?><span class="[font-variant-numeric:tabular-nums]" dir="ltr"><?php echo esc_html($hero_whatsapp_display); ?></span></a>
@@ -495,7 +495,7 @@ if ($family_quote_copy) {
                                 <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 text-sm font-semibold text-[#071f42] transition hover:border-blue-500 hover:text-blue-700" href="<?php echo esc_url($hero_mail_href); ?>"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?><?php echo $series_page ? ' data-series-mail' : ''; ?>><?php echo boblift_icon('mail', 'h-4 w-4 text-slate-500'); ?><?php echo esc_html($hero_email); ?></a>
                             <?php endif; ?>
                         </div>
-                        <ul class="mt-7 flex flex-wrap items-center justify-between gap-x-2 gap-y-2 border-t border-[#D5DEE9] pt-5 text-[14px] text-slate-600">
+                        <ul class="boblift-hero-trust mt-7 flex flex-wrap items-center justify-between gap-x-2 gap-y-2 border-t border-[#D5DEE9] pt-5 text-[14px] text-slate-600">
                             <?php if ($hero_pdf_url !== '') : ?>
                                 <li><a class="boblift-product-hero-pdf inline-flex items-center gap-1.5 border-b border-[#C9D6E6] pb-0.5 font-semibold text-[#071f42] transition hover:border-blue-500 hover:text-blue-700" href="<?php echo esc_url($hero_pdf_url); ?>" <?php echo $hero_pdf_file !== '' ? 'download="' . esc_attr($hero_pdf_file) . '"' : 'target="_blank" rel="noopener"'; ?>><?php echo boblift_icon('download', 'h-4 w-4'); ?><?php echo esc_html($hero_pdf_label); ?><?php if ($hero_pdf_size !== '') : ?><span class="font-normal text-slate-500"><?php echo esc_html($hero_pdf_size); ?></span><?php endif; ?></a></li>
                             <?php endif; ?>
@@ -508,7 +508,7 @@ if ($family_quote_copy) {
                 </div>
                 <?php boblift_series_block_open('gallery'); ?>
                 <div class="relative order-1 min-w-0 lg:order-2" data-product-hero-gallery-root data-product-hero-active-index="0">
-                    <div class="boblift-product-stage relative aspect-[4/3] overflow-hidden rounded border border-[#DDE7F2] bg-[linear-gradient(180deg,#FFFFFF_0%,#F2F6FB_62%,#E8EEF6_100%)] shadow-card w-full lg:aspect-[5/4] xl:aspect-[4/3] xl:max-h-[580px]" data-product-hotspot-stage>
+                    <div class="boblift-product-stage relative aspect-[4/3] overflow-hidden rounded border border-[#DDE7F2] bg-[linear-gradient(180deg,#FFFFFF_0%,#F2F6FB_62%,#E8EEF6_100%)] shadow-card w-full lg:aspect-[5/4] xl:aspect-[16/10]" data-product-hotspot-stage>
                         <span class="pointer-events-none absolute inset-x-[8%] bottom-6 h-px bg-[#CBD6E3] sm:bottom-8 lg:bottom-10" aria-hidden="true"></span>
                         <span class="pointer-events-none absolute bottom-2 left-1/2 h-8 w-[58%] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgba(11,27,51,0.16),transparent)] sm:bottom-4 lg:bottom-6" aria-hidden="true"></span>
                         <div class="absolute inset-0">

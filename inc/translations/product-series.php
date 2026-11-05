@@ -1,6 +1,8 @@
 <?php
 return [
     'ja' => [
+        'cfg|Standard production model' => '標準生産モデル',
+        'cfg|Base configuration for this series' => '本シリーズの基準構成',
         'cfg|Model code explained' => '型式の見方',
         'cfg|Get a Quote' => '見積もり依頼',
         'cfg|View Configurations' => '仕様バリエーション',
@@ -61,6 +63,8 @@ return [
         '{code} Series' => '{code} シリーズ',
     ],
     'zh' => [
+        'cfg|Standard production model' => '常规生产型号',
+        'cfg|Base configuration for this series' => '本系列基准配置',
         'cfg|Model code explained' => '型号说明',
         'cfg|Get a Quote' => '获取报价',
         'cfg|View Configurations' => '查看不同配置',
@@ -121,6 +125,8 @@ return [
         '{code} Series' => '{code} 系列',
     ],
     'es' => [
+        'cfg|Standard production model' => 'Modelo de producción estándar',
+        'cfg|Base configuration for this series' => 'Configuración básica de esta serie',
         'cfg|Model code explained' => 'Significado del modelo',
         'cfg|Get a Quote' => 'Pedir presupuesto',
         'cfg|View Configurations' => 'Ver configuraciones',
@@ -181,6 +187,8 @@ return [
         '{code} Series' => 'Serie {code}',
     ],
     'ru' => [
+        'cfg|Standard production model' => 'Серийная модель',
+        'cfg|Base configuration for this series' => 'Базовая комплектация данной серии',
         'cfg|Model code explained' => 'Расшифровка модели',
         'cfg|Get a Quote' => 'Запросить КП',
         'cfg|View Configurations' => 'Все комплектации',
@@ -241,6 +249,8 @@ return [
         '{code} Series' => 'Серия {code}',
     ],
     'fr' => [
+        'cfg|Standard production model' => 'Modèle de série',
+        'cfg|Base configuration for this series' => 'Configuration de base de cette série',
         'cfg|Model code explained' => 'Lecture du modèle',
         'cfg|Get a Quote' => 'Demander un devis',
         'cfg|View Configurations' => 'Voir les versions',
@@ -301,6 +311,8 @@ return [
         '{code} Series' => 'Série {code}',
     ],
     'ar' => [
+        'cfg|Standard production model' => 'طراز إنتاج قياسي',
+        'cfg|Base configuration for this series' => 'التكوين الأساسي لهذه السلسلة',
         'cfg|Model code explained' => 'دلالة رمز الطراز',
         'cfg|Get a Quote' => 'احصل على عرض سعر',
         'cfg|View Configurations' => 'عرض التكوينات',
