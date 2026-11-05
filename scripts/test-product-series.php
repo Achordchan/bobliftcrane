@@ -195,5 +195,18 @@ $check('timber crane title', '1.3 Ton Timber Crane', boblift_series_timber_title
 $check('timber crane with arm length', '0.7 Ton Timber Crane · 7.6 m', boblift_series_timber_title(0.7, 'ZM65: Arm Length 7600MM -Timber Crane'));
 $check('and the other arm', '0.7 Ton Timber Crane · 7.67 m', boblift_series_timber_title(0.7, 'ZM75: Arm Length 7667MM -Timber Crane'));
 
+$check('moment range', '12.9–13.2 t·m', boblift_series_compare_range(['13.2 t·m', '12.9 t·m', '13.2 t·m']));
+$check('booms range', '3–5', boblift_series_compare_range(['3', '', '5', '4']));
+$check('booms with +1 stay as written', '3+1 / 4', boblift_series_compare_range(['3+1', '4']));
+$check('+1 alone stays as written', '3+1', boblift_series_compare_range(['3+1', '3+1']));
+$check('weight with a thousands comma', '1,850–2,310 kg', boblift_series_compare_range(['2310 kg', '1850 kg']));
+$check('height keeps approx', '≈ 10.5–14.5 m', boblift_series_compare_range(['≈ 10.5 m', '≈ 14.5 m']));
+$check('rotation', '360–400°', boblift_series_compare_range(['400°', '360°']));
+$check('one value', '360°', boblift_series_compare_range(['360°', '360°']));
+$check('different units stay as written', '9 t·m / 90 kN·m', boblift_series_compare_range(['9 t·m', '90 kN·m']));
+$check('nothing', '', boblift_series_compare_range(['', '']));
+$check('kN·m converts', '≈ 9.2 t·m', boblift_series_moment_in_tm('90 kN·m'));
+$check('t·m stays', '13.2 t·m', boblift_series_moment_in_tm('13.2 t·m'));
+
 echo $failures === 0 ? "ok\n" : "{$failures} failed\n";
 exit($failures === 0 ? 0 : 1);

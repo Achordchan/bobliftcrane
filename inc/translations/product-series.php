@@ -1,6 +1,8 @@
 <?php
 return [
     'ja' => [
+        'cfg|View the {value} t series' => '{value}トン シリーズを見る',
+        'cfg|Compare the series' => 'シリーズ比較',
         'cfg|{value} Ton Timber Crane' => '{value}トン 木材クレーン',
         'cfg|800 kg Pickup Crane' => '800 kg ピックアップクレーン',
         'cfg|—: see the drawing, confirmed with your quote' => '—：図面をご確認ください。お見積もり時に確定します',
@@ -47,6 +49,8 @@ return [
         '{code} Series' => '{code} シリーズ',
     ],
     'zh' => [
+        'cfg|View the {value} t series' => '查看 {value} 吨系列',
+        'cfg|Compare the series' => '系列对比',
         'cfg|{value} Ton Timber Crane' => '{value} 吨木材起重机',
         'cfg|800 kg Pickup Crane' => '800 kg 皮卡起重机',
         'cfg|—: see the drawing, confirmed with your quote' => '以图纸为准，询价时确认',
@@ -93,6 +97,8 @@ return [
         '{code} Series' => '{code} 系列',
     ],
     'es' => [
+        'cfg|View the {value} t series' => 'Ver la serie de {value} t',
+        'cfg|Compare the series' => 'Comparar las series',
         'cfg|{value} Ton Timber Crane' => 'Grúa forestal de {value} t',
         'cfg|800 kg Pickup Crane' => 'Grúa para pickup de 800 kg',
         'cfg|—: see the drawing, confirmed with your quote' => '—: consulte el plano; se confirma en su presupuesto',
@@ -139,6 +145,8 @@ return [
         '{code} Series' => 'Serie {code}',
     ],
     'ru' => [
+        'cfg|View the {value} t series' => 'Серия {value} т',
+        'cfg|Compare the series' => 'Сравнение серий',
         'cfg|{value} Ton Timber Crane' => 'Лесной кран {value} т',
         'cfg|800 kg Pickup Crane' => 'Кран для пикапа 800 кг',
         'cfg|—: see the drawing, confirmed with your quote' => '—: см. чертёж, уточняется в коммерческом предложении',
@@ -185,6 +193,8 @@ return [
         '{code} Series' => 'Серия {code}',
     ],
     'fr' => [
+        'cfg|View the {value} t series' => 'Voir la série de {value} t',
+        'cfg|Compare the series' => 'Comparer les séries',
         'cfg|{value} Ton Timber Crane' => 'Grue forestière de {value} t',
         'cfg|800 kg Pickup Crane' => 'Grue pour pick-up de 800 kg',
         'cfg|—: see the drawing, confirmed with your quote' => '— : voir le plan, confirmé dans votre devis',
@@ -231,6 +241,8 @@ return [
         '{code} Series' => 'Série {code}',
     ],
     'ar' => [
+        'cfg|View the {value} t series' => 'عرض سلسلة {value} طن',
+        'cfg|Compare the series' => 'مقارنة السلاسل',
         'cfg|{value} Ton Timber Crane' => 'رافعة الأخشاب سعة {value} طن',
         'cfg|800 kg Pickup Crane' => 'رافعة بيك أب 800 كجم',
         'cfg|—: see the drawing, confirmed with your quote' => '—: راجع الرسم، ويُؤكَّد في عرض السعر',

@@ -509,6 +509,43 @@ function boblift_series_figure_range(array $values): string
     return ($approx ? '≈ ' : '') . $format($low) . ($high > $low ? '–' . $format($high) : '') . ' ' . $unit;
 }
 
+/**
+ * Any figure across a series' configurations: a range when all are numbers in one unit ("12.9–13.2 t·m", "3–5", "360–400°"),
+ * else the different values as written ("3+1 / 4"). Empty values are left out.
+ */
+function boblift_series_compare_range(array $values): string
+{
+    $values = array_values(array_unique(array_filter(array_map(static fn($value): string => trim((string) $value), $values), static fn(string $value): bool => $value !== '')));
+    if ($values === []) {
+        return '';
+    }
+    $numbers = [];
+    $units = [];
+    $approx = false;
+    foreach ($values as $value) {
+        if (!preg_match('/^(≈\s*)?(\d[\d,]*(?:\.\d+)?)\s*([^\d\s+\/]*(?:\s[^\d\s+\/]+)?)$/u', $value, $match)) {
+            return implode(' / ', $values);
+        }
+        $numbers[] = (float) str_replace(',', '', $match[2]);
+        $units[$match[3]] = true;
+        $approx = $approx || $match[1] !== '';
+    }
+    if (count($units) > 1) {
+        return implode(' / ', $values);
+    }
+    $unit = (string) array_key_first($units);
+    $format = static fn(float $number): string => rtrim(rtrim(number_format($number, 2, '.', ','), '0'), '.');
+    $low = min($numbers);
+    $high = max($numbers);
+    return ($approx ? '≈ ' : '') . $format($low) . ($high > $low ? '–' . $format($high) : '') . ($unit === '' || $unit === '°' ? $unit : ' ' . $unit);
+}
+
+/** A lifting moment in t·m. The data has a few in kN·m: those convert, marked as approximate since no drawing prints the t·m. */
+function boblift_series_moment_in_tm(string $moment): string
+{
+    return preg_match('/^([\d.]+)\s*kN·m$/u', trim($moment), $match) ? '≈ ' . rtrim(rtrim(number_format((float) $match[1] / 9.80665, 1, '.', ''), '0'), '.') . ' t·m' : $moment;
+}
+
 /** A timber crane's card title: its capacity, and its arm length where the English product title gives one ("Arm Length 7600MM"). */
 function boblift_series_timber_title(float $capacity, string $english_title): string
 {
