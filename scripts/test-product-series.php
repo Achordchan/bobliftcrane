@@ -141,9 +141,14 @@ $trucks = boblift_series_group_rows([
     $truck_row(4, '6-3-ton-knuckle-boom-truck-mounted-crane', 'SQ6.3ZA5', 6.3, 'knuckle'),
     $truck_row(5, '6-3-ton-knuckle-boom-truck-mounted-crane-blz129k4', 'BLZ129K4', 6.3, 'knuckle'),
 ]);
-$check('trucks and marine apart, another make apart', ['knuckle-12', 'truck-knuckle-6.3', 'truck-knuckle-6.3-blz', 'truck-knuckle-12'], array_keys($trucks));
+$check('trucks and marine apart, another make in the same series', ['knuckle-12', 'truck-knuckle-6.3', 'truck-knuckle-12'], array_keys($trucks));
 $check('truck home', 1, $trucks['truck-knuckle-12']['home']);
-$check('a make with no plain slug leads its own series', 5, $trucks['truck-knuckle-6.3-blz']['home']);
+$check('the plain slug leads a series of two makes', 4, $trucks['truck-knuckle-6.3']['home']);
+$check('another make comes after the SQ models', ['SQ6.3ZA5', 'BLZ129K4'], array_column($trucks['truck-knuckle-6.3']['members'], 'model'));
+$two_makes = array_map(static fn(array $member): array => $member + ['values' => array_merge(boblift_series_parse_model($member['model']), ['named' => $member['model'], 'sections' => '']), 'figures' => ['moment' => '12.9 t·m']], [['model' => 'SQ6.3ZA4'], ['model' => 'BLZ129K4']]);
+$check('two makes are asked by model, in order', ['named' => ['SQ6.3ZA4', 'BLZ129K4']], boblift_series_dimensions($two_makes));
+$check('an SQ model says its booms', ['SQ6.3ZA4', '3 hydraulic booms'], boblift_series_choice_label('named', 'SQ6.3ZA4', $two_makes));
+$check('a BLZ model says its moment', ['BLZ129K4', "Max lifting moment \u{2066}12.9 t·m\u{2069}"], boblift_series_choice_label('named', 'BLZ129K4', $two_makes));
 $truck_variants = boblift_series_expand_variants(array_map(static fn(string $model): array => ['model' => $model, 'url' => 'u', 'id' => 1, 'slug' => 's', 'is_home' => false, 'values' => boblift_series_parse_model($model), 'figures' => $figures(1000)], ['SQ12ZA4', 'SQ12ZA6']), 'https://x', 'none');
 $check('no models made up for trucks', ['SQ12ZA4', 'SQ12ZA6'], array_column($truck_variants, 'model'));
 $check('no winch question for trucks', ['sections' => ['A4', 'A6']], boblift_series_dimensions($truck_variants));

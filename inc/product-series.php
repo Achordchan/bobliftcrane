@@ -120,6 +120,12 @@ function boblift_series_requested_model(array $models, string $requested, string
     return $default;
 }
 
+/** Models in display order: natural order, with another make (BLZ) after the SQ models of its class. */
+function boblift_series_model_order(string $a, string $b): int
+{
+    return (str_starts_with($a, 'BLZ') <=> str_starts_with($b, 'BLZ')) ?: strnatcmp($a, $b);
+}
+
 /**
  * Groups product rows by boom type and capacity. Rows: id, slug, model, capacity, boom ("knuckle" or "telescopic"), legacy.
  * The series page is the row whose slug has no model suffix, else the first current model, else the first model.
@@ -133,14 +139,13 @@ function boblift_series_group_rows(array $rows): array
             continue;
         }
         $family = (string) ($row['family'] ?? 'marine');
-        // A different make of crane in the same class (BLZ129K4 beside the 6.3 t SQ models) is a series of its own.
-        $make = str_starts_with((string) $row['model'], 'BLZ') ? '-blz' : '';
-        $key = ($family === 'marine' ? '' : $family . '-') . $row['boom'] . '-' . rtrim(rtrim(number_format($capacity, 2, '.', ''), '0'), '.') . $make;
+        // One class is one series, whichever make the model names (BLZ129K4 beside the 6.3 t SQ models).
+        $key = ($family === 'marine' ? '' : $family . '-') . $row['boom'] . '-' . rtrim(rtrim(number_format($capacity, 2, '.', ''), '0'), '.');
         $groups[$key] ??= ['key' => $key, 'family' => $family, 'boom' => $row['boom'], 'capacity' => $capacity, 'members' => []];
         $groups[$key]['members'][] = $row;
     }
     foreach ($groups as $key => $group) {
-        usort($group['members'], static fn(array $a, array $b): int => strnatcmp($a['model'], $b['model']));
+        usort($group['members'], static fn(array $a, array $b): int => boblift_series_model_order($a['model'], $b['model']));
         $home = null;
         foreach ($group['members'] as $member) {
             if (preg_match('/^\d[\d-]*-ton-(?:knuckle|telescopic)-boom-(?:marine|truck-mounted)-crane$|^800-kg-pickup-crane-with-outriggers$/', (string) $member['slug'])) {
@@ -171,7 +176,7 @@ function boblift_series_dimensions(array $members): array
     $dimensions = [];
     foreach (['named', 'sections', 'winch', 'manual'] as $dimension) {
         $values = array_values(array_unique(array_filter(array_map(static fn(array $member): string => (string) ($member['values'][$dimension] ?? ''), $members), static fn(string $value): bool => $value !== '')));
-        sort($values, SORT_NATURAL);
+        usort($values, 'boblift_series_model_order');
         if (count($values) > 1) {
             $dimensions[$dimension] = $values;
         }
@@ -325,6 +330,12 @@ function boblift_series_for_product(int $post_id): ?array
             'is_home' => $id === $home_id,
             'values' => boblift_series_winch_values(boblift_series_parse_model((string) $member['model']), boblift_series_winch_mode((string) ($group['family'] ?? 'marine'), (string) $group['boom'])),
         ];
+    }
+    // Two makes in a series number their booms differently (A4 and K4), so its choice is the model itself.
+    if (count(array_unique(array_map(static fn(array $member): bool => str_starts_with($member['model'], 'BLZ'), $members))) > 1) {
+        foreach ($members as $position => $member) {
+            $members[$position]['values'] = array_merge($member['values'], ['named' => $member['model'], 'sections' => '']);
+        }
     }
     $home_model = '';
     foreach ($members as $member) {
@@ -950,6 +961,15 @@ function boblift_series_choice_label(string $dimension, string $value, array $me
     // SQZ models differ by moment class: the name without its marine T, and the moment the data gives.
     foreach ($members as $member) {
         if (($member['values']['named'] ?? '') === $value) {
+            $own = boblift_series_parse_model($value);
+            // A model in a series of two makes: its boom count when the name says it (K is not confirmed yet), else its moment.
+            if (($own['named'] ?? '') === '') {
+                if (str_starts_with((string) $own['sections'], 'A')) {
+                    return [$value, boblift_series_booms_label((string) $own['sections'])];
+                }
+                $moment = (string) ($member['figures']['moment'] ?? '');
+                return [$value, $moment !== '' ? boblift_series_text('Max lifting moment') . " \u{2066}{$moment}\u{2069}" : ''];
+            }
             return [(string) preg_replace('/T$/', '', $value), (string) ($member['figures']['moment'] ?? '')];
         }
     }
@@ -1024,7 +1044,8 @@ function boblift_series_render_configurator(): void
             $active = $member;
         }
     }
-    $headings = ['named' => $t('Model (moment class)'), 'sections' => $t('Boom sections'), 'winch' => $t('Winch'), 'manual' => $t($state['series']['family'] === 'pickup' ? 'Outriggers' : 'Manual extension (+1)')];
+    $heading_named = array_filter($members, static fn(array $member): bool => boblift_series_parse_model($member['model'])['named'] === '') ? 'Model' : 'Model (moment class)';
+    $headings = ['named' => $t($heading_named), 'sections' => $t('Boom sections'), 'winch' => $t('Winch'), 'manual' => $t($state['series']['family'] === 'pickup' ? 'Outriggers' : 'Manual extension (+1)')];
     $unavailable_text = $t('Not offered with the current choice: selecting it changes the other options');
     $base = $active;
     foreach ($members as $member) {
