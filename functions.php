@@ -59,6 +59,7 @@ $boblift_theme_modules = [
     'legacy-redirects.php',
     'tonnage-pages.php',
     'polylang-slugs.php',
+    'rest-json-string-fields.php',
     'rest-translations.php',
     'rest-product-setup.php',
     'rest-content-insert.php',
