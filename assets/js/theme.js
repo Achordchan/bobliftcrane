@@ -5265,12 +5265,50 @@
     return figures;
   };
 
+  // A winch version without a product of its own is shown on the blocks of the configuration it comes from: its name replaces that
+  // model's, and the self weight, which is not known, shows no figure.
+  const patched = new Map();
+  const restorePatches = () => {
+    patched.forEach((html, element) => { element.innerHTML = html; });
+    patched.clear();
+  };
+  const patch = (element, html) => {
+    if (!patched.has(element)) patched.set(element, element.innerHTML);
+    element.innerHTML = html;
+  };
+  const swapText = (element, from, to) => {
+    if (!patched.has(element)) patched.set(element, element.innerHTML);
+    element.childNodes.forEach((node) => {
+      if (node.nodeType === Node.TEXT_NODE) node.textContent = node.textContent.replace(from, to);
+    });
+  };
+  const applyDerived = (variant, shownModel) => {
+    document.querySelectorAll('[data-cfg-decode-winch]').forEach((part) => {
+      part.style.display = variant.values.winch === '1' ? '' : 'none';
+    });
+    document.querySelectorAll('[data-cfg-winch-row]').forEach((row) => {
+      row.style.display = variant.derived && variant.values.winch === '0' ? 'none' : '';
+    });
+    root.querySelectorAll('[data-cfg-weight-note]').forEach((note) => {
+      note.textContent = variant.weightNote || '';
+      note.hidden = !variant.weightNote;
+    });
+    if (!variant.derived) return;
+    const holders = [...document.querySelectorAll(`[data-cfg-variant="${CSS.escape(shownModel)}"]`)];
+    holders.forEach((holder) => {
+      holder.querySelectorAll('[data-cfg-model-text]').forEach((element) => swapText(element, shownModel, variant.model));
+      holder.querySelectorAll('[data-cfg-cell="weight"] dd, [data-cfg-weight-row] dd').forEach((value) => patch(value, '<span class="text-[clamp(22px,1.9vw,32px)] text-slate-400">—</span>'));
+    });
+  };
+
   const apply = (variant, updateAddress) => {
     const previousFigures = shownFigures();
     current = variant;
+    const shownModel = variant.source || variant.model;
+    restorePatches();
     document.querySelectorAll('[data-cfg-block]').forEach((block) => {
       [...block.children].forEach((holder) => {
-        const active = holder.getAttribute('data-cfg-variant') === variant.model;
+        const active = holder.getAttribute('data-cfg-variant') === shownModel;
         holder.hidden = !active;
         // Ids belong to the shown version only: #technical, #drawing and the rest must stay unique.
         if (active) {
@@ -5302,11 +5340,7 @@
     document.querySelectorAll('[data-cfg-title]').forEach((element) => {
       element.textContent = variant.model;
     });
-    root.querySelectorAll('[data-cfg-note]').forEach((note) => {
-      const text = (variant.notes || {})[note.dataset.cfgNote] || '';
-      note.textContent = text;
-      note.hidden = !text;
-    });
+    applyDerived(variant, shownModel);
     root.querySelectorAll('[data-cfg-winch-difference]').forEach((element) => {
       element.textContent = variant.winch || '';
       element.hidden = !variant.winch;

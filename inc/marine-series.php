@@ -28,6 +28,9 @@ function boblift_marine_parse_model(string $model): array
     if (preg_match('/^SQ\d+(?:\.\d+)?[ZS](?<section>A\d)T(?<winch>J?)$/', $base, $m) || preg_match('/^BLZ\d+(?<section>K\d)T(?<winch>J?)$/', $base, $m)) {
         return ['named' => '', 'sections' => $m['section'], 'winch' => $m['winch'] !== '' ? '1' : '0', 'manual' => $manual ? '1' : '0'];
     }
+    if (preg_match('/^(?<name>SQZ\d+T)(?<winch>J?)$/', $base, $m)) {
+        return ['named' => $m['name'], 'sections' => '', 'winch' => $m['winch'] !== '' ? '1' : '0', 'manual' => $manual ? '1' : '0'];
+    }
     return ['named' => $model, 'sections' => '', 'winch' => '', 'manual' => ''];
 }
 
@@ -44,6 +47,47 @@ function boblift_marine_series_code(string $model): string
         $code = $model;
     }
     return (string) apply_filters('boblift_marine_series_code', $code, $model);
+}
+
+/**
+ * The same crane with the winch the other way round: J follows T and +1 stays last (SQ12ZA6T - SQ12ZA6TJ, SQ08ZA3T+1 - SQ08ZA3TJ+1,
+ * SQZ330T - SQZ330TJ). A winch is optional on every marine crane. '' when the name does not follow the pattern.
+ */
+function boblift_marine_winch_twin(string $model): string
+{
+    if (!preg_match('/^(.*T)(J?)(\+1)?$/', $model, $m)) {
+        return '';
+    }
+    return $m[1] . ($m[2] === '' ? 'J' : '') . ($m[3] ?? '');
+}
+
+/**
+ * Every choice a series offers: its real configurations, plus the other winch version of each that has no product of its own.
+ * Such a version takes the figures, photos and drawings of the configuration it comes from, except the self weight, which is
+ * not known, so no figure is made up. Real members in, members with derived, source and figures out.
+ */
+function boblift_marine_expand_variants(array $members, string $series_url): array
+{
+    $real = array_column($members, 'model');
+    $variants = [];
+    foreach ($members as $member) {
+        $variants[] = $member + ['derived' => false, 'source' => $member['model']];
+        $twin = (string) boblift_marine_winch_twin($member['model']);
+        if ($twin === '' || in_array($twin, $real, true) || boblift_marine_parse_model($twin)['winch'] === '') {
+            continue;
+        }
+        $variants[] = array_merge($member, [
+            'model' => $twin,
+            'url' => boblift_marine_model_url($series_url, $twin),
+            'is_home' => false,
+            'values' => boblift_marine_parse_model($twin),
+            'derived' => true,
+            'source' => $member['model'],
+            'figures' => array_merge((array) ($member['figures'] ?? []), ['weight' => null]),
+        ]);
+    }
+    usort($variants, static fn(array $a, array $b): int => strnatcmp($a['model'], $b['model']));
+    return $variants;
 }
 
 /** ?model= link to one configuration; the plus of +1 must be encoded or it reads as a space. */
@@ -364,9 +408,17 @@ function boblift_marine_series_capturing(): bool
 function boblift_marine_series_begin(array $series): void
 {
     global $post, $wp_query;
-    $models = array_column($series['members'], 'model');
+    $variants = boblift_marine_expand_variants(boblift_marine_members_with_figures($series), $series['url']);
     $requested = isset($_GET['model']) && is_string($_GET['model']) ? wp_unslash($_GET['model']) : '';
-    $GLOBALS['boblift_marine_render'] = ['series' => $series, 'active' => boblift_marine_requested_model($models, $requested, $series['home_model']), 'capturing' => '', 'blocks' => [], 'meta' => [], 'open' => []];
+    $active = boblift_marine_requested_model(array_column($variants, 'model'), $requested, $series['home_model']);
+    $source = $series['home_model'];
+    foreach ($variants as $variant) {
+        if ($variant['model'] === $active) {
+            $source = $variant['source'];
+        }
+    }
+    // A derived winch version is shown with the blocks of the configuration it comes from.
+    $GLOBALS['boblift_marine_render'] = ['series' => $series, 'variants' => $variants, 'active' => $active, 'active_source' => $source, 'capturing' => '', 'blocks' => [], 'meta' => [], 'open' => []];
     $saved = [$post, $wp_query->post, $wp_query->queried_object, $wp_query->queried_object_id];
     foreach ($series['members'] as $member) {
         if ($member['is_home']) {
@@ -423,7 +475,7 @@ function boblift_marine_block_close(string $name, string $class = ''): void
     echo '<div data-cfg-block="' . esc_attr($name) . '"' . ($class !== '' ? ' class="' . esc_attr($class) . '"' : '') . '>';
     foreach ($state['series']['members'] as $member) {
         $block = (string) ($state['blocks'][$member['model']][$name] ?? '');
-        $active = $member['model'] === $state['active'];
+        $active = $member['model'] === $state['active_source'];
         echo '<div data-cfg-variant="' . esc_attr($member['model']) . '"' . ($active ? '' : ' hidden') . '>' . ($active ? $block : boblift_marine_hidden_block($block)) . '</div>';
     }
     echo '</div>';
@@ -537,42 +589,12 @@ function boblift_marine_unavailable_choices(array $members, array $dimensions, a
     return $out;
 }
 
-/** Why a choice is dashed, in words from the data: "A6 is built without a winch only". Keyed by the group it sits under. */
-function boblift_marine_combination_notes(array $members, array $dimensions, array $values): array
-{
-    if (!isset($dimensions['sections'], $dimensions['winch'])) {
-        return [];
-    }
-    $sentence = static function (string $section) use ($members): string {
-        $winch = array_values(array_unique(array_map(static fn(array $member): string => $member['values']['winch'], array_filter($members, static fn(array $member): bool => $member['values']['sections'] === $section))));
-        if (count($winch) !== 1) {
-            return '';
-        }
-        return str_replace('{booms}', boblift_marine_booms_label($section), boblift_marine_text($winch[0] === '1' ? '{booms}: with winch only' : '{booms}: without winch only'));
-    };
-    $notes = [];
-    $unavailable = boblift_marine_unavailable_choices($members, $dimensions, $values);
-    $sections = [];
-    foreach ($unavailable as $choice) {
-        [$dimension, $option] = explode('|', $choice, 2);
-        if ($dimension === 'sections') {
-            $sections[] = $sentence($option);
-        } elseif ($dimension === 'winch') {
-            $notes['winch'] = $sentence((string) $values['sections']);
-        }
-    }
-    if ($sections !== []) {
-        $notes['sections'] = implode(' · ', array_filter($sections));
-    }
-    return array_filter($notes);
-}
-
 /** What a winch adds to the weight of this configuration's boom, "+50 kg", when both versions give a weight. */
 function boblift_marine_winch_difference(array $members, array $values): string
 {
     $weights = [];
     foreach ($members as $member) {
-        if ($member['values']['sections'] === $values['sections'] && $member['values']['manual'] === $values['manual'] && isset($member['figures']['weight'])) {
+        if ($member['values']['sections'] === $values['sections'] && $member['values']['named'] === $values['named'] && $member['values']['manual'] === $values['manual'] && isset($member['figures']['weight'])) {
             $weights[$member['values']['winch']] = (int) $member['figures']['weight'];
         }
     }
@@ -609,7 +631,7 @@ function boblift_marine_configuration_difference(array $member, array $base): st
         }
     }
     if ($member['values']['winch'] !== '' && $member['values']['winch'] !== $base['values']['winch']) {
-        $parts[] = boblift_marine_text($member['values']['winch'] === '1' ? 'With winch' : 'No winch');
+        $parts[] = boblift_marine_text($member['values']['winch'] === '1' ? (empty($member['derived']) ? 'With winch' : 'With winch (optional)') : 'No winch');
     }
     return implode(' · ', $parts);
 }
@@ -642,17 +664,24 @@ function boblift_marine_choice_label(string $dimension, string $value, array $me
     return [$value, ''];
 }
 
-/** The model name part by part under the title: three to a row, each with its meaning in plain sight. */
+/**
+ * The model name part by part under the title: three to a row, each with its meaning in plain sight. A name that decodes gets
+ * the winch part either way, shown or hidden by the theme script, since the choice can change it.
+ */
 function boblift_marine_render_compact_decode(string $model): void
 {
     $parts = boblift_model_parts($model);
     if (!$parts) {
         return;
     }
+    $has_winch = in_array('J', array_column($parts, 0), true);
+    if (!$has_winch) {
+        $parts[] = ['J', boblift_localized_static_text('With winch')];
+    }
     ?>
     <dl class="boblift-model-decode-compact mt-4 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-[#D5DEE9] pt-4 sm:grid-cols-3">
         <?php foreach ($parts as [$code, $meaning]) : ?>
-            <div class="flex min-w-0 items-start gap-2">
+            <div class="flex min-w-0 items-start gap-2"<?php echo $code === 'J' ? ' data-cfg-decode-winch' . ($has_winch ? '' : ' style="display:none"') : ''; ?>>
                 <dt class="inline-flex h-6 min-w-6 shrink-0 items-center justify-center rounded-sm bg-[#071f42] px-1.5 text-[12px] font-black leading-none tracking-[0.02em] text-white [font-variant-numeric:tabular-nums]" dir="ltr"><?php echo esc_html($code); ?></dt>
                 <dd class="min-w-0 pt-[3px] text-[13px] font-normal leading-[1.35] text-slate-600"><?php echo esc_html($meaning); ?></dd>
             </div>
@@ -665,13 +694,16 @@ function boblift_marine_render_compact_decode(string $model): void
 function boblift_marine_render_configurator(): void
 {
     $state = $GLOBALS['boblift_marine_render'] ?? null;
-    if (!$state || $state['capturing'] !== '' || count($state['series']['members']) < 2) {
+    if (!$state || $state['capturing'] !== '') {
         return;
     }
     $t = static fn(string $text): string => boblift_marine_text($text);
-    $members = boblift_marine_members_with_figures($state['series']);
-    $count = count($members);
+    $members = $state['variants'];
+    $count = count($state['series']['members']);
     $dimensions = boblift_marine_series_dimensions($members);
+    if ($dimensions === []) {
+        return;
+    }
     $active = $members[0];
     foreach ($members as $member) {
         if ($member['model'] === $state['active']) {
@@ -689,7 +721,6 @@ function boblift_marine_render_configurator(): void
     $compared = str_replace('{model}', $base['model'], $t('Compared with {model}'));
     $ui = static fn(array $member): array => [
         'summary' => boblift_marine_configuration_difference($member, $base),
-        'notes' => (object) boblift_marine_combination_notes($members, $dimensions, $member['values']),
         'unavailable' => boblift_marine_unavailable_choices($members, $dimensions, $member['values']),
         'winch' => boblift_marine_winch_difference($members, $member['values']),
     ];
@@ -698,20 +729,30 @@ function boblift_marine_render_configurator(): void
         'active' => $state['active'],
         'dimensions' => array_keys($dimensions),
         'unavailable' => $unavailable_text,
-        'variants' => array_map(static fn(array $member): array => [
-            'model' => $member['model'],
-            'slug' => $member['slug'],
-            'values' => $member['values'],
-        ] + $ui($member) + (array) ($state['meta'][$member['model']] ?? []), $members),
+        'variants' => array_map(static function (array $member) use ($ui, $state): array {
+            $meta = (array) ($state['meta'][$member['source']] ?? []);
+            if ($member['derived']) {
+                // Quote buttons, WhatsApp and mail name the version chosen, under its own address.
+                $meta = boblift_marine_meta_for_twin($meta, $member['source'], $member['model'], $member['url']);
+            }
+            return [
+                'model' => $member['model'],
+                'source' => $member['source'],
+                'derived' => $member['derived'],
+                'slug' => $member['slug'],
+                'values' => $member['values'],
+                'weightNote' => $member['derived'] ? boblift_marine_text($member['values']['winch'] === '1' ? 'Winch version: self weight confirmed with your quote' : 'No-winch version: self weight confirmed with your quote') : '',
+            ] + $ui($member) + $meta;
+        }, $members),
     ];
     $active_ui = $ui($active);
     ?>
     <div class="boblift-series-config mt-6 rounded-sm border border-[#D5DEE9] bg-white/70 p-4 sm:p-5" data-series-config>
         <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
             <p class="text-sm font-black text-[#071f42]"><?php echo esc_html($t('Choose your configuration')); ?></p>
-            <p class="text-xs text-slate-500"><?php echo esc_html(str_replace('{count}', (string) $count, $t('{count} configurations in this series'))); ?></p>
+            <p class="text-xs text-slate-500"><?php echo esc_html($count === 1 ? $t('1 configuration in this series') : str_replace('{count}', (string) $count, $t('{count} configurations in this series'))); ?></p>
         </div>
-        <?php foreach ($dimensions as $dimension => $values) : $note = (string) (((array) $active_ui['notes'])[$dimension] ?? ''); ?>
+        <?php foreach ($dimensions as $dimension => $values) : ?>
             <div class="mt-3.5">
                 <p class="text-[11px] font-black uppercase leading-4 tracking-[0.12em] text-slate-500 rtl:tracking-normal" id="boblift-cfg-<?php echo esc_attr($dimension); ?>"><?php echo esc_html($headings[$dimension]); ?></p>
                 <div class="mt-1.5 flex flex-wrap gap-2" role="radiogroup" aria-labelledby="boblift-cfg-<?php echo esc_attr($dimension); ?>">
@@ -728,16 +769,13 @@ function boblift_marine_render_configurator(): void
                         </button>
                     <?php endforeach; ?>
                 </div>
-                <p class="mt-1.5 text-[13px] leading-5 text-slate-600" data-cfg-note="<?php echo esc_attr($dimension); ?>"<?php echo $note === '' ? ' hidden' : ''; ?>><?php echo esc_html($note); ?></p>
             </div>
         <?php endforeach; ?>
-        <?php if (boblift_marine_series_all_have($members, 'winch', '1')) : ?>
-            <p class="mt-3 text-[13px] text-slate-600"><?php echo esc_html($t('Winch (J) on every configuration')); ?></p>
-        <?php endif; ?>
         <?php if (boblift_marine_series_all_have($members, 'manual', '1')) : ?>
             <p class="mt-3 text-[13px] text-slate-600"><?php echo esc_html($t('+1 manual extension on every configuration')); ?></p>
         <?php endif; ?>
         <p class="mt-3.5 border-t border-[#E6EDF5] pt-3 text-[15px] leading-6 text-[#334155]" aria-live="polite" data-cfg-summary-line<?php echo $active_ui['summary'] === '' ? ' hidden' : ''; ?>><span class="font-black text-[#071f42]"><?php echo esc_html($compared); ?>:</span> <span data-cfg-summary><?php echo esc_html($active_ui['summary']); ?></span></p>
+        <p class="mt-1.5 text-[13px] leading-5 text-slate-600" data-cfg-weight-note<?php echo empty($active['derived']) ? ' hidden' : ''; ?>><?php echo !empty($active['derived']) ? esc_html($t($active['values']['winch'] === '1' ? 'Winch version: self weight confirmed with your quote' : 'No-winch version: self weight confirmed with your quote')) : ''; ?></p>
         <script type="application/json" data-series-data><?php echo wp_json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG); ?></script>
     </div>
     <?php
@@ -772,10 +810,11 @@ function boblift_marine_compare_columns(array $members): array
 function boblift_marine_render_compare(string $model): void
 {
     $state = $GLOBALS['boblift_marine_render'] ?? null;
-    if (!$state || $state['active'] !== $model || count($state['series']['members']) < 2) {
+    if (!$state || $state['active_source'] !== $model || count($state['series']['members']) < 2) {
         return;
     }
     $members = boblift_marine_members_with_figures($state['series']);
+    // The table shows the configurations themselves; the winch is an option on each, said once.
     $dimensions = boblift_marine_series_dimensions($members);
     $columns = boblift_marine_compare_columns($members);
     $labelled = (bool) array_intersect(['sections', 'winch', 'manual'], array_keys($dimensions));
@@ -808,9 +847,39 @@ function boblift_marine_render_compare(string $model): void
                 </tbody>
             </table>
         </div>
+        <p class="border-b border-[#E6EDF5] px-4 py-2 text-xs leading-5 text-slate-500 sm:px-6 md:px-8"><?php echo esc_html(boblift_marine_text('All marine cranes can be fitted with a winch.')); ?></p>
         <?php if ($missing) : ?><p class="border-b border-[#E6EDF5] px-4 py-2 text-xs leading-5 text-slate-500 sm:px-6 md:px-8"><?php echo esc_html(boblift_marine_text('—: not listed here, see the drawing for this configuration.')); ?></p><?php endif; ?>
     </div>
     <?php
+}
+
+/** Quote details of a configuration, rewritten for its other winch version. */
+function boblift_marine_meta_for_twin(array $meta, string $source, string $twin, string $url): array
+{
+    if (isset($meta['inquiry'])) {
+        $meta['inquiry']['title'] = str_replace($source, $twin, (string) $meta['inquiry']['title']);
+        $meta['inquiry']['detailUrl'] = $url;
+    }
+    foreach (['whatsapp', 'mail'] as $key) {
+        if (isset($meta[$key])) {
+            // The model appears encoded once in the words and twice in the address inside them.
+            // One pass: without special characters both forms are the same text, and replacing twice would double the J.
+            $meta[$key] = strtr((string) $meta[$key], [rawurlencode($source) => rawurlencode($twin), rawurlencode(rawurlencode($source)) => rawurlencode(rawurlencode($twin))]);
+        }
+    }
+    return $meta;
+}
+
+/** The label of the row in this language's spec table that the English table calls $english: the tables run row for row. */
+function boblift_marine_spec_label(int $english_id, array $specs, string $english): string
+{
+    $source = boblift_decode_meta(get_post_meta($english_id, '_specs', true), []);
+    foreach (is_array($source) ? array_values($source) : [] as $index => $row) {
+        if (is_array($row) && ($row['label'] ?? '') === $english) {
+            return count($source) === count($specs) ? (string) (array_values($specs)[$index]['label'] ?? $english) : $english;
+        }
+    }
+    return '';
 }
 
 /** ProductGroup with one Product per configuration. No offers or prices: the site publishes none. */
@@ -868,7 +937,8 @@ function boblift_marine_series_schema(): array
         'productGroupID' => $series['code'],
         'url' => $series['url'],
         'image' => (string) ($home_meta['image'] ?? ''),
-        'description' => (string) ($home_meta['description'] ?? ''),
+        'description' => trim((string) ($home_meta['description'] ?? '') . ' ' . $t('All marine cranes can be fitted with a winch.')),
+        'additionalProperty' => [['@type' => 'PropertyValue', 'name' => $t('Winch'), 'value' => $t('Optional')]],
         'brand' => $brand,
         'manufacturer' => $manufacturer,
         'hasVariant' => $variants,

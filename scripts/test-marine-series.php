@@ -28,7 +28,11 @@ $check('no winch', ['named' => '', 'sections' => 'A6', 'winch' => '0', 'manual' 
 $check('manual extension', ['named' => '', 'sections' => 'A3', 'winch' => '1', 'manual' => '1'], boblift_marine_parse_model('SQ08ZA3TJ+1'));
 $check('decimal capacity, telescopic', ['named' => '', 'sections' => 'A3', 'winch' => '0', 'manual' => '0'], boblift_marine_parse_model('SQ3.2SA3T'));
 $check('BLZ uses K', ['named' => '', 'sections' => 'K5', 'winch' => '1', 'manual' => '0'], boblift_marine_parse_model('BLZ90K5TJ'));
-$check('SQZ is a choice of its own', ['named' => 'SQZ330T', 'sections' => '', 'winch' => '', 'manual' => ''], boblift_marine_parse_model('SQZ330T'));
+$check('SQZ is a choice of its own', ['named' => 'SQZ330T', 'sections' => '', 'winch' => '0', 'manual' => '0'], boblift_marine_parse_model('SQZ330T'));
+$check('SQZ with winch', ['named' => 'SQZ330T', 'sections' => '', 'winch' => '1', 'manual' => '0'], boblift_marine_parse_model('SQZ330TJ'));
+foreach (['SQ12ZA6T' => 'SQ12ZA6TJ', 'SQ8ZA6TJ' => 'SQ8ZA6T', 'SQ08ZA3T+1' => 'SQ08ZA3TJ+1', 'SQ08ZA3TJ+1' => 'SQ08ZA3T+1', 'BLZ90K5TJ' => 'BLZ90K5T', 'SQZ430T' => 'SQZ430TJ', 'SQ3.2SA4T' => 'SQ3.2SA4TJ'] as $model => $twin) {
+    $check("winch twin of {$model}", $twin, boblift_marine_winch_twin($model));
+}
 
 // Series names.
 foreach (['SQ12ZA6T' => 'SQ12Z-T', 'SQ08ZA3TJ+1' => 'SQ08Z-T', 'SQ3.2SA4T' => 'SQ3.2S-T', 'BLZ90K5TJ' => 'BLZ90-T', 'SQZ500T' => 'SQZ-T'] as $model => $code) {
@@ -95,10 +99,20 @@ foreach (['SQ12ZA4T' => 3900, 'SQ12ZA4TJ' => 3950, 'SQ12ZA5T' => 4200, 'SQ12ZA5T
 $dimensions = boblift_marine_series_dimensions($twelve);
 $a6 = $twelve[4]['values'];
 $a4j = $twelve[1]['values'];
-$check('no J on A6', ['winch|1'], boblift_marine_unavailable_choices($twelve, $dimensions, $a6));
-$check('A6 with winch does not exist', ['sections|A6'], boblift_marine_unavailable_choices($twelve, $dimensions, $a4j));
-$check('note under winch', ['winch' => '5 hydraulic booms: without winch only'], boblift_marine_combination_notes($twelve, $dimensions, $a6));
-$check('note under sections', ['sections' => '5 hydraulic booms: without winch only'], boblift_marine_combination_notes($twelve, $dimensions, $a4j));
+$twelve_all = boblift_marine_expand_variants($twelve, 'https://x/12.html');
+$check('every configuration gets the other winch version', ['SQ12ZA4T', 'SQ12ZA4TJ', 'SQ12ZA5T', 'SQ12ZA5TJ', 'SQ12ZA6T', 'SQ12ZA6TJ'], array_column($twelve_all, 'model'));
+$derived = $twelve_all[5];
+$check('derived from its configuration', [true, 'SQ12ZA6T', 'https://x/12.html?model=SQ12ZA6TJ', null, '14.5 m'], [$derived['derived'], $derived['source'], $derived['url'], $derived['figures']['weight'], $derived['figures']['radius']]);
+$check('real configurations stay as they are', [false, 3950], [$twelve_all[1]['derived'], $twelve_all[1]['figures']['weight']]);
+$all_dimensions = boblift_marine_series_dimensions($twelve_all);
+$check('with winch versions nothing is missing', [], boblift_marine_unavailable_choices($twelve_all, $all_dimensions, $derived['values']));
+$check('derived wording', 'Self weight' === '' ? '' : 'With winch (optional)', boblift_marine_configuration_difference($derived, $twelve[4]));
+$single = boblift_marine_expand_variants([['model' => 'SQZ430T', 'url' => 'u', 'id' => 1, 'slug' => 's', 'is_home' => true, 'values' => boblift_marine_parse_model('SQZ430T'), 'figures' => $figures(4900)]], 'https://x/20.html');
+$check('a single model still has both', ['SQZ430T', 'SQZ430TJ'], array_column($single, 'model'));
+$check('and asks only about the winch', ['winch' => ['0', '1']], boblift_marine_series_dimensions($single));
+$check('WhatsApp names the twin once', 'for%20SQ12ZA6TJ%3A%20u%3Fmodel%3DSQ12ZA6TJ', boblift_marine_meta_for_twin(['whatsapp' => 'for%20SQ12ZA6T%3A%20u%3Fmodel%3DSQ12ZA6T'], 'SQ12ZA6T', 'SQ12ZA6TJ', 'u')['whatsapp']);
+$check('the +1 in a WhatsApp address', 'SQ08ZA3TJ%2B1%20model%3DSQ08ZA3TJ%252B1', boblift_marine_meta_for_twin(['whatsapp' => 'SQ08ZA3T%2B1%20model%3DSQ08ZA3T%252B1'], 'SQ08ZA3T+1', 'SQ08ZA3TJ+1', 'u')['whatsapp']);
+$check('quote details follow the twin', 'Crane SQ12ZA6TJ', boblift_marine_meta_for_twin(['inquiry' => ['title' => 'Crane SQ12ZA6T']], 'SQ12ZA6T', 'SQ12ZA6TJ', 'u')['inquiry']['title']);
 $check('winch weight', '+50 kg', boblift_marine_winch_difference($twelve, $a4j));
 $check('no pair, no difference', '', boblift_marine_winch_difference($twelve, $a6));
 $check('reach when the section has it', ['5 hydraulic booms', 'reach 14.5 m'], boblift_marine_choice_label('sections', 'A6', $twelve));

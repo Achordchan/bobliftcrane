@@ -579,7 +579,7 @@ if ($family_quote_copy) {
                     <div class="flex items-start justify-between gap-4">
                         <div class="min-w-0">
                             <p class="boblift-kicker"><?php echo esc_html($ui['cinemaSpecsLabel'] ?? 'Engineering data'); ?></p>
-                            <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html(trim($hero_model . ' ' . ($ui['specsHeading'] ?? 'Specifications'))); ?></h2>
+                            <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"<?php echo $marine_page ? ' data-cfg-model-text' : ''; ?>><?php echo esc_html(trim($hero_model . ' ' . ($ui['specsHeading'] ?? 'Specifications'))); ?></h2>
                         </div>
                         <?php if ($former_models !== '') : ?>
                             <?php // Old-site model names stay on the page so searches for them still land here. ?>
@@ -591,6 +591,11 @@ if ($family_quote_copy) {
                     </div>
                 </div>
                 <?php // With drawings, the specs take the left half and the drawings the right, as on the loader site, so a wide drawing is not blown up to the full card width. ?>
+                <?php
+                // The rows a winch version without its own product changes (theme script).
+                $marine_weight_label = $marine_page ? boblift_marine_spec_label((int) $marine_member['en_id'], (array) $specs, 'Self Weight') : '';
+                $marine_winch_label = $marine_page ? boblift_marine_spec_label((int) $marine_member['en_id'], (array) $specs, 'Winch') : '';
+                ?>
                 <?php if ($drawings) : ?><div class="grid grid-cols-[minmax(0,1fr)] border-t border-[#E6EDF5] lg:grid-cols-2"><?php endif; ?>
                 <?php
                 // Grouped (lifting, hydraulics, machine) when the English table lines up with this language's rows; one table otherwise.
@@ -652,7 +657,7 @@ if ($family_quote_copy) {
                                 $spec_is_model = !$spec_groups && $hero_model !== '' && $spec === $technical_specs[0];
                                 $spec_last = $spec_index >= count($spec_short) ? $spec_full : ($spec_index === count($spec_short) - 1 ? trim(($spec_fill['sm'][boblift_grid_last_item_span($spec_ones, 2)] ?? '') . ' ' . ($spec_cols === 3 ? ($spec_fill['lg'][boblift_grid_last_item_span($spec_ones, 3)] ?? 'lg:col-span-1') : '')) : '');
                             ?>
-                                <div class="flex min-w-0 items-baseline justify-between gap-4 border-b border-[#E6EDF5] px-4 py-2.5 sm:px-6 sm:py-3 md:px-8 <?php echo esc_attr($spec_last); ?> <?php echo $spec_is_model ? 'bg-[#F5F8FC]' : ''; ?>">
+                                <div class="flex min-w-0 items-baseline justify-between gap-4 border-b border-[#E6EDF5] px-4 py-2.5 sm:px-6 sm:py-3 md:px-8 <?php echo esc_attr($spec_last); ?> <?php echo $spec_is_model ? 'bg-[#F5F8FC]' : ''; ?>"<?php if ($marine_page) { echo $spec['label'] === $marine_weight_label ? ' data-cfg-weight-row' : ($spec['label'] === $marine_winch_label ? ' data-cfg-winch-row' : ''); } ?>>
                                     <dt class="min-w-0 text-sm font-normal leading-5 text-slate-500"><?php echo esc_html($spec['label']); ?></dt>
                                     <?php // Short figures stay on one line; a long value (two configurations, a note) wraps within 60% of the row. ?>
                                     <dd class="<?php echo mb_strlen((string) $spec['value']) <= 18 ? 'shrink-0 whitespace-nowrap' : 'min-w-0 max-w-[60%] break-words'; ?> text-end font-black leading-tight text-[#071f42] [font-variant-numeric:tabular-nums]"><span class="text-base md:text-lg"><?php echo esc_html($spec_number); ?></span><?php if ($spec_unit !== '') : ?><span class="<?php echo $spec_unit === '°' ? '' : 'ms-1'; ?> text-xs font-bold text-slate-500 md:text-sm"><?php echo esc_html($spec_unit); ?></span><?php endif; ?></dd>
@@ -754,7 +759,7 @@ if ($family_quote_copy) {
                     ?>
                     <div class="grid gap-8 px-4 py-5 sm:p-6 md:p-10 xl:p-12 <?php echo $detail_has_right ? 'lg:grid-cols-2 lg:gap-14 xl:gap-20' : ''; ?>">
                         <div class="min-w-0 <?php echo $detail_has_right ? 'lg:sticky lg:top-[calc(var(--boblift-header-h)+6rem)] lg:self-start' : ''; ?>">
-                            <p class="boblift-kicker"><?php echo esc_html($ui['detailBodyLabel'] ?? 'Product details'); ?><?php if ($detail_model_label !== '') : ?><span class="text-slate-500"> · </span><?php echo esc_html($detail_model_label); ?><?php endif; ?></p>
+                            <p class="boblift-kicker"<?php echo $marine_page ? ' data-cfg-model-text' : ''; ?>><?php echo esc_html($ui['detailBodyLabel'] ?? 'Product details'); ?><?php if ($detail_model_label !== '') : ?><span class="text-slate-500"> · </span><?php echo esc_html($detail_model_label); ?><?php endif; ?></p>
                             <h2 class="mt-3 text-[clamp(1.75rem,3vw,3rem)] font-black leading-[1.05] tracking-[-0.02em] text-[#071f42] [text-wrap:balance]"><?php echo esc_html($product_title); ?></h2>
                         <?php if ($product_videos) :
                             $first_video = $product_videos[0];

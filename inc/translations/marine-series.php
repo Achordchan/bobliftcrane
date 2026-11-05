@@ -1,8 +1,6 @@
 <?php
 return [
     'ja' => [
-        'cfg|{booms}: with winch only' => '{booms}：ウインチ付きのみ',
-        'cfg|{booms}: without winch only' => '{booms}：ウインチなしのみ',
         'cfg|Configuration' => '構成',
         'cfg|Compared with {model}' => '{model} との比較',
         'cfg|Self weight' => '自重',
@@ -29,11 +27,13 @@ return [
         'cfg|Not offered with the current choice: selecting it changes the other options' => '現在の選択では提供していません：選ぶと他の選択肢が変わります',
         'cfg|{count} configurations' => '{count}種類の構成',
         '{code} Series' => '{code} シリーズ',
-        'cfg|Winch (J) on every configuration' => 'すべての構成にウィンチ（J）を装備',
     ],
     'zh' => [
-        'cfg|{booms}: with winch only' => '{booms}：只有带卷扬的版本',
-        'cfg|{booms}: without winch only' => '{booms}：只有不带卷扬的版本',
+        'cfg|All marine cranes can be fitted with a winch.' => '所有船吊都可以选装卷扬。',
+        'cfg|Winch version: self weight confirmed with your quote' => '带卷扬版本的自重以报价确认为准',
+        'cfg|No-winch version: self weight confirmed with your quote' => '不带卷扬版本的自重以报价确认为准',
+        'cfg|With winch (optional)' => '带卷扬（选装）',
+        'cfg|Optional' => '选装',
         'cfg|Configuration' => '配置',
         'cfg|Compared with {model}' => '相比 {model}',
         'cfg|Self weight' => '自重',
@@ -60,11 +60,8 @@ return [
         'cfg|Not offered with the current choice: selecting it changes the other options' => '当前选择下没有此组合，点选后会自动调整其他选项',
         'cfg|{count} configurations' => '{count} 种配置',
         '{code} Series' => '{code} 系列',
-        'cfg|Winch (J) on every configuration' => '所有配置均带卷扬（J）',
     ],
     'es' => [
-        'cfg|{booms}: with winch only' => '{booms}: solo con cabrestante',
-        'cfg|{booms}: without winch only' => '{booms}: solo sin cabrestante',
         'cfg|Configuration' => 'Configuración',
         'cfg|Compared with {model}' => 'Comparado con {model}',
         'cfg|Self weight' => 'Peso propio',
@@ -91,11 +88,8 @@ return [
         'cfg|Not offered with the current choice: selecting it changes the other options' => 'No disponible con la selección actual: al elegirla cambian las demás opciones',
         'cfg|{count} configurations' => '{count} configuraciones',
         '{code} Series' => 'Serie {code}',
-        'cfg|Winch (J) on every configuration' => 'Cabrestante (J) en todas las configuraciones',
     ],
     'ru' => [
-        'cfg|{booms}: with winch only' => '{booms}: только с лебедкой',
-        'cfg|{booms}: without winch only' => '{booms}: только без лебедки',
         'cfg|Configuration' => 'Конфигурация',
         'cfg|Compared with {model}' => 'По сравнению с {model}',
         'cfg|Self weight' => 'Собственный вес',
@@ -122,11 +116,8 @@ return [
         'cfg|Not offered with the current choice: selecting it changes the other options' => 'Недоступно при текущем выборе: при выборе изменятся остальные параметры',
         'cfg|{count} configurations' => 'Конфигураций: {count}',
         '{code} Series' => 'Серия {code}',
-        'cfg|Winch (J) on every configuration' => 'Лебедка (J) в каждой конфигурации',
     ],
     'fr' => [
-        'cfg|{booms}: with winch only' => '{booms} : uniquement avec treuil',
-        'cfg|{booms}: without winch only' => '{booms} : uniquement sans treuil',
         'cfg|Configuration' => 'Configuration',
         'cfg|Compared with {model}' => 'Par rapport à {model}',
         'cfg|Self weight' => 'Poids propre',
@@ -153,11 +144,8 @@ return [
         'cfg|Not offered with the current choice: selecting it changes the other options' => 'Non proposé avec la sélection actuelle : la choisir modifie les autres options',
         'cfg|{count} configurations' => '{count} configurations',
         '{code} Series' => 'Série {code}',
-        'cfg|Winch (J) on every configuration' => 'Treuil (J) sur toutes les configurations',
     ],
     'ar' => [
-        'cfg|{booms}: with winch only' => '{booms}: مع ونش فقط',
-        'cfg|{booms}: without winch only' => '{booms}: بدون ونش فقط',
         'cfg|Configuration' => 'التكوين',
         'cfg|Compared with {model}' => 'مقارنة بـ {model}',
         'cfg|Self weight' => 'الوزن الذاتي',
@@ -184,6 +172,5 @@ return [
         'cfg|Not offered with the current choice: selecting it changes the other options' => 'غير متوفر مع الاختيار الحالي: اختياره يغيّر الخيارات الأخرى',
         'cfg|{count} configurations' => '{count} تكوينات',
         '{code} Series' => 'سلسلة {code}',
-        'cfg|Winch (J) on every configuration' => 'ونش (J) في كل تكوين',
     ],
 ];
