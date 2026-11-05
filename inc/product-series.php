@@ -1185,7 +1185,13 @@ function boblift_series_render_configurator(): void
         <?php foreach ($dimensions as $dimension => $values) : ?>
             <div class="mt-3.5">
                 <p class="text-[12px] font-black uppercase leading-4 tracking-[0.12em] text-slate-500 rtl:tracking-normal" id="boblift-cfg-<?php echo esc_attr($dimension); ?>"><?php echo esc_html($headings[$dimension]); ?></p>
-                <div class="mt-1.5 flex flex-wrap gap-2" role="radiogroup" aria-labelledby="boblift-cfg-<?php echo esc_attr($dimension); ?>">
+                <div class="mt-1.5 flex flex-wrap items-stretch gap-2">
+                <?php // Every SQ model has one main boom, so the hydraulic booms read as what is added to it. BLZ's K is not confirmed yet. ?>
+                <?php if ($dimension === 'sections' && !array_filter($values, static fn(string $value): bool => !str_starts_with($value, 'A'))) : ?>
+                    <span class="inline-flex min-h-11 flex-col items-start justify-center rounded-sm border border-[#C9D6E6] bg-[#E8EDF3] px-3.5 py-1.5 text-start text-[#071f42]" data-boom-fixed><span class="text-sm font-bold leading-5"><?php echo esc_html($t('1 main boom')); ?></span><span class="text-xs font-normal leading-4 text-slate-600"><?php echo esc_html($t('Standard')); ?></span></span>
+                    <span class="inline-flex items-center text-lg font-black text-slate-400" aria-hidden="true">+</span>
+                <?php endif; ?>
+                <div class="flex flex-wrap gap-2" role="radiogroup" aria-labelledby="boblift-cfg-<?php echo esc_attr($dimension); ?>">
                     <?php foreach ($values as $value) :
                         [$label, $detail] = boblift_series_choice_label($dimension, $value, $members, (string) $state['series']['family']);
                         $checked = ($active['values'][$dimension] ?? '') === $value;
@@ -1198,6 +1204,7 @@ function boblift_series_render_configurator(): void
                             <?php if ($is_winch_on) : ?><span class="text-xs font-normal leading-4 opacity-80 [font-variant-numeric:tabular-nums]" dir="ltr" data-cfg-winch-difference<?php echo $active_ui['winch'] === '' ? ' hidden' : ''; ?>><?php echo esc_html($active_ui['winch']); ?></span><?php endif; ?>
                         </button>
                     <?php endforeach; ?>
+                </div>
                 </div>
             </div>
         <?php endforeach; ?>

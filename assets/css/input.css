@@ -2100,7 +2100,7 @@ img { max-width: 100%; }
   }
   .boblift-product-hero-title {
     letter-spacing: .005em;
-    line-height: .92;
+    line-height: 1.12;
   }
   .boblift-product-hero-actions {
     flex-wrap: nowrap;

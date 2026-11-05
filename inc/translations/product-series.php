@@ -1,6 +1,7 @@
 <?php
 return [
     'ja' => [
+        'cfg|1 main boom' => 'メインブーム 1 段',
         'cfg|Knuckle Boom' => 'ナックルブーム',
         'cfg|Telescopic Boom' => '伸縮ブーム',
         'cfg|Pickup' => 'ピックアップ',
@@ -56,6 +57,7 @@ return [
         '{code} Series' => '{code} シリーズ',
     ],
     'zh' => [
+        'cfg|1 main boom' => '1 节主臂',
         'cfg|Knuckle Boom' => '折臂',
         'cfg|Telescopic Boom' => '伸缩臂',
         'cfg|Pickup' => '皮卡吊',
@@ -111,6 +113,7 @@ return [
         '{code} Series' => '{code} 系列',
     ],
     'es' => [
+        'cfg|1 main boom' => '1 pluma principal',
         'cfg|Knuckle Boom' => 'Pluma articulada',
         'cfg|Telescopic Boom' => 'Pluma telescópica',
         'cfg|Pickup' => 'Pickup',
@@ -166,6 +169,7 @@ return [
         '{code} Series' => 'Serie {code}',
     ],
     'ru' => [
+        'cfg|1 main boom' => '1 основная стрела',
         'cfg|Knuckle Boom' => 'Шарнирная стрела',
         'cfg|Telescopic Boom' => 'Телескопическая стрела',
         'cfg|Pickup' => 'Для пикапа',
@@ -221,6 +225,7 @@ return [
         '{code} Series' => 'Серия {code}',
     ],
     'fr' => [
+        'cfg|1 main boom' => '1 flèche principale',
         'cfg|Knuckle Boom' => 'Flèche articulée',
         'cfg|Telescopic Boom' => 'Flèche télescopique',
         'cfg|Pickup' => 'Pick-up',
@@ -276,6 +281,7 @@ return [
         '{code} Series' => 'Série {code}',
     ],
     'ar' => [
+        'cfg|1 main boom' => 'ذراع رئيسية واحدة',
         'cfg|Knuckle Boom' => 'ذراع مفصلي',
         'cfg|Telescopic Boom' => 'ذراع تلسكوبي',
         'cfg|Pickup' => 'بيك أب',

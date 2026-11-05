@@ -86,7 +86,6 @@ $hero_email = trim((string) ($hero_contact['email'] ?? ''));
 $product_title = (string) ($product['title'] ?? '');
 $hero_model = trim((string) ($product['model'] ?? ''));
 $hero_title = $hero_model !== '' ? $hero_model : $product_title;
-$show_hero_full_name = $hero_model !== '' && strcasecmp($hero_model, $product_title) !== 0;
 $hero_mail_href = 'mailto:' . $hero_email . '?subject=' . rawurlencode('BOB-LIFT quote: ' . ($model_variant['model'] ?? ($hero_model !== '' ? $hero_model : $product_title)));
 if ($series_page) {
     boblift_series_collect((string) $series_member['model'], ['inquiry' => $inquiry_product_item, 'whatsapp' => $hero_whatsapp_href, 'mail' => $hero_mail_href, 'image' => (string) $main_image, 'name' => $product_title, 'description' => trim((string) ($product['short_description'] ?? ''))]);
@@ -434,12 +433,18 @@ if ($family_quote_copy) {
                     <?php else : ?>
                     <p class="boblift-kicker boblift-product-hero-kicker"><?php echo esc_html($product['category_title'] ?? 'BOB-LIFT Product'); ?></p>
                     <?php endif; ?>
-                    <?php // The full name sits inside the h1 with the model, so the heading keeps the product keyword the old site ranked on. ?>
-                    <h1 class="mt-3 text-[#071f42]"><span class="boblift-product-hero-title block <?php echo $series_page ? 'text-[clamp(32px,2.8vw,52px)]' : 'text-[clamp(44px,4.4vw,84px)]'; ?> font-black leading-[0.92] tracking-[-0.02em]"<?php echo $series_page ? ' data-cfg-title' : ''; ?>><?php echo esc_html($series_page ? ($GLOBALS['boblift_series_render']['active'] ?? $hero_title) : $hero_title); ?></span><?php if ($show_hero_full_name) : ?><span class="<?php echo $series_page ? 'mt-2.5 block text-[clamp(22px,1.7vw,30px)] font-semibold leading-tight tracking-normal text-[#071f42]' : 'mt-3 block text-[clamp(18px,1.35vw,24px)] font-medium leading-tight tracking-normal text-slate-700'; ?>"><?php if ($series_page) : ?><?php // Each part breaks only if it cannot fit a line of its own, so the break falls between name and series. ?><?php
-                        // Pickup configurations have names of their own ("With Outriggers"), so the name follows the choice.
-                        $series_name_switches = $product_series['family'] === 'pickup';
-                        $series_shown_name = $series_name_switches ? (string) ($GLOBALS['boblift_series_render']['meta'][$GLOBALS['boblift_series_render']['active_source'] ?? '']['name'] ?? $product_title) : $product_title;
-                        ?><span class="inline-block"<?php echo $series_name_switches ? ' data-cfg-name' : ''; ?>><?php echo esc_html($series_shown_name); ?></span><?php if (!str_contains($product_title, boblift_series_label($product_series))) : ?> <span class="inline-block font-normal text-slate-500">(<?php echo esc_html(boblift_series_label($product_series)); ?>)</span><?php endif; ?><?php else : ?><?php echo esc_html($product_title); ?><?php endif; ?></span><?php endif; ?></h1>
+                    <?php
+                    // The crane's name leads, as on the product cards; the model shown comes under it and follows the choice.
+                    $hero_view = boblift_series_card_view($product);
+                    $series_name_switches = $product_series && $product_series['family'] === 'pickup';
+                    $hero_name = $series_name_switches ? (string) ($GLOBALS['boblift_series_render']['meta'][$GLOBALS['boblift_series_render']['active_source'] ?? '']['name'] ?? $hero_view['full_title']) : $hero_view['full_title'];
+                    $hero_model_shown = $series_page ? (string) ($GLOBALS['boblift_series_render']['active'] ?? $hero_model) : $hero_model;
+                    $hero_series_label = $product_series ? boblift_series_label($product_series) : '';
+                    ?>
+                    <h1 class="boblift-product-hero-title mt-3 text-[clamp(30px,2.6vw,44px)] font-black leading-[1.1] tracking-[-0.015em] text-[#071f42]"<?php echo $series_name_switches ? ' data-cfg-name' : ''; ?>><?php echo esc_html($hero_name); ?></h1>
+                    <?php if ($hero_model_shown !== '') : ?>
+                        <p class="mt-2.5 text-[clamp(17px,1.25vw,20px)] leading-snug text-[#071f42]" data-hero-model-line><span class="font-normal text-slate-500"><?php echo esc_html(boblift_series_text('Model')); ?></span> <span class="font-black" dir="ltr"<?php echo $series_page ? ' data-cfg-title' : ''; ?>><?php echo esc_html($hero_model_shown); ?></span><?php if ($hero_series_label !== '' && $hero_series_label !== $hero_model_shown) : ?><span class="mx-2 text-slate-300" aria-hidden="true">·</span><span class="font-normal text-slate-500"><?php echo esc_html($hero_series_label); ?></span><?php endif; ?></p>
+                    <?php endif; ?>
                     <?php if ($is_legacy_model) :
                         $legacy_target = $model_history ? '#model-history' : ($related_term instanceof WP_Term && !is_wp_error(get_term_link($related_term)) ? (string) get_term_link($related_term) : boblift_product_archive_url());
                         // The current models of the same capacity (or the nearest), each a direct link: the way on from a previous model.
