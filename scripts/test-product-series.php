@@ -191,6 +191,8 @@ $check('every figure that differs', "Max lifting moment \u{2066}−0.3 t·m\u{20
 $check('a figure only one has is left out', "Self weight \u{2066}−50 kg\u{2069}", boblift_series_configuration_difference($with(['weight' => 280, 'capacity' => 800, 'moment' => null, 'radius' => null, 'height' => null]), ['model' => 'A', 'values' => boblift_series_parse_model('SQ08ZA3'), 'figures' => ['weight' => 330, 'capacity' => 800, 'moment' => null, 'radius' => '4.15 m', 'height' => '≈ 5.5 m']]));
 $check('no difference from itself', '', boblift_series_configuration_difference($twelve[4], $twelve[4]));
 
+$check('short title, telescopic', '2 Ton Telescopic Boom', boblift_series_short_title(2, 'telescopic'));
+$check('short title, knuckle', '6.3 Ton Knuckle Boom', boblift_series_short_title(6.3, 'knuckle'));
 $check('timber crane title', '1.3 Ton Timber Crane', boblift_series_timber_title(1.3, 'ZT120Z-2A Timber Crane'));
 $check('timber crane with arm length', '0.7 Ton Timber Crane · 7.6 m', boblift_series_timber_title(0.7, 'ZM65: Arm Length 7600MM -Timber Crane'));
 $check('and the other arm', '0.7 Ton Timber Crane · 7.67 m', boblift_series_timber_title(0.7, 'ZM75: Arm Length 7667MM -Timber Crane'));

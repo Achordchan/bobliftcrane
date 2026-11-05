@@ -1,6 +1,10 @@
 <?php
 return [
     'ja' => [
+        'cfg|{value} Ton Telescopic Boom' => '{value}トン 伸縮ブーム',
+        'cfg|{value} Ton Knuckle Boom' => '{value}トン ナックルブーム',
+        'cfg|Truck Mounted Crane' => 'トラック搭載クレーン',
+        'cfg|Marine Crane' => 'マリンクレーン',
         'cfg|View the {value} t series' => '{value}トン シリーズを見る',
         'cfg|Compare the series' => 'シリーズ比較',
         'cfg|{value} Ton Timber Crane' => '{value}トン 木材クレーン',
@@ -49,6 +53,10 @@ return [
         '{code} Series' => '{code} シリーズ',
     ],
     'zh' => [
+        'cfg|{value} Ton Telescopic Boom' => '{value} 吨伸缩臂',
+        'cfg|{value} Ton Knuckle Boom' => '{value} 吨折臂',
+        'cfg|Truck Mounted Crane' => '随车吊',
+        'cfg|Marine Crane' => '船吊',
         'cfg|View the {value} t series' => '查看 {value} 吨系列',
         'cfg|Compare the series' => '系列对比',
         'cfg|{value} Ton Timber Crane' => '{value} 吨木材起重机',
@@ -97,6 +105,10 @@ return [
         '{code} Series' => '{code} 系列',
     ],
     'es' => [
+        'cfg|{value} Ton Telescopic Boom' => 'Pluma telescópica de {value} t',
+        'cfg|{value} Ton Knuckle Boom' => 'Pluma articulada de {value} t',
+        'cfg|Truck Mounted Crane' => 'Grúa montada sobre camión',
+        'cfg|Marine Crane' => 'Grúa marina',
         'cfg|View the {value} t series' => 'Ver la serie de {value} t',
         'cfg|Compare the series' => 'Comparar las series',
         'cfg|{value} Ton Timber Crane' => 'Grúa forestal de {value} t',
@@ -145,6 +157,10 @@ return [
         '{code} Series' => 'Serie {code}',
     ],
     'ru' => [
+        'cfg|{value} Ton Telescopic Boom' => 'Телескопическая стрела {value} т',
+        'cfg|{value} Ton Knuckle Boom' => 'Шарнирная стрела {value} т',
+        'cfg|Truck Mounted Crane' => 'Кран-манипулятор',
+        'cfg|Marine Crane' => 'Судовой кран',
         'cfg|View the {value} t series' => 'Серия {value} т',
         'cfg|Compare the series' => 'Сравнение серий',
         'cfg|{value} Ton Timber Crane' => 'Лесной кран {value} т',
@@ -193,6 +209,10 @@ return [
         '{code} Series' => 'Серия {code}',
     ],
     'fr' => [
+        'cfg|{value} Ton Telescopic Boom' => 'Flèche télescopique de {value} t',
+        'cfg|{value} Ton Knuckle Boom' => 'Flèche articulée de {value} t',
+        'cfg|Truck Mounted Crane' => 'Grue de chargement sur camion',
+        'cfg|Marine Crane' => 'Grue marine',
         'cfg|View the {value} t series' => 'Voir la série de {value} t',
         'cfg|Compare the series' => 'Comparer les séries',
         'cfg|{value} Ton Timber Crane' => 'Grue forestière de {value} t',
@@ -241,6 +261,10 @@ return [
         '{code} Series' => 'Série {code}',
     ],
     'ar' => [
+        'cfg|{value} Ton Telescopic Boom' => 'ذراع تلسكوبي {value} طن',
+        'cfg|{value} Ton Knuckle Boom' => 'ذراع مفصلي {value} طن',
+        'cfg|Truck Mounted Crane' => 'رافعة مثبتة على شاحنة',
+        'cfg|Marine Crane' => 'رافعة بحرية',
         'cfg|View the {value} t series' => 'عرض سلسلة {value} طن',
         'cfg|Compare the series' => 'مقارنة السلاسل',
         'cfg|{value} Ton Timber Crane' => 'رافعة الأخشاب سعة {value} طن',

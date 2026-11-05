@@ -188,6 +188,7 @@ function boblift_compare_series_prepare(array $models): array
         }
         $view = boblift_series_card_view(['id' => $item['id'], 'model' => $item['model'], 'title' => $item['title']]);
         $column['heading'] = $view['title'];
+        $column['full_title'] = $view['full_title'];
         // No labels in a column head, so a crane with one model shows the model beside its series.
         $column['subtitle'] = boblift_series_card_subtitle($view) . ($view['only_model'] !== '' ? ($view['code_line'] !== '' ? '<span class="mx-1">·</span>' : '') . '<bdi>' . esc_html($view['only_model']) . '</bdi>' : '');
         $column['view_label'] = count($rows) > 1 ? str_replace('{value}', boblift_guide_number((float) $own['capacity']), $t('View the {value} t series')) : '';
@@ -255,7 +256,7 @@ function boblift_render_model_table(array $models, string $labelled_by, array $o
                                     <span class="mt-1 line-clamp-2 block text-xs leading-5 text-slate-500"><?php echo esc_html((string) $item['title']); ?></span>
                                 </span>
                             <?php else : ?>
-                                <a class="group block" href="<?php echo esc_url($item['url']); ?>">
+                                <a class="group block" href="<?php echo esc_url($item['url']); ?>"<?php if (isset($item['full_title'])) : ?> title="<?php echo esc_attr((string) $item['full_title']); ?>"<?php endif; ?>>
                                     <span class="flex h-24 w-36 items-center sm:h-28 sm:w-40 justify-center overflow-hidden rounded-sm bg-[#F8FAFC]"><img class="h-full w-full object-contain transition duration-500 group-hover:scale-[1.04]" src="<?php echo esc_url($item['image']); ?>" alt="<?php echo esc_attr(trim((string) $item['title']) ?: (string) $item['model']); ?>" loading="lazy" decoding="async"></span>
                                     <?php if ($by_series) : ?>
                                         <span class="mt-3 line-clamp-2 block text-base font-black leading-[1.2] text-[#0B3F7D] transition group-hover:text-blue-700"><?php echo esc_html((string) $item['heading']); ?></span>

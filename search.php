@@ -99,15 +99,16 @@ $product_result = static function (array $product) use ($highlight, $view_detail
     $image = boblift_product_image($product);
     $image_class = boblift_image_fit($image) === 'cutout' ? 'object-contain p-5 drop-shadow-[0_6px_8px_rgba(11,27,51,0.10)]' : 'object-contain bg-[#EDF1F5]';
     ?>
-    <a class="group flex min-w-0 overflow-hidden rounded border border-[#E5E7EB] bg-white shadow-card transition duration-300 hover:-translate-y-0.5 hover:border-blue-200 sm:flex-col" href="<?php echo esc_url(boblift_product_url($product)); ?>">
+    <a class="group flex min-w-0 overflow-hidden rounded border border-[#E5E7EB] bg-white shadow-card transition duration-300 hover:-translate-y-0.5 hover:border-blue-200 sm:flex-col" href="<?php echo esc_url(boblift_product_url($product)); ?>" title="<?php echo esc_attr($view['full_title']); ?>">
         <div class="relative w-[120px] shrink-0 overflow-hidden bg-[radial-gradient(circle_at_48%_34%,#ffffff_0%,#f8fafc_34%,#eef2f7_64%,#e2e8f0_100%)] sm:aspect-[4/3] sm:w-auto">
             <img class="absolute inset-0 h-full w-full transition duration-500 group-hover:scale-[1.03] <?php echo esc_attr($image_class); ?>" src="<?php echo esc_url($image); ?>" alt="<?php echo esc_attr($title); ?>" loading="lazy" decoding="async">
         </div>
         <div class="flex min-w-0 flex-1 flex-col p-4 sm:p-5">
             <h3 class="line-clamp-3 text-base font-black leading-tight text-[#0B3F7D] sm:line-clamp-2 sm:text-xl"><?php echo $highlight($view['title']); ?></h3>
             <?php if ($view['code_line'] !== '') : ?><p class="mt-1 text-[13px] font-normal leading-5 text-slate-500"><bdi><?php echo $highlight($view['code_line']); ?></bdi></p><?php endif; ?>
-            <?php if ($view['configs']) : // Plain labels: the whole card is one link, and a search for a model shows why it matched. ?>
+            <?php if ($view['configs'] || $view['type'] !== '') : // Plain labels: the whole card is one link, and a search for a model shows why it matched. ?>
                 <span class="mt-2 flex flex-wrap gap-1.5">
+                    <?php if ($view['type'] !== '') : ?><span dir="auto" class="inline-flex h-6 items-center rounded-sm bg-[#E8EDF3] px-1.5 text-[11px] font-medium text-slate-600"><?php echo esc_html($view['type']); ?></span><?php endif; ?>
                     <?php foreach ($view['configs'] as $config) : ?>
                         <span dir="auto" class="inline-flex h-6 items-center rounded-sm border border-[#D5DEE9] bg-[#F5F8FC] px-1.5 text-[11px] font-black text-[#071f42]"><?php echo $highlight($config['label']); ?></span>
                     <?php endforeach; ?>

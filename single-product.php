@@ -1186,7 +1186,7 @@ if ($family_quote_copy) {
                             $related_specs = array_slice($related_view['figures'], 0, 2);
                             ?>
                             <li class="min-w-0">
-                                <a class="group flex h-full flex-col overflow-hidden rounded border border-[#E5E7EB] bg-white transition hover:-translate-y-0.5 hover:border-blue-200" href="<?php echo esc_url(boblift_product_url($related)); ?>">
+                                <a class="group flex h-full flex-col overflow-hidden rounded border border-[#E5E7EB] bg-white transition hover:-translate-y-0.5 hover:border-blue-200" href="<?php echo esc_url(boblift_product_url($related)); ?>" title="<?php echo esc_attr($related_view['full_title']); ?>">
                                     <span class="relative block aspect-[4/3] overflow-hidden bg-[radial-gradient(circle_at_48%_34%,#ffffff_0%,#f8fafc_34%,#eef2f7_64%,#e2e8f0_100%)]"><img class="absolute inset-0 h-full w-full transition duration-500 group-hover:scale-[1.03] <?php echo esc_attr($related_fit); ?>" src="<?php echo esc_url($related_image); ?>" alt="<?php echo esc_attr((string) $related['title']); ?>" loading="lazy" decoding="async"></span>
                                     <span class="flex flex-1 flex-col p-3 sm:p-4">
                                         <span class="line-clamp-3 text-[15px] font-black leading-tight text-[#0B3F7D] transition group-hover:text-blue-700 sm:line-clamp-2 md:text-[17px]"><?php echo esc_html($related_view['title']); ?></span>

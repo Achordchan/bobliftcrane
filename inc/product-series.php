@@ -546,24 +546,32 @@ function boblift_series_moment_in_tm(string $moment): string
     return preg_match('/^([\d.]+)\s*kN·m$/u', trim($moment), $match) ? rtrim(rtrim(number_format((float) $match[1] / 9.80665, 1, '.', ''), '0'), '.') . ' t·m' : $moment;
 }
 
+/** A figure as the page's language writes it: 6,3 in Spanish, Russian and French. */
+function boblift_series_local_number(float $value): string
+{
+    $text = rtrim(rtrim(number_format($value, 2, '.', ''), '0'), '.');
+    return in_array(function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '', ['es', 'ru', 'fr'], true) ? str_replace('.', ',', $text) : $text;
+}
+
 /** A timber crane's card title: its capacity, and its arm length where the English product title gives one ("Arm Length 7600MM"). */
 function boblift_series_timber_title(float $capacity, string $english_title): string
 {
-    $comma = in_array(function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '', ['es', 'ru', 'fr'], true);
-    $number = static function (float $value) use ($comma): string {
-        $text = rtrim(rtrim(number_format($value, 2, '.', ''), '0'), '.');
-        return $comma ? str_replace('.', ',', $text) : $text;
-    };
-    $title = str_replace('{value}', $number($capacity), boblift_series_text('{value} Ton Timber Crane'));
+    $title = str_replace('{value}', boblift_series_local_number($capacity), boblift_series_text('{value} Ton Timber Crane'));
     if (preg_match('/Arm Length\s*(\d+)\s*MM/i', $english_title, $match)) {
-        $title .= ' · ' . $number((int) $match[1] / 1000) . ' m';
+        $title .= ' · ' . boblift_series_local_number((int) $match[1] / 1000) . ' m';
     }
     return $title;
 }
 
+/** A truck mounted or marine crane's card title: capacity and boom. What it is mounted on goes in its own label beside the models. */
+function boblift_series_short_title(float $capacity, string $boom): string
+{
+    return str_replace('{value}', boblift_series_local_number($capacity), boblift_series_text($boom === 'telescopic' ? '{value} Ton Telescopic Boom' : '{value} Ton Knuckle Boom'));
+}
+
 /**
  * A card is named by what the crane is (capacity and type); the model or series code comes second.
- * Returns title, code, configs (label, url), specs (the four figures as ranges) and figures (the three a card shows).
+ * Returns title, full_title, type, code, configs (label, url), specs (the four figures as ranges) and figures (the three a card shows).
  */
 function boblift_series_card_view(array $product): array
 {
@@ -602,6 +610,12 @@ function boblift_series_card_view(array $product): array
     if (!$is_series && $capacity > 0 && has_term('timber-cranes', 'product_category', $english_id)) {
         $name = boblift_series_timber_title($capacity, (string) get_post_field('post_title', $english_id));
     }
+    $full_title = $name !== '' ? $name : $title;
+    $type = '';
+    if ($is_series && in_array($series['family'], ['truck', 'marine'], true) && $capacity > 0) {
+        $name = boblift_series_short_title($capacity, (string) $series['boom']);
+        $type = boblift_series_text($series['family'] === 'marine' ? 'Marine Crane' : 'Truck Mounted Crane');
+    }
     // Three figures fit a line. A series title already names its capacity.
     $figures = $specs;
     if ($is_series && count($figures) > 3) {
@@ -617,6 +631,9 @@ function boblift_series_card_view(array $product): array
     $only = count($configs) === 1 ? $configs[0]['label'] : '';
     return [
         'title' => $name !== '' ? $name : $title,
+        // The whole name, for link titles, screen readers and the quick view.
+        'full_title' => $full_title,
+        'type' => $type,
         'code' => $code,
         // Beside the configuration labels: the series, unless the only label says the same (SL70, SQZ1000).
         'code_line' => $only === $code ? '' : $code,
