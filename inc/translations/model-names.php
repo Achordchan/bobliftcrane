@@ -1,6 +1,7 @@
 <?php
 return [
     'ja' => [
+        '1 added manual extension' => '手動延長ブーム 1 段追加',
         'Choose the controls' => '操作方式を選択',
         'BOB-LIFT crane' => 'BOB-LIFT クレーン',
         'Electric drive' => '電動駆動',
@@ -34,6 +35,7 @@ return [
         'Marine version of the truck crane model' => '同じトラッククレーン機種の船舶用',
     ],
     'zh' => [
+        '1 added manual extension' => '另加 1 节手动臂',
         'Choose the controls' => '选择操作方式',
         'BOB-LIFT crane' => 'BOB-LIFT 起重机',
         'Electric drive' => '电动',
@@ -67,6 +69,7 @@ return [
         'Marine version of the truck crane model' => '同款随车吊的船用版',
     ],
     'es' => [
+        '1 added manual extension' => '1 extensión manual adicional',
         'Choose the controls' => 'Elija el tipo de mando',
         'BOB-LIFT crane' => 'Grúa BOB-LIFT',
         'Electric drive' => 'Accionamiento eléctrico',
@@ -78,6 +81,7 @@ return [
         'Product video coming soon' => 'Video del producto próximamente',
     ],
     'ru' => [
+        '1 added manual extension' => 'Дополнительно 1 ручной удлинитель',
         'Choose the controls' => 'Выберите управление',
         'BOB-LIFT crane' => 'Кран BOB-LIFT',
         'Electric drive' => 'Электропривод',
@@ -89,6 +93,7 @@ return [
         'Product video coming soon' => 'Видео о продукте скоро появится',
     ],
     'fr' => [
+        '1 added manual extension' => '1 rallonge manuelle en plus',
         'Choose the controls' => 'Choisissez la commande',
         'BOB-LIFT crane' => 'Grue BOB-LIFT',
         'Electric drive' => 'Entraînement électrique',
@@ -100,6 +105,7 @@ return [
         'Product video coming soon' => 'Vidéo du produit bientôt disponible',
     ],
     'ar' => [
+        '1 added manual extension' => 'ذراع تمديد يدوي إضافي واحد',
         'Choose the controls' => 'اختر طريقة التحكم',
         'BOB-LIFT crane' => 'رافعة BOB-LIFT',
         'Electric drive' => 'إدارة كهربائية',

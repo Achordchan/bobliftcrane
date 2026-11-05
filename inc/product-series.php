@@ -1232,6 +1232,10 @@ function boblift_series_render_configurator(): void
                     <?php endforeach; ?>
                 </div>
                 </div>
+                <?php // Says what the +1 on a button means. Always shown in such a series, so the box keeps its height. ?>
+                <?php if ($dimension === 'sections' && array_filter($members, static fn(array $member): bool => ($member['values']['manual'] ?? '') === '1')) : ?>
+                    <p class="mt-2 text-[13px] leading-4 text-slate-500"><?php echo esc_html($t('+1 = one added manual extension')); ?></p>
+                <?php endif; ?>
             </div>
         <?php endforeach; ?>
         <?php if ($telescopic) : ?>

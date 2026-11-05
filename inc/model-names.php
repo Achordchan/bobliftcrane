@@ -32,6 +32,9 @@ function boblift_model_parts(string $model): array
         if ($m['flip'] !== '') {
             $parts[] = ['F', $t('Flip-over outriggers')];
         }
+        if (str_ends_with($model, '+1')) {
+            $parts[] = ['+1', $t('1 added manual extension')];
+        }
         return $parts;
     }
     // Electric mini cranes (2026-11-02): SQ + capacity in tons + Z + -E (electric drive) + M (manual levers) or R (wireless

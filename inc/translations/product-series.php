@@ -1,6 +1,7 @@
 <?php
 return [
     'ja' => [
+        'cfg|+1 = one added manual extension' => '+1 = 手動延長ブームを 1 段追加',
         'cfg|Standard production model' => '標準生産モデル',
         'cfg|Base configuration for this series' => '本シリーズの基準構成',
         'cfg|Model code explained' => '型式の見方',
@@ -63,6 +64,7 @@ return [
         '{code} Series' => '{code} シリーズ',
     ],
     'zh' => [
+        'cfg|+1 = one added manual extension' => '+1 = 另加 1 节手动臂',
         'cfg|Standard production model' => '常规生产型号',
         'cfg|Base configuration for this series' => '本系列基准配置',
         'cfg|Model code explained' => '型号说明',
@@ -125,6 +127,7 @@ return [
         '{code} Series' => '{code} 系列',
     ],
     'es' => [
+        'cfg|+1 = one added manual extension' => '+1 = 1 extensión manual adicional',
         'cfg|Standard production model' => 'Modelo de producción estándar',
         'cfg|Base configuration for this series' => 'Configuración básica de esta serie',
         'cfg|Model code explained' => 'Significado del modelo',
@@ -187,6 +190,7 @@ return [
         '{code} Series' => 'Serie {code}',
     ],
     'ru' => [
+        'cfg|+1 = one added manual extension' => '+1 = дополнительно 1 ручной удлинитель',
         'cfg|Standard production model' => 'Серийная модель',
         'cfg|Base configuration for this series' => 'Базовая комплектация данной серии',
         'cfg|Model code explained' => 'Расшифровка модели',
@@ -249,6 +253,7 @@ return [
         '{code} Series' => 'Серия {code}',
     ],
     'fr' => [
+        'cfg|+1 = one added manual extension' => '+1 = 1 rallonge manuelle en plus',
         'cfg|Standard production model' => 'Modèle de série',
         'cfg|Base configuration for this series' => 'Configuration de base de cette série',
         'cfg|Model code explained' => 'Lecture du modèle',
@@ -311,6 +316,7 @@ return [
         '{code} Series' => 'Série {code}',
     ],
     'ar' => [
+        'cfg|+1 = one added manual extension' => '+1 = ذراع تمديد يدوي إضافي واحد',
         'cfg|Standard production model' => 'طراز إنتاج قياسي',
         'cfg|Base configuration for this series' => 'التكوين الأساسي لهذه السلسلة',
         'cfg|Model code explained' => 'دلالة رمز الطراز',
