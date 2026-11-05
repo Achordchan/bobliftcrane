@@ -557,13 +557,22 @@ if ($family_quote_copy) {
     <div class="sticky top-[var(--boblift-header-h)] z-30 border-y border-[#DDE7F2] bg-white shadow-card"><nav class="boblift-product-section-nav page-shell flex min-h-12 items-center overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] md:min-h-14 [&::-webkit-scrollbar]:hidden" aria-label="<?php echo esc_attr($ui['sectionNavLabel'] ?? 'Product detail sections'); ?>" data-product-section-nav><a class="boblift-cinema-nav-link grid h-12 min-w-12 shrink-0 place-items-center border-x border-[#DDE7F2] text-[#0B3F7D] md:h-14 md:min-w-14" href="#product-hero" data-product-section-link aria-label="<?php echo esc_attr($product['title'] ?? 'Product hero'); ?>"><?php echo boblift_icon('home', 'h-5 w-5'); ?></a><?php foreach ($anchors as $anchor) : ?><a class="boblift-cinema-nav-link flex h-12 min-w-max items-center justify-center border-e border-[#DDE7F2] px-3 text-xs font-black sm:px-4 md:h-14 text-[#334155] transition hover:bg-blue-50 hover:text-[#0B3F7D] md:px-6 md:text-sm" href="#<?php echo esc_attr($anchor['id']); ?>" data-product-section-link><?php echo esc_html($anchor['label']); ?></a><?php endforeach; ?></nav></div>
     <section class="bg-[#F5F7FB] py-8 md:py-12">
         <div class="boblift-pd-stack page-shell min-w-0 space-y-2 sm:space-y-6 md:space-y-8">
-            <?php boblift_series_block_open('technical'); ?>
-            <article id="technical" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card">
+            <?php boblift_series_block_open('technical'); $specs_option = boblift_specs_option(); ?>
+            <article id="technical" class="scroll-mt-24 <?php echo $specs_option !== '' ? 'overflow-clip' : 'overflow-hidden'; ?> rounded border border-[#DDE7F2] bg-white shadow-card">
                 <div class="px-4 py-5 sm:p-6 md:p-8">
                     <div class="flex items-start justify-between gap-4">
                         <div class="min-w-0">
                             <p class="boblift-kicker"><?php echo esc_html($ui['cinemaSpecsLabel'] ?? 'Engineering data'); ?></p>
-                            <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"<?php echo $series_page ? ' data-cfg-model-text' : ''; ?>><?php echo esc_html(trim($hero_model . ' ' . ($ui['specsHeading'] ?? 'Specifications'))); ?></h2>
+                            <?php if ($specs_option === '') : ?>
+                                <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"<?php echo $series_page ? ' data-cfg-model-text' : ''; ?>><?php echo esc_html(trim($hero_model . ' ' . ($ui['specsHeading'] ?? 'Specifications'))); ?></h2>
+                            <?php else : ?>
+                                <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($ui['technicalLabel'] ?? 'Technical Specifications'); ?></h2>
+                                <?php if ($specs_option === 'c' && $series_page) : ?>
+                                    <details class="group relative mt-2 inline-block"><summary class="inline-flex cursor-pointer list-none items-center gap-1.5 text-[15px] font-bold text-slate-600 [&::-webkit-details-marker]:hidden"><span data-cfg-model-text dir="ltr"><?php echo esc_html($hero_model); ?></span><svg class="size-4 text-slate-400" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.25"/><path d="M8 7.25V11M8 5v.5"/></svg><span class="sr-only"><?php echo esc_html(boblift_series_text('Model code explained')); ?></span></summary><div class="absolute start-0 top-full z-20 mt-2 w-[min(400px,calc(100vw-64px))] rounded border border-[#DDE7F2] bg-white p-4 shadow-raised"><p class="text-[13px] font-semibold text-slate-500"><?php echo esc_html(boblift_series_text('Model code explained')); ?></p><?php boblift_specs_render_decode_list($hero_model, (string) $product_series['winch'], (int) $series_member['en_id']); ?></div></details>
+                                <?php elseif ($hero_model !== '') : ?>
+                                    <p class="mt-2 text-[15px] font-bold text-slate-600" dir="ltr"<?php echo $series_page ? ' data-cfg-model-text' : ''; ?>><?php echo esc_html($hero_model); ?></p>
+                                <?php endif; ?>
+                            <?php endif; ?>
                         </div>
                         <?php if ($former_models !== '') : ?>
                             <?php // Old-site model names stay on the page so searches for them still land here. ?>
@@ -574,7 +583,13 @@ if ($family_quote_copy) {
                         <?php endif; ?>
                     </div>
                     <?php // What the model name means, for whoever goes looking: the top of the page stays about the choice. ?>
+                    <?php if ($specs_option === '') : ?>
                     <?php if ($series_page) : ?><div class="mt-5"><h3 class="text-[13px] font-semibold text-slate-500"><?php echo esc_html(boblift_series_text('Model code explained')); ?></h3><?php boblift_series_render_compact_decode($hero_model, (string) $product_series['winch'], (int) $series_member['en_id']); ?></div><?php endif; ?>
+                    <?php elseif ($series_page && $specs_option === 'a') : ?>
+                        <?php boblift_specs_render_decode_line($hero_model, (string) $product_series['winch'], (int) $series_member['en_id'], 'mt-4'); ?>
+                    <?php elseif ($series_page && $specs_option === 'b') : ?>
+                        <details class="group mt-3"><summary class="inline-flex cursor-pointer list-none items-center gap-1.5 text-[14px] font-semibold text-slate-500 [&::-webkit-details-marker]:hidden"><?php echo esc_html(boblift_series_text('Model code explained')); ?><svg class="size-3.5 transition-transform group-open:rotate-180" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></summary><?php boblift_specs_render_decode_line($hero_model, (string) $product_series['winch'], (int) $series_member['en_id'], 'mt-2'); ?></details>
+                    <?php endif; ?>
                 </div>
                 <?php // With drawings, the specs take the left half and the drawings the right, as on the loader site, so a wide drawing is not blown up to the full card width. ?>
                 <?php
@@ -582,7 +597,7 @@ if ($family_quote_copy) {
                 $series_weight_label = $series_page ? boblift_series_spec_label((int) $series_member['en_id'], (array) $specs, 'Self Weight') : '';
                 $series_winch_label = $series_page ? boblift_series_spec_label((int) $series_member['en_id'], (array) $specs, 'Winch') : '';
                 ?>
-                <?php if ($drawings) : ?><div class="grid grid-cols-[minmax(0,1fr)] border-t border-[#E6EDF5] lg:grid-cols-2"><?php endif; ?>
+                <?php if ($drawings) : ?><div class="grid grid-cols-[minmax(0,1fr)] border-t border-[#E6EDF5] <?php echo $specs_option === '' ? 'lg:grid-cols-2' : ($specs_option === 'c' ? 'lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]' : ($specs_option === 'b' && $series_page && count($product_series['members']) > 3 ? 'lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]' : 'lg:grid-cols-2 min-[1700px]:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]')); ?>"><?php endif; ?>
                 <?php
                 // Grouped (lifting, hydraulics, machine) when the English table lines up with this language's rows; one table otherwise.
                 $spec_sections = $spec_groups ?: [['label' => '', 'rows' => $technical_specs]];
@@ -593,9 +608,17 @@ if ($family_quote_copy) {
                 // outrigger span under Machine) instead of a group of their own, and a figure the table already gives is not
                 // repeated. A product without outriggers has no span on its drawing, so it shows no outrigger row.
                 // Named like the table's own rows (Max Working Radius, not Max. radius), so the merged rows read as one table.
+                $specs_keys = [];
+                if ($series_page) {
+                    $specs_english = array_values((array) boblift_decode_meta(get_post_meta((int) $series_member['en_id'], '_specs', true), []));
+                    foreach (array_values((array) $specs) as $specs_index => $specs_row) {
+                        $specs_keys[(string) ($specs_row['label'] ?? '')] = count($specs_english) === count((array) $specs) ? (string) ($specs_english[$specs_index]['label'] ?? '') : '';
+                    }
+                }
                 $drawing_labels = ['radius' => 'Max Working Radius', 'height' => 'Max Lifting Height', 'angle' => 'Max Boom Angle', 'span' => 'Outrigger Span'];
                 foreach (boblift_product_drawing_rows_unique((int) get_the_ID(), $drawing_data['rows'] ?? []) as $drawing_row) {
                     if (isset($drawing_labels[$drawing_row['key'] ?? ''])) {
+                        $drawing_row['en'] = $drawing_labels[$drawing_row['key']];
                         $drawing_row['label'] = boblift_localized_static_text($drawing_labels[$drawing_row['key']]);
                     }
                     $drawing_group = ($drawing_row['key'] ?? '') === 'span' ? 'machine' : 'lifting';
@@ -614,7 +637,27 @@ if ($family_quote_copy) {
                 }
                 ?>
                 <div class="min-w-0 <?php echo $drawings ? '' : 'border-t border-[#E6EDF5]'; ?>">
-                    <?php if ($series_page) : ?><div data-cfg-compare-slot><?php boblift_series_render_compare((string) $series_member['model']); ?></div><?php endif; ?>
+                    <?php
+                    // TEMPORARY: the layouts under ?specs=a|b|c read the same rows, without the model row the heading already gives.
+                    $specs_sections = array_map(static function (array $section) use ($specs_keys, $hero_model): array {
+                        $section['rows'] = array_values(array_filter(array_map(static function (array $row) use ($specs_keys): array {
+                            $row['en'] = ($row['en'] ?? '') ?: (($specs_keys[(string) $row['label']] ?? '') ?: (string) $row['label']);
+                            return $row;
+                        }, $section['rows']), static fn(array $row): bool => $hero_model === '' || trim((string) $row['value']) !== $hero_model));
+                        return $section;
+                    }, $spec_sections);
+                    if ($series_page) {
+                        $GLOBALS['boblift_series_render']['spec_tables'][(string) $series_member['model']] = $specs_sections;
+                    }
+                    $specs_has_matrix = $specs_option === 'b' && $series_page && count($product_series['members']) > 1;
+                    ?>
+                    <?php if ($series_page && $specs_option !== 'c') : ?><div data-cfg-compare-slot><?php boblift_series_render_compare((string) $series_member['model']); ?></div><?php endif; ?>
+                    <?php if ($specs_option !== '') : ?>
+                        <?php if ($specs_option === 'c') : boblift_specs_render_groups($specs_sections, $series_weight_label, $series_winch_label); ?>
+                        <?php elseif (!$specs_has_matrix) : boblift_specs_render_table($specs_sections, $series_weight_label, $series_winch_label); ?>
+                        <?php endif; ?>
+                        <?php if ($series_page && $specs_option === 'c') : ?><div data-cfg-compare-slot><?php boblift_series_render_compare((string) $series_member['model']); ?></div><?php endif; ?>
+                    <?php else : ?>
                     <?php
                     // A spec sheet, not tiles: label and value on one line, two columns (three without drawings on wide screens),
                     // so fourteen figures fit in the height four tile rows took. The last row of a group fills what is left of its line.
@@ -651,6 +694,7 @@ if ($family_quote_copy) {
                             <?php endforeach; ?>
                         </dl>
                     <?php endforeach; ?>
+                    <?php endif; ?>
                     <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-[#E6EDF5] px-4 py-4 sm:px-6 md:px-8">
                         <p class="max-w-xl text-xs font-normal leading-5 text-slate-500"><?php echo esc_html(boblift_localized_static_text('Figures from the BOB-LIFT technical drawings. Confirm the final specification with our team before ordering.')); ?></p>
                         <?php if (is_string($spec_range_link) && $spec_range_link !== '') : ?>
@@ -659,7 +703,8 @@ if ($family_quote_copy) {
                     </div>
                 </div>
                 <?php if ($drawings) : ?>
-                    <div id="drawing" class="flex scroll-mt-24 flex-col justify-start gap-6 border-t border-[#E6EDF5] px-4 py-5 sm:p-6 md:p-8 lg:-ms-px lg:border-s lg:border-t-0">
+                    <div id="drawing" class="<?php echo $specs_option === '' ? 'flex flex-col justify-start gap-6 px-4 py-5 sm:p-6 md:p-8' : ''; ?> scroll-mt-24 border-t border-[#E6EDF5] lg:-ms-px lg:border-s lg:border-t-0">
+                        <?php if ($specs_option !== '') : ?><div class="flex flex-col justify-start gap-6 px-4 py-5 sm:p-6 md:p-8 lg:sticky lg:top-[calc(var(--boblift-header-h,72px)+56px)]"><?php endif; ?>
                         <p class="boblift-kicker"><?php echo esc_html($ui['drawingTitle'] ?? 'Dimensions and load chart'); ?></p>
                         <?php // Two drawings sit side by side; every drawing is capped in height, so a portrait sheet stays a preview and opens full size on click.
                         // On phones several drawings become a swipe row at nearly the card's width, with the next one peeking in, instead of two thumbnails,
@@ -722,6 +767,7 @@ if ($family_quote_copy) {
                                 <p class="mt-3 text-[11px] leading-4 text-slate-500"><?php echo esc_html(boblift_localized_static_text('Reach is measured from the slewing centre to the hook. Figures from the drawing above.')); ?></p>
                             </figure>
                         <?php endif; ?>
+                        <?php if ($specs_option !== '') : ?></div><?php endif; ?>
                     </div>
                 </div>
                 <?php endif; ?>
