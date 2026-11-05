@@ -704,7 +704,7 @@ if ($family_quote_copy) {
                 </div>
                 <?php if ($drawings) : ?>
                     <div id="drawing" class="<?php echo $specs_option === '' ? 'flex flex-col justify-start gap-6 px-4 py-5 sm:p-6 md:p-8' : ''; ?> scroll-mt-24 border-t border-[#E6EDF5] lg:-ms-px lg:border-s lg:border-t-0">
-                        <?php if ($specs_option !== '') : ?><div class="flex flex-col justify-start gap-6 px-4 py-5 sm:p-6 md:p-8 lg:sticky lg:top-[calc(var(--boblift-header-h,72px)+56px)]"><?php endif; ?>
+                        <?php if ($specs_option !== '') : ?><div class="flex flex-col justify-start gap-6 px-4 py-5 sm:p-6 md:p-8 lg:sticky lg:top-[calc(var(--boblift-header-h,72px)+64px)]"><?php endif; ?>
                         <p class="boblift-kicker"><?php echo esc_html($ui['drawingTitle'] ?? 'Dimensions and load chart'); ?></p>
                         <?php // Two drawings sit side by side; every drawing is capped in height, so a portrait sheet stays a preview and opens full size on click.
                         // On phones several drawings become a swipe row at nearly the card's width, with the next one peeking in, instead of two thumbnails,
