@@ -1035,8 +1035,8 @@ img { max-width: 100%; }
 @media (min-width: 1280px) {
   [data-cfg-block="gallery"] > [data-cfg-variant] { height: 100%; }
   [data-product-hero-gallery-root] { display: flex; flex-direction: column; height: 100%; }
-  /* theme.js raises the limit for a tall photo, up to where its side margins go. */
-  [data-product-hero-gallery-root] .boblift-product-stage { flex: 1 1 auto; min-height: 420px; max-height: var(--boblift-stage-max, 640px); transition: max-height .15s ease-out; }
+  /* Beside a text column taller than the photo, theme.js grows the frame until a tall photo's side margins go, even past the text. */
+  [data-product-hero-gallery-root] .boblift-product-stage { flex: 1 1 auto; min-height: var(--boblift-stage-min, 420px); max-height: var(--boblift-stage-max, 640px); transition: min-height .15s ease-out, max-height .15s ease-out; }
 }
 
 /* Previous models: a tab that toggles on its own beside the category tabs. While on, the selected category's previous models replace the

@@ -5299,9 +5299,9 @@
   else window.addEventListener('load', init, { once: true });
 })();
 
-// Product page photo: beside a tall text column its frame may grow until a tall photo fills the width, 640-800 px. One value per
-// gallery, from its first photo, so going through the thumbnails does not move anything. A hidden gallery has no width: the
-// observer sizes it when its configuration is chosen.
+// Product page photo: beside a text column taller than it, the frame grows until a tall photo fills the width, up to 800 px, even
+// past the foot of the text. Beside a short column it stays as it is. One value per gallery, from its first photo, so going through
+// the thumbnails does not move anything. A hidden gallery has no width: the observer sizes it when its configuration is chosen.
 (() => {
   const roots = document.querySelectorAll('[data-product-hero-gallery-root]');
   if (!roots.length || !('ResizeObserver' in window)) return;
@@ -5316,10 +5316,19 @@
       }
       root.boblifPhotoRatio = image.naturalHeight / image.naturalWidth;
     }
-    root.style.setProperty('--boblift-stage-max', `${Math.round(Math.min(800, Math.max(640, width * root.boblifPhotoRatio)))}px`);
+    const target = Math.round(Math.min(800, width * root.boblifPhotoRatio));
+    const text = document.querySelector('.boblift-hero-text');
+    const last = text && text.lastElementChild;
+    const textHeight = last ? last.getBoundingClientRect().bottom - text.getBoundingClientRect().top : 0;
+    const stage = root.querySelector('.boblift-product-stage');
+    const thumbs = stage && stage.nextElementSibling ? stage.nextElementSibling.getBoundingClientRect().height + 12 : 0;
+    const textIsTaller = textHeight > width * 0.625 + thumbs;
+    root.style.setProperty('--boblift-stage-max', `${Math.max(640, target)}px`);
+    root.style.setProperty('--boblift-stage-min', textIsTaller && target > 420 ? `${target}px` : '420px');
   };
   const observer = new ResizeObserver((entries) => entries.forEach((entry) => size(entry.target)));
   roots.forEach((root) => observer.observe(root));
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => roots.forEach(size));
 })();
 
 // A row that scrolls sideways: the current item in view, and a fade at each end that has more to swipe to.
