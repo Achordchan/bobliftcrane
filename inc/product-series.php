@@ -95,6 +95,13 @@ function boblift_series_expand_variants(array $members, string $series_url, stri
     return $variants;
 }
 
+/** The model an inquiry is really about: the other winch version when the customer's product text names it. */
+function boblift_series_inquired_model(string $model, string $product_text): string
+{
+    $twin = boblift_series_winch_twin($model);
+    return $twin !== '' && preg_match('/(?:^|[\s(;,])' . preg_quote($twin, '/') . '(?:$|[\s);,])/i', $product_text) ? $twin : $model;
+}
+
 /** ?model= link to one configuration; the plus of +1 must be encoded or it reads as a space. */
 function boblift_series_model_url(string $series_url, string $model): string
 {
@@ -209,6 +216,9 @@ function boblift_series_rows(): array
         WHERE p.post_type = 'product' AND p.post_status = 'publish' AND p.post_password = ''",
         $language
     ), ARRAY_A);
+    $ids = array_map('intval', array_column((array) $found, 'id'));
+    update_postmeta_cache($ids);
+    update_object_term_cache($ids, 'product');
     $rows = [];
     foreach ((array) $found as $row) {
         $id = (int) $row['id'];
@@ -233,27 +243,37 @@ function boblift_series_map(): array
     if ($map !== null) {
         return $map;
     }
-    $map = boblift_cached_data('product-series', [], static function (): array {
-        $rows = boblift_series_rows();
-        $groups = (array) apply_filters('boblift_series_groups', boblift_series_group_rows($rows), $rows);
-        $index = [];
-        $hidden = [];
-        foreach ($groups as $key => $group) {
-            foreach ($group['members'] as $position => $member) {
-                $translations = array_map('intval', function_exists('pll_get_post_translations') ? pll_get_post_translations((int) $member['id']) : []);
-                $translations = array_filter($translations, static fn(int $id): bool => get_post_status($id) === 'publish' && (string) get_post_field('post_password', $id) === '');
-                $groups[$key]['members'][$position]['translations'] = $translations;
-                foreach ($translations as $id) {
-                    $index[$id] = $key;
-                    if ((int) $member['id'] !== (int) $group['home']) {
-                        $hidden[] = $id;
-                    }
+    $map = boblift_cached_data('product-series', [], 'boblift_series_build_map');
+    return $map;
+}
+
+/** Every series with its members' translations. Loads posts, meta and terms in one go: this runs once per language after a save. */
+function boblift_series_build_map(): array
+{
+    $rows = boblift_series_rows();
+    $groups = (array) apply_filters('boblift_series_groups', boblift_series_group_rows($rows), $rows);
+    $index = [];
+    $hidden = [];
+    $translated = [];
+    foreach ($groups as $group) {
+        foreach ($group['members'] as $member) {
+            $translated[(int) $member['id']] = array_map('intval', function_exists('pll_get_post_translations') ? pll_get_post_translations((int) $member['id']) : []);
+        }
+    }
+    _prime_post_caches(array_merge([], ...array_map('array_values', array_values($translated))), false, false);
+    foreach ($groups as $key => $group) {
+        foreach ($group['members'] as $position => $member) {
+            $translations = array_filter($translated[(int) $member['id']], static fn(int $id): bool => get_post_status($id) === 'publish' && (string) get_post_field('post_password', $id) === '');
+            $groups[$key]['members'][$position]['translations'] = $translations;
+            foreach ($translations as $id) {
+                $index[$id] = $key;
+                if ((int) $member['id'] !== (int) $group['home']) {
+                    $hidden[] = $id;
                 }
             }
         }
-        return ['groups' => $groups, 'index' => $index, 'hidden' => array_values(array_unique($hidden))];
-    });
-    return $map;
+    }
+    return ['groups' => $groups, 'index' => $index, 'hidden' => array_values(array_unique($hidden))];
 }
 
 /**
@@ -349,10 +369,40 @@ function boblift_series_redirect(): void
     if ($member === null || $member['is_home']) {
         return;
     }
-    wp_safe_redirect($member['url'], 301, 'BOB-LIFT marine series');
+    wp_safe_redirect(boblift_series_redirect_url($member['url'], (string) ($_SERVER['QUERY_STRING'] ?? '')), 301, 'BOB-LIFT product series');
     exit;
 }
 add_action('template_redirect', 'boblift_series_redirect', 2);
+
+/** The series address plus whatever the old address carried (utm_source, gclid), so ad and campaign tracking survives the move. */
+function boblift_series_redirect_url(string $url, string $query): string
+{
+    $kept = array_filter(explode('&', $query), static fn(string $pair): bool => $pair !== '' && !str_starts_with($pair, 'model='));
+    return $kept === [] ? $url : $url . (str_contains($url, '?') ? '&' : '?') . implode('&', $kept);
+}
+
+/** Visitors reach a configuration at its series page, so every link to one goes there directly. Editors still see the product's own address. */
+function boblift_series_product_link(string $url, $post): string
+{
+    if (!$post instanceof WP_Post || $post->post_type !== 'product' || is_admin() || (defined('REST_REQUEST') && REST_REQUEST)) {
+        return $url;
+    }
+    $map = boblift_series_map();
+    if (!in_array((int) $post->ID, $map['hidden'], true)) {
+        return $url;
+    }
+    $series = boblift_series_for_product((int) $post->ID);
+    $member = $series ? boblift_series_member($series, (int) $post->ID) : null;
+    return $member ? (string) $member['url'] : $url;
+}
+add_filter('post_type_link', 'boblift_series_product_link', 20, 2);
+
+/** The live site's Jetpack sitemap reads posts on its own, without the query filter below. */
+function boblift_series_jetpack_sitemap_skip($skip, $post)
+{
+    return $skip || (is_object($post) && in_array((int) ($post->ID ?? 0), boblift_series_map()['hidden'], true));
+}
+add_filter('jetpack_sitemap_skip_post', 'boblift_series_jetpack_sitemap_skip', 10, 2);
 
 /**
  * Configurations are not products of their own for visitors: product queries leave them out, so the sitemap, lists, counts,
@@ -360,7 +410,8 @@ add_action('template_redirect', 'boblift_series_redirect', 2);
  */
 function boblift_series_filter_query(WP_Query $query): void
 {
-    if (is_admin() || (defined('REST_REQUEST') && REST_REQUEST) || (defined('WP_CLI') && WP_CLI)) {
+    // A lookup that really wants a configuration (a feedback entry's exact model, a film of it) asks with boblift_series_members.
+    if (is_admin() || (defined('REST_REQUEST') && REST_REQUEST) || (defined('WP_CLI') && WP_CLI) || $query->get('boblift_series_members')) {
         return;
     }
     $types = (array) $query->get('post_type');
@@ -385,11 +436,36 @@ function boblift_series_filter_query(WP_Query $query): void
 }
 add_action('pre_get_posts', 'boblift_series_filter_query');
 
+/** Cases or feedback of every configuration of a series, once each: they all belong on the series page. */
+function boblift_series_related_items(array $series, callable $read, int $limit = 0): array
+{
+    $items = [];
+    foreach ($series['members'] as $member) {
+        foreach ((array) $read((int) $member['id']) as $item) {
+            $items[(string) ($item['id'] ?? $item['url'] ?? md5(serialize($item)))] ??= $item;
+        }
+    }
+    $items = array_values($items);
+    return $limit > 0 ? array_slice($items, 0, $limit) : $items;
+}
+
 /** A series page answers searches for any of its models, since the configurations have no result of their own. */
 function boblift_series_search_models(int $post_id): array
 {
     $series = boblift_series_for_product($post_id);
-    return $series && $series['home_id'] === $post_id ? array_column($series['members'], 'model') : [];
+    if (!$series || $series['home_id'] !== $post_id) {
+        return [];
+    }
+    $models = array_column($series['members'], 'model');
+    if ($series['winch'] === 'optional') {
+        // The other winch version of each configuration, which has no product of its own.
+        $models = array_merge($models, array_filter(array_map('boblift_series_winch_twin', $models)));
+    }
+    if ($series['winch'] === 'standard') {
+        $models = array_merge($models, array_filter(array_map(static fn(string $model): string => (string) preg_replace('/T(\+1)?$/', 'TJ$1', $model), $models)));
+    }
+    $models[] = (string) $series['code'];
+    return array_values(array_unique($models));
 }
 
 /** What a product card shows for a series page: its code and models. Null for any other product. */
@@ -405,7 +481,7 @@ function boblift_series_render_series_card_models(array $card): void
     $count = count($card['models']);
     ?>
     <div class="mt-3">
-        <?php if ($count > 1) : ?><p class="text-xs font-semibold text-slate-500"><?php echo esc_html(str_replace('{count}', (string) $count, boblift_localized_static_text('{count} configurations'))); ?></p><?php endif; ?>
+        <?php if ($count > 1) : ?><p class="text-xs font-semibold text-slate-500"><?php echo esc_html(str_replace('{count}', (string) $count, boblift_series_text('{count} configurations'))); ?></p><?php endif; ?>
         <div class="<?php echo $count > 1 ? 'mt-1.5 ' : ''; ?>flex flex-wrap gap-1.5" dir="ltr">
             <?php foreach ($card['models'] as $model) : ?>
                 <span class="inline-flex h-6 items-center rounded-sm border border-[#D5DEE9] bg-[#F5F8FC] px-1.5 text-[12px] font-black text-[#071f42] [font-variant-numeric:tabular-nums]"><?php echo esc_html($model); ?></span>
@@ -496,7 +572,9 @@ function boblift_series_block_close(string $name, string $class = ''): void
         return;
     }
     $state['blocks'][$state['series']['home_model']][$name] = $html;
-    echo '<div data-cfg-block="' . esc_attr($name) . '"' . ($class !== '' ? ' class="' . esc_attr($class) . '"' : '') . '>';
+    // The body text of a configuration speaks for that product: its weight, its winch. A derived version shows none of it.
+    $hide_block = $name === 'overview' && $state['active'] !== $state['active_source'];
+    echo '<div data-cfg-block="' . esc_attr($name) . '"' . ($class !== '' ? ' class="' . esc_attr($class) . '"' : '') . ($hide_block ? ' hidden' : '') . '>';
     foreach ($state['series']['members'] as $member) {
         $block = (string) ($state['blocks'][$member['model']][$name] ?? '');
         $active = $member['model'] === $state['active_source'];
@@ -761,7 +839,7 @@ function boblift_series_render_compact_decode(string $model, string $winch = 'op
         if ($moment !== '') {
             foreach ($parts as $index => [$code]) {
                 if (ctype_digit((string) $code)) {
-                    $parts[$index][1] = str_replace('{value}', $moment, boblift_series_text('Lifting moment class ({value} on the drawing)'));
+                    $parts[$index][1] = str_replace('{value}', $moment, boblift_series_text('Lifting moment class ({value})'));
                 }
             }
         }
@@ -851,7 +929,7 @@ function boblift_series_render_configurator(): void
     <div class="boblift-series-config mt-6 rounded-sm border border-[#D5DEE9] bg-white/70 p-4 sm:p-5" data-series-config>
         <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
             <p class="text-sm font-black text-[#071f42]"><?php echo esc_html($t('Choose your configuration')); ?></p>
-            <p class="text-xs text-slate-500"><?php echo esc_html($count === 1 ? $t('1 configuration in this series') : str_replace('{count}', (string) $count, $t('{count} configurations in this series'))); ?></p>
+            <p class="text-xs text-slate-500"><?php echo esc_html($count === 1 ? '' : str_replace('{count}', (string) $count, $t('{count} configurations in this series'))); ?></p>
         </div>
         <?php foreach ($dimensions as $dimension => $values) : ?>
             <div class="mt-3.5">
@@ -933,13 +1011,13 @@ function boblift_series_render_compare(string $model): void
             <table class="w-full min-w-[340px] border-collapse text-sm [font-variant-numeric:tabular-nums]">
                 <thead>
                     <tr class="border-b border-[#E6EDF5] text-xs font-semibold text-slate-500">
-                        <th class="py-2 pe-3 ps-4 text-start font-semibold sm:ps-6 md:ps-8" scope="col"><?php echo esc_html(boblift_series_text('Model')); ?></th>
-                        <?php if ($labelled) : ?><th class="py-2 pe-3 text-start font-semibold" scope="col"><?php echo esc_html(boblift_series_text('Configuration')); ?></th><?php endif; ?>
-                        <?php foreach ($columns as $index => [$label]) : ?><th class="py-2 text-end font-semibold <?php echo $index === count($columns) - 1 ? 'pe-4 sm:pe-6 md:pe-8' : 'pe-3'; ?>" scope="col"><?php echo esc_html(boblift_series_text($label)); ?></th><?php endforeach; ?>
+                        <th class="whitespace-nowrap py-2 pe-3 ps-4 text-start font-semibold sm:ps-6 md:ps-8" scope="col"><?php echo esc_html(boblift_series_text('Model')); ?></th>
+                        <?php if ($labelled) : ?><th class="whitespace-nowrap py-2 pe-3 text-start font-semibold" scope="col"><?php echo esc_html(boblift_series_text('Configuration')); ?></th><?php endif; ?>
+                        <?php foreach ($columns as $index => [$label]) : ?><th class="whitespace-nowrap py-2 text-end font-semibold <?php echo $index === count($columns) - 1 ? 'pe-4 sm:pe-6 md:pe-8' : 'pe-3'; ?>" scope="col"><?php echo esc_html(boblift_series_text($label)); ?></th><?php endforeach; ?>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($members as $member) : $current = $member['model'] === $state['active']; ?>
+                    <?php foreach ($members as $member) : $current = $member['model'] === $state['active_source']; ?>
                         <tr class="boblift-cfg-row cursor-pointer border-b border-[#E6EDF5] text-[#071f42] transition-colors hover:bg-[#F5F8FC]" data-cfg-row="<?php echo esc_attr($member['model']); ?>"<?php echo $current ? ' aria-current="true"' : ''; ?>>
                             <th class="py-2.5 pe-3 ps-4 text-start font-black sm:ps-6 md:ps-8" scope="row"><a class="inline-flex items-center gap-2.5 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400" href="<?php echo esc_url($member['url']); ?>" dir="ltr"><span class="boblift-cfg-dot" aria-hidden="true"></span><?php echo esc_html($member['model']); ?></a></th>
                             <?php if ($labelled) : ?><td class="whitespace-nowrap py-2.5 pe-3"><?php echo esc_html(boblift_series_compare_label($member['values'], $dimensions, (string) $state['series']['family'])); ?></td><?php endif; ?>

@@ -4,6 +4,9 @@ define('ABSPATH', __DIR__);
 function add_action(...$args): void
 {
 }
+function add_filter(...$args): void
+{
+}
 function apply_filters(string $hook, $value, ...$args)
 {
     return $value;
@@ -163,6 +166,13 @@ $check('pickup asks about the outriggers', ['manual' => ['0', '1']], boblift_ser
 $check('in words', ['With outriggers', ''], boblift_series_choice_label('manual', '1', $pickup_members, 'pickup'));
 $check('elsewhere +1 stays', ['+1', ''], boblift_series_choice_label('manual', '1', $pickup_members, 'truck'));
 $check('pickup compare label', 'Without outriggers', boblift_series_compare_label($pickup_members[0]['values'], ['manual' => ['0', '1']], 'pickup'));
+$check('an inquiry naming the other winch version', 'SQ12ZA6TJ', boblift_series_inquired_model('SQ12ZA6T', '12 Ton Knuckle Boom Marine Crane SQ12ZA6TJ'));
+$check('an inquiry naming the model itself', 'SQ12ZA6T', boblift_series_inquired_model('SQ12ZA6T', '12 Ton Knuckle Boom Marine Crane SQ12ZA6T'));
+$check('+1 in the inquiry text', 'SQ08ZA3TJ+1', boblift_series_inquired_model('SQ08ZA3T+1', 'Crane SQ08ZA3TJ+1'));
+$check('old address keeps its tracking', 'https://x/y.html?model=A&utm_source=g&gclid=1', boblift_series_redirect_url('https://x/y.html?model=A', 'utm_source=g&model=B&gclid=1'));
+$check('nothing to keep', 'https://x/y.html?model=A', boblift_series_redirect_url('https://x/y.html?model=A', ''));
+$read = static fn(int $id): array => [1 => [['id' => 'a'], ['id' => 'b']], 2 => [['id' => 'b'], ['id' => 'c']]][$id];
+$check('items of every configuration once', ['a', 'b', 'c'], array_column(boblift_series_related_items(['members' => [['id' => 1], ['id' => 2]]], $read), 'id'));
 $check('quote details follow the twin', 'Crane SQ12ZA6TJ', boblift_series_meta_for_twin(['inquiry' => ['title' => 'Crane SQ12ZA6T']], 'SQ12ZA6T', 'SQ12ZA6TJ', 'u')['inquiry']['title']);
 $check('winch weight', '+50 kg', boblift_series_winch_difference($twelve, $a4j));
 $check('no pair, no difference', '', boblift_series_winch_difference($twelve, $a6));

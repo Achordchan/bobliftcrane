@@ -1861,7 +1861,7 @@ function boblift_item_related_products(int $post_id, int $limit = 3): array
     // The exact model named on the entry wins over a stored link to a neighbouring model (older feedback links often point
     // to the family page, e.g. SQ5ZA3TJ for an SQ5ZA3T delivery).
     $model = trim((string) (get_post_meta($source_id, '_feedback_model', true) ?: get_post_meta($source_id, '_product_name', true)));
-    $exact = $model !== '' ? get_posts(['post_type' => 'product', 'post_status' => 'publish', 'posts_per_page' => 1, 'lang' => 'en', 'fields' => 'ids', 'meta_key' => '_model', 'meta_value' => $model]) : [];
+    $exact = $model !== '' ? get_posts(['post_type' => 'product', 'boblift_series_members' => true, 'post_status' => 'publish', 'posts_per_page' => 1, 'lang' => 'en', 'fields' => 'ids', 'meta_key' => '_model', 'meta_value' => $model]) : [];
     $linked = $exact ? array_map('intval', $exact) : array_map('intval', get_post_meta($source_id, '_related_product'));
     foreach ($linked as $product_id) {
         $translated = $language !== '' && function_exists('pll_get_post') ? ((int) pll_get_post($product_id, $language) ?: $product_id) : $product_id;

@@ -5283,6 +5283,13 @@
     });
   };
   const applyDerived = (variant, shownModel) => {
+    // The body text speaks for the product it came from (its weight, its winch), so a derived version shows none of it.
+    document.querySelectorAll('[data-cfg-block="overview"]').forEach((block) => {
+      block.hidden = Boolean(variant.derived);
+    });
+    document.querySelectorAll('[data-product-section-link][href="#overview"]').forEach((link) => {
+      link.style.display = variant.derived ? 'none' : '';
+    });
     document.querySelectorAll('[data-cfg-decode-winch]').forEach((part) => {
       part.style.display = variant.values.winch === '1' ? '' : 'none';
     });
@@ -5310,6 +5317,8 @@
       [...block.children].forEach((holder) => {
         const active = holder.getAttribute('data-cfg-variant') === shownModel;
         holder.hidden = !active;
+        // A hidden version's film must not keep playing behind the shown one.
+        if (!active) holder.querySelectorAll('video').forEach((video) => video.pause());
         // Ids belong to the shown version only: #technical, #drawing and the rest must stay unique.
         if (active) {
           holder.querySelectorAll('[data-vid]').forEach((element) => {
@@ -5358,10 +5367,14 @@
     });
     // The comparison table stays with the shown specifications, its row marking the choice.
     const compareSlot = document.querySelector('[data-cfg-block="technical"] [data-cfg-variant]:not([hidden]) [data-cfg-compare-slot]');
-    if (compare && compareSlot && compare.parentElement !== compareSlot) compareSlot.append(compare);
+    if (compare && compareSlot && compare.parentElement !== compareSlot) {
+      const focused = compare.contains(document.activeElement) ? document.activeElement : null;
+      compareSlot.append(compare);
+      if (focused) focused.focus();
+    }
     if (compare) {
       compare.querySelectorAll('[data-cfg-row]').forEach((row) => {
-        const selected = row.dataset.cfgRow === variant.model;
+        const selected = row.dataset.cfgRow === shownModel;
         if (selected) row.setAttribute('aria-current', 'true');
         else row.removeAttribute('aria-current');
       });

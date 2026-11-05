@@ -192,6 +192,10 @@ $hero_image_class = $hero_is_cutout ? $hero_cutout_class : $hero_photo_class;
 // Part hotspots only when an editor placed them for this product; the generic defaults do not match the image.
 $has_custom_hotspots = !empty($product['hotspots']);
 $former_models = trim((string) ($product['model_aliases'] ?? ''));
+// A former name that is now another configuration of the same series is no former name.
+if ($series_page && in_array($former_models, array_column($product_series['members'], 'model'), true)) {
+    $former_models = '';
+}
 // "2950 kg" -> ["2950", "kg"] so the hero can set the number large and the unit small.
 $hero_spec_parts = static function (string $value): array {
     $value = trim($value);
@@ -377,6 +381,13 @@ $cases_ui = boblift_site_ui('casesPage');
 $product_cases = boblift_product_cases(get_the_ID());
 $product_feedback = boblift_product_feedback(get_the_ID());
 $product_feedback_total = $product_feedback ? boblift_product_feedback_count(get_the_ID()) : 0;
+// A series page tells the cases and feedback of all its configurations.
+if ($series_page && !boblift_series_capturing()) {
+    $product_cases = boblift_series_related_items($product_series, static fn(int $id): array => boblift_product_cases($id), 3);
+    $series_feedback = boblift_series_related_items($product_series, 'boblift_product_feedback_all');
+    $product_feedback = array_slice($series_feedback, 0, 8);
+    $product_feedback_total = count($series_feedback);
+}
 if ($product_cases) {
     $anchors[] = ['id' => 'cases', 'label' => (string) ($cases_ui['sceneCasesLabel'] ?? 'Application Cases')];
 }
@@ -478,7 +489,7 @@ if ($family_quote_copy) {
                         <div class="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
                             <button class="boblift-product-hero-request inline-flex h-12 w-full shrink-0 items-center justify-center gap-2 rounded-sm bg-[#071f42] px-7 sm:w-auto text-sm font-black text-white transition hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页首屏" data-inquiry-product="<?php echo esc_attr($inquiry_product_title); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html($ui['requestQuoteLabel'] ?? 'Request Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
                             <?php if ($hero_whatsapp_href !== '') : ?>
-                                <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 text-sm font-semibold text-[#071f42] transition hover:border-blue-500 hover:text-blue-700" href="<?php echo esc_url($hero_whatsapp_href); ?>" target="_blank" rel="noopener"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?><?php echo $series_page ? ' data-series-whatsapp' : ''; ?>><?php echo boblift_icon('whatsapp', 'h-4 w-4 text-[#25D366]'); ?><span class="[font-variant-numeric:tabular-nums]"><?php echo esc_html($hero_whatsapp_display); ?></span></a>
+                                <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 text-sm font-semibold text-[#071f42] transition hover:border-blue-500 hover:text-blue-700" href="<?php echo esc_url($hero_whatsapp_href); ?>" target="_blank" rel="noopener"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?><?php echo $series_page ? ' data-series-whatsapp' : ''; ?>><?php echo boblift_icon('whatsapp', 'h-4 w-4 text-[#25D366]'); ?><span class="[font-variant-numeric:tabular-nums]" dir="ltr"><?php echo esc_html($hero_whatsapp_display); ?></span></a>
                             <?php endif; ?>
                             <?php if ($hero_email !== '') : ?>
                                 <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 text-sm font-semibold text-[#071f42] transition hover:border-blue-500 hover:text-blue-700" href="<?php echo esc_url($hero_mail_href); ?>"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?><?php echo $series_page ? ' data-series-mail' : ''; ?>><?php echo boblift_icon('mail', 'h-4 w-4 text-slate-500'); ?><?php echo esc_html($hero_email); ?></a>
@@ -505,7 +516,7 @@ if ($family_quote_copy) {
                         <div class="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
                             <span class="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(boblift_localized_static_text('Or message us')); ?></span>
                             <?php if ($hero_whatsapp_href !== '') : ?>
-                                <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 font-black text-[#071f42] transition hover:border-[#25D366]" href="<?php echo esc_url($hero_whatsapp_href); ?>" target="_blank" rel="noopener"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?><?php echo $series_page ? ' data-series-whatsapp' : ''; ?>><?php echo boblift_icon('whatsapp', 'h-4 w-4 text-[#25D366]'); ?><span class="[font-variant-numeric:tabular-nums]"><?php echo esc_html($hero_whatsapp_display); ?></span></a>
+                                <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 font-black text-[#071f42] transition hover:border-[#25D366]" href="<?php echo esc_url($hero_whatsapp_href); ?>" target="_blank" rel="noopener"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?><?php echo $series_page ? ' data-series-whatsapp' : ''; ?>><?php echo boblift_icon('whatsapp', 'h-4 w-4 text-[#25D366]'); ?><span class="[font-variant-numeric:tabular-nums]" dir="ltr"><?php echo esc_html($hero_whatsapp_display); ?></span></a>
                             <?php endif; ?>
                             <?php if ($hero_email !== '') : ?>
                                 <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 font-black text-[#071f42] transition hover:border-blue-500" href="<?php echo esc_url($hero_mail_href); ?>"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?><?php echo $series_page ? ' data-series-mail' : ''; ?>><?php echo boblift_icon('mail', 'h-4 w-4 text-slate-500'); ?><?php echo esc_html($hero_email); ?></a>
@@ -672,7 +683,7 @@ if ($family_quote_copy) {
                     <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-[#E6EDF5] px-4 py-4 sm:px-6 md:px-8">
                         <p class="max-w-xl text-xs font-normal leading-5 text-slate-500"><?php echo esc_html(boblift_localized_static_text('Figures from the BOB-LIFT technical drawings. Confirm the final specification with our team before ordering.')); ?></p>
                         <?php if (is_string($spec_range_link) && $spec_range_link !== '') : ?>
-                            <a class="inline-flex shrink-0 items-center gap-1.5 text-sm font-black text-blue-700 transition hover:text-[#071f42]" href="<?php echo esc_url($spec_range_link); ?>"><?php echo esc_html(str_replace('{range}', $related_term->name, boblift_localized_static_text('Compare all {range}'))); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></a>
+                            <a class="inline-flex max-w-full shrink-0 items-center gap-1.5 text-sm font-black text-blue-700 transition hover:text-[#071f42]" href="<?php echo esc_url($spec_range_link); ?>"><?php echo esc_html(str_replace('{range}', $related_term->name, boblift_localized_static_text('Compare all {range}'))); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></a>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -1131,7 +1142,7 @@ if ($family_quote_copy) {
                                     <div class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-3">
                                         <button class="inline-flex h-11 items-center justify-center gap-2 rounded-sm bg-[#071f42] px-5 text-sm font-black text-white transition hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页常见问题" data-inquiry-product="<?php echo esc_attr($inquiry_product_title); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html(boblift_localized_static_text('Ask a question')); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
                                         <?php if ($hero_whatsapp_href !== '') : ?>
-                                            <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 text-sm font-black text-[#071f42] transition hover:border-[#25D366]" href="<?php echo esc_url($hero_whatsapp_href); ?>" target="_blank" rel="noopener"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?><?php echo $series_page ? ' data-series-whatsapp' : ''; ?>><?php echo boblift_icon('whatsapp', 'h-4 w-4 text-[#25D366]'); ?><span class="[font-variant-numeric:tabular-nums]"><?php echo esc_html($hero_whatsapp_display); ?></span></a>
+                                            <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 text-sm font-black text-[#071f42] transition hover:border-[#25D366]" href="<?php echo esc_url($hero_whatsapp_href); ?>" target="_blank" rel="noopener"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?><?php echo $series_page ? ' data-series-whatsapp' : ''; ?>><?php echo boblift_icon('whatsapp', 'h-4 w-4 text-[#25D366]'); ?><span class="[font-variant-numeric:tabular-nums]" dir="ltr"><?php echo esc_html($hero_whatsapp_display); ?></span></a>
                                         <?php endif; ?>
                                     </div>
                                 </div>
