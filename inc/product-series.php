@@ -606,11 +606,11 @@ function boblift_series_card_view(array $product): array
     $configs = [];
     if (count($members) > 1) {
         foreach ($members as $member) {
-            $configs[] = ['label' => $pickup ? boblift_series_text($member['values']['manual'] === '1' ? 'With outriggers' : 'Without outriggers') : (string) $member['model'], 'url' => (string) $member['url']];
+            $configs[] = ['model' => (string) $member['model'], 'label' => $pickup ? boblift_series_text($member['values']['manual'] === '1' ? 'With outriggers' : 'Without outriggers') : (string) $member['model'], 'url' => (string) $member['url']];
         }
     } elseif ((string) $members[0]['model'] !== '') {
         // A crane with no other configuration still names its model; its address needs no ?model=.
-        $configs[] = ['label' => (string) $members[0]['model'], 'url' => (string) get_permalink($id)];
+        $configs[] = ['model' => (string) $members[0]['model'], 'label' => (string) $members[0]['model'], 'url' => (string) get_permalink($id)];
     }
     // One card stands for both pickup configurations, so its title leaves out "with outriggers".
     if ($pickup && ($specs['capacity']['value'] ?? '') === '800 kg') {
@@ -724,16 +724,21 @@ function boblift_series_quick_view_configs(array $product): array
     return $configs;
 }
 
-/** The code and configuration count under a card's title, as plain text. */
+/** The line beside a card's title: its series with the configuration count, or with the one model it has. */
 function boblift_series_card_subtitle(array $view): string
 {
+    $parts = [];
+    if ($view['code_line'] !== '') {
+        $parts[] = '<bdi>' . esc_html($view['code_line']) . '</bdi>';
+    }
     $count = count($view['configs']);
-    return $view['code_line'] === '' ? '' : '<bdi>' . esc_html($view['code_line']) . '</bdi>' . ($count > 1 ? '<span class="mx-1">·</span>' . esc_html(str_replace('{count}', (string) $count, boblift_series_text('{count} configurations'))) : '');
+    if ($count > 1) {
+        $parts[] = esc_html(str_replace('{count}', (string) $count, boblift_series_text('{count} configurations')));
+    } elseif ($view['only_model'] !== '') {
+        $parts[] = '<bdi>' . esc_html($view['only_model']) . '</bdi>';
+    }
+    return implode('<span class="mx-1">·</span>', $parts);
 }
-
-/* -------------------------------------------------------------------------- *
- * Rendering: single-product.php runs once per configuration.
- * -------------------------------------------------------------------------- */
 
 /** The configuration being collected while the template runs for it, or ''. */
 function boblift_series_capturing(): bool

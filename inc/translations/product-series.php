@@ -1,6 +1,9 @@
 <?php
 return [
     'ja' => [
+        'cfg|Get a Quote' => '見積もり依頼',
+        'cfg|View Configurations' => '仕様バリエーション',
+        'cfg|View Details' => '詳細を見る',
         'cfg|1 main boom' => 'メインブーム 1 段',
         'cfg|Knuckle Boom' => 'ナックルブーム',
         'cfg|Telescopic Boom' => '伸縮ブーム',
@@ -57,6 +60,9 @@ return [
         '{code} Series' => '{code} シリーズ',
     ],
     'zh' => [
+        'cfg|Get a Quote' => '获取报价',
+        'cfg|View Configurations' => '查看不同配置',
+        'cfg|View Details' => '查看详情',
         'cfg|1 main boom' => '1 节主臂',
         'cfg|Knuckle Boom' => '折臂',
         'cfg|Telescopic Boom' => '伸缩臂',
@@ -113,6 +119,9 @@ return [
         '{code} Series' => '{code} 系列',
     ],
     'es' => [
+        'cfg|Get a Quote' => 'Pedir presupuesto',
+        'cfg|View Configurations' => 'Ver configuraciones',
+        'cfg|View Details' => 'Ver detalles',
         'cfg|1 main boom' => '1 pluma principal',
         'cfg|Knuckle Boom' => 'Pluma articulada',
         'cfg|Telescopic Boom' => 'Pluma telescópica',
@@ -169,6 +178,9 @@ return [
         '{code} Series' => 'Serie {code}',
     ],
     'ru' => [
+        'cfg|Get a Quote' => 'Запросить КП',
+        'cfg|View Configurations' => 'Все комплектации',
+        'cfg|View Details' => 'Подробнее',
         'cfg|1 main boom' => '1 основная стрела',
         'cfg|Knuckle Boom' => 'Шарнирная стрела',
         'cfg|Telescopic Boom' => 'Телескопическая стрела',
@@ -225,6 +237,9 @@ return [
         '{code} Series' => 'Серия {code}',
     ],
     'fr' => [
+        'cfg|Get a Quote' => 'Demander un devis',
+        'cfg|View Configurations' => 'Voir les versions',
+        'cfg|View Details' => 'Voir les détails',
         'cfg|1 main boom' => '1 flèche principale',
         'cfg|Knuckle Boom' => 'Flèche articulée',
         'cfg|Telescopic Boom' => 'Flèche télescopique',
@@ -281,6 +296,9 @@ return [
         '{code} Series' => 'Série {code}',
     ],
     'ar' => [
+        'cfg|Get a Quote' => 'احصل على عرض سعر',
+        'cfg|View Configurations' => 'عرض التكوينات',
+        'cfg|View Details' => 'عرض التفاصيل',
         'cfg|1 main boom' => 'ذراع رئيسية واحدة',
         'cfg|Knuckle Boom' => 'ذراع مفصلي',
         'cfg|Telescopic Boom' => 'ذراع تلسكوبي',

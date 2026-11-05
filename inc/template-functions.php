@@ -2254,8 +2254,8 @@ function boblift_product_card(array $product, string $extra_class = '', bool $ea
     $quote_list_ui = function_exists('boblift_site_ui') ? boblift_site_ui('quoteList') : [];
     $add_quote_label = (string) ($quote_list_ui['addLabel'] ?? 'Add to Quote List');
     $quick_view_label = (string) ($product_ui['quickViewLabel'] ?? 'Quick view');
-    $view_details_label = (string) ($product_ui['viewDetailsLabel'] ?? 'View Details');
-    $request_quote_label = (string) ($product_ui['requestQuoteLabel'] ?? 'Request Quote');
+    $view_details_label = boblift_series_text(count($card_view['configs']) > 1 ? 'View Configurations' : 'View Details');
+    $request_quote_label = boblift_series_text('Get a Quote');
     // Cut-outs float on the card's backdrop; site photos show whole on a plain mat, never cropped.
     $card_image = boblift_product_image($product);
     $card_image_class = boblift_image_fit($card_image) === 'cutout'
@@ -2275,16 +2275,13 @@ function boblift_product_card(array $product, string $extra_class = '', bool $ea
                 <?php // Named by the title and code it shows (an aria-label that left them out failed WCAG 2.5.3, label in name). ?>
                 <a class="block min-w-0" href="<?php echo esc_url($detail_url); ?>" title="<?php echo esc_attr($card_view['full_title']); ?>">
                     <?php if ($card_view['eyebrow'] !== '') : ?><p class="product-card-eyebrow boblift-kicker mb-1.5"><?php echo esc_html($card_view['eyebrow']); ?></p><?php endif; ?>
+                    <?php // Beside the title while it fits, otherwise under it. The models stay in the text for readers and search. ?>
+                    <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
                     <h2 aria-label="<?php echo esc_attr($card_view['full_title']); ?>" class="product-card-title line-clamp-2 text-[clamp(19px,1.45vw,23px)] font-black leading-[1.12] text-[#0B3F7D]"><?php echo esc_html($card_view['title']); ?></h2>
-                    <?php $card_subtitle = boblift_series_card_subtitle($card_view); if ($card_subtitle !== '') : ?><p class="product-card-code mt-1.5 text-[13px] font-normal text-slate-500"><?php echo wp_kses($card_subtitle, ['bdi' => [], 'span' => ['class' => true]]); ?></p><?php endif; ?>
-                </a>
-                <?php if ($card_view['configs']) : ?>
-                    <div class="product-card-configs mt-2.5 flex flex-wrap gap-1.5">
-                        <?php foreach ($card_view['configs'] as $config) : ?>
-                            <a dir="auto" class="inline-flex h-7 items-center rounded-sm border border-[#D5DEE9] bg-[#F5F8FC] px-2 text-[13px] font-black text-[#071f42] transition hover:border-blue-400 hover:text-blue-700 [font-variant-numeric:tabular-nums]" href="<?php echo esc_url($config['url']); ?>"><?php echo esc_html($config['label']); ?></a>
-                        <?php endforeach; ?>
+                    <?php $card_subtitle = boblift_series_card_subtitle($card_view); if ($card_subtitle !== '') : ?><p class="product-card-code whitespace-nowrap text-[13px] font-normal text-slate-500"><?php echo wp_kses($card_subtitle, ['bdi' => [], 'span' => ['class' => true]]); ?></p><?php endif; ?>
                     </div>
-                <?php endif; ?>
+                    <?php if (count($card_view['configs']) > 1) : ?><span class="sr-only"><?php echo esc_html(implode(', ', array_column($card_view['configs'], 'model'))); ?></span><?php endif; ?>
+                </a>
                 </div>
                 <div class="product-card-bottom mt-auto">
                 <?php if ($card_figures) : ?>
@@ -2299,7 +2296,7 @@ function boblift_product_card(array $product, string $extra_class = '', bool $ea
                 <?php endif; ?>
                 <div class="product-card-footer mt-auto grid grid-cols-2 gap-3 pt-5">
                     <div class="product-card-list-actions hidden gap-3"><button class="inline-flex h-11 w-11 items-center justify-center rounded-sm border border-[#E5E7EB] bg-white text-[#0B1B33] transition hover:-translate-y-0.5 hover:text-blue-700" type="button" data-product-favorite aria-label="<?php echo esc_attr($add_quote_label); ?>"><?php echo boblift_icon('heart', 'h-5 w-5'); ?></button><button class="inline-flex h-11 w-11 items-center justify-center rounded-sm border border-[#E5E7EB] bg-white text-[#0B1B33] transition hover:-translate-y-0.5 hover:text-blue-700" type="button" data-product-quick-view aria-label="<?php echo esc_attr($quick_view_label . ' ' . $product['title']); ?>"><?php echo boblift_icon('eye', 'h-5 w-5'); ?></button></div>
-                    <div class="product-card-ctas contents"><button class="inline-flex min-h-12 items-center justify-center gap-2 text-center leading-tight rounded-sm bg-[#0B1B33] px-2 text-[15px] font-black text-white shadow-card transition hover:-translate-y-0.5 hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品列表卡片" data-inquiry-product="<?php echo esc_attr($product['title']); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>"><?php echo boblift_icon('file-text', 'h-4 w-4'); ?><span class="hidden sm:inline lg:hidden xl:inline"><?php echo esc_html($request_quote_label); ?></span><span class="sm:hidden lg:inline xl:hidden"><?php echo esc_html($quote_list_ui['quoteShortLabel'] ?? 'Quote'); ?></span></button><a class="inline-flex min-h-12 items-center justify-center gap-2 text-center leading-tight rounded-sm border border-[#0B1B33]/40 bg-white px-2 text-[15px] font-black text-[#0B1B33] transition hover:-translate-y-0.5 hover:border-blue-500 hover:text-blue-700" href="<?php echo esc_url($detail_url); ?>"><span class="hidden sm:inline"><?php echo esc_html($view_details_label); ?></span><span class="sm:hidden"><?php echo esc_html($product_ui['viewShortLabel'] ?? 'View'); ?></span> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a></div>
+                    <div class="product-card-ctas contents"><button class="inline-flex min-h-12 items-center justify-center gap-2 text-center leading-tight rounded-sm bg-[#0B1B33] px-2 text-[15px] font-black text-white shadow-card transition hover:-translate-y-0.5 hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品列表卡片" data-inquiry-product="<?php echo esc_attr($product['title']); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>"><?php echo boblift_icon('file-text', 'h-4 w-4'); ?><span class="hidden xl:inline"><?php echo esc_html($request_quote_label); ?></span><span class="xl:hidden"><?php echo esc_html($quote_list_ui['quoteShortLabel'] ?? 'Quote'); ?></span></button><a class="inline-flex min-h-12 items-center justify-center gap-2 text-center leading-tight rounded-sm border border-[#0B1B33]/40 bg-white px-2 text-[15px] font-black text-[#0B1B33] transition hover:-translate-y-0.5 hover:border-blue-500 hover:text-blue-700" href="<?php echo esc_url($detail_url); ?>"><span class="hidden sm:inline"><?php echo esc_html($view_details_label); ?></span><span class="sm:hidden"><?php echo esc_html($product_ui['viewShortLabel'] ?? 'View'); ?></span> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a></div>
                 </div>
                 </div>
             </div>

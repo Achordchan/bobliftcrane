@@ -189,8 +189,7 @@ function boblift_compare_series_prepare(array $models): array
         $view = boblift_series_card_view(['id' => $item['id'], 'model' => $item['model'], 'title' => $item['title']]);
         $column['heading'] = $view['title'];
         $column['full_title'] = $view['full_title'];
-        // No labels in a column head, so a crane with one model shows the model beside its series.
-        $column['subtitle'] = boblift_series_card_subtitle($view) . ($view['only_model'] !== '' ? ($view['code_line'] !== '' ? '<span class="mx-1">·</span>' : '') . '<bdi>' . esc_html($view['only_model']) . '</bdi>' : '');
+        $column['subtitle'] = boblift_series_card_subtitle($view);
         $column['view_label'] = count($rows) > 1 ? str_replace('{value}', boblift_guide_number((float) $own['capacity']), $t('View the {value} t series')) : '';
         $columns[] = $column;
     }

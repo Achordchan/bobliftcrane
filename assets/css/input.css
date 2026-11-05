@@ -1006,6 +1006,11 @@ img { max-width: 100%; }
   mask-image: linear-gradient(to left, transparent 0, #000 var(--fade-start, 0), #000 calc(100% - var(--fade-end, 0)), transparent 100%);
 }
 
+/* Grid view: the two buttons take the width their words need and never break a line; they stack only if a language cannot fit. */
+.boblift-product-listing[data-view="grid"] .product-card-footer { display: flex; flex-wrap: wrap; gap: 8px; }
+.boblift-product-listing[data-view="grid"] .product-card-ctas > * { flex: 1 1 auto; padding-inline: 6px; white-space: nowrap; }
+.boblift-product-listing[data-view="grid"] .product-card-ctas svg { display: none; }
+
 /* Previous models: a tab that toggles on its own beside the category tabs. While on, the selected category's previous models replace the
    grid (see boblift_render_legacy_panel()); the category tabs stay usable. */
 .boblift-legacy-panel { display: none; }
