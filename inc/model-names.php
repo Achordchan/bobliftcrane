@@ -5,7 +5,7 @@
  * Truck cranes: SQ + capacity class in tons + Z (knuckle) or S (telescopic) + A and the boom count; marine versions
  * add T, a winch adds J, flip-over outriggers add F. Forklift fly jibs: CC + lifting height class.
  * Electric mini cranes: SQ + capacity + Z (knuckle) + -E (electric) + M (manual levers) or R (wireless remote).
- * Only these patterns are decoded; SQZ, BLZ, timber, spider and other names stay as they are until their rules are known.
+ * Only these patterns are decoded; other SQZ, BLZ, timber, spider and other names stay as they are until their rules are known.
  * Product pages show the parts and link to the key on the product archive (#model-names).
  */
 
@@ -49,6 +49,19 @@ function boblift_model_parts(string $model): array
             ['E', $t('Electric drive')],
             $control,
         ];
+    }
+    // Marine SQZ models carry their lifting moment class in kN·m instead of a capacity (SQZ330T: about 34.8 t·m, or 341 kN·m).
+    if (preg_match('/^SQZ(?<moment>\d{3,4})T(?<winch>J?)$/', $model, $m)) {
+        $parts = [
+            ['SQ', $t('BOB-LIFT crane')],
+            ['Z', $t('Knuckle boom')],
+            [$m['moment'], str_replace('{value}', $m['moment'], $t('{value} kN·m lifting moment class'))],
+            ['T', $t('Marine version')],
+        ];
+        if ($m['winch'] !== '') {
+            $parts[] = ['J', $t('With winch')];
+        }
+        return $parts;
     }
     if (preg_match('/^CC(\d+)$/', $model, $m)) {
         return [['CC', $t('Forklift fly jib crane')], [$m[1], $t('Maximum lifting height class')]];

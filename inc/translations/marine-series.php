@@ -29,7 +29,12 @@ return [
         '{code} Series' => '{code} シリーズ',
     ],
     'zh' => [
-        'cfg|All marine cranes can be fitted with a winch.' => '所有船吊都可以选装卷扬。',
+        '{value} kN·m lifting moment class' => '{value} kN·m 起重力矩级',
+        'cfg|Knuckle boom marine cranes can be built with or without a winch.' => '折臂船吊可选择带或不带卷扬。',
+        'cfg|Telescopic boom marine cranes come with a winch as standard.' => '直臂船吊均标配卷扬。',
+        'cfg|Winch included on every telescopic marine crane' => '直臂船吊均标配卷扬',
+        'cfg|Winch: standard' => '卷扬：标配',
+        'cfg|Standard' => '标配',
         'cfg|Winch version: self weight confirmed with your quote' => '带卷扬版本的自重以报价确认为准',
         'cfg|No-winch version: self weight confirmed with your quote' => '不带卷扬版本的自重以报价确认为准',
         'cfg|With winch (optional)' => '带卷扬（选装）',

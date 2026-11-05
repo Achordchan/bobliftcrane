@@ -521,7 +521,7 @@ if ($family_quote_copy) {
                     <?php endif; ?>
                     <?php // A series explains its model name last: the choice and the quote come first. ?>
                     <?php boblift_marine_block_open('decode'); ?>
-                    <?php if ($marine_page) { boblift_marine_render_compact_decode($hero_model); } ?>
+                    <?php if ($marine_page) { boblift_marine_render_compact_decode($hero_model, $marine_series['boom'] !== 'telescopic'); } ?>
                     <?php boblift_marine_block_close('decode'); ?>
                 </div>
                 <?php boblift_marine_block_open('gallery'); ?>

@@ -112,6 +112,13 @@ $check('a single model still has both', ['SQZ430T', 'SQZ430TJ'], array_column($s
 $check('and asks only about the winch', ['winch' => ['0', '1']], boblift_marine_series_dimensions($single));
 $check('WhatsApp names the twin once', 'for%20SQ12ZA6TJ%3A%20u%3Fmodel%3DSQ12ZA6TJ', boblift_marine_meta_for_twin(['whatsapp' => 'for%20SQ12ZA6T%3A%20u%3Fmodel%3DSQ12ZA6T'], 'SQ12ZA6T', 'SQ12ZA6TJ', 'u')['whatsapp']);
 $check('the +1 in a WhatsApp address', 'SQ08ZA3TJ%2B1%20model%3DSQ08ZA3TJ%252B1', boblift_marine_meta_for_twin(['whatsapp' => 'SQ08ZA3T%2B1%20model%3DSQ08ZA3T%252B1'], 'SQ08ZA3T+1', 'SQ08ZA3TJ+1', 'u')['whatsapp']);
+$tele = array_map(static fn(string $model): array => ['model' => $model, 'url' => 'u', 'id' => 1, 'slug' => 's', 'is_home' => false, 'values' => boblift_marine_boom_values(boblift_marine_parse_model($model), 'telescopic'), 'figures' => $figures(4000)], ['SQ12SA4T', 'SQ12SA5T']);
+$check('telescopic has no other winch version', ['SQ12SA4T', 'SQ12SA5T'], array_column(boblift_marine_expand_variants($tele, 'https://x', 'telescopic'), 'model'));
+$check('and is not asked about the winch', ['sections' => ['A4', 'A5']], boblift_marine_series_dimensions(boblift_marine_expand_variants($tele, 'https://x', 'telescopic')));
+$check('telescopic always has it', '1', $tele[0]['values']['winch']);
+$check('a telescopic name with J is the same crane', 'SQ10SA4T', boblift_marine_normalize_requested('SQ10SA4TJ', 'telescopic'));
+$check('a knuckle name with J stays', 'SQ12ZA6TJ', boblift_marine_normalize_requested('SQ12ZA6TJ', 'knuckle'));
+$check('knuckle keeps what the name says', '0', boblift_marine_boom_values(boblift_marine_parse_model('SQ12ZA6T'), 'knuckle')['winch']);
 $check('quote details follow the twin', 'Crane SQ12ZA6TJ', boblift_marine_meta_for_twin(['inquiry' => ['title' => 'Crane SQ12ZA6T']], 'SQ12ZA6T', 'SQ12ZA6TJ', 'u')['inquiry']['title']);
 $check('winch weight', '+50 kg', boblift_marine_winch_difference($twelve, $a4j));
 $check('no pair, no difference', '', boblift_marine_winch_difference($twelve, $a6));
