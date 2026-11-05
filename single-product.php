@@ -423,7 +423,7 @@ if ($family_quote_copy) {
                     <p class="boblift-kicker boblift-product-hero-kicker"><?php echo esc_html($product['category_title'] ?? 'BOB-LIFT Product'); ?></p>
                     <?php endif; ?>
                     <?php // The full name sits inside the h1 with the model, so the heading keeps the product keyword the old site ranked on. ?>
-                    <h1 class="mt-3 text-[#071f42]"><span class="boblift-product-hero-title block text-[clamp(44px,4.4vw,84px)] font-black leading-[0.92] tracking-[-0.02em]"<?php echo $marine_page ? ' data-cfg-title' : ''; ?>><?php echo esc_html($marine_page ? ($GLOBALS['boblift_marine_render']['active'] ?? $hero_title) : $hero_title); ?></span><?php if ($show_hero_full_name) : ?><span class="mt-3 block text-[clamp(18px,1.35vw,24px)] font-medium leading-tight tracking-normal text-slate-700"><?php echo esc_html($product_title); ?><?php if ($marine_page) : ?> <span class="whitespace-nowrap text-slate-500">(<?php echo esc_html(boblift_marine_series_label($marine_series['code'])); ?>)</span><?php endif; ?></span><?php endif; ?></h1>
+                    <h1 class="mt-3 text-[#071f42]"><span class="boblift-product-hero-title block <?php echo $marine_page ? 'text-[clamp(32px,2.8vw,52px)]' : 'text-[clamp(44px,4.4vw,84px)]'; ?> font-black leading-[0.92] tracking-[-0.02em]"<?php echo $marine_page ? ' data-cfg-title' : ''; ?>><?php echo esc_html($marine_page ? ($GLOBALS['boblift_marine_render']['active'] ?? $hero_title) : $hero_title); ?></span><?php if ($show_hero_full_name) : ?><span class="<?php echo $marine_page ? 'mt-2.5 block text-[clamp(22px,1.7vw,30px)] font-semibold leading-tight tracking-normal text-[#071f42]' : 'mt-3 block text-[clamp(18px,1.35vw,24px)] font-medium leading-tight tracking-normal text-slate-700'; ?>"><?php echo esc_html($product_title); ?><?php if ($marine_page) : ?> <span class="whitespace-nowrap font-normal text-slate-500">(<?php echo esc_html(boblift_marine_series_label($marine_series['code'])); ?>)</span><?php endif; ?></span><?php endif; ?></h1>
                     <?php if ($is_legacy_model) :
                         $legacy_target = $model_history ? '#model-history' : ($related_term instanceof WP_Term && !is_wp_error(get_term_link($related_term)) ? (string) get_term_link($related_term) : boblift_product_archive_url());
                         // The current models of the same capacity (or the nearest), each a direct link: the way on from a previous model.
@@ -470,23 +470,26 @@ if ($family_quote_copy) {
                     <?php endif; ?>
                     <?php endif; ?>
                     <?php if ($marine_page) : ?>
-                        <?php // Quote and brochure over the two ways to message: one block on one grid. ?>
-                        <div class="boblift-product-hero-actions mt-5 grid grid-cols-2 gap-3">
-                            <button class="boblift-product-hero-request inline-flex h-12 min-w-0 items-center justify-center gap-2 rounded-sm bg-[#071f42] px-6 text-sm font-black text-white transition hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页首屏" data-inquiry-product="<?php echo esc_attr($inquiry_product_title); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html($ui['requestQuoteLabel'] ?? 'Request Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
-                            <?php if ($hero_pdf_url !== '') : ?>
-                                <a class="boblift-product-hero-pdf inline-flex h-12 min-w-0 items-center justify-center gap-2 rounded-sm border border-[#D5DEE9] bg-white px-5 text-sm font-black text-[#0B3F7D] transition hover:border-blue-300" href="<?php echo esc_url($hero_pdf_url); ?>" <?php echo $hero_pdf_file !== '' ? 'download="' . esc_attr($hero_pdf_file) . '"' : 'target="_blank" rel="noopener"'; ?>><?php echo boblift_icon('download', 'h-4 w-4'); ?><?php echo esc_html($hero_pdf_label); ?><?php if ($hero_pdf_size !== '') : ?><span class="hidden text-xs font-bold text-slate-500 sm:inline"><?php echo esc_html($hero_pdf_size); ?></span><?php endif; ?></a>
+                        <?php // Quote and the two ways to message on one line; brochure and terms on one quiet line below. ?>
+                        <div class="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
+                            <button class="boblift-product-hero-request inline-flex h-12 w-full shrink-0 items-center justify-center gap-2 rounded-sm bg-[#071f42] px-7 sm:w-auto text-sm font-black text-white transition hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页首屏" data-inquiry-product="<?php echo esc_attr($inquiry_product_title); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html($ui['requestQuoteLabel'] ?? 'Request Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
+                            <?php if ($hero_whatsapp_href !== '') : ?>
+                                <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 text-sm font-semibold text-[#071f42] transition hover:border-blue-500 hover:text-blue-700" href="<?php echo esc_url($hero_whatsapp_href); ?>" target="_blank" rel="noopener"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?><?php echo $marine_page ? ' data-series-whatsapp' : ''; ?>><?php echo boblift_icon('whatsapp', 'h-4 w-4 text-[#25D366]'); ?><span class="[font-variant-numeric:tabular-nums]"><?php echo esc_html($hero_whatsapp_display); ?></span></a>
+                            <?php endif; ?>
+                            <?php if ($hero_email !== '') : ?>
+                                <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 text-sm font-semibold text-[#071f42] transition hover:border-blue-500 hover:text-blue-700" href="<?php echo esc_url($hero_mail_href); ?>"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?><?php echo $marine_page ? ' data-series-mail' : ''; ?>><?php echo boblift_icon('mail', 'h-4 w-4 text-slate-500'); ?><?php echo esc_html($hero_email); ?></a>
                             <?php endif; ?>
                         </div>
-                        <?php if ($hero_whatsapp_href !== '' || $hero_email !== '') : ?>
-                            <div class="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
-                                <?php if ($hero_whatsapp_href !== '') : ?>
-                                    <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 font-semibold text-[#071f42] transition hover:border-blue-500 hover:text-blue-700" href="<?php echo esc_url($hero_whatsapp_href); ?>" target="_blank" rel="noopener"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?><?php echo $marine_page ? ' data-series-whatsapp' : ''; ?>><?php echo boblift_icon('whatsapp', 'h-4 w-4 text-[#25D366]'); ?><span class="[font-variant-numeric:tabular-nums]"><?php echo esc_html($hero_whatsapp_display); ?></span></a>
-                                <?php endif; ?>
-                                <?php if ($hero_email !== '') : ?>
-                                    <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 font-semibold text-[#071f42] transition hover:border-blue-500 hover:text-blue-700" href="<?php echo esc_url($hero_mail_href); ?>"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?><?php echo $marine_page ? ' data-series-mail' : ''; ?>><?php echo boblift_icon('mail', 'h-4 w-4 text-slate-500'); ?><?php echo esc_html($hero_email); ?></a>
-                                <?php endif; ?>
-                            </div>
-                        <?php endif; ?>
+                        <ul class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-[#D5DEE9] pt-3.5 text-[13px] text-slate-600">
+                            <?php if ($hero_pdf_url !== '') : ?>
+                                <li><a class="boblift-product-hero-pdf inline-flex items-center gap-1.5 border-b border-[#C9D6E6] pb-0.5 font-semibold text-[#071f42] transition hover:border-blue-500 hover:text-blue-700" href="<?php echo esc_url($hero_pdf_url); ?>" <?php echo $hero_pdf_file !== '' ? 'download="' . esc_attr($hero_pdf_file) . '"' : 'target="_blank" rel="noopener"'; ?>><?php echo boblift_icon('download', 'h-3.5 w-3.5'); ?><?php echo esc_html($hero_pdf_label); ?><?php if ($hero_pdf_size !== '') : ?><span class="font-normal text-slate-500"><?php echo esc_html($hero_pdf_size); ?></span><?php endif; ?></a></li>
+                            <?php endif; ?>
+                            <?php if ($hero_terms_apply) : ?>
+                                <li class="inline-flex items-center gap-1.5"><?php echo boblift_icon('shield-check', 'h-3.5 w-3.5 text-[#0B3F7D]'); ?><?php echo esc_html(boblift_localized_static_text('12-month warranty')); ?></li>
+                                <li class="inline-flex items-center gap-1.5"><?php echo boblift_icon('package-check', 'h-3.5 w-3.5 text-[#0B3F7D]'); ?><?php echo esc_html(boblift_localized_static_text('Order from 1 unit')); ?></li>
+                                <li><a class="inline-flex items-center gap-1 border-b border-[#C9D6E6] pb-0.5 font-semibold text-[#071f42] transition hover:border-blue-500 hover:text-blue-700" href="#buying"><?php echo esc_html(boblift_localized_static_text('Shipping & warranty')); ?><?php echo boblift_icon('arrow-down', 'h-3.5 w-3.5'); ?></a></li>
+                            <?php endif; ?>
+                        </ul>
                     <?php else : ?>
                     <div class="boblift-product-hero-actions mt-6 flex flex-wrap items-center gap-2.5 sm:gap-3 lg:mt-7">
                         <button class="boblift-product-hero-request inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-sm bg-[#071f42] px-6 text-sm font-black text-white transition hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页首屏" data-inquiry-product="<?php echo esc_attr($inquiry_product_title); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html($ui['requestQuoteLabel'] ?? 'Request Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
@@ -506,14 +509,14 @@ if ($family_quote_copy) {
                         </div>
                     <?php endif; ?>
                                         <?php endif; ?>
-                    <?php if ($hero_terms_apply) : ?>
-                        <div class="<?php echo $marine_page ? 'mt-4 border-t border-[#D5DEE9] pt-4' : 'mt-6 border-t border-[#D5DEE9] pt-5'; ?>">
+                    <?php if ($hero_terms_apply && !$marine_page) : ?>
+                        <div class="mt-6 border-t border-[#D5DEE9] pt-5">
                             <ul class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-600">
                                 <li class="inline-flex items-center gap-2"><?php echo boblift_icon('shield-check', 'h-4 w-4 text-[#0B3F7D]'); ?><?php echo esc_html(boblift_localized_static_text('12-month warranty')); ?></li>
                                 <li class="inline-flex items-center gap-2"><?php echo boblift_icon('package-check', 'h-4 w-4 text-[#0B3F7D]'); ?><?php echo esc_html(boblift_localized_static_text('Order from 1 unit')); ?></li>
                                 <li><a class="inline-flex items-center gap-1 border-b border-[#C9D6E6] pb-0.5 font-black text-[#071f42] transition hover:border-blue-500" href="#buying"><?php echo esc_html(boblift_localized_static_text('Shipping & warranty')); ?><?php echo boblift_icon('arrow-down', 'h-3.5 w-3.5'); ?></a></li>
                             </ul>
-                            <?php if (!$marine_page) : ?><p class="mt-3 text-xs font-normal leading-5 text-slate-500"><?php echo esc_html(boblift_localized_static_text('Confirm your configuration and current availability with our team.')); ?></p><?php endif; ?>
+                            <p class="mt-3 text-xs font-normal leading-5 text-slate-500"><?php echo esc_html(boblift_localized_static_text('Confirm your configuration and current availability with our team.')); ?></p>
                         </div>
                     <?php endif; ?>
                     <?php // A series explains its model name last: the choice and the quote come first. ?>

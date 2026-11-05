@@ -5309,6 +5309,7 @@
     });
     root.querySelectorAll('[data-cfg-winch-difference]').forEach((element) => {
       element.textContent = variant.winch || '';
+      element.hidden = !variant.winch;
     });
     root.querySelectorAll('[data-cfg-summary]').forEach((element) => {
       element.textContent = variant.summary || '';

@@ -548,7 +548,7 @@ function boblift_marine_combination_notes(array $members, array $dimensions, arr
         if (count($winch) !== 1) {
             return '';
         }
-        return str_replace('{code}', $section, boblift_marine_text($winch[0] === '1' ? '{code} is built with a winch only' : '{code} is built without a winch only'));
+        return str_replace('{booms}', boblift_marine_booms_label($section), boblift_marine_text($winch[0] === '1' ? '{booms}: with winch only' : '{booms}: without winch only'));
     };
     $notes = [];
     $unavailable = boblift_marine_unavailable_choices($members, $dimensions, $values);
@@ -562,7 +562,7 @@ function boblift_marine_combination_notes(array $members, array $dimensions, arr
         }
     }
     if ($sections !== []) {
-        $notes['sections'] = implode('. ', array_filter($sections));
+        $notes['sections'] = implode(' · ', array_filter($sections));
     }
     return array_filter($notes);
 }
@@ -614,23 +614,30 @@ function boblift_marine_configuration_difference(array $member, array $base): st
     return implode(' · ', $parts);
 }
 
-/** The word under a choice's code: what a section count gives (reach when every configuration has it), or the winch. */
+/** "3 hydraulic booms" for a boom-section code (A4, K4). */
+function boblift_marine_booms_label(string $section): string
+{
+    $hydraulic = (int) substr($section, 1) - 1;
+    return $hydraulic === 1 ? boblift_marine_text('1 hydraulic boom') : str_replace('{count}', (string) $hydraulic, boblift_marine_text('{count} hydraulic booms'));
+}
+
+/**
+ * A choice in words, [label, small line]: the model name's codes are explained further down, so buttons do not repeat them. A
+ * section count's small line is its reach, when every configuration with that count gives the same one.
+ */
 function boblift_marine_choice_label(string $dimension, string $value, array $members = []): array
 {
     if ($dimension === 'sections') {
         $own = array_filter($members, static fn(array $member): bool => ($member['values']['sections'] ?? '') === $value);
         $reaches = array_unique(array_map(static fn(array $member): string => (string) ($member['figures']['radius'] ?? ''), $own));
-        if (count($reaches) === 1 && current($reaches) !== '') {
-            return [$value, str_replace('{value}', (string) current($reaches), boblift_marine_text('reach {value}'))];
-        }
-        $hydraulic = (int) substr($value, 1) - 1;
-        return [$value, $hydraulic === 1 ? boblift_marine_text('1 hydraulic boom') : str_replace('{count}', (string) $hydraulic, boblift_marine_text('{count} hydraulic booms'))];
+        $reach = count($reaches) === 1 ? (string) current($reaches) : '';
+        return [boblift_marine_booms_label($value), $reach !== '' ? str_replace('{value}', $reach, boblift_marine_text('reach {value}')) : ''];
     }
     if ($dimension === 'winch') {
-        return $value === '1' ? ['J', boblift_marine_text('With winch')] : ['—', boblift_marine_text('No winch')];
+        return [boblift_marine_text($value === '1' ? 'With winch' : 'No winch'), ''];
     }
     if ($dimension === 'manual') {
-        return $value === '1' ? ['+1', ''] : ['—', ''];
+        return [$value === '1' ? '+1' : '—', ''];
     }
     return [$value, ''];
 }
@@ -709,17 +716,19 @@ function boblift_marine_render_configurator(): void
                 <p class="text-[11px] font-black uppercase leading-4 tracking-[0.12em] text-slate-500 rtl:tracking-normal" id="boblift-cfg-<?php echo esc_attr($dimension); ?>"><?php echo esc_html($headings[$dimension]); ?></p>
                 <div class="mt-1.5 flex flex-wrap gap-2" role="radiogroup" aria-labelledby="boblift-cfg-<?php echo esc_attr($dimension); ?>">
                     <?php foreach ($values as $value) :
-                        [$code, $meaning] = boblift_marine_choice_label($dimension, $value, $members);
+                        [$label, $detail] = boblift_marine_choice_label($dimension, $value, $members);
                         $checked = ($active['values'][$dimension] ?? '') === $value;
                         $exists = !in_array($dimension . '|' . $value, $active_ui['unavailable'], true);
+                        $is_winch_on = $dimension === 'winch' && $value === '1';
                         ?>
-                        <button class="boblift-model-variant inline-flex min-h-11 items-center justify-center gap-2 rounded-sm border px-3 py-1.5 text-start transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-100 <?php echo $checked ? 'border-[#071f42] bg-[#071f42] text-white' : 'border-[#D5DEE9] bg-white text-[#071f42] hover:border-blue-300'; ?> <?php echo $exists ? '' : 'border-dashed'; ?>" type="button" role="radio" aria-checked="<?php echo $checked ? 'true' : 'false'; ?>" tabindex="<?php echo $checked ? '0' : '-1'; ?>" data-cfg-group="<?php echo esc_attr($dimension); ?>" data-cfg-value="<?php echo esc_attr($value); ?>"<?php echo $exists ? '' : ' title="' . esc_attr($unavailable_text) . '"'; ?>>
-                            <span class="text-sm font-black [font-variant-numeric:tabular-nums]" dir="ltr"><?php echo esc_html($code); ?></span>
-                            <?php if ($meaning !== '') : ?><span class="text-[13px] font-normal opacity-80"><?php echo esc_html($meaning); ?><?php if ($dimension === 'winch' && $value === '1') : ?> <span class="[font-variant-numeric:tabular-nums]" dir="ltr" data-cfg-winch-difference><?php echo esc_html($active_ui['winch']); ?></span><?php endif; ?></span><?php endif; ?>
+                        <button class="boblift-model-variant inline-flex min-h-11 flex-col items-start justify-center rounded-sm border px-3.5 py-1.5 text-start transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-100 <?php echo $checked ? 'border-[#071f42] bg-[#071f42] text-white' : 'border-[#D5DEE9] bg-white text-[#071f42] hover:border-blue-300'; ?> <?php echo $exists ? '' : 'border-dashed'; ?>" type="button" role="radio" aria-checked="<?php echo $checked ? 'true' : 'false'; ?>" tabindex="<?php echo $checked ? '0' : '-1'; ?>" data-cfg-group="<?php echo esc_attr($dimension); ?>" data-cfg-value="<?php echo esc_attr($value); ?>"<?php echo $exists ? '' : ' title="' . esc_attr($unavailable_text) . '"'; ?>>
+                            <span class="text-sm font-bold leading-5"><?php echo esc_html($label); ?></span>
+                            <?php if ($detail !== '') : ?><span class="text-xs font-normal leading-4 opacity-80"><?php echo esc_html($detail); ?></span><?php endif; ?>
+                            <?php if ($is_winch_on) : ?><span class="text-xs font-normal leading-4 opacity-80 [font-variant-numeric:tabular-nums]" dir="ltr" data-cfg-winch-difference<?php echo $active_ui['winch'] === '' ? ' hidden' : ''; ?>><?php echo esc_html($active_ui['winch']); ?></span><?php endif; ?>
                         </button>
                     <?php endforeach; ?>
                 </div>
-                <p class="mt-1.5 text-xs leading-5 text-slate-500" data-cfg-note="<?php echo esc_attr($dimension); ?>"<?php echo $note === '' ? ' hidden' : ''; ?>><?php echo esc_html($note); ?></p>
+                <p class="mt-1.5 text-[13px] leading-5 text-slate-600" data-cfg-note="<?php echo esc_attr($dimension); ?>"<?php echo $note === '' ? ' hidden' : ''; ?>><?php echo esc_html($note); ?></p>
             </div>
         <?php endforeach; ?>
         <?php if (boblift_marine_series_all_have($members, 'winch', '1')) : ?>
@@ -728,7 +737,7 @@ function boblift_marine_render_configurator(): void
         <?php if (boblift_marine_series_all_have($members, 'manual', '1')) : ?>
             <p class="mt-3 text-[13px] text-slate-600"><?php echo esc_html($t('+1 manual extension on every configuration')); ?></p>
         <?php endif; ?>
-        <p class="mt-3.5 border-t border-[#E6EDF5] pt-3 text-[13px] leading-5 text-slate-600" aria-live="polite" data-cfg-summary-line<?php echo $active_ui['summary'] === '' ? ' hidden' : ''; ?>><span class="font-black text-[#071f42]"><?php echo esc_html($compared); ?>:</span> <span data-cfg-summary><?php echo esc_html($active_ui['summary']); ?></span></p>
+        <p class="mt-3.5 border-t border-[#E6EDF5] pt-3 text-[15px] leading-6 text-[#334155]" aria-live="polite" data-cfg-summary-line<?php echo $active_ui['summary'] === '' ? ' hidden' : ''; ?>><span class="font-black text-[#071f42]"><?php echo esc_html($compared); ?>:</span> <span data-cfg-summary><?php echo esc_html($active_ui['summary']); ?></span></p>
         <script type="application/json" data-series-data><?php echo wp_json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG); ?></script>
     </div>
     <?php
