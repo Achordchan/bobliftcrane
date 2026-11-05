@@ -3394,6 +3394,7 @@
         const chip = document.createElement('button');
         chip.type = 'button';
         chip.className = 'boblift-filter-chip';
+        chip.dataset.chipFilter = input.dataset.filter;
         chip.setAttribute('aria-label', productArchiveText('removeFilterLabel', 'Remove {label}').replace('{label}', label));
         chip.append(Object.assign(document.createElement('span'), { textContent: label }));
         if (filterChipIcon) chip.append(filterChipIcon.content.cloneNode(true));
@@ -3831,6 +3832,75 @@
       updateUrlFromFilters({ replace: false });
       apply({ resetPage: true });
     }));
+    // Filter layouts under review: a "More filters" panel, and a slider over the capacity bins.
+    qsa('[data-filter-more]', root).forEach((more) => {
+      const trigger = qs('[data-filter-more-trigger]', more);
+      const panel = qs('[data-filter-more-panel]', more);
+      const badge = qs('[data-filter-more-count]', more);
+      const count = () => {
+        const on = qsa('input[data-filter]:checked', panel).length;
+        badge.textContent = String(on);
+        badge.classList.toggle('hidden', on === 0);
+        badge.classList.toggle('inline-flex', on > 0);
+      };
+      trigger.addEventListener('click', () => {
+        const open = panel.classList.contains('hidden');
+        panel.classList.toggle('hidden', !open);
+        trigger.setAttribute('aria-expanded', String(open));
+      });
+      document.addEventListener('click', (event) => {
+        if (more.contains(event.target)) return;
+        panel.classList.add('hidden');
+        trigger.setAttribute('aria-expanded', 'false');
+      });
+      checks.forEach((input) => input.addEventListener('change', count));
+      count();
+    });
+    const capacitySliders = qsa('[data-capacity-slider]', root);
+    const showCapacitySlider = (slider, low, high) => {
+      const bins = JSON.parse(slider.dataset.bins || '[]');
+      qs('[data-capacity-slider-low]', slider).value = low;
+      qs('[data-capacity-slider-high]', slider).value = high;
+      const track = qs('.boblift-capacity-slider-track', slider);
+      track.style.setProperty('--low', `${(low / bins.length) * 100}%`);
+      track.style.setProperty('--high', `${(high / bins.length) * 100}%`);
+      const bounds = (bin) => String(bin || '').match(/\d+/g) || [];
+      const from = low === 0 ? '1' : bounds(bins[low])[0];
+      const lastBin = bins[high - 1] || '';
+      const to = bounds(lastBin)[1] || `${bounds(lastBin)[0]}+`;
+      qs('[data-capacity-slider-value]', slider).textContent = `${from}–${to} t`;
+    };
+    const syncCapacitySliders = () => capacitySliders.forEach((slider) => {
+      const bins = JSON.parse(slider.dataset.bins || '[]');
+      const picked = bins.map((bin, index) => (activeValues('capacity').includes(bin) ? index : -1)).filter((index) => index >= 0);
+      showCapacitySlider(slider, picked.length ? picked[0] : 0, picked.length ? picked[picked.length - 1] + 1 : bins.length);
+    });
+    capacitySliders.forEach((slider) => {
+      const bins = JSON.parse(slider.dataset.bins || '[]');
+      const low = qs('[data-capacity-slider-low]', slider);
+      const high = qs('[data-capacity-slider-high]', slider);
+      const change = () => {
+        const from = Math.min(Number(low.value), Number(high.value) - 1);
+        const to = Math.max(Number(high.value), from + 1);
+        showCapacitySlider(slider, from, to);
+        const all = from === 0 && to === bins.length;
+        checks.filter((input) => input.dataset.filter === 'capacity').forEach((input) => {
+          const index = bins.indexOf(input.value);
+          input.checked = !all && index >= from && index < to;
+        });
+        updateUrlFromFilters();
+        apply({ resetPage: true });
+      };
+      low.addEventListener('input', () => showCapacitySlider(slider, Math.min(Number(low.value), Number(high.value) - 1), Number(high.value)));
+      high.addEventListener('input', () => showCapacitySlider(slider, Number(low.value), Math.max(Number(high.value), Number(low.value) + 1)));
+      low.addEventListener('change', change);
+      high.addEventListener('change', change);
+    });
+    if (capacitySliders.length) {
+      syncCapacitySliders();
+      checks.filter((input) => input.dataset.filter === 'capacity').forEach((input) => input.addEventListener('change', syncCapacitySliders));
+      qsa('[data-filter-chips], [data-filter-clear-specs], [data-filter-reset]', root).forEach((element) => element.addEventListener('click', () => window.setTimeout(syncCapacitySliders)));
+    }
     capacitySelect?.addEventListener('change', () => {
       if (isMobileFilterDrawerActive(capacitySelect)) return;
       updateUrlFromFilters();

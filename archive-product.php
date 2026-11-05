@@ -327,9 +327,69 @@ $filter_sidebar = static function () use ($filter_group, $category_filter_group,
         <div class="boblift-filter-drawer-actions mt-8 border-t border-[#E5E7EB] pt-6"><button class="min-h-12 w-full rounded-sm bg-[#0B1B33] px-5 text-sm font-black text-white shadow-card transition hover:-translate-y-0.5 hover:bg-[#0B3F7D]" type="button" data-filter-apply><?php echo esc_html($archive_ui['applyFiltersLabel'] ?? 'Apply'); ?></button></div>
     </aside>
 <?php };
+// Filter layouts under review (?filter=a|b|c). Same inputs and filtering; only where they sit changes. The default is untouched until one is chosen.
+$filter_ui = isset($_GET['filter']) && is_string($_GET['filter']) && in_array(strtolower($_GET['filter']), ['a', 'b', 'c'], true) ? strtolower($_GET['filter']) : '';
+$capacity_chip_buttons = static function () use ($capacity_links, $capacity_chips_filter, $tonnage, $current_attr): void {
+    foreach ($capacity_links as $size => [$capacity_label, $capacity_url]) {
+        if ($capacity_chips_filter) {
+            echo '<button class="boblift-category-subtab shrink-0" type="button" aria-pressed="false" data-capacity-chip="' . esc_attr(boblift_tonnage_bins()[$size]) . '">' . esc_html($capacity_label) . '</button>';
+        } else {
+            echo '<a class="boblift-category-subtab shrink-0" href="' . esc_url($capacity_url) . '"' . $current_attr($size === $tonnage) . '>' . esc_html($capacity_label) . '</a>';
+        }
+    }
+};
+$active_children = static function () use ($category_filter_tree, $active_parent, $category_counts): array {
+    foreach ($category_filter_tree as $item) {
+        if ($item['slug'] === $active_parent && !empty($item['children'])) {
+            return ['item' => $item, 'children' => array_values(array_filter($item['children'], static fn(array $child): bool => ($category_counts[(string) ($child['slug'] ?? '')] ?? 0) > 0))];
+        }
+    }
+    return [];
+};
+$subtab_links = static function (array $active) use ($archive_ui, $category_link, $current_attr, $initial_category, $category_counts): void {
+    if (!$active) {
+        return;
+    }
+    $item = $active['item'];
+    echo '<a class="boblift-category-subtab" href="' . esc_url($category_link((string) $item['slug'])) . '" data-category-tab="' . esc_attr($item['slug']) . '"' . $current_attr($item['slug'] === $initial_category) . '>' . esc_html($archive_ui['allInCategoryLabel'] ?? 'All') . '<span data-tab-count>' . esc_html((string) ($item['count'] ?? 0)) . '</span></a>';
+    foreach ($active['children'] as $child) {
+        $child_slug = (string) ($child['slug'] ?? '');
+        echo '<a class="boblift-category-subtab" href="' . esc_url($category_link($child_slug)) . '" data-category-tab="' . esc_attr($child_slug) . '"' . $current_attr($child_slug === $initial_category) . '>' . esc_html($child['title'] ?? $child_slug) . '<span data-tab-count>' . esc_html((string) $category_counts[$child_slug]) . '</span></a>';
+    }
+};
+// The filters behind "More filters": what the row itself does not already offer.
+$more_filters = static function (array $names) use ($filter_group, $spec_filters, $spec_counts, $boom_options, $boom_counts, $archive_ui): void {
+    ?>
+    <div class="relative shrink-0" data-filter-more>
+        <button class="boblift-filter-dropdown-trigger" type="button" aria-expanded="false" data-filter-more-trigger><?php echo boblift_icon('sliders-horizontal', 'h-4 w-4'); ?><?php echo esc_html(boblift_series_text('More filters')); ?><span class="hidden h-5 min-w-5 items-center justify-center rounded-sm bg-[#0B3F7D] px-1 text-[12px] font-black text-white" data-filter-more-count></span></button>
+        <div class="absolute end-0 top-[calc(100%+8px)] z-40 hidden max-h-[60vh] w-[320px] space-y-5 overflow-y-auto rounded border border-[#DDE5EF] bg-white p-5 shadow-raised" data-filter-more-panel>
+            <?php foreach ($names as $name) {
+                if ($name === 'boom') {
+                    $filter_group((string) ($archive_ui['boomFilterLabel'] ?? 'Boom Type'), 'boom', $boom_options, $boom_counts);
+                } else {
+                    $filter_group($spec_filters[$name]['label'], $name, $spec_filters[$name]['bins'], $spec_counts[$name]);
+                }
+            } ?>
+        </div>
+    </div>
+    <?php
+};
+// Two thumbs over the capacity bins, ticking the ones between them.
+$capacity_slider = static function () use ($spec_filters): void {
+    $bins = array_keys((array) $spec_filters['capacity']['bins']);
+    if (!$bins) {
+        return;
+    }
+    ?>
+    <div class="boblift-capacity-slider min-w-0 flex-1 lg:min-w-[260px]" data-capacity-slider data-bins="<?php echo esc_attr((string) wp_json_encode($bins)); ?>">
+        <div class="flex items-baseline justify-between gap-3"><span class="text-[13px] font-semibold text-slate-500"><?php echo esc_html($spec_filters['capacity']['label']); ?></span><output class="text-[15px] font-black text-[#071f42]" dir="ltr" data-capacity-slider-value></output></div>
+        <div class="boblift-capacity-slider-track"><span data-capacity-slider-fill></span><input type="range" min="0" max="<?php echo count($bins); ?>" value="0" aria-label="<?php echo esc_attr($spec_filters['capacity']['label']); ?> min" data-capacity-slider-low><input type="range" min="0" max="<?php echo count($bins); ?>" value="<?php echo count($bins); ?>" aria-label="<?php echo esc_attr($spec_filters['capacity']['label']); ?> max" data-capacity-slider-high></div>
+    </div>
+    <?php
+};
 // Desktop: category tabs (links to each category's page, like the Products menu), then a dropdown per spec filter,
 // then the picked spec options as chips. The spec checkboxes mirror the drawer's, so both drive the same filtering.
-$filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $category_counts, $spec_filters, $spec_counts, $boom_options, $boom_counts, $archive_ui, $all_product_count, $legacy_total, $initial_category, $active_parent, $category_link, $current_attr, $on_all_products): void { ?>
+$filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $category_counts, $spec_filters, $spec_counts, $boom_options, $boom_counts, $archive_ui, $all_product_count, $legacy_total, $initial_category, $active_parent, $category_link, $current_attr, $on_all_products, $filter_ui, $active_children, $subtab_links, $more_filters, $capacity_slider, $capacity_chip_buttons, $capacity_links): void { ?>
     <div class="mb-6 hidden rounded border border-[#E5E7EB] bg-white shadow-card lg:mb-7 lg:block" data-filter-bar>
         <div class="flex flex-wrap px-3 shadow-[inset_0_-1px_0_#E5E7EB]" role="group" aria-label="<?php echo esc_attr($archive_ui['categoryFilterLabel'] ?? 'Product Category'); ?>">
             <a class="boblift-category-tab" href="<?php echo esc_url($category_link('')); ?>" data-category-tab=""<?php echo $current_attr($on_all_products); ?>><?php echo esc_html($archive_ui['allCategoriesLabel'] ?? 'All Products'); ?><span data-tab-count><?php echo esc_html((string) $all_product_count); ?></span></a>
@@ -339,7 +399,21 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
             <?php // Previous models look like a tab but toggle on their own: the category tab stays lit beside it, and the selected category's previous models replace the grid. ?>
             <?php if ($legacy_total > 0) : ?><button class="boblift-category-tab boblift-legacy-tab ms-auto" type="button" aria-pressed="false" aria-controls="previous-models" data-legacy-toggle><?php echo boblift_icon('clock-3', 'h-4 w-4'); ?><?php echo esc_html(boblift_localized_static_text('Previous models')); ?><span data-tab-count data-legacy-count><?php echo esc_html((string) $legacy_total); ?></span></button><?php endif; ?>
         </div>
-        <?php foreach ($category_filter_tree as $item) : if (empty($item['children']) || $item['slug'] !== $active_parent) { continue; } ?>
+        <?php if ($filter_ui === 'a' || $filter_ui === 'c') : $active = $active_children(); ?>
+            <div class="flex flex-wrap items-center gap-3 px-6 py-3" data-filter-row>
+                <?php if ($active) : ?><div class="<?php echo $filter_ui === 'c' ? 'boblift-segmented' : 'flex gap-2'; ?> max-w-full flex-wrap" role="group" aria-label="<?php echo esc_attr($active['item']['title']); ?>" data-category-subtabs="<?php echo esc_attr($active['item']['slug']); ?>"><?php $subtab_links($active); ?></div><?php endif; ?>
+                <?php if ($filter_ui === 'a') : ?>
+                    <?php if ($active && $capacity_links) : ?><span class="h-7 w-px shrink-0 bg-[#E5E7EB]" aria-hidden="true"></span><?php endif; ?>
+                    <div class="flex min-w-[280px] flex-1 basis-[280px] gap-2 overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="<?php echo esc_attr(boblift_localized_static_text('Browse by capacity')); ?>"><?php $capacity_chip_buttons(); ?></div>
+                    <?php $more_filters(array_merge($active ? [] : ['boom'], $capacity_links ? [] : ['capacity'], ['moment', 'weight'])); ?>
+                <?php else : ?>
+                    <span class="h-7 w-px shrink-0 bg-[#E5E7EB]" aria-hidden="true"></span>
+                    <?php $capacity_slider(); ?>
+                    <?php $more_filters(array_merge($active ? [] : ['boom'], ['moment', 'weight'])); ?>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
+        <?php foreach ($category_filter_tree as $item) : if (empty($item['children']) || $item['slug'] !== $active_parent || $filter_ui !== '') { continue; } ?>
             <div class="flex flex-wrap gap-2 px-6 pt-4" role="group" aria-label="<?php echo esc_attr($item['title']); ?>" data-category-subtabs="<?php echo esc_attr($item['slug']); ?>">
                 <a class="boblift-category-subtab" href="<?php echo esc_url($category_link((string) $item['slug'])); ?>" data-category-tab="<?php echo esc_attr($item['slug']); ?>"<?php echo $current_attr($item['slug'] === $initial_category); ?>><?php echo esc_html($archive_ui['allInCategoryLabel'] ?? 'All'); ?><span data-tab-count><?php echo esc_html((string) ($item['count'] ?? 0)); ?></span></a>
                 <?php foreach ($item['children'] as $child) : $child_slug = (string) ($child['slug'] ?? ''); if (($category_counts[$child_slug] ?? 0) <= 0) { continue; } ?>
@@ -363,7 +437,7 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
     </div>
 <?php };
 ?>
-<section class="boblift-product-listing bg-[#F8FAFC] py-8 md:py-12 lg:py-14" data-product-listing data-view="grid" data-current-category="<?php echo esc_attr($initial_category); ?>" data-fixed-capacity="<?php echo esc_attr($fixed_capacity); ?>" data-product-archive-url="<?php echo esc_url(boblift_product_archive_url()); ?>" data-category-urls="<?php echo esc_attr(wp_json_encode($category_url_map, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)); ?>">
+<section class="boblift-product-listing bg-[#F8FAFC] py-8 md:py-12 lg:py-14" data-product-listing data-view="grid" <?php if ($filter_ui !== '') : ?>data-filter-ui="<?php echo esc_attr($filter_ui); ?>" <?php endif; ?>data-current-category="<?php echo esc_attr($initial_category); ?>" data-fixed-capacity="<?php echo esc_attr($fixed_capacity); ?>" data-product-archive-url="<?php echo esc_url(boblift_product_archive_url()); ?>" data-category-urls="<?php echo esc_attr(wp_json_encode($category_url_map, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)); ?>">
     <div class="page-shell">
         <?php if ($tonnage > 0) : ?>
             <nav class="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-bold text-slate-500 md:mb-5" aria-label="<?php echo esc_attr(boblift_localized_static_text('Breadcrumb')); ?>">
@@ -429,6 +503,22 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
             </nav>
         <?php endif; ?>
 
+        <?php if ($filter_ui === 'c') : ?><div class="mb-5 rounded border border-[#E5E7EB] bg-white p-4 lg:hidden"><?php $capacity_slider(); ?></div><?php endif; ?>
+        <?php if ($filter_ui === 'b') : $active = $active_children(); ?>
+        <div class="lg:grid lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start lg:gap-6">
+            <aside class="boblift-filter-aside hidden space-y-5 rounded border border-[#E5E7EB] bg-white p-5 lg:block" aria-label="<?php echo esc_attr($archive_ui['filtersTitle'] ?? 'Filters'); ?>">
+                <div class="flex items-center justify-between gap-3"><h2 class="text-lg font-black text-[#0B1B33]"><?php echo esc_html($archive_ui['filtersTitle'] ?? 'Filters'); ?></h2><button class="text-sm font-bold text-slate-500 transition hover:text-blue-700" type="button" data-filter-reset><?php echo esc_html($archive_ui['clearAllLabel'] ?? 'Clear All'); ?></button></div>
+                <?php if ($active) : ?><div class="flex flex-col gap-2 border-t border-[#E5E7EB] pt-5" role="group" aria-label="<?php echo esc_attr($active['item']['title']); ?>"><?php $subtab_links($active); ?></div><?php endif; ?>
+                <?php foreach (array_merge($active ? [] : ['boom'], ['capacity', 'moment', 'weight']) as $name) {
+                    if ($name === 'boom') {
+                        $filter_group((string) ($archive_ui['boomFilterLabel'] ?? 'Boom Type'), 'boom', $boom_options, $boom_counts);
+                    } else {
+                        $filter_group($spec_filters[$name]['label'], $name, $spec_filters[$name]['bins'], $spec_counts[$name]);
+                    }
+                } ?>
+            </aside>
+            <div class="min-w-0">
+        <?php endif; ?>
         <div class="mb-6 flex scroll-mt-6 flex-col gap-4 md:flex-row md:items-center md:justify-between lg:mb-7" data-products-toolbar>
             <div class="flex flex-wrap items-center gap-3">
                 <p class="text-sm font-black text-slate-500 md:text-base"><?php echo wp_kses(str_replace(['{count}', '{total}'], ['<span data-product-count>' . esc_html((string) count($products)) . '</span>', '<span data-product-total>' . esc_html((string) count($products)) . '</span>'], (string) ($archive_ui['showingTemplate'] ?? 'Showing {count} of {total} products')), ['span' => ['data-product-count' => true, 'data-product-total' => true]]); ?></p>
@@ -492,6 +582,7 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
                 <p class="mt-6 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-sm text-slate-500" data-legacy-entry><span><?php echo esc_html(boblift_localized_static_text('Looking for an older model?')); ?></span><button class="inline-flex items-center gap-1.5 font-black text-blue-700 transition hover:text-[#071f42]" type="button" aria-controls="previous-models" data-legacy-open><?php echo esc_html(boblift_localized_static_text('Previous models')); ?> <span class="font-semibold text-slate-500 [font-variant-numeric:tabular-nums]" data-legacy-count><?php echo esc_html((string) $legacy_total); ?></span><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:-scale-x-100'); ?></button></p>
             <?php endif; ?>
         </div>
+        <?php if ($filter_ui === 'b') : ?></div></div><?php endif; ?>
         <?php if (function_exists('boblift_render_legacy_panel')) { boblift_render_legacy_panel($legacy_groups); } ?>
 
         <div class="boblift-archive-about">

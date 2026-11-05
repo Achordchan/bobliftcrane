@@ -1,6 +1,7 @@
 <?php
 return [
     'ja' => [
+        'cfg|More filters' => '詳細フィルター',
         'cfg|{value} Ton Telescopic Boom' => '{value}トン 伸縮ブーム',
         'cfg|{value} Ton Knuckle Boom' => '{value}トン ナックルブーム',
         'cfg|Truck Mounted Crane' => 'トラック搭載クレーン',
@@ -53,6 +54,7 @@ return [
         '{code} Series' => '{code} シリーズ',
     ],
     'zh' => [
+        'cfg|More filters' => '更多筛选',
         'cfg|{value} Ton Telescopic Boom' => '{value} 吨伸缩臂',
         'cfg|{value} Ton Knuckle Boom' => '{value} 吨折臂',
         'cfg|Truck Mounted Crane' => '随车吊',
@@ -105,6 +107,7 @@ return [
         '{code} Series' => '{code} 系列',
     ],
     'es' => [
+        'cfg|More filters' => 'Más filtros',
         'cfg|{value} Ton Telescopic Boom' => 'Pluma telescópica de {value} t',
         'cfg|{value} Ton Knuckle Boom' => 'Pluma articulada de {value} t',
         'cfg|Truck Mounted Crane' => 'Grúa montada sobre camión',
@@ -157,6 +160,7 @@ return [
         '{code} Series' => 'Serie {code}',
     ],
     'ru' => [
+        'cfg|More filters' => 'Ещё фильтры',
         'cfg|{value} Ton Telescopic Boom' => 'Телескопическая стрела {value} т',
         'cfg|{value} Ton Knuckle Boom' => 'Шарнирная стрела {value} т',
         'cfg|Truck Mounted Crane' => 'Кран-манипулятор',
@@ -209,6 +213,7 @@ return [
         '{code} Series' => 'Серия {code}',
     ],
     'fr' => [
+        'cfg|More filters' => 'Plus de filtres',
         'cfg|{value} Ton Telescopic Boom' => 'Flèche télescopique de {value} t',
         'cfg|{value} Ton Knuckle Boom' => 'Flèche articulée de {value} t',
         'cfg|Truck Mounted Crane' => 'Grue de chargement sur camion',
@@ -261,6 +266,7 @@ return [
         '{code} Series' => 'Série {code}',
     ],
     'ar' => [
+        'cfg|More filters' => 'مزيد من الفلاتر',
         'cfg|{value} Ton Telescopic Boom' => 'ذراع تلسكوبي {value} طن',
         'cfg|{value} Ton Knuckle Boom' => 'ذراع مفصلي {value} طن',
         'cfg|Truck Mounted Crane' => 'رافعة مثبتة على شاحنة',
