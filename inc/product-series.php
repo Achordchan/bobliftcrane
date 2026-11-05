@@ -1120,12 +1120,6 @@ function boblift_series_render_compact_decode(string $model, string $winch = 'op
     <?php
 }
 
-/** Whether the series page being rendered has anything to choose. */
-function boblift_series_has_choice(): bool
-{
-    return boblift_series_dimensions((array) ($GLOBALS['boblift_series_render']['variants'] ?? [])) !== [];
-}
-
 /** The configuration box, with the data the theme script switches from. A series of one has nothing to choose, so no box. */
 function boblift_series_render_configurator(): void
 {
@@ -1188,7 +1182,7 @@ function boblift_series_render_configurator(): void
     ];
     $active_ui = $ui($active);
     ?>
-    <div class="boblift-series-config mt-6 rounded-sm border border-[#D5DEE9] bg-white/70 p-4 sm:p-5" data-series-config>
+    <div class="boblift-series-config mt-7 rounded-sm border border-[#D5DEE9] bg-white/70 p-4 sm:p-5" data-series-config>
         <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
             <p class="text-sm font-black text-[#071f42]"><?php echo esc_html($t('Choose your configuration')); ?></p>
             <p class="text-xs text-slate-500"><?php echo esc_html($count === 1 ? '' : str_replace('{count}', (string) $count, $t('{count} configurations in this series'))); ?></p>
