@@ -2274,7 +2274,7 @@ function boblift_product_card(array $product, string $extra_class = '', bool $ea
                 <div class="product-card-head flex flex-col">
                 <?php // Named by the title and code it shows (an aria-label that left them out failed WCAG 2.5.3, label in name). ?>
                 <a class="block min-w-0" href="<?php echo esc_url($detail_url); ?>">
-                    <h2 class="product-card-title text-[clamp(19px,1.45vw,23px)] font-black leading-[1.12] text-[#0B3F7D]"><?php echo esc_html($card_view['title']); ?></h2>
+                    <h2 class="product-card-title line-clamp-2 text-[clamp(19px,1.45vw,23px)] font-black leading-[1.12] text-[#0B3F7D]"><?php echo esc_html($card_view['title']); ?></h2>
                     <?php $card_subtitle = boblift_series_card_subtitle($card_view); if ($card_subtitle !== '') : ?><p class="product-card-code mt-1.5 text-[13px] font-normal text-slate-500"><?php echo wp_kses($card_subtitle, ['bdi' => [], 'span' => ['class' => true]]); ?></p><?php endif; ?>
                 </a>
                 <?php if ($card_view['configs']) : ?>
@@ -2287,11 +2287,11 @@ function boblift_product_card(array $product, string $extra_class = '', bool $ea
                 </div>
                 <div class="product-card-bottom mt-auto">
                 <?php if ($card_figures) : ?>
-                    <dl class="product-card-specs mt-4 grid gap-y-1.5 border-t border-[#E5E7EB] pt-3 xl:grid-cols-[0.8fr_1fr_1.25fr]">
+                    <dl class="product-card-specs mt-4 grid gap-y-1.5 border-t border-[#E5E7EB] pt-3 xl:grid-cols-3">
                         <?php foreach ($card_figures as $position => $spec) : ?>
                             <div class="flex min-w-0 items-baseline justify-between gap-2 xl:flex-col xl:items-start xl:justify-between <?php echo $position > 0 ? 'xl:border-s xl:border-[#E5E7EB] xl:ps-3' : ''; ?>">
                                 <dt class="min-w-0 text-[11px] font-semibold leading-4 text-slate-500"><?php echo esc_html($spec['label']); ?></dt>
-                                <dd class="whitespace-nowrap text-[14px] font-black leading-5 text-[#071f42] [font-variant-numeric:tabular-nums] xl:mt-1 min-[1700px]:text-[13.5px]"><bdi><?php echo esc_html($spec['value']); ?></bdi></dd>
+                                <dd class="whitespace-nowrap text-[14px] font-black leading-5 text-[#071f42] [font-variant-numeric:tabular-nums] xl:mt-1 2xl:text-[15px]"><bdi><?php echo esc_html($spec['value']); ?></bdi></dd>
                             </div>
                         <?php endforeach; ?>
                     </dl>

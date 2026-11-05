@@ -208,7 +208,5 @@ $check('nothing', '', boblift_series_compare_range(['', '']));
 $check('kN·m converts', '9.2 t·m', boblift_series_moment_in_tm('90 kN·m'));
 $check('t·m stays', '13.2 t·m', boblift_series_moment_in_tm('13.2 t·m'));
 
-$check('a title keeps its phrases whole', "6.3 Ton Telescopic\u{00A0}Boom Truck\u{00A0}Mounted\u{00A0}Crane", boblift_series_keep_phrases('6.3 Ton Telescopic Boom Truck Mounted Crane'));
-
 echo $failures === 0 ? "ok\n" : "{$failures} failed\n";
 exit($failures === 0 ? 0 : 1);

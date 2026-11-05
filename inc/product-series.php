@@ -546,15 +546,6 @@ function boblift_series_moment_in_tm(string $moment): string
     return preg_match('/^([\d.]+)\s*kN·m$/u', trim($moment), $match) ? rtrim(rtrim(number_format((float) $match[1] / 9.80665, 1, '.', ''), '0'), '.') . ' t·m' : $moment;
 }
 
-/** Phrases a title must not break inside, held together with non-breaking spaces ("Truck / Mounted Crane" reads badly). */
-function boblift_series_keep_phrases(string $title): string
-{
-    foreach (['Truck Mounted Crane', 'Knuckle Boom', 'Telescopic Boom', 'Marine Crane', 'Pickup Crane', 'Timber Crane', 'montada sobre camión', 'sur camion', 'pluma articulada', 'pluma telescópica', 'flèche articulée', 'flèche télescopique'] as $phrase) {
-        $title = str_ireplace($phrase, str_replace(' ', "\u{00A0}", $phrase), $title);
-    }
-    return $title;
-}
-
 /** A timber crane's card title: its capacity, and its arm length where the English product title gives one ("Arm Length 7600MM"). */
 function boblift_series_timber_title(float $capacity, string $english_title): string
 {
@@ -623,7 +614,6 @@ function boblift_series_card_view(array $product): array
         $figures = boblift_home_product_card_specs($product);
     }
     $code = $is_series ? boblift_series_label($series) : $model;
-    $name = boblift_series_keep_phrases($name);
     $only = count($configs) === 1 ? $configs[0]['label'] : '';
     return [
         'title' => $name !== '' ? $name : $title,
