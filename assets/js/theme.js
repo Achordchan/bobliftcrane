@@ -5304,7 +5304,7 @@
     const holders = [...document.querySelectorAll(`[data-cfg-variant="${CSS.escape(shownModel)}"]`)];
     holders.forEach((holder) => {
       holder.querySelectorAll('[data-cfg-model-text]').forEach((element) => swapText(element, shownModel, variant.model));
-      holder.querySelectorAll('[data-cfg-cell="weight"] dd, [data-cfg-weight-row] dd').forEach((value) => patch(value, '<span class="text-[clamp(22px,1.9vw,32px)] text-slate-400">—</span>'));
+      holder.querySelectorAll('[data-cfg-cell="weight"] dd, [data-cfg-weight-row] dd').forEach((value) => patch(value, '<span class="text-[clamp(20px,1.5vw,28px)] text-slate-400">—</span>'));
     });
   };
 

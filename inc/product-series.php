@@ -691,24 +691,22 @@ function boblift_series_members_with_figures(array $series): array
 }
 
 /**
- * The hero's figures for one configuration: what changes within a series comes first (weight, reach, height), then
- * capacity and moment. Only figures the data has; up to four.
+ * The hero's figures for one configuration: the same five in the same order across a series, so choices compare at a glance. A
+ * figure the data does not have shows a dash and no value is guessed.
  */
 function boblift_series_hero_figures(array $figures): array
 {
     $rows = [];
     foreach ([
-        ['weight', 'Self weight', $figures['weight'] !== null ? boblift_series_format_kg($figures['weight']) : null],
-        ['radius', 'Max reach', $figures['radius']],
-        ['height', 'Lifting height', $figures['height']],
         ['capacity', 'Max lifting capacity', $figures['capacity'] !== null ? boblift_series_format_kg($figures['capacity']) : null],
         ['moment', 'Max lifting moment', $figures['moment']],
+        ['radius', 'Max reach', $figures['radius']],
+        ['height', 'Lifting height', $figures['height']],
+        ['weight', 'Self weight', $figures['weight'] !== null ? boblift_series_format_kg($figures['weight']) : null],
     ] as [$key, $label, $value]) {
-        if ($value !== null && $value !== '') {
-            $rows[] = ['key' => $key, 'label' => boblift_series_text($label), 'value' => $value];
-        }
+        $rows[] = ['key' => $key, 'label' => boblift_series_text($label), 'value' => $value !== null && $value !== '' ? $value : '—'];
     }
-    return array_slice($rows, 0, 4);
+    return $rows;
 }
 
 /** "≈ 16.5 m" and "12,000 kg" as number and unit, so the hero can set the unit small. */
@@ -763,15 +761,18 @@ function boblift_series_configuration_difference(array $member, array $base): st
         // Isolated so a right-to-left page keeps the sign, number and unit in order.
         return "\u{2066}" . ($difference >= 0 ? '+' : '−') . rtrim(rtrim(number_format(abs($difference), 2, '.', ','), '0'), '.') . ' ' . $unit . "\u{2069}";
     };
-    $metres = static fn($value): ?float => preg_match('/([\d.]+)\s*m$/', (string) $value, $match) ? (float) $match[1] : null;
-    $weight = [$member['figures']['weight'], $base['figures']['weight']];
-    if ($weight[0] !== null && $weight[1] !== null && $weight[0] !== $weight[1]) {
-        $parts[] = boblift_series_text('Self weight') . ' ' . $signed($weight[0] - $weight[1], 'kg');
-    }
-    foreach (['radius' => 'Max reach', 'height' => 'Lifting height'] as $key => $label) {
-        [$own, $other] = [$metres($member['figures'][$key]), $metres($base['figures'][$key])];
-        if ($own !== null && $other !== null && abs($own - $other) > 0.001) {
-            $parts[] = boblift_series_text($label) . ' ' . $signed($own - $other, 'm');
+    $measure = static function ($value): ?array {
+        if (is_int($value) || is_float($value)) {
+            return [(float) $value, 'kg'];
+        }
+        return preg_match('/([\d.,]+)\s*(kg|t·m|kN·m|m)$/u', (string) $value, $match) ? [(float) str_replace(',', '', $match[1]), $match[2]] : null;
+    };
+    // Every figure both give and that differs; one the other lacks cannot be compared and is left out.
+    foreach (['capacity' => 'Max lifting capacity', 'moment' => 'Max lifting moment', 'radius' => 'Max reach', 'height' => 'Lifting height', 'weight' => 'Self weight'] as $key => $label) {
+        $own = $measure($member['figures'][$key] ?? null);
+        $other = $measure($base['figures'][$key] ?? null);
+        if ($own !== null && $other !== null && $own[1] === $other[1] && abs($own[0] - $other[0]) > 0.001) {
+            $parts[] = boblift_series_text($label) . ' ' . $signed($own[0] - $other[0], $own[1]);
         }
     }
     if ($member['values']['winch'] !== '' && $member['values']['winch'] !== $base['values']['winch']) {
@@ -980,8 +981,10 @@ function boblift_series_compare_label(array $values, array $dimensions, string $
 function boblift_series_compare_columns(array $members): array
 {
     $columns = [];
-    foreach (['weight' => 'Self weight', 'radius' => 'Max reach', 'height' => 'Lifting height'] as $key => $label) {
-        if (count(array_filter($members, static fn(array $member): bool => ($member['figures'][$key] ?? null) !== null)) >= 2) {
+    foreach (['moment' => 'Max lifting moment', 'radius' => 'Max reach', 'height' => 'Lifting height', 'weight' => 'Self weight'] as $key => $label) {
+        $values = array_filter(array_map(static fn(array $member) => $member['figures'][$key] ?? null, $members), static fn($value): bool => $value !== null);
+        // A moment all configurations share tells nothing here.
+        if (count($values) >= 2 && ($key !== 'moment' || count(array_unique($values)) > 1)) {
             $columns[] = [$label, $key];
         }
     }

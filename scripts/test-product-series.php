@@ -93,8 +93,8 @@ $check('no guess from other units', null, boblift_series_kilograms('4 t'));
 $check('thousands', '12,000 kg', boblift_series_format_kg(12000));
 $check('approximate height', ['≈ 16.5', 'm'], boblift_series_figure_parts('≈ 16.5 m'));
 $figures = static fn(?int $weight, ?string $radius = null, ?string $height = null): array => ['weight' => $weight, 'capacity' => 12000, 'moment' => '27 t·m', 'radius' => $radius, 'height' => $height];
-$check('changing figures first', ['weight', 'radius', 'height', 'capacity'], array_column(boblift_series_hero_figures($figures(4350, '14.5 m', '≈ 16.5 m')), 'key'));
-$check('only figures the data has', ['weight', 'capacity', 'moment'], array_column(boblift_series_hero_figures($figures(3900)), 'key'));
+$check('the same five figures in the same order', ['capacity', 'moment', 'radius', 'height', 'weight'], array_column(boblift_series_hero_figures($figures(4350, '14.5 m', '≈ 16.5 m')), 'key'));
+$check('also when some are missing', ['12,000 kg', '27 t·m', '—', '—', '3,900 kg'], array_column(boblift_series_hero_figures($figures(3900)), 'value'));
 $twelve = [];
 foreach (['SQ12ZA4T' => 3900, 'SQ12ZA4TJ' => 3950, 'SQ12ZA5T' => 4200, 'SQ12ZA5TJ' => 4400, 'SQ12ZA6T' => 4350] as $model => $weight) {
     $twelve[] = ['model' => $model, 'values' => boblift_series_parse_model($model), 'figures' => $figures($weight, $model === 'SQ12ZA6T' ? '14.5 m' : null)];
@@ -181,6 +181,9 @@ $check('booms otherwise', ['3 hydraulic booms', ''], boblift_series_choice_label
 $check('difference from the series model', "Self weight \u{2066}−400 kg\u{2069} · With winch", boblift_series_configuration_difference($twelve[1], $twelve[4]));
 $check('compare label', 'A4 · With winch', boblift_series_compare_label($a4j, $dimensions));
 $check('a figure only one configuration has stays out of the comparison', [['Self weight', 'weight']], boblift_series_compare_columns($twelve));
+$with = fn(array $fig): array => ['model' => 'B', 'values' => boblift_series_parse_model('SQ08ZA3'), 'figures' => $fig];
+$check('every figure that differs', "Max lifting moment \u{2066}−0.3 t·m\u{2069} · Max reach \u{2066}+1.5 m\u{2069} · Lifting height \u{2066}+2 m\u{2069} · Self weight \u{2066}−50 kg\u{2069}", boblift_series_configuration_difference($with(['weight' => 280, 'capacity' => 800, 'moment' => '1 t·m', 'radius' => '5.65 m', 'height' => '≈ 7.5 m']), ['model' => 'A', 'values' => boblift_series_parse_model('SQ08ZA3'), 'figures' => ['weight' => 330, 'capacity' => 800, 'moment' => '1.3 t·m', 'radius' => '4.15 m', 'height' => '≈ 5.5 m']]));
+$check('a figure only one has is left out', "Self weight \u{2066}−50 kg\u{2069}", boblift_series_configuration_difference($with(['weight' => 280, 'capacity' => 800, 'moment' => null, 'radius' => null, 'height' => null]), ['model' => 'A', 'values' => boblift_series_parse_model('SQ08ZA3'), 'figures' => ['weight' => 330, 'capacity' => 800, 'moment' => null, 'radius' => '4.15 m', 'height' => '≈ 5.5 m']]));
 $check('no difference from itself', '', boblift_series_configuration_difference($twelve[4], $twelve[4]));
 
 echo $failures === 0 ? "ok\n" : "{$failures} failed\n";
