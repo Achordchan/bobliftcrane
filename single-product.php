@@ -437,7 +437,8 @@ if ($family_quote_copy) {
                     $hero_model_shown = $series_page ? (string) ($GLOBALS['boblift_series_render']['active'] ?? $hero_model) : $hero_model;
                     $hero_series_label = $product_series ? boblift_series_label($product_series) : '';
                     ?>
-                    <h1 class="boblift-product-hero-title mt-4 text-[clamp(30px,2.6vw,44px)] font-black leading-[1.1] tracking-[-0.015em] text-[#071f42]"<?php echo $series_name_switches ? ' data-cfg-name' : ''; ?>><?php echo esc_html($hero_name); ?></h1>
+                    <?php // A name that changes with the choice keeps room for two lines, so nothing under it moves. ?>
+                    <h1 class="boblift-product-hero-title mt-4 text-[clamp(30px,2.6vw,44px)] font-black leading-[1.1] tracking-[-0.015em] text-[#071f42]<?php echo $series_name_switches ? ' min-h-[2.2em]' : ''; ?>"<?php echo $series_name_switches ? ' data-cfg-name' : ''; ?>><?php echo esc_html($hero_name); ?></h1>
                     <?php if ($hero_model_shown !== '') : ?>
                         <p class="mt-3.5 text-[clamp(17px,1.25vw,20px)] leading-snug text-[#071f42]" data-hero-model-line><span class="font-normal text-slate-500"><?php echo esc_html(boblift_series_text('Model')); ?></span> <span class="font-black" dir="ltr"<?php echo $series_page ? ' data-cfg-title' : ''; ?>><?php echo esc_html($hero_model_shown); ?></span><?php if ($hero_series_label !== '' && $hero_series_label !== $hero_model_shown) : ?><span class="mx-2 text-slate-300" aria-hidden="true">·</span><span class="font-normal text-slate-500"><?php echo esc_html($hero_series_label); ?></span><?php endif; ?></p>
                     <?php endif; ?>

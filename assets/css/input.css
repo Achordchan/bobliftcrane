@@ -1030,14 +1030,9 @@ img { max-width: 100%; }
 @keyframes boblift-figures-in { from { opacity: 0; } to { opacity: 1; } }
 [data-cfg-block="keyspecs"] [data-cfg-variant]:not([hidden]) { animation: boblift-figures-in .15s ease-out; }
 
-/* Product page top: both columns end on one line, whichever is taller. The photo grows with a long column (never flatter than 16:10);
-   a short column shares the spare height between its blocks. */
+/* Product page top: the text keeps one fixed rhythm on every page; the photo follows its height, never flatter than 16:10.
+   Text shorter than that ends above the photo's foot, with the space below it. */
 @media (min-width: 1280px) {
-  .boblift-hero-text { display: flex; flex-direction: column; }
-  .boblift-hero-text > [data-cfg-block="keyspecs"], .boblift-hero-text > dl { margin-top: auto; padding-top: 1.75rem; }
-  .boblift-hero-text > [data-cfg-block="keyspecs"] dl { margin-top: 0; }
-  .boblift-hero-text > .boblift-hero-actions-row { margin-top: auto; padding-top: 2rem; padding-bottom: 1.75rem; }
-  .boblift-hero-text > .boblift-hero-trust { margin-top: auto; }
   [data-cfg-block="gallery"] > [data-cfg-variant] { height: 100%; }
   [data-product-hero-gallery-root] { display: flex; flex-direction: column; height: 100%; }
   [data-product-hero-gallery-root] .boblift-product-stage { flex: 1 1 auto; min-height: 420px; max-height: 640px; }
