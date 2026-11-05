@@ -5299,6 +5299,29 @@
   else window.addEventListener('load', init, { once: true });
 })();
 
+// Product page photo: beside a tall text column its frame may grow until a tall photo fills the width, 640-800 px. One value per
+// gallery, from its first photo, so going through the thumbnails does not move anything. A hidden gallery has no width: the
+// observer sizes it when its configuration is chosen.
+(() => {
+  const roots = document.querySelectorAll('[data-product-hero-gallery-root]');
+  if (!roots.length || !('ResizeObserver' in window)) return;
+  const size = (root) => {
+    const image = root.querySelector('[data-product-hero-gallery-current], [data-product-hero-gallery-image]');
+    const width = root.clientWidth;
+    if (!image || !width) return;
+    if (!root.boblifPhotoRatio) {
+      if (!image.naturalWidth) {
+        image.addEventListener('load', () => size(root), { once: true });
+        return;
+      }
+      root.boblifPhotoRatio = image.naturalHeight / image.naturalWidth;
+    }
+    root.style.setProperty('--boblift-stage-max', `${Math.round(Math.min(800, Math.max(640, width * root.boblifPhotoRatio)))}px`);
+  };
+  const observer = new ResizeObserver((entries) => entries.forEach((entry) => size(entry.target)));
+  roots.forEach((root) => observer.observe(root));
+})();
+
 // A row that scrolls sideways: the current item in view, and a fade at each end that has more to swipe to.
 (() => {
   document.querySelectorAll('[data-scroll-row]').forEach((row) => {
