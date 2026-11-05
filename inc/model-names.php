@@ -50,12 +50,12 @@ function boblift_model_parts(string $model): array
             $control,
         ];
     }
-    // Marine SQZ models carry their lifting moment class in kN·m instead of a capacity (SQZ330T: about 34.8 t·m, or 341 kN·m).
+    // Marine SQZ models carry a lifting moment class instead of a capacity: close to the moment in kN·m, not equal to it.
     if (preg_match('/^SQZ(?<moment>\d{3,4})T(?<winch>J?)$/', $model, $m)) {
         $parts = [
             ['SQ', $t('BOB-LIFT crane')],
             ['Z', $t('Knuckle boom')],
-            [$m['moment'], str_replace('{value}', $m['moment'], $t('{value} kN·m lifting moment class'))],
+            [$m['moment'], $t('Lifting moment class')],
             ['T', $t('Marine version')],
         ];
         if ($m['winch'] !== '') {

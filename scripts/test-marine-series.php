@@ -35,7 +35,7 @@ foreach (['SQ12ZA6T' => 'SQ12ZA6TJ', 'SQ8ZA6TJ' => 'SQ8ZA6T', 'SQ08ZA3T+1' => 'S
 }
 
 // Series names.
-foreach (['SQ12ZA6T' => 'SQ12Z-T', 'SQ08ZA3TJ+1' => 'SQ08Z-T', 'SQ3.2SA4T' => 'SQ3.2S-T', 'BLZ90K5TJ' => 'BLZ90-T', 'SQZ500T' => 'SQZ-T'] as $model => $code) {
+foreach (['SQ12ZA6T' => 'SQ12Z-T', 'SQ08ZA3TJ+1' => 'SQ08Z-T', 'SQ3.2SA4T' => 'SQ3.2S-T', 'BLZ90K5TJ' => 'BLZ90-T', 'SQZ500T' => 'SQZ500T', 'SQZ330T' => 'SQZ330T'] as $model => $code) {
     $check("code of {$model}", $code, boblift_marine_series_code($model));
 }
 
@@ -119,6 +119,10 @@ $check('telescopic always has it', '1', $tele[0]['values']['winch']);
 $check('a telescopic name with J is the same crane', 'SQ10SA4T', boblift_marine_normalize_requested('SQ10SA4TJ', 'telescopic'));
 $check('a knuckle name with J stays', 'SQ12ZA6TJ', boblift_marine_normalize_requested('SQ12ZA6TJ', 'knuckle'));
 $check('knuckle keeps what the name says', '0', boblift_marine_boom_values(boblift_marine_parse_model('SQ12ZA6T'), 'knuckle')['winch']);
+$sqz_figures = [['model' => 'SQZ330T', 'values' => boblift_marine_parse_model('SQZ330T'), 'figures' => ['moment' => '34.8 t·m']], ['model' => 'SQZ350T', 'values' => boblift_marine_parse_model('SQZ350T'), 'figures' => ['moment' => null]]];
+$check('SQZ choice shows its moment', ['SQZ330', '34.8 t·m'], boblift_marine_choice_label('named', 'SQZ330T', $sqz_figures));
+$check('no moment, no figure', ['SQZ350', ''], boblift_marine_choice_label('named', 'SQZ350T', $sqz_figures));
+$check('an SQZ series is called by its models', 'SQZ330T / SQZ350T', boblift_marine_series_label(['code' => 'SQZ330T', 'members' => $sqz_figures]));
 $check('quote details follow the twin', 'Crane SQ12ZA6TJ', boblift_marine_meta_for_twin(['inquiry' => ['title' => 'Crane SQ12ZA6T']], 'SQ12ZA6T', 'SQ12ZA6TJ', 'u')['inquiry']['title']);
 $check('winch weight', '+50 kg', boblift_marine_winch_difference($twelve, $a4j));
 $check('no pair, no difference', '', boblift_marine_winch_difference($twelve, $a6));

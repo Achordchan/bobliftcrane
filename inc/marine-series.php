@@ -41,9 +41,8 @@ function boblift_marine_series_code(string $model): string
         $code = 'SQ' . $m[1] . $m[2] . '-T';
     } elseif (preg_match('/^(BLZ\d+)K\d/', $model, $m)) {
         $code = $m[1] . '-T';
-    } elseif (preg_match('/^SQZ\d/', $model)) {
-        $code = 'SQZ-T';
     } else {
+        // SQZ names carry a lifting moment class and differ per series, so the model names the series itself.
         $code = $model;
     }
     return (string) apply_filters('boblift_marine_series_code', $code, $model);
@@ -309,10 +308,13 @@ function boblift_marine_series_member(array $series, int $post_id): ?array
     return null;
 }
 
-/** "SQ12Z-T Series", in the page's language. */
-function boblift_marine_series_label(string $code): string
+/** "SQ12Z-T Series" in the page's language; an SQZ series is called by its models: "SQZ330T / SQZ350T". */
+function boblift_marine_series_label(array $series): string
 {
-    return str_replace('{code}', $code, boblift_localized_static_text('{code} Series'));
+    if (str_starts_with((string) $series['code'], 'SQZ')) {
+        return implode(' / ', array_column($series['members'], 'model'));
+    }
+    return str_replace('{code}', (string) $series['code'], boblift_localized_static_text('{code} Series'));
 }
 
 /**
@@ -690,6 +692,12 @@ function boblift_marine_choice_label(string $dimension, string $value, array $me
     if ($dimension === 'manual') {
         return [$value === '1' ? '+1' : '—', ''];
     }
+    // SQZ models differ by moment class: the name without its marine T, and the moment the data gives.
+    foreach ($members as $member) {
+        if (($member['values']['named'] ?? '') === $value) {
+            return [(string) preg_replace('/T$/', '', $value), (string) ($member['figures']['moment'] ?? '')];
+        }
+    }
     return [$value, ''];
 }
 
@@ -697,11 +705,24 @@ function boblift_marine_choice_label(string $dimension, string $value, array $me
  * The model name part by part under the title: three to a row, each with its meaning in plain sight. A name that decodes gets
  * the winch part either way, shown or hidden by the theme script, since the choice can change it.
  */
-function boblift_marine_render_compact_decode(string $model, bool $winch_choice = true): void
+function boblift_marine_render_compact_decode(string $model, bool $winch_choice = true, int $english_id = 0): void
 {
     $parts = boblift_model_parts($model);
     if (!$parts) {
         return;
+    }
+    $former = '';
+    if (str_starts_with($model, 'SQZ') && $english_id > 0) {
+        // The moment class is a class, not the figure, which the data gives; old customers know the crane by its former number.
+        $moment = (string) (boblift_marine_product_figures($english_id)['moment'] ?? '');
+        $former = trim((string) get_post_meta($english_id, '_model_aliases', true));
+        if ($moment !== '') {
+            foreach ($parts as $index => [$code]) {
+                if (ctype_digit((string) $code)) {
+                    $parts[$index][1] = str_replace('{value}', $moment, boblift_marine_text('Lifting moment class ({value} on the drawing)'));
+                }
+            }
+        }
     }
     $has_winch = in_array('J', array_column($parts, 0), true);
     if (!$has_winch && $winch_choice) {
@@ -720,6 +741,7 @@ function boblift_marine_render_compact_decode(string $model, bool $winch_choice 
             </div>
         <?php endforeach; ?>
     </dl>
+    <?php if ($former !== '') : ?><p class="mt-2 text-xs leading-5 text-slate-500"><?php echo esc_html(str_replace('{model}', $former, boblift_marine_text('Former model no. {model}'))); ?></p><?php endif; ?>
     <?php
 }
 
@@ -747,7 +769,7 @@ function boblift_marine_render_configurator(): void
             $active = $member;
         }
     }
-    $headings = ['named' => $t('Model'), 'sections' => $t('Boom sections'), 'winch' => $t('Winch'), 'manual' => $t('Manual extension (+1)')];
+    $headings = ['named' => $t('Model (moment class)'), 'sections' => $t('Boom sections'), 'winch' => $t('Winch'), 'manual' => $t('Manual extension (+1)')];
     $unavailable_text = $t('Not offered with the current choice: selecting it changes the other options');
     $base = $active;
     foreach ($members as $member) {
@@ -973,7 +995,7 @@ function boblift_marine_series_schema(): array
         '@context' => 'https://schema.org',
         '@type' => 'ProductGroup',
         '@id' => $series['url'] . '#series',
-        'name' => (string) ($home_meta['name'] ?? '') . ' (' . boblift_marine_series_label($series['code']) . ')',
+        'name' => (string) ($home_meta['name'] ?? '') . ' (' . boblift_marine_series_label($series) . ')',
         'productGroupID' => $series['code'],
         'url' => $series['url'],
         'image' => (string) ($home_meta['image'] ?? ''),

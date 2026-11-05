@@ -1,6 +1,10 @@
 <?php
 return [
     'ja' => [
+        'Lifting moment class' => '吊り上げモーメントクラス',
+        'cfg|Lifting moment class ({value} on the drawing)' => '吊り上げモーメントクラス（図面値 {value}）',
+        'cfg|Model (moment class)' => '型式（モーメントクラス）',
+        'cfg|Former model no. {model}' => '旧型番 {model}',
         'cfg|Configuration' => '構成',
         'cfg|Compared with {model}' => '{model} との比較',
         'cfg|Self weight' => '自重',
@@ -29,7 +33,10 @@ return [
         '{code} Series' => '{code} シリーズ',
     ],
     'zh' => [
-        '{value} kN·m lifting moment class' => '{value} kN·m 起重力矩级',
+        'Lifting moment class' => '起重力矩等级',
+        'cfg|Lifting moment class ({value} on the drawing)' => '起重力矩等级（图纸 {value}）',
+        'cfg|Model (moment class)' => '型号（力矩等级）',
+        'cfg|Former model no. {model}' => '曾用编号 {model}',
         'cfg|Knuckle boom marine cranes can be built with or without a winch.' => '折臂船吊可选择带或不带卷扬。',
         'cfg|Telescopic boom marine cranes come with a winch as standard.' => '直臂船吊均标配卷扬。',
         'cfg|Winch included on every telescopic marine crane' => '直臂船吊均标配卷扬',
@@ -67,6 +74,10 @@ return [
         '{code} Series' => '{code} 系列',
     ],
     'es' => [
+        'Lifting moment class' => 'Clase de momento de elevación',
+        'cfg|Lifting moment class ({value} on the drawing)' => 'Clase de momento de elevación ({value} en el plano)',
+        'cfg|Model (moment class)' => 'Modelo (clase de momento)',
+        'cfg|Former model no. {model}' => 'N.º de modelo anterior: {model}',
         'cfg|Configuration' => 'Configuración',
         'cfg|Compared with {model}' => 'Comparado con {model}',
         'cfg|Self weight' => 'Peso propio',
@@ -95,6 +106,10 @@ return [
         '{code} Series' => 'Serie {code}',
     ],
     'ru' => [
+        'Lifting moment class' => 'Класс грузового момента',
+        'cfg|Lifting moment class ({value} on the drawing)' => 'Класс грузового момента ({value} на чертеже)',
+        'cfg|Model (moment class)' => 'Модель (класс момента)',
+        'cfg|Former model no. {model}' => 'Прежний номер модели: {model}',
         'cfg|Configuration' => 'Конфигурация',
         'cfg|Compared with {model}' => 'По сравнению с {model}',
         'cfg|Self weight' => 'Собственный вес',
@@ -123,6 +138,10 @@ return [
         '{code} Series' => 'Серия {code}',
     ],
     'fr' => [
+        'Lifting moment class' => 'Classe de moment de levage',
+        'cfg|Lifting moment class ({value} on the drawing)' => 'Classe de moment de levage ({value} sur le plan)',
+        'cfg|Model (moment class)' => 'Modèle (classe de moment)',
+        'cfg|Former model no. {model}' => 'Ancien numéro de modèle : {model}',
         'cfg|Configuration' => 'Configuration',
         'cfg|Compared with {model}' => 'Par rapport à {model}',
         'cfg|Self weight' => 'Poids propre',
@@ -151,6 +170,10 @@ return [
         '{code} Series' => 'Série {code}',
     ],
     'ar' => [
+        'Lifting moment class' => 'فئة عزم الرفع',
+        'cfg|Lifting moment class ({value} on the drawing)' => 'فئة عزم الرفع ({value} في الرسم)',
+        'cfg|Model (moment class)' => 'الطراز (فئة العزم)',
+        'cfg|Former model no. {model}' => 'رقم الطراز السابق: {model}',
         'cfg|Configuration' => 'التكوين',
         'cfg|Compared with {model}' => 'مقارنة بـ {model}',
         'cfg|Self weight' => 'الوزن الذاتي',
