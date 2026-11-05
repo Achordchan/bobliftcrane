@@ -472,11 +472,12 @@ if ($family_quote_copy) {
                     <?php if (!$series_page) { boblift_render_model_decode($hero_model); } ?>
                     <?php boblift_render_model_variants($hero_model, (string) ($product['slug'] ?? '')); ?>
                     <?php boblift_series_block_open('keyspecs'); ?>
-                    <dl class="mt-5 grid grid-cols-2 rounded border border-[#DDE5EF] bg-[#F5F8FC] <?php echo $series_page ? 'sm:grid-cols-5' : 'sm:grid-cols-4'; ?> lg:mt-6">
+                    <?php // Plain text with no boxes: only the configuration below is there to be clicked. ?>
+                    <dl class="mt-5 grid grid-cols-2 gap-x-4 gap-y-3 <?php echo $series_page ? 'sm:grid-cols-5' : 'sm:grid-cols-4'; ?> lg:mt-6">
                         <?php foreach ($hero_specs as $index => $spec) :
                             [$spec_number, $spec_unit] = $series_page ? boblift_series_figure_parts((string) ($spec['value'] ?? '')) : $hero_spec_parts((string) ($spec['value'] ?? ''));
                         ?>
-                            <div class="flex min-w-0 flex-col py-2.5 pe-2 ps-3 <?php echo $index % 2 === 1 ? 'border-s border-[#DDE5EF]' : ''; ?> <?php echo $index >= 2 ? 'border-t border-[#DDE5EF] sm:border-t-0' : ''; ?> <?php echo $index === 2 ? 'sm:border-s' : ''; ?> <?php echo $series_page && $index === 4 ? 'col-span-2 sm:col-span-1 sm:border-s' : ''; ?>"<?php echo $series_page ? ' data-cfg-cell="' . esc_attr((string) ($spec['key'] ?? '')) . '" data-cfg-cell-value="' . esc_attr((string) ($spec['value'] ?? '')) . '"' : ''; ?>>
+                            <div class="flex min-w-0 flex-col<?php echo $series_page && $index === 4 ? ' col-span-2 sm:col-span-1' : ''; ?>"<?php echo $series_page ? ' data-cfg-cell="' . esc_attr((string) ($spec['key'] ?? '')) . '" data-cfg-cell-value="' . esc_attr((string) ($spec['value'] ?? '')) . '"' : ''; ?>>
                                 <dt class="text-[13px] font-semibold leading-[1.25] text-slate-500"><?php echo esc_html($spec['label']); ?></dt>
                                 <dd class="mt-auto break-words pt-1.5 font-black leading-tight text-[#071f42] [font-variant-numeric:tabular-nums]"><span class="<?php echo $series_page ? 'text-[clamp(20px,1.5vw,28px)]' : (($spec_unit !== '' || mb_strlen($spec_number) <= 8) ? 'text-[clamp(22px,1.9vw,32px)]' : 'text-base'); ?><?php echo $spec_number === '—' ? ' text-slate-400' : ''; ?>"><?php echo esc_html($spec_number); ?></span><?php if ($spec_unit !== '') : ?><span class="<?php echo $spec_unit === '°' ? '' : 'ms-1'; ?> whitespace-nowrap text-sm font-bold text-slate-500"><?php echo esc_html($spec_unit); ?></span><?php endif; ?></dd>
                             </div>
