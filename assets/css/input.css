@@ -1952,29 +1952,6 @@ img { max-width: 100%; }
 }
 /* On phones the product page sections run edge to edge as bands, as on the loader site, instead of cards inside
    the 16px gutter: their copy then starts on the same 16px line as the hero above. */
-/* Marine series: the photo stands as tall as the text column beside it; a changed figure lights up briefly. */
-@media (min-width: 1024px) {
-  [data-cfg-block="gallery"] > [data-cfg-variant] {
-    height: 100%;
-  }
-  [data-cfg-block="gallery"] [data-product-hero-gallery-root] {
-    display: flex;
-    height: 100%;
-    flex-direction: column;
-  }
-  [data-cfg-block="gallery"] .boblift-product-stage {
-    aspect-ratio: auto;
-    flex: 1 1 auto;
-    min-height: 420px;
-  }
-  [data-cfg-block="gallery"] .boblift-product-stage img {
-    object-position: center;
-  }
-  /* The photo no longer stands on the stage's floor, so the floor line and its shadow go. */
-  [data-cfg-block="gallery"] .boblift-product-stage > span {
-    display: none;
-  }
-}
 .boblift-cfg-dot {
   display: inline-block;
   width: 14px;

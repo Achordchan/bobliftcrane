@@ -421,7 +421,7 @@ if ($family_quote_copy) {
         <div class="pointer-events-none absolute inset-0 boblift-cinema-grid opacity-40"></div>
         <div class="page-shell relative z-10 py-6 md:py-8 lg:py-10">
             <?php // The configuration box makes the text column tall: the photo stays at its top instead of drifting to the middle. ?>
-            <div class="grid grid-cols-1 <?php echo $series_page ? 'items-stretch' : 'items-center'; ?> gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-10 xl:gap-14">
+            <div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-10 xl:gap-14">
                 <div class="relative z-20 order-2 min-w-0 lg:order-1">
                     <?php if ($series_page) : ?>
                         <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">

@@ -1189,7 +1189,7 @@ function boblift_series_render_configurator(): void
         </div>
         <?php foreach ($dimensions as $dimension => $values) : ?>
             <div class="mt-3.5">
-                <p class="text-[12px] font-black uppercase leading-4 tracking-[0.12em] text-slate-500 rtl:tracking-normal" id="boblift-cfg-<?php echo esc_attr($dimension); ?>"><?php echo esc_html($headings[$dimension]); ?></p>
+                <p class="text-[13px] font-semibold leading-4 text-slate-500" id="boblift-cfg-<?php echo esc_attr($dimension); ?>"><?php echo esc_html($headings[$dimension]); ?></p>
                 <?php $has_main_boom = $dimension === 'sections' && !array_filter($values, static fn(string $value): bool => !str_starts_with($value, 'A')); ?>
                 <div class="mt-1.5 flex flex-wrap items-stretch <?php echo $has_main_boom ? 'boblift-boom-row gap-1.5' : 'gap-2'; ?>">
                 <?php // Every SQ model has one main boom, so the hydraulic booms read as what is added to it. BLZ's K is not confirmed yet. ?>
