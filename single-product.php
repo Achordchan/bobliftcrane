@@ -346,11 +346,12 @@ $spec_groups = boblift_product_spec_groups(get_the_ID(), $technical_specs, $hero
 $drawing_data = boblift_product_drawing_data((int) get_the_ID());
 $anchors = [];
 $anchors[] = ['id' => 'technical', 'label' => (string) ($ui['technicalLabel'] ?? 'Technical Specifications')];
-if ($detail_body_html !== '' || $product_videos || $has_overview_copy) {
-    $anchors[] = ['id' => 'overview', 'label' => (string) ($ui['detailBodyLabel'] ?? 'Product details')];
-}
+// In page order: the drawing sits inside the specifications, above the product details.
 if ($drawings) {
     $anchors[] = ['id' => 'drawing', 'label' => (string) ($ui['drawingLabel'] ?? 'Dimension Drawing')];
+}
+if ($detail_body_html !== '' || $product_videos || $has_overview_copy) {
+    $anchors[] = ['id' => 'overview', 'label' => (string) ($ui['detailBodyLabel'] ?? 'Product details')];
 }
 if ($brochure_features) {
     $anchors[] = ['id' => 'features', 'label' => (string) ($ui['featuresLabel'] ?? 'Key Features')];
