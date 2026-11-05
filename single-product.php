@@ -1180,22 +1180,21 @@ if ($family_quote_copy) {
                     <?php // Product cards, not article cards: the cut-out on the product backdrop, the capacity line, two figures and the way to the page. ?>
                     <ul class="grid grid-cols-2 gap-3 px-4 py-5 sm:p-6 md:gap-5 md:p-8 lg:grid-cols-4">
                         <?php foreach ($related_products as $related) :
-                            $related_model = trim((string) ($related['model'] ?? ''));
+                            $related_view = boblift_series_card_view($related);
                             $related_image = boblift_product_image($related);
                             $related_fit = boblift_image_fit($related_image) === 'cutout' ? 'object-contain p-4 drop-shadow-[0_6px_8px_rgba(11,27,51,0.10)]' : 'object-contain';
-                            $related_kicker = function_exists('boblift_home_product_card_kicker') ? boblift_home_product_card_kicker($related) : esc_html((string) ($related['category_title'] ?? ''));
-                            $related_specs = function_exists('boblift_home_product_card_specs') ? boblift_home_product_card_specs($related) : [];
+                            $related_specs = array_slice($related_view['figures'], 0, 2);
                             ?>
                             <li class="min-w-0">
                                 <a class="group flex h-full flex-col overflow-hidden rounded border border-[#E5E7EB] bg-white transition hover:-translate-y-0.5 hover:border-blue-200" href="<?php echo esc_url(boblift_product_url($related)); ?>">
                                     <span class="relative block aspect-[4/3] overflow-hidden bg-[radial-gradient(circle_at_48%_34%,#ffffff_0%,#f8fafc_34%,#eef2f7_64%,#e2e8f0_100%)]"><img class="absolute inset-0 h-full w-full transition duration-500 group-hover:scale-[1.03] <?php echo esc_attr($related_fit); ?>" src="<?php echo esc_url($related_image); ?>" alt="<?php echo esc_attr((string) $related['title']); ?>" loading="lazy" decoding="async"></span>
                                     <span class="flex flex-1 flex-col p-3 sm:p-4">
-                                        <?php if ($related_kicker !== '') : ?><span class="block truncate text-xs leading-4 text-slate-500"><?php echo wp_kses($related_kicker, ['bdi' => ['class' => true, 'dir' => true]]); ?></span><?php endif; ?>
-                                        <span class="mt-1 block truncate text-xl font-black uppercase leading-tight tracking-[0.02em] text-[#0B3F7D] transition group-hover:text-blue-700 md:text-2xl"><?php echo esc_html($related_model !== '' ? $related_model : (string) $related['title']); ?></span>
+                                        <span class="line-clamp-3 text-[15px] font-black leading-tight text-[#0B3F7D] transition group-hover:text-blue-700 sm:line-clamp-2 md:text-[17px]"><?php echo esc_html($related_view['title']); ?></span>
+                                        <?php if ($related_view['code'] !== '') : ?><span class="mt-1 block truncate text-xs leading-4 text-slate-500"><bdi><?php echo esc_html($related_view['code']); ?></bdi></span><?php endif; ?>
                                         <?php if ($related_specs) : ?>
                                             <span class="mt-3 grid grid-cols-2 gap-2 border-t border-[#E5E7EB] pt-3">
                                                 <?php foreach ($related_specs as $spec) : ?>
-                                                    <span class="min-w-0"><span class="block truncate text-[11px] font-semibold leading-4 text-slate-500"><?php echo esc_html($spec['label']); ?></span><span class="mt-0.5 block truncate text-sm font-black text-[#071f42]" dir="ltr"><?php echo esc_html($spec['value']); ?></span></span>
+                                                    <span class="flex min-w-0 flex-col justify-end"><span class="block text-[11px] font-semibold leading-4 text-slate-500"><?php echo esc_html($spec['label']); ?></span><span class="mt-0.5 block truncate text-sm font-black text-[#071f42]"><bdi><?php echo esc_html($spec['value']); ?></bdi></span></span>
                                                 <?php endforeach; ?>
                                             </span>
                                         <?php endif; ?>

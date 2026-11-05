@@ -567,6 +567,7 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
                         <button class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-sm border border-[#E5E7EB] text-[#0B1B33] transition hover:border-blue-300 hover:text-blue-700" type="button" aria-label="<?php echo esc_attr($product_ui['closeQuickViewLabel'] ?? 'Close quick view'); ?>" data-quick-close><?php echo boblift_icon('x', 'h-5 w-5'); ?></button>
                     </div>
                     <p class="mt-4 text-base font-normal leading-7 text-slate-600" data-quick-summary></p>
+                    <div class="mt-4 hidden flex-wrap gap-1.5" data-quick-configs></div>
                     <dl class="mt-5 grid grid-cols-2 border-s border-t border-[#E5E7EB] sm:grid-cols-3" data-quick-specs></dl>
                     <div class="mt-auto grid gap-3 pt-8 sm:grid-cols-[1fr_1fr_auto]">
                         <button class="inline-flex min-h-12 items-center justify-center rounded-sm bg-[#0B1B33] px-6 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-[#0B3F7D]" type="button" data-quick-inquiry data-inquiry-modal-open data-inquiry-source="产品快速预览"><?php echo esc_html($product_ui['requestQuoteLabel'] ?? 'Request Quote'); ?></button>

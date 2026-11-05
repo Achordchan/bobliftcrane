@@ -469,37 +469,9 @@ function boblift_series_search_models(int $post_id): array
 }
 
 /** What a product card shows for a series page: its code and models. Null for any other product. */
-function boblift_series_card(int $post_id): ?array
-{
-    $series = boblift_series_for_product($post_id);
-    return $series && $series['home_id'] === $post_id ? ['code' => $series['code'], 'models' => array_column($series['members'], 'model')] : null;
-}
-
-/** The models and count under a card's title. */
-function boblift_series_render_series_card_models(array $card): void
-{
-    $count = count($card['models']);
-    ?>
-    <div class="mt-3">
-        <?php if ($count > 1) : ?><p class="text-xs font-semibold text-slate-500"><?php echo esc_html(str_replace('{count}', (string) $count, boblift_series_text('{count} configurations'))); ?></p><?php endif; ?>
-        <div class="<?php echo $count > 1 ? 'mt-1.5 ' : ''; ?>flex flex-wrap gap-1.5" dir="ltr">
-            <?php foreach ($card['models'] as $model) : ?>
-                <span class="inline-flex h-6 items-center rounded-sm border border-[#D5DEE9] bg-[#F5F8FC] px-1.5 text-[12px] font-black text-[#071f42] [font-variant-numeric:tabular-nums]"><?php echo esc_html($model); ?></span>
-            <?php endforeach; ?>
-        </div>
-    </div>
-    <?php
-}
-
 /* -------------------------------------------------------------------------- *
- * Card options under review (?card=a|b|c). The default card is unchanged until one is chosen; then this switch goes.
+ * Product cards: what a card says about a series or a single product.
  * -------------------------------------------------------------------------- */
-
-function boblift_series_card_option(): string
-{
-    $option = isset($_GET['card']) && is_string($_GET['card']) ? strtolower($_GET['card']) : '';
-    return in_array($option, ['a', 'b', 'c'], true) ? $option : '';
-}
 
 /** "1–1.3 t·m", "280–330 kg" or one value, from the values that exist; '' when none does. */
 function boblift_series_figure_range(array $values): string
@@ -526,15 +498,20 @@ function boblift_series_figure_range(array $values): string
     return ($approx ? '≈ ' : '') . $format($low) . ($high > $low ? '–' . $format($high) : '') . ' ' . $unit;
 }
 
-/** What a card shows, for a series or a single product: its general title, ranges and configurations. */
-function boblift_series_card_view(array $product, string $fallback_title): array
+/**
+ * A card is named by what the crane is (capacity and type); the model or series code comes second.
+ * Returns title, code, configs (label, url), specs (the four figures as ranges) and figures (the three a card shows).
+ */
+function boblift_series_card_view(array $product): array
 {
     $id = (int) ($product['id'] ?? 0);
+    $model = trim((string) ($product['model'] ?? ''));
+    $title = trim((string) ($product['title'] ?? ''));
+    $name = $model !== '' ? (string) preg_replace('/^[\s\-_–—|\/:]+|[\s\-_–—|\/:]+$/u', '', str_ireplace($model, '', $title)) : '';
     $series = boblift_series_for_product($id);
     $is_series = $series && $series['home_id'] === $id;
     $english_id = function_exists('boblift_product_english_id') ? (int) boblift_product_english_id($id) : $id;
-    $members = $is_series ? boblift_series_members_with_figures($series) : [['id' => $id, 'model' => trim((string) ($product['model'] ?? '')), 'url' => (string) ($product['detail_url'] ?? ''), 'values' => boblift_series_parse_model(trim((string) ($product['model'] ?? ''))), 'figures' => boblift_series_product_figures($english_id)]];
-    $family = $is_series ? (string) $series['family'] : '';
+    $members = $is_series ? boblift_series_members_with_figures($series) : [['model' => $model, 'url' => '', 'values' => [], 'figures' => boblift_series_product_figures($english_id)]];
     $range = static fn(string $key): string => boblift_series_figure_range(array_map(static fn(array $member) => $member['figures'][$key] ?? null, $members));
     $specs = [];
     foreach (['capacity' => 'Max lifting capacity', 'moment' => 'Max lifting moment', 'radius' => 'Max reach', 'weight' => 'Self weight'] as $key => $label) {
@@ -543,93 +520,109 @@ function boblift_series_card_view(array $product, string $fallback_title): array
             $specs[$key] = ['label' => boblift_series_text($label), 'value' => $value];
         }
     }
+    $pickup = $is_series && $series['family'] === 'pickup';
     $configs = [];
-    foreach ($members as $member) {
-        $thumbnail = get_post_thumbnail_id((int) $member['id']);
-        $figures = (array) ($member['figures'] ?? []);
-        $configs[] = [
-            'model' => (string) $member['model'],
-            'label' => $family === 'pickup' ? boblift_series_text($member['values']['manual'] === '1' ? 'With outriggers' : 'Without outriggers') : (string) $member['model'],
-            'url' => (string) $member['url'],
-            'image' => $thumbnail ? (string) wp_get_attachment_image_url($thumbnail, 'large') : '',
-            'figures' => [
-                'capacity' => isset($figures['capacity']) ? boblift_series_format_kg((int) $figures['capacity']) : '',
-                'moment' => (string) ($figures['moment'] ?? ''),
-                'radius' => (string) ($figures['radius'] ?? ''),
-                'weight' => isset($figures['weight']) ? boblift_series_format_kg((int) $figures['weight']) : '',
-            ],
-        ];
+    if ($is_series && count($members) > 1) {
+        foreach ($members as $member) {
+            $configs[] = ['label' => $pickup ? boblift_series_text($member['values']['manual'] === '1' ? 'With outriggers' : 'Without outriggers') : (string) $member['model'], 'url' => (string) $member['url']];
+        }
+    }
+    // One card stands for both pickup configurations, so its title leaves out "with outriggers".
+    if ($pickup && ($specs['capacity']['value'] ?? '') === '800 kg') {
+        $name = boblift_series_text('800 kg Pickup Crane');
+    }
+    // Three figures fit a line. A series title already names its capacity.
+    $figures = $specs;
+    if ($is_series && count($figures) > 3) {
+        unset($figures['capacity']);
+    }
+    if (count($figures) > 3) {
+        unset($figures['weight']);
+    }
+    if ($figures === [] && function_exists('boblift_home_product_card_specs')) {
+        $figures = boblift_home_product_card_specs($product);
     }
     return [
-        'title' => $family === 'pickup' ? boblift_series_text('800 kg Pickup Crane') : $fallback_title,
-        'code' => $is_series ? boblift_series_label($series) : trim((string) ($product['model'] ?? '')),
+        'title' => $name !== '' ? $name : $title,
+        'code' => $is_series ? boblift_series_label($series) : $model,
         'is_series' => $is_series,
-        'specs' => $specs,
         'configs' => $configs,
+        'specs' => $specs,
+        'figures' => array_values($figures),
     ];
 }
 
-/** The title and configurations at the top of an option's card. */
-function boblift_series_render_card_option_head(string $option, array $view, string $url): void
+/**
+ * Each configuration's text for the card's quick view. All show the same spec fields in one order, the home configuration's first
+ * and up to six, with a dash for a value one does not have, so switching keeps the grid still. Empty for a single product.
+ */
+function boblift_series_quick_view_configs(array $product): array
 {
-    $count = count($view['configs']);
-    ?>
-    <a class="block min-w-0" href="<?php echo esc_url($url); ?>">
-        <h2 class="line-clamp-3 text-[15px] font-black leading-[1.18] text-[#0B3F7D] sm:line-clamp-2 sm:text-[clamp(19px,1.45vw,23px)] sm:leading-[1.12]"><?php echo esc_html($view['title']); ?></h2>
-        <?php if ($option !== 'b' && $view['code'] !== '') : ?><p class="mt-1.5 text-[12px] font-normal text-slate-500 sm:text-[13px]"><bdi><?php echo esc_html($view['code']); ?></bdi><?php if ($count > 1) : ?><span class="mx-1">·</span><?php echo esc_html(str_replace('{count}', (string) $count, boblift_series_text('{count} configurations'))); ?><?php endif; ?></p><?php endif; ?>
-    </a>
-    <?php if ($option !== 'b' && $count > 1) : ?>
-        <div class="mt-2.5">
-            <div class="flex flex-wrap gap-1.5"<?php echo $option === 'c' ? ' data-card-options' : ''; ?>>
-                <?php foreach ($view['configs'] as $config) : ?>
-                    <a dir="auto" class="inline-flex h-7 items-center rounded-sm border border-[#D5DEE9] bg-[#F5F8FC] px-2 text-[12px] font-black text-[#071f42] transition hover:border-blue-400 hover:text-blue-700 [font-variant-numeric:tabular-nums]" href="<?php echo esc_url($config['url']); ?>"<?php if ($option === 'c') { echo ' data-card-option data-card-image="' . esc_url($config['image']) . '" data-card-figures="' . esc_attr((string) wp_json_encode(array_filter($config['figures']), JSON_UNESCAPED_UNICODE)) . '"'; } ?>><?php echo esc_html($config['label']); ?></a>
-                <?php endforeach; ?>
-            </div>
-        </div>
-    <?php endif; ?>
-    <?php
+    $id = (int) ($product['id'] ?? 0);
+    $series = boblift_series_for_product($id);
+    if (!$series || $series['home_id'] !== $id || count($series['members']) < 2) {
+        return [];
+    }
+    $members = $series['members'];
+    usort($members, static fn(array $a, array $b): int => (int) $b['is_home'] <=> (int) $a['is_home']);
+    // Translated rows are matched through their English label: the same field is not always worded the same way in a language.
+    $field = static function (array $data, int $en_id): array {
+        $local = array_values(array_filter((array) ($data['specs'] ?? []), 'is_array'));
+        $english = array_values(array_filter((array) boblift_decode_meta(get_post_meta($en_id, '_specs', true), []), 'is_array'));
+        $aligned = function_exists('boblift_spec_rows_aligned') ? boblift_spec_rows_aligned($local, $english) : count($local) === count($english);
+        $fields = [];
+        foreach ($local as $index => $row) {
+            $key = mb_strtolower(trim((string) (($aligned ? ($english[$index]['label'] ?? '') : '') ?: ($row['label'] ?? ''))));
+            if ($key !== '') {
+                $fields[$key] = ['label' => trim((string) ($row['label'] ?? '')), 'value' => trim((string) ($row['value'] ?? ''))];
+            }
+        }
+        return $fields;
+    };
+    $rows = [];
+    $fields = [];
+    $labels = [];
+    foreach ($members as $member) {
+        $post = get_post((int) $member['id']);
+        $rows[$member['model']] = $post ? boblift_product_from_post($post) : [];
+        $fields[$member['model']] = $field($rows[$member['model']], (int) $member['en_id']);
+        foreach ($fields[$member['model']] as $key => $row) {
+            if ($row['value'] !== '') {
+                $labels[$key] ??= $row['label'];
+            }
+        }
+    }
+    $labels = array_slice($labels, 0, 6, true);
+    $configs = [];
+    foreach ($series['members'] as $member) {
+        $data = $rows[$member['model']];
+        $specs = [];
+        foreach ($labels as $key => $label) {
+            $value = $fields[$member['model']][$key]['value'] ?? '';
+            $specs[] = ['label' => $label, 'value' => $value !== '' ? $value : '—'];
+        }
+        $title = trim((string) ($data['title'] ?? ''));
+        $configs[] = [
+            'model' => (string) $member['model'],
+            'label' => $series['family'] === 'pickup' ? boblift_series_text($member['values']['manual'] === '1' ? 'With outriggers' : 'Without outriggers') : (string) $member['model'],
+            'url' => (string) $member['url'],
+            'slug' => (string) $member['slug'],
+            // The quote names the configuration, whichever way its product title is written.
+            'title' => stripos($title, (string) $member['model']) !== false ? $title : trim($title . ' (' . $member['model'] . ')'),
+            'summary' => trim((string) ($data['short_description'] ?? '')),
+            'image' => $data ? boblift_product_image($data) : '',
+            'specs' => $specs,
+            'home' => (bool) $member['is_home'],
+        ];
+    }
+    return $configs;
 }
 
-/** The figures at the foot of an option's card, or the small table of configurations (option b). */
-function boblift_series_render_card_option_specs(string $option, array $view): void
+/** The code and configuration count under a card's title, as plain text. */
+function boblift_series_card_subtitle(array $view): string
 {
-    if ($option === 'b' && count($view['configs']) > 1) {
-        $columns = array_values(array_filter(['moment', 'radius', 'weight'], static fn(string $key): bool => (bool) array_filter(array_column(array_column($view['configs'], 'figures'), $key))));
-        ?>
-        <div class="mt-4 overflow-hidden border-t border-[#E5E7EB]">
-            <table class="w-full border-collapse text-[11px] sm:text-[12px] [font-variant-numeric:tabular-nums]">
-                <thead><tr class="text-slate-500"><th class="py-1.5 pe-2 text-start font-semibold"><?php echo esc_html(boblift_series_text('Model')); ?></th><?php foreach ($columns as $key) : ?><th class="<?php echo $key === 'moment' ? 'hidden sm:table-cell ' : ''; ?>py-1.5 ps-1 sm:ps-2 text-end align-bottom font-semibold leading-[1.15]"><?php echo esc_html((string) ($view['specs'][$key]['label'] ?? '')); ?></th><?php endforeach; ?></tr></thead>
-                <tbody>
-                    <?php foreach ($view['configs'] as $config) : ?>
-                        <tr class="relative border-t border-[#EEF2F7] transition-colors hover:bg-[#F5F8FC]">
-                            <th class="py-2 pe-1 sm:pe-2 text-start font-black text-[#0B3F7D]" scope="row"><a class="after:absolute after:inset-0" href="<?php echo esc_url($config['url']); ?>" dir="auto"><?php echo esc_html($config['label']); ?></a></th>
-                            <?php foreach ($columns as $key) : ?><td class="<?php echo $key === 'moment' ? 'hidden sm:table-cell ' : ''; ?>whitespace-nowrap py-2 ps-1 sm:ps-2 text-end font-semibold text-[#071f42]"><bdi><?php echo $config['figures'][$key] !== '' ? esc_html($config['figures'][$key]) : '<span class="text-slate-400">—</span>'; ?></bdi></td><?php endforeach; ?>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
-        <?php
-        return;
-    }
-    $specs = $view['specs'];
-    // A series title already names its capacity, and three figures fit a line.
-    if ($view['is_series'] && count($specs) > 3) {
-        unset($specs['capacity']);
-    }
-    if (count($specs) > 3) {
-        unset($specs['weight']);
-    }
-    ?>
-    <dl class="mt-3 grid gap-y-1.5 border-t border-[#E5E7EB] pt-2.5 sm:mt-4 sm:grid-cols-3 sm:pt-3">
-        <?php $position = 0; foreach ($specs as $key => $spec) : ?>
-            <div class="flex min-w-0 items-baseline justify-between gap-2 sm:block <?php echo $position++ > 0 ? 'sm:border-s sm:border-[#E5E7EB] sm:ps-3' : ''; ?>" data-card-figure="<?php echo esc_attr($key); ?>">
-                <dt class="min-w-0 truncate text-[11px] font-semibold leading-4 text-slate-500 sm:whitespace-normal"><?php echo esc_html($spec['label']); ?></dt>
-                <dd class="whitespace-nowrap text-[12px] font-black leading-5 text-[#071f42] [font-variant-numeric:tabular-nums] sm:mt-1 sm:text-[15px]" data-card-figure-value="<?php echo esc_attr($spec['value']); ?>"><bdi><?php echo esc_html($spec['value']); ?></bdi></dd>
-            </div>
-        <?php endforeach; ?>
-    </dl>
-    <?php
+    $count = count($view['configs']);
+    return $view['code'] === '' ? '' : '<bdi>' . esc_html($view['code']) . '</bdi>' . ($count > 1 ? '<span class="mx-1">·</span>' . esc_html(str_replace('{count}', (string) $count, boblift_series_text('{count} configurations'))) : '');
 }
 
 /* -------------------------------------------------------------------------- *

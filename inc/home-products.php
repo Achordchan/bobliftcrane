@@ -404,20 +404,6 @@ function boblift_home_product_card_image(array $product): string
  * One-line card label as HTML: rated capacity and boom type ("20 t · Telescopic Boom"), else the product's category.
  * The tonnage keeps its lower-case unit and left-to-right order inside the upper-case, possibly right-to-left label.
  */
-function boblift_home_product_card_kicker(array $product): string
-{
-    $parts = [];
-    $capacity = boblift_home_product_rated_capacity($product);
-    if ($capacity > 0) {
-        $parts[] = '<bdi class="normal-case text-ink" dir="ltr">' . esc_html(boblift_home_product_tonnage_label($capacity)) . '</bdi>';
-    }
-    $boom = boblift_boom_label((string) ($product['boom_type'] ?? ''));
-    if ($boom !== '') {
-        $parts[] = esc_html($boom);
-    }
-    return $parts !== [] ? implode(' · ', $parts) : esc_html((string) ($product['category_title'] ?? 'BOB-LIFT'));
-}
-
 // Two figures for the card footer. The capacity is already in the card label, so they are the lifting moment and the
 // working radius, then the lifting height. Product lines label these rows differently, so the English rows are matched by
 // alias. Missing ones are filled from the self weight, then the first other numeric rows; a product with none shows
@@ -581,26 +567,22 @@ function boblift_render_home_product_grid(array $category, int $index, array $se
         <div class="-mx-4 grid snap-x snap-mandatory auto-cols-[44%] grid-flow-col gap-3 overflow-x-auto scroll-px-4 px-4 pb-2 [scrollbar-width:none] sm:mx-0 sm:auto-cols-[calc((100%-1.5rem)/2)] sm:gap-6 sm:scroll-px-0 sm:px-0 md:auto-cols-[calc((100%-3rem)/3)] lg:auto-cols-[calc((100%-3.75rem)/4)] lg:gap-5 xl:auto-cols-[calc((100%-5.25rem)/4)] xl:gap-7 [&::-webkit-scrollbar]:hidden" data-product-row>
             <?php foreach ($category['products'] as $product) : ?>
                 <?php
-                $card_model = trim((string) ($product['model'] ?? ''));
-                $card_specs = $section['showProductSpecs'] ? boblift_home_product_card_specs($product) : [];
+                $card_view = boblift_series_card_view($product);
+                $card_specs = $section['showProductSpecs'] ? array_slice($card_view['figures'], 0, 2) : [];
                 // A landscape photo fills its frame; a cut-out, or a square studio shot, stands in it with room around.
                 $card_image = boblift_home_product_card_image($product);
                 $card_photo = boblift_image_fit($card_image) === 'photo' && boblift_home_product_image_ratio($card_image) >= 1.15;
                 ?>
                 <a class="group flex snap-start flex-col overflow-hidden rounded border border-line bg-white text-start shadow-card transition duration-300 [@media(hover:hover)]:hover:border-blue-300" href="<?php echo esc_url(boblift_product_url($product)); ?>">
                     <span class="relative block h-[110px] w-full overflow-hidden bg-[radial-gradient(circle_at_48%_34%,#ffffff_0%,#f8fafc_34%,#eef2f7_64%,#e2e8f0_100%)] sm:h-auto sm:aspect-[1.3/1] md:max-h-[190px] lg:max-h-[220px] 2xl:max-h-[260px]"><span class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_82%,rgba(15,23,42,0.12),transparent_44%)]"></span><img class="absolute inset-0 z-10 h-full w-full transition duration-300 group-hover:scale-[1.035] <?php echo $card_photo ? 'object-cover' : 'object-contain p-3 drop-shadow-[0_6px_8px_rgba(11,27,51,0.10)] sm:p-5'; ?>" <?php echo boblift_img_src($card_image, '(min-width: 1280px) 42vw, (min-width: 768px) 33vw, 42vw'); ?> alt="<?php echo esc_attr($product['title'] ?? ''); ?>" loading="lazy" decoding="async"></span>
-                    <span class="mt-3 block truncate px-3 text-[11px] font-black uppercase leading-4 tracking-[0.08em] text-slate-500 rtl:tracking-normal sm:mt-5 sm:px-6 sm:text-xs sm:leading-5 sm:tracking-[0.1em]"><?php echo boblift_home_product_card_kicker($product); // Escaped part by part. ?></span>
-                    <?php if ($card_model !== '') : ?>
-                        <span class="boblift-home-product-card-title mt-1 block px-3 text-[clamp(22px,5.5vw,30px)] font-black uppercase leading-none tracking-[0.025em] text-ink sm:px-6 sm:text-[34px] sm:tracking-[0.035em]"><?php echo esc_html($card_model); ?></span>
-                    <?php else : ?>
-                        <span class="mt-1 line-clamp-2 px-3 text-base font-black leading-tight text-ink sm:px-6 sm:text-xl"><?php echo esc_html((string) ($product['title'] ?? 'BOB-LIFT')); ?></span>
-                    <?php endif; ?>
+                    <span class="mt-3 line-clamp-3 px-3 text-[15px] font-black leading-[1.15] text-ink sm:mt-5 sm:line-clamp-2 sm:px-6 sm:text-xl"><?php echo esc_html($card_view['title']); ?></span>
+                    <?php if ($card_view['code'] !== '') : ?><span class="mt-1 block truncate px-3 text-[12px] font-normal leading-4 text-slate-500 sm:px-6 sm:text-[13px]"><bdi><?php echo esc_html($card_view['code']); ?></bdi></span><?php endif; ?>
                     <span class="mx-3 mb-3 mt-auto block pt-3 sm:mx-6 sm:mb-5 sm:pt-4">
                         <span class="flex items-end gap-3 border-t border-line pt-3 sm:pt-4">
                             <?php if ($card_specs) : ?>
                                 <span class="grid min-w-0 flex-1 grid-cols-2 gap-2 sm:gap-4">
                                     <?php foreach ($card_specs as $spec) : ?>
-                                        <span class="block min-w-0"><span class="block truncate text-[11px] font-bold leading-4 text-slate-500 sm:text-xs"><?php echo esc_html($spec['label']); ?></span><span class="mt-0.5 block truncate text-sm font-black text-ink sm:text-base" dir="ltr"><?php echo esc_html($spec['value']); ?></span></span>
+                                        <span class="flex min-w-0 flex-col justify-end"><span class="block text-[11px] font-bold leading-4 text-slate-500 sm:text-xs"><?php echo esc_html($spec['label']); ?></span><span class="mt-0.5 block truncate text-sm font-black text-ink sm:text-base"><bdi><?php echo esc_html($spec['value']); ?></bdi></span></span>
                                     <?php endforeach; ?>
                                 </span>
                             <?php endif; ?>
@@ -625,8 +607,9 @@ function boblift_render_home_product_grid(array $category, int $index, array $se
 // A family with a single model gets one wide card instead of a lone tile in a four-column row.
 function boblift_render_home_product_feature(array $product, array $section): void
 {
-    $model = trim((string) ($product['model'] ?? ''));
-    $specs = array_values(array_filter((array) ($product['specs'] ?? []), static fn($spec): bool => is_array($spec) && trim((string) ($spec['label'] ?? '')) !== '' && trim((string) ($spec['value'] ?? '')) !== ''));
+    $view = boblift_series_card_view($product);
+    $model = $view['code'];
+    $specs = $view['figures'];
     $summary = trim(wp_strip_all_tags((string) ($product['short_description'] ?? '')));
     $detail_url = boblift_product_url($product);
     ?>
@@ -634,11 +617,11 @@ function boblift_render_home_product_feature(array $product, array $section): vo
         <a class="group relative block aspect-[1.4/1] overflow-hidden bg-[radial-gradient(circle_at_48%_34%,#ffffff_0%,#f8fafc_34%,#eef2f7_64%,#e2e8f0_100%)] lg:aspect-auto" href="<?php echo esc_url($detail_url); ?>"><img class="absolute inset-0 z-10 h-full w-full object-contain p-6 drop-shadow-[0_6px_8px_rgba(11,27,51,0.10)] transition duration-300 group-hover:scale-[1.03] sm:p-10" <?php echo boblift_img_src(boblift_product_image($product), '(min-width: 1280px) 42vw, (min-width: 768px) 33vw, 56vw'); ?> alt="<?php echo esc_attr($product['title'] ?? ''); ?>" loading="lazy" decoding="async"></a>
         <div class="flex min-w-0 flex-col justify-center p-5 sm:p-8 lg:p-10">
             <?php if ($model !== '') : ?><p class="text-[11px] font-black uppercase tracking-[0.1em] text-slate-500 rtl:tracking-normal sm:text-xs"><?php echo esc_html($model); ?></p><?php endif; ?>
-            <h4 class="mt-2 text-[26px] font-black leading-[1.05] tracking-[-0.005em] text-ink sm:text-[32px] xl:text-[38px]"><?php echo esc_html($product['title'] ?? ''); ?></h4>
+            <h4 class="mt-2 text-[26px] font-black leading-[1.05] tracking-[-0.005em] text-ink sm:text-[32px] xl:text-[38px]"><?php echo esc_html($view['title']); ?></h4>
             <?php if ($section['showProductSpecs'] && $specs) : ?>
                 <dl class="mt-5 grid gap-px overflow-hidden rounded border border-line bg-line sm:mt-6">
                     <?php foreach (array_slice($specs, 0, 3) as $spec) : ?>
-                        <div class="flex items-center justify-between gap-4 bg-white px-4 py-3 text-sm"><dt class="font-bold text-slate-500"><?php echo esc_html((string) $spec['label']); ?></dt><dd class="text-end font-black text-ink"><?php echo esc_html((string) $spec['value']); ?></dd></div>
+                        <div class="flex items-center justify-between gap-4 bg-white px-4 py-3 text-sm"><dt class="font-bold text-slate-500"><?php echo esc_html((string) $spec['label']); ?></dt><dd class="text-end font-black text-ink"><bdi><?php echo esc_html((string) $spec['value']); ?></bdi></dd></div>
                     <?php endforeach; ?>
                 </dl>
             <?php endif; ?>

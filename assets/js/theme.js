@@ -3634,7 +3634,57 @@
       apply({ resetPage: true });
       closeDrawer({ restore: false });
     };
-    const specMarkup = (specs) => specs.slice(0, 6).map((spec) => `<div class="min-w-0 border-b border-r border-[#E5E7EB] px-3 py-3 md:px-4"><dt class="text-[11px] font-normal leading-4 text-slate-500">${escapeHtml(spec.label || '')}</dt><dd class="mt-1 break-words text-base font-black leading-tight text-[#0B1B33] [font-variant-numeric:tabular-nums]">${escapeHtml(String(spec.value || '-'))}</dd></div>`).join('');
+    const specMarkup = (specs) => specs.slice(0, 6).map((spec) => `<div class="min-w-0 border-b border-e border-[#E5E7EB] px-3 py-3 md:px-4"><dt class="text-[11px] font-normal leading-4 text-slate-500">${escapeHtml(spec.label || '')}</dt><dd class="mt-1 break-words text-base font-black leading-tight text-[#0B1B33] [font-variant-numeric:tabular-nums]"><bdi>${escapeHtml(String(spec.value || '-'))}</bdi></dd></div>`).join('');
+    const quickConfigs = qs('[data-quick-configs]', root);
+    // A series card's quick view: one configuration at a time. Quote and details follow the one shown.
+    const showQuickConfig = (card, config) => {
+      if (quickImage && config.image) quickImage.src = config.image;
+      if (quickSummary) quickSummary.textContent = config.summary || card.dataset.summary || '';
+      if (quickSpecs) quickSpecs.innerHTML = specMarkup(config.specs || []);
+      if (quickDetail) quickDetail.href = config.url || card.dataset.detailUrl || '';
+      if (quickInquiry) {
+        quickInquiry.dataset.inquiryProduct = config.title;
+        quickInquiry.dataset.inquiryProductSlug = config.slug;
+        quickInquiry.dataset.inquiryProducts = JSON.stringify([{
+          title: config.title,
+          slug: config.slug,
+          image: config.image || card.dataset.image || '',
+          category: card.dataset.categoryTitle || card.dataset.category || 'BOB-LIFT',
+          detailUrl: config.url || '',
+        }]);
+      }
+      qsa('button', quickConfigs).forEach((button) => {
+        const on = button.dataset.model === config.model;
+        button.setAttribute('aria-pressed', on ? 'true' : 'false');
+        button.classList.toggle('border-[#071f42]', on);
+        button.classList.toggle('bg-[#071f42]', on);
+        button.classList.toggle('text-white', on);
+        button.classList.toggle('border-[#D5DEE9]', !on);
+        button.classList.toggle('bg-[#F5F8FC]', !on);
+        button.classList.toggle('text-[#071f42]', !on);
+      });
+    };
+    const setUpQuickConfigs = (card) => {
+      if (!quickConfigs) return;
+      let configs = [];
+      try { configs = JSON.parse(card.dataset.configs || '[]'); } catch { configs = []; }
+      quickConfigs.replaceChildren();
+      quickConfigs.classList.toggle('hidden', !configs.length);
+      quickConfigs.classList.toggle('flex', Boolean(configs.length));
+      if (!configs.length) return;
+      configs.forEach((config) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.dir = 'auto';
+        button.dataset.model = config.model;
+        button.className = 'inline-flex h-7 items-center rounded-sm border px-2 text-[12px] font-black transition [font-variant-numeric:tabular-nums]';
+        button.textContent = config.label;
+        button.addEventListener('click', () => showQuickConfig(card, config));
+        quickConfigs.append(button);
+      });
+      if (quickTitle) quickTitle.textContent = card.dataset.quickName || card.dataset.title || '';
+      showQuickConfig(card, configs.find((config) => config.home) || configs[0]);
+    };
     const openQuickView = (card) => {
       if (!quickModal || !card) return;
       activeQuickCard = card;
@@ -3667,6 +3717,7 @@
       }
       if (quickDetail) quickDetail.href = card.dataset.detailUrl || root.dataset.productArchiveUrl || '/';
       if (quickSpecs) quickSpecs.innerHTML = specMarkup(specs);
+      setUpQuickConfigs(card);
       quickModal.classList.remove('hidden');
       quickModal.classList.add('flex');
       document.body.style.overflow = 'hidden';
@@ -5227,54 +5278,6 @@
   };
   if (document.readyState === 'complete') init();
   else window.addEventListener('load', init, { once: true });
-})();
-
-// Card option c: a configuration's label shows its photo and figures on the card, on hover or, on touch screens, on tap.
-(() => {
-  const groups = document.querySelectorAll('[data-card-options]');
-  if (!groups.length) return;
-  const show = (card, option) => {
-    const image = card.querySelector('.product-card-media img');
-    const source = option ? option.dataset.cardImage : card.dataset.cardImageDefault;
-    if (image && source) {
-      if (!card.dataset.cardImageDefault) card.dataset.cardImageDefault = image.currentSrc || image.src;
-      image.removeAttribute('srcset');
-      image.src = source;
-    }
-    let figures = {};
-    try { figures = option ? JSON.parse(option.dataset.cardFigures || '{}') : {}; } catch (error) { figures = {}; }
-    card.querySelectorAll('[data-card-figure]').forEach((cell) => {
-      const value = cell.querySelector('dd');
-      const shown = value && value.querySelector('bdi');
-      if (shown) shown.textContent = figures[cell.dataset.cardFigure] || (option ? '—' : value.dataset.cardFigureValue);
-    });
-    card.querySelectorAll('[data-card-option]').forEach((item) => {
-      item.classList.toggle('border-[#071f42]', item === option);
-    });
-  };
-  const touch = window.matchMedia('(hover: none)').matches;
-  groups.forEach((group) => {
-    const card = group.closest('.product-card');
-    group.querySelectorAll('[data-card-option]').forEach((option) => {
-      if (touch) {
-        option.addEventListener('click', (event) => {
-          if (option.classList.contains('border-[#071f42]')) return;
-          event.preventDefault();
-          event.stopPropagation();
-          show(card, option);
-        });
-      } else {
-        option.addEventListener('mouseenter', () => {
-          if (!card.dataset.cardImageDefault) {
-            const image = card.querySelector('.product-card-media img');
-            card.dataset.cardImageDefault = image ? (image.currentSrc || image.src) : '';
-          }
-          show(card, option);
-        });
-      }
-    });
-    if (!touch) group.addEventListener('mouseleave', () => show(card, null));
-  });
 })();
 
 // Marine series page (inc/product-series.php): every configuration's blocks are in the page, this only shows the chosen one.
