@@ -1026,6 +1026,10 @@ img { max-width: 100%; }
 .boblift-boom-row .boblift-variant-check { top: auto; bottom: 6px; margin-top: 0; }
 @media (max-width: 639px) { .boblift-boom-row [data-boom-fixed] { flex: 0 0 auto; } }
 
+/* The figures answer the choice above them: a short fade, with no change in layout. */
+@keyframes boblift-figures-in { from { opacity: 0; } to { opacity: 1; } }
+[data-cfg-block="keyspecs"] [data-cfg-variant]:not([hidden]) { animation: boblift-figures-in .15s ease-out; }
+
 /* Previous models: a tab that toggles on its own beside the category tabs. While on, the selected category's previous models replace the
    grid (see boblift_render_legacy_panel()); the category tabs stay usable. */
 .boblift-legacy-panel { display: none; }
