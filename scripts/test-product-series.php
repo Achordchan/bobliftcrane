@@ -112,17 +112,44 @@ $check('a single model still has both', ['SQZ430T', 'SQZ430TJ'], array_column($s
 $check('and asks only about the winch', ['winch' => ['0', '1']], boblift_series_dimensions($single));
 $check('WhatsApp names the twin once', 'for%20SQ12ZA6TJ%3A%20u%3Fmodel%3DSQ12ZA6TJ', boblift_series_meta_for_twin(['whatsapp' => 'for%20SQ12ZA6T%3A%20u%3Fmodel%3DSQ12ZA6T'], 'SQ12ZA6T', 'SQ12ZA6TJ', 'u')['whatsapp']);
 $check('the +1 in a WhatsApp address', 'SQ08ZA3TJ%2B1%20model%3DSQ08ZA3TJ%252B1', boblift_series_meta_for_twin(['whatsapp' => 'SQ08ZA3T%2B1%20model%3DSQ08ZA3T%252B1'], 'SQ08ZA3T+1', 'SQ08ZA3TJ+1', 'u')['whatsapp']);
-$tele = array_map(static fn(string $model): array => ['model' => $model, 'url' => 'u', 'id' => 1, 'slug' => 's', 'is_home' => false, 'values' => boblift_series_boom_values(boblift_series_parse_model($model), 'telescopic'), 'figures' => $figures(4000)], ['SQ12SA4T', 'SQ12SA5T']);
-$check('telescopic has no other winch version', ['SQ12SA4T', 'SQ12SA5T'], array_column(boblift_series_expand_variants($tele, 'https://x', 'telescopic'), 'model'));
-$check('and is not asked about the winch', ['sections' => ['A4', 'A5']], boblift_series_dimensions(boblift_series_expand_variants($tele, 'https://x', 'telescopic')));
+$tele = array_map(static fn(string $model): array => ['model' => $model, 'url' => 'u', 'id' => 1, 'slug' => 's', 'is_home' => false, 'values' => boblift_series_winch_values(boblift_series_parse_model($model), 'standard'), 'figures' => $figures(4000)], ['SQ12SA4T', 'SQ12SA5T']);
+$check('telescopic has no other winch version', ['SQ12SA4T', 'SQ12SA5T'], array_column(boblift_series_expand_variants($tele, 'https://x', 'standard'), 'model'));
+$check('and is not asked about the winch', ['sections' => ['A4', 'A5']], boblift_series_dimensions(boblift_series_expand_variants($tele, 'https://x', 'standard')));
 $check('telescopic always has it', '1', $tele[0]['values']['winch']);
-$check('a telescopic name with J is the same crane', 'SQ10SA4T', boblift_series_normalize_requested('SQ10SA4TJ', 'telescopic'));
-$check('a knuckle name with J stays', 'SQ12ZA6TJ', boblift_series_normalize_requested('SQ12ZA6TJ', 'knuckle'));
-$check('knuckle keeps what the name says', '0', boblift_series_boom_values(boblift_series_parse_model('SQ12ZA6T'), 'knuckle')['winch']);
+$check('a telescopic name with J is the same crane', 'SQ10SA4T', boblift_series_normalize_requested('SQ10SA4TJ', 'standard'));
+$check('a knuckle name with J stays', 'SQ12ZA6TJ', boblift_series_normalize_requested('SQ12ZA6TJ', 'optional'));
+$check('knuckle keeps what the name says', '0', boblift_series_winch_values(boblift_series_parse_model('SQ12ZA6T'), 'optional')['winch']);
 $sqz_figures = [['model' => 'SQZ330T', 'values' => boblift_series_parse_model('SQZ330T'), 'figures' => ['moment' => '34.8 t·m']], ['model' => 'SQZ350T', 'values' => boblift_series_parse_model('SQZ350T'), 'figures' => ['moment' => null]]];
 $check('SQZ choice shows its moment', ['SQZ330', '34.8 t·m'], boblift_series_choice_label('named', 'SQZ330T', $sqz_figures));
 $check('no moment, no figure', ['SQZ350', ''], boblift_series_choice_label('named', 'SQZ350T', $sqz_figures));
 $check('an SQZ series is called by its models', 'SQZ330T / SQZ350T', boblift_series_label(['code' => 'SQZ330T', 'members' => $sqz_figures]));
+// Truck mounted cranes share all of it, without a winch question.
+$check('truck series code', ['SQ12Z', 'SQ3.2S', 'BLZ90', 'SQZ330'], array_map('boblift_series_code', ['SQ12ZA6', 'SQ3.2SA4', 'BLZ90K5', 'SQZ330']));
+$check('truck model', ['named' => '', 'sections' => 'A6', 'winch' => '0', 'manual' => '0'], boblift_series_parse_model('SQ12ZA6'));
+$check('truck model with +1', ['named' => '', 'sections' => 'A3', 'winch' => '0', 'manual' => '1'], boblift_series_parse_model('SQ1ZA3+1'));
+$check('truck BLZ', ['named' => '', 'sections' => 'K5', 'winch' => '0', 'manual' => '0'], boblift_series_parse_model('BLZ90K5'));
+$check('truck SQZ', ['named' => 'SQZ330', 'sections' => '', 'winch' => '0', 'manual' => '0'], boblift_series_parse_model('SQZ330'));
+$check('winch modes', ['optional', 'standard', 'none', 'none'], [boblift_series_winch_mode('marine', 'knuckle'), boblift_series_winch_mode('marine', 'telescopic'), boblift_series_winch_mode('truck', 'knuckle'), boblift_series_winch_mode('truck', 'telescopic')]);
+$truck_row = static fn(int $id, string $slug, string $model, float $capacity, string $boom, bool $legacy = false): array => compact('id', 'slug', 'model', 'capacity', 'boom', 'legacy') + ['family' => 'truck'];
+$trucks = boblift_series_group_rows([
+    $truck_row(1, '12-ton-knuckle-boom-truck-mounted-crane', 'SQ12ZA6', 12, 'knuckle'),
+    $truck_row(2, '12-ton-knuckle-boom-truck-mounted-crane-sq12za4', 'SQ12ZA4', 12, 'knuckle', true),
+    $row(3, '12-ton-knuckle-boom-marine-crane', 'SQ12ZA6T', 12, 'knuckle'),
+    $truck_row(4, '6-3-ton-knuckle-boom-truck-mounted-crane', 'SQ6.3ZA5', 6.3, 'knuckle'),
+    $truck_row(5, '6-3-ton-knuckle-boom-truck-mounted-crane-blz129k4', 'BLZ129K4', 6.3, 'knuckle'),
+]);
+$check('trucks and marine apart, another make apart', ['knuckle-12', 'truck-knuckle-6.3', 'truck-knuckle-6.3-blz', 'truck-knuckle-12'], array_keys($trucks));
+$check('truck home', 1, $trucks['truck-knuckle-12']['home']);
+$check('a make with no plain slug leads its own series', 5, $trucks['truck-knuckle-6.3-blz']['home']);
+$truck_variants = boblift_series_expand_variants(array_map(static fn(string $model): array => ['model' => $model, 'url' => 'u', 'id' => 1, 'slug' => 's', 'is_home' => false, 'values' => boblift_series_parse_model($model), 'figures' => $figures(1000)], ['SQ12ZA4', 'SQ12ZA6']), 'https://x', 'none');
+$check('no models made up for trucks', ['SQ12ZA4', 'SQ12ZA6'], array_column($truck_variants, 'model'));
+$check('no winch question for trucks', ['sections' => ['A4', 'A6']], boblift_series_dimensions($truck_variants));
+$mixed = array_map(static fn(string $model): array => ['model' => $model, 'values' => boblift_series_parse_model($model), 'figures' => $figures(1000)], ['SQ1ZA3+1', 'SQ1ZA4']);
+$check('+1 settled by the section is no choice', ['sections' => ['A3', 'A4']], boblift_series_dimensions($mixed));
+$check('and does not make the other section look missing', [], boblift_series_unavailable_choices($mixed, boblift_series_dimensions($mixed), $mixed[0]['values']));
+$check('and is told on the section', ['2 hydraulic booms +1', ''], boblift_series_choice_label('sections', 'A3', $mixed));
+$check('not on the one without', ['3 hydraulic booms', ''], boblift_series_choice_label('sections', 'A4', $mixed));
+
 $check('quote details follow the twin', 'Crane SQ12ZA6TJ', boblift_series_meta_for_twin(['inquiry' => ['title' => 'Crane SQ12ZA6T']], 'SQ12ZA6T', 'SQ12ZA6TJ', 'u')['inquiry']['title']);
 $check('winch weight', '+50 kg', boblift_series_winch_difference($twelve, $a4j));
 $check('no pair, no difference', '', boblift_series_winch_difference($twelve, $a6));

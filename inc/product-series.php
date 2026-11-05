@@ -1,13 +1,15 @@
 <?php
 /**
- * Marine crane series: one page per boom type and rated capacity, with the models of that class as configurations.
+ * Crane series: one page per use, boom type and rated capacity, with the models of that class as configurations.
  *
- * Only the two marine categories are grouped; every other product keeps its own page. The series page is the product whose
- * slug has no model suffix (12-ton-knuckle-boom-marine-crane). The other products of the group redirect to it with
- * ?model=<model> and leave the lists, the sitemap, the counts and the related models, but stay editable as products.
- * Their posts remain the source of each configuration's specifications, photos and drawings: single-product.php renders once
- * per configuration and the blocks of all of them are printed together, so search engines read every configuration and the
- * theme script only shows the chosen one.
+ * Marine and truck mounted cranes are grouped; every other product keeps its own page. The series page is the product whose slug
+ * has no model suffix (12-ton-knuckle-boom-marine-crane). The other products of the group redirect to it with ?model=<model> and
+ * leave the lists, the sitemap, the counts and the related models, but stay editable as products. Their posts remain the source
+ * of each configuration's specifications, photos and drawings: single-product.php renders once per configuration and the blocks
+ * of all of them are printed together, so search engines read every configuration and the theme script only shows the chosen one.
+ *
+ * The winch differs by kind (boblift_series_winch_mode()): optional on marine knuckle cranes, standard on marine telescopic ones,
+ * and not asked on truck cranes, where only the models on the site are listed.
  *
  * Grouping can be changed with the boblift_series_groups filter, the series name with boblift_series_code.
  */
@@ -25,22 +27,22 @@ function boblift_series_parse_model(string $model): array
     $model = trim($model);
     $manual = str_ends_with($model, '+1');
     $base = $manual ? substr($model, 0, -2) : $model;
-    if (preg_match('/^SQ\d+(?:\.\d+)?[ZS](?<section>A\d)T(?<winch>J?)$/', $base, $m) || preg_match('/^BLZ\d+(?<section>K\d)T(?<winch>J?)$/', $base, $m)) {
+    if (preg_match('/^SQ\d+(?:\.\d+)?[ZS](?<section>A\d)T?(?<winch>J?)$/', $base, $m) || preg_match('/^BLZ\d+(?<section>K\d)T?(?<winch>J?)$/', $base, $m)) {
         return ['named' => '', 'sections' => $m['section'], 'winch' => $m['winch'] !== '' ? '1' : '0', 'manual' => $manual ? '1' : '0'];
     }
-    if (preg_match('/^(?<name>SQZ\d+T)(?<winch>J?)$/', $base, $m)) {
+    if (preg_match('/^(?<name>SQZ\d+T?)(?<winch>J?)$/', $base, $m)) {
         return ['named' => $m['name'], 'sections' => '', 'winch' => $m['winch'] !== '' ? '1' : '0', 'manual' => $manual ? '1' : '0'];
     }
     return ['named' => $model, 'sections' => '', 'winch' => '', 'manual' => ''];
 }
 
-/** The series name shown on cards and under the model: SQ12Z-T, BLZ90-T, SQZ-T. This is the one place that names a series. */
+/** The series name shown on cards and under the model: SQ12Z-T (marine), SQ12Z (truck), BLZ90-T. This is the one place that names a series. */
 function boblift_series_code(string $model): string
 {
-    if (preg_match('/^SQ(\d+(?:\.\d+)?)([ZS])A\d/', $model, $m)) {
-        $code = 'SQ' . $m[1] . $m[2] . '-T';
-    } elseif (preg_match('/^(BLZ\d+)K\d/', $model, $m)) {
-        $code = $m[1] . '-T';
+    if (preg_match('/^SQ(\d+(?:\.\d+)?)([ZS])A\d(T?)/', $model, $m)) {
+        $code = 'SQ' . $m[1] . $m[2] . ($m[3] !== '' ? '-T' : '');
+    } elseif (preg_match('/^(BLZ\d+)K\d(T?)/', $model, $m)) {
+        $code = $m[1] . ($m[2] !== '' ? '-T' : '');
     } else {
         // SQZ names carry a lifting moment class and differ per series, so the model names the series itself.
         $code = $model;
@@ -66,9 +68,9 @@ function boblift_series_winch_twin(string $model): string
  * Such a version takes the figures, photos and drawings of the configuration it comes from, except the self weight, which is
  * not known, so no figure is made up. Real members in, members with derived, source and figures out.
  */
-function boblift_series_expand_variants(array $members, string $series_url, string $boom = 'knuckle'): array
+function boblift_series_expand_variants(array $members, string $series_url, string $winch = 'optional'): array
 {
-    if ($boom === 'telescopic') {
+    if ($winch !== 'optional') {
         return array_map(static fn(array $member): array => $member + ['derived' => false, 'source' => $member['model']], $members);
     }
     $real = array_column($members, 'model');
@@ -123,15 +125,18 @@ function boblift_series_group_rows(array $rows): array
         if ($capacity <= 0 || trim((string) $row['model']) === '') {
             continue;
         }
-        $key = $row['boom'] . '-' . rtrim(rtrim(number_format($capacity, 2, '.', ''), '0'), '.');
-        $groups[$key] ??= ['key' => $key, 'boom' => $row['boom'], 'capacity' => $capacity, 'members' => []];
+        $family = (string) ($row['family'] ?? 'marine');
+        // A different make of crane in the same class (BLZ129K4 beside the 6.3 t SQ models) is a series of its own.
+        $make = str_starts_with((string) $row['model'], 'BLZ') ? '-blz' : '';
+        $key = ($family === 'marine' ? '' : $family . '-') . $row['boom'] . '-' . rtrim(rtrim(number_format($capacity, 2, '.', ''), '0'), '.') . $make;
+        $groups[$key] ??= ['key' => $key, 'family' => $family, 'boom' => $row['boom'], 'capacity' => $capacity, 'members' => []];
         $groups[$key]['members'][] = $row;
     }
     foreach ($groups as $key => $group) {
         usort($group['members'], static fn(array $a, array $b): int => strnatcmp($a['model'], $b['model']));
         $home = null;
         foreach ($group['members'] as $member) {
-            if (preg_match('/^\d[\d-]*-ton-(?:knuckle|telescopic)-boom-marine-crane$/', (string) $member['slug'])) {
+            if (preg_match('/^\d[\d-]*-ton-(?:knuckle|telescopic)-boom-(?:marine|truck-mounted)-crane$/', (string) $member['slug'])) {
                 $home = $member;
                 break;
             }
@@ -149,7 +154,7 @@ function boblift_series_group_rows(array $rows): array
         $groups[$key]['home'] = (int) $home['id'];
         $groups[$key]['code'] = boblift_series_code((string) $home['model']);
     }
-    uasort($groups, static fn(array $a, array $b): int => ($a['boom'] <=> $b['boom']) ?: ($a['capacity'] <=> $b['capacity']));
+    uasort($groups, static fn(array $a, array $b): int => ($a['family'] <=> $b['family']) ?: ($a['boom'] <=> $b['boom']) ?: ($a['capacity'] <=> $b['capacity']));
     return $groups;
 }
 
@@ -164,6 +169,17 @@ function boblift_series_dimensions(array $members): array
             $dimensions[$dimension] = $values;
         }
     }
+    // Where the boom sections already settle the +1 (SQ1ZA3+1 beside SQ1ZA4) it is not a choice: the section's label says it.
+    if (isset($dimensions['manual'], $dimensions['sections'])) {
+        $settled = true;
+        foreach ($dimensions['sections'] as $section) {
+            $own = array_filter($members, static fn(array $member): bool => ($member['values']['sections'] ?? '') === $section);
+            $settled = $settled && count(array_unique(array_map(static fn(array $member): string => (string) $member['values']['manual'], $own))) === 1;
+        }
+        if ($settled) {
+            unset($dimensions['manual']);
+        }
+    }
     return $dimensions;
 }
 
@@ -173,7 +189,7 @@ function boblift_series_all_have(array $members, string $dimension, string $valu
     return $members !== [] && !array_filter($members, static fn(array $member): bool => (string) ($member['values'][$dimension] ?? '') !== $value);
 }
 
-/** The English marine products with what grouping needs. */
+/** The English marine and truck mounted products with what grouping needs. */
 function boblift_series_rows(): array
 {
     if (!function_exists('pll_default_language')) {
@@ -186,7 +202,7 @@ function boblift_series_rows(): array
         FROM {$wpdb->posts} p
         JOIN {$wpdb->term_relationships} r ON r.object_id = p.ID
         JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = r.term_taxonomy_id AND tt.taxonomy = 'product_category'
-        JOIN {$wpdb->terms} t ON t.term_id = tt.term_id AND t.slug IN ('knuckle-boom-marine-cranes', 'telescopic-boom-marine-cranes')
+        JOIN {$wpdb->terms} t ON t.term_id = tt.term_id AND t.slug IN ('knuckle-boom-marine-cranes', 'telescopic-boom-marine-cranes', 'knuckle-boom-truck-mounted-cranes', 'telescopic-boom-truck-mounted-cranes')
         JOIN {$wpdb->term_relationships} lr ON lr.object_id = p.ID
         JOIN {$wpdb->term_taxonomy} ltt ON ltt.term_taxonomy_id = lr.term_taxonomy_id AND ltt.taxonomy = 'language'
         JOIN {$wpdb->terms} lt ON lt.term_id = ltt.term_id AND lt.slug = %s
@@ -201,6 +217,7 @@ function boblift_series_rows(): array
             'slug' => (string) $row['slug'],
             'model' => trim((string) get_post_meta($id, '_model', true)),
             'capacity' => (float) get_post_meta($id, '_capacity_value', true),
+            'family' => str_contains((string) $row['category'], 'marine') ? 'marine' : 'truck',
             'boom' => str_starts_with((string) $row['category'], 'knuckle') ? 'knuckle' : 'telescopic',
             'legacy' => boblift_product_is_legacy($id),
         ];
@@ -285,7 +302,7 @@ function boblift_series_for_product(int $post_id): ?array
             'model' => (string) $member['model'],
             'url' => boblift_series_model_url($series_url, (string) $member['model']),
             'is_home' => $id === $home_id,
-            'values' => boblift_series_boom_values(boblift_series_parse_model((string) $member['model']), (string) $group['boom']),
+            'values' => boblift_series_winch_values(boblift_series_parse_model((string) $member['model']), boblift_series_winch_mode((string) ($group['family'] ?? 'marine'), (string) $group['boom'])),
         ];
     }
     $home_model = '';
@@ -294,7 +311,7 @@ function boblift_series_for_product(int $post_id): ?array
             $home_model = $member['model'];
         }
     }
-    return $memo[$key . '|' . $language] = ['key' => $key, 'code' => (string) $group['code'], 'boom' => $group['boom'], 'capacity' => $group['capacity'], 'language' => $language, 'home_id' => $home_id, 'home_model' => $home_model, 'url' => $series_url, 'members' => $members];
+    return $memo[$key . '|' . $language] = ['key' => $key, 'code' => (string) $group['code'], 'family' => (string) ($group['family'] ?? 'marine'), 'winch' => boblift_series_winch_mode((string) ($group['family'] ?? 'marine'), (string) $group['boom']), 'boom' => $group['boom'], 'capacity' => $group['capacity'], 'language' => $language, 'home_id' => $home_id, 'home_model' => $home_model, 'url' => $series_url, 'members' => $members];
 }
 
 /** This product's own entry in its series. */
@@ -414,9 +431,9 @@ function boblift_series_capturing(): bool
 function boblift_series_begin(array $series): void
 {
     global $post, $wp_query;
-    $variants = boblift_series_expand_variants(boblift_series_members_with_figures($series), $series['url'], (string) $series['boom']);
+    $variants = boblift_series_expand_variants(boblift_series_members_with_figures($series), $series['url'], (string) $series['winch']);
     $requested = isset($_GET['model']) && is_string($_GET['model']) ? wp_unslash($_GET['model']) : '';
-    $active = boblift_series_requested_model(array_column($variants, 'model'), boblift_series_normalize_requested($requested, (string) $series['boom']), $series['home_model']);
+    $active = boblift_series_requested_model(array_column($variants, 'model'), boblift_series_normalize_requested($requested, (string) $series['winch']), $series['home_model']);
     $source = $series['home_model'];
     foreach ($variants as $variant) {
         if ($variant['model'] === $active) {
@@ -542,29 +559,45 @@ function boblift_series_format_kg(int $kilograms): string
     return number_format($kilograms, 0, '.', ',') . ' kg';
 }
 
-/** A telescopic marine crane always has a winch, whatever its model name says, so there is nothing to choose. */
-function boblift_series_boom_values(array $values, string $boom): array
+/**
+ * How a series treats the winch. Marine knuckle cranes can have one or not, marine telescopic cranes must have one (owner,
+ * 2026-11-05). For truck cranes the rule is not settled, so nothing is asked or said about it.
+ */
+function boblift_series_winch_mode(string $family, string $boom): string
 {
-    if ($boom === 'telescopic' && $values['winch'] !== '') {
+    if ($family !== 'marine') {
+        return 'none';
+    }
+    return $boom === 'telescopic' ? 'standard' : 'optional';
+}
+
+/** A crane with a standard winch has one whatever its model name says, so there is nothing to choose. */
+function boblift_series_winch_values(array $values, string $winch): array
+{
+    if ($winch === 'standard' && $values['winch'] !== '') {
         $values['winch'] = '1';
     }
     return $values;
 }
 
-/** The sentence about the winch for this boom type, under the comparison and in the structured data. */
-function boblift_series_winch_sentence(string $boom): string
+/** The sentence about the winch for this kind of series, under the comparison and in the structured data; none for truck cranes. */
+function boblift_series_winch_sentence(string $winch): string
 {
-    return boblift_series_text($boom === 'telescopic' ? 'Telescopic boom marine cranes come with a winch as standard.' : 'Knuckle boom marine cranes can be built with or without a winch.');
+    return match ($winch) {
+        'standard' => boblift_series_text('Telescopic boom marine cranes come with a winch as standard.'),
+        'optional' => boblift_series_text('Knuckle boom marine cranes can be built with or without a winch.'),
+        default => '',
+    };
 }
 
 /**
- * A telescopic model is named as on its drawing, without J, though the winch is standard, so a name with J means the same crane.
- * Knuckle names stay as they are.
+ * A marine telescopic model is named as on its drawing, without J, though the winch is standard, so a name with J means the same
+ * crane. Other names stay as they are.
  */
-function boblift_series_normalize_requested(string $requested, string $boom): string
+function boblift_series_normalize_requested(string $requested, string $winch): string
 {
     $requested = str_replace(' ', '+', trim($requested));
-    return $boom === 'telescopic' ? (string) preg_replace('/TJ(\+1)?$/i', 'T$1', $requested) : $requested;
+    return $winch === 'standard' ? (string) preg_replace('/TJ(\+1)?$/i', 'T$1', $requested) : $requested;
 }
 
 /** The series' members with their figures. */
@@ -611,7 +644,8 @@ function boblift_series_unavailable_choices(array $members, array $dimensions, a
     $out = [];
     foreach ($dimensions as $dimension => $options) {
         foreach ($options as $option) {
-            $wanted = array_merge($values, [$dimension => $option]);
+            // Only what is asked counts: a +1 the boom sections settle is not part of the choice.
+            $wanted = array_merge(array_intersect_key($values, $dimensions), [$dimension => $option]);
             if (!array_filter($members, static fn(array $member): bool => !array_diff_assoc($wanted, $member['values']))) {
                 $out[] = $dimension . '|' . $option;
             }
@@ -684,7 +718,10 @@ function boblift_series_choice_label(string $dimension, string $value, array $me
         $own = array_filter($members, static fn(array $member): bool => ($member['values']['sections'] ?? '') === $value);
         $reaches = array_unique(array_map(static fn(array $member): string => (string) ($member['figures']['radius'] ?? ''), $own));
         $reach = count($reaches) === 1 ? (string) current($reaches) : '';
-        return [boblift_series_booms_label($value), $reach !== '' ? str_replace('{value}', $reach, boblift_series_text('reach {value}')) : ''];
+        // A +1 the section always has, in a series where others have none, is told here: it is not a choice of its own.
+        $always_manual = !array_filter($own, static fn(array $member): bool => ($member['values']['manual'] ?? '') !== '1');
+        $some_without = (bool) array_filter($members, static fn(array $member): bool => ($member['values']['manual'] ?? '') !== '1');
+        return [boblift_series_booms_label($value) . ($own !== [] && $always_manual && $some_without ? ' +1' : ''), $reach !== '' ? str_replace('{value}', $reach, boblift_series_text('reach {value}')) : ''];
     }
     if ($dimension === 'winch') {
         return [boblift_series_text($value === '1' ? 'With winch' : 'No winch'), ''];
@@ -705,7 +742,7 @@ function boblift_series_choice_label(string $dimension, string $value, array $me
  * The model name part by part under the title: three to a row, each with its meaning in plain sight. A name that decodes gets
  * the winch part either way, shown or hidden by the theme script, since the choice can change it.
  */
-function boblift_series_render_compact_decode(string $model, bool $winch_choice = true, int $english_id = 0): void
+function boblift_series_render_compact_decode(string $model, string $winch = 'optional', int $english_id = 0): void
 {
     $parts = boblift_model_parts($model);
     if (!$parts) {
@@ -725,10 +762,10 @@ function boblift_series_render_compact_decode(string $model, bool $winch_choice 
         }
     }
     $has_winch = in_array('J', array_column($parts, 0), true);
-    if (!$has_winch && $winch_choice) {
+    if (!$has_winch && $winch === 'optional') {
         $parts[] = ['J', boblift_localized_static_text('With winch')];
     }
-    if (!$winch_choice) {
+    if ($winch === 'standard') {
         // A telescopic model's name has no J; the winch is standard all the same.
         $parts[] = ['✓', boblift_series_text('Winch: standard')];
     }
@@ -756,7 +793,7 @@ function boblift_series_render_configurator(): void
     $members = $state['variants'];
     $count = count($state['series']['members']);
     $dimensions = boblift_series_dimensions($members);
-    $telescopic = $state['series']['boom'] === 'telescopic';
+    $telescopic = $state['series']['winch'] === 'standard';
     if ($dimensions === []) {
         if ($telescopic) {
             echo '<p class="mt-5 text-sm text-slate-600">' . esc_html($t('Winch included on every telescopic marine crane')) . '</p>';
@@ -909,7 +946,7 @@ function boblift_series_render_compare(string $model): void
                 </tbody>
             </table>
         </div>
-        <p class="border-b border-[#E6EDF5] px-4 py-2 text-xs leading-5 text-slate-500 sm:px-6 md:px-8"><?php echo esc_html(boblift_series_winch_sentence((string) $state['series']['boom'])); ?></p>
+        <?php $winch_sentence = boblift_series_winch_sentence((string) $state['series']['winch']); if ($winch_sentence !== '') : ?><p class="border-b border-[#E6EDF5] px-4 py-2 text-xs leading-5 text-slate-500 sm:px-6 md:px-8"><?php echo esc_html($winch_sentence); ?></p><?php endif; ?>
         <?php if ($missing) : ?><p class="border-b border-[#E6EDF5] px-4 py-2 text-xs leading-5 text-slate-500 sm:px-6 md:px-8"><?php echo esc_html(boblift_series_text('—: not listed here, see the drawing for this configuration.')); ?></p><?php endif; ?>
     </div>
     <?php
@@ -967,7 +1004,7 @@ function boblift_series_schema(): array
             $properties[] = ['@type' => 'PropertyValue', 'name' => $name, 'value' => $value] + ($unit !== '' ? ['unitText' => $unit] : []);
         };
         $add($t('Boom sections'), (string) $values['sections']);
-        if ($values['winch'] !== '') {
+        if ($values['winch'] !== '' && $series['winch'] !== 'none') {
             $add($t('Winch'), $values['winch'] === '1' ? $t('With winch') : $t('No winch'));
         }
         if ($values['manual'] === '1') {
@@ -999,8 +1036,8 @@ function boblift_series_schema(): array
         'productGroupID' => $series['code'],
         'url' => $series['url'],
         'image' => (string) ($home_meta['image'] ?? ''),
-        'description' => trim((string) ($home_meta['description'] ?? '') . ' ' . boblift_series_winch_sentence((string) $series['boom'])),
-        'additionalProperty' => [['@type' => 'PropertyValue', 'name' => $t('Winch'), 'value' => $t($series['boom'] === 'telescopic' ? 'Standard' : 'Optional')]],
+        'description' => trim((string) ($home_meta['description'] ?? '') . ' ' . boblift_series_winch_sentence((string) $series['winch'])),
+        'additionalProperty' => $series['winch'] === 'none' ? [] : [['@type' => 'PropertyValue', 'name' => $t('Winch'), 'value' => $t($series['winch'] === 'standard' ? 'Standard' : 'Optional')]],
         'brand' => $brand,
         'manufacturer' => $manufacturer,
         'hasVariant' => $variants,

@@ -521,7 +521,7 @@ if ($family_quote_copy) {
                     <?php endif; ?>
                     <?php // A series explains its model name last: the choice and the quote come first. ?>
                     <?php boblift_series_block_open('decode'); ?>
-                    <?php if ($series_page) { boblift_series_render_compact_decode($hero_model, $product_series['boom'] !== 'telescopic', (int) $series_member['en_id']); } ?>
+                    <?php if ($series_page) { boblift_series_render_compact_decode($hero_model, (string) $product_series['winch'], (int) $series_member['en_id']); } ?>
                     <?php boblift_series_block_close('decode'); ?>
                 </div>
                 <?php boblift_series_block_open('gallery'); ?>
