@@ -1848,7 +1848,7 @@ function boblift_product_english_id(int $product_id): int
  */
 /**
  * The moment and weight of each configuration a listing entry stands for: every configuration of a series page, a product's own
- * otherwise. [{"m": 12.9, "w": 2100}, ...]; 0 where a figure is missing. The card carries it as data-configs (theme.js).
+ * otherwise. [{"m": 12.9, "w": 2100}, ...]; 0 where a figure is missing. The card carries it as data-filter-configs (theme.js).
  */
 function boblift_product_filter_configs(int $product_id): array
 {
@@ -2312,7 +2312,7 @@ function boblift_product_card(array $product, string $extra_class = '', bool $ea
     $quick_specs = esc_attr(wp_json_encode($quick_rows ? array_slice($quick_rows, 0, 6) : $specs, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     $quick_configs = boblift_series_quick_view_configs($product);
     // Each configuration's moment and weight, for filters that one configuration has to meet together (theme.js).
-    $filter_attrs = ' data-configs="' . esc_attr((string) wp_json_encode(boblift_product_filter_configs((int) ($product['id'] ?? 0)))) . '"';
+    $filter_attrs = ' data-filter-configs="' . esc_attr((string) wp_json_encode(boblift_product_filter_configs((int) ($product['id'] ?? 0)))) . '"';
     $product_ui = function_exists('boblift_site_ui') ? boblift_site_ui('productDetail') : [];
     $quote_list_ui = function_exists('boblift_site_ui') ? boblift_site_ui('quoteList') : [];
     $add_quote_label = (string) ($quote_list_ui['addLabel'] ?? 'Add to Quote List');

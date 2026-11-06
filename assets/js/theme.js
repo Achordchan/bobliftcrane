@@ -3232,12 +3232,12 @@
     // Spec filters hold a number per card (tonnes, t·m, kg; 0 = not given) matched against "min-max" / "min+" bins.
     const specFilters = ['capacity', 'moment', 'weight'];
     const cardNumber = (card, filterName) => Number(card.dataset[filterName] || 0);
-    // A card lists the moment and weight of each configuration it stands for (data-configs='[{"m":12.9,"w":2100},...]'); one
+    // A card lists the moment and weight of each configuration it stands for (data-filter-configs='[{"m":12.9,"w":2100},...]'); one
     // configuration has to meet every chosen figure at once. Capacity is the card's own listing figure.
     const cardConfigs = (card) => {
       if (!card.bobliftConfigs) {
         let list = [];
-        try { list = JSON.parse(card.dataset.configs || '[]'); } catch (error) { list = []; }
+        try { list = JSON.parse(card.dataset.filterConfigs || '[]'); } catch (error) { list = []; }
         card.bobliftConfigs = Array.isArray(list) && list.length ? list : [{ m: cardNumber(card, 'moment'), w: cardNumber(card, 'weight') }];
       }
       return card.bobliftConfigs;
@@ -5439,12 +5439,19 @@
     patched.forEach((html, element) => { element.innerHTML = html; });
     patched.clear();
   };
+  // A page opened on a derived version comes with those elements already changed; data-cfg-orig holds what the source shows.
+  const remember = (element) => {
+    if (patched.has(element)) return;
+    patched.set(element, element.dataset.cfgOrig !== undefined ? element.dataset.cfgOrig : element.innerHTML);
+    delete element.dataset.cfgOrig;
+  };
+  document.querySelectorAll('[data-cfg-orig]').forEach(remember);
   const patch = (element, html) => {
-    if (!patched.has(element)) patched.set(element, element.innerHTML);
+    remember(element);
     element.innerHTML = html;
   };
   const swapText = (element, from, to) => {
-    if (!patched.has(element)) patched.set(element, element.innerHTML);
+    remember(element);
     element.childNodes.forEach((node) => {
       if (node.nodeType === Node.TEXT_NODE) node.textContent = node.textContent.replace(from, to);
     });

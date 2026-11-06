@@ -148,18 +148,19 @@ function boblift_series_group_rows(array $rows): array
     }
     foreach ($groups as $key => $group) {
         usort($group['members'], static fn(array $a, array $b): int => boblift_series_model_order($a['model'], $b['model']));
+        // The series page is a current model: the capacity-named page first, then any current member. A previous-model
+        // home would take the whole series out of the lists, so one is chosen only when every member is a previous model.
+        $is_named = static fn(array $member): bool => (bool) preg_match('/^\d[\d-]*-ton-(?:knuckle|telescopic)-boom-(?:marine|truck-mounted)-crane$|^800-kg-pickup-crane-with-outriggers$/', (string) $member['slug']);
         $home = null;
-        foreach ($group['members'] as $member) {
-            if (preg_match('/^\d[\d-]*-ton-(?:knuckle|telescopic)-boom-(?:marine|truck-mounted)-crane$|^800-kg-pickup-crane-with-outriggers$/', (string) $member['slug'])) {
-                $home = $member;
-                break;
-            }
-        }
-        if ($home === null) {
+        foreach ([
+            static fn(array $m): bool => empty($m['legacy']) && $is_named($m),
+            static fn(array $m): bool => empty($m['legacy']),
+            $is_named,
+        ] as $test) {
             foreach ($group['members'] as $member) {
-                if (empty($member['legacy'])) {
+                if ($test($member)) {
                     $home = $member;
-                    break;
+                    break 2;
                 }
             }
         }
@@ -937,8 +938,11 @@ function boblift_series_block_open(string $name): void
  */
 function boblift_series_derived_block(string $html, string $source, string $model): string
 {
-    $html = (string) preg_replace_callback('/(<([a-z0-9]+)\b[^>]*\bdata-cfg-model-text\b[^>]*>)(.*?)(<\/\2>)/s', static fn(array $m): string => $m[1] . str_replace($source, $model, $m[3]) . $m[4], $html);
-    return (string) preg_replace('/(\b(?:data-cfg-cell="weight"|data-cfg-weight-row(?=[\s>]))[^>]*>.*?<dd\b[^>]*>).*?(<\/dd>)/s', '$1<span class="text-slate-400">—</span>$2', $html);
+    // Each changed element keeps its source content in data-cfg-orig, which the theme script restores from: a switch to
+    // another configuration must start from the source's own model and weight, not from this page's derived ones.
+    $keep = static fn(string $open, string $inner): string => substr($open, 0, -1) . ' data-cfg-orig="' . esc_attr($inner) . '">';
+    $html = (string) preg_replace_callback('/(<([a-z0-9]+)\b[^>]*\bdata-cfg-model-text\b[^>]*>)(.*?)(<\/\2>)/s', static fn(array $m): string => $keep($m[1], $m[3]) . str_replace($source, $model, $m[3]) . $m[4], $html);
+    return (string) preg_replace_callback('/(\b(?:data-cfg-cell="weight"|data-cfg-weight-row(?=[\s>]))[^>]*>.*?)(<dd\b[^>]*>)(.*?)(<\/dd>)/s', static fn(array $m): string => $m[1] . $keep($m[2], $m[3]) . '<span class="text-slate-400">—</span>' . $m[4], $html);
 }
 
 /** Ends a block: stores it, and on the series page's own run prints every configuration's version of it. */

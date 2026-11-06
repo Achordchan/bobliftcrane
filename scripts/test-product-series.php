@@ -118,6 +118,10 @@ $check('single-model series', [199], array_column($groups['knuckle-25']['members
 $check('series code from home', 'SQ12Z-T', $groups['knuckle-12']['code']);
 $noSuffix = boblift_series_group_rows([$row(1, 'x-sq2za4t', 'SQ2ZA4T', 2, 'knuckle', true), $row(2, 'x-sq2za2tj', 'SQ2ZA2TJ', 2, 'knuckle')]);
 $check('without a plain slug the current model leads', 2, $noSuffix['knuckle-2']['home']);
+$legacyNamed = boblift_series_group_rows([$row(1, '5-ton-knuckle-boom-marine-crane', 'SQ5ZA3T', 5, 'knuckle', true), $row(2, '5-ton-knuckle-boom-marine-crane-sq5za4t', 'SQ5ZA4T', 5, 'knuckle')]);
+$check('a previous-model capacity page gives way to a current member', 2, $legacyNamed['knuckle-5']['home']);
+$allLegacy = boblift_series_group_rows([$row(1, 'x-sq6za4t', 'SQ6ZA4T', 6, 'knuckle', true), $row(2, '6-ton-knuckle-boom-marine-crane', 'SQ6ZA3T', 6, 'knuckle', true)]);
+$check('all previous models: the capacity page still leads', 2, $allLegacy['knuckle-6']['home']);
 
 // Which choices are asked.
 $members = array_map(static fn(string $model): array => ['model' => $model, 'values' => boblift_series_parse_model($model)], ['SQ08ZA3T+1', 'SQ08ZA3TJ+1']);
