@@ -292,6 +292,9 @@ function boblift_document_title_parts(array $title): array
     } elseif (is_singular()) {
         $post = get_queried_object();
         $seo_title = $post instanceof WP_Post ? boblift_seo_post_title($post) : '';
+        if ($seo_title !== '' && $post instanceof WP_Post && function_exists('boblift_series_request_title')) {
+            $seo_title = boblift_series_request_title($seo_title, $post);
+        }
     } elseif (is_search()) {
         $search_ui = boblift_site_ui('search');
         $search_query = trim(get_search_query(false));
