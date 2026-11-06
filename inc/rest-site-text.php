@@ -16,7 +16,8 @@
  * capacity bins 0-5 and 25+ do), final_cta., home.hero.,
  * floating_contact_buttons.<n>.<field> or static_text.strings.<id>.text. Only the texts named change; every other
  * saved value stays as it is. A path must already hold text: a typo is refused, not added. A value is cleaned like its
- * current value: wp_kses_post where the saved text holds HTML, sanitize_text_field otherwise.
+ * current value: wp_kses_post where the saved text holds HTML, sanitize_text_field otherwise. Addresses (keys href, url, link,
+ * *_href, *_url) are read but never written here: a request naming one is refused with 400.
  * "expect" (optional) gives the value each path should hold now; if any differs, nothing is written and the
  * request fails with 409, listing them. "dry_run" returns the changes without writing.
  * The response's boblift_site_text then carries "result": {"dry_run", "changes": [{"path", "before", "after"}],
@@ -56,29 +57,16 @@ function boblift_site_text_set(array $options, string $path, string $value): arr
     return $options;
 }
 
-/** Whether the text at a path is an address: a key href, url or link, or one ending in _href or _url. */
+/** Whether the text at a path is an address (key href, url or link, or ending in _href or _url): read here, never written. */
 function boblift_site_text_is_url(string $path): bool
 {
     $key = (string) substr($path, (int) strrpos('.' . $path, '.'));
     return (bool) preg_match('/^(?:href|url|link)$|_(?:href|url)$/', $key);
 }
 
-/**
- * A new value cleaned the way its current value is stored: an address keeps its encoding (%20, encoded Chinese) through
- * esc_url_raw and must use http, https, mailto, tel or whatsapp, or be a path on the site; null when it is refused. Other
- * text goes through wp_kses_post where the saved text holds HTML, sanitize_text_field otherwise.
- */
-function boblift_site_text_clean(string $value, string $current, string $path = ''): ?string
+/** A new value cleaned the way its current value is stored: wp_kses_post where it holds HTML, sanitize_text_field otherwise. */
+function boblift_site_text_clean(string $value, string $current): string
 {
-    if ($path !== '' && boblift_site_text_is_url($path)) {
-        $value = trim($value);
-        $scheme = (string) parse_url($value, PHP_URL_SCHEME);
-        if ($value === '' || ($scheme !== '' && !in_array(strtolower($scheme), ['http', 'https', 'mailto', 'tel', 'whatsapp'], true))) {
-            return null;
-        }
-        $clean = esc_url_raw($value, ['http', 'https', 'mailto', 'tel', 'whatsapp']);
-        return $clean !== '' ? $clean : null;
-    }
     return $current !== strip_tags($current) ? wp_kses_post($value) : sanitize_text_field($value);
 }
 
@@ -102,7 +90,9 @@ function boblift_site_text_plan(array $options, mixed $request): array|WP_Error
     $refused = [];
     foreach (array_keys($request['set'] + $expect) as $path) {
         $path = (string) $path;
-        if (!boblift_site_text_path_allowed($path)) {
+        if (boblift_site_text_is_url($path)) {
+            $refused[] = $path . ' (URL fields are not writable via this API)';
+        } elseif (!boblift_site_text_path_allowed($path)) {
             $refused[] = $path . ' (not a site text path)';
         } elseif (boblift_site_text_get($options, $path) === null) {
             $refused[] = $path . ' (not saved in this language)';
@@ -128,19 +118,10 @@ function boblift_site_text_plan(array $options, mixed $request): array|WP_Error
     }
     $changes = [];
     $unchanged = [];
-    $bad_urls = [];
-    foreach ($request['set'] as $path => $value) {
-        if (boblift_site_text_clean((string) $value, (string) boblift_site_text_get($options, (string) $path), (string) $path) === null) {
-            $bad_urls[] = (string) $path;
-        }
-    }
-    if ($bad_urls !== []) {
-        return new WP_Error('boblift_site_text_invalid', 'Refused, nothing written: not an http, https, mailto, tel or whatsapp address or a site path: ' . implode(', ', $bad_urls) . '.', ['status' => 400, 'refused' => $bad_urls]);
-    }
     foreach ($request['set'] as $path => $value) {
         $path = (string) $path;
         $before = (string) boblift_site_text_get($options, $path);
-        $after = (string) boblift_site_text_clean($value, $before, $path);
+        $after = boblift_site_text_clean($value, $before);
         if ($after === $before) {
             $unchanged[] = $path;
             continue;

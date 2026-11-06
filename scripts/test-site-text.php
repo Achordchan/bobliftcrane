@@ -18,12 +18,6 @@ function sanitize_text_field(string $value): string
 {
     return trim(preg_replace('/\s+/', ' ', strip_tags($value)));
 }
-// WordPress's esc_url_raw keeps percent-encoding and drops a protocol outside the list.
-function esc_url_raw(string $url, ?array $protocols = null): string
-{
-    $scheme = (string) parse_url($url, PHP_URL_SCHEME);
-    return $scheme !== '' && $protocols !== null && !in_array(strtolower($scheme), $protocols, true) ? '' : str_replace(' ', '%20', trim($url));
-}
 function wp_kses_post(string $value): string
 {
     return preg_replace('#<script\b[^>]*>.*?</script>#is', '', $value);
@@ -131,24 +125,19 @@ foreach (['site_ui.productArchive.capacityBins.0 5', 'site_ui.productArchive.cap
     $check('still refuses ' . $path, !boblift_site_text_path_allowed($path) && is_wp_error(boblift_site_text_apply('zh', ['set' => [$path => 'x']])) && $GLOBALS['stored'] === $fresh);
 }
 
-// Addresses keep their encoding and must use an allowed protocol (#252 review).
-$GLOBALS['stored'] = $fresh;
-$wa = 'https://wa.me/8615852499415?text=%E4%BD%A0%E5%A5%BD%20BOB-LIFT%20quote';
-$result = boblift_site_text_apply('zh', ['set' => ['floating_contact_buttons.1.href' => $wa, 'final_cta.button_href' => '/contact.html?product=SQ12ZA5%20T#inquiry']]);
-$check('wa.me link with %20 and encoded Chinese kept as sent', !is_wp_error($result) && $GLOBALS['stored']['floating_contact_buttons'][1]['href'] === $wa);
-$check('site path with encoding kept', $GLOBALS['stored']['final_cta']['button_href'] === '/contact.html?product=SQ12ZA5%20T#inquiry');
-foreach (['javascript:alert(1)', 'JavaScript:alert(1)', 'data:text/html,x', 'ftp://example.com/x', ''] as $bad) {
+// Addresses are read, never written: a request naming one is refused whole (#252 review).
+foreach (['floating_contact_buttons.1.href', 'final_cta.button_href', 'final_cta.link', 'site_ui.x.image_url'] as $path) {
     $GLOBALS['stored'] = $fresh;
-    $result = boblift_site_text_apply('zh', ['set' => ['site_ui.header.quoteLabel' => '获取报价', 'floating_contact_buttons.1.href' => $bad]]);
-    $check('refuses address ' . ($bad === '' ? '(empty)' : $bad), is_wp_error($result) && $result->data['status'] === 400 && $GLOBALS['stored'] === $fresh);
+    $result = boblift_site_text_apply('zh', ['set' => ['site_ui.header.quoteLabel' => '获取报价', $path => 'https://wa.me/{whatsapp}']]);
+    $check('refuses URL path ' . $path . ' and writes nothing', is_wp_error($result) && $result->data['status'] === 400 && str_contains($result->message, 'URL fields are not writable via this API') && $GLOBALS['stored'] === $fresh);
 }
 $GLOBALS['stored'] = $fresh;
-$result = boblift_site_text_apply('zh', ['set' => ['floating_contact_buttons.1.href' => 'mailto:info@boblift.com', 'final_cta.link' => 'tel:+8615852499415']]);
-$check('mailto and tel accepted', !is_wp_error($result) && count($result['changes']) === 2);
+$result = boblift_site_text_apply('zh', ['set' => ['site_ui.header.quoteLabel' => '获取报价'], 'expect' => ['final_cta.button_href' => '/quote']]);
+$check('a URL path in expect is refused too', is_wp_error($result) && $GLOBALS['stored'] === $fresh);
+$check('URLs still read back', boblift_site_text_values($fresh)['final_cta']['button_href'] === '/quote' && boblift_site_text_values($fresh)['floating_contact_buttons'][1]['href'] === 'https://wa.me/8615852499415');
 $GLOBALS['stored'] = $fresh;
 $result = boblift_site_text_apply('zh', ['set' => ['site_ui.header.quoteLabel' => '获取报价%20 <b>x</b>']]);
 $check('text fields still sanitized as text', !is_wp_error($result) && $GLOBALS['stored']['site_ui']['header']['quoteLabel'] === '获取报价%20 x');
-$check('url keys recognised', boblift_site_text_is_url('final_cta.button_href') && boblift_site_text_is_url('floating_contact_buttons.0.href') && boblift_site_text_is_url('site_ui.newsPage.ctaUrl') === false && boblift_site_text_is_url('site_ui.x.image_url') && !boblift_site_text_is_url('final_cta.button_label'));
 
 // Cleaning follows the saved value: plain text is stripped, HTML keeps its safe tags.
 $GLOBALS['stored'] = $fresh;
