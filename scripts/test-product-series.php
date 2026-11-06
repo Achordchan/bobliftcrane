@@ -419,5 +419,12 @@ $check('not in it, the base', 'Base configuration for this series', boblift_seri
 $check('not in it, not the base', '', boblift_series_status_text('SQ1ZA4', false));
 $check('the other winch version is not the catalogued one', '', boblift_series_status_text('SQ4ZA3T', false));
 
+$check('title names the chosen configuration', '12 Ton Knuckle Boom Marine Crane – SQ12ZA4T | BOB-LIFT', boblift_series_title_with_model('12 Ton Knuckle Boom Marine Crane – SQ12ZA6T | BOB-LIFT', 'SQ12ZA6T', 'SQ12ZA4T'));
+$check('the series model itself keeps the title', 'X – SQ12ZA6T', boblift_series_title_with_model('X – SQ12ZA6T', 'SQ12ZA6T', 'SQ12ZA6T'));
+$check('a longer model is not cut', 'X – SQ12ZA6TJ', boblift_series_title_with_model('X – SQ12ZA6TJ', 'SQ12ZA6T', 'SQ12ZA4T'));
+$check('+1 is part of the model', 'X – SQ1ZA3+1', boblift_series_title_with_model('X – SQ1ZA3+1', 'SQ1ZA3', 'SQ1ZA4'));
+$check('to a +1 configuration', 'X – SQ1ZA3+1 |', boblift_series_title_with_model('X – SQ1ZA3 |', 'SQ1ZA3', 'SQ1ZA3+1'));
+$check('a title without the model stays', '12トン ナックルブーム式マリンクレーン', boblift_series_title_with_model('12トン ナックルブーム式マリンクレーン', 'SQ12ZA6T', 'SQ12ZA4T'));
+
 echo $failures === 0 ? "ok\n" : "{$failures} failed\n";
 exit($failures === 0 ? 0 : 1);

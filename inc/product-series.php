@@ -1259,12 +1259,47 @@ function boblift_series_capturing(): bool
  * Starts a series page: runs the template for every other configuration first, keeping only their blocks.
  * The post and query are switched as well, since anything resetting post data mid-way would otherwise go back to the series page.
  */
-function boblift_series_begin(array $series): void
+/** The variants of a series and the one this request's ?model= picks (the series' own model when it picks none). */
+function boblift_series_request_choice(array $series): array
 {
-    global $post, $wp_query;
     $variants = boblift_series_expand_variants(boblift_series_members_with_figures($series), $series['url'], (string) $series['winch']);
     $requested = isset($_GET['model']) && is_string($_GET['model']) ? wp_unslash($_GET['model']) : '';
     $active = boblift_series_requested_model(array_column($variants, 'model'), boblift_series_normalize_requested($requested, (string) $series['winch']), $series['home_model']);
+    return [$variants, $active];
+}
+
+/**
+ * A title that names the series' own model, rewritten for the configuration being shown. Only the whole model is replaced
+ * (SQ12ZA6T, not the start of SQ12ZA6TJ); a title that names no model, or already names the chosen one, stays as it is.
+ */
+function boblift_series_title_with_model(string $title, string $home, string $active): string
+{
+    if ($home === '' || $active === '' || $home === $active) {
+        return $title;
+    }
+    $pattern = '/(?<![A-Za-z0-9+\-])' . preg_quote($home, '/') . '(?![A-Za-z0-9+])/';
+    return (string) preg_replace($pattern, $active, $title);
+}
+
+/** The page title of a series page for the configuration its ?model= picks: the browser tab and the quote's source title name it. */
+function boblift_series_request_title(string $title, WP_Post $post): string
+{
+    if (!isset($_GET['model']) || $post->post_type !== 'product' || boblift_series_capturing()) {
+        return $title;
+    }
+    $series = boblift_series_for_product((int) $post->ID);
+    $member = $series ? boblift_series_member($series, (int) $post->ID) : null;
+    if (!$series || empty($member['is_home'])) {
+        return $title;
+    }
+    [, $active] = boblift_series_request_choice($series);
+    return boblift_series_title_with_model($title, (string) $series['home_model'], (string) $active);
+}
+
+function boblift_series_begin(array $series): void
+{
+    global $post, $wp_query;
+    [$variants, $active] = boblift_series_request_choice($series);
     $source = $series['home_model'];
     foreach ($variants as $variant) {
         if ($variant['model'] === $active) {
