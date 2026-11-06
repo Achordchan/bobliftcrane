@@ -82,6 +82,9 @@ $check('en range of three-decimal figures', '4.125–4.5 m', boblift_series_comp
 $check('en kW range', '0.75–1.1 kW', boblift_series_compare_range(['0.750 kW', '1.1 kW'], true, 'en', 'en'));
 $check('en thousands range', '1,464–3,020 mm', boblift_series_compare_range(['1,464 mm', '3,020 mm'], true, 'en', 'en'));
 $check('en kg', '12,000 kg', boblift_series_compare_range(['12,000 kg'], true, 'en', 'en'));
+foreach (['es', 'fr', 'ru'] as $lang) {
+    $check("{$lang}: English moments make a range", '4,125–5,5 t·m', boblift_series_compare_range(['4.125 t·m', '5.5 t·m'], true, $lang, 'en'));
+}
 $check('English figures shown in Spanish', '4,125–4,5 m', boblift_series_compare_range(['4.125 m', '4.5 m'], true, 'es', 'en'));
 $check('es range from decimal commas', '5,5–7,5 kW', boblift_series_compare_range(['5,5 kW', '7,5 kW'], false, 'es', 'es'));
 $check('fr range from decimal commas', '5,5–7,5 kW', boblift_series_compare_range(['5,5 kW', '7,5 kW'], false, 'fr', 'fr'));

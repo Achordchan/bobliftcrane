@@ -183,13 +183,22 @@ function boblift_compare_series_prepare(array $models): array
                 $english[$index][$key] = boblift_compare_figure($row, $sources, 'en_value');
             }
         }
+        // Capacity, moment, boom sections and self weight are already the English figures (boblift_product_model_rows() reads
+        // the English spec table; capacity is a plain decimal-point number), so their rows are their English values too.
+        $english_fields = ['capacity_label', 'moment', 'sections_label', 'weight'];
+        foreach ($rows as $index => $row) {
+            foreach ($english_fields as $key) {
+                $english[$index][$key] = (string) ($row[$key] ?? '');
+            }
+        }
         $language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
         $column = $own;
-        foreach (array_merge(['capacity_label', 'moment', 'sections_label', 'weight'], array_keys(boblift_compare_figure_sources())) as $key) {
-            // A range comes from the English figures (5.5 kW, never a translated 5,5 read as 55), written the page's way; a
-            // figure that is not a number (3+1 / 4) shows the page's own words.
+        foreach (array_merge($english_fields, array_keys(boblift_compare_figure_sources())) as $key) {
+            // A range comes from the English figures, read the English way (4.125 t·m, 5.5 kW: never a translated 5,5 read
+            // as 55, nor 4.125 read as 4125), and is written the page's way. A figure that is not a number (3+1 / 4) shows
+            // the page's own words, read in the language they are written in.
             $range = isset($english[0][$key]) ? boblift_series_compare_range(array_column($english, $key), true, $language, 'en') : '';
-            $column[$key] = $range !== '' ? $range : boblift_series_compare_range(array_column($rows, $key), false, $language, $language);
+            $column[$key] = $range !== '' ? $range : boblift_series_compare_range(array_column($rows, $key), false, $language, in_array($key, $english_fields, true) ? 'en' : $language);
         }
         $view = boblift_series_card_view(['id' => $item['id'], 'model' => $item['model'], 'title' => $item['title']]);
         $column['heading'] = $view['title'];
