@@ -1300,6 +1300,10 @@ function boblift_series_compare_columns(array $members): array
 function boblift_series_render_compare(string $model): void
 {
     $state = $GLOBALS['boblift_series_render'] ?? null;
+    if ($state && $state['active_source'] === $model && boblift_specs_option() === 'd' && count((array) $state['variants']) > 1) {
+        boblift_specs_render_choose_table($state);
+        return;
+    }
     if (!$state || $state['active_source'] !== $model || count($state['series']['members']) < 2) {
         return;
     }
@@ -1307,7 +1311,7 @@ function boblift_series_render_compare(string $model): void
         echo '<!--boblift-specs-matrix-->';
         return;
     }
-    $collapsed = boblift_specs_option() !== '';
+    $collapsed = in_array(boblift_specs_option(), ['a', 'c'], true);
     $members = boblift_series_members_with_figures($state['series']);
     // The table shows the configurations themselves; the winch is an option on each, said once.
     $dimensions = boblift_series_dimensions($members);

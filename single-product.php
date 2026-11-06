@@ -587,6 +587,8 @@ if ($family_quote_copy) {
                     <?php if ($series_page) : ?><div class="mt-5"><h3 class="text-[13px] font-semibold text-slate-500"><?php echo esc_html(boblift_series_text('Model code explained')); ?></h3><?php boblift_series_render_compact_decode($hero_model, (string) $product_series['winch'], (int) $series_member['en_id']); ?></div><?php endif; ?>
                     <?php elseif ($series_page && $specs_option === 'a') : ?>
                         <?php boblift_specs_render_decode_line($hero_model, (string) $product_series['winch'], (int) $series_member['en_id'], 'mt-4'); ?>
+                    <?php elseif ($series_page && $specs_option === 'd') : ?>
+                        <?php boblift_specs_render_decode_strip($hero_model, (string) $product_series['winch'], (int) $series_member['en_id']); ?>
                     <?php elseif ($series_page && $specs_option === 'b') : ?>
                         <details class="group mt-3"><summary class="inline-flex cursor-pointer list-none items-center gap-1.5 text-[14px] font-semibold text-slate-500 [&::-webkit-details-marker]:hidden"><?php echo esc_html(boblift_series_text('Model code explained')); ?><svg class="size-3.5 transition-transform group-open:rotate-180" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></summary><?php boblift_specs_render_decode_line($hero_model, (string) $product_series['winch'], (int) $series_member['en_id'], 'mt-2'); ?></details>
                     <?php endif; ?>
@@ -597,7 +599,7 @@ if ($family_quote_copy) {
                 $series_weight_label = $series_page ? boblift_series_spec_label((int) $series_member['en_id'], (array) $specs, 'Self Weight') : '';
                 $series_winch_label = $series_page ? boblift_series_spec_label((int) $series_member['en_id'], (array) $specs, 'Winch') : '';
                 ?>
-                <?php if ($drawings) : ?><div class="grid grid-cols-[minmax(0,1fr)] border-t border-[#E6EDF5] <?php echo $specs_option === '' ? 'lg:grid-cols-2' : ($specs_option === 'c' ? 'lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]' : ($specs_option === 'b' && $series_page && count($product_series['members']) > 3 ? 'lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]' : 'lg:grid-cols-2 min-[1700px]:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]')); ?>"><?php endif; ?>
+                <?php if ($drawings) : ?><div class="grid grid-cols-[minmax(0,1fr)] border-t border-[#E6EDF5] <?php echo in_array($specs_option, ['', 'd'], true) ? 'lg:grid-cols-2' : ($specs_option === 'c' ? 'lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]' : ($specs_option === 'b' && $series_page && count($product_series['members']) > 3 ? 'lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]' : 'lg:grid-cols-2 min-[1700px]:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]')); ?>"><?php endif; ?>
                 <?php
                 // Grouped (lifting, hydraulics, machine) when the English table lines up with this language's rows; one table otherwise.
                 $spec_sections = $spec_groups ?: [['label' => '', 'rows' => $technical_specs]];
@@ -636,7 +638,7 @@ if ($family_quote_copy) {
                     $spec_sections[$drawing_index]['rows'][] = $drawing_row;
                 }
                 ?>
-                <div class="min-w-0 <?php echo $drawings ? '' : 'border-t border-[#E6EDF5]'; ?>">
+                <div class="min-w-0 <?php echo $drawings ? '' : 'border-t border-[#E6EDF5]'; ?> <?php echo $specs_option === 'd' ? 'grid grid-cols-[minmax(0,1fr)] content-start gap-6 px-4 py-5 sm:p-6 md:p-8' : ''; ?>">
                     <?php
                     // TEMPORARY: the layouts under ?specs=a|b|c read the same rows, without the model row the heading already gives.
                     $specs_sections = array_map(static function (array $section) use ($specs_keys, $hero_model): array {
@@ -651,9 +653,13 @@ if ($family_quote_copy) {
                     }
                     $specs_has_matrix = $specs_option === 'b' && $series_page && count($product_series['members']) > 1;
                     ?>
-                    <?php if ($series_page && $specs_option !== 'c') : ?><div data-cfg-compare-slot><?php boblift_series_render_compare((string) $series_member['model']); ?></div><?php endif; ?>
+                    <?php if ($series_page && $specs_option === 'd' && count((array) ($GLOBALS['boblift_series_render']['variants'] ?? [])) > 1) : ?>
+                        <div><p class="boblift-kicker"><?php echo esc_html(boblift_series_text('Choose your configuration')); ?></p><div class="mt-3" data-cfg-compare-slot><?php boblift_series_render_compare((string) $series_member['model']); ?></div></div>
+                    <?php endif; ?>
+                    <?php if ($series_page && !in_array($specs_option, ['c', 'd'], true)) : ?><div data-cfg-compare-slot><?php boblift_series_render_compare((string) $series_member['model']); ?></div><?php endif; ?>
                     <?php if ($specs_option !== '') : ?>
-                        <?php if ($specs_option === 'c') : boblift_specs_render_groups($specs_sections, $series_weight_label, $series_winch_label); ?>
+                        <?php if ($specs_option === 'd') : boblift_specs_render_group_boxes($specs_sections, $series_weight_label, $series_winch_label); ?>
+                        <?php elseif ($specs_option === 'c') : boblift_specs_render_groups($specs_sections, $series_weight_label, $series_winch_label); ?>
                         <?php elseif (!$specs_has_matrix) : boblift_specs_render_table($specs_sections, $series_weight_label, $series_winch_label); ?>
                         <?php endif; ?>
                         <?php if ($series_page && $specs_option === 'c') : ?><div data-cfg-compare-slot><?php boblift_series_render_compare((string) $series_member['model']); ?></div><?php endif; ?>
@@ -695,23 +701,32 @@ if ($family_quote_copy) {
                         </dl>
                     <?php endforeach; ?>
                     <?php endif; ?>
+                    <?php if ($specs_option === 'd') : ?>
+                        <div class="flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-[#E6EDF5] pt-5">
+                            <?php if (is_string($spec_range_link) && $spec_range_link !== '') : ?>
+                                <a class="inline-flex min-h-12 max-w-full items-center justify-center gap-2 rounded-sm bg-[#071f42] px-6 py-3 text-sm font-black text-white transition hover:bg-[#0B3F7D]" href="<?php echo esc_url($spec_range_link); ?>"><?php echo esc_html(str_replace('{range}', $related_term->name, boblift_localized_static_text('Compare all {range}'))); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></a>
+                            <?php endif; ?>
+                            <p class="min-w-[15rem] flex-1 text-[13px] font-normal leading-5 text-slate-500"><?php echo esc_html(boblift_localized_static_text('Figures from the BOB-LIFT technical drawings. Confirm the final specification with our team before ordering.')); ?></p>
+                        </div>
+                    <?php else : ?>
                     <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-[#E6EDF5] px-4 py-4 sm:px-6 md:px-8">
                         <p class="max-w-xl text-xs font-normal leading-5 text-slate-500"><?php echo esc_html(boblift_localized_static_text('Figures from the BOB-LIFT technical drawings. Confirm the final specification with our team before ordering.')); ?></p>
                         <?php if (is_string($spec_range_link) && $spec_range_link !== '') : ?>
                             <a class="inline-flex max-w-full shrink-0 items-center gap-1.5 text-sm font-black text-blue-700 transition hover:text-[#071f42]" href="<?php echo esc_url($spec_range_link); ?>"><?php echo esc_html(str_replace('{range}', $related_term->name, boblift_localized_static_text('Compare all {range}'))); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></a>
                         <?php endif; ?>
                     </div>
+                    <?php endif; ?>
                 </div>
                 <?php if ($drawings) : ?>
                     <div id="drawing" class="<?php echo $specs_option === '' ? 'flex flex-col justify-start gap-6 px-4 py-5 sm:p-6 md:p-8' : ''; ?> scroll-mt-24 border-t border-[#E6EDF5] lg:-ms-px lg:border-s lg:border-t-0">
-                        <?php if ($specs_option !== '') : ?><div class="flex flex-col justify-start gap-6 px-4 py-5 sm:p-6 md:p-8 lg:sticky lg:top-[calc(var(--boblift-header-h,72px)+64px)]"><?php endif; ?>
+                        <?php if ($specs_option !== '') : ?><div class="flex flex-col justify-start gap-6 px-4 py-5 sm:p-6 md:p-8 <?php echo $specs_option === 'd' ? '' : 'lg:sticky lg:top-[calc(var(--boblift-header-h,72px)+64px)]'; ?>"><?php endif; ?>
                         <p class="boblift-kicker"><?php echo esc_html($ui['drawingTitle'] ?? 'Dimensions and load chart'); ?></p>
                         <?php // Two drawings sit side by side; every drawing is capped in height, so a portrait sheet stays a preview and opens full size on click.
                         // On phones several drawings become a swipe row at nearly the card's width, with the next one peeking in, instead of two thumbnails,
                         // and the height cap rises to 70% of the screen so a tall, narrow sheet is not shrunk to a sliver. ?>
                         <div class="<?php echo count($drawings) > 1 ? 'boblift-drawing-strip -mx-4 flex snap-x snap-mandatory items-center gap-3 overflow-x-auto scroll-px-4 px-4 [-ms-overflow-style:none] [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden' : 'grid items-center'; ?>">
                         <?php foreach ($drawings as $drawing) : ?>
-                        <div class="<?php echo count($drawings) > 1 ? 'w-[80%] shrink-0 snap-start sm:w-auto' : ''; ?>" data-drawing-root>
+                        <div class="<?php echo count($drawings) > 1 ? 'w-[80%] shrink-0 snap-start sm:w-auto' : ''; ?> <?php echo $specs_option === 'd' ? 'self-stretch rounded border border-[#DDE7F2] bg-white p-3' : ''; ?>" data-drawing-root>
                         <div>
                             <button class="block w-full cursor-zoom-in rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" type="button" data-drawing-open aria-label="<?php echo esc_attr($drawing['label']); ?>">
                                 <img class="mx-auto h-auto max-h-[70svh] w-auto max-w-full sm:max-h-[460px]" src="<?php echo esc_url($drawing['image']); ?>" <?php if (($drawing['width'] ?? 0) > 0 && ($drawing['height'] ?? 0) > 0) : ?>width="<?php echo esc_attr((string) $drawing['width']); ?>" height="<?php echo esc_attr((string) $drawing['height']); ?>"<?php endif; ?> alt="<?php echo esc_attr($drawing['label']); ?>" loading="lazy" decoding="async">
@@ -741,7 +756,7 @@ if ($family_quote_copy) {
                             $chart_m = static fn(float $m): string => rtrim(rtrim(number_format($m, 2, '.', ''), '0'), '.');
                             $chart_text = strtr(boblift_localized_static_text('The further the hook is from the crane, the less it can lift: {load1} kg at {radius1} m, {load2} kg at {radius2} m.'), ['{load1}' => $chart_kg($chart_first['load']), '{radius1}' => $chart_m($chart_first['radius']), '{load2}' => $chart_kg($chart_last['load']), '{radius2}' => $chart_m($chart_last['radius'])]);
                             ?>
-                            <figure class="border-t border-[#E6EDF5] pt-5" aria-labelledby="load-chart-title">
+                            <figure class="<?php echo $specs_option === 'd' ? 'rounded border border-[#DDE7F2] p-4 sm:p-5' : 'border-t border-[#E6EDF5] pt-5'; ?>" aria-labelledby="load-chart-title">
                                 <figcaption>
                                     <span id="load-chart-title" class="block text-sm font-black text-[#071f42]"><?php echo esc_html(boblift_localized_static_text('How much it lifts at each reach')); ?></span>
                                     <span class="mt-1 block text-xs leading-5 text-slate-500"><?php echo esc_html($chart_text); ?></span>

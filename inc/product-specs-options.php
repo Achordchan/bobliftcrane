@@ -1,6 +1,6 @@
 <?php
 /**
- * TEMPORARY: three layouts for a product page's technical block, shown with ?specs=a|b|c next to the unchanged default.
+ * TEMPORARY: three layouts for a product page's technical block, shown with ?specs=a|b|c|d next to the unchanged default.
  * Remove this file and its calls once one is chosen.
  */
 
@@ -9,7 +9,7 @@ defined('ABSPATH') || exit;
 function boblift_specs_option(): string
 {
     $option = isset($_GET['specs']) ? sanitize_key(wp_unslash((string) $_GET['specs'])) : '';
-    return in_array($option, ['a', 'b', 'c'], true) ? $option : '';
+    return in_array($option, ['a', 'b', 'c', 'd'], true) ? $option : '';
 }
 
 /** A figure with its unit a size down, as elsewhere on the page. */
@@ -122,19 +122,38 @@ function boblift_specs_render_groups(array $sections, string $weight_label, stri
  */
 function boblift_specs_matrix_html(array $state): string
 {
-    $members = boblift_series_members_with_figures($state['series']);
+    $members = boblift_specs_choices($state);
     $dimensions = boblift_series_dimensions($members);
     $labelled = (bool) array_intersect(['sections', 'winch', 'manual'], array_keys($dimensions));
     $tables = (array) ($state['spec_tables'] ?? []);
     $groups = [];
     foreach ($members as $member) {
-        foreach ((array) ($tables[$member['model']] ?? []) as $section) {
+        foreach ((array) ($tables[$member['source']] ?? []) as $section) {
             $group = (string) ($section['key'] ?? 'all');
             $groups[$group] ??= ['label' => (string) ($section['label'] ?? ''), 'rows' => []];
             foreach ($section['rows'] as $row) {
                 $key = (string) ($row['en'] ?? $row['label']);
                 $groups[$group]['rows'][$key] ??= ['label' => (string) $row['label'], 'values' => []];
-                $groups[$group]['rows'][$key]['values'][$member['model']] = trim((string) $row['value']);
+                $value = trim((string) $row['value']);
+                if ($member['derived'] && $key === 'Self Weight') {
+                    $value = '';
+                } elseif ($member['derived'] && $key === 'Winch') {
+                    $value = ($member['values']['winch'] ?? '') === '1' ? boblift_series_text('Standard') : '';
+                }
+                $groups[$group]['rows'][$key]['values'][$member['model']] = $value;
+            }
+        }
+    }
+    // A winch version without a product of its own: its winch row says what its name says, even where its source has no such row.
+    foreach ($groups as $group => $data) {
+        foreach (['Winch', 'Self Weight'] as $key) {
+            if (!isset($data['rows'][$key])) {
+                continue;
+            }
+            foreach ($members as $member) {
+                if ($member['derived']) {
+                    $groups[$group]['rows'][$key]['values'][$member['model']] = $key === 'Winch' && ($member['values']['winch'] ?? '') === '1' ? boblift_series_text('Standard') : '';
+                }
             }
         }
     }
@@ -148,7 +167,7 @@ function boblift_specs_matrix_html(array $state): string
                     <tr class="border-b border-[#D5DEE9]">
                         <td class="sticky start-0 z-[1] w-[34%] min-w-[140px] bg-white ps-4 sm:min-w-[190px] sm:ps-6 md:ps-8"></td>
                         <?php foreach ($members as $member) : ?>
-                            <th class="cursor-pointer px-3 py-3 text-start align-top transition-colors aria-[current=true]:bg-[#eaf1fb]" scope="col" data-cfg-row="<?php echo esc_attr($member['model']); ?>"<?php echo $member['model'] === $state['active_source'] ? ' aria-current="true"' : ''; ?>>
+                            <th class="cursor-pointer px-3 py-3 text-start align-top transition-colors aria-[current=true]:bg-[#eaf1fb]" scope="col" data-cfg-row="<?php echo esc_attr($member['model']); ?>"<?php echo $member['model'] === $state['active'] ? ' aria-current="true"' : ''; ?>>
                                 <a class="inline-block whitespace-nowrap text-[15px] font-black text-[#071f42] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400" dir="ltr" href="<?php echo esc_url((string) $member['url']); ?>"><?php echo esc_html($member['model']); ?></a>
                                 <?php if ($labelled) : ?><span class="mt-0.5 block text-[13px] font-normal leading-4 text-slate-500"><?php echo esc_html(boblift_series_compare_label($member['values'], $dimensions, (string) $state['series']['family'])); ?></span><?php endif; ?>
                             </th>
@@ -168,7 +187,7 @@ function boblift_specs_matrix_html(array $state): string
                                 <?php foreach ($members as $member) :
                                     $value = $row['values'][$member['model']] ?? '';
                                     ?>
-                                    <td class="cursor-pointer px-3 py-2.5 leading-5 transition-colors aria-[current=true]:bg-[#eaf1fb] <?php echo $differs ? 'font-black text-[#071f42]' : 'font-normal text-slate-600'; ?>" data-cfg-row="<?php echo esc_attr($member['model']); ?>"<?php echo $member['model'] === $state['active_source'] ? ' aria-current="true"' : ''; ?>>
+                                    <td class="cursor-pointer px-3 py-2.5 leading-5 transition-colors aria-[current=true]:bg-[#eaf1fb] <?php echo $differs ? 'font-black text-[#071f42]' : 'font-normal text-slate-600'; ?>" data-cfg-row="<?php echo esc_attr($member['model']); ?>"<?php echo $member['model'] === $state['active'] ? ' aria-current="true"' : ''; ?>>
                                         <?php echo $value === '' ? '<span class="font-normal text-slate-400">—</span>' : '<span dir="ltr">' . boblift_specs_value_html($value, 'text-[14px]') . '</span>'; ?>
                                     </td>
                                 <?php endforeach; ?>
@@ -181,4 +200,137 @@ function boblift_specs_matrix_html(array $state): string
     </div>
     <?php
     return (string) ob_get_clean();
+}
+
+/**
+ * The configurations a layout lists: every choice of the series, including a winch version that has no product of its own, so the
+ * row or column marked is the one the page shows. Such a version shares its source's figures except the self weight (not known).
+ */
+function boblift_specs_choices(array $state): array
+{
+    $members = [];
+    foreach (boblift_series_members_with_figures($state['series']) as $member) {
+        $members[$member['model']] = $member;
+    }
+    $choices = [];
+    foreach ((array) ($state['variants'] ?? []) as $variant) {
+        $source = $members[$variant['source'] ?? $variant['model']] ?? null;
+        if (!$source) {
+            continue;
+        }
+        $figures = (array) $source['figures'];
+        if (!empty($variant['derived'])) {
+            $figures['weight'] = null;
+        }
+        $choices[] = array_merge($source, ['model' => (string) $variant['model'], 'url' => (string) ($variant['url'] ?? $source['url']), 'values' => (array) ($variant['values'] ?? $source['values']), 'derived' => !empty($variant['derived']), 'source' => (string) ($variant['source'] ?? $variant['model']), 'figures' => $figures]);
+    }
+    return $choices ?: array_values($members);
+}
+
+/** Option D: the configurations as a list to pick from, one row each, with a radio dot; it switches the page like the box above. */
+function boblift_specs_render_choose_table(array $state): void
+{
+    $choices = boblift_specs_choices($state);
+    $dimensions = boblift_series_dimensions($choices);
+    $labelled = (bool) array_intersect(['sections', 'winch', 'manual'], array_keys($dimensions));
+    $columns = array_values(array_filter(boblift_series_compare_columns($choices), static fn(array $column): bool => $column[1] !== 'moment'));
+    $missing = false;
+    $derived_weight = [];
+    $manual = array_filter($choices, static fn(array $choice): bool => ($choice['values']['manual'] ?? '') === '1') && isset($dimensions['sections']);
+    // Each row a thin box, cells parted by hairlines; the chosen row takes the dark edge.
+    $cell = 'border-y border-s border-[#DDE7F2] px-3 py-3 first:rounded-s-sm last:rounded-e-sm last:border-e [[aria-current]>&]:border-[#0B3F7D] [&:not(:first-child)]:border-s-[#E6EDF5] [[aria-current]>&:not(:first-child)]:border-s-[#C9D8EC]';
+    ?>
+    <div data-cfg-compare>
+        <div class="overflow-x-auto [scrollbar-width:thin]">
+            <table class="w-full min-w-[460px] border-separate border-spacing-y-1.5 text-[14px] [font-variant-numeric:tabular-nums]">
+                <thead>
+                    <tr class="whitespace-nowrap text-[12px] font-semibold uppercase tracking-[0.08em] text-slate-500 rtl:tracking-normal">
+                        <th class="px-3 pb-1 ps-11 text-start font-semibold" scope="col"><?php echo esc_html(boblift_series_text('Model')); ?></th>
+                        <?php if ($labelled) : ?><th class="px-3 pb-1 text-start font-semibold" scope="col"><?php echo esc_html(boblift_series_text('Configuration')); ?></th><?php endif; ?>
+                        <?php foreach ($columns as [$label]) : ?><th class="px-3 pb-1 text-start font-semibold" scope="col"><?php echo esc_html(boblift_series_text($label)); ?></th><?php endforeach; ?>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($choices as $choice) : $current = $choice['model'] === $state['active']; ?>
+                        <tr class="boblift-cfg-row boblift-specs-choice cursor-pointer text-[#071f42] transition-colors hover:bg-[#F5F8FC]" data-cfg-row="<?php echo esc_attr($choice['model']); ?>"<?php echo $current ? ' aria-current="true"' : ''; ?>>
+                            <th class="<?php echo esc_attr($cell); ?> text-start font-black" scope="row"><a class="inline-flex items-center gap-3 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400" href="<?php echo esc_url($choice['url']); ?>" dir="ltr"><span class="boblift-cfg-dot" aria-hidden="true"></span><?php echo esc_html($choice['model']); ?></a></th>
+                            <?php if ($labelled) : ?><td class="<?php echo esc_attr($cell); ?> whitespace-nowrap font-normal"><?php echo esc_html(boblift_series_compare_label($choice['values'], $dimensions, (string) $state['series']['family'])); ?></td><?php endif; ?>
+                            <?php foreach ($columns as [, $key]) :
+                                $value = $choice['figures'][$key] ?? null;
+                                // A derived winch version's weight is unknown, said by its own note; other gaps point to the drawing.
+                                $missing = $missing || ($value === null && !($choice['derived'] && $key === 'weight'));
+                                $derived_weight[($choice['values']['winch'] ?? '') === '1' ? 'on' : 'off'] = ($derived_weight[($choice['values']['winch'] ?? '') === '1' ? 'on' : 'off'] ?? false) || ($value === null && $choice['derived'] && $key === 'weight');
+                                ?>
+                                <td class="<?php echo esc_attr($cell); ?> whitespace-nowrap font-bold"><span dir="ltr"><?php echo $value === null ? '<span class="font-normal text-slate-400">—</span>' : esc_html($key === 'weight' ? boblift_series_format_kg($value) : (string) $value); ?></span></td>
+                            <?php endforeach; ?>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+        <?php
+        $notes = array_filter([boblift_series_winch_sentence((string) $state['series']['winch']), $manual ? boblift_series_text('+1 = one added manual extension') : '', !empty($derived_weight['on']) ? '— ' . boblift_series_text('Winch version: self weight confirmed with your quote') : '', !empty($derived_weight['off']) ? '— ' . boblift_series_text('No-winch version: self weight confirmed with your quote') : '', $missing ? boblift_series_text('—: not listed here, see the drawing for this configuration.') : '']);
+        foreach ($notes as $note) : ?>
+            <p class="mt-1.5 text-[13px] leading-5 text-slate-500"><?php echo esc_html($note); ?></p>
+        <?php endforeach; ?>
+    </div>
+    <?php
+}
+
+/** Option D: the model code as one strip in the order the name is written. */
+function boblift_specs_render_decode_strip(string $model, string $winch, int $english_id): void
+{
+    $decode = boblift_series_decode_parts($model, $winch, $english_id);
+    if (!$decode['parts']) {
+        return;
+    }
+    ?>
+    <div class="mt-5 flex flex-wrap items-center gap-y-2.5 rounded-sm border border-[#DDE7F2] bg-[#F8FAFC] px-4 py-3">
+        <p class="boblift-kicker me-4 shrink-0"><?php echo esc_html(boblift_series_text('Model code explained')); ?></p>
+        <dl class="contents">
+            <?php foreach ($decode['parts'] as [$code, $meaning]) : ?>
+                <div class="flex min-w-0 items-center gap-2 border-s border-[#D5DEE9] px-4"<?php echo $code === 'J' ? ' data-cfg-decode-winch' . ($decode['has_winch'] ? '' : ' style="display:none"') : ''; ?>>
+                    <dt class="inline-flex h-6 min-w-6 shrink-0 items-center justify-center rounded-sm bg-[#071f42] px-1.5 text-[12px] font-black leading-none text-white [font-variant-numeric:tabular-nums]" dir="ltr"><?php echo esc_html($code); ?></dt>
+                    <dd class="text-[14px] leading-5 text-slate-600"><?php echo esc_html($meaning); ?></dd>
+                </div>
+            <?php endforeach; ?>
+        </dl>
+    </div>
+    <?php if ($decode['former'] !== '') : ?><p class="mt-2 text-[13px] leading-5 text-slate-500"><?php echo esc_html(str_replace('{model}', $decode['former'], boblift_series_text('Former model no. {model}'))); ?></p><?php endif; ?>
+    <?php
+}
+
+/** Option D: each group a bordered box, a pale label block with its icon on the start side, figures in two columns beside it. */
+function boblift_specs_render_group_boxes(array $sections, string $weight_label, string $winch_label): void
+{
+    $icons = ['lifting' => 'weight', 'hydraulics' => 'sliders-horizontal', 'machine' => 'layers'];
+    ?>
+    <div class="grid gap-3">
+        <?php foreach ($sections as $section) :
+            // A long value (a span, a bolt pattern) takes a whole line after the short ones instead of wrapping in half a line.
+            $is_long = static fn(array $row): bool => boblift_text_width(trim((string) $row['value'])) > 11;
+            $short = array_values(array_filter($section['rows'], static fn(array $row): bool => !$is_long($row)));
+            $rows = array_merge($short, array_values(array_filter($section['rows'], $is_long)));
+            ?>
+            <section class="grid overflow-hidden rounded border border-[#DDE7F2] bg-white sm:grid-cols-[9.5rem_minmax(0,1fr)]">
+                <?php if (($section['label'] ?? '') !== '') : ?>
+                    <h3 class="flex items-center gap-2.5 border-b border-[#E6EDF5] bg-[#F5F8FC] px-4 py-3 text-[13px] font-black uppercase leading-5 tracking-[0.08em] text-[#071f42] rtl:tracking-normal sm:flex-col sm:items-start sm:justify-center sm:border-b-0 sm:border-e sm:py-4">
+                        <?php echo boblift_icon($icons[$section['key'] ?? ''] ?? 'list', 'h-6 w-6 shrink-0 text-[#0B3F7D]', '1.75'); ?>
+                        <span><?php echo esc_html($section['label']); ?></span>
+                    </h3>
+                <?php endif; ?>
+                <dl class="grid gap-px bg-[#E6EDF5] sm:grid-cols-2 <?php echo ($section['label'] ?? '') === '' ? 'sm:col-span-2' : ''; ?>">
+                    <?php foreach ($rows as $index => $row) :
+                        if ($index === count($short) && count($short) % 2 === 1) : ?><div class="hidden bg-white sm:block" aria-hidden="true"></div><?php endif; ?>
+                        <div class="flex min-w-0 items-baseline justify-between gap-3 bg-white px-4 py-3 <?php echo $index >= count($short) ? 'sm:col-span-2' : ''; ?>"<?php echo boblift_specs_row_attributes($row, $weight_label, $winch_label); ?>>
+                            <dt class="min-w-0 text-[14px] leading-5 text-slate-500"><?php echo esc_html($row['label']); ?></dt>
+                            <dd class="shrink-0 whitespace-nowrap text-end font-black leading-6 text-[#071f42] [font-variant-numeric:tabular-nums]"><span dir="ltr"><?php echo boblift_specs_value_html((string) $row['value'], 'text-[18px]'); ?></span></dd>
+                        </div>
+                    <?php endforeach; ?>
+                    <?php if (count($rows) === count($short) && count($short) % 2 === 1) : ?><div class="hidden bg-white sm:block" aria-hidden="true"></div><?php endif; ?>
+                </dl>
+            </section>
+        <?php endforeach; ?>
+    </div>
+    <?php
 }

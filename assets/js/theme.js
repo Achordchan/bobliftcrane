@@ -5521,8 +5521,10 @@
       if (focused) focused.focus();
     }
     if (compare) {
+      // A list that names the winch version without a product of its own marks that one; others mark the configuration it comes from.
+      const listed = compare.querySelector(`[data-cfg-row="${CSS.escape(variant.model)}"]`) ? variant.model : shownModel;
       compare.querySelectorAll('[data-cfg-row]').forEach((row) => {
-        const selected = row.dataset.cfgRow === shownModel;
+        const selected = row.dataset.cfgRow === listed;
         if (selected) row.setAttribute('aria-current', 'true');
         else row.removeAttribute('aria-current');
       });
