@@ -441,7 +441,10 @@ function boblift_series_redirect(): void
     if (!is_singular('product') || is_preview()) {
         return;
     }
+    // A language-prefixed address that resolved to another language's configuration (/ja/?p=<English id>) goes to the
+    // series page of the language asked for, as inc/polylang-rewrites.php does for any other post.
     $id = (int) get_queried_object_id();
+    $id = function_exists('boblift_post_in_request_language') ? boblift_post_in_request_language($id) : $id;
     $series = boblift_series_for_product($id);
     $member = $series ? boblift_series_member($series, $id) : null;
     if ($member === null || $member['is_home']) {
@@ -480,7 +483,49 @@ function boblift_series_product_link(string $url, $post): string
 }
 add_filter('post_type_link', 'boblift_series_product_link', 20, 2);
 
-/** Old configuration addresses ("zh/slug" without .html) => their series address, in every language. */
+/**
+ * The key an address is looked up by: its host and path without ".html", lowercased, where this site's own hosts ($bases:
+ * the home host and the live domain) read as "site", and a language subdomain of one as "ja.site". A relative address is on
+ * $default_host. Null for an address that is not one of this site's .html pages.
+ */
+function boblift_series_url_key(string $url, array $bases, string $default_host): ?string
+{
+    $parts = parse_url(html_entity_decode($url, ENT_QUOTES));
+    $path = (string) ($parts['path'] ?? '');
+    if ($parts === false || !str_ends_with(strtolower($path), '.html') || (isset($parts['scheme']) && !in_array(strtolower($parts['scheme']), ['http', 'https'], true))) {
+        return null;
+    }
+    $host = strtolower((string) ($parts['host'] ?? $default_host));
+    $bases = array_map(static fn($base): string => strtolower((string) $base), $bases);
+    if (in_array($host, $bases, true)) {
+        $host = 'site';
+    } else {
+        // The longest base first, so a language subdomain of www.example.com is not read as one of example.com.
+        usort($bases, static fn(string $a, string $b): int => strlen($b) <=> strlen($a));
+        foreach ($bases as $base) {
+            if ($base !== '' && str_ends_with($host, '.' . $base) && !str_starts_with($base, 'www.') && !str_starts_with($host, 'www.')) {
+                $host = substr($host, 0, -strlen($base)) . 'site';
+                break;
+            }
+        }
+    }
+    if (!str_ends_with($host, 'site')) {
+        return null;
+    }
+    return $host . strtolower(substr($path, 0, -5));
+}
+
+/** This site's hosts for boblift_series_url_key(): the home host and the live domain. */
+function boblift_series_site_hosts(): array
+{
+    $home = strtolower((string) parse_url(home_url('/'), PHP_URL_HOST));
+    return array_values(array_unique(array_filter([$home, 'bobliftcrane.com', 'www.bobliftcrane.com'])));
+}
+
+/**
+ * Old configuration addresses (boblift_series_url_key()) => their series address, in every language. Each language's
+ * address starts from its own home as Polylang builds it (directory, subdomain or domain), never from a fixed /xx/ prefix.
+ */
 function boblift_series_old_paths(): array
 {
     static $paths = null;
@@ -488,7 +533,8 @@ function boblift_series_old_paths(): array
         return $paths;
     }
     $paths = [];
-    $default = function_exists('pll_default_language') ? (string) pll_default_language() : '';
+    $bases = boblift_series_site_hosts();
+    $homes = [];
     foreach (boblift_series_map()['hidden'] as $id) {
         $series = boblift_series_for_product((int) $id);
         $member = $series ? boblift_series_member($series, (int) $id) : null;
@@ -497,19 +543,34 @@ function boblift_series_old_paths(): array
             continue;
         }
         $language = function_exists('pll_get_post_language') ? (string) pll_get_post_language((int) $id) : '';
-        $paths[($language !== '' && $language !== $default ? $language . '/' : '') . $slug] = (string) $member['url'];
+        $homes[$language] ??= function_exists('pll_home_url') && $language !== '' ? (string) pll_home_url($language) : home_url('/');
+        $key = boblift_series_url_key(trailingslashit($homes[$language]) . $slug . '.html', $bases, $bases[0] ?? '');
+        if ($key !== null) {
+            $paths[$key] = (string) $member['url'];
+        }
     }
     return $paths;
 }
 
-/** One address: a configuration's old address becomes its series address; any other comes back unchanged. */
+/** One address: a configuration's old address becomes its series address (campaign parameters and anchor kept); any other comes back unchanged. */
 function boblift_series_old_url(string $url): string
 {
-    if (!str_contains($url, '.html')) {
+    $paths = str_contains($url, '.html') ? boblift_series_old_paths() : [];
+    $bases = $paths !== [] ? boblift_series_site_hosts() : [];
+    return boblift_series_map_old_url($url, $paths, $bases, $bases[0] ?? '');
+}
+
+/** boblift_series_old_url() on a given map: the language is told by the address's own host and path. */
+function boblift_series_map_old_url(string $url, array $paths, array $bases, string $default_host): string
+{
+    $key = $paths !== [] ? boblift_series_url_key($url, $bases, $default_host) : null;
+    $target = $key !== null ? ($paths[$key] ?? null) : null;
+    if ($target === null) {
         return $url;
     }
-    $rewritten = boblift_series_content_links('<a href="' . esc_attr($url) . '">');
-    return preg_match('/^<a href="([^"]*)">$/', $rewritten, $m) && $rewritten !== '<a href="' . esc_attr($url) . '">' ? html_entity_decode($m[1], ENT_QUOTES) : $url;
+    $parts = parse_url(html_entity_decode($url, ENT_QUOTES));
+    $target = boblift_series_redirect_url($target, (string) ($parts['query'] ?? ''));
+    return $target . (isset($parts['fragment']) ? '#' . $parts['fragment'] : '');
 }
 
 /**
@@ -525,16 +586,12 @@ function boblift_series_content_links(string $content): string
     if ($paths === []) {
         return $content;
     }
-    $hosts = array_unique(array_filter([(string) wp_parse_url(home_url('/'), PHP_URL_HOST), 'bobliftcrane.com', 'www.bobliftcrane.com']));
-    $host_pattern = implode('|', array_map(static fn(string $host): string => preg_quote($host, '/'), $hosts));
+    $bases = boblift_series_site_hosts();
     return (string) preg_replace_callback(
-        '/(\bhref=(["\']))(?:https?:\/\/(?:' . $host_pattern . ')(?::\d+)?)?\/((?:[a-z]{2}\/)?[a-z0-9-]+)\.html(\?[^"\'#]*)?(#[^"\']*)?(?=\2)/i',
-        static function (array $m) use ($paths): string {
-            $url = $paths[strtolower($m[3])] ?? null;
-            if ($url === null) {
-                return $m[0];
-            }
-            return $m[1] . esc_url(boblift_series_redirect_url($url, ltrim((string) ($m[4] ?? ''), '?')) . ($m[5] ?? ''));
+        '/(\bhref=(["\']))([^"\']+\.html(?:[?#][^"\']*)?)(?=\2)/i',
+        static function (array $m) use ($paths, $bases): string {
+            $url = boblift_series_map_old_url($m[3], $paths, $bases, $bases[0] ?? '');
+            return $url === $m[3] ? $m[0] : $m[1] . esc_url($url);
         },
         $content
     );
@@ -572,6 +629,28 @@ function boblift_series_filter_query(WP_Query $query): void
         return;
     }
     $listed = array_map('intval', (array) $query->get('post__in'));
+    // A category query (range tables, compare blocks, related models) finds a series by any of its configurations: the
+    // configurations it matches stand for their series pages, which may be filed elsewhere, and the category condition
+    // gives way to that list. The category page itself lists from boblift_all_products() with the categories joined.
+    if (!$query->is_main_query() && boblift_series_query_has_category($query->get('tax_query'))) {
+        $matched = get_posts([
+            'post_type' => 'product',
+            'post_status' => $query->get('post_status') ?: 'publish',
+            'tax_query' => $query->get('tax_query'),
+            'posts_per_page' => -1,
+            'fields' => 'ids',
+            'no_found_rows' => true,
+            'suppress_filters' => false,
+            'boblift_series_members' => true,
+        ] + ($query->get('lang', null) !== null ? ['lang' => $query->get('lang')] : []));
+        $ids = boblift_series_listed_ids(array_map('intval', $matched), (array) (boblift_series_map()['homes'] ?? []), $hidden);
+        if ($listed !== []) {
+            $ids = array_values(array_intersect($ids, boblift_series_listed_ids($listed, (array) (boblift_series_map()['homes'] ?? []), $hidden)));
+        }
+        $query->set('tax_query', []);
+        $query->set('post__in', $ids !== [] ? $ids : [0]);
+        return;
+    }
     if ($listed !== []) {
         // A saved pick of a configuration (featured, related) stands for its series page in the same language.
         $kept = boblift_series_listed_ids($listed, (array) (boblift_series_map()['homes'] ?? []), $hidden);
@@ -581,6 +660,20 @@ function boblift_series_filter_query(WP_Query $query): void
     $query->set('post__not_in', array_values(array_unique(array_merge(array_map('intval', (array) $query->get('post__not_in')), $hidden))));
 }
 add_action('pre_get_posts', 'boblift_series_filter_query');
+
+/** Whether a tax_query narrows by product category. */
+function boblift_series_query_has_category($tax_query): bool
+{
+    foreach ((array) $tax_query as $key => $clause) {
+        if ($key === 'relation' || !is_array($clause)) {
+            continue;
+        }
+        if (($clause['taxonomy'] ?? '') === 'product_category' || (!isset($clause['taxonomy']) && boblift_series_query_has_category($clause))) {
+            return true;
+        }
+    }
+    return false;
+}
 
 /**
  * Picked product ids with each configuration replaced by its series page ($homes: configuration id => series page id, both
@@ -1601,14 +1694,34 @@ function boblift_series_meta_for_twin(array $meta, string $source, string $twin,
     return $meta;
 }
 
-/** The label of the row in this language's spec table that the English table calls $english: the tables run row for row. */
+/** The label of the row in this language's spec table that the English table calls $english (boblift_series_spec_label_rows()). */
 function boblift_series_spec_label(int $english_id, array $specs, string $english): string
 {
     $source = boblift_decode_meta(get_post_meta($english_id, '_specs', true), []);
-    foreach (is_array($source) ? array_values($source) : [] as $index => $row) {
-        if (is_array($row) && ($row['label'] ?? '') === $english) {
-            return count($source) === count($specs) ? (string) (array_values($specs)[$index]['label'] ?? $english) : $english;
+    return boblift_series_spec_label_rows(is_array($source) ? $source : [], $specs, $english, static fn(array $local, array $source): bool => function_exists('boblift_spec_rows_aligned') && boblift_spec_rows_aligned($local, $source));
+}
+
+/**
+ * The row is found by its key where both tables carry keys, else at the English row's position when the tables line up
+ * ($aligned: boblift_spec_rows_aligned()). A table that does not line up gives '', so no row is changed or hidden.
+ */
+function boblift_series_spec_label_rows(array $source, array $specs, string $english, callable $aligned): string
+{
+    $source = array_values(array_filter($source, 'is_array'));
+    $specs = array_values(array_filter($specs, 'is_array'));
+    foreach ($source as $index => $row) {
+        if (($row['label'] ?? '') !== $english) {
+            continue;
         }
+        $key = (string) ($row['key'] ?? '');
+        if ($key !== '') {
+            foreach ($specs as $local) {
+                if ((string) ($local['key'] ?? '') === $key) {
+                    return (string) ($local['label'] ?? '');
+                }
+            }
+        }
+        return $aligned($specs, $source) ? (string) ($specs[$index]['label'] ?? '') : '';
     }
     return '';
 }

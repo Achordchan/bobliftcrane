@@ -16,6 +16,7 @@ function boblift_localized_static_text(string $text): string
     return $text;
 }
 require __DIR__ . '/../inc/product-series.php';
+require __DIR__ . '/../inc/product-guide.php';
 
 $failures = 0;
 $check = static function (string $name, $expected, $actual) use (&$failures): void {
@@ -140,6 +141,30 @@ $check('one naming is left alone', ['sections' => ['A4', 'A5']], boblift_series_
 
 // A series page is listed under every category of its configurations, its own first.
 $check('category union', ['knuckle-boom-marine-cranes', 'pickup-cranes'], boblift_series_union_categories(['knuckle-boom-marine-cranes'], [['knuckle-boom-marine-cranes'], ['pickup-cranes']]));
+
+// The translated spec row of an English label: by key, else by position only when the tables line up.
+$enRows = [['label' => 'Max Lifting Capacity', 'value' => '6,300 kg'], ['label' => 'Self Weight', 'value' => '2,100 kg'], ['label' => 'Winch', 'value' => 'Yes']];
+$aligned = static fn(array $local, array $english): bool => boblift_spec_rows_aligned($local, $english);
+$check('aligned table: row at the English position', '自重', boblift_series_spec_label_rows($enRows, [['label' => '最大起重量', 'value' => '6300 kg'], ['label' => '自重', 'value' => '2100 kg'], ['label' => '卷扬', 'value' => '有']], 'Self Weight', $aligned));
+$check('same row count, other order: no row picked', '', boblift_series_spec_label_rows($enRows, [['label' => '自重', 'value' => '2100 kg'], ['label' => '最大起重量', 'value' => '6300 kg'], ['label' => '卷扬', 'value' => '有']], 'Self Weight', $aligned));
+$check('keys decide over position', '自重', boblift_series_spec_label_rows([['key' => 'cap', 'label' => 'Max Lifting Capacity', 'value' => '1'], ['key' => 'weight', 'label' => 'Self Weight', 'value' => '2']], [['key' => 'weight', 'label' => '自重', 'value' => '2'], ['key' => 'cap', 'label' => '最大起重量', 'value' => '1']], 'Self Weight', $aligned));
+$check('row not in the English table', '', boblift_series_spec_label_rows($enRows, $enRows, 'Outrigger Span', $aligned));
+
+// A category query finds a series by any configuration filed under it.
+$check('category match on a configuration brings its series page', [193, 61], boblift_series_listed_ids([4851, 61], [4851 => 193, 4848 => 193], [4848, 4851]));
+$check('tax_query by product category', true, boblift_series_query_has_category([['taxonomy' => 'product_category', 'terms' => [3]]]));
+$check('nested tax_query by product category', true, boblift_series_query_has_category(['relation' => 'AND', [['taxonomy' => 'product_category', 'terms' => [3]]]]));
+$check('other taxonomy', false, boblift_series_query_has_category([['taxonomy' => 'language', 'terms' => ['en']]]));
+
+// Old configuration addresses, keyed by host and path as each language's home gives them.
+$dirMap = [boblift_series_url_key('https://bobliftcrane.com/zh/5-ton-x-sq5za3.html', ['bobliftcrane.com'], 'bobliftcrane.com') => 'https://bobliftcrane.com/zh/5-ton-x.html?model=SQ5ZA3'];
+$check('directory mode: relative link', 'https://bobliftcrane.com/zh/5-ton-x.html?model=SQ5ZA3', boblift_series_map_old_url('/zh/5-ton-x-sq5za3.html', $dirMap, ['bobliftcrane.com'], 'bobliftcrane.com'));
+$check('directory mode: other language untouched', '/ja/5-ton-x-sq5za3.html', boblift_series_map_old_url('/ja/5-ton-x-sq5za3.html', $dirMap, ['bobliftcrane.com'], 'bobliftcrane.com'));
+$check('directory mode: anchor and campaign kept', 'https://bobliftcrane.com/zh/5-ton-x.html?model=SQ5ZA3&utm_source=a#specs', boblift_series_map_old_url('https://www.bobliftcrane.com/zh/5-ton-x-sq5za3.html?utm_source=a#specs', $dirMap, ['bobliftcrane.com', 'www.bobliftcrane.com'], 'bobliftcrane.com'));
+$subMap = [boblift_series_url_key('https://ja.example.com/5-ton-x-sq5za3.html', ['example.com'], 'example.com') => 'https://ja.example.com/5-ton-x.html?model=SQ5ZA3'];
+$check('subdomain mode: language from the host', 'https://ja.example.com/5-ton-x.html?model=SQ5ZA3', boblift_series_map_old_url('https://ja.example.com/5-ton-x-sq5za3.html', $subMap, ['example.com'], 'example.com'));
+$check('subdomain mode: main host is another language', 'https://example.com/5-ton-x-sq5za3.html', boblift_series_map_old_url('https://example.com/5-ton-x-sq5za3.html', $subMap, ['example.com'], 'example.com'));
+$check('another site is never touched', null, boblift_series_url_key('https://other.org/5-ton-x-sq5za3.html', ['bobliftcrane.com'], 'bobliftcrane.com'));
 
 // Which choices are asked.
 $members = array_map(static fn(string $model): array => ['model' => $model, 'values' => boblift_series_parse_model($model)], ['SQ08ZA3T+1', 'SQ08ZA3TJ+1']);
