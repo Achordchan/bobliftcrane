@@ -153,9 +153,9 @@ function boblift_specs_render_group_boxes(array $sections, string $weight_label,
                 <dl class="grid gap-px bg-[#E6EDF5] sm:grid-cols-2 <?php echo ($section['label'] ?? '') === '' ? 'sm:col-span-2' : ''; ?>">
                     <?php foreach ($rows as $index => $row) :
                         if ($index === count($short) && count($short) % 2 === 1) : ?><div class="hidden bg-white sm:block" aria-hidden="true"></div><?php endif; ?>
-                        <div class="flex min-w-0 items-baseline justify-between gap-3 bg-white px-4 py-3 <?php echo $index >= count($short) ? 'sm:col-span-2' : ''; ?>"<?php echo boblift_specs_row_attributes($row, $weight_label, $winch_label); ?>>
+                        <div class="flex min-w-0 items-baseline justify-between gap-x-3 bg-white px-4 py-3 <?php echo $index >= count($short) ? 'flex-wrap gap-y-1 sm:col-span-2' : ''; ?>"<?php echo boblift_specs_row_attributes($row, $weight_label, $winch_label); ?>>
                             <dt class="min-w-0 text-[14px] leading-5 text-slate-500"><?php echo esc_html($row['label']); ?></dt>
-                            <dd class="shrink-0 whitespace-nowrap text-end font-black leading-6 text-[#071f42] [font-variant-numeric:tabular-nums]"><span dir="ltr"><?php echo boblift_specs_value_html((string) $row['value'], 'text-[18px]'); ?></span></dd>
+                            <dd class="<?php echo $index >= count($short) ? 'ms-auto min-w-0 max-w-full break-words' : 'shrink-0 whitespace-nowrap'; ?> text-end font-black leading-6 text-[#071f42] [font-variant-numeric:tabular-nums]"><span dir="ltr"><?php echo boblift_specs_value_html((string) $row['value'], 'text-[18px]'); ?></span></dd>
                         </div>
                     <?php endforeach; ?>
                     <?php if (count($rows) === count($short) && count($short) % 2 === 1) : ?><div class="hidden bg-white sm:block" aria-hidden="true"></div><?php endif; ?>

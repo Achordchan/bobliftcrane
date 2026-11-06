@@ -377,6 +377,39 @@ if ($buying_terms) {
 $model_faqs = boblift_product_guide_faqs($product, $product_guide, $crane_family, $hero_terms_apply);
 // The product's own questions (boblift_product_copy, inc/rest-product-copy.php) follow the generated ones.
 $model_faqs = array_merge($model_faqs, boblift_product_copy_faq((int) get_the_ID()));
+// A series page also answers the questions its configurations carried on their own pages, which now redirect here. A
+// question already asked is left out, and so is one that differs from the series page's only in the model it names and
+// has the same answer; each kept question names its model, so it is clear which configuration it is about.
+if ($product_series && !empty($series_member['is_home'])) {
+    $faq_key = static fn(string $text, string $model): string => mb_strtolower(trim($model !== '' ? str_replace($model, '{model}', $text) : $text));
+    $faq_seen = [];
+    // The page's own list asks some questions twice (generated and written); the first one stays.
+    $model_faqs = array_values(array_filter($model_faqs, static function (array $faq) use (&$faq_seen): bool {
+        $question = mb_strtolower(trim((string) $faq['question']));
+        if (isset($faq_seen[$question])) {
+            return false;
+        }
+        return $faq_seen[$question] = true;
+    }));
+    foreach ($model_faqs as $faq) {
+        $faq_seen[$faq_key((string) $faq['question'], (string) $series_member['model']) . '|' . $faq_key((string) $faq['answer'], (string) $series_member['model'])] = true;
+    }
+    foreach ($product_series['members'] as $faq_member) {
+        if (!empty($faq_member['is_home'])) {
+            continue;
+        }
+        foreach (boblift_product_copy_faq((int) $faq_member['id']) as $faq) {
+            $question = trim((string) $faq['question']);
+            $model = (string) $faq_member['model'];
+            $same = $faq_key($question, $model) . '|' . $faq_key((string) $faq['answer'], $model);
+            if (isset($faq_seen[mb_strtolower($question)]) || isset($faq_seen[$same])) {
+                continue;
+            }
+            $faq_seen[mb_strtolower($question)] = $faq_seen[$same] = true;
+            $model_faqs[] = ['question' => str_contains($question, $model) ? $question : $model . ': ' . $question, 'answer' => (string) $faq['answer']];
+        }
+    }
+}
 $cases_ui = boblift_site_ui('casesPage');
 $product_cases = boblift_product_cases(get_the_ID());
 $product_feedback = boblift_product_feedback(get_the_ID());

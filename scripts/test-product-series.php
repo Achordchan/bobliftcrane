@@ -25,6 +25,16 @@ $check = static function (string $name, $expected, $actual) use (&$failures): vo
     }
 };
 
+// A configuration joins its series only where the series page is published without a password (#251 review).
+$ok = static fn(int $id): bool => in_array($id, [1, 2, 3, 11, 12, 21], true);
+$check('member joins in every language its series page is up', ['en' => 11, 'zh' => 12], boblift_series_joined_translations(['en' => 1, 'zh' => 2], ['en' => 11, 'zh' => 12], $ok));
+$check('member keeps its own page where the series page is missing', ['en' => 11], boblift_series_joined_translations(['en' => 1], ['en' => 11, 'ja' => 21], $ok));
+$check('member keeps its own page where the series page is a draft or protected', ['en' => 11], boblift_series_joined_translations(['en' => 1, 'zh' => 9], ['en' => 11, 'zh' => 12], $ok));
+$check('an unavailable member translation is left out', ['en' => 11], boblift_series_joined_translations(['en' => 1, 'zh' => 2], ['en' => 11, 'zh' => 19], $ok));
+// The redirect drops the parameters that picked the old page and keeps campaign tracking (#251 review).
+$check('redirect drops routing parameters', 'https://x/s.html?model=A&utm_source=g&gclid=1', boblift_series_redirect_url('https://x/s.html?model=A', 'post_type=product&p=5&utm_source=g&page_id=3&name=x&lang=en&gclid=1&model=B'));
+$check('redirect without extra parameters', 'https://x/s.html?model=A', boblift_series_redirect_url('https://x/s.html?model=A', 'p=5&post_type=product'));
+
 // Model names.
 $check('sections and winch', ['named' => '', 'sections' => 'A4', 'winch' => '1', 'manual' => '0'], boblift_series_parse_model('SQ12ZA4TJ'));
 $check('no winch', ['named' => '', 'sections' => 'A6', 'winch' => '0', 'manual' => '0'], boblift_series_parse_model('SQ12ZA6T'));

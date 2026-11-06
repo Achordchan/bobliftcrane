@@ -252,6 +252,16 @@ function boblift_series_map(): array
     return $map;
 }
 
+/**
+ * The translations ({lang: id}) by which a member is part of its series: published without a password, and only in
+ * languages where the series page is too. In any other language the configuration keeps its own page.
+ */
+function boblift_series_joined_translations(array $home, array $member, callable $available): array
+{
+    $home_languages = array_keys(array_filter($home, static fn($id): bool => $available((int) $id)));
+    return array_intersect_key(array_filter($member, static fn($id): bool => $available((int) $id)), array_flip($home_languages));
+}
+
 /** Every series with its members' translations. Loads posts, meta and terms in one go: this runs once per language after a save. */
 function boblift_series_build_map(): array
 {
@@ -266,9 +276,12 @@ function boblift_series_build_map(): array
         }
     }
     _prime_post_caches(array_merge([], ...array_map('array_values', array_values($translated))), false, false);
+    $available = static fn(int $id): bool => get_post_status($id) === 'publish' && (string) get_post_field('post_password', $id) === '';
     foreach ($groups as $key => $group) {
+        // A configuration joins its series only in the languages where the series page itself is published without a
+        // password; elsewhere it keeps its own page, in the lists and the sitemap, and is not redirected.
         foreach ($group['members'] as $position => $member) {
-            $translations = array_filter($translated[(int) $member['id']], static fn(int $id): bool => get_post_status($id) === 'publish' && (string) get_post_field('post_password', $id) === '');
+            $translations = boblift_series_joined_translations($translated[(int) $group['home']] ?? [], $translated[(int) $member['id']] ?? [], $available);
             $groups[$key]['members'][$position]['translations'] = $translations;
             foreach ($translations as $id) {
                 $index[$id] = $key;
@@ -385,10 +398,15 @@ function boblift_series_redirect(): void
 }
 add_action('template_redirect', 'boblift_series_redirect', 2);
 
-/** The series address plus whatever the old address carried (utm_source, gclid), so ad and campaign tracking survives the move. */
+/**
+ * The series address plus whatever the old address carried (utm_source, gclid), so ad and campaign tracking survives the move.
+ * The parameters that picked the old page (?p=, ?post_type=, ?name=, ...) are dropped: carried to the series address they
+ * would pick the configuration again and redirect for ever.
+ */
 function boblift_series_redirect_url(string $url, string $query): string
 {
-    $kept = array_filter(explode('&', $query), static fn(string $pair): bool => $pair !== '' && !str_starts_with($pair, 'model='));
+    $routing = ['model', 'p', 'page_id', 'name', 'pagename', 'product', 'post_type', 'lang', 'preview', 'preview_id', 'attachment_id'];
+    $kept = array_filter(explode('&', $query), static fn(string $pair): bool => $pair !== '' && !in_array(strtolower(rawurldecode(strtok($pair, '='))), $routing, true));
     return $kept === [] ? $url : $url . (str_contains($url, '?') ? '&' : '?') . implode('&', $kept);
 }
 
@@ -463,20 +481,40 @@ function boblift_series_related_items(array $series, callable $read, int $limit 
 /** A series page answers searches for any of its models, since the configurations have no result of their own. */
 function boblift_series_search_models(int $post_id): array
 {
+    return array_keys(boblift_series_search_targets($post_id));
+}
+
+/**
+ * Every name a series page answers to, each with the address that opens it on the matching configuration: the models, the
+ * other winch version of each, every configuration's former names (_model_aliases) and the series code.
+ */
+function boblift_series_search_targets(int $post_id): array
+{
     $series = boblift_series_for_product($post_id);
     if (!$series || $series['home_id'] !== $post_id) {
         return [];
     }
-    $models = array_column($series['members'], 'model');
-    if ($series['winch'] === 'optional') {
-        // The other winch version of each configuration, which has no product of its own.
-        $models = array_merge($models, array_filter(array_map('boblift_series_winch_twin', $models)));
+    $home_url = (string) get_permalink($post_id);
+    $targets = [];
+    foreach ($series['members'] as $member) {
+        $model = (string) $member['model'];
+        $targets[$model] ??= (string) $member['url'];
+        if ($series['winch'] === 'optional' && ($twin = (string) boblift_series_winch_twin($model)) !== '') {
+            // The other winch version, which has no product of its own.
+            $targets[$twin] ??= boblift_series_model_url($home_url, $twin);
+        }
+        if ($series['winch'] === 'standard') {
+            $targets[(string) preg_replace('/T(\+1)?$/', 'TJ$1', $model)] ??= (string) $member['url'];
+        }
+        foreach (preg_split('/[,;\/，、\n]+/u', (string) get_post_meta((int) $member['en_id'], '_model_aliases', true)) ?: [] as $alias) {
+            $alias = trim($alias);
+            if ($alias !== '') {
+                $targets[$alias] ??= (string) $member['url'];
+            }
+        }
     }
-    if ($series['winch'] === 'standard') {
-        $models = array_merge($models, array_filter(array_map(static fn(string $model): string => (string) preg_replace('/T(\+1)?$/', 'TJ$1', $model), $models)));
-    }
-    $models[] = (string) $series['code'];
-    return array_values(array_unique($models));
+    $targets[(string) $series['code']] ??= $home_url;
+    return $targets;
 }
 
 /** What a product card shows for a series page: its code and models. Null for any other product. */

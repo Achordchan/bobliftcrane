@@ -2486,7 +2486,9 @@ function boblift_search_products(string $query): array
     $words = array_values(array_filter(array_map('boblift_search_key', preg_split('/\s+/u', $query) ?: [])));
     $scored = [];
     foreach (boblift_all_products(true) as $index => $product) {
-        $models = array_filter(array_map('boblift_search_key', array_merge([(string) ($product['model'] ?? '')], boblift_series_search_models((int) ($product['id'] ?? 0)), preg_split('/[,，、\/]+/u', (string) ($product['model_aliases'] ?? '')) ?: [])));
+        // A series page answers to its configurations' names too; an exact match opens it on that configuration.
+        $targets = boblift_series_search_targets((int) ($product['id'] ?? 0));
+        $models = array_filter(array_map('boblift_search_key', array_merge([(string) ($product['model'] ?? '')], array_keys($targets), preg_split('/[,，、\/]+/u', (string) ($product['model_aliases'] ?? '')) ?: [])));
         $score = 0;
         foreach ($models as $model) {
             if ($model === $key) {
@@ -2495,6 +2497,12 @@ function boblift_search_products(string $query): array
                 $score = max($score, 80);
             } elseif (mb_strlen($key) >= 2 && str_contains($model, $key)) {
                 $score = max($score, 60);
+            }
+        }
+        foreach ($targets as $name => $url) {
+            if (boblift_search_key((string) $name) === $key) {
+                $product['detail_url'] = $url;
+                break;
             }
         }
         if ($score === 0) {

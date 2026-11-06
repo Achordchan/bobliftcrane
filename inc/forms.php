@@ -400,7 +400,8 @@ function boblift_policy_page_url(string $template): string
     $language = function_exists('pll_current_language') ? (string) pll_current_language() : '';
     $key = $template . '|' . $language;
     if (!isset($urls[$key])) {
-        $args = ['post_type' => 'page', 'post_status' => 'publish', 'numberposts' => 1, 'meta_key' => '_wp_page_template', 'meta_value' => $template, 'fields' => 'ids'];
+        // suppress_filters off so Polylang applies the language (get_posts turns filters off by default).
+        $args = ['post_type' => 'page', 'post_status' => 'publish', 'numberposts' => 1, 'meta_key' => '_wp_page_template', 'meta_value' => $template, 'fields' => 'ids', 'suppress_filters' => false];
         if ($language !== '') {
             $args['lang'] = $language;
         }
