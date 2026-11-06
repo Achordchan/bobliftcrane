@@ -207,10 +207,12 @@ if ($fixed_capacity !== '') {
 $spec_counts = array_map(static fn(array $filter): array => array_fill_keys(array_keys($filter['bins']), 0), $spec_filters);
 $boom_counts = array_fill_keys(array_keys($boom_options), 0);
 foreach ($products as $product) {
+    // A series counts in every bin one of its configurations falls in, as its card's filter does (theme.js).
+    $lists = function_exists('boblift_product_filter_lists') ? boblift_product_filter_lists((int) ($product['id'] ?? 0)) : [];
     foreach ($spec_filters as $filter => $config) {
-        $number = (float) ($product['filter_values'][$filter] ?? 0);
+        $numbers = $filter !== 'capacity' && !empty($lists[$filter]) ? $lists[$filter] : [(float) ($product['filter_values'][$filter] ?? 0)];
         foreach (array_keys($config['bins']) as $bin) {
-            if ($in_bin($number, (string) $bin)) {
+            if (array_filter($numbers, static fn(float $number): bool => $in_bin($number, (string) $bin))) {
                 $spec_counts[$filter][$bin]++;
             }
         }

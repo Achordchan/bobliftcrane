@@ -1846,6 +1846,25 @@ function boblift_product_english_id(int $product_id): int
  * Numbers the product filters use, read from the English spec table (translations carry translated labels):
  * max lifting capacity in tonnes, max lifting moment in t·m (kN·m converted) and self weight in kg. 0 = not given.
  */
+/**
+ * The filter figures of everything a listing entry stands for: a series page's every configuration, any other product's own.
+ * {"capacity": [6.3], "moment": [12.9, 13.2], "weight": [1950, 2100]}, figures above zero only.
+ */
+function boblift_product_filter_lists(int $product_id): array
+{
+    $series = function_exists('boblift_series_for_product') ? boblift_series_for_product($product_id) : null;
+    $ids = $series && (int) $series['home_id'] === $product_id ? array_map(static fn(array $member): int => (int) $member['id'], $series['members']) : [$product_id];
+    $lists = ['capacity' => [], 'moment' => [], 'weight' => []];
+    foreach ($ids as $id) {
+        foreach (boblift_product_filter_values($id) as $key => $value) {
+            if ((float) $value > 0 && !in_array((float) $value, $lists[$key], true)) {
+                $lists[$key][] = (float) $value;
+            }
+        }
+    }
+    return $lists;
+}
+
 function boblift_product_filter_values(int $product_id): array
 {
     static $cache = [];
@@ -2294,6 +2313,14 @@ function boblift_product_card(array $product, string $extra_class = '', bool $ea
     $quick_rows = array_values(array_filter(array_map(static fn($row): array => is_array($row) ? ['label' => (string) ($row['label'] ?? ''), 'value' => (string) ($row['value'] ?? '')] : [], $product['specs'] ?? []), static fn(array $row): bool => $row['label'] !== '' && $row['value'] !== ''));
     $quick_specs = esc_attr(wp_json_encode($quick_rows ? array_slice($quick_rows, 0, 6) : $specs, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     $quick_configs = boblift_series_quick_view_configs($product);
+    // A series card answers the filters for every configuration it stands for: each figure as a list, any one may match.
+    $filter_attrs = '';
+    foreach (boblift_product_filter_lists((int) ($product['id'] ?? 0)) as $filter_key => $filter_list) {
+        // Capacity stays the card's listing figure (one series, one tonnage); moment and weight differ by configuration.
+        if ($filter_key !== 'capacity' && count($filter_list) > 1) {
+            $filter_attrs .= ' data-' . $filter_key . '-values="' . esc_attr(implode(',', array_map(static fn(float $value): string => rtrim(rtrim(number_format($value, 3, '.', ''), '0'), '.'), $filter_list))) . '"';
+        }
+    }
     $product_ui = function_exists('boblift_site_ui') ? boblift_site_ui('productDetail') : [];
     $quote_list_ui = function_exists('boblift_site_ui') ? boblift_site_ui('quoteList') : [];
     $add_quote_label = (string) ($quote_list_ui['addLabel'] ?? 'Add to Quote List');
@@ -2306,7 +2333,7 @@ function boblift_product_card(array $product, string $extra_class = '', bool $ea
         ? 'scale-[1.08] object-contain p-4 drop-shadow-[0_6px_8px_rgba(11,27,51,0.10)] group-hover:scale-[1.12] sm:p-5'
         : 'object-contain bg-[#EDF1F5]';
     ?>
-    <article class="product-card group flex min-h-full cursor-pointer flex-col overflow-hidden rounded border border-[#E5E7EB] bg-white shadow-card transition duration-300 hover:-translate-y-1 hover:border-blue-200 <?php echo esc_attr($extra_class); ?>" data-product-id="<?php echo esc_attr($product_id); ?>" data-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-category="<?php echo esc_attr($product['category'] ?? ''); ?>" data-categories="<?php echo esc_attr(implode(',', $product_categories)); ?>" data-category-title="<?php echo esc_attr($product['category_title'] ?? 'BOB-LIFT'); ?>" data-capacity="<?php echo esc_attr((string) ($product['filter_values']['capacity'] ?? 0)); ?>" data-moment="<?php echo esc_attr((string) ($product['filter_values']['moment'] ?? 0)); ?>" data-weight="<?php echo esc_attr((string) ($product['filter_values']['weight'] ?? 0)); ?>" data-boom="<?php echo esc_attr($product['boom_type'] ?? ''); ?>" data-featured="<?php echo !empty($product['featured']) ? '1' : '0'; ?>"<?php if (isset($product['recommended_rank'])) : ?> data-recommended-rank="<?php echo esc_attr((string) (int) $product['recommended_rank']); ?>"<?php endif; ?> data-created="<?php echo esc_attr((string) ($product['created_at'] ?? '')); ?>" data-popularity="<?php echo esc_attr((string) ($product['popularity'] ?? 0)); ?>" data-title="<?php echo esc_attr($product['title']); ?>" data-image="<?php echo esc_url(boblift_product_image($product)); ?>" data-summary="<?php echo esc_attr($product['short_description'] ?? ''); ?>" data-inquiry-url="<?php echo esc_url($inquiry_url); ?>" data-detail-url="<?php echo esc_url($detail_url); ?>" data-specs="<?php echo $quick_specs; ?>" data-quick-name="<?php echo esc_attr($card_view['full_title']); ?>" data-quick-model="<?php echo esc_attr($card_view['only_model']); ?>" data-quick-series="<?php echo esc_attr($card_view['code_line']); ?>"<?php if ($quick_configs) : ?> data-configs="<?php echo esc_attr((string) wp_json_encode($quick_configs, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)); ?>"<?php endif; ?>>
+    <article class="product-card group flex min-h-full cursor-pointer flex-col overflow-hidden rounded border border-[#E5E7EB] bg-white shadow-card transition duration-300 hover:-translate-y-1 hover:border-blue-200 <?php echo esc_attr($extra_class); ?>" data-product-id="<?php echo esc_attr($product_id); ?>" data-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-category="<?php echo esc_attr($product['category'] ?? ''); ?>" data-categories="<?php echo esc_attr(implode(',', $product_categories)); ?>" data-category-title="<?php echo esc_attr($product['category_title'] ?? 'BOB-LIFT'); ?>" data-capacity="<?php echo esc_attr((string) ($product['filter_values']['capacity'] ?? 0)); ?>" data-moment="<?php echo esc_attr((string) ($product['filter_values']['moment'] ?? 0)); ?>" data-weight="<?php echo esc_attr((string) ($product['filter_values']['weight'] ?? 0)); ?>"<?php echo $filter_attrs; ?> data-boom="<?php echo esc_attr($product['boom_type'] ?? ''); ?>" data-featured="<?php echo !empty($product['featured']) ? '1' : '0'; ?>"<?php if (isset($product['recommended_rank'])) : ?> data-recommended-rank="<?php echo esc_attr((string) (int) $product['recommended_rank']); ?>"<?php endif; ?> data-created="<?php echo esc_attr((string) ($product['created_at'] ?? '')); ?>" data-popularity="<?php echo esc_attr((string) ($product['popularity'] ?? 0)); ?>" data-title="<?php echo esc_attr($product['title']); ?>" data-image="<?php echo esc_url(boblift_product_image($product)); ?>" data-summary="<?php echo esc_attr($product['short_description'] ?? ''); ?>" data-inquiry-url="<?php echo esc_url($inquiry_url); ?>" data-detail-url="<?php echo esc_url($detail_url); ?>" data-specs="<?php echo $quick_specs; ?>" data-quick-name="<?php echo esc_attr($card_view['full_title']); ?>" data-quick-model="<?php echo esc_attr($card_view['only_model']); ?>" data-quick-series="<?php echo esc_attr($card_view['code_line']); ?>"<?php if ($quick_configs) : ?> data-configs="<?php echo esc_attr((string) wp_json_encode($quick_configs, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)); ?>"<?php endif; ?>>
         <div class="product-card-inner flex min-h-full flex-col">
             <div class="product-card-media relative h-64 overflow-hidden bg-[radial-gradient(circle_at_48%_34%,#ffffff_0%,#f8fafc_34%,#eef2f7_64%,#e2e8f0_100%)] sm:h-72 lg:h-64 xl:h-72">
                 <span class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_82%,rgba(15,23,42,0.13),transparent_44%)]"></span>

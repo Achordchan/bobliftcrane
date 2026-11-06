@@ -352,7 +352,9 @@ if ($drawings) {
 if ($detail_body_html !== '' || $product_videos || $has_overview_copy) {
     $anchors[] = ['id' => 'overview', 'label' => (string) ($ui['detailBodyLabel'] ?? 'Product details')];
 }
-if ($brochure_features) {
+// On a series page the cards switch with the configuration; the section is listed when any configuration has cards.
+$series_has_features = $brochure_features !== [] || ($product_series && array_filter($product_series['members'], static fn(array $member): bool => get_post_meta((int) $member['id'], '_features_source', true) === 'brochure'));
+if ($series_has_features) {
     $anchors[] = ['id' => 'features', 'label' => (string) ($ui['featuresLabel'] ?? 'Key Features')];
 }
 // Manufacturing and delivery steps: knuckle or telescopic set, by the English product's category.
@@ -377,36 +379,41 @@ if ($buying_terms) {
 $model_faqs = boblift_product_guide_faqs($product, $product_guide, $crane_family, $hero_terms_apply);
 // The product's own questions (boblift_product_copy, inc/rest-product-copy.php) follow the generated ones.
 $model_faqs = array_merge($model_faqs, boblift_product_copy_faq((int) get_the_ID()));
-// A series page also answers the questions its configurations carried on their own pages, which now redirect here. A
-// question already asked is left out, and so is one that differs from the series page's only in the model it names and
-// has the same answer; each kept question names its model, so it is clear which configuration it is about.
+// A series page also answers the questions its configurations carried on their own pages, which now redirect here. A repeat
+// is the same question with the same answer, word for word or but for the model it names, and is left out. The same question
+// with another answer is kept and marked with its model, so it is clear which configuration it is about.
 if ($product_series && !empty($series_member['is_home'])) {
     $faq_key = static fn(string $text, string $model): string => mb_strtolower(trim($model !== '' ? str_replace($model, '{model}', $text) : $text));
+    $home_model = (string) $series_member['model'];
     $faq_seen = [];
-    // The page's own list asks some questions twice (generated and written); the first one stays.
-    $model_faqs = array_values(array_filter($model_faqs, static function (array $faq) use (&$faq_seen): bool {
-        $question = mb_strtolower(trim((string) $faq['question']));
-        if (isset($faq_seen[$question])) {
+    $faq_questions = [];
+    $model_faqs = array_values(array_filter($model_faqs, static function (array $faq) use (&$faq_seen, &$faq_questions, $faq_key, $home_model): bool {
+        $exact = mb_strtolower(trim((string) $faq['question'])) . '|' . mb_strtolower(trim((string) $faq['answer']));
+        if (isset($faq_seen[$exact])) {
             return false;
         }
-        return $faq_seen[$question] = true;
+        $faq_seen[$exact] = true;
+        $faq_seen[$faq_key((string) $faq['question'], $home_model) . '|' . $faq_key((string) $faq['answer'], $home_model)] = true;
+        $faq_questions[mb_strtolower(trim((string) $faq['question']))] = true;
+        return true;
     }));
-    foreach ($model_faqs as $faq) {
-        $faq_seen[$faq_key((string) $faq['question'], (string) $series_member['model']) . '|' . $faq_key((string) $faq['answer'], (string) $series_member['model'])] = true;
-    }
     foreach ($product_series['members'] as $faq_member) {
         if (!empty($faq_member['is_home'])) {
             continue;
         }
         foreach (boblift_product_copy_faq((int) $faq_member['id']) as $faq) {
             $question = trim((string) $faq['question']);
+            $answer = trim((string) $faq['answer']);
             $model = (string) $faq_member['model'];
-            $same = $faq_key($question, $model) . '|' . $faq_key((string) $faq['answer'], $model);
-            if (isset($faq_seen[mb_strtolower($question)]) || isset($faq_seen[$same])) {
+            $exact = mb_strtolower($question) . '|' . mb_strtolower($answer);
+            $same = $faq_key($question, $model) . '|' . $faq_key($answer, $model);
+            if (isset($faq_seen[$exact]) || isset($faq_seen[$same])) {
                 continue;
             }
-            $faq_seen[mb_strtolower($question)] = $faq_seen[$same] = true;
-            $model_faqs[] = ['question' => str_contains($question, $model) ? $question : $model . ': ' . $question, 'answer' => (string) $faq['answer']];
+            $faq_seen[$exact] = $faq_seen[$same] = true;
+            $asked = isset($faq_questions[mb_strtolower($question)]);
+            $faq_questions[mb_strtolower($question)] = true;
+            $model_faqs[] = ['question' => str_contains($question, $model) && !$asked ? $question : $model . ': ' . $question, 'answer' => $answer];
         }
     }
 }
@@ -857,14 +864,8 @@ if ($family_quote_copy) {
                 </article>
             <?php endif; ?>
             <?php boblift_series_block_close('overview'); ?>
-            <?php
-            // A configuration's run ends here: what follows is shared by the whole series page.
-            if (boblift_series_capturing()) {
-                return;
-            }
-            if ($series_page && ($series_schema = boblift_series_schema())) : ?>
-                <script type="application/ld+json"><?php echo wp_json_encode($series_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG); ?></script>
-            <?php endif; ?>
+            <?php // Each configuration's own feature cards: they differ by model, so they switch with the choice like the photos. ?>
+            <?php boblift_series_block_open('features'); ?>
             <?php if ($brochure_features) : ?>
                 <?php
                 $features_series = trim((string) ($product['features_series'] ?? ''));
@@ -902,6 +903,15 @@ if ($family_quote_copy) {
                         </ul>
                     <?php endif; ?>
                 </article>
+            <?php endif; ?>
+            <?php boblift_series_block_close('features'); ?>
+            <?php
+            // A configuration's run ends here: what follows is shared by the whole series page.
+            if (boblift_series_capturing()) {
+                return;
+            }
+            if ($series_page && ($series_schema = boblift_series_schema())) : ?>
+                <script type="application/ld+json"><?php echo wp_json_encode($series_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG); ?></script>
             <?php endif; ?>
             <?php if ($process_steps) :
                 // Literal class names so Tailwind keeps them.

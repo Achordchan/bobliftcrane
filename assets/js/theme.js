@@ -3232,6 +3232,12 @@
     // Spec filters hold a number per card (tonnes, t·m, kg; 0 = not given) matched against "min-max" / "min+" bins.
     const specFilters = ['capacity', 'moment', 'weight'];
     const cardNumber = (card, filterName) => Number(card.dataset[filterName] || 0);
+    // A series card carries every configuration's figure (data-moment-values="2.2,2.4"): it matches when any of them does.
+    const cardNumbers = (card, filterName) => {
+      const list = (card.dataset[`${filterName}Values`] || '').split(',').map(Number).filter((value) => value > 0);
+      return list.length ? list : [cardNumber(card, filterName)];
+    };
+    const cardInRanges = (card, filterName, ranges) => cardNumbers(card, filterName).some((value) => inAnyRange(value, ranges));
     const slugifyFilter = (value) => value.toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     const optionLabel = (input) => qs('span', input.closest('label') || input.parentElement)?.textContent?.trim() || input.value;
     const paramValues = (params, key) => params.getAll(key).flatMap((value) => value.split(',')).map((value) => value.trim()).filter(Boolean);
@@ -3293,12 +3299,12 @@
       return numberValue > min && numberValue <= max;
     });
     const cardMatchesFilterOption = (card, filterName, value) => {
-      if (specFilters.includes(filterName)) return inAnyRange(cardNumber(card, filterName), [value]);
+      if (specFilters.includes(filterName)) return cardInRanges(card, filterName, [value]);
       if (filterName === 'boom') return (card.dataset.boom || '') === value;
       return false;
     };
     const cardHasFilterValue = (card, filterName) => {
-      if (specFilters.includes(filterName)) return cardNumber(card, filterName) > 0;
+      if (specFilters.includes(filterName)) return cardNumbers(card, filterName).some((number) => number > 0);
       if (filterName === 'boom') return (card.dataset.boom || '') !== '';
       return false;
     };
@@ -3351,7 +3357,7 @@
       // The capacity dropdown, where an archive renders one, applies while no capacity box is ticked.
       if (!ranges.length && filterName === 'capacity' && capacitySelect?.value) ranges = [capacitySelect.value];
       if (!ranges.length && filterName === 'capacity' && customCapacity) ranges = [customCapacity];
-      return !ranges.length || inAnyRange(cardNumber(card, filterName), ranges);
+      return !ranges.length || cardInRanges(card, filterName, ranges);
     };
     const cardMatches = (card) => {
       const booms = activeValues('boom');

@@ -393,20 +393,29 @@ function boblift_render_inquiry_modal(): void
     <?php
 }
 
-/** The page in the current language that uses this page template ("page-privacy-policy.php"), or ''. */
+/**
+ * The policy page in the current language: the page that uses this template ("page-privacy-policy.php"), else the page with
+ * that slug (a page can take its template from its slug), else the page's fixed address in this language.
+ */
 function boblift_policy_page_url(string $template): string
 {
     static $urls = [];
     $language = function_exists('pll_current_language') ? (string) pll_current_language() : '';
     $key = $template . '|' . $language;
     if (!isset($urls[$key])) {
-        // suppress_filters off so Polylang applies the language (get_posts turns filters off by default).
-        $args = ['post_type' => 'page', 'post_status' => 'publish', 'numberposts' => 1, 'meta_key' => '_wp_page_template', 'meta_value' => $template, 'fields' => 'ids', 'suppress_filters' => false];
-        if ($language !== '') {
-            $args['lang'] = $language;
+        $slug = (string) preg_replace('/^page-|\.php$/', '', $template);
+        // Found in any language first, then its translation in this one: a query by slug does not keep to a language.
+        $base = ['post_type' => 'page', 'post_status' => 'publish', 'numberposts' => -1, 'fields' => 'ids', 'suppress_filters' => false, 'lang' => ''];
+        $found = get_posts($base + ['meta_key' => '_wp_page_template', 'meta_value' => $template]) ?: get_posts($base + ['name' => $slug]);
+        $id = 0;
+        foreach ($found as $candidate) {
+            $translated = $language !== '' && function_exists('pll_get_post') ? (int) pll_get_post((int) $candidate, $language) : (int) $candidate;
+            if ($translated && get_post_status($translated) === 'publish') {
+                $id = $translated;
+                break;
+            }
         }
-        $ids = get_posts($args);
-        $urls[$key] = $ids ? (string) get_permalink((int) $ids[0]) : '';
+        $urls[$key] = $id ? (string) get_permalink($id) : boblift_html_url($slug);
     }
     return $urls[$key];
 }

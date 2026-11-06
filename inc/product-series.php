@@ -495,25 +495,49 @@ function boblift_series_search_targets(int $post_id): array
         return [];
     }
     $home_url = (string) get_permalink($post_id);
-    $targets = [];
+    $members = [];
     foreach ($series['members'] as $member) {
+        $members[] = [
+            'model' => (string) $member['model'],
+            'url' => (string) $member['url'],
+            'aliases' => preg_split('/[,;\/，、\n]+/u', (string) get_post_meta((int) $member['en_id'], '_model_aliases', true)) ?: [],
+        ];
+    }
+    return boblift_series_search_names($members, (string) $series['winch'], (string) $series['code'], $home_url);
+}
+
+/**
+ * The names behind boblift_series_search_targets(): real names first (each model, its other winch version), then former
+ * names, which never take over a real model's name, then the series code.
+ */
+function boblift_series_search_names(array $members, string $winch, string $code, string $home_url): array
+{
+    $targets = [];
+    foreach ($members as $member) {
         $model = (string) $member['model'];
-        $targets[$model] ??= (string) $member['url'];
-        if ($series['winch'] === 'optional' && ($twin = (string) boblift_series_winch_twin($model)) !== '') {
+        $targets[$model] = (string) $member['url'];
+    }
+    foreach ($members as $member) {
+        $model = (string) $member['model'];
+        if ($winch === 'optional' && ($twin = (string) boblift_series_winch_twin($model)) !== '') {
             // The other winch version, which has no product of its own.
             $targets[$twin] ??= boblift_series_model_url($home_url, $twin);
         }
-        if ($series['winch'] === 'standard') {
+        if ($winch === 'standard') {
             $targets[(string) preg_replace('/T(\+1)?$/', 'TJ$1', $model)] ??= (string) $member['url'];
         }
-        foreach (preg_split('/[,;\/，、\n]+/u', (string) get_post_meta((int) $member['en_id'], '_model_aliases', true)) ?: [] as $alias) {
-            $alias = trim($alias);
+    }
+    foreach ($members as $member) {
+        foreach ((array) $member['aliases'] as $alias) {
+            $alias = trim((string) $alias);
             if ($alias !== '') {
                 $targets[$alias] ??= (string) $member['url'];
             }
         }
     }
-    $targets[(string) $series['code']] ??= $home_url;
+    if ($code !== '') {
+        $targets[$code] ??= $home_url;
+    }
     return $targets;
 }
 
@@ -551,7 +575,7 @@ function boblift_series_figure_range(array $values): string
  * Any figure across a series' configurations: a range when all are numbers in one unit ("12.9–13.2 t·m", "3–5", "360–400°"),
  * else the different values as written ("3+1 / 4"). Empty values are left out.
  */
-function boblift_series_compare_range(array $values): string
+function boblift_series_compare_range(array $values, bool $numbers_only = false, string $language = ''): string
 {
     $values = array_values(array_unique(array_filter(array_map(static fn($value): string => trim((string) $value), $values), static fn(string $value): bool => $value !== '')));
     if ($values === []) {
@@ -561,24 +585,65 @@ function boblift_series_compare_range(array $values): string
     $units = [];
     $approx = false;
     foreach ($values as $value) {
-        if (!preg_match('/^(≈\s*)?(\d[\d,]*(?:\.\d+)?)\s*([^\d\s+\/]*(?:\s[^\d\s+\/]+)?)$/u', $value, $match)) {
-            return implode(' / ', $values);
+        if (!preg_match('/^(≈\s*)?(\d{1,3}(?:[ \x{00A0}\x{202F}]\d{3})+(?:[.,]\d+)?|\d[\d,.\x{00A0}\x{202F}]*)\s*([^\d\s+\/]*(?:\s[^\d\s+\/]+)?)$/u', $value, $match) || ($number = boblift_series_parse_number($match[2])) === null) {
+            return $numbers_only ? '' : implode(' / ', $values);
         }
-        $numbers[] = (float) str_replace(',', '', $match[2]);
+        $numbers[] = $number;
         $units[$match[3]] = true;
         $approx = $approx || $match[1] !== '';
     }
     if (count($units) > 1) {
-        return implode(' / ', $values);
+        return $numbers_only ? '' : implode(' / ', $values);
     }
     $unit = (string) array_key_first($units);
-    $format = static fn(float $number): string => rtrim(rtrim(number_format($number, 2, '.', ','), '0'), '.');
+    $format = static fn(float $number): string => boblift_series_format_number($number, $language);
     $low = min($numbers);
     $high = max($numbers);
     return ($approx ? '≈ ' : '') . $format($low) . ($high > $low ? '–' . $format($high) : '') . ($unit === '' || $unit === '°' ? $unit : ' ' . $unit);
 }
 
+/**
+ * A figure written in any of the site's languages as a number: "6,300" and "6.300" are 6300 when the separator is followed by
+ * groups of three digits; "5,5" and "5.5" are 5.5; a space or narrow space between groups is a thousands separator. Null when
+ * the text is not one number.
+ */
+function boblift_series_parse_number(string $text): ?float
+{
+    $text = trim((string) preg_replace('/[\x{00A0}\x{202F}\s]/u', '', $text));
+    if ($text === '' || !preg_match('/^\d[\d.,]*$/', $text)) {
+        return null;
+    }
+    if (preg_match('/^\d{1,3}(?:,\d{3})+(?:\.\d+)?$/', $text)) {
+        return (float) str_replace(',', '', $text);
+    }
+    if (preg_match('/^\d{1,3}(?:\.\d{3})+(?:,\d+)?$/', $text)) {
+        return (float) str_replace(',', '.', str_replace('.', '', $text));
+    }
+    if (preg_match('/^\d+(?:[.,]\d+)?$/', $text)) {
+        return (float) str_replace(',', '.', $text);
+    }
+    return null;
+}
+
+/** A number for a figure in the page's language: 12,000 and 5.5 in English; 12,000 and 5,5 in Spanish, French and Russian. */
+function boblift_series_format_number(float $number, string $language = ''): string
+{
+    $text = rtrim(rtrim(number_format($number, 2, '.', ','), '0'), '.');
+    if (in_array($language, ['es', 'fr', 'ru'], true) && str_contains($text, '.')) {
+        // A decimal comma; a figure with decimals keeps its thousands apart with a narrow space, never a second comma.
+        $text = strtr($text, ['.' => ',', ',' => "\u{202F}"]);
+    }
+    return $text;
+}
+
 /** A lifting moment in t·m, as every crane shows it. The data has a few in kN·m; the spec table keeps those as entered. */
+/** A lifting moment as the data writes it ("13 Ton.m", a bare "2.2", "90 kN·m") in t·m, the way cards and tables compare it. */
+function boblift_series_moment_normalized(string $moment): string
+{
+    $moment = (string) preg_replace('/\s*ton\.?\s*m$/i', ' t·m', trim($moment));
+    return boblift_series_moment_in_tm(preg_match('/^\d+(?:\.\d+)?$/', $moment) ? $moment . ' t·m' : $moment);
+}
+
 function boblift_series_moment_in_tm(string $moment): string
 {
     return preg_match('/^([\d.]+)\s*kN·m$/u', trim($moment), $match) ? rtrim(rtrim(number_format((float) $match[1] / 9.80665, 1, '.', ''), '0'), '.') . ' t·m' : $moment;
@@ -904,7 +969,7 @@ function boblift_series_product_figures(int $english_id): array
     return [
         'weight' => boblift_series_kilograms($rows['Self Weight'] ?? ''),
         'capacity' => boblift_series_kilograms($rows['Max Lifting Capacity'] ?? ''),
-        'moment' => boblift_series_moment_in_tm((string) ($rows['Max Lifting Moment'] ?? '')) ?: null,
+        'moment' => boblift_series_moment_normalized((string) ($rows['Max Lifting Moment'] ?? '')) ?: null,
         'radius' => ($drawing['radius'] ?? '') ?: (($rows['Max Working Radius'] ?? '') ?: null),
         'height' => ($drawing['height'] ?? '') ?: (($rows['Max Lifting Height'] ?? '') ?: null),
     ];

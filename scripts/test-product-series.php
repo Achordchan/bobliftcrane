@@ -35,6 +35,39 @@ $check('an unavailable member translation is left out', ['en' => 11], boblift_se
 $check('redirect drops routing parameters', 'https://x/s.html?model=A&utm_source=g&gclid=1', boblift_series_redirect_url('https://x/s.html?model=A', 'post_type=product&p=5&utm_source=g&page_id=3&name=x&lang=en&gclid=1&model=B'));
 $check('redirect without extra parameters', 'https://x/s.html?model=A', boblift_series_redirect_url('https://x/s.html?model=A', 'p=5&post_type=product'));
 
+// Search names: a real model always beats another configuration's former name (#251 review, round 2).
+$names = boblift_series_search_names([
+    ['model' => 'SQ5ZA3T', 'url' => 'S?model=SQ5ZA3T', 'aliases' => ['SQ5ZA4T', 'SQ5Z-OLD']],
+    ['model' => 'SQ5ZA4T', 'url' => 'S?model=SQ5ZA4T', 'aliases' => []],
+], 'optional', 'SQ5Z-T', 'S');
+$check('a former name never takes a real model', 'S?model=SQ5ZA4T', $names['SQ5ZA4T']);
+$check('a free former name opens its configuration', 'S?model=SQ5ZA3T', $names['SQ5Z-OLD']);
+$check('the winch twin is a real name', 'S?model=SQ5ZA3TJ', $names['SQ5ZA3TJ']);
+$check('the series code opens the series page', 'S', $names['SQ5Z-T']);
+// Moments as the data writes them, in t·m (#251 review, round 2).
+$check('moment Ton.m', '13 t·m', boblift_series_moment_normalized('13 Ton.m'));
+$check('moment ton m', '13 t·m', boblift_series_moment_normalized('13 ton m'));
+$check('moment bare number', '2.2 t·m', boblift_series_moment_normalized('2.2'));
+$check('moment kN·m', '9.2 t·m', boblift_series_moment_normalized('90 kN·m'));
+$check('moment already t·m', '2.2 t·m', boblift_series_moment_normalized('2.2 t·m'));
+// Numbers in every language's style (#251 review, round 2).
+$check('decimal comma', 5.5, boblift_series_parse_number('5,5'));
+$check('decimal point', 5.5, boblift_series_parse_number('5.5'));
+$check('thousands comma', 6300.0, boblift_series_parse_number('6,300'));
+$check('thousands dot', 6300.0, boblift_series_parse_number('6.300'));
+$check('thousands narrow space', 12500.0, boblift_series_parse_number("12\u{202F}500"));
+$check('thousands nbsp', 12500.0, boblift_series_parse_number("12\u{00A0}500"));
+$check('thousands and decimals', 1250.5, boblift_series_parse_number('1,250.5'));
+$check('dot thousands and comma decimals', 1250.5, boblift_series_parse_number('1.250,5'));
+$check('not a number', null, boblift_series_parse_number('3+1'));
+$check('es range from decimal commas', '5,5–7,5 kW', boblift_series_compare_range(['5,5 kW', '7,5 kW'], false, 'es'));
+$check('fr range from decimal commas', '5,5–7,5 kW', boblift_series_compare_range(['5,5 kW', '7,5 kW'], false, 'fr'));
+$check('ru range with thousands', '1,200–1,450 kg', boblift_series_compare_range(['1 200 kg', '1 450 kg'], false, 'ru'));
+$check('en range from English figures', '5.5–7.5 kW', boblift_series_compare_range(['5.5 kW', '7.5 kW'], true, 'en'));
+$check('es range from English figures', '5,5–7,5 kW', boblift_series_compare_range(['5.5 kW', '7.5 kW'], true, 'es'));
+$check('numbers only gives way on words', '', boblift_series_compare_range(['3+1', '4'], true, 'es'));
+$check('words kept when not numbers only', '3+1 / 4', boblift_series_compare_range(['3+1', '4'], false, 'es'));
+
 // Model names.
 $check('sections and winch', ['named' => '', 'sections' => 'A4', 'winch' => '1', 'manual' => '0'], boblift_series_parse_model('SQ12ZA4TJ'));
 $check('no winch', ['named' => '', 'sections' => 'A6', 'winch' => '0', 'manual' => '0'], boblift_series_parse_model('SQ12ZA6T'));

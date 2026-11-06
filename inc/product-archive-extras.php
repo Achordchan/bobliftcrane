@@ -103,9 +103,7 @@ function boblift_compare_models_prepare(array $models): array
 {
     // Moments are entered as "13 Ton.m" on some products and as a bare "2.2" on others: show them all as t·m.
     foreach ($models as $index => $item) {
-        $moment = trim((string) $item['moment']);
-        $moment = (string) preg_replace('/\s*ton\.?\s*m$/i', ' t·m', $moment);
-        $models[$index]['moment'] = boblift_series_moment_in_tm(preg_match('/^\d+(?:\.\d+)?$/', $moment) ? $moment . ' t·m' : $moment);
+        $models[$index]['moment'] = boblift_series_moment_normalized((string) $item['moment']);
         $models[$index]['weight'] = (string) preg_replace('/(\d)\s*kg$/i', '$1 kg', trim((string) $item['weight']));
         $models[$index]['capacity_label'] = $item['capacity'] > 0 ? boblift_guide_number($item['capacity']) . ' t' : '';
         // The rest of the spec table (power, hydraulics, oil tank, rotation…) as extra rows, keyed by the English label so
@@ -123,7 +121,8 @@ function boblift_compare_models_prepare(array $models): array
             $shown = $aligned ? $local[$row_index] : $row;
             $value = trim((string) ($shown['value'] ?? ''));
             if ($value !== '') {
-                $models[$index]['extra'][$english_label] = ['label' => trim((string) ($shown['label'] ?? $english_label)), 'value' => $value];
+                // The English value travels along: ranges are worked out from it, whatever number style the translation uses.
+                $models[$index]['extra'][$english_label] = ['label' => trim((string) ($shown['label'] ?? $english_label)), 'value' => $value, 'en_value' => trim((string) ($row['value'] ?? ''))];
             }
         }
         // Reach and outrigger figures read off the drawing compare too (radius first: it is what buyers choose by).
@@ -149,11 +148,11 @@ function boblift_compare_figure_sources(): array
     ];
 }
 
-/** One figure of a prepared model, from the first source it has. */
-function boblift_compare_figure(array $item, array $sources): string
+/** One figure of a prepared model, from the first source it has; $field 'en_value' reads the English figure where there is one. */
+function boblift_compare_figure(array $item, array $sources, string $field = 'value'): string
 {
     foreach ($sources as $source) {
-        $value = trim((string) ($item['extra'][$source]['value'] ?? ''));
+        $value = trim((string) ($item['extra'][$source][$field] ?? $item['extra'][$source]['value'] ?? ''));
         if ($value !== '') {
             return $value;
         }
@@ -177,14 +176,20 @@ function boblift_compare_series_prepare(array $models): array
         $posts = $series ? array_filter(array_map(static fn(array $member) => get_post((int) $member['id']), $series['members'])) : [];
         $rows = boblift_compare_models_prepare($posts ? boblift_product_model_rows($posts) : [$item]);
         $own = current(array_filter($rows, static fn(array $row): bool => (int) $row['id'] === (int) $item['id'])) ?: $rows[0];
+        $english = [];
         foreach (boblift_compare_figure_sources() as $key => $sources) {
             foreach ($rows as $index => $row) {
                 $rows[$index][$key] = boblift_compare_figure($row, $sources);
+                $english[$index][$key] = boblift_compare_figure($row, $sources, 'en_value');
             }
         }
+        $language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
         $column = $own;
         foreach (array_merge(['capacity_label', 'moment', 'sections_label', 'weight'], array_keys(boblift_compare_figure_sources())) as $key) {
-            $column[$key] = boblift_series_compare_range(array_column($rows, $key));
+            // A range comes from the English figures (5.5 kW, never a translated 5,5 read as 55), written the page's way; a
+            // figure that is not a number (3+1 / 4) shows the page's own words.
+            $range = isset($english[0][$key]) ? boblift_series_compare_range(array_column($english, $key), true, $language) : '';
+            $column[$key] = $range !== '' ? $range : boblift_series_compare_range(array_column($rows, $key), false, $language);
         }
         $view = boblift_series_card_view(['id' => $item['id'], 'model' => $item['model'], 'title' => $item['title']]);
         $column['heading'] = $view['title'];
