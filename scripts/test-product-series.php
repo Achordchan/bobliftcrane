@@ -128,6 +128,19 @@ $check('picked configuration becomes its series page', [193, 61, 7], boblift_ser
 $check('picked translation maps in its own language', [1193], boblift_series_listed_ids([14848], [14848 => 1193], [14848]));
 $check('configuration without a series page is left out', [5], boblift_series_listed_ids([9, 5], [], [9]));
 
+// Members whose names do not compare are chosen by model; the winch stays its own choice.
+$named = static fn(array $models): array => boblift_series_unify_naming(array_map(static fn(string $model): array => ['model' => $model, 'values' => boblift_series_parse_model($model)], $models));
+$mixed = $named(['SQ20ZA6', 'SQZ430']);
+$check('A sections beside SQZ: asked by model', ['named' => ['SQ20ZA6', 'SQZ430']], boblift_series_dimensions($mixed));
+$makes = $named(['SQ6.3ZA4', 'SQ6.3ZA5', 'BLZ129K4']);
+$check('SQ beside BLZ: asked by model', ['named' => ['SQ6.3ZA4', 'SQ6.3ZA5', 'BLZ129K4']], boblift_series_dimensions($makes));
+$winched = $named(['SQ20ZA6T', 'SQ20ZA6TJ', 'SQZ430T']);
+$check('mixed names keep the winch apart', ['named' => ['SQ20ZA6T', 'SQZ430T'], 'winch' => ['0', '1']], boblift_series_dimensions($winched));
+$check('one naming is left alone', ['sections' => ['A4', 'A5']], boblift_series_dimensions($named(['SQ6.3ZA4', 'SQ6.3ZA5'])));
+
+// A series page is listed under every category of its configurations, its own first.
+$check('category union', ['knuckle-boom-marine-cranes', 'pickup-cranes'], boblift_series_union_categories(['knuckle-boom-marine-cranes'], [['knuckle-boom-marine-cranes'], ['pickup-cranes']]));
+
 // Which choices are asked.
 $members = array_map(static fn(string $model): array => ['model' => $model, 'values' => boblift_series_parse_model($model)], ['SQ08ZA3T+1', 'SQ08ZA3TJ+1']);
 $check('one-value dimensions are not asked', ['winch' => ['0', '1']], boblift_series_dimensions($members));

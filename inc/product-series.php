@@ -122,6 +122,33 @@ function boblift_series_requested_model(array $models, string $requested, string
     return $default;
 }
 
+/** How a model names its configuration: SQ boom sections (A4), BLZ boom sections (K4), a named class (SQZ430) or none of these. */
+function boblift_series_naming(string $model): string
+{
+    $values = boblift_series_parse_model($model);
+    if ($values['sections'] !== '') {
+        return str_starts_with($model, 'BLZ') ? 'K' : 'A';
+    }
+    return $values['winch'] !== '' ? 'named' : 'other';
+}
+
+/**
+ * Members whose names do not compare (A4 beside K4, SQ20ZA6 beside SQZ430) are chosen by the model itself: "named" becomes
+ * the model without its winch letter, so the winch stays a choice of its own, and the boom sections are no longer asked.
+ */
+function boblift_series_unify_naming(array $members): array
+{
+    if (count(array_unique(array_map(static fn(array $member): string => boblift_series_naming((string) $member['model']), $members))) < 2) {
+        return $members;
+    }
+    foreach ($members as $position => $member) {
+        $model = (string) $member['model'];
+        $name = ($member['values']['winch'] ?? '') === '1' ? (string) preg_replace('/J(?=(?:\+1)?$)/', '', $model) : $model;
+        $members[$position]['values'] = array_merge($member['values'], ['named' => $name, 'sections' => '']);
+    }
+    return $members;
+}
+
 /** Models in display order: natural order, with another make (BLZ) after the SQ models of its class. */
 function boblift_series_model_order(string $a, string $b): int
 {
@@ -351,12 +378,7 @@ function boblift_series_for_product(int $post_id): ?array
             'values' => boblift_series_winch_values(boblift_series_parse_model((string) $member['model']), boblift_series_winch_mode((string) ($group['family'] ?? 'marine'), (string) $group['boom'])),
         ];
     }
-    // Two makes in a series number their booms differently (A4 and K4), so its choice is the model itself.
-    if (count(array_unique(array_map(static fn(array $member): bool => str_starts_with($member['model'], 'BLZ'), $members))) > 1) {
-        foreach ($members as $position => $member) {
-            $members[$position]['values'] = array_merge($member['values'], ['named' => $member['model'], 'sections' => '']);
-        }
-    }
+    $members = boblift_series_unify_naming($members);
     $home_model = '';
     foreach ($members as $member) {
         if ($member['is_home']) {
@@ -364,6 +386,31 @@ function boblift_series_for_product(int $post_id): ?array
         }
     }
     return $memo[$key . '|' . $language] = ['key' => $key, 'code' => (string) $group['code'], 'family' => (string) ($group['family'] ?? 'marine'), 'winch' => boblift_series_winch_mode((string) ($group['family'] ?? 'marine'), (string) $group['boom']), 'boom' => $group['boom'], 'capacity' => $group['capacity'], 'language' => $language, 'home_id' => $home_id, 'home_model' => $home_model, 'url' => $series_url, 'members' => $members];
+}
+
+/**
+ * The categories a series page is listed under: its own first, then each one another configuration is filed under, so a
+ * series keeps its place in every category a configuration had before the configurations left the lists.
+ */
+function boblift_series_union_categories(array $own, array $members): array
+{
+    return array_values(array_unique(array_merge($own, ...array_map(static fn($slugs): array => array_map('strval', (array) $slugs), array_values($members)))));
+}
+
+/** boblift_series_union_categories() for a product: a series page gets its configurations' categories, any other keeps its own. */
+function boblift_series_listed_categories(int $post_id, array $own): array
+{
+    $series = boblift_series_for_product($post_id);
+    if ($series === null || (int) $series['home_id'] !== $post_id) {
+        return $own;
+    }
+    $members = [];
+    foreach ($series['members'] as $member) {
+        if (!$member['is_home']) {
+            $members[] = wp_get_post_terms((int) $member['id'], 'product_category', ['fields' => 'slugs']);
+        }
+    }
+    return boblift_series_union_categories($own, array_filter($members, 'is_array'));
 }
 
 /** This product's own entry in its series. */

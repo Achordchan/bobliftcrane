@@ -967,6 +967,10 @@ function boblift_product_from_post(WP_Post $post): array
         $category_slugs = ['other-cranes'];
     }
     $category_slug = $category_slugs[0];
+    // A series page is listed in every category one of its configurations is filed under (inc/product-series.php).
+    if (function_exists('boblift_series_listed_categories')) {
+        $category_slugs = boblift_series_listed_categories((int) $post->ID, $category_slugs);
+    }
     $category = boblift_category_map()[$category_slug] ?? ['title' => $category_slug, 'slug' => $category_slug];
     $image = boblift_post_thumbnail_url($post, boblift_asset('images/products/crane-accessories.png'));
     $product_image_rows = static function (mixed $raw): array {

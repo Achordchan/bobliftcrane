@@ -5456,9 +5456,20 @@
       if (node.nodeType === Node.TEXT_NODE) node.textContent = node.textContent.replace(from, to);
     });
   };
+  // Videos pause. The site's embedded players take no script commands, so one is reloaded without autoplay, which stops it.
+  const stopFilms = (scope) => {
+    scope.querySelectorAll('video').forEach((video) => video.pause());
+    scope.querySelectorAll('iframe[src]').forEach((frame) => {
+      const src = frame.getAttribute('src') || '';
+      if (!/^https?:/.test(src)) return;
+      frame.setAttribute('src', src.replace(/([?&])autoplay=1(&|$)/, (match, before, after) => (after ? before : '')));
+    });
+  };
   const applyDerived = (variant, shownModel) => {
     // The body text speaks for the product it came from (its weight, its winch), so a derived version shows none of it.
     document.querySelectorAll('[data-cfg-block="overview"]').forEach((block) => {
+      // A film playing in the body text stops with it: a hidden block must not keep sounding.
+      if (variant.derived) stopFilms(block);
       block.hidden = Boolean(variant.derived);
     });
     document.querySelectorAll('[data-product-section-link][href="#overview"]').forEach((link) => {
