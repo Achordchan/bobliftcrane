@@ -11,8 +11,10 @@ if (!defined('ABSPATH')) {
  * POST /wp/v2/product_category/<id> with {"meta": {"_boblift_category_video": "{...}"}}.
  *   {"src": "https://…/film.mp4", "youtube": "", "poster": "https://…/poster.jpg", "eyebrow": "", "title": "",
  *    "text": "", "points": [""], "duration": 66, "upload_date": "2026-11-04"}
- * A film needs a poster and either an MP4 (https) or a YouTube id; "" (or anything else) removes the card.
- * Plain text throughout. The page also gets a VideoObject for the film.
+ * A film needs a poster and either an MP4 (https) or a YouTube id. A poster with neither is a still photo instead: same
+ * frame, no play button, its "alt" as the image's alt text, no VideoObject (categories without footage of their own).
+ * Without a poster or a title, "" (or anything else) removes the card.
+ * Plain text throughout. The page also gets a VideoObject for a film.
  */
 
 /** Keeps only the film's own keys; anything that cannot make a card is stored as ''. */
@@ -36,6 +38,7 @@ function boblift_category_video_sanitize($value): string
         'poster' => $https($data['poster'] ?? ''),
         'eyebrow' => $plain($data['eyebrow'] ?? ''),
         'title' => $plain($data['title'] ?? ''),
+        'alt' => $plain($data['alt'] ?? ''),
         'text' => $plain($data['text'] ?? ''),
         'points' => [],
         'duration' => max(0, min(36000, (int) ($data['duration'] ?? 0))),
@@ -47,7 +50,10 @@ function boblift_category_video_sanitize($value): string
             $video['points'][] = $point;
         }
     }
-    if ($video['poster'] === '' || ($video['src'] === '' && $video['youtube'] === '') || $video['title'] === '') {
+    // A film whose MP4 or YouTube id was refused is dropped, not shown as a still photo.
+    $bad_src = trim((string) ($data['src'] ?? '')) !== '' && $video['src'] === '';
+    $bad_youtube = $youtube !== '' && $video['youtube'] === '';
+    if ($video['poster'] === '' || $video['title'] === '' || $bad_src || $bad_youtube) {
         return '';
     }
     return (string) wp_json_encode($video, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -74,6 +80,12 @@ function boblift_category_video(WP_Term $term): array
     return is_array($video) ? $video : [];
 }
 
+/** Whether the card is a film (an MP4 or a YouTube id) rather than a still photo. */
+function boblift_category_video_playable(array $video): bool
+{
+    return ($video['src'] ?? '') !== '' || ($video['youtube'] ?? '') !== '';
+}
+
 /** "PT1M6S" for 66 seconds; '' for none. */
 function boblift_category_video_iso_duration(int $seconds): string
 {
@@ -89,7 +101,7 @@ function boblift_category_video_iso_duration(int $seconds): string
 /** The VideoObject for a category film, or [] when Google's required fields (name, thumbnail, upload date) are missing. */
 function boblift_category_video_schema(array $video): array
 {
-    if (($video['title'] ?? '') === '' || ($video['poster'] ?? '') === '' || ($video['upload_date'] ?? '') === '') {
+    if (($video['title'] ?? '') === '' || ($video['poster'] ?? '') === '' || ($video['upload_date'] ?? '') === '' || !boblift_category_video_playable($video)) {
         return [];
     }
     $schema = [
@@ -138,6 +150,7 @@ function boblift_render_category_video(WP_Term $term, ?array $brochure = null, a
         $points = $video['points'];
     }
     $title_id = 'category-intro-' . $slug;
+    $playable = boblift_category_video_playable($video);
     $player = $video['src'] !== '' ? 'local' : 'youtube';
     $schema = boblift_category_video_schema($video);
     ?>
@@ -145,6 +158,7 @@ function boblift_render_category_video(WP_Term $term, ?array $brochure = null, a
         <div class="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] min-[1600px]:grid-cols-[minmax(0,40rem)_minmax(0,1fr)] lg:gap-x-[clamp(2.5rem,4vw,4rem)]">
             <div class="min-w-0">
                 <h2 id="<?php echo esc_attr($title_id); ?>" class="text-[clamp(1.4rem,2vw,2rem)] font-black leading-tight tracking-[-0.01em] text-[#0B1B33]"><?php echo esc_html($heading); ?></h2>
+                <?php if ($playable) : ?>
                 <div class="mt-6 overflow-hidden rounded border border-[#E5E7EB] shadow-card" data-inline-videos>
                     <div class="relative aspect-video overflow-hidden bg-[#071f42]" data-inline-video-stage>
                         <button class="group absolute inset-0 block w-full focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-blue-200" type="button" data-inline-video-play data-video-player="<?php echo esc_attr($player); ?>" data-video-src="<?php echo esc_url($video['src']); ?>" data-video-youtube="<?php echo esc_attr($video['youtube']); ?>" data-video-title="<?php echo esc_attr($video['title']); ?>" data-video-poster="<?php echo esc_url($video['poster']); ?>" aria-label="<?php echo esc_attr($video['title']); ?>">
@@ -153,6 +167,13 @@ function boblift_render_category_video(WP_Term $term, ?array $brochure = null, a
                         </button>
                     </div>
                 </div>
+                <?php else : ?>
+                <div class="mt-6 overflow-hidden rounded border border-[#E5E7EB] shadow-card" data-category-photo>
+                    <div class="relative aspect-video overflow-hidden bg-[#071f42]">
+                        <img class="absolute inset-0 h-full w-full object-cover" src="<?php echo esc_url($video['poster']); ?>" alt="<?php echo esc_attr(($video['alt'] ?? '') !== '' ? $video['alt'] : $video['title']); ?>" loading="lazy" decoding="async">
+                    </div>
+                </div>
+                <?php endif; ?>
             </div>
             <div class="flex min-w-0 flex-col">
                 <?php foreach ($paragraphs as $index => $paragraph) : ?>
