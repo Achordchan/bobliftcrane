@@ -310,6 +310,15 @@ function boblift_product_drawing_data(int $product_id): array
     return ['rows' => $rows, 'chart' => count($chart) >= 2 ? $chart : []];
 }
 
+/** The spec rows (English labels) that give a drawing figure: reach and lifting height, in order of preference. */
+function boblift_spec_figure_labels(): array
+{
+    return [
+        'radius' => ['Max Working Radius', 'Max Working Range', 'Max Working Distance'],
+        'height' => ['Max Lifting Height', 'Max Lifting Height (from ground)', 'Working Height'],
+    ];
+}
+
 /**
  * The drawing figures the spec table does not already give: a reach or height row in the table (Max Working Radius,
  * Max Lifting Height, ...) is the same figure, so the drawing's row is left out rather than shown twice.
@@ -323,10 +332,7 @@ function boblift_product_drawing_rows_unique(int $product_id, array $rows): arra
     if (!is_array($english) || !is_array($local) || !boblift_spec_rows_aligned($local, $english)) {
         return $rows;
     }
-    $covered = [
-        'radius' => ['Max Working Radius', 'Max Working Range', 'Max Working Distance'],
-        'height' => ['Max Lifting Height', 'Max Lifting Height (from ground)', 'Working Height'],
-    ];
+    $covered = boblift_spec_figure_labels();
     return array_values(array_filter($rows, static function (array $row) use ($covered, $product_id): bool {
         foreach ($covered[$row['key'] ?? ''] ?? [] as $label) {
             if (boblift_product_english_spec($product_id, $label) !== '') {

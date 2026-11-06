@@ -5478,6 +5478,11 @@
     document.querySelectorAll('[data-cfg-decode-winch]').forEach((part) => {
       part.style.display = variant.values.winch === '1' ? '' : 'none';
     });
+    // A table whose self weight or winch row could not be placed says, on a derived version, that the weight is confirmed.
+    document.querySelectorAll('[data-cfg-spec-note]').forEach((note) => {
+      note.textContent = variant.derived ? variant.weightNote || '' : '';
+      note.hidden = !variant.derived || !variant.weightNote;
+    });
     if (!variant.derived) return;
     const holders = [...document.querySelectorAll(`[data-cfg-variant="${CSS.escape(shownModel)}"]`)];
     holders.forEach((holder) => {

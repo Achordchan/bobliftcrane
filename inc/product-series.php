@@ -1185,13 +1185,17 @@ function boblift_series_block_open(string $name): void
  * A configuration's block shown for its other winch version: the model named in the texts the theme script swaps
  * (data-cfg-model-text) becomes the version's, and the self weight, which is not known, a dash.
  */
-function boblift_series_derived_block(string $html, string $source, string $model, string $winch_text = ''): string
+function boblift_series_derived_block(string $html, string $source, string $model, string $winch_text = '', string $note = ''): string
 {
     // Each changed element keeps its source content in data-cfg-orig, which the theme script restores from: a switch to
     // another configuration must start from the source's own model and weight, not from this page's derived ones.
     $keep = static fn(string $open, string $inner): string => substr($open, 0, -1) . ' data-cfg-orig="' . esc_attr($inner) . '">';
     $html = (string) preg_replace_callback('/(<([a-z0-9]+)\b[^>]*\bdata-cfg-model-text\b[^>]*>)(.*?)(<\/\2>)/s', static fn(array $m): string => $keep($m[1], $m[3]) . str_replace($source, $model, $m[3]) . $m[4], $html);
     $html = (string) preg_replace_callback('/(\b(?:data-cfg-cell="weight"|data-cfg-weight-row(?=[\s>]))[^>]*>.*?)(<dd\b[^>]*>)(.*?)(<\/dd>)/s', static fn(array $m): string => $m[1] . $keep($m[2], $m[3]) . '<span class="text-slate-400">—</span>' . $m[4], $html);
+    // A table whose rows could not be placed says the self weight is confirmed with the quote, above it.
+    if ($note !== '') {
+        $html = (string) preg_replace('/<p\b([^>]*\bdata-cfg-spec-note)\s+hidden><\/p>/', '<p$1>' . esc_html($note) . '</p>', $html);
+    }
     // The winch row says what this version has (with or without winch), in the page's language.
     if ($winch_text === '') {
         return $html;
@@ -1208,6 +1212,40 @@ function boblift_series_derived_winch_text(array $state): string
         }
     }
     return '';
+}
+
+/** A derived version's note that its self weight is confirmed with the quote, in the page's language. */
+function boblift_series_weight_note(string $winch): string
+{
+    return boblift_series_text($winch === '1' ? 'Winch version: self weight confirmed with your quote' : 'No-winch version: self weight confirmed with your quote');
+}
+
+/** boblift_series_weight_note() for the version the page opens on, or '' when that is a configuration of its own. */
+function boblift_series_derived_weight_note(array $state): string
+{
+    foreach ((array) ($state['variants'] ?? []) as $variant) {
+        if (($variant['model'] ?? '') === ($state['active'] ?? null) && !empty($variant['derived'])) {
+            return boblift_series_weight_note((string) ($variant['values']['winch'] ?? ''));
+        }
+    }
+    return '';
+}
+
+/**
+ * Whether this language's spec table has an English self weight or winch row that could not be placed ($weight_label,
+ * $winch_label empty): a derived version cannot change that row, so the table carries a note instead.
+ */
+function boblift_series_spec_rows_unplaced(int $english_id, array $specs, string $weight_label, string $winch_label): bool
+{
+    $source = boblift_decode_meta(get_post_meta($english_id, '_specs', true), []);
+    $labels = array_map(static fn($row): string => is_array($row) ? (string) ($row['label'] ?? '') : '', is_array($source) ? $source : []);
+    return boblift_series_rows_unplaced($labels, $weight_label, $winch_label);
+}
+
+/** boblift_series_spec_rows_unplaced() on the English labels. */
+function boblift_series_rows_unplaced(array $english_labels, string $weight_label, string $winch_label): bool
+{
+    return (in_array('Self Weight', $english_labels, true) && $weight_label === '') || (in_array('Winch', $english_labels, true) && $winch_label === '');
 }
 
 /** "With winch" or "No winch" in the page's language; '' when the winch is not stated. */
@@ -1238,7 +1276,7 @@ function boblift_series_block_close(string $name, string $class = ''): void
         if ($active && $state['active'] !== $state['active_source']) {
             // A winch version without a product of its own: the page is printed with its own model and an open self weight,
             // as the theme script would set them, so the source already says the right thing.
-            $block = boblift_series_derived_block($block, (string) $state['active_source'], (string) $state['active'], boblift_series_derived_winch_text($state));
+            $block = boblift_series_derived_block($block, (string) $state['active_source'], (string) $state['active'], boblift_series_derived_winch_text($state), boblift_series_derived_weight_note($state));
         }
         echo '<div data-cfg-variant="' . esc_attr($member['model']) . '"' . ($active ? '' : ' hidden') . '>' . ($active ? $block : boblift_series_hidden_block($block)) . '</div>';
     }
@@ -1284,9 +1322,28 @@ function boblift_series_product_figures(int $english_id): array
         'weight' => boblift_series_kilograms($rows['Self Weight'] ?? ''),
         'capacity' => boblift_series_kilograms($rows['Max Lifting Capacity'] ?? ''),
         'moment' => boblift_series_moment_normalized((string) ($rows['Max Lifting Moment'] ?? '')) ?: null,
-        'radius' => ($drawing['radius'] ?? '') ?: (($rows['Max Working Radius'] ?? '') ?: null),
-        'height' => ($drawing['height'] ?? '') ?: (($rows['Max Lifting Height'] ?? '') ?: null),
-    ];
+    ] + boblift_series_reach_figures($rows, $drawing);
+}
+
+/**
+ * Reach and lifting height: the spec table's row first (any of its names, boblift_spec_figure_labels()), the drawing's
+ * figure only where the table gives none. $rows: English label => value; $drawing: key => value.
+ */
+function boblift_series_reach_figures(array $rows, array $drawing): array
+{
+    $labels = function_exists('boblift_spec_figure_labels') ? boblift_spec_figure_labels() : ['radius' => ['Max Working Radius'], 'height' => ['Max Lifting Height']];
+    $figures = [];
+    foreach (['radius', 'height'] as $key) {
+        $figures[$key] = null;
+        foreach ($labels[$key] as $label) {
+            if (trim((string) ($rows[$label] ?? '')) !== '') {
+                $figures[$key] = trim((string) $rows[$label]);
+                break;
+            }
+        }
+        $figures[$key] ??= trim((string) ($drawing[$key] ?? '')) ?: null;
+    }
+    return $figures;
 }
 
 /** "3950 kg" as 3950; anything else (a range, tonnes) as null, so no figure is guessed. */
@@ -1603,7 +1660,7 @@ function boblift_series_render_configurator(): void
                 'slug' => $member['slug'],
                 'values' => $member['values'],
                 'winchText' => $member['derived'] ? boblift_series_winch_text((string) $member['values']['winch']) : '',
-                'weightNote' => $member['derived'] ? boblift_series_text($member['values']['winch'] === '1' ? 'Winch version: self weight confirmed with your quote' : 'No-winch version: self weight confirmed with your quote') : '',
+                'weightNote' => $member['derived'] ? boblift_series_weight_note((string) $member['values']['winch']) : '',
             ] + $ui($member) + $meta;
         }, $members),
     ];

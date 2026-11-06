@@ -136,29 +136,30 @@ function boblift_specs_render_group_boxes(array $sections, string $weight_label,
 {
     $icons = ['lifting' => 'weight', 'hydraulics' => 'sliders-horizontal', 'machine' => 'layers'];
     ?>
-    <div class="grid gap-3">
+    <?php // Laid out by the width the specifications actually get (a column beside the drawing on desktop), not by the window: assets/css/input.css. ?>
+    <div class="boblift-spec-groups grid gap-3">
         <?php foreach ($sections as $section) :
             // A long value (a span, a bolt pattern) takes a whole line after the short ones instead of wrapping in half a line.
             $is_long = static fn(array $row): bool => boblift_text_width(trim((string) $row['value'])) > 11;
             $short = array_values(array_filter($section['rows'], static fn(array $row): bool => !$is_long($row)));
             $rows = array_merge($short, array_values(array_filter($section['rows'], $is_long)));
             ?>
-            <section class="grid overflow-hidden rounded border border-[#DDE7F2] bg-white sm:grid-cols-[9.5rem_minmax(0,1fr)]">
+            <section class="boblift-spec-group grid overflow-hidden rounded border border-[#DDE7F2] bg-white">
                 <?php if (($section['label'] ?? '') !== '') : ?>
-                    <h3 class="flex items-center gap-2.5 border-b border-[#E6EDF5] bg-[#F5F8FC] px-4 py-3 text-[13px] font-black uppercase leading-5 tracking-[0.08em] text-[#071f42] rtl:tracking-normal sm:flex-col sm:items-start sm:justify-center sm:border-b-0 sm:border-e sm:py-4">
+                    <h3 class="boblift-spec-group-head flex items-center gap-2.5 border-b border-[#E6EDF5] bg-[#F5F8FC] px-4 py-3 text-[13px] font-black uppercase leading-5 tracking-[0.08em] text-[#071f42] rtl:tracking-normal">
                         <?php echo boblift_icon($icons[$section['key'] ?? ''] ?? 'list', 'h-6 w-6 shrink-0 text-[#0B3F7D]', '1.75'); ?>
                         <span><?php echo esc_html($section['label']); ?></span>
                     </h3>
                 <?php endif; ?>
-                <dl class="grid gap-px bg-[#E6EDF5] sm:grid-cols-2 <?php echo ($section['label'] ?? '') === '' ? 'sm:col-span-2' : ''; ?>">
+                <dl class="boblift-spec-rows grid gap-px bg-[#E6EDF5] <?php echo ($section['label'] ?? '') === '' ? 'is-unlabelled' : ''; ?>">
                     <?php foreach ($rows as $index => $row) :
-                        if ($index === count($short) && count($short) % 2 === 1) : ?><div class="hidden bg-white sm:block" aria-hidden="true"></div><?php endif; ?>
-                        <div class="flex min-w-0 items-baseline justify-between gap-x-3 bg-white px-4 py-3 <?php echo $index >= count($short) ? 'flex-wrap gap-y-1 sm:col-span-2' : ''; ?>"<?php echo boblift_specs_row_attributes($row, $weight_label, $winch_label); ?>>
+                        if ($index === count($short) && count($short) % 2 === 1) : ?><div class="boblift-spec-filler hidden bg-white" aria-hidden="true"></div><?php endif; ?>
+                        <div class="flex min-w-0 items-baseline justify-between gap-x-3 bg-white px-4 py-3 <?php echo $index >= count($short) ? 'boblift-spec-long flex-wrap gap-y-1' : ''; ?>"<?php echo boblift_specs_row_attributes($row, $weight_label, $winch_label); ?>>
                             <dt class="min-w-0 text-[14px] leading-5 text-slate-500"><?php echo esc_html($row['label']); ?></dt>
                             <dd class="<?php echo $index >= count($short) ? 'ms-auto min-w-0 max-w-full break-words' : 'shrink-0 whitespace-nowrap'; ?> text-end font-black leading-6 text-[#071f42] [font-variant-numeric:tabular-nums]"><span dir="ltr"><?php echo boblift_specs_value_html((string) $row['value'], 'text-[18px]'); ?></span></dd>
                         </div>
                     <?php endforeach; ?>
-                    <?php if (count($rows) === count($short) && count($short) % 2 === 1) : ?><div class="hidden bg-white sm:block" aria-hidden="true"></div><?php endif; ?>
+                    <?php if (count($rows) === count($short) && count($short) % 2 === 1) : ?><div class="boblift-spec-filler hidden bg-white" aria-hidden="true"></div><?php endif; ?>
                 </dl>
             </section>
         <?php endforeach; ?>

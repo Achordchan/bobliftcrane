@@ -1011,6 +1011,20 @@ img { max-width: 100%; }
 .boblift-product-listing[data-view="grid"] .product-card-ctas > * { flex: 1 1 auto; padding-inline: 6px; white-space: nowrap; }
 .boblift-product-listing[data-view="grid"] .product-card-ctas svg { display: none; }
 /* A card too narrow for both buttons stacks them. By width, not language, so a whole row of cards does the same. */
+/* Specification groups follow the width they get, not the window: beside the drawing on a 1024 px desktop the column is
+   about 400 px, too narrow for a side heading and two label/value columns. Two columns from 440 px, the heading beside
+   the rows from 680 px (inc/product-specs.php). */
+.boblift-spec-groups { container-type: inline-size; }
+@container (min-width: 440px) {
+  .boblift-spec-rows { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .boblift-spec-long { grid-column: span 2 / span 2; }
+  .boblift-spec-filler { display: block; }
+}
+@container (min-width: 680px) {
+  .boblift-spec-group { grid-template-columns: 9.5rem minmax(0, 1fr); }
+  .boblift-spec-rows.is-unlabelled { grid-column: span 2 / span 2; }
+  .boblift-spec-group-head { flex-direction: column; align-items: flex-start; justify-content: center; border-bottom-width: 0; border-inline-end-width: 1px; padding-top: 1rem; padding-bottom: 1rem; }
+}
 .boblift-product-listing[data-view="grid"] .product-card-body { container-type: inline-size; }
 @container (max-width: 270px) {
   .boblift-product-listing[data-view="grid"] .product-card-footer { flex-direction: column; }

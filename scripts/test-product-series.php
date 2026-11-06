@@ -189,6 +189,19 @@ $check('derived weight row is open', true, str_contains($derived, '<dd data-cfg-
 $check('derived model text', true, str_contains($derived, 'data-cfg-orig="SQ12ZA6T">SQ12ZA6TJ</p>'));
 $check('winch words', ['With winch', 'No winch', ''], [boblift_series_winch_text('1'), boblift_series_winch_text('0'), boblift_series_winch_text('')]);
 
+// Reach and height: the spec row first, under any of its names; the drawing only when the table has none.
+$check('spec row wins over drawing', ['radius' => '10.15 m', 'height' => '12.3 m'], boblift_series_reach_figures(['Max Working Radius' => '10.15 m', 'Max Lifting Height' => '12.3 m'], ['radius' => '10.2 m', 'height' => '12 m']));
+$check('alias names count as the row', ['radius' => '8 m', 'height' => '9 m'], boblift_series_reach_figures(['Max Working Range' => '8 m', 'Working Height' => '9 m'], ['radius' => '7.9 m']));
+$check('drawing fills a missing row', ['radius' => '7.9 m', 'height' => null], boblift_series_reach_figures(['Max Lifting Height' => ''], ['radius' => '7.9 m']));
+
+// A table whose self weight or winch row cannot be placed gets a note on a derived version.
+$check('unplaced weight row', true, boblift_series_rows_unplaced(['Self Weight', 'Winch'], '', '卷扬'));
+$check('unplaced winch row', true, boblift_series_rows_unplaced(['Self Weight', 'Winch'], '自重', ''));
+$check('both placed', false, boblift_series_rows_unplaced(['Self Weight', 'Winch'], '自重', '卷扬'));
+$check('no such rows in English', false, boblift_series_rows_unplaced(['Max Lifting Capacity'], '', ''));
+$noted = boblift_series_derived_block('<p class="x" data-cfg-spec-note hidden></p><dl></dl>', 'SQ2ZA2TJ', 'SQ2ZA2T', 'No winch', 'No-winch version: self weight confirmed with your quote');
+$check('derived block shows the note', true, str_contains($noted, '<p class="x" data-cfg-spec-note>No-winch version: self weight confirmed with your quote</p>'));
+
 // Which choices are asked.
 $members = array_map(static fn(string $model): array => ['model' => $model, 'values' => boblift_series_parse_model($model)], ['SQ08ZA3T+1', 'SQ08ZA3TJ+1']);
 $check('one-value dimensions are not asked', ['winch' => ['0', '1']], boblift_series_dimensions($members));

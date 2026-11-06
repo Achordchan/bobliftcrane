@@ -671,6 +671,8 @@ if ($family_quote_copy) {
                         <?php // Every configuration with its key figures; a row switches the page like the box at the top, and follows it. ?>
                         <div><p class="boblift-kicker"><?php echo esc_html(boblift_series_text('Choose your configuration')); ?></p><div class="mt-3" data-cfg-compare-slot><?php boblift_series_render_compare((string) $series_member['model']); ?></div></div>
                     <?php endif; ?>
+                    <?php // A translated table whose self weight or winch row cannot be placed says so above it on a derived version (theme script). ?>
+                    <?php if ($series_page && boblift_series_spec_rows_unplaced((int) $series_member['en_id'], (array) $specs, $series_weight_label, $series_winch_label)) : ?><p class="text-sm leading-6 text-slate-500" data-cfg-spec-note hidden></p><?php endif; ?>
                     <?php boblift_specs_render_group_boxes($spec_sections, $series_weight_label, $series_winch_label); ?>
                     <div class="flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-[#E6EDF5] pt-5">
                         <?php if (is_string($spec_range_link) && $spec_range_link !== '') : ?>
