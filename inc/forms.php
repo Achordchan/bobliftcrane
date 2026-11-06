@@ -430,7 +430,7 @@ function boblift_render_inquiry_privacy_note(string $tone, string $class = ''): 
     }
     ?>
     <div class="<?php echo esc_attr(trim($class . ' text-[13px] leading-5 ' . ($dark ? 'text-white' : 'text-slate-600'))); ?>">
-        <p class="flex items-start gap-2"><?php echo boblift_icon('shield-check', 'mt-0.5 h-4 w-4 shrink-0 ' . ($dark ? 'text-white' : 'text-navy'), '1.75'); ?><span><?php echo esc_html(boblift_series_text('Your details are used to reply to your inquiry and prepare a quotation. BOB-LIFT does not sell personal information.')); ?></span></p>
+        <p class="flex items-start gap-2"><?php echo boblift_icon('shield-check', 'mt-0.5 h-4 w-4 shrink-0 ' . ($dark ? 'text-white' : 'text-navy'), '1.75'); ?><span><?php // The brand never breaks across lines and keeps its own direction inside Arabic. ?><?php echo str_replace('BOB-LIFT', '<bdi class="whitespace-nowrap" dir="ltr">BOB-LIFT</bdi>', esc_html(boblift_series_text('Your details are used to reply to your inquiry and prepare a quotation. BOB-LIFT does not sell personal information.'))); ?></span></p>
         <?php if ($links) : ?><p class="mt-2 ps-6"><?php echo implode('<span class="mx-2 ' . ($dark ? 'text-white/70' : 'text-slate-400') . '" aria-hidden="true">·</span>', $links); ?></p><?php endif; ?>
     </div>
     <?php
