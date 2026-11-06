@@ -450,12 +450,19 @@ function boblift_series_label(array $series): string
     return str_replace('{code}', (string) $series['code'], boblift_localized_static_text('{code} Series'));
 }
 
+/** Whether a request may be sent to a series page: a product page, not a preview, and not a feed (?feed=rss2, /feed/),
+ * which keeps WordPress's own handling and is never sent to an HTML page. */
+function boblift_series_redirects_request(bool $singular_product, bool $preview, bool $feed): bool
+{
+    return $singular_product && !$preview && !$feed;
+}
+
 /**
  * Old configuration pages go to their series, in the same language. Runs before Polylang's and core's canonical checks.
  */
 function boblift_series_redirect(): void
 {
-    if (!is_singular('product') || is_preview()) {
+    if (!boblift_series_redirects_request(is_singular('product'), is_preview(), is_feed() || isset($_GET['feed']))) {
         return;
     }
     // A language-prefixed address that resolved to another language's configuration (/ja/?p=<English id>) goes to the
@@ -479,35 +486,77 @@ add_action('template_redirect', 'boblift_series_redirect', 2);
  */
 function boblift_series_redirect_url(string $url, string $query, array $query_vars = []): string
 {
-    // WordPress's routing parameters, the theme's own (boblift_html_slug, boblift_custom_url, boblift_tonnage, ...: every
-    // boblift_ name) and any other registered query var ($query_vars, WP::$public_query_vars). Tracking (utm_*, gclid,
-    // fbclid) is no query var and stays.
-    $routing = array_merge(['model', 'p', 'page_id', 'name', 'pagename', 'product', 'post_type', 'lang', 'preview', 'preview_id', 'attachment_id'], array_map('strtolower', array_map('strval', $query_vars)));
-    $kept = array_filter(explode('&', $query), static function (string $pair) use ($routing): bool {
+    // The target's own query ($url: ?lang= under Polylang's query mode, ?p= under plain permalinks, ?model=) always stays.
+    // From the request ($query) only what is no routing parameter is added: not WordPress's, not the theme's own
+    // (boblift_html_slug, boblift_custom_url, boblift_tonnage, ...: every boblift_ name), not any other registered query
+    // var ($query_vars, WP::$public_query_vars). Tracking (utm_*, gclid, fbclid) is no query var and is added. A name the
+    // target already has keeps the target's value.
+    parse_str((string) parse_url($url, PHP_URL_QUERY), $own);
+    $own = array_change_key_case($own);
+    $kept = array_filter(explode('&', $query), static function (string $pair) use ($query_vars, $own): bool {
         $key = strtolower(rawurldecode((string) strtok($pair, '=')));
-        return $pair !== '' && !in_array($key, $routing, true) && !str_starts_with($key, 'boblift_');
+        return $pair !== '' && !boblift_series_is_routing_key($key, $query_vars) && !array_key_exists($key, $own);
     });
     return $kept === [] ? $url : $url . (str_contains($url, '?') ? '&' : '?') . implode('&', $kept);
 }
 
+/** A routing parameter: WordPress's, Polylang's lang, any boblift_ name, or a registered query var. */
+function boblift_series_is_routing_key(string $key, array $query_vars = []): bool
+{
+    $key = strtolower($key);
+    return str_starts_with($key, 'boblift_')
+        || in_array($key, ['model', 'p', 'page_id', 'name', 'pagename', 'product', 'post_type', 'lang', 'preview', 'preview_id', 'attachment_id'], true)
+        || in_array($key, array_map('strtolower', array_map('strval', $query_vars)), true);
+}
+
+/**
+ * A redirect target that already carries the request's query (WordPress's canonical redirect, add_query_arg($_GET)):
+ * a routing parameter is dropped only where it came from the request ($request, same value) and is not one the site's
+ * own addresses carry ($owned: lang under Polylang's query mode, p/page_id/post_type under plain permalinks).
+ */
+function boblift_series_clean_url(string $url, array $request, array $owned, array $query_vars = []): string
+{
+    $parts = parse_url($url);
+    if (!isset($parts['query']) || $parts['query'] === '') {
+        return $url;
+    }
+    $request = array_change_key_case($request);
+    $owned = array_map('strtolower', $owned);
+    $kept = array_filter(explode('&', $parts['query']), static function (string $pair) use ($request, $owned, $query_vars): bool {
+        $key = strtolower(rawurldecode((string) strtok($pair, '=')));
+        $value = rawurldecode(str_replace('+', ' ', (string) substr($pair, strlen((string) strtok($pair, '=')) + 1)));
+        if ($pair === '' || $key === 'model' || in_array($key, $owned, true) || !boblift_series_is_routing_key($key, $query_vars)) {
+            return $pair !== '';
+        }
+        return !(array_key_exists($key, $request) && is_scalar($request[$key]) && (string) $request[$key] === $value);
+    });
+    return strtok($url, '?#') . ($kept !== [] ? '?' . implode('&', $kept) : '') . (isset($parts['fragment']) ? '#' . $parts['fragment'] : '');
+}
+
+/** The routing parameters this site's own addresses carry, so a redirect never strips them from its target. */
+function boblift_series_owned_query_keys(): array
+{
+    $owned = [];
+    if ((string) get_option('permalink_structure') === '') {
+        array_push($owned, 'p', 'page_id', 'post_type', 'product', 'name', 'pagename');
+    }
+    if (function_exists('PLL') && isset(PLL()->options['force_lang']) && (int) PLL()->options['force_lang'] === 0) {
+        $owned[] = 'lang';
+    }
+    return $owned;
+}
+
 /**
  * WordPress's own canonical redirect can land on a configuration's series address too (an old slug guessed after a 404,
- * a ?lang= the address does not carry). It carries the request's query along, so the routing parameters are taken out
- * the same way: only ?model= and tracking stay, and the series page does not pick the old configuration again.
+ * a ?lang= the address does not carry). It carries the request's query along: what the request added as routing is
+ * taken out (boblift_series_clean_url()), so the series page does not pick the old configuration again.
  */
 function boblift_series_clean_canonical($redirect_url)
 {
     if (!is_string($redirect_url) || !str_contains($redirect_url, 'model=')) {
         return $redirect_url;
     }
-    $parts = wp_parse_url($redirect_url);
-    parse_str((string) ($parts['query'] ?? ''), $query);
-    if (!isset($query['model']) || !is_string($query['model'])) {
-        return $redirect_url;
-    }
-    $base = strtok($redirect_url, '?#') . '?model=' . rawurlencode($query['model']);
-    $rest = implode('&', array_filter(explode('&', (string) ($parts['query'] ?? '')), static fn(string $pair): bool => strtolower(rawurldecode((string) strtok($pair, '='))) !== 'model'));
-    return boblift_series_redirect_url($base, $rest, (array) ($GLOBALS['wp']->public_query_vars ?? [])) . (isset($parts['fragment']) ? '#' . $parts['fragment'] : '');
+    return boblift_series_clean_url($redirect_url, (array) wp_unslash($_GET), boblift_series_owned_query_keys(), (array) ($GLOBALS['wp']->public_query_vars ?? []));
 }
 add_filter('redirect_canonical', 'boblift_series_clean_canonical', 99);
 

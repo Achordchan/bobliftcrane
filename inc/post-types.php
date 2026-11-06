@@ -1583,12 +1583,12 @@ function boblift_redirect_with_query(string $target, array $remove = []): void
     }
     if ($query) {
         $query = array_map(static fn($value) => is_array($value) ? array_map('sanitize_text_field', wp_unslash($value)) : sanitize_text_field(wp_unslash($value)), $query);
-        $target = add_query_arg($query, $target);
-    }
-    // A configuration's series address keeps only ?model= and tracking: routing parameters (?lang=, ?boblift_html_slug=)
-    // carried along would pick the old configuration again (inc/product-series.php).
-    if (function_exists('boblift_series_clean_canonical')) {
-        $target = (string) boblift_series_clean_canonical($target);
+        // A configuration's series address keeps its own query (?model=, and ?lang= or ?p= where the site's addresses use
+        // them) and takes from the request only what is no routing parameter: ?lang= or ?boblift_html_slug= carried along
+        // would pick the old configuration again (inc/product-series.php).
+        $target = str_contains($target, 'model=') && function_exists('boblift_series_redirect_url')
+            ? boblift_series_redirect_url($target, http_build_query($query, '', '&', PHP_QUERY_RFC3986), (array) ($GLOBALS['wp']->public_query_vars ?? []))
+            : add_query_arg($query, $target);
     }
     wp_safe_redirect($target, 301);
     exit;
@@ -1611,7 +1611,9 @@ function boblift_post_in_request_language(int $post_id): int
 
 function boblift_legacy_html_redirects(): void
 {
-    if (is_admin() || wp_doing_ajax()) {
+    // A feed keeps WordPress's own handling: a product's ?feed=rss2 is never sent to an HTML page. The theme's .html
+    // route does not read ?feed= as a feed, so the parameter itself counts too.
+    if (is_admin() || wp_doing_ajax() || is_feed() || isset($_GET['feed'])) {
         return;
     }
 

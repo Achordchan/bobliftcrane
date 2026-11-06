@@ -243,6 +243,17 @@ $check('not a configuration', null, boblift_series_old_path_target('/about.html'
 $check('theme routing dropped, tracking kept', 'https://x/s.html?model=A&utm_source=a&gclid=1&fbclid=2', boblift_series_redirect_url('https://x/s.html?model=A', 'boblift_html_slug=s-a&utm_source=a&boblift_custom_url=z&gclid=1&fbclid=2&boblift_tonnage=5'));
 $check('registered query vars dropped', 'https://x/s.html?model=A&utm_medium=b', boblift_series_redirect_url('https://x/s.html?model=A', 'paged=2&utm_medium=b&cat=3', ['paged', 'cat']));
 
+// The target's own query stays; only what the request copied in as routing leaves.
+$check('target lang=ja kept, request lang dropped', 'https://x/s.html?lang=ja&model=A&utm_source=u', boblift_series_redirect_url('https://x/s.html?lang=ja&model=A', 'lang=es&boblift_html_slug=s-a&utm_source=u'));
+$check('target ?p= kept', 'https://x/?p=123&model=A&gclid=1', boblift_series_redirect_url('https://x/?p=123&model=A', 'p=999&gclid=1'));
+$check('same name keeps the target value', 'https://x/s.html?model=A&utm_source=t', boblift_series_redirect_url('https://x/s.html?model=A&utm_source=t', 'utm_source=r'));
+$check('canonical: copied routing dropped', 'https://x/s.html?model=A&fbclid=z', boblift_series_clean_url('https://x/s.html?model=A&lang=ja&fbclid=z&boblift_html_slug=s-a', ['lang' => 'ja', 'fbclid' => 'z', 'boblift_html_slug' => 's-a'], []));
+$check('canonical: lang owned under query mode', 'https://x/s.html?model=A&lang=ja', boblift_series_clean_url('https://x/s.html?model=A&lang=ja', ['lang' => 'ja'], ['lang']));
+$check('canonical: routing not from the request stays', 'https://x/?p=123&model=A', boblift_series_clean_url('https://x/?p=123&model=A', ['p' => '999'], []));
+
+$check('a feed is never sent to the series page', false, boblift_series_redirects_request(true, false, true));
+$check('a product page is', true, boblift_series_redirects_request(true, false, false));
+
 // Which choices are asked.
 $members = array_map(static fn(string $model): array => ['model' => $model, 'values' => boblift_series_parse_model($model)], ['SQ08ZA3T+1', 'SQ08ZA3TJ+1']);
 $check('one-value dimensions are not asked', ['winch' => ['0', '1']], boblift_series_dimensions($members));
