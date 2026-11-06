@@ -980,20 +980,20 @@ if ($family_quote_copy) {
                         <section class="bg-white px-4 py-5 sm:p-6 md:p-8" aria-labelledby="buying-shipping">
                             <h3 id="buying-shipping" class="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(boblift_localized_static_text('Shipping')); ?></h3>
                             <?php if ($container_loading) : // This model's own figures from the factory loading plan (boblift_product_copy "container_loading"). ?>
-                                <table class="mt-3 w-full border-collapse text-left text-sm [font-variant-numeric:tabular-nums] sm:mt-4">
+                                <table class="mt-3 w-full border-collapse text-start text-sm [font-variant-numeric:tabular-nums] sm:mt-4">
                                     <thead>
                                         <tr class="border-b border-[#E6EDF5] text-xs text-slate-500">
-                                            <th scope="col" class="pb-2 pr-3 font-normal"><?php echo esc_html(boblift_localized_static_text('Units per container')); ?></th>
-                                            <th scope="col" class="pb-2 pr-3 text-right font-normal"><?php echo esc_html(boblift_localized_static_text('Crane only')); ?></th>
-                                            <?php if ($container_loading_cart) : ?><th scope="col" class="pb-2 text-right font-normal"><?php echo esc_html(boblift_localized_static_text('With base cart')); ?></th><?php endif; ?>
+                                            <th scope="col" class="pb-2 pe-3 font-normal"><?php echo esc_html(boblift_localized_static_text('Units per container')); ?></th>
+                                            <th scope="col" class="pb-2 pe-3 text-end font-normal"><?php echo esc_html(boblift_localized_static_text('Crane only')); ?></th>
+                                            <?php if ($container_loading_cart) : ?><th scope="col" class="pb-2 text-end font-normal"><?php echo esc_html(boblift_localized_static_text('With base cart')); ?></th><?php endif; ?>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php foreach ($container_loading as $box_key => $box_counts) : ?>
                                             <tr class="border-b border-[#E6EDF5] last:border-b-0">
-                                                <th scope="row" class="py-3 pr-3 font-normal text-slate-700"><?php echo esc_html(boblift_localized_static_text(['gp20' => '20GP container', 'gp40' => '40GP container', 'hq40' => '40HQ container'][$box_key])); ?></th>
-                                                <td class="py-3 pr-3 text-right text-xl font-black leading-none text-[#071f42]"><?php echo esc_html((string) $box_counts['crane']); ?></td>
-                                                <?php if ($container_loading_cart) : ?><td class="py-3 text-right text-xl font-black leading-none text-[#071f42]"><?php echo esc_html(isset($box_counts['with_cart']) ? (string) $box_counts['with_cart'] : '–'); ?></td><?php endif; ?>
+                                                <th scope="row" class="py-3 pe-3 font-normal text-slate-700"><?php echo esc_html(boblift_localized_static_text(['gp20' => '20GP container', 'gp40' => '40GP container', 'hq40' => '40HQ container'][$box_key])); ?></th>
+                                                <td class="py-3 pe-3 text-end text-xl font-black leading-none text-[#071f42]"><?php echo esc_html((string) $box_counts['crane']); ?></td>
+                                                <?php if ($container_loading_cart) : ?><td class="py-3 text-end text-xl font-black leading-none text-[#071f42]"><?php echo esc_html(isset($box_counts['with_cart']) ? (string) $box_counts['with_cart'] : '–'); ?></td><?php endif; ?>
                                             </tr>
                                         <?php endforeach; ?>
                                     </tbody>
