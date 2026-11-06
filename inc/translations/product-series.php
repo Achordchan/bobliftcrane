@@ -180,7 +180,7 @@ return [
         'cfg|Manual extension' => 'Extensión manual',
         'cfg|—: not listed here, see the drawing for this configuration.' => '—: no figura aquí; consulta el plano de esta configuración.',
         'cfg|Model' => 'Modelo',
-        'cfg|Choose your configuration' => 'Elige tu configuración',
+        'cfg|Choose your configuration' => 'Elija su configuración',
         'cfg|Your details are used to reply to your inquiry and prepare a quotation. BOB-LIFT does not sell personal information.' => 'Sus datos se utilizan para responder a su consulta y elaborar un presupuesto. BOB-LIFT no vende datos personales.',
         'cfg|Boom sections' => 'Secciones de la pluma',
         'cfg|Winch' => 'Cabrestante',
