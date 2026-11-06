@@ -467,7 +467,7 @@ function boblift_series_redirect(): void
     if ($member === null || $member['is_home']) {
         return;
     }
-    wp_safe_redirect(boblift_series_redirect_url($member['url'], (string) ($_SERVER['QUERY_STRING'] ?? '')), 301, 'BOB-LIFT product series');
+    wp_safe_redirect(boblift_series_redirect_url($member['url'], (string) ($_SERVER['QUERY_STRING'] ?? ''), (array) ($GLOBALS['wp']->public_query_vars ?? [])), 301, 'BOB-LIFT product series');
     exit;
 }
 add_action('template_redirect', 'boblift_series_redirect', 2);
@@ -477,12 +477,39 @@ add_action('template_redirect', 'boblift_series_redirect', 2);
  * The parameters that picked the old page (?p=, ?post_type=, ?name=, ...) are dropped: carried to the series address they
  * would pick the configuration again and redirect for ever.
  */
-function boblift_series_redirect_url(string $url, string $query): string
+function boblift_series_redirect_url(string $url, string $query, array $query_vars = []): string
 {
-    $routing = ['model', 'p', 'page_id', 'name', 'pagename', 'product', 'post_type', 'lang', 'preview', 'preview_id', 'attachment_id'];
-    $kept = array_filter(explode('&', $query), static fn(string $pair): bool => $pair !== '' && !in_array(strtolower(rawurldecode(strtok($pair, '='))), $routing, true));
+    // WordPress's routing parameters, the theme's own (boblift_html_slug, boblift_custom_url, boblift_tonnage, ...: every
+    // boblift_ name) and any other registered query var ($query_vars, WP::$public_query_vars). Tracking (utm_*, gclid,
+    // fbclid) is no query var and stays.
+    $routing = array_merge(['model', 'p', 'page_id', 'name', 'pagename', 'product', 'post_type', 'lang', 'preview', 'preview_id', 'attachment_id'], array_map('strtolower', array_map('strval', $query_vars)));
+    $kept = array_filter(explode('&', $query), static function (string $pair) use ($routing): bool {
+        $key = strtolower(rawurldecode((string) strtok($pair, '=')));
+        return $pair !== '' && !in_array($key, $routing, true) && !str_starts_with($key, 'boblift_');
+    });
     return $kept === [] ? $url : $url . (str_contains($url, '?') ? '&' : '?') . implode('&', $kept);
 }
+
+/**
+ * WordPress's own canonical redirect can land on a configuration's series address too (an old slug guessed after a 404,
+ * a ?lang= the address does not carry). It carries the request's query along, so the routing parameters are taken out
+ * the same way: only ?model= and tracking stay, and the series page does not pick the old configuration again.
+ */
+function boblift_series_clean_canonical($redirect_url)
+{
+    if (!is_string($redirect_url) || !str_contains($redirect_url, 'model=')) {
+        return $redirect_url;
+    }
+    $parts = wp_parse_url($redirect_url);
+    parse_str((string) ($parts['query'] ?? ''), $query);
+    if (!isset($query['model']) || !is_string($query['model'])) {
+        return $redirect_url;
+    }
+    $base = strtok($redirect_url, '?#') . '?model=' . rawurlencode($query['model']);
+    $rest = implode('&', array_filter(explode('&', (string) ($parts['query'] ?? '')), static fn(string $pair): bool => strtolower(rawurldecode((string) strtok($pair, '='))) !== 'model'));
+    return boblift_series_redirect_url($base, $rest, (array) ($GLOBALS['wp']->public_query_vars ?? [])) . (isset($parts['fragment']) ? '#' . $parts['fragment'] : '');
+}
+add_filter('redirect_canonical', 'boblift_series_clean_canonical', 99);
 
 /** Visitors reach a configuration at its series page, so every link to one goes there directly. Editors still see the product's own address. */
 function boblift_series_product_link(string $url, $post): string

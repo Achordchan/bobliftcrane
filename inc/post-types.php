@@ -1585,6 +1585,11 @@ function boblift_redirect_with_query(string $target, array $remove = []): void
         $query = array_map(static fn($value) => is_array($value) ? array_map('sanitize_text_field', wp_unslash($value)) : sanitize_text_field(wp_unslash($value)), $query);
         $target = add_query_arg($query, $target);
     }
+    // A configuration's series address keeps only ?model= and tracking: routing parameters (?lang=, ?boblift_html_slug=)
+    // carried along would pick the old configuration again (inc/product-series.php).
+    if (function_exists('boblift_series_clean_canonical')) {
+        $target = (string) boblift_series_clean_canonical($target);
+    }
     wp_safe_redirect($target, 301);
     exit;
 }

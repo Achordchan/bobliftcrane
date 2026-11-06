@@ -239,6 +239,10 @@ $check('es host: Spanish series page', 'https://bobliftcrane.com/es/12-ton-x.htm
 $check('untranslated language: English series page', 'https://bobliftcrane.com/12-ton-x.html?model=SQ12ZA4T', boblift_series_old_path_target('/12-ton-x-sq12za4t.html', 'ar', $oldMap, ['bobliftcrane.com'], 'bobliftcrane.com'));
 $check('not a configuration', null, boblift_series_old_path_target('/about.html', 'es', $oldMap, ['bobliftcrane.com'], 'bobliftcrane.com'));
 
+// The theme's own routing parameters leave with WordPress's; tracking stays.
+$check('theme routing dropped, tracking kept', 'https://x/s.html?model=A&utm_source=a&gclid=1&fbclid=2', boblift_series_redirect_url('https://x/s.html?model=A', 'boblift_html_slug=s-a&utm_source=a&boblift_custom_url=z&gclid=1&fbclid=2&boblift_tonnage=5'));
+$check('registered query vars dropped', 'https://x/s.html?model=A&utm_medium=b', boblift_series_redirect_url('https://x/s.html?model=A', 'paged=2&utm_medium=b&cat=3', ['paged', 'cat']));
+
 // Which choices are asked.
 $members = array_map(static fn(string $model): array => ['model' => $model, 'values' => boblift_series_parse_model($model)], ['SQ08ZA3T+1', 'SQ08ZA3TJ+1']);
 $check('one-value dimensions are not asked', ['winch' => ['0', '1']], boblift_series_dimensions($members));
