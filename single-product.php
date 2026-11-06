@@ -357,8 +357,10 @@ $drawing_data = boblift_product_drawing_data((int) get_the_ID());
 $anchors = [];
 $anchors[] = ['id' => 'technical', 'label' => (string) ($ui['technicalLabel'] ?? 'Technical Specifications')];
 // In page order: the drawing sits inside the specifications, above the product details.
-if ($drawings) {
-    $anchors[] = ['id' => 'drawing', 'label' => (string) ($ui['drawingLabel'] ?? 'Dimension Drawing')];
+// Sections a configuration may have or not (its drawing, its feature cards) are listed when any configuration of the series
+// has them, shown for the configuration on screen and switched with it (data-config-section, theme script).
+if ($drawings || ($series_page && boblift_series_section_in('drawing'))) {
+    $anchors[] = ['id' => 'drawing', 'label' => (string) ($ui['drawingLabel'] ?? 'Dimension Drawing'), 'config' => $series_page, 'shown' => !$series_page || boblift_series_section_shown('drawing', (bool) $drawings)];
 }
 if ($detail_body_html !== '' || $product_videos || $has_overview_copy) {
     $anchors[] = ['id' => 'overview', 'label' => (string) ($ui['detailBodyLabel'] ?? 'Product details')];
@@ -366,7 +368,7 @@ if ($detail_body_html !== '' || $product_videos || $has_overview_copy) {
 // On a series page the cards switch with the configuration; the section is listed when any configuration has cards.
 $series_has_features = $brochure_features !== [] || ($product_series && array_filter($product_series['members'], static fn(array $member): bool => get_post_meta((int) $member['id'], '_features_source', true) === 'brochure'));
 if ($series_has_features) {
-    $anchors[] = ['id' => 'features', 'label' => (string) ($ui['featuresLabel'] ?? 'Key Features')];
+    $anchors[] = ['id' => 'features', 'label' => (string) ($ui['featuresLabel'] ?? 'Key Features'), 'config' => $series_page, 'shown' => !$series_page || boblift_series_section_shown('features', $brochure_features !== [])];
 }
 // Manufacturing and delivery steps: knuckle or telescopic set, by the English product's category.
 $process_sets = [
@@ -606,7 +608,7 @@ if ($family_quote_copy) {
             </div>
         </div>
     </section>
-    <div class="sticky top-[var(--boblift-header-h)] z-30 border-y border-[#DDE7F2] bg-white shadow-card"><nav class="boblift-product-section-nav page-shell flex min-h-12 items-center overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] md:min-h-14 [&::-webkit-scrollbar]:hidden" aria-label="<?php echo esc_attr($ui['sectionNavLabel'] ?? 'Product detail sections'); ?>" data-product-section-nav><a class="boblift-cinema-nav-link grid h-12 min-w-12 shrink-0 place-items-center border-x border-[#DDE7F2] text-[#0B3F7D] md:h-14 md:min-w-14" href="#product-hero" data-product-section-link aria-label="<?php echo esc_attr($product['title'] ?? 'Product hero'); ?>"><?php echo boblift_icon('home', 'h-5 w-5'); ?></a><?php foreach ($anchors as $anchor) : ?><a class="boblift-cinema-nav-link flex h-12 min-w-max items-center justify-center border-e border-[#DDE7F2] px-3 text-xs font-black sm:px-4 md:h-14 text-[#334155] transition hover:bg-blue-50 hover:text-[#0B3F7D] md:px-6 md:text-sm" href="#<?php echo esc_attr($anchor['id']); ?>" data-product-section-link><?php echo esc_html($anchor['label']); ?></a><?php endforeach; ?></nav></div>
+    <div class="sticky top-[var(--boblift-header-h)] z-30 border-y border-[#DDE7F2] bg-white shadow-card"><nav class="boblift-product-section-nav page-shell flex min-h-12 items-center overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] md:min-h-14 [&::-webkit-scrollbar]:hidden" aria-label="<?php echo esc_attr($ui['sectionNavLabel'] ?? 'Product detail sections'); ?>" data-product-section-nav><a class="boblift-cinema-nav-link grid h-12 min-w-12 shrink-0 place-items-center border-x border-[#DDE7F2] text-[#0B3F7D] md:h-14 md:min-w-14" href="#product-hero" data-product-section-link aria-label="<?php echo esc_attr($product['title'] ?? 'Product hero'); ?>"><?php echo boblift_icon('home', 'h-5 w-5'); ?></a><?php foreach ($anchors as $anchor) : ?><a class="boblift-cinema-nav-link flex h-12 min-w-max items-center justify-center border-e border-[#DDE7F2] px-3 text-xs font-black sm:px-4 md:h-14 text-[#334155] transition hover:bg-blue-50 hover:text-[#0B3F7D] md:px-6 md:text-sm" href="#<?php echo esc_attr($anchor['id']); ?>" data-product-section-link<?php echo !empty($anchor['config']) ? ' data-config-section="' . esc_attr($anchor['id']) . '"' . (empty($anchor['shown']) ? ' style="display:none"' : '') : ''; ?>><?php echo esc_html($anchor['label']); ?></a><?php endforeach; ?></nav></div>
     <section class="bg-[#F5F7FB] py-8 md:py-12">
         <div class="boblift-pd-stack page-shell min-w-0 space-y-2 sm:space-y-6 md:space-y-8">
             <?php boblift_series_block_open('technical'); ?>

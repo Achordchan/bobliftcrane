@@ -1268,6 +1268,33 @@ function boblift_series_winch_text(string $winch): string
     return $winch === '1' ? boblift_series_text('With winch') : ($winch === '0' ? boblift_series_text('No winch') : '');
 }
 
+/**
+ * Whether a section (by its id) is in the blocks already captured for a configuration ($model) or for any configuration
+ * (null). The series page's own configuration is captured last, so its sections are judged by the template itself.
+ */
+function boblift_series_section_in(string $id, ?string $model = null): bool
+{
+    $blocks = (array) ($GLOBALS['boblift_series_render']['blocks'] ?? []);
+    foreach ($model === null ? $blocks : [$model => $blocks[$model] ?? []] as $html_by_name) {
+        foreach ((array) $html_by_name as $html) {
+            if (str_contains((string) $html, 'id="' . $id . '"')) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+/** Whether the configuration the page opens on has the section: $own for the series page's own one, else its captured blocks. */
+function boblift_series_section_shown(string $id, bool $own): bool
+{
+    $state = $GLOBALS['boblift_series_render'] ?? null;
+    if (!$state || $state['active_source'] === $state['series']['home_model']) {
+        return $own;
+    }
+    return boblift_series_section_in($id, (string) $state['active_source']);
+}
+
 /** Ends a block: stores it, and on the series page's own run prints every configuration's version of it. */
 function boblift_series_block_close(string $name, string $class = ''): void
 {

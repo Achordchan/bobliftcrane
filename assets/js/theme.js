@@ -5601,6 +5601,10 @@
       });
     }
     applyDerived(variant, shownModel);
+    // A section only some configurations have (drawing, feature cards) is listed in the section tabs while it is on screen.
+    document.querySelectorAll('[data-config-section]').forEach((link) => {
+      link.style.display = document.getElementById(link.dataset.configSection) ? '' : 'none';
+    });
     root.querySelectorAll('[data-cfg-winch-difference]').forEach((element) => {
       element.textContent = variant.winch || '';
       element.hidden = !variant.winch;

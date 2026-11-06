@@ -64,7 +64,17 @@ function boblift_specs_render_choices(array $state): void
     $choices = boblift_specs_choices($state);
     $dimensions = boblift_series_dimensions($choices);
     $labelled = (bool) array_intersect(['sections', 'winch', 'manual'], array_keys($dimensions));
-    $columns = array_values(array_filter(boblift_series_compare_columns($choices), static fn(array $column): bool => $column[1] !== 'moment'));
+    // boblift_series_compare_columns() lists the moment only where configurations differ in it (a series split by moment).
+    $columns = boblift_series_compare_columns($choices);
+    $language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
+    // The figures are the English ones (13.2 t·m, 4.15 m), written the page's way: 13,2 t·m in Spanish, French and Russian.
+    $figure_text = static function (string $key, $value) use ($language): string {
+        if ($key === 'weight') {
+            return boblift_series_format_kg((int) $value);
+        }
+        $shown = boblift_series_compare_range([(string) $value], true, $language, 'en');
+        return $shown !== '' ? $shown : (string) $value;
+    };
     $missing = false;
     $derived_weight = [];
     $manual = array_filter($choices, static fn(array $choice): bool => ($choice['values']['manual'] ?? '') === '1') && isset($dimensions['sections']);
@@ -92,7 +102,7 @@ function boblift_specs_render_choices(array $state): void
                                 $missing = $missing || ($value === null && !($choice['derived'] && $key === 'weight'));
                                 $derived_weight[($choice['values']['winch'] ?? '') === '1' ? 'on' : 'off'] = ($derived_weight[($choice['values']['winch'] ?? '') === '1' ? 'on' : 'off'] ?? false) || ($value === null && $choice['derived'] && $key === 'weight');
                                 ?>
-                                <td class="<?php echo esc_attr($cell); ?> whitespace-nowrap font-bold"><span dir="ltr"><?php echo $value === null ? '<span class="font-normal text-slate-400">—</span>' : esc_html($key === 'weight' ? boblift_series_format_kg($value) : (string) $value); ?></span></td>
+                                <td class="<?php echo esc_attr($cell); ?> whitespace-nowrap font-bold"><span dir="ltr"><?php echo $value === null ? '<span class="font-normal text-slate-400">—</span>' : esc_html($figure_text($key, $value)); ?></span></td>
                             <?php endforeach; ?>
                         </tr>
                     <?php endforeach; ?>

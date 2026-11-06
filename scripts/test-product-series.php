@@ -221,6 +221,15 @@ $check('no such rows in English', false, boblift_series_rows_unplaced(['Max Lift
 $noted = boblift_series_derived_block('<p class="x" data-cfg-spec-note hidden></p><dl></dl>', 'SQ2ZA2TJ', 'SQ2ZA2T', 'No winch', 'No-winch version: self weight confirmed with your quote');
 $check('derived block shows the note', true, str_contains($noted, '<p class="x" data-cfg-spec-note>No-winch version: self weight confirmed with your quote</p>'));
 
+// Sections a configuration may lack: found in its captured blocks, judged for the configuration on screen.
+$GLOBALS['boblift_series_render'] = ['series' => ['home_model' => 'A'], 'active' => 'B', 'active_source' => 'B', 'blocks' => ['B' => ['technical' => '<div id="drawing"></div>'], 'C' => ['features' => '<article id="features">']]];
+$check('section in one configuration', true, boblift_series_section_in('features'));
+$check('section not in the one on screen', false, boblift_series_section_shown('features', true));
+$check('section in the one on screen', true, boblift_series_section_shown('drawing', false));
+$GLOBALS['boblift_series_render']['active_source'] = 'A';
+$check('the series page itself is judged by the template', true, boblift_series_section_shown('features', true));
+unset($GLOBALS['boblift_series_render']);
+
 // Which choices are asked.
 $members = array_map(static fn(string $model): array => ['model' => $model, 'values' => boblift_series_parse_model($model)], ['SQ08ZA3T+1', 'SQ08ZA3TJ+1']);
 $check('one-value dimensions are not asked', ['winch' => ['0', '1']], boblift_series_dimensions($members));
