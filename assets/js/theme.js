@@ -5299,36 +5299,56 @@
   else window.addEventListener('load', init, { once: true });
 })();
 
-// Product page photo: beside a text column taller than it, the frame grows until a tall photo fills the width, up to 800 px, even
-// past the foot of the text. Beside a short column it stays as it is. One value per gallery, from its first photo, so going through
-// the thumbnails does not move anything. A hidden gallery has no width: the observer sizes it when its configuration is chosen.
+// Product page top, wide screens: the photo frame and its thumbnail row end level with the text column. The frame takes the text's
+// height less the thumbnails, never flatter than 16:10 of its width and never taller than 900 px. Beside text shorter than that,
+// the frame keeps the 16:10 height and the text is centred beside the photo and thumbnails. Each value is written only when it
+// changes, and the text is measured by its content (not its stretched box, and the centring is a transform), so the frame's
+// height never feeds back into its own measure. Below 1280 px nothing is set and the page keeps its stacked layout.
 (() => {
-  const roots = document.querySelectorAll('[data-product-hero-gallery-root]');
-  if (!roots.length || !('ResizeObserver' in window)) return;
-  const size = (root) => {
-    const image = root.querySelector('[data-product-hero-gallery-current], [data-product-hero-gallery-image]');
-    const width = root.clientWidth;
-    if (!image || !width) return;
-    if (!root.boblifPhotoRatio) {
-      if (!image.naturalWidth) {
-        image.addEventListener('load', () => size(root), { once: true });
-        return;
-      }
-      root.boblifPhotoRatio = image.naturalHeight / image.naturalWidth;
-    }
-    const target = Math.round(Math.min(800, width * root.boblifPhotoRatio));
-    const text = document.querySelector('.boblift-hero-text');
-    const last = text && text.lastElementChild;
-    const textHeight = last ? last.getBoundingClientRect().bottom - text.getBoundingClientRect().top : 0;
-    const stage = root.querySelector('.boblift-product-stage');
-    const thumbs = stage && stage.nextElementSibling ? stage.nextElementSibling.getBoundingClientRect().height + 12 : 0;
-    const textIsTaller = textHeight > width * 0.625 + thumbs;
-    root.style.setProperty('--boblift-stage-max', `${Math.max(640, target)}px`);
-    root.style.setProperty('--boblift-stage-min', textIsTaller && target > 420 ? `${target}px` : '420px');
+  const roots = [...document.querySelectorAll('[data-product-hero-gallery-root]')];
+  const text = document.querySelector('.boblift-hero-text');
+  if (!roots.length || !text || !('ResizeObserver' in window)) return;
+  const wide = window.matchMedia('(min-width: 1280px)');
+  const set = (element, name, value) => {
+    if (element.style.getPropertyValue(name) !== value) element.style.setProperty(name, value);
   };
-  const observer = new ResizeObserver((entries) => entries.forEach((entry) => size(entry.target)));
+  const size = () => {
+    const root = roots.find((item) => item.offsetParent !== null && item.clientWidth > 0);
+    if (!wide.matches || !root) {
+      roots.forEach((item) => item.style.removeProperty('--boblift-stage-h'));
+      text.style.removeProperty('--boblift-text-shift');
+      return;
+    }
+    const stage = root.querySelector('.boblift-product-stage');
+    const thumbs = stage && stage.nextElementSibling;
+    const first = text.firstElementChild;
+    const last = text.lastElementChild;
+    if (!stage || !first || !last) return;
+    const thumbsHeight = thumbs ? thumbs.getBoundingClientRect().height + parseFloat(getComputedStyle(thumbs).marginTop || '0') : 0;
+    const textHeight = last.getBoundingClientRect().bottom - first.getBoundingClientRect().top;
+    const floor = Math.round(root.clientWidth * 0.625);
+    const frame = Math.round(Math.min(900, Math.max(floor, textHeight - thumbsHeight)));
+    set(root, '--boblift-stage-h', `${frame}px`);
+    // Shorter text sits in the middle of the photo and its thumbnails.
+    const shift = Math.max(0, Math.round((frame + thumbsHeight - textHeight) / 2));
+    set(text, '--boblift-text-shift', `${shift}px`);
+  };
+  let queued = false;
+  const queue = () => {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => {
+      queued = false;
+      size();
+    });
+  };
+  const observer = new ResizeObserver(queue);
   roots.forEach((root) => observer.observe(root));
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => roots.forEach(size));
+  [...text.children].forEach((child) => observer.observe(child));
+  wide.addEventListener('change', queue);
+  roots.forEach((root) => root.querySelectorAll('img').forEach((image) => image.addEventListener('load', queue)));
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(queue);
+  queue();
 })();
 
 // A row that scrolls sideways: the current item in view, and a fade at each end that has more to swipe to.
