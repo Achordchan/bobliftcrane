@@ -385,6 +385,9 @@ if ($process_steps) {
     $anchors[] = ['id' => 'process', 'label' => (string) ($ui['processLabel'] ?? 'Manufacturing & delivery')];
 }
 $buying_terms = $hero_terms_apply ? boblift_product_buying_terms((float) boblift_product_filter_values(get_the_ID())['capacity'], $ui) : null;
+// A model's own container loading (the factory's plan) replaces the general wording in the Shipping column.
+$container_loading = $buying_terms ? boblift_product_container_loading(get_the_ID()) : [];
+$container_loading_cart = (bool) array_filter(array_column($container_loading, 'with_cart'));
 if ($buying_terms) {
     $anchors[] = ['id' => 'buying', 'label' => boblift_localized_static_text('Shipping & warranty')];
 }
@@ -976,7 +979,28 @@ if ($family_quote_copy) {
                     <div class="mt-4 grid gap-px border-t border-[#E6EDF5] bg-[#E6EDF5] sm:mt-6 md:mt-8 md:grid-cols-3">
                         <section class="bg-white px-4 py-5 sm:p-6 md:p-8" aria-labelledby="buying-shipping">
                             <h3 id="buying-shipping" class="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(boblift_localized_static_text('Shipping')); ?></h3>
-                            <?php if ($buying_terms['pending']) : // Unconfirmed figures stay off the page until they are entered under 产品详情页. ?>
+                            <?php if ($container_loading) : // This model's own figures from the factory loading plan (boblift_product_copy "container_loading"). ?>
+                                <table class="mt-3 w-full border-collapse text-left text-sm [font-variant-numeric:tabular-nums] sm:mt-4">
+                                    <thead>
+                                        <tr class="border-b border-[#E6EDF5] text-xs text-slate-500">
+                                            <th scope="col" class="pb-2 pr-3 font-normal"><?php echo esc_html(boblift_localized_static_text('Units per container')); ?></th>
+                                            <th scope="col" class="pb-2 pr-3 text-right font-normal"><?php echo esc_html(boblift_localized_static_text('Crane only')); ?></th>
+                                            <?php if ($container_loading_cart) : ?><th scope="col" class="pb-2 text-right font-normal"><?php echo esc_html(boblift_localized_static_text('With base cart')); ?></th><?php endif; ?>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($container_loading as $box_key => $box_counts) : ?>
+                                            <tr class="border-b border-[#E6EDF5] last:border-b-0">
+                                                <th scope="row" class="py-3 pr-3 font-normal text-slate-700"><?php echo esc_html(boblift_localized_static_text(['gp20' => '20GP container', 'gp40' => '40GP container', 'hq40' => '40HQ container'][$box_key])); ?></th>
+                                                <td class="py-3 pr-3 text-right text-xl font-black leading-none text-[#071f42]"><?php echo esc_html((string) $box_counts['crane']); ?></td>
+                                                <?php if ($container_loading_cart) : ?><td class="py-3 text-right text-xl font-black leading-none text-[#071f42]"><?php echo esc_html(isset($box_counts['with_cart']) ? (string) $box_counts['with_cart'] : '–'); ?></td><?php endif; ?>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                                <p class="mt-4 text-sm font-normal leading-6 text-slate-700"><?php echo esc_html($buying_terms['pending'] ? boblift_localized_static_text('Lead time is confirmed with your quotation.') : str_replace('{days}', $buying_terms['lead'], boblift_localized_static_text('Ships in {days} working days from order.'))); ?></p>
+                                <p class="mt-2 text-xs font-normal leading-5 text-slate-500"><?php echo esc_html(boblift_localized_static_text('Loading figures are approximate; we confirm the plan with your order.')); ?></p>
+                            <?php elseif ($buying_terms['pending']) : // Unconfirmed figures stay off the page until they are entered under 产品详情页. ?>
                                 <p class="mt-2 text-sm font-normal leading-6 text-slate-700 sm:mt-4"><?php echo esc_html(boblift_localized_static_text('Lead time and container loading are confirmed with your quotation.')); ?></p>
                             <?php else : ?>
                                 <dl class="mt-4 grid grid-cols-2 gap-4 [font-variant-numeric:tabular-nums]">

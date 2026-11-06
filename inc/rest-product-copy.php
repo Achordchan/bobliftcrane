@@ -18,6 +18,9 @@ if (!defined('ABSPATH')) {
  * page's "About the {model}" FAQ group after the generated ones. Languages not named are left as they are. Sending a
  * body also ticks that language's "show the body on the product page" box (_detail_body_ready): the body was written
  * on purpose, so a translation whose box an editor left unticked does not keep hiding it.
+ * "container_loading" (English only, the figures hold for every language): how many units fit in each container type,
+ * {"gp20": {"crane": 24, "with_cart": 6}, "gp40": {...}, "hq40": {...}} (any of the three boxes; "with_cart" optional);
+ * null or {} removes it. While set, the page's Shipping column shows these figures instead of the general wording.
  * Only the field itself may be sent: a request with any other parameter is refused before anything is saved.
  *
  * Everything is checked before anything is written, under the per-post lock of every language version (the lock
@@ -25,6 +28,7 @@ if (!defined('ABSPATH')) {
  * nothing behind; each changed body leaves a revision.
  */
 const BOBLIFT_PRODUCT_COPY_FAQ_KEY = '_boblift_model_faq';
+const BOBLIFT_PRODUCT_CONTAINER_LOADING_KEY = '_boblift_container_loading';
 
 function boblift_register_rest_product_copy_field(): void
 {
@@ -34,6 +38,9 @@ function boblift_register_rest_product_copy_field(): void
             foreach (boblift_product_specs_group((int) $post['id']) as $language => $id) {
                 if (current_user_can('edit_post', $id)) {
                     $copy[$language] = ['faq' => boblift_product_copy_faq($id)];
+                    if ($language === 'en') {
+                        $copy[$language]['container_loading'] = boblift_product_container_loading_stored($id);
+                    }
                 }
             }
             return $copy;
@@ -89,6 +96,50 @@ function boblift_product_copy_faq(int $post_id): array
     return is_array($items) ? array_values(array_filter($items, static fn($item): bool => is_array($item) && trim((string) ($item['question'] ?? '')) !== '' && trim((string) ($item['answer'] ?? '')) !== '')) : [];
 }
 
+/** Container loading as sent: [] (remove) or [box => ['crane' => int, 'with_cart' => int]] in gp20, gp40, hq40 order. */
+function boblift_product_container_loading_clean(mixed $value): array|WP_Error
+{
+    $invalid = new WP_Error('boblift_copy_loading', '"container_loading": send {"gp20"|"gp40"|"hq40": {"crane": whole number > 0, "with_cart": whole number > 0 (optional)}}, or null / {} to remove it.', ['status' => 400]);
+    if ($value === null || $value === []) {
+        return [];
+    }
+    if (!is_array($value) || array_is_list($value) || array_diff(array_keys($value), ['gp20', 'gp40', 'hq40']) !== []) {
+        return $invalid;
+    }
+    $clean = [];
+    foreach (['gp20', 'gp40', 'hq40'] as $box) {
+        if (!array_key_exists($box, $value)) {
+            continue;
+        }
+        $row = $value[$box];
+        if (!is_array($row) || !isset($row['crane']) || array_diff(array_keys($row), ['crane', 'with_cart']) !== []) {
+            return $invalid;
+        }
+        foreach ($row as $count) {
+            if (!is_int($count) || $count < 1 || $count > 999) {
+                return $invalid;
+            }
+        }
+        $clean[$box] = array_filter(['crane' => $row['crane'], 'with_cart' => $row['with_cart'] ?? null], static fn($count): bool => $count !== null);
+    }
+    return $clean;
+}
+
+/** The container loading stored on one product version, [] when none. */
+function boblift_product_container_loading_stored(int $post_id): array
+{
+    $stored = boblift_decode_meta(get_post_meta($post_id, BOBLIFT_PRODUCT_CONTAINER_LOADING_KEY, true), []);
+    $clean = is_array($stored) ? boblift_product_container_loading_clean($stored) : [];
+    return is_wp_error($clean) ? [] : $clean;
+}
+
+/** The product's container loading, read from its English version (every language shows the same figures). */
+function boblift_product_container_loading(int $product_id): array
+{
+    $english = (int) (boblift_product_specs_group($product_id)['en'] ?? $product_id);
+    return boblift_product_container_loading_stored($english ?: $product_id);
+}
+
 /** Clean questions, or an error unless every item is a plain-text question and answer. */
 function boblift_product_copy_clean_faq(mixed $items, string $language): array|WP_Error
 {
@@ -128,10 +179,20 @@ function boblift_product_copy_plan(int $product_id, array $value): array|WP_Erro
         if (!current_user_can('edit_post', $id)) {
             return new WP_Error('rest_cannot_edit', sprintf('Sorry, you are not allowed to edit product %d.', $id), ['status' => rest_authorization_required_code()]);
         }
-        if (!is_array($parts) || $parts === [] || array_diff(array_keys($parts), ['content', 'faq', 'seo_title', 'seo_description']) !== []) {
-            return new WP_Error('boblift_copy_invalid', sprintf('"%s": send any of "content", "faq", "seo_title", "seo_description", and nothing else.', $language), ['status' => 400]);
+        if (!is_array($parts) || $parts === [] || array_diff(array_keys($parts), ['content', 'faq', 'seo_title', 'seo_description', 'container_loading']) !== []) {
+            return new WP_Error('boblift_copy_invalid', sprintf('"%s": send any of "content", "faq", "seo_title", "seo_description" ("container_loading" on "en"), and nothing else.', $language), ['status' => 400]);
         }
-        $step = ['id' => $id, 'content' => null, 'faq' => null, 'seo' => []];
+        $step = ['id' => $id, 'content' => null, 'faq' => null, 'seo' => [], 'loading' => null];
+        if (array_key_exists('container_loading', $parts)) {
+            if ($language !== 'en') {
+                return new WP_Error('boblift_copy_loading', '"container_loading" is sent under "en" only: the figures hold for every language.', ['status' => 400]);
+            }
+            $loading = boblift_product_container_loading_clean($parts['container_loading']);
+            if (is_wp_error($loading)) {
+                return $loading;
+            }
+            $step['loading'] = $loading;
+        }
         foreach (['seo_title' => '_seo_title', 'seo_description' => '_seo_description'] as $key => $meta_key) {
             if (!array_key_exists($key, $parts)) {
                 continue;
@@ -230,6 +291,12 @@ function boblift_product_copy_apply_steps(array $plan): true|WP_Error
         }
         if ($step['faq'] !== null) {
             $saved = boblift_product_copy_write_meta($id, BOBLIFT_PRODUCT_COPY_FAQ_KEY, $step['faq'] === [] ? null : (string) wp_json_encode($step['faq'], JSON_UNESCAPED_UNICODE));
+            if (is_wp_error($saved)) {
+                return $saved;
+            }
+        }
+        if ($step['loading'] !== null) {
+            $saved = boblift_product_copy_write_meta($id, BOBLIFT_PRODUCT_CONTAINER_LOADING_KEY, $step['loading'] === [] ? null : (string) wp_json_encode($step['loading']));
             if (is_wp_error($saved)) {
                 return $saved;
             }
