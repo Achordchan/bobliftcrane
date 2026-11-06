@@ -624,6 +624,10 @@ function boblift_demote_product_nodes(array $data): array
             $data[$key] = boblift_demote_product_nodes($value);
         }
     }
+    // A stored link to a configuration's old address names its series page (inc/product-series.php).
+    if (isset($data['url']) && is_string($data['url']) && function_exists('boblift_series_old_url')) {
+        $data['url'] = boblift_series_old_url($data['url']);
+    }
     if (isset($data['@type']) && (is_string($data['@type']) ? $data['@type'] === 'Product' : in_array('Product', (array) $data['@type'], true))) {
         $data = ['@type' => 'Thing'] + array_intersect_key($data, array_flip(['@context', '@id', 'name', 'url', 'description', 'image']));
     }

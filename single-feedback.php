@@ -120,7 +120,7 @@ $others = array_slice($others, 0, 4);
     $record = boblift_feedback_record(get_the_ID());
     ob_start();
     if ($record !== '') {
-        echo '<div class="boblift-story-prose boblift-feedback-record max-w-[760px] lg:max-w-none">' . wp_kses_post($record) . '</div>';
+        echo '<div class="boblift-story-prose boblift-feedback-record max-w-[760px] lg:max-w-none">' . boblift_series_content_links(wp_kses_post($record)) . '</div>';
     } elseif (trim((string) get_post_field('post_content', get_the_ID())) !== '') {
         echo '<div class="boblift-story-prose max-w-[760px]">';
         the_content();

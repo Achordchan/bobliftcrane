@@ -2317,8 +2317,13 @@ function boblift_product_card(array $product, string $extra_class = '', bool $ea
     $quote_list_ui = function_exists('boblift_site_ui') ? boblift_site_ui('quoteList') : [];
     $add_quote_label = (string) ($quote_list_ui['addLabel'] ?? 'Add to Quote List');
     $quick_view_label = (string) ($product_ui['quickViewLabel'] ?? 'Quick view');
-    $view_details_label = boblift_series_text(count($card_view['configs']) > 1 ? 'View Configurations' : 'View Details');
-    $request_quote_label = boblift_series_text('Get a Quote');
+    // The saved button texts (Site UI > productDetail); a series card has its own, which falls back to the series wording.
+    $saved_label = static function (string $key, string $english) use ($product_ui): string {
+        $label = trim((string) ($product_ui[$key] ?? ''));
+        return $label === '' || $label === $english ? boblift_series_text($english) : $label;
+    };
+    $view_details_label = count($card_view['configs']) > 1 ? $saved_label('viewConfigurationsLabel', 'View Configurations') : $saved_label('viewDetailsLabel', 'View Details');
+    $request_quote_label = $saved_label('requestQuoteLabel', 'Get a Quote');
     // Cut-outs float on the card's backdrop; site photos show whole on a plain mat, never cropped.
     $card_image = boblift_product_image($product);
     $card_image_class = boblift_image_fit($card_image) === 'cutout'

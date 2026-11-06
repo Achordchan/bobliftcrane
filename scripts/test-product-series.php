@@ -123,6 +123,11 @@ $check('a previous-model capacity page gives way to a current member', 2, $legac
 $allLegacy = boblift_series_group_rows([$row(1, 'x-sq6za4t', 'SQ6ZA4T', 6, 'knuckle', true), $row(2, '6-ton-knuckle-boom-marine-crane', 'SQ6ZA3T', 6, 'knuckle', true)]);
 $check('all previous models: the capacity page still leads', 2, $allLegacy['knuckle-6']['home']);
 
+// Saved picks (featured, related) of a configuration stand for its series page in that language, once each, in order.
+$check('picked configuration becomes its series page', [193, 61, 7], boblift_series_listed_ids([4848, 61, 193, 4851, 7], [4848 => 193, 4851 => 193], [4848, 4851]));
+$check('picked translation maps in its own language', [1193], boblift_series_listed_ids([14848], [14848 => 1193], [14848]));
+$check('configuration without a series page is left out', [5], boblift_series_listed_ids([9, 5], [], [9]));
+
 // Which choices are asked.
 $members = array_map(static fn(string $model): array => ['model' => $model, 'values' => boblift_series_parse_model($model)], ['SQ08ZA3T+1', 'SQ08ZA3TJ+1']);
 $check('one-value dimensions are not asked', ['winch' => ['0', '1']], boblift_series_dimensions($members));
