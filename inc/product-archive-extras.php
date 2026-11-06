@@ -188,8 +188,8 @@ function boblift_compare_series_prepare(array $models): array
         foreach (array_merge(['capacity_label', 'moment', 'sections_label', 'weight'], array_keys(boblift_compare_figure_sources())) as $key) {
             // A range comes from the English figures (5.5 kW, never a translated 5,5 read as 55), written the page's way; a
             // figure that is not a number (3+1 / 4) shows the page's own words.
-            $range = isset($english[0][$key]) ? boblift_series_compare_range(array_column($english, $key), true, $language) : '';
-            $column[$key] = $range !== '' ? $range : boblift_series_compare_range(array_column($rows, $key), false, $language);
+            $range = isset($english[0][$key]) ? boblift_series_compare_range(array_column($english, $key), true, $language, 'en') : '';
+            $column[$key] = $range !== '' ? $range : boblift_series_compare_range(array_column($rows, $key), false, $language, $language);
         }
         $view = boblift_series_card_view(['id' => $item['id'], 'model' => $item['model'], 'title' => $item['title']]);
         $column['heading'] = $view['title'];

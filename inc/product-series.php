@@ -849,7 +849,7 @@ function boblift_series_figure_range(array $values): string
  * Any figure across a series' configurations: a range when all are numbers in one unit ("12.9–13.2 t·m", "3–5", "360–400°"),
  * else the different values as written ("3+1 / 4"). Empty values are left out.
  */
-function boblift_series_compare_range(array $values, bool $numbers_only = false, string $language = ''): string
+function boblift_series_compare_range(array $values, bool $numbers_only = false, string $language = '', string $source_language = 'en'): string
 {
     $values = array_values(array_unique(array_filter(array_map(static fn($value): string => trim((string) $value), $values), static fn(string $value): bool => $value !== '')));
     if ($values === []) {
@@ -859,7 +859,7 @@ function boblift_series_compare_range(array $values, bool $numbers_only = false,
     $units = [];
     $approx = false;
     foreach ($values as $value) {
-        if (!preg_match('/^(≈\s*)?(\d{1,3}(?:[ \x{00A0}\x{202F}]\d{3})+(?:[.,]\d+)?|\d[\d,.\x{00A0}\x{202F}]*)\s*([^\d\s+\/]*(?:\s[^\d\s+\/]+)?)$/u', $value, $match) || ($number = boblift_series_parse_number($match[2])) === null) {
+        if (!preg_match('/^(≈\s*)?(\d{1,3}(?:[ \x{00A0}\x{202F}]\d{3})+(?:[.,]\d+)?|\d[\d,.\x{00A0}\x{202F}]*)\s*([^\d\s+\/]*(?:\s[^\d\s+\/]+)?)$/u', $value, $match) || ($number = boblift_series_parse_number($match[2], $source_language)) === null) {
             return $numbers_only ? '' : implode(' / ', $values);
         }
         $numbers[] = $number;
@@ -881,11 +881,16 @@ function boblift_series_compare_range(array $values, bool $numbers_only = false,
  * groups of three digits; "5,5" and "5.5" are 5.5; a space or narrow space between groups is a thousands separator. Null when
  * the text is not one number.
  */
-function boblift_series_parse_number(string $text): ?float
+function boblift_series_parse_number(string $text, string $language): ?float
 {
     $text = trim((string) preg_replace('/[\x{00A0}\x{202F}\s]/u', '', $text));
     if ($text === '' || !preg_match('/^\d[\d.,]*$/', $text)) {
         return null;
+    }
+    // English and the other languages written with a decimal point (the English source data above all): the point is the
+    // decimal point and a comma groups thousands, so 4.125 m stays 4.125 and 12,000 kg is 12000.
+    if (!boblift_series_decimal_comma($language)) {
+        return preg_match('/^(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?$/', $text) ? (float) str_replace(',', '', $text) : null;
     }
     if (preg_match('/^\d{1,3}(?:,\d{3})+(?:\.\d+)?$/', $text)) {
         return (float) str_replace(',', '', $text);
@@ -899,11 +904,18 @@ function boblift_series_parse_number(string $text): ?float
     return null;
 }
 
+/** Whether a language writes decimals with a comma (5,5): Spanish, French and Russian on this site. */
+function boblift_series_decimal_comma(string $language): bool
+{
+    return in_array($language, ['es', 'fr', 'ru'], true);
+}
+
 /** A number for a figure in the page's language: 12,000 and 5.5 in English; 12,000 and 5,5 in Spanish, French and Russian. */
 function boblift_series_format_number(float $number, string $language = ''): string
 {
-    $text = rtrim(rtrim(number_format($number, 2, '.', ','), '0'), '.');
-    if (in_array($language, ['es', 'fr', 'ru'], true) && str_contains($text, '.')) {
+    // Up to three decimals, as the data has them (4.125 m), without trailing zeros (0.750 kW reads 0.75).
+    $text = rtrim(rtrim(number_format($number, 3, '.', ','), '0'), '.');
+    if (boblift_series_decimal_comma($language) && str_contains($text, '.')) {
         // A decimal comma; a figure with decimals keeps its thousands apart with a narrow space, never a second comma.
         $text = strtr($text, ['.' => ',', ',' => "\u{202F}"]);
     }

@@ -58,18 +58,34 @@ $check('moment bare number', '2.2 t·m', boblift_series_moment_normalized('2.2')
 $check('moment kN·m', '9.2 t·m', boblift_series_moment_normalized('90 kN·m'));
 $check('moment already t·m', '2.2 t·m', boblift_series_moment_normalized('2.2 t·m'));
 // Numbers in every language's style (#251 review, round 2).
-$check('decimal comma', 5.5, boblift_series_parse_number('5,5'));
-$check('decimal point', 5.5, boblift_series_parse_number('5.5'));
-$check('thousands comma', 6300.0, boblift_series_parse_number('6,300'));
-$check('thousands dot', 6300.0, boblift_series_parse_number('6.300'));
-$check('thousands narrow space', 12500.0, boblift_series_parse_number("12\u{202F}500"));
-$check('thousands nbsp', 12500.0, boblift_series_parse_number("12\u{00A0}500"));
-$check('thousands and decimals', 1250.5, boblift_series_parse_number('1,250.5'));
-$check('dot thousands and comma decimals', 1250.5, boblift_series_parse_number('1.250,5'));
-$check('not a number', null, boblift_series_parse_number('3+1'));
-$check('es range from decimal commas', '5,5–7,5 kW', boblift_series_compare_range(['5,5 kW', '7,5 kW'], false, 'es'));
-$check('fr range from decimal commas', '5,5–7,5 kW', boblift_series_compare_range(['5,5 kW', '7,5 kW'], false, 'fr'));
-$check('ru range with thousands', '1,200–1,450 kg', boblift_series_compare_range(['1 200 kg', '1 450 kg'], false, 'ru'));
+// Comma-decimal languages: the separator followed by three digits groups thousands, otherwise it is the decimal mark.
+foreach (['es', 'fr', 'ru'] as $lang) {
+    $check("{$lang} decimal comma", 5.5, boblift_series_parse_number('5,5', $lang));
+    $check("{$lang} decimal point", 5.5, boblift_series_parse_number('5.5', $lang));
+    $check("{$lang} thousands comma", 6300.0, boblift_series_parse_number('6,300', $lang));
+    $check("{$lang} thousands dot", 6300.0, boblift_series_parse_number('6.300', $lang));
+    $check("{$lang} thousands narrow space", 12500.0, boblift_series_parse_number("12\u{202F}500", $lang));
+    $check("{$lang} thousands nbsp", 12500.0, boblift_series_parse_number("12\u{00A0}500", $lang));
+    $check("{$lang} thousands and decimals", 1250.5, boblift_series_parse_number('1,250.5', $lang));
+    $check("{$lang} dot thousands and comma decimals", 1250.5, boblift_series_parse_number('1.250,5', $lang));
+}
+// English (the source data): the point is the decimal point, a comma groups thousands.
+$check('en 4.125 m', 4.125, boblift_series_parse_number('4.125', 'en'));
+$check('en 0.750 kW', 0.75, boblift_series_parse_number('0.750', 'en'));
+$check('en 12,000 kg', 12000.0, boblift_series_parse_number('12,000', 'en'));
+$check('en thousands and decimals', 1250.5, boblift_series_parse_number('1,250.5', 'en'));
+$check('en narrow-space thousands', 12500.0, boblift_series_parse_number("12\u{202F}500", 'en'));
+$check('en a comma is never a decimal mark', null, boblift_series_parse_number('5,5', 'en'));
+$check('zh follows the English rule', 4.125, boblift_series_parse_number('4.125', 'zh'));
+$check('not a number', null, boblift_series_parse_number('3+1', 'en'));
+$check('en range of three-decimal figures', '4.125–4.5 m', boblift_series_compare_range(['4.125 m', '4.5 m'], true, 'en', 'en'));
+$check('en kW range', '0.75–1.1 kW', boblift_series_compare_range(['0.750 kW', '1.1 kW'], true, 'en', 'en'));
+$check('en thousands range', '1,464–3,020 mm', boblift_series_compare_range(['1,464 mm', '3,020 mm'], true, 'en', 'en'));
+$check('en kg', '12,000 kg', boblift_series_compare_range(['12,000 kg'], true, 'en', 'en'));
+$check('English figures shown in Spanish', '4,125–4,5 m', boblift_series_compare_range(['4.125 m', '4.5 m'], true, 'es', 'en'));
+$check('es range from decimal commas', '5,5–7,5 kW', boblift_series_compare_range(['5,5 kW', '7,5 kW'], false, 'es', 'es'));
+$check('fr range from decimal commas', '5,5–7,5 kW', boblift_series_compare_range(['5,5 kW', '7,5 kW'], false, 'fr', 'fr'));
+$check('ru range with thousands', '1,200–1,450 kg', boblift_series_compare_range(['1 200 kg', '1 450 kg'], false, 'ru', 'ru'));
 $check('en range from English figures', '5.5–7.5 kW', boblift_series_compare_range(['5.5 kW', '7.5 kW'], true, 'en'));
 $check('es range from English figures', '5,5–7,5 kW', boblift_series_compare_range(['5.5 kW', '7.5 kW'], true, 'es'));
 $check('numbers only gives way on words', '', boblift_series_compare_range(['3+1', '4'], true, 'es'));
