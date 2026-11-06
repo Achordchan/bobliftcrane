@@ -231,6 +231,23 @@ function boblift_series_all_have(array $members, string $dimension, string $valu
     return $members !== [] && !array_filter($members, static fn(array $member): bool => (string) ($member['values'][$dimension] ?? '') !== $value);
 }
 
+/**
+ * One row per product: one filed under several grouped categories joins one family only, pickup before marine before
+ * truck mounted, so it is never a member of two series. Rows: id, slug, category.
+ */
+function boblift_series_one_family(array $found): array
+{
+    $rank = static fn(string $category): int => $category === 'pickup-cranes' ? 0 : (str_contains($category, 'marine') ? 1 : 2);
+    $rows = [];
+    foreach ($found as $row) {
+        $id = (int) ($row['id'] ?? 0);
+        if (!isset($rows[$id]) || $rank((string) $row['category']) < $rank((string) $rows[$id]['category'])) {
+            $rows[$id] = $row;
+        }
+    }
+    return array_values($rows);
+}
+
 /** The English marine, truck mounted and pickup products with what grouping needs. */
 function boblift_series_rows(): array
 {
@@ -257,7 +274,7 @@ function boblift_series_rows(): array
     update_postmeta_cache($ids);
     update_object_term_cache($ids, 'product');
     $rows = [];
-    foreach ((array) $found as $row) {
+    foreach (boblift_series_one_family((array) $found) as $row) {
         $id = (int) $row['id'];
         $rows[] = [
             'id' => $id,
@@ -647,19 +664,27 @@ function boblift_series_filter_query(WP_Query $query): void
         if ($listed !== []) {
             $ids = array_values(array_intersect($ids, boblift_series_listed_ids($listed, (array) (boblift_series_map()['homes'] ?? []), $hidden)));
         }
+        // WordPress drops post__not_in once post__in is set: the excluded posts (the product itself, previous models) leave here.
         $query->set('tax_query', []);
-        $query->set('post__in', $ids !== [] ? $ids : [0]);
+        $query->set('post__in', boblift_series_without_ids($ids, (array) $query->get('post__not_in')));
         return;
     }
     if ($listed !== []) {
         // A saved pick of a configuration (featured, related) stands for its series page in the same language.
         $kept = boblift_series_listed_ids($listed, (array) (boblift_series_map()['homes'] ?? []), $hidden);
-        $query->set('post__in', $kept !== [] ? $kept : [0]);
+        $query->set('post__in', boblift_series_without_ids($kept, (array) $query->get('post__not_in')));
         return;
     }
     $query->set('post__not_in', array_values(array_unique(array_merge(array_map('intval', (array) $query->get('post__not_in')), $hidden))));
 }
 add_action('pre_get_posts', 'boblift_series_filter_query');
+
+/** $ids without $excluded, in order; [0] (matches nothing) when none is left, since an empty post__in would match everything. */
+function boblift_series_without_ids(array $ids, array $excluded): array
+{
+    $left = array_values(array_diff(array_map('intval', $ids), array_map('intval', $excluded)));
+    return $left !== [] ? $left : [0];
+}
 
 /** Whether a tax_query narrows by product category. */
 function boblift_series_query_has_category($tax_query): bool
@@ -1160,13 +1185,35 @@ function boblift_series_block_open(string $name): void
  * A configuration's block shown for its other winch version: the model named in the texts the theme script swaps
  * (data-cfg-model-text) becomes the version's, and the self weight, which is not known, a dash.
  */
-function boblift_series_derived_block(string $html, string $source, string $model): string
+function boblift_series_derived_block(string $html, string $source, string $model, string $winch_text = ''): string
 {
     // Each changed element keeps its source content in data-cfg-orig, which the theme script restores from: a switch to
     // another configuration must start from the source's own model and weight, not from this page's derived ones.
     $keep = static fn(string $open, string $inner): string => substr($open, 0, -1) . ' data-cfg-orig="' . esc_attr($inner) . '">';
     $html = (string) preg_replace_callback('/(<([a-z0-9]+)\b[^>]*\bdata-cfg-model-text\b[^>]*>)(.*?)(<\/\2>)/s', static fn(array $m): string => $keep($m[1], $m[3]) . str_replace($source, $model, $m[3]) . $m[4], $html);
-    return (string) preg_replace_callback('/(\b(?:data-cfg-cell="weight"|data-cfg-weight-row(?=[\s>]))[^>]*>.*?)(<dd\b[^>]*>)(.*?)(<\/dd>)/s', static fn(array $m): string => $m[1] . $keep($m[2], $m[3]) . '<span class="text-slate-400">—</span>' . $m[4], $html);
+    $html = (string) preg_replace_callback('/(\b(?:data-cfg-cell="weight"|data-cfg-weight-row(?=[\s>]))[^>]*>.*?)(<dd\b[^>]*>)(.*?)(<\/dd>)/s', static fn(array $m): string => $m[1] . $keep($m[2], $m[3]) . '<span class="text-slate-400">—</span>' . $m[4], $html);
+    // The winch row says what this version has (with or without winch), in the page's language.
+    if ($winch_text === '') {
+        return $html;
+    }
+    return (string) preg_replace_callback('/(\bdata-cfg-winch-row(?=[\s>])[^>]*>.*?)(<dd\b[^>]*>)(.*?)(<\/dd>)/s', static fn(array $m): string => $m[1] . $keep($m[2], $m[3]) . '<span dir="auto">' . esc_html($winch_text) . '</span>' . $m[4], $html);
+}
+
+/** The winch row's words for a derived version ("With winch" / "No winch", translated), or '' when the page is not on one. */
+function boblift_series_derived_winch_text(array $state): string
+{
+    foreach ((array) ($state['variants'] ?? []) as $variant) {
+        if (($variant['model'] ?? '') === ($state['active'] ?? null) && !empty($variant['derived'])) {
+            return boblift_series_winch_text((string) ($variant['values']['winch'] ?? ''));
+        }
+    }
+    return '';
+}
+
+/** "With winch" or "No winch" in the page's language; '' when the winch is not stated. */
+function boblift_series_winch_text(string $winch): string
+{
+    return $winch === '1' ? boblift_series_text('With winch') : ($winch === '0' ? boblift_series_text('No winch') : '');
 }
 
 /** Ends a block: stores it, and on the series page's own run prints every configuration's version of it. */
@@ -1191,7 +1238,7 @@ function boblift_series_block_close(string $name, string $class = ''): void
         if ($active && $state['active'] !== $state['active_source']) {
             // A winch version without a product of its own: the page is printed with its own model and an open self weight,
             // as the theme script would set them, so the source already says the right thing.
-            $block = boblift_series_derived_block($block, (string) $state['active_source'], (string) $state['active']);
+            $block = boblift_series_derived_block($block, (string) $state['active_source'], (string) $state['active'], boblift_series_derived_winch_text($state));
         }
         echo '<div data-cfg-variant="' . esc_attr($member['model']) . '"' . ($active ? '' : ' hidden') . '>' . ($active ? $block : boblift_series_hidden_block($block)) . '</div>';
     }
@@ -1555,6 +1602,7 @@ function boblift_series_render_configurator(): void
                 'derived' => $member['derived'],
                 'slug' => $member['slug'],
                 'values' => $member['values'],
+                'winchText' => $member['derived'] ? boblift_series_winch_text((string) $member['values']['winch']) : '',
                 'weightNote' => $member['derived'] ? boblift_series_text($member['values']['winch'] === '1' ? 'Winch version: self weight confirmed with your quote' : 'No-winch version: self weight confirmed with your quote') : '',
             ] + $ui($member) + $meta;
         }, $members),

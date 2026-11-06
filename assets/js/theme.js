@@ -5478,12 +5478,18 @@
     document.querySelectorAll('[data-cfg-decode-winch]').forEach((part) => {
       part.style.display = variant.values.winch === '1' ? '' : 'none';
     });
-    document.querySelectorAll('[data-cfg-winch-row]').forEach((row) => {
-      row.style.display = variant.derived && variant.values.winch === '0' ? 'none' : '';
-    });
     if (!variant.derived) return;
     const holders = [...document.querySelectorAll(`[data-cfg-variant="${CSS.escape(shownModel)}"]`)];
     holders.forEach((holder) => {
+      // The winch row says what this version has, in the page's language.
+      if (variant.winchText) {
+        holder.querySelectorAll('[data-cfg-winch-row] dd').forEach((value) => {
+          const words = document.createElement('span');
+          words.dir = 'auto';
+          words.textContent = variant.winchText;
+          patch(value, words.outerHTML);
+        });
+      }
       holder.querySelectorAll('[data-cfg-model-text]').forEach((element) => swapText(element, shownModel, variant.model));
       holder.querySelectorAll('[data-cfg-cell="weight"] dd, [data-cfg-weight-row] dd').forEach((value) => patch(value, '<span class="text-[clamp(20px,1.5vw,28px)] text-slate-400">—</span>'));
     });
@@ -5528,9 +5534,9 @@
     document.querySelectorAll('[data-cfg-block]').forEach((block) => {
       [...block.children].forEach((holder) => {
         const active = holder.getAttribute('data-cfg-variant') === shownModel;
+        // The version being hidden stops its films, videos and embedded players alike, so none keeps playing behind the shown one.
+        if (!active && !holder.hidden) stopFilms(holder);
         holder.hidden = !active;
-        // A hidden version's film must not keep playing behind the shown one.
-        if (!active) holder.querySelectorAll('video').forEach((video) => video.pause());
         // Ids belong to the shown version only: #technical, #drawing and the rest must stay unique.
         if (active) {
           holder.querySelectorAll('[data-vid]').forEach((element) => {

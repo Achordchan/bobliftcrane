@@ -15,6 +15,12 @@ function boblift_localized_static_text(string $text): string
 {
     return $text;
 }
+if (!function_exists('esc_attr')) {
+    function esc_attr($text): string { return htmlspecialchars((string) $text, ENT_QUOTES); }
+}
+if (!function_exists('esc_html')) {
+    function esc_html($text): string { return htmlspecialchars((string) $text, ENT_QUOTES); }
+}
 require __DIR__ . '/../inc/product-series.php';
 require __DIR__ . '/../inc/product-guide.php';
 
@@ -165,6 +171,23 @@ $subMap = [boblift_series_url_key('https://ja.example.com/5-ton-x-sq5za3.html', 
 $check('subdomain mode: language from the host', 'https://ja.example.com/5-ton-x.html?model=SQ5ZA3', boblift_series_map_old_url('https://ja.example.com/5-ton-x-sq5za3.html', $subMap, ['example.com'], 'example.com'));
 $check('subdomain mode: main host is another language', 'https://example.com/5-ton-x-sq5za3.html', boblift_series_map_old_url('https://example.com/5-ton-x-sq5za3.html', $subMap, ['example.com'], 'example.com'));
 $check('another site is never touched', null, boblift_series_url_key('https://other.org/5-ton-x-sq5za3.html', ['bobliftcrane.com'], 'bobliftcrane.com'));
+
+// post__in replaces the category: what the query left out stays out (the product itself, previous models).
+$check('related products leave the product itself out', [61, 7], boblift_series_without_ids([193, 61, 7], [193]));
+$check('lifecycle exclusion still applies', [61], boblift_series_without_ids([4852, 61], [4852, 999]));
+$check('nothing left matches nothing', [0], boblift_series_without_ids([193], [193]));
+
+// A product in several grouped categories joins one family: pickup, then marine, then truck mounted.
+$check('pickup before knuckle truck', [['id' => 5, 'slug' => 'x', 'category' => 'pickup-cranes']], boblift_series_one_family([['id' => 5, 'slug' => 'x', 'category' => 'knuckle-boom-truck-mounted-cranes'], ['id' => 5, 'slug' => 'x', 'category' => 'pickup-cranes']]));
+$check('marine before truck', ['knuckle-boom-marine-cranes', 'telescopic-boom-truck-mounted-cranes'], array_column(boblift_series_one_family([['id' => 6, 'slug' => 'y', 'category' => 'knuckle-boom-truck-mounted-cranes'], ['id' => 6, 'slug' => 'y', 'category' => 'knuckle-boom-marine-cranes'], ['id' => 7, 'slug' => 'z', 'category' => 'telescopic-boom-truck-mounted-cranes']]), 'category'));
+
+// A derived version's block: its model, no self weight, and its winch in words.
+$block = '<p data-cfg-model-text>SQ12ZA6T</p><div data-cfg-weight-row><dt>Self Weight</dt><dd>4,350 kg</dd></div><div data-cfg-winch-row><dt>Winch</dt><dd>No</dd></div>';
+$derived = boblift_series_derived_block($block, 'SQ12ZA6T', 'SQ12ZA6TJ', 'With winch');
+$check('derived winch row says the version has a winch', true, str_contains($derived, '<dd data-cfg-orig="No"><span dir="auto">With winch</span></dd>'));
+$check('derived weight row is open', true, str_contains($derived, '<dd data-cfg-orig="4,350 kg"><span class="text-slate-400">—</span></dd>'));
+$check('derived model text', true, str_contains($derived, 'data-cfg-orig="SQ12ZA6T">SQ12ZA6TJ</p>'));
+$check('winch words', ['With winch', 'No winch', ''], [boblift_series_winch_text('1'), boblift_series_winch_text('0'), boblift_series_winch_text('')]);
 
 // Which choices are asked.
 $members = array_map(static fn(string $model): array => ['model' => $model, 'values' => boblift_series_parse_model($model)], ['SQ08ZA3T+1', 'SQ08ZA3TJ+1']);
