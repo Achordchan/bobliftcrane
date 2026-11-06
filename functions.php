@@ -67,6 +67,7 @@ $boblift_theme_modules = [
     'rest-legal-pages.php',
     'rest-filter-bins.php',
     'rest-top-bar.php',
+    'rest-site-text.php',
     'rest-product-faq.php',
     'rest-product-copy.php',
     'rest-feedback-record-edit.php',
