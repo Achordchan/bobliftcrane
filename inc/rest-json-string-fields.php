@@ -28,6 +28,7 @@ function boblift_rest_json_string_fields(): array
         'boblift_product_faq',
         'boblift_tonnage_copy',
         'boblift_top_bar',
+        'boblift_site_text',
     ];
 }
 
