@@ -475,7 +475,17 @@ foreach ($languages as $language) {
                     </div>
                 </div>
                 <button class="grid h-11 w-11 place-items-center rounded-sm border border-navy/10 bg-navy text-white shadow-card transition duration-300 hover:-translate-y-0.5 lg:hidden" type="button" data-mobile-toggle aria-expanded="false" aria-controls="mobile-menu" aria-label="<?php echo esc_attr($header_ui['mobileOpenLabel'] ?? 'Open mobile navigation'); ?>"><?php echo boblift_icon('menu', 'h-5 w-5', '2.4'); ?></button>
-                <button class="group hidden h-12 items-center justify-center whitespace-nowrap rounded-sm border border-transparent bg-navy bg-clip-padding px-4 text-sm font-black text-white shadow-card outline-none select-none transition-all hover:-translate-y-0.5 hover:bg-navy lg:inline-flex" type="button" data-inquiry-modal-open data-inquiry-source="顶部导航"><span class="2xl:hidden"><?php echo esc_html($header_ui['quoteShortLabel'] ?? 'Quote'); ?></span><span class="hidden 2xl:inline"><?php echo esc_html($header_ui['quoteLabel'] ?? ($quote_form_ui['label'] ?? 'Get a Quote')); ?></span></button>
+                <button class="group hidden h-12 items-center justify-center whitespace-nowrap rounded-sm border border-transparent bg-navy bg-clip-padding px-4 text-sm font-black text-white shadow-card outline-none select-none transition-all hover:-translate-y-0.5 hover:bg-navy lg:inline-flex" type="button" data-inquiry-modal-open data-inquiry-source="顶部导航"><?php
+                // The full label wherever it fits beside the menu; the short one only below the width where, in this language, it
+                // would crowd the menu (measured 2026-11-06 at 1024-1600 px). Literal classes so Tailwind keeps them.
+                $quote_label_from = [
+                    'zh' => ['min-[1100px]:hidden', 'hidden min-[1100px]:inline'],
+                    'ja' => ['min-[1366px]:hidden', 'hidden min-[1366px]:inline'],
+                    'es' => ['2xl:hidden', 'hidden 2xl:inline'],
+                    'fr' => ['min-[1600px]:hidden', 'hidden min-[1600px]:inline'],
+                    'ar' => ['min-[1200px]:hidden', 'hidden min-[1200px]:inline'],
+                ][function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : 'en'] ?? ['hidden', ''];
+                ?><span class="<?php echo esc_attr($quote_label_from[0]); ?>"><?php echo esc_html($header_ui['quoteShortLabel'] ?? 'Quote'); ?></span><span class="<?php echo esc_attr($quote_label_from[1]); ?>"><?php echo esc_html($header_ui['quoteLabel'] ?? ($quote_form_ui['label'] ?? 'Get a Quote')); ?></span></button>
             </div>
         </div>
     </div>
