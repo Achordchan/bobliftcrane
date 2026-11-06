@@ -3160,6 +3160,25 @@
     const quickFavorite = qs('[data-quick-favorite]', root);
     let currentPage = 1;
     let activeQuickCard = null;
+    // The configuration shown in the quick view of a series card; null for a single product.
+    let activeQuickConfig = null;
+    // What the quick view's quote-list button stands for: the configuration shown, else the card's product. Read the way
+    // the quote list reads a card (data-product-id, data-title, ...).
+    const quickQuoteSource = () => {
+      if (!activeQuickCard || !activeQuickConfig?.id) return activeQuickCard;
+      const card = activeQuickCard.dataset;
+      const config = activeQuickConfig;
+      return { dataset: {
+        productId: String(config.id),
+        productSlug: config.slug || '',
+        title: config.title || card.title || '',
+        image: config.image || card.image || '',
+        categoryTitle: card.categoryTitle || '',
+        category: card.category || '',
+        detailUrl: config.url || card.detailUrl || '',
+        summary: config.summary || card.summary || '',
+      } };
+    };
     // The server lists only this page's category (and its sub-categories); the category tabs and the drawer's category
     // list are links to the other categories' pages, so the category never changes here.
     const fixedCategory = root.dataset.currentCategory || '';
@@ -3179,7 +3198,7 @@
     };
     const syncFavoriteStates = () => {
       cards.forEach((card) => qsa('[data-product-favorite]', card).forEach((button) => updateFavoriteButton(button, quoteList.has(card.dataset.productId || ''))));
-      updateFavoriteButton(quickFavorite, activeQuickCard ? quoteList.has(activeQuickCard.dataset.productId || '') : false);
+      updateFavoriteButton(quickFavorite, activeQuickCard ? quoteList.has(quickQuoteSource()?.dataset.productId || '') : false);
     };
     const toggleFavorite = (card) => {
       if (!card) return;
@@ -3660,6 +3679,7 @@
     const quickConfigs = qs('[data-quick-configs]', root);
     // A series card's quick view: one configuration at a time. Quote and details follow the one shown.
     const showQuickConfig = (card, config) => {
+      activeQuickConfig = config;
       if (quickImage && config.image) quickImage.src = config.image;
       if (quickSummary) quickSummary.textContent = config.summary || card.dataset.summary || '';
       if (quickSpecs) quickSpecs.innerHTML = specMarkup(config.specs || []);
@@ -3685,8 +3705,10 @@
         button.classList.toggle('bg-[#F5F8FC]', !on);
         button.classList.toggle('text-[#071f42]', !on);
       });
+      syncFavoriteStates();
     };
     const setUpQuickConfigs = (card) => {
+      activeQuickConfig = null;
       if (!quickConfigs) return;
       let configs = [];
       try { configs = JSON.parse(card.dataset.configs || '[]'); } catch { configs = []; }
@@ -3769,6 +3791,7 @@
       quickModal.classList.add('hidden');
       quickModal.classList.remove('flex');
       activeQuickCard = null;
+      activeQuickConfig = null;
       document.body.style.overflow = '';
     };
     function escapeHtml(value) {
@@ -3820,7 +3843,7 @@
       qsa('[data-product-favorite]', card).forEach((button) => button.addEventListener('click', () => toggleFavorite(card)));
       qsa('[data-product-quick-view]', card).forEach((button) => button.addEventListener('click', () => openQuickView(card)));
     });
-    quickFavorite?.addEventListener('click', () => toggleFavorite(activeQuickCard));
+    quickFavorite?.addEventListener('click', () => toggleFavorite(quickQuoteSource()));
     qsa('[data-quick-close]', root).forEach((button) => button.addEventListener('click', closeQuickView));
     quickModal?.addEventListener('mousedown', (event) => { if (event.target === quickModal) closeQuickView(); });
     quickPanel?.addEventListener('mousedown', (event) => event.stopPropagation());

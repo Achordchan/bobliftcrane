@@ -1097,6 +1097,8 @@ function boblift_series_quick_view_configs(array $product): array
         }
         $title = trim((string) ($data['title'] ?? ''));
         $configs[] = [
+            // The configuration's own product: the quote list keeps the one chosen, not the series page.
+            'id' => (string) $member['id'],
             'model' => (string) $member['model'],
             'label' => $series['family'] === 'pickup' ? boblift_series_text($member['values']['manual'] === '1' ? 'With outriggers' : 'Without outriggers') : (string) $member['model'],
             'url' => (string) $member['url'],
