@@ -2357,7 +2357,7 @@ function boblift_product_card(array $product, string $extra_class = '', bool $ea
                 </div>
                 <div class="product-card-bottom mt-auto">
                 <?php if ($card_figures) : ?>
-                    <dl class="product-card-specs mt-4 grid gap-y-1.5 border-t border-[#E5E7EB] pt-3 xl:grid-cols-[minmax(max-content,.8fr)_minmax(max-content,1fr)_minmax(max-content,1.25fr)]">
+                    <dl class="product-card-specs mt-4 grid gap-y-1.5 border-t border-[#E5E7EB] pt-3 xl:grid-cols-[repeat(3,minmax(max-content,1fr))]">
                         <?php foreach ($card_figures as $position => $spec) : ?>
                             <div class="flex min-w-0 items-baseline justify-between gap-2 xl:flex-col xl:items-start xl:justify-between <?php echo $position > 0 ? 'xl:border-s xl:border-[#E5E7EB] xl:ps-3' : ''; ?>">
                                 <dt class="min-w-0 text-[13px] font-semibold leading-[1.25] text-slate-500 xl:w-0 xl:min-w-full"><?php echo esc_html($spec['label']); ?></dt>
