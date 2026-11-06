@@ -12,7 +12,8 @@
  *            "floating_contact_buttons.0.label": "获取报价", "static_text.strings.ee9acf6c3103.text": "获取报价"},
  *    "expect": {"site_ui.header.quoteLabel": "申请报价", ...},
  *    "dry_run": true}
- * Each key of "set" is a dotted path to one saved text in this language, under site_ui., final_cta., home.hero.,
+ * Each key of "set" is a dotted path to one saved text in this language, under site_ui. (whose keys may hold - and +, as the
+ * capacity bins 0-5 and 25+ do), final_cta., home.hero.,
  * floating_contact_buttons.<n>.<field> or static_text.strings.<id>.text. Only the texts named change; every other
  * saved value stays as it is. A path must already hold text: a typo is refused, not added. A value is cleaned like its
  * current value: wp_kses_post where the saved text holds HTML, sanitize_text_field otherwise.
@@ -27,7 +28,7 @@ defined('ABSPATH') || exit;
 /** Whether a dotted path names one of the texts this field may change. */
 function boblift_site_text_path_allowed(string $path): bool
 {
-    return (bool) preg_match('/^(?:site_ui\.[A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)+|final_cta\.[A-Za-z0-9_]+|home\.hero\.[A-Za-z0-9_]+|floating_contact_buttons\.\d+\.[A-Za-z0-9_]+|static_text\.strings\.[a-f0-9]{12}\.text)$/', $path);
+    return (bool) preg_match('/^(?:site_ui\.[A-Za-z0-9_]+(?:\.[A-Za-z0-9_+-]+)+|final_cta\.[A-Za-z0-9_]+|home\.hero\.[A-Za-z0-9_]+|floating_contact_buttons\.\d+\.[A-Za-z0-9_]+|static_text\.strings\.[a-f0-9]{12}\.text)$/', $path);
 }
 
 /** The text at a dotted path, or null when the path does not hold text. */

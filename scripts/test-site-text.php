@@ -69,7 +69,7 @@ $check = static function (string $name, bool $ok) use (&$fail): void {
     $fail += $ok ? 0 : 1;
 };
 $fresh = [
-    'site_ui' => ['header' => ['quoteLabel' => '申请报价', 'quoteShortLabel' => '报价'], 'productDetail' => ['requestQuoteLabel' => '申请报价', 'intro' => '<p>Hi</p>']],
+    'site_ui' => ['header' => ['quoteLabel' => '申请报价', 'quoteShortLabel' => '报价'], 'productDetail' => ['requestQuoteLabel' => '申请报价', 'intro' => '<p>Hi</p>'], 'productArchive' => ['capacityBins' => ['0-5' => '5 吨以内', '25+' => '25 吨以上']]],
     'final_cta' => ['button_label' => '申请报价', 'button_href' => '/quote'],
     'home' => ['hero' => ['secondary_label' => '申请报价'], 'product_section' => ['max_category_products' => 8]],
     'floating_contact_buttons' => [['type' => 'quote', 'label' => '报价']],
@@ -114,6 +114,16 @@ foreach (['site_ui.header.quoteLabell' => 'x', 'contact.quote_path' => '/x', 'si
 $check('refuses an empty set', is_wp_error(boblift_site_text_apply('zh', ['set' => []])));
 $check('refuses unknown request keys', is_wp_error(boblift_site_text_apply('zh', ['set' => ['site_ui.header.quoteLabel' => 'x'], 'force' => true])));
 $check('refuses a non-text value', is_wp_error(boblift_site_text_apply('zh', ['set' => ['site_ui.header.quoteLabel' => ['x']]])));
+
+// Keys with - and + under site_ui (the capacity bins) can be changed; other characters stay refused (#252 review).
+$GLOBALS['stored'] = $fresh;
+$result = boblift_site_text_apply('zh', ['set' => ['site_ui.productArchive.capacityBins.0-5' => '0–5 吨', 'site_ui.productArchive.capacityBins.25+' => '25 吨及以上']]);
+$check('capacity bin keys 0-5 and 25+ change', !is_wp_error($result) && count($result['changes']) === 2 && $GLOBALS['stored']['site_ui']['productArchive']['capacityBins'] === ['0-5' => '0–5 吨', '25+' => '25 吨及以上']);
+$check('other site_ui keys untouched by the bin change', $GLOBALS['stored']['site_ui']['header'] === $fresh['site_ui']['header']);
+$GLOBALS['stored'] = $fresh;
+foreach (['site_ui.productArchive.capacityBins.0 5', 'site_ui.productArchive.capacityBins.25%', 'site_ui.header.quote/Label', 'final_cta.button-label', 'home.hero.secondary+label'] as $path) {
+    $check('still refuses ' . $path, !boblift_site_text_path_allowed($path) && is_wp_error(boblift_site_text_apply('zh', ['set' => [$path => 'x']])) && $GLOBALS['stored'] === $fresh);
+}
 
 // Cleaning follows the saved value: plain text is stripped, HTML keeps its safe tags.
 $GLOBALS['stored'] = $fresh;
