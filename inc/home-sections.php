@@ -205,8 +205,10 @@ function boblift_render_home_feedback(): void
                             <?php if (($item['media'][0]['type'] ?? '') === 'video') : ?><span class="absolute inset-0 m-auto grid size-11 place-items-center rounded-sm bg-white/90 text-blue-700 shadow-card"><?php echo boblift_icon('circle-play', 'h-6 w-6'); ?></span><?php endif; ?>
                         </span>
                         <span class="block px-3 py-3">
-                            <?php if ($item['model'] !== '') : ?><span class="block truncate text-sm font-black text-ink"><?php echo esc_html($item['model']); ?></span><?php endif; ?>
-                            <?php if ($item['country'] !== '') : ?><span class="mt-1 flex items-center gap-1 text-xs font-semibold text-slate-500"><?php echo boblift_icon('map-pin', 'h-3.5 w-3.5 shrink-0 text-blue-600'); ?><span class="truncate"><?php echo esc_html($item['country']); ?></span></span><?php endif; ?>
+<?php $feedback_view = boblift_feedback_card_view($item); ?>
+                            <span class="block truncate text-sm font-black text-ink"><?php echo esc_html($feedback_view['title']); ?></span>
+                            <?php echo boblift_feedback_country_html($feedback_view, 'mt-1 text-xs font-semibold text-slate-600'); ?>
+                            <?php if ($feedback_view['meta'] !== '') : ?><span class="mt-0.5 block truncate text-xs text-slate-500"><?php echo esc_html($feedback_view['meta']); ?></span><?php endif; ?>
                         </span>
                     </a>
                 <?php endforeach; ?>

@@ -197,8 +197,10 @@ $others = array_slice($others, 0, 4);
                             <?php if ($other['cover'] !== '') : ?><img class="h-full w-full object-cover" src="<?php echo esc_url($other['cover']); ?>" alt="<?php echo esc_attr($other['model'] . ' · ' . $other['country']); ?>" loading="lazy" decoding="async"><?php endif; ?>
                         </span>
                         <span class="block p-3 md:p-4">
-                            <span class="block text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html($other['country']); ?></span>
-                            <span class="mt-1 block text-base font-black text-ink md:text-lg"><?php echo esc_html($other['model']); ?></span>
+                            <?php $other_view = boblift_feedback_card_view($other); ?>
+                            <span class="block text-base font-black leading-snug text-ink md:text-lg"><?php echo esc_html($other_view['title']); ?></span>
+                            <?php echo boblift_feedback_country_html($other_view, 'mt-1.5 text-[13px] font-semibold text-slate-700'); ?>
+                            <?php if ($other_view['meta'] !== '') : ?><span class="mt-1 block text-[13px] text-slate-500"><?php echo esc_html($other_view['meta']); ?></span><?php endif; ?>
                         </span>
                     </a>
                 <?php endforeach; ?>

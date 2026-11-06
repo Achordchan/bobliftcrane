@@ -1761,6 +1761,7 @@ function boblift_feedback_item(WP_Post $post): ?array
         'id' => $post->ID,
         'url' => (string) get_permalink($post),
         'country' => boblift_localized_static_text($pick('_feedback_country')),
+        'country_en' => trim((string) ((json_decode((string) get_post_meta($post->ID, '_feedback_country', true), true) ?: [])['en'] ?? '')),
         'model' => trim((string) get_post_meta($post->ID, '_feedback_model', true)),
         'note' => $pick('_feedback_note'),
         'excerpt' => trim($post->post_excerpt),
@@ -1782,6 +1783,47 @@ function boblift_feedback_counts_text(array $item): string
         $part((int) $item['photos'], (string) ($ui['feedbackPhotoLabel'] ?? 'photo'), (string) ($ui['feedbackPhotosLabel'] ?? 'photos')),
         $part((int) $item['videos'], (string) ($ui['feedbackVideoLabel'] ?? 'video'), (string) ($ui['feedbackVideosLabel'] ?? 'videos')),
     ]));
+}
+
+/** The flag in assets/flags for a country named in English, or '' when the theme has none for it. */
+function boblift_country_flag_url(string $country): string
+{
+    $codes = ['Brazil' => 'br', 'China' => 'cn', 'Germany' => 'de', 'Spain' => 'es', 'France' => 'fr', 'Indonesia' => 'id', 'India' => 'in', 'Japan' => 'jp', 'South Korea' => 'kr', 'Korea' => 'kr', 'Russia' => 'ru', 'Saudi Arabia' => 'sa', 'Thailand' => 'th', 'Türkiye' => 'tr', 'Turkey' => 'tr', 'United States' => 'us', 'USA' => 'us', 'Vietnam' => 'vn', 'Viet Nam' => 'vn'];
+    $code = $codes[trim($country)] ?? '';
+    return $code !== '' && is_file(get_template_directory() . '/assets/flags/' . $code . '.svg') ? get_template_directory_uri() . '/assets/flags/' . $code . '.svg' : '';
+}
+
+/**
+ * What a customer feedback card says, the same everywhere: the crane by capacity and type first (the title product cards use,
+ * in this language), then the country with its flag, then the model and how many photos and videos, small and grey.
+ * An entry whose model has no published product keeps the model as its title.
+ */
+function boblift_feedback_card_view(array $item): array
+{
+    static $titles = [];
+    $id = (int) ($item['id'] ?? 0);
+    if (!isset($titles[$id])) {
+        $product = function_exists('boblift_item_related_products') ? (boblift_item_related_products($id, 1)[0] ?? null) : null;
+        $titles[$id] = $product instanceof WP_Post && function_exists('boblift_series_card_view') ? trim((string) boblift_series_card_view(boblift_product_from_post($product))['full_title']) : '';
+    }
+    $model = trim((string) ($item['model'] ?? ''));
+    $title = $titles[$id] !== '' ? $titles[$id] : $model;
+    return [
+        'title' => $title,
+        'country' => (string) ($item['country'] ?? ''),
+        'flag' => boblift_country_flag_url((string) ($item['country_en'] ?? '')),
+        'meta' => implode(' · ', array_filter([$title !== $model ? $model : '', boblift_feedback_counts_text($item)])),
+    ];
+}
+
+/** The country line of a feedback card: its flag (or a pin where the theme has no flag) and its name. */
+function boblift_feedback_country_html(array $view, string $class = '', string $pin_class = 'h-3.5 w-3.5 text-blue-600'): string
+{
+    if ($view['country'] === '') {
+        return '';
+    }
+    $mark = $view['flag'] !== '' ? '<img class="boblift-flag" src="' . esc_url($view['flag']) . '" width="18" height="13" alt="" loading="lazy" decoding="async">' : boblift_icon('map-pin', 'shrink-0 ' . $pin_class);
+    return '<span class="' . esc_attr(trim('flex min-w-0 items-center gap-1.5 ' . $class)) . '">' . $mark . '<span class="truncate">' . esc_html($view['country']) . '</span></span>';
 }
 
 // Customer feedback entries for the Cases page.

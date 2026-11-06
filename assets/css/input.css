@@ -2581,9 +2581,14 @@ img { max-width: 100%; }
   .boblift-feedback-card-content {
     padding: 10px 4px 4px;
   }
+  .boblift-feedback-card-country {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.35;
+  }
   .boblift-feedback-card-meta {
-    margin-top: 5px;
-    font-size: 11px;
+    margin-top: 3px;
+    font-size: 12px;
     line-height: 1.4;
   }
   .boblift-cases-pager {
@@ -2932,3 +2937,6 @@ html:is(:lang(ru), :lang(uk), :lang(fr), :lang(es), :lang(de), :lang(it), :lang(
 /* Corner radius in three tiers (tailwind.config.js reads them): controls, cards and panels, dialogs. Dots stay round. */
 :root { --boblift-r-sm: 6px; --boblift-r: 10px; --boblift-r-lg: 14px; }
 .boblift-inquiry-modal:not(.is-inquiry-fullscreen) .boblift-inquiry-dialog, .boblift-leave-dialog, .boblift-drawing-dialog { border-radius: var(--boblift-r-lg, 14px); }
+
+/* A small country flag beside its name: a hairline keeps a white flag apart from a white card. */
+.boblift-flag { display: block; flex: none; width: 18px; height: 13px; object-fit: cover; border-radius: 2px; box-shadow: 0 0 0 1px rgb(15 23 42 / 0.14); }

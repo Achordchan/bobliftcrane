@@ -1011,15 +1011,16 @@ if ($family_quote_copy) {
                     </div>
                     <div class="grid grid-cols-2 gap-x-4 gap-y-6 px-4 py-5 sm:p-6 md:gap-x-5 md:p-8 lg:grid-cols-4">
                         <?php foreach ($feedback_shown as $feedback_item) :
-                            $feedback_count_text = boblift_feedback_counts_text($feedback_item);
+                            $feedback_view = boblift_feedback_card_view($feedback_item);
                             ?>
                             <a class="group block min-w-0" href="<?php echo esc_url($feedback_item['url']); ?>">
                                 <span class="relative block aspect-[4/3] overflow-hidden rounded-sm bg-[#EDF1F5]">
                                     <?php if ($feedback_item['cover'] !== '') : ?><img class="h-full w-full object-cover" src="<?php echo esc_url($feedback_item['cover']); ?>" alt="<?php echo esc_attr($feedback_item['model'] . ' · ' . $feedback_item['country']); ?>" loading="lazy" decoding="async"><?php endif; ?>
                                     <?php if (($feedback_item['media'][0]['type'] ?? '') === 'video') : ?><span class="absolute inset-0 m-auto grid size-12 place-items-center rounded-sm bg-white/90 text-[#0B3F7D]"><?php echo boblift_icon('play', 'h-5 w-5'); ?></span><?php endif; ?>
                                 </span>
-                                <span class="mt-3 flex items-center gap-1.5 text-sm font-black text-[#071f42] transition group-hover:text-blue-700 md:text-base"><?php echo boblift_icon('map-pin', 'h-4 w-4 shrink-0 text-gold'); ?><?php echo esc_html($feedback_item['country']); ?></span>
-                                <span class="mt-0.5 block text-xs font-normal text-slate-500 md:text-sm"><?php echo esc_html(implode(' · ', array_filter([$feedback_item['model'], $feedback_count_text]))); ?></span>
+                                <span class="mt-3 block text-sm font-black leading-snug text-[#071f42] transition group-hover:text-blue-700 md:text-base"><?php echo esc_html($feedback_view['title']); ?></span>
+                                <?php echo boblift_feedback_country_html($feedback_view, 'mt-1.5 text-[13px] font-semibold text-slate-700 md:text-sm'); ?>
+                                <?php if ($feedback_view['meta'] !== '') : ?><span class="mt-1 block text-xs font-normal text-slate-500 md:text-[13px]"><?php echo esc_html($feedback_view['meta']); ?></span><?php endif; ?>
                             </a>
                         <?php endforeach; ?>
                     </div>
