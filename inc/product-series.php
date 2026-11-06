@@ -591,6 +591,24 @@ function boblift_series_map_old_url(string $url, array $paths, array $bases, str
 }
 
 /**
+ * An old language host's configuration address (es.<old domain>/<slug>.html) on this site: the series page of that language
+ * with ?model= when the configuration is translated there ($prefix: the language's directory, "es"), else the English one.
+ * Null when the path is no configuration's. Tracking parameters are added by the caller.
+ */
+function boblift_series_old_path_target(string $path, string $prefix, array $paths, array $bases, string $host): ?string
+{
+    $path = '/' . ltrim($path, '/');
+    foreach (array_filter([$prefix !== '' ? '/' . trim($prefix, '/') . $path : '', $path]) as $candidate) {
+        $url = 'https://' . $host . $candidate;
+        $target = boblift_series_map_old_url($url, $paths, $bases, $host);
+        if ($target !== $url) {
+            return $target;
+        }
+    }
+    return null;
+}
+
+/**
  * Links written into posts, cases and product texts to a configuration's old address go straight to its series page,
  * instead of through the redirect. Only this site's addresses are touched; anchors and campaign parameters are kept.
  */

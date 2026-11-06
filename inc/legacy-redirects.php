@@ -456,6 +456,18 @@ function boblift_legacy_redirects_run(): void
     // under a language directory (/fr/Old-Article-id1.html) is resolved without the prefix first, so its exact rule and
     // language win over the generic pattern fallbacks the full path would hit.
     $target = boblift_legacy_redirect_rule_target($path, $config) === null ? boblift_legacy_redirect_resolve_in_language_directory($host, $path, $config) : null;
+    // An old language host's address of a configuration that is now part of a series page (es.<old domain>/<slug>.html)
+    // goes straight to that series page in its language with ?model=, in one hop, unless an exact rule names it.
+    $legacy_language = boblift_legacy_redirect_language_host($host, $config);
+    if ($target === null && $legacy_language !== '' && boblift_legacy_redirect_rule_target($path, $config) === null && function_exists('boblift_series_old_path_target')) {
+        $bases = boblift_series_site_hosts();
+        $target = boblift_series_old_path_target($path, (string) (((array) ($config['language_host_prefix'] ?? []))[$legacy_language] ?? ''), boblift_series_old_paths(), $bases, $bases[0] ?? '');
+        // On the new site's own host, as every other legacy-host redirect (boblift_legacy_redirect_resolve()).
+        if ($target !== null && !empty($config['canonical_host'])) {
+            $parts = parse_url($target);
+            $target = 'https://' . $config['canonical_host'] . ($parts['path'] ?? '/') . (isset($parts['query']) ? '?' . $parts['query'] : '') . (isset($parts['fragment']) ? '#' . $parts['fragment'] : '');
+        }
+    }
     if ($target === null) {
         $target = boblift_legacy_redirect_resolve($host, $path, $config, home_url(), 'boblift_legacy_redirect_is_live_path', 'boblift_legacy_redirect_article_by_id');
     }

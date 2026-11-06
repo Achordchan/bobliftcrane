@@ -975,13 +975,14 @@ img { max-width: 100%; }
   .boblift-product-listing .product-card-footer {
     padding-top: 14px;
   }
-  /* Room for the whole labels now. */
-  .boblift-product-listing .product-card-ctas button > span:first-of-type,
-  .boblift-product-listing .product-card-ctas a > span:first-of-type {
+  /* Room for the whole labels now, in the grid's full-width cards. A list row keeps the short labels: beside its
+     112 px picture the buttons are too narrow for "View Configurations". */
+  .boblift-product-listing:not([data-view="list"]) .product-card-ctas button > span:first-of-type,
+  .boblift-product-listing:not([data-view="list"]) .product-card-ctas a > span:first-of-type {
     display: inline;
   }
-  .boblift-product-listing .product-card-ctas button > span:last-of-type,
-  .boblift-product-listing .product-card-ctas a > span:nth-of-type(2) {
+  .boblift-product-listing:not([data-view="list"]) .product-card-ctas button > span:last-of-type,
+  .boblift-product-listing:not([data-view="list"]) .product-card-ctas a > span:nth-of-type(2) {
     display: none;
   }
 }

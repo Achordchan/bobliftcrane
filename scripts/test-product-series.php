@@ -230,6 +230,15 @@ $GLOBALS['boblift_series_render']['active_source'] = 'A';
 $check('the series page itself is judged by the template', true, boblift_series_section_shown('features', true));
 unset($GLOBALS['boblift_series_render']);
 
+// An old language host's configuration address: the series page in that language, else in English.
+$oldMap = [
+    boblift_series_url_key('https://bobliftcrane.com/es/12-ton-x-sq12za4t.html', ['bobliftcrane.com'], 'bobliftcrane.com') => 'https://bobliftcrane.com/es/12-ton-x.html?model=SQ12ZA4T',
+    boblift_series_url_key('https://bobliftcrane.com/12-ton-x-sq12za4t.html', ['bobliftcrane.com'], 'bobliftcrane.com') => 'https://bobliftcrane.com/12-ton-x.html?model=SQ12ZA4T',
+];
+$check('es host: Spanish series page', 'https://bobliftcrane.com/es/12-ton-x.html?model=SQ12ZA4T', boblift_series_old_path_target('/12-ton-x-sq12za4t.html', 'es', $oldMap, ['bobliftcrane.com'], 'bobliftcrane.com'));
+$check('untranslated language: English series page', 'https://bobliftcrane.com/12-ton-x.html?model=SQ12ZA4T', boblift_series_old_path_target('/12-ton-x-sq12za4t.html', 'ar', $oldMap, ['bobliftcrane.com'], 'bobliftcrane.com'));
+$check('not a configuration', null, boblift_series_old_path_target('/about.html', 'es', $oldMap, ['bobliftcrane.com'], 'bobliftcrane.com'));
+
 // Which choices are asked.
 $members = array_map(static fn(string $model): array => ['model' => $model, 'values' => boblift_series_parse_model($model)], ['SQ08ZA3T+1', 'SQ08ZA3TJ+1']);
 $check('one-value dimensions are not asked', ['winch' => ['0', '1']], boblift_series_dimensions($members));
