@@ -953,7 +953,7 @@ img { max-width: 100%; }
     line-height: 1.15;
   }
   .boblift-product-listing .product-card-specs {
-    grid-template-columns: minmax(max-content, .8fr) minmax(max-content, 1fr) minmax(max-content, 1.25fr);
+    grid-template-columns: repeat(3, minmax(max-content, 1fr));
     margin-top: 12px;
     padding-top: 12px;
   }
