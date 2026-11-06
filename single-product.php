@@ -400,7 +400,7 @@ if ($model_history) {
 }
 $related_ui = boblift_site_ui('newsDetail');
 $case_detail_ui = boblift_site_ui('caseDetail');
-$anchors[] = ['id' => 'quote', 'label' => (string) ($ui['quoteAnchorLabel'] ?? 'Request Quote')];
+$anchors[] = ['id' => 'quote', 'label' => (string) ($ui['quoteAnchorLabel'] ?? 'Get a Quote')];
 $quote_title = (string) ($ui['quoteTitle'] ?? 'Need a crane matched to your site and lifting task?');
 if (str_contains(strtolower($quote_title), 'truck crane')) {
     $quote_title = 'Need a crane matched to your site and lifting task?';
@@ -488,7 +488,7 @@ if ($family_quote_copy) {
                     <?php boblift_series_block_close('keyspecs'); ?>
                         <?php // Quote and the two ways to message on one line; brochure and terms on one quiet line below. ?>
                         <div class="boblift-hero-actions-row mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
-                            <button class="boblift-product-hero-request inline-flex h-12 w-full shrink-0 items-center justify-center gap-2 rounded-sm bg-[#071f42] px-7 sm:w-auto text-sm font-black text-white transition hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页首屏" data-inquiry-product="<?php echo esc_attr($inquiry_product_title); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html($ui['requestQuoteLabel'] ?? 'Request Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
+                            <button class="boblift-product-hero-request inline-flex h-12 w-full shrink-0 items-center justify-center gap-2 rounded-sm bg-[#071f42] px-7 sm:w-auto text-sm font-black text-white transition hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页首屏" data-inquiry-product="<?php echo esc_attr($inquiry_product_title); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html($ui['requestQuoteLabel'] ?? 'Get a Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
                             <?php if ($hero_whatsapp_href !== '') : ?>
                                 <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 text-sm font-semibold text-[#071f42] transition hover:border-blue-500 hover:text-blue-700" href="<?php echo esc_url($hero_whatsapp_href); ?>" target="_blank" rel="noopener"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?><?php echo $series_page ? ' data-series-whatsapp' : ''; ?>><?php echo boblift_icon('whatsapp', 'h-4 w-4 text-[#25D366]'); ?><span class="[font-variant-numeric:tabular-nums]" dir="ltr"><?php echo esc_html($hero_whatsapp_display); ?></span></a>
                             <?php endif; ?>
@@ -1154,7 +1154,7 @@ if ($family_quote_copy) {
                         </div>
                     </div>
                     <div class="boblift-product-quote-actions flex flex-wrap gap-3 lg:justify-end">
-                        <button class="boblift-product-quote-action boblift-product-quote-action-primary inline-flex h-14 items-center justify-center gap-3 rounded-sm bg-[#071f42] px-7 text-sm font-black text-white transition hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页询价区" data-inquiry-product="<?php echo esc_attr($inquiry_product_title); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html($ui['requestQuoteLabel'] ?? 'Request Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
+                        <button class="boblift-product-quote-action boblift-product-quote-action-primary inline-flex h-14 items-center justify-center gap-3 rounded-sm bg-[#071f42] px-7 text-sm font-black text-white transition hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页询价区" data-inquiry-product="<?php echo esc_attr($inquiry_product_title); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html($ui['requestQuoteLabel'] ?? 'Get a Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
                         <a class="boblift-product-quote-action boblift-product-quote-action-secondary inline-flex h-14 items-center justify-center gap-3 rounded-sm border border-blue-100 bg-white/70 px-7 text-sm font-black text-[#0B3F7D] transition hover:border-blue-300" href="<?php echo esc_url($contact_url); ?>"><?php echo esc_html($ui['contactEngineerLabel'] ?? 'Contact Engineer'); ?> <?php echo boblift_icon('mail', 'h-4 w-4'); ?></a>
                     </div>
                 </div>

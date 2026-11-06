@@ -16,7 +16,7 @@ function boblift_home_product_section_config(): array
         'showCategoryScrollButtons' => (bool) ($section['show_category_scroll_buttons'] ?? true),
         // One wording for every count, so no language needs plural forms (strings in inc/translations/home-products.php).
         'viewAllLabel' => (string) (($section['view_all_label'] ?? '') ?: boblift_localized_static_text('All models · {count}')),
-        'requestQuoteLabel' => (string) ($product_ui['requestQuoteLabel'] ?? 'Request Quote'),
+        'requestQuoteLabel' => (string) ($product_ui['requestQuoteLabel'] ?? 'Get a Quote'),
         'detailsShortLabel' => $section['details_short_label'] ?? 'Details',
         'viewDetailsLabel' => $section['view_details_label'] ?? 'View Details',
         'previousCategoriesLabel' => $section['previous_categories_label'] ?? 'Previous product categories',
