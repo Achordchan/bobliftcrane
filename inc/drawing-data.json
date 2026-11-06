@@ -339,9 +339,9 @@
   ],
   "max_boom_angle_deg": 75,
   "max_height_approx": true,
-  "max_height_m": 5.5,
+  "max_height_m": 5.7,
   "max_radius_m": 4.151,
-  "outrigger_span_mm": "2430"
+  "outrigger_span_mm": "1464-3020"
  },
  "SQ08ZA3TJ+1": {
   "load_chart": [
