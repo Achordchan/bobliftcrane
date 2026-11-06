@@ -192,6 +192,14 @@ function boblift_buying_guide(WP_Term $term): array
     if (!is_array($guide) || (trim((string) ($guide['title'] ?? '')) === '' && empty($guide['points']) && empty($guide['faq']))) {
         return [];
     }
+    // Links to a configuration's old address go straight to its series page (inc/product-series.php); the saved text keeps them.
+    if (function_exists('boblift_series_content_links')) {
+        array_walk_recursive($guide, static function (&$value, $key): void {
+            if (is_string($value) && in_array($key, ['intro', 'text', 'a'], true)) {
+                $value = boblift_series_content_links($value);
+            }
+        });
+    }
     return $guide;
 }
 

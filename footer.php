@@ -35,7 +35,7 @@ $quote_list_ui = function_exists('boblift_site_ui') ? boblift_site_ui('quoteList
                 <p class="boblift-final-cta-label mb-4 text-xs font-black uppercase tracking-[0.18em] text-white/75"><?php echo esc_html($cta['label'] ?? 'Project Consultation'); ?></p>
                 <h2 class="boblift-final-cta-title max-w-none text-[clamp(2rem,3vw,3.75rem)] font-black leading-[1.02] tracking-[-0.02em]"><?php echo esc_html($cta['title'] ?? 'Need a Lifting Solution?'); ?></h2>
                 <div class="boblift-final-cta-actions mt-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8">
-                    <button class="boblift-final-cta-button inline-flex h-[54px] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-sm bg-gold px-7 text-base font-black text-navy outline-none transition hover:brightness-95 focus-visible:ring-2 focus-visible:ring-white/70" type="button" data-inquiry-modal-open data-inquiry-source="页脚询价横幅"><?php echo esc_html($cta['button_label'] ?? 'Request a Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
+                    <button class="boblift-final-cta-button inline-flex h-[54px] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-sm bg-gold px-7 text-base font-black text-navy outline-none transition hover:brightness-95 focus-visible:ring-2 focus-visible:ring-white/70" type="button" data-inquiry-modal-open data-inquiry-source="页脚询价横幅"><?php echo esc_html($cta['button_label'] ?? 'Get a Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
                     <span class="hidden h-10 w-px bg-white/25 sm:block"></span>
                     <a class="boblift-final-cta-email inline-flex items-center gap-3 text-base font-medium text-white/85 transition hover:text-white" href="mailto:<?php echo esc_attr($email); ?>"><?php echo boblift_icon('mail', 'h-5 w-5', '1.8'); ?><span dir="ltr"><?php echo esc_html($email); ?></span></a>
                 </div>
@@ -227,7 +227,7 @@ $floating_contact_buttons = function_exists('boblift_floating_contact_buttons') 
             <div class="grid gap-3" data-quote-list-items></div>
         </div>
         <div class="grid gap-3 border-t border-line bg-white px-5 py-4 md:px-6">
-            <button class="inline-flex h-12 items-center justify-center gap-2 rounded-sm bg-navy px-6 text-sm font-black text-white shadow-card transition hover:-translate-y-0.5 hover:bg-[#0b2d5b] disabled:cursor-not-allowed disabled:opacity-50" type="button" data-quote-list-request><?php echo esc_html($quote_list_ui['requestLabel'] ?? 'Request Quote'); ?> <?php echo boblift_icon('send', 'h-4 w-4'); ?></button>
+            <button class="inline-flex h-12 items-center justify-center gap-2 rounded-sm bg-navy px-6 text-sm font-black text-white shadow-card transition hover:-translate-y-0.5 hover:bg-[#0b2d5b] disabled:cursor-not-allowed disabled:opacity-50" type="button" data-quote-list-request><?php echo esc_html($quote_list_ui['requestLabel'] ?? 'Get a Quote'); ?> <?php echo boblift_icon('send', 'h-4 w-4'); ?></button>
             <button class="inline-flex h-11 items-center justify-center rounded-sm border border-line bg-white px-6 text-sm font-black text-ink transition hover:-translate-y-0.5 hover:border-blue-200 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-50" type="button" data-quote-list-clear><?php echo esc_html($quote_list_ui['clearLabel'] ?? 'Clear All'); ?></button>
         </div>
     </aside>

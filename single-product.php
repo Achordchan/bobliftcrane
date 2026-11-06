@@ -1,5 +1,5 @@
 <?php
-$queried_product = get_queried_object();
+$queried_product = boblift_series_capturing() ? get_post() : get_queried_object();
 if ($queried_product instanceof WP_Post && $queried_product->post_type === 'product' && post_password_required($queried_product)) {
     // Protected product: only the standard WordPress password form, before any specification, drawing or image is read.
     get_header();
@@ -7,7 +7,9 @@ if ($queried_product instanceof WP_Post && $queried_product->post_type === 'prod
     get_footer();
     return;
 }
-get_header();
+if (!boblift_series_capturing()) {
+    get_header();
+}
 // The routed product is already the one for this language; a slug lookup could return the English product it shares a slug with.
 $product = $queried_product instanceof WP_Post && $queried_product->post_type === 'product' && $queried_product->post_status === 'publish'
     ? boblift_product_from_post($queried_product)
@@ -22,6 +24,13 @@ if (!$product) {
     get_footer();
     return;
 }
+// A marine series page runs this template once per configuration first, keeping their blocks (inc/product-series.php).
+$product_series = boblift_series_for_product((int) ($product['id'] ?? 0));
+$series_member = $product_series ? boblift_series_member($product_series, (int) $product['id']) : null;
+if ($product_series && !boblift_series_capturing() && !empty($series_member['is_home'])) {
+    boblift_series_begin($product_series);
+}
+$series_page = $series_member && (boblift_series_capturing() || !empty($series_member['is_home']));
 $image_url = static function (string $image): string {
     return str_starts_with($image, 'http') ? $image : boblift_asset($image);
 };
@@ -30,16 +39,23 @@ $main_image = boblift_product_image($product);
 // mail name it, and the version choice under the title changes it (inc/model-names.php, assets/js/theme.js).
 $model_variant = boblift_model_default_variant(trim((string) ($product['model'] ?? '')));
 $inquiry_product_title = trim((string) ($product['title'] ?? '') . ($model_variant ? ' ' . $model_variant['model'] : ''));
-$inquiry_products_payload = wp_json_encode([[
+if ($series_page && stripos($inquiry_product_title, (string) $series_member['model']) === false) {
+    $inquiry_product_title .= ' ' . $series_member['model'];
+}
+// A configuration's address is its series page with ?model=.
+$product_page_url = $series_page ? (string) $series_member['url'] : (string) ($product['detail_url'] ?? get_permalink());
+$inquiry_product_item = [
     'id' => (string) ($product['id'] ?? ($product['slug'] ?? $product['title'])),
     'title' => $inquiry_product_title,
     'slug' => (string) ($product['slug'] ?? ''),
     'image' => (string) $main_image,
     'category' => (string) ($product['category_title'] ?? 'BOB-LIFT'),
-    'detailUrl' => (string) ($product['detail_url'] ?? get_permalink()),
-    // The inquiry form marks a previous model, so the customer sees which one they ask about.
-    'badge' => boblift_product_is_legacy((int) get_the_ID()) ? boblift_localized_static_text('Previous model') : '',
-]], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: '[]';
+    'detailUrl' => $product_page_url,
+    // The inquiry form marks a previous model, so the customer sees which one they ask about. Marine series show none.
+    'badge' => !$product_series && boblift_product_is_legacy((int) get_the_ID()) ? boblift_localized_static_text('Previous model') : '',
+];
+$inquiry_products_payload = wp_json_encode([$inquiry_product_item], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: '[]';
+$inquiry_product_slug = (string) ($product['slug'] ?? '');
 $inquiry_url = $product['inquiry_url'] ?? boblift_url('/contact.html#inquiry');
 $contact_url = boblift_url('/contact');
 $ui = boblift_site_ui('productDetail');
@@ -62,7 +78,7 @@ $hero_whatsapp_number = (string) (boblift_contact_settings()['whatsappNumber'] ?
 if ($hero_whatsapp_number !== '') {
     $whatsapp_model = (string) ($model_variant['model'] ?? ($product['model'] ?? ''));
     $hero_whatsapp_product = trim($whatsapp_model !== '' && strcasecmp($whatsapp_model, (string) ($product['title'] ?? '')) !== 0 ? $whatsapp_model . ' (' . ($product['title'] ?? '') . ')' : (string) ($product['title'] ?? ''));
-    $hero_whatsapp_href = 'https://wa.me/' . $hero_whatsapp_number . '?text=' . rawurlencode('Hello BOB-LIFT, I would like a quote for the ' . $hero_whatsapp_product . ': ' . ($product['detail_url'] ?? get_permalink()));
+    $hero_whatsapp_href = 'https://wa.me/' . $hero_whatsapp_number . '?text=' . rawurlencode('Hello BOB-LIFT, I would like a quote for the ' . $hero_whatsapp_product . ': ' . $product_page_url);
 }
 // Written out under the buttons, so visitors can also copy them: "8615852499415" reads as "+86 158 5249 9415".
 $hero_contact = boblift_contact_settings();
@@ -71,7 +87,20 @@ $hero_email = trim((string) ($hero_contact['email'] ?? ''));
 $product_title = (string) ($product['title'] ?? '');
 $hero_model = trim((string) ($product['model'] ?? ''));
 $hero_title = $hero_model !== '' ? $hero_model : $product_title;
-$show_hero_full_name = $hero_model !== '' && strcasecmp($hero_model, $product_title) !== 0;
+$hero_mail_href = 'mailto:' . $hero_email . '?subject=' . rawurlencode('BOB-LIFT quote: ' . ($model_variant['model'] ?? ($hero_model !== '' ? $hero_model : $product_title)));
+if ($series_page) {
+    boblift_series_collect((string) $series_member['model'], ['inquiry' => $inquiry_product_item, 'whatsapp' => $hero_whatsapp_href, 'mail' => $hero_mail_href, 'image' => (string) $main_image, 'name' => $product_title, 'description' => trim((string) ($product['short_description'] ?? ''))]);
+    // Opened on another configuration (?model=): the quote buttons, WhatsApp and mail name it in the page as sent.
+    $active_meta = boblift_series_active_meta();
+    if (isset($active_meta['inquiry']['title'])) {
+        $inquiry_product_item = (array) $active_meta['inquiry'];
+        $inquiry_product_title = (string) $inquiry_product_item['title'];
+        $inquiry_products_payload = wp_json_encode([$inquiry_product_item], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: '[]';
+        $hero_whatsapp_href = (string) ($active_meta['whatsapp'] ?? $hero_whatsapp_href);
+        $hero_mail_href = (string) ($active_meta['mail'] ?? $hero_mail_href);
+        $inquiry_product_slug = (string) ($inquiry_product_item['slug'] ?? '');
+    }
+}
 $specs = $product['specs'] ?? [];
 $features = $product['features'] ?? [];
 if (!$features) {
@@ -89,6 +118,10 @@ $spec_icon = static function (array $spec): string {
 };
 // The hero strip takes the first four short values; long ones (two mast heights) stay in the spec table.
 $hero_specs = array_slice(array_values(array_filter($specs, static fn($spec): bool => is_array($spec) && ($spec['label'] ?? '') !== '' && ($spec['value'] ?? '') !== '' && mb_strlen((string) $spec['value']) <= 16)), 0, 4);
+// A marine series leads with what differs between its configurations; what they share stays in the specifications.
+if ($series_page) {
+    $hero_specs = boblift_series_hero_figures(boblift_series_product_figures((int) $series_member['en_id'])) ?: $hero_specs;
+}
 $review_status = (string) ($product['parameter_review_status'] ?? 'verified-from-source');
 $review_status_labels = is_array($ui['statusLabels'] ?? null) ? $ui['statusLabels'] : [];
 $review_status_label = (string) ($review_status_labels[$review_status] ?? ($review_status_labels['verified-from-source'] ?? 'Verified from source'));
@@ -169,6 +202,10 @@ $hero_image_class = $hero_is_cutout ? $hero_cutout_class : $hero_photo_class;
 // Part hotspots only when an editor placed them for this product; the generic defaults do not match the image.
 $has_custom_hotspots = !empty($product['hotspots']);
 $former_models = trim((string) ($product['model_aliases'] ?? ''));
+// A former name that is now another configuration of the same series is no former name.
+if ($series_page && in_array($former_models, array_column($product_series['members'], 'model'), true)) {
+    $former_models = '';
+}
 // "2950 kg" -> ["2950", "kg"] so the hero can set the number large and the unit small.
 $hero_spec_parts = static function (string $value): array {
     $value = trim($value);
@@ -290,8 +327,8 @@ if (is_array($related_terms) && $related_terms) {
     }
 }
 // Previous models (inc/product-lifecycle.php): this model beside the other configurations of its capacity.
-$is_legacy_model = boblift_product_is_legacy((int) get_the_ID());
-$model_history = $related_term instanceof WP_Term ? boblift_product_model_history((int) get_the_ID(), $related_term) : [];
+$is_legacy_model = !$product_series && boblift_product_is_legacy((int) get_the_ID());
+$model_history = !$product_series && $related_term instanceof WP_Term ? boblift_product_model_history((int) get_the_ID(), $related_term) : [];
 // The English product's categories with their ancestors, so a model filed under a sub-type still counts for its family and step set.
 $process_slugs = boblift_product_category_lineage(get_the_ID());
 // Generated range guide, spec groups and model FAQs (inc/product-guide.php), for truck and marine cranes with a decoded model code.
@@ -319,14 +356,19 @@ $spec_groups = boblift_product_spec_groups(get_the_ID(), $technical_specs, $hero
 $drawing_data = boblift_product_drawing_data((int) get_the_ID());
 $anchors = [];
 $anchors[] = ['id' => 'technical', 'label' => (string) ($ui['technicalLabel'] ?? 'Technical Specifications')];
+// In page order: the drawing sits inside the specifications, above the product details.
+// Sections a configuration may have or not (its drawing, its feature cards) are listed when any configuration of the series
+// has them, shown for the configuration on screen and switched with it (data-config-section, theme script).
+if ($drawings || ($series_page && boblift_series_section_in('drawing'))) {
+    $anchors[] = ['id' => 'drawing', 'label' => (string) ($ui['drawingLabel'] ?? 'Dimension Drawing'), 'config' => $series_page, 'shown' => !$series_page || boblift_series_section_shown('drawing', (bool) $drawings)];
+}
 if ($detail_body_html !== '' || $product_videos || $has_overview_copy) {
     $anchors[] = ['id' => 'overview', 'label' => (string) ($ui['detailBodyLabel'] ?? 'Product details')];
 }
-if ($drawings) {
-    $anchors[] = ['id' => 'drawing', 'label' => (string) ($ui['drawingLabel'] ?? 'Dimension Drawing')];
-}
-if ($brochure_features) {
-    $anchors[] = ['id' => 'features', 'label' => (string) ($ui['featuresLabel'] ?? 'Key Features')];
+// On a series page the cards switch with the configuration; the section is listed when any configuration has cards.
+$series_has_features = $brochure_features !== [] || ($product_series && array_filter($product_series['members'], static fn(array $member): bool => get_post_meta((int) $member['id'], '_features_source', true) === 'brochure'));
+if ($series_has_features) {
+    $anchors[] = ['id' => 'features', 'label' => (string) ($ui['featuresLabel'] ?? 'Key Features'), 'config' => $series_page, 'shown' => !$series_page || boblift_series_section_shown('features', $brochure_features !== [])];
 }
 // Manufacturing and delivery steps: knuckle or telescopic set, by the English product's category.
 $process_sets = [
@@ -350,10 +392,55 @@ if ($buying_terms) {
 $model_faqs = boblift_product_guide_faqs($product, $product_guide, $crane_family, $hero_terms_apply);
 // The product's own questions (boblift_product_copy, inc/rest-product-copy.php) follow the generated ones.
 $model_faqs = array_merge($model_faqs, boblift_product_copy_faq((int) get_the_ID()));
+// A series page also answers the questions its configurations carried on their own pages, which now redirect here. A repeat
+// is the same question with the same answer, word for word or but for the model it names, and is left out. The same question
+// with another answer is kept and marked with its model, so it is clear which configuration it is about.
+if ($product_series && !empty($series_member['is_home'])) {
+    $faq_key = static fn(string $text, string $model): string => mb_strtolower(trim($model !== '' ? str_replace($model, '{model}', $text) : $text));
+    $home_model = (string) $series_member['model'];
+    $faq_seen = [];
+    $faq_questions = [];
+    $model_faqs = array_values(array_filter($model_faqs, static function (array $faq) use (&$faq_seen, &$faq_questions, $faq_key, $home_model): bool {
+        $exact = mb_strtolower(trim((string) $faq['question'])) . '|' . mb_strtolower(trim((string) $faq['answer']));
+        if (isset($faq_seen[$exact])) {
+            return false;
+        }
+        $faq_seen[$exact] = true;
+        $faq_seen[$faq_key((string) $faq['question'], $home_model) . '|' . $faq_key((string) $faq['answer'], $home_model)] = true;
+        $faq_questions[mb_strtolower(trim((string) $faq['question']))] = true;
+        return true;
+    }));
+    foreach ($product_series['members'] as $faq_member) {
+        if (!empty($faq_member['is_home'])) {
+            continue;
+        }
+        foreach (boblift_product_copy_faq((int) $faq_member['id']) as $faq) {
+            $question = trim((string) $faq['question']);
+            $answer = trim((string) $faq['answer']);
+            $model = (string) $faq_member['model'];
+            $exact = mb_strtolower($question) . '|' . mb_strtolower($answer);
+            $same = $faq_key($question, $model) . '|' . $faq_key($answer, $model);
+            if (isset($faq_seen[$exact]) || isset($faq_seen[$same])) {
+                continue;
+            }
+            $faq_seen[$exact] = $faq_seen[$same] = true;
+            $asked = isset($faq_questions[mb_strtolower($question)]);
+            $faq_questions[mb_strtolower($question)] = true;
+            $model_faqs[] = ['question' => str_contains($question, $model) && !$asked ? $question : $model . ': ' . $question, 'answer' => $answer];
+        }
+    }
+}
 $cases_ui = boblift_site_ui('casesPage');
 $product_cases = boblift_product_cases(get_the_ID());
 $product_feedback = boblift_product_feedback(get_the_ID());
 $product_feedback_total = $product_feedback ? boblift_product_feedback_count(get_the_ID()) : 0;
+// A series page tells the cases and feedback of all its configurations.
+if ($series_page && !boblift_series_capturing()) {
+    $product_cases = boblift_series_related_items($product_series, static fn(int $id): array => boblift_product_cases($id), 3);
+    $series_feedback = boblift_series_related_items($product_series, 'boblift_product_feedback_all');
+    $product_feedback = array_slice($series_feedback, 0, 8);
+    $product_feedback_total = count($series_feedback);
+}
 if ($product_cases) {
     $anchors[] = ['id' => 'cases', 'label' => (string) ($cases_ui['sceneCasesLabel'] ?? 'Application Cases')];
 }
@@ -366,7 +453,7 @@ if ($model_history) {
 }
 $related_ui = boblift_site_ui('newsDetail');
 $case_detail_ui = boblift_site_ui('caseDetail');
-$anchors[] = ['id' => 'quote', 'label' => (string) ($ui['quoteAnchorLabel'] ?? 'Request Quote')];
+$anchors[] = ['id' => 'quote', 'label' => (string) ($ui['quoteAnchorLabel'] ?? 'Get a Quote')];
 $quote_title = (string) ($ui['quoteTitle'] ?? 'Need a crane matched to your site and lifting task?');
 if (str_contains(strtolower($quote_title), 'truck crane')) {
     $quote_title = 'Need a crane matched to your site and lifting task?';
@@ -386,11 +473,28 @@ if ($family_quote_copy) {
         <?php // Old shared links to #photos land on the photos, now in the hero. ?><span id="photos" class="block scroll-mt-24" aria-hidden="true"></span>
         <div class="pointer-events-none absolute inset-0 boblift-cinema-grid opacity-40"></div>
         <div class="page-shell relative z-10 py-6 md:py-8 lg:py-10">
-            <div class="grid grid-cols-1 items-center gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-10 xl:gap-14">
-                <div class="relative z-20 order-2 min-w-0 lg:order-1">
+            <?php // The configuration box makes the text column tall: the photo stays at its top instead of drifting to the middle. ?>
+            <div class="grid grid-cols-1 items-start gap-6 xl:items-stretch lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-10 xl:gap-14">
+                <div class="boblift-hero-text relative z-20 order-2 min-w-0 lg:order-1">
+                        <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                     <p class="boblift-kicker boblift-product-hero-kicker"><?php echo esc_html($product['category_title'] ?? 'BOB-LIFT Product'); ?></p>
-                    <?php // The full name sits inside the h1 with the model, so the heading keeps the product keyword the old site ranked on. ?>
-                    <h1 class="mt-3 text-[#071f42]"><span class="boblift-product-hero-title block text-[clamp(44px,4.4vw,84px)] font-black leading-[0.92] tracking-[-0.02em]"><?php echo esc_html($hero_title); ?></span><?php if ($show_hero_full_name) : ?><span class="mt-3 block text-[clamp(18px,1.35vw,24px)] font-medium leading-tight tracking-normal text-slate-700"><?php echo esc_html($product_title); ?></span><?php endif; ?></h1>
+                            <?php $hero_capacity = function_exists('boblift_product_listing_capacity') ? boblift_product_listing_capacity($product) : 0.0; $hero_tonnage = function_exists('boblift_tonnage_size_for_capacity') ? boblift_tonnage_size_for_capacity($hero_capacity) : 0; if ($hero_tonnage > 0) : ?>
+                                <a class="inline-flex shrink-0 items-center gap-1.5 text-[13px] font-black text-blue-700 transition hover:text-[#071f42]" href="<?php echo esc_url(boblift_tonnage_url($hero_tonnage)); ?>"><?php echo esc_html(boblift_tonnage_see_all_label($hero_tonnage, $hero_capacity)); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></a>
+                            <?php endif; ?>
+                        </div>
+                    <?php
+                    // The crane's name leads, as on the product cards; the model shown comes under it and follows the choice.
+                    $hero_view = boblift_series_card_view($product);
+                    $series_name_switches = $product_series && $product_series['family'] === 'pickup';
+                    $hero_name = $series_name_switches ? (string) ($GLOBALS['boblift_series_render']['meta'][$GLOBALS['boblift_series_render']['active_source'] ?? '']['name'] ?? $hero_view['full_title']) : $hero_view['full_title'];
+                    $hero_model_shown = $series_page ? (string) ($GLOBALS['boblift_series_render']['active'] ?? $hero_model) : $hero_model;
+                    $hero_series_label = $product_series ? boblift_series_label($product_series) : '';
+                    ?>
+                    <?php // A name that changes with the choice keeps room for two lines, so nothing under it moves. ?>
+                    <h1 class="boblift-product-hero-title mt-4 text-[clamp(30px,2.6vw,44px)] font-black leading-[1.1] tracking-[-0.015em] text-[#071f42]<?php echo $series_name_switches ? ' min-h-[2.2em]' : ''; ?>"<?php echo $series_name_switches ? ' data-cfg-name' : ''; ?>><?php echo esc_html($hero_name); ?></h1>
+                    <?php if ($hero_model_shown !== '') : ?>
+                        <p class="mt-3.5 text-[clamp(17px,1.25vw,20px)] leading-snug text-[#071f42]" data-hero-model-line><span class="font-normal text-slate-500"><?php echo esc_html(boblift_series_text('Model')); ?></span> <span class="font-black" dir="ltr"<?php echo $series_page ? ' data-cfg-title' : ''; ?>><?php echo esc_html($hero_model_shown); ?></span><?php if ($hero_series_label !== '' && $hero_series_label !== $hero_model_shown) : ?><span class="mx-2 text-slate-300" aria-hidden="true">·</span><span class="font-normal text-slate-500"><?php echo esc_html($hero_series_label); ?></span><?php endif; ?></p>
+                    <?php endif; ?>
                     <?php if ($is_legacy_model) :
                         $legacy_target = $model_history ? '#model-history' : ($related_term instanceof WP_Term && !is_wp_error(get_term_link($related_term)) ? (string) get_term_link($related_term) : boblift_product_archive_url());
                         // The current models of the same capacity (or the nearest), each a direct link: the way on from a previous model.
@@ -415,52 +519,51 @@ if ($family_quote_copy) {
                             <?php endif; ?>
                         </div>
                     <?php endif; ?>
-                    <?php boblift_render_model_decode($hero_model); ?>
+                    <?php if (!$series_page) { boblift_render_model_decode($hero_model); } ?>
                     <?php boblift_render_model_variants($hero_model, (string) ($product['slug'] ?? '')); ?>
-                    <dl class="mt-6 grid grid-cols-2 border-y border-[#D5DEE9] sm:grid-cols-4 lg:mt-7">
+                    <?php // The choice comes first; the figures under it answer to it. ?>
+                    <?php boblift_series_render_configurator(); ?>
+                    <?php boblift_series_block_open('keyspecs'); ?>
+                    <?php // Plain text with no boxes: only the configuration above is there to be clicked. ?>
+                    <dl class="mt-7 grid grid-cols-2 gap-x-4 gap-y-3 <?php echo $series_page ? 'sm:grid-cols-5' : 'sm:grid-cols-4'; ?>">
                         <?php foreach ($hero_specs as $index => $spec) :
-                            [$spec_number, $spec_unit] = $hero_spec_parts((string) ($spec['value'] ?? ''));
+                            [$spec_number, $spec_unit] = $series_page ? boblift_series_figure_parts((string) ($spec['value'] ?? '')) : $hero_spec_parts((string) ($spec['value'] ?? ''));
                         ?>
-                            <div class="flex min-w-0 flex-col py-4 pr-3 <?php echo $index % 2 === 1 ? 'border-l border-[#D5DEE9] ps-4' : ''; ?> <?php echo $index >= 2 ? 'border-t border-[#D5DEE9] sm:border-t-0' : ''; ?> <?php echo $index === 2 ? 'sm:border-l sm:ps-4' : ''; ?>">
-                                <dt class="text-[10px] font-black uppercase leading-4 tracking-[0.12em] text-slate-500"><?php echo esc_html($spec['label']); ?></dt>
-                                <dd class="mt-auto break-words pt-1.5 font-black leading-tight text-[#071f42] [font-variant-numeric:tabular-nums]"><span class="<?php echo ($spec_unit !== '' || mb_strlen($spec_number) <= 8) ? 'text-[clamp(22px,1.9vw,32px)]' : 'text-base'; ?>"><?php echo esc_html($spec_number); ?></span><?php if ($spec_unit !== '') : ?><span class="<?php echo $spec_unit === '°' ? '' : 'ms-1'; ?> whitespace-nowrap text-sm font-bold text-slate-500"><?php echo esc_html($spec_unit); ?></span><?php endif; ?></dd>
+                            <div class="flex min-w-0 flex-col<?php echo $series_page && $index === 4 ? ' col-span-2 sm:col-span-1' : ''; ?>"<?php echo $series_page ? ' data-cfg-cell="' . esc_attr((string) ($spec['key'] ?? '')) . '" data-cfg-cell-value="' . esc_attr((string) ($spec['value'] ?? '')) . '"' : ''; ?>>
+                                <dt class="text-[13px] font-semibold leading-[1.25] text-slate-500"><?php echo esc_html($spec['label']); ?></dt>
+                                <dd class="mt-auto break-words pt-1.5 font-black leading-tight text-[#071f42] [font-variant-numeric:tabular-nums]"><span class="<?php echo $series_page ? 'text-[clamp(22px,1.9vw,32px)]' : (($spec_unit !== '' || mb_strlen($spec_number) <= 8) ? 'text-[clamp(22px,1.9vw,32px)]' : 'text-base'); ?><?php echo $spec_number === '—' ? ' text-slate-400' : ''; ?>"><?php echo esc_html($spec_number); ?></span><?php if ($spec_unit !== '') : ?><span class="<?php echo $spec_unit === '°' ? '' : 'ms-1'; ?> whitespace-nowrap text-sm font-bold text-slate-500"><?php echo esc_html($spec_unit); ?></span><?php endif; ?></dd>
                             </div>
                         <?php endforeach; ?>
                     </dl>
-                    <?php // The tonnage page of this model's capacity bin (inc/tonnage-pages.php); none for models rated by working height. ?>
-                    <?php $hero_capacity = function_exists('boblift_product_listing_capacity') ? boblift_product_listing_capacity($product) : 0.0; $hero_tonnage = function_exists('boblift_tonnage_size_for_capacity') ? boblift_tonnage_size_for_capacity($hero_capacity) : 0; if ($hero_tonnage > 0) : ?>
-                        <a class="mt-4 inline-flex items-center gap-1.5 text-sm font-black text-blue-700 transition hover:text-[#071f42]" href="<?php echo esc_url(boblift_tonnage_url($hero_tonnage)); ?>"><?php echo esc_html(boblift_tonnage_see_all_label($hero_tonnage, $hero_capacity)); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></a>
+                    <?php if ($series_page && in_array('—', array_column($hero_specs, 'value'), true)) : ?>
+                        <p class="mt-2 text-xs leading-5 text-slate-500"><?php echo esc_html(boblift_series_text('—: see the drawing, confirmed with your quote')); ?></p>
                     <?php endif; ?>
-                    <div class="boblift-product-hero-actions mt-6 flex flex-wrap items-center gap-2.5 sm:gap-3 lg:mt-7">
-                        <button class="boblift-product-hero-request inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-sm bg-[#071f42] px-6 text-sm font-black text-white transition hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页首屏" data-inquiry-product="<?php echo esc_attr($inquiry_product_title); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html($ui['requestQuoteLabel'] ?? 'Request Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
-                        <?php if ($hero_pdf_url !== '') : ?>
-                            <a class="boblift-product-hero-pdf inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-sm border border-[#D5DEE9] bg-white px-5 text-sm font-black text-[#0B3F7D] transition hover:border-blue-300" href="<?php echo esc_url($hero_pdf_url); ?>" <?php echo $hero_pdf_file !== '' ? 'download="' . esc_attr($hero_pdf_file) . '"' : 'target="_blank" rel="noopener"'; ?>><?php echo boblift_icon('download', 'h-4 w-4'); ?><?php echo esc_html($hero_pdf_label); ?><?php if ($hero_pdf_size !== '') : ?><span class="hidden text-xs font-bold text-slate-500 sm:inline"><?php echo esc_html($hero_pdf_size); ?></span><?php endif; ?></a>
-                        <?php endif; ?>
-                    </div>
-                    <?php if ($hero_whatsapp_href !== '' || $hero_email !== '') : ?>
-                        <div class="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
-                            <span class="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(boblift_localized_static_text('Or message us')); ?></span>
+                    <?php boblift_series_block_close('keyspecs'); ?>
+                        <?php // Quote and the two ways to message on one line; brochure and terms on one quiet line below. ?>
+                        <div class="boblift-hero-actions-row mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
+                            <button class="boblift-product-hero-request inline-flex h-12 w-full shrink-0 items-center justify-center gap-2 rounded-sm bg-[#071f42] px-7 sm:w-auto text-sm font-black text-white transition hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页首屏" data-inquiry-product="<?php echo esc_attr($inquiry_product_title); ?>" data-inquiry-product-slug="<?php echo esc_attr($inquiry_product_slug); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html($ui['requestQuoteLabel'] ?? 'Get a Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
                             <?php if ($hero_whatsapp_href !== '') : ?>
-                                <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 font-black text-[#071f42] transition hover:border-[#25D366]" href="<?php echo esc_url($hero_whatsapp_href); ?>" target="_blank" rel="noopener"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?>><?php echo boblift_icon('whatsapp', 'h-4 w-4 text-[#25D366]'); ?><span class="[font-variant-numeric:tabular-nums]"><?php echo esc_html($hero_whatsapp_display); ?></span></a>
+                                <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 text-sm font-semibold text-[#071f42] transition hover:border-blue-500 hover:text-blue-700" href="<?php echo esc_url($hero_whatsapp_href); ?>" target="_blank" rel="noopener"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?><?php echo $series_page ? ' data-series-whatsapp' : ''; ?>><?php echo boblift_icon('whatsapp', 'h-4 w-4 text-[#25D366]'); ?><span class="[font-variant-numeric:tabular-nums]" dir="ltr"><?php echo esc_html($hero_whatsapp_display); ?></span></a>
                             <?php endif; ?>
                             <?php if ($hero_email !== '') : ?>
-                                <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 font-black text-[#071f42] transition hover:border-blue-500" href="<?php echo esc_url('mailto:' . $hero_email . '?subject=' . rawurlencode('BOB-LIFT quote: ' . ($model_variant['model'] ?? ($hero_model !== '' ? $hero_model : $product_title)))); ?>"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?>><?php echo boblift_icon('mail', 'h-4 w-4 text-slate-500'); ?><?php echo esc_html($hero_email); ?></a>
+                                <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 text-sm font-semibold text-[#071f42] transition hover:border-blue-500 hover:text-blue-700" href="<?php echo esc_url($hero_mail_href); ?>"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?><?php echo $series_page ? ' data-series-mail' : ''; ?>><?php echo boblift_icon('mail', 'h-4 w-4 text-slate-500'); ?><?php echo esc_html($hero_email); ?></a>
                             <?php endif; ?>
                         </div>
-                    <?php endif; ?>
-                    <?php if ($hero_terms_apply) : ?>
-                        <div class="mt-6 border-t border-[#D5DEE9] pt-5">
-                            <ul class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-600">
-                                <li class="inline-flex items-center gap-2"><?php echo boblift_icon('shield-check', 'h-4 w-4 text-[#0B3F7D]'); ?><?php echo esc_html(boblift_localized_static_text('12-month warranty')); ?></li>
-                                <li class="inline-flex items-center gap-2"><?php echo boblift_icon('package-check', 'h-4 w-4 text-[#0B3F7D]'); ?><?php echo esc_html(boblift_localized_static_text('Order from 1 unit')); ?></li>
-                                <li><a class="inline-flex items-center gap-1 border-b border-[#C9D6E6] pb-0.5 font-black text-[#071f42] transition hover:border-blue-500" href="#buying"><?php echo esc_html(boblift_localized_static_text('Shipping & warranty')); ?><?php echo boblift_icon('arrow-down', 'h-3.5 w-3.5'); ?></a></li>
-                            </ul>
-                            <p class="mt-3 text-xs font-normal leading-5 text-slate-500"><?php echo esc_html(boblift_localized_static_text('Confirm your configuration and current availability with our team.')); ?></p>
-                        </div>
-                    <?php endif; ?>
+                        <ul class="boblift-hero-trust mt-7 flex flex-wrap items-center justify-between gap-x-2 gap-y-2 border-t border-[#D5DEE9] pt-5 text-[14px] text-slate-600">
+                            <?php // A configuration's own catalogue switches with the choice, like its photos and figures. ?>
+                            <?php if ($series_page || $hero_pdf_url !== '') : ?>
+                                <li><?php boblift_series_block_open('pdf'); ?><?php if ($hero_pdf_url !== '') : ?><a class="boblift-product-hero-pdf inline-flex items-center gap-1.5 border-b border-[#C9D6E6] pb-0.5 font-semibold text-[#071f42] transition hover:border-blue-500 hover:text-blue-700" href="<?php echo esc_url($hero_pdf_url); ?>" <?php echo $hero_pdf_file !== '' ? 'download="' . esc_attr($hero_pdf_file) . '"' : 'target="_blank" rel="noopener"'; ?>><?php echo boblift_icon('download', 'h-4 w-4'); ?><?php echo esc_html($hero_pdf_label); ?><?php if ($hero_pdf_size !== '') : ?><span class="font-normal text-slate-500"><?php echo esc_html($hero_pdf_size); ?></span><?php endif; ?></a><?php endif; ?><?php boblift_series_block_close('pdf'); ?></li>
+                            <?php endif; ?>
+                            <?php if ($hero_terms_apply) : ?>
+                                <li class="inline-flex items-center gap-1.5"><?php echo boblift_icon('shield-check', 'h-4 w-4 text-[#0B3F7D]'); ?><?php echo esc_html(boblift_localized_static_text('12-month warranty')); ?></li>
+                                <li class="inline-flex items-center gap-1.5"><?php echo boblift_icon('package-check', 'h-4 w-4 text-[#0B3F7D]'); ?><?php echo esc_html(boblift_localized_static_text('Order from 1 unit')); ?></li>
+                                <li><a class="inline-flex items-center gap-1.5 border-b border-[#C9D6E6] pb-0.5 font-semibold text-[#071f42] transition hover:border-blue-500 hover:text-blue-700" href="#buying"><?php echo esc_html(boblift_localized_static_text('Shipping & warranty')); ?><?php echo boblift_icon('arrow-down', 'h-4 w-4'); ?></a></li>
+                            <?php endif; ?>
+                        </ul>
                 </div>
+                <?php boblift_series_block_open('gallery'); ?>
                 <div class="relative order-1 min-w-0 lg:order-2" data-product-hero-gallery-root data-product-hero-active-index="0">
-                    <div class="boblift-product-stage relative aspect-[4/3] overflow-hidden rounded border border-[#DDE7F2] bg-[linear-gradient(180deg,#FFFFFF_0%,#F2F6FB_62%,#E8EEF6_100%)] shadow-card lg:aspect-[5/4] xl:aspect-[4/3]" data-product-hotspot-stage>
+                    <div class="boblift-product-stage relative aspect-[4/3] overflow-hidden rounded border border-[#DDE7F2] bg-[linear-gradient(180deg,#FFFFFF_0%,#F2F6FB_62%,#E8EEF6_100%)] shadow-card w-full lg:aspect-[5/4] xl:aspect-[16/10]" data-product-hotspot-stage>
                         <span class="pointer-events-none absolute inset-x-[8%] bottom-6 h-px bg-[#CBD6E3] sm:bottom-8 lg:bottom-10" aria-hidden="true"></span>
                         <span class="pointer-events-none absolute bottom-2 left-1/2 h-8 w-[58%] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgba(11,27,51,0.16),transparent)] sm:bottom-4 lg:bottom-6" aria-hidden="true"></span>
                         <div class="absolute inset-0">
@@ -488,7 +591,8 @@ if ($family_quote_copy) {
                             <?php endforeach; ?>
                         <?php endif; ?>
                     </div>
-                    <?php if (count($hero_gallery_items) > 1) : ?>
+                    <?php // Always there, even for one photo: every configuration's gallery keeps one height. ?>
+                    <?php if ($hero_gallery_items) : ?>
                         <div class="mt-3 flex">
                             <div class="flex max-w-full items-center gap-2 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="<?php echo esc_attr($ui['photoGalleryTitle'] ?? 'Product Photos'); ?>">
                                 <?php foreach ($hero_gallery_items as $index => $item) : ?>
@@ -500,36 +604,40 @@ if ($family_quote_copy) {
                         </div>
                     <?php endif; ?>
                 </div>
+                <?php boblift_series_block_close('gallery', 'relative order-1 min-w-0 lg:order-2'); ?>
             </div>
         </div>
     </section>
-    <div class="sticky top-[var(--boblift-header-h)] z-30 border-y border-[#DDE7F2] bg-white shadow-card"><nav class="boblift-product-section-nav page-shell flex min-h-12 items-center overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] md:min-h-14 [&::-webkit-scrollbar]:hidden" aria-label="<?php echo esc_attr($ui['sectionNavLabel'] ?? 'Product detail sections'); ?>" data-product-section-nav><a class="boblift-cinema-nav-link grid h-12 min-w-12 shrink-0 place-items-center border-x border-[#DDE7F2] text-[#0B3F7D] md:h-14 md:min-w-14" href="#product-hero" data-product-section-link aria-label="<?php echo esc_attr($product['title'] ?? 'Product hero'); ?>"><?php echo boblift_icon('home', 'h-5 w-5'); ?></a><?php foreach ($anchors as $anchor) : ?><a class="boblift-cinema-nav-link flex h-12 min-w-max items-center justify-center border-e border-[#DDE7F2] px-3 text-xs font-black sm:px-4 md:h-14 text-[#334155] transition hover:bg-blue-50 hover:text-[#0B3F7D] md:px-6 md:text-sm" href="#<?php echo esc_attr($anchor['id']); ?>" data-product-section-link><?php echo esc_html($anchor['label']); ?></a><?php endforeach; ?></nav></div>
+    <div class="sticky top-[var(--boblift-header-h)] z-30 border-y border-[#DDE7F2] bg-white shadow-card"><nav class="boblift-product-section-nav page-shell flex min-h-12 items-center overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] md:min-h-14 [&::-webkit-scrollbar]:hidden" aria-label="<?php echo esc_attr($ui['sectionNavLabel'] ?? 'Product detail sections'); ?>" data-product-section-nav><a class="boblift-cinema-nav-link grid h-12 min-w-12 shrink-0 place-items-center border-x border-[#DDE7F2] text-[#0B3F7D] md:h-14 md:min-w-14" href="#product-hero" data-product-section-link aria-label="<?php echo esc_attr($product['title'] ?? 'Product hero'); ?>"><?php echo boblift_icon('home', 'h-5 w-5'); ?></a><?php foreach ($anchors as $anchor) : ?><a class="boblift-cinema-nav-link flex h-12 min-w-max items-center justify-center border-e border-[#DDE7F2] px-3 text-xs font-black sm:px-4 md:h-14 text-[#334155] transition hover:bg-blue-50 hover:text-[#0B3F7D] md:px-6 md:text-sm" href="#<?php echo esc_attr($anchor['id']); ?>" data-product-section-link<?php echo !empty($anchor['config']) ? ' data-config-section="' . esc_attr($anchor['id']) . '"' . (empty($anchor['shown']) ? ' style="display:none"' : '') : ''; ?>><?php echo esc_html($anchor['label']); ?></a><?php endforeach; ?></nav></div>
     <section class="bg-[#F5F7FB] py-8 md:py-12">
         <div class="boblift-pd-stack page-shell min-w-0 space-y-2 sm:space-y-6 md:space-y-8">
-            <article id="technical" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card">
+            <?php boblift_series_block_open('technical'); ?>
+            <article id="technical" class="scroll-mt-24 overflow-hidden rounded-xl border border-[#DDE7F2] bg-white shadow-card">
                 <div class="px-4 py-5 sm:p-6 md:p-8">
                     <div class="flex items-start justify-between gap-4">
                         <div class="min-w-0">
                             <p class="boblift-kicker"><?php echo esc_html($ui['cinemaSpecsLabel'] ?? 'Engineering data'); ?></p>
-                            <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html(trim($hero_model . ' ' . ($ui['specsHeading'] ?? 'Specifications'))); ?></h2>
+                            <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($ui['technicalLabel'] ?? 'Technical Specifications'); ?></h2>
+                            <?php if ($hero_model !== '') : ?><p class="mt-2 text-[15px] font-bold text-slate-600" dir="ltr"<?php echo $series_page ? ' data-cfg-model-text' : ''; ?>><?php echo esc_html($hero_model); ?></p><?php endif; ?>
                         </div>
                         <?php if ($former_models !== '') : ?>
                             <?php // Old-site model names stay on the page so searches for them still land here. ?>
                             <dl class="shrink-0 rounded-sm border border-[#DDE7F2] bg-[#F5F8FC] px-3 py-2 text-right sm:px-4">
-                                <dt class="text-[11px] font-normal leading-4 text-slate-500"><?php echo esc_html($ui['formerModelLabel'] ?? 'Former model'); ?></dt>
+                                <dt class="text-[12px] font-normal leading-4 text-slate-500"><?php echo esc_html($ui['formerModelLabel'] ?? 'Former model'); ?></dt>
                                 <dd class="mt-0.5 text-sm font-black leading-5 text-[#071f42]"><?php echo esc_html($former_models); ?></dd>
                             </dl>
                         <?php endif; ?>
                     </div>
+                    <?php // What the model name means, in the order it is written, for whoever goes looking: the top of the page stays about the choice. ?>
+                    <?php if ($series_page) { boblift_specs_render_decode_strip($hero_model, (string) $product_series['winch'], (int) $series_member['en_id']); } ?>
                 </div>
-                <?php // With drawings, the specs take the left half and the drawings the right, as on the loader site, so a wide drawing is not blown up to the full card width. ?>
-                <?php if ($drawings) : ?><div class="grid grid-cols-[minmax(0,1fr)] border-t border-[#E6EDF5] lg:grid-cols-2"><?php endif; ?>
                 <?php
-                // Grouped (lifting, hydraulics, machine) when the English table lines up with this language's rows; one table otherwise.
+                // The rows a winch version without its own product changes (theme script).
+                $series_weight_label = $series_page ? boblift_series_spec_label((int) $series_member['en_id'], (array) $specs, 'Self Weight') : '';
+                $series_winch_label = $series_page ? boblift_series_spec_label((int) $series_member['en_id'], (array) $specs, 'Winch') : '';
+                // Grouped (lifting, hydraulics, machine) when the English table lines up with this language's rows; one group otherwise.
                 $spec_sections = $spec_groups ?: [['label' => '', 'rows' => $technical_specs]];
                 $spec_range_link = $related_term instanceof WP_Term ? get_term_link($related_term) : '';
-                ?>
-                <?php
                 // Figures read off the drawing join the groups they belong to (reach, height and boom angle under Lifting, the
                 // outrigger span under Machine) instead of a group of their own, and a figure the table already gives is not
                 // repeated. A product without outriggers has no span on its drawing, so it shows no outrigger row.
@@ -553,57 +661,37 @@ if ($family_quote_copy) {
                     }
                     $spec_sections[$drawing_index]['rows'][] = $drawing_row;
                 }
+                // The heading already names the model, so a Model row is left out.
+                foreach ($spec_sections as $spec_index => $spec_section) {
+                    $spec_sections[$spec_index]['rows'] = array_values(array_filter($spec_section['rows'], static fn(array $row): bool => $hero_model === '' || trim((string) $row['value']) !== $hero_model));
+                }
                 ?>
-                <div class="min-w-0 <?php echo $drawings ? '' : 'border-t border-[#E6EDF5]'; ?>">
-                    <?php
-                    // A spec sheet, not tiles: label and value on one line, two columns (three without drawings on wide screens),
-                    // so fourteen figures fit in the height four tile rows took. The last row of a group fills what is left of its line.
-                    $spec_cols = $drawings ? 2 : 3;
-                    $spec_fill = ['sm' => [2 => 'sm:col-span-2'], 'lg' => [2 => 'lg:col-span-2', 3 => 'lg:col-span-3']];
-                    ?>
-                    <?php foreach ($spec_sections as $spec_section) :
-                        // A value too long for half a row (a configuration, a bolt pattern) takes a whole row, after the short
-                        // figures, so it reads on one or two lines instead of being squeezed into three.
-                        $spec_is_long = static fn(array $row): bool => boblift_text_width(trim((string) ($row['value'] ?? ''))) > 20;
-                        $spec_short = array_values(array_filter($spec_section['rows'], static fn(array $row): bool => !$spec_is_long($row)));
-                        $spec_long = array_values(array_filter($spec_section['rows'], $spec_is_long));
-                        $spec_rows = array_merge($spec_short, $spec_long);
-                        $spec_ones = array_fill(0, count($spec_short), 1);
-                        $spec_full = 'sm:col-span-2' . ($spec_cols === 3 ? ' lg:col-span-3' : '');
-                        ?>
-                        <?php if ($spec_section['label'] !== '') : ?>
-                            <h3 class="border-b border-[#E6EDF5] bg-[#F8FAFC] px-4 py-2 sm:px-6 text-[11px] font-black uppercase tracking-[0.14em] text-slate-500 rtl:tracking-normal md:px-8"><?php echo esc_html($spec_section['label']); ?></h3>
-                        <?php endif; ?>
-                        <dl class="grid grid-cols-1 sm:grid-cols-2 <?php echo $spec_cols === 3 ? 'lg:grid-cols-3' : ''; ?>">
-                            <?php foreach ($spec_rows as $spec_index => $spec) :
-                                [$spec_number, $spec_unit] = $hero_spec_parts((string) $spec['value']);
-                                $spec_is_model = !$spec_groups && $hero_model !== '' && $spec === $technical_specs[0];
-                                $spec_last = $spec_index >= count($spec_short) ? $spec_full : ($spec_index === count($spec_short) - 1 ? trim(($spec_fill['sm'][boblift_grid_last_item_span($spec_ones, 2)] ?? '') . ' ' . ($spec_cols === 3 ? ($spec_fill['lg'][boblift_grid_last_item_span($spec_ones, 3)] ?? 'lg:col-span-1') : '')) : '');
-                            ?>
-                                <div class="flex min-w-0 items-baseline justify-between gap-4 border-b border-[#E6EDF5] px-4 py-2.5 sm:px-6 sm:py-3 md:px-8 <?php echo esc_attr($spec_last); ?> <?php echo $spec_is_model ? 'bg-[#F5F8FC]' : ''; ?>">
-                                    <dt class="min-w-0 text-sm font-normal leading-5 text-slate-500"><?php echo esc_html($spec['label']); ?></dt>
-                                    <?php // Short figures stay on one line; a long value (two configurations, a note) wraps within 60% of the row. ?>
-                                    <dd class="<?php echo mb_strlen((string) $spec['value']) <= 18 ? 'shrink-0 whitespace-nowrap' : 'min-w-0 max-w-[60%] break-words'; ?> text-end font-black leading-tight text-[#071f42] [font-variant-numeric:tabular-nums]"><span class="text-base md:text-lg"><?php echo esc_html($spec_number); ?></span><?php if ($spec_unit !== '') : ?><span class="<?php echo $spec_unit === '°' ? '' : 'ms-1'; ?> text-xs font-bold text-slate-500 md:text-sm"><?php echo esc_html($spec_unit); ?></span><?php endif; ?></dd>
-                                </div>
-                            <?php endforeach; ?>
-                        </dl>
-                    <?php endforeach; ?>
-                    <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-[#E6EDF5] px-4 py-4 sm:px-6 md:px-8">
-                        <p class="max-w-xl text-xs font-normal leading-5 text-slate-500"><?php echo esc_html(boblift_localized_static_text('Figures from the BOB-LIFT technical drawings. Confirm the final specification with our team before ordering.')); ?></p>
+                <?php // With drawings, the figures take the left half and the drawings the right, so a wide drawing is not blown up to the full card width. ?>
+                <?php if ($drawings) : ?><div class="grid grid-cols-[minmax(0,1fr)] border-t border-[#E6EDF5] lg:grid-cols-2"><?php endif; ?>
+                <div class="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-6 px-4 py-5 sm:p-6 md:p-8 <?php echo $drawings ? '' : 'border-t border-[#E6EDF5]'; ?>">
+                    <?php if ($series_page && count((array) ($GLOBALS['boblift_series_render']['variants'] ?? [])) > 1) : ?>
+                        <?php // Every configuration with its key figures; a row switches the page like the box at the top, and follows it. ?>
+                        <div><p class="boblift-kicker"><?php echo esc_html(boblift_series_text('Choose your configuration')); ?></p><div class="mt-3" data-cfg-compare-slot><?php boblift_series_render_compare((string) $series_member['model']); ?></div></div>
+                    <?php endif; ?>
+                    <?php // A translated table whose self weight or winch row cannot be placed says so above it on a derived version (theme script). ?>
+                    <?php if ($series_page && boblift_series_spec_rows_unplaced((int) $series_member['en_id'], (array) $specs, $series_weight_label, $series_winch_label)) : ?><p class="text-sm leading-6 text-slate-500" data-cfg-spec-note hidden></p><?php endif; ?>
+                    <?php boblift_specs_render_group_boxes($spec_sections, $series_weight_label, $series_winch_label); ?>
+                    <div class="flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-[#E6EDF5] pt-5">
                         <?php if (is_string($spec_range_link) && $spec_range_link !== '') : ?>
-                            <a class="inline-flex shrink-0 items-center gap-1.5 text-sm font-black text-blue-700 transition hover:text-[#071f42]" href="<?php echo esc_url($spec_range_link); ?>"><?php echo esc_html(str_replace('{range}', $related_term->name, boblift_localized_static_text('Compare all {range}'))); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></a>
+                            <a class="inline-flex min-h-12 max-w-full items-center justify-center gap-2 rounded-sm bg-[#071f42] px-6 py-3 text-sm font-black text-white transition hover:bg-[#0B3F7D]" href="<?php echo esc_url($spec_range_link); ?>"><?php echo esc_html(str_replace('{range}', $related_term->name, boblift_localized_static_text('Compare all {range}'))); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></a>
                         <?php endif; ?>
+                        <p class="min-w-[15rem] flex-1 text-[13px] font-normal leading-5 text-slate-500"><?php echo esc_html(boblift_localized_static_text('Figures from the BOB-LIFT technical drawings. Confirm the final specification with our team before ordering.')); ?></p>
                     </div>
                 </div>
                 <?php if ($drawings) : ?>
-                    <div id="drawing" class="flex scroll-mt-24 flex-col justify-start gap-6 border-t border-[#E6EDF5] px-4 py-5 sm:p-6 md:p-8 lg:-ms-px lg:border-s lg:border-t-0">
+                    <div id="drawing" class="flex scroll-mt-24 flex-col justify-start gap-6 px-4 py-5 sm:p-6 md:p-8 border-t border-[#E6EDF5] lg:-ms-px lg:border-s lg:border-t-0">
                         <p class="boblift-kicker"><?php echo esc_html($ui['drawingTitle'] ?? 'Dimensions and load chart'); ?></p>
                         <?php // Two drawings sit side by side; every drawing is capped in height, so a portrait sheet stays a preview and opens full size on click.
                         // On phones several drawings become a swipe row at nearly the card's width, with the next one peeking in, instead of two thumbnails,
                         // and the height cap rises to 70% of the screen so a tall, narrow sheet is not shrunk to a sliver. ?>
                         <div class="<?php echo count($drawings) > 1 ? 'boblift-drawing-strip -mx-4 flex snap-x snap-mandatory items-center gap-3 overflow-x-auto scroll-px-4 px-4 [-ms-overflow-style:none] [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden' : 'grid items-center'; ?>">
                         <?php foreach ($drawings as $drawing) : ?>
-                        <div class="<?php echo count($drawings) > 1 ? 'w-[80%] shrink-0 snap-start sm:w-auto' : ''; ?>" data-drawing-root>
+                        <div class="<?php echo count($drawings) > 1 ? 'w-[80%] shrink-0 snap-start sm:w-auto' : ''; ?> self-stretch rounded border border-[#DDE7F2] bg-white p-3" data-drawing-root>
                         <div>
                             <button class="block w-full cursor-zoom-in rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" type="button" data-drawing-open aria-label="<?php echo esc_attr($drawing['label']); ?>">
                                 <img class="mx-auto h-auto max-h-[70svh] w-auto max-w-full sm:max-h-[460px]" src="<?php echo esc_url($drawing['image']); ?>" <?php if (($drawing['width'] ?? 0) > 0 && ($drawing['height'] ?? 0) > 0) : ?>width="<?php echo esc_attr((string) $drawing['width']); ?>" height="<?php echo esc_attr((string) $drawing['height']); ?>"<?php endif; ?> alt="<?php echo esc_attr($drawing['label']); ?>" loading="lazy" decoding="async">
@@ -633,7 +721,7 @@ if ($family_quote_copy) {
                             $chart_m = static fn(float $m): string => rtrim(rtrim(number_format($m, 2, '.', ''), '0'), '.');
                             $chart_text = strtr(boblift_localized_static_text('The further the hook is from the crane, the less it can lift: {load1} kg at {radius1} m, {load2} kg at {radius2} m.'), ['{load1}' => $chart_kg($chart_first['load']), '{radius1}' => $chart_m($chart_first['radius']), '{load2}' => $chart_kg($chart_last['load']), '{radius2}' => $chart_m($chart_last['radius'])]);
                             ?>
-                            <figure class="border-t border-[#E6EDF5] pt-5" aria-labelledby="load-chart-title">
+                            <figure class="rounded border border-[#DDE7F2] p-4 sm:p-5" aria-labelledby="load-chart-title">
                                 <figcaption>
                                     <span id="load-chart-title" class="block text-sm font-black text-[#071f42]"><?php echo esc_html(boblift_localized_static_text('How much it lifts at each reach')); ?></span>
                                     <span class="mt-1 block text-xs leading-5 text-slate-500"><?php echo esc_html($chart_text); ?></span>
@@ -663,6 +751,8 @@ if ($family_quote_copy) {
                 </div>
                 <?php endif; ?>
             </article>
+            <?php boblift_series_block_close('technical'); ?>
+            <?php boblift_series_block_open('overview'); ?>
             <?php if ($detail_body_html !== '' || $product_videos || $has_overview_copy) : ?>
                 <?php // overflow-clip, not hidden: a hidden overflow would trap the sticky video column. ?>
                 <article id="overview" class="scroll-mt-24 overflow-clip rounded border border-[#DDE7F2] bg-white shadow-card">
@@ -680,7 +770,7 @@ if ($family_quote_copy) {
                     ?>
                     <div class="grid gap-8 px-4 py-5 sm:p-6 md:p-10 xl:p-12 <?php echo $detail_has_right ? 'lg:grid-cols-2 lg:gap-14 xl:gap-20' : ''; ?>">
                         <div class="min-w-0 <?php echo $detail_has_right ? 'lg:sticky lg:top-[calc(var(--boblift-header-h)+6rem)] lg:self-start' : ''; ?>">
-                            <p class="boblift-kicker"><?php echo esc_html($ui['detailBodyLabel'] ?? 'Product details'); ?><?php if ($detail_model_label !== '') : ?><span class="text-slate-500"> · </span><?php echo esc_html($detail_model_label); ?><?php endif; ?></p>
+                            <p class="boblift-kicker"<?php echo $series_page ? ' data-cfg-model-text' : ''; ?>><?php echo esc_html($ui['detailBodyLabel'] ?? 'Product details'); ?><?php if ($detail_model_label !== '') : ?><span class="text-slate-500"> · </span><?php echo esc_html($detail_model_label); ?><?php endif; ?></p>
                             <h2 class="mt-3 text-[clamp(1.75rem,3vw,3rem)] font-black leading-[1.05] tracking-[-0.02em] text-[#071f42] [text-wrap:balance]"><?php echo esc_html($product_title); ?></h2>
                         <?php if ($product_videos) :
                             $first_video = $product_videos[0];
@@ -789,6 +879,9 @@ if ($family_quote_copy) {
                     </div>
                 </article>
             <?php endif; ?>
+            <?php boblift_series_block_close('overview'); ?>
+            <?php // Each configuration's own feature cards: they differ by model, so they switch with the choice like the photos. ?>
+            <?php boblift_series_block_open('features'); ?>
             <?php if ($brochure_features) : ?>
                 <?php
                 $features_series = trim((string) ($product['features_series'] ?? ''));
@@ -826,6 +919,15 @@ if ($family_quote_copy) {
                         </ul>
                     <?php endif; ?>
                 </article>
+            <?php endif; ?>
+            <?php boblift_series_block_close('features'); ?>
+            <?php
+            // A configuration's run ends here: what follows is shared by the whole series page.
+            if (boblift_series_capturing()) {
+                return;
+            }
+            if ($series_page && ($series_schema = boblift_series_schema())) : ?>
+                <script type="application/ld+json"><?php echo wp_json_encode($series_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG); ?></script>
             <?php endif; ?>
             <?php if ($process_steps) :
                 // Literal class names so Tailwind keeps them.
@@ -968,15 +1070,16 @@ if ($family_quote_copy) {
                     </div>
                     <div class="grid grid-cols-2 gap-x-4 gap-y-6 px-4 py-5 sm:p-6 md:gap-x-5 md:p-8 lg:grid-cols-4">
                         <?php foreach ($feedback_shown as $feedback_item) :
-                            $feedback_count_text = boblift_feedback_counts_text($feedback_item);
+                            $feedback_view = boblift_feedback_card_view($feedback_item);
                             ?>
                             <a class="group block min-w-0" href="<?php echo esc_url($feedback_item['url']); ?>">
                                 <span class="relative block aspect-[4/3] overflow-hidden rounded-sm bg-[#EDF1F5]">
                                     <?php if ($feedback_item['cover'] !== '') : ?><img class="h-full w-full object-cover" src="<?php echo esc_url($feedback_item['cover']); ?>" alt="<?php echo esc_attr($feedback_item['model'] . ' · ' . $feedback_item['country']); ?>" loading="lazy" decoding="async"><?php endif; ?>
                                     <?php if (($feedback_item['media'][0]['type'] ?? '') === 'video') : ?><span class="absolute inset-0 m-auto grid size-12 place-items-center rounded-sm bg-white/90 text-[#0B3F7D]"><?php echo boblift_icon('play', 'h-5 w-5'); ?></span><?php endif; ?>
                                 </span>
-                                <span class="mt-3 flex items-center gap-1.5 text-sm font-black text-[#071f42] transition group-hover:text-blue-700 md:text-base"><?php echo boblift_icon('map-pin', 'h-4 w-4 shrink-0 text-gold'); ?><?php echo esc_html($feedback_item['country']); ?></span>
-                                <span class="mt-0.5 block text-xs font-normal text-slate-500 md:text-sm"><?php echo esc_html(implode(' · ', array_filter([$feedback_item['model'], $feedback_count_text]))); ?></span>
+                                <span class="mt-3 block text-sm font-black leading-snug text-[#071f42] transition group-hover:text-blue-700 md:text-base"><?php echo esc_html($feedback_view['title']); ?></span>
+                                <?php echo boblift_feedback_country_html($feedback_view, 'mt-1.5 text-[13px] font-semibold text-slate-700 md:text-sm'); ?>
+                                <?php if ($feedback_view['meta'] !== '') : ?><span class="mt-1 block text-xs font-normal text-slate-500 md:text-[13px]"><?php echo esc_html($feedback_view['meta']); ?></span><?php endif; ?>
                             </a>
                         <?php endforeach; ?>
                     </div>
@@ -1037,9 +1140,9 @@ if ($family_quote_copy) {
                                     <p class="text-[15px] font-black text-[#071f42] sm:text-base"><?php echo esc_html(boblift_localized_static_text('Not answered here?')); ?></p>
                                     <p class="mt-1.5 text-sm font-normal leading-6 text-slate-600"><?php echo esc_html(boblift_localized_static_text('Send us your question and our team replies with answers for your site.')); ?></p>
                                     <div class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-3">
-                                        <button class="inline-flex h-11 items-center justify-center gap-2 rounded-sm bg-[#071f42] px-5 text-sm font-black text-white transition hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页常见问题" data-inquiry-product="<?php echo esc_attr($inquiry_product_title); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html(boblift_localized_static_text('Ask a question')); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
+                                        <button class="inline-flex h-11 items-center justify-center gap-2 rounded-sm bg-[#071f42] px-5 text-sm font-black text-white transition hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页常见问题" data-inquiry-product="<?php echo esc_attr($inquiry_product_title); ?>" data-inquiry-product-slug="<?php echo esc_attr($inquiry_product_slug); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html(boblift_localized_static_text('Ask a question')); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
                                         <?php if ($hero_whatsapp_href !== '') : ?>
-                                            <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 text-sm font-black text-[#071f42] transition hover:border-[#25D366]" href="<?php echo esc_url($hero_whatsapp_href); ?>" target="_blank" rel="noopener"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?>><?php echo boblift_icon('whatsapp', 'h-4 w-4 text-[#25D366]'); ?><span class="[font-variant-numeric:tabular-nums]"><?php echo esc_html($hero_whatsapp_display); ?></span></a>
+                                            <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 text-sm font-black text-[#071f42] transition hover:border-[#25D366]" href="<?php echo esc_url($hero_whatsapp_href); ?>" target="_blank" rel="noopener"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?><?php echo $series_page ? ' data-series-whatsapp' : ''; ?>><?php echo boblift_icon('whatsapp', 'h-4 w-4 text-[#25D366]'); ?><span class="[font-variant-numeric:tabular-nums]" dir="ltr"><?php echo esc_html($hero_whatsapp_display); ?></span></a>
                                         <?php endif; ?>
                                     </div>
                                 </div>
@@ -1071,24 +1174,23 @@ if ($family_quote_copy) {
                         <?php endif; ?>
                     </div>
                     <?php // Product cards, not article cards: the cut-out on the product backdrop, the capacity line, two figures and the way to the page. ?>
-                    <ul class="grid grid-cols-2 gap-3 px-4 py-5 sm:p-6 md:gap-5 md:p-8 lg:grid-cols-4">
+                    <ul class="grid grid-cols-1 gap-3 px-4 py-5 sm:grid-cols-2 sm:p-6 md:gap-5 md:p-8 lg:grid-cols-4">
                         <?php foreach ($related_products as $related) :
-                            $related_model = trim((string) ($related['model'] ?? ''));
+                            $related_view = boblift_series_card_view($related);
                             $related_image = boblift_product_image($related);
                             $related_fit = boblift_image_fit($related_image) === 'cutout' ? 'object-contain p-4 drop-shadow-[0_6px_8px_rgba(11,27,51,0.10)]' : 'object-contain';
-                            $related_kicker = function_exists('boblift_home_product_card_kicker') ? boblift_home_product_card_kicker($related) : esc_html((string) ($related['category_title'] ?? ''));
-                            $related_specs = function_exists('boblift_home_product_card_specs') ? boblift_home_product_card_specs($related) : [];
+                            $related_specs = array_slice($related_view['figures'], 0, 2);
                             ?>
                             <li class="min-w-0">
-                                <a class="group flex h-full flex-col overflow-hidden rounded border border-[#E5E7EB] bg-white transition hover:-translate-y-0.5 hover:border-blue-200" href="<?php echo esc_url(boblift_product_url($related)); ?>">
+                                <a class="group flex h-full flex-col overflow-hidden rounded border border-[#E5E7EB] bg-white transition hover:-translate-y-0.5 hover:border-blue-200" href="<?php echo esc_url(boblift_product_url($related)); ?>" title="<?php echo esc_attr($related_view['full_title']); ?>">
                                     <span class="relative block aspect-[4/3] overflow-hidden bg-[radial-gradient(circle_at_48%_34%,#ffffff_0%,#f8fafc_34%,#eef2f7_64%,#e2e8f0_100%)]"><img class="absolute inset-0 h-full w-full transition duration-500 group-hover:scale-[1.03] <?php echo esc_attr($related_fit); ?>" src="<?php echo esc_url($related_image); ?>" alt="<?php echo esc_attr((string) $related['title']); ?>" loading="lazy" decoding="async"></span>
                                     <span class="flex flex-1 flex-col p-3 sm:p-4">
-                                        <?php if ($related_kicker !== '') : ?><span class="block truncate text-xs leading-4 text-slate-500"><?php echo wp_kses($related_kicker, ['bdi' => ['class' => true, 'dir' => true]]); ?></span><?php endif; ?>
-                                        <span class="mt-1 block truncate text-xl font-black uppercase leading-tight tracking-[0.02em] text-[#0B3F7D] transition group-hover:text-blue-700 md:text-2xl"><?php echo esc_html($related_model !== '' ? $related_model : (string) $related['title']); ?></span>
+                                        <span class="line-clamp-2 text-[18px] font-black leading-tight text-[#0B3F7D] transition group-hover:text-blue-700 md:text-[17px]"><?php echo esc_html($related_view['title']); ?></span>
+                                        <?php if ($related_view['code'] !== '') : ?><span class="mt-1 block truncate text-[13px] leading-4 text-slate-500"><bdi><?php echo esc_html($related_view['code']); ?></bdi></span><?php endif; ?>
                                         <?php if ($related_specs) : ?>
                                             <span class="mt-3 grid grid-cols-2 gap-2 border-t border-[#E5E7EB] pt-3">
                                                 <?php foreach ($related_specs as $spec) : ?>
-                                                    <span class="min-w-0"><span class="block truncate text-[11px] font-semibold leading-4 text-slate-500"><?php echo esc_html($spec['label']); ?></span><span class="mt-0.5 block truncate text-sm font-black text-[#071f42]" dir="ltr"><?php echo esc_html($spec['value']); ?></span></span>
+                                                    <span class="flex min-w-0 flex-col justify-end"><span class="block text-[13px] font-semibold leading-[1.25] text-slate-500"><?php echo esc_html($spec['label']); ?></span><span class="mt-0.5 block truncate text-[15px] font-black text-[#071f42]"><bdi><?php echo esc_html($spec['value']); ?></bdi></span></span>
                                                 <?php endforeach; ?>
                                             </span>
                                         <?php endif; ?>
@@ -1111,7 +1213,7 @@ if ($family_quote_copy) {
                         </div>
                     </div>
                     <div class="boblift-product-quote-actions flex flex-wrap gap-3 lg:justify-end">
-                        <button class="boblift-product-quote-action boblift-product-quote-action-primary inline-flex h-14 items-center justify-center gap-3 rounded-sm bg-[#071f42] px-7 text-sm font-black text-white transition hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页询价区" data-inquiry-product="<?php echo esc_attr($inquiry_product_title); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html($ui['requestQuoteLabel'] ?? 'Request Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
+                        <button class="boblift-product-quote-action boblift-product-quote-action-primary inline-flex h-14 items-center justify-center gap-3 rounded-sm bg-[#071f42] px-7 text-sm font-black text-white transition hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页询价区" data-inquiry-product="<?php echo esc_attr($inquiry_product_title); ?>" data-inquiry-product-slug="<?php echo esc_attr($inquiry_product_slug); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html($ui['requestQuoteLabel'] ?? 'Get a Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
                         <a class="boblift-product-quote-action boblift-product-quote-action-secondary inline-flex h-14 items-center justify-center gap-3 rounded-sm border border-blue-100 bg-white/70 px-7 text-sm font-black text-[#0B3F7D] transition hover:border-blue-300" href="<?php echo esc_url($contact_url); ?>"><?php echo esc_html($ui['contactEngineerLabel'] ?? 'Contact Engineer'); ?> <?php echo boblift_icon('mail', 'h-4 w-4'); ?></a>
                     </div>
                 </div>

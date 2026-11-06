@@ -232,7 +232,7 @@
     "final_cta": {
       "label": "Project Consultation",
       "title": "Need a Lifting Solution?",
-      "button_label": "Request a Quote",
+      "button_label": "Get a Quote",
       "button_href": "/quote",
       "image": "images/cta-lift-photo.png"
     },
@@ -241,7 +241,7 @@
       "seo_description": "BOB-LIFT supplies truck mounted cranes, marine cranes, aerial work platforms and lifting attachments for global projects.",
       "hero": {
         "label": "Truck mounted & marine crane manufacturer since 2003",
-        "secondary_label": "Request a Quote",
+        "secondary_label": "Get a Quote",
         "slides": [
           {
             "tab": "Marine Cranes",

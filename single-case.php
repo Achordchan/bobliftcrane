@@ -133,7 +133,7 @@ if (count($related_cards) < 3 && function_exists('boblift_feedback_items')) {
     foreach (array_slice($feedback_pool, 0, 3 - count($related_cards)) as $item) {
         $related_cards[] = [
             'url' => $item['url'],
-            'title' => trim($item['model'] . ($item['note'] !== '' ? ' ' . $item['note'] : '')) . ($item['country'] !== '' ? ' · ' . $item['country'] : ''),
+            'title' => trim(boblift_feedback_card_view($item)['title'] . ($item['note'] !== '' ? ' ' . $item['note'] : '')) . ($item['country'] !== '' ? ' · ' . $item['country'] : ''),
             'image' => $item['cover'],
             'label' => $feedback_label,
         ];

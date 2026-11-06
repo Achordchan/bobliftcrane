@@ -28,6 +28,8 @@ $boblift_theme_modules = [
     'video-library.php',
     'video-center.php',
     'model-names.php',
+    'product-series.php',
+    'product-specs.php',
     'product-guide.php',
     'product-archive-extras.php',
     'category-buying-guide.php',

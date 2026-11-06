@@ -40,6 +40,8 @@ function boblift_video_center_product_videos(): array
     }
     $args = [
         'post_type' => 'product',
+        // A film stays in the list when its product became a configuration of a series.
+        'boblift_series_members' => true,
         'post_status' => 'publish',
         'posts_per_page' => -1,
         'orderby' => ['date' => 'DESC', 'ID' => 'DESC'],

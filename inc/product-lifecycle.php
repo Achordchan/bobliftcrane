@@ -65,6 +65,8 @@ function boblift_legacy_product_ids(bool $reset = false): array
     $marked = array_map('intval', $wpdb->get_col($wpdb->prepare("SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value = %s", '_boblift_lifecycle', 'legacy')));
     $ids = $marked;
     if (function_exists('pll_get_post_translations')) {
+        // One query for all their language terms, not one per product.
+        update_object_term_cache($marked, 'product');
         foreach ($marked as $id) {
             $ids = array_merge($ids, array_map('intval', array_values(pll_get_post_translations($id))));
         }

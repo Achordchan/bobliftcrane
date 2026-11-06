@@ -103,9 +103,7 @@ function boblift_compare_models_prepare(array $models): array
 {
     // Moments are entered as "13 Ton.m" on some products and as a bare "2.2" on others: show them all as t·m.
     foreach ($models as $index => $item) {
-        $moment = trim((string) $item['moment']);
-        $moment = (string) preg_replace('/\s*ton\.?\s*m$/i', ' t·m', $moment);
-        $models[$index]['moment'] = preg_match('/^\d+(?:\.\d+)?$/', $moment) ? $moment . ' t·m' : $moment;
+        $models[$index]['moment'] = boblift_series_moment_normalized((string) $item['moment']);
         $models[$index]['weight'] = (string) preg_replace('/(\d)\s*kg$/i', '$1 kg', trim((string) $item['weight']));
         $models[$index]['capacity_label'] = $item['capacity'] > 0 ? boblift_guide_number($item['capacity']) . ' t' : '';
         // The rest of the spec table (power, hydraulics, oil tank, rotation…) as extra rows, keyed by the English label so
@@ -123,7 +121,8 @@ function boblift_compare_models_prepare(array $models): array
             $shown = $aligned ? $local[$row_index] : $row;
             $value = trim((string) ($shown['value'] ?? ''));
             if ($value !== '') {
-                $models[$index]['extra'][$english_label] = ['label' => trim((string) ($shown['label'] ?? $english_label)), 'value' => $value];
+                // The English value travels along: ranges are worked out from it, whatever number style the translation uses.
+                $models[$index]['extra'][$english_label] = ['label' => trim((string) ($shown['label'] ?? $english_label)), 'value' => $value, 'en_value' => trim((string) ($row['value'] ?? ''))];
             }
         }
         // Reach and outrigger figures read off the drawing compare too (radius first: it is what buyers choose by).
@@ -136,6 +135,79 @@ function boblift_compare_models_prepare(array $models): array
         $models[$index]['image'] = is_string($thumbnail) && $thumbnail !== '' ? $thumbnail : boblift_post_thumbnail_url(get_post($item['id']), boblift_asset('images/products/crane-accessories.png'));
     }
     return $models;
+}
+
+/** The spec rows each comparison figure is read from, first found wins: a model's own row before the figure off its drawing. */
+function boblift_compare_figure_sources(): array
+{
+    return [
+        'compare:radius' => ['Max Working Radius', 'Max Working Range', 'Max Working Distance', 'drawing:radius'],
+        'compare:height' => ['Max Lifting Height', 'Max Lifting Height (from ground)', 'Working Height', 'drawing:height'],
+        'compare:rotation' => ['Rotation Angle'],
+        'compare:power' => ['Recommended Power', 'Motor Power'],
+    ];
+}
+
+/** One figure of a prepared model, from the first source it has; $field 'en_value' reads the English figure where there is one. */
+function boblift_compare_figure(array $item, array $sources, string $field = 'value'): string
+{
+    foreach ($sources as $source) {
+        $value = trim((string) ($item['extra'][$source][$field] ?? $item['extra'][$source]['value'] ?? ''));
+        if ($value !== '') {
+            return $value;
+        }
+    }
+    return '';
+}
+
+/**
+ * A category's range as series, one column per listing card: the card's title and subtitle over each figure as a range of the
+ * series' configurations. A single product keeps its own figures.
+ */
+function boblift_compare_series_prepare(array $models): array
+{
+    $t = static fn(string $text): string => boblift_series_text($text);
+    $columns = [];
+    foreach ($models as $item) {
+        $series = boblift_series_for_product((int) $item['id']);
+        if ($series && $series['home_id'] !== (int) $item['id']) {
+            continue;
+        }
+        $posts = $series ? array_filter(array_map(static fn(array $member) => get_post((int) $member['id']), $series['members'])) : [];
+        $rows = boblift_compare_models_prepare($posts ? boblift_product_model_rows($posts) : [$item]);
+        $own = current(array_filter($rows, static fn(array $row): bool => (int) $row['id'] === (int) $item['id'])) ?: $rows[0];
+        $english = [];
+        foreach (boblift_compare_figure_sources() as $key => $sources) {
+            foreach ($rows as $index => $row) {
+                $rows[$index][$key] = boblift_compare_figure($row, $sources);
+                $english[$index][$key] = boblift_compare_figure($row, $sources, 'en_value');
+            }
+        }
+        // Capacity, moment, boom sections and self weight are already the English figures (boblift_product_model_rows() reads
+        // the English spec table; capacity is a plain decimal-point number), so their rows are their English values too.
+        $english_fields = ['capacity_label', 'moment', 'sections_label', 'weight'];
+        foreach ($rows as $index => $row) {
+            foreach ($english_fields as $key) {
+                $english[$index][$key] = (string) ($row[$key] ?? '');
+            }
+        }
+        $language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
+        $column = $own;
+        foreach (array_merge($english_fields, array_keys(boblift_compare_figure_sources())) as $key) {
+            // A range comes from the English figures, read the English way (4.125 t·m, 5.5 kW: never a translated 5,5 read
+            // as 55, nor 4.125 read as 4125), and is written the page's way. A figure that is not a number (3+1 / 4) shows
+            // the page's own words, read in the language they are written in.
+            $range = isset($english[0][$key]) ? boblift_series_compare_range(array_column($english, $key), true, $language, 'en') : '';
+            $column[$key] = $range !== '' ? $range : boblift_series_compare_range(array_column($rows, $key), false, $language, in_array($key, $english_fields, true) ? 'en' : $language);
+        }
+        $view = boblift_series_card_view(['id' => $item['id'], 'model' => $item['model'], 'title' => $item['title']]);
+        $column['heading'] = $view['title'];
+        $column['full_title'] = $view['full_title'];
+        $column['subtitle'] = boblift_series_card_subtitle($view);
+        $column['view_label'] = count($rows) > 1 ? str_replace('{value}', boblift_guide_number((float) $own['capacity']), $t('View the {value} t series')) : '';
+        $columns[] = $column;
+    }
+    return $columns;
 }
 
 /**
@@ -155,32 +227,26 @@ function boblift_render_model_table(array $models, string $labelled_by, array $o
     $picks = [
         'capacity_label' => ['label' => 'Capacity', 'from' => []],
         'moment' => ['label' => 'Max lifting moment', 'from' => []],
-        'compare:radius' => ['label' => 'Max working radius', 'from' => ['Max Working Radius', 'Max Working Range', 'Max Working Distance', 'drawing:radius']],
-        'compare:height' => ['label' => 'Max lifting height', 'from' => ['Max Lifting Height', 'Max Lifting Height (from ground)', 'Working Height', 'drawing:height']],
+        'compare:radius' => ['label' => 'Max working radius', 'from' => boblift_compare_figure_sources()['compare:radius']],
+        'compare:height' => ['label' => 'Max lifting height', 'from' => boblift_compare_figure_sources()['compare:height']],
         'sections_label' => ['label' => 'Boom sections', 'from' => []],
-        'compare:rotation' => ['label' => 'Rotation angle', 'from' => ['Rotation Angle']],
-        'compare:power' => ['label' => 'Power', 'from' => ['Recommended Power', 'Motor Power']],
+        'compare:rotation' => ['label' => 'Rotation angle', 'from' => boblift_compare_figure_sources()['compare:rotation']],
+        'compare:power' => ['label' => 'Power', 'from' => boblift_compare_figure_sources()['compare:power']],
         'weight' => ['label' => 'Self weight', 'from' => []],
     ];
     $rows = [];
     foreach ($picks as $key => $pick) {
         foreach ($models as $index => $item) {
-            if ($pick['from'] !== []) {
-                $value = '';
-                // The first source the model has: its own spec row before the figure read off its drawing.
-                foreach ($pick['from'] as $source) {
-                    $value = trim((string) ($item['extra'][$source]['value'] ?? ''));
-                    if ($value !== '') {
-                        break;
-                    }
-                }
-                $models[$index][$key] = $value;
+            // A series column already holds the range of its configurations.
+            if ($pick['from'] !== [] && !isset($item[$key])) {
+                $models[$index][$key] = boblift_compare_figure($item, $pick['from']);
             }
         }
         if (array_filter(array_column($models, $key))) {
             $rows[$key] = $t($pick['label']);
         }
     }
+    $by_series = isset($models[0]['heading']);
     $label_cell = 'sticky start-0 z-10 w-[132px] min-w-[132px] border-e border-[#E5E7EB] px-4 text-start text-[13px] font-semibold text-slate-500 sm:w-[180px] sm:min-w-[180px] sm:px-5 ' . (string) ($options['label_class'] ?? 'bg-[#F8FAFC]');
     $ask_label = $t('Ask about this model');
     ?>
@@ -188,11 +254,11 @@ function boblift_render_model_table(array $models, string $labelled_by, array $o
         <table class="w-full border-separate border-spacing-0 text-sm">
             <thead>
                 <tr>
-                    <th class="<?php echo esc_attr($label_cell); ?> border-b-2 border-b-ink align-bottom pb-4" scope="col"><?php echo esc_html($t('Model')); ?></th>
+                    <th class="<?php echo esc_attr($label_cell); ?> border-b-2 border-b-ink align-bottom pb-4" scope="col"><?php if ($by_series) : ?><span class="sr-only"><?php echo esc_html($t('Model')); ?></span><?php else : echo esc_html($t('Model')); endif; ?></th>
                     <?php foreach ($models as $item) :
                         $is_this = $item['id'] === $this_id;
                         ?>
-                        <th class="min-w-[180px] border-b-2 border-b-ink px-4 pb-4 pt-5 text-start align-bottom font-normal <?php echo $is_this ? 'bg-[#F5F8FC]' : ''; ?>" scope="col">
+                        <th class="<?php echo $by_series ? 'min-w-[232px] align-top' : 'min-w-[180px] align-bottom'; ?> border-b-2 border-b-ink px-4 pb-4 pt-5 text-start font-normal <?php echo $is_this ? 'bg-[#F5F8FC]' : ''; ?>" scope="col">
                             <?php if ($status) : ?>
                                 <span class="mb-3 inline-flex items-center rounded-sm px-2 py-1 text-[11px] font-black uppercase leading-none tracking-[0.08em] <?php echo $item['legacy'] ? 'bg-[#EEF1F5] text-slate-600' : 'bg-blue-50 text-blue-700'; ?>"><?php echo esc_html($t($item['legacy'] ? 'Previous model' : 'Current model')); ?></span>
                             <?php endif; ?>
@@ -203,10 +269,15 @@ function boblift_render_model_table(array $models, string $labelled_by, array $o
                                     <span class="mt-1 line-clamp-2 block text-xs leading-5 text-slate-500"><?php echo esc_html((string) $item['title']); ?></span>
                                 </span>
                             <?php else : ?>
-                                <a class="group block" href="<?php echo esc_url($item['url']); ?>">
+                                <a class="group block" href="<?php echo esc_url($item['url']); ?>"<?php if (isset($item['full_title'])) : ?> title="<?php echo esc_attr((string) $item['full_title']); ?>"<?php endif; ?>>
                                     <span class="flex h-24 w-36 items-center sm:h-28 sm:w-40 justify-center overflow-hidden rounded-sm bg-[#F8FAFC]"><img class="h-full w-full object-contain transition duration-500 group-hover:scale-[1.04]" src="<?php echo esc_url($item['image']); ?>" alt="<?php echo esc_attr(trim((string) $item['title']) ?: (string) $item['model']); ?>" loading="lazy" decoding="async"></span>
+                                    <?php if ($by_series) : ?>
+                                        <span class="mt-3 line-clamp-2 block text-base font-black leading-[1.2] text-[#0B3F7D] transition group-hover:text-blue-700"><?php echo esc_html((string) $item['heading']); ?></span>
+                                        <?php if ($item['subtitle'] !== '') : ?><span class="mt-1 block text-[13px] font-normal leading-5 text-slate-500"><?php echo wp_kses((string) $item['subtitle'], ['bdi' => [], 'span' => ['class' => true]]); ?></span><?php endif; ?>
+                                    <?php else : ?>
                                     <span class="mt-3 flex items-center gap-1 text-base font-black text-ink transition group-hover:text-blue-700"><?php echo esc_html($item['model']); ?><?php echo boblift_icon('arrow-up-right', 'h-3.5 w-3.5 shrink-0 text-slate-500 transition group-hover:text-blue-700 rtl:-scale-x-100'); ?></span>
                                     <span class="mt-1 line-clamp-2 block text-xs leading-5 text-slate-500"><?php echo esc_html((string) $item['title']); ?></span>
+                                    <?php endif; ?>
                                 </a>
                             <?php endif; ?>
                         </th>
@@ -218,7 +289,7 @@ function boblift_render_model_table(array $models, string $labelled_by, array $o
                     <tr class="group/row">
                         <th class="<?php echo esc_attr($label_cell); ?> border-b py-3.5" scope="row"><?php echo esc_html($label); ?></th>
                         <?php foreach ($models as $item) : ?>
-                            <td class="boblift-spec-cell <?php echo $item['id'] === $this_id ? 'bg-[#F5F8FC]' : ''; ?>"><?php echo esc_html((string) ($item[$key] ?: '–')); ?></td>
+                            <td class="boblift-spec-cell <?php echo $item['id'] === $this_id ? 'bg-[#F5F8FC]' : ''; ?>"><bdi><?php echo esc_html((string) ($item[$key] ?: '—')); ?></bdi></td>
                         <?php endforeach; ?>
                     </tr>
                 <?php endforeach; ?>
@@ -230,7 +301,7 @@ function boblift_render_model_table(array $models, string $labelled_by, array $o
                                 <?php if ($ask && $item['legacy']) : ?>
                                     <button class="inline-flex items-center gap-1.5 text-start text-sm font-black text-blue-700 transition hover:text-[#071f42]" type="button" data-inquiry-modal-open data-inquiry-source="历史型号" data-inquiry-product="<?php echo esc_attr((string) $item['title']); ?>" data-inquiry-products="<?php echo esc_attr(boblift_inquiry_product_payload((int) $item['id'], (string) $item['title'], (string) $item['image'])); ?>"><?php echo esc_html($ask_label); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 shrink-0 rtl:rotate-180'); ?></button>
                                 <?php elseif ($item['id'] !== $this_id) : ?>
-                                    <a class="inline-flex items-center gap-1.5 text-sm font-black text-[#071f42] transition hover:text-blue-700" href="<?php echo esc_url($item['url']); ?>"><?php echo esc_html(str_replace('{model}', (string) $item['model'], $t('View {model}'))); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 shrink-0 rtl:rotate-180'); ?></a>
+                                    <a class="inline-flex items-center gap-1.5 text-sm font-black text-[#071f42] transition hover:text-blue-700" href="<?php echo esc_url($item['url']); ?>"><?php echo esc_html(($item['view_label'] ?? '') !== '' ? $item['view_label'] : str_replace('{model}', (string) $item['model'], $t('View {model}'))); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 shrink-0 rtl:rotate-180'); ?></a>
                                 <?php else : ?>
                                     <span class="text-slate-500">–</span>
                                 <?php endif; ?>
@@ -243,7 +314,7 @@ function boblift_render_model_table(array $models, string $labelled_by, array $o
     <?php
 }
 
-/** The range compared model by model, current models only. */
+/** The range compared series by series, current models only. */
 function boblift_render_archive_compare(WP_Term $term): void
 {
     // Every model's spec sheet is read (hundreds of queries per page), so the rendered block is kept with the product list.
@@ -265,11 +336,11 @@ function boblift_render_archive_compare_block(WP_Term $term): void
         <div class="grid gap-4 lg:grid-cols-12 lg:items-end lg:gap-8">
             <div class="lg:col-span-7">
                 <p class="section-label"><?php echo esc_html(str_replace('{range}', $term->name, $t('Published figures · {range}'))); ?></p>
-                <h2 id="<?php echo esc_attr($id); ?>" class="mt-3 text-[clamp(1.75rem,2.8vw,3rem)] font-black leading-[1.05] tracking-[-0.015em] text-ink"><?php echo esc_html($t('Compare the range')); ?></h2>
+                <h2 id="<?php echo esc_attr($id); ?>" class="mt-3 text-[clamp(1.75rem,2.8vw,3rem)] font-black leading-[1.05] tracking-[-0.015em] text-ink"><?php echo esc_html(boblift_series_text('Compare the series')); ?></h2>
             </div>
             <p class="max-w-[46ch] text-sm leading-6 text-slate-600 lg:col-span-5 lg:justify-self-end"><?php echo esc_html($t('Figures from the BOB-LIFT technical drawings. Confirm the final specification with our team before ordering.')); ?></p>
         </div>
-        <div class="mt-6 lg:mt-8"><?php boblift_render_model_table(boblift_compare_models_prepare($models), $id); ?></div>
+        <div class="mt-6 lg:mt-8"><?php boblift_render_model_table(boblift_compare_series_prepare($models), $id); ?></div>
     </section>
     <?php
 }

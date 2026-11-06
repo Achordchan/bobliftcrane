@@ -381,7 +381,8 @@ function boblift_inquiry_chosen_variant(int $product_id, string $model, string $
 {
     $variants = function_exists('boblift_model_variants') ? boblift_model_variants($model) : [];
     if (!$variants) {
-        return $model;
+        // A marine series offers the other winch version on the same product: the product text says which was chosen.
+        return function_exists('boblift_series_inquired_model') ? boblift_series_inquired_model($model, $product_text) : $model;
     }
     $ids = function_exists('pll_get_post_translations') ? array_values((array) pll_get_post_translations($product_id)) : [];
     $titles = [];

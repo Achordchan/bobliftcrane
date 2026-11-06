@@ -166,7 +166,8 @@ $render_case_filter = static function (string $id, string $filter, string $all_l
             <?php endif; ?>
         <?php endforeach; ?>
         <?php foreach ($feedback_items as $feedback) :
-            $feedback_title = trim($feedback['model'] . ($feedback['note'] !== '' ? ' ' . $feedback['note'] : ''));
+            $feedback_view = boblift_feedback_card_view($feedback);
+            $feedback_title = trim($feedback_view['title'] . ($feedback['note'] !== '' ? ' ' . $feedback['note'] : ''));
             $feedback_caption = implode(' · ', array_filter([$feedback['model'], $feedback['country']]));
             $feedback_counts = boblift_feedback_counts_text($feedback);
         ?>
@@ -179,11 +180,8 @@ $render_case_filter = static function (string $id, string $filter, string $all_l
                     </span>
                     <span class="boblift-case-card-content boblift-feedback-card-content block px-3 pb-2 pt-4">
                         <span class="boblift-case-card-title block text-lg font-black leading-tight tracking-[-0.015em] text-ink"><?php echo esc_html($feedback_title); ?></span>
-                        <span class="boblift-feedback-card-meta mt-2 flex flex-wrap items-center gap-x-2 text-sm text-slate-500">
-                            <?php if ($feedback['country'] !== '') : ?><span class="inline-flex items-center gap-1.5 font-semibold text-slate-700"><?php echo boblift_icon('map-pin', 'h-3.5 w-3.5 text-blue-600'); ?><?php echo esc_html($feedback['country']); ?></span><?php endif; ?>
-                            <?php if ($feedback['country'] !== '' && $feedback_counts !== '') : ?><span class="text-slate-300" aria-hidden="true">·</span><?php endif; ?>
-                            <?php if ($feedback_counts !== '') : ?><span><?php echo esc_html($feedback_counts); ?></span><?php endif; ?>
-                        </span>
+                        <?php echo boblift_feedback_country_html($feedback_view, 'boblift-feedback-card-country mt-2 text-sm font-semibold text-slate-700'); ?>
+                        <?php if ($feedback_view['meta'] !== '') : ?><span class="boblift-feedback-card-meta mt-1 block text-[13px] text-slate-500"><?php echo esc_html($feedback_view['meta']); ?></span><?php endif; ?>
                         <?php if ($feedback['excerpt'] !== '') : ?><span class="boblift-case-card-summary mt-2 line-clamp-2 block text-sm font-normal leading-6 text-slate-600"><?php echo esc_html($feedback['excerpt']); ?></span><?php endif; ?>
                     </span>
                 </a>

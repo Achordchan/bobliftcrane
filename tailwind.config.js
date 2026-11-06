@@ -115,13 +115,14 @@ module.exports = {
     // Every named size maps onto that scale so stray classes cannot drift back to pills.
     borderRadius: {
       none: '0',
-      sm: '2px',
-      DEFAULT: '4px',
-      md: '4px',
-      lg: '4px',
-      xl: '4px',
-      '2xl': '4px',
-      '3xl': '4px',
+      // Three tiers read from CSS variables, set once in assets/css/input.css (:root).
+      sm: 'var(--boblift-r-sm, 6px)',
+      DEFAULT: 'var(--boblift-r, 10px)',
+      md: 'var(--boblift-r, 10px)',
+      lg: 'var(--boblift-r, 10px)',
+      xl: 'var(--boblift-r-lg, 14px)',
+      '2xl': 'var(--boblift-r-lg, 14px)',
+      '3xl': 'var(--boblift-r-lg, 14px)',
       full: '9999px'
     },
     // Flat surfaces separated by borders; only floating layers (menus, dock, dialogs) get real elevation.

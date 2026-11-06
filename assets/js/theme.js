@@ -2706,14 +2706,22 @@
       });
     };
     const sectionIds = productSectionLinks.map((link) => (link.getAttribute('href') || '').replace('#', '')).filter(Boolean);
-    const sections = sectionIds.map((id) => document.getElementById(id)).filter(Boolean);
-    if ('IntersectionObserver' in window && sections.length) {
-      const observer = new IntersectionObserver((entries) => {
-        const visible = entries.filter((entry) => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-        if (visible?.target?.id) activateProductSectionLink(visible.target.id);
-      }, { rootMargin: '-25% 0px -60% 0px', threshold: [0.08, 0.22, 0.4] });
-      sections.forEach((section) => observer.observe(section));
-    }
+    // The tab of the last section whose top has passed just under the tab bar: unlike a share of the screen, this also works for
+    // a section much taller than the screen. Ids are looked up each time, since a series page moves them between configurations.
+    let spyFrame = 0;
+    const updateActiveSection = () => {
+      spyFrame = 0;
+      const line = (productSectionNav ? productSectionNav.getBoundingClientRect().bottom : 0) + 60;
+      let current = '';
+      sectionIds.forEach((id) => {
+        const section = document.getElementById(id);
+        if (section && section.getBoundingClientRect().height > 0 && section.getBoundingClientRect().top <= line) current = id;
+      });
+      if (current) activateProductSectionLink(current);
+    };
+    window.addEventListener('scroll', () => {
+      if (!spyFrame) spyFrame = window.requestAnimationFrame(updateActiveSection);
+    }, { passive: true });
     const currentHash = window.location.hash ? window.location.hash.slice(1) : sectionIds[0];
     if (currentHash) activateProductSectionLink(currentHash);
   }
@@ -3152,6 +3160,25 @@
     const quickFavorite = qs('[data-quick-favorite]', root);
     let currentPage = 1;
     let activeQuickCard = null;
+    // The configuration shown in the quick view of a series card; null for a single product.
+    let activeQuickConfig = null;
+    // What the quick view's quote-list button stands for: the configuration shown, else the card's product. Read the way
+    // the quote list reads a card (data-product-id, data-title, ...).
+    const quickQuoteSource = () => {
+      if (!activeQuickCard || !activeQuickConfig?.id) return activeQuickCard;
+      const card = activeQuickCard.dataset;
+      const config = activeQuickConfig;
+      return { dataset: {
+        productId: String(config.id),
+        productSlug: config.slug || '',
+        title: config.title || card.title || '',
+        image: config.image || card.image || '',
+        categoryTitle: card.categoryTitle || '',
+        category: card.category || '',
+        detailUrl: config.url || card.detailUrl || '',
+        summary: config.summary || card.summary || '',
+      } };
+    };
     // The server lists only this page's category (and its sub-categories); the category tabs and the drawer's category
     // list are links to the other categories' pages, so the category never changes here.
     const fixedCategory = root.dataset.currentCategory || '';
@@ -3171,7 +3198,7 @@
     };
     const syncFavoriteStates = () => {
       cards.forEach((card) => qsa('[data-product-favorite]', card).forEach((button) => updateFavoriteButton(button, quoteList.has(card.dataset.productId || ''))));
-      updateFavoriteButton(quickFavorite, activeQuickCard ? quoteList.has(activeQuickCard.dataset.productId || '') : false);
+      updateFavoriteButton(quickFavorite, activeQuickCard ? quoteList.has(quickQuoteSource()?.dataset.productId || '') : false);
     };
     const toggleFavorite = (card) => {
       if (!card) return;
@@ -3224,6 +3251,22 @@
     // Spec filters hold a number per card (tonnes, t·m, kg; 0 = not given) matched against "min-max" / "min+" bins.
     const specFilters = ['capacity', 'moment', 'weight'];
     const cardNumber = (card, filterName) => Number(card.dataset[filterName] || 0);
+    // A card lists the moment and weight of each configuration it stands for (data-filter-configs='[{"m":12.9,"w":2100},...]'); one
+    // configuration has to meet every chosen figure at once. Capacity is the card's own listing figure.
+    const cardConfigs = (card) => {
+      if (!card.bobliftConfigs) {
+        let list = [];
+        try { list = JSON.parse(card.dataset.filterConfigs || '[]'); } catch (error) { list = []; }
+        card.bobliftConfigs = Array.isArray(list) && list.length ? list : [{ m: cardNumber(card, 'moment'), w: cardNumber(card, 'weight') }];
+      }
+      return card.bobliftConfigs;
+    };
+    const configNumber = (card, config, filterName) => (filterName === 'capacity' ? cardNumber(card, 'capacity') : Number(config[filterName === 'moment' ? 'm' : 'w'] || 0));
+    // ranges: {filterName: [ranges]}; a filter without ranges does not narrow.
+    const cardMeetsRanges = (card, ranges) => cardConfigs(card).some((config) => Object.entries(ranges)
+      .every(([filterName, list]) => !list.length || inAnyRange(configNumber(card, config, filterName), list)));
+    const activeSpecRanges = (except = '') => Object.fromEntries(specFilters.filter((name) => name !== except).map((name) => [name, specRanges(name)]));
+    const cardInRanges = (card, filterName, ranges) => cardMeetsRanges(card, { [filterName]: ranges });
     const slugifyFilter = (value) => value.toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     const optionLabel = (input) => qs('span', input.closest('label') || input.parentElement)?.textContent?.trim() || input.value;
     const paramValues = (params, key) => params.getAll(key).flatMap((value) => value.split(',')).map((value) => value.trim()).filter(Boolean);
@@ -3285,24 +3328,28 @@
       return numberValue > min && numberValue <= max;
     });
     const cardMatchesFilterOption = (card, filterName, value) => {
-      if (specFilters.includes(filterName)) return inAnyRange(cardNumber(card, filterName), [value]);
+      if (specFilters.includes(filterName)) return cardInRanges(card, filterName, [value]);
       if (filterName === 'boom') return (card.dataset.boom || '') === value;
       return false;
     };
     const cardHasFilterValue = (card, filterName) => {
-      if (specFilters.includes(filterName)) return cardNumber(card, filterName) > 0;
+      if (specFilters.includes(filterName)) return cardConfigs(card).some((config) => configNumber(card, config, filterName) > 0);
       if (filterName === 'boom') return (card.dataset.boom || '') !== '';
       return false;
     };
     // Facet counts: each group counts the cards that pass the category and every other group's selection,
     // so the numbers always say how many products a click would leave. Checked options stay visible;
     // unchecked ones are hidden when they match nothing or would not narrow the list.
+    const boomChosen = (card) => {
+      const booms = activeValues('boom');
+      return !booms.length || booms.includes(card.dataset.boom || '');
+    };
     const passesOtherGroups = (card, filterName) => {
       if (filterName !== 'boom') {
         const booms = activeValues('boom');
         if (booms.length && !booms.includes(card.dataset.boom || '')) return false;
       }
-      return specFilters.every((name) => name === filterName || matchesSpec(card, name));
+      return cardMeetsRanges(card, activeSpecRanges(filterName));
     };
     const updateFilterAvailability = () => {
       const categoryCards = cards;
@@ -3316,7 +3363,10 @@
         qsa('[data-filter-option]', group).forEach((option) => {
           const input = qs('input[data-filter]', option);
           if (!input) return;
-          const optionCount = eligibleCards.filter((card) => cardMatchesFilterOption(card, filterName, input.value)).length;
+          // An option counts the cards where one configuration meets it together with the other choices.
+          const optionCount = specFilters.includes(filterName)
+            ? categoryCards.filter((card) => boomChosen(card) && cardMeetsRanges(card, { ...activeSpecRanges(filterName), [filterName]: [input.value] })).length
+            : eligibleCards.filter((card) => cardMatchesFilterOption(card, filterName, input.value)).length;
           // A selection from an address that no product in this category has is dropped (an unmatched capacity bin stays, showing the empty state).
           if (input.checked && filterName !== 'capacity' && !categoryCards.some((card) => cardMatchesFilterOption(card, filterName, input.value))) {
             input.checked = false;
@@ -3338,17 +3388,16 @@
 
       return clearedSelection;
     };
-    const matchesSpec = (card, filterName) => {
+    function specRanges(filterName) {
       let ranges = activeValues(filterName);
       // The capacity dropdown, where an archive renders one, applies while no capacity box is ticked.
       if (!ranges.length && filterName === 'capacity' && capacitySelect?.value) ranges = [capacitySelect.value];
       if (!ranges.length && filterName === 'capacity' && customCapacity) ranges = [customCapacity];
-      return !ranges.length || inAnyRange(cardNumber(card, filterName), ranges);
-    };
+      return ranges;
+    }
     const cardMatches = (card) => {
       const booms = activeValues('boom');
-      return (!booms.length || booms.includes(card.dataset.boom || ''))
-        && specFilters.every((filterName) => matchesSpec(card, filterName));
+      return (!booms.length || booms.includes(card.dataset.boom || '')) && cardMeetsRanges(card, activeSpecRanges());
     };
     const setFlexVisible = (element, visible) => {
       element?.classList.toggle('hidden', !visible);
@@ -3626,7 +3675,79 @@
       apply({ resetPage: true });
       closeDrawer({ restore: false });
     };
-    const specMarkup = (specs) => specs.slice(0, 6).map((spec) => `<div class="min-w-0 border-b border-r border-[#E5E7EB] px-3 py-3 md:px-4"><dt class="text-[11px] font-normal leading-4 text-slate-500">${escapeHtml(spec.label || '')}</dt><dd class="mt-1 break-words text-base font-black leading-tight text-[#0B1B33] [font-variant-numeric:tabular-nums]">${escapeHtml(String(spec.value || '-'))}</dd></div>`).join('');
+    const specMarkup = (specs) => specs.slice(0, 6).map((spec) => `<div class="min-w-0 border-b border-e border-[#E5E7EB] px-3 py-3 md:px-4"><dt class="text-[13px] font-normal leading-[1.25] text-slate-500">${escapeHtml(spec.label || '')}</dt><dd class="mt-1 break-words text-base font-black leading-tight text-[#0B1B33] [font-variant-numeric:tabular-nums]"><bdi>${escapeHtml(String(spec.value || '-'))}</bdi></dd></div>`).join('');
+    const quickConfigs = qs('[data-quick-configs]', root);
+    // A series card's quick view: one configuration at a time. Quote and details follow the one shown.
+    const showQuickConfig = (card, config) => {
+      activeQuickConfig = config;
+      if (quickImage && config.image) quickImage.src = config.image;
+      if (quickSummary) quickSummary.textContent = config.summary || card.dataset.summary || '';
+      if (quickSpecs) quickSpecs.innerHTML = specMarkup(config.specs || []);
+      if (quickDetail) quickDetail.href = config.url || card.dataset.detailUrl || '';
+      if (quickInquiry) {
+        quickInquiry.dataset.inquiryProduct = config.title;
+        quickInquiry.dataset.inquiryProductSlug = config.slug;
+        quickInquiry.dataset.inquiryProducts = JSON.stringify([{
+          title: config.title,
+          slug: config.slug,
+          image: config.image || card.dataset.image || '',
+          category: card.dataset.categoryTitle || card.dataset.category || 'BOB-LIFT',
+          detailUrl: config.url || '',
+        }]);
+      }
+      qsa('button', quickConfigs).forEach((button) => {
+        const on = button.dataset.model === config.model;
+        button.setAttribute('aria-pressed', on ? 'true' : 'false');
+        button.classList.toggle('border-[#071f42]', on);
+        button.classList.toggle('bg-[#071f42]', on);
+        button.classList.toggle('text-white', on);
+        button.classList.toggle('border-[#D5DEE9]', !on);
+        button.classList.toggle('bg-[#F5F8FC]', !on);
+        button.classList.toggle('text-[#071f42]', !on);
+      });
+      syncFavoriteStates();
+    };
+    const setUpQuickConfigs = (card) => {
+      activeQuickConfig = null;
+      if (!quickConfigs) return;
+      let configs = [];
+      try { configs = JSON.parse(card.dataset.configs || '[]'); } catch { configs = []; }
+      quickConfigs.replaceChildren();
+      if (quickTitle && card.dataset.quickName) quickTitle.textContent = card.dataset.quickName;
+      const onlyModel = !configs.length ? card.dataset.quickModel || '' : '';
+      const showRow = configs.length > 0 || onlyModel !== '';
+      quickConfigs.classList.toggle('hidden', !showRow);
+      quickConfigs.classList.toggle('flex', showRow);
+      if (!configs.length) {
+        // One model: its name, with nothing to switch.
+        if (onlyModel) {
+          if (card.dataset.quickSeries) {
+            const series = document.createElement('span');
+            series.dir = 'auto';
+            series.className = 'inline-flex h-7 items-center text-[13px] font-normal text-slate-500';
+            series.textContent = card.dataset.quickSeries;
+            quickConfigs.append(series);
+          }
+          const label = document.createElement('span');
+          label.dir = 'auto';
+          label.className = 'inline-flex h-7 items-center rounded-sm border border-[#D5DEE9] bg-[#F5F8FC] px-2 text-[13px] font-black text-[#071f42] [font-variant-numeric:tabular-nums]';
+          label.textContent = onlyModel;
+          quickConfigs.append(label);
+        }
+        return;
+      }
+      configs.forEach((config) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.dir = 'auto';
+        button.dataset.model = config.model;
+        button.className = 'inline-flex h-7 items-center rounded-sm border px-2 text-[13px] font-black transition [font-variant-numeric:tabular-nums]';
+        button.textContent = config.label;
+        button.addEventListener('click', () => showQuickConfig(card, config));
+        quickConfigs.append(button);
+      });
+      showQuickConfig(card, configs.find((config) => config.home) || configs[0]);
+    };
     const openQuickView = (card) => {
       if (!quickModal || !card) return;
       activeQuickCard = card;
@@ -3659,6 +3780,7 @@
       }
       if (quickDetail) quickDetail.href = card.dataset.detailUrl || root.dataset.productArchiveUrl || '/';
       if (quickSpecs) quickSpecs.innerHTML = specMarkup(specs);
+      setUpQuickConfigs(card);
       quickModal.classList.remove('hidden');
       quickModal.classList.add('flex');
       document.body.style.overflow = 'hidden';
@@ -3669,6 +3791,7 @@
       quickModal.classList.add('hidden');
       quickModal.classList.remove('flex');
       activeQuickCard = null;
+      activeQuickConfig = null;
       document.body.style.overflow = '';
     };
     function escapeHtml(value) {
@@ -3720,7 +3843,7 @@
       qsa('[data-product-favorite]', card).forEach((button) => button.addEventListener('click', () => toggleFavorite(card)));
       qsa('[data-product-quick-view]', card).forEach((button) => button.addEventListener('click', () => openQuickView(card)));
     });
-    quickFavorite?.addEventListener('click', () => toggleFavorite(activeQuickCard));
+    quickFavorite?.addEventListener('click', () => toggleFavorite(quickQuoteSource()));
     qsa('[data-quick-close]', root).forEach((button) => button.addEventListener('click', closeQuickView));
     quickModal?.addEventListener('mousedown', (event) => { if (event.target === quickModal) closeQuickView(); });
     quickPanel?.addEventListener('mousedown', (event) => event.stopPropagation());
@@ -5219,6 +5342,359 @@
   };
   if (document.readyState === 'complete') init();
   else window.addEventListener('load', init, { once: true });
+})();
+
+// Product page top, wide screens: the photo frame and its thumbnail row end level with the text column. The frame takes the text's
+// height less the thumbnails, never flatter than 16:10 of its width and never taller than 900 px. Beside text shorter than that,
+// the frame keeps the 16:10 height and the text is centred beside the photo and thumbnails. Each value is written only when it
+// changes, and the text is measured by its content (not its stretched box, and the centring is a transform), so the frame's
+// height never feeds back into its own measure. Below 1280 px nothing is set and the page keeps its stacked layout.
+(() => {
+  const roots = [...document.querySelectorAll('[data-product-hero-gallery-root]')];
+  const text = document.querySelector('.boblift-hero-text');
+  if (!roots.length || !text || !('ResizeObserver' in window)) return;
+  const wide = window.matchMedia('(min-width: 1280px)');
+  const set = (element, name, value) => {
+    if (element.style.getPropertyValue(name) !== value) element.style.setProperty(name, value);
+  };
+  const size = () => {
+    const root = roots.find((item) => item.offsetParent !== null && item.clientWidth > 0);
+    if (!wide.matches || !root) {
+      roots.forEach((item) => item.style.removeProperty('--boblift-stage-h'));
+      text.style.removeProperty('--boblift-text-shift');
+      return;
+    }
+    const stage = root.querySelector('.boblift-product-stage');
+    const thumbs = stage && stage.nextElementSibling;
+    const first = text.firstElementChild;
+    const last = text.lastElementChild;
+    if (!stage || !first || !last) return;
+    const thumbsHeight = thumbs ? thumbs.getBoundingClientRect().height + parseFloat(getComputedStyle(thumbs).marginTop || '0') : 0;
+    const textHeight = last.getBoundingClientRect().bottom - first.getBoundingClientRect().top;
+    const floor = Math.round(root.clientWidth * 0.625);
+    const frame = Math.round(Math.min(900, Math.max(floor, textHeight - thumbsHeight)));
+    set(root, '--boblift-stage-h', `${frame}px`);
+    // Shorter text sits in the middle of the photo and its thumbnails.
+    const shift = Math.max(0, Math.round((frame + thumbsHeight - textHeight) / 2));
+    set(text, '--boblift-text-shift', `${shift}px`);
+  };
+  let queued = false;
+  const queue = () => {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => {
+      queued = false;
+      size();
+    });
+  };
+  const observer = new ResizeObserver(queue);
+  roots.forEach((root) => observer.observe(root));
+  [...text.children].forEach((child) => observer.observe(child));
+  wide.addEventListener('change', queue);
+  roots.forEach((root) => root.querySelectorAll('img').forEach((image) => image.addEventListener('load', queue)));
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(queue);
+  queue();
+})();
+
+// A row that scrolls sideways: the current item in view, and a fade at each end that has more to swipe to.
+(() => {
+  document.querySelectorAll('[data-scroll-row]').forEach((row) => {
+    const update = () => {
+      const moved = Math.abs(row.scrollLeft);
+      row.style.setProperty('--fade-start', moved > 2 ? '28px' : '0px');
+      row.style.setProperty('--fade-end', moved + row.clientWidth < row.scrollWidth - 2 ? '28px' : '0px');
+    };
+    const current = row.querySelector('[aria-current]');
+    if (current && row.scrollWidth > row.clientWidth) {
+      const from = row.getBoundingClientRect();
+      const item = current.getBoundingClientRect();
+      row.scrollLeft += item.left - from.left - (from.width - item.width) / 2;
+    }
+    row.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+  });
+})();
+
+// Marine series page (inc/product-series.php): every configuration's blocks are in the page, this only shows the chosen one.
+// A choice the current configuration has no version of is dashed; picking it goes to the closest real configuration.
+(() => {
+  const root = document.querySelector('[data-series-config]');
+  const dataNode = root && root.querySelector('[data-series-data]');
+  if (!dataNode) return;
+  let data;
+  try { data = JSON.parse(dataNode.textContent || '{}'); } catch (error) { return; }
+  const variants = Array.isArray(data.variants) ? data.variants : [];
+  if (!variants.length) return;
+  const slugs = variants.map((variant) => variant.slug);
+  const buttons = [...root.querySelectorAll('[data-cfg-group]')];
+  const on = ['border-[#071f42]', 'bg-[#071f42]', 'text-white'];
+  const off = ['border-[#D5DEE9]', 'bg-white', 'text-[#071f42]', 'hover:border-blue-300'];
+  let current = null;
+
+  const closest = (group, value) => {
+    const candidates = variants.filter((variant) => variant.values[group] === value);
+    let best = null;
+    let bestScore = -1;
+    candidates.forEach((variant) => {
+      const score = data.dimensions.filter((name) => name !== group && variant.values[name] === current.values[name]).length;
+      if (score > bestScore) {
+        best = variant;
+        bestScore = score;
+      }
+    });
+    return best;
+  };
+
+  const compare = document.querySelector('[data-cfg-compare]');
+  const shownFigures = () => {
+    const figures = {};
+    document.querySelectorAll('[data-cfg-block="keyspecs"] [data-cfg-variant]:not([hidden]) [data-cfg-cell]').forEach((cell) => {
+      figures[cell.dataset.cfgCell] = cell.dataset.cfgCellValue;
+    });
+    return figures;
+  };
+
+  // A winch version without a product of its own is shown on the blocks of the configuration it comes from: its name replaces that
+  // model's, and the self weight, which is not known, shows no figure.
+  const patched = new Map();
+  const restorePatches = () => {
+    patched.forEach((html, element) => { element.innerHTML = html; });
+    patched.clear();
+  };
+  // A page opened on a derived version comes with those elements already changed; data-cfg-orig holds what the source shows.
+  const remember = (element) => {
+    if (patched.has(element)) return;
+    patched.set(element, element.dataset.cfgOrig !== undefined ? element.dataset.cfgOrig : element.innerHTML);
+    delete element.dataset.cfgOrig;
+  };
+  document.querySelectorAll('[data-cfg-orig]').forEach(remember);
+  const patch = (element, html) => {
+    remember(element);
+    element.innerHTML = html;
+  };
+  const swapText = (element, from, to) => {
+    remember(element);
+    element.childNodes.forEach((node) => {
+      if (node.nodeType === Node.TEXT_NODE) node.textContent = node.textContent.replace(from, to);
+    });
+  };
+  // Videos pause. The site's embedded players take no script commands, so one is reloaded without autoplay, which stops it.
+  const stopFilms = (scope) => {
+    scope.querySelectorAll('video').forEach((video) => video.pause());
+    scope.querySelectorAll('iframe[src]').forEach((frame) => {
+      const src = frame.getAttribute('src') || '';
+      if (!/^https?:/.test(src)) return;
+      frame.setAttribute('src', src.replace(/([?&])autoplay=1(&|$)/, (match, before, after) => (after ? before : '')));
+    });
+  };
+  const applyDerived = (variant, shownModel) => {
+    // The body text speaks for the product it came from (its weight, its winch), so a derived version shows none of it.
+    document.querySelectorAll('[data-cfg-block="overview"]').forEach((block) => {
+      // A film playing in the body text stops with it: a hidden block must not keep sounding.
+      if (variant.derived) stopFilms(block);
+      block.hidden = Boolean(variant.derived);
+    });
+    document.querySelectorAll('[data-product-section-link][href="#overview"]').forEach((link) => {
+      link.style.display = variant.derived ? 'none' : '';
+    });
+    document.querySelectorAll('[data-cfg-decode-winch]').forEach((part) => {
+      part.style.display = variant.values.winch === '1' ? '' : 'none';
+    });
+    // A table whose self weight or winch row could not be placed says, on a derived version, that the weight is confirmed.
+    document.querySelectorAll('[data-cfg-spec-note]').forEach((note) => {
+      note.textContent = variant.derived ? variant.weightNote || '' : '';
+      note.hidden = !variant.derived || !variant.weightNote;
+    });
+    if (!variant.derived) return;
+    const holders = [...document.querySelectorAll(`[data-cfg-variant="${CSS.escape(shownModel)}"]`)];
+    holders.forEach((holder) => {
+      // The winch row says what this version has, in the page's language.
+      if (variant.winchText) {
+        holder.querySelectorAll('[data-cfg-winch-row] dd').forEach((value) => {
+          const words = document.createElement('span');
+          words.dir = 'auto';
+          words.textContent = variant.winchText;
+          patch(value, words.outerHTML);
+        });
+      }
+      holder.querySelectorAll('[data-cfg-model-text]').forEach((element) => swapText(element, shownModel, variant.model));
+      holder.querySelectorAll('[data-cfg-cell="weight"] dd, [data-cfg-weight-row] dd').forEach((value) => patch(value, '<span class="text-[clamp(20px,1.5vw,28px)] text-slate-400">—</span>'));
+    });
+  };
+
+  // The compare lines change length with the choice: their box keeps the height of the longest.
+  const summaryBox = root.querySelector('[data-cfg-summary-box]');
+  let shownVariant = null;
+  const showSummary = (variant) => {
+    const status = variant.status || '';
+    const summary = variant.summary || '';
+    root.querySelectorAll('[data-cfg-status]').forEach((element) => { element.textContent = status; });
+    root.querySelectorAll('[data-cfg-status-gap]').forEach((element) => { element.hidden = !status || !summary; });
+    root.querySelectorAll('[data-cfg-compare-text]').forEach((element) => { element.hidden = !summary; });
+    root.querySelectorAll('[data-cfg-summary]').forEach((element) => { element.textContent = summary; });
+    root.querySelectorAll('[data-cfg-summary-line]').forEach((line) => { line.hidden = !status && !summary; });
+    root.querySelectorAll('[data-cfg-weight-note]').forEach((note) => {
+      note.textContent = variant.weightNote || '';
+      note.hidden = !variant.weightNote;
+    });
+  };
+  const reserveSummaryHeight = () => {
+    if (!summaryBox) return;
+    summaryBox.style.minHeight = '';
+    let tallest = 0;
+    (data.variants || []).forEach((item) => {
+      showSummary(item);
+      tallest = Math.max(tallest, summaryBox.offsetHeight);
+    });
+    showSummary(shownVariant || variants.find((item) => item.model === data.active) || variants[0]);
+    summaryBox.style.minHeight = `${tallest}px`;
+  };
+  reserveSummaryHeight();
+  window.addEventListener('resize', reserveSummaryHeight);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(reserveSummaryHeight);
+
+  const apply = (variant, updateAddress) => {
+    const previousFigures = shownFigures();
+    current = variant;
+    const shownModel = variant.source || variant.model;
+    restorePatches();
+    document.querySelectorAll('[data-cfg-block]').forEach((block) => {
+      [...block.children].forEach((holder) => {
+        const active = holder.getAttribute('data-cfg-variant') === shownModel;
+        // The version being hidden stops its films, videos and embedded players alike, so none keeps playing behind the shown one.
+        if (!active && !holder.hidden) stopFilms(holder);
+        holder.hidden = !active;
+        // Ids belong to the shown version only: #technical, #drawing and the rest must stay unique.
+        if (active) {
+          holder.querySelectorAll('[data-vid]').forEach((element) => {
+            element.id = element.getAttribute('data-vid');
+            element.removeAttribute('data-vid');
+          });
+        } else {
+          holder.querySelectorAll('[id]').forEach((element) => {
+            element.setAttribute('data-vid', element.id);
+            element.removeAttribute('id');
+          });
+        }
+      });
+    });
+    buttons.forEach((button) => {
+      const group = button.dataset.cfgGroup;
+      const value = button.dataset.cfgValue;
+      const selected = variant.values[group] === value;
+      const exists = !(variant.unavailable || []).includes(`${group}|${value}`);
+      button.setAttribute('aria-checked', selected ? 'true' : 'false');
+      button.tabIndex = selected ? 0 : -1;
+      button.classList.remove(...(selected ? off : on));
+      button.classList.add(...(selected ? on : off));
+      button.classList.toggle('border-dashed', !exists);
+      if (exists) button.removeAttribute('title');
+      else button.title = data.unavailable || '';
+    });
+    document.querySelectorAll('[data-cfg-title]').forEach((element) => {
+      element.textContent = variant.model;
+    });
+    if (variant.name) {
+      document.querySelectorAll('[data-cfg-name]').forEach((element) => {
+        element.textContent = variant.name;
+      });
+    }
+    applyDerived(variant, shownModel);
+    // A section only some configurations have (drawing, feature cards) is listed in the section tabs while it is on screen.
+    document.querySelectorAll('[data-config-section]').forEach((link) => {
+      link.style.display = document.getElementById(link.dataset.configSection) ? '' : 'none';
+    });
+    root.querySelectorAll('[data-cfg-winch-difference]').forEach((element) => {
+      element.textContent = variant.winch || '';
+      element.hidden = !variant.winch;
+    });
+    shownVariant = variant;
+    showSummary(variant);
+    // The comparison table stays with the shown specifications, its row marking the choice.
+    const compareSlot = document.querySelector('[data-cfg-block="technical"] [data-cfg-variant]:not([hidden]) [data-cfg-compare-slot]');
+    if (compare && compareSlot && compare.parentElement !== compareSlot) {
+      const focused = compare.contains(document.activeElement) ? document.activeElement : null;
+      compareSlot.append(compare);
+      if (focused) focused.focus();
+    }
+    if (compare) {
+      // A list that names the winch version without a product of its own marks that one; others mark the configuration it comes from.
+      const listed = compare.querySelector(`[data-cfg-row="${CSS.escape(variant.model)}"]`) ? variant.model : shownModel;
+      compare.querySelectorAll('[data-cfg-row]').forEach((row) => {
+        const selected = row.dataset.cfgRow === listed;
+        if (selected) row.setAttribute('aria-current', 'true');
+        else row.removeAttribute('aria-current');
+      });
+    }
+    if (updateAddress) {
+      document.querySelectorAll('[data-cfg-block="keyspecs"] [data-cfg-variant]:not([hidden]) [data-cfg-cell]').forEach((cell) => {
+        const before = previousFigures[cell.dataset.cfgCell];
+        if (before === cell.dataset.cfgCellValue) return;
+        cell.classList.remove('boblift-cfg-flash');
+        void cell.offsetWidth;
+        cell.classList.add('boblift-cfg-flash');
+      });
+    }
+    if (variant.inquiry) {
+      document.querySelectorAll('[data-inquiry-products]').forEach((button) => {
+        let items;
+        try { items = JSON.parse(button.dataset.inquiryProducts || '[]'); } catch (error) { return; }
+        if (!Array.isArray(items) || !items.some((item) => item && slugs.includes(item.slug))) return;
+        button.dataset.inquiryProducts = JSON.stringify(items.map((item) => (item && slugs.includes(item.slug) ? variant.inquiry : item)));
+        if (button.dataset.inquiryProduct) button.dataset.inquiryProduct = variant.inquiry.title;
+        if (button.dataset.inquiryProductSlug) button.dataset.inquiryProductSlug = variant.slug;
+      });
+    }
+    if (variant.whatsapp) document.querySelectorAll('[data-series-whatsapp]').forEach((link) => link.setAttribute('href', variant.whatsapp));
+    if (variant.mail) document.querySelectorAll('[data-series-mail]').forEach((link) => link.setAttribute('href', variant.mail));
+    if (updateAddress) {
+      const url = new URL(window.location.href);
+      if (variant.model === data.default) url.searchParams.delete('model');
+      else url.searchParams.set('model', variant.model);
+      window.history.replaceState(window.history.state, '', url.toString());
+      // Blocks changed height, and the section tabs follow the elements that now hold the ids.
+      window.dispatchEvent(new CustomEvent('boblift:series-change'));
+      window.dispatchEvent(new Event('resize'));
+    }
+  };
+
+  if (compare) {
+    compare.addEventListener('click', (event) => {
+      const row = event.target.closest('[data-cfg-row]');
+      const variant = row && variants.find((item) => item.model === row.dataset.cfgRow);
+      if (!variant) return;
+      // The model's link is for new tabs and search engines; a plain click switches in place.
+      if (event.metaKey || event.ctrlKey || event.shiftKey) return;
+      event.preventDefault();
+      if (variant !== current) apply(variant, true);
+    });
+  }
+
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const group = button.dataset.cfgGroup;
+      const value = button.dataset.cfgValue;
+      if (current.values[group] === value) return;
+      const next = closest(group, value);
+      if (next) apply(next, true);
+    });
+    // Arrow keys move along the group, as in any radio group.
+    button.addEventListener('keydown', (event) => {
+      const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key];
+      if (!step) return;
+      event.preventDefault();
+      const peers = buttons.filter((peer) => peer.dataset.cfgGroup === button.dataset.cfgGroup);
+      const rtl = getComputedStyle(root).direction === 'rtl' && (event.key === 'ArrowRight' || event.key === 'ArrowLeft');
+      const target = peers[(peers.indexOf(button) + (rtl ? -step : step) + peers.length) % peers.length];
+      target.click();
+      const group = target.dataset.cfgGroup;
+      buttons.find((peer) => peer.dataset.cfgGroup === group && peer.getAttribute('aria-checked') === 'true')?.focus();
+    });
+  });
+
+  // The server already shows the requested configuration; this also points the quote buttons and links at it.
+  apply(variants.find((variant) => variant.model === data.active) || variants.find((variant) => variant.model === data.default) || variants[0], false);
 })();
 
 // Version choice under a product title (inc/model-names.php, boblift_render_model_variants): SQ2Z-EM or SQ2Z-ER on the

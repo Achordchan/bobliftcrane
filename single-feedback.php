@@ -21,6 +21,10 @@ $media = $feedback['media'];
 $total = count($media);
 $caption = implode(' · ', array_filter([$feedback['model'], $feedback['country']]));
 $counts = boblift_feedback_counts_text($feedback);
+// The crane by capacity and type leads, as on every feedback card; the model and the flag come with it.
+$feedback_view = boblift_feedback_card_view($feedback);
+$feedback_flag = $feedback_view['flag'] !== '' ? '<img class="boblift-flag" src="' . esc_url($feedback_view['flag']) . '" width="18" height="13" alt="" loading="lazy" decoding="async">' : boblift_icon('map-pin', 'h-4 w-4 shrink-0 text-gold');
+$model_label = boblift_series_text('Model');
 $first = $media[0] ?? null;
 $pad = static fn(int $n): string => str_pad((string) $n, 2, '0', STR_PAD_LEFT);
 // A written delivery record carries its own headline; plain entries keep the model as the heading.
@@ -47,24 +51,30 @@ $others = array_slice($others, 0, 4);
     <header class="mt-5 flex flex-col gap-5 border-b border-line pb-5 md:mt-6 md:flex-row md:items-end md:justify-between md:pb-6">
         <div class="min-w-0 md:flex-1">
             <?php if ($record_title !== '') : ?>
-                <p class="boblift-kicker"><?php echo esc_html($feedback_label . ' · ' . $feedback['model']); ?></p>
+                <p class="boblift-kicker"><?php echo esc_html($feedback_label . ' · ' . $feedback_view['title']); ?></p>
                 <h1 class="mt-3 text-3xl [text-wrap:balance] font-black leading-tight tracking-[-0.02em] text-ink md:text-[2.5rem]"><?php echo esc_html($record_title); ?></h1>
             <?php else : ?>
                 <p class="boblift-kicker"><?php echo esc_html($feedback_label); ?></p>
-                <h1 class="mt-3 text-4xl font-black leading-none tracking-[-0.02em] text-ink md:text-[3.25rem]"><?php echo esc_html($feedback['model']); ?></h1>
+                <h1 class="mt-3 text-4xl font-black leading-tight tracking-[-0.02em] text-ink md:text-[3.25rem]"><?php echo esc_html($feedback_view['title']); ?></h1>
             <?php endif; ?>
             <?php if ($feedback['note'] !== '') : ?><p class="mt-3 text-base font-normal text-slate-600 md:text-lg"><?php echo esc_html($feedback['note']); ?></p><?php endif; ?>
         </div>
-        <dl class="grid shrink-0 grid-cols-2 gap-x-10 gap-y-1 text-sm md:text-right">
+        <dl class="grid shrink-0 grid-cols-2 gap-x-10 gap-y-4 text-sm md:text-right <?php echo $feedback_view['title'] !== $feedback['model'] && $feedback['model'] !== '' ? 'md:grid-cols-3' : ''; ?>">
+            <?php if ($feedback_view['title'] !== $feedback['model'] && $feedback['model'] !== '') : ?>
+                <div>
+                    <dt class="text-[12px] font-black uppercase tracking-[0.16em] text-slate-500 rtl:tracking-normal"><?php echo esc_html($model_label); ?></dt>
+                    <dd class="mt-1 font-black text-ink" dir="ltr"><?php echo esc_html($feedback['model']); ?></dd>
+                </div>
+            <?php endif; ?>
             <?php if ($feedback['country'] !== '') : ?>
                 <div>
-                    <dt class="text-[11px] font-black uppercase tracking-[0.16em] text-slate-500"><?php echo esc_html($ui['countryLabel'] ?? 'Country'); ?></dt>
-                    <dd class="mt-1 flex items-center gap-1.5 font-black text-ink md:justify-end"><?php echo boblift_icon('map-pin', 'h-4 w-4 text-gold'); ?><?php echo esc_html($feedback['country']); ?></dd>
+                    <dt class="text-[12px] font-black uppercase tracking-[0.16em] text-slate-500 rtl:tracking-normal"><?php echo esc_html($ui['countryLabel'] ?? 'Country'); ?></dt>
+                    <dd class="mt-1 flex items-center gap-1.5 font-black text-ink md:justify-end"><?php echo $feedback_flag; ?><?php echo esc_html($feedback['country']); ?></dd>
                 </div>
             <?php endif; ?>
             <?php if ($counts !== '') : ?>
                 <div>
-                    <dt class="text-[11px] font-black uppercase tracking-[0.16em] text-slate-500"><?php echo esc_html($ui['mediaLabel'] ?? 'Media'); ?></dt>
+                    <dt class="text-[12px] font-black uppercase tracking-[0.16em] text-slate-500 rtl:tracking-normal"><?php echo esc_html($ui['mediaLabel'] ?? 'Media'); ?></dt>
                     <dd class="mt-1 font-black text-ink"><?php echo esc_html($counts); ?></dd>
                 </div>
             <?php endif; ?>
@@ -110,7 +120,7 @@ $others = array_slice($others, 0, 4);
     $record = boblift_feedback_record(get_the_ID());
     ob_start();
     if ($record !== '') {
-        echo '<div class="boblift-story-prose boblift-feedback-record max-w-[760px] lg:max-w-none">' . wp_kses_post($record) . '</div>';
+        echo '<div class="boblift-story-prose boblift-feedback-record max-w-[760px] lg:max-w-none">' . boblift_series_content_links(wp_kses_post($record)) . '</div>';
     } elseif (trim((string) get_post_field('post_content', get_the_ID())) !== '') {
         echo '<div class="boblift-story-prose max-w-[760px]">';
         the_content();
@@ -122,7 +132,7 @@ $others = array_slice($others, 0, 4);
     $feedback_products = boblift_item_related_products(get_the_ID());
     $quote_url = boblift_url('/contact.html?product=' . rawurlencode($feedback['model']) . '#inquiry');
     $quote_attrs = boblift_item_inquiry_attrs($feedback_products, (string) $feedback['model']);
-    $ask_model = str_replace('{model}', $feedback['model'], $ui['askModelTemplate'] ?? 'Interested in the {model}?');
+    $ask_model = str_replace('{model}', $feedback_view['title'], $ui['askModelTemplate'] ?? 'Interested in the {model}?');
     ?>
 
     <?php // The text starts on the page edge and fills the photo's width; the inquiry card is pinned under the thumbnail column on desktop. ?>
@@ -133,10 +143,13 @@ $others = array_slice($others, 0, 4);
             <aside class="boblift-case-aside">
                 <div class="boblift-case-aside-card rounded border border-line bg-white p-6 shadow-card">
                     <p class="boblift-kicker"><?php echo esc_html($feedback_label); ?></p>
-                    <p class="mt-3 text-2xl font-black leading-tight text-ink"><?php echo esc_html($feedback['model']); ?></p>
+                    <p class="mt-3 text-2xl font-black leading-tight text-ink"><?php echo esc_html($feedback_view['title']); ?></p>
                     <dl class="mt-4 grid gap-2 border-t border-line pt-4 text-sm">
+                        <?php if ($feedback_view['title'] !== $feedback['model'] && $feedback['model'] !== '') : ?>
+                            <div class="flex items-baseline justify-between gap-4"><dt class="text-slate-500"><?php echo esc_html($model_label); ?></dt><dd class="text-end font-black text-ink" dir="ltr"><?php echo esc_html($feedback['model']); ?></dd></div>
+                        <?php endif; ?>
                         <?php if ($feedback['country'] !== '') : ?>
-                            <div class="flex items-baseline justify-between gap-4"><dt class="text-slate-500"><?php echo esc_html($ui['countryLabel'] ?? 'Country'); ?></dt><dd class="text-end font-black text-ink"><?php echo esc_html($feedback['country']); ?></dd></div>
+                            <div class="flex items-baseline justify-between gap-4"><dt class="text-slate-500"><?php echo esc_html($ui['countryLabel'] ?? 'Country'); ?></dt><dd class="flex items-center justify-end gap-1.5 text-end font-black text-ink"><?php echo $feedback_flag; ?><?php echo esc_html($feedback['country']); ?></dd></div>
                         <?php endif; ?>
                         <?php if ($counts !== '') : ?>
                             <div class="flex items-baseline justify-between gap-4"><dt class="text-slate-500"><?php echo esc_html($ui['mediaLabel'] ?? 'Media'); ?></dt><dd class="text-end font-black text-ink"><?php echo esc_html($counts); ?></dd></div>
@@ -154,8 +167,9 @@ $others = array_slice($others, 0, 4);
                                     <a class="group grid grid-cols-[4.5rem_minmax(0,1fr)] items-center gap-3 rounded-sm border border-line p-2 transition hover:border-blue-300" href="<?php echo esc_url(get_permalink($feedback_product)); ?>">
                                         <span class="block aspect-[4/3] overflow-hidden rounded-sm bg-mist"><img class="h-full w-full object-contain p-1" src="<?php echo esc_url(boblift_post_thumbnail_url($feedback_product, boblift_asset('images/products/crane-accessories.png'))); ?>" alt="<?php echo esc_attr($product_title); ?>" loading="lazy" decoding="async"></span>
                                         <span class="min-w-0">
-                                            <span class="block text-sm font-black leading-tight text-ink transition group-hover:text-blue-700"><?php echo esc_html($product_model !== '' ? $product_model : $product_title); ?></span>
-                                            <span class="mt-0.5 line-clamp-1 block text-xs text-slate-500"><?php echo esc_html($product_title); ?></span>
+                                            <?php $product_name = trim((string) boblift_series_card_view(boblift_product_from_post($feedback_product))['full_title']) ?: $product_title; ?>
+                                            <span class="block text-sm font-black leading-tight text-ink transition group-hover:text-blue-700"><?php echo esc_html($product_name); ?></span>
+                                            <?php if ($product_model !== '') : ?><span class="mt-0.5 line-clamp-1 block text-xs text-slate-500" dir="ltr"><?php echo esc_html($product_model); ?></span><?php endif; ?>
                                             <span class="mt-1 inline-flex items-center gap-1 text-xs font-black text-blue-700"><?php echo esc_html($ui['viewProductLabel'] ?? 'View product'); ?> <?php echo boblift_icon('arrow-right', 'h-3.5 w-3.5 rtl:-scale-x-100'); ?></span>
                                         </span>
                                     </a>
@@ -197,8 +211,10 @@ $others = array_slice($others, 0, 4);
                             <?php if ($other['cover'] !== '') : ?><img class="h-full w-full object-cover" src="<?php echo esc_url($other['cover']); ?>" alt="<?php echo esc_attr($other['model'] . ' · ' . $other['country']); ?>" loading="lazy" decoding="async"><?php endif; ?>
                         </span>
                         <span class="block p-3 md:p-4">
-                            <span class="block text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html($other['country']); ?></span>
-                            <span class="mt-1 block text-base font-black text-ink md:text-lg"><?php echo esc_html($other['model']); ?></span>
+                            <?php $other_view = boblift_feedback_card_view($other); ?>
+                            <span class="block text-base font-black leading-snug text-ink md:text-lg"><?php echo esc_html($other_view['title']); ?></span>
+                            <?php echo boblift_feedback_country_html($other_view, 'mt-1.5 text-[13px] font-semibold text-slate-700'); ?>
+                            <?php if ($other_view['meta'] !== '') : ?><span class="mt-1 block text-[13px] text-slate-500"><?php echo esc_html($other_view['meta']); ?></span><?php endif; ?>
                         </span>
                     </a>
                 <?php endforeach; ?>

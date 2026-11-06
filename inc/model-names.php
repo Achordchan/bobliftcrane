@@ -5,7 +5,7 @@
  * Truck cranes: SQ + capacity class in tons + Z (knuckle) or S (telescopic) + A and the boom count; marine versions
  * add T, a winch adds J, flip-over outriggers add F. Forklift fly jibs: CC + lifting height class.
  * Electric mini cranes: SQ + capacity + Z (knuckle) + -E (electric) + M (manual levers) or R (wireless remote).
- * Only these patterns are decoded; SQZ, BLZ, timber, spider and other names stay as they are until their rules are known.
+ * Only these patterns are decoded; other SQZ, BLZ, timber, spider and other names stay as they are until their rules are known.
  * Product pages show the parts and link to the key on the product archive (#model-names).
  */
 
@@ -17,7 +17,8 @@ function boblift_model_parts(string $model): array
         $capacity = str_starts_with($m['capacity'], '0') && !str_contains($m['capacity'], '.') ? '0.' . substr($m['capacity'], 1) : $m['capacity'];
         $hydraulic = (int) $m['count'] - 1;
         $parts = [
-            ['SQ', $t('Truck mounted crane')],
+            // SQ is the maker's prefix, on truck and marine versions alike.
+            ['SQ', $t('BOB-LIFT crane')],
             [$m['capacity'], str_replace('{capacity}', $capacity, $t('{capacity} t capacity class'))],
             [$m['boom'], $t($m['boom'] === 'Z' ? 'Knuckle boom' : 'Telescopic boom')],
             ['A' . $m['count'], str_replace('{count}', (string) $hydraulic, $t($hydraulic === 1 ? '1 main boom + 1 hydraulic boom' : '1 main boom + {count} hydraulic booms'))],
@@ -30,6 +31,9 @@ function boblift_model_parts(string $model): array
         }
         if ($m['flip'] !== '') {
             $parts[] = ['F', $t('Flip-over outriggers')];
+        }
+        if (str_ends_with($model, '+1')) {
+            $parts[] = ['+1', $t('1 added manual extension')];
         }
         return $parts;
     }
@@ -48,6 +52,21 @@ function boblift_model_parts(string $model): array
             ['E', $t('Electric drive')],
             $control,
         ];
+    }
+    // SQZ models carry a lifting moment class instead of a capacity: close to the moment in kN·m, not equal to it.
+    if (preg_match('/^SQZ(?<moment>\d{3,4})(?<marine>T?)(?<winch>J?)$/', $model, $m)) {
+        $parts = [
+            ['SQ', $t('BOB-LIFT crane')],
+            ['Z', $t('Knuckle boom')],
+            [$m['moment'], $t('Lifting moment class')],
+        ];
+        if ($m['marine'] !== '') {
+            $parts[] = ['T', $t('Marine version')];
+        }
+        if ($m['winch'] !== '') {
+            $parts[] = ['J', $t('With winch')];
+        }
+        return $parts;
     }
     if (preg_match('/^CC(\d+)$/', $model, $m)) {
         return [['CC', $t('Forklift fly jib crane')], [$m[1], $t('Maximum lifting height class')]];

@@ -60,12 +60,12 @@ img { max-width: 100%; }
   .btn-primary { @apply inline-flex items-center justify-center gap-3 rounded-sm bg-navy px-7 py-4 text-base font-bold text-white shadow-card transition duration-300 hover:-translate-y-0.5 hover:bg-[#0b2d5b]; }
   .btn-white { @apply inline-flex items-center justify-center gap-3 rounded-sm border border-line bg-white px-7 py-4 text-base font-bold text-ink shadow-card transition duration-300 hover:-translate-y-0.5; }
   /* The one small uppercase section label. Barlow ships 400/500/600 only, so 600 is the heaviest it draws. */
-  .section-label, .boblift-kicker { @apply text-[11px] font-semibold uppercase leading-[1.4] tracking-[0.18em] text-[#0B3F7D]; }
+  .section-label, .boblift-kicker { @apply text-[12px] font-semibold uppercase leading-[1.4] tracking-[0.18em] text-[#0B3F7D]; }
   /* On navy panels the label keeps the gold it had, so it stays legible. */
   .bg-navy .section-label, .bg-navy .boblift-kicker { @apply text-gold; }
   .card-hover { @apply transition duration-300 hover:-translate-y-2; }
   /* A figure cell of the model comparison tables (boblift_render_model_table()): repeated thousands of times per archive. */
-  .boblift-spec-cell { @apply whitespace-nowrap border-b border-[#E5E7EB] px-4 py-3.5 font-semibold text-ink [font-variant-numeric:tabular-nums]; }
+  .boblift-spec-cell { @apply whitespace-nowrap text-[15px] border-b border-[#E5E7EB] px-4 py-3.5 font-semibold text-ink [font-variant-numeric:tabular-nums]; }
   .nav-icon-btn { @apply inline-flex h-14 items-center justify-center gap-2 rounded-sm border border-line bg-white px-5 text-sm font-black text-navy shadow-card transition hover:-translate-y-0.5 hover:border-blue-200; }
   .boblift-video-tab { @apply inline-flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm border border-line bg-white px-4 text-sm font-black text-ink transition hover:border-ink/30 aria-pressed:border-navy aria-pressed:bg-navy aria-pressed:text-white; }
   .floating-contact-link { @apply relative grid size-11 shrink-0 place-items-center rounded-sm border border-line bg-white text-[11px] font-black text-navy transition hover:border-blue-200 hover:text-blue-700 lg:size-[40px] min-[1780px]:size-12; }
@@ -97,7 +97,7 @@ img { max-width: 100%; }
   .boblift-final-cta {
     width: calc(100% - 32px);
     margin-block: 44px;
-    border-radius: 4px;
+    border-radius: var(--boblift-r, 10px);
   }
   .boblift-final-cta-frame,
   .boblift-final-cta-content {
@@ -452,7 +452,7 @@ img { max-width: 100%; }
   width: 100%;
   aspect-ratio: 2 / 1;
   overflow: hidden;
-  border-radius: 4px;
+  border-radius: var(--boblift-r, 10px);
   background: #EAF1F8;
   box-shadow: 0 1px 2px rgba(8, 35, 74, .06);
   grid-row: 1;
@@ -590,7 +590,7 @@ img { max-width: 100%; }
   }
   .about-timeline-panel-media {
     order: 1;
-    border-radius: 4px;
+    border-radius: var(--boblift-r, 10px);
     box-shadow: 0 1px 2px rgba(8, 35, 74, .06);
   }
   .about-timeline-panel-body {
@@ -927,110 +927,132 @@ img { max-width: 100%; }
 }
 [dir="rtl"] .boblift-home-hero-tab-bar { transform-origin: right; }
 
-@media (max-width: 767px) {
+/* Phones: one card to a row, the picture lower so a card stays near one screen, three figures across. */
+@media (max-width: 639px) {
   .boblift-product-listing .products-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
   }
   .boblift-product-listing .product-card {
-    border-radius: 4px;
+    border-radius: var(--boblift-r, 10px);
   }
   .boblift-product-listing .product-card:hover {
     transform: none;
   }
   .boblift-product-listing .product-card-media {
-    height: clamp(132px, 40vw, 158px);
+    height: auto;
+    aspect-ratio: 16 / 10;
   }
   .boblift-product-listing .product-card-media img {
     padding: 12px;
   }
-  .boblift-product-listing .product-card-head {
-    flex-direction: column;
-    gap: 8px;
-  }
-  .boblift-product-listing .product-card-inline-actions {
-    inset-block-end: 8px;
-    inset-inline-end: 11px;
-    gap: 4px;
-  }
-  .boblift-product-listing .product-card-inline-actions button {
-    width: 30px;
-    height: 30px;
-  }
-  .boblift-product-listing .product-card-inline-actions svg {
-    width: 15px;
-    height: 15px;
-  }
   .boblift-product-listing .product-card-body {
-    padding: 13px 11px 12px;
-  }
-  .boblift-product-listing .product-card-meta {
-    margin-bottom: 5px;
-    letter-spacing: 0;
-  }
-  .boblift-product-listing .product-card-meta span {
-    min-height: 0;
-    font-size: 11px;
-    line-height: 1.35;
+    padding: 16px;
   }
   .boblift-product-listing .product-card-title {
-    display: -webkit-box;
-    overflow: hidden;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
-    font-size: 15px;
-    line-height: 1.12;
-    letter-spacing: -.015em;
-  }
-  .boblift-product-listing .product-card-model {
-    font-size: 22px;
-    line-height: 1;
-    letter-spacing: .02em;
+    font-size: 20px;
+    line-height: 1.15;
   }
   .boblift-product-listing .product-card-specs {
-    grid-template-columns: minmax(0, 1fr);
-    margin-top: 10px;
-    gap: 3px;
-    padding-top: 9px;
-  }
-  .boblift-product-listing .product-card-specs > div {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 6px;
-  }
-  .boblift-product-listing .product-card-specs dt {
-    font-size: 10.5px;
-    line-height: 16px;
-  }
-  .boblift-product-listing .product-card-specs dd {
-    flex-shrink: 0;
-    margin-top: 0;
-    font-size: 12.5px;
-    line-height: 16px;
-  }
-  .boblift-product-listing .product-card-footer {
-    display: block;
+    grid-template-columns: minmax(max-content, .8fr) minmax(max-content, 1fr) minmax(max-content, 1.25fr);
+    margin-top: 12px;
     padding-top: 12px;
   }
-  .boblift-product-listing .product-card-ctas {
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
-  }
-  .boblift-product-listing .product-card-ctas button,
-  .boblift-product-listing .product-card-ctas a {
-    min-height: 40px;
+  .boblift-product-listing .product-card-specs > div {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
     gap: 4px;
-    border-radius: 2px;
-    padding-inline: 6px;
-    font-size: 11.5px;
-    letter-spacing: -.005em;
   }
-  .boblift-product-listing .product-card-ctas svg {
-    width: 12px;
-    height: 12px;
+  /* The value alone sets a column's width; the label wraps inside it. */
+  .boblift-product-listing .product-card-specs dt {
+    width: 0;
+    min-width: 100%;
   }
+  .boblift-product-listing .product-card-specs > div + div {
+    border-inline-start: 1px solid #E5E7EB;
+    padding-inline-start: 10px;
+  }
+  .boblift-product-listing .product-card-footer {
+    padding-top: 14px;
+  }
+  /* Room for the whole labels now, in the grid's full-width cards. A list row keeps the short labels: beside its
+     112 px picture the buttons are too narrow for "View Configurations". */
+  .boblift-product-listing:not([data-view="list"]) .product-card-ctas button > span:first-of-type,
+  .boblift-product-listing:not([data-view="list"]) .product-card-ctas a > span:first-of-type {
+    display: inline;
+  }
+  .boblift-product-listing:not([data-view="list"]) .product-card-ctas button > span:last-of-type,
+  .boblift-product-listing:not([data-view="list"]) .product-card-ctas a > span:nth-of-type(2) {
+    display: none;
+  }
+}
+
+.boblift-product-listing .product-card-eyebrow { letter-spacing: .08em; }
+
+@media (max-width: 379px) {
+  .boblift-product-listing .product-card-specs > div + div { padding-inline-start: 6px; }
+}
+
+.boblift-scroll-row {
+  display: flex;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 var(--fade-start, 0), #000 calc(100% - var(--fade-end, 0)), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 var(--fade-start, 0), #000 calc(100% - var(--fade-end, 0)), transparent 100%);
+}
+.boblift-scroll-row::-webkit-scrollbar { display: none; }
+[dir="rtl"] .boblift-scroll-row {
+  -webkit-mask-image: linear-gradient(to left, transparent 0, #000 var(--fade-start, 0), #000 calc(100% - var(--fade-end, 0)), transparent 100%);
+  mask-image: linear-gradient(to left, transparent 0, #000 var(--fade-start, 0), #000 calc(100% - var(--fade-end, 0)), transparent 100%);
+}
+
+/* Grid view: the two buttons take the width their words need and never break a line; they stack only if a language cannot fit. */
+.boblift-product-listing[data-view="grid"] .product-card-footer { display: flex; flex-wrap: wrap; gap: 8px; }
+.boblift-product-listing[data-view="grid"] .product-card-ctas > * { flex: 1 1 auto; padding-inline: 6px; white-space: nowrap; }
+.boblift-product-listing[data-view="grid"] .product-card-ctas svg { display: none; }
+/* A card too narrow for both buttons stacks them. By width, not language, so a whole row of cards does the same. */
+/* Specification groups follow the width they get, not the window: beside the drawing on a 1024 px desktop the column is
+   about 400 px, too narrow for a side heading and two label/value columns. Two columns from 440 px, the heading beside
+   the rows from 680 px (inc/product-specs.php). */
+.boblift-spec-groups { container-type: inline-size; }
+@container (min-width: 440px) {
+  .boblift-spec-rows { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .boblift-spec-long { grid-column: span 2 / span 2; }
+  .boblift-spec-filler { display: block; }
+}
+@container (min-width: 680px) {
+  .boblift-spec-group { grid-template-columns: 9.5rem minmax(0, 1fr); }
+  .boblift-spec-rows.is-unlabelled { grid-column: span 2 / span 2; }
+  .boblift-spec-group-head { flex-direction: column; align-items: flex-start; justify-content: center; border-bottom-width: 0; border-inline-end-width: 1px; padding-top: 1rem; padding-bottom: 1rem; }
+}
+.boblift-product-listing[data-view="grid"] .product-card-body { container-type: inline-size; }
+@container (max-width: 270px) {
+  .boblift-product-listing[data-view="grid"] .product-card-footer { flex-direction: column; }
+  .boblift-product-listing[data-view="grid"] .product-card-ctas > * { width: 100%; }
+}
+
+.boblift-boom-row [role="radiogroup"] { flex: 3 1 auto; }
+.boblift-boom-row [data-boom-fixed] { flex: 1 1 auto; }
+.boblift-boom-row .boblift-model-variant { flex: 1 1 0; min-width: max-content; }
+.boblift-variant-check { display: none; position: absolute; inset-inline-end: 8px; top: 50%; width: 16px; height: 16px; margin-top: -8px; border-radius: 50%; background: #fff; }
+.boblift-variant-check::after { content: ""; position: absolute; left: 5px; top: 2.5px; width: 6px; height: 9px; border: solid #071f42; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+.boblift-model-variant[aria-checked="true"] .boblift-variant-check { display: block; }
+.boblift-boom-row .boblift-variant-check { top: auto; bottom: 6px; margin-top: 0; }
+@media (max-width: 639px) { .boblift-boom-row [data-boom-fixed] { flex: 0 0 auto; } }
+
+/* The figures answer the choice above them: a short fade, with no change in layout. */
+@keyframes boblift-figures-in { from { opacity: 0; } to { opacity: 1; } }
+[data-cfg-block="keyspecs"] [data-cfg-variant]:not([hidden]) { animation: boblift-figures-in .15s ease-out; }
+
+/* Product page top, wide screens: theme.js sets the photo frame's height so the frame and its thumbnails end level with the text
+   (never flatter than 16:10), and centres shorter text beside them. The thumbnails show even for a single photo. */
+@media (min-width: 1280px) {
+  [data-product-hero-gallery-root] .boblift-product-stage { height: var(--boblift-stage-h, auto); transition: height .2s ease-out; }
+  .boblift-hero-text { transform: translateY(var(--boblift-text-shift, 0px)); transition: transform .2s ease-out; }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-product-hero-gallery-root] .boblift-product-stage, .boblift-hero-text { transition: none; }
 }
 
 /* Previous models: a tab that toggles on its own beside the category tabs. While on, the selected category's previous models replace the
@@ -1051,55 +1073,49 @@ img { max-width: 100%; }
 [data-legacy-view] [data-category-subtabs],
 [data-filter-bar]:has([data-filter-dropdowns].hidden) [data-category-subtabs] { padding-bottom: 1rem; }
 
-/* List view: one row per model for comparing. The picture, then the name and summary, then four spec rows in a fixed
-   order (so values line up down the list), then the actions. One divider between the columns, no card-in-card. */
+/* List view: one row per model. The picture, then the name, configurations and figures, then the actions.
+   Figures sit in fixed columns so values line up down the list. Below 1024px the actions go under the figures. */
 .boblift-product-listing[data-view="list"] .products-grid { grid-template-columns: minmax(0, 1fr); gap: .75rem; }
-.boblift-product-listing[data-view="list"] .product-card { border-radius: 4px; }
+.boblift-product-listing[data-view="list"] .product-card { border-radius: var(--boblift-r, 10px); }
 .boblift-product-listing[data-view="list"] .product-card:hover { transform: none; }
 .boblift-product-listing[data-view="list"] .product-card-inner { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 1rem; padding: .75rem; }
-.boblift-product-listing[data-view="list"] .product-card-media { aspect-ratio: 1 / 1; width: 100%; height: auto; min-height: 0; align-self: start; border-radius: 2px; }
+.boblift-product-listing[data-view="list"] .product-card-media { aspect-ratio: 1 / 1; width: 100%; height: auto; min-height: 0; align-self: start; border-radius: var(--boblift-r-sm, 6px); }
 .boblift-product-listing[data-view="list"] .product-card-media img { padding: .5rem; }
 .boblift-product-listing[data-view="list"] .product-card-inline-actions { display: none; }
-.boblift-product-listing[data-view="list"] .product-card-body { gap: .75rem; padding: 0; }
-.boblift-product-listing[data-view="list"] .product-card-meta { margin-bottom: .25rem; }
-.boblift-product-listing[data-view="list"] .product-card-title { font-size: clamp(1.25rem, 2vw, 1.75rem); line-height: 1.08; }
-.boblift-product-listing[data-view="list"] .product-card-summary { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; margin-top: .5rem; font-size: .875rem; line-height: 1.5rem; }
-.boblift-product-listing[data-view="list"] .product-card-specs { display: none; }
-.boblift-product-listing[data-view="list"] .product-card-list-specs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem 1.25rem; margin: 0; border-top: 1px solid #E5E7EB; padding-top: .75rem; }
+.boblift-product-listing[data-view="list"] .product-card-body { padding: 0; }
+.boblift-product-listing[data-view="list"] .product-card-title { font-size: clamp(1.0625rem, 1.6vw, 1.375rem); line-height: 1.15; letter-spacing: 0; }
+.boblift-product-listing[data-view="list"] .product-card-specs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem 1rem; margin-top: .75rem; border-top: 0; padding-top: 0; }
+.boblift-product-listing[data-view="list"] .product-card-specs > div { flex-direction: column; align-items: flex-start; justify-content: flex-end; gap: .125rem; border-inline-start-width: 0; padding-inline-start: 0; }
+.boblift-product-listing[data-view="list"] .product-card-specs dt { font-size: 13px; line-height: 1.25; }
+.boblift-product-listing[data-view="list"] .product-card-specs dd { margin-top: 0; font-size: 15px; line-height: 1.25rem; }
 .boblift-product-listing[data-view="list"] .product-card-footer { display: flex; align-items: center; gap: .5rem; margin-top: .875rem; padding-top: 0; }
 .boblift-product-listing[data-view="list"] .product-card-list-actions { display: flex; gap: .5rem; }
-.boblift-product-listing[data-view="list"] .product-card-list-actions button { width: 2.75rem; height: 2.75rem; }
+.boblift-product-listing[data-view="list"] .product-card-list-actions button { width: 2.5rem; height: 2.5rem; }
 .boblift-product-listing[data-view="list"] .product-card-ctas { display: grid; flex: 1; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
+.boblift-product-listing[data-view="list"] .product-card-ctas button, .boblift-product-listing[data-view="list"] .product-card-ctas a { min-height: 2.75rem; white-space: nowrap; }
 .boblift-product-favorite-active svg { fill: currentColor; }
-/* Phones: the specs carry the row, so the summary and the icon buttons give way and the two actions share the width. */
 @media (max-width: 767px) {
-  .boblift-product-listing[data-view="list"] .product-card-summary, .boblift-product-listing[data-view="list"] .product-card-list-actions { display: none; }
-  .boblift-product-listing[data-view="list"] .product-card-ctas button, .boblift-product-listing[data-view="list"] .product-card-ctas a { min-height: 2.5rem; white-space: nowrap; }
+  .boblift-product-listing[data-view="list"] .product-card-list-actions { display: none; }
+  .boblift-product-listing[data-view="list"] .product-card-ctas button, .boblift-product-listing[data-view="list"] .product-card-ctas a { min-height: 2.5rem; }
 }
 @media (min-width: 768px) {
-  .boblift-product-listing[data-view="list"] .product-card-inner { grid-template-columns: 200px minmax(0, 1fr); gap: 1.5rem; padding: 1rem; }
-  .boblift-product-listing[data-view="list"] .product-card-list-specs { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .boblift-product-listing[data-view="list"] .product-card-ctas { flex: 0 0 auto; grid-template-columns: auto auto; }
+  .boblift-product-listing[data-view="list"] .product-card-inner { grid-template-columns: 180px minmax(0, 1fr); gap: 1.5rem; padding: 1rem; }
+  .boblift-product-listing[data-view="list"] .product-card-specs { grid-template-columns: repeat(3, minmax(0, 10rem)); gap: .5rem 1.5rem; }
+  .boblift-product-listing[data-view="list"] .product-card-ctas { flex: 0 0 auto; grid-template-columns: repeat(2, 11rem); }
   /* The row has room for the full "Request Quote" at every width from here. */
   .boblift-product-listing[data-view="list"] .product-card-ctas button > span:first-of-type { display: inline; }
   .boblift-product-listing[data-view="list"] .product-card-ctas button > span:last-of-type { display: none; }
   .boblift-product-listing[data-view="list"] .product-card-footer { justify-content: space-between; }
 }
-/* Desktop: name | specs | actions side by side, the specs and actions each behind one divider. */
 @media (min-width: 1024px) {
-  .boblift-product-listing[data-view="list"] .product-card-inner { grid-template-columns: 180px minmax(0, 1fr); align-items: center; }
-  .boblift-product-listing[data-view="list"] .product-card-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr) 11rem; align-items: center; gap: 0; }
-  .boblift-product-listing[data-view="list"] .product-card-head { padding-inline-end: 1.75rem; }
+  .boblift-product-listing[data-view="list"] .product-card-inner { grid-template-columns: 200px minmax(0, 1fr); align-items: center; }
+  .boblift-product-listing[data-view="list"] .product-card-body { display: grid; grid-template-columns: minmax(0, 1fr) 12rem; grid-template-rows: auto auto; column-gap: 2rem; align-content: center; align-items: center; }
   .boblift-product-listing[data-view="list"] .product-card-bottom { display: contents; }
-  .boblift-product-listing[data-view="list"] .product-card-list-specs { grid-template-columns: repeat(2, minmax(0, 1fr)); align-self: stretch; align-content: center; gap: 1rem 1.5rem; border-top: 0; border-inline-start: 1px solid #E5E7EB; padding: .25rem 1.75rem; }
-  .boblift-product-listing[data-view="list"] .product-card-footer { flex-direction: column; align-items: stretch; align-self: stretch; justify-content: center; gap: .5rem; margin-top: 0; border-inline-start: 1px solid #E5E7EB; padding-inline-start: 1.5rem; }
-  .boblift-product-listing[data-view="list"] .product-card-ctas { order: -1; grid-template-columns: minmax(0, 1fr); }
-  .boblift-product-listing[data-view="list"] .product-card-list-actions { justify-content: center; }
-  .boblift-product-listing[data-view="list"] .product-card-list-actions button { width: 2.5rem; height: 2.5rem; }
-}
-@media (min-width: 1280px) {
-  .boblift-product-listing[data-view="list"] .product-card-inner { grid-template-columns: 200px minmax(0, 1fr); }
-  .boblift-product-listing[data-view="list"] .product-card-list-specs { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .boblift-product-listing[data-view="list"] .product-card-head { grid-column: 1; grid-row: 1; }
+  .boblift-product-listing[data-view="list"] .product-card-specs { grid-column: 1; grid-row: 2; }
+  .boblift-product-listing[data-view="list"] .product-card-footer { grid-column: 2; grid-row: 1 / span 2; flex-direction: column; align-items: stretch; justify-content: center; margin-top: 0; }
+  .boblift-product-listing[data-view="list"] .product-card-list-actions { justify-content: flex-end; }
+  .boblift-product-listing[data-view="list"] .product-card-ctas { flex: 0 0 auto; grid-template-columns: minmax(0, 1fr); }
 }
 
 @keyframes rise { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: translateY(0); } }
@@ -1157,7 +1173,7 @@ img { max-width: 100%; }
   width: min(280px, calc(100% - 16px));
   transform: translate(-50%, -10px) scale(.96);
   border: 1px solid rgba(255,255,255,.34);
-  border-radius: 4px;
+  border-radius: var(--boblift-r, 10px);
   background: rgba(255,255,255,.94);
   box-shadow: 0 1px 2px rgba(8, 35, 74, .06);
   color: #071f42;
@@ -1471,7 +1487,7 @@ img { max-width: 100%; }
   }
   .boblift-inquiry-modal-form input[data-quote-field] {
     height: 42px;
-    border-radius: 2px;
+    border-radius: var(--boblift-r-sm, 6px);
     padding-inline: 12px;
     font-size: 13px;
   }
@@ -1484,7 +1500,7 @@ img { max-width: 100%; }
   .boblift-inquiry-modal-form textarea[data-quote-field="message"] {
     min-height: 82px;
     max-height: 96px;
-    border-radius: 2px;
+    border-radius: var(--boblift-r-sm, 6px);
     padding: 10px 12px;
     font-size: 13px;
     line-height: 1.45;
@@ -1652,7 +1668,7 @@ img { max-width: 100%; }
   .boblift-inquiry-modal.has-selected-products [data-inquiry-selected-products-list] > article > div:first-child {
     width: 40px;
     height: 40px;
-    border-radius: 4px;
+    border-radius: var(--boblift-r, 10px);
   }
   .boblift-inquiry-modal.has-selected-products [data-inquiry-selected-products-list] > article > div:nth-child(2) {
     min-width: 0;
@@ -1870,8 +1886,8 @@ img { max-width: 100%; }
 .boblift-article-body ol { list-style: decimal; }
 .boblift-article-body li + li { margin-top: .4em; }
 .boblift-article-body li::marker { color: #94a3b8; }
-.boblift-article-body blockquote { border: 1px solid var(--line, #e5e7eb); border-radius: 4px; background: #f8fafc; padding: 1rem 1.25rem; color: #475569; }
-.boblift-article-body img, .boblift-article-body video, .boblift-article-body iframe { max-width: 100%; height: auto; border-radius: 4px; }
+.boblift-article-body blockquote { border: 1px solid var(--line, #e5e7eb); border-radius: var(--boblift-r, 10px); background: #f8fafc; padding: 1rem 1.25rem; color: #475569; }
+.boblift-article-body img, .boblift-article-body video, .boblift-article-body iframe { max-width: 100%; height: auto; border-radius: var(--boblift-r, 10px); }
 /* Pictures sit centred in the column and never grow taller than the screen, so a whole picture fits in one view. */
 .boblift-article-body img, .boblift-article-body video { display: block; width: auto; max-height: min(80vh, calc(100vh - 10rem)); max-height: min(80svh, calc(100svh - 10rem)); margin-inline: auto; object-fit: contain; }
 .boblift-article-body iframe { aspect-ratio: 16 / 9; width: 100%; }
@@ -1888,13 +1904,13 @@ img { max-width: 100%; }
   .boblift-article-body figure.bl-video-vertical { border: 1px solid var(--line, #e5e7eb); border-radius: 6px; background: #f8fafc; padding: 1.5rem; }
   .boblift-article-body figure.bl-video-vertical video { flex-basis: 300px; width: 300px !important; }
   .boblift-article-body figure.bl-video-vertical figcaption { font-size: 1.0625rem; line-height: 1.7; }
-  .boblift-article-body figure.bl-video-vertical figcaption::before { content: ""; display: block; width: 2.5rem; height: 3px; margin-bottom: 1rem; border-radius: 2px; background: var(--gold, #f59a3c); }
+  .boblift-article-body figure.bl-video-vertical figcaption::before { content: ""; display: block; width: 2.5rem; height: 3px; margin-bottom: 1rem; border-radius: var(--boblift-r-sm, 6px); background: var(--gold, #f59a3c); }
 }
 /* A table only as wide as its content is centred; a wider one fills the column and scrolls sideways. */
 .boblift-article-body table { display: block; width: fit-content; max-width: 100%; margin-inline: auto; overflow-x: auto; border-collapse: collapse; font-size: .9375rem; line-height: 1.5; }
 .boblift-article-body th, .boblift-article-body td { border: 1px solid var(--line, #e5e7eb); padding: .55rem .75rem; text-align: start; vertical-align: top; }
 .boblift-article-body th { background: #f8fafc; color: var(--ink); font-weight: 600; }
-.boblift-article-body pre { overflow-x: auto; border-radius: 4px; background: #0f172a; padding: 1rem; color: #e2e8f0; font-size: .875rem; }
+.boblift-article-body pre { overflow-x: auto; border-radius: var(--boblift-r, 10px); background: #0f172a; padding: 1rem; color: #e2e8f0; font-size: .875rem; }
 .boblift-article-body hr { border: 0; border-top: 1px solid var(--line, #e5e7eb); margin: 2.5em 0; }
 .boblift-legal-intro { border-bottom: 1px solid var(--line); padding-bottom: 1.5em; color: var(--ink); font-size: 1.1875rem; line-height: 1.7; }
 .boblift-legal-body h2 { display: flex; align-items: baseline; gap: .75rem; }
@@ -1906,7 +1922,7 @@ img { max-width: 100%; }
 .boblift-sitemap-link:hover { color: #1d4ed8; }
 .boblift-news-toc-list { counter-reset: toc; display: grid; gap: .125rem; }
 .boblift-news-toc-list li { counter-increment: toc; }
-.boblift-news-toc-list a { display: grid; grid-template-columns: 1.5rem minmax(0, 1fr); gap: .25rem; border-radius: 2px; padding: .4rem .25rem; color: #475569; font-size: .875rem; font-weight: 600; line-height: 1.4; transition: color .15s, background-color .15s; }
+.boblift-news-toc-list a { display: grid; grid-template-columns: 1.5rem minmax(0, 1fr); gap: .25rem; border-radius: var(--boblift-r-sm, 6px); padding: .4rem .25rem; color: #475569; font-size: .875rem; font-weight: 600; line-height: 1.4; transition: color .15s, background-color .15s; }
 .boblift-news-toc-list a::before { content: counter(toc, decimal-leading-zero); color: #94a3b8; font-size: .75rem; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.6; }
 .boblift-news-toc-list a:hover, .boblift-news-toc-list a[aria-current="true"] { background: #f1f5f9; color: var(--ink); }
 .boblift-news-toc-list a[aria-current="true"]::before { color: #1d4ed8; }
@@ -1961,14 +1977,44 @@ img { max-width: 100%; }
 }
 /* On phones the product page sections run edge to edge as bands, as on the loader site, instead of cards inside
    the 16px gutter: their copy then starts on the same 16px line as the hero above. */
+.boblift-cfg-dot {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  flex: none;
+  border: 1.5px solid #94a3b8;
+  border-radius: 50%;
+  background: #fff;
+}
+.boblift-cfg-row[aria-current] {
+  background: #eaf1fb;
+  font-weight: 900;
+}
+.boblift-cfg-row[aria-current] .boblift-cfg-dot {
+  border: 4px solid #071f42;
+}
+@keyframes boblift-cfg-flash {
+  from { background-color: rgb(219 234 254); }
+  to { background-color: transparent; }
+}
+.boblift-cfg-flash {
+  animation: boblift-cfg-flash 900ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .boblift-cfg-flash {
+    animation: none;
+  }
+}
 @media (max-width: 767px) {
-  .boblift-pd-stack > :is(article, section):not(#quote) {
+  .boblift-pd-stack > :is(article, section):not(#quote),
+  .boblift-pd-stack > [data-cfg-block] > [data-cfg-variant] > article {
     margin-inline: -16px;
     border-radius: 0;
     border-inline-width: 0;
     box-shadow: none;
   }
-  .boblift-pd-stack > :is(article, section):not(#quote) h2 {
+  .boblift-pd-stack > :is(article, section):not(#quote) h2,
+  .boblift-pd-stack > [data-cfg-block] > [data-cfg-variant] > article h2 {
     margin-top: 0.5rem;
     font-size: 1.375rem;
     line-height: 1.15;
@@ -2074,13 +2120,13 @@ img { max-width: 100%; }
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    font-size: clamp(9px, 2.55vw, 10px);
+    font-size: 12px;
     letter-spacing: .08em;
     line-height: 1.25;
   }
   .boblift-product-hero-title {
     letter-spacing: .005em;
-    line-height: .92;
+    line-height: 1.12;
   }
   .boblift-product-hero-actions {
     flex-wrap: nowrap;
@@ -2110,7 +2156,7 @@ img { max-width: 100%; }
   min-width: 140px;
   align-items: center;
   justify-content: center;
-  border-radius: 2px;
+  border-radius: var(--boblift-r-sm, 6px);
   border: 1px solid var(--cases-line);
   background: #fff;
   padding: 0 28px;
@@ -2147,7 +2193,7 @@ img { max-width: 100%; }
   width: 100%;
   min-width: 0;
   border: 1px solid var(--cases-line);
-  border-radius: 2px;
+  border-radius: var(--boblift-r-sm, 6px);
   background: #fff;
   padding: 0 18px;
   color: #08234a;
@@ -2187,7 +2233,7 @@ img { max-width: 100%; }
   right: 0;
   overflow: hidden;
   border: 1px solid rgba(147,197,253,.5);
-  border-radius: 4px;
+  border-radius: var(--boblift-r, 10px);
   background: rgba(255,255,255,.96);
   padding: 8px;
   box-shadow: 0 8px 24px rgba(8, 35, 74, .12);
@@ -2200,7 +2246,7 @@ img { max-width: 100%; }
   height: 42px;
   width: 100%;
   border: 1px solid rgba(226,235,245,.95);
-  border-radius: 2px;
+  border-radius: var(--boblift-r-sm, 6px);
   background: #f8fbff;
   padding: 0 13px;
   color: #08234a;
@@ -2225,7 +2271,7 @@ img { max-width: 100%; }
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  border-radius: 4px;
+  border-radius: var(--boblift-r, 10px);
   padding: 9px 12px;
   text-align: start;
   color: #08234a;
@@ -2265,7 +2311,7 @@ img { max-width: 100%; }
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border-radius: 2px;
+  border-radius: var(--boblift-r-sm, 6px);
   border: 1px solid var(--cases-line);
   background: #fff;
   padding: 0 14px;
@@ -2287,7 +2333,7 @@ img { max-width: 100%; }
   min-width: 0;
   overflow: hidden;
   border: 1px solid var(--cases-line);
-  border-radius: 4px;
+  border-radius: var(--boblift-r, 10px);
   background: #fff;
   padding: 10px;
   box-shadow: 0 1px 2px rgba(8, 35, 74, .06);
@@ -2307,7 +2353,7 @@ img { max-width: 100%; }
   margin: 12px 0 0;
   overflow: hidden;
   border: 1px solid var(--color-line, #e4ebf4);
-  border-radius: 4px;
+  border-radius: var(--boblift-r, 10px);
   background: #fff;
   box-shadow: 0 1px 2px rgba(8, 35, 74, .06);
 }
@@ -2490,7 +2536,7 @@ img { max-width: 100%; }
     height: 46px;
     min-width: 46px;
     padding: 0;
-    border-radius: 2px;
+    border-radius: var(--boblift-r-sm, 6px);
   }
   .boblift-cases-reset-button span {
     position: absolute;
@@ -2506,14 +2552,14 @@ img { max-width: 100%; }
     gap: 12px;
   }
   .boblift-cases-grid .boblift-case-card {
-    border-radius: 4px;
+    border-radius: var(--boblift-r, 10px);
     padding: 7px;
   }
   .boblift-cases-grid .boblift-case-card:hover {
     transform: none;
   }
   .boblift-cases-grid .boblift-case-card-media {
-    border-radius: 4px;
+    border-radius: var(--boblift-r, 10px);
   }
   .boblift-cases-grid .boblift-case-card-content {
     padding: 11px 5px 5px;
@@ -2550,9 +2596,14 @@ img { max-width: 100%; }
   .boblift-feedback-card-content {
     padding: 10px 4px 4px;
   }
+  .boblift-feedback-card-country {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.35;
+  }
   .boblift-feedback-card-meta {
-    margin-top: 5px;
-    font-size: 11px;
+    margin-top: 3px;
+    font-size: 12px;
     line-height: 1.4;
   }
   .boblift-cases-pager {
@@ -2625,7 +2676,7 @@ body.boblift-filter-drawer-locked {
     margin: -24px -24px 24px;
     padding: 20px 24px 16px;
     border-bottom: 1px solid #E5E7EB;
-    border-radius: 4px 4px 0 0;
+    border-radius: var(--boblift-r, 10px) var(--boblift-r, 10px) 0 0;
     background: rgba(255,255,255,.96);
     backdrop-filter: blur(14px);
   }
@@ -2635,10 +2686,10 @@ body.boblift-filter-drawer-locked {
 .boblift-cat-scroller { margin-inline: -16px; padding: 6px 16px 14px; overflow-x: auto; scroll-snap-type: x proximity; scroll-padding-inline: 16px; scrollbar-width: none; }
 .boblift-cat-scroller::-webkit-scrollbar { display: none; }
 .boblift-cat-track { display: grid; grid-auto-flow: column; grid-auto-columns: clamp(148px, 41vw, 172px); gap: 10px; }
-.boblift-cat-card { position: relative; display: flex; flex-direction: column; min-width: 0; overflow: hidden; scroll-snap-align: start; border: 1px solid #e4ebf4; border-radius: 4px; background: #fff; color: var(--ink); text-align: start; box-shadow: 0 1px 2px rgba(8, 35, 74, .06); transition: transform .35s ease, box-shadow .35s ease, border-color .35s ease; }
+.boblift-cat-card { position: relative; display: flex; flex-direction: column; min-width: 0; overflow: hidden; scroll-snap-align: start; border: 1px solid #e4ebf4; border-radius: var(--boblift-r, 10px); background: #fff; color: var(--ink); text-align: start; box-shadow: 0 1px 2px rgba(8, 35, 74, .06); transition: transform .35s ease, box-shadow .35s ease, border-color .35s ease; }
 .boblift-cat-card:hover { transform: translateY(-3px); border-color: #bfd3ee; box-shadow: none; }
 .boblift-cat-card:focus-visible { outline: 3px solid #93c5fd; outline-offset: 3px; }
-.boblift-cat-media { position: relative; display: block; height: 84px; margin: 10px 10px 0; border-radius: 4px; background: radial-gradient(75% 75% at 50% 55%, #fff 0%, #f2f6fb 62%, #e7eef7 100%); }
+.boblift-cat-media { position: relative; display: block; height: 84px; margin: 10px 10px 0; border-radius: var(--boblift-r, 10px); background: radial-gradient(75% 75% at 50% 55%, #fff 0%, #f2f6fb 62%, #e7eef7 100%); }
 .boblift-cat-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 8px; mix-blend-mode: multiply; transition: transform .5s ease; }
 .boblift-cat-card:hover .boblift-cat-media img { transform: scale(1.05); }
 /* A family without a cut-out shows its photo filling the frame instead of a small picture inside it. */
@@ -2663,7 +2714,7 @@ body.boblift-filter-drawer-locked {
 @media (max-width: 639px) {
   .boblift-cat-scroller { padding-block: 2px 8px; }
   .boblift-cat-track { grid-auto-columns: max-content; gap: 8px; }
-  .boblift-cat-card { flex-direction: row; align-items: center; gap: 8px; height: 44px; padding-inline: 10px 14px; border-radius: 2px; }
+  .boblift-cat-card { flex-direction: row; align-items: center; gap: 8px; height: 44px; padding-inline: 10px 14px; border-radius: var(--boblift-r-sm, 6px); }
   .boblift-cat-card:hover { transform: none; }
   .boblift-cat-media, .boblift-cat-arrow-icon { display: none; }
   .boblift-cat-chip-icon { display: block; flex: none; width: 26px; height: 26px; object-fit: contain; }
@@ -2676,8 +2727,8 @@ body.boblift-filter-drawer-locked {
 @media (min-width: 640px) {
   .boblift-cat-scroller { margin-inline: -2px; padding-inline: 2px; scroll-padding-inline: 2px; }
   .boblift-cat-track { grid-auto-columns: 210px; gap: 14px; }
-  .boblift-cat-card { border-radius: 4px; }
-  .boblift-cat-media { height: auto; aspect-ratio: 4 / 3; margin: 14px 14px 0; border-radius: 4px; }
+  .boblift-cat-card { border-radius: var(--boblift-r, 10px); }
+  .boblift-cat-media { height: auto; aspect-ratio: 4 / 3; margin: 14px 14px 0; border-radius: var(--boblift-r, 10px); }
   .boblift-cat-media img { padding: 4px; }
   .boblift-cat-label { min-height: 62px; margin-top: 14px; padding: 12px 16px; font-size: 16px; }
 }
@@ -2686,14 +2737,14 @@ body.boblift-filter-drawer-locked {
   .boblift-cat-wrap.is-fit .boblift-cat-arrow { display: none; }
   /* Desktop: the families fit one row of compact tabs so the models below stay on screen. A tab shows a small cut-out
      beside the name only when the tab itself is wide enough for both; a narrower tab shows the name alone. */
-  .boblift-cat-wrap.is-fit .boblift-cat-card { container-type: inline-size; flex-direction: row; align-items: center; gap: 12px; min-height: 56px; padding: 8px 12px; border-radius: 2px; }
+  .boblift-cat-wrap.is-fit .boblift-cat-card { container-type: inline-size; flex-direction: row; align-items: center; gap: 12px; min-height: 56px; padding: 8px 12px; border-radius: var(--boblift-r-sm, 6px); }
   .boblift-cat-wrap.is-fit .boblift-cat-media, .boblift-cat-wrap.is-fit .boblift-cat-arrow-icon { display: none; }
   .boblift-cat-wrap.is-fit .boblift-cat-label { flex: 1; min-width: 0; min-height: 0; margin: 0; padding: 0; border-top: 0; font-size: 15px; background: transparent; }
   .boblift-cat-wrap.is-fit .boblift-cat-name { -webkit-line-clamp: 3; overflow-wrap: anywhere; }
   .boblift-cat-wrap.is-fit .boblift-cat-card[aria-selected="true"] { background: var(--navy); color: #fff; }
   .boblift-cat-wrap.is-fit .boblift-cat-card[aria-selected="true"] .boblift-cat-label { background: transparent; }
   @container (min-width: 228px) {
-    .boblift-cat-wrap.is-fit .boblift-cat-media { display: block; flex: none; width: 76px; height: 57px; aspect-ratio: auto; margin: 0; border-radius: 2px; }
+    .boblift-cat-wrap.is-fit .boblift-cat-media { display: block; flex: none; width: 76px; height: 57px; aspect-ratio: auto; margin: 0; border-radius: var(--boblift-r-sm, 6px); }
     .boblift-cat-wrap.is-fit .boblift-cat-media img { padding: 3px; }
     .boblift-cat-wrap.is-fit .boblift-cat-arrow-icon { display: block; }
     .boblift-cat-wrap.is-fit .boblift-cat-name { -webkit-line-clamp: 2; }
@@ -2727,7 +2778,7 @@ body.boblift-filter-drawer-locked {
 .boblift-story-prose ol { list-style: decimal; }
 .boblift-story-prose li + li { margin-top: 0.4rem; }
 .boblift-story-prose li::marker { color: #f59a3c; }
-.boblift-story-prose img, .boblift-story-prose video { display: block; width: 100%; height: auto; border-radius: 4px; background: #edf1f5; }
+.boblift-story-prose img, .boblift-story-prose video { display: block; width: 100%; height: auto; border-radius: var(--boblift-r, 10px); background: #edf1f5; }
 .boblift-story-prose figure, .boblift-story-prose .wp-block-image { margin-top: 2rem; margin-bottom: 2rem; }
 .boblift-story-prose figcaption { margin-top: 0.6rem; color: #64748b; font-size: 0.8125rem; font-weight: 600; line-height: 1.5; text-align: start; }
 .boblift-story-prose .wp-block-gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
@@ -2748,9 +2799,9 @@ body.boblift-filter-drawer-locked {
 }
 /* Feedback delivery record: an opening line, a facts strip, sections split by rules and spec tables that read as data sheets. */
 .boblift-feedback-record > p:first-child { color: #0f172a; font-size: 1.1875rem; line-height: 1.7; }
-.boblift-feedback-record > p:nth-child(2):has(> strong:first-child) { padding: 1rem 1.25rem; border: 1px solid #e4ebf4; border-radius: 4px; background: #f6f8fb; font-size: 0.9375rem; line-height: 1.7; }
+.boblift-feedback-record > p:nth-child(2):has(> strong:first-child) { padding: 1rem 1.25rem; border: 1px solid #e4ebf4; border-radius: var(--boblift-r, 10px); background: #f6f8fb; font-size: 0.9375rem; line-height: 1.7; }
 .boblift-feedback-record > h2 { margin-top: 3rem; padding-top: 2.5rem; border-top: 1px solid #e4ebf4; }
-.boblift-feedback-record table { border: 1px solid #e4ebf4; border-collapse: separate; border-spacing: 0; border-radius: 4px; font-variant-numeric: tabular-nums; }
+.boblift-feedback-record table { border: 1px solid #e4ebf4; border-collapse: separate; border-spacing: 0; border-radius: var(--boblift-r, 10px); font-variant-numeric: tabular-nums; }
 .boblift-feedback-record th, .boblift-feedback-record td { padding: 0.7rem 1rem; }
 .boblift-feedback-record thead th { background: #08234a; color: #fff; font-size: 0.8125rem; }
 .boblift-feedback-record thead th:first-child { border-start-start-radius: 3px; }
@@ -2769,7 +2820,7 @@ body.boblift-filter-drawer-locked {
   .boblift-feedback-record table:has(caption) th, .boblift-feedback-record table:has(caption) td { padding-inline: 0.45rem; white-space: nowrap; }
   .boblift-feedback-record table:has(caption) :is(th, td):first-child { white-space: normal; }
 }
-.boblift-feedback-arrow { position: absolute; top: 50%; z-index: 10; display: grid; width: 2.75rem; height: 2.75rem; place-items: center; transform: translateY(-50%); border: 1px solid rgba(8, 35, 74, 0.08); border-radius: 2px; background: rgba(255, 255, 255, 0.92); color: #08234a; transition: background-color .2s, color .2s; }
+.boblift-feedback-arrow { position: absolute; top: 50%; z-index: 10; display: grid; width: 2.75rem; height: 2.75rem; place-items: center; transform: translateY(-50%); border: 1px solid rgba(8, 35, 74, 0.08); border-radius: var(--boblift-r-sm, 6px); background: rgba(255, 255, 255, 0.92); color: #08234a; transition: background-color .2s, color .2s; }
 .boblift-feedback-arrow:hover { background: #071f42; color: #fff; }
 .boblift-feedback-gallery { --feedback-stage-h: clamp(380px, 56vh, 720px); }
 @media (min-width: 768px) { .boblift-feedback-stage { height: var(--feedback-stage-h); } }
@@ -2781,7 +2832,7 @@ body.boblift-filter-drawer-locked {
   .boblift-feedback-gallery.has-thumbs { display: grid; grid-template-columns: minmax(0, 1fr) 21rem; gap: .75rem; }
   .boblift-feedback-gallery.has-thumbs .boblift-feedback-thumbs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: max-content; align-content: start; gap: .5rem; height: var(--feedback-stage-h); overflow: hidden auto; padding: 0 .25rem 0 0; scroll-snap-type: y proximity; scrollbar-width: thin; }
   .boblift-feedback-gallery.has-thumbs .boblift-feedback-thumbs::-webkit-scrollbar { display: block; width: 4px; }
-  .boblift-feedback-gallery.has-thumbs .boblift-feedback-thumbs::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+  .boblift-feedback-gallery.has-thumbs .boblift-feedback-thumbs::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: var(--boblift-r-sm, 6px); }
   .boblift-feedback-gallery.has-thumbs .boblift-feedback-thumb { width: 100%; height: auto; aspect-ratio: 4 / 3; }
   /* Out of flow so the photo cannot stretch its cell: Safari otherwise sized the rows from the image and the thumbnails overlapped. */
   .boblift-feedback-gallery.has-thumbs .boblift-feedback-thumb > img { position: absolute; inset: 0; }
@@ -2790,7 +2841,7 @@ body.boblift-filter-drawer-locked {
   .boblift-feedback-gallery.has-thumbs { grid-template-columns: minmax(0, 1fr) 26rem; }
 }
 .boblift-feedback-thumbs::-webkit-scrollbar { display: none; }
-.boblift-feedback-thumb { position: relative; flex: none; width: 5.5rem; height: 4.125rem; overflow: hidden; border: 2px solid transparent; border-radius: 2px; background: #edf1f5; opacity: .62; scroll-snap-align: start; transition: opacity .2s, border-color .2s; }
+.boblift-feedback-thumb { position: relative; flex: none; width: 5.5rem; height: 4.125rem; overflow: hidden; border: 2px solid transparent; border-radius: var(--boblift-r-sm, 6px); background: #edf1f5; opacity: .62; scroll-snap-align: start; transition: opacity .2s, border-color .2s; }
 .boblift-feedback-thumb:hover { opacity: 1; }
 .boblift-feedback-thumb.is-active { border-color: #2563eb; opacity: 1; }
 @media (min-width: 768px) { .boblift-feedback-thumb { width: 7rem; height: 5.25rem; } }
@@ -2897,3 +2948,10 @@ html:is(:lang(ru), :lang(uk), :lang(fr), :lang(es), :lang(de), :lang(it), :lang(
     font-size: 16px !important;
   }
 }
+
+/* Corner radius in three tiers (tailwind.config.js reads them): controls, cards and panels, dialogs. Dots stay round. */
+:root { --boblift-r-sm: 6px; --boblift-r: 10px; --boblift-r-lg: 14px; }
+.boblift-inquiry-modal:not(.is-inquiry-fullscreen) .boblift-inquiry-dialog, .boblift-leave-dialog, .boblift-drawing-dialog { border-radius: var(--boblift-r-lg, 14px); }
+
+/* A small country flag beside its name: a hairline keeps a white flag apart from a white card. */
+.boblift-flag { display: block; flex: none; width: 18px; height: 13px; object-fit: cover; border-radius: 2px; box-shadow: 0 0 0 1px rgb(15 23 42 / 0.14); }

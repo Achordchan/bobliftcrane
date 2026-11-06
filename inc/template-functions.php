@@ -967,6 +967,10 @@ function boblift_product_from_post(WP_Post $post): array
         $category_slugs = ['other-cranes'];
     }
     $category_slug = $category_slugs[0];
+    // A series page is listed in every category one of its configurations is filed under (inc/product-series.php).
+    if (function_exists('boblift_series_listed_categories')) {
+        $category_slugs = boblift_series_listed_categories((int) $post->ID, $category_slugs);
+    }
     $category = boblift_category_map()[$category_slug] ?? ['title' => $category_slug, 'slug' => $category_slug];
     $image = boblift_post_thumbnail_url($post, boblift_asset('images/products/crane-accessories.png'));
     $product_image_rows = static function (mixed $raw): array {
@@ -1761,6 +1765,7 @@ function boblift_feedback_item(WP_Post $post): ?array
         'id' => $post->ID,
         'url' => (string) get_permalink($post),
         'country' => boblift_localized_static_text($pick('_feedback_country')),
+        'country_en' => trim((string) ((json_decode((string) get_post_meta($post->ID, '_feedback_country', true), true) ?: [])['en'] ?? '')),
         'model' => trim((string) get_post_meta($post->ID, '_feedback_model', true)),
         'note' => $pick('_feedback_note'),
         'excerpt' => trim($post->post_excerpt),
@@ -1784,6 +1789,49 @@ function boblift_feedback_counts_text(array $item): string
     ]));
 }
 
+/** The flag in assets/flags for a country named in English, or '' when the theme has none for it. */
+function boblift_country_flag_url(string $country): string
+{
+    $codes = ['Brazil' => 'br', 'China' => 'cn', 'Germany' => 'de', 'Spain' => 'es', 'France' => 'fr', 'Indonesia' => 'id', 'India' => 'in', 'Japan' => 'jp', 'South Korea' => 'kr', 'Korea' => 'kr', 'Russia' => 'ru', 'Saudi Arabia' => 'sa', 'Thailand' => 'th', 'Türkiye' => 'tr', 'Turkey' => 'tr', 'United States' => 'us', 'USA' => 'us', 'Vietnam' => 'vn', 'Viet Nam' => 'vn',
+        'Argentina' => 'ar', 'Australia' => 'au', 'Bahrain' => 'bh', 'Bangladesh' => 'bd', 'Belarus' => 'by', 'Canada' => 'ca', 'Chile' => 'cl', 'Colombia' => 'co', 'Cyprus' => 'cy', 'Ecuador' => 'ec', 'Egypt' => 'eg', 'El Salvador' => 'sv', 'Fiji' => 'fj', 'Greece' => 'gr', 'Honduras' => 'hn', 'Kazakhstan' => 'kz', 'Kenya' => 'ke', 'Kuwait' => 'kw', 'Lebanon' => 'lb', 'Malaysia' => 'my', 'Maldives' => 'mv', 'Mexico' => 'mx', 'Moldova' => 'md', 'Morocco' => 'ma', 'Myanmar' => 'mm', 'Netherlands' => 'nl', 'New Zealand' => 'nz', 'Peru' => 'pe', 'Philippines' => 'ph', 'Qatar' => 'qa', 'Sudan' => 'sd', 'Tajikistan' => 'tj', 'Trinidad and Tobago' => 'tt', 'Tunisia' => 'tn', 'Ukraine' => 'ua', 'Uruguay' => 'uy', 'Uzbekistan' => 'uz'];
+    // "Congo" names neither Congo for sure and "Taiwan, China" has none here: both keep the pin.
+    $code = $codes[trim($country)] ?? '';
+    return $code !== '' && is_file(get_template_directory() . '/assets/flags/' . $code . '.svg') ? get_template_directory_uri() . '/assets/flags/' . $code . '.svg' : '';
+}
+
+/**
+ * What a customer feedback card says, the same everywhere: the crane by capacity and type first (the title product cards use,
+ * in this language), then the country with its flag, then the model and how many photos and videos, small and grey.
+ * An entry whose model has no published product keeps the model as its title.
+ */
+function boblift_feedback_card_view(array $item): array
+{
+    static $titles = [];
+    $id = (int) ($item['id'] ?? 0);
+    if (!isset($titles[$id])) {
+        $product = function_exists('boblift_item_related_products') ? (boblift_item_related_products($id, 1)[0] ?? null) : null;
+        $titles[$id] = $product instanceof WP_Post && function_exists('boblift_series_card_view') ? trim((string) boblift_series_card_view(boblift_product_from_post($product))['full_title']) : '';
+    }
+    $model = trim((string) ($item['model'] ?? ''));
+    $title = $titles[$id] !== '' ? $titles[$id] : $model;
+    return [
+        'title' => $title,
+        'country' => (string) ($item['country'] ?? ''),
+        'flag' => boblift_country_flag_url((string) ($item['country_en'] ?? '')),
+        'meta' => implode(' · ', array_filter([$title !== $model ? $model : '', boblift_feedback_counts_text($item)])),
+    ];
+}
+
+/** The country line of a feedback card: its flag (or a pin where the theme has no flag) and its name. */
+function boblift_feedback_country_html(array $view, string $class = '', string $pin_class = 'h-3.5 w-3.5 text-blue-600'): string
+{
+    if ($view['country'] === '') {
+        return '';
+    }
+    $mark = $view['flag'] !== '' ? '<img class="boblift-flag" src="' . esc_url($view['flag']) . '" width="18" height="13" alt="" loading="lazy" decoding="async">' : boblift_icon('map-pin', 'shrink-0 ' . $pin_class);
+    return '<span class="' . esc_attr(trim('flex min-w-0 items-center gap-1.5 ' . $class)) . '">' . $mark . '<span class="truncate">' . esc_html($view['country']) . '</span></span>';
+}
+
 // Customer feedback entries for the Cases page.
 function boblift_feedback_items(array $query = []): array
 {
@@ -1802,6 +1850,23 @@ function boblift_product_english_id(int $product_id): int
  * Numbers the product filters use, read from the English spec table (translations carry translated labels):
  * max lifting capacity in tonnes, max lifting moment in t·m (kN·m converted) and self weight in kg. 0 = not given.
  */
+/**
+ * The moment and weight of each configuration a listing entry stands for: every configuration of a series page, a product's own
+ * otherwise. [{"m": 12.9, "w": 2100}, ...]; 0 where a figure is missing. The card carries it as data-filter-configs (theme.js).
+ */
+function boblift_product_filter_configs(int $product_id): array
+{
+    $series = function_exists('boblift_series_for_product') ? boblift_series_for_product($product_id) : null;
+    $ids = $series && (int) $series['home_id'] === $product_id ? array_map(static fn(array $member): int => (int) $member['id'], $series['members']) : [$product_id];
+    $configs = [];
+    foreach ($ids as $id) {
+        $values = boblift_product_filter_values($id);
+        $configs[] = ['m' => (float) $values['moment'], 'w' => (float) $values['weight']];
+    }
+    return $configs;
+}
+
+
 function boblift_product_filter_values(int $product_id): array
 {
     static $cache = [];
@@ -1861,7 +1926,7 @@ function boblift_item_related_products(int $post_id, int $limit = 3): array
     // The exact model named on the entry wins over a stored link to a neighbouring model (older feedback links often point
     // to the family page, e.g. SQ5ZA3TJ for an SQ5ZA3T delivery).
     $model = trim((string) (get_post_meta($source_id, '_feedback_model', true) ?: get_post_meta($source_id, '_product_name', true)));
-    $exact = $model !== '' ? get_posts(['post_type' => 'product', 'post_status' => 'publish', 'posts_per_page' => 1, 'lang' => 'en', 'fields' => 'ids', 'meta_key' => '_model', 'meta_value' => $model]) : [];
+    $exact = $model !== '' ? get_posts(['post_type' => 'product', 'boblift_series_members' => true, 'post_status' => 'publish', 'posts_per_page' => 1, 'lang' => 'en', 'fields' => 'ids', 'meta_key' => '_model', 'meta_value' => $model]) : [];
     $linked = $exact ? array_map('intval', $exact) : array_map('intval', get_post_meta($source_id, '_related_product'));
     foreach ($linked as $product_id) {
         $translated = $language !== '' && function_exists('pll_get_post') ? ((int) pll_get_post($product_id, $language) ?: $product_id) : $product_id;
@@ -2234,83 +2299,42 @@ function boblift_product_card_specs(array $product): array
 
 // List view: up to four rows of the product's own spec table, in a fixed order so rows line up for comparison down the
 // list. Rows are picked by their English label and shown in the page's language when the translation keeps the rows.
-function boblift_product_list_specs(array $product, int $limit = 4): array
-{
-    $id = (int) ($product['id'] ?? 0);
-    $local = array_values(array_filter((array) ($product['specs'] ?? []), static fn($row): bool => is_array($row) && trim((string) ($row['label'] ?? '')) !== '' && trim((string) ($row['value'] ?? '')) !== ''));
-    $english = $id > 0 && function_exists('boblift_product_english_id') ? array_values(array_filter((array) boblift_decode_meta(get_post_meta(boblift_product_english_id($id), '_specs', true), []), 'is_array')) : $local;
-    $same_rows = function_exists('boblift_spec_rows_aligned') ? boblift_spec_rows_aligned($local, $english) : count($local) === count($english);
-    $order = ['Max Lifting Capacity', 'Max Lifting Moment', 'Working Height', 'Max Working Radius', 'Max Lifting Height', 'Self Weight', 'Recommended Power', 'Rotation Angle'];
-    $picked = [];
-    foreach ($order as $wanted) {
-        foreach ($english as $index => $row) {
-            if (trim((string) ($row['label'] ?? '')) !== $wanted || trim((string) ($row['value'] ?? '')) === '') {
-                continue;
-            }
-            $shown = $same_rows ? $local[$index] : $row;
-            $value = trim((string) ($shown['value'] ?? ''));
-            // "40000 kg" reads as "40 t", the way the range is named.
-            if ($wanted === 'Max Lifting Capacity' && function_exists('boblift_home_product_rated_capacity') && boblift_home_product_rated_capacity($product) >= 1) {
-                $value = boblift_home_product_tonnage_label(boblift_home_product_rated_capacity($product));
-            }
-            $picked[] = ['label' => trim((string) ($shown['label'] ?? $wanted)), 'value' => $value];
-            break;
-        }
-        if (count($picked) >= $limit) {
-            break;
-        }
-    }
-    return $picked;
-}
-
-function boblift_product_spec_icon_name(string $label, string $key = ''): string
-{
-    return match ($key !== '' ? $key : $label) {
-        'boomLength', 'Boom Length' => 'maximize-2',
-        'rotation', 'Rotation' => 'rotate-cw',
-        default => 'weight',
-    };
-}
-
 function boblift_product_card(array $product, string $extra_class = '', bool $eager_image = false): void
 {
-    $product_title = trim((string) ($product['title'] ?? ''));
-    $product_model = trim((string) ($product['model'] ?? ''));
-    $product_name = $product_title;
-    if ($product_model !== '') {
-        $title_without_model = (string) preg_replace('/^[\s\-_–—|\/:]+|[\s\-_–—|\/:]+$/u', '', str_ireplace($product_model, '', $product_title));
-        if ($title_without_model !== '') {
-            $product_name = $title_without_model;
-        }
-    }
-    $card_eyebrow = $product_model !== '' ? $product_name : (string) ($product['category_title'] ?? 'BOB-LIFT');
-    $card_heading = $product_model !== '' ? $product_model : $product_title;
+    // Named by what the crane is; a series card stands for all its configurations (inc/product-series.php).
+    $card_view = boblift_series_card_view($product);
     $apps = implode(',', $product['applications'] ?? []);
     $product_categories = array_values(array_unique(array_filter(array_map('strval', $product['categories'] ?? [($product['category'] ?? '')]))));
     $status = boblift_normalize_product_status((string) ($product['status'] ?? 'customizable'));
     $specs = boblift_product_card_specs($product);
-    // The two headline figures shown on the card, picked the same way as on the home page product cards.
-    $card_specs = function_exists('boblift_home_product_card_specs') ? boblift_home_product_card_specs($product) : [];
-    $list_specs = boblift_product_list_specs($product);
+    $card_figures = $card_view['figures'];
     $detail_url = boblift_product_url($product);
     $inquiry_url = $product['inquiry_url'] ?? boblift_url('/contact.html#inquiry');
     $product_id = (string) ($product['id'] ?? $product['slug'] ?? $product['title']);
     // Quick view shows up to six rows of the real spec table; the card's three-spec summary is the fallback.
     $quick_rows = array_values(array_filter(array_map(static fn($row): array => is_array($row) ? ['label' => (string) ($row['label'] ?? ''), 'value' => (string) ($row['value'] ?? '')] : [], $product['specs'] ?? []), static fn(array $row): bool => $row['label'] !== '' && $row['value'] !== ''));
     $quick_specs = esc_attr(wp_json_encode($quick_rows ? array_slice($quick_rows, 0, 6) : $specs, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+    $quick_configs = boblift_series_quick_view_configs($product);
+    // Each configuration's moment and weight, for filters that one configuration has to meet together (theme.js).
+    $filter_attrs = ' data-filter-configs="' . esc_attr((string) wp_json_encode(boblift_product_filter_configs((int) ($product['id'] ?? 0)))) . '"';
     $product_ui = function_exists('boblift_site_ui') ? boblift_site_ui('productDetail') : [];
     $quote_list_ui = function_exists('boblift_site_ui') ? boblift_site_ui('quoteList') : [];
     $add_quote_label = (string) ($quote_list_ui['addLabel'] ?? 'Add to Quote List');
     $quick_view_label = (string) ($product_ui['quickViewLabel'] ?? 'Quick view');
-    $view_details_label = (string) ($product_ui['viewDetailsLabel'] ?? 'View Details');
-    $request_quote_label = (string) ($product_ui['requestQuoteLabel'] ?? 'Request Quote');
+    // The saved button texts (Site UI > productDetail); a series card has its own, which falls back to the series wording.
+    $saved_label = static function (string $key, string $english) use ($product_ui): string {
+        $label = trim((string) ($product_ui[$key] ?? ''));
+        return $label === '' || $label === $english ? boblift_series_text($english) : $label;
+    };
+    $view_details_label = count($card_view['configs']) > 1 ? $saved_label('viewConfigurationsLabel', 'View Configurations') : $saved_label('viewDetailsLabel', 'View Details');
+    $request_quote_label = $saved_label('requestQuoteLabel', 'Get a Quote');
     // Cut-outs float on the card's backdrop; site photos show whole on a plain mat, never cropped.
     $card_image = boblift_product_image($product);
     $card_image_class = boblift_image_fit($card_image) === 'cutout'
         ? 'scale-[1.08] object-contain p-4 drop-shadow-[0_6px_8px_rgba(11,27,51,0.10)] group-hover:scale-[1.12] sm:p-5'
         : 'object-contain bg-[#EDF1F5]';
     ?>
-    <article class="product-card group flex min-h-full cursor-pointer flex-col overflow-hidden rounded border border-[#E5E7EB] bg-white shadow-card transition duration-300 hover:-translate-y-1 hover:border-blue-200 <?php echo esc_attr($extra_class); ?>" data-product-id="<?php echo esc_attr($product_id); ?>" data-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-category="<?php echo esc_attr($product['category'] ?? ''); ?>" data-categories="<?php echo esc_attr(implode(',', $product_categories)); ?>" data-category-title="<?php echo esc_attr($product['category_title'] ?? 'BOB-LIFT'); ?>" data-capacity="<?php echo esc_attr((string) ($product['filter_values']['capacity'] ?? 0)); ?>" data-moment="<?php echo esc_attr((string) ($product['filter_values']['moment'] ?? 0)); ?>" data-weight="<?php echo esc_attr((string) ($product['filter_values']['weight'] ?? 0)); ?>" data-boom="<?php echo esc_attr($product['boom_type'] ?? ''); ?>" data-featured="<?php echo !empty($product['featured']) ? '1' : '0'; ?>"<?php if (isset($product['recommended_rank'])) : ?> data-recommended-rank="<?php echo esc_attr((string) (int) $product['recommended_rank']); ?>"<?php endif; ?> data-created="<?php echo esc_attr((string) ($product['created_at'] ?? '')); ?>" data-popularity="<?php echo esc_attr((string) ($product['popularity'] ?? 0)); ?>" data-title="<?php echo esc_attr($product['title']); ?>" data-image="<?php echo esc_url(boblift_product_image($product)); ?>" data-summary="<?php echo esc_attr($product['short_description'] ?? ''); ?>" data-inquiry-url="<?php echo esc_url($inquiry_url); ?>" data-detail-url="<?php echo esc_url($detail_url); ?>" data-specs="<?php echo $quick_specs; ?>">
+    <article class="product-card group flex min-h-full cursor-pointer flex-col overflow-hidden rounded border border-[#E5E7EB] bg-white shadow-card transition duration-300 hover:-translate-y-1 hover:border-blue-200 <?php echo esc_attr($extra_class); ?>" data-product-id="<?php echo esc_attr($product_id); ?>" data-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>" data-category="<?php echo esc_attr($product['category'] ?? ''); ?>" data-categories="<?php echo esc_attr(implode(',', $product_categories)); ?>" data-category-title="<?php echo esc_attr($product['category_title'] ?? 'BOB-LIFT'); ?>" data-capacity="<?php echo esc_attr((string) ($product['filter_values']['capacity'] ?? 0)); ?>" data-moment="<?php echo esc_attr((string) ($product['filter_values']['moment'] ?? 0)); ?>" data-weight="<?php echo esc_attr((string) ($product['filter_values']['weight'] ?? 0)); ?>"<?php echo $filter_attrs; ?> data-boom="<?php echo esc_attr($product['boom_type'] ?? ''); ?>" data-featured="<?php echo !empty($product['featured']) ? '1' : '0'; ?>"<?php if (isset($product['recommended_rank'])) : ?> data-recommended-rank="<?php echo esc_attr((string) (int) $product['recommended_rank']); ?>"<?php endif; ?> data-created="<?php echo esc_attr((string) ($product['created_at'] ?? '')); ?>" data-popularity="<?php echo esc_attr((string) ($product['popularity'] ?? 0)); ?>" data-title="<?php echo esc_attr($product['title']); ?>" data-image="<?php echo esc_url(boblift_product_image($product)); ?>" data-summary="<?php echo esc_attr($product['short_description'] ?? ''); ?>" data-inquiry-url="<?php echo esc_url($inquiry_url); ?>" data-detail-url="<?php echo esc_url($detail_url); ?>" data-specs="<?php echo $quick_specs; ?>" data-quick-name="<?php echo esc_attr($card_view['full_title']); ?>" data-quick-model="<?php echo esc_attr($card_view['only_model']); ?>" data-quick-series="<?php echo esc_attr($card_view['code_line']); ?>"<?php if ($quick_configs) : ?> data-configs="<?php echo esc_attr((string) wp_json_encode($quick_configs, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)); ?>"<?php endif; ?>>
         <div class="product-card-inner flex min-h-full flex-col">
             <div class="product-card-media relative h-64 overflow-hidden bg-[radial-gradient(circle_at_48%_34%,#ffffff_0%,#f8fafc_34%,#eef2f7_64%,#e2e8f0_100%)] sm:h-72 lg:h-64 xl:h-72">
                 <span class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_82%,rgba(15,23,42,0.13),transparent_44%)]"></span>
@@ -2319,32 +2343,32 @@ function boblift_product_card(array $product, string $extra_class = '', bool $ea
                 <div class="product-card-inline-actions absolute bottom-3 end-6 z-20 flex gap-2"><button class="inline-flex h-9 w-9 items-center justify-center rounded-sm border border-[#E5E7EB] bg-white text-[#0B1B33] transition hover:border-blue-300 hover:text-blue-700" type="button" data-product-favorite aria-label="<?php echo esc_attr($add_quote_label); ?>"><?php echo boblift_icon('heart', 'h-[18px] w-[18px]'); ?></button><button class="inline-flex h-9 w-9 items-center justify-center rounded-sm border border-[#E5E7EB] bg-white text-[#0B1B33] transition hover:border-blue-300 hover:text-blue-700" type="button" data-product-quick-view aria-label="<?php echo esc_attr($quick_view_label . ' ' . $product['title']); ?>"><?php echo boblift_icon('eye', 'h-[18px] w-[18px]'); ?></button></div>
             </div>
             <div class="product-card-body flex flex-1 flex-col p-6">
-                <div class="product-card-head flex items-start justify-between gap-3">
-                <?php // Named by the eyebrow and model it shows (an aria-label that left them out failed WCAG 2.5.3, label in name). ?>
-                <a class="block min-w-0 flex-1" href="<?php echo esc_url($detail_url); ?>">
-                    <div class="product-card-meta mb-1.5 flex min-w-0 items-center gap-4 font-normal normal-case tracking-normal text-slate-600"><span class="line-clamp-2 block min-w-0 max-w-full break-words text-[14px] leading-[1.35]"><?php echo esc_html($card_eyebrow); ?></span></div>
-                    <h2 class="product-card-title font-black <?php echo $product_model !== '' ? 'product-card-model text-[clamp(28px,1.8vw,34px)] uppercase leading-none tracking-[0.02em] text-[#0B3F7D]' : 'text-xl leading-tight tracking-[-0.01em] text-[#0B1B33]'; ?>"><?php echo esc_html($card_heading); ?></h2>
-                    <p class="product-card-summary mt-3 hidden max-w-3xl text-sm font-normal leading-6 text-slate-600 lg:text-base lg:leading-7"><?php echo esc_html($product['short_description'] ?? ''); ?></p>
+                <div class="product-card-head flex flex-col">
+                <?php // Named by the title and code it shows (an aria-label that left them out failed WCAG 2.5.3, label in name). ?>
+                <a class="block min-w-0" href="<?php echo esc_url($detail_url); ?>" title="<?php echo esc_attr($card_view['full_title']); ?>">
+                    <?php if ($card_view['eyebrow'] !== '') : ?><p class="product-card-eyebrow boblift-kicker mb-1.5"><?php echo esc_html($card_view['eyebrow']); ?></p><?php endif; ?>
+                    <?php // Beside the title while it fits, otherwise under it. The models stay in the text for readers and search. ?>
+                    <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                    <h2 aria-label="<?php echo esc_attr($card_view['full_title']); ?>" class="product-card-title line-clamp-2 text-[clamp(19px,1.45vw,23px)] font-black leading-[1.12] text-[#0B3F7D]"><?php echo esc_html($card_view['title']); ?></h2>
+                    <?php $card_subtitle = boblift_series_card_subtitle($card_view); if ($card_subtitle !== '') : ?><p class="product-card-code whitespace-nowrap text-[13px] font-normal text-slate-500"><?php echo wp_kses($card_subtitle, ['bdi' => [], 'span' => ['class' => true]]); ?></p><?php endif; ?>
+                    </div>
+                    <?php if (count($card_view['configs']) > 1) : ?><span class="sr-only"><?php echo esc_html(implode(', ', array_column($card_view['configs'], 'model'))); ?></span><?php endif; ?>
                 </a>
                 </div>
                 <div class="product-card-bottom mt-auto">
-                <?php if ($card_specs) : ?>
-                    <dl class="product-card-specs mt-5 grid grid-cols-2 gap-4 border-t border-[#E5E7EB] pt-4">
-                        <?php foreach ($card_specs as $spec) : ?>
-                            <div class="min-w-0"><dt class="truncate text-xs font-bold leading-4 text-slate-500"><?php echo esc_html($spec['label']); ?></dt><dd class="mt-1 truncate text-base font-black leading-5 text-[#0B1B33]" dir="ltr"><?php echo esc_html($spec['value']); ?></dd></div>
-                        <?php endforeach; ?>
-                    </dl>
-                <?php endif; ?>
-                <?php if ($list_specs) : ?>
-                    <dl class="product-card-list-specs hidden">
-                        <?php foreach ($list_specs as $spec) : ?>
-                            <div class="min-w-0"><dt class="text-xs font-semibold leading-4 text-slate-500 [overflow-wrap:anywhere]"><?php echo esc_html($spec['label']); ?></dt><dd class="mt-1 truncate text-base font-black leading-6 text-[#0B1B33] [font-variant-numeric:tabular-nums]" dir="ltr"><?php echo esc_html($spec['value']); ?></dd></div>
+                <?php if ($card_figures) : ?>
+                    <dl class="product-card-specs mt-4 grid gap-y-1.5 border-t border-[#E5E7EB] pt-3 xl:grid-cols-[minmax(max-content,.8fr)_minmax(max-content,1fr)_minmax(max-content,1.25fr)]">
+                        <?php foreach ($card_figures as $position => $spec) : ?>
+                            <div class="flex min-w-0 items-baseline justify-between gap-2 xl:flex-col xl:items-start xl:justify-between <?php echo $position > 0 ? 'xl:border-s xl:border-[#E5E7EB] xl:ps-3' : ''; ?>">
+                                <dt class="min-w-0 text-[13px] font-semibold leading-[1.25] text-slate-500 xl:w-0 xl:min-w-full"><?php echo esc_html($spec['label']); ?></dt>
+                                <dd class="whitespace-nowrap text-[15px] font-black leading-5 text-[#071f42] [font-variant-numeric:tabular-nums] xl:mt-1"><bdi><?php echo esc_html($spec['value']); ?></bdi></dd>
+                            </div>
                         <?php endforeach; ?>
                     </dl>
                 <?php endif; ?>
                 <div class="product-card-footer mt-auto grid grid-cols-2 gap-3 pt-5">
                     <div class="product-card-list-actions hidden gap-3"><button class="inline-flex h-11 w-11 items-center justify-center rounded-sm border border-[#E5E7EB] bg-white text-[#0B1B33] transition hover:-translate-y-0.5 hover:text-blue-700" type="button" data-product-favorite aria-label="<?php echo esc_attr($add_quote_label); ?>"><?php echo boblift_icon('heart', 'h-5 w-5'); ?></button><button class="inline-flex h-11 w-11 items-center justify-center rounded-sm border border-[#E5E7EB] bg-white text-[#0B1B33] transition hover:-translate-y-0.5 hover:text-blue-700" type="button" data-product-quick-view aria-label="<?php echo esc_attr($quick_view_label . ' ' . $product['title']); ?>"><?php echo boblift_icon('eye', 'h-5 w-5'); ?></button></div>
-                    <div class="product-card-ctas contents"><button class="inline-flex min-h-12 items-center justify-center gap-2 text-center leading-tight rounded-sm bg-[#0B1B33] px-4 text-[13px] font-black text-white shadow-card transition hover:-translate-y-0.5 hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品列表卡片" data-inquiry-product="<?php echo esc_attr($product['title']); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>"><?php echo boblift_icon('file-text', 'h-4 w-4'); ?><span class="hidden sm:inline lg:hidden xl:inline"><?php echo esc_html($request_quote_label); ?></span><span class="sm:hidden lg:inline xl:hidden"><?php echo esc_html($quote_list_ui['quoteShortLabel'] ?? 'Quote'); ?></span></button><a class="inline-flex min-h-12 items-center justify-center gap-2 text-center leading-tight rounded-sm border border-[#0B1B33]/40 bg-white px-4 text-[13px] font-black text-[#0B1B33] transition hover:-translate-y-0.5 hover:border-blue-500 hover:text-blue-700" href="<?php echo esc_url($detail_url); ?>"><span class="hidden sm:inline"><?php echo esc_html($view_details_label); ?></span><span class="sm:hidden"><?php echo esc_html($product_ui['viewShortLabel'] ?? 'View'); ?></span> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a></div>
+                    <div class="product-card-ctas contents"><button class="inline-flex min-h-12 items-center justify-center gap-2 text-center leading-tight rounded-sm bg-[#0B1B33] px-2 text-[15px] font-black text-white shadow-card transition hover:-translate-y-0.5 hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品列表卡片" data-inquiry-product="<?php echo esc_attr($product['title']); ?>" data-inquiry-product-slug="<?php echo esc_attr((string) ($product['slug'] ?? '')); ?>"><?php echo boblift_icon('file-text', 'h-4 w-4'); ?><span class="hidden xl:inline"><?php echo esc_html($request_quote_label); ?></span><span class="xl:hidden"><?php echo esc_html($quote_list_ui['quoteShortLabel'] ?? 'Quote'); ?></span></button><a class="inline-flex min-h-12 items-center justify-center gap-2 text-center leading-tight rounded-sm border border-[#0B1B33]/40 bg-white px-2 text-[15px] font-black text-[#0B1B33] transition hover:-translate-y-0.5 hover:border-blue-500 hover:text-blue-700" href="<?php echo esc_url($detail_url); ?>"><span class="hidden sm:inline"><?php echo esc_html($view_details_label); ?></span><span class="sm:hidden"><?php echo esc_html($product_ui['viewShortLabel'] ?? 'View'); ?></span> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a></div>
                 </div>
                 </div>
             </div>
@@ -2490,7 +2514,9 @@ function boblift_search_products(string $query): array
     $words = array_values(array_filter(array_map('boblift_search_key', preg_split('/\s+/u', $query) ?: [])));
     $scored = [];
     foreach (boblift_all_products(true) as $index => $product) {
-        $models = array_filter(array_map('boblift_search_key', array_merge([(string) ($product['model'] ?? '')], preg_split('/[,，、\/]+/u', (string) ($product['model_aliases'] ?? '')) ?: [])));
+        // A series page answers to its configurations' names too; an exact match opens it on that configuration.
+        $targets = boblift_series_search_targets((int) ($product['id'] ?? 0));
+        $models = array_filter(array_map('boblift_search_key', array_merge([(string) ($product['model'] ?? '')], array_keys($targets), preg_split('/[,，、\/]+/u', (string) ($product['model_aliases'] ?? '')) ?: [])));
         $score = 0;
         foreach ($models as $model) {
             if ($model === $key) {
@@ -2499,6 +2525,12 @@ function boblift_search_products(string $query): array
                 $score = max($score, 80);
             } elseif (mb_strlen($key) >= 2 && str_contains($model, $key)) {
                 $score = max($score, 60);
+            }
+        }
+        foreach ($targets as $name => $url) {
+            if (boblift_search_key((string) $name) === $key) {
+                $product['detail_url'] = $url;
+                break;
             }
         }
         if ($score === 0) {

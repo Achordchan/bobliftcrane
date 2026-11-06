@@ -34,9 +34,9 @@ return [
         'Cookie settings' => 'Cookie 设置',
     ],
     'es' => [
-        'Cookies and your choices' => 'Las cookies y tus opciones',
-        'We use analytics and advertising cookies to see how this website is used and to measure our adverts. In the EEA, the UK and Switzerland they stay off unless you agree; everywhere else you can turn them off at any time.' => 'Utilizamos cookies analíticas y publicitarias para conocer cómo se utiliza este sitio web y para evaluar el rendimiento de nuestros anuncios. En el EEE, el Reino Unido y Suiza, estas cookies permanecen desactivadas a menos que des tu consentimiento; en el resto de países, puedes desactivarlas en cualquier momento.',
-        'How we use your information' => 'Cómo utilizamos tus datos',
+        'Cookies and your choices' => 'Las cookies y sus opciones',
+        'We use analytics and advertising cookies to see how this website is used and to measure our adverts. In the EEA, the UK and Switzerland they stay off unless you agree; everywhere else you can turn them off at any time.' => 'Utilizamos cookies analíticas y publicitarias para conocer cómo se utiliza este sitio web y para evaluar el rendimiento de nuestros anuncios. En el EEE, el Reino Unido y Suiza, estas cookies permanecen desactivadas a menos que dé su consentimiento; en el resto de países, puede desactivarlas en cualquier momento.',
+        'How we use your information' => 'Cómo utilizamos sus datos',
         'Reject all' => 'Rechazar todo',
         'Accept all' => 'Aceptar todo',
         'Choose' => 'Elegir',
@@ -46,7 +46,7 @@ return [
         'Counts visits and shows which pages are useful, so we can improve the website.' => 'Cuenta las visitas y muestra qué páginas son útiles, para que podamos mejorar la página web.',
         'Advertising' => 'Publicidad',
         'Measures our adverts and lets us show BOB-LIFT adverts on other websites.' => 'Mide el rendimiento de nuestros anuncios y nos permite mostrar anuncios de BOB-LIFT en otras páginas web.',
-        'This website sets one cookie of its own, to remember your choice for 12 months. You can change it at any time with Cookie settings at the foot of the page.' => 'Esta página web instala una cookie propia para recordar tu elección durante 12 meses. Puedes modificarla en cualquier momento a través de la configuración de cookies que se encuentra al pie de la página.',
+        'This website sets one cookie of its own, to remember your choice for 12 months. You can change it at any time with Cookie settings at the foot of the page.' => 'Esta página web instala una cookie propia para recordar su elección durante 12 meses. Puede modificarla en cualquier momento a través de la configuración de cookies que se encuentra al pie de la página.',
         'Cookie settings' => 'Configuración de cookies',
     ],
     'ru' => [
