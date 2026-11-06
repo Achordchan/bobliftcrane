@@ -537,8 +537,9 @@ if ($family_quote_copy) {
                             <?php endif; ?>
                         </div>
                         <ul class="boblift-hero-trust mt-7 flex flex-wrap items-center justify-between gap-x-2 gap-y-2 border-t border-[#D5DEE9] pt-5 text-[14px] text-slate-600">
-                            <?php if ($hero_pdf_url !== '') : ?>
-                                <li><a class="boblift-product-hero-pdf inline-flex items-center gap-1.5 border-b border-[#C9D6E6] pb-0.5 font-semibold text-[#071f42] transition hover:border-blue-500 hover:text-blue-700" href="<?php echo esc_url($hero_pdf_url); ?>" <?php echo $hero_pdf_file !== '' ? 'download="' . esc_attr($hero_pdf_file) . '"' : 'target="_blank" rel="noopener"'; ?>><?php echo boblift_icon('download', 'h-4 w-4'); ?><?php echo esc_html($hero_pdf_label); ?><?php if ($hero_pdf_size !== '') : ?><span class="font-normal text-slate-500"><?php echo esc_html($hero_pdf_size); ?></span><?php endif; ?></a></li>
+                            <?php // A configuration's own catalogue switches with the choice, like its photos and figures. ?>
+                            <?php if ($series_page || $hero_pdf_url !== '') : ?>
+                                <li><?php boblift_series_block_open('pdf'); ?><?php if ($hero_pdf_url !== '') : ?><a class="boblift-product-hero-pdf inline-flex items-center gap-1.5 border-b border-[#C9D6E6] pb-0.5 font-semibold text-[#071f42] transition hover:border-blue-500 hover:text-blue-700" href="<?php echo esc_url($hero_pdf_url); ?>" <?php echo $hero_pdf_file !== '' ? 'download="' . esc_attr($hero_pdf_file) . '"' : 'target="_blank" rel="noopener"'; ?>><?php echo boblift_icon('download', 'h-4 w-4'); ?><?php echo esc_html($hero_pdf_label); ?><?php if ($hero_pdf_size !== '') : ?><span class="font-normal text-slate-500"><?php echo esc_html($hero_pdf_size); ?></span><?php endif; ?></a><?php endif; ?><?php boblift_series_block_close('pdf'); ?></li>
                             <?php endif; ?>
                             <?php if ($hero_terms_apply) : ?>
                                 <li class="inline-flex items-center gap-1.5"><?php echo boblift_icon('shield-check', 'h-4 w-4 text-[#0B3F7D]'); ?><?php echo esc_html(boblift_localized_static_text('12-month warranty')); ?></li>

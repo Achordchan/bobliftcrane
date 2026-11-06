@@ -1847,23 +1847,21 @@ function boblift_product_english_id(int $product_id): int
  * max lifting capacity in tonnes, max lifting moment in t·m (kN·m converted) and self weight in kg. 0 = not given.
  */
 /**
- * The filter figures of everything a listing entry stands for: a series page's every configuration, any other product's own.
- * {"capacity": [6.3], "moment": [12.9, 13.2], "weight": [1950, 2100]}, figures above zero only.
+ * The moment and weight of each configuration a listing entry stands for: every configuration of a series page, a product's own
+ * otherwise. [{"m": 12.9, "w": 2100}, ...]; 0 where a figure is missing. The card carries it as data-configs (theme.js).
  */
-function boblift_product_filter_lists(int $product_id): array
+function boblift_product_filter_configs(int $product_id): array
 {
     $series = function_exists('boblift_series_for_product') ? boblift_series_for_product($product_id) : null;
     $ids = $series && (int) $series['home_id'] === $product_id ? array_map(static fn(array $member): int => (int) $member['id'], $series['members']) : [$product_id];
-    $lists = ['capacity' => [], 'moment' => [], 'weight' => []];
+    $configs = [];
     foreach ($ids as $id) {
-        foreach (boblift_product_filter_values($id) as $key => $value) {
-            if ((float) $value > 0 && !in_array((float) $value, $lists[$key], true)) {
-                $lists[$key][] = (float) $value;
-            }
-        }
+        $values = boblift_product_filter_values($id);
+        $configs[] = ['m' => (float) $values['moment'], 'w' => (float) $values['weight']];
     }
-    return $lists;
+    return $configs;
 }
+
 
 function boblift_product_filter_values(int $product_id): array
 {
@@ -2313,14 +2311,8 @@ function boblift_product_card(array $product, string $extra_class = '', bool $ea
     $quick_rows = array_values(array_filter(array_map(static fn($row): array => is_array($row) ? ['label' => (string) ($row['label'] ?? ''), 'value' => (string) ($row['value'] ?? '')] : [], $product['specs'] ?? []), static fn(array $row): bool => $row['label'] !== '' && $row['value'] !== ''));
     $quick_specs = esc_attr(wp_json_encode($quick_rows ? array_slice($quick_rows, 0, 6) : $specs, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     $quick_configs = boblift_series_quick_view_configs($product);
-    // A series card answers the filters for every configuration it stands for: each figure as a list, any one may match.
-    $filter_attrs = '';
-    foreach (boblift_product_filter_lists((int) ($product['id'] ?? 0)) as $filter_key => $filter_list) {
-        // Capacity stays the card's listing figure (one series, one tonnage); moment and weight differ by configuration.
-        if ($filter_key !== 'capacity' && count($filter_list) > 1) {
-            $filter_attrs .= ' data-' . $filter_key . '-values="' . esc_attr(implode(',', array_map(static fn(float $value): string => rtrim(rtrim(number_format($value, 3, '.', ''), '0'), '.'), $filter_list))) . '"';
-        }
-    }
+    // Each configuration's moment and weight, for filters that one configuration has to meet together (theme.js).
+    $filter_attrs = ' data-configs="' . esc_attr((string) wp_json_encode(boblift_product_filter_configs((int) ($product['id'] ?? 0)))) . '"';
     $product_ui = function_exists('boblift_site_ui') ? boblift_site_ui('productDetail') : [];
     $quote_list_ui = function_exists('boblift_site_ui') ? boblift_site_ui('quoteList') : [];
     $add_quote_label = (string) ($quote_list_ui['addLabel'] ?? 'Add to Quote List');

@@ -68,6 +68,18 @@ $check('es range from English figures', '5,5–7,5 kW', boblift_series_compare_r
 $check('numbers only gives way on words', '', boblift_series_compare_range(['3+1', '4'], true, 'es'));
 $check('words kept when not numbers only', '3+1 / 4', boblift_series_compare_range(['3+1', '4'], false, 'es'));
 
+// One configuration has to meet every chosen filter (#251 review, round 3). Bins as the archive reads them: "a-b" is above a, up to b.
+$in_bin = static function (float $number, string $bin): bool {
+    [$min, $max] = array_pad(array_map('floatval', explode('-', $bin)), 2, null);
+    return $max === null ? $number > $min : ($min <= 0 ? $number > 0 && $number <= $max : $number > $min && $number <= $max);
+};
+$configs = [['m' => 12.9, 'w' => 2100], ['m' => 13.2, 'w' => 1950]];
+$check('moment from one configuration and weight from another do not match', false, boblift_filter_configs_match($configs, 6.3, ['moment' => ['0-13'], 'weight' => ['0-2000']], $in_bin));
+$check('each figure alone matches', true, boblift_filter_configs_match($configs, 6.3, ['moment' => ['0-13']], $in_bin) && boblift_filter_configs_match($configs, 6.3, ['weight' => ['0-2000']], $in_bin));
+$check('one configuration meeting both matches', true, boblift_filter_configs_match(array_merge($configs, [['m' => 12.5, 'w' => 1900]]), 6.3, ['moment' => ['0-13'], 'weight' => ['0-2000']], $in_bin));
+$check('capacity is the listing figure', false, boblift_filter_configs_match($configs, 6.3, ['capacity' => ['8-12']], $in_bin));
+$check('no ranges matches', true, boblift_filter_configs_match($configs, 6.3, ['moment' => [], 'weight' => []], $in_bin));
+
 // Model names.
 $check('sections and winch', ['named' => '', 'sections' => 'A4', 'winch' => '1', 'manual' => '0'], boblift_series_parse_model('SQ12ZA4TJ'));
 $check('no winch', ['named' => '', 'sections' => 'A6', 'winch' => '0', 'manual' => '0'], boblift_series_parse_model('SQ12ZA6T'));

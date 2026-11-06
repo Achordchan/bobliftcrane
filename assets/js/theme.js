@@ -3232,12 +3232,22 @@
     // Spec filters hold a number per card (tonnes, t·m, kg; 0 = not given) matched against "min-max" / "min+" bins.
     const specFilters = ['capacity', 'moment', 'weight'];
     const cardNumber = (card, filterName) => Number(card.dataset[filterName] || 0);
-    // A series card carries every configuration's figure (data-moment-values="2.2,2.4"): it matches when any of them does.
-    const cardNumbers = (card, filterName) => {
-      const list = (card.dataset[`${filterName}Values`] || '').split(',').map(Number).filter((value) => value > 0);
-      return list.length ? list : [cardNumber(card, filterName)];
+    // A card lists the moment and weight of each configuration it stands for (data-configs='[{"m":12.9,"w":2100},...]'); one
+    // configuration has to meet every chosen figure at once. Capacity is the card's own listing figure.
+    const cardConfigs = (card) => {
+      if (!card.bobliftConfigs) {
+        let list = [];
+        try { list = JSON.parse(card.dataset.configs || '[]'); } catch (error) { list = []; }
+        card.bobliftConfigs = Array.isArray(list) && list.length ? list : [{ m: cardNumber(card, 'moment'), w: cardNumber(card, 'weight') }];
+      }
+      return card.bobliftConfigs;
     };
-    const cardInRanges = (card, filterName, ranges) => cardNumbers(card, filterName).some((value) => inAnyRange(value, ranges));
+    const configNumber = (card, config, filterName) => (filterName === 'capacity' ? cardNumber(card, 'capacity') : Number(config[filterName === 'moment' ? 'm' : 'w'] || 0));
+    // ranges: {filterName: [ranges]}; a filter without ranges does not narrow.
+    const cardMeetsRanges = (card, ranges) => cardConfigs(card).some((config) => Object.entries(ranges)
+      .every(([filterName, list]) => !list.length || inAnyRange(configNumber(card, config, filterName), list)));
+    const activeSpecRanges = (except = '') => Object.fromEntries(specFilters.filter((name) => name !== except).map((name) => [name, specRanges(name)]));
+    const cardInRanges = (card, filterName, ranges) => cardMeetsRanges(card, { [filterName]: ranges });
     const slugifyFilter = (value) => value.toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     const optionLabel = (input) => qs('span', input.closest('label') || input.parentElement)?.textContent?.trim() || input.value;
     const paramValues = (params, key) => params.getAll(key).flatMap((value) => value.split(',')).map((value) => value.trim()).filter(Boolean);
@@ -3304,19 +3314,23 @@
       return false;
     };
     const cardHasFilterValue = (card, filterName) => {
-      if (specFilters.includes(filterName)) return cardNumbers(card, filterName).some((number) => number > 0);
+      if (specFilters.includes(filterName)) return cardConfigs(card).some((config) => configNumber(card, config, filterName) > 0);
       if (filterName === 'boom') return (card.dataset.boom || '') !== '';
       return false;
     };
     // Facet counts: each group counts the cards that pass the category and every other group's selection,
     // so the numbers always say how many products a click would leave. Checked options stay visible;
     // unchecked ones are hidden when they match nothing or would not narrow the list.
+    const boomChosen = (card) => {
+      const booms = activeValues('boom');
+      return !booms.length || booms.includes(card.dataset.boom || '');
+    };
     const passesOtherGroups = (card, filterName) => {
       if (filterName !== 'boom') {
         const booms = activeValues('boom');
         if (booms.length && !booms.includes(card.dataset.boom || '')) return false;
       }
-      return specFilters.every((name) => name === filterName || matchesSpec(card, name));
+      return cardMeetsRanges(card, activeSpecRanges(filterName));
     };
     const updateFilterAvailability = () => {
       const categoryCards = cards;
@@ -3330,7 +3344,10 @@
         qsa('[data-filter-option]', group).forEach((option) => {
           const input = qs('input[data-filter]', option);
           if (!input) return;
-          const optionCount = eligibleCards.filter((card) => cardMatchesFilterOption(card, filterName, input.value)).length;
+          // An option counts the cards where one configuration meets it together with the other choices.
+          const optionCount = specFilters.includes(filterName)
+            ? categoryCards.filter((card) => boomChosen(card) && cardMeetsRanges(card, { ...activeSpecRanges(filterName), [filterName]: [input.value] })).length
+            : eligibleCards.filter((card) => cardMatchesFilterOption(card, filterName, input.value)).length;
           // A selection from an address that no product in this category has is dropped (an unmatched capacity bin stays, showing the empty state).
           if (input.checked && filterName !== 'capacity' && !categoryCards.some((card) => cardMatchesFilterOption(card, filterName, input.value))) {
             input.checked = false;
@@ -3352,17 +3369,16 @@
 
       return clearedSelection;
     };
-    const matchesSpec = (card, filterName) => {
+    function specRanges(filterName) {
       let ranges = activeValues(filterName);
       // The capacity dropdown, where an archive renders one, applies while no capacity box is ticked.
       if (!ranges.length && filterName === 'capacity' && capacitySelect?.value) ranges = [capacitySelect.value];
       if (!ranges.length && filterName === 'capacity' && customCapacity) ranges = [customCapacity];
-      return !ranges.length || cardInRanges(card, filterName, ranges);
-    };
+      return ranges;
+    }
     const cardMatches = (card) => {
       const booms = activeValues('boom');
-      return (!booms.length || booms.includes(card.dataset.boom || ''))
-        && specFilters.every((filterName) => matchesSpec(card, filterName));
+      return (!booms.length || booms.includes(card.dataset.boom || '')) && cardMeetsRanges(card, activeSpecRanges());
     };
     const setFlexVisible = (element, visible) => {
       element?.classList.toggle('hidden', !visible);

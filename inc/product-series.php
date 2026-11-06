@@ -85,7 +85,9 @@ function boblift_series_expand_variants(array $members, string $series_url, stri
             'model' => $twin,
             'url' => boblift_series_model_url($series_url, $twin),
             'is_home' => false,
-            'values' => boblift_series_parse_model($twin),
+            // The source's choices as they stand (a series of two makes chooses by the model, "named"), with only the winch
+            // turned over: a re-parsed name would lose them and leave a choice with nothing picked.
+            'values' => array_merge((array) ($member['values'] ?? []), ['winch' => boblift_series_parse_model($twin)['winch']]),
             'derived' => true,
             'source' => $member['model'],
             'figures' => array_merge((array) ($member['figures'] ?? []), ['weight' => null]),
@@ -476,6 +478,28 @@ function boblift_series_related_items(array $series, callable $read, int $limit 
     }
     $items = array_values($items);
     return $limit > 0 ? array_slice($items, 0, $limit) : $items;
+}
+
+/**
+ * Whether one configuration meets every chosen range at once (the same rule as theme.js): $ranges is {"capacity"|"moment"|
+ * "weight": [bins]}, an empty list does not narrow; capacity is the entry's listing figure.
+ */
+function boblift_filter_configs_match(array $configs, float $capacity, array $ranges, callable $in_bin): bool
+{
+    foreach ($configs ?: [['m' => 0.0, 'w' => 0.0]] as $config) {
+        $figures = ['capacity' => $capacity, 'moment' => (float) ($config['m'] ?? 0), 'weight' => (float) ($config['w'] ?? 0)];
+        $meets = true;
+        foreach ($ranges as $filter => $bins) {
+            if ($bins && !array_filter((array) $bins, static fn($bin): bool => $in_bin($figures[$filter] ?? 0.0, (string) $bin))) {
+                $meets = false;
+                break;
+            }
+        }
+        if ($meets) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /** A series page answers searches for any of its models, since the configurations have no result of their own. */
@@ -907,6 +931,16 @@ function boblift_series_block_open(string $name): void
     }
 }
 
+/**
+ * A configuration's block shown for its other winch version: the model named in the texts the theme script swaps
+ * (data-cfg-model-text) becomes the version's, and the self weight, which is not known, a dash.
+ */
+function boblift_series_derived_block(string $html, string $source, string $model): string
+{
+    $html = (string) preg_replace_callback('/(<([a-z0-9]+)\b[^>]*\bdata-cfg-model-text\b[^>]*>)(.*?)(<\/\2>)/s', static fn(array $m): string => $m[1] . str_replace($source, $model, $m[3]) . $m[4], $html);
+    return (string) preg_replace('/(\b(?:data-cfg-cell="weight"|data-cfg-weight-row(?=[\s>]))[^>]*>.*?<dd\b[^>]*>).*?(<\/dd>)/s', '$1<span class="text-slate-400">—</span>$2', $html);
+}
+
 /** Ends a block: stores it, and on the series page's own run prints every configuration's version of it. */
 function boblift_series_block_close(string $name, string $class = ''): void
 {
@@ -926,6 +960,11 @@ function boblift_series_block_close(string $name, string $class = ''): void
     foreach ($state['series']['members'] as $member) {
         $block = (string) ($state['blocks'][$member['model']][$name] ?? '');
         $active = $member['model'] === $state['active_source'];
+        if ($active && $state['active'] !== $state['active_source']) {
+            // A winch version without a product of its own: the page is printed with its own model and an open self weight,
+            // as the theme script would set them, so the source already says the right thing.
+            $block = boblift_series_derived_block($block, (string) $state['active_source'], (string) $state['active']);
+        }
         echo '<div data-cfg-variant="' . esc_attr($member['model']) . '"' . ($active ? '' : ' hidden') . '>' . ($active ? $block : boblift_series_hidden_block($block)) . '</div>';
     }
     echo '</div>';
