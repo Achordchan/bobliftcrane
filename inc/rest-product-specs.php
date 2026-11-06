@@ -17,6 +17,9 @@ if (!defined('ABSPATH')) {
  *   "insert":  [{"after": "Max. Flow", "label": {"en": "Oil Tank Capacity", "zh": "...", ...}, "value": "57 L"}] adds a
  *              row after the row with that English label, in every language ("label" names every language; "value" as
  *              for "set"). A row whose English label is already in the table is skipped.
+ *   "relabel": [{"label": "Winch", "to": {"ar": "الونش"}}] renames the row with that English label in the translations named
+ *              in "to" (not "en": English labels name the rows and feed the list filters). A translation whose row
+ *              already has that label is left as it is.
  *   "replace": {"en": [{"from": "continuous 360° slewing", "to": "360° slewing", "in": "content"}], "zh": [...]} replaces
  *              plain text in that language's body ("in": "content", the default), excerpt ("excerpt"), SEO description
  *              ("seo_description") or short description ("short_description", the summary beside the gallery). "from" and "to" are plain text (no "<", ">" or quotes), "to" is not empty, and "from" must
@@ -27,7 +30,7 @@ if (!defined('ABSPATH')) {
  *              English table has no rows (an emptied table cannot take "set" or "insert", which name rows). A map
  *              {"en": [...], "es": [...], ...} also fills the named translations, each only while its own table is
  *              empty. Every translation, given or kept, must follow the English rows row for row
- *              (boblift_spec_rows_aligned()). Cannot be combined with "set" or "insert". Sending it again once the
+ *              (boblift_spec_rows_aligned()). Cannot be combined with "set", "insert" or "relabel". Sending it again once the
  *              tables hold exactly these rows does nothing.
  * Only the field itself may be sent: a request with any other parameter is refused before anything is saved.
  *
@@ -65,7 +68,7 @@ function boblift_register_rest_product_specs_field(): void
             return true;
         },
         'schema' => [
-            'description' => 'Spec tables by language; on the English product, write {"set", "insert", "replace"} to change every language.',
+            'description' => 'Spec tables by language; on the English product, write {"set", "insert", "relabel", "replace"} to change every language.',
             'type' => 'object',
             'context' => ['edit'],
         ],
@@ -170,7 +173,7 @@ function boblift_product_specs_row_index(array $english_rows, string $label): in
 }
 
 /**
- * Works out the new spec table of every language from the "set" and "insert" items. Returns language => rows (only
+ * Works out the new spec table of every language from the "set", "insert" and "relabel" items. Returns language => rows (only
  * languages whose table changes), or an error when an item cannot be applied to every language.
  */
 function boblift_product_specs_plan_rows(array $tables, array $value): array|WP_Error
@@ -217,6 +220,34 @@ function boblift_product_specs_plan_rows(array $tables, array $value): array|WP_
                 return new WP_Error('boblift_specs_insert', sprintf('"insert" of "%s" gives no %s label or value.', $english_label, $language), ['status' => 400]);
             }
             array_splice($new[$language], $after + 1, 0, [['label' => $label, 'value' => sanitize_text_field($text)]]);
+        }
+    }
+    foreach ((array) ($value['relabel'] ?? []) as $item) {
+        $label = is_array($item) ? trim((string) ($item['label'] ?? '')) : '';
+        $to = is_array($item) && is_array($item['to'] ?? null) ? $item['to'] : [];
+        if ($label === '' || $to === [] || array_is_list($to)) {
+            return new WP_Error('boblift_specs_relabel', '"relabel" needs an English "label" and a "to" map of new labels by language.', ['status' => 400]);
+        }
+        if (isset($to['en'])) {
+            return new WP_Error('boblift_specs_relabel', '"relabel" cannot rename English rows; English labels name the rows.', ['status' => 400]);
+        }
+        if (array_diff_key($to, $new) !== []) {
+            return new WP_Error('boblift_specs_language', sprintf('"relabel" names languages this product does not have: %s.', implode(', ', array_keys(array_diff_key($to, $new)))), ['status' => 400]);
+        }
+        $index = boblift_product_specs_row_index($new['en'], $label);
+        if (is_wp_error($index)) {
+            return $index;
+        }
+        foreach ($to as $language => $text) {
+            $text = is_string($text) ? sanitize_text_field($text) : '';
+            if ($text === '') {
+                return new WP_Error('boblift_specs_relabel', sprintf('"relabel" for "%s" gives no %s label.', $label, $language), ['status' => 400]);
+            }
+            $taken = array_filter($new[$language], static fn($row, $at): bool => $at !== $index && is_array($row) && trim((string) ($row['label'] ?? '')) === $text, ARRAY_FILTER_USE_BOTH);
+            if ($taken !== []) {
+                return new WP_Error('boblift_specs_relabel', sprintf('The %s table already has another row labelled "%s".', $language, $text), ['status' => 400]);
+            }
+            $new[$language][$index]['label'] = $text;
         }
     }
     return array_filter($new, static fn(array $rows, string $language): bool => $rows !== $tables[$language], ARRAY_FILTER_USE_BOTH);
@@ -515,11 +546,11 @@ function boblift_product_specs_plan(int $product_id, array $value): array|WP_Err
         $tables[$language] = array_values((array) boblift_decode_meta($spec_meta[$language]['value'] ?? '', []));
     }
     if (isset($value['restore'])) {
-        $rows = isset($value['set']) || isset($value['insert'])
-            ? new WP_Error('boblift_specs_restore', '"restore" cannot be combined with "set" or "insert".', ['status' => 400])
+        $rows = isset($value['set']) || isset($value['insert']) || isset($value['relabel'])
+            ? new WP_Error('boblift_specs_restore', '"restore" cannot be combined with "set", "insert" or "relabel".', ['status' => 400])
             : boblift_product_specs_plan_restore($tables, $value['restore']);
     } else {
-        $rows = isset($value['set']) || isset($value['insert']) ? boblift_product_specs_plan_rows($tables, $value) : [];
+        $rows = isset($value['set']) || isset($value['insert']) || isset($value['relabel']) ? boblift_product_specs_plan_rows($tables, $value) : [];
     }
     if (is_wp_error($rows)) {
         return $rows;
