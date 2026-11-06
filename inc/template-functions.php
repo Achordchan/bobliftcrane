@@ -1788,7 +1788,9 @@ function boblift_feedback_counts_text(array $item): string
 /** The flag in assets/flags for a country named in English, or '' when the theme has none for it. */
 function boblift_country_flag_url(string $country): string
 {
-    $codes = ['Brazil' => 'br', 'China' => 'cn', 'Germany' => 'de', 'Spain' => 'es', 'France' => 'fr', 'Indonesia' => 'id', 'India' => 'in', 'Japan' => 'jp', 'South Korea' => 'kr', 'Korea' => 'kr', 'Russia' => 'ru', 'Saudi Arabia' => 'sa', 'Thailand' => 'th', 'Türkiye' => 'tr', 'Turkey' => 'tr', 'United States' => 'us', 'USA' => 'us', 'Vietnam' => 'vn', 'Viet Nam' => 'vn'];
+    $codes = ['Brazil' => 'br', 'China' => 'cn', 'Germany' => 'de', 'Spain' => 'es', 'France' => 'fr', 'Indonesia' => 'id', 'India' => 'in', 'Japan' => 'jp', 'South Korea' => 'kr', 'Korea' => 'kr', 'Russia' => 'ru', 'Saudi Arabia' => 'sa', 'Thailand' => 'th', 'Türkiye' => 'tr', 'Turkey' => 'tr', 'United States' => 'us', 'USA' => 'us', 'Vietnam' => 'vn', 'Viet Nam' => 'vn',
+        'Argentina' => 'ar', 'Australia' => 'au', 'Bahrain' => 'bh', 'Bangladesh' => 'bd', 'Belarus' => 'by', 'Canada' => 'ca', 'Chile' => 'cl', 'Colombia' => 'co', 'Cyprus' => 'cy', 'Ecuador' => 'ec', 'Egypt' => 'eg', 'El Salvador' => 'sv', 'Fiji' => 'fj', 'Greece' => 'gr', 'Honduras' => 'hn', 'Kazakhstan' => 'kz', 'Kenya' => 'ke', 'Kuwait' => 'kw', 'Lebanon' => 'lb', 'Malaysia' => 'my', 'Maldives' => 'mv', 'Mexico' => 'mx', 'Moldova' => 'md', 'Morocco' => 'ma', 'Myanmar' => 'mm', 'Netherlands' => 'nl', 'New Zealand' => 'nz', 'Peru' => 'pe', 'Philippines' => 'ph', 'Qatar' => 'qa', 'Sudan' => 'sd', 'Tajikistan' => 'tj', 'Trinidad and Tobago' => 'tt', 'Tunisia' => 'tn', 'Ukraine' => 'ua', 'Uruguay' => 'uy', 'Uzbekistan' => 'uz'];
+    // "Congo" names neither Congo for sure and "Taiwan, China" has none here: both keep the pin.
     $code = $codes[trim($country)] ?? '';
     return $code !== '' && is_file(get_template_directory() . '/assets/flags/' . $code . '.svg') ? get_template_directory_uri() . '/assets/flags/' . $code . '.svg' : '';
 }
