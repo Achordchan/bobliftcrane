@@ -823,9 +823,6 @@ function boblift_series_block_close(string $name, string $class = ''): void
     foreach ($state['series']['members'] as $member) {
         $block = (string) ($state['blocks'][$member['model']][$name] ?? '');
         $active = $member['model'] === $state['active_source'];
-        if ($active && str_contains($block, '<!--boblift-specs-matrix-->')) {
-            $block = str_replace('<!--boblift-specs-matrix-->', boblift_specs_matrix_html($state), $block);
-        }
         echo '<div data-cfg-variant="' . esc_attr($member['model']) . '"' . ($active ? '' : ' hidden') . '>' . ($active ? $block : boblift_series_hidden_block($block)) . '</div>';
     }
     echo '</div>';
@@ -1113,25 +1110,6 @@ function boblift_series_decode_parts(string $model, string $winch = 'optional', 
     return ['parts' => $parts, 'former' => $former, 'has_winch' => $has_winch];
 }
 
-function boblift_series_render_compact_decode(string $model, string $winch = 'optional', int $english_id = 0): void
-{
-    ['parts' => $parts, 'former' => $former, 'has_winch' => $has_winch] = boblift_series_decode_parts($model, $winch, $english_id);
-    if (!$parts) {
-        return;
-    }
-    ?>
-    <dl class="boblift-model-decode-compact mt-4 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-[#D5DEE9] pt-4 sm:grid-cols-3">
-        <?php foreach ($parts as [$code, $meaning]) : ?>
-            <div class="flex min-w-0 items-start gap-2"<?php echo $code === 'J' ? ' data-cfg-decode-winch' . ($has_winch ? '' : ' style="display:none"') : ''; ?>>
-                <dt class="inline-flex h-6 min-w-6 shrink-0 items-center justify-center rounded-sm bg-[#071f42] px-1.5 text-[12px] font-black leading-none tracking-[0.02em] text-white [font-variant-numeric:tabular-nums]" dir="ltr"><?php echo esc_html($code); ?></dt>
-                <dd class="min-w-0 pt-[3px] text-[13px] font-normal leading-[1.35] text-slate-600"><?php echo esc_html($meaning); ?></dd>
-            </div>
-        <?php endforeach; ?>
-    </dl>
-    <?php if ($former !== '') : ?><p class="mt-2 text-xs leading-5 text-slate-500"><?php echo esc_html(str_replace('{model}', $former, boblift_series_text('Former model no. {model}'))); ?></p><?php endif; ?>
-    <?php
-}
-
 /**
  * Models in the spec tables of the 2026 catalogues (assets/downloads, truck mounted pages 6-14, marine pages 4-12): the regular
  * production models. The exact name only: a catalogue with SQ4ZA3TJ says nothing about SQ4ZA3T. The CE annex pages do not count.
@@ -1300,59 +1278,10 @@ function boblift_series_compare_columns(array $members): array
 function boblift_series_render_compare(string $model): void
 {
     $state = $GLOBALS['boblift_series_render'] ?? null;
-    if ($state && $state['active_source'] === $model && boblift_specs_option() === 'd' && count((array) $state['variants']) > 1) {
-        boblift_specs_render_choose_table($state);
+    if (!$state || $state['active_source'] !== $model || count((array) $state['variants']) < 2) {
         return;
     }
-    if (!$state || $state['active_source'] !== $model || count($state['series']['members']) < 2) {
-        return;
-    }
-    if (boblift_specs_option() === 'b') {
-        echo '<!--boblift-specs-matrix-->';
-        return;
-    }
-    $collapsed = in_array(boblift_specs_option(), ['a', 'c'], true);
-    $members = boblift_series_members_with_figures($state['series']);
-    // The table shows the configurations themselves; the winch is an option on each, said once.
-    $dimensions = boblift_series_dimensions($members);
-    $columns = boblift_series_compare_columns($members);
-    $labelled = (bool) array_intersect(['sections', 'winch', 'manual'], array_keys($dimensions));
-    $missing = false;
-    ?>
-    <div data-cfg-compare>
-        <?php if ($collapsed) : ?><details class="group border-b border-[#E6EDF5]"><summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-[14px] font-bold text-[#071f42] transition-colors hover:bg-[#F5F8FC] sm:px-6 md:px-8 [&::-webkit-details-marker]:hidden"><?php echo esc_html(boblift_series_text('Compare configurations')); ?><svg class="size-4 shrink-0 text-slate-500 transition-transform group-open:rotate-180" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></summary><div class="border-t border-[#E6EDF5]"><?php else : ?>
-        <h3 class="border-b border-[#E6EDF5] bg-[#F8FAFC] px-4 py-2 text-[12px] font-black uppercase tracking-[0.14em] text-slate-500 rtl:tracking-normal sm:px-6 md:px-8"><?php echo esc_html(boblift_series_text('Compare configurations')); ?></h3>
-        <?php endif; ?>
-        <div class="overflow-x-auto [scrollbar-width:thin]">
-            <table class="w-full min-w-[340px] border-collapse text-sm [font-variant-numeric:tabular-nums]">
-                <thead>
-                    <tr class="border-b border-[#E6EDF5] text-xs font-semibold text-slate-500">
-                        <th class="whitespace-nowrap py-2 pe-3 ps-4 text-start font-semibold sm:ps-6 md:ps-8" scope="col"><?php echo esc_html(boblift_series_text('Model')); ?></th>
-                        <?php if ($labelled) : ?><th class="whitespace-nowrap py-2 pe-3 text-start font-semibold" scope="col"><?php echo esc_html(boblift_series_text('Configuration')); ?></th><?php endif; ?>
-                        <?php foreach ($columns as $index => [$label]) : ?><th class="whitespace-nowrap py-2 text-end font-semibold <?php echo $index === count($columns) - 1 ? 'pe-4 sm:pe-6 md:pe-8' : 'pe-3'; ?>" scope="col"><?php echo esc_html(boblift_series_text($label)); ?></th><?php endforeach; ?>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($members as $member) : $current = $member['model'] === $state['active_source']; ?>
-                        <tr class="boblift-cfg-row cursor-pointer border-b border-[#E6EDF5] text-[#071f42] transition-colors hover:bg-[#F5F8FC]" data-cfg-row="<?php echo esc_attr($member['model']); ?>"<?php echo $current ? ' aria-current="true"' : ''; ?>>
-                            <th class="py-2.5 pe-3 ps-4 text-start font-black sm:ps-6 md:ps-8" scope="row"><a class="inline-flex items-center gap-2.5 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400" href="<?php echo esc_url($member['url']); ?>" dir="ltr"><span class="boblift-cfg-dot" aria-hidden="true"></span><?php echo esc_html($member['model']); ?></a></th>
-                            <?php if ($labelled) : ?><td class="whitespace-nowrap py-2.5 pe-3"><?php echo esc_html(boblift_series_compare_label($member['values'], $dimensions, (string) $state['series']['family'])); ?></td><?php endif; ?>
-                            <?php foreach ($columns as $index => [, $key]) :
-                                $value = $member['figures'][$key];
-                                $missing = $missing || $value === null;
-                                ?>
-                                <td class="whitespace-nowrap py-2.5 text-end <?php echo $index === count($columns) - 1 ? 'pe-4 sm:pe-6 md:pe-8' : 'pe-3'; ?>" dir="ltr"><?php echo $value === null ? '<span class="text-slate-400">—</span>' : esc_html($key === 'weight' ? boblift_series_format_kg($value) : (string) $value); ?></td>
-                            <?php endforeach; ?>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
-        <?php $winch_sentence = boblift_series_winch_sentence((string) $state['series']['winch']); if ($winch_sentence !== '') : ?><p class="border-b border-[#E6EDF5] px-4 py-2 text-xs leading-5 text-slate-500 sm:px-6 md:px-8"><?php echo esc_html($winch_sentence); ?></p><?php endif; ?>
-        <?php if ($missing) : ?><p class="border-b border-[#E6EDF5] px-4 py-2 text-xs leading-5 text-slate-500 sm:px-6 md:px-8"><?php echo esc_html(boblift_series_text('—: not listed here, see the drawing for this configuration.')); ?></p><?php endif; ?>
-        <?php if ($collapsed) : ?></div></details><?php endif; ?>
-    </div>
-    <?php
+    boblift_specs_render_choices($state);
 }
 
 /** Quote details of a configuration, rewritten for its other winch version. */
