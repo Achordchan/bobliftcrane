@@ -254,6 +254,15 @@ $check('canonical: routing not from the request stays', 'https://x/?p=123&model=
 $check('a feed is never sent to the series page', false, boblift_series_redirects_request(true, false, true));
 $check('a product page is', true, boblift_series_redirects_request(true, false, false));
 
+// Parameter names as PHP reads them: dots and spaces are underscores, a[b] is a.
+foreach (['boblift.html.slug' => 'boblift_html_slug', 'boblift%20html%20slug' => 'boblift_html_slug', 'boblift_html_slug%5Bx%5D' => 'boblift_html_slug', 'BOBLIFT_HTML_SLUG' => 'boblift_html_slug', 'utm.source' => 'utm_source'] as $raw => $key) {
+    $check("query key {$raw}", $key, boblift_series_query_key($raw));
+}
+foreach (['boblift.html.slug=s-a', 'boblift+html+slug=s-a', 'boblift%20html%20slug=s-a', 'boblift_html_slug%5Bx%5D=s-a', 'boblift_html_slug[x]=s-a'] as $pair) {
+    $check("routing dropped: {$pair}", 'https://x/s.html?model=A&gclid=1', boblift_series_redirect_url('https://x/s.html?model=A', $pair . '&gclid=1'));
+}
+$check('canonical: dotted routing dropped', 'https://x/s.html?model=A', boblift_series_clean_url('https://x/s.html?model=A&boblift.html.slug=s-a', ['boblift_html_slug' => 's-a'], []));
+
 // Which choices are asked.
 $members = array_map(static fn(string $model): array => ['model' => $model, 'values' => boblift_series_parse_model($model)], ['SQ08ZA3T+1', 'SQ08ZA3TJ+1']);
 $check('one-value dimensions are not asked', ['winch' => ['0', '1']], boblift_series_dimensions($members));

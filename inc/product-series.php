@@ -494,10 +494,28 @@ function boblift_series_redirect_url(string $url, string $query, array $query_va
     parse_str((string) parse_url($url, PHP_URL_QUERY), $own);
     $own = array_change_key_case($own);
     $kept = array_filter(explode('&', $query), static function (string $pair) use ($query_vars, $own): bool {
-        $key = strtolower(rawurldecode((string) strtok($pair, '=')));
-        return $pair !== '' && !boblift_series_is_routing_key($key, $query_vars) && !array_key_exists($key, $own);
+        $key = boblift_series_query_key((string) strtok($pair, '='));
+        return $pair !== '' && $key !== '' && !boblift_series_is_routing_key($key, $query_vars) && !array_key_exists($key, $own);
     });
     return $kept === [] ? $url : $url . (str_contains($url, '?') ? '&' : '?') . implode('&', $kept);
+}
+
+/**
+ * A query parameter's name as PHP reads it into $_GET, lowercased for matching: dots and spaces become "_" (so
+ * ?boblift.html.slug= arrives as boblift_html_slug), leading spaces go, and "a[b]" is "a". $encoded: the name is still
+ * URL-encoded, as in a raw query string.
+ */
+function boblift_series_query_key(string $name, bool $encoded = true): string
+{
+    $name = ltrim($encoded ? urldecode($name) : $name, ' ');
+    $bracket = strpos($name, '[');
+    if ($bracket !== false && $bracket > 0 && strpos($name, ']', $bracket) !== false) {
+        $name = substr($name, 0, $bracket);
+    } elseif ($bracket !== false) {
+        // An unclosed bracket is read as "_" like a dot or a space, and only the first one.
+        $name = substr_replace($name, '_', $bracket, 1);
+    }
+    return strtolower(strtr($name, ['.' => '_', ' ' => '_']));
 }
 
 /** A routing parameter: WordPress's, Polylang's lang, any boblift_ name, or a registered query var. */
@@ -520,10 +538,14 @@ function boblift_series_clean_url(string $url, array $request, array $owned, arr
     if (!isset($parts['query']) || $parts['query'] === '') {
         return $url;
     }
-    $request = array_change_key_case($request);
+    $normalized = [];
+    foreach ($request as $name => $value) {
+        $normalized[boblift_series_query_key((string) $name, false)] = $value;
+    }
+    $request = $normalized;
     $owned = array_map('strtolower', $owned);
     $kept = array_filter(explode('&', $parts['query']), static function (string $pair) use ($request, $owned, $query_vars): bool {
-        $key = strtolower(rawurldecode((string) strtok($pair, '=')));
+        $key = boblift_series_query_key((string) strtok($pair, '='));
         $value = rawurldecode(str_replace('+', ' ', (string) substr($pair, strlen((string) strtok($pair, '=')) + 1)));
         if ($pair === '' || $key === 'model' || in_array($key, $owned, true) || !boblift_series_is_routing_key($key, $query_vars)) {
             return $pair !== '';
@@ -1118,8 +1140,10 @@ function boblift_series_card_view(array $product): array
     if (count($figures) > 3) {
         unset($figures['weight']);
     }
-    if ($figures === [] && function_exists('boblift_home_product_card_specs')) {
-        $figures = boblift_home_product_card_specs($product);
+    // A product that is no crane by these figures (an aerial platform: working height and self weight only) keeps the
+    // card figures it always had: a lone self weight would say little about it.
+    if (!array_intersect_key($figures, array_flip(['capacity', 'moment', 'radius'])) && function_exists('boblift_home_product_card_specs')) {
+        $figures = boblift_home_product_card_specs($product) ?: $figures;
     }
     $code = $is_series ? boblift_series_label($series) : $model;
     $only = count($configs) === 1 ? $configs[0]['label'] : '';
