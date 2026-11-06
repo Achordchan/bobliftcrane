@@ -116,6 +116,8 @@ return [
         'cfg|—: not listed here, see the drawing for this configuration.' => '—：此处未列出，以该配置的图纸为准。',
         'cfg|Model' => '型号',
         'cfg|Choose your configuration' => '选择配置',
+        // DeepL pending for ja, es, ru, fr, ar: those pages show the English sentence until it is added.
+        'cfg|Your details are used to reply to your inquiry and prepare a quotation. BOB-LIFT does not sell personal information.' => '您的信息用于回复询价和准备报价。BOB-LIFT 不会出售个人信息。',
         'cfg|Boom sections' => '吊臂节数',
         'cfg|Winch' => '卷扬',
         'cfg|With winch' => '带卷扬',

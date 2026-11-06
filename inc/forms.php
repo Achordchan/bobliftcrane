@@ -332,6 +332,7 @@ function boblift_render_inquiry_modal(): void
                             </div>
                         </div>
                     </div>
+                    <?php boblift_render_inquiry_privacy_note('dark', 'relative z-10 mt-8 max-w-[320px]'); ?>
                 </aside>
                 <form class="boblift-inquiry-modal-form flex min-h-0 flex-col overflow-hidden p-5 md:p-6 lg:p-7" method="post" action="<?php echo boblift_inquiry_action_url(); ?>" data-inquiry-modal-form data-quote-form data-success-url="<?php echo esc_url(boblift_inquiry_success_url()); ?>" data-country-detect-url="<?php echo esc_url(boblift_country_detect_url()); ?>" data-contact-email="<?php echo esc_attr($contact['email']); ?>" data-whatsapp-number="<?php echo esc_attr($contact['whatsappNumber']); ?>" data-inquiry-subject="<?php echo esc_attr($contact['inquirySubject']); ?>" data-default-inquiry-text="<?php echo esc_attr($contact['defaultInquiryText']); ?>" novalidate>
                     <input type="hidden" name="action" value="boblift_submit_inquiry">
@@ -374,6 +375,7 @@ function boblift_render_inquiry_modal(): void
                         <?php boblift_render_turnstile_widget('mt-0 shrink-0', true); ?>
                         <button class="h-12 rounded-sm bg-navy px-7 text-sm font-black text-white shadow-card transition hover:-translate-y-0.5 hover:bg-[#0b2d5b] disabled:cursor-not-allowed disabled:opacity-60 sm:ms-auto" type="submit" data-inquiry-modal-submit><?php echo esc_html($ui['submitLabel'] ?? 'Send Inquiry'); ?> <?php echo boblift_icon('send', 'ms-1 inline h-4 w-4'); ?></button>
                     </div></div>
+                    <?php boblift_render_inquiry_privacy_note('light', 'mt-4 md:hidden'); ?>
                 </form>
                 <aside class="boblift-inquiry-products-panel hidden min-h-0 border-t border-line bg-[#F8FBFF] p-5 md:border-s md:border-t-0 md:p-6" data-inquiry-selected-products aria-label="<?php echo esc_attr($ui['selectedProductsAriaLabel'] ?? 'Selected products'); ?>">
                     <div class="flex h-full min-h-0 flex-col">
@@ -387,6 +389,49 @@ function boblift_render_inquiry_modal(): void
                 </aside>
             </div>
         </div>
+    </div>
+    <?php
+}
+
+/** The page in the current language that uses this page template ("page-privacy-policy.php"), or ''. */
+function boblift_policy_page_url(string $template): string
+{
+    static $urls = [];
+    $language = function_exists('pll_current_language') ? (string) pll_current_language() : '';
+    $key = $template . '|' . $language;
+    if (!isset($urls[$key])) {
+        $args = ['post_type' => 'page', 'post_status' => 'publish', 'numberposts' => 1, 'meta_key' => '_wp_page_template', 'meta_value' => $template, 'fields' => 'ids'];
+        if ($language !== '') {
+            $args['lang'] = $language;
+        }
+        $ids = get_posts($args);
+        $urls[$key] = $ids ? (string) get_permalink((int) $ids[0]) : '';
+    }
+    return $urls[$key];
+}
+
+/**
+ * Below the inquiry form: what the details are used for, in the privacy policy's own words (use: replying and quoting; sharing:
+ * BOB-LIFT does not sell personal information), and links to the policy and the terms. The links open a new tab so the form
+ * keeps what the visitor has typed, unlike other links on the site.
+ */
+function boblift_render_inquiry_privacy_note(string $tone, string $class = ''): void
+{
+    $privacy = boblift_policy_page_url('page-privacy-policy.php');
+    $terms = boblift_policy_page_url('page-terms-of-use.php');
+    $dark = $tone === 'dark';
+    $link = $dark ? 'font-bold text-white underline decoration-white/50 underline-offset-4 transition hover:decoration-white' : 'font-bold text-navy underline decoration-slate-300 underline-offset-4 transition hover:decoration-navy';
+    $links = [];
+    if ($privacy !== '') {
+        $links[] = '<a class="' . esc_attr($link) . '" href="' . esc_url($privacy) . '" target="_blank" rel="noopener">' . esc_html((string) (boblift_privacy_policy_page_options()['title'] ?? 'Privacy Policy')) . '</a>';
+    }
+    if ($terms !== '') {
+        $links[] = '<a class="' . esc_attr($link) . '" href="' . esc_url($terms) . '" target="_blank" rel="noopener">' . esc_html((string) (boblift_terms_of_use_page_options()['title'] ?? 'Terms of Use')) . '</a>';
+    }
+    ?>
+    <div class="<?php echo esc_attr(trim($class . ' text-[13px] leading-5 ' . ($dark ? 'text-white' : 'text-slate-600'))); ?>">
+        <p class="flex items-start gap-2"><?php echo boblift_icon('shield-check', 'mt-0.5 h-4 w-4 shrink-0 ' . ($dark ? 'text-white' : 'text-navy'), '1.75'); ?><span><?php echo esc_html(boblift_series_text('Your details are used to reply to your inquiry and prepare a quotation. BOB-LIFT does not sell personal information.')); ?></span></p>
+        <?php if ($links) : ?><p class="mt-2 ps-6"><?php echo implode('<span class="mx-2 ' . ($dark ? 'text-white/70' : 'text-slate-400') . '" aria-hidden="true">·</span>', $links); ?></p><?php endif; ?>
     </div>
     <?php
 }
