@@ -56,9 +56,29 @@ function boblift_site_text_set(array $options, string $path, string $value): arr
     return $options;
 }
 
-/** A new value cleaned the way its current value is stored. */
-function boblift_site_text_clean(string $value, string $current): string
+/** Whether the text at a path is an address: a key href, url or link, or one ending in _href or _url. */
+function boblift_site_text_is_url(string $path): bool
 {
+    $key = (string) substr($path, (int) strrpos('.' . $path, '.'));
+    return (bool) preg_match('/^(?:href|url|link)$|_(?:href|url)$/', $key);
+}
+
+/**
+ * A new value cleaned the way its current value is stored: an address keeps its encoding (%20, encoded Chinese) through
+ * esc_url_raw and must use http, https, mailto, tel or whatsapp, or be a path on the site; null when it is refused. Other
+ * text goes through wp_kses_post where the saved text holds HTML, sanitize_text_field otherwise.
+ */
+function boblift_site_text_clean(string $value, string $current, string $path = ''): ?string
+{
+    if ($path !== '' && boblift_site_text_is_url($path)) {
+        $value = trim($value);
+        $scheme = (string) parse_url($value, PHP_URL_SCHEME);
+        if ($value === '' || ($scheme !== '' && !in_array(strtolower($scheme), ['http', 'https', 'mailto', 'tel', 'whatsapp'], true))) {
+            return null;
+        }
+        $clean = esc_url_raw($value, ['http', 'https', 'mailto', 'tel', 'whatsapp']);
+        return $clean !== '' ? $clean : null;
+    }
     return $current !== strip_tags($current) ? wp_kses_post($value) : sanitize_text_field($value);
 }
 
@@ -108,10 +128,19 @@ function boblift_site_text_plan(array $options, mixed $request): array|WP_Error
     }
     $changes = [];
     $unchanged = [];
+    $bad_urls = [];
+    foreach ($request['set'] as $path => $value) {
+        if (boblift_site_text_clean((string) $value, (string) boblift_site_text_get($options, (string) $path), (string) $path) === null) {
+            $bad_urls[] = (string) $path;
+        }
+    }
+    if ($bad_urls !== []) {
+        return new WP_Error('boblift_site_text_invalid', 'Refused, nothing written: not an http, https, mailto, tel or whatsapp address or a site path: ' . implode(', ', $bad_urls) . '.', ['status' => 400, 'refused' => $bad_urls]);
+    }
     foreach ($request['set'] as $path => $value) {
         $path = (string) $path;
         $before = (string) boblift_site_text_get($options, $path);
-        $after = boblift_site_text_clean($value, $before);
+        $after = (string) boblift_site_text_clean($value, $before, $path);
         if ($after === $before) {
             $unchanged[] = $path;
             continue;
