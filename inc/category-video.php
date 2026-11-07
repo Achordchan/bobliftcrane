@@ -11,11 +11,28 @@ if (!defined('ABSPATH')) {
  * POST /wp/v2/product_category/<id> with {"meta": {"_boblift_category_video": "{...}"}}.
  *   {"src": "https://…/film.mp4", "youtube": "", "poster": "https://…/poster.jpg", "eyebrow": "", "title": "",
  *    "text": "", "points": [""], "duration": 66, "upload_date": "2026-11-04"}
+ * "upload_date" is a day (taken as midnight Beijing time) or an ISO 8601 date-time with its offset; the VideoObject
+ * always gets the full date-time with the offset, since Search Console flags a bare day as missing its time zone.
  * A film needs a poster and either an MP4 (https) or a YouTube id. A poster with neither is a still photo instead: same
  * frame, no play button, its "alt" as the image's alt text, no VideoObject (categories without footage of their own).
  * Without a poster or a title, "" (or anything else) removes the card.
  * Plain text throughout. The page also gets a VideoObject for a film.
  */
+
+/** "2026-11-04T00:00:00+08:00" for "2026-11-04" or a date-time with an offset ("Z" becomes "+00:00"); '' for anything else. */
+function boblift_category_video_upload_date(string $date): string
+{
+    if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $date, $day)) {
+        return checkdate((int) $day[2], (int) $day[3], (int) $day[1]) ? $date . 'T00:00:00+08:00' : '';
+    }
+    if (!preg_match('/^(\d{4})-(\d{2})-(\d{2})T([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?(Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/', $date, $at)) {
+        return '';
+    }
+    if (!checkdate((int) $at[2], (int) $at[3], (int) $at[1])) {
+        return '';
+    }
+    return sprintf('%s-%s-%sT%s:%s:%s%s', $at[1], $at[2], $at[3], $at[4], $at[5], $at[6] !== '' ? $at[6] : '00', $at[7] === 'Z' ? '+00:00' : $at[7]);
+}
 
 /** Keeps only the film's own keys; anything that cannot make a card is stored as ''. */
 function boblift_category_video_sanitize($value): string
@@ -42,7 +59,7 @@ function boblift_category_video_sanitize($value): string
         'text' => $plain($data['text'] ?? ''),
         'points' => [],
         'duration' => max(0, min(36000, (int) ($data['duration'] ?? 0))),
-        'upload_date' => preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) ? $date : '',
+        'upload_date' => boblift_category_video_upload_date($date),
     ];
     foreach ((array) ($data['points'] ?? []) as $point) {
         $point = $plain(is_scalar($point) ? $point : '');
@@ -110,7 +127,7 @@ function boblift_category_video_schema(array $video): array
         'name' => (string) $video['title'],
         'description' => (string) (($video['text'] ?? '') !== '' ? $video['text'] : $video['title']),
         'thumbnailUrl' => [(string) $video['poster']],
-        'uploadDate' => (string) $video['upload_date'],
+        'uploadDate' => boblift_category_video_upload_date((string) $video['upload_date']),
     ];
     if (($video['src'] ?? '') !== '') {
         $schema['contentUrl'] = (string) $video['src'];

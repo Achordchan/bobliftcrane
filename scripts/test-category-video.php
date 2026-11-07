@@ -37,11 +37,16 @@ $check('a poster without an mp4 or YouTube id is a still photo', is_array($photo
 $check('no VideoObject for a still photo', boblift_category_video_schema($photo) === []);
 $check('a YouTube id alone is enough', json_decode(boblift_category_video_sanitize(json_encode(['src' => '', 'youtube' => 'dQw4w9WgXcQ'] + $full)), true)['youtube'] === 'dQw4w9WgXcQ');
 $check('refuses http and script URLs', boblift_category_video_sanitize(json_encode(['src' => 'http://x/a.mp4'] + $full)) === '' && boblift_category_video_sanitize(json_encode(['poster' => 'javascript:alert(1)'] + $full)) === '');
+$date = static fn(string $d): string => (string) json_decode(boblift_category_video_sanitize(json_encode(['upload_date' => $d] + $full)), true)['upload_date'];
+$check('a bare day is stored as midnight Beijing time', $date('2026-11-04') === '2026-11-04T00:00:00+08:00');
+$check('keeps a date-time with its offset', $date('2026-11-06T10:00:00+08:00') === '2026-11-06T10:00:00+08:00' && $date('2026-11-06T10:00+08:00') === '2026-11-06T10:00:00+08:00' && $date('2026-11-06T02:00:00Z') === '2026-11-06T02:00:00+00:00');
+$check('refuses a date-time without an offset or an impossible day', $date('2026-11-06T10:00:00') === '' && $date('2026-11-06 10:00:00+08:00') === '' && $date('2026-02-30') === '' && $date('2026-11-06T25:00:00+08:00') === '');
 $check('refuses a bad date', json_decode(boblift_category_video_sanitize(json_encode(['upload_date' => '4 Nov'] + $full)), true)['upload_date'] === '');
 $check('empty or broken JSON clears the film', boblift_category_video_sanitize('') === '' && boblift_category_video_sanitize('{nope') === '' && boblift_category_video_sanitize('"x"') === '');
 $check('durations', boblift_category_video_iso_duration(66) === 'PT1M6S' && boblift_category_video_iso_duration(60) === 'PT1M' && boblift_category_video_iso_duration(3605) === 'PT1H5S' && boblift_category_video_iso_duration(0) === '');
 $schema = boblift_category_video_schema($saved);
-$check('VideoObject', $schema['@type'] === 'VideoObject' && $schema['contentUrl'] === $full['src'] && $schema['duration'] === 'PT1M6S' && $schema['uploadDate'] === '2026-11-04');
+$check('VideoObject', $schema['@type'] === 'VideoObject' && $schema['contentUrl'] === $full['src'] && $schema['duration'] === 'PT1M6S' && $schema['uploadDate'] === '2026-11-04T00:00:00+08:00');
+$check('a day stored before the fix still gets a time zone', boblift_category_video_schema(['upload_date' => '2026-10-29'] + $saved)['uploadDate'] === '2026-10-29T00:00:00+08:00');
 $check('no VideoObject without an upload date', boblift_category_video_schema(['upload_date' => ''] + $saved) === []);
 $meta = '';
 ob_start(); boblift_render_category_video(new WP_Term()); $html = ob_get_clean();
@@ -52,6 +57,7 @@ $check('card uses the in-place player', str_contains($html, 'data-inline-videos'
 $check('without an intro the film\'s title, text and points stand in', str_contains($html, '>Forklift fly jib crane on video</h2>') && str_contains($html, '>Factory footage.</p>') && substr_count($html, '<li ') === 4);
 $check('block carries the category intro marker', str_contains($html, 'data-category-intro="forklift-fly-jib-cranes"') && str_contains($html, 'aria-labelledby="category-intro-forklift-fly-jib-cranes"'));
 $check('card prints the VideoObject', str_contains($html, '"@type":"VideoObject"'));
+$check('the page prints the upload date with its time zone', str_contains($html, '"uploadDate":"2026-11-04T00:00:00+08:00"'));
 $brochure = ['key' => 'forklift', 'title' => 'Forklift Fly Jib Cranes Brochure', 'url' => 'https://x/b.pdf', 'file' => 'b.pdf', 'cover' => 'https://x/c.webp', 'pages' => 8, 'size' => '2.5 MB'];
 $check('no brochure band unless one is passed', !str_contains($html, 'data-category-video-brochure'));
 ob_start(); boblift_render_category_video(new WP_Term(), $brochure); $html = ob_get_clean();
