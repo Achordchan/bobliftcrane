@@ -929,9 +929,9 @@ if ($family_quote_copy) {
             if (boblift_series_capturing()) {
                 return;
             }
-            if ($series_page && ($series_schema = boblift_series_schema())) : ?>
-                <script type="application/ld+json"><?php echo wp_json_encode($series_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG); ?></script>
-            <?php endif; ?>
+            // No Product/ProductGroup markup: Google's product snippets need offers, review or
+            // aggregateRating, and the site publishes no prices and has no product reviews.
+            ?>
             <?php if ($process_steps) :
                 // Literal class names so Tailwind keeps them.
                 $process_cols = [3 => 'lg:grid-cols-3', 4 => 'lg:grid-cols-4', 5 => 'lg:grid-cols-5'][count($process_steps)] ?? 'lg:grid-cols-6';
