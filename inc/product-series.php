@@ -1639,6 +1639,46 @@ function boblift_series_winch_values(array $values, string $winch): array
     return $values;
 }
 
+/**
+ * The address of the winch guide article (slug crane-winch) in the page's language, or '' while it is not published there, so
+ * the link next to the winch option appears in each language as soon as that translation is live.
+ */
+function boblift_series_winch_guide_url(): string
+{
+    static $url = null;
+    if ($url !== null) {
+        return $url;
+    }
+    $url = '';
+    if (!function_exists('get_page_by_path')) {
+        return $url;
+    }
+    $english = get_page_by_path('crane-winch', OBJECT, 'post');
+    if (!$english instanceof WP_Post) {
+        return $url;
+    }
+    $id = (int) $english->ID;
+    $language = function_exists('pll_current_language') ? (string) pll_current_language('slug') : '';
+    if ($language !== '' && function_exists('pll_get_post')) {
+        $id = (int) pll_get_post($id, $language);
+    }
+    $post = $id ? get_post($id) : null;
+    if ($post instanceof WP_Post && $post->post_status === 'publish') {
+        $url = (string) get_permalink($post);
+    }
+    return $url;
+}
+
+/** The link to the winch guide under the winch choice (or the "winch standard" line); nothing while the guide is not live. */
+function boblift_series_winch_guide_link(string $text, string $class = 'mt-2'): string
+{
+    $url = boblift_series_winch_guide_url();
+    if ($url === '') {
+        return '';
+    }
+    return '<p class="' . esc_attr($class) . ' text-[13px] leading-5" data-winch-guide-link><a class="font-semibold text-blue-700 underline-offset-4 hover:underline" href="' . esc_url($url) . '">' . esc_html(boblift_series_text($text)) . '</a></p>';
+}
+
 /** The sentence about the winch for this kind of series, under the comparison and in the structured data; none for truck cranes. */
 function boblift_series_winch_sentence(string $winch, string $family = 'marine'): string
 {
@@ -1886,6 +1926,7 @@ function boblift_series_render_configurator(): void
     if ($dimensions === []) {
         if ($telescopic) {
             echo '<p class="mt-5 text-sm text-slate-600">' . esc_html($telescopic_text) . '</p>';
+            echo boblift_series_winch_guide_link('What the winch does: read our winch guide', 'mt-1.5');
         }
         return;
     }
@@ -1966,6 +2007,8 @@ function boblift_series_render_configurator(): void
                     <?php endforeach; ?>
                 </div>
                 </div>
+                <?php // Where to read about choosing the winch, under that choice (the guide article, once live in this language). ?>
+                <?php if ($dimension === 'winch') { echo boblift_series_winch_guide_link('With or without a winch? Read our winch guide'); } ?>
                 <?php // Says what the +1 on a button means. Always shown in such a series, so the box keeps its height. ?>
                 <?php if ($dimension === 'sections' && array_filter($members, static fn(array $member): bool => ($member['values']['manual'] ?? '') === '1')) : ?>
                     <p class="mt-2 text-[13px] leading-4 text-slate-500"><?php echo esc_html($t('+1 = one added manual extension')); ?></p>
@@ -1974,6 +2017,7 @@ function boblift_series_render_configurator(): void
         <?php endforeach; ?>
         <?php if ($telescopic) : ?>
             <p class="mt-3 text-[13px] text-slate-600"><?php echo esc_html($telescopic_text); ?></p>
+            <?php echo boblift_series_winch_guide_link('What the winch does: read our winch guide', 'mt-1'); ?>
         <?php endif; ?>
         <?php if (boblift_series_all_have($members, 'manual', '1')) : ?>
             <p class="mt-3 text-[13px] text-slate-600"><?php echo esc_html($t('+1 manual extension on every configuration')); ?></p>
