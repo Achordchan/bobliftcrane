@@ -1448,12 +1448,16 @@ function boblift_series_derived_winch_text(array $state): string
 }
 
 /**
- * A derived version's note that its self weight is confirmed with the quote, in the page's language. On truck mounted and pickup
- * cranes a winch adds about 70–110 kg (technical department, 2026-11-09), so that is said too.
+ * A derived version's note that its self weight is confirmed with the quote, in the page's language. A winch adds about
+ * 70–110 kg on truck mounted cranes and about 70 kg on the 800 kg pickup cranes (technical department, 2026-11-09), so that is
+ * said too.
  */
 function boblift_series_weight_note(string $winch, string $family = 'marine'): string
 {
-    if ($winch === '1' && in_array($family, ['truck', 'pickup'], true)) {
+    if ($winch === '1' && $family === 'pickup') {
+        return boblift_series_text('Winch version: about 70 kg heavier, exact self weight confirmed with your quote');
+    }
+    if ($winch === '1' && $family === 'truck') {
         return boblift_series_text('Winch version: about 70–110 kg heavier, exact self weight confirmed with your quote');
     }
     return boblift_series_text($winch === '1' ? 'Winch version: self weight confirmed with your quote' : 'No-winch version: self weight confirmed with your quote');
