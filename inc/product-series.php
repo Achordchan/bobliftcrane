@@ -979,7 +979,7 @@ function boblift_series_search_names(array $members, string $winch, string $code
             $targets[$twin] ??= boblift_series_model_url($home_url, $twin);
         }
         if ($winch === 'standard') {
-            $with_j = (string) preg_replace('/^(.*\dT?)(\+1)?$/', '$1J$2', $model);
+            $with_j = (string) preg_replace('/^(.*?\dT?)(\+1)?$/', '$1J$2', $model);
             $targets[$with_j] ??= (string) $member['url'];
         }
     }
