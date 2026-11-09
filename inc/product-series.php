@@ -1882,9 +1882,10 @@ function boblift_series_render_configurator(): void
     $count = count($state['series']['members']);
     $dimensions = boblift_series_dimensions($members);
     $telescopic = $state['series']['winch'] === 'standard';
+    $telescopic_text = $t(($state['series']['family'] ?? 'marine') === 'truck' ? 'Winch included on every telescopic truck mounted crane' : 'Winch included on every telescopic marine crane');
     if ($dimensions === []) {
         if ($telescopic) {
-            echo '<p class="mt-5 text-sm text-slate-600">' . esc_html($t('Winch included on every telescopic marine crane')) . '</p>';
+            echo '<p class="mt-5 text-sm text-slate-600">' . esc_html($telescopic_text) . '</p>';
         }
         return;
     }
@@ -1972,7 +1973,7 @@ function boblift_series_render_configurator(): void
             </div>
         <?php endforeach; ?>
         <?php if ($telescopic) : ?>
-            <p class="mt-3 text-[13px] text-slate-600"><?php echo esc_html($t('Winch included on every telescopic marine crane')); ?></p>
+            <p class="mt-3 text-[13px] text-slate-600"><?php echo esc_html($telescopic_text); ?></p>
         <?php endif; ?>
         <?php if (boblift_series_all_have($members, 'manual', '1')) : ?>
             <p class="mt-3 text-[13px] text-slate-600"><?php echo esc_html($t('+1 manual extension on every configuration')); ?></p>
