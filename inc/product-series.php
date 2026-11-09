@@ -357,8 +357,10 @@ function boblift_series_build_map(): array
             $translated[(int) $member['id']] = array_map('intval', function_exists('pll_get_post_translations') ? pll_get_post_translations((int) $member['id']) : []);
         }
     }
-    foreach (array_keys($withdrawn_targets) as $id) {
-        $translated[$id] = array_map('intval', function_exists('pll_get_post_translations') ? pll_get_post_translations($id) : []);
+    foreach ($all as $row) {
+        if (!empty($row['withdrawn'])) {
+            $translated[(int) $row['id']] = array_map('intval', function_exists('pll_get_post_translations') ? pll_get_post_translations((int) $row['id']) : [(int) $row['id']]);
+        }
     }
     _prime_post_caches(array_merge([], ...array_map('array_values', array_values($translated))), false, false);
     $available = static fn(int $id): bool => get_post_status($id) === 'publish' && (string) get_post_field('post_password', $id) === '';
@@ -377,12 +379,17 @@ function boblift_series_build_map(): array
             }
         }
     }
+    foreach ($all as $row) {
+        // A configuration no longer made leaves every list in every language, whether or not it has a page to go to.
+        if (!empty($row['withdrawn'])) {
+            array_push($hidden, ...array_values($translated[(int) $row['id']] ?? []));
+        }
+    }
     foreach ($withdrawn_targets as $id => $key) {
-        // In each language where both the withdrawn page and its series page are up, the page leaves the lists and is
-        // sent to the series page; a saved pick of it (featured, related) stands for the series page.
+        // In each language where both the withdrawn page and its series page are up, the page is sent to the series
+        // page, and a saved pick of it (featured, related) stands for the series page; elsewhere it keeps its own page.
         $home_translations = $translated[(int) $groups[$key]['home']] ?? [];
         foreach (boblift_series_joined_translations($home_translations, $translated[$id] ?? [], $available) as $lang => $translation) {
-            $hidden[] = $translation;
             $homes[$translation] = $withdrawn[$translation] = (int) $home_translations[$lang];
         }
     }

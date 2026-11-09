@@ -9,7 +9,8 @@
  * product edit screen or through REST (the boblift_lifecycle field of wp/v2/product); either way all translations follow.
  *
  * "withdrawn" is a configuration that is no longer made at all (the technical department dropped it): it leaves its series
- * and every list, and its page, in every language, is sent to its series page (see boblift_series_build_map()).
+ * and every list in every language, and its page is sent to its series page wherever that page is up (see
+ * boblift_series_build_map()). It applies to the truck, marine and pickup crane categories the series are built from.
  */
 
 function boblift_register_product_lifecycle_meta(): void
