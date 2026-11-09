@@ -110,7 +110,7 @@ function boblift_specs_render_choices(array $state): void
             </table>
         </div>
         <?php
-        $notes = array_filter([boblift_series_winch_sentence((string) $state['series']['winch'], (string) ($state['series']['family'] ?? 'marine')), $manual ? boblift_series_text('+1 = one added manual extension') : '', !empty($derived_weight['on']) ? '— ' . boblift_series_text('Winch version: self weight confirmed with your quote') : '', !empty($derived_weight['off']) ? '— ' . boblift_series_text('No-winch version: self weight confirmed with your quote') : '', $missing ? boblift_series_text('—: not listed here, see the drawing for this configuration.') : '']);
+        $notes = array_filter([boblift_series_winch_sentence((string) $state['series']['winch'], (string) ($state['series']['family'] ?? 'marine')), $manual ? boblift_series_text('+1 = one added manual extension') : '', !empty($derived_weight['on']) ? '— ' . boblift_series_weight_note('1', (string) ($state['series']['family'] ?? 'marine')) : '', !empty($derived_weight['off']) ? '— ' . boblift_series_text('No-winch version: self weight confirmed with your quote') : '', $missing ? boblift_series_text('—: not listed here, see the drawing for this configuration.') : '']);
         foreach ($notes as $note) : ?>
             <p class="mt-1.5 text-[13px] leading-5 text-slate-500"><?php echo esc_html($note); ?></p>
         <?php endforeach; ?>

@@ -337,7 +337,7 @@ $check('truck model', ['named' => '', 'sections' => 'A6', 'winch' => '0', 'manua
 $check('truck model with +1', ['named' => '', 'sections' => 'A3', 'winch' => '0', 'manual' => '1'], boblift_series_parse_model('SQ1ZA3+1'));
 $check('truck BLZ', ['named' => '', 'sections' => 'K5', 'winch' => '0', 'manual' => '0'], boblift_series_parse_model('BLZ90K5'));
 $check('truck SQZ', ['named' => 'SQZ330', 'sections' => '', 'winch' => '0', 'manual' => '0'], boblift_series_parse_model('SQZ330'));
-$check('winch modes', ['optional', 'standard', 'optional', 'standard', 'none'], [boblift_series_winch_mode('marine', 'knuckle'), boblift_series_winch_mode('marine', 'telescopic'), boblift_series_winch_mode('truck', 'knuckle'), boblift_series_winch_mode('truck', 'telescopic'), boblift_series_winch_mode('pickup', 'knuckle')]);
+$check('winch modes', ['optional', 'standard', 'optional', 'standard', 'optional', 'none'], [boblift_series_winch_mode('marine', 'knuckle'), boblift_series_winch_mode('marine', 'telescopic'), boblift_series_winch_mode('truck', 'knuckle'), boblift_series_winch_mode('truck', 'telescopic'), boblift_series_winch_mode('pickup', 'knuckle'), boblift_series_winch_mode('other', 'knuckle')]);
 $truck_row = static fn(int $id, string $slug, string $model, float $capacity, string $boom, bool $legacy = false): array => compact('id', 'slug', 'model', 'capacity', 'boom', 'legacy') + ['family' => 'truck'];
 $trucks = boblift_series_group_rows([
     $truck_row(1, '12-ton-knuckle-boom-truck-mounted-crane', 'SQ12ZA6', 12, 'knuckle'),
@@ -363,7 +363,7 @@ $check('and does not make the other section look missing', [], boblift_series_un
 $check('and is told on the section', ['2 hydraulic booms +1', ''], boblift_series_choice_label('sections', 'A3', $mixed));
 $check('not on the one without', ['3 hydraulic booms', ''], boblift_series_choice_label('sections', 'A4', $mixed));
 
-// The two pickup cranes are one series of their own, chosen by their outriggers.
+// The two pickup cranes are one series of their own, chosen by the manual extension (both have outriggers).
 $pickups = boblift_series_group_rows([
     ['id' => 65, 'slug' => '800-kg-pickup-crane-with-outriggers', 'model' => 'SQ08ZA3+1', 'capacity' => 0.8, 'boom' => 'knuckle', 'legacy' => false, 'family' => 'pickup'],
     ['id' => 5164, 'slug' => '800-kg-pickup-crane-without-outriggers', 'model' => 'SQ08ZA3', 'capacity' => 0.8, 'boom' => 'knuckle', 'legacy' => false, 'family' => 'pickup'],
@@ -373,9 +373,9 @@ $check('pickup page keeps its address', 65, $pickups['pickup-knuckle-0.8']['home
 $check('pickup code', 'SQ08Z', $pickups['pickup-knuckle-0.8']['code']);
 $pickup_members = array_map(static fn(array $row): array => $row + ['values' => boblift_series_parse_model($row['model']), 'figures' => $figures(300)], $pickups['pickup-knuckle-0.8']['members']);
 $check('pickup asks about the outriggers', ['manual' => ['0', '1']], boblift_series_dimensions($pickup_members));
-$check('in words', ['With outriggers', ''], boblift_series_choice_label('manual', '1', $pickup_members, 'pickup'));
+$check('in words', ['With manual extension', '+1'], boblift_series_choice_label('manual', '1', $pickup_members, 'pickup'));
 $check('elsewhere +1 stays', ['+1', ''], boblift_series_choice_label('manual', '1', $pickup_members, 'truck'));
-$check('pickup compare label', 'Without outriggers', boblift_series_compare_label($pickup_members[0]['values'], ['manual' => ['0', '1']], 'pickup'));
+$check('pickup compare label', 'No manual extension', boblift_series_compare_label($pickup_members[0]['values'], ['manual' => ['0', '1']], 'pickup'));
 $check('an inquiry naming the other winch version', 'SQ12ZA6TJ', boblift_series_inquired_model('SQ12ZA6T', '12 Ton Knuckle Boom Marine Crane SQ12ZA6TJ'));
 $check('an inquiry naming the model itself', 'SQ12ZA6T', boblift_series_inquired_model('SQ12ZA6T', '12 Ton Knuckle Boom Marine Crane SQ12ZA6T'));
 $check('+1 in the inquiry text', 'SQ08ZA3TJ+1', boblift_series_inquired_model('SQ08ZA3T+1', 'Crane SQ08ZA3TJ+1'));
