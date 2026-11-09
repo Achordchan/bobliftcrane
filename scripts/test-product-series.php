@@ -426,5 +426,19 @@ $check('+1 is part of the model', 'X – SQ1ZA3+1', boblift_series_title_with_mo
 $check('to a +1 configuration', 'X – SQ1ZA3+1 |', boblift_series_title_with_model('X – SQ1ZA3 |', 'SQ1ZA3', 'SQ1ZA3+1'));
 $check('a title without the model stays', '12トン ナックルブーム式マリンクレーン', boblift_series_title_with_model('12トン ナックルブーム式マリンクレーン', 'SQ12ZA6T', 'SQ12ZA4T'));
 
+// A configuration no longer made (withdrawn) leaves its series and is sent to the series page of its class.
+$withdrawnRows = [
+    ['id' => 195, 'slug' => '16-ton-knuckle-boom-marine-crane', 'model' => 'SQZ330T', 'capacity' => 16.0, 'boom' => 'knuckle', 'family' => 'marine', 'legacy' => false],
+    ['id' => 4860, 'slug' => '16-ton-knuckle-boom-marine-crane-sqz350t', 'model' => 'SQZ350T', 'capacity' => 16.0, 'boom' => 'knuckle', 'family' => 'marine', 'legacy' => true, 'withdrawn' => true],
+    ['id' => 4627, 'slug' => '16-ton-knuckle-boom-truck-mounted-crane-sqz350', 'model' => 'SQZ350', 'capacity' => 16.0, 'boom' => 'knuckle', 'family' => 'truck', 'legacy' => true, 'withdrawn' => true],
+    ['id' => 7, 'slug' => 'x-sq9za4t', 'model' => 'SQ9ZA4T', 'capacity' => 9.0, 'boom' => 'knuckle', 'family' => 'marine', 'legacy' => false, 'withdrawn' => true],
+];
+$current = array_values(array_filter($withdrawnRows, static fn(array $r): bool => empty($r['withdrawn'])));
+$withdrawnGroups = boblift_series_group_rows($current);
+$check('a withdrawn configuration is no member', [195], array_column($withdrawnGroups['knuckle-16']['members'], 'id'));
+$check('withdrawn targets: only where the class still has a series', [4860 => 'knuckle-16'], boblift_series_withdrawn_targets($withdrawnRows, $withdrawnGroups));
+$check('series key: truck family is prefixed', 'truck-knuckle-16', boblift_series_group_key($withdrawnRows[2]));
+$check('series key: no capacity, no series', null, boblift_series_group_key(['model' => 'X', 'capacity' => 0, 'boom' => 'knuckle']));
+
 echo $failures === 0 ? "ok\n" : "{$failures} failed\n";
 exit($failures === 0 ? 0 : 1);

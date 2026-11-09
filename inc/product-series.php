@@ -155,6 +155,34 @@ function boblift_series_model_order(string $a, string $b): int
     return (str_starts_with($a, 'BLZ') <=> str_starts_with($b, 'BLZ')) ?: strnatcmp($a, $b);
 }
 
+/** The series a product row falls in: family, boom type and capacity ("truck-knuckle-16"), or null without a capacity or model. */
+function boblift_series_group_key(array $row): ?string
+{
+    $capacity = (float) ($row['capacity'] ?? 0);
+    if ($capacity <= 0 || trim((string) ($row['model'] ?? '')) === '') {
+        return null;
+    }
+    $family = (string) ($row['family'] ?? 'marine');
+    // One class is one series, whichever make the model names (BLZ129K4 beside the 6.3 t SQ models).
+    return ($family === 'marine' ? '' : $family . '-') . $row['boom'] . '-' . rtrim(rtrim(number_format($capacity, 2, '.', ''), '0'), '.');
+}
+
+/**
+ * Configurations no longer made ([English id => series key]): each withdrawn row whose series still has a current page.
+ * One without such a series keeps its own page.
+ */
+function boblift_series_withdrawn_targets(array $rows, array $groups): array
+{
+    $targets = [];
+    foreach ($rows as $row) {
+        $key = !empty($row['withdrawn']) ? boblift_series_group_key($row) : null;
+        if ($key !== null && isset($groups[$key])) {
+            $targets[(int) $row['id']] = $key;
+        }
+    }
+    return $targets;
+}
+
 /**
  * Groups product rows by boom type and capacity. Rows: id, slug, model, capacity, boom ("knuckle" or "telescopic"), legacy.
  * The series page is the row whose slug has no model suffix, else the first current model, else the first model.
@@ -163,13 +191,12 @@ function boblift_series_group_rows(array $rows): array
 {
     $groups = [];
     foreach ($rows as $row) {
-        $capacity = (float) $row['capacity'];
-        if ($capacity <= 0 || trim((string) $row['model']) === '') {
+        $key = boblift_series_group_key($row);
+        if ($key === null) {
             continue;
         }
+        $capacity = (float) $row['capacity'];
         $family = (string) ($row['family'] ?? 'marine');
-        // One class is one series, whichever make the model names (BLZ129K4 beside the 6.3 t SQ models).
-        $key = ($family === 'marine' ? '' : $family . '-') . $row['boom'] . '-' . rtrim(rtrim(number_format($capacity, 2, '.', ''), '0'), '.');
         $groups[$key] ??= ['key' => $key, 'family' => $family, 'boom' => $row['boom'], 'capacity' => $capacity, 'members' => []];
         $groups[$key]['members'][] = $row;
     }
@@ -285,6 +312,7 @@ function boblift_series_rows(): array
             // The pickup cranes are knuckle boom cranes (Z in the model name).
             'boom' => str_starts_with((string) $row['category'], 'telescopic') ? 'telescopic' : 'knuckle',
             'legacy' => boblift_product_is_legacy($id),
+            'withdrawn' => function_exists('boblift_product_is_withdrawn') && boblift_product_is_withdrawn($id),
         ];
     }
     return $rows;
@@ -314,16 +342,23 @@ function boblift_series_joined_translations(array $home, array $member, callable
 /** Every series with its members' translations. Loads posts, meta and terms in one go: this runs once per language after a save. */
 function boblift_series_build_map(): array
 {
-    $rows = boblift_series_rows();
+    $all = boblift_series_rows();
+    // A configuration no longer made is no member: it leaves its series, and its page goes to the series page.
+    $rows = array_values(array_filter($all, static fn(array $row): bool => empty($row['withdrawn'])));
     $groups = (array) apply_filters('boblift_series_groups', boblift_series_group_rows($rows), $rows);
+    $withdrawn_targets = boblift_series_withdrawn_targets($all, $groups);
     $index = [];
     $hidden = [];
     $homes = [];
+    $withdrawn = [];
     $translated = [];
     foreach ($groups as $group) {
         foreach ($group['members'] as $member) {
             $translated[(int) $member['id']] = array_map('intval', function_exists('pll_get_post_translations') ? pll_get_post_translations((int) $member['id']) : []);
         }
+    }
+    foreach (array_keys($withdrawn_targets) as $id) {
+        $translated[$id] = array_map('intval', function_exists('pll_get_post_translations') ? pll_get_post_translations($id) : []);
     }
     _prime_post_caches(array_merge([], ...array_map('array_values', array_values($translated))), false, false);
     $available = static fn(int $id): bool => get_post_status($id) === 'publish' && (string) get_post_field('post_password', $id) === '';
@@ -342,7 +377,16 @@ function boblift_series_build_map(): array
             }
         }
     }
-    return ['groups' => $groups, 'index' => $index, 'hidden' => array_values(array_unique($hidden)), 'homes' => array_filter($homes)];
+    foreach ($withdrawn_targets as $id => $key) {
+        // In each language where both the withdrawn page and its series page are up, the page leaves the lists and is
+        // sent to the series page; a saved pick of it (featured, related) stands for the series page.
+        $home_translations = $translated[(int) $groups[$key]['home']] ?? [];
+        foreach (boblift_series_joined_translations($home_translations, $translated[$id] ?? [], $available) as $lang => $translation) {
+            $hidden[] = $translation;
+            $homes[$translation] = $withdrawn[$translation] = (int) $home_translations[$lang];
+        }
+    }
+    return ['groups' => $groups, 'index' => $index, 'hidden' => array_values(array_unique($hidden)), 'homes' => array_filter($homes), 'withdrawn' => $withdrawn];
 }
 
 /**
@@ -458,6 +502,21 @@ function boblift_series_redirects_request(bool $singular_product, bool $preview,
 }
 
 /**
+ * Where a configuration's own page goes: its series page with ?model= for a member, the series page itself for a
+ * configuration no longer made, '' for a series page or any other product.
+ */
+function boblift_series_page_for_hidden(int $id): string
+{
+    $series = boblift_series_for_product($id);
+    $member = $series ? boblift_series_member($series, $id) : null;
+    if ($member !== null) {
+        return $member['is_home'] ? '' : (string) $member['url'];
+    }
+    $home = (int) (boblift_series_map()['withdrawn'][$id] ?? 0);
+    return $home > 0 ? (string) get_permalink($home) : '';
+}
+
+/**
  * Old configuration pages go to their series, in the same language. Runs before Polylang's and core's canonical checks.
  */
 function boblift_series_redirect(): void
@@ -469,12 +528,11 @@ function boblift_series_redirect(): void
     // series page of the language asked for, as inc/polylang-rewrites.php does for any other post.
     $id = (int) get_queried_object_id();
     $id = function_exists('boblift_post_in_request_language') ? boblift_post_in_request_language($id) : $id;
-    $series = boblift_series_for_product($id);
-    $member = $series ? boblift_series_member($series, $id) : null;
-    if ($member === null || $member['is_home']) {
+    $target = boblift_series_page_for_hidden($id);
+    if ($target === '') {
         return;
     }
-    wp_safe_redirect(boblift_series_redirect_url($member['url'], (string) ($_SERVER['QUERY_STRING'] ?? ''), (array) ($GLOBALS['wp']->public_query_vars ?? [])), 301, 'BOB-LIFT product series');
+    wp_safe_redirect(boblift_series_redirect_url($target, (string) ($_SERVER['QUERY_STRING'] ?? ''), (array) ($GLOBALS['wp']->public_query_vars ?? [])), 301, 'BOB-LIFT product series');
     exit;
 }
 add_action('template_redirect', 'boblift_series_redirect', 2);
@@ -651,17 +709,16 @@ function boblift_series_old_paths(): array
     $bases = boblift_series_site_hosts();
     $homes = [];
     foreach (boblift_series_map()['hidden'] as $id) {
-        $series = boblift_series_for_product((int) $id);
-        $member = $series ? boblift_series_member($series, (int) $id) : null;
+        $target = boblift_series_page_for_hidden((int) $id);
         $slug = (string) get_post_field('post_name', (int) $id);
-        if ($member === null || $slug === '') {
+        if ($target === '' || $slug === '') {
             continue;
         }
         $language = function_exists('pll_get_post_language') ? (string) pll_get_post_language((int) $id) : '';
         $homes[$language] ??= function_exists('pll_home_url') && $language !== '' ? (string) pll_home_url($language) : home_url('/');
         $key = boblift_series_url_key(trailingslashit($homes[$language]) . $slug . '.html', $bases, $bases[0] ?? '');
         if ($key !== null) {
-            $paths[$key] = (string) $member['url'];
+            $paths[$key] = $target;
         }
     }
     return $paths;

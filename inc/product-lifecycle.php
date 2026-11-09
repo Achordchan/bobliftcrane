@@ -7,6 +7,9 @@
  *
  * Marked with the product meta _boblift_lifecycle = "legacy" (empty or "current" is a current model). It is set on the
  * product edit screen or through REST (the boblift_lifecycle field of wp/v2/product); either way all translations follow.
+ *
+ * "withdrawn" is a configuration that is no longer made at all (the technical department dropped it): it leaves its series
+ * and every list, and its page, in every language, is sent to its series page (see boblift_series_build_map()).
  */
 
 function boblift_register_product_lifecycle_meta(): void
@@ -15,32 +18,38 @@ function boblift_register_product_lifecycle_meta(): void
         'type' => 'string',
         'single' => true,
         'default' => '',
-        'description' => 'current (or empty) for a current model, legacy for a previous model built to order only.',
-        'sanitize_callback' => static fn($value): string => in_array($value, ['current', 'legacy'], true) ? (string) $value : '',
+        'description' => 'current (or empty) for a current model, legacy for a previous model built to order only, withdrawn for a configuration no longer made.',
+        'sanitize_callback' => static fn($value): string => in_array($value, boblift_product_lifecycle_values(), true) ? (string) $value : '',
         'auth_callback' => static fn(): bool => current_user_can('edit_posts'),
     ]);
 }
 add_action('init', 'boblift_register_product_lifecycle_meta');
 
+/** The marks a product can carry; "current" is the same as no mark. */
+function boblift_product_lifecycle_values(): array
+{
+    return ['current', 'legacy', 'withdrawn'];
+}
+
 /**
- * REST: boblift_lifecycle on wp/v2/product reads "legacy" or "current" for any language version and, on update, marks
+ * REST: boblift_lifecycle on wp/v2/product reads "legacy", "withdrawn" or "current" for any language version and, on update, marks
  * the product and all its translations. A field rather than show_in_rest meta, which needs custom-fields support.
  */
 function boblift_register_product_lifecycle_rest_field(): void
 {
     register_rest_field('product', 'boblift_lifecycle', [
-        'get_callback' => static fn(array $post): string => boblift_product_is_legacy((int) $post['id']) ? 'legacy' : 'current',
+        'get_callback' => static fn(array $post): string => boblift_product_is_withdrawn((int) $post['id']) ? 'withdrawn' : (boblift_product_is_legacy((int) $post['id']) ? 'legacy' : 'current'),
         'update_callback' => static function ($value, WP_Post $post) {
             if (!current_user_can('edit_post', $post->ID)) {
                 return new WP_Error('rest_cannot_edit', 'Sorry, you are not allowed to edit this product.', ['status' => rest_authorization_required_code()]);
             }
-            boblift_save_product_lifecycle($post->ID, $value === 'legacy' ? 'legacy' : '');
+            boblift_save_product_lifecycle($post->ID, in_array($value, ['legacy', 'withdrawn'], true) ? (string) $value : '');
             return true;
         },
         'schema' => [
-            'description' => 'current for a current model, legacy for a previous model listed only in the model library (built to order).',
+            'description' => 'current for a current model, legacy for a previous model listed only in the model library (built to order), withdrawn for a configuration no longer made (its page goes to its series page).',
             'type' => 'string',
-            'enum' => ['current', 'legacy'],
+            'enum' => ['current', 'legacy', 'withdrawn'],
             'context' => ['view', 'edit'],
         ],
     ]);
@@ -53,16 +62,28 @@ add_action('rest_api_init', 'boblift_register_product_lifecycle_rest_field');
  */
 function boblift_legacy_product_ids(bool $reset = false): array
 {
-    static $ids = null;
+    return boblift_lifecycle_product_ids('legacy', $reset);
+}
+
+/** IDs of every configuration no longer made, in any language and status: the marked products and all their translations. */
+function boblift_withdrawn_product_ids(bool $reset = false): array
+{
+    return boblift_lifecycle_product_ids('withdrawn', $reset);
+}
+
+/** The products marked $value and all their translations, loaded once per request per mark; $reset forgets every mark. */
+function boblift_lifecycle_product_ids(string $value, bool $reset = false): array
+{
+    static $loaded = [];
     if ($reset) {
-        $ids = null;
+        $loaded = [];
         return [];
     }
-    if ($ids !== null) {
-        return $ids;
+    if (isset($loaded[$value])) {
+        return $loaded[$value];
     }
     global $wpdb;
-    $marked = array_map('intval', $wpdb->get_col($wpdb->prepare("SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value = %s", '_boblift_lifecycle', 'legacy')));
+    $marked = array_map('intval', $wpdb->get_col($wpdb->prepare("SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value = %s", '_boblift_lifecycle', $value)));
     $ids = $marked;
     if (function_exists('pll_get_post_translations')) {
         // One query for all their language terms, not one per product.
@@ -71,8 +92,7 @@ function boblift_legacy_product_ids(bool $reset = false): array
             $ids = array_merge($ids, array_map('intval', array_values(pll_get_post_translations($id))));
         }
     }
-    $ids = array_values(array_unique($ids));
-    return $ids;
+    return $loaded[$value] = array_values(array_unique($ids));
 }
 
 function boblift_reset_legacy_product_ids($meta_id, $object_id, string $meta_key): void
@@ -88,6 +108,11 @@ add_action('deleted_post_meta', 'boblift_reset_legacy_product_ids', 10, 3);
 function boblift_product_is_legacy(int $post_id): bool
 {
     return in_array($post_id, boblift_legacy_product_ids(), true);
+}
+
+function boblift_product_is_withdrawn(int $post_id): bool
+{
+    return in_array($post_id, boblift_withdrawn_product_ids(), true);
 }
 
 /**
@@ -145,7 +170,7 @@ function boblift_without_legacy(array $args): array
 /** The edit screen marks the product in every language at once (the mark is read for all translations anyway). */
 function boblift_save_product_lifecycle(int $post_id, string $value): void
 {
-    $value = in_array($value, ['current', 'legacy'], true) ? $value : '';
+    $value = in_array($value, boblift_product_lifecycle_values(), true) ? $value : '';
     $ids = function_exists('pll_get_post_translations') ? array_map('intval', array_values(pll_get_post_translations($post_id))) : [];
     foreach (array_unique(array_merge([$post_id], $ids)) as $id) {
         if ($value === '') {
