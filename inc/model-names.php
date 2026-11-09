@@ -15,6 +15,10 @@ function boblift_model_parts(string $model): array
     $t = static fn(string $text): string => boblift_localized_static_text($text);
     if (preg_match('/^SQ(?<capacity>\d+(?:\.\d+)?)(?<boom>Z|S)A(?<count>\d)(?<marine>T?)(?<winch>J?)(?<flip>F?)$/', str_replace('+1', '', $model), $m)) {
         $capacity = str_starts_with($m['capacity'], '0') && !str_contains($m['capacity'], '.') ? '0.' . substr($m['capacity'], 1) : $m['capacity'];
+        // "1" names the 1.6 t class (SQ1ZA3+1, SQ1ZA4, SQ1ZA3T+1; technical department, 2026-11-09).
+        if ($capacity === '1') {
+            $capacity = '1.6';
+        }
         $hydraulic = (int) $m['count'] - 1;
         $parts = [
             // SQ is the maker's prefix, on truck and marine versions alike.

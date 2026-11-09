@@ -8,8 +8,8 @@
  * of each configuration's specifications, photos and drawings: single-product.php renders once per configuration and the blocks
  * of all of them are printed together, so search engines read every configuration and the theme script only shows the chosen one.
  *
- * The winch differs by kind (boblift_series_winch_mode()): optional on marine knuckle cranes, standard on marine telescopic ones,
- * and not asked on truck cranes, where only the models on the site are listed.
+ * The winch differs by kind (boblift_series_winch_mode()): optional on knuckle boom cranes, standard on telescopic ones, for marine
+ * and truck mounted cranes alike (technical department, 2026-11-09), and not asked on pickup cranes.
  *
  * Grouping can be changed with the boblift_series_groups filter, the series name with boblift_series_code.
  */
@@ -19,7 +19,7 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * What a marine model name says (A = boom sections, BLZ uses K; T = marine; J = winch; +1 = manual extension).
+ * What a model name says (A = boom sections, BLZ uses K; T = marine; J = winch; +1 = manual extension).
  * Names without that pattern (SQZ330T) count as a choice of their own, under "named".
  */
 function boblift_series_parse_model(string $model): array
@@ -51,13 +51,14 @@ function boblift_series_code(string $model): string
 }
 
 /**
- * The same crane with the winch the other way round: J follows T and +1 stays last (SQ12ZA6T - SQ12ZA6TJ, SQ08ZA3T+1 - SQ08ZA3TJ+1,
- * SQZ330T - SQZ330TJ). A knuckle boom crane can have a winch or not; a telescopic one must have it (owner, 2026-11-05), so it has no
+ * The same crane with the winch the other way round: J follows the boom (and T on a marine crane) and +1 stays last (SQ12ZA6T -
+ * SQ12ZA6TJ, SQ08ZA3T+1 - SQ08ZA3TJ+1, SQZ330T - SQZ330TJ, SQ12ZA6 - SQ12ZA6J, SQ1ZA3+1 - SQ1ZA3J+1). A knuckle boom crane can have a
+ * winch or not; a telescopic one must have it (owner, 2026-11-05; truck cranes: technical department, 2026-11-09), so it has no
  * twin. '' when the name does not follow the pattern.
  */
 function boblift_series_winch_twin(string $model): string
 {
-    if (!preg_match('/^(.*T)(J?)(\+1)?$/', $model, $m)) {
+    if (!preg_match('/^((?:SQ\d+(?:\.\d+)?[ZS]A\d|BLZ\d+K\d|SQZ\d+)T?)(J?)(\+1)?$/', $model, $m)) {
         return '';
     }
     return $m[1] . ($m[2] === '' ? 'J' : '') . ($m[3] ?? '');
@@ -978,7 +979,8 @@ function boblift_series_search_names(array $members, string $winch, string $code
             $targets[$twin] ??= boblift_series_model_url($home_url, $twin);
         }
         if ($winch === 'standard') {
-            $targets[(string) preg_replace('/T(\+1)?$/', 'TJ$1', $model)] ??= (string) $member['url'];
+            $with_j = (string) preg_replace('/^(.*\dT?)(\+1)?$/', '$1J$2', $model);
+            $targets[$with_j] ??= (string) $member['url'];
         }
     }
     foreach ($members as $member) {
@@ -1621,7 +1623,8 @@ function boblift_series_format_kg(int $kilograms): string
  */
 function boblift_series_winch_mode(string $family, string $boom): string
 {
-    if ($family !== 'marine') {
+    // Truck cranes too since 2026-11-09 (technical department): a knuckle boom one can have a winch (J), a telescopic one has it as standard.
+    if (!in_array($family, ['marine', 'truck'], true)) {
         return 'none';
     }
     return $boom === 'telescopic' ? 'standard' : 'optional';
@@ -1637,8 +1640,15 @@ function boblift_series_winch_values(array $values, string $winch): array
 }
 
 /** The sentence about the winch for this kind of series, under the comparison and in the structured data; none for truck cranes. */
-function boblift_series_winch_sentence(string $winch): string
+function boblift_series_winch_sentence(string $winch, string $family = 'marine'): string
 {
+    if ($family === 'truck') {
+        return match ($winch) {
+            'standard' => boblift_series_text('Telescopic boom truck mounted cranes come with a winch as standard.'),
+            'optional' => boblift_series_text('Knuckle boom truck mounted cranes can be built with or without a winch.'),
+            default => '',
+        };
+    }
     return match ($winch) {
         'standard' => boblift_series_text('Telescopic boom marine cranes come with a winch as standard.'),
         'optional' => boblift_series_text('Knuckle boom marine cranes can be built with or without a winch.'),
@@ -1647,13 +1657,13 @@ function boblift_series_winch_sentence(string $winch): string
 }
 
 /**
- * A marine telescopic model is named as on its drawing, without J, though the winch is standard, so a name with J means the same
+ * A telescopic model is named as on its drawing, without J, though the winch is standard, so a name with J means the same
  * crane. Other names stay as they are.
  */
 function boblift_series_normalize_requested(string $requested, string $winch): string
 {
     $requested = str_replace(' ', '+', trim($requested));
-    return $winch === 'standard' ? (string) preg_replace('/TJ(\+1)?$/i', 'T$1', $requested) : $requested;
+    return $winch === 'standard' ? (string) preg_replace('/(\d)(T?)J(\+1)?$/i', '$1$2$3', $requested) : $requested;
 }
 
 /** The series' members with their figures. */
