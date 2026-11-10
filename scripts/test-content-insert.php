@@ -26,6 +26,19 @@ function wp_kses_post(string $html): string
 {
     return preg_replace('~&(?!amp;)~', '&amp;', $html);
 }
+function esc_attr(string $text): string
+{
+    return htmlspecialchars($text, ENT_QUOTES);
+}
+function home_url(string $path = ''): string
+{
+    return 'https://example.com' . $path;
+}
+// Stands in for the media library: only files under /uploads/new/ are attachments.
+function attachment_url_to_postid(string $url): int
+{
+    return str_starts_with($url, 'https://example.com/wp-content/uploads/new/') ? 7 : 0;
+}
 require dirname(__DIR__) . '/inc/rest-content-insert.php';
 
 $cases = [
@@ -66,5 +79,29 @@ if (boblift_content_insert_apply($once, $value) !== $once || !str_contains($once
     $failed++;
     echo "FAIL filtered repeat\n  got: " . json_encode($once) . "\n";
 }
-echo $failed ? "{$failed} failed\n" : (count($cases) + 1) . " passed\n";
+// Image swaps: [content, item, wanted content or error code].
+$new = '/wp-content/uploads/new/b.png';
+$images = [
+    'swap src and alt' => ['<p>x</p><figure><img src="/a.png" alt="Old" width="2"></figure>', ['image' => '/a.png', 'src' => $new, 'alt' => "Kid's 11 m"], '<p>x</p><figure><img src="' . $new . '" alt="Kid&#039;s 11 m" width="2"></figure>'],
+    'swap src only' => ['<img alt="Old" src=\'/a.png\'>', ['image' => '/a.png', 'src' => $new], '<img alt="Old" src="' . $new . '">'],
+    'add a missing alt' => ['<img src="/a.png">', ['image' => '/a.png', 'src' => $new, 'alt' => 'A'], '<img alt="A" src="' . $new . '">'],
+    'data-alt untouched' => ['<img data-alt="k" src="/a.png" alt="o">', ['image' => '/a.png', 'src' => $new, 'alt' => 'A'], '<img data-alt="k" src="' . $new . '" alt="A">'],
+    'already swapped' => ['<img src="' . $new . '" alt="A">', ['image' => '/a.png', 'src' => $new, 'alt' => 'A'], '<img src="' . $new . '" alt="A">'],
+    'only the matching image' => ['<img src="/c.png"><img src="/a.png">', ['image' => '/a.png', 'src' => $new], '<img src="/c.png"><img src="' . $new . '">'],
+    'src in text only' => ['<p>/a.png</p>', ['image' => '/a.png', 'src' => $new], 'boblift_insert_image'],
+    'image twice' => ['<img src="/a.png"><img src="/a.png">', ['image' => '/a.png', 'src' => $new], 'boblift_insert_image'],
+    'not in the media library' => ['<img src="/a.png">', ['image' => '/a.png', 'src' => '/elsewhere/b.png'], 'boblift_insert_image'],
+    'quote in src' => ['<img src="/a.png">', ['image' => '/a.png', 'src' => '/wp-content/uploads/new/b".png'], 'boblift_insert_image'],
+    'tag in alt' => ['<img src="/a.png">', ['image' => '/a.png', 'src' => $new, 'alt' => '<b>'], 'boblift_insert_image'],
+    'two swaps in a list' => ['<img src="/a.png"><img src="/c.png">', [['image' => '/a.png', 'src' => $new], ['image' => '/c.png', 'src' => '/wp-content/uploads/new/d.png']], '<img src="' . $new . '"><img src="/wp-content/uploads/new/d.png">'],
+];
+foreach ($images as $name => [$content, $item, $want]) {
+    $got = boblift_content_insert_apply($content, $item);
+    $got = is_wp_error($got) ? $got->code : $got;
+    if ($got !== $want) {
+        $failed++;
+        echo "FAIL image: {$name}\n  want: " . json_encode($want) . "\n  got:  " . json_encode($got) . "\n";
+    }
+}
+echo $failed ? "{$failed} failed\n" : (count($cases) + count($images) + 1) . " passed\n";
 exit($failed ? 1 : 0);

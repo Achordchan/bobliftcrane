@@ -20,6 +20,12 @@ if (!defined('ABSPATH')) {
  * the item is already done and is skipped, so this too can be sent again safely. A "replace" item goes on its own: a
  * request that holds one and any other item is refused.
  *
+ * An item can also swap an image for a newer copy in the media library: {"image": "/wp-content/uploads/2026/09/a.png",
+ * "src": "/wp-content/uploads/2026/11/a-v2.png", "alt": "New alt text"}. "image" is the current src of exactly one
+ * <img> in the content; its src becomes "src" (a file in this site's media library) and, when "alt" is sent, its alt
+ * becomes that plain text. Other attributes stay as they are. When no <img> has the old src and one has the new src, the
+ * item is already done and is skipped.
+ *
  * rest_pre_insert_{type} takes a per-post lock that is held until the save is done, every REST update of the item takes
  * the same lock before it loads the post, and any other save takes it just before its row is written, so nothing lands
  * in between; the request's own core update writes the body as stored at that moment. It then checks the insertion
@@ -47,7 +53,7 @@ function boblift_register_rest_content_insert_field(): void
             return true;
         },
         'schema' => [
-            'description' => 'Write only: {"after": snippet, "html": html} adds html after the element holding the snippet; {"replace": text, "with": text} corrects a plain-text phrase. One item or a list.',
+            'description' => 'Write only: {"after": snippet, "html": html} adds html after the element holding the snippet; {"replace": text, "with": text} corrects a plain-text phrase; {"image": old src, "src": new src, "alt": text} swaps an image for another media library file. One item or a list.',
             'type' => ['object', 'array'],
             'context' => ['edit'],
         ],
@@ -196,7 +202,7 @@ function boblift_content_insert_stored(int $post_id): string
 /** Applies every insertion in a request value to $content, filtering the HTML the way a save by this user would. */
 function boblift_content_insert_apply(string $content, $value): string|WP_Error
 {
-    $inserts = is_array($value) && (array_key_exists('after', $value) || array_key_exists('replace', $value)) ? [$value] : (array) $value;
+    $inserts = is_array($value) && (array_key_exists('after', $value) || array_key_exists('replace', $value) || array_key_exists('image', $value)) ? [$value] : (array) $value;
     // A replacement can remove what another item of the request checks for (its own "with", or an insertion's HTML),
     // so a retry could not tell that item was done: a "replace" item goes alone.
     if (count($inserts) > 1 && array_filter($inserts, static fn($insert): bool => is_array($insert) && array_key_exists('replace', $insert)) !== []) {
@@ -205,6 +211,14 @@ function boblift_content_insert_apply(string $content, $value): string|WP_Error
     foreach ($inserts as $insert) {
         if (is_array($insert) && array_key_exists('replace', $insert)) {
             $content = boblift_content_insert_replace($content, (string) ($insert['replace'] ?? ''), (string) ($insert['with'] ?? ''));
+            if (is_wp_error($content)) {
+                return $content;
+            }
+            continue;
+        }
+        if (is_array($insert) && array_key_exists('image', $insert)) {
+            $alt = array_key_exists('alt', $insert) ? (string) $insert['alt'] : null;
+            $content = boblift_content_insert_image($content, (string) ($insert['image'] ?? ''), (string) ($insert['src'] ?? ''), $alt);
             if (is_wp_error($content)) {
                 return $content;
             }
@@ -258,6 +272,54 @@ function boblift_content_insert_replace(string $content, string $from, string $t
         return new WP_Error('boblift_insert_replace', 'A "replace" item needs plain-text "replace" and a different, non-empty "with" (no "<", ">" or quotes).', ['status' => 400]);
     }
     return boblift_product_specs_replace_one($content, $from, $to, 'content');
+}
+
+/**
+ * Points the one <img> whose src is $old at $new, a file in this site's media library, and sets its alt to $alt when
+ * one is given. Done already (content returned unchanged) when no <img> has $old and one has $new.
+ */
+function boblift_content_insert_image(string $content, string $old, string $new, ?string $alt): string|WP_Error
+{
+    $bad_url = static fn(string $url): bool => $url === '' || preg_match('~[\s<>"\'\x00]~', $url) === 1;
+    if ($bad_url($old) || $bad_url($new) || $old === $new) {
+        return new WP_Error('boblift_insert_image', 'An "image" item needs the current src in "image" and a different new src in "src" (no spaces, "<", ">" or quotes).', ['status' => 400]);
+    }
+    if ($alt !== null && ($alt === '' || preg_match('/[<>"\x00]/', $alt))) {
+        return new WP_Error('boblift_insert_image', 'An "image" item\'s "alt" is plain, non-empty text (no "<", ">" or double quotes).', ['status' => 400]);
+    }
+    $absolute = str_starts_with($new, '/') ? home_url($new) : $new;
+    if ((int) attachment_url_to_postid($absolute) <= 0) {
+        return new WP_Error('boblift_insert_image', sprintf('"%s" is not a file in this site\'s media library.', $new), ['status' => 400]);
+    }
+    $src_of = static function (string $tag): ?string {
+        return preg_match('~\ssrc\s*=\s*("|\')(.*?)\1~is', $tag, $m) ? html_entity_decode($m[2], ENT_QUOTES | ENT_HTML5) : null;
+    };
+    preg_match_all('~<img\b(?:[^>"\']|"[^"]*"|\'[^\']*\')*>~i', $content, $tags, PREG_OFFSET_CAPTURE);
+    $found = [];
+    $done = false;
+    foreach ($tags[0] as [$tag, $offset]) {
+        $src = $src_of($tag);
+        if ($src === $old) {
+            $found[] = [$tag, $offset];
+        } elseif ($src === $new) {
+            $done = true;
+        }
+    }
+    if ($found === []) {
+        return $done ? $content : new WP_Error('boblift_insert_image', sprintf('No <img> has the src "%s".', $old), ['status' => 400]);
+    }
+    if (count($found) > 1) {
+        return new WP_Error('boblift_insert_image', sprintf('%d <img> tags have the src "%s"; it must be exactly one.', count($found), $old), ['status' => 400]);
+    }
+    [$tag, $offset] = $found[0];
+    $swapped = preg_replace_callback('~(\ssrc\s*=\s*)("|\')(.*?)\2~is', static fn(array $m): string => $m[1] . '"' . esc_attr($new) . '"', $tag, 1);
+    if ($alt !== null) {
+        $alt_attr = 'alt="' . esc_attr($alt) . '"';
+        $swapped = preg_match('~\salt\s*=\s*("|\').*?\1~is', $swapped)
+            ? preg_replace_callback('~(\s)alt\s*=\s*("|\').*?\2~is', static fn(array $m): string => $m[1] . $alt_attr, $swapped, 1)
+            : preg_replace('~^<img\b~i', '<img ' . $alt_attr, $swapped, 1);
+    }
+    return substr($content, 0, $offset) . $swapped . substr($content, $offset + strlen($tag));
 }
 
 function boblift_content_insert_after(string $content, string $after, string $html): string|WP_Error
