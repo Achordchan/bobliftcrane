@@ -21,6 +21,7 @@ function boblift_rest_json_string_fields(): array
         'boblift_product_setup',
         'boblift_term_translation',
         'boblift_content_insert',
+        'boblift_schema_replace',
         'boblift_translation',
         'boblift_feedback_record_edit',
         'boblift_filter_bins',
