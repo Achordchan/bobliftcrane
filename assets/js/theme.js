@@ -5480,9 +5480,14 @@
     });
   };
   // Videos pause. The site's embedded players take no script commands, so one is reloaded without autoplay, which stops it.
-  const stopFilms = (scope) => {
-    scope.querySelectorAll('video').forEach((video) => video.pause());
+  // keep: a selector whose films go on playing (a derived version keeps the range film, not the body text's videos).
+  const stopFilms = (scope, keep = '') => {
+    const stops = (element) => !keep || !element.closest(keep);
+    scope.querySelectorAll('video').forEach((video) => {
+      if (stops(video)) video.pause();
+    });
     scope.querySelectorAll('iframe[src]').forEach((frame) => {
+      if (!stops(frame)) return;
       const src = frame.getAttribute('src') || '';
       if (!/^https?:/.test(src)) return;
       frame.setAttribute('src', src.replace(/([?&])autoplay=1(&|$)/, (match, before, after) => (after ? before : '')));
@@ -5494,8 +5499,8 @@
     document.querySelectorAll('[data-cfg-block="overview"]').forEach((block) => {
       const holder = block.querySelector(`[data-cfg-variant="${CSS.escape(shownModel)}"]`);
       const filmOnly = Boolean(variant.derived) && Boolean(holder && holder.querySelector('[data-inline-videos]'));
-      // A film playing in the body text stops with it: a hidden block must not keep sounding.
-      if (variant.derived && !filmOnly) stopFilms(block);
+      // A film playing in the body text stops with it: hidden text must not keep sounding. The kept film plays on.
+      if (variant.derived) stopFilms(block, filmOnly ? '[data-inline-videos]' : '');
       block.hidden = Boolean(variant.derived) && !filmOnly;
       block.toggleAttribute('data-cfg-film-only', filmOnly);
     });
