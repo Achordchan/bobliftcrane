@@ -32,6 +32,16 @@ function boblift_register_gallery_rest_meta(): void
         'sanitize_callback' => static fn($value): string => boblift_rows_to_json(boblift_case_rest_rows($value) ?? [], ['image', 'label']),
         'auth_callback' => $auth,
     ]);
+    // A series configuration that has no product of its own (a winch version) gets its own short introduction here, keyed
+    // by its model, on the product it is derived from: {"SQ08ZA3J": "<p>…</p>"}. Each translation holds its own.
+    register_post_meta('product', '_boblift_cfg_intros', [
+        'type' => 'string',
+        'single' => true,
+        'default' => '',
+        'show_in_rest' => true,
+        'sanitize_callback' => static fn($value): string => boblift_cfg_intros_json($value),
+        'auth_callback' => $auth,
+    ]);
     register_post_meta('page', '_boblift_visit_items', [
         'type' => 'string',
         'single' => true,
@@ -62,6 +72,27 @@ function boblift_register_gallery_rest_meta(): void
     add_post_type_support('page', 'custom-fields');
 }
 add_action('init', 'boblift_register_gallery_rest_meta', 20);
+
+/** The configuration introductions as stored: model => sanitised HTML, models as the series writes them; empty ones dropped. */
+function boblift_cfg_intros(mixed $value): array
+{
+    $rows = is_array($value) ? $value : json_decode((string) $value, true);
+    $intros = [];
+    foreach (is_array($rows) ? $rows : [] as $model => $html) {
+        $model = trim((string) $model);
+        $html = trim(wp_kses_post((string) $html));
+        if ($html !== '' && preg_match('/^[A-Za-z0-9.+-]{2,32}$/', $model)) {
+            $intros[$model] = $html;
+        }
+    }
+    return $intros;
+}
+
+function boblift_cfg_intros_json(mixed $value): string
+{
+    $intros = boblift_cfg_intros($value);
+    return $intros ? (wp_json_encode($intros, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '') : '';
+}
 
 // Core REST returns registered meta whatever the post password, so a protected product or page keeps its photo lists
 // (and other meta) out of responses for anyone who cannot edit it, as protected cases do (inc/case-rest.php).

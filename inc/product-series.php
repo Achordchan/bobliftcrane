@@ -1538,11 +1538,15 @@ function boblift_series_block_close(string $name, string $class = ''): void
     }
     $state['blocks'][$state['series']['home_model']][$name] = $html;
     // The body text of a configuration speaks for that product: its weight, its winch. A derived version shows none of it.
-    // Its film stays, though: the film shows the range and its caption names the model filmed. Only the text goes.
+    // It shows its own introduction instead when it has one; else its film stays (the film shows the range and its caption
+    // names the model filmed); else nothing.
     $derived_overview = $name === 'overview' && $state['active'] !== $state['active_source'];
-    $film_only = $derived_overview && str_contains((string) ($state['blocks'][$state['active_source']][$name] ?? ''), 'data-inline-videos');
-    $hide_block = $derived_overview && !$film_only;
-    echo '<div data-cfg-block="' . esc_attr($name) . '"' . ($class !== '' ? ' class="' . esc_attr($class) . '"' : '') . ($hide_block ? ' hidden' : '') . ($film_only ? ' data-cfg-film-only' : '') . '>';
+    $source_html = (string) ($state['blocks'][$state['active_source']][$name] ?? '');
+    $intro_attr = 'data-cfg-derived-body="' . esc_attr((string) $state['active']) . '"';
+    $derived_text = $derived_overview && str_contains($source_html, $intro_attr);
+    $film_only = $derived_overview && !$derived_text && str_contains($source_html, 'data-inline-videos');
+    $hide_block = $derived_overview && !$derived_text && !$film_only;
+    echo '<div data-cfg-block="' . esc_attr($name) . '"' . ($class !== '' ? ' class="' . esc_attr($class) . '"' : '') . ($hide_block ? ' hidden' : '') . ($film_only ? ' data-cfg-film-only' : '') . ($derived_text ? ' data-cfg-derived-text' : '') . '>';
     foreach ($state['series']['members'] as $member) {
         $block = (string) ($state['blocks'][$member['model']][$name] ?? '');
         $active = $member['model'] === $state['active_source'];
@@ -1550,6 +1554,9 @@ function boblift_series_block_close(string $name, string $class = ''): void
             // A winch version without a product of its own: the page is printed with its own model and an open self weight,
             // as the theme script would set them, so the source already says the right thing.
             $block = boblift_series_derived_block($block, (string) $state['active_source'], (string) $state['active'], boblift_series_derived_winch_text($state), boblift_series_derived_weight_note($state));
+            if ($derived_text) {
+                $block = str_replace($intro_attr . ' hidden', $intro_attr, $block);
+            }
         }
         echo '<div data-cfg-variant="' . esc_attr($member['model']) . '"' . ($active ? '' : ' hidden') . '>' . ($active ? $block : boblift_series_hidden_block($block)) . '</div>';
     }

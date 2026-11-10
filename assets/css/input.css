@@ -2015,6 +2015,14 @@ img { max-width: 100%; }
 [data-cfg-block="overview"][data-cfg-film-only] [data-inline-videos] {
   margin-top: 0;
 }
+/* A derived configuration with its own introduction: that text in place of the source's body, under no source title. */
+[data-cfg-block="overview"][data-cfg-derived-text] [data-cfg-own-body],
+[data-cfg-block="overview"][data-cfg-derived-text] [data-cfg-variant] > article > .grid > :first-child > h2 {
+  display: none;
+}
+[data-cfg-block="overview"][data-cfg-derived-text] [data-cfg-variant] > article > .grid > :first-child > .boblift-kicker + [data-inline-videos] {
+  margin-top: 1rem;
+}
 @media (prefers-reduced-motion: reduce) {
   .boblift-cfg-flash {
     animation: none;
