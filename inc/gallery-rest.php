@@ -32,6 +32,16 @@ function boblift_register_gallery_rest_meta(): void
         'sanitize_callback' => static fn($value): string => boblift_rows_to_json(boblift_case_rest_rows($value) ?? [], ['image', 'label']),
         'auth_callback' => $auth,
     ]);
+    // A series configuration that has no product of its own (a winch version) gets its own short introduction here, keyed
+    // by its model, on the product it is derived from: {"SQ08ZA3J": "<p>…</p>"}. Each translation holds its own.
+    register_post_meta('product', '_boblift_cfg_intros', [
+        'type' => 'string',
+        'single' => true,
+        'default' => '',
+        'show_in_rest' => true,
+        'sanitize_callback' => static fn($value): string => boblift_cfg_intros_json($value),
+        'auth_callback' => $auth,
+    ]);
     register_post_meta('page', '_boblift_visit_items', [
         'type' => 'string',
         'single' => true,
@@ -62,6 +72,30 @@ function boblift_register_gallery_rest_meta(): void
     add_post_type_support('page', 'custom-fields');
 }
 add_action('init', 'boblift_register_gallery_rest_meta', 20);
+
+/** The configuration introductions as stored: model => sanitised HTML, models as the series writes them; empty ones dropped. */
+function boblift_cfg_intros(mixed $value): array
+{
+    $rows = is_array($value) ? $value : json_decode((string) $value, true);
+    $intros = [];
+    foreach (is_array($rows) ? $rows : [] as $model => $html) {
+        if (!is_string($html)) {
+            continue;
+        }
+        $model = trim((string) $model);
+        $html = trim(wp_kses_post((string) $html));
+        if ($html !== '' && preg_match('/^[A-Za-z0-9.+-]{2,32}$/', $model)) {
+            $intros[$model] = $html;
+        }
+    }
+    return $intros;
+}
+
+function boblift_cfg_intros_json(mixed $value): string
+{
+    $intros = boblift_cfg_intros($value);
+    return $intros ? (wp_json_encode($intros, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '') : '';
+}
 
 // Core REST returns registered meta whatever the post password, so a protected product or page keeps its photo lists
 // (and other meta) out of responses for anyone who cannot edit it, as protected cases do (inc/case-rest.php).
@@ -104,6 +138,39 @@ function boblift_validate_gallery_rest_meta(stdClass|WP_Error $prepared, WP_REST
 }
 add_filter('rest_pre_insert_product', static fn($prepared, $request) => boblift_validate_gallery_rest_meta($prepared, $request, '_gallery', ['image', 'label'], ''), 10, 2);
 add_filter('rest_pre_insert_page', static fn($prepared, $request) => boblift_validate_gallery_rest_meta($prepared, $request, '_boblift_visit_items', ['id', 'country', 'title'], 'id'), 10, 2);
+
+/**
+ * What is wrong with a _boblift_cfg_intros value sent over REST, or '' when it is fine. '' (or null) clears the field; anything
+ * else must be a JSON object of model => HTML string, so a malformed value is refused instead of saved as an empty field.
+ */
+function boblift_cfg_intros_rest_error(array $meta): string
+{
+    if (!array_key_exists('_boblift_cfg_intros', $meta) || $meta['_boblift_cfg_intros'] === '' || $meta['_boblift_cfg_intros'] === null) {
+        return '';
+    }
+    $value = $meta['_boblift_cfg_intros'];
+    $rows = is_array($value) ? $value : json_decode((string) $value, true);
+    if (!is_array($rows) || !$rows || array_is_list($rows)) {
+        return 'expected a JSON object of model => HTML, e.g. {"SQ08ZA3J": "<p>…</p>"}; send "" to clear it.';
+    }
+    foreach ($rows as $model => $html) {
+        if (!is_string($html) || trim($html) === '') {
+            return $model . ': each introduction must be non-empty HTML text.';
+        }
+        if (!preg_match('/^[A-Za-z0-9.+-]{2,32}$/', (string) $model)) {
+            return $model . ' is not a model name.';
+        }
+    }
+    return '';
+}
+add_filter('rest_pre_insert_product', static function ($prepared, $request) {
+    $meta = $request->get_param('meta');
+    if (is_wp_error($prepared) || !is_array($meta)) {
+        return $prepared;
+    }
+    $message = boblift_cfg_intros_rest_error($meta);
+    return $message === '' ? $prepared : new WP_Error('rest_invalid_param', '_boblift_cfg_intros: ' . $message, ['status' => 400, 'meta_key' => '_boblift_cfg_intros']);
+}, 10, 2);
 
 /** Visit photos added over REST to this page (or to its English version), as Global Customer Visits items. */
 /** The visits page's "over N countries" floor (0 = none), falling back to the English page. */

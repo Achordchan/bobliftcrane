@@ -818,7 +818,7 @@ if ($family_quote_copy) {
                         <?php endif; ?>
                         </div>
                         <?php if ($detail_has_right) : ?>
-                            <div class="min-w-0 lg:pt-1">
+                            <div class="min-w-0 lg:pt-1"<?php echo $series_page ? ' data-cfg-own-body' : ''; ?>>
                                 <?php if ($product_guide['intro'] !== '') : ?>
                                     <p class="text-base font-normal leading-7 text-slate-700 md:text-lg md:leading-8 [&_strong]:font-black [&_strong]:text-[#071f42]"><?php echo wp_kses_post($product_guide['intro']); ?></p>
                                 <?php endif; ?>
@@ -878,6 +878,12 @@ if ($family_quote_copy) {
                                     </div>
                                 <?php endif; ?>
                             </div>
+                        <?php endif; ?>
+                        <?php if ($series_page) : ?>
+                            <?php // A winch version without a product of its own: its own introduction, shown in place of the body above when chosen. ?>
+                            <?php foreach (boblift_cfg_intros(get_post_meta(get_the_ID(), '_boblift_cfg_intros', true)) as $cfg_intro_model => $cfg_intro_html) : ?>
+                                <div class="min-w-0 lg:pt-1 boblift-story-prose boblift-product-body" data-cfg-derived-body="<?php echo esc_attr($cfg_intro_model); ?>" hidden><?php echo $cfg_intro_html; // Sanitised by boblift_cfg_intros(). ?></div>
+                            <?php endforeach; ?>
                         <?php endif; ?>
                     </div>
                 </article>

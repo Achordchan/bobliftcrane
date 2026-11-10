@@ -5480,23 +5480,40 @@
     });
   };
   // Videos pause. The site's embedded players take no script commands, so one is reloaded without autoplay, which stops it.
-  const stopFilms = (scope) => {
-    scope.querySelectorAll('video').forEach((video) => video.pause());
+  // keep: a selector whose films go on playing (a derived version keeps the range film, not the body text's videos).
+  const stopFilms = (scope, keep = '') => {
+    const stops = (element) => !keep || !element.closest(keep);
+    scope.querySelectorAll('video').forEach((video) => {
+      if (stops(video)) video.pause();
+    });
     scope.querySelectorAll('iframe[src]').forEach((frame) => {
+      if (!stops(frame)) return;
       const src = frame.getAttribute('src') || '';
       if (!/^https?:/.test(src)) return;
       frame.setAttribute('src', src.replace(/([?&])autoplay=1(&|$)/, (match, before, after) => (after ? before : '')));
     });
   };
   const applyDerived = (variant, shownModel) => {
-    // The body text speaks for the product it came from (its weight, its winch), so a derived version shows none of it.
+    // The body text speaks for the product it came from (its weight, its winch), so a derived version shows none of it:
+    // it shows its own introduction when it has one, else only the film (which shows the range, its caption naming the
+    // model filmed), else nothing.
+    let overviewShown = !variant.derived;
     document.querySelectorAll('[data-cfg-block="overview"]').forEach((block) => {
-      // A film playing in the body text stops with it: a hidden block must not keep sounding.
-      if (variant.derived) stopFilms(block);
-      block.hidden = Boolean(variant.derived);
+      const holder = block.querySelector(`[data-cfg-variant="${CSS.escape(shownModel)}"]`);
+      const intro = variant.derived && holder ? holder.querySelector(`[data-cfg-derived-body="${CSS.escape(variant.model)}"]`) : null;
+      const film = Boolean(variant.derived) && Boolean(holder && holder.querySelector('[data-inline-videos]'));
+      block.querySelectorAll('[data-cfg-derived-body]').forEach((body) => {
+        body.hidden = body !== intro;
+      });
+      // A film playing in the body text stops with it: hidden text must not keep sounding. The kept film plays on.
+      if (variant.derived) stopFilms(block, intro || film ? '[data-inline-videos]' : '');
+      block.hidden = Boolean(variant.derived) && !intro && !film;
+      block.toggleAttribute('data-cfg-derived-text', Boolean(intro));
+      block.toggleAttribute('data-cfg-film-only', film && !intro);
+      if (!block.hidden) overviewShown = true;
     });
     document.querySelectorAll('[data-product-section-link][href="#overview"]').forEach((link) => {
-      link.style.display = variant.derived ? 'none' : '';
+      link.style.display = overviewShown ? '' : 'none';
     });
     document.querySelectorAll('[data-cfg-decode-winch]').forEach((part) => {
       part.style.display = variant.values.winch === '1' ? '' : 'none';
