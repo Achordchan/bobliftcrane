@@ -1538,8 +1538,11 @@ function boblift_series_block_close(string $name, string $class = ''): void
     }
     $state['blocks'][$state['series']['home_model']][$name] = $html;
     // The body text of a configuration speaks for that product: its weight, its winch. A derived version shows none of it.
-    $hide_block = $name === 'overview' && $state['active'] !== $state['active_source'];
-    echo '<div data-cfg-block="' . esc_attr($name) . '"' . ($class !== '' ? ' class="' . esc_attr($class) . '"' : '') . ($hide_block ? ' hidden' : '') . '>';
+    // Its film stays, though: the film shows the range and its caption names the model filmed. Only the text goes.
+    $derived_overview = $name === 'overview' && $state['active'] !== $state['active_source'];
+    $film_only = $derived_overview && str_contains((string) ($state['blocks'][$state['active_source']][$name] ?? ''), 'data-inline-videos');
+    $hide_block = $derived_overview && !$film_only;
+    echo '<div data-cfg-block="' . esc_attr($name) . '"' . ($class !== '' ? ' class="' . esc_attr($class) . '"' : '') . ($hide_block ? ' hidden' : '') . ($film_only ? ' data-cfg-film-only' : '') . '>';
     foreach ($state['series']['members'] as $member) {
         $block = (string) ($state['blocks'][$member['model']][$name] ?? '');
         $active = $member['model'] === $state['active_source'];

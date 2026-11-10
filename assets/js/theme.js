@@ -5490,10 +5490,14 @@
   };
   const applyDerived = (variant, shownModel) => {
     // The body text speaks for the product it came from (its weight, its winch), so a derived version shows none of it.
+    // Its film stays: the film shows the range, and its caption names the model filmed. Only the text goes.
     document.querySelectorAll('[data-cfg-block="overview"]').forEach((block) => {
+      const holder = block.querySelector(`[data-cfg-variant="${CSS.escape(shownModel)}"]`);
+      const filmOnly = Boolean(variant.derived) && Boolean(holder && holder.querySelector('[data-inline-videos]'));
       // A film playing in the body text stops with it: a hidden block must not keep sounding.
-      if (variant.derived) stopFilms(block);
-      block.hidden = Boolean(variant.derived);
+      if (variant.derived && !filmOnly) stopFilms(block);
+      block.hidden = Boolean(variant.derived) && !filmOnly;
+      block.toggleAttribute('data-cfg-film-only', filmOnly);
     });
     document.querySelectorAll('[data-product-section-link][href="#overview"]').forEach((link) => {
       link.style.display = variant.derived ? 'none' : '';

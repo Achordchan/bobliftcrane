@@ -2000,6 +2000,21 @@ img { max-width: 100%; }
 .boblift-cfg-flash {
   animation: boblift-cfg-flash 900ms ease-out;
 }
+/* A derived configuration (a winch version) keeps the range film but not the body text, which speaks for another model. */
+[data-cfg-block="overview"][data-cfg-film-only] [data-cfg-variant] > article > .grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+[data-cfg-block="overview"][data-cfg-film-only] [data-cfg-variant] > article > .grid > :not(:first-child),
+[data-cfg-block="overview"][data-cfg-film-only] [data-cfg-variant] > article > .grid > :first-child > :not([data-inline-videos]) {
+  display: none;
+}
+[data-cfg-block="overview"][data-cfg-film-only] [data-cfg-variant] > article > .grid > :first-child {
+  position: static;
+  max-width: 56rem;
+}
+[data-cfg-block="overview"][data-cfg-film-only] [data-inline-videos] {
+  margin-top: 0;
+}
 @media (prefers-reduced-motion: reduce) {
   .boblift-cfg-flash {
     animation: none;
