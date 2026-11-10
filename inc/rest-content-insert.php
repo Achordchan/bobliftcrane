@@ -295,8 +295,13 @@ function boblift_content_insert_image(string $content, string $old, string $new,
     if ($alt !== null && ($alt === '' || preg_match('/[<>"\x00]/', $alt))) {
         return new WP_Error('boblift_insert_image', 'An "image" item\'s "alt" is plain, non-empty text (no "<", ">" or double quotes).', ['status' => 400]);
     }
+    // Only a root-relative or absolute http(s) URL renders the same on every page; an uploads-relative path such as
+    // "2026/11/chart.png" would resolve against the article's own URL.
+    if (preg_match('~^(/(?!/)|https?://)~i', $new) !== 1) {
+        return new WP_Error('boblift_insert_image', 'The new "src" must be a root-relative (/wp-content/…) or absolute http(s) URL.', ['status' => 400]);
+    }
     $absolute = $new;
-    if (str_starts_with($new, '/') && !str_starts_with($new, '//')) {
+    if (str_starts_with($new, '/')) {
         $home = wp_parse_url(home_url());
         if (!is_array($home) || empty($home['host'])) {
             return new WP_Error('boblift_insert_image', 'The site address could not be read to resolve the new src.', ['status' => 500]);
@@ -327,9 +332,18 @@ function boblift_content_insert_image(string $content, string $old, string $new,
     // A one-off boolean attribute marks the swapped <img> so its offset can be found in the result, then is removed.
     $marker = 'data-boblift-swap-' . bin2hex(random_bytes(6));
     $edit = new WP_HTML_Tag_Processor($content);
-    while ($edit->next_tag('img')) {
-        if ($edit->get_attribute('src') !== $old) {
+    $picture_depth = 0;
+    while ($edit->next_tag(['tag_closers' => 'visit'])) {
+        $tag = $edit->get_tag();
+        if ($tag === 'PICTURE') {
+            $picture_depth = max(0, $picture_depth + ($edit->is_tag_closer() ? -1 : 1));
             continue;
+        }
+        if ($tag !== 'IMG' || $edit->is_tag_closer() || $edit->get_attribute('src') !== $old) {
+            continue;
+        }
+        if ($picture_depth > 0) {
+            return new WP_Error('boblift_insert_image', 'This image is inside <picture>; its <source> files cannot be swapped safely.', ['status' => 400]);
         }
         $edit->set_attribute('src', $new);
         $edit->remove_attribute('srcset');
@@ -363,17 +377,12 @@ function boblift_content_insert_image(string $content, string $old, string $new,
  * Keeps the block metadata of the swapped <img> (at byte offset $at) consistent. The enclosing block is found by walking
  * the block comments before $at with a stack. Classic HTML (no block) and a core/html block have no metadata to keep.
  * A core/image block gets its top-level "id" set to $new_id when it has exactly one. Any other enclosing block (cover,
- * media & text and the like keep the image URL in their own attributes), and an <img> inside <picture> (its <source>
- * files would still show the old image), are refused rather than left half-updated.
+ * media & text and the like keep the image URL in their own attributes) is refused rather than left half-updated.
+ * Block comments are matched on the raw text, the same way WordPress's own block parser reads them.
  */
 function boblift_content_insert_image_block_id(string $content, int $at, int $new_id): string|WP_Error
 {
     $head = substr($content, 0, $at);
-    $picture_open = preg_match_all('~<picture[\s>]~i', $head);
-    $picture_close = preg_match_all('~</picture\s*>~i', $head);
-    if ($picture_open > $picture_close) {
-        return new WP_Error('boblift_insert_image', 'This image is inside <picture>; its <source> files cannot be swapped safely.', ['status' => 400]);
-    }
     preg_match_all('~<!--\s+(/?)wp:([a-z][a-z0-9_-]*(?:/[a-z][a-z0-9_-]*)?)(\s+\{.*?\})?\s+(/?)-->~s', $head, $tokens, PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
     $stack = [];
     foreach ($tokens as $token) {
