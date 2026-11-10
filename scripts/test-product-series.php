@@ -261,6 +261,13 @@ $check('a warranty question without the 12 months is not taken', [], boblift_pro
 $check('no own questions, nothing answered', [], boblift_product_faq_answered_topics([], '15 L/min', '18 MPa'));
 $check('a range needs both ends', [], boblift_product_faq_answered_topics([$own('Flow?', '40 L/min at 18 MPa.')], '40–60 L/min', '18 MPa'));
 $check('a range given in full answers it', ['hydraulic'], boblift_product_faq_answered_topics([$own('Flow?', '40–60 L/min at 18 MPa.')], '40–60 L/min', '18 MPa'));
+$check('other quantities with the same numbers are not the supply', [], boblift_product_faq_answered_topics([$own('Motor?', 'A 15 kW motor and an 18 L tank.')], '15 L/min', '18 MPa'));
+$check('Russian units', ['hydraulic'], boblift_product_faq_answered_topics([$own('Мощность?', '15 л/мин при 18 МПа, около 7,5 кВт.')], '15 L/min', '18 MPa'));
+$check('Arabic units', ['hydraulic'], boblift_product_faq_answered_topics([$own('?', '15 لتر/دقيقة عند 18 ميجا باسكال، نحو 7.5 كيلوواط.')], '15 L/min', '18 MPa'));
+$check('pressure in bar', ['hydraulic'], boblift_product_faq_answered_topics([$own('?', '20 L/min at 160 bar.')], '20 L/min', '160 bar'));
+$check('a unit the list does not know answers nothing', [], boblift_product_faq_answered_topics([$own('?', '5 gpm at 2,600 psi.')], '5 gpm', '2600 psi'));
+$check('a passing mention under another question is not the supply question', [], boblift_product_faq_answered_topics([$own('What size of boat suits it?', 'We size the crane by load. It weighs 380 kg and needs 15 L/min at 18 MPa from about 7.5 kW.')], '15 L/min', '18 MPa'));
+$check('an answer that opens with the pressure', ['hydraulic'], boblift_product_faq_answered_topics([$own('液压？', '18 MPa 下流量 15 L/min，约 7.5 kW。')], '15 L/min', '18 MPa'));
 
 // An old language host's configuration address: the series page in that language, else in English.
 $oldMap = [

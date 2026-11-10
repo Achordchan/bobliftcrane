@@ -453,9 +453,10 @@ function boblift_product_buying_terms(float $capacity, array $ui): array
 /**
  * The topics a product's own questions (boblift_product_copy) already answer, of those the generated questions cover,
  * judged on the list shown ($own, in the page's language) so a translation is never taken to say what it does not:
- * - "hydraulic": an answer gives every figure of the spec table's oil flow and pressure ($flow, $pressure, English
- *   values; both ends of a range like 40–60 L/min); the figures are the same in every language, and a question on oil
- *   type or upkeep does not give them.
+ * - "hydraulic": an answer gives the spec table's oil flow and pressure ($flow, $pressure, English values), every
+ *   figure (both ends of a range like 40–60 L/min) with its unit; figures are the same in every language and the
+ *   unit is matched in each language's form, and a question on oil type or upkeep does not give them. The answer has
+ *   to open with one of them, so a passing mention under another question does not count.
  * - "warranty": a question names the warranty (in any of the site's languages) and its answer gives the 12 months.
  */
 function boblift_product_faq_answered_topics(array $own, string $flow, string $pressure): array
@@ -473,15 +474,51 @@ function boblift_product_faq_answered_topics(array $own, string $flow, string $p
         $pattern = '/(?<![\d.,])' . str_replace('\\.', '[.,]', $marks) . '(?![\d]|[.,]\d)/u';
         return (bool) preg_match($pattern, $text);
     };
-    // Every figure of both quantities: none may be missing, and a quantity without figures answers nothing.
-    $flow_figures = $numbers($flow);
-    $pressure_figures = $numbers($pressure);
-    $gives_all = static fn(string $text, array $figures): bool => $figures !== [] && !in_array(false, array_map(static fn(string $figure): bool => $gives($text, $figure), $figures), true);
+    // A quantity is given when every figure of it is written and the last is followed by its unit, in any of the forms
+    // the site's languages write it (15 L/min, 15 л/мин, 15 لتر/دقيقة; 18 MPa, 18 МПа, 18 ميجا باسكال). An 18 L tank
+    // or a 15 kW motor does not give a flow or a pressure. A quantity without figures, or in a unit not listed, gives
+    // nothing, so the generated question stays.
+    $units = [
+        'l/min' => ['L/min', 'l/min', 'ℓ/min', 'L/分', 'л/мин', '升/分', 'لتر/دقيقة', 'لتر في الدقيقة'],
+        'mpa' => ['MPa', 'МПа', '兆帕', 'ميجا باسكال', 'ميغا باسكال', 'ميجاباسكال'],
+        'bar' => ['bar', 'бар', 'بار', '巴'],
+    ];
+    $quantity = static function (string $spec) use ($numbers, $units): array {
+        foreach ($units as $key => $forms) {
+            if (preg_match('/(?<![\p{L}])' . preg_quote($key, '/') . '(?![\p{L}])/iu', $spec)) {
+                return ['figures' => $numbers($spec), 'units' => $forms];
+            }
+        }
+        return ['figures' => [], 'units' => []];
+    };
+    $gives_quantity = static function (string $text, array $quantity) use ($gives): bool {
+        $figures = $quantity['figures'];
+        if ($figures === [] || in_array(false, array_map(static fn(string $figure): bool => $gives($text, $figure), $figures), true)) {
+            return false;
+        }
+        $last = preg_quote(str_replace(',', '.', (string) end($figures)), '/');
+        $last = str_replace('\\.', '[.,]', $last);
+        $forms = implode('|', array_map(static fn(string $form): string => preg_quote($form, '/'), $quantity['units']));
+        return (bool) preg_match('/(?<![\d.,])' . $last . '\s*(?:' . $forms . ')(?![\p{L}])/iu', $text);
+    };
+    $flow_quantity = $quantity($flow);
+    $pressure_quantity = $quantity($pressure);
+    // The answer is about the supply: it opens with the flow or the pressure ("15 L/min at 18 MPa…", "18 MPa 下 15 L/min…").
+    // An answer on another question that mentions the supply in passing (the vessel size, with weight first) leaves the
+    // generated question in place, so the supply keeps a question of its own.
+    $leads_with_supply = static function (string $answer) use ($flow_quantity, $pressure_quantity): bool {
+        if (!preg_match('/\d+(?:[.,]\d+)?/', $answer, $match)) {
+            return false;
+        }
+        $first = str_replace(',', '.', $match[0]);
+        $opening = array_map(static fn(array $quantity): string => str_replace(',', '.', (string) ($quantity['figures'][0] ?? '')), [$flow_quantity, $pressure_quantity]);
+        return in_array($first, $opening, true);
+    };
     $topics = [];
     foreach ($own as $faq) {
         $question = (string) ($faq['question'] ?? '');
         $answer = (string) ($faq['answer'] ?? '');
-        if ($gives_all($answer, $flow_figures) && $gives_all($answer, $pressure_figures)) {
+        if ($leads_with_supply($answer) && $gives_quantity($answer, $flow_quantity) && $gives_quantity($answer, $pressure_quantity)) {
             $topics['hydraulic'] = true;
         }
         if (preg_match('/warrant|garant|保修|质保|保証|гарант|ضمان/iu', $question) && $gives($answer, '12')) {
