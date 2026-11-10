@@ -379,11 +379,12 @@ function boblift_content_insert_image_block_id(string $content, int $at, int $ne
     if (!is_array($attrs) || !is_int($attrs['id'] ?? null) || $attrs['id'] === $new_id) {
         return $content;
     }
-    $id_pattern = '~"id":' . $attrs['id'] . '(?=[,}])~';
+    // JSON allows whitespace around the colon and before the next comma or brace; keep it as written.
+    $id_pattern = '~("id"\s*:\s*)' . $attrs['id'] . '(?=\s*[,}])~';
     if (preg_match_all($id_pattern, $json) !== 1) {
         return $content;
     }
-    $json = preg_replace_callback($id_pattern, static fn(): string => '"id":' . $new_id, $json);
+    $json = preg_replace_callback($id_pattern, static fn(array $m): string => $m[1] . $new_id, $json);
     return substr_replace($content, $json, $opener[1][1], strlen($opener[1][0]));
 }
 
