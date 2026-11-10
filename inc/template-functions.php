@@ -757,7 +757,9 @@ function boblift_localize_product_text_fragments(mixed $value): mixed
     // embedded scripts (JSON-LD) must stay as written, or "wp-block-image" turns into "wp-block-画像" on /ja/ and the
     // block styles stop applying. Alt, title and aria-label text is read aloud or shown, so it is localised too.
     if (str_contains($value, '<')) {
-        $parts = preg_split('/(<!--.*?-->|<script\b[^>]*>.*?<\/script\s*>|<style\b[^>]*>.*?<\/style\s*>|<textarea\b[^>]*>.*?<\/textarea\s*>|<[A-Za-z\/!][^>]*>)/is', $value, -1, PREG_SPLIT_DELIM_CAPTURE);
+        // A tag ends at the first ">" outside quotes, so alt="Reach > 5 m" does not cut the tag short.
+        $attrs = '(?:[^>"\']++|"[^"]*+"|\'[^\']*+\')*+';
+        $parts = preg_split('/(<!--.*?-->|<(?:script|style|textarea)\b' . $attrs . '>.*?<\/(?:script|style|textarea)\s*>|<[A-Za-z\/!]' . $attrs . '>)/is', $value, -1, PREG_SPLIT_DELIM_CAPTURE);
         if (is_array($parts) && count($parts) > 1) {
             $html = '';
             foreach ($parts as $index => $part) {
@@ -767,10 +769,16 @@ function boblift_localize_product_text_fragments(mixed $value): mixed
                 }
                 // Comments and script/style/textarea blocks pass through whole; other tags only get their alt/title/aria-label text.
                 if (!preg_match('/^<(?:!|script\b|style\b|textarea\b)/i', $part)) {
-                    $part = preg_replace_callback('/(\s(?:alt|title|aria-label)\s*=\s*)(["\'])(.*?)\2/is', static function (array $match): string {
-                        $text = html_entity_decode($match[3], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                    // Walk the attributes one by one so text inside another attribute's value is never taken for alt=.
+                    $part = preg_replace_callback('/(\s+)([^\s=\/>"\']++)(\s*=\s*)("[^"]*+"|\'[^\']*+\'|[^\s"\'>]++)/', static function (array $match): string {
+                        if (!in_array(strtolower($match[2]), ['alt', 'title', 'aria-label'], true)) {
+                            return $match[0];
+                        }
+                        $quote = $match[4][0] === '"' || $match[4][0] === "'" ? $match[4][0] : '';
+                        $raw = $quote !== '' ? substr($match[4], 1, -1) : $match[4];
+                        $text = html_entity_decode($raw, ENT_QUOTES | ENT_HTML5, 'UTF-8');
                         $localized = boblift_localize_product_text_fragment_string($text);
-                        return $localized === $text ? $match[0] : $match[1] . $match[2] . esc_attr($localized) . $match[2];
+                        return $localized === $text ? $match[0] : $match[1] . $match[2] . $match[3] . '"' . esc_attr($localized) . '"';
                     }, $part) ?? $part;
                 }
                 $html .= $part;
