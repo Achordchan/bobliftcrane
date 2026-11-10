@@ -1333,12 +1333,28 @@ function boblift_site_ui_defaults(?string $section = null): array
                     ['image' => 'images/process/telescopic-4-packing.webp', 'title' => 'Packing', 'text' => 'Wrapped in film and strapped to protect paint and hydraulics in transit.'],
                     ['image' => 'images/process/telescopic-5-loading.webp', 'title' => 'Container loading', 'text' => 'Loaded into containers at the factory and shipped to your port.'],
                 ],
+                // Forklift jib cranes: CC85 photos from our workshop and yard; the last step is the factory's container loading.
+                'forklift' => [
+                    ['image' => 'images/process/forklift-1-workshop.webp', 'title' => 'Workshop assembly', 'text' => 'Booms and the carriage frame are assembled in our Xuzhou workshop, alongside our knuckle boom cranes.'],
+                    ['image' => 'images/process/forklift-2-fitting.webp', 'title' => 'Fitted to a forklift', 'text' => 'The crane is hung on a forklift\'s fork carriage and its hoses are connected to check every boom motion.'],
+                    ['image' => 'images/process/forklift-3-yard.webp', 'title' => 'Reach and height check', 'text' => 'In the factory yard the boom is raised, extended and folded through its working range.'],
+                    ['image' => 'images/process/forklift-4-loading.webp', 'title' => 'Container loading', 'text' => 'Wrapped in film and loaded into containers at the factory, then shipped to your port.'],
+                ],
                 'telescopic' => [
                     ['image' => 'images/process/telescopic-1-boom.webp', 'title' => 'Boom sections', 'text' => 'Telescopic boom sections are finished and fitted before assembly.'],
                     ['image' => 'images/process/telescopic-2-assembly.webp', 'title' => 'Assembly', 'text' => 'Columns, winches and control valves are assembled in our Xuzhou workshop.'],
                     ['image' => 'images/process/telescopic-3-ready.webp', 'title' => 'Final check', 'text' => 'Finished cranes are inspected and lined up for dispatch.'],
                     ['image' => 'images/process/telescopic-4-packing.webp', 'title' => 'Packing', 'text' => 'Wrapped in film and strapped to protect paint and hydraulics in transit.'],
                     ['image' => 'images/process/telescopic-5-loading.webp', 'title' => 'Container loading', 'text' => 'Loaded into containers at the factory and shipped to your port.'],
+                ],
+            ],
+            // Feature cards for a product family whose products carry none of their own (single-product.php).
+            'familyFeatures' => [
+                'fly-jib' => [
+                    ['image' => 'images/features/forklift-carriage-frame.webp', 'title' => 'Hangs on the fork carriage', 'text' => 'The crane frame sits on the fork carriage in place of the forks, and the forklift becomes the crane\'s base and counterweight.'],
+                    ['image' => 'images/features/forklift-telescopic-boom.webp', 'title' => 'Telescopic boom', 'text' => 'Boom sections extend to reach over obstacles and into bays; the load chart sets the weight at each radius.'],
+                    ['image' => 'images/features/forklift-hydraulics.webp', 'title' => 'Runs on forklift hydraulics', 'text' => 'Hydraulic cylinders luff and extend the boom, supplied from the forklift\'s auxiliary hydraulic circuit.'],
+                    ['image' => 'images/features/forklift-mast-height.webp', 'title' => 'The mast adds height', 'text' => 'The forklift mast lifts the whole crane, adding hook height before the boom moves.'],
                 ],
             ],
             'feedbackTitle' => 'Photos and videos from customers',

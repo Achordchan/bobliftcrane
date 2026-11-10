@@ -342,6 +342,12 @@ if ($ordering_faq_family !== '') {
         ? array_values(array_filter(array_map(static fn($faq): ?array => is_array($faq) && trim((string) ($faq['question'] ?? '')) !== '' && trim((string) ($faq['answer'] ?? '')) !== '' ? ['question' => (string) $faq['question'], 'answer' => (string) $faq['answer']] : null, $family_saved_faqs)))
         : boblift_product_ordering_faqs($ordering_faq_family);
 }
+// Forklift jib cranes have no brochure cards of their own: the family's cards (site_ui productDetail.familyFeatures,
+// real CC85 photos from our workshop) stand in, so their pages show the same technical section as the truck cranes.
+if (!$brochure_features && $ordering_faq_family !== '') {
+    $brochure_features = array_values(array_filter((array) ($ui['familyFeatures'][$ordering_faq_family] ?? []), static fn(mixed $feature): bool => is_array($feature) && trim((string) ($feature['title'] ?? '')) !== ''));
+    $brochure_features = array_map(static fn(array $feature): array => array_merge($feature, ['image' => ($image = trim((string) ($feature['image'] ?? ''))) === '' || preg_match('#^(https?:)?//#', $image) || str_starts_with($image, '/') ? $image : boblift_asset($image)]), $brochure_features);
+}
 $product_guide = boblift_product_guide($product, $crane_family, $related_term);
 if ($model_history) {
     // Model history sets the same capacity class side by side, previous models included.
@@ -376,6 +382,7 @@ $process_sets = [
     'telescopic-boom-marine-cranes' => 'telescopic-marine',
     'knuckle-boom-truck-mounted-cranes' => 'knuckle',
     'telescopic-boom-truck-mounted-cranes' => 'telescopic',
+    'forklift-fly-jib-cranes' => 'forklift',
 ];
 // Order terms (from the user, 2026-10-19) hold for cranes; aerial work platforms, tail lifts and fly jibs are not covered.
 $hero_terms_apply = boblift_product_crane_terms_apply(get_the_ID());
@@ -388,6 +395,11 @@ $buying_terms = $hero_terms_apply ? boblift_product_buying_terms((float) boblift
 // A model's own container loading (the factory's plan) replaces the general wording in the Shipping column.
 $container_loading = $buying_terms ? boblift_product_container_loading(get_the_ID()) : [];
 $container_loading_cart = (bool) array_filter(array_column($container_loading, 'with_cart'));
+// The loading tiers count truck cranes by capacity; a forklift jib packs differently, so without its own loading
+// plan the Shipping column says lead time and loading are confirmed with the quotation.
+if ($buying_terms && !$container_loading && in_array('forklift-fly-jib-cranes', $process_slugs, true)) {
+    $buying_terms['pending'] = true;
+}
 if ($buying_terms) {
     $anchors[] = ['id' => 'buying', 'label' => boblift_localized_static_text('Shipping & warranty')];
 }
