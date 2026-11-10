@@ -230,6 +230,22 @@ $GLOBALS['boblift_series_render']['active_source'] = 'A';
 $check('the series page itself is judged by the template', true, boblift_series_section_shown('features', true));
 unset($GLOBALS['boblift_series_render']);
 
+// The FAQ is built inside its own buffer before a configuration's run ends, and printed further down (single-product.php):
+// a configuration's run leaves nothing to print, and the series page prints every configuration's questions, only its own shown.
+$faqRun = static function (string $questions): string {
+    ob_start();
+    boblift_series_block_open('faq');
+    echo '<section id="faq">' . $questions . '</section>';
+    boblift_series_block_close('faq');
+    return (string) ob_get_clean();
+};
+$GLOBALS['boblift_series_render'] = ['series' => ['home_model' => 'SQ1ZA3+1', 'members' => [['model' => 'SQ1ZA3+1'], ['model' => 'SQ1ZA4']]], 'active' => 'SQ1ZA3+1', 'active_source' => 'SQ1ZA3+1', 'capturing' => 'SQ1ZA4', 'blocks' => []];
+$check('a configuration run prints no FAQ', '', $faqRun('SQ1ZA4 questions'));
+$GLOBALS['boblift_series_render']['capturing'] = '';
+$check('series page FAQ: each configuration its own, the chosen one shown', '<div data-cfg-block="faq"><div data-cfg-variant="SQ1ZA3+1"><section id="faq">SQ1ZA3+1 questions</section></div><div data-cfg-variant="SQ1ZA4" hidden><section data-vid="faq">SQ1ZA4 questions</section></div></div>', $faqRun('SQ1ZA3+1 questions'));
+unset($GLOBALS['boblift_series_render']);
+$check('a product outside a series prints its FAQ as before', '<section id="faq">Q</section>', $faqRun('Q'));
+
 // An old language host's configuration address: the series page in that language, else in English.
 $oldMap = [
     boblift_series_url_key('https://bobliftcrane.com/es/12-ton-x-sq12za4t.html', ['bobliftcrane.com'], 'bobliftcrane.com') => 'https://bobliftcrane.com/es/12-ton-x.html?model=SQ12ZA4T',

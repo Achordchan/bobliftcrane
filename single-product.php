@@ -407,42 +407,19 @@ if ($buying_terms) {
 $model_faqs = boblift_product_guide_faqs($product, $product_guide, $crane_family, $hero_terms_apply);
 // The product's own questions (boblift_product_copy, inc/rest-product-copy.php) follow the generated ones.
 $model_faqs = array_merge($model_faqs, boblift_product_copy_faq((int) get_the_ID()));
-// A series page also answers the questions its configurations carried on their own pages, which now redirect here. A repeat
-// is the same question with the same answer, word for word or but for the model it names, and is left out. The same question
-// with another answer is kept and marked with its model, so it is clear which configuration it is about.
-if ($product_series && !empty($series_member['is_home'])) {
-    $faq_key = static fn(string $text, string $model): string => mb_strtolower(trim($model !== '' ? str_replace($model, '{model}', $text) : $text));
-    $home_model = (string) $series_member['model'];
-    $faq_seen = [];
-    $faq_questions = [];
-    $model_faqs = array_values(array_filter($model_faqs, static function (array $faq) use (&$faq_seen, &$faq_questions, $faq_key, $home_model): bool {
-        $exact = mb_strtolower(trim((string) $faq['question'])) . '|' . mb_strtolower(trim((string) $faq['answer']));
-        if (isset($faq_seen[$exact])) {
-            return false;
-        }
-        $faq_seen[$exact] = true;
-        $faq_seen[$faq_key((string) $faq['question'], $home_model) . '|' . $faq_key((string) $faq['answer'], $home_model)] = true;
-        $faq_questions[mb_strtolower(trim((string) $faq['question']))] = true;
-        return true;
-    }));
-    foreach ($product_series['members'] as $faq_member) {
-        if (!empty($faq_member['is_home'])) {
-            continue;
-        }
-        foreach (boblift_product_copy_faq((int) $faq_member['id']) as $faq) {
-            $question = trim((string) $faq['question']);
-            $answer = trim((string) $faq['answer']);
-            $model = (string) $faq_member['model'];
-            $exact = mb_strtolower($question) . '|' . mb_strtolower($answer);
-            $same = $faq_key($question, $model) . '|' . $faq_key($answer, $model);
-            if (isset($faq_seen[$exact]) || isset($faq_seen[$same])) {
-                continue;
-            }
-            $faq_seen[$exact] = $faq_seen[$same] = true;
-            $asked = isset($faq_questions[mb_strtolower($question)]);
-            $faq_questions[mb_strtolower($question)] = true;
-            $model_faqs[] = ['question' => str_contains($question, $model) && !$asked ? $question : $model . ': ' . $question, 'answer' => $answer];
-        }
+// A series page shows each configuration's own questions with that configuration (the "faq" block below), so the
+// questions of the others are not added here. Each run keeps its list for the FAQPage data of the configuration shown.
+if (boblift_series_capturing()) {
+    $GLOBALS['boblift_series_render']['faqs'][(string) $series_member['model']] = $model_faqs;
+}
+// The FAQPage data names the questions of the configuration the page opens on (a derived winch version shows the
+// configuration it comes from), so it matches what is on screen.
+$schema_faqs = $model_faqs;
+if ($series_page && !boblift_series_capturing()) {
+    $series_state = $GLOBALS['boblift_series_render'] ?? [];
+    $series_shown = (string) ($series_state['active_source'] ?? '');
+    if ($series_shown !== '' && $series_shown !== (string) $series_member['model']) {
+        $schema_faqs = (array) ($series_state['faqs'][$series_shown] ?? []);
     }
 }
 $cases_ui = boblift_site_ui('casesPage');
@@ -943,6 +920,65 @@ if ($family_quote_copy) {
             <?php endif; ?>
             <?php boblift_series_block_close('features'); ?>
             <?php
+            // The FAQ is printed further down, but each configuration's run ends below, so its questions are built here: a
+            // configuration's run stores them as its "faq" block, and the series page's own run prints every configuration's.
+            ob_start();
+            ?>
+            <?php
+            // Model questions and the shared ones as two groups side by side; the help box sits under the shorter group.
+            $faq_groups = array_values(array_filter([
+                ['label' => str_replace('{model}', $hero_title, boblift_localized_static_text('About the {model}')), 'items' => $model_faqs],
+                ['label' => boblift_localized_static_text('Ordering and service'), 'items' => $faqs],
+            ], static fn(array $group): bool => $group['items'] !== []));
+            $faq_help_column = count($faq_groups) > 1 ? 0 : 1;
+            ?>
+            <?php // Each configuration of a series page has its own questions, shown when it is chosen. ?>
+            <?php boblift_series_block_open('faq'); ?>
+            <section id="faq" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card" aria-labelledby="faq-title">
+                <div class="border-b border-[#E6EDF5] px-4 py-5 sm:p-6 md:p-8">
+                    <p class="boblift-kicker"><?php echo esc_html($ui['faqLabel'] ?? 'FAQ'); ?></p>
+                    <h2 id="faq-title" class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html(str_replace('{model}', $hero_title, boblift_localized_static_text('Questions about the {model}'))); ?></h2>
+                </div>
+                <div class="grid lg:grid-cols-2">
+                    <?php for ($faq_column = 0; $faq_column < 2; $faq_column++) :
+                        $faq_group = $faq_groups[$faq_column] ?? null;
+                        if (!$faq_group && $faq_column !== $faq_help_column) { continue; }
+                        ?>
+                        <div class="min-w-0 px-4 py-4 sm:p-6 md:p-8 <?php echo $faq_column === 1 ? 'border-t border-[#E6EDF5] lg:border-s lg:border-t-0' : ''; ?>">
+                            <?php if ($faq_group) : ?>
+                                <h3 class="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html($faq_group['label']); ?></h3>
+                                <div class="mt-2 border-t border-[#E6EDF5]">
+                                    <?php foreach ($faq_group['items'] as $faq_index => $faq) : ?>
+                                        <details class="group border-b border-[#E6EDF5]">
+                                            <summary class="flex cursor-pointer list-none items-start gap-3 py-3.5 text-[15px] font-black leading-snug text-[#071f42] sm:py-4 sm:leading-6 transition hover:text-blue-700 md:gap-4 md:text-base [&::-webkit-details-marker]:hidden">
+                                                <span class="hidden w-6 shrink-0 text-xs font-black leading-6 text-slate-500 [font-variant-numeric:tabular-nums] sm:block"><?php echo esc_html(str_pad((string) ($faq_index + 1), 2, '0', STR_PAD_LEFT)); ?></span>
+                                                <span class="min-w-0 flex-1"><?php echo esc_html($faq['question']); ?></span>
+                                                <span class="grid size-5 shrink-0 place-items-center rounded-sm text-slate-500 sm:size-6 sm:border sm:border-[#DDE7F2] transition group-open:rotate-180 group-open:border-[#0B3F7D] group-open:text-[#0B3F7D]"><?php echo boblift_icon('chevron-down', 'h-3.5 w-3.5'); ?></span>
+                                            </summary>
+                                            <p class="pb-4 pe-8 text-sm font-normal leading-6 text-slate-600 sm:pb-5 sm:pe-9 sm:ps-9 md:pe-10 md:leading-7 md:ps-10 md:text-[15px]"><?php echo esc_html($faq['answer']); ?></p>
+                                        </details>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
+                            <?php if ($faq_column === $faq_help_column) : ?>
+                                <div class="<?php echo $faq_group ? 'mt-5 sm:mt-6 md:mt-8' : ''; ?> sm:rounded sm:border sm:border-[#DDE7F2] sm:bg-[#F8FAFC] sm:p-5 md:p-6">
+                                    <p class="text-[15px] font-black text-[#071f42] sm:text-base"><?php echo esc_html(boblift_localized_static_text('Not answered here?')); ?></p>
+                                    <p class="mt-1.5 text-sm font-normal leading-6 text-slate-600"><?php echo esc_html(boblift_localized_static_text('Send us your question and our team replies with answers for your site.')); ?></p>
+                                    <div class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-3">
+                                        <button class="inline-flex h-11 items-center justify-center gap-2 rounded-sm bg-[#071f42] px-5 text-sm font-black text-white transition hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页常见问题" data-inquiry-product="<?php echo esc_attr($inquiry_product_title); ?>" data-inquiry-product-slug="<?php echo esc_attr($inquiry_product_slug); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html(boblift_localized_static_text('Ask a question')); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
+                                        <?php if ($hero_whatsapp_href !== '') : ?>
+                                            <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 text-sm font-black text-[#071f42] transition hover:border-[#25D366]" href="<?php echo esc_url($hero_whatsapp_href); ?>" target="_blank" rel="noopener"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?><?php echo $series_page ? ' data-series-whatsapp' : ''; ?>><?php echo boblift_icon('whatsapp', 'h-4 w-4 text-[#25D366]'); ?><span class="[font-variant-numeric:tabular-nums]" dir="ltr"><?php echo esc_html($hero_whatsapp_display); ?></span></a>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    <?php endfor; ?>
+                </div>
+            </section>
+            <?php boblift_series_block_close('faq'); ?>
+            <?php $faq_section_html = (string) ob_get_clean(); ?>
+            <?php
             // A configuration's run ends here: what follows is shared by the whole series page.
             if (boblift_series_capturing()) {
                 return;
@@ -1130,15 +1166,7 @@ if ($family_quote_copy) {
                     <?php endif; ?>
                 </article>
             <?php endif; ?>
-            <?php
-            // Model questions and the shared ones as two groups side by side; the help box sits under the shorter group.
-            $faq_groups = array_values(array_filter([
-                ['label' => str_replace('{model}', $hero_title, boblift_localized_static_text('About the {model}')), 'items' => $model_faqs],
-                ['label' => boblift_localized_static_text('Ordering and service'), 'items' => $faqs],
-            ], static fn(array $group): bool => $group['items'] !== []));
-            $faq_help_column = count($faq_groups) > 1 ? 0 : 1;
-            ?>
-            <?php if ($model_faqs) : ?>
+            <?php if ($schema_faqs) : ?>
                 <?php // FAQPage data for this model's own questions only; the shared ones repeat on every product. ?>
                 <script type="application/ld+json"><?php echo wp_json_encode([
                     '@context' => 'https://schema.org',
@@ -1148,51 +1176,10 @@ if ($family_quote_copy) {
                         '@type' => 'Question',
                         'name' => (string) $faq['question'],
                         'acceptedAnswer' => ['@type' => 'Answer', 'text' => (string) $faq['answer']],
-                    ], $model_faqs),
+                    ], $schema_faqs),
                 ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG); ?></script>
             <?php endif; ?>
-            <section id="faq" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card" aria-labelledby="faq-title">
-                <div class="border-b border-[#E6EDF5] px-4 py-5 sm:p-6 md:p-8">
-                    <p class="boblift-kicker"><?php echo esc_html($ui['faqLabel'] ?? 'FAQ'); ?></p>
-                    <h2 id="faq-title" class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html(str_replace('{model}', $hero_title, boblift_localized_static_text('Questions about the {model}'))); ?></h2>
-                </div>
-                <div class="grid lg:grid-cols-2">
-                    <?php for ($faq_column = 0; $faq_column < 2; $faq_column++) :
-                        $faq_group = $faq_groups[$faq_column] ?? null;
-                        if (!$faq_group && $faq_column !== $faq_help_column) { continue; }
-                        ?>
-                        <div class="min-w-0 px-4 py-4 sm:p-6 md:p-8 <?php echo $faq_column === 1 ? 'border-t border-[#E6EDF5] lg:border-s lg:border-t-0' : ''; ?>">
-                            <?php if ($faq_group) : ?>
-                                <h3 class="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html($faq_group['label']); ?></h3>
-                                <div class="mt-2 border-t border-[#E6EDF5]">
-                                    <?php foreach ($faq_group['items'] as $faq_index => $faq) : ?>
-                                        <details class="group border-b border-[#E6EDF5]">
-                                            <summary class="flex cursor-pointer list-none items-start gap-3 py-3.5 text-[15px] font-black leading-snug text-[#071f42] sm:py-4 sm:leading-6 transition hover:text-blue-700 md:gap-4 md:text-base [&::-webkit-details-marker]:hidden">
-                                                <span class="hidden w-6 shrink-0 text-xs font-black leading-6 text-slate-500 [font-variant-numeric:tabular-nums] sm:block"><?php echo esc_html(str_pad((string) ($faq_index + 1), 2, '0', STR_PAD_LEFT)); ?></span>
-                                                <span class="min-w-0 flex-1"><?php echo esc_html($faq['question']); ?></span>
-                                                <span class="grid size-5 shrink-0 place-items-center rounded-sm text-slate-500 sm:size-6 sm:border sm:border-[#DDE7F2] transition group-open:rotate-180 group-open:border-[#0B3F7D] group-open:text-[#0B3F7D]"><?php echo boblift_icon('chevron-down', 'h-3.5 w-3.5'); ?></span>
-                                            </summary>
-                                            <p class="pb-4 pe-8 text-sm font-normal leading-6 text-slate-600 sm:pb-5 sm:pe-9 sm:ps-9 md:pe-10 md:leading-7 md:ps-10 md:text-[15px]"><?php echo esc_html($faq['answer']); ?></p>
-                                        </details>
-                                    <?php endforeach; ?>
-                                </div>
-                            <?php endif; ?>
-                            <?php if ($faq_column === $faq_help_column) : ?>
-                                <div class="<?php echo $faq_group ? 'mt-5 sm:mt-6 md:mt-8' : ''; ?> sm:rounded sm:border sm:border-[#DDE7F2] sm:bg-[#F8FAFC] sm:p-5 md:p-6">
-                                    <p class="text-[15px] font-black text-[#071f42] sm:text-base"><?php echo esc_html(boblift_localized_static_text('Not answered here?')); ?></p>
-                                    <p class="mt-1.5 text-sm font-normal leading-6 text-slate-600"><?php echo esc_html(boblift_localized_static_text('Send us your question and our team replies with answers for your site.')); ?></p>
-                                    <div class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-3">
-                                        <button class="inline-flex h-11 items-center justify-center gap-2 rounded-sm bg-[#071f42] px-5 text-sm font-black text-white transition hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页常见问题" data-inquiry-product="<?php echo esc_attr($inquiry_product_title); ?>" data-inquiry-product-slug="<?php echo esc_attr($inquiry_product_slug); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html(boblift_localized_static_text('Ask a question')); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
-                                        <?php if ($hero_whatsapp_href !== '') : ?>
-                                            <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 text-sm font-black text-[#071f42] transition hover:border-[#25D366]" href="<?php echo esc_url($hero_whatsapp_href); ?>" target="_blank" rel="noopener"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?><?php echo $series_page ? ' data-series-whatsapp' : ''; ?>><?php echo boblift_icon('whatsapp', 'h-4 w-4 text-[#25D366]'); ?><span class="[font-variant-numeric:tabular-nums]" dir="ltr"><?php echo esc_html($hero_whatsapp_display); ?></span></a>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-                    <?php endfor; ?>
-                </div>
-            </section>
+            <?php echo $faq_section_html; ?>
             <?php // A catalog saved on this product stays downloadable next to the family brochures. ?>
             <?php $catalog_url = function_exists('boblift_product_catalog_url') ? boblift_product_catalog_url($product) : ''; if ($catalog_url !== '') : ?>
                 <p class="boblift-product-catalog-link"><a class="inline-flex h-12 items-center justify-center gap-2 rounded-sm border border-[#D8E2EF] bg-white px-5 text-sm font-black text-[#071f42] transition hover:-translate-y-0.5 hover:border-blue-300 hover:text-blue-700" href="<?php echo esc_url($catalog_url); ?>" target="_blank" rel="noopener"><?php echo boblift_icon('file-text', 'h-4 w-4'); ?><?php echo esc_html((string) ($ui['heroPdfLabel'] ?? 'PDF Catalog')); ?></a></p>
