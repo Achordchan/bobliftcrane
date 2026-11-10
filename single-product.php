@@ -404,9 +404,11 @@ if ($buying_terms) {
     $anchors[] = ['id' => 'buying', 'label' => boblift_localized_static_text('Shipping & warranty')];
 }
 // Model questions from the data, shown as their own group beside the shared ones.
-$model_faqs = boblift_product_guide_faqs($product, $product_guide, $crane_family, $hero_terms_apply);
-// The product's own questions (boblift_product_copy, inc/rest-product-copy.php) follow the generated ones.
-$model_faqs = array_merge($model_faqs, boblift_product_copy_faq((int) get_the_ID()));
+// The product's own questions (boblift_product_copy, inc/rest-product-copy.php) follow the generated ones; a generated
+// question on a topic the product's own list already answers (hydraulic supply, warranty) is left out.
+$own_faqs = boblift_product_copy_faq((int) get_the_ID());
+$own_faq_topics = boblift_product_faq_answered_topics($own_faqs, boblift_product_copy_faq(boblift_product_english_id((int) get_the_ID())));
+$model_faqs = array_merge(boblift_product_guide_faqs($product, $product_guide, $crane_family, $hero_terms_apply, $own_faq_topics), $own_faqs);
 // A series page shows each configuration's own questions with that configuration (the "faq" block below), so the
 // questions of the others are not added here. Each run keeps its list for the FAQPage data of the configuration shown.
 if (boblift_series_capturing()) {

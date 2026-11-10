@@ -450,8 +450,37 @@ function boblift_product_buying_terms(float $capacity, array $ui): array
     ];
 }
 
-/** Model questions answered from the data, asked before the shared FAQ. */
-function boblift_product_guide_faqs(array $product, array $guide, string $family, bool $terms_apply): array
+/**
+ * The topics a product's own questions (boblift_product_copy) already answer, of those the generated questions cover:
+ * "hydraulic" (the oil flow, pressure or power it needs) and "warranty". Judged on the English questions, since the
+ * translations carry the same list in the same order: $own is this language's list, $english the English product's.
+ * When the two lists differ in length the translation is not the English list, so nothing is taken as answered.
+ */
+function boblift_product_faq_answered_topics(array $own, array $english): array
+{
+    if ($own === [] || count($own) !== count($english)) {
+        return [];
+    }
+    $patterns = [
+        'hydraulic' => '/\bhydraulic (?:supply|power|flow|oil|pump|system)|\boil flow\b|\bpower take-?off\b|\bPTO\b/i',
+        'warranty' => '/\bwarrant/i',
+    ];
+    $topics = [];
+    foreach ($english as $faq) {
+        foreach ($patterns as $topic => $pattern) {
+            if (preg_match($pattern, (string) ($faq['question'] ?? ''))) {
+                $topics[$topic] = true;
+            }
+        }
+    }
+    return array_keys($topics);
+}
+
+/**
+ * Model questions answered from the data, asked before the shared FAQ. A topic in $answered (see
+ * boblift_product_faq_answered_topics()) is left out: the product's own question on it says the same and more.
+ */
+function boblift_product_guide_faqs(array $product, array $guide, string $family, bool $terms_apply, array $answered = []): array
 {
     $model = trim((string) ($product['model'] ?? ''));
     $product_id = (int) ($product['id'] ?? 0);
@@ -478,14 +507,14 @@ function boblift_product_guide_faqs(array $product, array $guide, string $family
     }
     $flow = boblift_product_english_spec($product_id, 'Hydraulic System Flow');
     $pressure = boblift_product_english_spec($product_id, 'Hydraulic System Pressure');
-    if ($flow !== '' && $pressure !== '') {
+    if ($flow !== '' && $pressure !== '' && !in_array('hydraulic', $answered, true)) {
         $power = boblift_product_english_spec($product_id, 'Recommended Power');
         $faqs[] = [
             'question' => $t('What hydraulic supply does the {model} need?', ['{model}' => $model]),
             'answer' => trim($t('{flow} at {pressure}.', ['{flow}' => $flow, '{pressure}' => $pressure]) . ' ' . ($power !== '' ? $t('We recommend {power} of hydraulic power.', ['{power}' => $power]) : '') . ' ' . $t($family === 'marine' ? 'Send us the vessel\'s hydraulic data and we confirm the match when we quote.' : 'Send us the truck\'s power take-off data and we confirm the match when we quote.')),
         ];
     }
-    if ($terms_apply) {
+    if ($terms_apply && !in_array('warranty', $answered, true)) {
         $faqs[] = [
             'question' => $t('What warranty and minimum order apply to the {model}?', ['{model}' => $model]),
             'answer' => $t('The {model} carries a 12-month warranty, and you can order from 1 unit.', ['{model}' => $model]),

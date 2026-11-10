@@ -246,6 +246,15 @@ $check('series page FAQ: each configuration its own, the chosen one shown', '<di
 unset($GLOBALS['boblift_series_render']);
 $check('a product outside a series prints its FAQ as before', '<section id="faq">Q</section>', $faqRun('Q'));
 
+// A generated question is left out when the product's own list already asks it (judged on the English questions).
+$enOwn = [['question' => 'Can the SQ1ZA4 lift 1.6 tons at full reach?'], ['question' => 'What hydraulic power does the SQ1ZA4 need?'], ['question' => 'What warranty comes with the SQ1ZA4?']];
+$zhOwn = [['question' => 'a'], ['question' => 'b'], ['question' => 'c']];
+$check('own questions answer hydraulic and warranty', ['hydraulic', 'warranty'], boblift_product_faq_answered_topics($zhOwn, $enOwn));
+$check('a translation that is not the English list answers nothing', [], boblift_product_faq_answered_topics([['question' => 'a']], $enOwn));
+$check('no own questions, nothing answered', [], boblift_product_faq_answered_topics([], $enOwn));
+$check('a hydraulic outrigger is not the hydraulic supply', [], boblift_product_faq_answered_topics([['question' => 'x']], [['question' => 'Are the outriggers hydraulic or manual?']]));
+$check('power take-off counts as hydraulic supply', ['hydraulic'], boblift_product_faq_answered_topics([['question' => 'x']], [['question' => 'Which power take-off does it need?']]));
+
 // An old language host's configuration address: the series page in that language, else in English.
 $oldMap = [
     boblift_series_url_key('https://bobliftcrane.com/es/12-ton-x-sq12za4t.html', ['bobliftcrane.com'], 'bobliftcrane.com') => 'https://bobliftcrane.com/es/12-ton-x.html?model=SQ12ZA4T',
