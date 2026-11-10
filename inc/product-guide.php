@@ -459,7 +459,7 @@ function boblift_product_buying_terms(float $capacity, array $ui): array
  *   to open with one of them, so a passing mention under another question does not count.
  * - "warranty": a question names the warranty (in any of the site's languages) and its answer gives the 12 months
  *   in words for months.
- * Figures right after a Latin letter belong to a model code (SQ12ZA4) and are not read as figures.
+ * Figures in a model code (SQ12ZA4, SQ1ZA3+1) are not read as figures.
  */
 function boblift_product_faq_answered_topics(array $own, string $flow, string $pressure): array
 {
@@ -467,17 +467,8 @@ function boblift_product_faq_answered_topics(array $own, string $flow, string $p
         preg_match_all('/\d+(?:[.,]\d+)?/', $value, $matches);
         return $matches[0];
     };
-    // A figure as written anywhere in a text, with either decimal mark, and not part of a longer number.
-    $gives = static function (string $text, string $figure): bool {
-        if ($figure === '') {
-            return false;
-        }
-        $marks = preg_quote(str_replace(',', '.', $figure), '/');
-        $pattern = '/(?<![A-Za-z\d.,])' . str_replace('\\.', '[.,]', $marks) . '(?![\d]|[.,]\d)/u';
-        return (bool) preg_match($pattern, $text);
-    };
-    // A quantity is given when every figure of it is written and the last is followed by its unit, in any of the forms
-    // the site's languages write it (15 L/min, 15 л/мин, 15 لتر/دقيقة; 18 MPa, 18 МПа, 18 ميجا باسكال). An 18 L tank
+    // A quantity is given when its figures are written together and followed by its unit, in any of the forms the
+    // site's languages write it (15 L/min, 15 л/мин, 15 لتر/دقيقة; 18 MPa, 18 МПа, 18 ميجا باسكال). An 18 L tank
     // or a 15 kW motor does not give a flow or a pressure. A quantity without figures, or in a unit not listed, gives
     // nothing, so the generated question stays.
     $units = [
@@ -493,15 +484,16 @@ function boblift_product_faq_answered_topics(array $own, string $flow, string $p
         }
         return ['figures' => [], 'units' => []];
     };
-    $gives_quantity = static function (string $text, array $quantity) use ($gives): bool {
-        $figures = $quantity['figures'];
-        if ($figures === [] || in_array(false, array_map(static fn(string $figure): bool => $gives($text, $figure), $figures), true)) {
+    // The whole quantity in one place: its figures in order, joined as a range ("40–60", "40 to 60", "40 至 60"), then
+    // its unit. A figure that turns up elsewhere (an 18 L tank, a 40 L oil tank) does not stand for an end of the range.
+    $gives_quantity = static function (string $text, array $quantity): bool {
+        if ($quantity['figures'] === []) {
             return false;
         }
-        $last = preg_quote(str_replace(',', '.', (string) end($figures)), '/');
-        $last = str_replace('\\.', '[.,]', $last);
+        $figure = static fn(string $value): string => str_replace('\\.', '[.,]', preg_quote(str_replace(',', '.', $value), '/'));
+        $range = implode('\s*(?:[-–—~～〜]|to|至|до|a|à|bis|إلى)\s*', array_map($figure, $quantity['figures']));
         $forms = implode('|', array_map(static fn(string $form): string => preg_quote($form, '/'), $quantity['units']));
-        return (bool) preg_match('/(?<![A-Za-z\d.,])' . $last . '\s*(?:' . $forms . ')(?![\p{L}])/iu', $text);
+        return (bool) preg_match('/(?<![A-Za-z\d.,])' . $range . '\s*(?:' . $forms . ')(?![\p{L}])/iu', $text);
     };
     $flow_quantity = $quantity($flow);
     $pressure_quantity = $quantity($pressure);
@@ -509,8 +501,10 @@ function boblift_product_faq_answered_topics(array $own, string $flow, string $p
     // An answer on another question that mentions the supply in passing (the vessel size, with weight first) leaves the
     // generated question in place, so the supply keeps a question of its own.
     $leads_with_supply = static function (string $answer) use ($flow_quantity, $pressure_quantity): bool {
-        // The first figure that is not part of a model code ("The SQ1ZA4 needs 15 L/min…" opens with 15).
-        if (!preg_match('/(?<![A-Za-z\d.,])\d+(?:[.,]\d+)?/', $answer, $match)) {
+        // The first figure outside the model codes: a word that starts with a Latin letter and holds digits, with any
+        // "+1" (SQ1ZA4, SQ1ZA3+1, SQ3.2SA4T), is taken out first, so "The SQ1ZA3+1 needs 15 L/min…" opens with 15.
+        $text = (string) preg_replace('/(?<![A-Za-z\d])[A-Za-z][A-Za-z\d.]*\d[A-Za-z\d.]*(?:\+\d+)?/', ' ', $answer);
+        if (!preg_match('/(?<![\d.,])\d+(?:[.,]\d+)?/', $text, $match)) {
             return false;
         }
         $first = str_replace(',', '.', $match[0]);
