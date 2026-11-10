@@ -246,6 +246,40 @@ $check('series page FAQ: each configuration its own, the chosen one shown', '<di
 unset($GLOBALS['boblift_series_render']);
 $check('a product outside a series prints its FAQ as before', '<section id="faq">Q</section>', $faqRun('Q'));
 
+// A generated question is left out when the product's own list, as shown, already answers it (#272).
+$own = static fn(string $q, string $a): array => ['question' => $q, 'answer' => $a];
+$sq1 = [$own('Can the SQ1ZA4 lift 1.6 tons at full reach?', 'No. It lifts 1,600 kg at 1.39 m.'), $own('What hydraulic power does the SQ1ZA4 need?', '15 L/min at 18 MPa, about 7.5 kW.'), $own('What warranty comes with the SQ1ZA4?', '12 months on the whole crane.')];
+$check('own answers give the supply and the warranty', ['hydraulic', 'warranty'], boblift_product_faq_answered_topics($sq1, '15 L/min', '18 MPa'));
+$check('a translation answers by its own words and figures', ['hydraulic', 'warranty'], boblift_product_faq_answered_topics([$own('SQ1ZA4 需要多大的液压功率？', '15 L/min，18 MPa，约 7,5 kW。'), $own('SQ1ZA4 的保修期是多久？', '整机保修 12 个月。')], '15 L/min', '18 MPa'));
+$check('a translation on other topics answers nothing', [], boblift_product_faq_answered_topics([$own('¿Cuánto pesa?', '490 kg.'), $own('¿Dónde se instala?', 'Detrás de la cabina.')], '15 L/min', '18 MPa'));
+$check('oil type is not the supply', [], boblift_product_faq_answered_topics([$own('Which hydraulic oil should I use?', 'Use ISO VG 46 in summer and VG 32 in winter.')], '15 L/min', '18 MPa'));
+$check('upkeep of the hydraulic system is not the supply', [], boblift_product_faq_answered_topics([$own('How do I maintain the hydraulic system?', 'Change the filter every 500 hours.')], '15 L/min', '18 MPa'));
+$check('a figure inside a longer number does not count', [], boblift_product_faq_answered_topics([$own('Flow?', '150 L/min at 180 bar.')], '15 L/min', '18 MPa'));
+$check('decimal comma matches a decimal point', ['hydraulic'], boblift_product_faq_answered_topics([$own('Débit ?', '22,5 L/min à 16 MPa.')], '22.5 L/min', '16 MPa'));
+$check('no spec figures, no hydraulic topic', [], boblift_product_faq_answered_topics([$own('Hydraulic power?', '15 L/min at 18 MPa.')], '', ''));
+$check('a warranty question without the 12 months is not taken', [], boblift_product_faq_answered_topics([$own('What warranty comes with it?', 'Ask us.')], '', ''));
+$check('no own questions, nothing answered', [], boblift_product_faq_answered_topics([], '15 L/min', '18 MPa'));
+$check('a range needs both ends', [], boblift_product_faq_answered_topics([$own('Flow?', '40 L/min at 18 MPa.')], '40–60 L/min', '18 MPa'));
+$check('a range given in full answers it', ['hydraulic'], boblift_product_faq_answered_topics([$own('Flow?', '40–60 L/min at 18 MPa.')], '40–60 L/min', '18 MPa'));
+$check('other quantities with the same numbers are not the supply', [], boblift_product_faq_answered_topics([$own('Motor?', 'A 15 kW motor and an 18 L tank.')], '15 L/min', '18 MPa'));
+$check('Russian units', ['hydraulic'], boblift_product_faq_answered_topics([$own('Мощность?', '15 л/мин при 18 МПа, около 7,5 кВт.')], '15 L/min', '18 MPa'));
+$check('Arabic units', ['hydraulic'], boblift_product_faq_answered_topics([$own('?', '15 لتر/دقيقة عند 18 ميجا باسكال، نحو 7.5 كيلوواط.')], '15 L/min', '18 MPa'));
+$check('pressure in bar', ['hydraulic'], boblift_product_faq_answered_topics([$own('?', '20 L/min at 160 bar.')], '20 L/min', '160 bar'));
+$check('a unit the list does not know answers nothing', [], boblift_product_faq_answered_topics([$own('?', '5 gpm at 2,600 psi.')], '5 gpm', '2600 psi'));
+$check('a passing mention under another question is not the supply question', [], boblift_product_faq_answered_topics([$own('What size of boat suits it?', 'We size the crane by load. It weighs 380 kg and needs 15 L/min at 18 MPa from about 7.5 kW.')], '15 L/min', '18 MPa'));
+$check('an answer that opens with the pressure', ['hydraulic'], boblift_product_faq_answered_topics([$own('液压？', '18 MPa 下流量 15 L/min，约 7.5 kW。')], '15 L/min', '18 MPa'));
+$check('a model code before the figures', ['hydraulic'], boblift_product_faq_answered_topics([$own('Hydraulic power?', 'The SQ1ZA4 requires 15 L/min at 18 MPa.')], '15 L/min', '18 MPa'));
+$check('a model code with +1 before the figures', ['hydraulic'], boblift_product_faq_answered_topics([$own('Hydraulic power?', 'The SQ1ZA3+1 requires 15 L/min at 18 MPa.')], '15 L/min', '18 MPa'));
+$check('a decimal model code before the figures', ['hydraulic'], boblift_product_faq_answered_topics([$own('Hydraulic power?', 'The SQ3.2SA4T needs 25 L/min at 20 MPa.')], '25 L/min', '20 MPa'));
+$check('a range end found only in another quantity', [], boblift_product_faq_answered_topics([$own('Supply?', '18 MPa at 60 L/min, with a 40 L oil tank.')], '40–60 L/min', '18 MPa'));
+$check('a range written with to', ['hydraulic'], boblift_product_faq_answered_topics([$own('Supply?', '40 to 60 L/min at 18 MPa.')], '40–60 L/min', '18 MPa'));
+$check('a 12 in a model code is not the warranty period', [], boblift_product_faq_answered_topics([$own('What does the warranty exclude?', 'The SQ12ZA4 warranty excludes normal wear.')], '', ''));
+$check('12 of something else is not the warranty period', [], boblift_product_faq_answered_topics([$own('What warranty comes with it?', 'Ask us; we keep 12 spare kits in stock.')], '', ''));
+$check('warranty months in Japanese', ['warranty'], boblift_product_faq_answered_topics([$own('SQ1ZA4の保証内容は？', 'クレーン全体に12か月の保証が付きます。')], '', ''));
+$check('warranty months in Russian', ['warranty'], boblift_product_faq_answered_topics([$own('Какая гарантия?', '12 месяцев на весь кран.')], '', ''));
+$check('warranty months in Arabic', ['warranty'], boblift_product_faq_answered_topics([$own('ما الضمان؟', '12 شهرًا على الرافعة بالكامل.')], '', ''));
+$check('a 12-month warranty', ['warranty'], boblift_product_faq_answered_topics([$own('Warranty?', 'A 12-month warranty on the whole crane.')], '', ''));
+
 // An old language host's configuration address: the series page in that language, else in English.
 $oldMap = [
     boblift_series_url_key('https://bobliftcrane.com/es/12-ton-x-sq12za4t.html', ['bobliftcrane.com'], 'bobliftcrane.com') => 'https://bobliftcrane.com/es/12-ton-x.html?model=SQ12ZA4T',

@@ -450,8 +450,89 @@ function boblift_product_buying_terms(float $capacity, array $ui): array
     ];
 }
 
-/** Model questions answered from the data, asked before the shared FAQ. */
-function boblift_product_guide_faqs(array $product, array $guide, string $family, bool $terms_apply): array
+/**
+ * The topics a product's own questions (boblift_product_copy) already answer, of those the generated questions cover,
+ * judged on the list shown ($own, in the page's language) so a translation is never taken to say what it does not:
+ * - "hydraulic": an answer gives the spec table's oil flow and pressure ($flow, $pressure, English values), every
+ *   figure (both ends of a range like 40–60 L/min) with its unit; figures are the same in every language and the
+ *   unit is matched in each language's form, and a question on oil type or upkeep does not give them. The answer has
+ *   to open with one of them, so a passing mention under another question does not count.
+ * - "warranty": a question names the warranty (in any of the site's languages) and its answer gives the 12 months
+ *   in words for months.
+ * Figures in a model code (SQ12ZA4, SQ1ZA3+1) are not read as figures.
+ */
+function boblift_product_faq_answered_topics(array $own, string $flow, string $pressure): array
+{
+    $numbers = static function (string $value): array {
+        preg_match_all('/\d+(?:[.,]\d+)?/', $value, $matches);
+        return $matches[0];
+    };
+    // A quantity is given when its figures are written together and followed by its unit, in any of the forms the
+    // site's languages write it (15 L/min, 15 л/мин, 15 لتر/دقيقة; 18 MPa, 18 МПа, 18 ميجا باسكال). An 18 L tank
+    // or a 15 kW motor does not give a flow or a pressure. A quantity without figures, or in a unit not listed, gives
+    // nothing, so the generated question stays.
+    $units = [
+        'l/min' => ['L/min', 'l/min', 'ℓ/min', 'L/分', 'л/мин', '升/分', 'لتر/دقيقة', 'لتر في الدقيقة'],
+        'mpa' => ['MPa', 'МПа', '兆帕', 'ميجا باسكال', 'ميغا باسكال', 'ميجاباسكال'],
+        'bar' => ['bar', 'бар', 'بار', '巴'],
+    ];
+    $quantity = static function (string $spec) use ($numbers, $units): array {
+        foreach ($units as $key => $forms) {
+            if (preg_match('/(?<![\p{L}])' . preg_quote($key, '/') . '(?![\p{L}])/iu', $spec)) {
+                return ['figures' => $numbers($spec), 'units' => $forms];
+            }
+        }
+        return ['figures' => [], 'units' => []];
+    };
+    // The whole quantity in one place: its figures in order, joined as a range ("40–60", "40 to 60", "40 至 60"), then
+    // its unit. A figure that turns up elsewhere (an 18 L tank, a 40 L oil tank) does not stand for an end of the range.
+    $gives_quantity = static function (string $text, array $quantity): bool {
+        if ($quantity['figures'] === []) {
+            return false;
+        }
+        $figure = static fn(string $value): string => str_replace('\\.', '[.,]', preg_quote(str_replace(',', '.', $value), '/'));
+        $range = implode('\s*(?:[-–—~～〜]|to|至|до|a|à|bis|إلى)\s*', array_map($figure, $quantity['figures']));
+        $forms = implode('|', array_map(static fn(string $form): string => preg_quote($form, '/'), $quantity['units']));
+        return (bool) preg_match('/(?<![A-Za-z\d.,])' . $range . '\s*(?:' . $forms . ')(?![\p{L}])/iu', $text);
+    };
+    $flow_quantity = $quantity($flow);
+    $pressure_quantity = $quantity($pressure);
+    // The answer is about the supply: it opens with the flow or the pressure ("15 L/min at 18 MPa…", "18 MPa 下 15 L/min…").
+    // An answer on another question that mentions the supply in passing (the vessel size, with weight first) leaves the
+    // generated question in place, so the supply keeps a question of its own.
+    $leads_with_supply = static function (string $answer) use ($flow_quantity, $pressure_quantity): bool {
+        // The first figure outside the model codes: a word that starts with a Latin letter and holds digits, with any
+        // "+1" (SQ1ZA4, SQ1ZA3+1, SQ3.2SA4T), is taken out first, so "The SQ1ZA3+1 needs 15 L/min…" opens with 15.
+        $text = (string) preg_replace('/(?<![A-Za-z\d])[A-Za-z][A-Za-z\d.]*\d[A-Za-z\d.]*(?:\+\d+)?/', ' ', $answer);
+        if (!preg_match('/(?<![\d.,])\d+(?:[.,]\d+)?/', $text, $match)) {
+            return false;
+        }
+        $first = str_replace(',', '.', $match[0]);
+        $opening = array_map(static fn(array $quantity): string => str_replace(',', '.', (string) ($quantity['figures'][0] ?? '')), [$flow_quantity, $pressure_quantity]);
+        return in_array($first, $opening, true);
+    };
+    // Twelve months as each language writes it (12 months, 12-month, 12 个月, 12か月, 12 месяцев, 12 meses, 12 mois,
+    // 12 شهرًا); a 12 in a model code (SQ12ZA4) or another figure does not say how long the warranty runs.
+    $twelve_months = '/(?<![A-Za-z\d.,])12\s*-?\s*(?:months?\b|个月|個月|か月|ヶ月|カ月|ケ月|месяц|meses\b|mois\b|شهر|أشهر)/iu';
+    $topics = [];
+    foreach ($own as $faq) {
+        $question = (string) ($faq['question'] ?? '');
+        $answer = (string) ($faq['answer'] ?? '');
+        if ($leads_with_supply($answer) && $gives_quantity($answer, $flow_quantity) && $gives_quantity($answer, $pressure_quantity)) {
+            $topics['hydraulic'] = true;
+        }
+        if (preg_match('/warrant|garant|保修|质保|保証|гарант|ضمان/iu', $question) && preg_match($twelve_months, $answer)) {
+            $topics['warranty'] = true;
+        }
+    }
+    return array_keys($topics);
+}
+
+/**
+ * Model questions answered from the data, asked before the shared FAQ. A topic in $answered (see
+ * boblift_product_faq_answered_topics()) is left out: the product's own question on it says the same and more.
+ */
+function boblift_product_guide_faqs(array $product, array $guide, string $family, bool $terms_apply, array $answered = []): array
 {
     $model = trim((string) ($product['model'] ?? ''));
     $product_id = (int) ($product['id'] ?? 0);
@@ -478,14 +559,14 @@ function boblift_product_guide_faqs(array $product, array $guide, string $family
     }
     $flow = boblift_product_english_spec($product_id, 'Hydraulic System Flow');
     $pressure = boblift_product_english_spec($product_id, 'Hydraulic System Pressure');
-    if ($flow !== '' && $pressure !== '') {
+    if ($flow !== '' && $pressure !== '' && !in_array('hydraulic', $answered, true)) {
         $power = boblift_product_english_spec($product_id, 'Recommended Power');
         $faqs[] = [
             'question' => $t('What hydraulic supply does the {model} need?', ['{model}' => $model]),
             'answer' => trim($t('{flow} at {pressure}.', ['{flow}' => $flow, '{pressure}' => $pressure]) . ' ' . ($power !== '' ? $t('We recommend {power} of hydraulic power.', ['{power}' => $power]) : '') . ' ' . $t($family === 'marine' ? 'Send us the vessel\'s hydraulic data and we confirm the match when we quote.' : 'Send us the truck\'s power take-off data and we confirm the match when we quote.')),
         ];
     }
-    if ($terms_apply) {
+    if ($terms_apply && !in_array('warranty', $answered, true)) {
         $faqs[] = [
             'question' => $t('What warranty and minimum order apply to the {model}?', ['{model}' => $model]),
             'answer' => $t('The {model} carries a 12-month warranty, and you can order from 1 unit.', ['{model}' => $model]),
