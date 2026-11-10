@@ -134,8 +134,16 @@ function boblift_schema_replace_apply(string $stored, mixed $value): string|WP_E
         }
         return $node;
     };
+    $result = $replace($document);
+    // A correction is accepted only when sending it again would change nothing: if the result still holds a match
+    // (one formed across the edge of the new text, as "11 m" -> "1 m" does in "111 m"), it is refused instead.
+    $found = 0;
+    $count($result);
+    if ($found > 0) {
+        return $error(sprintf('Replacing "%s" with "%s" here leaves a new "%s", so the correction could not be repeated safely. Send a longer phrase.', $from, $to, $from));
+    }
     $flags = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | (str_contains($trimmed, "\n") ? JSON_PRETTY_PRINT : 0);
-    $encoded = json_encode($replace($document), $flags);
+    $encoded = json_encode($result, $flags);
     return is_string($encoded) ? $encoded : $error('The corrected JSON-LD could not be encoded.');
 }
 
