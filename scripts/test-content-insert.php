@@ -39,10 +39,18 @@ function wp_parse_url(string $url): array|false
 {
     return parse_url($url);
 }
-// Stands in for the media library: only files under /uploads/new/ (at the site root or in /blog) are attachments.
+// Stands in for the media library: only files under /uploads/new/ (at the site root or in /blog) are attachments;
+// .pdf ones are attachment 8, which is not an image.
 function attachment_url_to_postid(string $url): int
 {
-    return preg_match('~^https://example\.com(/blog)?/wp-content/uploads/new/~', $url) === 1 ? 7 : 0;
+    if (preg_match('~^https://example\.com(/blog)?/wp-content/uploads/new/~', $url) !== 1) {
+        return 0;
+    }
+    return str_ends_with($url, '.pdf') ? 8 : 7;
+}
+function wp_attachment_is_image(int $id): bool
+{
+    return $id === 7;
 }
 // The image cases need WordPress's HTML API: WP_CORE_DIR=/path/to/wordpress php scripts/test-content-insert.php
 $wp_core = getenv('WP_CORE_DIR') ?: '';
@@ -132,6 +140,11 @@ $images = [
     'tag in alt' => ['<img src="/a.png">', ['image' => '/a.png', 'src' => $new, 'alt' => '<b>'], 'boblift_insert_image'],
     'attachment class follows' => ['<img class="aligncenter wp-image-3 size-full" src="/a.png">', ['image' => '/a.png', 'src' => $new], '<img class="aligncenter size-full wp-image-7" src="' . $new . '">'],
     'block id follows' => ['<!-- wp:image {"id":3,"sizeSlug":"full"} --><figure class="wp-block-image"><img src="/a.png" class="wp-image-3"></figure><!-- /wp:image --><!-- wp:image {"id":31} -->', ['image' => '/a.png', 'src' => $new], '<!-- wp:image {"id":7,"sizeSlug":"full"} --><figure class="wp-block-image"><img src="' . $new . '" class="wp-image-7"></figure><!-- /wp:image --><!-- wp:image {"id":31} -->'],
+    'only the enclosing block' => ['<!-- wp:image {"id":3} --><figure><img src="/b.png" class="wp-image-3"></figure><!-- /wp:image --><!-- wp:image {"id":3} --><figure><img src="/a.png" class="wp-image-3"></figure><!-- /wp:image -->', ['image' => '/a.png', 'src' => $new], '<!-- wp:image {"id":3} --><figure><img src="/b.png" class="wp-image-3"></figure><!-- /wp:image --><!-- wp:image {"id":7} --><figure><img src="' . $new . '" class="wp-image-7"></figure><!-- /wp:image -->'],
+    'classic image beside a block' => ['<!-- wp:image {"id":3} --><figure><img src="/b.png" class="wp-image-3"></figure><!-- /wp:image --><p><img src="/a.png" class="wp-image-3"></p>', ['image' => '/a.png', 'src' => $new], '<!-- wp:image {"id":3} --><figure><img src="/b.png" class="wp-image-3"></figure><!-- /wp:image --><p><img src="' . $new . '" class="wp-image-7"></p>'],
+    'block id without a class' => ['<!-- wp:image {"id":3,"lightbox":{"enabled":true}} --><figure><img src="/a.png"></figure><!-- /wp:image -->', ['image' => '/a.png', 'src' => $new], '<!-- wp:image {"id":7,"lightbox":{"enabled":true}} --><figure><img src="' . $new . '"></figure><!-- /wp:image -->'],
+    'self-closing block before' => ['<!-- wp:image {"id":3} /--><p><img src="/a.png"></p>', ['image' => '/a.png', 'src' => $new], '<!-- wp:image {"id":3} /--><p><img src="' . $new . '"></p>'],
+    'not an image attachment' => ['<img src="/a.png">', ['image' => '/a.png', 'src' => '/wp-content/uploads/new/b.pdf'], 'boblift_insert_image'],
     'no class, no id added' => ['<img class="big" src="/a.png">', ['image' => '/a.png', 'src' => $new], '<img class="big" src="' . $new . '">'],
     'swap with another item' => ['<p>A</p><img src="/a.png">', [['after' => 'A', 'html' => '<p>N</p>'], ['image' => '/a.png', 'src' => $new]], 'boblift_insert_replace'],
 ];

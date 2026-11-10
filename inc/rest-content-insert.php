@@ -279,10 +279,10 @@ function boblift_content_insert_replace(string $content, string $from, string $t
  * Points the one <img> whose src is $old at $new, a file in this site's media library, and sets its alt to $alt when
  * one is given. The old srcset and sizes are dropped, since they list files of the old image. The image's attachment
  * identity follows the file: a wp-image-<id> class is set to the new attachment's ID (other classes kept), and so is
- * the "id" of the block-editor comment (<!-- wp:image {"id":<old id>} -->) when exactly one such comment names the old
- * ID. Done already (content returned unchanged) when no <img> has $old and one has $new. Elements and attributes are
- * found with WordPress's HTML tag processor, so a src inside another attribute's value or inside a comment is never
- * taken for an image. A root-relative $new resolves against the site's scheme and host, not its home path, so it also
+ * the "id" of the image block that encloses this <img>, if any; other blocks are never touched. $new must be an image
+ * attachment, not a PDF or video. Done already (content returned unchanged) when no <img> has $old and one has $new.
+ * Elements and attributes are found with WordPress's HTML tag processor, so a src inside another attribute's value or
+ * inside a comment is never taken for an image. A root-relative $new resolves against the site's scheme and host, not its home path, so it also
  * works when WordPress lives in a subdirectory.
  */
 function boblift_content_insert_image(string $content, string $old, string $new, ?string $alt): string|WP_Error
@@ -303,8 +303,8 @@ function boblift_content_insert_image(string $content, string $old, string $new,
         $absolute = ($home['scheme'] ?? 'https') . '://' . $home['host'] . (isset($home['port']) ? ':' . $home['port'] : '') . $new;
     }
     $new_id = (int) attachment_url_to_postid($absolute);
-    if ($new_id <= 0) {
-        return new WP_Error('boblift_insert_image', sprintf('"%s" is not a file in this site\'s media library.', $new), ['status' => 400]);
+    if ($new_id <= 0 || !wp_attachment_is_image($new_id)) {
+        return new WP_Error('boblift_insert_image', sprintf('"%s" is not an image in this site\'s media library.', $new), ['status' => 400]);
     }
     $found = 0;
     $done = false;
@@ -323,7 +323,8 @@ function boblift_content_insert_image(string $content, string $old, string $new,
     if ($found > 1) {
         return new WP_Error('boblift_insert_image', sprintf('%d <img> tags have the src "%s"; it must be exactly one.', $found, $old), ['status' => 400]);
     }
-    $old_id = 0;
+    // A one-off boolean attribute marks the swapped <img> so its offset can be found in the result, then is removed.
+    $marker = 'data-boblift-swap-' . bin2hex(random_bytes(6));
     $edit = new WP_HTML_Tag_Processor($content);
     while ($edit->next_tag('img')) {
         if ($edit->get_attribute('src') !== $old) {
@@ -335,25 +336,55 @@ function boblift_content_insert_image(string $content, string $old, string $new,
         if ($alt !== null) {
             $edit->set_attribute('alt', $alt);
         }
+        $had_class = false;
         foreach (iterator_to_array($edit->class_list(), false) as $class) {
-            if (preg_match('/^wp-image-(\d+)$/', $class, $m) === 1) {
-                $old_id = (int) $m[1];
+            if (preg_match('/^wp-image-\d+$/', $class) === 1) {
+                $had_class = true;
                 $edit->remove_class($class);
             }
         }
-        if ($old_id > 0) {
+        if ($had_class) {
             $edit->add_class('wp-image-' . $new_id);
         }
+        $edit->set_attribute($marker, true);
         break;
     }
     $content = $edit->get_updated_html();
-    if ($old_id > 0 && $old_id !== $new_id) {
-        $block = '~(<!--\s+wp:image\s+\{[^>]*?"id":)' . $old_id . '(?=[,}])~';
-        if (preg_match_all($block, $content) === 1) {
-            $content = preg_replace_callback($block, static fn(array $m): string => $m[1] . $new_id, $content);
-        }
+    $at = strpos($content, ' ' . $marker);
+    if ($at === false) {
+        return new WP_Error('boblift_insert_image', 'The image could not be located after the swap.', ['status' => 500]);
     }
-    return $content;
+    $content = substr_replace($content, '', $at, strlen($marker) + 1);
+    return boblift_content_insert_image_block_id($content, $at, $new_id);
+}
+
+/**
+ * Sets the "id" of the image block that encloses the <img> at byte offset $at to $new_id. Only that block's opening
+ * comment (the nearest <!-- wp:image {…} --> before $at with no <!-- /wp:image --> in between) is touched, and only
+ * when its attributes have exactly one "id"; a classic image outside any block leaves every comment as it is.
+ */
+function boblift_content_insert_image_block_id(string $content, int $at, int $new_id): string
+{
+    $head = substr($content, 0, $at);
+    if (!preg_match_all('~<!--\s+wp:image\s+(\{.*?\})\s+(/?)-->~s', $head, $openers, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
+        return $content;
+    }
+    $opener = end($openers);
+    $after_opener = $opener[0][1] + strlen($opener[0][0]);
+    if ($opener[2][0] === '/' || preg_match('~<!--\s+/wp:image\s+-->~', substr($head, $after_opener)) === 1) {
+        return $content;
+    }
+    $json = $opener[1][0];
+    $attrs = json_decode($json, true);
+    if (!is_array($attrs) || !is_int($attrs['id'] ?? null) || $attrs['id'] === $new_id) {
+        return $content;
+    }
+    $id_pattern = '~"id":' . $attrs['id'] . '(?=[,}])~';
+    if (preg_match_all($id_pattern, $json) !== 1) {
+        return $content;
+    }
+    $json = preg_replace_callback($id_pattern, static fn(): string => '"id":' . $new_id, $json);
+    return substr_replace($content, $json, $opener[1][1], strlen($opener[1][0]));
 }
 
 function boblift_content_insert_after(string $content, string $after, string $html): string|WP_Error
