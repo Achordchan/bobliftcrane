@@ -268,6 +268,13 @@ $check('pressure in bar', ['hydraulic'], boblift_product_faq_answered_topics([$o
 $check('a unit the list does not know answers nothing', [], boblift_product_faq_answered_topics([$own('?', '5 gpm at 2,600 psi.')], '5 gpm', '2600 psi'));
 $check('a passing mention under another question is not the supply question', [], boblift_product_faq_answered_topics([$own('What size of boat suits it?', 'We size the crane by load. It weighs 380 kg and needs 15 L/min at 18 MPa from about 7.5 kW.')], '15 L/min', '18 MPa'));
 $check('an answer that opens with the pressure', ['hydraulic'], boblift_product_faq_answered_topics([$own('液压？', '18 MPa 下流量 15 L/min，约 7.5 kW。')], '15 L/min', '18 MPa'));
+$check('a model code before the figures', ['hydraulic'], boblift_product_faq_answered_topics([$own('Hydraulic power?', 'The SQ1ZA4 requires 15 L/min at 18 MPa.')], '15 L/min', '18 MPa'));
+$check('a 12 in a model code is not the warranty period', [], boblift_product_faq_answered_topics([$own('What does the warranty exclude?', 'The SQ12ZA4 warranty excludes normal wear.')], '', ''));
+$check('12 of something else is not the warranty period', [], boblift_product_faq_answered_topics([$own('What warranty comes with it?', 'Ask us; we keep 12 spare kits in stock.')], '', ''));
+$check('warranty months in Japanese', ['warranty'], boblift_product_faq_answered_topics([$own('SQ1ZA4の保証内容は？', 'クレーン全体に12か月の保証が付きます。')], '', ''));
+$check('warranty months in Russian', ['warranty'], boblift_product_faq_answered_topics([$own('Какая гарантия?', '12 месяцев на весь кран.')], '', ''));
+$check('warranty months in Arabic', ['warranty'], boblift_product_faq_answered_topics([$own('ما الضمان؟', '12 شهرًا على الرافعة بالكامل.')], '', ''));
+$check('a 12-month warranty', ['warranty'], boblift_product_faq_answered_topics([$own('Warranty?', 'A 12-month warranty on the whole crane.')], '', ''));
 
 // An old language host's configuration address: the series page in that language, else in English.
 $oldMap = [

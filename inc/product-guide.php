@@ -457,7 +457,9 @@ function boblift_product_buying_terms(float $capacity, array $ui): array
  *   figure (both ends of a range like 40–60 L/min) with its unit; figures are the same in every language and the
  *   unit is matched in each language's form, and a question on oil type or upkeep does not give them. The answer has
  *   to open with one of them, so a passing mention under another question does not count.
- * - "warranty": a question names the warranty (in any of the site's languages) and its answer gives the 12 months.
+ * - "warranty": a question names the warranty (in any of the site's languages) and its answer gives the 12 months
+ *   in words for months.
+ * Figures right after a Latin letter belong to a model code (SQ12ZA4) and are not read as figures.
  */
 function boblift_product_faq_answered_topics(array $own, string $flow, string $pressure): array
 {
@@ -471,7 +473,7 @@ function boblift_product_faq_answered_topics(array $own, string $flow, string $p
             return false;
         }
         $marks = preg_quote(str_replace(',', '.', $figure), '/');
-        $pattern = '/(?<![\d.,])' . str_replace('\\.', '[.,]', $marks) . '(?![\d]|[.,]\d)/u';
+        $pattern = '/(?<![A-Za-z\d.,])' . str_replace('\\.', '[.,]', $marks) . '(?![\d]|[.,]\d)/u';
         return (bool) preg_match($pattern, $text);
     };
     // A quantity is given when every figure of it is written and the last is followed by its unit, in any of the forms
@@ -499,7 +501,7 @@ function boblift_product_faq_answered_topics(array $own, string $flow, string $p
         $last = preg_quote(str_replace(',', '.', (string) end($figures)), '/');
         $last = str_replace('\\.', '[.,]', $last);
         $forms = implode('|', array_map(static fn(string $form): string => preg_quote($form, '/'), $quantity['units']));
-        return (bool) preg_match('/(?<![\d.,])' . $last . '\s*(?:' . $forms . ')(?![\p{L}])/iu', $text);
+        return (bool) preg_match('/(?<![A-Za-z\d.,])' . $last . '\s*(?:' . $forms . ')(?![\p{L}])/iu', $text);
     };
     $flow_quantity = $quantity($flow);
     $pressure_quantity = $quantity($pressure);
@@ -507,13 +509,17 @@ function boblift_product_faq_answered_topics(array $own, string $flow, string $p
     // An answer on another question that mentions the supply in passing (the vessel size, with weight first) leaves the
     // generated question in place, so the supply keeps a question of its own.
     $leads_with_supply = static function (string $answer) use ($flow_quantity, $pressure_quantity): bool {
-        if (!preg_match('/\d+(?:[.,]\d+)?/', $answer, $match)) {
+        // The first figure that is not part of a model code ("The SQ1ZA4 needs 15 L/min…" opens with 15).
+        if (!preg_match('/(?<![A-Za-z\d.,])\d+(?:[.,]\d+)?/', $answer, $match)) {
             return false;
         }
         $first = str_replace(',', '.', $match[0]);
         $opening = array_map(static fn(array $quantity): string => str_replace(',', '.', (string) ($quantity['figures'][0] ?? '')), [$flow_quantity, $pressure_quantity]);
         return in_array($first, $opening, true);
     };
+    // Twelve months as each language writes it (12 months, 12-month, 12 个月, 12か月, 12 месяцев, 12 meses, 12 mois,
+    // 12 شهرًا); a 12 in a model code (SQ12ZA4) or another figure does not say how long the warranty runs.
+    $twelve_months = '/(?<![A-Za-z\d.,])12\s*-?\s*(?:months?\b|个月|個月|か月|ヶ月|カ月|ケ月|месяц|meses\b|mois\b|شهر|أشهر)/iu';
     $topics = [];
     foreach ($own as $faq) {
         $question = (string) ($faq['question'] ?? '');
@@ -521,7 +527,7 @@ function boblift_product_faq_answered_topics(array $own, string $flow, string $p
         if ($leads_with_supply($answer) && $gives_quantity($answer, $flow_quantity) && $gives_quantity($answer, $pressure_quantity)) {
             $topics['hydraulic'] = true;
         }
-        if (preg_match('/warrant|garant|保修|质保|保証|гарант|ضمان/iu', $question) && $gives($answer, '12')) {
+        if (preg_match('/warrant|garant|保修|质保|保証|гарант|ضمان/iu', $question) && preg_match($twelve_months, $answer)) {
             $topics['warranty'] = true;
         }
     }
