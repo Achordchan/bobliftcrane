@@ -279,8 +279,9 @@ function boblift_content_insert_replace(string $content, string $from, string $t
  * Points the one <img> whose src is $old at $new, a file in this site's media library, and sets its alt to $alt when
  * one is given. The old srcset and sizes are dropped, since they list files of the old image. The image's attachment
  * identity follows the file: a wp-image-<id> class is set to the new attachment's ID (other classes kept), and so is
- * the "id" of the image block that encloses this <img>, if any; other blocks are never touched. $new must be an image
- * attachment, not a PDF or video. Done already (content returned unchanged) when no <img> has $old and one has $new.
+ * the "id" of the image block that encloses this <img>, if any; other blocks are never touched. An <img> inside
+ * <picture> or inside another kind of block is refused (see boblift_content_insert_image_block_id). $new must be an
+ * image attachment, not a PDF or video. Done already (content returned unchanged) when no <img> has $old and one has $new.
  * Elements and attributes are found with WordPress's HTML tag processor, so a src inside another attribute's value or
  * inside a comment is never taken for an image. A root-relative $new resolves against the site's scheme and host, not its home path, so it also
  * works when WordPress lives in a subdirectory.
@@ -359,33 +360,56 @@ function boblift_content_insert_image(string $content, string $old, string $new,
 }
 
 /**
- * Sets the "id" of the image block that encloses the <img> at byte offset $at to $new_id. Only that block's opening
- * comment (the nearest <!-- wp:image {…} --> before $at with no <!-- /wp:image --> in between) is touched, and only
- * when its attributes have exactly one "id"; a classic image outside any block leaves every comment as it is.
+ * Keeps the block metadata of the swapped <img> (at byte offset $at) consistent. The enclosing block is found by walking
+ * the block comments before $at with a stack. Classic HTML (no block) and a core/html block have no metadata to keep.
+ * A core/image block gets its top-level "id" set to $new_id when it has exactly one. Any other enclosing block (cover,
+ * media & text and the like keep the image URL in their own attributes), and an <img> inside <picture> (its <source>
+ * files would still show the old image), are refused rather than left half-updated.
  */
-function boblift_content_insert_image_block_id(string $content, int $at, int $new_id): string
+function boblift_content_insert_image_block_id(string $content, int $at, int $new_id): string|WP_Error
 {
     $head = substr($content, 0, $at);
-    if (!preg_match_all('~<!--\s+wp:image\s+(\{.*?\})\s+(/?)-->~s', $head, $openers, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
+    $picture_open = preg_match_all('~<picture[\s>]~i', $head);
+    $picture_close = preg_match_all('~</picture\s*>~i', $head);
+    if ($picture_open > $picture_close) {
+        return new WP_Error('boblift_insert_image', 'This image is inside <picture>; its <source> files cannot be swapped safely.', ['status' => 400]);
+    }
+    preg_match_all('~<!--\s+(/?)wp:([a-z][a-z0-9_-]*(?:/[a-z][a-z0-9_-]*)?)(\s+\{.*?\})?\s+(/?)-->~s', $head, $tokens, PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
+    $stack = [];
+    foreach ($tokens as $token) {
+        $name = $token[2][0];
+        if ($token[1][0] === '/') {
+            // Close the innermost block of that name; a stray closer is ignored.
+            for ($i = count($stack) - 1; $i >= 0; $i--) {
+                if ($stack[$i]['name'] === $name) {
+                    array_splice($stack, $i);
+                    break;
+                }
+            }
+        } elseif (($token[4][0] ?? '') !== '/') {
+            $stack[] = ['name' => $name, 'json' => $token[3][0] ?? '', 'offset' => $token[3][1] ?? -1];
+        }
+    }
+    $block = end($stack);
+    if ($block === false || in_array($block['name'], ['html', 'core/html'], true)) {
         return $content;
     }
-    $opener = end($openers);
-    $after_opener = $opener[0][1] + strlen($opener[0][0]);
-    if ($opener[2][0] === '/' || preg_match('~<!--\s+/wp:image\s+-->~', substr($head, $after_opener)) === 1) {
-        return $content;
+    if (!in_array($block['name'], ['image', 'core/image'], true)) {
+        return new WP_Error('boblift_insert_image', sprintf('This image is inside a "%s" block, whose own attributes keep the image; only image blocks and classic HTML can be swapped.', $block['name']), ['status' => 400]);
     }
-    $json = $opener[1][0];
-    $attrs = json_decode($json, true);
+    $raw = $block['json'];
+    $json = trim($raw);
+    $attrs = $json === '' ? null : json_decode($json, true);
     if (!is_array($attrs) || !is_int($attrs['id'] ?? null) || $attrs['id'] === $new_id) {
         return $content;
     }
     // JSON allows whitespace around the colon and before the next comma or brace; keep it as written.
     $id_pattern = '~("id"\s*:\s*)' . $attrs['id'] . '(?=\s*[,}])~';
-    if (preg_match_all($id_pattern, $json) !== 1) {
+    if (preg_match_all($id_pattern, $raw) !== 1) {
         return $content;
     }
-    $json = preg_replace_callback($id_pattern, static fn(array $m): string => $m[1] . $new_id, $json);
-    return substr_replace($content, $json, $opener[1][1], strlen($opener[1][0]));
+    $raw_new = preg_replace_callback($id_pattern, static fn(array $m): string => $m[1] . $new_id, $raw);
+    return substr_replace($content, $raw_new, $block['offset'], strlen($raw));
 }
 
 function boblift_content_insert_after(string $content, string $after, string $html): string|WP_Error
