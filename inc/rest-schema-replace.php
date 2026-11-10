@@ -151,7 +151,8 @@ function boblift_schema_replace_offsets(string $text, string $from, string $to):
         $spans[] = [$at, $at + strlen($to)];
     }
     $offsets = [];
-    for ($at = strpos($text, $from); $at !== false; $at = strpos($text, $from, $at + strlen($from))) {
+    // Overlapping matches count too ("11" occurs twice in "111"), so an ambiguous phrase is refused, not half-applied.
+    for ($at = strpos($text, $from); $at !== false; $at = strpos($text, $from, $at + 1)) {
         $end = $at + strlen($from);
         $inside = false;
         foreach ($spans as [$start, $stop]) {

@@ -64,6 +64,7 @@ $cases = [
     'with inside replace' => ['{"text":"15.2 m"}', ['replace' => '15.2 m', 'with' => '5.2 m'], '{"text":"5.2 m"}'],
     'with inside replace, done' => ['{"text":"5.2 m"}', ['replace' => '15.2 m', 'with' => '5.2 m'], '{"text":"5.2 m"}'],
     'replace inside with, mixed' => ['{"text":"15 m and 5 m"}', ['replace' => '5 m', 'with' => '15 m'], '{"text":"15 m and 15 m"}'],
+    'overlapping matches' => ['{"text":"111 mm"}', ['replace' => '11', 'with' => '1'], 'boblift_schema_replace'],
     'same text' => [$faq, ['replace' => '15.2 m', 'with' => '15.2 m'], 'boblift_schema_replace'],
 ];
 $failed = 0;
