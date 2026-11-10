@@ -246,14 +246,19 @@ $check('series page FAQ: each configuration its own, the chosen one shown', '<di
 unset($GLOBALS['boblift_series_render']);
 $check('a product outside a series prints its FAQ as before', '<section id="faq">Q</section>', $faqRun('Q'));
 
-// A generated question is left out when the product's own list already asks it (judged on the English questions).
-$enOwn = [['question' => 'Can the SQ1ZA4 lift 1.6 tons at full reach?'], ['question' => 'What hydraulic power does the SQ1ZA4 need?'], ['question' => 'What warranty comes with the SQ1ZA4?']];
-$zhOwn = [['question' => 'a'], ['question' => 'b'], ['question' => 'c']];
-$check('own questions answer hydraulic and warranty', ['hydraulic', 'warranty'], boblift_product_faq_answered_topics($zhOwn, $enOwn));
-$check('a translation that is not the English list answers nothing', [], boblift_product_faq_answered_topics([['question' => 'a']], $enOwn));
-$check('no own questions, nothing answered', [], boblift_product_faq_answered_topics([], $enOwn));
-$check('a hydraulic outrigger is not the hydraulic supply', [], boblift_product_faq_answered_topics([['question' => 'x']], [['question' => 'Are the outriggers hydraulic or manual?']]));
-$check('power take-off counts as hydraulic supply', ['hydraulic'], boblift_product_faq_answered_topics([['question' => 'x']], [['question' => 'Which power take-off does it need?']]));
+// A generated question is left out when the product's own list, as shown, already answers it (#272).
+$own = static fn(string $q, string $a): array => ['question' => $q, 'answer' => $a];
+$sq1 = [$own('Can the SQ1ZA4 lift 1.6 tons at full reach?', 'No. It lifts 1,600 kg at 1.39 m.'), $own('What hydraulic power does the SQ1ZA4 need?', '15 L/min at 18 MPa, about 7.5 kW.'), $own('What warranty comes with the SQ1ZA4?', '12 months on the whole crane.')];
+$check('own answers give the supply and the warranty', ['hydraulic', 'warranty'], boblift_product_faq_answered_topics($sq1, '15 L/min', '18 MPa'));
+$check('a translation answers by its own words and figures', ['hydraulic', 'warranty'], boblift_product_faq_answered_topics([$own('SQ1ZA4 需要多大的液压功率？', '15 L/min，18 MPa，约 7,5 kW。'), $own('SQ1ZA4 的保修期是多久？', '整机保修 12 个月。')], '15 L/min', '18 MPa'));
+$check('a translation on other topics answers nothing', [], boblift_product_faq_answered_topics([$own('¿Cuánto pesa?', '490 kg.'), $own('¿Dónde se instala?', 'Detrás de la cabina.')], '15 L/min', '18 MPa'));
+$check('oil type is not the supply', [], boblift_product_faq_answered_topics([$own('Which hydraulic oil should I use?', 'Use ISO VG 46 in summer and VG 32 in winter.')], '15 L/min', '18 MPa'));
+$check('upkeep of the hydraulic system is not the supply', [], boblift_product_faq_answered_topics([$own('How do I maintain the hydraulic system?', 'Change the filter every 500 hours.')], '15 L/min', '18 MPa'));
+$check('a figure inside a longer number does not count', [], boblift_product_faq_answered_topics([$own('Flow?', '150 L/min at 180 bar.')], '15 L/min', '18 MPa'));
+$check('decimal comma matches a decimal point', ['hydraulic'], boblift_product_faq_answered_topics([$own('Débit ?', '22,5 L/min à 16 MPa.')], '22.5 L/min', '16 MPa'));
+$check('no spec figures, no hydraulic topic', [], boblift_product_faq_answered_topics([$own('Hydraulic power?', '15 L/min at 18 MPa.')], '', ''));
+$check('a warranty question without the 12 months is not taken', [], boblift_product_faq_answered_topics([$own('What warranty comes with it?', 'Ask us.')], '', ''));
+$check('no own questions, nothing answered', [], boblift_product_faq_answered_topics([], '15 L/min', '18 MPa'));
 
 // An old language host's configuration address: the series page in that language, else in English.
 $oldMap = [

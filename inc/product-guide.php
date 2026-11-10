@@ -451,26 +451,37 @@ function boblift_product_buying_terms(float $capacity, array $ui): array
 }
 
 /**
- * The topics a product's own questions (boblift_product_copy) already answer, of those the generated questions cover:
- * "hydraulic" (the oil flow, pressure or power it needs) and "warranty". Judged on the English questions, since the
- * translations carry the same list in the same order: $own is this language's list, $english the English product's.
- * When the two lists differ in length the translation is not the English list, so nothing is taken as answered.
+ * The topics a product's own questions (boblift_product_copy) already answer, of those the generated questions cover,
+ * judged on the list shown ($own, in the page's language) so a translation is never taken to say what it does not:
+ * - "hydraulic": an answer gives the same oil flow and pressure as the spec table ($flow, $pressure, English values);
+ *   the figures are the same in every language, and a question on oil type or upkeep does not give them.
+ * - "warranty": a question names the warranty (in any of the site's languages) and its answer gives the 12 months.
  */
-function boblift_product_faq_answered_topics(array $own, array $english): array
+function boblift_product_faq_answered_topics(array $own, string $flow, string $pressure): array
 {
-    if ($own === [] || count($own) !== count($english)) {
-        return [];
-    }
-    $patterns = [
-        'hydraulic' => '/\bhydraulic (?:supply|power|flow|oil|pump|system)|\boil flow\b|\bpower take-?off\b|\bPTO\b/i',
-        'warranty' => '/\bwarrant/i',
-    ];
+    $number = static function (string $value): string {
+        return preg_match('/\d+(?:[.,]\d+)?/', $value, $match) ? $match[0] : '';
+    };
+    // A figure as written anywhere in a text, with either decimal mark, and not part of a longer number.
+    $gives = static function (string $text, string $figure): bool {
+        if ($figure === '') {
+            return false;
+        }
+        $marks = preg_quote(str_replace(',', '.', $figure), '/');
+        $pattern = '/(?<![\d.,])' . str_replace('\\.', '[.,]', $marks) . '(?![\d]|[.,]\d)/u';
+        return (bool) preg_match($pattern, $text);
+    };
+    $flow_figure = $number($flow);
+    $pressure_figure = $number($pressure);
     $topics = [];
-    foreach ($english as $faq) {
-        foreach ($patterns as $topic => $pattern) {
-            if (preg_match($pattern, (string) ($faq['question'] ?? ''))) {
-                $topics[$topic] = true;
-            }
+    foreach ($own as $faq) {
+        $question = (string) ($faq['question'] ?? '');
+        $answer = (string) ($faq['answer'] ?? '');
+        if ($gives($answer, $flow_figure) && $gives($answer, $pressure_figure)) {
+            $topics['hydraulic'] = true;
+        }
+        if (preg_match('/warrant|garant|保修|质保|保証|гарант|ضمان/iu', $question) && $gives($answer, '12')) {
+            $topics['warranty'] = true;
         }
     }
     return array_keys($topics);
