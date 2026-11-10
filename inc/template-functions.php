@@ -753,6 +753,42 @@ function boblift_localize_product_text_fragments(mixed $value): mixed
         return $value;
     }
 
+    // Article and product bodies are HTML: only the text a reader sees is localised. Class names, URLs, ids and
+    // embedded scripts (JSON-LD) must stay as written, or "wp-block-image" turns into "wp-block-画像" on /ja/ and the
+    // block styles stop applying. Alt, title and aria-label text is read aloud or shown, so it is localised too.
+    if (str_contains($value, '<')) {
+        $parts = preg_split('/(<!--.*?-->|<script\b[^>]*>.*?<\/script\s*>|<style\b[^>]*>.*?<\/style\s*>|<textarea\b[^>]*>.*?<\/textarea\s*>|<[A-Za-z\/!][^>]*>)/is', $value, -1, PREG_SPLIT_DELIM_CAPTURE);
+        if (is_array($parts) && count($parts) > 1) {
+            $html = '';
+            foreach ($parts as $index => $part) {
+                if ($index % 2 === 0) {
+                    $html .= boblift_localize_product_text_fragment_string($part);
+                    continue;
+                }
+                // Comments and script/style/textarea blocks pass through whole; other tags only get their alt/title/aria-label text.
+                if (!preg_match('/^<(?:!|script\b|style\b|textarea\b)/i', $part)) {
+                    $part = preg_replace_callback('/(\s(?:alt|title|aria-label)\s*=\s*)(["\'])(.*?)\2/is', static function (array $match): string {
+                        $text = html_entity_decode($match[3], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                        $localized = boblift_localize_product_text_fragment_string($text);
+                        return $localized === $text ? $match[0] : $match[1] . $match[2] . esc_attr($localized) . $match[2];
+                    }, $part) ?? $part;
+                }
+                $html .= $part;
+            }
+            return $html;
+        }
+    }
+
+    return boblift_localize_product_text_fragment_string($value);
+}
+
+// Replaces the known English product phrases in one run of plain text (no markup).
+function boblift_localize_product_text_fragment_string(string $value): string
+{
+    if ($value === '' || trim($value) === '') {
+        return $value;
+    }
+
     // "Cranes for Truck" is the old category name: only the title-case name is renamed.
     // Lowercase prose such as "cranes for truck chassis" must stay as written.
     $case_sensitive_phrases = ['Cranes for Truck' => true];
