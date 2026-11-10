@@ -695,7 +695,7 @@ if ($family_quote_copy) {
                         <?php if (is_string($spec_range_link) && $spec_range_link !== '') : ?>
                             <a class="inline-flex min-h-12 max-w-full items-center justify-center gap-2 rounded-sm bg-[#071f42] px-6 py-3 text-sm font-black text-white transition hover:bg-[#0B3F7D]" href="<?php echo esc_url($spec_range_link); ?>"><?php echo esc_html(str_replace('{range}', $related_term->name, boblift_localized_static_text('Compare all {range}'))); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></a>
                         <?php endif; ?>
-                        <p class="min-w-[15rem] flex-1 text-[13px] font-normal leading-5 text-slate-500"><?php echo esc_html(boblift_localized_static_text('Figures from the BOB-LIFT technical drawings. Confirm the final specification with our team before ordering.')); ?></p>
+                        <p class="min-w-[15rem] flex-1 text-[13px] font-normal leading-5 text-slate-500"><?php // Only a product with a drawing on the page may say its figures come from the drawings. ?><?php echo esc_html(boblift_localized_static_text($drawings ? 'Figures from the BOB-LIFT technical drawings. Confirm the final specification with our team before ordering.' : 'Confirm the final specification with our team before ordering.')); ?></p>
                     </div>
                 </div>
                 <?php if ($drawings) : ?>
