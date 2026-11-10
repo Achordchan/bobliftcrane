@@ -24,7 +24,8 @@ if (!defined('ABSPATH')) {
  * "src": "/wp-content/uploads/2026/11/a-v2.png", "alt": "New alt text"}. "image" is the current src of exactly one
  * <img> in the content; its src becomes "src" (a file in this site's media library) and, when "alt" is sent, its alt
  * becomes that plain text. Other attributes stay as they are. When no <img> has the old src and one has the new src, the
- * item is already done and is skipped.
+ * item is already done and is skipped. The old srcset and sizes are removed. Like "replace", an "image" item goes on its
+ * own, one per request.
  *
  * rest_pre_insert_{type} takes a per-post lock that is held until the save is done, every REST update of the item takes
  * the same lock before it loads the post, and any other save takes it just before its row is written, so nothing lands
@@ -203,10 +204,10 @@ function boblift_content_insert_stored(int $post_id): string
 function boblift_content_insert_apply(string $content, $value): string|WP_Error
 {
     $inserts = is_array($value) && (array_key_exists('after', $value) || array_key_exists('replace', $value) || array_key_exists('image', $value)) ? [$value] : (array) $value;
-    // A replacement can remove what another item of the request checks for (its own "with", or an insertion's HTML),
-    // so a retry could not tell that item was done: a "replace" item goes alone.
-    if (count($inserts) > 1 && array_filter($inserts, static fn($insert): bool => is_array($insert) && array_key_exists('replace', $insert)) !== []) {
-        return new WP_Error('boblift_insert_replace', 'Send a "replace" item on its own, one per request.', ['status' => 400]);
+    // A replacement or an image swap can remove what another item of the request checks for (its own "with", an
+    // insertion's HTML, another swap's src), so a retry could not tell that item was done: such an item goes alone.
+    if (count($inserts) > 1 && array_filter($inserts, static fn($insert): bool => is_array($insert) && (array_key_exists('replace', $insert) || array_key_exists('image', $insert))) !== []) {
+        return new WP_Error('boblift_insert_replace', 'Send a "replace" or "image" item on its own, one per request.', ['status' => 400]);
     }
     foreach ($inserts as $insert) {
         if (is_array($insert) && array_key_exists('replace', $insert)) {
@@ -276,7 +277,9 @@ function boblift_content_insert_replace(string $content, string $from, string $t
 
 /**
  * Points the one <img> whose src is $old at $new, a file in this site's media library, and sets its alt to $alt when
- * one is given. Done already (content returned unchanged) when no <img> has $old and one has $new.
+ * one is given. The old srcset and sizes are dropped, since they list files of the old image. Done already (content
+ * returned unchanged) when no <img> has $old and one has $new. Elements and attributes are found with WordPress's
+ * HTML tag processor, so a src inside another attribute's value or inside a comment is never taken for an image.
  */
 function boblift_content_insert_image(string $content, string $old, string $new, ?string $alt): string|WP_Error
 {
@@ -291,35 +294,37 @@ function boblift_content_insert_image(string $content, string $old, string $new,
     if ((int) attachment_url_to_postid($absolute) <= 0) {
         return new WP_Error('boblift_insert_image', sprintf('"%s" is not a file in this site\'s media library.', $new), ['status' => 400]);
     }
-    $src_of = static function (string $tag): ?string {
-        return preg_match('~\ssrc\s*=\s*("|\')(.*?)\1~is', $tag, $m) ? html_entity_decode($m[2], ENT_QUOTES | ENT_HTML5) : null;
-    };
-    preg_match_all('~<img\b(?:[^>"\']|"[^"]*"|\'[^\']*\')*>~i', $content, $tags, PREG_OFFSET_CAPTURE);
-    $found = [];
+    $found = 0;
     $done = false;
-    foreach ($tags[0] as [$tag, $offset]) {
-        $src = $src_of($tag);
+    $scan = new WP_HTML_Tag_Processor($content);
+    while ($scan->next_tag('img')) {
+        $src = $scan->get_attribute('src');
         if ($src === $old) {
-            $found[] = [$tag, $offset];
+            $found++;
         } elseif ($src === $new) {
             $done = true;
         }
     }
-    if ($found === []) {
+    if ($found === 0) {
         return $done ? $content : new WP_Error('boblift_insert_image', sprintf('No <img> has the src "%s".', $old), ['status' => 400]);
     }
-    if (count($found) > 1) {
-        return new WP_Error('boblift_insert_image', sprintf('%d <img> tags have the src "%s"; it must be exactly one.', count($found), $old), ['status' => 400]);
+    if ($found > 1) {
+        return new WP_Error('boblift_insert_image', sprintf('%d <img> tags have the src "%s"; it must be exactly one.', $found, $old), ['status' => 400]);
     }
-    [$tag, $offset] = $found[0];
-    $swapped = preg_replace_callback('~(\ssrc\s*=\s*)("|\')(.*?)\2~is', static fn(array $m): string => $m[1] . '"' . esc_attr($new) . '"', $tag, 1);
-    if ($alt !== null) {
-        $alt_attr = 'alt="' . esc_attr($alt) . '"';
-        $swapped = preg_match('~\salt\s*=\s*("|\').*?\1~is', $swapped)
-            ? preg_replace_callback('~(\s)alt\s*=\s*("|\').*?\2~is', static fn(array $m): string => $m[1] . $alt_attr, $swapped, 1)
-            : preg_replace('~^<img\b~i', '<img ' . $alt_attr, $swapped, 1);
+    $edit = new WP_HTML_Tag_Processor($content);
+    while ($edit->next_tag('img')) {
+        if ($edit->get_attribute('src') !== $old) {
+            continue;
+        }
+        $edit->set_attribute('src', $new);
+        $edit->remove_attribute('srcset');
+        $edit->remove_attribute('sizes');
+        if ($alt !== null) {
+            $edit->set_attribute('alt', $alt);
+        }
+        break;
     }
-    return substr($content, 0, $offset) . $swapped . substr($content, $offset + strlen($tag));
+    return $edit->get_updated_html();
 }
 
 function boblift_content_insert_after(string $content, string $after, string $html): string|WP_Error

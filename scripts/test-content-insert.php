@@ -39,6 +39,35 @@ function attachment_url_to_postid(string $url): int
 {
     return str_starts_with($url, 'https://example.com/wp-content/uploads/new/') ? 7 : 0;
 }
+// The image cases need WordPress's HTML API: WP_CORE_DIR=/path/to/wordpress php scripts/test-content-insert.php
+$wp_core = getenv('WP_CORE_DIR') ?: '';
+if ($wp_core !== '') {
+    function esc_url(string $url): string
+    {
+        return str_replace(['"', "'", ' '], ['%22', '%27', '%20'], $url);
+    }
+    function wp_kses_uri_attributes(): array
+    {
+        return ['href', 'src', 'srcset', 'action', 'cite', 'longdesc', 'usemap', 'data', 'formaction', 'poster', 'xmlns'];
+    }
+    function wp_has_noncharacters(string $text): bool
+    {
+        return false;
+    }
+    function __(string $text): string
+    {
+        return $text;
+    }
+    function _doing_it_wrong(...$args): void
+    {
+    }
+    require_once "{$wp_core}/wp-includes/class-wp-token-map.php";
+    foreach (['class-wp-html-attribute-token', 'class-wp-html-span', 'class-wp-html-text-replacement', 'class-wp-html-decoder', 'html5-named-character-references', 'class-wp-html-doctype-info', 'class-wp-html-tag-processor'] as $file) {
+        if (is_file("{$wp_core}/wp-includes/html-api/{$file}.php")) {
+            require_once "{$wp_core}/wp-includes/html-api/{$file}.php";
+        }
+    }
+}
 require dirname(__DIR__) . '/inc/rest-content-insert.php';
 
 $cases = [
@@ -82,19 +111,26 @@ if (boblift_content_insert_apply($once, $value) !== $once || !str_contains($once
 // Image swaps: [content, item, wanted content or error code].
 $new = '/wp-content/uploads/new/b.png';
 $images = [
-    'swap src and alt' => ['<p>x</p><figure><img src="/a.png" alt="Old" width="2"></figure>', ['image' => '/a.png', 'src' => $new, 'alt' => "Kid's 11 m"], '<p>x</p><figure><img src="' . $new . '" alt="Kid&#039;s 11 m" width="2"></figure>'],
-    'swap src only' => ['<img alt="Old" src=\'/a.png\'>', ['image' => '/a.png', 'src' => $new], '<img alt="Old" src="' . $new . '">'],
-    'add a missing alt' => ['<img src="/a.png">', ['image' => '/a.png', 'src' => $new, 'alt' => 'A'], '<img alt="A" src="' . $new . '">'],
+    'swap src and alt' => ['<p>x</p><figure><img src="/a.png" alt="Old" width="2"></figure>', ['image' => '/a.png', 'src' => $new, 'alt' => "Kid's \$10 chart"], '<p>x</p><figure><img src="' . $new . '" alt="Kid&apos;s $10 chart" width="2"></figure>'],
+    'swap src only' => ["<img alt=\"Old\" src='/a.png'>", ['image' => '/a.png', 'src' => $new], '<img alt="Old" src="' . $new . '">'],
+    'add a missing alt' => ['<img src="/a.png">', ['image' => '/a.png', 'src' => $new, 'alt' => '$1 A'], '<img alt="$1 A" src="' . $new . '">'],
+    'drop the old srcset' => ['<img src="/a.png" srcset="/a-300.png 300w" sizes="100vw" alt="o">', ['image' => '/a.png', 'src' => $new], '<img src="' . $new . '"   alt="o">'],
     'data-alt untouched' => ['<img data-alt="k" src="/a.png" alt="o">', ['image' => '/a.png', 'src' => $new, 'alt' => 'A'], '<img data-alt="k" src="' . $new . '" alt="A">'],
     'already swapped' => ['<img src="' . $new . '" alt="A">', ['image' => '/a.png', 'src' => $new, 'alt' => 'A'], '<img src="' . $new . '" alt="A">'],
     'only the matching image' => ['<img src="/c.png"><img src="/a.png">', ['image' => '/a.png', 'src' => $new], '<img src="/c.png"><img src="' . $new . '">'],
+    'src inside another attribute' => ["<img title='x src=\"/a.png\"' src=\"/c.png\">", ['image' => '/a.png', 'src' => $new], 'boblift_insert_image'],
+    'image inside a comment' => ['<!-- <img src="/a.png"> --><img src="/a.png">', ['image' => '/a.png', 'src' => $new], '<!-- <img src="/a.png"> --><img src="' . $new . '">'],
     'src in text only' => ['<p>/a.png</p>', ['image' => '/a.png', 'src' => $new], 'boblift_insert_image'],
     'image twice' => ['<img src="/a.png"><img src="/a.png">', ['image' => '/a.png', 'src' => $new], 'boblift_insert_image'],
     'not in the media library' => ['<img src="/a.png">', ['image' => '/a.png', 'src' => '/elsewhere/b.png'], 'boblift_insert_image'],
     'quote in src' => ['<img src="/a.png">', ['image' => '/a.png', 'src' => '/wp-content/uploads/new/b".png'], 'boblift_insert_image'],
     'tag in alt' => ['<img src="/a.png">', ['image' => '/a.png', 'src' => $new, 'alt' => '<b>'], 'boblift_insert_image'],
-    'two swaps in a list' => ['<img src="/a.png"><img src="/c.png">', [['image' => '/a.png', 'src' => $new], ['image' => '/c.png', 'src' => '/wp-content/uploads/new/d.png']], '<img src="' . $new . '"><img src="/wp-content/uploads/new/d.png">'],
+    'swap with another item' => ['<p>A</p><img src="/a.png">', [['after' => 'A', 'html' => '<p>N</p>'], ['image' => '/a.png', 'src' => $new]], 'boblift_insert_replace'],
 ];
+if (!class_exists('WP_HTML_Tag_Processor')) {
+    echo 'SKIPPED ' . count($images) . " image cases: set WP_CORE_DIR to a WordPress copy\n";
+    $images = [];
+}
 foreach ($images as $name => [$content, $item, $want]) {
     $got = boblift_content_insert_apply($content, $item);
     $got = is_wp_error($got) ? $got->code : $got;
