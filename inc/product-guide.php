@@ -72,7 +72,9 @@ function boblift_product_category_lineage(int $product_id): array
 
 /**
  * Whether the crane order terms (12-month warranty, from 1 unit, container loading) apply: the product
- * must sit in a crane family, and nowhere in the access equipment, tail lifts or fly jibs those terms exclude.
+ * must sit in a crane family, and nowhere in the access equipment or tail lifts those terms exclude.
+ * Forklift jib cranes carry the same whole-machine 12-month warranty (the forklift jib catalogue, approved
+ * by the user on 2026-11-02, and the user on 2026-11-10).
  */
 function boblift_product_crane_terms_apply(int $product_id): bool
 {
@@ -81,10 +83,10 @@ function boblift_product_crane_terms_apply(int $product_id): bool
     $cranes = [
         'truck-mounted-crane', 'knuckle-boom-truck-mounted-cranes', 'telescopic-boom-truck-mounted-cranes', 'pickup-cranes',
         'marine-crane', 'knuckle-boom-marine-cranes', 'telescopic-boom-marine-cranes',
-        'other-cranes', 'spider-cranes', 'timber-cranes', 'electric-mini-cranes',
+        'other-cranes', 'spider-cranes', 'timber-cranes', 'electric-mini-cranes', 'forklift-fly-jib-cranes',
     ];
     return (bool) array_intersect($lineage, $cranes)
-        && !array_intersect($lineage, ['aerial-work-platform', 'tail-lift', 'forklift-fly-jib-cranes']);
+        && !array_intersect($lineage, ['aerial-work-platform', 'tail-lift']);
 }
 
 /**
@@ -520,8 +522,8 @@ function boblift_product_ordering_faq_family(array $english_slugs): string
  * The theme's "Ordering and service" questions for the family, in this page's language or $language
  * (inc/translations/product-ordering-faq.php). A list saved for the family (site_ui.productDetail.faqItemsByFamily,
  * written through the boblift_product_faq REST field) replaces it on the page.
- * Facts only: warranty, reply and parts times and training as confirmed by the factory on 2026-10-27; the 12-month
- * warranty is not stated for forklift jib cranes, which the crane order terms do not cover.
+ * Facts only: warranty, reply and parts times and training as confirmed by the factory on 2026-10-27, forklift jib
+ * cranes included.
  */
 function boblift_product_ordering_faqs(string $family, ?string $language = null): array
 {
@@ -559,7 +561,7 @@ function boblift_product_ordering_faqs(string $family, ?string $language = null)
             ['How does the jib crane fit our forklift?', 'The crane frame hangs on the fork carriage where the forks normally sit, and the boom runs from the forklift\'s auxiliary hydraulic circuit. Send a side photo of the forklift, its data plate and whether it has an auxiliary circuit, and our engineers confirm the fit.'],
             $delivery,
             $training,
-            ['What after-sales support is available?', 'Send the model, serial number and a photo or video of the issue; our team guides the repair and ships the parts.'],
+            $service,
         ],
     ];
     return array_map(static fn(array $item): array => [
