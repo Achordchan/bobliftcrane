@@ -2349,7 +2349,7 @@ function boblift_product_card(array $product, string $extra_class = '', bool $ea
                     <?php if ($card_view['eyebrow'] !== '') : ?><p class="product-card-eyebrow boblift-kicker mb-1.5"><?php echo esc_html($card_view['eyebrow']); ?></p><?php endif; ?>
                     <?php // Beside the title while it fits, otherwise under it. The models stay in the text for readers and search. ?>
                     <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                    <h2 aria-label="<?php echo esc_attr($card_view['full_title']); ?>" class="product-card-title line-clamp-2 text-[clamp(19px,1.45vw,23px)] font-black leading-[1.12] text-[#0B3F7D]"><?php echo esc_html($card_view['title']); ?></h2>
+                    <h3 aria-label="<?php echo esc_attr($card_view['full_title']); ?>" class="product-card-title line-clamp-2 text-[clamp(19px,1.45vw,23px)] font-black leading-[1.12] text-[#0B3F7D]"><?php echo esc_html($card_view['title']); ?></h3>
                     <?php $card_subtitle = boblift_series_card_subtitle($card_view); if ($card_subtitle !== '') : ?><p class="product-card-code whitespace-nowrap text-[13px] font-normal text-slate-500"><?php echo wp_kses($card_subtitle, ['bdi' => [], 'span' => ['class' => true]]); ?></p><?php endif; ?>
                     </div>
                     <?php if (count($card_view['configs']) > 1) : ?><span class="sr-only"><?php echo esc_html(implode(', ', array_column($card_view['configs'], 'model'))); ?></span><?php endif; ?>
