@@ -13,8 +13,8 @@ if (!defined('ABSPATH')) {
  * quotes or backslashes). The JSON-LD is decoded and the phrase is looked for in its string values only, never in keys
  * or in the JSON syntax; it must occur exactly once across all of them. When it no longer occurs and "with" does, the
  * item is already done and nothing is saved, so the request can be sent again safely; matches that lie inside an
- * occurrence of "with" are not counted. The document is stored re-encoded the way the importers write it (unescaped
- * slashes and Unicode, pretty-printed when it was), with a compare-and-set on the row it read.
+ * occurrence of "with" are not counted. Only the string literal that holds the match is rewritten; the rest of the
+ * stored text (numbers, keys, formatting) is kept byte for byte. The save is a compare-and-set on the row it read.
  */
 function boblift_schema_replace_types(): array
 {
@@ -89,62 +89,69 @@ function boblift_schema_replace_apply(string $stored, mixed $value): string|WP_E
     if (!is_string($from) || !is_string($to) || $from === '' || $to === '' || $from === $to || preg_match('/[<>"\'\\\\\x00]/', $from . $to)) {
         return $error('"replace" and "with" are different, non-empty plain text (no "<", ">", quotes or backslashes).');
     }
-    $trimmed = trim($stored);
-    // Decoded to objects so an empty {} stays an object when the document is written back.
-    $document = $trimmed === '' ? null : json_decode($trimmed);
-    if (!is_array($document) && !is_object($document)) {
+    if (trim($stored) === '' || json_decode($stored) === null) {
         return $error('This item has no JSON-LD of its own to correct.');
     }
+    // Only the string values that hold a match are rewritten in place; keys, numbers, formatting and every other string
+    // stay byte for byte as stored, so nothing outside the requested correction can change on the way through.
+    $values = boblift_schema_replace_string_values($stored);
     $found = 0;
     $already = false;
-    $count = static function (mixed $node) use (&$count, &$found, &$already, $from, $to): void {
-        if (is_string($node)) {
-            $found += count(boblift_schema_replace_offsets($node, $from, $to));
-            $already = $already || str_contains($node, $to);
-            return;
-        }
-        if (is_array($node) || is_object($node)) {
-            foreach ($node as $child) {
-                $count($child);
-            }
-        }
-    };
-    $count($document);
+    foreach ($values as [, , $text]) {
+        $found += count(boblift_schema_replace_offsets($text, $from, $to));
+        $already = $already || str_contains($text, $to);
+    }
     if ($found === 0) {
         return $already ? $stored : $error(sprintf('"%s" does not occur in this item\'s JSON-LD.', $from));
     }
     if ($found > 1) {
         return $error(sprintf('"%s" occurs %d times in this item\'s JSON-LD; it must occur exactly once. Send a longer phrase.', $from, $found));
     }
-    $replace = static function (mixed $node) use (&$replace, $from, $to): mixed {
-        if (is_string($node)) {
-            // Right to left, so earlier offsets stay valid.
-            foreach (array_reverse(boblift_schema_replace_offsets($node, $from, $to)) as $offset) {
-                $node = substr_replace($node, $to, $offset, strlen($from));
-            }
-            return $node;
+    $result = $stored;
+    // Right to left, so the byte offsets of earlier tokens stay valid.
+    foreach (array_reverse($values) as [$offset, $length, $text]) {
+        $hits = boblift_schema_replace_offsets($text, $from, $to);
+        if ($hits === []) {
+            continue;
         }
-        if (is_array($node)) {
-            return array_map($replace, $node);
+        foreach (array_reverse($hits) as $at) {
+            $text = substr_replace($text, $to, $at, strlen($from));
         }
-        if (is_object($node)) {
-            foreach (get_object_vars($node) as $key => $child) {
-                $node->$key = $replace($child);
-            }
+        $token = json_encode($text, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        if (!is_string($token)) {
+            return $error('The corrected JSON-LD could not be encoded.');
         }
-        return $node;
-    };
-    $result = $replace($document);
+        $result = substr_replace($result, $token, $offset, $length);
+    }
     // A correction is accepted only when sending it again would change nothing: if the result still holds a match
     // (one formed across the edge of the new text, as "11 m" -> "1 m" does in "111 m"), it is refused instead.
-    $found = 0;
-    $count($result);
-    if ($found > 0) {
-        return $error(sprintf('Replacing "%s" with "%s" here leaves a new "%s", so the correction could not be repeated safely. Send a longer phrase.', $from, $to, $from));
+    foreach (boblift_schema_replace_string_values($result) as [, , $text]) {
+        if (boblift_schema_replace_offsets($text, $from, $to) !== []) {
+            return $error(sprintf('Replacing "%s" with "%s" here leaves a new "%s", so the correction could not be repeated safely. Send a longer phrase.', $from, $to, $from));
+        }
     }
-    $flags = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | (str_contains($trimmed, "\n") ? JSON_PRETTY_PRINT : 0);
-    $encoded = json_encode($result, $flags);
-    return is_string($encoded) ? $encoded : $error('The corrected JSON-LD could not be encoded.');
+    return $result;
+}
+
+/**
+ * The string values of a JSON document as [byte offset, byte length, decoded text], keys left out. String literals are
+ * matched on the raw text (a literal cannot hold an unescaped quote, so the scan cannot lose its place), and a literal
+ * followed by ":" is a key.
+ */
+function boblift_schema_replace_string_values(string $json): array
+{
+    preg_match_all('/"(?:[^"\\\\]|\\\\.)*"(?=(\s*:)?)/s', $json, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
+    $values = [];
+    foreach ($matches as $match) {
+        if (($match[1][0] ?? '') !== '') {
+            continue;
+        }
+        $text = json_decode($match[0][0]);
+        if (is_string($text)) {
+            $values[] = [$match[0][1], strlen($match[0][0]), $text];
+        }
+    }
+    return $values;
 }
 
 /**

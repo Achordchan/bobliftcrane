@@ -66,6 +66,9 @@ $cases = [
     'replace inside with, mixed' => ['{"text":"15 m and 5 m"}', ['replace' => '5 m', 'with' => '15 m'], '{"text":"15 m and 15 m"}'],
     'overlapping matches' => ['{"text":"111 mm"}', ['replace' => '11', 'with' => '1'], 'boblift_schema_replace'],
     'replacement recreates the phrase' => ['{"text":"111 m"}', ['replace' => '11 m', 'with' => '1 m'], 'boblift_schema_replace'],
+    'large number kept' => ['{"id":123456789012345678901234567890,"price":1.10,"t":"15.2 m"}', ['replace' => '15.2 m', 'with' => '11 m'], '{"id":123456789012345678901234567890,"price":1.10,"t":"11 m"}'],
+    'escapes elsewhere kept' => ['{"url":"https:\\/\\/a.b\\/c","n":"\\u00e9","t":"15.2 m"}', ['replace' => '15.2 m', 'with' => '11 m'], '{"url":"https:\\/\\/a.b\\/c","n":"\\u00e9","t":"11 m"}'],
+    'key with escaped quote' => ['{"a\\"15.2 m":"x","t":"15.2 m"}', ['replace' => '15.2 m', 'with' => '11 m'], '{"a\\"15.2 m":"x","t":"11 m"}'],
     'same text' => [$faq, ['replace' => '15.2 m', 'with' => '15.2 m'], 'boblift_schema_replace'],
 ];
 $failed = 0;
