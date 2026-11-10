@@ -493,7 +493,9 @@ function boblift_product_faq_answered_topics(array $own, string $flow, string $p
         $figure = static fn(string $value): string => str_replace('\\.', '[.,]', preg_quote(str_replace(',', '.', $value), '/'));
         $range = implode('\s*(?:[-–—~～〜]|to|至|до|a|à|bis|إلى)\s*', array_map($figure, $quantity['figures']));
         $forms = implode('|', array_map(static fn(string $form): string => preg_quote($form, '/'), $quantity['units']));
-        return (bool) preg_match('/(?<![A-Za-z\d.,])' . $range . '\s*(?:' . $forms . ')(?![\p{L}])/iu', $text);
+        // The unit ends the word in scripts that space their words (bar, not barge); Japanese and Chinese write on without
+        // a space ("18 MPaで15 L/min"), so a kana or ideograph after the unit does not make it another word.
+        return (bool) preg_match('/(?<![A-Za-z\d.,])' . $range . '\s*(?:' . $forms . ')(?![A-Za-z\x{00C0}-\x{024F}\x{0400}-\x{04FF}\x{0621}-\x{064A}\x{066E}-\x{06D3}])/iu', $text);
     };
     $flow_quantity = $quantity($flow);
     $pressure_quantity = $quantity($pressure);
