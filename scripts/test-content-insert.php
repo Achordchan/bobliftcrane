@@ -30,14 +30,19 @@ function esc_attr(string $text): string
 {
     return htmlspecialchars($text, ENT_QUOTES);
 }
+$GLOBALS['test_home'] = 'https://example.com';
 function home_url(string $path = ''): string
 {
-    return 'https://example.com' . $path;
+    return $GLOBALS['test_home'] . $path;
 }
-// Stands in for the media library: only files under /uploads/new/ are attachments.
+function wp_parse_url(string $url): array|false
+{
+    return parse_url($url);
+}
+// Stands in for the media library: only files under /uploads/new/ (at the site root or in /blog) are attachments.
 function attachment_url_to_postid(string $url): int
 {
-    return str_starts_with($url, 'https://example.com/wp-content/uploads/new/') ? 7 : 0;
+    return preg_match('~^https://example\.com(/blog)?/wp-content/uploads/new/~', $url) === 1 ? 7 : 0;
 }
 // The image cases need WordPress's HTML API: WP_CORE_DIR=/path/to/wordpress php scripts/test-content-insert.php
 $wp_core = getenv('WP_CORE_DIR') ?: '';
@@ -125,6 +130,9 @@ $images = [
     'not in the media library' => ['<img src="/a.png">', ['image' => '/a.png', 'src' => '/elsewhere/b.png'], 'boblift_insert_image'],
     'quote in src' => ['<img src="/a.png">', ['image' => '/a.png', 'src' => '/wp-content/uploads/new/b".png'], 'boblift_insert_image'],
     'tag in alt' => ['<img src="/a.png">', ['image' => '/a.png', 'src' => $new, 'alt' => '<b>'], 'boblift_insert_image'],
+    'attachment class follows' => ['<img class="aligncenter wp-image-3 size-full" src="/a.png">', ['image' => '/a.png', 'src' => $new], '<img class="aligncenter size-full wp-image-7" src="' . $new . '">'],
+    'block id follows' => ['<!-- wp:image {"id":3,"sizeSlug":"full"} --><figure class="wp-block-image"><img src="/a.png" class="wp-image-3"></figure><!-- /wp:image --><!-- wp:image {"id":31} -->', ['image' => '/a.png', 'src' => $new], '<!-- wp:image {"id":7,"sizeSlug":"full"} --><figure class="wp-block-image"><img src="' . $new . '" class="wp-image-7"></figure><!-- /wp:image --><!-- wp:image {"id":31} -->'],
+    'no class, no id added' => ['<img class="big" src="/a.png">', ['image' => '/a.png', 'src' => $new], '<img class="big" src="' . $new . '">'],
     'swap with another item' => ['<p>A</p><img src="/a.png">', [['after' => 'A', 'html' => '<p>N</p>'], ['image' => '/a.png', 'src' => $new]], 'boblift_insert_replace'],
 ];
 if (!class_exists('WP_HTML_Tag_Processor')) {
@@ -139,5 +147,17 @@ foreach ($images as $name => [$content, $item, $want]) {
         echo "FAIL image: {$name}\n  want: " . json_encode($want) . "\n  got:  " . json_encode($got) . "\n";
     }
 }
-echo $failed ? "{$failed} failed\n" : (count($cases) + count($images) + 1) . " passed\n";
+// WordPress in a subdirectory: a root-relative src already carries the /blog path.
+$extra = 0;
+if ($images) {
+    $extra = 1;
+    $GLOBALS['test_home'] = 'https://example.com/blog';
+    $got = boblift_content_insert_apply('<img src="/a.png">', ['image' => '/a.png', 'src' => '/blog' . $new]);
+    $GLOBALS['test_home'] = 'https://example.com';
+    if ($got !== '<img src="/blog' . $new . '">') {
+        $failed++;
+        echo "FAIL image: subdirectory home\n  got:  " . json_encode(is_wp_error($got) ? $got->code : $got) . "\n";
+    }
+}
+echo $failed ? "{$failed} failed\n" : (count($cases) + count($images) + $extra + 1) . " passed\n";
 exit($failed ? 1 : 0);

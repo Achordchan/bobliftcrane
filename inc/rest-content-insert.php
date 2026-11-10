@@ -277,9 +277,13 @@ function boblift_content_insert_replace(string $content, string $from, string $t
 
 /**
  * Points the one <img> whose src is $old at $new, a file in this site's media library, and sets its alt to $alt when
- * one is given. The old srcset and sizes are dropped, since they list files of the old image. Done already (content
- * returned unchanged) when no <img> has $old and one has $new. Elements and attributes are found with WordPress's
- * HTML tag processor, so a src inside another attribute's value or inside a comment is never taken for an image.
+ * one is given. The old srcset and sizes are dropped, since they list files of the old image. The image's attachment
+ * identity follows the file: a wp-image-<id> class is set to the new attachment's ID (other classes kept), and so is
+ * the "id" of the block-editor comment (<!-- wp:image {"id":<old id>} -->) when exactly one such comment names the old
+ * ID. Done already (content returned unchanged) when no <img> has $old and one has $new. Elements and attributes are
+ * found with WordPress's HTML tag processor, so a src inside another attribute's value or inside a comment is never
+ * taken for an image. A root-relative $new resolves against the site's scheme and host, not its home path, so it also
+ * works when WordPress lives in a subdirectory.
  */
 function boblift_content_insert_image(string $content, string $old, string $new, ?string $alt): string|WP_Error
 {
@@ -290,8 +294,16 @@ function boblift_content_insert_image(string $content, string $old, string $new,
     if ($alt !== null && ($alt === '' || preg_match('/[<>"\x00]/', $alt))) {
         return new WP_Error('boblift_insert_image', 'An "image" item\'s "alt" is plain, non-empty text (no "<", ">" or double quotes).', ['status' => 400]);
     }
-    $absolute = str_starts_with($new, '/') ? home_url($new) : $new;
-    if ((int) attachment_url_to_postid($absolute) <= 0) {
+    $absolute = $new;
+    if (str_starts_with($new, '/') && !str_starts_with($new, '//')) {
+        $home = wp_parse_url(home_url());
+        if (!is_array($home) || empty($home['host'])) {
+            return new WP_Error('boblift_insert_image', 'The site address could not be read to resolve the new src.', ['status' => 500]);
+        }
+        $absolute = ($home['scheme'] ?? 'https') . '://' . $home['host'] . (isset($home['port']) ? ':' . $home['port'] : '') . $new;
+    }
+    $new_id = (int) attachment_url_to_postid($absolute);
+    if ($new_id <= 0) {
         return new WP_Error('boblift_insert_image', sprintf('"%s" is not a file in this site\'s media library.', $new), ['status' => 400]);
     }
     $found = 0;
@@ -311,6 +323,7 @@ function boblift_content_insert_image(string $content, string $old, string $new,
     if ($found > 1) {
         return new WP_Error('boblift_insert_image', sprintf('%d <img> tags have the src "%s"; it must be exactly one.', $found, $old), ['status' => 400]);
     }
+    $old_id = 0;
     $edit = new WP_HTML_Tag_Processor($content);
     while ($edit->next_tag('img')) {
         if ($edit->get_attribute('src') !== $old) {
@@ -322,9 +335,25 @@ function boblift_content_insert_image(string $content, string $old, string $new,
         if ($alt !== null) {
             $edit->set_attribute('alt', $alt);
         }
+        foreach (iterator_to_array($edit->class_list(), false) as $class) {
+            if (preg_match('/^wp-image-(\d+)$/', $class, $m) === 1) {
+                $old_id = (int) $m[1];
+                $edit->remove_class($class);
+            }
+        }
+        if ($old_id > 0) {
+            $edit->add_class('wp-image-' . $new_id);
+        }
         break;
     }
-    return $edit->get_updated_html();
+    $content = $edit->get_updated_html();
+    if ($old_id > 0 && $old_id !== $new_id) {
+        $block = '~(<!--\s+wp:image\s+\{[^>]*?"id":)' . $old_id . '(?=[,}])~';
+        if (preg_match_all($block, $content) === 1) {
+            $content = preg_replace_callback($block, static fn(array $m): string => $m[1] . $new_id, $content);
+        }
+    }
+    return $content;
 }
 
 function boblift_content_insert_after(string $content, string $after, string $html): string|WP_Error
