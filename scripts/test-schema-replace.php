@@ -14,7 +14,36 @@ function is_wp_error($thing): bool
 function add_action(...$args): void
 {
 }
+$GLOBALS['filters'] = [];
+function add_filter(string $hook, callable $callback, ...$args): void
+{
+    $GLOBALS['filters'][$hook][] = $callback;
+}
+// Just enough of WP_REST_Request for the JSON-string decoding filter.
+class WP_REST_Request
+{
+    public function __construct(private string $method, private string $route, private array $params)
+    {
+    }
+    public function get_method(): string
+    {
+        return $this->method;
+    }
+    public function get_route(): string
+    {
+        return $this->route;
+    }
+    public function get_param(string $key): mixed
+    {
+        return $this->params[$key] ?? null;
+    }
+    public function set_param(string $key, mixed $value): void
+    {
+        $this->params[$key] = $value;
+    }
+}
 require dirname(__DIR__) . '/inc/rest-schema-replace.php';
+require dirname(__DIR__) . '/inc/rest-json-string-fields.php';
 
 $faq = '{"@context":"https://schema.org","@type":"FAQPage","url":"{{home}}/a.html","mainEntity":[{"@type":"Question","name":"How far?","acceptedAnswer":{"@type":"Answer","text":"From 5.4 m to 15.2 m on the 7 ton model."}}],"empty":{}}';
 $pretty = "{\n    \"@type\": \"Article\",\n    \"headline\": \"Reach 15.2 m\"\n}";
@@ -43,5 +72,15 @@ foreach ($cases as $name => [$stored, $value, $want]) {
         echo "FAIL {$name}\n  want: " . json_encode($want) . "\n  got:  " . json_encode($got) . "\n";
     }
 }
-echo $failed ? "{$failed} failed\n" : count($cases) . " passed\n";
+// The WordPress.com connector sends the field as a JSON string; it must reach the callback as an object.
+$request = new WP_REST_Request('POST', '/wp/v2/posts/5160', ['boblift_schema_replace' => '{"replace":"15.2 m","with":"11 m"}']);
+foreach ($GLOBALS['filters']['rest_pre_dispatch'] ?? [] as $filter) {
+    $filter(null, null, $request);
+}
+$decoded = $request->get_param('boblift_schema_replace');
+if ($decoded !== ['replace' => '15.2 m', 'with' => '11 m'] || boblift_schema_replace_apply('{"t":"15.2 m"}', $decoded) !== '{"t":"11 m"}') {
+    $failed++;
+    echo "FAIL connector JSON string\n  got: " . json_encode($decoded) . "\n";
+}
+echo $failed ? "{$failed} failed\n" : (count($cases) + 1) . " passed\n";
 exit($failed ? 1 : 0);
