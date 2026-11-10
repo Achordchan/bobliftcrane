@@ -259,6 +259,8 @@ $check('decimal comma matches a decimal point', ['hydraulic'], boblift_product_f
 $check('no spec figures, no hydraulic topic', [], boblift_product_faq_answered_topics([$own('Hydraulic power?', '15 L/min at 18 MPa.')], '', ''));
 $check('a warranty question without the 12 months is not taken', [], boblift_product_faq_answered_topics([$own('What warranty comes with it?', 'Ask us.')], '', ''));
 $check('no own questions, nothing answered', [], boblift_product_faq_answered_topics([], '15 L/min', '18 MPa'));
+$check('a range needs both ends', [], boblift_product_faq_answered_topics([$own('Flow?', '40 L/min at 18 MPa.')], '40–60 L/min', '18 MPa'));
+$check('a range given in full answers it', ['hydraulic'], boblift_product_faq_answered_topics([$own('Flow?', '40–60 L/min at 18 MPa.')], '40–60 L/min', '18 MPa'));
 
 // An old language host's configuration address: the series page in that language, else in English.
 $oldMap = [
