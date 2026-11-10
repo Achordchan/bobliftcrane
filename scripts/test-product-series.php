@@ -268,6 +268,8 @@ $check('pressure in bar', ['hydraulic'], boblift_product_faq_answered_topics([$o
 $check('a unit the list does not know answers nothing', [], boblift_product_faq_answered_topics([$own('?', '5 gpm at 2,600 psi.')], '5 gpm', '2600 psi'));
 $check('a passing mention under another question is not the supply question', [], boblift_product_faq_answered_topics([$own('What size of boat suits it?', 'We size the crane by load. It weighs 380 kg and needs 15 L/min at 18 MPa from about 7.5 kW.')], '15 L/min', '18 MPa'));
 $check('an answer that opens with the pressure', ['hydraulic'], boblift_product_faq_answered_topics([$own('液压？', '18 MPa 下流量 15 L/min，约 7.5 kW。')], '15 L/min', '18 MPa'));
+$check('Japanese writes on after the unit', ['hydraulic'], boblift_product_faq_answered_topics([$own('SQ1ZA4に必要な油圧動力は？', '18 MPaで15 L/min、約7.5 kWで、通常はトラックのPTOから取り出します。')], '15 L/min', '18 MPa'));
+$check('a unit inside a longer word is not the unit', [], boblift_product_faq_answered_topics([$own('?', '20 L/min at 160 barge.')], '20 L/min', '160 bar'));
 $check('a model code before the figures', ['hydraulic'], boblift_product_faq_answered_topics([$own('Hydraulic power?', 'The SQ1ZA4 requires 15 L/min at 18 MPa.')], '15 L/min', '18 MPa'));
 $check('a model code with +1 before the figures', ['hydraulic'], boblift_product_faq_answered_topics([$own('Hydraulic power?', 'The SQ1ZA3+1 requires 15 L/min at 18 MPa.')], '15 L/min', '18 MPa'));
 $check('a decimal model code before the figures', ['hydraulic'], boblift_product_faq_answered_topics([$own('Hydraulic power?', 'The SQ3.2SA4T needs 25 L/min at 20 MPa.')], '25 L/min', '20 MPa'));
