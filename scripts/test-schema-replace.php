@@ -61,6 +61,9 @@ $cases = [
     'backslash in text' => [$faq, ['replace' => '15.2 m', 'with' => '11\\u0020m'], 'boblift_schema_replace'],
     'list instead of object' => [$faq, [['replace' => '15.2 m', 'with' => '11 m']], 'boblift_schema_replace'],
     'extra key' => [$faq, ['replace' => '15.2 m', 'with' => '11 m', 'in' => 'x'], 'boblift_schema_replace'],
+    'with inside replace' => ['{"text":"15.2 m"}', ['replace' => '15.2 m', 'with' => '5.2 m'], '{"text":"5.2 m"}'],
+    'with inside replace, done' => ['{"text":"5.2 m"}', ['replace' => '15.2 m', 'with' => '5.2 m'], '{"text":"5.2 m"}'],
+    'replace inside with, mixed' => ['{"text":"15 m and 5 m"}', ['replace' => '5 m', 'with' => '15 m'], '{"text":"15 m and 15 m"}'],
     'same text' => [$faq, ['replace' => '15.2 m', 'with' => '15.2 m'], 'boblift_schema_replace'],
 ];
 $failed = 0;
@@ -72,6 +75,41 @@ foreach ($cases as $name => [$stored, $value, $want]) {
         echo "FAIL {$name}\n  want: " . json_encode($want) . "\n  got:  " . json_encode($got) . "\n";
     }
 }
+// Compare-and-set: another save lands between this request's read and its write; the correction re-applies on top.
+function wp_cache_delete(...$args): bool
+{
+    return true;
+}
+$GLOBALS['wpdb'] = new class {
+    public string $postmeta = 'wp_postmeta';
+    public string $value = '{"a":"15.2 m","b":"old"}';
+    public int $writes = 0;
+    public function prepare(string $sql, ...$args): array
+    {
+        return [$sql, $args];
+    }
+    public function get_row(array $q): object
+    {
+        return (object) ['meta_id' => 9, 'meta_value' => $this->value];
+    }
+    public function query(array $q): int
+    {
+        [, [$new, , $expected]] = $q;
+        if (++$this->writes === 1) {
+            $this->value = '{"a":"15.2 m","b":"new"}'; // the concurrent save wins the first race
+        }
+        if ($this->value !== $expected) {
+            return 0;
+        }
+        $this->value = $new;
+        return 1;
+    }
+};
+$saved = boblift_schema_replace_save(5160, ['replace' => '15.2 m', 'with' => '11 m']);
+if ($saved !== '{"a":"11 m","b":"new"}' || $GLOBALS['wpdb']->value !== $saved) {
+    $failed++;
+    echo "FAIL compare-and-set\n  got: " . json_encode(is_wp_error($saved) ? $saved->code : $saved) . "\n";
+}
 // The WordPress.com connector sends the field as a JSON string; it must reach the callback as an object.
 $request = new WP_REST_Request('POST', '/wp/v2/posts/5160', ['boblift_schema_replace' => '{"replace":"15.2 m","with":"11 m"}']);
 foreach ($GLOBALS['filters']['rest_pre_dispatch'] ?? [] as $filter) {
@@ -82,5 +120,5 @@ if ($decoded !== ['replace' => '15.2 m', 'with' => '11 m'] || boblift_schema_rep
     $failed++;
     echo "FAIL connector JSON string\n  got: " . json_encode($decoded) . "\n";
 }
-echo $failed ? "{$failed} failed\n" : (count($cases) + 1) . " passed\n";
+echo $failed ? "{$failed} failed\n" : (count($cases) + 2) . " passed\n";
 exit($failed ? 1 : 0);

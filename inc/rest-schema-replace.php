@@ -12,8 +12,9 @@ if (!defined('ABSPATH')) {
  * Write: {"replace": "15.2 m on the 7 ton model", "with": "11 m on the 7 ton model"}. Both are plain text (no "<", ">",
  * quotes or backslashes). The JSON-LD is decoded and the phrase is looked for in its string values only, never in keys
  * or in the JSON syntax; it must occur exactly once across all of them. When it no longer occurs and "with" does, the
- * item is already done and nothing is saved, so the request can be sent again safely. The document is stored re-encoded
- * the way the importers write it (unescaped slashes and Unicode, pretty-printed when it was).
+ * item is already done and nothing is saved, so the request can be sent again safely; matches that lie inside an
+ * occurrence of "with" are not counted. The document is stored re-encoded the way the importers write it (unescaped
+ * slashes and Unicode, pretty-printed when it was), with a compare-and-set on the row it read.
  */
 function boblift_schema_replace_types(): array
 {
@@ -28,13 +29,9 @@ function boblift_register_rest_schema_replace_field(): void
             if (!current_user_can('edit_post', $post->ID)) {
                 return new WP_Error('rest_forbidden', 'You cannot edit this item.', ['status' => 403]);
             }
-            $stored = (string) get_post_meta($post->ID, '_article_schema_jsonld', true);
-            $updated = boblift_schema_replace_apply($stored, $value);
-            if (is_wp_error($updated)) {
-                return $updated;
-            }
-            if ($updated !== $stored) {
-                update_post_meta($post->ID, '_article_schema_jsonld', wp_slash($updated));
+            $saved = boblift_schema_replace_save($post->ID, $value);
+            if (is_wp_error($saved)) {
+                return $saved;
             }
             return true;
         },
@@ -46,6 +43,39 @@ function boblift_register_rest_schema_replace_field(): void
     ]);
 }
 add_action('rest_api_init', 'boblift_register_rest_schema_replace_field');
+
+/**
+ * Applies the correction to the stored JSON-LD and saves it with a byte-for-byte compare-and-set on the row it read, so
+ * two corrections sent at the same time cannot overwrite each other: the one that loses re-reads the fresh value and
+ * applies itself again (up to five times), and its own checks run against that value. Returns the saved document.
+ */
+function boblift_schema_replace_save(int $post_id, mixed $value): string|WP_Error
+{
+    global $wpdb;
+    for ($attempt = 0; $attempt < 5; $attempt++) {
+        $row = $wpdb->get_row($wpdb->prepare(
+            "SELECT meta_id, meta_value FROM {$wpdb->postmeta} WHERE post_id = %d AND meta_key = %s ORDER BY meta_id ASC LIMIT 1",
+            $post_id,
+            '_article_schema_jsonld'
+        ));
+        $stored = $row ? (string) $row->meta_value : '';
+        $updated = boblift_schema_replace_apply($stored, $value);
+        if (is_wp_error($updated) || $updated === $stored) {
+            return $updated;
+        }
+        $changed = $wpdb->query($wpdb->prepare(
+            "UPDATE {$wpdb->postmeta} SET meta_value = %s WHERE meta_id = %d AND BINARY meta_value = BINARY %s",
+            $updated,
+            (int) $row->meta_id,
+            $stored
+        ));
+        if ($changed === 1) {
+            wp_cache_delete($post_id, 'post_meta');
+            return $updated;
+        }
+    }
+    return new WP_Error('boblift_schema_replace_busy', 'The JSON-LD kept changing while the correction was saved; try again.', ['status' => 409]);
+}
 
 /** The stored JSON-LD with the phrase replaced, unchanged when already done, or the reason it cannot be applied. */
 function boblift_schema_replace_apply(string $stored, mixed $value): string|WP_Error
@@ -69,8 +99,7 @@ function boblift_schema_replace_apply(string $stored, mixed $value): string|WP_E
     $already = false;
     $count = static function (mixed $node) use (&$count, &$found, &$already, $from, $to): void {
         if (is_string($node)) {
-            // Occurrences inside an occurrence of "with" do not count, so "5 m" -> "15 m" is not undone by itself.
-            $found += substr_count(str_replace($to, "\x00", $node), $from);
+            $found += count(boblift_schema_replace_offsets($node, $from, $to));
             $already = $already || str_contains($node, $to);
             return;
         }
@@ -89,7 +118,11 @@ function boblift_schema_replace_apply(string $stored, mixed $value): string|WP_E
     }
     $replace = static function (mixed $node) use (&$replace, $from, $to): mixed {
         if (is_string($node)) {
-            return implode($to, array_map(static fn(string $part): string => str_replace($from, $to, $part), explode($to, $node)));
+            // Right to left, so earlier offsets stay valid.
+            foreach (array_reverse(boblift_schema_replace_offsets($node, $from, $to)) as $offset) {
+                $node = substr_replace($node, $to, $offset, strlen($from));
+            }
+            return $node;
         }
         if (is_array($node)) {
             return array_map($replace, $node);
@@ -104,4 +137,32 @@ function boblift_schema_replace_apply(string $stored, mixed $value): string|WP_E
     $flags = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | (str_contains($trimmed, "\n") ? JSON_PRETTY_PRINT : 0);
     $encoded = json_encode($replace($document), $flags);
     return is_string($encoded) ? $encoded : $error('The corrected JSON-LD could not be encoded.');
+}
+
+/**
+ * Byte offsets of $from in $text that do not lie inside an occurrence of $to, so a correction such as "5 m" -> "15 m"
+ * does not count its own result as a new match. When $to is shorter than or part of $from (e.g. "15.2 m" -> "5.2 m"), no
+ * occurrence of $to can hold a whole $from, so every match counts.
+ */
+function boblift_schema_replace_offsets(string $text, string $from, string $to): array
+{
+    $spans = [];
+    for ($at = strpos($text, $to); $at !== false; $at = strpos($text, $to, $at + 1)) {
+        $spans[] = [$at, $at + strlen($to)];
+    }
+    $offsets = [];
+    for ($at = strpos($text, $from); $at !== false; $at = strpos($text, $from, $at + strlen($from))) {
+        $end = $at + strlen($from);
+        $inside = false;
+        foreach ($spans as [$start, $stop]) {
+            if ($start <= $at && $end <= $stop) {
+                $inside = true;
+                break;
+            }
+        }
+        if (!$inside) {
+            $offsets[] = $at;
+        }
+    }
+    return $offsets;
 }
