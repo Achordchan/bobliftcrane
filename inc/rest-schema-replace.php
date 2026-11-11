@@ -182,3 +182,60 @@ function boblift_schema_replace_offsets(string $text, string $from, string $to):
     }
     return $offsets;
 }
+
+/**
+ * Posts also expose _article_schema_jsonld itself over REST (cases already do, in case-rest.php), so an item's stored
+ * JSON-LD can be replaced or cleared through the "meta" object of an update. Clearing it ("") lets the theme build the
+ * Article, BreadcrumbList and FAQPage from the page itself (boblift_news_article_schema_graph), in the page's language
+ * and with its own address, which is what a translation whose stored copy was left in English needs. A value that is not
+ * empty and not a JSON object or list is refused before anything is saved.
+ */
+function boblift_register_post_schema_meta(): void
+{
+    register_post_meta('post', '_article_schema_jsonld', [
+        'type' => 'string',
+        'single' => true,
+        'default' => '',
+        'show_in_rest' => true,
+        'sanitize_callback' => 'boblift_sanitize_post_schema_meta',
+        'auth_callback' => static fn($allowed, $meta_key, $post_id): bool => current_user_can('edit_post', (int) $post_id),
+    ]);
+}
+add_action('init', 'boblift_register_post_schema_meta', 20);
+
+/**
+ * A JSON object or list is stored exactly as given (trimmed), never decoded and re-encoded, so numbers beyond PHP's
+ * integer range, escapes and formatting survive; anything else is stored as "". It also runs on update_post_meta().
+ */
+function boblift_sanitize_post_schema_meta(mixed $value): string
+{
+    $value = is_string($value) ? trim($value) : '';
+    return $value !== '' && is_array(json_decode($value, true, 512, JSON_BIGINT_AS_STRING)) ? $value : '';
+}
+
+// Core REST returns registered meta whatever the post password, so a password-protected post's meta (its stored JSON-LD
+// can carry FAQ and article text) is left out for anyone who cannot edit it, as for cases, products and pages.
+add_filter('rest_prepare_post', 'boblift_hide_protected_case_rest_meta', 10, 2);
+
+/** The reason a requested _article_schema_jsonld value cannot be stored, or null when it can ("" clears it). */
+function boblift_post_schema_meta_error(mixed $meta): ?string
+{
+    if (!is_array($meta) || !array_key_exists('_article_schema_jsonld', $meta)) {
+        return null;
+    }
+    $value = $meta['_article_schema_jsonld'];
+    if ($value === null || (is_string($value) && trim($value) === '')) {
+        return null;
+    }
+    return is_string($value) && is_array(json_decode($value, true)) ? null : '_article_schema_jsonld: expected a JSON object or list, or "" to clear it.';
+}
+
+function boblift_validate_post_schema_meta(stdClass|WP_Error $prepared, WP_REST_Request $request): stdClass|WP_Error
+{
+    if (is_wp_error($prepared)) {
+        return $prepared;
+    }
+    $message = boblift_post_schema_meta_error($request->get_param('meta'));
+    return $message === null ? $prepared : new WP_Error('rest_invalid_param', $message, ['status' => 400, 'meta_key' => '_article_schema_jsonld']);
+}
+add_filter('rest_pre_insert_post', 'boblift_validate_post_schema_meta', 10, 2);

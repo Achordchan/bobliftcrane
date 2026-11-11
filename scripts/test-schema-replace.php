@@ -15,7 +15,7 @@ function add_action(...$args): void
 {
 }
 $GLOBALS['filters'] = [];
-function add_filter(string $hook, callable $callback, ...$args): void
+function add_filter(string $hook, mixed $callback, ...$args): void
 {
     $GLOBALS['filters'][$hook][] = $callback;
 }
@@ -72,6 +72,41 @@ $cases = [
     'same text' => [$faq, ['replace' => '15.2 m', 'with' => '15.2 m'], 'boblift_schema_replace'],
 ];
 $failed = 0;
+// Which stored values a post's REST "meta" may set: "" clears, JSON objects and lists are kept, anything else refused.
+foreach ([
+    'clear' => [['_article_schema_jsonld' => ''], null],
+    'object' => [['_article_schema_jsonld' => '{"@type":"Article"}'], null],
+    'list' => [['_article_schema_jsonld' => '[{"@type":"Article"}]'], null],
+    'not json' => [['_article_schema_jsonld' => 'Article'], 'error'],
+    'number' => [['_article_schema_jsonld' => '5'], 'error'],
+    'other meta only' => [['_boblift_pinned_until' => '2026-12-01'], null],
+] as $name => [$meta, $want]) {
+    $got = boblift_post_schema_meta_error($meta) === null ? null : 'error';
+    if ($got !== $want) {
+        $failed++;
+        echo "FAIL meta {$name}\n";
+    }
+}
+// The registered sanitizer keeps a valid value byte for byte (no lossy re-encode) and stores anything else as "".
+foreach ([
+    'large number' => ['{"id":123456789012345678901234567890,"price":1.10}', '{"id":123456789012345678901234567890,"price":1.10}'],
+    'escapes and spacing' => [" {\n  \"url\": \"https:\\/\\/a.b\\/c\" }\n", "{\n  \"url\": \"https:\\/\\/a.b\\/c\" }"],
+    'list' => ['[1,2]', '[1,2]'],
+    'empty' => ['', ''],
+    'not json' => ['Article', ''],
+    'scalar json' => ['"Article"', ''],
+    'not a string' => [['@type' => 'Article'], ''],
+] as $name => [$value, $want]) {
+    if (boblift_sanitize_post_schema_meta($value) !== $want) {
+        $failed++;
+        echo "FAIL sanitize {$name}\n  got: " . json_encode(boblift_sanitize_post_schema_meta($value)) . "\n";
+    }
+}
+// A password-protected post's REST meta is hidden from readers who cannot edit it.
+if (($GLOBALS['filters']['rest_pre_insert_post'] ?? []) === [] || !in_array('boblift_hide_protected_case_rest_meta', $GLOBALS['filters']['rest_prepare_post'] ?? [], true)) {
+    $failed++;
+    echo "FAIL protected post meta filter not added\n";
+}
 foreach ($cases as $name => [$stored, $value, $want]) {
     $got = boblift_schema_replace_apply($stored, $value);
     $got = is_wp_error($got) ? $got->code : $got;
@@ -125,5 +160,5 @@ if ($decoded !== ['replace' => '15.2 m', 'with' => '11 m'] || boblift_schema_rep
     $failed++;
     echo "FAIL connector JSON string\n  got: " . json_encode($decoded) . "\n";
 }
-echo $failed ? "{$failed} failed\n" : (count($cases) + 2) . " passed\n";
+echo $failed ? "{$failed} failed\n" : (count($cases) + 16) . " passed\n";
 exit($failed ? 1 : 0);
