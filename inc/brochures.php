@@ -17,7 +17,7 @@ function boblift_brochure_files(): array
         'marine' => ['file' => 'bob-lift-marine-cranes-2026.pdf', 'cover' => 'images/brochures/bob-lift-marine-cranes-2026-cover.webp', 'pages' => 12],
         'spider' => ['file' => 'bob-lift-spider-cranes-2026.pdf', 'cover' => 'images/brochures/bob-lift-spider-cranes-2026-cover.webp', 'pages' => 2],
         'electric' => ['attachment' => 'bob-lift-electric-mini-cranes-2026', 'file' => 'bob-lift-electric-mini-cranes-2026.pdf', 'cover' => 'images/brochures/bob-lift-electric-mini-cranes-2026-cover.webp', 'pages' => 8],
-        'forklift' => ['attachment' => 'bob-lift-forklift-fly-jib-cranes-2026', 'file' => 'bob-lift-forklift-fly-jib-cranes-2026.pdf', 'cover' => 'images/brochures/bob-lift-forklift-fly-jib-cranes-2026-cover.webp', 'pages' => 8],
+        'forklift' => ['attachment' => 'bob-lift-forklift-fly-jib-cranes-2026', 'file' => 'bob-lift-forklift-fly-jib-cranes-2026.pdf', 'cover' => 'images/brochures/bob-lift-forklift-fly-jib-cranes-2026-cover.webp', 'pages' => 10],
     ];
 }
 
