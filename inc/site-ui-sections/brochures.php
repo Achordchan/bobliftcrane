@@ -34,7 +34,7 @@ return [
             ],
             'forklift' => [
                 'title' => 'Forklift Fly Jib Cranes Brochure',
-                'text' => 'CC85, CC105, CC125 and CC145 forklift fly jib cranes, 2.3 to 4.9 ton, with load charts, matching forklifts and lifting heights.',
+                'text' => 'CC85, CC105, CC125, CC145 and CC165 forklift fly jib cranes, 2.3 to 7 ton, with load charts, matching forklifts and lifting heights.',
             ],
         ],
     ],
