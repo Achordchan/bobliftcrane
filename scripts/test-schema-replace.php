@@ -72,6 +72,21 @@ $cases = [
     'same text' => [$faq, ['replace' => '15.2 m', 'with' => '15.2 m'], 'boblift_schema_replace'],
 ];
 $failed = 0;
+// Which stored values a post's REST "meta" may set: "" clears, JSON objects and lists are kept, anything else refused.
+foreach ([
+    'clear' => [['_article_schema_jsonld' => ''], null],
+    'object' => [['_article_schema_jsonld' => '{"@type":"Article"}'], null],
+    'list' => [['_article_schema_jsonld' => '[{"@type":"Article"}]'], null],
+    'not json' => [['_article_schema_jsonld' => 'Article'], 'error'],
+    'number' => [['_article_schema_jsonld' => '5'], 'error'],
+    'other meta only' => [['_boblift_pinned_until' => '2026-12-01'], null],
+] as $name => [$meta, $want]) {
+    $got = boblift_post_schema_meta_error($meta) === null ? null : 'error';
+    if ($got !== $want) {
+        $failed++;
+        echo "FAIL meta {$name}\n";
+    }
+}
 foreach ($cases as $name => [$stored, $value, $want]) {
     $got = boblift_schema_replace_apply($stored, $value);
     $got = is_wp_error($got) ? $got->code : $got;
@@ -125,5 +140,5 @@ if ($decoded !== ['replace' => '15.2 m', 'with' => '11 m'] || boblift_schema_rep
     $failed++;
     echo "FAIL connector JSON string\n  got: " . json_encode($decoded) . "\n";
 }
-echo $failed ? "{$failed} failed\n" : (count($cases) + 2) . " passed\n";
+echo $failed ? "{$failed} failed\n" : (count($cases) + 8) . " passed\n";
 exit($failed ? 1 : 0);
