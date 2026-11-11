@@ -197,15 +197,25 @@ function boblift_register_post_schema_meta(): void
         'single' => true,
         'default' => '',
         'show_in_rest' => true,
-        'sanitize_callback' => static function ($value): string {
-            $value = trim((string) $value);
-            $decoded = $value === '' ? null : json_decode($value, true);
-            return is_array($decoded) ? (string) wp_json_encode($decoded, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : '';
-        },
+        'sanitize_callback' => 'boblift_sanitize_post_schema_meta',
         'auth_callback' => static fn($allowed, $meta_key, $post_id): bool => current_user_can('edit_post', (int) $post_id),
     ]);
 }
 add_action('init', 'boblift_register_post_schema_meta', 20);
+
+/**
+ * A JSON object or list is stored exactly as given (trimmed), never decoded and re-encoded, so numbers beyond PHP's
+ * integer range, escapes and formatting survive; anything else is stored as "". It also runs on update_post_meta().
+ */
+function boblift_sanitize_post_schema_meta(mixed $value): string
+{
+    $value = is_string($value) ? trim($value) : '';
+    return $value !== '' && is_array(json_decode($value, true, 512, JSON_BIGINT_AS_STRING)) ? $value : '';
+}
+
+// Core REST returns registered meta whatever the post password, so a password-protected post's meta (its stored JSON-LD
+// can carry FAQ and article text) is left out for anyone who cannot edit it, as for cases, products and pages.
+add_filter('rest_prepare_post', 'boblift_hide_protected_case_rest_meta', 10, 2);
 
 /** The reason a requested _article_schema_jsonld value cannot be stored, or null when it can ("" clears it). */
 function boblift_post_schema_meta_error(mixed $meta): ?string
