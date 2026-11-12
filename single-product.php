@@ -591,7 +591,17 @@ if ($family_quote_copy) {
                             <div class="flex max-w-full items-center gap-2 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="<?php echo esc_attr($ui['photoGalleryTitle'] ?? 'Product Photos'); ?>">
                                 <?php foreach ($hero_gallery_items as $index => $item) : ?>
                                     <button class="grid h-11 w-14 shrink-0 place-items-center overflow-hidden rounded-sm border p-0.5 transition md:h-12 md:w-16 <?php echo $index === 0 ? 'border-blue-500 bg-blue-50 shadow-card' : 'border-[#DDE5EF] bg-white hover:border-blue-300'; ?>" type="button" data-product-hero-gallery-thumb data-product-hero-gallery-index="<?php echo esc_attr((string) $index); ?>" data-product-hero-gallery-src="<?php echo esc_url(boblift_image_resized($item['image'], 1400)); ?>" data-product-hero-gallery-label="<?php echo esc_attr($item['label']); ?>" data-product-hero-gallery-fit="<?php echo esc_attr($item['fit']); ?>" aria-pressed="<?php echo $index === 0 ? 'true' : 'false'; ?>" aria-label="<?php echo esc_attr($item['label']); ?>">
-                                        <img class="h-full w-full rounded-sm object-cover" src="<?php echo esc_url(boblift_image_resized($item['image'], 160)); ?>" alt="" loading="lazy" decoding="async">
+                                        <?php
+                                        // The full-size photo sits in srcset so image search can find it; browsers still pick a small one for the 64px thumbnail.
+                                        $thumb_facts = boblift_image_facts($item['image']);
+                                        $thumb_full = $thumb_facts ? (int) $thumb_facts['width'] : 0;
+                                        $thumb_srcset = [];
+                                        foreach ([160, 320, 1400] as $thumb_w) {
+                                            $thumb_real = $thumb_full > 0 ? min($thumb_w, $thumb_full) : $thumb_w;
+                                            $thumb_srcset[$thumb_real] = esc_url(boblift_image_resized($item['image'], $thumb_w)) . ' ' . $thumb_real . 'w';
+                                        }
+                                        ?>
+                                        <img class="h-full w-full rounded-sm object-cover" src="<?php echo esc_url(boblift_image_resized($item['image'], 160)); ?>"<?php echo $thumb_full > 0 ? ' srcset="' . esc_attr(implode(', ', $thumb_srcset)) . '" sizes="64px"' : ''; ?> alt="<?php echo esc_attr($item['label']); ?>" loading="lazy" decoding="async">
                                     </button>
                                 <?php endforeach; ?>
                             </div>
