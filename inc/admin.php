@@ -1596,16 +1596,18 @@ function boblift_render_home_page_fields(array $home, string $base): void
     boblift_admin_panel('3. 产品区', static function () use ($home, $base): void {
         boblift_admin_input('product_section.label', $home, '标签', $base);
         boblift_admin_input('product_section.title', $home, '标题', $base);
-        boblift_admin_input('product_section.view_all_label', $home, '「查看全部」按钮文字（{count} 替换为该分类产品总数，留空用默认）', $base);
         boblift_admin_input('product_section.max_category_products', $home, '每个分类最多展示产品数', $base);
-        boblift_admin_checkbox('product_section.show_category_scroll_buttons', $home, '显示分类左右切换按钮', $base);
-        boblift_admin_checkbox('product_section.show_product_specs', $home, '产品卡片显示起重能力参数', $base);
+        boblift_admin_checkbox('product_section.show_product_specs', $home, '热销卡片显示起重量和幅度', $base);
+        boblift_admin_subpanel('每个大类的热销款', static function () use ($home, $base): void {
+            echo '<p class="boblift-admin-note">填英文产品别名（网址里 .html 前那段）；系列页可再填一个型号，卡片就显示这个型号的参数。留空用默认。</p>';
+            foreach (boblift_home_best_seller_defaults() as $family => $pick) {
+                boblift_admin_input("product_section.best_sellers.$family.product", $home, $family . '：产品别名（默认 ' . $pick['product'] . '）', $base);
+                boblift_admin_input("product_section.best_sellers.$family.model", $home, $family . '：型号' . (isset($pick['model']) ? '（默认 ' . $pick['model'] . '）' : ''), $base);
+            }
+        });
         boblift_admin_subpanel('按钮和字段文案', static function () use ($home, $base): void {
-            boblift_admin_input('product_section.details_short_label', $home, '移动端详情按钮', $base);
             boblift_admin_input('product_section.view_details_label', $home, '详情按钮', $base);
             boblift_admin_input('product_section.back_to_models_label', $home, '返回型号按钮', $base);
-            boblift_admin_input('product_section.previous_categories_label', $home, '上一组分类按钮', $base);
-            boblift_admin_input('product_section.next_categories_label', $home, '下一组分类按钮', $base);
             boblift_admin_input('product_section.product_name_label', $home, '产品名称标签', $base);
             boblift_admin_input('product_section.model_label', $home, '型号标签', $base);
             boblift_admin_input('product_section.model_spec_label', $home, '参数：型号', $base);
