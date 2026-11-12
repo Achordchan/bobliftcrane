@@ -561,6 +561,10 @@ function boblift_home_best_seller_card(array $pick): ?array
     $code = (string) $view['code'];
     $capacity = (string) ($view['specs']['capacity']['value'] ?? '');
     $reach = (string) ($view['specs']['radius']['value'] ?? '');
+    // The quote names what the card shows: on a series page, the chosen configuration and its own product, as the
+    // series page's own quote button does (single-product.php).
+    $inquiry_product = (string) ($product['title'] ?? '');
+    $inquiry_slug = (string) ($product['slug'] ?? '');
     $model = trim((string) ($pick['model'] ?? ''));
     $series = $model !== '' ? boblift_series_for_product((int) ($product['id'] ?? 0)) : null;
     foreach ($series ? boblift_series_members_with_figures($series) : [] as $member) {
@@ -570,6 +574,10 @@ function boblift_home_best_seller_card(array $pick): ?array
             $reach = (string) (($figures['radius'] ?? '') ?: $reach);
             $url = (string) (($member['url'] ?? '') ?: $url);
             $code = (string) $member['model'];
+            $inquiry_slug = (string) (($member['slug'] ?? '') ?: $inquiry_slug);
+            if (stripos($inquiry_product, $code) === false) {
+                $inquiry_product = trim($inquiry_product . ' ' . $code);
+            }
             break;
         }
     }
@@ -600,8 +608,8 @@ function boblift_home_best_seller_card(array $pick): ?array
         'image_fit' => boblift_image_fit($image) === 'photo' && boblift_home_product_image_ratio($image) >= 1.15 ? 'cover' : 'contain',
         'specs' => $specs,
         'inquiry_url' => (string) ($product['inquiry_url'] ?? boblift_url('/contact.html#inquiry')),
-        'inquiry_product' => (string) ($product['title'] ?? ''),
-        'inquiry_slug' => (string) ($product['slug'] ?? ''),
+        'inquiry_product' => $inquiry_product,
+        'inquiry_slug' => $inquiry_slug,
     ];
 }
 

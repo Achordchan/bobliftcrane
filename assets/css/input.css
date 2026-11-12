@@ -2715,13 +2715,14 @@ body.boblift-filter-drawer-locked {
 .home-families-all { display: none; align-items: center; gap: 8px; min-height: 44px; padding-inline: 20px; border: 1px solid #c9d8ec; border-radius: var(--boblift-r-sm, 6px); background: #fff; color: var(--navy); font-size: 14px; font-weight: 900; white-space: nowrap; transition: border-color .3s ease, color .3s ease; }
 .home-families-all:hover { border-color: #93c5fd; color: #1d4ed8; }
 .home-families-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.home-family-tile { position: relative; isolation: isolate; aspect-ratio: 1 / 1; overflow: hidden; border-radius: var(--boblift-r, 10px); background: #0b1b33; }
+.home-family-tile { position: relative; isolation: isolate; display: flex; flex-direction: column; justify-content: flex-end; aspect-ratio: 1 / 1; overflow: hidden; border-radius: var(--boblift-r, 10px); background: #0b1b33; }
 .home-families-grid > .home-family-tile:first-child { grid-column: 1 / -1; aspect-ratio: 4 / 3; }
 .home-family-tile > img { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; transition: transform .5s ease; }
 .home-family-tile::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(0deg, rgba(7, 31, 66, .92) 0%, rgba(7, 31, 66, .55) 34%, rgba(7, 31, 66, 0) 62%); }
 .home-family-tile:hover > img { transform: scale(1.04); }
 .home-family-tile:focus-within { outline: 3px solid #93c5fd; outline-offset: 3px; }
-.home-family-body { position: absolute; inset-inline: 0; bottom: 0; padding: 14px; color: #fff; }
+/* The text block stays in the flow (not positioned), so the title link's ::after stretches over the whole tile. */
+.home-family-body { padding: 14px; color: #fff; }
 .home-family-meta { margin: 0 0 4px; color: rgba(255, 255, 255, .82); font-size: 12px; font-weight: 600; letter-spacing: .02em; }
 .home-family-meta bdi { white-space: nowrap; }
 .home-family-title { margin: 0; font-size: 17px; font-weight: 900; line-height: 1.15; letter-spacing: -.01em; }
