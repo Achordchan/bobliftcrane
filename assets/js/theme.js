@@ -5200,7 +5200,10 @@
     const card = document.createElement('aside');
     // Fixed to the page's start corner whatever the card's own direction, clear of the back-to-top button at the other.
     const side = document.documentElement.dir === 'rtl' ? 'lg:right-[48px]' : 'lg:left-[48px]';
-    card.className = `boblift-language-suggest fixed inset-x-4 bottom-4 z-[260] translate-y-3 rounded border border-line bg-white p-4 pe-14 text-ink opacity-0 shadow-raised transition duration-300 motion-reduce:transition-none lg:inset-x-auto lg:bottom-8 lg:w-[400px] ${side}`;
+    // From 1024px the card is as wide as its sentence needs (a short Chinese line gives a narrow card, the Russian one a wide
+    // card), up to 480 px, past which the sentence wraps. Narrower screens keep it across the width above the contact bar, so
+    // no half-covered button shows beside it.
+    card.className = `boblift-language-suggest fixed inset-x-4 bottom-4 z-[260] translate-y-3 rounded border border-line bg-white p-4 pe-14 text-ink opacity-0 shadow-raised transition duration-300 motion-reduce:transition-none lg:inset-x-auto lg:bottom-8 lg:w-max lg:max-w-[480px] ${side}`;
     card.lang = language;
     card.dir = RTL.includes(language) ? 'rtl' : 'ltr';
     card.setAttribute('aria-label', words.text);
