@@ -631,7 +631,10 @@ function boblift_home_best_seller_card(array $pick): ?array
     }
     $image = boblift_home_product_card_image($product);
     return [
-        'title' => (string) $view['full_title'],
+        // The short name the category page cards show ("10 Ton Telescopic Boom"); the family line above says what it is
+        // mounted on, so long translated names do not wrap across three lines. The whole name stays for the link title.
+        'title' => (string) $view['title'],
+        'full_title' => (string) $view['full_title'],
         'code' => $code,
         'url' => $url,
         'image' => $image,
@@ -731,7 +734,8 @@ function boblift_render_home_products_view(array $section, array $families, stri
                             <a class="home-hot-media is-<?php echo esc_attr($card['image_fit']); ?>" href="<?php echo esc_url($card['url']); ?>" tabindex="-1" aria-hidden="true"><img <?php echo boblift_img_src($card['image'], '(min-width: 1280px) 18vw, (min-width: 768px) 30vw, 74vw', 480); ?> alt="" loading="lazy" decoding="async"></a>
                             <div class="home-hot-body">
                                 <p class="home-hot-family"><span class="home-hot-badge"><?php echo esc_html($section['bestSellerBadge']); ?></span><span class="truncate"><?php echo esc_html($family['name']); ?></span></p>
-                                <h3 class="home-hot-name"><a href="<?php echo esc_url($card['url']); ?>" title="<?php echo esc_attr($card['title']); ?>"><?php echo esc_html($card['title']); ?></a></h3>
+                                <?php $full_name = (string) ($card['full_title'] ?? '') ?: $card['title']; ?>
+                                <h3 class="home-hot-name" aria-label="<?php echo esc_attr($full_name); ?>"><a href="<?php echo esc_url($card['url']); ?>" title="<?php echo esc_attr($full_name); ?>"><?php echo esc_html($card['title']); ?></a></h3>
                                 <p class="home-hot-model"><?php if ($card['code'] !== '') : ?><bdi><?php echo esc_html($card['code']); ?></bdi><?php else : ?>&nbsp;<?php endif; ?></p>
                                 <?php if ($section['showProductSpecs'] && $card['specs']) : ?>
                                     <dl class="home-hot-specs">
