@@ -26,8 +26,8 @@ function boblift_home_product_section_config(): array
         'bestSellersTitle' => boblift_localized_static_text('The best-selling model in each range'),
         'bestSellerBadge' => boblift_localized_static_text('Best seller'),
         // Family slug => the product (by its English slug) shown as that family's best seller, and for a series page the
-        // configuration it stands for. A family saved with a product replaces its default (theme settings, 3. 产品区).
-        'bestSellers' => array_merge(boblift_home_best_seller_defaults(), array_filter((array) ($section['best_sellers'] ?? []), static fn($pick): bool => is_array($pick) && trim((string) ($pick['product'] ?? '')) !== '')),
+        // configuration it stands for (theme settings, 3. 产品区).
+        'bestSellers' => boblift_home_best_sellers((array) ($section['best_sellers'] ?? [])),
     ];
 }
 
@@ -501,6 +501,31 @@ function boblift_home_best_seller_defaults(): array
 }
 
 /**
+ * The saved best sellers over the defaults, field by field: a blank product keeps the default product, and a blank model
+ * keeps the default model only while the product is the default one (a model belongs to its product).
+ */
+function boblift_home_best_sellers(array $saved): array
+{
+    $picks = boblift_home_best_seller_defaults();
+    foreach ($saved as $family => $pick) {
+        if (!is_array($pick)) {
+            continue;
+        }
+        $default = $picks[$family] ?? [];
+        $product = trim((string) ($pick['product'] ?? ''));
+        $model = trim((string) ($pick['model'] ?? ''));
+        $same_product = $product === '' || $product === (string) ($default['product'] ?? '');
+        $product = $product !== '' ? $product : (string) ($default['product'] ?? '');
+        if ($product === '') {
+            continue;
+        }
+        $model = $model !== '' ? $model : ($same_product ? (string) ($default['model'] ?? '') : '');
+        $picks[$family] = ['product' => $product] + ($model !== '' ? ['model' => $model] : []);
+    }
+    return $picks;
+}
+
+/**
  * Each family's tile photo: a real picture from a customer's site or the factory, kept in the theme so it never
  * depends on the media library. 'position' is the CSS object-position that keeps the crane in the frame.
  */
@@ -565,13 +590,16 @@ function boblift_home_best_seller_card(array $pick): ?array
     // series page's own quote button does (single-product.php).
     $inquiry_product = (string) ($product['title'] ?? '');
     $inquiry_slug = (string) ($product['slug'] ?? '');
+    $spec_source = $product;
     $model = trim((string) ($pick['model'] ?? ''));
     $series = $model !== '' ? boblift_series_for_product((int) ($product['id'] ?? 0)) : null;
     foreach ($series ? boblift_series_members_with_figures($series) : [] as $member) {
         if (strcasecmp((string) $member['model'], $model) === 0) {
+            // Only this configuration's own figures: the series card's figures may come from another configuration.
             $figures = (array) $member['figures'];
-            $capacity = ($figures['capacity'] ?? null) !== null ? boblift_series_format_kg((int) $figures['capacity']) : $capacity;
-            $reach = (string) (($figures['radius'] ?? '') ?: $reach);
+            $capacity = ($figures['capacity'] ?? null) !== null ? boblift_series_format_kg((int) $figures['capacity']) : '';
+            $reach = (string) ($figures['radius'] ?? '');
+            $spec_source = ['id' => (int) ($member['id'] ?? 0)];
             $url = (string) (($member['url'] ?? '') ?: $url);
             $code = (string) $member['model'];
             $inquiry_slug = (string) (($member['slug'] ?? '') ?: $inquiry_slug);
@@ -583,7 +611,8 @@ function boblift_home_best_seller_card(array $pick): ?array
     }
     // Figures the series data leaves out are read from the spec table as written: a reach in millimetres or under
     // another row name (a forklift jib's "Max Working Range"), a capacity outside the crane figures (a tail lift's "1-2 tons").
-    foreach (boblift_home_product_english_specs($product) as $row) {
+    // For a chosen configuration that is its own product's table.
+    foreach (boblift_home_product_english_specs($spec_source) as $row) {
         $label = trim((string) ($row['label'] ?? ''));
         if ($capacity === '' && $label === 'Max Lifting Capacity') {
             $capacity = boblift_home_tonnage_text((string) ($row['value'] ?? ''));
