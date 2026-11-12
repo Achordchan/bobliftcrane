@@ -20,6 +20,7 @@ function boblift_home_product_section_config(): array
         // The product cards' own button wording (Site UI > productDetail), else the translated defaults, as on the product lists.
         'requestQuoteLabel' => $saved_label((string) ($product_ui['requestQuoteLabel'] ?? ''), 'Get a Quote'),
         'viewDetailsLabel' => $saved_label((string) (($section['view_details_label'] ?? '') ?: ($product_ui['viewDetailsLabel'] ?? '')), 'View Details'),
+        'showProductSpecs' => (bool) ($section['show_product_specs'] ?? true),
         'selectedProductSlugs' => array_values(array_filter(array_map('strval', $section['selected_product_slugs'] ?? []))),
         'allProductsLabel' => boblift_localized_static_text('All products'),
         'bestSellersLabel' => boblift_localized_static_text('Top-selling models'),
@@ -732,7 +733,7 @@ function boblift_render_home_products_view(array $section, array $families, stri
                                 <p class="home-hot-family"><span class="home-hot-badge"><?php echo esc_html($section['bestSellerBadge']); ?></span><span class="truncate"><?php echo esc_html($family['name']); ?></span></p>
                                 <h3 class="home-hot-name"><a href="<?php echo esc_url($card['url']); ?>" title="<?php echo esc_attr($card['title']); ?>"><?php echo esc_html($card['title']); ?></a></h3>
                                 <p class="home-hot-model"><?php if ($card['code'] !== '') : ?><bdi><?php echo esc_html($card['code']); ?></bdi><?php else : ?>&nbsp;<?php endif; ?></p>
-                                <?php if ($card['specs']) : ?>
+                                <?php if ($section['showProductSpecs'] && $card['specs']) : ?>
                                     <dl class="home-hot-specs">
                                         <?php foreach ($card['specs'] as $spec) : ?><div><dt><?php echo esc_html($spec['label']); ?></dt><dd><bdi dir="ltr"><?php echo esc_html($spec['value']); ?></bdi></dd></div><?php endforeach; ?>
                                     </dl>

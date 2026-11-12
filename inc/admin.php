@@ -1597,6 +1597,7 @@ function boblift_render_home_page_fields(array $home, string $base): void
         boblift_admin_input('product_section.label', $home, '标签', $base);
         boblift_admin_input('product_section.title', $home, '标题', $base);
         boblift_admin_input('product_section.max_category_products', $home, '每个分类最多展示产品数', $base);
+        boblift_admin_checkbox('product_section.show_product_specs', $home, '热销卡片显示起重量和幅度', $base);
         boblift_admin_subpanel('每个大类的热销款', static function () use ($home, $base): void {
             echo '<p class="boblift-admin-note">填英文产品别名（网址里 .html 前那段）；系列页可再填一个型号，卡片就显示这个型号的参数。留空用默认。</p>';
             foreach (boblift_home_best_seller_defaults() as $family => $pick) {
