@@ -3405,7 +3405,7 @@
     };
     const getSortMode = () => sortTrigger?.dataset.sortValue || 'capacityAsc';
     const cardOrder = new Map(cards.map((card, index) => [card, index]));
-    // The main products (data-priority 0, truck mounted cranes) stay first whatever the sort; it orders within each tier.
+    // The main products stay first whatever the sort (data-priority 0 truck mounted, 1 marine, 2 the rest); it orders within each tier.
     const cardPriority = (card) => Number(card.dataset.priority || 0);
     const sortedCards = () => [...cards].sort((a, b) => cardPriority(a) - cardPriority(b) || sortWithinTier(a, b));
     const sortWithinTier = (a, b) => {

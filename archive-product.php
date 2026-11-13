@@ -164,16 +164,24 @@ foreach ($category_filter_tree as $index => $item) {
 }
 $group_order = ['crane' => 0, 'attachment' => 1, 'access' => 2];
 usort($category_filter_tree, static fn(array $a, array $b): int => ($group_order[$a['group']] <=> $group_order[$b['group']]) ?: ($a['position'] <=> $b['position']));
-// The main products (truck mounted cranes, pickup cranes included) come first in every order the list offers: each card
-// carries its tier (data-priority), which theme.js sorts by before the chosen sort, and the server orders by it too.
-$priority_slugs = [];
+// The main products come first in every order the list offers, in the tiers boblift_product_priority_families() lists
+// (truck mounted cranes with pickup cranes, then marine cranes), the rest after: each card carries its tier
+// (data-priority), which theme.js sorts by before the chosen sort, and the server orders by it too.
+$priority_families = boblift_product_priority_families();
+$priority_tiers = [];
 foreach ($category_filter_tree as $item) {
     $term = get_term_by('slug', (string) $item['slug'], 'product_category');
-    if (in_array($term instanceof WP_Term ? boblift_source_term_slug($term) : (string) $item['slug'], boblift_product_priority_families(), true)) {
-        $priority_slugs = array_merge($priority_slugs, array_map('strval', (array) ($item['child_slugs'] ?? [$item['slug']])));
+    $tier = array_search($term instanceof WP_Term ? boblift_source_term_slug($term) : (string) $item['slug'], $priority_families, true);
+    if ($tier !== false) {
+        foreach ((array) ($item['child_slugs'] ?? [$item['slug']]) as $slug) {
+            $priority_tiers[(string) $slug] = min($priority_tiers[(string) $slug] ?? PHP_INT_MAX, (int) $tier);
+        }
     }
 }
-$listing_priority = static fn(array $product): int => array_intersect(array_map('strval', $product['categories'] ?? [($product['category'] ?? '')]), $priority_slugs) ? 0 : 1;
+$listing_priority = static function (array $product) use ($priority_tiers, $priority_families): int {
+    $tiers = array_intersect_key($priority_tiers, array_flip(array_map('strval', $product['categories'] ?? [($product['category'] ?? '')])));
+    return $tiers ? min($tiers) : count($priority_families);
+};
 // Default order ("Recommended" keeps it): the main products, then featured models, then the families in tab order,
 // largest model first.
 $family_rank = [];
