@@ -5,7 +5,8 @@ if (!defined('ABSPATH')) {
 
 /**
  * Tonnage pages (/5-ton-crane.html, /zh/5-ton-crane.html ...): the old site's "Crane by Ton" addresses, now pages of their
- * own listing the current models of one capacity bin (boblift_tonnage_bins()), every category included. archive-product.php
+ * own listing the current models of one capacity range (boblift_tonnage_page_range(): its bin of boblift_tonnage_bins()
+ * and up to halfway to the next size), every category included. archive-product.php
  * renders them through the boblift_tonnage query var; this file routes them and gives them their title, description,
  * canonical, hreflang, breadcrumb, intro and sitemap entries. A bin without models has no page: its address 301s to the
  * product list, which keeps the old address's links and avoids an empty, thin page.
@@ -47,6 +48,29 @@ function boblift_tonnage_bin_range(string $bin): array
     return [$min, $max];
 }
 
+/**
+ * [min, max] tonnes a tonnage page lists: its bin, reaching up to halfway to the next page's size, since a model is named
+ * by the nearest size (3.2 t and 3.5 t are 3 ton cranes, 6.3 t a 6 ton crane). A model between two sizes is on both pages
+ * (3.2 t on the 3 Ton and the 4 Ton page); the last page stops at its own size. Min excluded, max included.
+ */
+function boblift_tonnage_page_range(int $size): array
+{
+    $sizes = array_keys(boblift_tonnage_bins());
+    if (!in_array($size, $sizes, true)) {
+        return [0.0, 0.0];
+    }
+    [$min, $max] = boblift_tonnage_bin_range(boblift_tonnage_bins()[$size]);
+    $next = $sizes[array_search($size, $sizes, true) + 1] ?? null;
+    return [$min, $next === null ? $max : ($size + $next) / 2];
+}
+
+/** The page range as a filter range key ("2-3.5"), the form the product list's capacity filter takes. */
+function boblift_tonnage_page_range_key(int $size): string
+{
+    [$min, $max] = boblift_tonnage_page_range($size);
+    return boblift_tonnage_number($min) . '-' . boblift_tonnage_number($max);
+}
+
 /** The current models of a tonnage page in the current language, every category included, in the product list's order. */
 function boblift_tonnage_products(int $size): array
 {
@@ -55,11 +79,10 @@ function boblift_tonnage_products(int $size): array
     if (isset($cache[$language][$size])) {
         return $cache[$language][$size];
     }
-    $bin = boblift_tonnage_bins()[$size] ?? '';
-    if ($bin === '') {
+    if (!isset(boblift_tonnage_bins()[$size])) {
         return [];
     }
-    [$min, $max] = boblift_tonnage_bin_range($bin);
+    [$min, $max] = boblift_tonnage_page_range($size);
     $products = array_values(array_filter(boblift_all_products(), static function (array $product) use ($min, $max): bool {
         $capacity = boblift_product_listing_capacity($product);
         return $capacity > $min && $capacity <= $max;
@@ -67,11 +90,14 @@ function boblift_tonnage_products(int $size): array
     return $cache[$language][$size] = $products;
 }
 
-/** The tonnage page a capacity belongs to (5 for 4.6 t), or 0 when it is in no bin or that bin's page has no models. */
+/**
+ * The tonnage page a capacity is named by (5 for 4.6 t, 3 for 3.2 t, 6 for 6.3 t): the first page listing it, the nearest
+ * size, the smaller one when halfway. 0 when no page lists it.
+ */
 function boblift_tonnage_size_for_capacity(float $capacity): int
 {
-    foreach (boblift_tonnage_bins() as $size => $bin) {
-        [$min, $max] = boblift_tonnage_bin_range($bin);
+    foreach (array_keys(boblift_tonnage_bins()) as $size) {
+        [$min, $max] = boblift_tonnage_page_range($size);
         if ($capacity > $min && $capacity <= $max) {
             return boblift_tonnage_products($size) ? $size : 0;
         }
@@ -119,7 +145,7 @@ function boblift_tonnage_figure_range(array $products, string $key, string $unit
 function boblift_tonnage_page_data(int $size): array
 {
     $t = static fn(string $text): string => boblift_localized_static_text($text);
-    [$min, $max] = boblift_tonnage_bin_range(boblift_tonnage_bins()[$size] ?? '0-0');
+    [$min, $max] = boblift_tonnage_page_range($size);
     $parents = [];
     $positions = [];
     foreach (boblift_product_category_hierarchy() as $group) {
@@ -247,13 +273,13 @@ function boblift_tonnage_intro(int $size): string
 
 /**
  * "See all 5 Ton Cranes" for a product page; the name starts lower-case mid-sentence where the language needs it. A model
- * whose capacity is not the page's size (6.3 t on the 8 Ton page, which lists over 6 t up to 8 t) gets the page's range
- * instead, "See all 6–8 t cranes", so the link does not read as another capacity.
+ * whose capacity is not the page's size (6.3 t on the 6 Ton page, which lists over 5 t up to 7 t) gets the page's range
+ * instead, "See all 5–7 t cranes", so the link does not read as another capacity.
  */
 function boblift_tonnage_see_all_label(int $size, float $capacity = 0.0): string
 {
     if ($capacity > 0 && abs($capacity - $size) > 0.001) {
-        [$min, $max] = boblift_tonnage_bin_range(boblift_tonnage_bins()[$size] ?? '0-0');
+        [$min, $max] = boblift_tonnage_page_range($size);
         $template = $min > 0 ? 'See all {min}–{max} t cranes' : 'See all cranes up to {max} t';
         return str_replace(['{min}', '{max}'], [boblift_tonnage_number($min), boblift_tonnage_number($max)], boblift_localized_static_text($template));
     }

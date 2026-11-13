@@ -3117,6 +3117,9 @@
     // A tonnage page (/5-ton-crane.html) lists one capacity bin: its box stays ticked, and unticking it opens the whole list.
     const fixedCapacity = root.dataset.fixedCapacity || '';
     const isFixedCapacity = (input) => !!fixedCapacity && input.dataset.filter === 'capacity' && input.value === fixedCapacity;
+    // Its ticked bin filters by the page's range, which reaches up to halfway to the next size (2-3.5 on the 3 Ton page).
+    const fixedCapacityRange = root.dataset.fixedCapacityRange || fixedCapacity;
+    const capacityRange = (range) => (fixedCapacity && range === fixedCapacity ? fixedCapacityRange : range);
     const keepFixedCapacity = () => checks.filter(isFixedCapacity).forEach((input) => { input.checked = true; });
 
     cards.forEach((card, index) => { card.dataset.originalIndex = String(index); });
@@ -3196,7 +3199,7 @@
     const configNumber = (card, config, filterName) => (filterName === 'capacity' ? cardNumber(card, 'capacity') : Number(config[filterName === 'moment' ? 'm' : 'w'] || 0));
     // ranges: {filterName: [ranges]}; a filter without ranges does not narrow.
     const cardMeetsRanges = (card, ranges) => cardConfigs(card).some((config) => Object.entries(ranges)
-      .every(([filterName, list]) => !list.length || inAnyRange(configNumber(card, config, filterName), list)));
+      .every(([filterName, list]) => !list.length || inAnyRange(configNumber(card, config, filterName), filterName === 'capacity' ? list.map(capacityRange) : list)));
     const activeSpecRanges = (except = '') => Object.fromEntries(specFilters.filter((name) => name !== except).map((name) => [name, specRanges(name)]));
     const cardInRanges = (card, filterName, ranges) => cardMeetsRanges(card, { [filterName]: ranges });
     const slugifyFilter = (value) => value.toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
