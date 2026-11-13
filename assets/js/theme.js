@@ -3405,7 +3405,10 @@
     };
     const getSortMode = () => sortTrigger?.dataset.sortValue || 'capacityAsc';
     const cardOrder = new Map(cards.map((card, index) => [card, index]));
-    const sortedCards = () => [...cards].sort((a, b) => {
+    // The main products (data-priority 0, truck mounted cranes) stay first whatever the sort; it orders within each tier.
+    const cardPriority = (card) => Number(card.dataset.priority || 0);
+    const sortedCards = () => [...cards].sort((a, b) => cardPriority(a) - cardPriority(b) || sortWithinTier(a, b));
+    const sortWithinTier = (a, b) => {
       const av = Number(a.dataset.capacity || 0);
       const bv = Number(b.dataset.capacity || 0);
       const ap = Number(a.dataset.popularity || 0);
@@ -3425,7 +3428,7 @@
       const br = b.dataset.recommendedRank;
       if (ar !== undefined && br !== undefined) return Number(ar) - Number(br);
       return bf - af || cardOrder.get(a) - cardOrder.get(b);
-    });
+    };
     const renderPagination = (totalPages) => {
       if (!pagination) return;
       pagination.replaceChildren();

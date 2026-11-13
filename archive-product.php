@@ -164,7 +164,18 @@ foreach ($category_filter_tree as $index => $item) {
 }
 $group_order = ['crane' => 0, 'attachment' => 1, 'access' => 2];
 usort($category_filter_tree, static fn(array $a, array $b): int => ($group_order[$a['group']] <=> $group_order[$b['group']]) ?: ($a['position'] <=> $b['position']));
-// Default order ("Recommended" keeps it): featured models, then the families in tab order, largest model first.
+// The main products (truck mounted cranes, pickup cranes included) come first in every order the list offers: each card
+// carries its tier (data-priority), which theme.js sorts by before the chosen sort, and the server orders by it too.
+$priority_slugs = [];
+foreach ($category_filter_tree as $item) {
+    $term = get_term_by('slug', (string) $item['slug'], 'product_category');
+    if (in_array($term instanceof WP_Term ? boblift_source_term_slug($term) : (string) $item['slug'], boblift_product_priority_families(), true)) {
+        $priority_slugs = array_merge($priority_slugs, array_map('strval', (array) ($item['child_slugs'] ?? [$item['slug']])));
+    }
+}
+$listing_priority = static fn(array $product): int => array_intersect(array_map('strval', $product['categories'] ?? [($product['category'] ?? '')]), $priority_slugs) ? 0 : 1;
+// Default order ("Recommended" keeps it): the main products, then featured models, then the families in tab order,
+// largest model first.
 $family_rank = [];
 foreach ($category_filter_tree as $rank => $item) {
     foreach ($item['child_slugs'] ?? [$item['slug']] as $slug) {
@@ -175,20 +186,21 @@ $products = array_values($products);
 $product_order = [];
 foreach ($products as $index => $product) {
     $ranks = array_map(static fn($slug): int => $family_rank[(string) $slug] ?? PHP_INT_MAX, $product['categories'] ?? [($product['category'] ?? '')]);
-    $product_order[$index] = [empty($product['featured']) ? 1 : 0, $ranks ? min($ranks) : PHP_INT_MAX, -(float) $product['sort_size'], $index];
+    $product_order[$index] = [$listing_priority($product), empty($product['featured']) ? 1 : 0, $ranks ? min($ranks) : PHP_INT_MAX, -(float) $product['sort_size'], $index];
 }
 uksort($products, static fn(int $a, int $b): int => $product_order[$a] <=> $product_order[$b]);
 $products = array_values($products);
-// The listing opens sorted by capacity, low to high. Each card keeps its "Recommended" rank so the sort menu can restore
+// The listing opens sorted by capacity, low to high, the main products first. Each card keeps its "Recommended" rank so the sort menu can restore
 // that order; models without a listing capacity go last, and equal capacities keep the recommended order.
 foreach ($products as $index => &$product) {
     $product['recommended_rank'] = $index;
+    $product['listing_priority'] = $listing_priority($product);
 }
 unset($product);
 $default_sort = isset($sort_options['capacityAsc']) ? 'capacityAsc' : 'recommended';
 if ($default_sort === 'capacityAsc') {
     $listing_capacity = static fn(array $product): float => (float) ($product['filter_values']['capacity'] ?? 0) > 0 ? (float) $product['filter_values']['capacity'] : PHP_FLOAT_MAX;
-    usort($products, static fn(array $a, array $b): int => ($listing_capacity($a) <=> $listing_capacity($b)) ?: ($a['recommended_rank'] <=> $b['recommended_rank']));
+    usort($products, static fn(array $a, array $b): int => ($a['listing_priority'] <=> $b['listing_priority']) ?: ($listing_capacity($a) <=> $listing_capacity($b)) ?: ($a['recommended_rank'] <=> $b['recommended_rank']));
 }
 // The tabs count every product; a category page lists only its own: the category and, for a parent, its sub-categories.
 $all_product_count = count($products);
