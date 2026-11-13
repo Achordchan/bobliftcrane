@@ -22,7 +22,17 @@ foreach ($cases as [$html, $portrait]) {
     if (substr_count($out, 'bl-video-vertical') !== ($portrait ? 1 : 0)) { $failed++; echo "wrong: $html\n"; }
 }
 $already = '<figure class="wp-block-video bl-video-vertical" style="max-width:340px"><video width="720" height="1280"></video></figure>';
-if (boblift_mark_portrait_videos($already) !== $already) { $failed++; echo "already marked should stay as is\n"; }
+if (boblift_mark_portrait_videos($already) !== $already) { $failed++; echo "already marked without a poster should stay as is\n"; }
+// The poster is handed to the stage as --bl-poster, added to an existing style or as a new one, and only once.
+$withPoster = boblift_mark_portrait_videos('<figure class="wp-block-video"><video width="720" height="1280" poster="https://x.test/p.jpg?a=1&#038;b=2"></video></figure>');
+if (!str_contains($withPoster, 'style="--bl-poster:url(https://x.test/p.jpg?a=1&#038;b=2);"')) { $failed++; echo "poster var missing: $withPoster\n"; }
+$styled = boblift_mark_portrait_videos('<figure class="wp-block-video bl-video-vertical" style="max-width:340px"><video width="720" height="1280" poster="https://x.test/p.jpg"></video></figure>');
+if (!str_contains($styled, 'style="--bl-poster:url(https://x.test/p.jpg);max-width:340px"') || substr_count($styled, 'style=') !== 1) { $failed++; echo "poster var should join the existing style: $styled\n"; }
+if (boblift_mark_portrait_videos($styled) !== $styled) { $failed++; echo "running twice should change nothing\n"; }
+$odd = boblift_mark_portrait_videos('<figure class="wp-block-video"><video width="720" height="1280" poster="https://x.test/a b).jpg"></video></figure>');
+if (str_contains($odd, '--bl-poster')) { $failed++; echo "unsafe poster address should be skipped: $odd\n"; }
+$landscape = '<figure class="wp-block-video"><video width="1920" height="1080" poster="https://x.test/p.jpg"></video></figure>';
+if (boblift_mark_portrait_videos($landscape) !== $landscape) { $failed++; echo "landscape video should stay as is\n"; }
 $single = boblift_mark_portrait_videos("<figure class='wp-block-video'><video width=\"720\" height=\"1280\"></video></figure>");
 if (!str_contains($single, "class='wp-block-video bl-video-vertical'")) { $failed++; echo "single quotes should be kept: $single\n"; }
 echo $failed ? "$failed failed\n" : "ok\n";
