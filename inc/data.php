@@ -1628,12 +1628,12 @@ function boblift_product_family_group(string $source_slug): string
 }
 
 /**
- * The families (English slugs of top product categories) the product list puts first, whatever sort the visitor picks:
- * the main products. A model is in one when it is in the category or one of its sub-categories.
+ * The families (English slugs of top product categories) the product list puts first, in this order, whatever sort the
+ * visitor picks: the main products. A model is in one when it is in the category or one of its sub-categories.
  */
 function boblift_product_priority_families(): array
 {
-    return ['truck-mounted-crane'];
+    return ['truck-mounted-crane', 'marine-crane'];
 }
 
 function boblift_product_family_group_label(string $group): string
