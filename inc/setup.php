@@ -1194,35 +1194,47 @@ function boblift_mark_portrait_videos(string $content): string
     // The class attribute may be quoted with " or ' (classic or REST-inserted HTML).
     $figure = '/<figure\b(?<before>[^>]*\bclass=)(?<q>["\'])(?<class>(?:(?!\k<q>).)*\bwp-block-video\b(?:(?!\k<q>).)*)\k<q>(?<after>[^>]*)>(?<inner>.*?)<\/figure>/is';
     return (string) preg_replace_callback($figure, static function (array $m): string {
-        if (substr_count(strtolower($m['inner']), '<video') !== 1 || !preg_match('/<video\b[^>]*>/i', $m['inner'], $tag)) {
+        if (preg_match('/\bbl-video-vertical\b/', $m['class']) || substr_count(strtolower($m['inner']), '<video') !== 1) {
             return $m[0];
         }
-        $marked = (bool) preg_match('/\bbl-video-vertical\b/', $m['class']);
-        $portrait = $marked;
-        if (!$portrait && preg_match('/\bwidth=["\']?(\d+)/i', $tag[0], $w) && preg_match('/\bheight=["\']?(\d+)/i', $tag[0], $h)) {
+        if (!preg_match('/<video\b[^>]*>/i', $m['inner'], $tag)) {
+            return $m[0];
+        }
+        $portrait = false;
+        if (preg_match('/\bwidth=["\']?(\d+)/i', $tag[0], $w) && preg_match('/\bheight=["\']?(\d+)/i', $tag[0], $h)) {
             $portrait = (int) $w[1] > 0 && (int) $h[1] > (int) $w[1];
-        } elseif (!$portrait && preg_match('/aspect-ratio:\s*(\d*\.?\d+)(?:\s*\/\s*(\d*\.?\d+))?/i', $tag[0], $r)) {
+        } elseif (preg_match('/aspect-ratio:\s*(\d*\.?\d+)(?:\s*\/\s*(\d*\.?\d+))?/i', $tag[0], $r)) {
             // "9/16", "720 / 1280" or a single number such as "0.5625" (its denominator is 1).
             $portrait = (float) $r[1] > 0 && (float) ($r[2] ?? 1) > (float) $r[1];
         }
         if (!$portrait) {
             return $m[0];
         }
-        $inner = $m['inner'];
-        // The stage shows the video's own poster blurred behind the player. It is a plain decorative <img> rather than a
-        // CSS variable because single.php runs the story through wp_kses_post(), whose style filter drops url() values.
-        // Only an http(s) address without quotes, brackets or spaces is reused.
-        if (!str_contains($inner, 'bl-video-backdrop') && preg_match('/\bposter=(["\'])(https?:\/\/[^"\'<>\s]+)\1/i', $tag[0], $poster)) {
-            $inner = '<img class="bl-video-backdrop" src="' . $poster[2] . '" alt="" aria-hidden="true" loading="lazy" decoding="async">' . $inner;
-        }
-        if ($marked && $inner === $m['inner']) {
-            return $m[0];
-        }
-        $class = $marked ? $m['class'] : $m['class'] . ' bl-video-vertical';
-        return '<figure' . $m['before'] . $m['q'] . $class . $m['q'] . $m['after'] . '>' . $inner . '</figure>';
+        return '<figure' . $m['before'] . $m['q'] . $m['class'] . ' bl-video-vertical' . $m['q'] . $m['after'] . '>' . $m['inner'] . '</figure>';
     }, $content);
 }
 add_filter('the_content', 'boblift_mark_portrait_videos', 9);
+
+/*
+ * News stories (single.php) play a portrait video in a column-wide stage with the video's own poster blurred behind it.
+ * The blurred copy is a decorative <img> added to the final, already sanitised story HTML: as a style url() it would be
+ * dropped by wp_kses_post(), and added any earlier it would count as a story picture in the lead-image check and show
+ * as a plain duplicate poster in templates without the stage styles (feedback records, feeds, the REST API).
+ */
+function boblift_add_video_backdrops(string $html): string
+{
+    if (!str_contains($html, 'bl-video-vertical')) {
+        return $html;
+    }
+    $figure = '/(<figure\b[^>]*\bclass=(["\'])(?:(?!\2).)*\bbl-video-vertical\b(?:(?!\2).)*\2[^>]*>)(.*?<\/figure>)/is';
+    return (string) preg_replace_callback($figure, static function (array $m): string {
+        // Only an http(s) poster address without quotes, angle brackets or spaces is reused.
+        if (str_contains($m[3], 'bl-video-backdrop') || !preg_match('/<video\b[^>]*\bposter=(["\'])(https?:\/\/[^"\'<>\s]+)\1/i', $m[3], $poster)) {
+            return $m[0];
+        }
+        return $m[1] . '<img class="bl-video-backdrop" src="' . $poster[2] . '" alt="" aria-hidden="true" loading="lazy" decoding="async">' . $m[3];
+    }, $html);
+}
 
 /*
  * A table typed straight into a story (not a block-editor Table, which already sits in a scrolling figure) is wrapped in

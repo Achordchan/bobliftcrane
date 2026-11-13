@@ -20,6 +20,8 @@ if ($out !== '<div class="bl-table-scroll">' . substr($nested, 0, -strlen('<p>af
 if (boblift_wrap_bare_tables($out) !== $out) { $failed++; echo "nested: running twice should change nothing\n"; }
 $inBlock = '<figure class="wp-block-table"><table><tr><td><table><tr><td>in</td></tr></table></td></tr></table></figure>';
 if (boblift_wrap_bare_tables($inBlock) !== $inBlock) { $failed++; echo "nested table in a block figure should stay as is\n"; }
+$upper = '<TABLE><TR><TD>a</TD></TR></TABLE>';
+if (boblift_wrap_bare_tables($upper) !== '<div class="bl-table-scroll">' . $upper . '</div>') { $failed++; echo "uppercase table should be wrapped\n"; }
 $open = '<table><tr><td>never closed';
 if (boblift_wrap_bare_tables($open) !== $open) { $failed++; echo "unclosed table should stay as is\n"; }
 echo $failed ? "$failed failed\n" : "ok\n";
