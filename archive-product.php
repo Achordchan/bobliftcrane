@@ -13,9 +13,13 @@ $initial_category = sanitize_title((string) get_query_var('boblift_product_categ
 if ($initial_category === '' && isset($_GET['category']) && is_string($_GET['category'])) {
     $initial_category = sanitize_title(wp_unslash($_GET['category']));
 }
-// A tonnage page (/5-ton-crane.html, inc/tonnage-pages.php) lists one capacity bin across every category, the bin ticked.
+// A tonnage page (/5-ton-crane.html, inc/tonnage-pages.php) lists its capacity range across every category, its bin ticked.
+// The range reaches past the bin up to halfway to the next size (the 3 Ton page lists 3.2 t), so the ticked bin filters by
+// the range ($capacity_range) and shows it as its label.
 $tonnage = function_exists('boblift_current_tonnage') ? boblift_current_tonnage() : 0;
 $fixed_capacity = $tonnage > 0 ? (string) boblift_tonnage_bins()[$tonnage] : '';
+$fixed_capacity_range = $tonnage > 0 && function_exists('boblift_tonnage_page_range_key') ? boblift_tonnage_page_range_key($tonnage) : $fixed_capacity;
+$capacity_range = static fn(string $bin): string => $fixed_capacity !== '' && $bin === $fixed_capacity ? $fixed_capacity_range : $bin;
 if ($tonnage > 0) {
     $initial_category = '';
 }
@@ -202,7 +206,12 @@ if ($initial_category !== '') {
     $products = array_values(array_filter($products, static fn(array $product): bool => (bool) array_intersect(array_map('strval', $product['categories'] ?? [($product['category'] ?? '')]), $scope_slugs)));
 }
 if ($fixed_capacity !== '') {
-    $products = array_values(array_filter($products, static fn(array $product): bool => $in_bin((float) ($product['filter_values']['capacity'] ?? 0), $fixed_capacity)));
+    $products = array_values(array_filter($products, static fn(array $product): bool => $in_bin((float) ($product['filter_values']['capacity'] ?? 0), $fixed_capacity_range)));
+}
+// The ticked bin reads as the page's range ("2–3 t" becomes "2–3.5 t" on the 3 Ton page): its largest figure moves up.
+if ($fixed_capacity !== '' && $fixed_capacity_range !== $fixed_capacity && isset($spec_filters['capacity']['bins'][$fixed_capacity])) {
+    [$bin_max, $range_max] = array_map(static fn(string $key): string => (string) (explode('-', $key)[1] ?? ''), [$fixed_capacity, $fixed_capacity_range]);
+    $spec_filters['capacity']['bins'][$fixed_capacity] = preg_replace('/(?<![\d.])' . preg_quote($bin_max, '/') . '(?![\d.])(?!.*(?<![\d.])' . preg_quote($bin_max, '/') . '(?![\d.]))/u', $range_max, (string) $spec_filters['capacity']['bins'][$fixed_capacity], 1);
 }
 $spec_counts = array_map(static fn(array $filter): array => array_fill_keys(array_keys($filter['bins']), 0), $spec_filters);
 $boom_counts = array_fill_keys(array_keys($boom_options), 0);
@@ -211,7 +220,7 @@ foreach ($products as $product) {
     $configs = boblift_product_filter_configs((int) ($product['id'] ?? 0));
     foreach ($spec_filters as $filter => $config) {
         foreach (array_keys($config['bins']) as $bin) {
-            if (boblift_filter_configs_match($configs, (float) ($product['filter_values']['capacity'] ?? 0), [$filter => [(string) $bin]], $in_bin)) {
+            if (boblift_filter_configs_match($configs, (float) ($product['filter_values']['capacity'] ?? 0), [$filter => [$filter === 'capacity' ? $capacity_range((string) $bin) : (string) $bin]], $in_bin)) {
                 $spec_counts[$filter][$bin]++;
             }
         }
@@ -339,7 +348,7 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
     </div>
 <?php };
 ?>
-<section class="boblift-product-listing bg-[#F8FAFC] py-8 md:py-12 lg:py-14" data-product-listing data-view="grid" data-current-category="<?php echo esc_attr($initial_category); ?>" data-fixed-capacity="<?php echo esc_attr($fixed_capacity); ?>" data-product-archive-url="<?php echo esc_url(boblift_product_archive_url()); ?>" data-category-urls="<?php echo esc_attr(wp_json_encode($category_url_map, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)); ?>">
+<section class="boblift-product-listing bg-[#F8FAFC] py-8 md:py-12 lg:py-14" data-product-listing data-view="grid" data-current-category="<?php echo esc_attr($initial_category); ?>" data-fixed-capacity="<?php echo esc_attr($fixed_capacity); ?>" data-fixed-capacity-range="<?php echo esc_attr($fixed_capacity_range); ?>" data-product-archive-url="<?php echo esc_url(boblift_product_archive_url()); ?>" data-category-urls="<?php echo esc_attr(wp_json_encode($category_url_map, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)); ?>">
     <div class="page-shell">
         <?php if ($tonnage > 0) : ?>
             <nav class="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-bold text-slate-500 md:mb-5" aria-label="<?php echo esc_attr(boblift_localized_static_text('Breadcrumb')); ?>">
