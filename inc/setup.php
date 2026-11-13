@@ -1181,7 +1181,7 @@ function boblift_cdn_video_posters(string $content): string
 add_filter('the_content', 'boblift_cdn_video_posters', 8);
 
 /*
- * A portrait (phone-shot) video in a story is marked so the article styles can lay it out beside its caption instead of
+ * A portrait (phone-shot) video in a story is marked so the article styles can play it in a column-wide stage instead of
  * as a narrow strip in the middle of the column. Some figures already carry bl-video-vertical from the editor; the
  * others are recognised by the video's own width and height attributes (or its 9/16 aspect-ratio style). Only plain
  * video figures holding a single video are touched.
@@ -1214,3 +1214,61 @@ function boblift_mark_portrait_videos(string $content): string
     }, $content);
 }
 add_filter('the_content', 'boblift_mark_portrait_videos', 9);
+
+/*
+ * News stories (single.php) play a portrait video in a column-wide stage with the video's own poster blurred behind it.
+ * The blurred copy is a decorative <img> added to the final, already sanitised story HTML: as a style url() it would be
+ * dropped by wp_kses_post(), and added any earlier it would count as a story picture in the lead-image check and show
+ * as a plain duplicate poster in templates without the stage styles (feedback records, feeds, the REST API).
+ */
+function boblift_add_video_backdrops(string $html): string
+{
+    if (!str_contains($html, 'bl-video-vertical')) {
+        return $html;
+    }
+    $figure = '/(<figure\b[^>]*\bclass=(["\'])(?:(?!\2).)*\bbl-video-vertical\b(?:(?!\2).)*\2[^>]*>)(.*?<\/figure>)/is';
+    return (string) preg_replace_callback($figure, static function (array $m): string {
+        // Only an http(s) poster address without quotes, angle brackets or spaces is reused.
+        if (str_contains($m[3], 'bl-video-backdrop') || !preg_match('/<video\b[^>]*\bposter=(["\'])(https?:\/\/[^"\'<>\s]+)\1/i', $m[3], $poster)) {
+            return $m[0];
+        }
+        return $m[1] . '<img class="bl-video-backdrop" src="' . $poster[2] . '" alt="" aria-hidden="true" loading="lazy" decoding="async">' . $m[3];
+    }, $html);
+}
+
+/*
+ * A table typed straight into a story (not a block-editor Table, which already sits in a scrolling figure) is wrapped in
+ * a scroll box, so a full-width table that is still too wide for a phone scrolls sideways instead of breaking the page.
+ */
+function boblift_wrap_bare_tables(string $content): string
+{
+    if (stripos($content, '<table') === false) {
+        return $content;
+    }
+    // Find each outermost table by counting <table> and </table>, so a table nested in a cell stays inside its parent.
+    if (!preg_match_all('/<table\b[^>]*>|<\/table\s*>/i', $content, $tags, PREG_OFFSET_CAPTURE)) {
+        return $content;
+    }
+    $spans = [];
+    $depth = 0;
+    $start = 0;
+    foreach ($tags[0] as [$tag, $offset]) {
+        if ($tag[1] !== '/') {
+            if ($depth++ === 0) {
+                $start = $offset;
+            }
+        } elseif ($depth > 0 && --$depth === 0) {
+            $spans[] = [$start, $offset + strlen($tag)];
+        }
+    }
+    // Insert from the end so earlier offsets stay valid. A table already inside a block-editor table figure or an
+    // earlier wrapper is left alone.
+    foreach (array_reverse($spans) as [$from, $to]) {
+        if (preg_match('/<(?:figure\b[^>]*\bwp-block-table\b|div\b[^>]*\bbl-table-scroll\b)[^>]*>\s*$/i', substr($content, max(0, $from - 300), min(300, $from)))) {
+            continue;
+        }
+        $content = substr($content, 0, $from) . '<div class="bl-table-scroll">' . substr($content, $from, $to - $from) . '</div>' . substr($content, $to);
+    }
+    return $content;
+}
+add_filter('the_content', 'boblift_wrap_bare_tables', 9);

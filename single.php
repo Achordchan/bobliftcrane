@@ -149,7 +149,7 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
             <?php endif; ?>
 
             <div class="boblift-article-body mt-8">
-                <?php echo wp_kses_post($content); ?>
+                <?php echo boblift_add_video_backdrops(wp_kses_post($content)); ?>
             </div>
 
             <div class="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6 text-sm font-bold text-slate-500">
