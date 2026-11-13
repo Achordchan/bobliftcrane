@@ -1183,9 +1183,8 @@ add_filter('the_content', 'boblift_cdn_video_posters', 8);
 /*
  * A portrait (phone-shot) video in a story is marked so the article styles can play it in a column-wide stage instead of
  * as a narrow strip in the middle of the column. Some figures already carry bl-video-vertical from the editor; the
- * others are recognised by the video's own width and height attributes (or its 9/16 aspect-ratio style). The video's
- * poster is handed to the stylesheet as --bl-poster so the stage can show it blurred behind the player. Only plain video
- * figures holding a single video are touched.
+ * others are recognised by the video's own width and height attributes (or its 9/16 aspect-ratio style). Only plain
+ * video figures holding a single video are touched.
  */
 function boblift_mark_portrait_videos(string $content): string
 {
@@ -1209,21 +1208,18 @@ function boblift_mark_portrait_videos(string $content): string
         if (!$portrait) {
             return $m[0];
         }
-        $class = $marked ? $m['class'] : $m['class'] . ' bl-video-vertical';
-        $attrs = $m['before'] . $m['q'] . $class . $m['q'] . $m['after'];
-        // Only a plain http(s) poster address goes into the style; anything with quotes, brackets or spaces is skipped.
-        if (!str_contains($attrs, '--bl-poster') && preg_match('/\bposter=(["\'])(https?:\/\/[^"\'()<>\s\\\\]+)\1/i', $tag[0], $poster)) {
-            $var = '--bl-poster:url(' . $poster[2] . ');';
-            if (preg_match('/\bstyle=(["\'])/i', $attrs)) {
-                $attrs = (string) preg_replace('/\bstyle=(["\'])/i', 'style=$1' . str_replace('$', '\$', $var), $attrs, 1);
-            } else {
-                $attrs .= ' style="' . $var . '"';
-            }
+        $inner = $m['inner'];
+        // The stage shows the video's own poster blurred behind the player. It is a plain decorative <img> rather than a
+        // CSS variable because single.php runs the story through wp_kses_post(), whose style filter drops url() values.
+        // Only an http(s) address without quotes, brackets or spaces is reused.
+        if (!str_contains($inner, 'bl-video-backdrop') && preg_match('/\bposter=(["\'])(https?:\/\/[^"\'<>\s]+)\1/i', $tag[0], $poster)) {
+            $inner = '<img class="bl-video-backdrop" src="' . $poster[2] . '" alt="" aria-hidden="true" loading="lazy" decoding="async">' . $inner;
         }
-        if ($attrs === $m['before'] . $m['q'] . $m['class'] . $m['q'] . $m['after']) {
+        if ($marked && $inner === $m['inner']) {
             return $m[0];
         }
-        return '<figure' . $attrs . '>' . $m['inner'] . '</figure>';
+        $class = $marked ? $m['class'] : $m['class'] . ' bl-video-vertical';
+        return '<figure' . $m['before'] . $m['q'] . $class . $m['q'] . $m['after'] . '>' . $inner . '</figure>';
     }, $content);
 }
 add_filter('the_content', 'boblift_mark_portrait_videos', 9);
@@ -1234,12 +1230,33 @@ add_filter('the_content', 'boblift_mark_portrait_videos', 9);
  */
 function boblift_wrap_bare_tables(string $content): string
 {
-    if (!str_contains($content, '<table')) {
+    if (stripos($content, '<table') === false) {
         return $content;
     }
-    $pattern = '/<figure\b[^>]*\bwp-block-table\b[^>]*>.*?<\/figure>|<div\b[^>]*\bbl-table-scroll\b[^>]*>\s*<table\b.*?<\/table>\s*<\/div>|(?<table><table\b.*?<\/table>)/is';
-    return (string) preg_replace_callback($pattern, static function (array $m): string {
-        return empty($m['table']) ? $m[0] : '<div class="bl-table-scroll">' . $m['table'] . '</div>';
-    }, $content);
+    // Find each outermost table by counting <table> and </table>, so a table nested in a cell stays inside its parent.
+    if (!preg_match_all('/<table\b[^>]*>|<\/table\s*>/i', $content, $tags, PREG_OFFSET_CAPTURE)) {
+        return $content;
+    }
+    $spans = [];
+    $depth = 0;
+    $start = 0;
+    foreach ($tags[0] as [$tag, $offset]) {
+        if ($tag[1] !== '/') {
+            if ($depth++ === 0) {
+                $start = $offset;
+            }
+        } elseif ($depth > 0 && --$depth === 0) {
+            $spans[] = [$start, $offset + strlen($tag)];
+        }
+    }
+    // Insert from the end so earlier offsets stay valid. A table already inside a block-editor table figure or an
+    // earlier wrapper is left alone.
+    foreach (array_reverse($spans) as [$from, $to]) {
+        if (preg_match('/<(?:figure\b[^>]*\bwp-block-table\b|div\b[^>]*\bbl-table-scroll\b)[^>]*>\s*$/i', substr($content, max(0, $from - 300), min(300, $from)))) {
+            continue;
+        }
+        $content = substr($content, 0, $from) . '<div class="bl-table-scroll">' . substr($content, $from, $to - $from) . '</div>' . substr($content, $to);
+    }
+    return $content;
 }
 add_filter('the_content', 'boblift_wrap_bare_tables', 9);
