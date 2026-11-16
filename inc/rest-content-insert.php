@@ -27,6 +27,12 @@ if (!defined('ABSPATH')) {
  * item is already done and is skipped. The old srcset and sizes are removed. Like "replace", an "image" item goes on its
  * own, one per request.
  *
+ * An item can also point a link at a newer file, such as a revised drawing PDF: {"link": "/wp-content/uploads/2026/10/
+ * a.pdf", "href": "/wp-content/uploads/2026/11/a-v2.pdf"}. "link" is the current href of exactly one <a> in the content;
+ * its href becomes "href" (a root-relative or absolute http(s) URL). Link text and other attributes stay as they are.
+ * When no <a> has the old href and one has the new href, the item is already done and is skipped. Like "image", a
+ * "link" item goes on its own, one per request.
+ *
  * rest_pre_insert_{type} takes a per-post lock that is held until the save is done, every REST update of the item takes
  * the same lock before it loads the post, and any other save takes it just before its row is written, so nothing lands
  * in between; the request's own core update writes the body as stored at that moment. It then checks the insertion
@@ -54,7 +60,7 @@ function boblift_register_rest_content_insert_field(): void
             return true;
         },
         'schema' => [
-            'description' => 'Write only: {"after": snippet, "html": html} adds html after the element holding the snippet; {"replace": text, "with": text} corrects a plain-text phrase; {"image": old src, "src": new src, "alt": text} swaps an image for another media library file. One item or a list.',
+            'description' => 'Write only: {"after": snippet, "html": html} adds html after the element holding the snippet; {"replace": text, "with": text} corrects a plain-text phrase; {"image": old src, "src": new src, "alt": text} swaps an image for another media library file; {"link": old href, "href": new href} points one link at another URL. One item or a list.',
             'type' => ['object', 'array'],
             'context' => ['edit'],
         ],
@@ -203,11 +209,11 @@ function boblift_content_insert_stored(int $post_id): string
 /** Applies every insertion in a request value to $content, filtering the HTML the way a save by this user would. */
 function boblift_content_insert_apply(string $content, $value): string|WP_Error
 {
-    $inserts = is_array($value) && (array_key_exists('after', $value) || array_key_exists('replace', $value) || array_key_exists('image', $value)) ? [$value] : (array) $value;
+    $inserts = is_array($value) && (array_key_exists('after', $value) || array_key_exists('replace', $value) || array_key_exists('image', $value) || array_key_exists('link', $value)) ? [$value] : (array) $value;
     // A replacement or an image swap can remove what another item of the request checks for (its own "with", an
     // insertion's HTML, another swap's src), so a retry could not tell that item was done: such an item goes alone.
-    if (count($inserts) > 1 && array_filter($inserts, static fn($insert): bool => is_array($insert) && (array_key_exists('replace', $insert) || array_key_exists('image', $insert))) !== []) {
-        return new WP_Error('boblift_insert_replace', 'Send a "replace" or "image" item on its own, one per request.', ['status' => 400]);
+    if (count($inserts) > 1 && array_filter($inserts, static fn($insert): bool => is_array($insert) && (array_key_exists('replace', $insert) || array_key_exists('image', $insert) || array_key_exists('link', $insert))) !== []) {
+        return new WP_Error('boblift_insert_replace', 'Send a "replace", "image" or "link" item on its own, one per request.', ['status' => 400]);
     }
     foreach ($inserts as $insert) {
         if (is_array($insert) && array_key_exists('replace', $insert)) {
@@ -220,6 +226,13 @@ function boblift_content_insert_apply(string $content, $value): string|WP_Error
         if (is_array($insert) && array_key_exists('image', $insert)) {
             $alt = array_key_exists('alt', $insert) ? (string) $insert['alt'] : null;
             $content = boblift_content_insert_image($content, (string) ($insert['image'] ?? ''), (string) ($insert['src'] ?? ''), $alt);
+            if (is_wp_error($content)) {
+                return $content;
+            }
+            continue;
+        }
+        if (is_array($insert) && array_key_exists('link', $insert)) {
+            $content = boblift_content_insert_link($content, (string) ($insert['link'] ?? ''), (string) ($insert['href'] ?? ''));
             if (is_wp_error($content)) {
                 return $content;
             }
@@ -273,6 +286,46 @@ function boblift_content_insert_replace(string $content, string $from, string $t
         return new WP_Error('boblift_insert_replace', 'A "replace" item needs plain-text "replace" and a different, non-empty "with" (no "<", ">" or quotes).', ['status' => 400]);
     }
     return boblift_product_specs_replace_one($content, $from, $to, 'content');
+}
+
+/**
+ * Points the one <a> whose href is $old at $new, a root-relative or absolute http(s) URL; link text and other
+ * attributes are kept. Done already (content returned unchanged) when no <a> has $old and one has $new. Like the image
+ * swap, tags are found with WordPress's HTML tag processor, so an href inside another attribute or a comment is skipped.
+ */
+function boblift_content_insert_link(string $content, string $old, string $new): string|WP_Error
+{
+    if ($old === '' || $new === '' || $old === $new || preg_match('~[\s<>"\'\x00]~', $old . $new) === 1) {
+        return new WP_Error('boblift_insert_link', 'A "link" item needs the current href in "link" and a different new href in "href" (no spaces, "<", ">" or quotes).', ['status' => 400]);
+    }
+    if (preg_match('~^(/(?!/)|https?://)~i', $new) !== 1) {
+        return new WP_Error('boblift_insert_link', 'The new "href" must be a root-relative (/wp-content/…) or absolute http(s) URL.', ['status' => 400]);
+    }
+    $found = 0;
+    $done = false;
+    $scan = new WP_HTML_Tag_Processor($content);
+    while ($scan->next_tag('a')) {
+        $href = $scan->get_attribute('href');
+        if ($href === $old) {
+            $found++;
+        } elseif ($href === $new) {
+            $done = true;
+        }
+    }
+    if ($found === 0) {
+        return $done ? $content : new WP_Error('boblift_insert_link', sprintf('No <a> has the href "%s".', $old), ['status' => 400]);
+    }
+    if ($found > 1) {
+        return new WP_Error('boblift_insert_link', sprintf('%d <a> tags have the href "%s"; it must be exactly one.', $found, $old), ['status' => 400]);
+    }
+    $edit = new WP_HTML_Tag_Processor($content);
+    while ($edit->next_tag('a')) {
+        if ($edit->get_attribute('href') === $old) {
+            $edit->set_attribute('href', $new);
+            break;
+        }
+    }
+    return $edit->get_updated_html();
 }
 
 /**
