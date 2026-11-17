@@ -569,15 +569,22 @@ function boblift_content_insert_video(string $content, string $old, string $new,
  * same video, so a string value that decodes to exactly the old URL (a VideoObject contentUrl) is pointed at the new one
  * too, written with slashes escaped or not as the old one was. Every JSON string token is decoded for the comparison, so
  * \/ or \u escapes in the stored text still match; object keys, longer strings that merely contain the URL, and
- * anything outside those scripts stay as they are. The type attribute may be quoted or not.
+ * anything outside those scripts (comments and other script types included) stay as they are.
  */
 function boblift_content_insert_video_jsonld(string $content, string $old, string $new): string
 {
     if (stripos($content, 'application/ld+json') === false) {
         return $content;
     }
-    $swap = static function (array $m) use ($old, $new): string {
-        $json = (string) preg_replace_callback(
+    // The tag processor reads the real type attribute (not data-type) and never enters a comment.
+    $scripts = new WP_HTML_Tag_Processor($content);
+    $changed = false;
+    while ($scripts->next_tag('script')) {
+        if (strtolower(trim((string) $scripts->get_attribute('type'))) !== 'application/ld+json') {
+            continue;
+        }
+        $json = $scripts->get_modifiable_text();
+        $swapped = (string) preg_replace_callback(
             // Every string, keys included, is consumed in turn so the scan never starts inside one; a key (followed by
             // a colon) is left alone.
             '~"(?:[^"\\\\]++|\\\\.)*+"(\s*:)?~s',
@@ -588,15 +595,13 @@ function boblift_content_insert_video_jsonld(string $content, string $old, strin
                 $flags = JSON_UNESCAPED_UNICODE | (str_contains($token[0], '\\/') ? 0 : JSON_UNESCAPED_SLASHES);
                 return (string) json_encode($new, $flags);
             },
-            $m[3]
+            $json
         );
-        return $m[1] . $json . $m[4];
-    };
-    return (string) preg_replace_callback(
-        '#(<script\b[^>]*\btype\s*=\s*(["\']?)application/ld\+json\2(?=[\s/>])[^>]*>)(.*?)(</script>)#is',
-        $swap,
-        $content
-    );
+        if ($swapped !== $json && $scripts->set_modifiable_text($swapped)) {
+            $changed = true;
+        }
+    }
+    return $changed ? $scripts->get_updated_html() : $content;
 }
 
 function boblift_content_insert_after(string $content, string $after, string $html): string|WP_Error
