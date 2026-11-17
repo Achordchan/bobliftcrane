@@ -114,8 +114,10 @@ def is_recent(lastmod: str, hours: float) -> bool:
 
 
 def list_urls(site: str, paths: str, listed: set[str]) -> list[str]:
-    """Each list path in the default language and under every language folder found among the sitemap URLs."""
-    folders = sorted({m.group(1) for url in listed if (m := re.match(r"/([a-z]{2})/", urllib.parse.urlsplit(url).path))})
+    """Each list path in the default language and under every language folder. A folder is taken from a language home
+    page in the sitemaps (/es/, /pt-br/), so a two-letter page path is never mistaken for one."""
+    folders = sorted({m.group(1) for url in listed
+                      if (m := re.fullmatch(r"/([a-z]{2,3}(?:[-_][a-z0-9]{2,8})?)/", urllib.parse.urlsplit(url).path))})
     out = []
     for path in [p.strip() for p in paths.split(",") if p.strip()]:
         path = "/" + path.lstrip("/")
