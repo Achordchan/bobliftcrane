@@ -148,3 +148,67 @@ function boblift_seo_news_category_show_all(WP_Query $query): void
     }
 }
 add_action('pre_get_posts', 'boblift_seo_news_category_show_all');
+
+// Core's sitemap lists a term only when products are filed under it directly, so a parent category (truck-mounted-crane,
+// marine-crane, ...) whose products all sit in its sub-categories never reached the sitemap. A term is listed when it or
+// any term under it has a published product; a term with nothing anywhere below it stays out, as before.
+function boblift_seo_sitemap_product_category_args(array $args, string $taxonomy): array
+{
+    if ($taxonomy !== 'product_category') {
+        return $args;
+    }
+    $terms = get_terms(['taxonomy' => 'product_category', 'hide_empty' => false, 'lang' => '', 'update_term_meta_cache' => false]);
+    if (is_wp_error($terms) || !$terms) {
+        return $args;
+    }
+    $parents = [];
+    foreach ($terms as $term) {
+        $parents[(int) $term->term_id] = (int) $term->parent;
+    }
+    $filled = [];
+    foreach ($terms as $term) {
+        if ((int) $term->count <= 0) {
+            continue;
+        }
+        // Walk up to the top, each term once, so a broken parent chain cannot loop.
+        for ($id = (int) $term->term_id; $id > 0 && !isset($filled[$id]); $id = $parents[$id] ?? 0) {
+            $filled[$id] = true;
+        }
+    }
+    $args['hide_empty'] = false;
+    $exclude = array_diff(array_keys($parents), array_keys($filled));
+    if ($exclude) {
+        $args['exclude'] = array_values(array_unique(array_merge(array_map('intval', (array) ($args['exclude'] ?? [])), $exclude)));
+    }
+    return $args;
+}
+add_filter('wp_sitemaps_taxonomies_query_args', 'boblift_seo_sitemap_product_category_args', 10, 2);
+
+// Jetpack gives every view that is not a post its home address as og:url, so a shared category, tonnage or language
+// home page pointed at the English home page. og:url now matches the page's canonical.
+function boblift_seo_archive_og_url($tags)
+{
+    if (!is_array($tags)) {
+        return $tags;
+    }
+    $url = '';
+    $size = function_exists('boblift_current_tonnage') ? boblift_current_tonnage() : 0;
+    $term = $size > 0 ? null : boblift_seo_archive_term();
+    if ($size > 0) {
+        $url = boblift_tonnage_url($size);
+    } elseif ($term instanceof WP_Term) {
+        $link = get_term_link($term);
+        $url = is_string($link) ? $link : '';
+    } elseif (is_front_page()) {
+        $page = get_queried_object();
+        $url = $page instanceof WP_Post ? (string) wp_get_canonical_url($page) : '';
+        if ($url === '') {
+            $url = function_exists('pll_home_url') ? (string) pll_home_url() : home_url('/');
+        }
+    }
+    if ($url !== '') {
+        $tags['og:url'] = $url;
+    }
+    return $tags;
+}
+add_filter('jetpack_open_graph_tags', 'boblift_seo_archive_og_url', 20);
