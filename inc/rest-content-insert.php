@@ -38,9 +38,10 @@ if (!defined('ABSPATH')) {
  * 2026/11/a-poster.jpg"}. "video" is the current src of exactly one <video> in the content; its src becomes "src" and,
  * when "poster" is sent, its poster becomes that URL (both root-relative or absolute http(s) URLs). Other attributes
  * stay as they are. Only a <video> in classic HTML or a core/html block is swapped: a core/video block keeps the
- * attachment ID in its own attributes, so it is refused. Copies of the old URL elsewhere (a VideoObject contentUrl in a
- * script, a link) are not changed. When no <video> has the old src and one has the new src, the item is already done
- * and is skipped. Like "image", a "video" item goes on its own, one per request.
+ * attachment ID in its own attributes, so it is refused. In the body's own JSON-LD scripts, a string value that is
+ * exactly the old URL (a VideoObject contentUrl) is pointed at the new one too; other copies (a link, text) are not
+ * changed. When no <video> has the old src and one has the new src, the swap is already done and only that JSON-LD
+ * step runs. Like "image", a "video" item goes on its own, one per request.
  *
  * rest_pre_insert_{type} takes a per-post lock that is held until the save is done, every REST update of the item takes
  * the same lock before it loads the post, and any other save takes it just before its row is written, so nothing lands
@@ -531,7 +532,7 @@ function boblift_content_insert_video(string $content, string $old, string $new,
         }
     }
     if ($found === 0) {
-        return $done ? $content : new WP_Error('boblift_insert_video', sprintf('No <video> has the src "%s".', $old), ['status' => 400]);
+        return $done ? boblift_content_insert_video_jsonld($content, $old, $new) : new WP_Error('boblift_insert_video', sprintf('No <video> has the src "%s".', $old), ['status' => 400]);
     }
     if ($found > 1) {
         return new WP_Error('boblift_insert_video', sprintf('%d <video> tags have the src "%s"; it must be exactly one.', $found, $old), ['status' => 400]);
@@ -560,7 +561,47 @@ function boblift_content_insert_video(string $content, string $old, string $new,
     if ($block !== false && !in_array($block['name'], ['html', 'core/html'], true)) {
         return new WP_Error('boblift_insert_video', sprintf('This video is inside a "%s" block, whose own attributes keep the video; only classic HTML and HTML blocks can be swapped.', $block['name']), ['status' => 400]);
     }
-    return $content;
+    return boblift_content_insert_video_jsonld($content, $old, $new);
+}
+
+/**
+ * The body's own JSON-LD (the <script type="application/ld+json"> blocks the theme prints in the head) describes the
+ * same video, so a string value that decodes to exactly the old URL (a VideoObject contentUrl) is pointed at the new one
+ * too, written with slashes escaped or not as the old one was. Every JSON string token is decoded for the comparison, so
+ * \/ or \u escapes in the stored text still match; object keys, longer strings that merely contain the URL, and
+ * anything outside those scripts (comments and other script types included) stay as they are.
+ */
+function boblift_content_insert_video_jsonld(string $content, string $old, string $new): string
+{
+    if (stripos($content, 'application/ld+json') === false) {
+        return $content;
+    }
+    // The tag processor reads the real type attribute (not data-type) and never enters a comment.
+    $scripts = new WP_HTML_Tag_Processor($content);
+    $changed = false;
+    while ($scripts->next_tag('script')) {
+        if (strtolower(trim((string) $scripts->get_attribute('type'))) !== 'application/ld+json') {
+            continue;
+        }
+        $json = $scripts->get_modifiable_text();
+        $swapped = (string) preg_replace_callback(
+            // Every string, keys included, is consumed in turn so the scan never starts inside one; a key (followed by
+            // a colon) is left alone.
+            '~"(?:[^"\\\\]++|\\\\.)*+"(\s*:)?~s',
+            static function (array $token) use ($old, $new): string {
+                if (isset($token[1]) || json_decode($token[0]) !== $old) {
+                    return $token[0];
+                }
+                $flags = JSON_UNESCAPED_UNICODE | (str_contains($token[0], '\\/') ? 0 : JSON_UNESCAPED_SLASHES);
+                return (string) json_encode($new, $flags);
+            },
+            $json
+        );
+        if ($swapped !== $json && $scripts->set_modifiable_text($swapped)) {
+            $changed = true;
+        }
+    }
+    return $changed ? $scripts->get_updated_html() : $content;
 }
 
 function boblift_content_insert_after(string $content, string $after, string $html): string|WP_Error
