@@ -33,6 +33,15 @@ if (!defined('ABSPATH')) {
  * When no <a> has the old href and one has the new href, the item is already done and is skipped. Like "image", a
  * "link" item goes on its own, one per request.
  *
+ * An item can also point a video at a newer file, such as a sharper re-upload: {"video": "https://videos.files.
+ * wordpress.com/AbC/a.mp4", "src": "https://videos.files.wordpress.com/XyZ/a-hd.mp4", "poster": "/wp-content/uploads/
+ * 2026/11/a-poster.jpg"}. "video" is the current src of exactly one <video> in the content; its src becomes "src" and,
+ * when "poster" is sent, its poster becomes that URL (both root-relative or absolute http(s) URLs). Other attributes
+ * stay as they are. Only a <video> in classic HTML or a core/html block is swapped: a core/video block keeps the
+ * attachment ID in its own attributes, so it is refused. Copies of the old URL elsewhere (a VideoObject contentUrl in a
+ * script, a link) are not changed. When no <video> has the old src and one has the new src, the item is already done
+ * and is skipped. Like "image", a "video" item goes on its own, one per request.
+ *
  * rest_pre_insert_{type} takes a per-post lock that is held until the save is done, every REST update of the item takes
  * the same lock before it loads the post, and any other save takes it just before its row is written, so nothing lands
  * in between; the request's own core update writes the body as stored at that moment. It then checks the insertion
@@ -60,7 +69,7 @@ function boblift_register_rest_content_insert_field(): void
             return true;
         },
         'schema' => [
-            'description' => 'Write only: {"after": snippet, "html": html} adds html after the element holding the snippet; {"replace": text, "with": text} corrects a plain-text phrase; {"image": old src, "src": new src, "alt": text} swaps an image for another media library file; {"link": old href, "href": new href} points one link at another URL. One item or a list.',
+            'description' => 'Write only: {"after": snippet, "html": html} adds html after the element holding the snippet; {"replace": text, "with": text} corrects a plain-text phrase; {"image": old src, "src": new src, "alt": text} swaps an image for another media library file; {"link": old href, "href": new href} points one link at another URL; {"video": old src, "src": new src, "poster": url} points one <video> at another file. One item or a list.',
             'type' => ['object', 'array'],
             'context' => ['edit'],
         ],
@@ -209,11 +218,11 @@ function boblift_content_insert_stored(int $post_id): string
 /** Applies every insertion in a request value to $content, filtering the HTML the way a save by this user would. */
 function boblift_content_insert_apply(string $content, $value): string|WP_Error
 {
-    $inserts = is_array($value) && (array_key_exists('after', $value) || array_key_exists('replace', $value) || array_key_exists('image', $value) || array_key_exists('link', $value)) ? [$value] : (array) $value;
+    $inserts = is_array($value) && (array_key_exists('after', $value) || array_key_exists('replace', $value) || array_key_exists('image', $value) || array_key_exists('link', $value) || array_key_exists('video', $value)) ? [$value] : (array) $value;
     // A replacement or an image swap can remove what another item of the request checks for (its own "with", an
     // insertion's HTML, another swap's src), so a retry could not tell that item was done: such an item goes alone.
-    if (count($inserts) > 1 && array_filter($inserts, static fn($insert): bool => is_array($insert) && (array_key_exists('replace', $insert) || array_key_exists('image', $insert) || array_key_exists('link', $insert))) !== []) {
-        return new WP_Error('boblift_insert_replace', 'Send a "replace", "image" or "link" item on its own, one per request.', ['status' => 400]);
+    if (count($inserts) > 1 && array_filter($inserts, static fn($insert): bool => is_array($insert) && (array_key_exists('replace', $insert) || array_key_exists('image', $insert) || array_key_exists('link', $insert) || array_key_exists('video', $insert))) !== []) {
+        return new WP_Error('boblift_insert_replace', 'Send a "replace", "image", "link" or "video" item on its own, one per request.', ['status' => 400]);
     }
     foreach ($inserts as $insert) {
         if (is_array($insert) && array_key_exists('replace', $insert)) {
@@ -233,6 +242,14 @@ function boblift_content_insert_apply(string $content, $value): string|WP_Error
         }
         if (is_array($insert) && array_key_exists('link', $insert)) {
             $content = boblift_content_insert_link($content, (string) ($insert['link'] ?? ''), (string) ($insert['href'] ?? ''));
+            if (is_wp_error($content)) {
+                return $content;
+            }
+            continue;
+        }
+        if (is_array($insert) && array_key_exists('video', $insert)) {
+            $poster = array_key_exists('poster', $insert) ? (string) $insert['poster'] : null;
+            $content = boblift_content_insert_video($content, (string) ($insert['video'] ?? ''), (string) ($insert['src'] ?? ''), $poster);
             if (is_wp_error($content)) {
                 return $content;
             }
@@ -435,24 +452,7 @@ function boblift_content_insert_image(string $content, string $old, string $new,
  */
 function boblift_content_insert_image_block_id(string $content, int $at, int $new_id): string|WP_Error
 {
-    $head = substr($content, 0, $at);
-    preg_match_all('~<!--\s+(/?)wp:([a-z][a-z0-9_-]*(?:/[a-z][a-z0-9_-]*)?)(\s+\{.*?\})?\s+(/?)-->~s', $head, $tokens, PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
-    $stack = [];
-    foreach ($tokens as $token) {
-        $name = $token[2][0];
-        if ($token[1][0] === '/') {
-            // Close the innermost block of that name; a stray closer is ignored.
-            for ($i = count($stack) - 1; $i >= 0; $i--) {
-                if ($stack[$i]['name'] === $name) {
-                    array_splice($stack, $i);
-                    break;
-                }
-            }
-        } elseif (($token[4][0] ?? '') !== '/') {
-            $stack[] = ['name' => $name, 'json' => $token[3][0] ?? '', 'offset' => $token[3][1] ?? -1];
-        }
-    }
-    $block = end($stack);
+    $block = boblift_content_insert_enclosing_block($content, $at);
     if ($block === false || in_array($block['name'], ['html', 'core/html'], true)) {
         return $content;
     }
@@ -472,6 +472,95 @@ function boblift_content_insert_image_block_id(string $content, int $at, int $ne
     }
     $raw_new = preg_replace_callback($id_pattern, static fn(array $m): string => $m[1] . $new_id, $raw);
     return substr_replace($content, $raw_new, $block['offset'], strlen($raw));
+}
+
+/**
+ * The innermost block open at byte offset $at, as ['name' => …, 'json' => its raw attribute JSON, 'offset' => where that
+ * JSON starts], or false in classic HTML. Found by walking the block comments before $at with a stack, matched on the
+ * raw text the way WordPress's own block parser reads them.
+ */
+function boblift_content_insert_enclosing_block(string $content, int $at): array|false
+{
+    $head = substr($content, 0, $at);
+    preg_match_all('~<!--\s+(/?)wp:([a-z][a-z0-9_-]*(?:/[a-z][a-z0-9_-]*)?)(\s+\{.*?\})?\s+(/?)-->~s', $head, $tokens, PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
+    $stack = [];
+    foreach ($tokens as $token) {
+        $name = $token[2][0];
+        if ($token[1][0] === '/') {
+            // Close the innermost block of that name; a stray closer is ignored.
+            for ($i = count($stack) - 1; $i >= 0; $i--) {
+                if ($stack[$i]['name'] === $name) {
+                    array_splice($stack, $i);
+                    break;
+                }
+            }
+        } elseif (($token[4][0] ?? '') !== '/') {
+            $stack[] = ['name' => $name, 'json' => $token[3][0] ?? '', 'offset' => $token[3][1] ?? -1];
+        }
+    }
+    return end($stack);
+}
+
+/**
+ * Points the one <video> whose src is $old at $new and, when $poster is given, sets its poster. Both must be
+ * root-relative or absolute http(s) URLs. Only classic HTML and core/html blocks are swapped; a <video> in any other
+ * block (core/video keeps the attachment in its attributes) is refused. Tags are found with WordPress's HTML tag
+ * processor, so a src in another attribute, a comment or a script is never touched. Done already (content returned
+ * unchanged) when no <video> has $old and one has $new.
+ */
+function boblift_content_insert_video(string $content, string $old, string $new, ?string $poster): string|WP_Error
+{
+    $bad_url = static fn(string $url): bool => $url === '' || preg_match('~[\s<>"\'\x00]~', $url) === 1;
+    if ($bad_url($old) || $bad_url($new) || $old === $new || ($poster !== null && $bad_url($poster))) {
+        return new WP_Error('boblift_insert_video', 'A "video" item needs the current src in "video" and a different new src in "src", and "poster" if sent, with no spaces, "<", ">" or quotes.', ['status' => 400]);
+    }
+    foreach ($poster === null ? [$new] : [$new, $poster] as $url) {
+        if (preg_match('~^(/(?!/)|https?://)~i', $url) !== 1) {
+            return new WP_Error('boblift_insert_video', 'The new "src" and "poster" must be root-relative (/wp-content/…) or absolute http(s) URLs.', ['status' => 400]);
+        }
+    }
+    $found = 0;
+    $done = false;
+    $scan = new WP_HTML_Tag_Processor($content);
+    while ($scan->next_tag('video')) {
+        $src = $scan->get_attribute('src');
+        if ($src === $old) {
+            $found++;
+        } elseif ($src === $new) {
+            $done = true;
+        }
+    }
+    if ($found === 0) {
+        return $done ? $content : new WP_Error('boblift_insert_video', sprintf('No <video> has the src "%s".', $old), ['status' => 400]);
+    }
+    if ($found > 1) {
+        return new WP_Error('boblift_insert_video', sprintf('%d <video> tags have the src "%s"; it must be exactly one.', $found, $old), ['status' => 400]);
+    }
+    // A one-off boolean attribute marks the swapped <video> so its offset can be found in the result, then is removed.
+    $marker = 'data-boblift-swap-' . bin2hex(random_bytes(6));
+    $edit = new WP_HTML_Tag_Processor($content);
+    while ($edit->next_tag('video')) {
+        if ($edit->get_attribute('src') !== $old) {
+            continue;
+        }
+        $edit->set_attribute('src', $new);
+        if ($poster !== null) {
+            $edit->set_attribute('poster', $poster);
+        }
+        $edit->set_attribute($marker, true);
+        break;
+    }
+    $content = $edit->get_updated_html();
+    $at = strpos($content, ' ' . $marker);
+    if ($at === false) {
+        return new WP_Error('boblift_insert_video', 'The video could not be located after the swap.', ['status' => 500]);
+    }
+    $content = substr_replace($content, '', $at, strlen($marker) + 1);
+    $block = boblift_content_insert_enclosing_block($content, $at);
+    if ($block !== false && !in_array($block['name'], ['html', 'core/html'], true)) {
+        return new WP_Error('boblift_insert_video', sprintf('This video is inside a "%s" block, whose own attributes keep the video; only classic HTML and HTML blocks can be swapped.', $block['name']), ['status' => 400]);
+    }
+    return $content;
 }
 
 function boblift_content_insert_after(string $content, string $after, string $html): string|WP_Error

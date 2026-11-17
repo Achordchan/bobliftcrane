@@ -160,8 +160,25 @@ $images = [
     'no class, no id added' => ['<img class="big" src="/a.png">', ['image' => '/a.png', 'src' => $new], '<img class="big" src="' . $new . '">'],
     'swap with another item' => ['<p>A</p><img src="/a.png">', [['after' => 'A', 'html' => '<p>N</p>'], ['image' => '/a.png', 'src' => $new]], 'boblift_insert_replace'],
 ];
+$vo = 'https://videos.files.wordpress.com/AbC/a.mp4';
+$vn = 'https://videos.files.wordpress.com/XyZ/a-hd.mp4';
+$vp = '/wp-content/uploads/2026/11/a-poster.jpg';
+$images += [
+    'video in classic html' => ['<figure><video controls src="' . $vo . '" poster="/p.jpg"></video></figure>', ['video' => $vo, 'src' => $vn], '<figure><video controls src="' . $vn . '" poster="/p.jpg"></video></figure>'],
+    'video with new poster' => ['<video src="' . $vo . '" poster="/p.jpg"></video>', ['video' => $vo, 'src' => $vn, 'poster' => $vp], '<video src="' . $vn . '" poster="' . $vp . '"></video>'],
+    'video in an html block' => ["<!-- wp:html -->\n<video src=\"{$vo}\"></video>\n<!-- /wp:html -->", ['video' => $vo, 'src' => $vn], "<!-- wp:html -->\n<video src=\"{$vn}\"></video>\n<!-- /wp:html -->"],
+    'video already swapped' => ['<video src="' . $vn . '"></video>', ['video' => $vo, 'src' => $vn], '<video src="' . $vn . '"></video>'],
+    'video not found' => ['<video src="/other.mp4"></video>', ['video' => $vo, 'src' => $vn], 'boblift_insert_video'],
+    'video twice' => ['<video src="' . $vo . '"></video><video src="' . $vo . '"></video>', ['video' => $vo, 'src' => $vn], 'boblift_insert_video'],
+    'video src in a link only' => ['<a href="' . $vo . '">v</a>', ['video' => $vo, 'src' => $vn], 'boblift_insert_video'],
+    'video url in a script kept' => ['<video src="' . $vo . '"></video><script type="application/ld+json">{"contentUrl":"' . $vo . '"}</script>', ['video' => $vo, 'src' => $vn], '<video src="' . $vn . '"></video><script type="application/ld+json">{"contentUrl":"' . $vo . '"}</script>'],
+    'video in a video block' => ['<!-- wp:video {"id":3} --><figure class="wp-block-video"><video src="' . $vo . '"></video></figure><!-- /wp:video -->', ['video' => $vo, 'src' => $vn], 'boblift_insert_video'],
+    'video relative src' => ['<video src="' . $vo . '"></video>', ['video' => $vo, 'src' => 'a-hd.mp4'], 'boblift_insert_video'],
+    'video bad poster' => ['<video src="' . $vo . '"></video>', ['video' => $vo, 'src' => $vn, 'poster' => '//x.com/p.jpg'], 'boblift_insert_video'],
+    'video with another item' => ['<p>A</p><video src="' . $vo . '"></video>', [['after' => 'A', 'html' => '<p>N</p>'], ['video' => $vo, 'src' => $vn]], 'boblift_insert_replace'],
+];
 if (!class_exists('WP_HTML_Tag_Processor')) {
-    echo 'SKIPPED ' . count($images) . " image cases: set WP_CORE_DIR to a WordPress copy\n";
+    echo 'SKIPPED ' . count($images) . " image and video cases: set WP_CORE_DIR to a WordPress copy\n";
     $images = [];
 }
 foreach ($images as $name => [$content, $item, $want]) {
