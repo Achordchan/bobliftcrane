@@ -55,12 +55,14 @@ function boblift_product_image_sitemap_xml(): string
         'orderby' => 'ID',
         'order' => 'ASC',
         'lang' => '',
+        // A password-protected product keeps its pictures behind the password, so it stays out of a public sitemap.
+        'has_password' => false,
         'no_found_rows' => true,
     ]);
     $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n"
         . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">' . "\n";
     foreach ($posts as $post) {
-        if (apply_filters('jetpack_sitemap_skip_post', false, $post)) {
+        if ($post->post_password !== '' || apply_filters('jetpack_sitemap_skip_post', false, $post)) {
             continue;
         }
         $images = boblift_product_image_sitemap_images($post);
@@ -81,8 +83,9 @@ function boblift_product_image_sitemap_xml(): string
 
 function boblift_product_image_sitemap_serve(): void
 {
+    // The same address robots.txt gives, so a site under a sub-directory serves it where it says it is.
     $path = wp_parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
-    if ($path !== BOBLIFT_PRODUCT_IMAGE_SITEMAP_PATH) {
+    if (!is_string($path) || $path !== wp_parse_url(home_url(BOBLIFT_PRODUCT_IMAGE_SITEMAP_PATH), PHP_URL_PATH)) {
         return;
     }
     status_header(200);
