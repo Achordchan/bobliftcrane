@@ -43,7 +43,8 @@ jobs:
         run: |
           lists='/,news.html,products.html,cases.html'
           if [ -n "$RECENT" ]; then
-            python3 scripts/warm-edge-cache.py https://bobliftcrane.com --recent "$RECENT" --lists "$lists"
+            # The news category archives (Company News, Industry Insight) change with every post but carry no <lastmod>.
+            python3 scripts/warm-edge-cache.py https://bobliftcrane.com --recent "$RECENT" --lists "$lists" --list-sitemaps taxonomies-category
           else
             python3 scripts/warm-edge-cache.py https://bobliftcrane.com
           fi
