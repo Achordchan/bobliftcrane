@@ -37,7 +37,8 @@ function boblift_product_image_sitemap_images(WP_Post $post): array
         if ($src === '' || str_contains($src, 'images/products/crane-accessories.png')) {
             continue;
         }
-        $images[strtolower($src)] = boblift_image_resized($src, 1400);
+        // Paths are case-sensitive, so two files differing only in case stay two pictures.
+        $images[] = boblift_image_resized($src, 1400);
     }
     return array_values(array_unique($images));
 }
