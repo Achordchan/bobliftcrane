@@ -2,17 +2,18 @@ name: Warm Edge Cache
 
 # The WordPress.com edge cache answers a page's first request after five minutes with its old copy, and keeps one copy per
 # compression (br, gzip, none), so a page nobody visits keeps an old copy for its next visitor (scripts/warm-edge-cache.py).
-# - After a deploy: every sitemap page, as br and gzip. WordPress.com deploys the "Publish Website" artifact once that run
-#   has finished, so this runs as its own workflow after it and first waits for the deploy.
-# - Every three hours, and by hand after posts are published (recent_hours): the home and list pages of every language and
+# - Every six hours, and by hand after posts are published (recent_hours): the home and list pages of every language and
 #   the pages whose sitemap <lastmod> falls in the last hours, which takes a few minutes. The list pages are named here,
 #   not taken from the sitemaps, and are requested under every language folder.
+# - Once a week (Sunday 02:47 Singapore time), and by hand with recent_hours empty after a theme change that matters to
+#   search engines: every sitemap page, as br and gzip, about 1.5 hours.
+# A full run used to follow every deploy. With several deploys a day, those runs (each also waiting ten minutes for the
+# deploy, and most cancelled by the next deploy) used about 2,500 of the account's 3,000 included Actions minutes by
+# 2026-11-17, so deploys no longer start one: a visitor still gets each page's new copy from its second request on.
 on:
-  workflow_run:
-    workflows: ["Publish Website"]
-    types: [completed]
   schedule:
-    - cron: "23 */3 * * *"
+    - cron: "23 */6 * * *"
+    - cron: "47 18 * * 6"
   workflow_dispatch:
     inputs:
       recent_hours:
@@ -21,25 +22,22 @@ on:
         default: ""
 jobs:
   Warm-Edge-Cache:
-    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
-    # Overlapping runs pushed the site over the host's rate limit, so visitors were served 429; one run at a time.
-    # A deploy's full run replaces any run in progress (it warms the latest deploy); a scheduled or by-hand run waits for
-    # the one in progress instead of cancelling it. This sits on the job, after the `if`, so a failed or cancelled publish
-    # (whose job is skipped) cannot cancel a warmer that is still needed.
+    # Overlapping runs pushed the site over the host's rate limit, so visitors were served 429; one run at a time, and a
+    # new run waits for the one in progress instead of cancelling it.
     concurrency:
       group: warm-edge-cache
-      cancel-in-progress: ${{ github.event_name == 'workflow_run' }}
+      cancel-in-progress: false
     runs-on: ubuntu-latest
-    # A full run requests ~1,900 pages twice (br and gzip) at a steady pace, about 1.5 hours.
+    # A full run requests ~1,900 pages twice (br and gzip) at a steady pace, about 1.5 hours or a little more.
     timeout-minutes: 180
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@master
-      - name: Wait for the deploy
-        if: github.event_name == 'workflow_run'
-        run: sleep 600
       - name: Request the pages
         env:
-          RECENT: ${{ github.event_name == 'schedule' && '4' || github.event.inputs.recent_hours }}
+          # The six-hourly run looks back seven hours so consecutive runs overlap; the weekly one leaves RECENT empty.
+          RECENT: ${{ github.event_name == 'schedule' && (github.event.schedule != '47 18 * * 6' && '7' || '') || github.event.inputs.recent_hours }}
         run: |
           lists='/,news.html,products.html,cases.html'
           if [ -n "$RECENT" ]; then
