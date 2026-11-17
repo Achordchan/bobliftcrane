@@ -566,22 +566,35 @@ function boblift_content_insert_video(string $content, string $old, string $new,
 
 /**
  * The body's own JSON-LD (the <script type="application/ld+json"> blocks the theme prints in the head) describes the
- * same video, so a string value that is exactly the old URL (a VideoObject contentUrl) is pointed at the new one too,
- * written with slashes escaped or not as the old one was. Only whole JSON strings inside those scripts change; a
- * longer string that merely contains the URL, and anything outside the scripts, stays as it is.
+ * same video, so a string value that decodes to exactly the old URL (a VideoObject contentUrl) is pointed at the new one
+ * too, written with slashes escaped or not as the old one was. Every JSON string token is decoded for the comparison, so
+ * \/ or \u escapes in the stored text still match; object keys, longer strings that merely contain the URL, and
+ * anything outside those scripts stay as they are. The type attribute may be quoted or not.
  */
 function boblift_content_insert_video_jsonld(string $content, string $old, string $new): string
 {
-    if (stripos($content, 'application/ld+json') === false || !str_contains(str_replace('\\/', '/', $content), $old)) {
+    if (stripos($content, 'application/ld+json') === false) {
         return $content;
     }
-    $pairs = [];
-    foreach ([0, JSON_UNESCAPED_SLASHES] as $flags) {
-        $pairs[json_encode($old, $flags | JSON_UNESCAPED_UNICODE)] = json_encode($new, $flags | JSON_UNESCAPED_UNICODE);
-    }
+    $swap = static function (array $m) use ($old, $new): string {
+        $json = (string) preg_replace_callback(
+            // Every string, keys included, is consumed in turn so the scan never starts inside one; a key (followed by
+            // a colon) is left alone.
+            '~"(?:[^"\\\\]++|\\\\.)*+"(\s*:)?~s',
+            static function (array $token) use ($old, $new): string {
+                if (isset($token[1]) || json_decode($token[0]) !== $old) {
+                    return $token[0];
+                }
+                $flags = JSON_UNESCAPED_UNICODE | (str_contains($token[0], '\\/') ? 0 : JSON_UNESCAPED_SLASHES);
+                return (string) json_encode($new, $flags);
+            },
+            $m[3]
+        );
+        return $m[1] . $json . $m[4];
+    };
     return (string) preg_replace_callback(
-        '#(<script\b[^>]*\btype\s*=\s*(["\'])application/ld\+json\2[^>]*>)(.*?)(</script>)#is',
-        static fn(array $m): string => $m[1] . strtr($m[3], $pairs) . $m[4],
+        '#(<script\b[^>]*\btype\s*=\s*(["\']?)application/ld\+json\2(?=[\s/>])[^>]*>)(.*?)(</script>)#is',
+        $swap,
         $content
     );
 }
