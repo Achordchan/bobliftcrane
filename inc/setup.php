@@ -312,7 +312,7 @@ function boblift_document_title_parts(array $title): array
 }
 add_filter('document_title_parts', 'boblift_document_title_parts', 20);
 
-function boblift_meta_description(): void
+function boblift_meta_description_text(): string
 {
     $description = '';
     $product_category = boblift_current_product_category_term();
@@ -338,11 +338,57 @@ function boblift_meta_description(): void
         $post = get_queried_object();
         $description = $post instanceof WP_Post ? boblift_seo_post_description($post) : '';
     }
+    return trim(wp_strip_all_tags($description));
+}
+
+function boblift_meta_description(): void
+{
+    $description = boblift_meta_description_text();
     if ($description !== '') {
-        echo '<meta name="description" content="' . esc_attr(wp_strip_all_tags($description)) . '">' . "\n";
+        echo '<meta name="description" content="' . esc_attr($description) . '">' . "\n";
     }
 }
 add_action('wp_head', 'boblift_meta_description', 1);
+
+/**
+ * Category, tonnage and listing pages are theme routes, so Jetpack fills their social tags as if they were the home page:
+ * og:title is the site name, og:url is the home URL and there is no description. Give them the page's own title,
+ * description and canonical URL instead (the same values the <title>, description and canonical tags print).
+ */
+function boblift_route_social_tags(array $tags): array
+{
+    $term = function_exists('boblift_seo_archive_term') ? boblift_seo_archive_term() : null;
+    $tonnage = boblift_current_tonnage();
+    $listing = is_post_type_archive(['product', 'case']);
+    if ($tonnage <= 0 && !$term instanceof WP_Term && !$listing && !is_front_page()) {
+        return $tags;
+    }
+    $title = html_entity_decode(wp_get_document_title(), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    if ($title !== '') {
+        $tags['og:title'] = $title;
+        $tags['twitter:title'] = $title;
+        $tags['twitter:text:title'] = $title;
+    }
+    $description = boblift_meta_description_text();
+    if ($description !== '') {
+        $tags['og:description'] = $description;
+        $tags['twitter:description'] = $description;
+    }
+    $url = '';
+    if ($tonnage > 0) {
+        $url = boblift_tonnage_url($tonnage);
+    } elseif ($term instanceof WP_Term) {
+        $link = get_term_link($term);
+        $url = is_string($link) ? $link : '';
+    } elseif ($listing) {
+        $url = (string) get_post_type_archive_link(is_post_type_archive('case') ? 'case' : 'product');
+    }
+    if ($url !== '') {
+        $tags['og:url'] = $url;
+    }
+    return $tags;
+}
+add_filter('jetpack_open_graph_tags', static fn ($tags) => is_array($tags) ? boblift_route_social_tags($tags) : $tags, 25);
 
 /**
  * Jetpack SEO prints a second description on singular pages (the excerpt or its own field), so a page carried two
