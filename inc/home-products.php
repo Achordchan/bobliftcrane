@@ -730,11 +730,12 @@ function boblift_render_home_products_view(array $section, array $families, stri
                 </div>
                 <div class="home-hot-cards boblift-swipe-fade">
                     <?php foreach ($cards as $family) : $card = $family['best']; ?>
+                        <?php $full_name = (string) ($card['full_title'] ?? '') ?: $card['title']; ?>
                         <article class="home-hot-card">
-                            <a class="home-hot-media is-<?php echo esc_attr($card['image_fit']); ?>" href="<?php echo esc_url($card['url']); ?>" tabindex="-1" aria-hidden="true"><img <?php echo boblift_img_src($card['image'], '(min-width: 1280px) 18vw, (min-width: 768px) 30vw, 74vw', 480); ?> alt="" loading="lazy" decoding="async"></a>
+                            <?php // The picture repeats the name link below, so screen readers skip it; its alt still names the product for crawlers, which read it as the link's text. ?>
+                            <a class="home-hot-media is-<?php echo esc_attr($card['image_fit']); ?>" href="<?php echo esc_url($card['url']); ?>" tabindex="-1" aria-hidden="true"><img <?php echo boblift_img_src($card['image'], '(min-width: 1280px) 18vw, (min-width: 768px) 30vw, 74vw', 480); ?> alt="<?php echo esc_attr($full_name); ?>" loading="lazy" decoding="async"></a>
                             <div class="home-hot-body">
                                 <p class="home-hot-family"><span class="home-hot-badge"><?php echo esc_html($section['bestSellerBadge']); ?></span><span class="truncate"><?php echo esc_html($family['name']); ?></span></p>
-                                <?php $full_name = (string) ($card['full_title'] ?? '') ?: $card['title']; ?>
                                 <h3 class="home-hot-name" aria-label="<?php echo esc_attr($full_name); ?>"><a href="<?php echo esc_url($card['url']); ?>" title="<?php echo esc_attr($full_name); ?>"><?php echo esc_html($card['title']); ?></a></h3>
                                 <p class="home-hot-model"><?php if ($card['code'] !== '') : ?><bdi><?php echo esc_html($card['code']); ?></bdi><?php else : ?>&nbsp;<?php endif; ?></p>
                                 <?php if ($section['showProductSpecs'] && $card['specs']) : ?>

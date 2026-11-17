@@ -1,29 +1,48 @@
 name: Warm Edge Cache
 
-# WordPress.com deploys the "Publish Website" artifact once that run has finished, so this runs as its own workflow
-# after it (a job inside that workflow would hold the deploy back until the warming was done). It waits for the
-# deploy, then requests every sitemap URL so the edge cache replaces its pre-deploy copies (scripts/warm-edge-cache.py).
+# The WordPress.com edge cache answers a page's first request after five minutes with its old copy, and keeps one copy per
+# compression (br, gzip, none), so a page nobody visits keeps an old copy for its next visitor (scripts/warm-edge-cache.py).
+# - After a deploy: every sitemap page, as br and gzip. WordPress.com deploys the "Publish Website" artifact once that run
+#   has finished, so this runs as its own workflow after it and first waits for the deploy.
+# - Every three hours, and by hand after posts are published (recent_hours): the home and list pages of every language and
+#   the pages whose sitemap <lastmod> falls in the last hours, which takes a few minutes.
 on:
   workflow_run:
     workflows: ["Publish Website"]
     types: [completed]
+  schedule:
+    - cron: "23 */3 * * *"
   workflow_dispatch:
+    inputs:
+      recent_hours:
+        description: "Only list pages and pages changed in the last N hours (empty = every sitemap page)"
+        required: false
+        default: ""
 jobs:
   Warm-Edge-Cache:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
-    # Each run requests all ~1,800 sitemap URLs over ~30 minutes. Several deploys in a row used to start a run each,
-    # and the overlapping runs pushed the site over the host's rate limit, so visitors were served 429. Only the newest
-    # run is needed (it warms the latest deploy), so a new one cancels the one in progress. This sits on the job, after
-    # the `if`, so a failed or cancelled publish (whose job is skipped) cannot cancel a warmer that is still needed.
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    # Overlapping runs pushed the site over the host's rate limit, so visitors were served 429; one run at a time.
+    # A deploy's full run replaces any run in progress (it warms the latest deploy); a scheduled or by-hand run waits for
+    # the one in progress instead of cancelling it. This sits on the job, after the `if`, so a failed or cancelled publish
+    # (whose job is skipped) cannot cancel a warmer that is still needed.
     concurrency:
       group: warm-edge-cache
-      cancel-in-progress: true
+      cancel-in-progress: ${{ github.event_name == 'workflow_run' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    # A full run requests ~1,900 pages twice (br and gzip) at a steady pace, about 1.5 hours.
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@master
       - name: Wait for the deploy
         if: github.event_name == 'workflow_run'
         run: sleep 600
-      - name: Request every sitemap URL
-        run: python3 scripts/warm-edge-cache.py https://bobliftcrane.com
+      - name: Request the pages
+        env:
+          RECENT: ${{ github.event_name == 'schedule' && '4' || github.event.inputs.recent_hours }}
+        run: |
+          lists='^/(?:[a-z]{2}/)?(?:(?:news|products|cases|company-news|industry-insight)\.html)?$'
+          if [ -n "$RECENT" ]; then
+            python3 scripts/warm-edge-cache.py https://bobliftcrane.com --recent "$RECENT" --lists "$lists"
+          else
+            python3 scripts/warm-edge-cache.py https://bobliftcrane.com
+          fi
