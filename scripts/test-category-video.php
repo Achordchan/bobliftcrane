@@ -67,7 +67,8 @@ $check('band sits inside the block, before the VideoObject', strpos($html, 'data
 $intro = ['slug' => 'forklift-fly-jib-cranes', 'title' => 'About our forklift fly jib cranes', 'paragraphs' => ['One.', '', 'Two.', 'Three.']];
 ob_start(); boblift_render_category_video(new WP_Term(), $brochure, $intro); $html = ob_get_clean();
 $check('intro: its heading and paragraphs replace the film text', str_contains($html, '>About our forklift fly jib cranes</h2>') && substr_count($html, '<p class=') === 4 && !str_contains($html, '<li ') && !str_contains($html, '>Factory footage.</p>'));
-$check('intro: heading and film on the left, text and strip on the right', strpos($html, '</h2>') < strpos($html, 'data-inline-videos') && strpos($html, 'data-inline-videos') < strpos($html, '>One.</p>') && strpos($html, '>Three.</p>') < strpos($html, 'data-category-video-brochure'));
+$check('intro: heading above both columns, film on the left, text and strip on the right', strpos($html, '</h2>') < strpos($html, 'class="mt-6 grid') && strpos($html, 'class="mt-6 grid') < strpos($html, 'class="boblift-category-film ') && strpos($html, 'data-inline-videos') < strpos($html, 'class="boblift-category-film-text') && strpos($html, 'class="boblift-category-film-text') < strpos($html, '>One.</p>') && strpos($html, '>Three.</p>') < strpos($html, 'data-category-video-brochure'));
+$check('film frame and stage carry the classes that size them to the text column', str_contains($html, 'class="boblift-category-film-frame ') && str_contains($html, 'class="boblift-category-film-stage relative aspect-video'));
 $check('the film keeps its own title for the player and VideoObject', str_contains($html, 'aria-label="Forklift fly jib crane on video"') && str_contains($html, '"name":"Forklift fly jib crane on video"'));
 $meta = json_encode($photo);
 ob_start(); boblift_render_category_video(new WP_Term(), $brochure, $intro); $html = ob_get_clean();

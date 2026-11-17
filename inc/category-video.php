@@ -172,12 +172,13 @@ function boblift_render_category_video(WP_Term $term, ?array $brochure = null, a
     $schema = boblift_category_video_schema($video);
     ?>
     <section id="category-video" class="mt-12 scroll-mt-24 lg:mt-16" data-category-video data-category-intro="<?php echo esc_attr($slug); ?>" aria-labelledby="<?php echo esc_attr($title_id); ?>">
-        <div class="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] min-[1600px]:grid-cols-[minmax(0,40rem)_minmax(0,1fr)] lg:gap-x-[clamp(2.5rem,4vw,4rem)]">
-            <div class="min-w-0">
-                <h2 id="<?php echo esc_attr($title_id); ?>" class="text-[clamp(1.4rem,2vw,2rem)] font-black leading-tight tracking-[-0.01em] text-[#0B1B33]"><?php echo esc_html($heading); ?></h2>
+        <?php // The heading spans both columns; below it the film and the text start on one line and, on desktop, end on one line too (see .boblift-category-film in input.css). ?>
+        <h2 id="<?php echo esc_attr($title_id); ?>" class="text-[clamp(1.4rem,2vw,2rem)] font-black leading-tight tracking-[-0.01em] text-[#0B1B33]"><?php echo esc_html($heading); ?></h2>
+        <div class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] min-[1600px]:grid-cols-2 lg:gap-x-[clamp(2.5rem,4vw,4rem)]">
+            <div class="boblift-category-film min-w-0">
                 <?php if ($playable) : ?>
-                <div class="mt-6 overflow-hidden rounded border border-[#E5E7EB] shadow-card" data-inline-videos>
-                    <div class="relative aspect-video overflow-hidden bg-[#071f42]" data-inline-video-stage>
+                <div class="boblift-category-film-frame overflow-hidden rounded border border-[#E5E7EB] shadow-card" data-inline-videos>
+                    <div class="boblift-category-film-stage relative aspect-video overflow-hidden bg-[#071f42]" data-inline-video-stage>
                         <button class="group absolute inset-0 block w-full focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-blue-200" type="button" data-inline-video-play data-video-player="<?php echo esc_attr($player); ?>" data-video-src="<?php echo esc_url($video['src']); ?>" data-video-youtube="<?php echo esc_attr($video['youtube']); ?>" data-video-title="<?php echo esc_attr($video['title']); ?>" data-video-poster="<?php echo esc_url($video['poster']); ?>" aria-label="<?php echo esc_attr($video['title']); ?>">
                             <img class="absolute inset-0 h-full w-full object-cover" src="<?php echo esc_url($video['poster']); ?>" alt="" loading="lazy" decoding="async">
                             <span class="absolute inset-0 m-auto grid size-14 place-items-center rounded-sm bg-white/90 text-[#071f42] shadow-card transition group-hover:bg-white md:size-16"><?php echo boblift_icon('play', 'h-6 w-6'); ?></span>
@@ -185,14 +186,14 @@ function boblift_render_category_video(WP_Term $term, ?array $brochure = null, a
                     </div>
                 </div>
                 <?php else : ?>
-                <div class="mt-6 overflow-hidden rounded border border-[#E5E7EB] shadow-card" data-category-photo>
-                    <div class="relative aspect-video overflow-hidden bg-[#071f42]">
+                <div class="boblift-category-film-frame overflow-hidden rounded border border-[#E5E7EB] shadow-card" data-category-photo>
+                    <div class="boblift-category-film-stage relative aspect-video overflow-hidden bg-[#071f42]">
                         <img class="absolute inset-0 h-full w-full object-cover" src="<?php echo esc_url($video['poster']); ?>" alt="<?php echo esc_attr(($video['alt'] ?? '') !== '' ? $video['alt'] : $video['title']); ?>" loading="lazy" decoding="async">
                     </div>
                 </div>
                 <?php endif; ?>
             </div>
-            <div class="flex min-w-0 flex-col">
+            <div class="boblift-category-film-text flex min-w-0 flex-col">
                 <?php foreach ($paragraphs as $index => $paragraph) : ?>
                     <p class="<?php echo $index ? 'mt-4 lg:mt-3' : 'lg:mt-0'; ?> text-sm font-normal leading-7 text-slate-600 md:text-base min-[1600px]:text-[1.0625rem] min-[1600px]:leading-[1.9]"><?php echo esc_html($paragraph); ?></p>
                 <?php endforeach; ?>

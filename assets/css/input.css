@@ -2957,6 +2957,22 @@ html:is(:lang(ru), :lang(uk), :lang(fr), :lang(es), :lang(de), :lang(it), :lang(
   .boblift-archive-about > [data-category-video] { grid-column: 1 / -1; }
 }
 
+/* Category film block (inc/category-video.php) on desktop: the film fills the height of the column beside it (text plus
+   brochure strip), so the two start on one line and end on one line. The poster crops (object-cover) anywhere between
+   about 2.2:1 and square instead of stretching, and a playing film is letterboxed (object-contain). Text shorter than
+   2.2:1 keeps the strip at the film's foot; text longer than square leaves the film square at the top. */
+@media (min-width: 1024px) {
+  .boblift-category-film { position: relative; container-type: inline-size; }
+  .boblift-category-film::before { content: ""; display: block; height: 45cqw; }
+  .boblift-category-film > .boblift-category-film-frame { position: absolute; inset: 0 0 auto; height: 100%; max-height: 100cqw; }
+  .boblift-category-film .boblift-category-film-stage { aspect-ratio: auto; height: 100%; }
+  /* The first line's capitals start level with the film's top edge, not half a line-gap below it. */
+  .boblift-category-film-text > p:first-child { text-box: trim-start cap alphabetic; }
+  @supports not (text-box: trim-start cap alphabetic) {
+    .boblift-category-film-text > p:first-child { margin-top: calc((1em - 1lh) / 2 - 0.17em); }
+  }
+}
+
 /* Phones: inline text links (arrow links, the contact numbers) are about 20px tall; an invisible area around them makes
    them easy to tap without changing the layout. */
 @media (max-width: 767px) {
