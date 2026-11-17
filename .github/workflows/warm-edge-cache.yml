@@ -5,7 +5,8 @@ name: Warm Edge Cache
 # - After a deploy: every sitemap page, as br and gzip. WordPress.com deploys the "Publish Website" artifact once that run
 #   has finished, so this runs as its own workflow after it and first waits for the deploy.
 # - Every three hours, and by hand after posts are published (recent_hours): the home and list pages of every language and
-#   the pages whose sitemap <lastmod> falls in the last hours, which takes a few minutes.
+#   the pages whose sitemap <lastmod> falls in the last hours, which takes a few minutes. The list pages are named here,
+#   not taken from the sitemaps, and are requested under every language folder.
 on:
   workflow_run:
     workflows: ["Publish Website"]
@@ -40,7 +41,7 @@ jobs:
         env:
           RECENT: ${{ github.event_name == 'schedule' && '4' || github.event.inputs.recent_hours }}
         run: |
-          lists='^/(?:[a-z]{2}/)?(?:(?:news|products|cases|company-news|industry-insight)\.html)?$'
+          lists='/,news.html,products.html,cases.html'
           if [ -n "$RECENT" ]; then
             python3 scripts/warm-edge-cache.py https://bobliftcrane.com --recent "$RECENT" --lists "$lists"
           else
