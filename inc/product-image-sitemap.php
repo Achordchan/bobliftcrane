@@ -92,6 +92,7 @@ function boblift_product_image_sitemap_serve(): void
     status_header(200);
     header('Content-Type: application/xml; charset=UTF-8');
     header('X-Robots-Tag: noindex, follow');
+    boblift_send_uncached_headers();
     echo boblift_product_image_sitemap_xml();
     exit;
 }

@@ -546,6 +546,7 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
         $t = static fn(string $text): string => boblift_localized_static_text($text);
         $loader_leave = ' href="https://bobliftloader.com/" data-leave-site data-leave-name="Loader" data-leave-domain="bobliftloader.com"';
         ?>
+        <?php // The picture link repeats the button for screen readers, so it is hidden from them; the first picture's alt still gives crawlers the link's text. ?>
         <section class="mt-12 grid overflow-hidden rounded border border-[#E5E7EB] bg-white shadow-card md:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:mt-16" aria-labelledby="group-loader-title">
             <div class="flex flex-col justify-center p-6 md:p-8 lg:p-10">
                 <p class="section-label"><?php echo esc_html($t('Also from BOB-LIFT')); ?></p>
@@ -554,7 +555,7 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
                 <a class="mt-6 inline-flex h-12 w-fit items-center gap-2 rounded-sm bg-navy px-6 text-sm font-black text-white shadow-card transition hover:-translate-y-0.5 hover:bg-[#0b2d5b]"<?php echo $loader_leave; ?> target="_blank" rel="noopener"><?php echo esc_html(str_replace('{domain}', 'bobliftloader.com', $t('Visit {domain}'))); ?><?php echo boblift_icon('arrow-up-right', 'h-4 w-4 rtl:-scale-x-100'); ?></a>
             </div>
             <a class="group relative grid min-h-[200px] grid-cols-2 items-center gap-2 bg-[radial-gradient(circle_at_50%_40%,#ffffff_0%,#f8fafc_38%,#eef2f7_70%,#e2e8f0_100%)] px-4 py-6 sm:min-h-[260px] md:px-8"<?php echo $loader_leave; ?> target="_blank" rel="noopener" tabindex="-1" aria-hidden="true">
-                <img class="mx-auto max-h-[150px] w-full object-contain drop-shadow-[0_6px_8px_rgba(11,27,51,0.12)] transition duration-500 group-hover:scale-[1.04] sm:max-h-[210px]" src="<?php echo esc_url(boblift_asset('images/group/loader-bl-1000.webp')); ?>" width="748" height="556" alt="" loading="lazy" decoding="async">
+                <img class="mx-auto max-h-[150px] w-full object-contain drop-shadow-[0_6px_8px_rgba(11,27,51,0.12)] transition duration-500 group-hover:scale-[1.04] sm:max-h-[210px]" src="<?php echo esc_url(boblift_asset('images/group/loader-bl-1000.webp')); ?>" width="748" height="556" alt="<?php echo esc_attr($t('Mini loaders and dumpers')); ?>" loading="lazy" decoding="async">
                 <img class="mx-auto max-h-[150px] w-full object-contain drop-shadow-[0_6px_8px_rgba(11,27,51,0.12)] transition duration-500 group-hover:scale-[1.04] sm:max-h-[210px]" src="<?php echo esc_url(boblift_asset('images/group/loader-mini-dumper.webp')); ?>" width="900" height="709" alt="" loading="lazy" decoding="async">
             </a>
         </section>

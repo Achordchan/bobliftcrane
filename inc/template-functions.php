@@ -1628,6 +1628,8 @@ function boblift_articles(string $category_slug = '', int $posts_per_page = 12):
     }
     $query = new WP_Query($query_args);
     if ($query->have_posts()) {
+        // One query for every card picture instead of one per post (the news page lists every article).
+        update_post_thumbnail_cache($query);
         // Pinned posts lead, newest pinned first (inc/news-pinning.php); the rest keep their date order.
         $pinned = function_exists('boblift_pinned_post_ids') ? boblift_pinned_post_ids($category_slug) : [];
         $posts = $query->posts;
@@ -1654,7 +1656,6 @@ function boblift_articles(string $category_slug = '', int $posts_per_page = 12):
                 'image' => boblift_post_thumbnail_url($post, boblift_asset('images/page-heroes/factory-floor.webp')),
                 'image_is_url' => true,
                 'excerpt' => boblift_article_card_excerpt(boblift_localize_product_text_fragments(get_the_excerpt($post)), boblift_localize_product_text_fragments(get_the_title($post))),
-                'content' => post_password_required($post) ? '' : boblift_localize_product_text_fragments(apply_filters('the_content', $post->post_content)),
                 'url' => get_permalink($post),
             ];
         }, $posts);
@@ -1724,7 +1725,6 @@ function boblift_case_item_from_post(WP_Post $post): array
         'sections' => boblift_localize_product_text_fragments(boblift_decode_meta(get_post_meta($post->ID, '_sections', true), [])),
         'image' => boblift_post_thumbnail_url($post, boblift_asset('images/marine-scene.jpg')),
         'image_is_url' => true,
-        'content' => boblift_localize_product_text_fragments(apply_filters('the_content', $post->post_content)),
         'url' => get_permalink($post),
         'case_kind' => (string) get_post_meta($post->ID, '_case_kind', true),
         'country' => boblift_localized_static_text((string) get_post_meta($post->ID, '_country', true)),
@@ -1736,7 +1736,7 @@ function boblift_case_item_from_post(WP_Post $post): array
     ];
     // A password-protected case shows only its title and photo in lists: the text, facts and sections wait for the password.
     if (post_password_required($post)) {
-        foreach (['summary', 'content', 'feedback_quote', 'feedback_media_url', 'product_name', 'application', 'country'] as $private_key) {
+        foreach (['summary', 'feedback_quote', 'feedback_media_url', 'product_name', 'application', 'country'] as $private_key) {
             $item[$private_key] = '';
         }
         $item['facts'] = [];
@@ -1880,6 +1880,17 @@ function boblift_feedback_country_html(array $view, string $class = '', string $
 function boblift_feedback_items(array $query = []): array
 {
     $posts = get_posts($query + ['post_type' => 'feedback', 'post_status' => 'publish', 'posts_per_page' => -1, 'orderby' => ['menu_order' => 'ASC', 'date' => 'DESC'], 'lang' => '']);
+    // Each entry reads its photos, videos and featured image; load them all (posts and their data) in two queries
+    // rather than several per picture, as the case list shows every entry.
+    $attachment_ids = [];
+    foreach ($posts as $post) {
+        $attachment_ids = array_merge($attachment_ids, array_map('intval', explode(',', (string) get_post_meta($post->ID, '_feedback_media', true))));
+        $attachment_ids[] = (int) get_post_thumbnail_id($post);
+    }
+    $attachment_ids = array_values(array_unique(array_filter($attachment_ids)));
+    if ($attachment_ids !== []) {
+        _prime_post_caches($attachment_ids, false, true);
+    }
     return array_values(array_filter(array_map('boblift_feedback_item', $posts)));
 }
 
@@ -2072,6 +2083,7 @@ function boblift_cases(): array
 {
     $query = new WP_Query(['post_type' => 'case', 'post_status' => 'publish', 'posts_per_page' => -1, 'orderby' => 'date', 'order' => 'DESC']);
     if ($query->have_posts()) {
+        update_post_thumbnail_cache($query);
         $items = array_map(static fn (WP_Post $post): array => boblift_case_item_from_post($post), $query->posts);
         // Newest first (the query order), so new cases lead the home page and the case list; the seed order only
         // settles cases published on the same day.

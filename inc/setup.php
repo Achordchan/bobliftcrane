@@ -515,6 +515,33 @@ function boblift_redirect_core_sitemap_index_to_standard_url(): void
 }
 add_action('template_redirect', 'boblift_redirect_core_sitemap_index_to_standard_url', 0);
 
+/**
+ * Keeps a sitemap out of the WordPress.com edge cache. The edge stores a copy per compression (br, gzip, none) and,
+ * once a copy is five minutes old, answers the next request with it while it fetches a fresh one. A sitemap is asked for
+ * every few hours or days, so each visit got the copy from the visit before: on 2026-11-17 the copy Google was given
+ * lacked about 31 articles. A sitemap is cheap to build and rarely requested, so it is built for every request instead.
+ */
+function boblift_send_uncached_headers(): void
+{
+    // Batcache (the page cache in front of PHP) would otherwise keep a copy and answer from it.
+    if (function_exists('batcache_cancel')) {
+        batcache_cancel();
+    }
+    if (!headers_sent()) {
+        nocache_headers();
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0, private');
+    }
+}
+
+function boblift_sitemap_uncached(): void
+{
+    if ((string) get_query_var('sitemap') !== '' || (string) get_query_var('sitemap-stylesheet') !== '') {
+        boblift_send_uncached_headers();
+    }
+}
+// After the redirects of old sitemap addresses (priority 0), before core builds the sitemap (priority 10).
+add_action('template_redirect', 'boblift_sitemap_uncached', 1);
+
 function boblift_activation(): void
 {
     boblift_register_content_types();
