@@ -5397,7 +5397,7 @@
   };
 
   // A winch version without a product of its own is shown on the blocks of the configuration it comes from: its name replaces that
-  // model's, and the self weight, which is not known, shows no figure.
+  // model's, and the self weight, which is not known unless the factory has confirmed it, shows no figure.
   const patched = new Map();
   const restorePatches = () => {
     patched.forEach((html, element) => { element.innerHTML = html; });
@@ -5477,7 +5477,21 @@
         });
       }
       holder.querySelectorAll('[data-cfg-model-text]').forEach((element) => swapText(element, shownModel, variant.model));
-      holder.querySelectorAll('[data-cfg-cell="weight"] dd, [data-cfg-weight-row] dd').forEach((value) => patch(value, '<span class="text-[clamp(20px,1.5vw,28px)] text-slate-400">—</span>'));
+      // The self weight shows no figure, unless the factory has confirmed this version's (weightText, "910 kg").
+      const weight = variant.weightText || '';
+      const [number, unit] = weight.split(' ');
+      const text = (tag, className, words) => {
+        const element = document.createElement(tag);
+        element.className = className;
+        element.textContent = words;
+        return element.outerHTML;
+      };
+      holder.querySelectorAll('[data-cfg-cell="weight"] dd').forEach((value) => patch(value, weight
+        ? text('span', 'text-[clamp(22px,1.9vw,32px)]', number) + text('span', 'ms-1 whitespace-nowrap text-sm font-bold text-slate-500', unit || '')
+        : '<span class="text-[clamp(20px,1.5vw,28px)] text-slate-400">—</span>'));
+      holder.querySelectorAll('[data-cfg-weight-row] dd').forEach((value) => patch(value, weight
+        ? text('span', '', weight).replace(/^<span class="">|<\/span>$/g, '')
+        : '<span class="text-[clamp(20px,1.5vw,28px)] text-slate-400">—</span>'));
     });
   };
 

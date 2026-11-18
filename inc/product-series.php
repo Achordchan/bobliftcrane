@@ -65,9 +65,27 @@ function boblift_series_winch_twin(string $model): string
 }
 
 /**
+ * Self weights the factory has confirmed for winch versions that have no product of their own, in kg. Only a figure given
+ * by the supplier or the technical department goes here; any other derived version keeps an open self weight.
+ * SQ2ZA4J: 910 kg against 850 kg for the SQ2ZA4 (supplier, 2026-11-18, confirmed by the owner).
+ */
+function boblift_series_confirmed_weights(): array
+{
+    return ['SQ2ZA4J' => 910];
+}
+
+/** A derived version's confirmed self weight ("910 kg"), or '' when it is not known. */
+function boblift_series_confirmed_weight_text(string $model): string
+{
+    $weights = boblift_series_confirmed_weights();
+    return isset($weights[$model]) ? boblift_series_format_kg((int) $weights[$model]) : '';
+}
+
+/**
  * Every choice a series offers: its real configurations, plus the other winch version of each that has no product of its own.
  * Such a version takes the figures, photos and drawings of the configuration it comes from, except the self weight, which is
- * not known, so no figure is made up. Real members in, members with derived, source and figures out.
+ * not known unless the factory has confirmed it (boblift_series_confirmed_weights()), so no figure is made up. Real members
+ * in, members with derived, source and figures out.
  */
 function boblift_series_expand_variants(array $members, string $series_url, string $winch = 'optional'): array
 {
@@ -91,7 +109,7 @@ function boblift_series_expand_variants(array $members, string $series_url, stri
             'values' => array_merge((array) ($member['values'] ?? []), ['winch' => boblift_series_parse_model($twin)['winch']]),
             'derived' => true,
             'source' => $member['model'],
-            'figures' => array_merge((array) ($member['figures'] ?? []), ['weight' => null]),
+            'figures' => array_merge((array) ($member['figures'] ?? []), ['weight' => boblift_series_confirmed_weights()[$twin] ?? null]),
         ]);
     }
     usort($variants, static fn(array $a, array $b): int => strnatcmp($a['model'], $b['model']));
@@ -1418,13 +1436,14 @@ function boblift_series_block_open(string $name): void
  * A configuration's block shown for its other winch version: the model named in the texts the theme script swaps
  * (data-cfg-model-text) becomes the version's, and the self weight, which is not known, a dash.
  */
-function boblift_series_derived_block(string $html, string $source, string $model, string $winch_text = '', string $note = ''): string
+function boblift_series_derived_block(string $html, string $source, string $model, string $winch_text = '', string $note = '', string $weight = ''): string
 {
     // Each changed element keeps its source content in data-cfg-orig, which the theme script restores from: a switch to
     // another configuration must start from the source's own model and weight, not from this page's derived ones.
     $keep = static fn(string $open, string $inner): string => substr($open, 0, -1) . ' data-cfg-orig="' . esc_attr($inner) . '">';
     $html = (string) preg_replace_callback('/(<([a-z0-9]+)\b[^>]*\bdata-cfg-model-text\b[^>]*>)(.*?)(<\/\2>)/s', static fn(array $m): string => $keep($m[1], $m[3]) . str_replace($source, $model, $m[3]) . $m[4], $html);
-    $html = (string) preg_replace_callback('/(\b(?:data-cfg-cell="weight"|data-cfg-weight-row(?=[\s>]))[^>]*>.*?)(<dd\b[^>]*>)(.*?)(<\/dd>)/s', static fn(array $m): string => $m[1] . $keep($m[2], $m[3]) . '<span class="text-slate-400">—</span>' . $m[4], $html);
+    // The self weight is open, unless the factory has confirmed this version's ($weight, "910 kg").
+    $html = (string) preg_replace_callback('/(\b(?:data-cfg-cell="weight"|data-cfg-weight-row(?=[\s>]))[^>]*>.*?)(<dd\b[^>]*>)(.*?)(<\/dd>)/s', static fn(array $m): string => $m[1] . $keep($m[2], $m[3]) . boblift_series_weight_html($weight, str_contains($m[1], 'data-cfg-cell="weight"')) . $m[4], $html);
     // A table whose rows could not be placed says the self weight is confirmed with the quote, above it.
     if ($note !== '') {
         $html = (string) preg_replace('/<p\b([^>]*\bdata-cfg-spec-note)\s+hidden><\/p>/', '<p$1>' . esc_html($note) . '</p>', $html);
@@ -1434,6 +1453,19 @@ function boblift_series_derived_block(string $html, string $source, string $mode
         return $html;
     }
     return (string) preg_replace_callback('/(\bdata-cfg-winch-row(?=[\s>])[^>]*>.*?)(<dd\b[^>]*>)(.*?)(<\/dd>)/s', static fn(array $m): string => $m[1] . $keep($m[2], $m[3]) . '<span dir="auto">' . esc_html($winch_text) . '</span>' . $m[4], $html);
+}
+
+/** A derived version's self weight in a block: the confirmed figure (in the hero, number and unit as the hero sets them), else a dash. */
+function boblift_series_weight_html(string $weight, bool $hero): string
+{
+    if ($weight === '') {
+        return '<span class="text-slate-400">—</span>';
+    }
+    if (!$hero) {
+        return esc_html($weight);
+    }
+    [$number, $unit] = boblift_series_figure_parts($weight);
+    return '<span class="text-[clamp(22px,1.9vw,32px)]">' . esc_html($number) . '</span><span class="ms-1 whitespace-nowrap text-sm font-bold text-slate-500">' . esc_html($unit) . '</span>';
 }
 
 /** The winch row's words for a derived version ("With winch" / "No winch", translated), or '' when the page is not on one. */
@@ -1448,17 +1480,18 @@ function boblift_series_derived_winch_text(array $state): string
 }
 
 /**
- * A derived version's note that its self weight is confirmed with the quote, in the page's language. A winch adds about
- * 70–110 kg on truck mounted cranes and about 70 kg on the 800 kg pickup cranes (technical department, 2026-11-09), so that is
- * said too.
+ * A derived version's note that its self weight is confirmed with the quote, in the page's language; '' for a version whose
+ * weight the factory has confirmed ($model, boblift_series_confirmed_weights()), which shows it instead. A winch adds about
+ * 70 kg on the 800 kg pickup cranes (technical department, 2026-11-09), so that is said too. Truck mounted cranes give no
+ * range: the 70–110 kg once said there did not hold (the SQ2ZA4J is 60 kg heavier, supplier 2026-11-18).
  */
-function boblift_series_weight_note(string $winch, string $family = 'marine'): string
+function boblift_series_weight_note(string $winch, string $family = 'marine', string $model = ''): string
 {
+    if ($model !== '' && boblift_series_confirmed_weight_text($model) !== '') {
+        return '';
+    }
     if ($winch === '1' && $family === 'pickup') {
         return boblift_series_text('Winch version: about 70 kg heavier, exact self weight confirmed with your quote');
-    }
-    if ($winch === '1' && $family === 'truck') {
-        return boblift_series_text('Winch version: about 70–110 kg heavier, exact self weight confirmed with your quote');
     }
     return boblift_series_text($winch === '1' ? 'Winch version: self weight confirmed with your quote' : 'No-winch version: self weight confirmed with your quote');
 }
@@ -1468,7 +1501,7 @@ function boblift_series_derived_weight_note(array $state): string
 {
     foreach ((array) ($state['variants'] ?? []) as $variant) {
         if (($variant['model'] ?? '') === ($state['active'] ?? null) && !empty($variant['derived'])) {
-            return boblift_series_weight_note((string) ($variant['values']['winch'] ?? ''), (string) ($state['series']['family'] ?? 'marine'));
+            return boblift_series_weight_note((string) ($variant['values']['winch'] ?? ''), (string) ($state['series']['family'] ?? 'marine'), (string) $variant['model']);
         }
     }
     return '';
@@ -1553,7 +1586,7 @@ function boblift_series_block_close(string $name, string $class = ''): void
         if ($active && $state['active'] !== $state['active_source']) {
             // A winch version without a product of its own: the page is printed with its own model and an open self weight,
             // as the theme script would set them, so the source already says the right thing.
-            $block = boblift_series_derived_block($block, (string) $state['active_source'], (string) $state['active'], boblift_series_derived_winch_text($state), boblift_series_derived_weight_note($state));
+            $block = boblift_series_derived_block($block, (string) $state['active_source'], (string) $state['active'], boblift_series_derived_winch_text($state), boblift_series_derived_weight_note($state), boblift_series_confirmed_weight_text((string) $state['active']));
             if ($derived_text) {
                 $block = str_replace($intro_attr . ' hidden', $intro_attr, $block);
             }
@@ -1993,7 +2026,8 @@ function boblift_series_render_configurator(): void
                 'slug' => $member['slug'],
                 'values' => $member['values'],
                 'winchText' => $member['derived'] ? boblift_series_winch_text((string) $member['values']['winch']) : '',
-                'weightNote' => $member['derived'] ? boblift_series_weight_note((string) $member['values']['winch'], (string) $state['series']['family']) : '',
+                'weightNote' => $member['derived'] ? boblift_series_weight_note((string) $member['values']['winch'], (string) $state['series']['family'], (string) $member['model']) : '',
+                'weightText' => $member['derived'] ? boblift_series_confirmed_weight_text((string) $member['model']) : '',
             ] + $ui($member) + $meta;
         }, $members),
     ];
@@ -2048,7 +2082,8 @@ function boblift_series_render_configurator(): void
         <?php // Always as tall as the longest of these lines, so the page below stays put when the choice changes (theme.js). ?>
         <div class="flow-root" data-cfg-summary-box>
         <p class="mt-3.5 border-t border-[#E6EDF5] pt-3 text-[13px] leading-5 text-slate-600" aria-live="polite" data-cfg-summary-line<?php echo $active_ui['summary'] === '' && $active_ui['status'] === '' ? ' hidden' : ''; ?>><span class="font-semibold text-[#071f42]" data-cfg-status><?php echo esc_html($active_ui['status']); ?></span><span class="mx-1"<?php echo $active_ui['summary'] !== '' && $active_ui['status'] !== '' ? '' : ' hidden'; ?> data-cfg-status-gap>·</span><span<?php echo $active_ui['summary'] === '' ? ' hidden' : ''; ?> data-cfg-compare-text><span class="font-black text-[#071f42]"><?php echo esc_html($compared); ?>:</span> <span data-cfg-summary><?php echo esc_html($active_ui['summary']); ?></span></span></p>
-        <p class="mt-1.5 text-[13px] leading-5 text-slate-600" data-cfg-weight-note<?php echo empty($active['derived']) ? ' hidden' : ''; ?>><?php echo !empty($active['derived']) ? esc_html(boblift_series_weight_note((string) $active['values']['winch'], (string) $state['series']['family'])) : ''; ?></p>
+        <?php $active_weight_note = !empty($active['derived']) ? boblift_series_weight_note((string) $active['values']['winch'], (string) $state['series']['family'], (string) $active['model']) : ''; ?>
+        <p class="mt-1.5 text-[13px] leading-5 text-slate-600" data-cfg-weight-note<?php echo $active_weight_note === '' ? ' hidden' : ''; ?>><?php echo esc_html($active_weight_note); ?></p>
         </div>
         <script type="application/json" data-series-data><?php echo wp_json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG); ?></script>
     </div>
