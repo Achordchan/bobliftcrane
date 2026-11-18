@@ -206,6 +206,18 @@ $derived = boblift_series_derived_block($block, 'SQ12ZA6T', 'SQ12ZA6TJ', 'With w
 $check('derived winch row says the version has a winch', true, str_contains($derived, '<dd data-cfg-orig="No"><span dir="auto">With winch</span></dd>'));
 $check('derived weight row is open', true, str_contains($derived, '<dd data-cfg-orig="4,350 kg"><span class="text-slate-400">—</span></dd>'));
 $check('derived model text', true, str_contains($derived, 'data-cfg-orig="SQ12ZA6T">SQ12ZA6TJ</p>'));
+// A derived version whose self weight the factory confirmed shows it, in the hero and in the spec table, with no open-weight note.
+$weighed = boblift_series_derived_block('<div data-cfg-cell="weight" data-cfg-cell-value="850 kg"><dt>Self weight</dt><dd>850 kg</dd></div><div data-cfg-weight-row><dt>Self Weight</dt><dd>850 kg</dd></div>', 'SQ2ZA4', 'SQ2ZA4J', 'With winch', '', '910 kg');
+$check('confirmed weight in the spec table', true, str_contains($weighed, '<dd data-cfg-orig="850 kg">910 kg</dd>'));
+$check('confirmed weight in the hero', true, str_contains($weighed, '>910</span><span class="ms-1 whitespace-nowrap text-sm font-bold text-slate-500">kg</span></dd>'));
+$check('confirmed weight text', ['910 kg', ''], [boblift_series_confirmed_weight_text('SQ2ZA4J'), boblift_series_confirmed_weight_text('SQ2ZA3J')]);
+$check('no note for a confirmed weight', '', boblift_series_weight_note('1', 'truck', 'SQ2ZA4J'));
+$check('truck winch note gives no range', 'Winch version: self weight confirmed with your quote', boblift_series_weight_note('1', 'truck', 'SQ2ZA3J'));
+$check('pickup winch note keeps its figure', 'Winch version: about 70 kg heavier, exact self weight confirmed with your quote', boblift_series_weight_note('1', 'pickup'));
+$expanded = boblift_series_expand_variants([['model' => 'SQ2ZA4', 'url' => 'https://example.com/x.html', 'is_home' => true, 'values' => ['named' => '', 'sections' => 'A4', 'winch' => '0', 'manual' => '0'], 'figures' => ['weight' => 850]], ['model' => 'SQ2ZA3', 'url' => 'https://example.com/y.html', 'is_home' => false, 'values' => ['named' => '', 'sections' => 'A3', 'winch' => '0', 'manual' => '0'], 'figures' => ['weight' => 710]]], 'https://example.com/x.html');
+$check('derived figures: confirmed weight or none', ['SQ2ZA3' => 710, 'SQ2ZA3J' => null, 'SQ2ZA4' => 850, 'SQ2ZA4J' => 910], array_column(array_map(static fn(array $v): array => ['m' => $v['model'], 'w' => $v['figures']['weight']], $expanded), 'w', 'm'));
+$check('winch difference from the confirmed weight', '+60 kg', boblift_series_winch_difference($expanded, ['named' => '', 'sections' => 'A4', 'winch' => '1', 'manual' => '0']));
+
 $check('winch words', ['With winch', 'No winch', ''], [boblift_series_winch_text('1'), boblift_series_winch_text('0'), boblift_series_winch_text('')]);
 
 // Reach and height: the spec row first, under any of its names; the drawing only when the table has none.
