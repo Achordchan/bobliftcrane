@@ -34,8 +34,21 @@ function boblift_specs_row_attributes(array $row, string $weight_label, string $
 }
 
 /**
+ * A choice's figures: its source's, except that a derived winch version has no self weight of its own unless the factory has
+ * confirmed it (boblift_series_confirmed_weights()), so no figure is made up.
+ */
+function boblift_specs_choice_figures(array $figures, array $variant): array
+{
+    if (!empty($variant['derived'])) {
+        $figures['weight'] = boblift_series_confirmed_weights()[(string) ($variant['model'] ?? '')] ?? null;
+    }
+    return $figures;
+}
+
+/**
  * The configurations a layout lists: every choice of the series, including a winch version that has no product of its own, so the
- * row or column marked is the one the page shows. Such a version shares its source's figures except the self weight (not known).
+ * row or column marked is the one the page shows. Such a version shares its source's figures except the self weight (not known unless
+ * confirmed).
  */
 function boblift_specs_choices(array $state): array
 {
@@ -49,10 +62,7 @@ function boblift_specs_choices(array $state): array
         if (!$source) {
             continue;
         }
-        $figures = (array) $source['figures'];
-        if (!empty($variant['derived'])) {
-            $figures['weight'] = null;
-        }
+        $figures = boblift_specs_choice_figures((array) $source['figures'], $variant);
         $choices[] = array_merge($source, ['model' => (string) $variant['model'], 'url' => (string) ($variant['url'] ?? $source['url']), 'values' => (array) ($variant['values'] ?? $source['values']), 'derived' => !empty($variant['derived']), 'source' => (string) ($variant['source'] ?? $variant['model']), 'figures' => $figures]);
     }
     return $choices ?: array_values($members);

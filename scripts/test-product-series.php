@@ -21,8 +21,20 @@ if (!function_exists('esc_attr')) {
 if (!function_exists('esc_html')) {
     function esc_html($text): string { return htmlspecialchars((string) $text, ENT_QUOTES); }
 }
+if (!function_exists('esc_url')) {
+    function esc_url($url): string { return htmlspecialchars((string) $url, ENT_QUOTES); }
+}
+// Spec tables by English product ID, for the comparison table test.
+function get_post_meta(int $id, string $key = '', bool $single = false)
+{
+    return $key === '_specs' ? ($GLOBALS['test_specs'][$id] ?? []) : '';
+}
+if (!function_exists('boblift_decode_meta')) {
+    function boblift_decode_meta($value, $default = []) { return is_array($value) ? $value : $default; }
+}
 require __DIR__ . '/../inc/product-series.php';
 require __DIR__ . '/../inc/product-guide.php';
+require __DIR__ . '/../inc/product-specs.php';
 
 $failures = 0;
 $check = static function (string $name, $expected, $actual) use (&$failures): void {
@@ -217,6 +229,24 @@ $check('pickup winch note keeps its figure', 'Winch version: about 70 kg heavier
 $expanded = boblift_series_expand_variants([['model' => 'SQ2ZA4', 'url' => 'https://example.com/x.html', 'is_home' => true, 'values' => ['named' => '', 'sections' => 'A4', 'winch' => '0', 'manual' => '0'], 'figures' => ['weight' => 850]], ['model' => 'SQ2ZA3', 'url' => 'https://example.com/y.html', 'is_home' => false, 'values' => ['named' => '', 'sections' => 'A3', 'winch' => '0', 'manual' => '0'], 'figures' => ['weight' => 710]]], 'https://example.com/x.html');
 $check('derived figures: confirmed weight or none', ['SQ2ZA3' => 710, 'SQ2ZA3J' => null, 'SQ2ZA4' => 850, 'SQ2ZA4J' => 910], array_column(array_map(static fn(array $v): array => ['m' => $v['model'], 'w' => $v['figures']['weight']], $expanded), 'w', 'm'));
 $check('winch difference from the confirmed weight', '+60 kg', boblift_series_winch_difference($expanded, ['named' => '', 'sections' => 'A4', 'winch' => '1', 'manual' => '0']));
+
+// The comparison table of the SQ2ZA4 series: the SQ2ZA4J row shows its confirmed 910 kg, other derived rows a dash.
+$GLOBALS['test_specs'] = [901 => [['label' => 'Self Weight', 'value' => '850 kg'], ['label' => 'Max Lifting Capacity', 'value' => '2000 kg']], 902 => [['label' => 'Self Weight', 'value' => '710 kg'], ['label' => 'Max Lifting Capacity', 'value' => '2000 kg']]];
+$cmpMembers = [
+    ['model' => 'SQ2ZA3', 'en_id' => 902, 'url' => 'https://example.com/x.html?model=SQ2ZA3', 'is_home' => false, 'values' => ['named' => '', 'sections' => 'A3', 'winch' => '0', 'manual' => '0']],
+    ['model' => 'SQ2ZA4', 'en_id' => 901, 'url' => 'https://example.com/x.html', 'is_home' => true, 'values' => ['named' => '', 'sections' => 'A4', 'winch' => '0', 'manual' => '0']],
+];
+$cmpSeries = ['key' => 'test-sq2', 'language' => 'en', 'members' => $cmpMembers, 'family' => 'truck', 'winch' => 'optional', 'url' => 'https://example.com/x.html', 'home_model' => 'SQ2ZA4'];
+$cmpState = ['series' => $cmpSeries, 'active' => 'SQ2ZA4J', 'active_source' => 'SQ2ZA4', 'variants' => boblift_series_expand_variants(boblift_series_members_with_figures($cmpSeries), $cmpSeries['url'])];
+$cmpFigures = array_column(array_map(static fn(array $c): array => ['m' => $c['model'], 'w' => $c['figures']['weight']], boblift_specs_choices($cmpState)), 'w', 'm');
+$check('comparison choices keep the confirmed weight only', ['SQ2ZA3' => 710, 'SQ2ZA3J' => null, 'SQ2ZA4' => 850, 'SQ2ZA4J' => 910], $cmpFigures);
+ob_start();
+boblift_specs_render_choices($cmpState);
+$cmpHtml = (string) ob_get_clean();
+$cmpRow = preg_match('/data-cfg-row="SQ2ZA4J".*?<\/tr>/s', $cmpHtml, $cmpMatch) ? $cmpMatch[0] : '';
+$check('comparison row shows 910 kg', true, str_contains($cmpRow, '910 kg'));
+$check('comparison keeps the open-weight note for the SQ2ZA3J', true, str_contains($cmpHtml, 'Winch version: self weight confirmed with your quote'));
+$check('comparison never says 70–110 kg', false, str_contains($cmpHtml, '70–110'));
 
 $check('winch words', ['With winch', 'No winch', ''], [boblift_series_winch_text('1'), boblift_series_winch_text('0'), boblift_series_winch_text('')]);
 
