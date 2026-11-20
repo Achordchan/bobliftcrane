@@ -10,6 +10,9 @@ module.exports = {
   // logical start/end utilities, so saved HTML may still use them.
   safelist: [
     'inline-block',
+    // Product pages cached before the zoomable drawing viewer (2026-11) still size their drawing dialog with these.
+    'h-[92vh]',
+    'w-[96vw]',
     // Stored page content may still use these after the News, Contact and About templates stopped needing them (2026-10).
     'aspect-[1.5/1]',
     'leading-[1.7]',

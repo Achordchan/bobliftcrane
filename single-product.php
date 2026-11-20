@@ -701,13 +701,24 @@ if ($family_quote_copy) {
                                 <img class="mx-auto h-auto max-h-[70svh] w-auto max-w-full sm:max-h-[460px]" src="<?php echo esc_url($drawing['image']); ?>" <?php if (($drawing['width'] ?? 0) > 0 && ($drawing['height'] ?? 0) > 0) : ?>width="<?php echo esc_attr((string) $drawing['width']); ?>" height="<?php echo esc_attr((string) $drawing['height']); ?>"<?php endif; ?> alt="<?php echo esc_attr($drawing['label']); ?>" loading="lazy" decoding="async">
                             </button>
                         </div>
-                        <dialog class="boblift-drawing-dialog m-auto h-[92vh] w-[96vw] max-w-none overflow-hidden rounded border border-[#DDE7F2] bg-white p-0 shadow-raised" data-drawing-dialog aria-label="<?php echo esc_attr($drawing['label']); ?>">
+                        <?php // Opened, the sheet fits the screen (full screen on phones); pinch, the wheel, the buttons or a double tap zoom it and a
+                        // finger or the mouse drags it (theme.js). The stage takes every touch itself, so the page behind never moves. ?>
+                        <dialog class="boblift-drawing-dialog m-0 h-[100dvh] max-h-none w-screen max-w-none overflow-hidden border-0 bg-white p-0 shadow-raised sm:m-auto sm:h-[92vh] sm:w-[96vw] sm:border sm:border-[#DDE7F2]" data-drawing-dialog aria-label="<?php echo esc_attr($drawing['label']); ?>">
                             <div class="flex h-full flex-col">
-                                <div class="flex items-center justify-between gap-4 border-b border-[#DDE7F2] px-4 py-3 md:px-6">
-                                    <p class="truncate text-sm font-black text-[#071f42]"><?php echo esc_html($drawing['label']); ?></p>
-                                    <button class="grid size-9 shrink-0 place-items-center rounded-sm border border-[#DDE7F2] text-[#071f42] transition hover:border-blue-300" type="button" data-drawing-close aria-label="<?php echo esc_attr($ui['drawingCloseLabel'] ?? 'Close drawing'); ?>"><?php echo boblift_icon('x', 'h-4 w-4'); ?></button>
+                                <div class="flex items-center justify-between gap-3 border-b border-[#DDE7F2] px-3 py-2.5 sm:px-4 sm:py-3 md:px-6">
+                                    <p class="min-w-0 truncate text-sm font-black text-[#071f42]"><?php echo esc_html($drawing['label']); ?></p>
+                                    <div class="flex shrink-0 items-center gap-1.5 sm:gap-2" dir="ltr">
+                                        <button class="boblift-drawing-tool grid size-9 place-items-center rounded-sm border border-[#DDE7F2] text-[#071f42] transition hover:border-blue-300" type="button" data-drawing-zoom="out" aria-label="<?php echo esc_attr(boblift_localized_static_text('Zoom out')); ?>"><?php echo boblift_icon('zoom-out', 'h-4 w-4'); ?></button>
+                                        <span class="w-11 text-center text-xs font-semibold text-slate-600 [font-variant-numeric:tabular-nums]" data-drawing-level aria-live="polite">100%</span>
+                                        <button class="boblift-drawing-tool grid size-9 place-items-center rounded-sm border border-[#DDE7F2] text-[#071f42] transition hover:border-blue-300" type="button" data-drawing-zoom="in" aria-label="<?php echo esc_attr(boblift_localized_static_text('Zoom in')); ?>"><?php echo boblift_icon('zoom-in', 'h-4 w-4'); ?></button>
+                                        <button class="boblift-drawing-tool grid size-9 place-items-center rounded-sm border border-[#DDE7F2] text-[#071f42] transition hover:border-blue-300" type="button" data-drawing-zoom="fit" aria-label="<?php echo esc_attr(boblift_localized_static_text('Fit to screen')); ?>"><?php echo boblift_icon('scan', 'h-4 w-4'); ?></button>
+                                        <button class="ms-1 grid size-9 place-items-center rounded-sm border border-[#DDE7F2] text-[#071f42] transition hover:border-blue-300" type="button" data-drawing-close aria-label="<?php echo esc_attr($ui['drawingCloseLabel'] ?? 'Close drawing'); ?>"><?php echo boblift_icon('x', 'h-4 w-4'); ?></button>
+                                    </div>
                                 </div>
-                                <div class="min-h-0 flex-1 overflow-auto p-4 md:p-6"><img class="mx-auto h-auto max-w-none" style="width:max(100%, <?php echo esc_attr((string) min(2000, (int) $drawing['width'])); ?>px)" src="<?php echo esc_url($drawing['image']); ?>" alt="" loading="lazy" decoding="async"></div>
+                                <div class="boblift-drawing-stage relative min-h-0 flex-1 overflow-hidden bg-[#F4F7FB] focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500" tabindex="0" role="group" aria-label="<?php echo esc_attr($drawing['label']); ?>" aria-keyshortcuts="+ - 0 ArrowUp ArrowDown ArrowLeft ArrowRight" data-drawing-stage>
+                                    <img class="boblift-drawing-image absolute left-0 top-0 max-w-none" src="<?php echo esc_url($drawing['image']); ?>" <?php if (($drawing['width'] ?? 0) > 0 && ($drawing['height'] ?? 0) > 0) : ?>width="<?php echo esc_attr((string) $drawing['width']); ?>" height="<?php echo esc_attr((string) $drawing['height']); ?>"<?php endif; ?> alt="" draggable="false" loading="lazy" decoding="async" data-drawing-image>
+                                    <p class="boblift-drawing-tip pointer-events-none absolute inset-x-0 bottom-3 mx-auto w-max max-w-[calc(100%-2rem)] rounded-full bg-[#071f42]/80 px-3 py-1.5 text-center text-xs font-semibold text-white"><?php echo esc_html(boblift_localized_static_text('Pinch or use the mouse wheel to zoom. Drag to move.')); ?></p>
+                                </div>
                             </div>
                         </dialog>
                         </div>

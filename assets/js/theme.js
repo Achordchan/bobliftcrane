@@ -1075,15 +1075,239 @@
     toggle();
   });
 
-  // Product dimension drawing: opens full size in a dialog; Esc, the close button or the backdrop close it.
+  // Product dimension drawing: opens in a dialog that fits the whole sheet to the screen. Pinch, the mouse wheel (or a
+  // trackpad pinch), the +/- buttons, the + - 0 keys or a double tap zoom it; one finger or the mouse drags it once it is
+  // larger than the screen, and so do the arrow keys. Esc, the close button or the backdrop close it.
   qsa('[data-drawing-root]').forEach((root) => {
     const dialog = qs('[data-drawing-dialog]', root);
     if (!dialog || typeof dialog.showModal !== 'function') return;
-    qs('[data-drawing-open]', root)?.addEventListener('click', () => dialog.showModal());
+    const stage = qs('[data-drawing-stage]', dialog);
+    const image = qs('[data-drawing-image]', dialog);
+    const level = qs('[data-drawing-level]', dialog);
+    const zoomIn = qs('[data-drawing-zoom="in"]', dialog);
+    const zoomOut = qs('[data-drawing-zoom="out"]', dialog);
     qs('[data-drawing-close]', root)?.addEventListener('click', () => dialog.close());
     dialog.addEventListener('click', (event) => {
       if (event.target === dialog) dialog.close();
     });
+    if (!stage || !image) {
+      // Markup cached from before the zoom viewer: the plain dialog still opens and closes (button, backdrop, Esc).
+      qs('[data-drawing-open]', root)?.addEventListener('click', () => dialog.showModal());
+      return;
+    }
+    let fit = 1;
+    let max = 2;
+    let scale = 1;
+    let x = 0;
+    let y = 0;
+    let ready = false;
+    let previousOverflow = '';
+    const pointers = new Map();
+    let pinch = null;
+    let drag = null;
+    let lastTap = null;
+    let tipTimer = 0;
+
+    const size = () => [
+      image.naturalWidth || Number(image.getAttribute('width')) || 0,
+      image.naturalHeight || Number(image.getAttribute('height')) || 0,
+    ];
+    const local = (event) => {
+      const rect = stage.getBoundingClientRect();
+      return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+    };
+    const limit = (value) => Math.min(max, Math.max(fit, value));
+    // Keeps the sheet on screen: centred along an axis where it is smaller than the stage, edge to edge where it is larger.
+    const apply = () => {
+      const [width, height] = size();
+      const stageWidth = stage.clientWidth;
+      const stageHeight = stage.clientHeight;
+      const shownWidth = width * scale;
+      const shownHeight = height * scale;
+      x = shownWidth <= stageWidth ? (stageWidth - shownWidth) / 2 : Math.min(0, Math.max(stageWidth - shownWidth, x));
+      y = shownHeight <= stageHeight ? (stageHeight - shownHeight) / 2 : Math.min(0, Math.max(stageHeight - shownHeight, y));
+      image.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+      if (level) level.textContent = `${Math.round((scale / fit) * 100)}%`;
+      // A button disabled while it has the focus would drop the focus to the page and out of reach of the shortcuts, so the
+      // focus moves to the sheet first.
+      [[zoomIn, scale >= max * 0.999], [zoomOut, scale <= fit * 1.001]].forEach(([button, off]) => {
+        if (!button) return;
+        if (off && document.activeElement === button) stage.focus({ preventScroll: true });
+        button.disabled = off;
+      });
+      stage.classList.toggle('is-zoomed', scale > fit * 1.001);
+    };
+    // Fit: the whole sheet on screen, never blown up past its own pixels. Zoom goes to 4x the fit, and at least to 1.5x the
+    // sheet's own size, so a phone can read the smallest figures.
+    const measure = () => {
+      const [width, height] = size();
+      if (!width || !height || !stage.clientWidth || !stage.clientHeight) return false;
+      image.style.width = `${width}px`;
+      image.style.height = `${height}px`;
+      fit = Math.min(stage.clientWidth / width, stage.clientHeight / height, 1);
+      max = Math.max(fit * 4, 1.5);
+      return true;
+    };
+    const reset = () => {
+      if (!measure()) return;
+      scale = fit;
+      apply();
+      ready = true;
+      image.classList.add('is-ready');
+    };
+    const zoomAt = (next, px, py) => {
+      if (!ready) return;
+      const target = limit(next);
+      const ratio = target / scale;
+      x = px - (px - x) * ratio;
+      y = py - (py - y) * ratio;
+      scale = target;
+      apply();
+    };
+    const zoomCentre = (factor) => zoomAt(scale * factor, stage.clientWidth / 2, stage.clientHeight / 2);
+    const startPinch = () => {
+      const [a, b] = [...pointers.values()];
+      const midX = (a.x + b.x) / 2;
+      const midY = (a.y + b.y) / 2;
+      pinch = { distance: Math.hypot(a.x - b.x, a.y - b.y) || 1, scale, contentX: (midX - x) / scale, contentY: (midY - y) / scale };
+      drag = null;
+    };
+    const startDrag = (point) => {
+      drag = { x: point.x, y: point.y, fromX: x, fromY: y, moved: false };
+    };
+
+    const open = () => {
+      previousOverflow = document.documentElement.style.overflow;
+      document.documentElement.style.overflow = 'hidden';
+      // The sheet opens at the fit, where zoom out does nothing: disabled before showModal() so it never takes the focus
+      // and drops it to the page when the fit disables it. The focus goes to the sheet, ready for + - 0 and the arrows.
+      if (zoomOut) zoomOut.disabled = true;
+      if (zoomIn) zoomIn.disabled = false;
+      dialog.showModal();
+      stage.focus({ preventScroll: true });
+      // The hint shows for a few seconds, or until the first touch, wheel turn or click on the sheet.
+      stage.classList.remove('is-touched');
+      clearTimeout(tipTimer);
+      tipTimer = setTimeout(() => stage.classList.add('is-touched'), 4000);
+      image.loading = 'eager';
+      if (image.complete && image.naturalWidth) requestAnimationFrame(reset);
+      else image.addEventListener('load', reset, { once: true });
+    };
+    qs('[data-drawing-open]', root)?.addEventListener('click', open);
+    dialog.addEventListener('close', () => {
+      document.documentElement.style.overflow = previousOverflow;
+      pointers.clear();
+      pinch = null;
+      drag = null;
+      lastTap = null;
+    });
+    qs('[data-drawing-zoom="in"]', dialog)?.addEventListener('click', () => zoomCentre(1.5));
+    qs('[data-drawing-zoom="out"]', dialog)?.addEventListener('click', () => zoomCentre(1 / 1.5));
+    qs('[data-drawing-zoom="fit"]', dialog)?.addEventListener('click', reset);
+    dialog.addEventListener('keydown', (event) => {
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      if (event.key === '+' || event.key === '=') zoomCentre(1.5);
+      else if (event.key === '-' || event.key === '_') zoomCentre(1 / 1.5);
+      else if (event.key === '0') reset();
+      else if (event.key.startsWith('Arrow') && ready) {
+        // Arrow keys move the sheet a fifth of the screen, so a keyboard can reach every edge once it is zoomed.
+        const stepX = stage.clientWidth * 0.2;
+        const stepY = stage.clientHeight * 0.2;
+        if (event.key === 'ArrowLeft') x += stepX;
+        else if (event.key === 'ArrowRight') x -= stepX;
+        else if (event.key === 'ArrowUp') y += stepY;
+        else if (event.key === 'ArrowDown') y -= stepY;
+        else return;
+        apply();
+      } else return;
+      event.preventDefault();
+    });
+    window.addEventListener('resize', () => {
+      if (!dialog.open || !ready) return;
+      const atFit = scale <= fit * 1.001;
+      if (!measure()) return;
+      if (atFit) scale = fit;
+      scale = limit(scale);
+      apply();
+    });
+
+    stage.addEventListener('wheel', (event) => {
+      event.preventDefault();
+      stage.classList.add('is-touched');
+      const point = local(event);
+      // A trackpad pinch arrives as a wheel event with ctrlKey and small deltas; a mouse wheel notch is about 100 px.
+      const delta = event.deltaY * (event.deltaMode === 1 ? 16 : 1);
+      zoomAt(scale * Math.exp(-delta * (event.ctrlKey ? 0.01 : 0.002)), point.x, point.y);
+    }, { passive: false });
+    stage.addEventListener('pointerdown', (event) => {
+      if (!ready || (event.pointerType === 'mouse' && event.button !== 0)) return;
+      stage.setPointerCapture?.(event.pointerId);
+      stage.classList.add('is-touched');
+      pointers.set(event.pointerId, local(event));
+      if (pointers.size === 2) startPinch();
+      else if (pointers.size === 1) startDrag(local(event));
+    });
+    stage.addEventListener('pointermove', (event) => {
+      if (!pointers.has(event.pointerId)) return;
+      const point = local(event);
+      pointers.set(event.pointerId, point);
+      if (pinch && pointers.size >= 2) {
+        const [a, b] = [...pointers.values()];
+        scale = limit(pinch.scale * (Math.hypot(a.x - b.x, a.y - b.y) / pinch.distance));
+        // The point of the sheet that was under the fingers stays under them, so a pinch can also pan.
+        x = (a.x + b.x) / 2 - pinch.contentX * scale;
+        y = (a.y + b.y) / 2 - pinch.contentY * scale;
+        apply();
+      } else if (drag) {
+        const dx = point.x - drag.x;
+        const dy = point.y - drag.y;
+        if (!drag.moved && Math.hypot(dx, dy) > 6) {
+          drag.moved = true;
+          stage.classList.add('is-dragging');
+        }
+        if (drag.moved) {
+          x = drag.fromX + dx;
+          y = drag.fromY + dy;
+          apply();
+        }
+      }
+    });
+    const release = (event) => {
+      if (!pointers.has(event.pointerId)) return;
+      const point = pointers.get(event.pointerId);
+      const wasPinch = Boolean(pinch);
+      pointers.delete(event.pointerId);
+      stage.classList.remove('is-dragging');
+      if (pointers.size >= 2) {
+        startPinch();
+        return;
+      }
+      pinch = null;
+      if (pointers.size === 1) {
+        // One finger left after a pinch carries on dragging from where it is.
+        startDrag([...pointers.values()][0]);
+        drag.moved = true;
+        lastTap = null;
+        return;
+      }
+      const tapped = event.type === 'pointerup' && !wasPinch && drag && !drag.moved;
+      drag = null;
+      if (!tapped) {
+        lastTap = null;
+        return;
+      }
+      // Double tap (or double click): zoom in 2.5x on that spot, or back to the fit when already zoomed.
+      const now = Date.now();
+      if (lastTap && now - lastTap.time < 350 && Math.hypot(point.x - lastTap.x, point.y - lastTap.y) < 30) {
+        lastTap = null;
+        if (scale > fit * 1.001) reset();
+        else zoomAt(fit * 2.5, point.x, point.y);
+      } else {
+        lastTap = { time: now, x: point.x, y: point.y };
+      }
+    };
+    stage.addEventListener('pointerup', release);
+    stage.addEventListener('pointercancel', release);
   });
 
   // Home hero slideshow. CSS runs the active tab's progress bar; when it finishes, the next
