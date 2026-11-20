@@ -5738,17 +5738,24 @@
     const page = document.querySelector('[data-offer-page]');
     // Checked when the page loads, when it comes back from the back-forward cache or a hidden tab, before a form is
     // sent, and at the deadline itself, so a page left open over midnight stops showing and naming the offers.
-    const expire = () => {
+    let typing = false; // someone has started an inquiry: the page is never reloaded under them
+    document.addEventListener('input', (event) => {
+      if (event.target instanceof Element && event.target.closest('form')) typing = true;
+    }, true);
+    const expire = (reload) => {
       document.querySelectorAll('.boblift-offer-banner[data-offer-ends]').forEach((banner) => {
         if (over(banner)) banner.remove();
       });
       if (!page || !over(page)) return false;
-      // A copy of the offers page from before the deadline: no inquiry from it names the offers, and it is loaded
-      // once more past the cache (a new query string), so the server's "offers ended" page (noindex) replaces it.
+      // A copy of the offers page from before the deadline: no inquiry from it names the offers and the offers are
+      // hidden. When nobody is mid-inquiry it is loaded once more past the cache (a new query string), so the server's
+      // "offers ended" page (noindex) replaces it.
       document.querySelectorAll('input[data-offer-field]').forEach((field) => { field.value = ''; });
+      document.querySelectorAll('[data-offer-live]').forEach((element) => element.remove());
       try { sessionStorage.removeItem(KEY); } catch { /* storage blocked: nothing saved */ }
       const url = new URL(window.location.href);
-      if (!url.searchParams.has('offers-ended')) {
+      const modalOpen = document.querySelector('[data-global-inquiry-modal][aria-hidden="false"]');
+      if (reload && !typing && !modalOpen && !url.searchParams.has('offers-ended')) {
         url.searchParams.set('offers-ended', '1');
         window.location.replace(url.toString());
       }
@@ -5762,8 +5769,8 @@
         return valid && Date.now() < Date.parse(saved.ends || '') ? saved : null;
       } catch { return null; /* storage blocked: only the offers page's own forms carry the offer */ }
     };
-    const sync = () => {
-      if (expire()) return;
+    const sync = (reload = true) => {
+      if (expire(reload)) return;
       if (page) {
         try { sessionStorage.setItem(KEY, JSON.stringify({ code: page.dataset.offerPage, ends: page.dataset.offerEnds })); } catch { /* blocked */ }
       }
@@ -5776,13 +5783,23 @@
         }
       });
     };
-    window.addEventListener('pageshow', (event) => { if (event.persisted) sync(); });
-    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') sync(); });
-    document.addEventListener('submit', (event) => {
-      if (event.target instanceof HTMLFormElement && event.target.querySelector('input[data-offer-field]')) sync();
-    }, true);
+    // The deadline timer runs in steps of at most six hours (browsers cap one timer at about 24 days) and is set again
+    // whenever the tab comes back, so a tab left open for weeks still changes over at midnight.
     const deadline = Math.min(...[...document.querySelectorAll('[data-offer-ends]')].map((el) => Date.parse(el.dataset.offerEnds || '')).filter(Number.isFinite));
-    if (Number.isFinite(deadline) && deadline - Date.now() < 2 ** 31 - 1) setTimeout(sync, Math.max(0, deadline - Date.now()) + 1000);
+    let timer = 0;
+    const arm = () => {
+      clearTimeout(timer);
+      if (!Number.isFinite(deadline)) return;
+      const left = deadline - Date.now();
+      if (left <= 0) { sync(); return; }
+      timer = setTimeout(arm, Math.min(left + 1000, 6 * 3600 * 1000));
+    };
+    window.addEventListener('pageshow', (event) => { if (event.persisted) { sync(); arm(); } });
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { sync(); arm(); } });
+    document.addEventListener('submit', (event) => {
+      if (event.target instanceof HTMLFormElement && event.target.querySelector('input[data-offer-field]')) sync(false);
+    }, true);
+    arm();
     sync();
   })();
 

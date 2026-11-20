@@ -50,7 +50,7 @@ $secondary = 'inline-flex h-12 items-center justify-center gap-2 rounded-sm bord
             </div>
             <?php if (!$ended) : ?>
                 <?php // Both offers at a glance in the first screen: the coupons, then the deposit tiers. ?>
-                <div class="grid gap-3">
+                <div class="grid gap-3" data-offer-live>
                     <div class="rounded border border-white/15 bg-white/[0.06] p-4 md:p-5">
                         <p class="text-[11px] font-black uppercase tracking-[0.12em] text-white/60"><?php echo esc_html($t($coupons['label'])); ?></p>
                         <ul class="mt-3 grid grid-cols-3 gap-2 md:gap-3">
@@ -81,7 +81,7 @@ $secondary = 'inline-flex h-12 items-center justify-center gap-2 rounded-sm bord
 </section>
 
 <?php if (!$ended) : ?>
-<section id="offer-coupons" class="scroll-mt-24 py-12 md:py-16" aria-labelledby="offer-coupons-title">
+<section id="offer-coupons" data-offer-live class="scroll-mt-24 py-12 md:py-16" aria-labelledby="offer-coupons-title">
     <div class="page-shell">
         <p class="section-label mb-3"><?php echo esc_html($t($coupons['label'])); ?></p>
         <h2 id="offer-coupons-title" class="max-w-[26ch] text-[clamp(1.75rem,2.8vw,3rem)] font-black leading-[1.05] tracking-[-0.015em] text-ink"><?php echo esc_html($t($coupons['title'])); ?></h2>
@@ -99,7 +99,7 @@ $secondary = 'inline-flex h-12 items-center justify-center gap-2 rounded-sm bord
     </div>
 </section>
 
-<section id="offer-deposit" class="scroll-mt-24 border-y border-line bg-mist py-12 md:py-16" aria-labelledby="offer-deposit-title">
+<section id="offer-deposit" data-offer-live class="scroll-mt-24 border-y border-line bg-mist py-12 md:py-16" aria-labelledby="offer-deposit-title">
     <div class="page-shell grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:gap-14">
         <div>
             <p class="section-label mb-3"><?php echo esc_html($t($deposit['label'])); ?></p>
@@ -135,7 +135,7 @@ $secondary = 'inline-flex h-12 items-center justify-center gap-2 rounded-sm bord
     </div>
 </section>
 
-<section id="offer-terms" class="scroll-mt-24 py-12 md:py-16" aria-labelledby="offer-terms-title">
+<section id="offer-terms" data-offer-live class="scroll-mt-24 py-12 md:py-16" aria-labelledby="offer-terms-title">
     <div class="page-shell grid gap-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-14">
         <div>
             <p class="section-label mb-3"><?php echo esc_html($t($terms['label'])); ?></p>
