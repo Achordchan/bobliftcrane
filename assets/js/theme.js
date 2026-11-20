@@ -5735,12 +5735,15 @@
       const ends = Date.parse(element.dataset.offerEnds || '');
       return Number.isFinite(ends) && Date.now() >= ends;
     };
-    document.querySelectorAll('.boblift-offer-banner[data-offer-ends]').forEach((banner) => {
-      if (over(banner)) banner.remove();
-    });
     const page = document.querySelector('[data-offer-page]');
-    if (page && over(page)) {
-      // A copy of the offers page cached before the deadline: no inquiry from it names the offers, and it is loaded
+    // Checked when the page loads, when it comes back from the back-forward cache or a hidden tab, before a form is
+    // sent, and at the deadline itself, so a page left open over midnight stops showing and naming the offers.
+    const expire = () => {
+      document.querySelectorAll('.boblift-offer-banner[data-offer-ends]').forEach((banner) => {
+        if (over(banner)) banner.remove();
+      });
+      if (!page || !over(page)) return false;
+      // A copy of the offers page from before the deadline: no inquiry from it names the offers, and it is loaded
       // once more past the cache (a new query string), so the server's "offers ended" page (noindex) replaces it.
       document.querySelectorAll('input[data-offer-field]').forEach((field) => { field.value = ''; });
       try { sessionStorage.removeItem(KEY); } catch { /* storage blocked: nothing saved */ }
@@ -5749,15 +5752,31 @@
         url.searchParams.set('offers-ended', '1');
         window.location.replace(url.toString());
       }
-      return;
-    }
+      return true;
+    };
     let saved = null;
+    const savedOver = () => !saved || !(Date.now() < Date.parse(saved.ends || ''));
+    const clearSaved = () => {
+      if (!savedOver()) return;
+      document.querySelectorAll('input[data-offer-field]').forEach((field) => {
+        if (!page && field.value === (saved && saved.code)) field.value = '';
+      });
+    };
+    const check = () => { if (!expire()) clearSaved(); };
+    window.addEventListener('pageshow', (event) => { if (event.persisted) check(); });
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') check(); });
+    document.addEventListener('submit', (event) => {
+      if (event.target instanceof HTMLFormElement && event.target.querySelector('input[data-offer-field]')) check();
+    }, true);
+    const deadline = Math.min(...[...document.querySelectorAll('[data-offer-ends]')].map((el) => Date.parse(el.dataset.offerEnds || '')).filter(Number.isFinite));
+    if (Number.isFinite(deadline) && deadline - Date.now() < 2 ** 31 - 1) setTimeout(check, Math.max(0, deadline - Date.now()) + 1000);
+    if (expire()) return;
     try {
-      if (page && !over(page)) sessionStorage.setItem(KEY, JSON.stringify({ code: page.dataset.offerPage, ends: page.dataset.offerEnds }));
+      if (page) sessionStorage.setItem(KEY, JSON.stringify({ code: page.dataset.offerPage, ends: page.dataset.offerEnds }));
       saved = JSON.parse(sessionStorage.getItem(KEY) || 'null');
     } catch { /* storage blocked: only the offers page's own forms carry the offer */ }
-    if (!saved || typeof saved.code !== 'string' || !/^[a-z0-9-]{1,40}$/.test(saved.code)) return;
-    if (Date.now() >= Date.parse(saved.ends || '')) return;
+    if (!saved || typeof saved.code !== 'string' || !/^[a-z0-9-]{1,40}$/.test(saved.code)) { saved = null; return; }
+    if (savedOver()) return;
     document.querySelectorAll('input[data-offer-field]').forEach((field) => {
       if (!field.value) field.value = saved.code;
     });

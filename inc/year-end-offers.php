@@ -167,6 +167,10 @@ function boblift_offer_request_vars(array $vars): array
 }
 add_filter('request', 'boblift_offer_request_vars', 9);
 
+// The page has no post or archive behind it, so without a language var WordPress takes the request for the blog home and
+// core's canonical check could send it to the posts page before the template runs. It is at its own address: no redirect.
+add_filter('redirect_canonical', static fn($redirect) => boblift_offer_page() ? false : $redirect, PHP_INT_MAX);
+
 add_filter('template_include', static function (string $template): string {
     if (!boblift_offer_page()) {
         return $template;
@@ -345,6 +349,7 @@ add_filter('achord_inquiry_fields', static function (array $fields): array {
 }, 20);
 
 add_filter('achord_inquiry_submission_fields', static function (array $fields): array {
-    $fields['promo'] = boblift_offer_field_label(trim((string) ($fields['promo'] ?? '')));
+    // A form opened before the deadline and sent after it no longer names the offers.
+    $fields['promo'] = boblift_offer_ended() ? '' : boblift_offer_field_label(trim((string) ($fields['promo'] ?? '')));
     return $fields;
 }, 20);
