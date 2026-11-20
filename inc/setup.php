@@ -362,8 +362,14 @@ function boblift_route_social_tags(array $tags): array
     $term = function_exists('boblift_seo_archive_term') ? boblift_seo_archive_term() : null;
     $tonnage = boblift_current_tonnage();
     $listing = is_post_type_archive(['product', 'case']);
-    if ($tonnage <= 0 && !$term instanceof WP_Term && !$listing && !is_front_page()) {
+    // Pages (About, Contact, and the product and case lists in other languages, which are translated pages) got the
+    // bare page title and Jetpack's "Visit the post for more." as their card text.
+    $page = is_page() && !is_front_page() && !post_password_required(get_queried_object());
+    if ($tonnage <= 0 && !$term instanceof WP_Term && !$listing && !$page && !is_front_page()) {
         return $tags;
+    }
+    if ($page) {
+        $tags['og:type'] = 'website';
     }
     $title = html_entity_decode(wp_get_document_title(), ENT_QUOTES | ENT_HTML5, 'UTF-8');
     if ($title !== '') {
@@ -391,6 +397,35 @@ function boblift_route_social_tags(array $tags): array
     return $tags;
 }
 add_filter('jetpack_open_graph_tags', static fn ($tags) => is_array($tags) ? boblift_route_social_tags($tags) : $tags, 25);
+
+/**
+ * In English, Jetpack takes the tonnage and offers pages for the home page and starts their tags. In the other
+ * languages Polylang sets the language on the query, so Jetpack sees no kind of page it knows, starts with no tags and
+ * prints none at all: /zh/5-ton-crane.html and /zh/year-end-specials.html had no share card. Give those routes the
+ * same starting tags; Jetpack then adds the image, site name and locales, and the filters above set the page's own title,
+ * description and address.
+ */
+function boblift_route_base_social_tags($tags)
+{
+    if (!is_array($tags) || $tags !== []) {
+        return $tags;
+    }
+    $url = '';
+    if (function_exists('boblift_offer_page') && boblift_offer_page()) {
+        $url = boblift_offer_url();
+    } elseif (boblift_current_tonnage() > 0) {
+        $url = boblift_tonnage_url(boblift_current_tonnage());
+    }
+    if ($url === '') {
+        return $tags;
+    }
+    return [
+        'og:type' => 'website',
+        'og:title' => html_entity_decode(wp_get_document_title(), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+        'og:url' => $url,
+    ];
+}
+add_filter('jetpack_open_graph_base_tags', 'boblift_route_base_social_tags');
 
 /**
  * Jetpack SEO prints a second description on singular pages (the excerpt or its own field), so a page carried two
