@@ -271,7 +271,7 @@ function boblift_feedback_record_schema(): void
         'jobTitle' => 'Product Operations Director',
         'url' => boblift_url('/about.html'),
         'image' => boblift_asset('images/authors/achord-chan.webp'),
-        'worksFor' => ['@id' => $home . '/#organization'],
+        'worksFor' => ['@id' => boblift_organization_id()],
     ];
     $article = array_filter([
         '@type' => 'Article',
@@ -286,10 +286,10 @@ function boblift_feedback_record_schema(): void
         'author' => $person,
         'publisher' => [
             '@type' => 'Organization',
-            '@id' => $home . '/#organization',
+            '@id' => boblift_organization_id(),
             'name' => 'BOB-LIFT',
-            'url' => $home . '/',
-            'logo' => ['@type' => 'ImageObject', 'url' => boblift_asset('images/bob-lift-logo.png')],
+            'url' => BOBLIFT_ORGANIZATION_URL,
+            'logo' => boblift_organization_logo(),
         ],
         'image' => array_map(static fn(array $photo): array => ['@type' => 'ImageObject'] + $photo, boblift_feedback_record_photos($post)),
     ]);
