@@ -8,11 +8,21 @@ if (!defined('ABSPATH')) {
  * both carry the registered English name and the Chinese name, so the company is found under 徐州巴布工程机械有限公司
  * too (as on the loader site).
  *
+ * One company, one entity: this site, the loader site and the group site describe the same Organization with the same
+ * @id, name, official website (the group site), logo and profile list, so Google can tie them to a single brand entity
+ * (the knowledge panel). Every node on this site that points at the company (articles, collections, authors) uses
+ * boblift_organization_id(), in every language.
+ *
  * Jetpack SEO builds its home-page Organization from the site title alone (no legalName or alternateName), so on the
- * home page its graph is replaced by this one. Both use the same @id (home_url('/') . '#organization'), so Jetpack's
- * Article nodes on other pages keep pointing at this Organization.
+ * home page its graph is replaced by this one.
  */
 const BOBLIFT_COMPANY_CHINESE_NAME = '徐州巴布工程机械有限公司';
+
+/** The group site is the company's official website and the home of its entity; the loader site uses the same @id. */
+const BOBLIFT_ORGANIZATION_URL = 'https://www.boblift.com/';
+
+/** Unified social credit code from the national enterprise credit register (business licence, checked 2026-11-12). */
+const BOBLIFT_COMPANY_CREDIT_CODE = '91320300078204097G';
 
 /**
  * The company's own supplier listings on B2B directories (checked 2026-10-23: each names Xuzhou BOB-LIFT and lists its
@@ -26,12 +36,33 @@ const BOBLIFT_COMPANY_DIRECTORY_PROFILES = [
 ];
 
 /**
- * Public profiles of the company: the group and loader sites, its directory listings, and the real (https) social
- * links saved in the footer.
+ * The company's profiles that are not in this site's footer: the loader line's YouTube and Facebook (the same addresses
+ * as the loader site's company settings) and the company's Wikidata item (created 2026-11-20).
+ */
+const BOBLIFT_COMPANY_OTHER_PROFILES = [
+    'https://www.youtube.com/@bobliftloader',
+    'https://www.facebook.com/@bobliftloader',
+    'https://www.wikidata.org/wiki/Q142220180',
+];
+
+function boblift_organization_id(): string
+{
+    return BOBLIFT_ORGANIZATION_URL . '#organization';
+}
+
+/** Square logo (600 × 600, white ground) for search engines: Google needs at least 112 px on each side. */
+function boblift_organization_logo(): array
+{
+    return ['@type' => 'ImageObject', '@id' => BOBLIFT_ORGANIZATION_URL . '#logo', 'url' => boblift_asset('images/bob-lift-logo-square-600.png'), 'contentUrl' => boblift_asset('images/bob-lift-logo-square-600.png'), 'width' => 600, 'height' => 600, 'caption' => 'BOB-LIFT'];
+}
+
+/**
+ * Public profiles of the company: its crane and loader websites, its directory listings, the real (https) social links
+ * saved in the footer and the loader line's profiles.
  */
 function boblift_company_same_as(): array
 {
-    $urls = array_merge(['https://www.boblift.com/', 'https://bobliftloader.com/'], BOBLIFT_COMPANY_DIRECTORY_PROFILES);
+    $urls = array_merge(['https://bobliftcrane.com/', 'https://bobliftloader.com/'], BOBLIFT_COMPANY_DIRECTORY_PROFILES);
     $links = boblift_option('footer.social_links', []);
     foreach (is_array($links) ? $links : [] as $link) {
         $href = is_array($link) ? trim((string) ($link['href'] ?? '')) : '';
@@ -40,7 +71,7 @@ function boblift_company_same_as(): array
             $urls[] = $href;
         }
     }
-    return array_values(array_unique($urls));
+    return array_values(array_unique(array_merge($urls, BOBLIFT_COMPANY_OTHER_PROFILES)));
 }
 
 function boblift_company_postal_address(string $street): array
@@ -55,19 +86,23 @@ function boblift_company_schema_graph(): array
     $contact = boblift_contact_settings();
     $stored = boblift_option('contact', []);
     $stored = is_array($stored) ? $stored : [];
-    $id = home_url('/') . '#organization';
+    $id = boblift_organization_id();
     $organization = [
         '@type' => 'Organization',
         '@id' => $id,
         'name' => 'BOB-LIFT',
         'legalName' => BOBLIFT_COMPANY_LEGAL_NAME,
-        'alternateName' => [BOBLIFT_COMPANY_LEGAL_NAME, BOBLIFT_COMPANY_CHINESE_NAME],
-        'url' => home_url('/'),
-        'logo' => boblift_asset('images/bob-lift-logo.png'),
+        'alternateName' => [BOBLIFT_COMPANY_LEGAL_NAME, BOBLIFT_COMPANY_CHINESE_NAME, 'BOBLIFT'],
+        'description' => 'BOB-LIFT (' . BOBLIFT_COMPANY_LEGAL_NAME . ') is a Chinese manufacturer of truck mounted cranes, marine cranes and loader equipment in Xuzhou, Jiangsu.',
+        'url' => BOBLIFT_ORGANIZATION_URL,
+        'logo' => boblift_organization_logo(),
+        'image' => ['@id' => BOBLIFT_ORGANIZATION_URL . '#logo'],
+        'identifier' => ['@type' => 'PropertyValue', 'propertyID' => 'Unified Social Credit Code', 'value' => BOBLIFT_COMPANY_CREDIT_CODE],
         'foundingDate' => '2003',
         'foundingLocation' => ['@type' => 'Place', 'name' => 'Xuzhou, Jiangsu, China', 'address' => ['@type' => 'PostalAddress', 'addressLocality' => 'Xuzhou', 'addressRegion' => 'Jiangsu', 'addressCountry' => 'CN']],
         'email' => $contact['email'],
         'telephone' => $contact['phone'],
+        'contactPoint' => ['@type' => 'ContactPoint', 'contactType' => 'sales', 'email' => $contact['email'], 'telephone' => $contact['phone'], 'availableLanguage' => ['English', 'Chinese']],
         'sameAs' => boblift_company_same_as(),
     ];
     $registered = trim((string) ($stored['address'] ?? 'No. 79, Zone B, Jinluotuo Industrial Park, Yunlong District, Xuzhou, Jiangsu, China'));

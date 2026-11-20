@@ -326,7 +326,7 @@ function boblift_news_article_schema_graph(WP_Post $post): array
             'knowsAbout' => ['Truck-mounted cranes', 'Marine cranes', 'Construction machinery'],
             'url' => boblift_url('/about.html'),
             'image' => boblift_asset('images/authors/achord-chan.webp'),
-            'worksFor' => ['@id' => $home . '/#organization'],
+            'worksFor' => ['@id' => boblift_organization_id()],
         ];
         $article = [
             '@type' => 'Article',
@@ -341,10 +341,10 @@ function boblift_news_article_schema_graph(WP_Post $post): array
             'author' => $person,
             'publisher' => [
                 '@type' => 'Organization',
-                '@id' => $home . '/#organization',
+                '@id' => boblift_organization_id(),
                 'name' => 'BOB-LIFT',
-                'url' => $home . '/',
-                'logo' => ['@type' => 'ImageObject', 'url' => boblift_asset('images/bob-lift-logo.png')],
+                'url' => BOBLIFT_ORGANIZATION_URL,
+                'logo' => boblift_organization_logo(),
             ],
         ];
         $image = wp_get_attachment_image_src((int) get_post_thumbnail_id($post), 'full');

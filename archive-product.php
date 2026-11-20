@@ -487,7 +487,7 @@ $filter_bar = static function () use ($filter_dropdown, $category_filter_tree, $
                 $collection_name = $crumb_title($initial_category);
                 $crumbs[] = [$collection_name, $collection_url];
                 $collection_graph = ['@context' => 'https://schema.org', '@graph' => [
-                    ['@type' => 'CollectionPage', '@id' => $collection_url . '#webpage', 'url' => $collection_url, 'name' => $collection_name, 'inLanguage' => get_bloginfo('language'), 'isPartOf' => ['@id' => $site_home . '#website'], 'about' => ['@id' => $site_home . '#organization'], 'breadcrumb' => ['@id' => $collection_url . '#breadcrumb'], 'mainEntity' => ['@id' => $collection_url . '#itemlist']],
+                    ['@type' => 'CollectionPage', '@id' => $collection_url . '#webpage', 'url' => $collection_url, 'name' => $collection_name, 'inLanguage' => get_bloginfo('language'), 'isPartOf' => ['@id' => $site_home . '#website'], 'about' => ['@id' => boblift_organization_id()], 'breadcrumb' => ['@id' => $collection_url . '#breadcrumb'], 'mainEntity' => ['@id' => $collection_url . '#itemlist']],
                     ['@type' => 'BreadcrumbList', '@id' => $collection_url . '#breadcrumb', 'itemListElement' => array_map(static fn(int $index, array $crumb): array => ['@type' => 'ListItem', 'position' => $index + 1, 'name' => $crumb[0], 'item' => $crumb[1]], array_keys($crumbs), $crumbs)],
                     $item_list,
                 ]];
