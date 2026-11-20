@@ -5754,32 +5754,36 @@
       }
       return true;
     };
-    let saved = null;
-    const savedOver = () => !saved || !(Date.now() < Date.parse(saved.ends || ''));
-    const clearSaved = () => {
-      if (!savedOver()) return;
+    // The offer this tab saved, if it is still running (read afresh each time: another page may have saved it since).
+    const readSaved = () => {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem(KEY) || 'null');
+        const valid = saved && typeof saved.code === 'string' && /^[a-z0-9-]{1,40}$/.test(saved.code);
+        return valid && Date.now() < Date.parse(saved.ends || '') ? saved : null;
+      } catch { return null; /* storage blocked: only the offers page's own forms carry the offer */ }
+    };
+    const sync = () => {
+      if (expire()) return;
+      if (page) {
+        try { sessionStorage.setItem(KEY, JSON.stringify({ code: page.dataset.offerPage, ends: page.dataset.offerEnds })); } catch { /* blocked */ }
+      }
+      const saved = readSaved();
       document.querySelectorAll('input[data-offer-field]').forEach((field) => {
-        if (!page && field.value === (saved && saved.code)) field.value = '';
+        if (saved) {
+          if (!field.value) field.value = saved.code;
+        } else if (!page) {
+          field.value = ''; // only the browser fills it away from the offers page
+        }
       });
     };
-    const check = () => { if (!expire()) clearSaved(); };
-    window.addEventListener('pageshow', (event) => { if (event.persisted) check(); });
-    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') check(); });
+    window.addEventListener('pageshow', (event) => { if (event.persisted) sync(); });
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') sync(); });
     document.addEventListener('submit', (event) => {
-      if (event.target instanceof HTMLFormElement && event.target.querySelector('input[data-offer-field]')) check();
+      if (event.target instanceof HTMLFormElement && event.target.querySelector('input[data-offer-field]')) sync();
     }, true);
     const deadline = Math.min(...[...document.querySelectorAll('[data-offer-ends]')].map((el) => Date.parse(el.dataset.offerEnds || '')).filter(Number.isFinite));
-    if (Number.isFinite(deadline) && deadline - Date.now() < 2 ** 31 - 1) setTimeout(check, Math.max(0, deadline - Date.now()) + 1000);
-    if (expire()) return;
-    try {
-      if (page) sessionStorage.setItem(KEY, JSON.stringify({ code: page.dataset.offerPage, ends: page.dataset.offerEnds }));
-      saved = JSON.parse(sessionStorage.getItem(KEY) || 'null');
-    } catch { /* storage blocked: only the offers page's own forms carry the offer */ }
-    if (!saved || typeof saved.code !== 'string' || !/^[a-z0-9-]{1,40}$/.test(saved.code)) { saved = null; return; }
-    if (savedOver()) return;
-    document.querySelectorAll('input[data-offer-field]').forEach((field) => {
-      if (!field.value) field.value = saved.code;
-    });
+    if (Number.isFinite(deadline) && deadline - Date.now() < 2 ** 31 - 1) setTimeout(sync, Math.max(0, deadline - Date.now()) + 1000);
+    sync();
   })();
 
   // PDFs and pages on other websites open in a new tab, so the visitor keeps this page; links to our own pages
