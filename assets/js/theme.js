@@ -1086,10 +1086,13 @@
     const level = qs('[data-drawing-level]', dialog);
     const zoomIn = qs('[data-drawing-zoom="in"]', dialog);
     const zoomOut = qs('[data-drawing-zoom="out"]', dialog);
+    qs('[data-drawing-close]', root)?.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) dialog.close();
+    });
     if (!stage || !image) {
-      // Markup cached from before the zoom viewer: the plain dialog still opens and closes.
+      // Markup cached from before the zoom viewer: the plain dialog still opens and closes (button, backdrop, Esc).
       qs('[data-drawing-open]', root)?.addEventListener('click', () => dialog.showModal());
-      qs('[data-drawing-close]', root)?.addEventListener('click', () => dialog.close());
       return;
     }
     let fit = 1;
@@ -1171,7 +1174,12 @@
     const open = () => {
       previousOverflow = document.documentElement.style.overflow;
       document.documentElement.style.overflow = 'hidden';
+      // The sheet opens at the fit, where zoom out does nothing: disabled before showModal() so it never takes the focus
+      // and drops it to the page when the fit disables it. The focus goes to the sheet, ready for + - 0 and the arrows.
+      if (zoomOut) zoomOut.disabled = true;
+      if (zoomIn) zoomIn.disabled = false;
       dialog.showModal();
+      stage.focus({ preventScroll: true });
       // The hint shows for a few seconds, or until the first touch, wheel turn or click on the sheet.
       stage.classList.remove('is-touched');
       clearTimeout(tipTimer);
@@ -1181,10 +1189,6 @@
       else image.addEventListener('load', reset, { once: true });
     };
     qs('[data-drawing-open]', root)?.addEventListener('click', open);
-    qs('[data-drawing-close]', root)?.addEventListener('click', () => dialog.close());
-    dialog.addEventListener('click', (event) => {
-      if (event.target === dialog) dialog.close();
-    });
     dialog.addEventListener('close', () => {
       document.documentElement.style.overflow = previousOverflow;
       pointers.clear();
