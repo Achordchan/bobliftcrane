@@ -60,6 +60,7 @@ $boblift_theme_modules = [
     'about-facts.php',
     'legacy-redirects.php',
     'tonnage-pages.php',
+    'year-end-offers.php',
     'product-image-sitemap.php',
     'polylang-slugs.php',
     'rest-json-string-fields.php',

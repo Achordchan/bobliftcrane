@@ -5725,6 +5725,32 @@
     });
   });
 
+  // Year-end offers (inc/year-end-offers.php). The home banner and the offers page carry data-offer-ends, the moment the
+  // offers stop: a copy the edge cache kept from before then loses the banner here. Opening the offers page remembers
+  // the offer for this tab session, and every inquiry form's hidden promo field then names it, so the sales team sees
+  // the offers brought the inquiry. sessionStorage only: nothing is kept after the tab closes.
+  (() => {
+    const KEY = 'boblift_offer';
+    const over = (element) => {
+      const ends = Date.parse(element.dataset.offerEnds || '');
+      return Number.isFinite(ends) && Date.now() >= ends;
+    };
+    document.querySelectorAll('.boblift-offer-banner[data-offer-ends]').forEach((banner) => {
+      if (over(banner)) banner.remove();
+    });
+    const page = document.querySelector('[data-offer-page]');
+    let saved = null;
+    try {
+      if (page && !over(page)) sessionStorage.setItem(KEY, JSON.stringify({ code: page.dataset.offerPage, ends: page.dataset.offerEnds }));
+      saved = JSON.parse(sessionStorage.getItem(KEY) || 'null');
+    } catch { /* storage blocked: only the offers page's own forms carry the offer */ }
+    if (!saved || typeof saved.code !== 'string' || !/^[a-z0-9-]{1,40}$/.test(saved.code)) return;
+    if (Date.now() >= Date.parse(saved.ends || '')) return;
+    document.querySelectorAll('input[data-offer-field]').forEach((field) => {
+      if (!field.value) field.value = saved.code;
+    });
+  })();
+
   // PDFs and pages on other websites open in a new tab, so the visitor keeps this page; links to our own pages
   // open here, as on most sites. Listening on window runs after every other click handler, so a link another script
   // already handled (dialogs, the sister-site notice) is left alone. Downloads, links with their own target and

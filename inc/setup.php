@@ -316,7 +316,9 @@ function boblift_meta_description_text(): string
 {
     $description = '';
     $product_category = boblift_current_product_category_term();
-    if (boblift_current_tonnage() > 0) {
+    if (function_exists('boblift_offer_page') && boblift_offer_page()) {
+        $description = boblift_offer_t(boblift_offer_copy()['description']);
+    } elseif (boblift_current_tonnage() > 0) {
         $description = boblift_tonnage_description(boblift_current_tonnage());
     } elseif ($product_category instanceof WP_Term) {
         $description = boblift_seo_term_description($product_category);
