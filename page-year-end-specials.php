@@ -22,6 +22,16 @@ $quote_button = static function (string $label, string $entry, string $classes) 
 };
 $primary = 'inline-flex h-12 items-center justify-center gap-2 rounded-sm bg-gold px-6 text-sm font-black text-navy transition hover:bg-white';
 $secondary = 'inline-flex h-12 items-center justify-center gap-2 rounded-sm border border-navy/20 bg-white px-6 text-sm font-black text-navy transition hover:border-blue-300 hover:text-blue-700';
+// The "offers ended" note and the ways to ask for a quotation: the page after the deadline, and the page script's swap.
+$ended_note = static function () use ($t, $hero, $claim, $quote_button, $primary): void {
+    ?>
+    <p class="mt-5 max-w-xl text-base font-normal leading-7 text-white/85 md:text-lg md:leading-8"><?php echo esc_html($t($hero['ended'])); ?></p>
+    <div class="mt-7 flex flex-col gap-3 sm:flex-row">
+        <?php echo $quote_button($t($claim['button']), '活动结束后', $primary); ?>
+        <a class="inline-flex h-12 items-center justify-center gap-2 rounded-sm border border-white/30 px-6 text-sm font-black text-white transition hover:border-white" href="<?php echo esc_url(boblift_product_archive_url()); ?>"><?php echo esc_html($t($claim['browse'])); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></a>
+    </div>
+    <?php
+};
 ?>
 <section class="boblift-offer-hero relative overflow-hidden bg-navy text-white" aria-labelledby="offer-title"<?php echo $ended ? '' : ' data-offer-page="' . esc_attr(BOBLIFT_OFFER_CODE) . '" data-offer-ends="' . esc_attr(boblift_offer_ends_at()) . '"'; ?>>
     <div class="page-shell relative py-6 md:py-10 lg:py-14">
@@ -35,17 +45,17 @@ $secondary = 'inline-flex h-12 items-center justify-center gap-2 rounded-sm bord
                 <p class="text-xs font-black uppercase tracking-[0.12em] text-gold"><?php echo esc_html($t($hero['label'])); ?></p>
                 <h1 id="offer-title" class="mt-3 text-[clamp(2.1rem,4.2vw,4.25rem)] font-black leading-[1.03] tracking-[-0.02em] [text-wrap:balance]"><?php echo esc_html($t($hero['title'])); ?></h1>
                 <?php if ($ended) : ?>
-                    <p class="mt-5 max-w-xl text-base font-normal leading-7 text-white/85 md:text-lg md:leading-8"><?php echo esc_html($t($hero['ended'])); ?></p>
-                    <div class="mt-7 flex flex-col gap-3 sm:flex-row">
-                        <?php echo $quote_button($t($claim['button']), '活动结束后', $primary); ?>
-                        <a class="inline-flex h-12 items-center justify-center gap-2 rounded-sm border border-white/30 px-6 text-sm font-black text-white transition hover:border-white" href="<?php echo esc_url(boblift_product_archive_url()); ?>"><?php echo esc_html($t($claim['browse'])); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></a>
-                    </div>
+                    <?php $ended_note(); ?>
                 <?php else : ?>
-                    <p class="mt-5 max-w-xl text-base font-normal leading-7 text-white/85 md:text-lg md:leading-8"><?php echo esc_html($t($hero['text'])); ?></p>
-                    <div class="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
-                        <?php echo $quote_button($t($hero['button']), '首屏', $primary); ?>
-                        <a class="inline-flex min-h-11 items-center justify-center gap-1.5 text-sm font-black text-white/85 underline-offset-4 transition hover:text-white hover:underline sm:px-3" href="#offer-terms"><?php echo esc_html($t($hero['link'])); ?><?php echo boblift_icon('arrow-down', 'h-4 w-4'); ?></a>
+                    <div data-offer-live>
+                        <p class="mt-5 max-w-xl text-base font-normal leading-7 text-white/85 md:text-lg md:leading-8"><?php echo esc_html($t($hero['text'])); ?></p>
+                        <div class="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
+                            <?php echo $quote_button($t($hero['button']), '首屏', $primary); ?>
+                            <a class="inline-flex min-h-11 items-center justify-center gap-1.5 text-sm font-black text-white/85 underline-offset-4 transition hover:text-white hover:underline sm:px-3" href="#offer-terms"><?php echo esc_html($t($hero['link'])); ?><?php echo boblift_icon('arrow-down', 'h-4 w-4'); ?></a>
+                        </div>
                     </div>
+                    <?php // Shown in place by the page script if the deadline passes while the page is open (inc/year-end-offers.php). ?>
+                    <template data-offer-ended><?php $ended_note(); ?></template>
                 <?php endif; ?>
             </div>
             <?php if (!$ended) : ?>
@@ -152,7 +162,7 @@ $secondary = 'inline-flex h-12 items-center justify-center gap-2 rounded-sm bord
     </div>
 </section>
 
-<section id="offer-claim" class="scroll-mt-24 bg-navy py-12 text-white md:py-16" aria-labelledby="offer-claim-title">
+<section id="offer-claim" data-offer-live class="scroll-mt-24 bg-navy py-12 text-white md:py-16" aria-labelledby="offer-claim-title">
     <div class="page-shell flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between lg:gap-14">
         <div class="max-w-2xl">
             <p class="text-xs font-black uppercase tracking-[0.12em] text-gold"><?php echo esc_html($t($claim['label'])); ?></p>

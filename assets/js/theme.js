@@ -5751,6 +5751,7 @@
       // hidden. When nobody is mid-inquiry it is loaded once more past the cache (a new query string), so the server's
       // "offers ended" page (noindex) replaces it.
       document.querySelectorAll('input[data-offer-field]').forEach((field) => { field.value = ''; });
+      document.querySelectorAll('template[data-offer-ended]').forEach((template) => template.replaceWith(template.content.cloneNode(true)));
       document.querySelectorAll('[data-offer-live]').forEach((element) => element.remove());
       try { sessionStorage.removeItem(KEY); } catch { /* storage blocked: nothing saved */ }
       const url = new URL(window.location.href);
