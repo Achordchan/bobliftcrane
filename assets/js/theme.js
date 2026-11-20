@@ -1077,7 +1077,7 @@
 
   // Product dimension drawing: opens in a dialog that fits the whole sheet to the screen. Pinch, the mouse wheel (or a
   // trackpad pinch), the +/- buttons, the + - 0 keys or a double tap zoom it; one finger or the mouse drags it once it is
-  // larger than the screen. Esc, the close button or the backdrop close it.
+  // larger than the screen, and so do the arrow keys. Esc, the close button or the backdrop close it.
   qsa('[data-drawing-root]').forEach((root) => {
     const dialog = qs('[data-drawing-dialog]', root);
     if (!dialog || typeof dialog.showModal !== 'function') return;
@@ -1200,7 +1200,17 @@
       if (event.key === '+' || event.key === '=') zoomCentre(1.5);
       else if (event.key === '-' || event.key === '_') zoomCentre(1 / 1.5);
       else if (event.key === '0') reset();
-      else return;
+      else if (event.key.startsWith('Arrow') && ready) {
+        // Arrow keys move the sheet a fifth of the screen, so a keyboard can reach every edge once it is zoomed.
+        const stepX = stage.clientWidth * 0.2;
+        const stepY = stage.clientHeight * 0.2;
+        if (event.key === 'ArrowLeft') x += stepX;
+        else if (event.key === 'ArrowRight') x -= stepX;
+        else if (event.key === 'ArrowUp') y += stepY;
+        else if (event.key === 'ArrowDown') y -= stepY;
+        else return;
+        apply();
+      } else return;
       event.preventDefault();
     });
     window.addEventListener('resize', () => {
