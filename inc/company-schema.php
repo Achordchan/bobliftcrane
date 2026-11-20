@@ -37,11 +37,12 @@ const BOBLIFT_COMPANY_DIRECTORY_PROFILES = [
 
 /**
  * The company's profiles that are not in this site's footer: the loader line's YouTube and Facebook (the same addresses
- * as the loader site's company settings) and, once it exists, the Wikidata item.
+ * as the loader site's company settings) and the company's Wikidata item (created 2026-11-20).
  */
 const BOBLIFT_COMPANY_OTHER_PROFILES = [
     'https://www.youtube.com/@bobliftloader',
     'https://www.facebook.com/@bobliftloader',
+    'https://www.wikidata.org/wiki/Q142220180',
 ];
 
 function boblift_organization_id(): string
