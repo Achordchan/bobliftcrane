@@ -2820,6 +2820,19 @@ body.boblift-filter-drawer-locked {
 
 /* Product dimension drawing opened full size. */
 .boblift-drawing-dialog::backdrop { background: rgba(7, 31, 66, .72); }
+/* Phones get the whole screen; the doubled class outranks the shared dialog radius further down. */
+@media (max-width: 639px) {
+  .boblift-drawing-dialog.boblift-drawing-dialog { border-radius: 0; }
+}
+/* The stage handles pinch and drag itself (theme.js): no browser panning, page zoom or scroll chaining inside it. */
+.boblift-drawing-stage { touch-action: none; overscroll-behavior: contain; cursor: zoom-in; -webkit-user-select: none; user-select: none; }
+.boblift-drawing-stage.is-zoomed { cursor: grab; }
+.boblift-drawing-stage.is-dragging { cursor: grabbing; }
+.boblift-drawing-image { transform-origin: 0 0; visibility: hidden; -webkit-user-drag: none; -webkit-touch-callout: none; }
+.boblift-drawing-image.is-ready { visibility: visible; }
+.boblift-drawing-tip { transition: opacity .3s ease; }
+.boblift-drawing-stage.is-touched .boblift-drawing-tip { opacity: 0; }
+.boblift-drawing-tool:disabled { opacity: .4; cursor: default; }
 
 /* Case and feedback detail pages: article prose and the feedback gallery. */
 /* Copy reads at 400 so the 600 headings and figures stand above it. */
