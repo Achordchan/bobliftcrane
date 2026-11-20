@@ -125,6 +125,7 @@ function boblift_render_inquiry_form(string $product = '', array $args = []): vo
         <?php wp_nonce_field('boblift_submit_inquiry', 'boblift_inquiry_nonce'); ?>
         <input type="hidden" name="source_entry" value="<?php echo esc_attr((string) ($args['source'] ?? '页面表单')); ?>">
         <input type="hidden" name="source_title" value="<?php echo esc_attr(wp_get_document_title()); ?>">
+        <?php echo function_exists('boblift_offer_hidden_field') ? boblift_offer_hidden_field() : ''; ?>
         <label class="sr-only" aria-hidden="true">Website <input class="hidden" type="text" name="boblift_inquiry_website" tabindex="-1" autocomplete="off"></label>
 
         <div class="flex items-start justify-between gap-4">
@@ -341,6 +342,7 @@ function boblift_render_inquiry_modal(): void
                     <?php wp_nonce_field('boblift_submit_inquiry', 'boblift_inquiry_nonce'); ?>
                     <input type="hidden" name="source_entry" value="" data-inquiry-source-field>
                     <input type="hidden" name="source_title" value="<?php echo esc_attr(wp_get_document_title()); ?>">
+                    <?php echo function_exists('boblift_offer_hidden_field') ? boblift_offer_hidden_field() : ''; ?>
             <label class="sr-only" aria-hidden="true">Website <input class="hidden" type="text" name="boblift_inquiry_website" tabindex="-1" autocomplete="off"></label>
                     <input type="hidden" name="product" data-quote-field="product" value="">
                     <input type="hidden" name="product_slug" data-product-slug-field value="">

@@ -5725,6 +5725,85 @@
     });
   });
 
+  // Year-end offers (inc/year-end-offers.php). The home banner and the offers page carry data-offer-ends, the moment the
+  // offers stop: a copy the edge cache kept from before then loses the banner here. Opening the offers page remembers
+  // the offer for this tab session, and every inquiry form's hidden promo field then names it, so the sales team sees
+  // the offers brought the inquiry. sessionStorage only: nothing is kept after the tab closes.
+  (() => {
+    const KEY = 'boblift_offer';
+    const over = (element) => {
+      const ends = Date.parse(element.dataset.offerEnds || '');
+      return Number.isFinite(ends) && Date.now() >= ends;
+    };
+    const page = document.querySelector('[data-offer-page]');
+    // Checked when the page loads, when it comes back from the back-forward cache or a hidden tab, before a form is
+    // sent, and at the deadline itself, so a page left open over midnight stops showing and naming the offers.
+    let typing = false; // someone has started an inquiry: the page is never reloaded under them
+    document.addEventListener('input', (event) => {
+      if (event.target instanceof Element && event.target.closest('form')) typing = true;
+    }, true);
+    const expire = (reload) => {
+      document.querySelectorAll('.boblift-offer-banner[data-offer-ends]').forEach((banner) => {
+        if (over(banner)) banner.remove();
+      });
+      if (!page || !over(page)) return false;
+      // A copy of the offers page from before the deadline: no inquiry from it names the offers and the offers are
+      // hidden. When nobody is mid-inquiry it is loaded once more past the cache (a new query string), so the server's
+      // "offers ended" page (noindex) replaces it.
+      document.querySelectorAll('input[data-offer-field]').forEach((field) => { field.value = ''; });
+      document.querySelectorAll('template[data-offer-ended]').forEach((template) => template.replaceWith(template.content.cloneNode(true)));
+      document.querySelectorAll('[data-offer-live]').forEach((element) => element.remove());
+      try { sessionStorage.removeItem(KEY); } catch { /* storage blocked: nothing saved */ }
+      const url = new URL(window.location.href);
+      const modalOpen = document.querySelector('[data-global-inquiry-modal][aria-hidden="false"]');
+      if (reload && !typing && !modalOpen && !url.searchParams.has('offers-ended')) {
+        url.searchParams.set('offers-ended', '1');
+        window.location.replace(url.toString());
+      }
+      return true;
+    };
+    // The offer this tab saved, if it is still running (read afresh each time: another page may have saved it since).
+    const readSaved = () => {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem(KEY) || 'null');
+        const valid = saved && typeof saved.code === 'string' && /^[a-z0-9-]{1,40}$/.test(saved.code);
+        return valid && Date.now() < Date.parse(saved.ends || '') ? saved : null;
+      } catch { return null; /* storage blocked: only the offers page's own forms carry the offer */ }
+    };
+    const sync = (reload = true) => {
+      if (expire(reload)) return;
+      if (page) {
+        try { sessionStorage.setItem(KEY, JSON.stringify({ code: page.dataset.offerPage, ends: page.dataset.offerEnds })); } catch { /* blocked */ }
+      }
+      const saved = readSaved();
+      document.querySelectorAll('input[data-offer-field]').forEach((field) => {
+        if (saved) {
+          if (!field.value) field.value = saved.code;
+        } else if (!page) {
+          field.value = ''; // only the browser fills it away from the offers page
+        }
+      });
+    };
+    // The deadline timer runs in steps of at most six hours (browsers cap one timer at about 24 days) and is set again
+    // whenever the tab comes back, so a tab left open for weeks still changes over at midnight.
+    const deadline = Math.min(...[...document.querySelectorAll('[data-offer-ends]')].map((el) => Date.parse(el.dataset.offerEnds || '')).filter(Number.isFinite));
+    let timer = 0;
+    const arm = () => {
+      clearTimeout(timer);
+      if (!Number.isFinite(deadline)) return;
+      const left = deadline - Date.now();
+      if (left <= 0) { sync(); return; }
+      timer = setTimeout(arm, Math.min(left + 1000, 6 * 3600 * 1000));
+    };
+    window.addEventListener('pageshow', (event) => { if (event.persisted) { sync(); arm(); } });
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { sync(); arm(); } });
+    document.addEventListener('submit', (event) => {
+      if (event.target instanceof HTMLFormElement && event.target.querySelector('input[data-offer-field]')) sync(false);
+    }, true);
+    arm();
+    sync();
+  })();
+
   // PDFs and pages on other websites open in a new tab, so the visitor keeps this page; links to our own pages
   // open here, as on most sites. Listening on window runs after every other click handler, so a link another script
   // already handled (dialogs, the sister-site notice) is left alone. Downloads, links with their own target and

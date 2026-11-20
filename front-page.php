@@ -99,6 +99,8 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
     </div>
 </section>
 
+<?php if (function_exists('boblift_offer_home_banner')) { boblift_offer_home_banner(); } ?>
+
 <?php // Tablets and small laptops stack the heading over the marks; the two sit side by side once both fit (xl). ?>
 <section class="page-shell py-5 md:py-8" aria-label="<?php echo esc_attr($home_ui['qualityCertificationsLabel'] ?? 'Quality certifications'); ?>">
     <div class="flex flex-col gap-2 md:gap-5 xl:flex-row xl:items-center xl:justify-between xl:gap-10">
