@@ -5739,6 +5739,18 @@
       if (over(banner)) banner.remove();
     });
     const page = document.querySelector('[data-offer-page]');
+    if (page && over(page)) {
+      // A copy of the offers page cached before the deadline: no inquiry from it names the offers, and it is loaded
+      // once more past the cache (a new query string), so the server's "offers ended" page (noindex) replaces it.
+      document.querySelectorAll('input[data-offer-field]').forEach((field) => { field.value = ''; });
+      try { sessionStorage.removeItem(KEY); } catch { /* storage blocked: nothing saved */ }
+      const url = new URL(window.location.href);
+      if (!url.searchParams.has('offers-ended')) {
+        url.searchParams.set('offers-ended', '1');
+        window.location.replace(url.toString());
+      }
+      return;
+    }
     let saved = null;
     try {
       if (page && !over(page)) sessionStorage.setItem(KEY, JSON.stringify({ code: page.dataset.offerPage, ends: page.dataset.offerEnds }));

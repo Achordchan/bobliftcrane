@@ -181,6 +181,12 @@ add_action('template_redirect', static function (): void {
     }
     // The language query var makes WordPress see a language archive and print its feed link; the page has no feed.
     remove_action('wp_head', 'feed_links_extra', 3);
+    // On the last day the page is not cached, so no copy with the live offers outlives the deadline (the browser
+    // script reloads one that does, past the cache). The rest of the time it caches like any page.
+    $ends = strtotime(boblift_offer_ends_at());
+    if (!boblift_offer_ended() && $ends && $ends - time() < DAY_IN_SECONDS && function_exists('boblift_send_uncached_headers')) {
+        boblift_send_uncached_headers();
+    }
 }, 1);
 
 // Its own title (the language archive WordPress sees would otherwise title it after the site).
