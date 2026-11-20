@@ -1128,8 +1128,13 @@
       y = shownHeight <= stageHeight ? (stageHeight - shownHeight) / 2 : Math.min(0, Math.max(stageHeight - shownHeight, y));
       image.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
       if (level) level.textContent = `${Math.round((scale / fit) * 100)}%`;
-      if (zoomIn) zoomIn.disabled = scale >= max * 0.999;
-      if (zoomOut) zoomOut.disabled = scale <= fit * 1.001;
+      // A button disabled while it has the focus would drop the focus to the page and out of reach of the shortcuts, so the
+      // focus moves to the sheet first.
+      [[zoomIn, scale >= max * 0.999], [zoomOut, scale <= fit * 1.001]].forEach(([button, off]) => {
+        if (!button) return;
+        if (off && document.activeElement === button) stage.focus({ preventScroll: true });
+        button.disabled = off;
+      });
       stage.classList.toggle('is-zoomed', scale > fit * 1.001);
     };
     // Fit: the whole sheet on screen, never blown up past its own pixels. Zoom goes to 4x the fit, and at least to 1.5x the
