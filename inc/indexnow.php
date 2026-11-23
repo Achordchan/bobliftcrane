@@ -146,6 +146,12 @@ function boblift_indexnow_post_qualifies(mixed $post): bool
  * the directory the key file is served from (the key only verifies URLs there; one URL outside it fails the batch), and
  * no longer than IndexNow's 2,048-character limit.
  */
+/** The advertised key-file URL, always on HTTPS (the scheme IndexNow fetches), even if home is stored as http. */
+function boblift_indexnow_key_url(string $home, string $key): string
+{
+    return (string) preg_replace('#^http://#i', 'https://', rtrim($home, '/')) . '/' . $key . '.txt';
+}
+
 function boblift_indexnow_payloads(array $urls, string $home, string $key): array
 {
     $host = boblift_indexnow_host($home);
@@ -173,7 +179,7 @@ function boblift_indexnow_payloads(array $urls, string $home, string $key): arra
         $payloads[] = [
             'host' => $host,
             'key' => $key,
-            'keyLocation' => rtrim($home, '/') . '/' . $key . '.txt',
+            'keyLocation' => boblift_indexnow_key_url($home, $key),
             'urlList' => $batch,
         ];
     }
@@ -224,6 +230,18 @@ function boblift_indexnow_resolve(array $post_ids): ?array
     return $urls;
 }
 
+/** Post IDs behind the URLs of the given payloads. */
+function boblift_indexnow_payload_ids(array $payloads, array $by_url): array
+{
+    $ids = [];
+    foreach ($payloads as $payload) {
+        foreach ($payload['urlList'] as $url) {
+            array_push($ids, ...$by_url[$url]);
+        }
+    }
+    return array_values(array_unique($ids));
+}
+
 /**
  * Sends the posts' current permalinks; runs from cron. When $retry is true, the IDs behind a POST that failed (no
  * connection, 429 or 5xx) are kept for one more try ten minutes later; that try itself does not retry. Returns false
@@ -259,6 +277,11 @@ function boblift_indexnow_send(array $post_ids, bool $retry = true, ?callable $s
         if ($still_owned !== null && !$still_owned()) {
             return false;
         }
+        // Another run may have hit a 429 or 403 meanwhile: then nothing more is posted and the rest is kept.
+        $cooldown = get_transient(BOBLIFT_INDEXNOW_COOLDOWN);
+        if ($cooldown !== false) {
+            return (bool) $keep(boblift_indexnow_payload_ids(array_slice($payloads, $index), $by_url), max(time() + MINUTE_IN_SECONDS, (int) $cooldown), $retry) && $kept;
+        }
         // Blocking, from cron only: a non-blocking request can hide a failed connection.
         $response = wp_remote_post(BOBLIFT_INDEXNOW_ENDPOINT, [
             'timeout' => 10,
@@ -266,30 +289,26 @@ function boblift_indexnow_send(array $post_ids, bool $retry = true, ?callable $s
             'body' => wp_json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
         ]);
         $code = is_wp_error($response) ? 0 : (int) wp_remote_retrieve_response_code($response);
-        // IndexNow answers 200 or 202; 5xx and no connection are worth one more try, other 4xx (bad key or URLs) are not. A 403
-        // (key not verified) while the key file really cannot be fetched keeps the posts, retry allowance unchanged,
-        // for when the key route is fixed: the worker sends nothing until the key check passes again.
+        // IndexNow answers 200 or 202. 429 (throttled) and 403 (key not verified) keep the posts and pause the queue;
+        // 5xx and no connection are worth one more try; other 4xx (bad URLs) are not.
         if ($code === 429) {
             // Throttled: IndexNow asks the client to wait. This and every later payload of the batch are kept, with the
             // retry allowance unchanged (being asked to wait is not a failed try), and the whole queue pauses for the
             // Retry-After time, so other rows are not spent while the endpoint is still throttling.
             $wait = boblift_indexnow_retry_after($response);
             set_transient(BOBLIFT_INDEXNOW_COOLDOWN, time() + $wait, $wait);
-            $ids = [];
-            foreach (array_slice($payloads, $index) as $rest) {
-                foreach ($rest['urlList'] as $url) {
-                    array_push($ids, ...$by_url[$url]);
-                }
-            }
-            return (bool) $keep(array_values(array_unique($ids)), time() + $wait, $retry) && $kept;
+            return (bool) $keep(boblift_indexnow_payload_ids(array_slice($payloads, $index), $by_url), time() + $wait, $retry) && $kept;
         }
-        if ($code === 403 && !boblift_indexnow_key_file_ok($key, true)) {
-            $ids = [];
-            foreach ($payload['urlList'] as $url) {
-                array_push($ids, ...$by_url[$url]);
-            }
-            $kept = (bool) $keep(array_values(array_unique($ids)), time() + 10 * MINUTE_IN_SECONDS, $retry) && $kept;
-        } elseif (($code === 0 || $code >= 500) && $retry) {
+        if ($code === 403) {
+            // Key not verified. The local self-check cannot prove IndexNow's verifier can reach the file (a CDN or
+            // firewall may block it), so the posts are kept, retry allowance unchanged, and the queue pauses for an hour
+            // (logged), so fixing access never needs the content republished.
+            $held = (bool) $keep(boblift_indexnow_payload_ids(array_slice($payloads, $index), $by_url), time() + HOUR_IN_SECONDS, $retry);
+            set_transient(BOBLIFT_INDEXNOW_COOLDOWN, time() + HOUR_IN_SECONDS, HOUR_IN_SECONDS);
+            error_log(sprintf('IndexNow: key not verified (HTTP 403) for %s; submissions paused for an hour, posts kept.', $payload['keyLocation']));
+            return $held && $kept;
+        }
+        if (($code === 0 || $code >= 500) && $retry) {
             $ids = [];
             foreach ($payload['urlList'] as $url) {
                 array_push($ids, ...$by_url[$url]);
@@ -470,7 +489,7 @@ const BOBLIFT_INDEXNOW_COOLDOWN = 'boblift_indexnow_cooldown';
 /** The key-check result is stored per advertised key-file URL, so a new key or home URL is always checked afresh. */
 function boblift_indexnow_key_check_name(string $key): string
 {
-    return BOBLIFT_INDEXNOW_KEY_CHECK . '_' . md5(rtrim((string) get_option('home'), '/') . '/' . $key . '.txt');
+    return BOBLIFT_INDEXNOW_KEY_CHECK . '_' . md5(boblift_indexnow_key_url((string) get_option('home'), $key));
 }
 
 /**
@@ -490,7 +509,7 @@ function boblift_indexnow_retry_after(mixed $response): int
  */
 function boblift_indexnow_check_key_file(string $home, string $key): bool
 {
-    $location = rtrim($home, '/') . '/' . $key . '.txt';
+    $location = boblift_indexnow_key_url($home, $key);
     $response = wp_remote_get($location, ['timeout' => 10, 'redirection' => 0]);
     $code = is_wp_error($response) ? 0 : (int) wp_remote_retrieve_response_code($response);
     $ok = $code === 200 && (string) wp_remote_retrieve_body($response) === $key;
@@ -542,7 +561,7 @@ function boblift_indexnow_run_retries(): void
     }
     $started = time();
     $rows = 0;
-    boblift_indexnow_walk_rows(time(), static function (string $name) use (&$rows, $started, $key): bool {
+    boblift_indexnow_walk_rows(time(), static function (string $name) use (&$rows, $started): bool {
         if ($rows >= BOBLIFT_INDEXNOW_RUN_ROWS || time() - $started >= BOBLIFT_INDEXNOW_RUN_SECONDS) {
             return false;
         }
@@ -583,9 +602,9 @@ function boblift_indexnow_run_retries(): void
         } else {
             boblift_indexnow_reschedule_retry($name, $leased, array_unique($again), $again_due, $again_retry);
         }
-        // A 403 whose key-file recheck failed, or a 429 that started a cooldown, stops this run: later rows would only be
-        // rejected the same way, and are left queued untouched.
-        return ($key === '' || get_transient(boblift_indexnow_key_check_name($key)) !== 'failed') && get_transient(BOBLIFT_INDEXNOW_COOLDOWN) === false;
+        // A 429 or 403 starts a cooldown, which stops this run: later rows would only be rejected the same way, and are
+        // left queued untouched.
+        return get_transient(BOBLIFT_INDEXNOW_COOLDOWN) === false;
     });
 }
 

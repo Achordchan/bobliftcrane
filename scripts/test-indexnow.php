@@ -888,24 +888,26 @@ $GLOBALS['sent'] = [];
 boblift_indexnow_run_retries();
 $check('a failed self-check alone (e.g. a blocked loopback request) is only logged: rows are still sent', $GLOBALS['sent'] === [['https://bobliftcrane.com/p81.html']] && row_ids() === []);
 clear_rows();
-// A 403 from IndexNow rechecks the key file: if it really fails, the posts are kept with their retry allowance.
-// (The last daily check passed; the key file broke since.)
+// A 403 (key not verified) keeps the posts with their retry allowance and pauses the queue for an hour, whatever
+// the local self-check says (a CDN or firewall may block only IndexNow's verifier).
+unset($GLOBALS['key_file_response']);
 $GLOBALS['transients'] = [kc() => 'ok'];
 $GLOBALS['remote_code'] = 403;
-add_option(rn(0, 'k403'), ['due' => 0, 'ids' => [81], 'retry' => true], '', 'no');
+add_option(rn(0, 'k403'), ['due' => 0, 'ids' => [81], 'retry' => false], '', 'no');
 add_option(rn(1, 'k403b'), ['due' => 1, 'ids' => [81], 'retry' => true], '', 'no');
 $GLOBALS['sent'] = [];
+$t403 = time();
+$log = tempnam(sys_get_temp_dir(), 'indexnow');
+ini_set('error_log', $log);
 boblift_indexnow_run_retries();
-$check('a 403 whose key-file recheck fails stops the run: the next row is not posted', count($GLOBALS['sent']) === 1 && isset($GLOBALS['options'][rn(1, 'k403b')]));
+$logged403 = (string) file_get_contents($log);
+unlink($log);
+ini_set('error_log', '/dev/null');
+$check('a 403 stops the run: the next row is not posted', count($GLOBALS['sent']) === 1 && isset($GLOBALS['options'][rn(1, 'k403b')]));
 unset($GLOBALS['options'][rn(1, 'k403b')]);
 $rows = boblift_indexnow_retry_names();
-$check('a 403 while the key file cannot be fetched keeps the posts for later, retry allowance unchanged', count($rows) === 1 && $GLOBALS['options'][$rows[0]]['ids'] === [81] && $GLOBALS['options'][$rows[0]]['retry'] === true && $GLOBALS['options'][$rows[0]]['due'] >= time() + 590 && $GLOBALS['transients'][kc()] === 'failed');
+$check('a 403 keeps the posts even on a last try, an hour out, pauses the queue for an hour and logs it, though the self-check passes', count($rows) === 1 && $GLOBALS['options'][$rows[0]]['ids'] === [81] && $GLOBALS['options'][$rows[0]]['retry'] === false && $GLOBALS['options'][$rows[0]]['due'] >= $t403 + 3600 && ($GLOBALS['transient_ttl']['boblift_indexnow_cooldown'] ?? 0) === 3600 && str_contains($logged403, 'key not verified (HTTP 403) for https://bobliftcrane.com/abcd1234.txt'));
 clear_rows();
-unset($GLOBALS['key_file_response']);
-$GLOBALS['transients'] = [];
-add_option(rn(0, 'k403ok'), ['due' => 0, 'ids' => [81], 'retry' => true], '', 'no');
-boblift_indexnow_run_retries();
-$check('a 403 while the key file is served correctly is logged and not kept', boblift_indexnow_retry_names() === [] && $GLOBALS['transients'][kc()] === 'ok');
 unset($GLOBALS['remote_code']);
 $GLOBALS['transients'] = [];
 
@@ -936,6 +938,23 @@ $check('after the cooldown the waiting rows are sent', $GLOBALS['sent'] === [['h
 clear_rows();
 $check('Retry-After is read as seconds or an HTTP date, kept between ten minutes and a day', boblift_indexnow_retry_after(['headers' => ['retry-after' => '5']]) === 600 && boblift_indexnow_retry_after(['headers' => ['retry-after' => '999999']]) === 86400 && abs(boblift_indexnow_retry_after(['headers' => ['retry-after' => gmdate('D, d M Y H:i:s', time() + 7200) . ' GMT']]) - 7200) <= 2 && boblift_indexnow_retry_after(['headers' => []]) === 600);
 $GLOBALS['transients'] = [];
+
+// Another run's cooldown is rechecked right before each POST.
+$GLOBALS['transients'] = [kc() => 'ok'];
+$GLOBALS['posts'] = [83 => new WP_Post(83)];
+$GLOBALS['sent'] = [];
+$kept_here = [];
+$owned = static function () use (&$kept_here): bool {
+    // Another run hits a 429 while this one resolves permalinks.
+    set_transient('boblift_indexnow_cooldown', time() + 900, 900);
+    return true;
+};
+$check('a cooldown started by another run is checked right before the POST: nothing is sent and the posts are kept', boblift_indexnow_send([83], true, $owned, static function (array $ids, int $due, bool $retry) use (&$kept_here): bool {
+    $kept_here = [$ids, $due, $retry];
+    return true;
+}) === true && $GLOBALS['sent'] === [] && $kept_here[0] === [83] && $kept_here[1] >= time() + 890 && $kept_here[2] === true);
+$GLOBALS['transients'] = [];
+$check('the key file is advertised and checked on HTTPS even if home is stored as http', boblift_indexnow_key_url('http://bobliftcrane.com/', 'abcd1234') === 'https://bobliftcrane.com/abcd1234.txt' && (boblift_indexnow_payloads(['http://bobliftcrane.com/a.html'], 'http://bobliftcrane.com', 'abcd1234')[0]['keyLocation'] ?? '') === 'https://bobliftcrane.com/abcd1234.txt');
 
 $GLOBALS['options']['boblift_indexnow_key'] = "abcd1234\n";
 $check('a key with a trailing newline is repaired', preg_match('/^[a-z0-9]{32}\z/', boblift_indexnow_key()) === 1);
