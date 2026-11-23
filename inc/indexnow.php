@@ -12,8 +12,9 @@ if (!defined('ABSPATH')) {
  * check that the ping comes from the site owner. Only the live site (a host in BOBLIFT_INDEXNOW_HOSTS, explicitly
  * public, production) pings; local copies, staging clones, private sites and other hosts stay quiet. Changed posts are
  * queued by blog and ID during the request and resolved at shutdown, after every term and meta field is saved, then
- * sent in non-blocking POSTs of up to 10,000 URLs. The post IDs of a batch that cannot even be dispatched go into
- * their own single cron event ten minutes later, which checks each post again and tries once more.
+ * sent in non-blocking POSTs of up to 10,000 URLs. The post IDs of a batch that cannot even be dispatched are saved
+ * in their own option row; a cron run about ten minutes later claims each row with an atomic DELETE, checks each post
+ * again and tries once more. A lost cron event is put back the next time anything is published.
  */
 
 const BOBLIFT_INDEXNOW_ENDPOINT = 'https://api.indexnow.org/indexnow';
@@ -22,10 +23,11 @@ const BOBLIFT_INDEXNOW_POST_TYPES = ['page', 'post', 'product', 'case'];
 const BOBLIFT_INDEXNOW_BATCH = 10000;
 const BOBLIFT_INDEXNOW_KEY_OPTION = 'boblift_indexnow_key';
 const BOBLIFT_INDEXNOW_RETRY_HOOK = 'boblift_indexnow_retry';
+const BOBLIFT_INDEXNOW_RETRY_PREFIX = 'boblift_indexnow_retry_';
 
 function boblift_indexnow_valid_key(mixed $key): bool
 {
-    return is_string($key) && preg_match('/^[a-zA-Z0-9-]{8,128}$/', $key) === 1;
+    return is_string($key) && preg_match('/^[a-zA-Z0-9-]{8,128}\z/', $key) === 1;
 }
 
 /**
@@ -137,8 +139,8 @@ function boblift_indexnow_resolve(array $post_ids): array
 }
 
 /**
- * Sends the posts' current permalinks. When $retry is true, the IDs behind any POST that could not be dispatched get
- * their own cron event, so concurrent failures never share or overwrite a stored list; the retry itself does not retry.
+ * Sends the posts' current permalinks. When $retry is true, the IDs behind any POST that could not be dispatched are
+ * saved for one retry; the retry itself does not retry.
  */
 function boblift_indexnow_send(array $post_ids, bool $retry = true): void
 {
@@ -161,7 +163,47 @@ function boblift_indexnow_send(array $post_ids, bool $retry = true): void
         }
     }
     if ($retry && $failed !== []) {
-        wp_schedule_single_event(time() + 10 * MINUTE_IN_SECONDS, BOBLIFT_INDEXNOW_RETRY_HOOK, [(int) get_current_blog_id(), array_values(array_unique($failed))]);
+        boblift_indexnow_save_retry(array_values(array_unique($failed)));
+    }
+}
+
+/**
+ * Saves failed post IDs in a row of their own (a unique name, so concurrent failures never touch each other's row)
+ * and makes sure a retry run is scheduled.
+ */
+function boblift_indexnow_save_retry(array $post_ids): void
+{
+    add_option(BOBLIFT_INDEXNOW_RETRY_PREFIX . str_replace('-', '', wp_generate_uuid4()), array_map('intval', $post_ids), '', 'no');
+    boblift_indexnow_schedule_retry();
+}
+
+/** @return string[] option names of saved retry batches in the current blog */
+function boblift_indexnow_retry_names(): array
+{
+    global $wpdb;
+    return array_map('strval', (array) $wpdb->get_col($wpdb->prepare("SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s", $wpdb->esc_like(BOBLIFT_INDEXNOW_RETRY_PREFIX) . '%')));
+}
+
+/** Schedules the retry run when batches are waiting and none is scheduled, which also restores a lost cron event. */
+function boblift_indexnow_schedule_retry(): void
+{
+    if (!wp_next_scheduled(BOBLIFT_INDEXNOW_RETRY_HOOK) && boblift_indexnow_retry_names() !== []) {
+        wp_schedule_single_event(time() + 10 * MINUTE_IN_SECONDS, BOBLIFT_INDEXNOW_RETRY_HOOK);
+    }
+}
+
+/** Claims every saved batch (only the request whose DELETE removed the row sends it) and sends each once. */
+function boblift_indexnow_run_retries(): void
+{
+    global $wpdb;
+    foreach (boblift_indexnow_retry_names() as $name) {
+        $value = $wpdb->get_var($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s LIMIT 1", $name));
+        $claimed = (int) $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name = %s", $name)) === 1;
+        wp_cache_delete($name, 'options');
+        $post_ids = maybe_unserialize($value);
+        if ($claimed && is_array($post_ids)) {
+            boblift_indexnow_send($post_ids, false);
+        }
     }
 }
 
@@ -182,27 +224,20 @@ add_action('shutdown', static function (): void {
             switch_to_blog((int) $blog_id);
         }
         boblift_indexnow_send($post_ids);
+        boblift_indexnow_schedule_retry();
         if ($switched) {
             restore_current_blog();
         }
     }
 });
 
-add_action(BOBLIFT_INDEXNOW_RETRY_HOOK, static function (int $blog_id = 1, array $post_ids = []): void {
-    $switched = is_multisite() && $blog_id !== (int) get_current_blog_id();
-    if ($switched) {
-        switch_to_blog($blog_id);
-    }
-    boblift_indexnow_send($post_ids, false);
-    if ($switched) {
-        restore_current_blog();
-    }
-}, 10, 2);
+// Cron runs in the blog that scheduled it, where its retry rows live.
+add_action(BOBLIFT_INDEXNOW_RETRY_HOOK, 'boblift_indexnow_run_retries');
 
 // The key file, answered ahead of the legacy redirects (priority 0) and the 404 template.
 add_action('template_redirect', static function (): void {
     $request = rtrim((string) wp_parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH), '/');
-    if (preg_match('#/[a-zA-Z0-9-]{8,128}\.txt$#', $request) !== 1 || !boblift_indexnow_enabled()) {
+    if (preg_match('#/[a-zA-Z0-9-]{8,128}\.txt\z#', $request) !== 1 || !boblift_indexnow_enabled()) {
         return;
     }
     $base = rtrim((string) wp_parse_url((string) get_option('home'), PHP_URL_PATH), '/');

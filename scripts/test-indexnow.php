@@ -1,5 +1,9 @@
 <?php
 // Checks the IndexNow helpers without WordPress: php scripts/test-indexnow.php
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit;
+}
 define('ABSPATH', __DIR__);
 $GLOBALS['options'] = ['blog_public' => '1', 'home' => 'https://bobliftcrane.com'];
 $GLOBALS['env'] = 'production';
@@ -9,8 +13,10 @@ class WP_Post
     {
     }
 }
-function add_action(...$args): void
+$GLOBALS['hooks'] = [];
+function add_action(string $hook, callable $callback, int $priority = 10, int $args = 1): void
 {
+    $GLOBALS['hooks'][$hook] = $callback;
 }
 function get_option(string $name, $default = false)
 {
@@ -30,6 +36,15 @@ class Fake_Wpdb
         $value = $GLOBALS['options'][$q[1][0]] ?? null;
         return $value === '' ? null : $value;
     }
+    public function esc_like(string $text): string
+    {
+        return addcslashes($text, '_%\\');
+    }
+    public function get_col(array $q): array
+    {
+        $prefix = stripslashes(rtrim($q[1][0], '%'));
+        return array_values(array_filter(array_keys($GLOBALS['options']), static fn($name): bool => str_starts_with((string) $name, $prefix)));
+    }
     public function get_row(array $q, string $output = 'OBJECT')
     {
         return array_key_exists($q[1][0], $GLOBALS['options']) ? ['option_value' => (string) $GLOBALS['options'][$q[1][0]]] : null;
@@ -37,6 +52,13 @@ class Fake_Wpdb
     public function query(array $q): int
     {
         [$sql, $args] = $q;
+        if (str_starts_with($sql, 'DELETE')) {
+            if (!array_key_exists($args[0], $GLOBALS['options'])) {
+                return 0;
+            }
+            unset($GLOBALS['options'][$args[0]]);
+            return 1;
+        }
         if (str_starts_with($sql, 'INSERT IGNORE')) {
             if (array_key_exists($args[0], $GLOBALS['options'])) {
                 return 0;
@@ -128,10 +150,35 @@ function update_option(string $name, $value, $autoload = null): bool
 }
 function wp_schedule_single_event(int $time, string $hook, array $args = []): bool
 {
-    $GLOBALS['scheduled'][] = $args;
+    $GLOBALS['scheduled'][] = $hook;
     return true;
 }
+function wp_next_scheduled(string $hook)
+{
+    return in_array($hook, $GLOBALS['scheduled'], true) ? time() : false;
+}
+function wp_generate_uuid4(): string
+{
+    return bin2hex(random_bytes(16));
+}
+function maybe_unserialize($value)
+{
+    return $value;
+}
+function status_header(int $code): void
+{
+    http_response_code($code);
+}
 require dirname(__DIR__) . '/inc/indexnow.php';
+
+// Child mode: run the key-file route for one path and print what it answers (it exits when it serves the key).
+if (($route = getenv('INDEXNOW_ROUTE')) !== false) {
+    $GLOBALS['options']['boblift_indexnow_key'] = 'abcd1234';
+    $_SERVER['REQUEST_URI'] = $route;
+    ($GLOBALS['hooks']['template_redirect'])();
+    echo 'FALLTHROUGH';
+    exit;
+}
 
 $failures = 0;
 $check = static function (string $name, bool $ok) use (&$failures): void {
@@ -201,24 +248,44 @@ $check('only still-public posts are sent', $GLOBALS['sent'] === [['https://bobli
 $GLOBALS['remote_fails'] = true;
 boblift_indexnow_send([11]);
 boblift_indexnow_send([12]);
-$check('each failed dispatch gets its own retry event with its post IDs', $GLOBALS['scheduled'] === [[1, [11]], [1, [12]]]);
+$rows = boblift_indexnow_retry_names();
+$check('each failed dispatch is saved in its own row', count($rows) === 2 && array_map(static fn($n) => $GLOBALS['options'][$n], $rows) === [[11], [12]]);
+$check('one retry run is scheduled', $GLOBALS['scheduled'] === ['boblift_indexnow_retry']);
 $GLOBALS['scheduled'] = [];
+boblift_indexnow_schedule_retry();
+$check('a lost retry event is scheduled again while rows wait', $GLOBALS['scheduled'] === ['boblift_indexnow_retry']);
 $GLOBALS['posts'][11]->post_password = 'secret';
 $GLOBALS['remote_fails'] = false;
 $GLOBALS['sent'] = [];
-boblift_indexnow_send([11, 12], false);
-$check('a retry checks visibility again', $GLOBALS['sent'] === [['https://bobliftcrane.com/p12.html']]);
+($GLOBALS['hooks']['boblift_indexnow_retry'])();
+$check('a retry checks visibility again and clears its rows', $GLOBALS['sent'] === [['https://bobliftcrane.com/p12.html']] && boblift_indexnow_retry_names() === []);
+add_option('boblift_indexnow_retry_x', [12], '', 'no');
+$GLOBALS['wpdb']->query(['DELETE', ['boblift_indexnow_retry_x']]);
+$GLOBALS['sent'] = [];
+boblift_indexnow_run_retries();
+$check('a row another run already claimed is not sent twice', $GLOBALS['sent'] === []);
 $GLOBALS['remote_fails'] = true;
+$GLOBALS['scheduled'] = [];
 boblift_indexnow_send([12], false);
-$check('a failed retry is not retried again', $GLOBALS['scheduled'] === []);
-$GLOBALS['remote_fails'] = false;
+$check('a failed retry is not saved again', boblift_indexnow_retry_names() === [] && $GLOBALS['scheduled'] === []);
 $GLOBALS['posts'] = [];
 foreach (range(1, 10001) as $i) {
     $GLOBALS['posts'][$i] = new WP_Post($i);
 }
-$GLOBALS['remote_fails'] = true;
 boblift_indexnow_send(range(1, 10001));
-$check('10,001 failed posts are all kept for the retry', count($GLOBALS['scheduled']) === 1 && count($GLOBALS['scheduled'][0][1]) === 10001);
+$rows = boblift_indexnow_retry_names();
+$check('10,001 failed posts are all kept for the retry', count($rows) === 1 && count($GLOBALS['options'][$rows[0]]) === 10001);
 $GLOBALS['remote_fails'] = false;
+
+$GLOBALS['options']['boblift_indexnow_key'] = "abcd1234\n";
+$check('a key with a trailing newline is repaired', preg_match('/^[a-z0-9]{32}\z/', boblift_indexnow_key()) === 1);
+
+$route = static function (string $path): string {
+    return (string) shell_exec('INDEXNOW_ROUTE=' . escapeshellarg($path) . ' ' . escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__));
+};
+$check('the advertised key file answers with the exact key', $route('/abcd1234.txt') === 'abcd1234');
+$check('the key file also answers with a trailing slash', $route('/abcd1234.txt/') === 'abcd1234');
+$check('an unrelated .txt path falls through', $route('/robots-file.txt') === 'FALLTHROUGH');
+$check('a key path with a trailing newline falls through', $route("/abcd1234.txt%0A") === 'FALLTHROUGH');
 
 exit($failures === 0 ? 0 : 1);
