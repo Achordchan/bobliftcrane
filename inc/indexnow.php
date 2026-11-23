@@ -254,7 +254,8 @@ function boblift_indexnow_send(array $post_ids, bool $retry = true, ?callable $s
         return (bool) $keep(array_merge(...array_values($by_url)), time() + 10 * MINUTE_IN_SECONDS, $retry);
     }
     $kept = true;
-    foreach (boblift_indexnow_payloads(array_keys($by_url), (string) get_option('home'), $key) as $payload) {
+    $payloads = boblift_indexnow_payloads(array_keys($by_url), (string) get_option('home'), $key);
+    foreach ($payloads as $index => $payload) {
         if ($still_owned !== null && !$still_owned()) {
             return false;
         }
@@ -265,16 +266,30 @@ function boblift_indexnow_send(array $post_ids, bool $retry = true, ?callable $s
             'body' => wp_json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
         ]);
         $code = is_wp_error($response) ? 0 : (int) wp_remote_retrieve_response_code($response);
-        // IndexNow answers 200 or 202; 429 and 5xx are worth another try, other 4xx (bad key or URLs) are not. A 403
+        // IndexNow answers 200 or 202; 5xx and no connection are worth one more try, other 4xx (bad key or URLs) are not. A 403
         // (key not verified) while the key file really cannot be fetched keeps the posts, retry allowance unchanged,
         // for when the key route is fixed: the worker sends nothing until the key check passes again.
+        if ($code === 429) {
+            // Throttled: IndexNow asks the client to wait. This and every later payload of the batch are kept, with the
+            // retry allowance unchanged (being asked to wait is not a failed try), and the whole queue pauses for the
+            // Retry-After time, so other rows are not spent while the endpoint is still throttling.
+            $wait = boblift_indexnow_retry_after($response);
+            set_transient(BOBLIFT_INDEXNOW_COOLDOWN, time() + $wait, $wait);
+            $ids = [];
+            foreach (array_slice($payloads, $index) as $rest) {
+                foreach ($rest['urlList'] as $url) {
+                    array_push($ids, ...$by_url[$url]);
+                }
+            }
+            return (bool) $keep(array_values(array_unique($ids)), time() + $wait, $retry) && $kept;
+        }
         if ($code === 403 && !boblift_indexnow_key_file_ok($key, true)) {
             $ids = [];
             foreach ($payload['urlList'] as $url) {
                 array_push($ids, ...$by_url[$url]);
             }
             $kept = (bool) $keep(array_values(array_unique($ids)), time() + 10 * MINUTE_IN_SECONDS, $retry) && $kept;
-        } elseif (($code === 0 || $code === 429 || $code >= 500) && $retry) {
+        } elseif (($code === 0 || $code >= 500) && $retry) {
             $ids = [];
             foreach ($payload['urlList'] as $url) {
                 array_push($ids, ...$by_url[$url]);
@@ -450,6 +465,24 @@ function boblift_indexnow_runnable_at(array $batch): int
 }
 
 const BOBLIFT_INDEXNOW_KEY_CHECK = 'boblift_indexnow_key_file_checked';
+const BOBLIFT_INDEXNOW_COOLDOWN = 'boblift_indexnow_cooldown';
+
+/** The key-check result is stored per advertised key-file URL, so a new key or home URL is always checked afresh. */
+function boblift_indexnow_key_check_name(string $key): string
+{
+    return BOBLIFT_INDEXNOW_KEY_CHECK . '_' . md5(rtrim((string) get_option('home'), '/') . '/' . $key . '.txt');
+}
+
+/**
+ * Seconds IndexNow asked the client to wait (Retry-After as seconds or an HTTP date), at least ten minutes and at most a
+ * day; ten minutes when the header is missing or unreadable.
+ */
+function boblift_indexnow_retry_after(mixed $response): int
+{
+    $header = is_wp_error($response) ? '' : trim((string) wp_remote_retrieve_header($response, 'retry-after'));
+    $wait = ctype_digit($header) ? (int) $header : ($header !== '' && ($at = strtotime($header)) !== false ? $at - time() : 0);
+    return min(DAY_IN_SECONDS, max(10 * MINUTE_IN_SECONDS, $wait));
+}
 
 /**
  * Fetches the advertised key file over HTTPS, as IndexNow will, and logs when it does not answer 200 with exactly the
@@ -473,11 +506,11 @@ function boblift_indexnow_check_key_file(string $home, string $key): bool
  */
 function boblift_indexnow_key_file_ok(string $key, bool $recheck = false): bool
 {
-    $state = $recheck ? false : get_transient(BOBLIFT_INDEXNOW_KEY_CHECK);
+    $state = $recheck ? false : get_transient(boblift_indexnow_key_check_name($key));
     if ($state === false) {
         $ok = boblift_indexnow_check_key_file((string) get_option('home'), $key);
         $state = $ok ? 'ok' : 'failed';
-        set_transient(BOBLIFT_INDEXNOW_KEY_CHECK, $state, $ok ? DAY_IN_SECONDS : HOUR_IN_SECONDS);
+        set_transient(boblift_indexnow_key_check_name($key), $state, $ok ? DAY_IN_SECONDS : HOUR_IN_SECONDS);
     }
     return $state === 'ok';
 }
@@ -501,9 +534,13 @@ function boblift_indexnow_run_retries(): void
     if ($key !== '' && !boblift_indexnow_key_file_ok($key)) {
         return;
     }
+    // After a 429 nothing is posted until the wait IndexNow asked for (Retry-After) has passed.
+    if (get_transient(BOBLIFT_INDEXNOW_COOLDOWN) !== false) {
+        return;
+    }
     $started = time();
     $rows = 0;
-    boblift_indexnow_walk_rows(time(), static function (string $name) use (&$rows, $started): bool {
+    boblift_indexnow_walk_rows(time(), static function (string $name) use (&$rows, $started, $key): bool {
         if ($rows >= BOBLIFT_INDEXNOW_RUN_ROWS || time() - $started >= BOBLIFT_INDEXNOW_RUN_SECONDS) {
             return false;
         }
@@ -544,8 +581,9 @@ function boblift_indexnow_run_retries(): void
         } else {
             boblift_indexnow_reschedule_retry($name, $leased, array_unique($again), $again_due, $again_retry);
         }
-        // A 403 whose key-file recheck failed stops this run: later rows would only be rejected the same way.
-        return get_transient(BOBLIFT_INDEXNOW_KEY_CHECK) !== 'failed';
+        // A 403 whose key-file recheck failed, or a 429 that started a cooldown, stops this run: later rows would only be
+        // rejected the same way, and are left queued untouched.
+        return ($key === '' || get_transient(boblift_indexnow_key_check_name($key)) !== 'failed') && get_transient(BOBLIFT_INDEXNOW_COOLDOWN) === false;
     });
 }
 

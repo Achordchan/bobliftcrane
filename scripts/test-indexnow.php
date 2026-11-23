@@ -274,7 +274,7 @@ function wp_remote_post(string $url, array $args)
     if ($GLOBALS['remote_fails']) {
         return new WP_Error();
     }
-    return ['response' => ['code' => $GLOBALS['remote_code'] ?? 200]];
+    return ['response' => ['code' => $GLOBALS['remote_code'] ?? 200], 'headers' => $GLOBALS['remote_headers'] ?? []];
 }
 function wp_remote_retrieve_response_code($response)
 {
@@ -332,7 +332,7 @@ function wp_schedule_event(int $time, string $recurrence, string $hook): bool
     return true;
 }
 // The key-file self-check: by default the key file answers as it should and the check is already done for today.
-$GLOBALS['transients'] = ['boblift_indexnow_key_file_checked' => 'ok'];
+$GLOBALS['transients'] = [];
 function get_transient(string $name)
 {
     return $GLOBALS['transients'][$name] ?? false;
@@ -347,6 +347,10 @@ function wp_remote_get(string $url, array $args = [])
 {
     $GLOBALS['fetched'][] = $url;
     return $GLOBALS['key_file_response'] ?? ['response' => ['code' => 200], 'body' => $GLOBALS['options']['boblift_indexnow_key'] ?? ''];
+}
+function wp_remote_retrieve_header($response, string $header)
+{
+    return $response['headers'][$header] ?? '';
 }
 function wp_remote_retrieve_body($response)
 {
@@ -379,6 +383,11 @@ function wp_load_alloptions(bool $force_cache = false): array
         $GLOBALS['events'] = $GLOBALS['events_on_reload'];
     }
     return [];
+}
+// The key-check transient for the test key.
+function kc(): string
+{
+    return boblift_indexnow_key_check_name('abcd1234');
 }
 function cron_to_events(array $cron): void
 {
@@ -611,6 +620,7 @@ foreach ([503 => 1, 429 => 1, 422 => 0, 202 => 0] as $code => $rows_expected) {
     boblift_indexnow_send([41]);
     $rows = boblift_indexnow_retry_names();
     $check('HTTP ' . $code . ($rows_expected ? ' gets one more try' : ' is not retried'), count($rows) === $rows_expected);
+    unset($GLOBALS['transients']['boblift_indexnow_cooldown']);
     foreach ($rows as $name) {
         unset($GLOBALS['options'][$name]);
     }
@@ -844,7 +854,7 @@ clear_rows();
 $GLOBALS['transients'] = [];
 $GLOBALS['fetched'] = [];
 boblift_indexnow_run_retries();
-$check('the worker fetches the advertised key file over HTTP and, when it answers, checks again in a day', $GLOBALS['fetched'] === ['https://bobliftcrane.com/abcd1234.txt'] && $GLOBALS['transients']['boblift_indexnow_key_file_checked'] === 'ok' && $GLOBALS['transient_ttl']['boblift_indexnow_key_file_checked'] === 86400);
+$check('the worker fetches the advertised key file over HTTP and, when it answers, checks again in a day', $GLOBALS['fetched'] === ['https://bobliftcrane.com/abcd1234.txt'] && $GLOBALS['transients'][kc()] === 'ok' && $GLOBALS['transient_ttl'][kc()] === 86400);
 boblift_indexnow_run_retries();
 $check('the key file is not fetched again within the day', count($GLOBALS['fetched']) === 1);
 $log = tempnam(sys_get_temp_dir(), 'indexnow');
@@ -853,7 +863,7 @@ foreach ([['response' => ['code' => 404], 'body' => 'Not found'], ['response' =>
     $GLOBALS['transients'] = [];
     $GLOBALS['key_file_response'] = $response;
     boblift_indexnow_run_retries();
-    $check('a key file that ' . ($i === 0 ? 'is not served' : 'answers with other text') . ' is logged and checked again in an hour', $GLOBALS['transients']['boblift_indexnow_key_file_checked'] === 'failed' && $GLOBALS['transient_ttl']['boblift_indexnow_key_file_checked'] === 3600);
+    $check('a key file that ' . ($i === 0 ? 'is not served' : 'answers with other text') . ' is logged and checked again in an hour', $GLOBALS['transients'][kc()] === 'failed' && $GLOBALS['transient_ttl'][kc()] === 3600);
 }
 $check('the failure log names the key file and status', str_contains((string) file_get_contents($log), 'the key file https://bobliftcrane.com/abcd1234.txt did not answer 200 with the key (HTTP 404)'));
 unlink($log);
@@ -866,7 +876,8 @@ boblift_indexnow_run_retries();
 $check('while the key file check fails, nothing is sent and the rows are kept', $GLOBALS['sent'] === [] && row_ids() === [[81]]);
 clear_rows();
 // A 403 from IndexNow rechecks the key file: if it really fails, the posts are kept with their retry allowance.
-$GLOBALS['transients'] = ['boblift_indexnow_key_file_checked' => 'ok'];
+// (The last daily check passed; the key file broke since.)
+$GLOBALS['transients'] = [kc() => 'ok'];
 $GLOBALS['remote_code'] = 403;
 add_option(rn(0, 'k403'), ['due' => 0, 'ids' => [81], 'retry' => true], '', 'no');
 add_option(rn(1, 'k403b'), ['due' => 1, 'ids' => [81], 'retry' => true], '', 'no');
@@ -875,15 +886,43 @@ boblift_indexnow_run_retries();
 $check('a 403 whose key-file recheck fails stops the run: the next row is not posted', count($GLOBALS['sent']) === 1 && isset($GLOBALS['options'][rn(1, 'k403b')]));
 unset($GLOBALS['options'][rn(1, 'k403b')]);
 $rows = boblift_indexnow_retry_names();
-$check('a 403 while the key file cannot be fetched keeps the posts for later, retry allowance unchanged', count($rows) === 1 && $GLOBALS['options'][$rows[0]]['ids'] === [81] && $GLOBALS['options'][$rows[0]]['retry'] === true && $GLOBALS['options'][$rows[0]]['due'] >= time() + 590 && $GLOBALS['transients']['boblift_indexnow_key_file_checked'] === 'failed');
+$check('a 403 while the key file cannot be fetched keeps the posts for later, retry allowance unchanged', count($rows) === 1 && $GLOBALS['options'][$rows[0]]['ids'] === [81] && $GLOBALS['options'][$rows[0]]['retry'] === true && $GLOBALS['options'][$rows[0]]['due'] >= time() + 590 && $GLOBALS['transients'][kc()] === 'failed');
 clear_rows();
 unset($GLOBALS['key_file_response']);
-$GLOBALS['transients'] = ['boblift_indexnow_key_file_checked' => 'ok'];
+$GLOBALS['transients'] = [];
 add_option(rn(0, 'k403ok'), ['due' => 0, 'ids' => [81], 'retry' => true], '', 'no');
 boblift_indexnow_run_retries();
-$check('a 403 while the key file is served correctly is logged and not kept', boblift_indexnow_retry_names() === [] && $GLOBALS['transients']['boblift_indexnow_key_file_checked'] === 'ok');
+$check('a 403 while the key file is served correctly is logged and not kept', boblift_indexnow_retry_names() === [] && $GLOBALS['transients'][kc()] === 'ok');
 unset($GLOBALS['remote_code']);
-$GLOBALS['transients'] = ['boblift_indexnow_key_file_checked' => 'ok'];
+$GLOBALS['transients'] = [];
+
+// A passed check is stored per key-file URL: a new key is checked afresh.
+$GLOBALS['transients'] = [kc() => 'ok'];
+$check('a passed key check does not carry over to another key', kc() !== boblift_indexnow_key_check_name('efgh5678') && get_transient(boblift_indexnow_key_check_name('efgh5678')) === false);
+// A 429 pauses the whole queue for the Retry-After time and keeps the rows, retry allowance unchanged.
+$GLOBALS['transients'] = [kc() => 'ok'];
+$GLOBALS['posts'] = [81 => new WP_Post(81), 82 => new WP_Post(82)];
+add_option(rn(0, 't429a'), ['due' => 0, 'ids' => [81], 'retry' => false], '', 'no');
+add_option(rn(1, 't429b'), ['due' => 1, 'ids' => [82], 'retry' => true], '', 'no');
+$GLOBALS['remote_code'] = 429;
+$GLOBALS['remote_headers'] = ['retry-after' => '1800'];
+$GLOBALS['sent'] = [];
+$t429 = time();
+boblift_indexnow_run_retries();
+$rows = boblift_indexnow_retry_names();
+$held = array_values(array_filter($rows, static fn($n) => $GLOBALS['options'][$n]['ids'] === [81]));
+$check('a 429 keeps the row even on its last try, due after Retry-After, and stops the run', count($GLOBALS['sent']) === 1 && count($held) === 1 && $GLOBALS['options'][$held[0]]['retry'] === false && $GLOBALS['options'][$held[0]]['due'] >= $t429 + 1800 && isset($GLOBALS['options'][rn(1, 't429b')]));
+$check('the cooldown lasts the Retry-After time', ($GLOBALS['transient_ttl']['boblift_indexnow_cooldown'] ?? 0) === 1800);
+unset($GLOBALS['remote_code'], $GLOBALS['remote_headers']);
+$GLOBALS['sent'] = [];
+boblift_indexnow_run_retries();
+$check('while the cooldown lasts nothing is posted', $GLOBALS['sent'] === [] && isset($GLOBALS['options'][rn(1, 't429b')]));
+unset($GLOBALS['transients']['boblift_indexnow_cooldown']);
+boblift_indexnow_run_retries();
+$check('after the cooldown the waiting rows are sent', $GLOBALS['sent'] === [['https://bobliftcrane.com/p82.html']] && !isset($GLOBALS['options'][rn(1, 't429b')]));
+clear_rows();
+$check('Retry-After is read as seconds or an HTTP date, kept between ten minutes and a day', boblift_indexnow_retry_after(['headers' => ['retry-after' => '5']]) === 600 && boblift_indexnow_retry_after(['headers' => ['retry-after' => '999999']]) === 86400 && abs(boblift_indexnow_retry_after(['headers' => ['retry-after' => gmdate('D, d M Y H:i:s', time() + 7200) . ' GMT']]) - 7200) <= 2 && boblift_indexnow_retry_after(['headers' => []]) === 600);
+$GLOBALS['transients'] = [];
 
 $GLOBALS['options']['boblift_indexnow_key'] = "abcd1234\n";
 $check('a key with a trailing newline is repaired', preg_match('/^[a-z0-9]{32}\z/', boblift_indexnow_key()) === 1);
