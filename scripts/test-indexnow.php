@@ -617,16 +617,21 @@ $GLOBALS['sent'] = [];
 $check('a send stops when ownership is lost before the POST', boblift_indexnow_send([71], true, static fn(): bool => false) === false && $GLOBALS['sent'] === []);
 unset($GLOBALS['options'][rn(0, 'takeover')]);
 
-// A retry whose key cannot be read makes no POST and keeps its row.
+// Without a readable key nothing is POSTed, and the batch is deferred with its retry allowance unchanged.
 $GLOBALS['posts'] = [61 => new WP_Post(61)];
 $saved_key = $GLOBALS['options']['boblift_indexnow_key'];
 $GLOBALS['options']['boblift_indexnow_key'] = 'bad key!';
-add_option(rn(0, 'nokey'), ['due' => 0, 'ids' => [61], 'retry' => false], '', 'no');
 $GLOBALS['wpdb']->fail_reads = false;
 $GLOBALS['key_reads_fail'] = true;
 $GLOBALS['sent'] = [];
-$check('a retry that cannot read the key reports failure', boblift_indexnow_send([61], false) === false && $GLOBALS['sent'] === []);
-unset($GLOBALS['key_reads_fail'], $GLOBALS['options'][rn(0, 'nokey')]);
+foreach ([true, false] as $allowance) {
+    clear_rows();
+    boblift_indexnow_send([61], $allowance);
+    $rows = boblift_indexnow_retry_names();
+    $check('a ' . ($allowance ? 'first try' : 'last try') . ' that cannot read the key is deferred ten minutes with its retry allowance kept', $GLOBALS['sent'] === [] && count($rows) === 1 && $GLOBALS['options'][$rows[0]]['retry'] === $allowance && $GLOBALS['options'][$rows[0]]['due'] >= time() + 590);
+}
+clear_rows();
+unset($GLOBALS['key_reads_fail']);
 $GLOBALS['options']['boblift_indexnow_key'] = $saved_key;
 
 // Publish to shutdown through the registered hooks: queued on publish, sent once at shutdown with the final permalink.

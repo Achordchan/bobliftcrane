@@ -214,9 +214,9 @@ function boblift_indexnow_send(array $post_ids, bool $retry = true, ?callable $s
     }
     $key = boblift_indexnow_key();
     if ($key === '') {
-        // The key could not be stored or read back, so nothing was submitted: a first try is saved as the retry, and a
-        // retry reports failure so its row is kept and runs again (only a real POST uses up the last attempt).
-        return $retry && boblift_indexnow_save_batch(array_merge(...array_values($by_url)), time() + 10 * MINUTE_IN_SECONDS, false);
+        // The key could not be stored or read back, so nothing was submitted: the batch is deferred ten minutes with
+        // its retry allowance unchanged (only a real POST uses up an attempt).
+        return boblift_indexnow_save_batch(array_merge(...array_values($by_url)), time() + 10 * MINUTE_IN_SECONDS, $retry);
     }
     $kept = true;
     foreach (boblift_indexnow_payloads(array_keys($by_url), (string) get_option('home'), $key) as $payload) {
