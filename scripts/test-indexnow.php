@@ -159,7 +159,7 @@ function update_option(string $name, $value, $autoload = null): bool
     $GLOBALS['options'][$name] = $value;
     return true;
 }
-function wp_schedule_single_event(int $time, string $hook, array $args = []): bool
+function wp_schedule_single_event(int $time, string $hook, array $args = [], bool $wp_error = false): bool
 {
     $GLOBALS['scheduled'][] = $hook;
     $GLOBALS['scheduled_at'][] = $time;
@@ -320,7 +320,7 @@ foreach (range(1, 10001) as $i) {
 }
 boblift_indexnow_send(range(1, 10001));
 $rows = boblift_indexnow_retry_names();
-$check('10,001 failed posts are all kept for the retry', count($rows) === 1 && count($ids($rows)[0]) === 10001);
+$check('10,001 failed posts are kept as one retry row per failed POST', count($rows) === 2 && array_sum(array_map('count', $ids($rows))) === 10001);
 foreach ($rows as $name) {
     unset($GLOBALS['options'][$name]);
 }

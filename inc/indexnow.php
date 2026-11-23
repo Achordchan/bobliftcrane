@@ -159,7 +159,6 @@ function boblift_indexnow_send(array $post_ids, bool $retry = true): void
         }
         return;
     }
-    $failed = [];
     foreach (boblift_indexnow_payloads(array_keys($by_url), (string) get_option('home'), $key) as $payload) {
         $response = wp_remote_post(BOBLIFT_INDEXNOW_ENDPOINT, [
             'blocking' => false,
@@ -167,14 +166,14 @@ function boblift_indexnow_send(array $post_ids, bool $retry = true): void
             'headers' => ['Content-Type' => 'application/json; charset=utf-8'],
             'body' => wp_json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
         ]);
-        if (is_wp_error($response)) {
+        if (is_wp_error($response) && $retry) {
+            // One retry row per failed POST, so a slow retry of one batch never takes the others down with it.
+            $ids = [];
             foreach ($payload['urlList'] as $url) {
-                array_push($failed, ...$by_url[$url]);
+                array_push($ids, ...$by_url[$url]);
             }
+            boblift_indexnow_save_retry(array_values(array_unique($ids)));
         }
-    }
-    if ($retry && $failed !== []) {
-        boblift_indexnow_save_retry(array_values(array_unique($failed)));
     }
 }
 
@@ -187,7 +186,10 @@ function boblift_indexnow_save_retry(array $post_ids): void
     $batch = ['due' => time() + 10 * MINUTE_IN_SECONDS, 'ids' => array_map('intval', $post_ids)];
     if (!add_option(BOBLIFT_INDEXNOW_RETRY_PREFIX . str_replace('-', '', wp_generate_uuid4()), $batch, '', 'no')) {
         // The row could not be written: carry the IDs in the cron event itself so the batch is not lost.
-        wp_schedule_single_event($batch['due'], BOBLIFT_INDEXNOW_RETRY_HOOK, [$batch['ids']]);
+        $scheduled = wp_schedule_single_event($batch['due'], BOBLIFT_INDEXNOW_RETRY_HOOK, [$batch['ids']], true);
+        if ($scheduled !== true) {
+            error_log(sprintf('IndexNow: could not keep %d post IDs for a retry (%s).', count($batch['ids']), is_wp_error($scheduled) ? $scheduled->get_error_message() : 'cron write failed'));
+        }
         return;
     }
     boblift_indexnow_schedule_retry();
