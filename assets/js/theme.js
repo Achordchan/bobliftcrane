@@ -1261,12 +1261,17 @@
     });
     zoomIn?.addEventListener('click', () => zoomCentre(1.5));
     zoomOut?.addEventListener('click', () => zoomCentre(1 / 1.5));
-    fitButton?.addEventListener('click', reset);
+    // Back to the fit, for a picture that is showing; a load in progress fits its own picture when it arrives, and resetting
+    // before that could show the previous picture's measure under the new one.
+    const refit = () => {
+      if (ready) reset();
+    };
+    fitButton?.addEventListener('click', refit);
     dialog.addEventListener('keydown', (event) => {
       if (event.ctrlKey || event.metaKey || event.altKey) return;
       if (event.key === '+' || event.key === '=') zoomCentre(1.5);
       else if (event.key === '-' || event.key === '_') zoomCentre(1 / 1.5);
-      else if (event.key === '0') reset();
+      else if (event.key === '0') refit();
       else if (onStep && (!ready || atFit()) && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
         // A fitted photo, or one still loading or failed, has nothing to pan, so left and right step through the photos.
         onStep(event.key === 'ArrowRight' ? forward() : -forward());
@@ -1376,7 +1381,7 @@
         else settle();
         return;
       }
-      const tapped = event.type === 'pointerup' && !wasPinch && drag && !drag.moved;
+      const tapped = event.type === 'pointerup' && !wasPinch && drag && !drag.moved && ready;
       drag = null;
       if (!tapped) {
         lastTap = null;
@@ -1427,8 +1432,8 @@
   // Product photos at the top of the page, on phones and tablets: a tap on the photo (or its full-size button) opens it in
   // the zoom viewer, at the photo shown. Pinch or double tap zooms; a swipe, the arrows or the arrow keys go through the
   // photos, and closing leaves the page on the last one seen. Wide screens with a mouse keep the page as it was.
-  const photoViewerMedia = window.matchMedia('(max-width: 1023px), (hover: none) and (pointer: coarse)');
-  // The corner button shows below 1024 px; on wider touch tablets it is there for the keyboard only.
+  // Below 1024 px a tap or click on the photo opens it and the corner button shows; wider, only a finger or pen does, and the
+  // button is there for the keyboard only, on touch screens.
   const photoButtonMedia = window.matchMedia('(max-width: 1023px)');
   // Any touch screen, primary pointer or not (a tablet with a trackpad attached): the button is kept for its keyboard.
   const photoTouchMedia = window.matchMedia('(any-pointer: coarse)');
@@ -1534,8 +1539,8 @@
         preload(index - 1);
       }
     };
-    // A finger or pen on the photo opens it on any screen, a tablet with a trackpad attached included; a mouse click on a
-    // wide screen does not.
+    // A finger or pen on the photo opens it on any screen, whatever the device calls its main pointer; on a wide screen a
+    // mouse or trackpad click does not, a tablet's included.
     let framePointer = '';
     frame.addEventListener('pointerdown', (event) => {
       framePointer = event.pointerType;
@@ -1543,7 +1548,7 @@
     frame.addEventListener('click', (event) => {
       const touch = framePointer === 'touch' || framePointer === 'pen';
       framePointer = '';
-      if (!(photoViewerMedia.matches || touch) || event.target.closest('button, a')) return;
+      if (!(photoButtonMedia.matches || touch) || event.target.closest('button, a')) return;
       open(event);
     });
     // The full-size button is rendered hidden and joins the page here, only where a tap opens the viewer.
@@ -1551,13 +1556,12 @@
     if (opener) {
       opener.addEventListener('click', open);
       const syncOpener = () => {
-        const enabled = photoViewerMedia.matches || photoTouchMedia.matches;
+        const enabled = photoButtonMedia.matches || photoTouchMedia.matches;
         opener.classList.toggle('hidden', !enabled);
         opener.classList.toggle('grid', enabled);
         opener.classList.toggle('is-focus-only', enabled && !photoButtonMedia.matches);
       };
       syncOpener();
-      onMediaChange(photoViewerMedia, syncOpener);
       onMediaChange(photoButtonMedia, syncOpener);
       onMediaChange(photoTouchMedia, syncOpener);
     }

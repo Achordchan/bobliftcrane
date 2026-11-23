@@ -2836,8 +2836,9 @@ body.boblift-filter-drawer-locked {
 /* Product photos in the same viewer: a photo let go short of a swipe springs back, and a spinner shows while one loads. */
 .boblift-drawing-image.is-settling { transition: transform .2s ease-out; }
 .boblift-zoom-spinner { display: none; }
-/* The photo viewer takes the whole screen at every size; the doubled class outranks the shared dialog radius further down. */
-.boblift-drawing-dialog.boblift-photo-dialog { border-radius: 0; }
+/* The photo viewer takes the whole screen at every size (100vh first for browsers without dvh); the doubled class outranks the
+   shared dialog radius further down. */
+.boblift-drawing-dialog.boblift-photo-dialog { border-radius: 0; height: 100vh; height: 100dvh; }
 /* Wide touch screens: the full-size button is there for the keyboard only and shows when it has the keyboard focus; taps go
    through it to the photo and its hotspots. */
 .boblift-photo-open.is-focus-only:not(:focus-visible) { opacity: 0; pointer-events: none; }
