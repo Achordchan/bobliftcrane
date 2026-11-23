@@ -2838,8 +2838,9 @@ body.boblift-filter-drawer-locked {
 .boblift-zoom-spinner { display: none; }
 /* The photo viewer takes the whole screen at every size; the doubled class outranks the shared dialog radius further down. */
 .boblift-drawing-dialog.boblift-photo-dialog { border-radius: 0; }
-/* Wide touch tablets: the full-size button is there for the keyboard only and shows when it has the keyboard focus. */
-.boblift-photo-open.is-focus-only:not(:focus-visible) { opacity: 0; }
+/* Wide touch screens: the full-size button is there for the keyboard only and shows when it has the keyboard focus; taps go
+   through it to the photo and its hotspots. */
+.boblift-photo-open.is-focus-only:not(:focus-visible) { opacity: 0; pointer-events: none; }
 .is-loading > .boblift-zoom-spinner { display: block; animation: boblift-zoom-spin .8s linear infinite; }
 @keyframes boblift-zoom-spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
 

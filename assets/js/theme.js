@@ -1110,6 +1110,18 @@
     };
     const limit = (value) => Math.min(max, Math.max(fit, value));
     const atFit = () => scale <= fit * 1.001;
+    // A button disabled while it has the focus would drop the focus to the page and out of reach of the shortcuts, so the
+    // focus moves to the picture first.
+    const setControl = (button, off) => {
+      if (!button) return;
+      if (off && document.activeElement === button) stage.focus({ preventScroll: true });
+      button.disabled = off;
+    };
+    // While no picture is ready (loading, or failed) the zoom controls have nothing to act on: no level, all disabled.
+    const lockControls = () => {
+      if (level) level.textContent = '';
+      [zoomIn, zoomOut, fitButton].forEach((button) => setControl(button, true));
+    };
     // Keeps the picture on screen: centred along an axis where it is smaller than the stage, edge to edge where it is larger.
     const apply = () => {
       const [width, height] = size();
@@ -1120,15 +1132,11 @@
       x = shownWidth <= stageWidth ? (stageWidth - shownWidth) / 2 : Math.min(0, Math.max(stageWidth - shownWidth, x));
       y = shownHeight <= stageHeight ? (stageHeight - shownHeight) / 2 : Math.min(0, Math.max(stageHeight - shownHeight, y));
       image.style.transform = `translate(${x + swipe}px, ${y}px) scale(${scale})`;
-      if (level) level.textContent = `${Math.round((scale / fit) * 100)}%`;
-      // A button disabled while it has the focus would drop the focus to the page and out of reach of the shortcuts, so the
-      // focus moves to the picture first.
-      [[zoomIn, scale >= max * 0.999], [zoomOut, atFit()]].forEach(([button, off]) => {
-        if (!button) return;
-        if (off && document.activeElement === button) stage.focus({ preventScroll: true });
-        button.disabled = off;
-      });
       stage.classList.toggle('is-zoomed', !atFit());
+      // The controls follow a picture that is showing; while none is, lockControls() keeps them off.
+      if (!ready) return;
+      if (level) level.textContent = `${Math.round((scale / fit) * 100)}%`;
+      [[zoomIn, scale >= max * 0.999], [zoomOut, atFit()], [fitButton, false]].forEach(([button, off]) => setControl(button, off));
     };
     // Fit: the whole picture on screen, never blown up past its own pixels. Zoom goes to 4x the fit, and at least to
     // nativeMax times the picture's own size, so a phone can read the smallest figures.
@@ -1145,8 +1153,8 @@
       if (!measure()) return;
       scale = fit;
       swipe = 0;
-      apply();
       ready = true;
+      apply();
       image.classList.add('is-ready');
     };
     const zoomAt = (next, px, py) => {
@@ -1163,12 +1171,14 @@
       const [a, b] = [...pointers.values()];
       const midX = (a.x + b.x) / 2;
       const midY = (a.y + b.y) / 2;
-      pinch = { distance: Math.hypot(a.x - b.x, a.y - b.y) || 1, scale, contentX: (midX - x) / scale, contentY: (midY - y) / scale };
+      // Begun before the picture was ready, it starts again from the fitted picture and the fingers where they are by then.
+      pinch = { distance: Math.hypot(a.x - b.x, a.y - b.y) || 1, scale, contentX: (midX - x) / scale, contentY: (midY - y) / scale, pending: !ready };
       drag = null;
     };
     // A finger on a fitted photo swipes it toward the next one; anywhere else it drags the picture.
     const startDrag = (point) => {
-      drag = { x: point.x, y: point.y, fromX: x, fromY: y, moved: false, swipe: Boolean(onStep) && (!ready || atFit()) };
+      // dx: the finger's own sideways travel, kept apart from the picture's offset, which a load resets.
+      drag = { x: point.x, y: point.y, dx: 0, fromX: x, fromY: y, moved: false, swipe: Boolean(onStep) && (!ready || atFit()) };
     };
     const settle = () => {
       image.classList.add('is-settling');
@@ -1186,10 +1196,12 @@
       detachLoad();
       ready = false;
       swipe = 0;
-      pointers.clear();
-      pinch = null;
-      drag = null;
+      // A gesture under way carries on across the load (a fallback size, or a photo that finished while the finger was
+      // down): a swipe keeps its travel and a pinch starts afresh once the picture is ready. Panning the old picture ends.
+      if (drag && !drag.swipe) drag = null;
+      if (pinch) pinch.pending = true;
       lastTap = null;
+      lockControls();
       image.classList.remove('is-ready', 'is-settling');
       stage.classList.add('is-loading');
       image.loading = 'eager';
@@ -1306,6 +1318,10 @@
       pointers.set(event.pointerId, point);
       if (pinch && pointers.size >= 2) {
         if (!ready) return;
+        if (pinch.pending) {
+          startPinch();
+          return;
+        }
         const [a, b] = [...pointers.values()];
         scale = limit(pinch.scale * (Math.hypot(a.x - b.x, a.y - b.y) / pinch.distance));
         // The point of the picture that was under the fingers stays under them, so a pinch can also pan.
@@ -1315,6 +1331,7 @@
       } else if (drag) {
         const dx = point.x - drag.x;
         const dy = point.y - drag.y;
+        drag.dx = dx;
         if (!drag.moved && Math.hypot(dx, dy) > 6) {
           drag.moved = true;
           // A mostly upright stroke is no swipe.
@@ -1352,7 +1369,7 @@
       }
       if (drag && drag.swipe && drag.moved) {
         // A swipe past a fifth of the screen (at most 80 px) moves to the neighbouring photo; a shorter one springs back.
-        const distance = swipe;
+        const distance = drag.dx;
         drag = null;
         lastTap = null;
         if (event.type === 'pointerup' && Math.abs(distance) > Math.min(80, stage.clientWidth * 0.2)) onStep(distance < 0 ? forward() : -forward());
@@ -1413,6 +1430,8 @@
   const photoViewerMedia = window.matchMedia('(max-width: 1023px), (hover: none) and (pointer: coarse)');
   // The corner button shows below 1024 px; on wider touch tablets it is there for the keyboard only.
   const photoButtonMedia = window.matchMedia('(max-width: 1023px)');
+  // Any touch screen, primary pointer or not (a tablet with a trackpad attached): the button is kept for its keyboard.
+  const photoTouchMedia = window.matchMedia('(any-pointer: coarse)');
   const onMediaChange = (media, listener) => {
     if (media.addEventListener) media.addEventListener('change', listener);
     else media.addListener?.(listener);
@@ -1515,8 +1534,16 @@
         preload(index - 1);
       }
     };
+    // A finger or pen on the photo opens it on any screen, a tablet with a trackpad attached included; a mouse click on a
+    // wide screen does not.
+    let framePointer = '';
+    frame.addEventListener('pointerdown', (event) => {
+      framePointer = event.pointerType;
+    });
     frame.addEventListener('click', (event) => {
-      if (!photoViewerMedia.matches || event.target.closest('button, a')) return;
+      const touch = framePointer === 'touch' || framePointer === 'pen';
+      framePointer = '';
+      if (!(photoViewerMedia.matches || touch) || event.target.closest('button, a')) return;
       open(event);
     });
     // The full-size button is rendered hidden and joins the page here, only where a tap opens the viewer.
@@ -1524,7 +1551,7 @@
     if (opener) {
       opener.addEventListener('click', open);
       const syncOpener = () => {
-        const enabled = photoViewerMedia.matches;
+        const enabled = photoViewerMedia.matches || photoTouchMedia.matches;
         opener.classList.toggle('hidden', !enabled);
         opener.classList.toggle('grid', enabled);
         opener.classList.toggle('is-focus-only', enabled && !photoButtonMedia.matches);
@@ -1532,6 +1559,7 @@
       syncOpener();
       onMediaChange(photoViewerMedia, syncOpener);
       onMediaChange(photoButtonMedia, syncOpener);
+      onMediaChange(photoTouchMedia, syncOpener);
     }
     qsa('[data-photo-viewer-step]', dialog).forEach((button) => {
       button.addEventListener('click', () => step(Number(button.dataset.photoViewerStep) || 1));
