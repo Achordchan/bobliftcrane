@@ -1080,7 +1080,7 @@
   // mouse drags it once it is larger than the screen, and so do the arrow keys. Esc, the close button or the backdrop close
   // it. With onStep (the photos), a sideways swipe or the left and right arrow keys on the fitted picture step to the
   // neighbouring one. nativeMax is how far past its own pixels the picture may zoom.
-  const bobliftZoomViewer = ({ dialog, stage, image, level, zoomIn, zoomOut, fitButton, nativeMax = 1.5, onStep = null, onLoad = null, onError = null, onClose = null }) => {
+  const bobliftZoomViewer = ({ dialog, stage, image, level, zoomIn, zoomOut, fitButton, nativeMax = 1.5, loadTimeout = 0, onStep = null, onLoad = null, onError = null, onClose = null }) => {
     let fit = 1;
     let max = 2;
     let scale = 1;
@@ -1264,9 +1264,10 @@
       else {
         image.addEventListener('load', done);
         image.addEventListener('error', failed);
-        // A response that starts and then stalls fires neither event: after 20 s it counts as failed (the photos then try
-        // their smaller size), and the spinner never stays up for good.
-        stall = setTimeout(failed, 20000);
+        // A response that starts and then stalls fires neither event. Where the caller has a fallback (the photos: their
+        // smaller size, then a message), loadTimeout ms of it count as failed; without one (the drawings) the picture is
+        // waited for as long as it takes, so a slow one still shows when it arrives.
+        if (loadTimeout > 0) stall = setTimeout(failed, loadTimeout);
         detachLoad = detach;
       }
     };
@@ -1614,6 +1615,7 @@
       fitButton: qs('[data-photo-viewer-zoom="fit"]', dialog),
       // Photos zoom to their own pixels at most (and always to 4x the fit): past that they only blur.
       nativeMax: 1,
+      loadTimeout: 20000,
       onStep: photos.length > 1 ? step : null,
       onLoad: () => {
         shown = index;
