@@ -529,10 +529,12 @@ function boblift_indexnow_run_retries(): void
     if (!boblift_indexnow_enabled()) {
         return;
     }
-    // While the key file cannot be fetched, nothing is sent: IndexNow would reject it, and the rows wait for the fix.
+    // The daily key-file self-check is a diagnostic only (it logs a failure): a loopback request can be blocked by a
+    // firewall while IndexNow still reaches the file. Rows are held back only when IndexNow itself answers 403 and the
+    // recheck fails too (see boblift_indexnow_send()).
     $key = boblift_indexnow_key();
-    if ($key !== '' && !boblift_indexnow_key_file_ok($key)) {
-        return;
+    if ($key !== '') {
+        boblift_indexnow_key_file_ok($key);
     }
     // After a 429 nothing is posted until the wait IndexNow asked for (Retry-After) has passed.
     if (get_transient(BOBLIFT_INDEXNOW_COOLDOWN) !== false) {

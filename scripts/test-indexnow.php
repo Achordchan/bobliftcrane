@@ -881,12 +881,12 @@ foreach ([['response' => ['code' => 404], 'body' => 'Not found'], ['response' =>
 $check('the failure log names the key file and status', str_contains((string) file_get_contents($log), 'the key file https://bobliftcrane.com/abcd1234.txt did not answer 200 with the key (HTTP 404)'));
 unlink($log);
 ini_set('error_log', '/dev/null');
-// While the key file fails, the worker sends nothing and keeps its rows.
+// A failed self-check does not hold the queue: IndexNow may still reach the file.
 $GLOBALS['posts'] = [81 => new WP_Post(81)];
 add_option(rn(0, 'keyfail'), ['due' => 0, 'ids' => [81], 'retry' => true], '', 'no');
 $GLOBALS['sent'] = [];
 boblift_indexnow_run_retries();
-$check('while the key file check fails, nothing is sent and the rows are kept', $GLOBALS['sent'] === [] && row_ids() === [[81]]);
+$check('a failed self-check alone (e.g. a blocked loopback request) is only logged: rows are still sent', $GLOBALS['sent'] === [['https://bobliftcrane.com/p81.html']] && row_ids() === []);
 clear_rows();
 // A 403 from IndexNow rechecks the key file: if it really fails, the posts are kept with their retry allowance.
 // (The last daily check passed; the key file broke since.)
