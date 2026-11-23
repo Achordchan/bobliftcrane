@@ -24,7 +24,6 @@ const BOBLIFT_INDEXNOW_HOSTS = ['bobliftcrane.com'];
 const BOBLIFT_INDEXNOW_POST_TYPES = ['page', 'post', 'product', 'case'];
 const BOBLIFT_INDEXNOW_BATCH = 10000;
 const BOBLIFT_INDEXNOW_KEY_OPTION = 'boblift_indexnow_key';
-const BOBLIFT_INDEXNOW_RETRY_HOOK = 'boblift_indexnow_retry';
 const BOBLIFT_INDEXNOW_RETRY_PREFIX = 'boblift_indexnow_retry_';
 const BOBLIFT_INDEXNOW_SWEEP_HOOK = 'boblift_indexnow_sweep';
 const BOBLIFT_INDEXNOW_INTERVAL = 'boblift_indexnow_minute';
@@ -266,7 +265,8 @@ function boblift_indexnow_name_due(string $name): int
 /**
  * Saves post IDs as batch rows of at most BOBLIFT_INDEXNOW_ROW_IDS each (unique names, so concurrent requests never
  * touch each other's rows, and each row is small enough for one worker step); the every-minute worker runs them once
- * due. $retry says whether a failed POST of the batch gets one more try. Returns false if any part could not be kept.
+ * due. $retry says whether a failed POST of the batch gets one more try. Nothing here writes the shared cron option:
+ * a row that cannot be written is tried once more, then its post IDs are logged and false is returned.
  */
 function boblift_indexnow_save_batch(array $post_ids, int $due, bool $retry): bool
 {
@@ -274,23 +274,12 @@ function boblift_indexnow_save_batch(array $post_ids, int $due, bool $retry): bo
     foreach (array_chunk(array_map('intval', $post_ids), BOBLIFT_INDEXNOW_ROW_IDS) as $ids) {
         $batch = ['due' => $due, 'ids' => $ids, 'retry' => $retry];
         // The every-minute worker picks the row up once it is due; nothing else is scheduled.
-        if (!add_option(boblift_indexnow_row_name($due), $batch, '', 'no')) {
-            // The row could not be written: carry the batch in the cron event itself so it is not lost.
-            $kept = boblift_indexnow_schedule_event($due, [$batch]) && $kept;
+        if (!add_option(boblift_indexnow_row_name($due), $batch, '', 'no') && !add_option(boblift_indexnow_row_name($due), $batch, '', 'no')) {
+            error_log(sprintf('IndexNow: could not save a batch row; posts not submitted: %s.', implode(',', $ids)));
+            $kept = false;
         }
     }
     return $kept;
-}
-
-/** Schedules a run of the batch worker; a failure is logged and reported to the caller. */
-function boblift_indexnow_schedule_event(int $time, array $args = []): bool
-{
-    $scheduled = wp_schedule_single_event($time, BOBLIFT_INDEXNOW_RETRY_HOOK, $args, true);
-    if ($scheduled !== true) {
-        error_log(sprintf('IndexNow: could not schedule a batch run (%s).', is_wp_error($scheduled) ? $scheduled->get_error_message() : 'cron write failed'));
-        return false;
-    }
-    return true;
 }
 
 /**
@@ -408,26 +397,12 @@ function boblift_indexnow_runnable_at(array $batch): int
  * minute later. Each row is leased, checked to be still ours right before its POST, and deleted only by its
  * owner after the POST and any retry row were saved; if the retry could not be saved the row stays and runs again when
  * the lease ends. A row that could not be read, is not due, or is leased by a live run stays; a row that was read but
- * holds no valid batch is removed. Only rows already due are read, earliest first, at most BOBLIFT_INDEXNOW_SCAN_ROWS.
- * $carried is a batch that travelled in the cron event because its row could not be written; WP-Cron has already
- * removed that event, so the batch is saved as a row first and runs below like any other. If rows still cannot be
- * written it is carried again in an event ten minutes out; only if that also fails is it sent straight away, and a
- * failure there is logged.
+ * holds no valid batch is removed. Only rows already due are read, earliest first, a page of
+ * BOBLIFT_INDEXNOW_SCAN_ROWS at a time.
  */
-function boblift_indexnow_run_retries(array $carried = []): void
+function boblift_indexnow_run_retries(): void
 {
     $started = time();
-    if (is_array($carried['ids'] ?? null)) {
-        $ids = array_map('intval', $carried['ids']);
-        $retry = (bool) ($carried['retry'] ?? false);
-        if (!add_option(boblift_indexnow_row_name(time()), ['due' => time(), 'ids' => $ids, 'retry' => $retry], '', 'no')) {
-            // Rows still cannot be written: carry it again, ten minutes later rather than at once, or send it now.
-            $later = time() + 10 * MINUTE_IN_SECONDS;
-            if (!boblift_indexnow_schedule_event($later, [['due' => $later, 'ids' => $ids, 'retry' => $retry]]) && !boblift_indexnow_send($ids, $retry)) {
-                error_log(sprintf('IndexNow: a batch of %d posts could not be sent or saved.', count($ids)));
-            }
-        }
-    }
     $rows = 0;
     boblift_indexnow_walk_rows(time(), static function (string $name) use (&$rows, $started): bool {
         if ($rows >= BOBLIFT_INDEXNOW_RUN_ROWS || time() - $started >= BOBLIFT_INDEXNOW_RUN_SECONDS) {
@@ -483,7 +458,6 @@ add_action('shutdown', static function (): void {
 });
 
 // Cron runs in the blog that scheduled it, where its batch rows live.
-add_action(BOBLIFT_INDEXNOW_RETRY_HOOK, 'boblift_indexnow_run_retries');
 add_action(BOBLIFT_INDEXNOW_SWEEP_HOOK, 'boblift_indexnow_run_retries');
 
 add_filter('cron_schedules', static function (array $schedules): array {
@@ -492,16 +466,21 @@ add_filter('cron_schedules', static function (array $schedules): array {
 });
 
 // The worker runs every minute and picks up whatever rows are due; it is the only regular cron write this file makes.
+// When the site stops submitting (made private, or a copy off the live platform), the worker event is removed.
 add_action('init', static function (): void {
-    if (boblift_indexnow_enabled() && !wp_next_scheduled(BOBLIFT_INDEXNOW_SWEEP_HOOK)) {
-        wp_schedule_event(time() + MINUTE_IN_SECONDS, BOBLIFT_INDEXNOW_INTERVAL, BOBLIFT_INDEXNOW_SWEEP_HOOK);
+    $scheduled = wp_next_scheduled(BOBLIFT_INDEXNOW_SWEEP_HOOK);
+    if (boblift_indexnow_enabled()) {
+        if (!$scheduled) {
+            wp_schedule_event(time() + MINUTE_IN_SECONDS, BOBLIFT_INDEXNOW_INTERVAL, BOBLIFT_INDEXNOW_SWEEP_HOOK);
+        }
+    } elseif ($scheduled) {
+        wp_clear_scheduled_hook(BOBLIFT_INDEXNOW_SWEEP_HOOK);
     }
 });
 
 // Switching away from this theme drops its cron events, so nothing keeps running without a callback.
 add_action('switch_theme', static function (): void {
     wp_clear_scheduled_hook(BOBLIFT_INDEXNOW_SWEEP_HOOK);
-    wp_unschedule_hook(BOBLIFT_INDEXNOW_RETRY_HOOK);
 });
 
 // The key file, answered ahead of the legacy redirects (priority 0) and the 404 template.
