@@ -9,38 +9,60 @@ if (!defined('ABSPATH')) {
  * new and changed pages reach them sooner.
  *
  * The key is made once and kept in an option. It is served as plain text at /<key>.txt, which is how the engines
- * check that the ping comes from the site owner. Only the live site (a host in BOBLIFT_INDEXNOW_HOSTS, public, production)
- * pings; local copies, staging clones and other hosts stay quiet. Changed posts are queued by ID during the request and
- * resolved at shutdown, after every term and meta field is saved, then sent in non-blocking POSTs of up to 10,000 URLs.
+ * check that the ping comes from the site owner. Only the live site (a host in BOBLIFT_INDEXNOW_HOSTS, explicitly
+ * public, production) pings; local copies, staging clones, private sites and other hosts stay quiet. Changed posts are
+ * queued by blog and ID during the request and resolved at shutdown, after every term and meta field is saved, then
+ * sent in non-blocking POSTs of up to 10,000 URLs. A batch that cannot even be dispatched is kept and retried once by
+ * cron ten minutes later, together with anything queued by then.
  */
 
 const BOBLIFT_INDEXNOW_ENDPOINT = 'https://api.indexnow.org/indexnow';
 const BOBLIFT_INDEXNOW_HOSTS = ['bobliftcrane.com'];
 const BOBLIFT_INDEXNOW_POST_TYPES = ['page', 'post', 'product', 'case'];
 const BOBLIFT_INDEXNOW_BATCH = 10000;
+const BOBLIFT_INDEXNOW_KEY_OPTION = 'boblift_indexnow_key';
+const BOBLIFT_INDEXNOW_RETRY_OPTION = 'boblift_indexnow_retry';
+const BOBLIFT_INDEXNOW_RETRY_HOOK = 'boblift_indexnow_retry';
 
 function boblift_indexnow_valid_key(mixed $key): bool
 {
     return is_string($key) && preg_match('/^[a-zA-Z0-9-]{8,128}$/', $key) === 1;
 }
 
+/** The stored key, read past the object cache so concurrent requests see the same row. */
+function boblift_indexnow_stored_key(): mixed
+{
+    global $wpdb;
+    return $wpdb->get_var($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s LIMIT 1", BOBLIFT_INDEXNOW_KEY_OPTION));
+}
+
+/**
+ * The verification key, made on first use. The insert is INSERT IGNORE and the repair of a broken value is a
+ * compare-and-swap UPDATE, so two first requests always end up agreeing on whichever key the database kept.
+ * Returns '' when no valid key could be stored; callers then send nothing.
+ */
 function boblift_indexnow_key(): string
 {
-    $key = get_option('boblift_indexnow_key', '');
+    global $wpdb;
+    $key = get_option(BOBLIFT_INDEXNOW_KEY_OPTION, null);
     if (boblift_indexnow_valid_key($key)) {
         return $key;
     }
-    if ($key !== '' && $key !== false) {
-        delete_option('boblift_indexnow_key');
+    $candidate = strtolower(wp_generate_password(32, false, false));
+    $stored = boblift_indexnow_stored_key();
+    if ($stored === null) {
+        $wpdb->query($wpdb->prepare("INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'yes')", BOBLIFT_INDEXNOW_KEY_OPTION, $candidate));
+    } elseif (!boblift_indexnow_valid_key($stored)) {
+        $wpdb->query($wpdb->prepare("UPDATE {$wpdb->options} SET option_value = %s WHERE option_name = %s AND option_value = %s", $candidate, BOBLIFT_INDEXNOW_KEY_OPTION, (string) $stored));
     }
-    // add_option() inserts only when the option is absent, so two first requests agree on whichever key was stored first.
-    add_option('boblift_indexnow_key', strtolower(wp_generate_password(32, false, false)), '', true);
-    wp_cache_delete('boblift_indexnow_key', 'options');
+    wp_cache_delete(BOBLIFT_INDEXNOW_KEY_OPTION, 'options');
     wp_cache_delete('alloptions', 'options');
-    return (string) get_option('boblift_indexnow_key', '');
+    wp_cache_delete('notoptions', 'options');
+    $key = boblift_indexnow_stored_key();
+    return boblift_indexnow_valid_key($key) ? $key : '';
 }
 
-/** The home host without IPv6 brackets or a trailing DNS dot, lower case. */
+/** The host without IPv6 brackets or a trailing DNS dot, lower case. */
 function boblift_indexnow_host(string $url): string
 {
     return rtrim(trim(strtolower((string) wp_parse_url($url, PHP_URL_HOST)), '[]'), '.');
@@ -48,20 +70,22 @@ function boblift_indexnow_host(string $url): string
 
 function boblift_indexnow_enabled(): bool
 {
-    return get_option('blog_public')
+    // WordPress.com stores -1 for a private site, so only an explicit '1' counts as public.
+    return (string) get_option('blog_public') === '1'
         && wp_get_environment_type() === 'production'
         && in_array(boblift_indexnow_host((string) get_option('home')), BOBLIFT_INDEXNOW_HOSTS, true);
 }
 
-/** Post IDs changed during this request; adding is constant time. */
-function boblift_indexnow_queue_add(int $post_id): void
+/** Post IDs changed during this request, grouped by blog; adding is constant time. */
+function boblift_indexnow_queue_add(int $post_id, int $blog_id = 1): void
 {
-    $GLOBALS['boblift_indexnow_queue'][$post_id] = true;
+    $GLOBALS['boblift_indexnow_queue'][$blog_id][$post_id] = true;
 }
 
+/** @return array<int, int[]> blog ID => post IDs */
 function boblift_indexnow_queued_ids(): array
 {
-    return array_keys($GLOBALS['boblift_indexnow_queue'] ?? []);
+    return array_map('array_keys', $GLOBALS['boblift_indexnow_queue'] ?? []);
 }
 
 function boblift_indexnow_post_qualifies(mixed $post): bool
@@ -76,7 +100,7 @@ function boblift_indexnow_post_qualifies(mixed $post): bool
 function boblift_indexnow_payloads(array $urls, string $home, string $key): array
 {
     $host = boblift_indexnow_host($home);
-    if ($host === '') {
+    if ($host === '' || !boblift_indexnow_valid_key($key)) {
         return [];
     }
     $same_host = array_values(array_unique(array_filter($urls, static fn(string $url): bool => boblift_indexnow_host($url) === $host)));
@@ -92,24 +116,11 @@ function boblift_indexnow_payloads(array $urls, string $home, string $key): arra
     return $payloads;
 }
 
-add_action('transition_post_status', static function (string $new_status, string $old_status, WP_Post $post): void {
-    if ($new_status !== 'publish' || !in_array($post->post_type, BOBLIFT_INDEXNOW_POST_TYPES, true)) {
-        return;
-    }
-    if (wp_is_post_revision($post) || wp_is_post_autosave($post) || !boblift_indexnow_enabled()) {
-        return;
-    }
-    boblift_indexnow_queue_add((int) $post->ID);
-}, 10, 3);
-
-add_action('shutdown', static function (): void {
-    $ids = boblift_indexnow_queued_ids();
-    if ($ids === [] || !boblift_indexnow_enabled()) {
-        return;
-    }
+/** The permalinks of the queued posts that still qualify, read in the current blog. */
+function boblift_indexnow_resolve(array $post_ids): array
+{
     $urls = [];
-    foreach ($ids as $id) {
-        clean_post_cache($id);
+    foreach ($post_ids as $id) {
         $post = get_post($id);
         if (!boblift_indexnow_post_qualifies($post)) {
             continue;
@@ -119,14 +130,67 @@ add_action('shutdown', static function (): void {
             $urls[] = $url;
         }
     }
-    foreach (boblift_indexnow_payloads($urls, (string) get_option('home'), boblift_indexnow_key()) as $payload) {
-        wp_remote_post(BOBLIFT_INDEXNOW_ENDPOINT, [
+    return $urls;
+}
+
+/** Sends the URLs plus any batch kept from a failed dispatch; keeps what could not be dispatched for one retry. */
+function boblift_indexnow_send(array $urls): void
+{
+    if (!boblift_indexnow_enabled()) {
+        return;
+    }
+    $retry = get_option(BOBLIFT_INDEXNOW_RETRY_OPTION, []);
+    $retry = is_array($retry) ? $retry : [];
+    if ($retry !== []) {
+        delete_option(BOBLIFT_INDEXNOW_RETRY_OPTION);
+    }
+    $failed = [];
+    foreach (boblift_indexnow_payloads(array_merge($retry, $urls), (string) get_option('home'), boblift_indexnow_key()) as $payload) {
+        $response = wp_remote_post(BOBLIFT_INDEXNOW_ENDPOINT, [
             'blocking' => false,
             'timeout' => 3,
             'headers' => ['Content-Type' => 'application/json; charset=utf-8'],
             'body' => wp_json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
         ]);
+        if (is_wp_error($response)) {
+            $failed = array_merge($failed, $payload['urlList']);
+        }
     }
+    // Only URLs that were not already a retry get another try, so a dead endpoint cannot loop forever.
+    $failed = array_slice(array_values(array_diff($failed, $retry)), 0, BOBLIFT_INDEXNOW_BATCH);
+    if ($failed !== []) {
+        update_option(BOBLIFT_INDEXNOW_RETRY_OPTION, $failed, false);
+        if (!wp_next_scheduled(BOBLIFT_INDEXNOW_RETRY_HOOK)) {
+            wp_schedule_single_event(time() + 10 * MINUTE_IN_SECONDS, BOBLIFT_INDEXNOW_RETRY_HOOK);
+        }
+    }
+}
+
+add_action('transition_post_status', static function (string $new_status, string $old_status, WP_Post $post): void {
+    if ($new_status !== 'publish' || !in_array($post->post_type, BOBLIFT_INDEXNOW_POST_TYPES, true)) {
+        return;
+    }
+    if (wp_is_post_revision($post) || wp_is_post_autosave($post) || !boblift_indexnow_enabled()) {
+        return;
+    }
+    boblift_indexnow_queue_add((int) $post->ID, (int) get_current_blog_id());
+}, 10, 3);
+
+add_action('shutdown', static function (): void {
+    foreach (boblift_indexnow_queued_ids() as $blog_id => $post_ids) {
+        $switched = is_multisite() && (int) $blog_id !== (int) get_current_blog_id();
+        if ($switched) {
+            switch_to_blog((int) $blog_id);
+        }
+        boblift_indexnow_send(boblift_indexnow_resolve($post_ids));
+        if ($switched) {
+            restore_current_blog();
+        }
+    }
+});
+
+add_action(BOBLIFT_INDEXNOW_RETRY_HOOK, static function (): void {
+    boblift_indexnow_send([]);
 });
 
 // The key file, answered ahead of the legacy redirects (priority 0) and the 404 template.
@@ -137,7 +201,7 @@ add_action('template_redirect', static function (): void {
     }
     $base = rtrim((string) wp_parse_url((string) get_option('home'), PHP_URL_PATH), '/');
     $key = boblift_indexnow_key();
-    if ($request !== $base . '/' . $key . '.txt') {
+    if ($key === '' || $request !== $base . '/' . $key . '.txt') {
         return;
     }
     status_header(200);

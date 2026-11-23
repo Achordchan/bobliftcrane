@@ -16,6 +16,36 @@ function get_option(string $name, $default = false)
 {
     return $GLOBALS['options'][$name] ?? $default;
 }
+// Just enough of $wpdb for the key's INSERT IGNORE and compare-and-swap UPDATE, backed by the same options array.
+class Fake_Wpdb
+{
+    public string $options = 'wp_options';
+    public function prepare(string $sql, ...$args): array
+    {
+        return [$sql, $args];
+    }
+    public function get_var(array $q)
+    {
+        return $GLOBALS['options'][$q[1][0]] ?? null;
+    }
+    public function query(array $q): int
+    {
+        [$sql, $args] = $q;
+        if (str_starts_with($sql, 'INSERT IGNORE')) {
+            if (array_key_exists($args[0], $GLOBALS['options'])) {
+                return 0;
+            }
+            $GLOBALS['options'][$args[0]] = $args[1];
+            return 1;
+        }
+        if (($GLOBALS['options'][$args[1]] ?? null) === $args[2]) {
+            $GLOBALS['options'][$args[1]] = $args[0];
+            return 1;
+        }
+        return 0;
+    }
+}
+$GLOBALS['wpdb'] = new Fake_Wpdb();
 function add_option(string $name, $value, $deprecated = '', $autoload = null): bool
 {
     if (array_key_exists($name, $GLOBALS['options'])) {
@@ -47,6 +77,40 @@ function wp_parse_url(string $url, int $component = -1)
 {
     return parse_url($url, $component);
 }
+const MINUTE_IN_SECONDS = 60;
+class WP_Error
+{
+}
+$GLOBALS['remote_fails'] = false;
+$GLOBALS['sent'] = [];
+$GLOBALS['scheduled'] = 0;
+function is_wp_error($thing): bool
+{
+    return $thing instanceof WP_Error;
+}
+function wp_remote_post(string $url, array $args)
+{
+    $GLOBALS['sent'][] = json_decode($args['body'], true)['urlList'];
+    return $GLOBALS['remote_fails'] ? new WP_Error() : [];
+}
+function wp_json_encode($data, int $flags = 0)
+{
+    return json_encode($data, $flags);
+}
+function update_option(string $name, $value, $autoload = null): bool
+{
+    $GLOBALS['options'][$name] = $value;
+    return true;
+}
+function wp_next_scheduled(string $hook)
+{
+    return $GLOBALS['scheduled'] ?: false;
+}
+function wp_schedule_single_event(int $time, string $hook): bool
+{
+    $GLOBALS['scheduled'] = $time;
+    return true;
+}
 require dirname(__DIR__) . '/inc/indexnow.php';
 
 $failures = 0;
@@ -61,6 +125,11 @@ $GLOBALS['options']['boblift_indexnow_key'] = 'bad key!';
 $fixed = boblift_indexnow_key();
 $check('a broken key is replaced', preg_match('/^[a-z0-9]{32}$/', $fixed) === 1);
 $check('a key stored first wins', !add_option('boblift_indexnow_key', 'other') && boblift_indexnow_key() === $fixed);
+$GLOBALS['options']['boblift_indexnow_key'] = '';
+$check('an empty stored key is repaired', preg_match('/^[a-z0-9]{32}$/', boblift_indexnow_key()) === 1);
+unset($GLOBALS['options']['boblift_indexnow_key']);
+$GLOBALS['options']['boblift_indexnow_key'] = 'winner-key-1234';
+$check('a key another request stored is kept', boblift_indexnow_key() === 'winner-key-1234');
 
 $check('enabled on the live site', boblift_indexnow_enabled());
 $GLOBALS['options']['home'] = 'https://bobliftcrane.com.';
@@ -75,12 +144,15 @@ $check('quiet on a staging environment', !boblift_indexnow_enabled());
 $GLOBALS['env'] = 'production';
 $GLOBALS['options']['blog_public'] = '0';
 $check('quiet when search engines are discouraged', !boblift_indexnow_enabled());
+$GLOBALS['options']['blog_public'] = '-1';
+$check('quiet on a private WordPress.com site', !boblift_indexnow_enabled());
 $GLOBALS['options']['blog_public'] = '1';
 
 boblift_indexnow_queue_add(5);
 boblift_indexnow_queue_add(5);
 boblift_indexnow_queue_add(7);
-$check('queue drops repeats', boblift_indexnow_queued_ids() === [5, 7]);
+boblift_indexnow_queue_add(9, 3);
+$check('queue drops repeats and keeps the blog', boblift_indexnow_queued_ids() === [1 => [5, 7], 3 => [9]]);
 
 $check('published post qualifies', boblift_indexnow_post_qualifies(new WP_Post(1, 'post')));
 $check('published product and case qualify', boblift_indexnow_post_qualifies(new WP_Post(1, 'product')) && boblift_indexnow_post_qualifies(new WP_Post(1, 'case')));
@@ -95,9 +167,23 @@ $check('one payload', count($payloads) === 1);
 $check('payload host', ($payloads[0]['host'] ?? '') === 'bobliftcrane.com');
 $check('payload key location', ($payloads[0]['keyLocation'] ?? '') === 'https://bobliftcrane.com/abcd1234.txt');
 $check('payload keeps only this host, once each', ($payloads[0]['urlList'] ?? []) === ['https://bobliftcrane.com/a.html', 'https://bobliftcrane.com/es/b.html']);
+$check('nothing to send without a valid key', boblift_indexnow_payloads($urls, 'https://bobliftcrane.com', '') === []);
 $check('nothing to send for other hosts only', boblift_indexnow_payloads(['https://www.boblift.com/c.html'], 'https://bobliftcrane.com', 'abcd1234') === []);
 $many = array_map(static fn(int $i): string => 'https://bobliftcrane.com/p' . $i . '.html', range(1, 10001));
 $split = boblift_indexnow_payloads($many, 'https://bobliftcrane.com', 'abcd1234');
 $check('10,001 URLs go out in two batches, none dropped', count($split) === 2 && count($split[0]['urlList']) === 10000 && $split[1]['urlList'] === ['https://bobliftcrane.com/p10001.html']);
+
+$GLOBALS['options']['boblift_indexnow_key'] = 'abcd1234';
+$GLOBALS['remote_fails'] = true;
+boblift_indexnow_send(['https://bobliftcrane.com/x.html']);
+$check('a failed dispatch is kept and a retry scheduled', ($GLOBALS['options']['boblift_indexnow_retry'] ?? []) === ['https://bobliftcrane.com/x.html'] && $GLOBALS['scheduled'] > 0);
+$GLOBALS['remote_fails'] = false;
+$GLOBALS['sent'] = [];
+boblift_indexnow_send(['https://bobliftcrane.com/y.html']);
+$check('the retry goes out with the next batch and is cleared', $GLOBALS['sent'] === [['https://bobliftcrane.com/x.html', 'https://bobliftcrane.com/y.html']] && !isset($GLOBALS['options']['boblift_indexnow_retry']));
+$GLOBALS['remote_fails'] = true;
+boblift_indexnow_send(['https://bobliftcrane.com/z.html']);
+boblift_indexnow_send([]);
+$check('a URL that fails its retry is dropped', !isset($GLOBALS['options']['boblift_indexnow_retry']));
 
 exit($failures === 0 ? 0 : 1);
