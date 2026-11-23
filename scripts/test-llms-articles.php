@@ -123,7 +123,7 @@ function boblift_strip_language_prefix(string $path): string
 }
 function get_option(string $name, $default = false)
 {
-    return $name === 'home' ? 'https://bobliftcrane.com' : $default;
+    return $name === 'home' ? ($GLOBALS['home_override'] ?? 'https://bobliftcrane.com') : $default;
 }
 function wp_parse_url(string $url, int $component = -1)
 {
@@ -155,6 +155,10 @@ $check('a translation is left out', !$has(900));
 $check('a password-protected article is left out', !$has(901));
 $check('a draft is left out', !$has(902));
 $check('a held-back article stays out by its post ID after its URL changed', !$has(1682) && count($lines) === 500);
+$GLOBALS['home_override'] = 'https://import-copy.example';
+$elsewhere = boblift_llms_txt_articles();
+unset($GLOBALS['home_override']);
+$check('on another site (an import where IDs differ) the held-back IDs are not applied, only the paths', (bool) array_filter($elsewhere, static fn(string $l): bool => str_contains($l, '/a1682.html')));
 $check('posts are loaded in chunks of at most 100, the request-local cache dropped after each chunk', $GLOBALS['largest_page'] <= 100 && $GLOBALS['runtime_flushes'] >= 5);
 $GLOBALS['publish_after_ids'] = [new WP_Post(950, '2026-11-24 10:00:00')];
 $during = boblift_llms_txt_articles();

@@ -211,7 +211,9 @@ function boblift_llms_txt_articles(): array
 {
     $articles = [];
     $held_back = array_fill_keys(BOBLIFT_LLMS_TXT_HELD_BACK_PATHS, true);
-    $held_back_ids = array_fill_keys(BOBLIFT_LLMS_TXT_HELD_BACK_IDS, true);
+    // The IDs were looked up on the live site; anywhere else (an import with new IDs) only the paths count.
+    $live = strtolower((string) wp_parse_url((string) get_option('home'), PHP_URL_HOST)) === 'bobliftcrane.com';
+    $held_back_ids = $live ? array_fill_keys(BOBLIFT_LLMS_TXT_HELD_BACK_IDS, true) : [];
     // Paths are compared whole, after the install's own subdirectory and the language prefix are removed, so
     // /en/news-show-89.html matches the listed /news-show-89.html but /guides/news-show-89.html does not.
     $base = rtrim((string) wp_parse_url((string) get_option('home'), PHP_URL_PATH), '/');

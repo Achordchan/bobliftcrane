@@ -239,6 +239,11 @@ $GLOBALS['posts'] = [];
 function _prime_post_caches(array $ids, bool $terms = true, bool $meta = true): void
 {
     $GLOBALS['primed'][] = $ids;
+    if (!empty($GLOBALS['slow_prime'])) {
+        // Resolving this chunk is slow (a cold cache).
+        sleep($GLOBALS['slow_prime']);
+        $GLOBALS['slow_prime'] = 0;
+    }
 }
 // A batch row's name for a due time, as boblift_indexnow_row_name() makes it, with a readable suffix.
 function rn(int $due, string $tag): string
@@ -464,7 +469,7 @@ function status_header(int $code): void
 }
 if (getenv('INDEXNOW_DEADLINE') !== false) {
     // A child run with a short budget, to reach the deadline without waiting a minute.
-    define('BOBLIFT_INDEXNOW_RUN_SECONDS', getenv('INDEXNOW_DEADLINE') === 'reserve' ? 6 : 1);
+    define('BOBLIFT_INDEXNOW_RUN_SECONDS', getenv('INDEXNOW_DEADLINE') === 'reserve' ? 12 : 1);
 }
 function get_taxonomy(string $taxonomy)
 {
@@ -493,13 +498,13 @@ if (getenv('INDEXNOW_DEADLINE') !== false) {
     $GLOBALS['transients'] = [boblift_indexnow_key_check_name('abcd1234') => 'ok'];
     $GLOBALS['options']['boblift_indexnow_key'] = 'abcd1234';
     if (getenv('INDEXNOW_DEADLINE') === 'reserve') {
-        // A six-second budget keeps the last two for sending: leasing the first one-post row takes four seconds, so the
-        // scan stops there and that row is still resolved and sent; the second row is left for the next run.
+        // A twelve-second budget stops leasing at six seconds and keeps four for the POST: leasing the first one-post row
+        // takes six seconds, so the scan stops there and that row is still resolved and sent; the second row waits.
         $GLOBALS['posts'] = [63 => new WP_Post(63), 64 => new WP_Post(64)];
         add_option(rn(0, 'ra'), ['due' => 0, 'ids' => [63], 'retry' => true], '', 'no');
         add_option(rn(0, 'rb'), ['due' => 0, 'ids' => [64], 'retry' => true], '', 'no');
         $GLOBALS['slow_rename'] = rn(0, 'ra');
-        $GLOBALS['slow_seconds'] = 4;
+        $GLOBALS['slow_seconds'] = 6;
         $GLOBALS['sent'] = [];
         boblift_indexnow_run_retries();
         echo json_encode(['sent' => $GLOBALS['sent'], 'left' => array_values(row_ids())]);
@@ -1230,5 +1235,43 @@ $GLOBALS['posts'] = [89 => new WP_Post(89)];
 ($GLOBALS['hooks']['added_term_relationship'])(89, 5, 'language');
 $check('a post moved to another language is queued', boblift_indexnow_queued_ids() === [1 => [89]]);
 $GLOBALS['boblift_indexnow_queue'] = [];
+
+// A large group whose resolving is slow sends what was resolved; the rest stays queued, runnable now, try not used.
+$GLOBALS['transients'] = [kc() => 'ok'];
+$GLOBALS['posts'] = [];
+foreach (range(1, 250) as $i) {
+    $GLOBALS['posts'][$i] = new WP_Post($i);
+}
+$GLOBALS['sent'] = $GLOBALS['primed'] = [];
+$GLOBALS['slow_prime'] = 2;
+$kept_here = [];
+boblift_indexnow_send(range(1, 250), true, null, static function (array $ids, int $due, bool $retry) use (&$kept_here): bool {
+    $kept_here[] = [$ids, $due, $retry];
+    return true;
+}, time() + 21);
+$check('resolving stops when only the POST time is left: the first 100 are sent, the other 150 kept runnable now with their try', count($GLOBALS['sent']) === 1 && count($GLOBALS['sent'][0]) === 100 && count($kept_here) === 1 && $kept_here[0][0] === range(101, 250) && $kept_here[0][1] <= time() && $kept_here[0][2] === true);
+// A POST starts only when its full ten-second timeout fits in the run.
+$GLOBALS['posts'] = [90 => new WP_Post(90)];
+$GLOBALS['sent'] = [];
+$kept_here = [];
+boblift_indexnow_send([90], false, null, static function (array $ids, int $due, bool $retry) use (&$kept_here): bool {
+    $kept_here = [$ids, $due, $retry];
+    return true;
+}, time() + 5);
+$check('with less than the HTTP timeout left, the POST is not started and the last try is kept, not spent', $GLOBALS['sent'] === [] && $kept_here[0] === [90] && $kept_here[2] === false);
+// The site made private while permalinks were resolved: nothing is sent, the posts are kept.
+$GLOBALS['sent'] = [];
+$kept_here = [];
+$private_during = static function (): bool {
+    $GLOBALS['options']['blog_public'] = '0';
+    return true;
+};
+boblift_indexnow_send([90], true, $private_during, static function (array $ids, int $due, bool $retry) use (&$kept_here): bool {
+    $kept_here = [$ids, $due, $retry];
+    return true;
+});
+$GLOBALS['options']['blog_public'] = '1';
+$check('visibility is read again from the database right before the POST: a site made private meanwhile sends nothing and keeps the posts', $GLOBALS['sent'] === [] && $kept_here[0] === [90] && $kept_here[1] >= time() + 3500);
+$GLOBALS['transients'] = [];
 
 exit($failures === 0 ? 0 : 1);

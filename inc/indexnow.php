@@ -224,14 +224,21 @@ function boblift_indexnow_payloads(array $urls, string $home, string $key): arra
  * @return array<string, int[]>|null permalink => post IDs for the queued posts that still qualify, read in the current
  * blog; null when a post could not be read, so the caller keeps the batch. Existence is checked in one query per chunk
  * (a failed query is told apart from a deleted post by wpdb's last_error), then the post, term and meta caches are
- * primed for the chunk so permalinks do not cost one round trip per post.
+ * primed for the chunk so permalinks do not cost one round trip per post. Chunks not started by $until (when given) are
+ * returned in $unresolved.
  */
-function boblift_indexnow_resolve(array $post_ids): ?array
+function boblift_indexnow_resolve(array $post_ids, int $until = 0, array &$unresolved = []): ?array
 {
     global $wpdb;
     $ids = array_values(array_unique(array_filter(array_map('intval', $post_ids), static fn(int $id): bool => $id > 0)));
     $urls = [];
-    foreach (array_chunk($ids, 100) as $chunk) {
+    foreach (array_chunk($ids, 100) as $n => $chunk) {
+        // With a time limit, chunks not started by then are handed back unresolved, so a large group still sends what
+        // was resolved instead of using up the whole run.
+        if ($until !== 0 && $n > 0 && time() >= $until) {
+            $unresolved = array_merge(...array_slice(array_chunk($ids, 100), $n));
+            break;
+        }
         $in = implode(',', array_fill(0, count($chunk), '%d'));
         $found = $wpdb->get_col($wpdb->prepare("SELECT ID FROM {$wpdb->posts} WHERE ID IN ($in)", ...$chunk));
         if ((string) $wpdb->last_error !== '' || !is_array($found)) {
@@ -286,26 +293,45 @@ function boblift_indexnow_payload_ids(array $payloads, array $by_url): array
  * $keep(int[] $ids, int $due, bool $retry): bool keeps IDs for a later try; by default they are saved as new batch
  * rows. The worker passes its own, so it can move its leased row instead of adding a second one.
  */
+const BOBLIFT_INDEXNOW_HTTP_TIMEOUT = 10;
+
+/** Seconds a run keeps free for one POST: the HTTP timeout, or a third of a shorter run budget. */
+function boblift_indexnow_post_margin(): int
+{
+    return min(BOBLIFT_INDEXNOW_HTTP_TIMEOUT, intdiv(BOBLIFT_INDEXNOW_RUN_SECONDS, 3));
+}
+
+/** The site's search visibility read from the database, not the request's cached options. */
+function boblift_indexnow_still_public(): bool
+{
+    global $wpdb;
+    $value = $wpdb->get_var($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s LIMIT 1", 'blog_public'));
+    return (string) $value === '1';
+}
+
 function boblift_indexnow_send(array $post_ids, bool $retry = true, ?callable $still_owned = null, ?callable $keep = null, int $deadline = 0): bool
 {
     if (!boblift_indexnow_enabled()) {
         return false;
     }
     $keep ??= 'boblift_indexnow_save_batch';
-    $by_url = boblift_indexnow_resolve($post_ids);
+    $margin = boblift_indexnow_post_margin();
+    $unresolved = [];
+    // Resolving stops early enough to leave time for the POST; the rest stays queued, runnable at once.
+    $by_url = boblift_indexnow_resolve($post_ids, $deadline !== 0 ? $deadline - 2 * $margin : 0, $unresolved);
     if ($by_url === null) {
         return false;
     }
+    $kept = $unresolved === [] || (bool) $keep($unresolved, time(), $retry);
     if ($by_url === []) {
-        return true;
+        return $kept;
     }
     $key = boblift_indexnow_key();
     if ($key === '') {
         // The key could not be stored or read back, so nothing was submitted: the batch is deferred ten minutes with
         // its retry allowance unchanged (only a real POST uses up an attempt).
-        return (bool) $keep(array_merge(...array_values($by_url)), time() + 10 * MINUTE_IN_SECONDS, $retry);
+        return (bool) $keep(array_merge(...array_values($by_url)), time() + 10 * MINUTE_IN_SECONDS, $retry) && $kept;
     }
-    $kept = true;
     $payloads = boblift_indexnow_payloads(array_keys($by_url), (string) get_option('home'), $key);
     foreach ($payloads as $index => $payload) {
         if ($still_owned !== null && !$still_owned()) {
@@ -318,13 +344,18 @@ function boblift_indexnow_send(array $post_ids, bool $retry = true, ?callable $s
         if ($cooldown !== 0) {
             return (bool) $keep(boblift_indexnow_payload_ids(array_slice($payloads, $index), $by_url), max(time() + MINUTE_IN_SECONDS, (int) $cooldown), $retry) && $kept;
         }
-        // Checked last, right before the POST (the queries above can stall), and the request is cut to the time left.
-        if ($deadline !== 0 && time() >= $deadline) {
+        // The site may have been made private while permalinks were resolved: read the setting afresh, keep the posts.
+        if (!boblift_indexnow_still_public()) {
+            return (bool) $keep(boblift_indexnow_payload_ids(array_slice($payloads, $index), $by_url), time() + HOUR_IN_SECONDS, $retry) && $kept;
+        }
+        // Checked last, right before the POST (the queries above can stall). A POST only starts when its full timeout fits
+        // in the run; otherwise the posts wait for the next run without using up a try.
+        if ($deadline !== 0 && time() > $deadline - $margin) {
             return (bool) $keep(boblift_indexnow_payload_ids(array_slice($payloads, $index), $by_url), time(), $retry) && $kept;
         }
         // Blocking, from cron only: a non-blocking request can hide a failed connection.
         $response = wp_remote_post(BOBLIFT_INDEXNOW_ENDPOINT, [
-            'timeout' => $deadline !== 0 ? max(1, min(10, $deadline - time())) : 10,
+            'timeout' => BOBLIFT_INDEXNOW_HTTP_TIMEOUT,
             'headers' => ['Content-Type' => 'application/json; charset=utf-8'],
             'body' => wp_json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
         ]);
@@ -334,7 +365,9 @@ function boblift_indexnow_send(array $post_ids, bool $retry = true, ?callable $s
         if ($code === 429) {
             // Throttled: IndexNow asks the client to wait. This and every later payload of the batch are kept, with the
             // retry allowance unchanged (being asked to wait is not a failed try), and the whole queue pauses for the
-            // Retry-After time, so other rows are not spent while the endpoint is still throttling.
+            // Retry-After time, so other rows are not spent while the endpoint is still throttling. Retention is
+            // deliberate and bounded in rate: under the shared pause the whole site makes at most one POST per
+            // Retry-After window (10 minutes to a day), so posts are never lost to throttling and never hammer the API.
             $wait = boblift_indexnow_retry_after($response);
             boblift_indexnow_extend_cooldown(time() + $wait);
             return (bool) $keep(boblift_indexnow_payload_ids(array_slice($payloads, $index), $by_url), time() + $wait, $retry) && $kept;
@@ -643,7 +676,7 @@ function boblift_indexnow_run_retries(): void
     $group_ids = [0 => 0, 1 => 0];
     boblift_indexnow_walk_rows(time(), static function (string $name) use (&$rows, $started, &$groups, &$group_ids): bool {
         // Leasing stops early enough to leave time for resolving and sending what was leased.
-        if ($rows >= BOBLIFT_INDEXNOW_RUN_ROWS || time() - $started >= BOBLIFT_INDEXNOW_RUN_SECONDS - min(20, intdiv(BOBLIFT_INDEXNOW_RUN_SECONDS, 3))) {
+        if ($rows >= BOBLIFT_INDEXNOW_RUN_ROWS || time() - $started >= BOBLIFT_INDEXNOW_RUN_SECONDS - min(20, intdiv(BOBLIFT_INDEXNOW_RUN_SECONDS, 2))) {
             return false;
         }
         $batch = boblift_indexnow_read_retry($name);
