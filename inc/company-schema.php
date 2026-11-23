@@ -199,6 +199,10 @@ const BOBLIFT_LLMS_TXT_HELD_BACK_PATHS = [
     '/strength-speaks-louder-than-words-why-bob-lift-is-highly-favored-at-the-canton-fair-id06952655.html',
 ];
 
+// The same 27 English posts by ID (looked up 2026-11-23, one per path above, in the same order), so a held-back article
+// stays out even if its slug or custom address changes before the cleanup.
+const BOBLIFT_LLMS_TXT_HELD_BACK_IDS = [1682, 1718, 1728, 1740, 1838, 1860, 1738, 1790, 1779, 1951, 1833, 1961, 1923, 1809, 1928, 1854, 1930, 1866, 1956, 1846, 1863, 1798, 1800, 1804, 1883, 1908, 1919];
+
 /**
  * Up to 500 public (not password-protected) English articles, newest first (ID breaks date ties), so older posts that AI
  * answers already cite stay listed; the held-back old news is left out. Checked by scripts/test-llms-articles.php.
@@ -207,6 +211,7 @@ function boblift_llms_txt_articles(): array
 {
     $articles = [];
     $held_back = array_fill_keys(BOBLIFT_LLMS_TXT_HELD_BACK_PATHS, true);
+    $held_back_ids = array_fill_keys(BOBLIFT_LLMS_TXT_HELD_BACK_IDS, true);
     // Paths are compared whole, after the install's own subdirectory and the language prefix are removed, so
     // /en/news-show-89.html matches the listed /news-show-89.html but /guides/news-show-89.html does not.
     $base = rtrim((string) wp_parse_url((string) get_option('home'), PHP_URL_PATH), '/');
@@ -226,6 +231,9 @@ function boblift_llms_txt_articles(): array
     foreach (array_chunk(array_map('intval', $ids), 100) as $chunk) {
         $posts = get_posts(['post_type' => 'post', 'post_status' => 'publish', 'post__in' => $chunk, 'orderby' => 'post__in', 'posts_per_page' => count($chunk), 'has_password' => false, 'ignore_sticky_posts' => true, 'no_found_rows' => true, 'lang' => '']);
         foreach ($posts as $post) {
+            if (isset($held_back_ids[(int) $post->ID])) {
+                continue;
+            }
             if (function_exists('pll_get_post_language') && pll_get_post_language($post->ID) !== 'en') {
                 continue;
             }

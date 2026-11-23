@@ -88,17 +88,35 @@ function boblift_indexnow_host(string $url): string
     return rtrim(trim(strtolower((string) wp_parse_url($url, PHP_URL_HOST)), '[]'), '.');
 }
 
+const BOBLIFT_INDEXNOW_PLATFORM_SITE = 'boblift_indexnow_platform_site';
+
 /**
- * True only on the live hosting: WordPress.com's Atomic platform defines IS_ATOMIC and ATOMIC_SITE_ID in its own
- * configuration, outside the database, so a copy of the database or theme running anywhere else (a local clone mapped
- * to the live host name, for instance) stays quiet. Another live host can opt in with define('BOBLIFT_INDEXNOW_LIVE', true) in wp-config.php.
+ * True only on the live hosting. WordPress.com's Atomic platform defines ATOMIC_SITE_ID in its own configuration, outside
+ * the database, so a copy of the database or theme running anywhere else (a local clone mapped to the live host name,
+ * for instance) stays quiet. The first time every other condition holds, the site's ID is recorded; from then on only
+ * that Atomic site submits, so a backup restored to another Atomic site (same home URL, production environment) stays
+ * quiet too. Another live host can opt in with define('BOBLIFT_INDEXNOW_LIVE', true) in wp-config.php.
  */
 function boblift_indexnow_live_platform(): bool
 {
     // Strict checks: a constant set to the string 'false', '0' or '' must not switch submissions on.
-    return boblift_indexnow_flag('IS_ATOMIC')
-        || (defined('ATOMIC_SITE_ID') && filter_var(constant('ATOMIC_SITE_ID'), FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) !== false)
-        || boblift_indexnow_flag('BOBLIFT_INDEXNOW_LIVE');
+    if (boblift_indexnow_flag('BOBLIFT_INDEXNOW_LIVE')) {
+        return true;
+    }
+    if (!defined('ATOMIC_SITE_ID')) {
+        return false;
+    }
+    $site = filter_var(constant('ATOMIC_SITE_ID'), FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+    if ($site === false) {
+        return false;
+    }
+    $pinned = get_option(BOBLIFT_INDEXNOW_PLATFORM_SITE);
+    if ($pinned === false) {
+        // add_option() never replaces a value another request stored first; whichever is stored is what counts.
+        add_option(BOBLIFT_INDEXNOW_PLATFORM_SITE, (string) $site, '', 'yes');
+        $pinned = get_option(BOBLIFT_INDEXNOW_PLATFORM_SITE);
+    }
+    return (string) $pinned === (string) $site;
 }
 
 /** True only for a defined constant that is boolean true, 1, or a string such as 'true', '1', 'yes' or 'on'. */
@@ -117,10 +135,11 @@ function boblift_indexnow_flag(string $name): bool
 function boblift_indexnow_enabled(): bool
 {
     // WordPress.com stores -1 for a private site, so only an explicit '1' counts as public.
-    return boblift_indexnow_live_platform()
-        && (string) get_option('blog_public') === '1'
+    // The platform check comes last: it records the live site's ID, which only the live site may do.
+    return (string) get_option('blog_public') === '1'
         && wp_get_environment_type() === 'production'
-        && in_array(boblift_indexnow_host((string) get_option('home')), BOBLIFT_INDEXNOW_HOSTS, true);
+        && in_array(boblift_indexnow_host((string) get_option('home')), BOBLIFT_INDEXNOW_HOSTS, true)
+        && boblift_indexnow_live_platform();
 }
 
 /** Post IDs changed during this request, grouped by blog; adding is constant time. */
@@ -488,11 +507,19 @@ function boblift_indexnow_runnable_at(array $batch): int
 const BOBLIFT_INDEXNOW_KEY_CHECK = 'boblift_indexnow_key_file_checked';
 const BOBLIFT_INDEXNOW_COOLDOWN = 'boblift_indexnow_cooldown_until';
 
-/** End of the shared submission pause (0 when none), read from the database so every worker sees the same value. */
+/**
+ * End of the shared submission pause (0 when none), read from the database so every worker sees the same value. When the
+ * read fails, a pause cannot be ruled out, so a short one (a minute) is assumed: nothing is posted and the posts are kept.
+ */
 function boblift_indexnow_cooldown_until(): int
 {
     global $wpdb;
-    $until = (int) $wpdb->get_var($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s LIMIT 1", BOBLIFT_INDEXNOW_COOLDOWN));
+    $wpdb->last_error = '';
+    $value = $wpdb->get_var($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s LIMIT 1", BOBLIFT_INDEXNOW_COOLDOWN));
+    if ($value === null && $wpdb->last_error !== '') {
+        return time() + 60;
+    }
+    $until = (int) $value;
     return $until > time() ? $until : 0;
 }
 
@@ -753,7 +780,7 @@ function boblift_indexnow_take_schedule_lock(): ?string
 
 /**
  * Keeps exactly one worker event while submissions are on and none while they are off, through the WordPress cron API
- * (so a host's own cron backend sees the same events its runner runs). It runs from cron and WP-CLI requests and from
+ * (so a host's own cron backend sees the same events its runner runs). It runs from cron requests and from
  * front-end page views (so the first event is added even when no other cron job is due), never from admin, AJAX or REST
  * requests, where posts are published, and it writes only when the event is missing or no longer wanted.
  * Changes are made under a lock after reloading the autoloaded options, so concurrent requests do not add the event
@@ -792,8 +819,9 @@ function boblift_indexnow_sync_worker(): void
 
 // The worker runs every minute and picks up whatever rows are due; it is the only regular cron write this file makes.
 // When the site stops submitting (made private, or a copy off the live platform), the worker event is removed.
+// WP-CLI is left out on purpose: an import or bulk publish run from the command line never writes the cron option.
 add_action('init', static function (): void {
-    if (wp_doing_cron() || (defined('WP_CLI') && WP_CLI)) {
+    if (wp_doing_cron()) {
         boblift_indexnow_sync_worker();
     }
 });

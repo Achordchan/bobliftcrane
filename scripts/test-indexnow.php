@@ -7,15 +7,19 @@ if (PHP_SAPI !== 'cli') {
 define('ABSPATH', __DIR__);
 // The live platform's own constant; a child run without it checks that a copy elsewhere stays quiet.
 if (getenv('INDEXNOW_PLATFORM_CONSTANTS') !== false) {
-    // A child run: define the given constants (NAME=json value, comma separated) instead of IS_ATOMIC.
+    // A child run: define the given constants (NAME=json value, comma separated) instead of ATOMIC_SITE_ID.
     foreach (array_filter(explode(',', getenv('INDEXNOW_PLATFORM_CONSTANTS'))) as $pair) {
         [$name, $json] = explode('=', $pair, 2);
         define($name, json_decode($json));
     }
 } elseif (getenv('INDEXNOW_NO_PLATFORM') === false) {
-    define('IS_ATOMIC', true);
+    define('ATOMIC_SITE_ID', 12345);
 }
 $GLOBALS['options'] = ['blog_public' => '1', 'home' => 'https://bobliftcrane.com'];
+if (getenv('INDEXNOW_PINNED') !== false) {
+    // The Atomic site ID recorded by an earlier run, as a restored backup would carry it.
+    $GLOBALS['options']['boblift_indexnow_platform_site'] = getenv('INDEXNOW_PINNED');
+}
 $GLOBALS['env'] = 'production';
 class WP_Post
 {
@@ -50,6 +54,10 @@ class Fake_Wpdb
         if ($q[1][0] === 'cron') {
             // The cron option as stored, built from the scheduled events; null when the read fails.
             return !empty($GLOBALS['cron_read_fails']) ? null : serialize(_get_cron_array());
+        }
+        if ($q[1][0] === 'boblift_indexnow_cooldown_until' && !empty($GLOBALS['cooldown_read_fails'])) {
+            $this->last_error = 'Lost connection';
+            return null;
         }
         $value = $GLOBALS['options'][$q[1][0]] ?? null;
         return $value === '' ? null : $value;
@@ -530,11 +538,14 @@ $GLOBALS['options']['blog_public'] = '-1';
 $check('quiet on a private WordPress.com site', !boblift_indexnow_enabled());
 $GLOBALS['options']['blog_public'] = '1';
 $check('quiet on a copy of the live site outside the live platform', shell_exec('INDEXNOW_NO_PLATFORM=1 ' . escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__)) === 'QUIET');
-$platform_run = static fn(string $constants): ?string => shell_exec('INDEXNOW_PLATFORM_CONSTANTS=' . escapeshellarg($constants) . ' ' . escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__));
-foreach (['BOBLIFT_INDEXNOW_LIVE="false"', 'BOBLIFT_INDEXNOW_LIVE="0"', 'BOBLIFT_INDEXNOW_LIVE=""', 'IS_ATOMIC="false"', 'IS_ATOMIC=false', 'ATOMIC_SITE_ID="0"', 'ATOMIC_SITE_ID="abc"', 'ATOMIC_SITE_ID=0'] as $constants) {
+$platform_run = static fn(string $constants, string $env = ''): ?string => shell_exec($env . 'INDEXNOW_PLATFORM_CONSTANTS=' . escapeshellarg($constants) . ' ' . escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__));
+$check('the live Atomic site\'s ID is recorded the first time submissions are on', ($GLOBALS['options']['boblift_indexnow_platform_site'] ?? null) === '12345');
+$check('a backup restored to another Atomic site (same home, production) stays quiet', $platform_run('ATOMIC_SITE_ID=67890', 'INDEXNOW_PINNED=12345 ') === 'QUIET');
+$check('the Atomic site whose ID was recorded keeps submitting', $platform_run('ATOMIC_SITE_ID=12345', 'INDEXNOW_PINNED=12345 ') === 'ENABLED');
+foreach (['BOBLIFT_INDEXNOW_LIVE="false"', 'BOBLIFT_INDEXNOW_LIVE="0"', 'BOBLIFT_INDEXNOW_LIVE=""', 'IS_ATOMIC="false"', 'IS_ATOMIC=false', 'IS_ATOMIC=true', 'ATOMIC_SITE_ID="0"', 'ATOMIC_SITE_ID="abc"', 'ATOMIC_SITE_ID=0'] as $constants) {
     $check('a constant set to a false-like value does not switch submissions on: ' . $constants, $platform_run($constants) === 'QUIET');
 }
-foreach (['BOBLIFT_INDEXNOW_LIVE=true', 'BOBLIFT_INDEXNOW_LIVE="true"', 'IS_ATOMIC=true', 'ATOMIC_SITE_ID=12345', 'ATOMIC_SITE_ID="12345"'] as $constants) {
+foreach (['BOBLIFT_INDEXNOW_LIVE=true', 'BOBLIFT_INDEXNOW_LIVE="true"', 'ATOMIC_SITE_ID=12345', 'ATOMIC_SITE_ID="12345"'] as $constants) {
     $check('a constant set to a true value switches submissions on: ' . $constants, $platform_run($constants) === 'ENABLED');
 }
 
@@ -872,6 +883,9 @@ $GLOBALS['remote_fails'] = false;
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
 ($GLOBALS['hooks']['init'])();
 $check('a non-cron init (where posts are published) never writes cron, even with no worker event yet', $GLOBALS['events'] === []);
+define('WP_CLI', true);
+($GLOBALS['hooks']['init'])();
+$check('a WP-CLI run (an import or bulk publish) never writes cron either', $GLOBALS['events'] === [] && $GLOBALS['scheduled'] === []);
 $_SERVER['REQUEST_METHOD'] = 'POST';
 ($GLOBALS['hooks']['wp'])();
 $check('a front-end POST does not write cron either', $GLOBALS['events'] === []);
@@ -1082,5 +1096,19 @@ $GLOBALS['boblift_indexnow_queue'] = [];
 
 $root = boblift_indexnow_payloads(['https://bobliftcrane.com', 'https://bobliftcrane.com/a.html'], 'https://bobliftcrane.com', 'abcd1234');
 $check('a URL with no path is the home page and is kept', ($root[0]['urlList'] ?? []) === ['https://bobliftcrane.com', 'https://bobliftcrane.com/a.html']);
+
+// A failed read of the shared pause is treated as a pause: nothing is posted and the posts are kept.
+unset($GLOBALS['options']['boblift_indexnow_cooldown_until']);
+$GLOBALS['transients'] = [kc() => 'ok'];
+$GLOBALS['posts'] = [84 => new WP_Post(84)];
+$GLOBALS['sent'] = [];
+$GLOBALS['cooldown_read_fails'] = true;
+$kept_here = [];
+$check('when the pause cannot be read, nothing is sent and the posts are kept for a minute later', boblift_indexnow_send([84], true, null, static function (array $ids, int $due, bool $retry) use (&$kept_here): bool {
+    $kept_here = [$ids, $due, $retry];
+    return true;
+}) === true && $GLOBALS['sent'] === [] && $kept_here[0] === [84] && $kept_here[1] >= time() + 50 && $kept_here[1] <= time() + 60);
+unset($GLOBALS['cooldown_read_fails']);
+$GLOBALS['transients'] = [];
 
 exit($failures === 0 ? 0 : 1);

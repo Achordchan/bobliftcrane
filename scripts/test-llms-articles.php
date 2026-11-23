@@ -31,6 +31,8 @@ for ($i = 1; $i <= 520; $i++) {
 $GLOBALS['posts'][] = new WP_Post(900, '2026-11-20 10:00:00', 'es');
 $GLOBALS['posts'][] = new WP_Post(901, '2026-11-21 10:00:00', 'en', 'publish', 'secret');
 $GLOBALS['posts'][] = new WP_Post(902, '2026-11-22 10:00:00', 'en', 'draft');
+// A held-back article (post 1682, news-show-89) whose slug was changed: its new URL is not on the held-back path list.
+$GLOBALS['posts'][] = new WP_Post(1682, '2026-11-22 12:00:00');
 $GLOBALS['last_args'] = [];
 function get_posts(array $args): array
 {
@@ -152,6 +154,7 @@ $check('the oldest articles past 500 are left out', !$has(18) && !$has(1));
 $check('a translation is left out', !$has(900));
 $check('a password-protected article is left out', !$has(901));
 $check('a draft is left out', !$has(902));
+$check('a held-back article stays out by its post ID after its URL changed', !$has(1682) && count($lines) === 500);
 $check('posts are loaded in chunks of at most 100, the request-local cache dropped after each chunk', $GLOBALS['largest_page'] <= 100 && $GLOBALS['runtime_flushes'] >= 5);
 $GLOBALS['publish_after_ids'] = [new WP_Post(950, '2026-11-24 10:00:00')];
 $during = boblift_llms_txt_articles();
@@ -165,7 +168,7 @@ for ($i = 1000; $i < 7000; $i++) {
 }
 $GLOBALS['ignore_lang'] = true;
 $taxed = boblift_llms_txt_articles();
-$check('the ID query also constrains on Polylang\'s language taxonomy, so translations are left out by the database', ($GLOBALS['ids_args']['tax_query'][0] ?? []) === ['taxonomy' => 'language', 'field' => 'slug', 'terms' => 'en'] && $taxed === $lines && $GLOBALS['ids_returned'] === 520 && $GLOBALS['ids_args']['posts_per_page'] === 600 + count(BOBLIFT_LLMS_TXT_HELD_BACK_PATHS));
+$check('the ID query also constrains on Polylang\'s language taxonomy, so translations are left out by the database', ($GLOBALS['ids_args']['tax_query'][0] ?? []) === ['taxonomy' => 'language', 'field' => 'slug', 'terms' => 'en'] && $taxed === $lines && $GLOBALS['ids_returned'] === 521 && $GLOBALS['ids_args']['posts_per_page'] === 600 + count(BOBLIFT_LLMS_TXT_HELD_BACK_PATHS));
 $GLOBALS['posts'] = array_values(array_filter($GLOBALS['posts'], static fn(WP_Post $p): bool => $p->ID < 1000 || $p->ID >= 7000));
 $GLOBALS['ignore_tax'] = true;
 $mixed = boblift_llms_txt_articles();
