@@ -307,17 +307,18 @@ function boblift_indexnow_send(array $post_ids, bool $retry = true, ?callable $s
         }
         // The worker's time is up (resolving permalinks can be slow on a cold cache): the rest is kept, runnable again at
         // once with its retry allowance unchanged, instead of starting another blocking POST.
-        if ($deadline !== 0 && time() >= $deadline) {
-            return (bool) $keep(boblift_indexnow_payload_ids(array_slice($payloads, $index), $by_url), time(), $retry) && $kept;
-        }
         // Another run may have hit a 429 or 403 meanwhile: then nothing more is posted and the rest is kept.
         $cooldown = boblift_indexnow_cooldown_until();
         if ($cooldown !== 0) {
             return (bool) $keep(boblift_indexnow_payload_ids(array_slice($payloads, $index), $by_url), max(time() + MINUTE_IN_SECONDS, (int) $cooldown), $retry) && $kept;
         }
+        // Checked last, right before the POST (the queries above can stall), and the request is cut to the time left.
+        if ($deadline !== 0 && time() >= $deadline) {
+            return (bool) $keep(boblift_indexnow_payload_ids(array_slice($payloads, $index), $by_url), time(), $retry) && $kept;
+        }
         // Blocking, from cron only: a non-blocking request can hide a failed connection.
         $response = wp_remote_post(BOBLIFT_INDEXNOW_ENDPOINT, [
-            'timeout' => 10,
+            'timeout' => $deadline !== 0 ? max(1, min(10, $deadline - time())) : 10,
             'headers' => ['Content-Type' => 'application/json; charset=utf-8'],
             'body' => wp_json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
         ]);
@@ -531,7 +532,7 @@ function boblift_indexnow_cooldown_until(): int
     if ($value === null && $wpdb->last_error !== '') {
         return time() + 60;
     }
-    $until = (int) $value;
+    $until = max((int) $value, (int) ($GLOBALS['boblift_indexnow_local_pause'] ?? 0));
     return $until > time() ? $until : 0;
 }
 
@@ -542,11 +543,17 @@ function boblift_indexnow_cooldown_until(): int
 function boblift_indexnow_extend_cooldown(int $until): void
 {
     global $wpdb;
-    if ((int) $wpdb->query($wpdb->prepare("INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')", BOBLIFT_INDEXNOW_COOLDOWN, (string) $until)) === 1) {
+    // Kept in this request too, so the current run stops even if the shared value cannot be written.
+    $GLOBALS['boblift_indexnow_local_pause'] = max((int) ($GLOBALS['boblift_indexnow_local_pause'] ?? 0), $until);
+    $inserted = $wpdb->query($wpdb->prepare("INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')", BOBLIFT_INDEXNOW_COOLDOWN, (string) $until));
+    if ((int) $inserted === 1) {
         return;
     }
-    $wpdb->query($wpdb->prepare("UPDATE {$wpdb->options} SET option_value = %s WHERE option_name = %s AND CAST(option_value AS UNSIGNED) < %d", (string) $until, BOBLIFT_INDEXNOW_COOLDOWN, $until));
+    $updated = $wpdb->query($wpdb->prepare("UPDATE {$wpdb->options} SET option_value = %s WHERE option_name = %s AND CAST(option_value AS UNSIGNED) < %d", (string) $until, BOBLIFT_INDEXNOW_COOLDOWN, $until));
     wp_cache_delete(BOBLIFT_INDEXNOW_COOLDOWN, 'options');
+    if ($inserted === false || $updated === false) {
+        error_log(sprintf('IndexNow: the submission pause until %s could not be saved; other runs may not see it.', gmdate('c', $until)));
+    }
 }
 
 /** The key-check result is stored per advertised key-file URL, so a new key or home URL is always checked afresh. */
@@ -629,7 +636,8 @@ function boblift_indexnow_run_retries(): void
     $groups = [0 => [], 1 => []];
     $group_ids = [0 => 0, 1 => 0];
     boblift_indexnow_walk_rows(time(), static function (string $name) use (&$rows, $started, &$groups, &$group_ids): bool {
-        if ($rows >= BOBLIFT_INDEXNOW_RUN_ROWS || time() - $started >= BOBLIFT_INDEXNOW_RUN_SECONDS) {
+        // Leasing stops early enough to leave time for resolving and sending what was leased.
+        if ($rows >= BOBLIFT_INDEXNOW_RUN_ROWS || time() - $started >= BOBLIFT_INDEXNOW_RUN_SECONDS - min(20, intdiv(BOBLIFT_INDEXNOW_RUN_SECONDS, 3))) {
             return false;
         }
         $batch = boblift_indexnow_read_retry($name);
@@ -783,14 +791,11 @@ function boblift_indexnow_terms_changed(int $object_id, string $taxonomy): void
     }
     boblift_indexnow_queue_add((int) $post->ID, (int) get_current_blog_id());
 }
-add_action('set_object_terms', static function (int $object_id, array $terms, array $tt_ids, string $taxonomy, bool $append, array $old_tt_ids): void {
-    $new = array_map('intval', $tt_ids);
-    $old = array_map('intval', $old_tt_ids);
-    // Appending only adds terms; replacing can also remove some.
-    if (array_diff($new, $old) !== [] || (!$append && array_diff($old, $new) !== [])) {
-        boblift_indexnow_terms_changed($object_id, $taxonomy);
-    }
-}, 10, 6);
+// Only real changes count: added_term_relationship fires once per term actually attached (re-adding a term the post
+// already has, or re-saving the same terms, fires nothing), deleted_term_relationships once per removal.
+add_action('added_term_relationship', static function (int $object_id, int $tt_id, string $taxonomy): void {
+    boblift_indexnow_terms_changed($object_id, $taxonomy);
+}, 10, 3);
 add_action('deleted_term_relationships', static function (int $object_id, array $tt_ids, string $taxonomy): void {
     if ($tt_ids !== []) {
         boblift_indexnow_terms_changed($object_id, $taxonomy);

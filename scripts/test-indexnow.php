@@ -114,9 +114,12 @@ class Fake_Wpdb
         // Stored like WordPress does: arrays serialized.
         return array_key_exists($q[1][0], $GLOBALS['options']) ? ['option_value' => (string) maybe_serialize($GLOBALS['options'][$q[1][0]])] : null;
     }
-    public function query(array $q): int
+    public function query(array $q): int|false
     {
         [$sql, $args] = $q;
+        if (!empty($GLOBALS['cooldown_write_fails']) && in_array('boblift_indexnow_cooldown_until', $args, true)) {
+            return false;
+        }
         if (str_starts_with($sql, 'DELETE')) {
             if (!array_key_exists($args[0], $GLOBALS['options'])) {
                 return 0;
@@ -162,7 +165,7 @@ class Fake_Wpdb
             [$new, $value, $old, $raw] = $args;
             if (($GLOBALS['slow_rename'] ?? null) === $old) {
                 // This row's lease takes long enough to use up the run's time.
-                sleep(2);
+                sleep($GLOBALS['slow_seconds'] ?? 2);
             }
             if (!array_key_exists($old, $GLOBALS['options']) || (string) maybe_serialize($GLOBALS['options'][$old]) !== (string) $raw || array_key_exists($new, $GLOBALS['options'])) {
                 return 0;
@@ -460,8 +463,8 @@ function status_header(int $code): void
     http_response_code($code);
 }
 if (getenv('INDEXNOW_DEADLINE') !== false) {
-    // A child run with a one-second budget, to reach the deadline without waiting a minute.
-    define('BOBLIFT_INDEXNOW_RUN_SECONDS', 1);
+    // A child run with a short budget, to reach the deadline without waiting a minute.
+    define('BOBLIFT_INDEXNOW_RUN_SECONDS', getenv('INDEXNOW_DEADLINE') === 'reserve' ? 6 : 1);
 }
 function get_taxonomy(string $taxonomy)
 {
@@ -489,6 +492,19 @@ if (getenv('INDEXNOW_DEADLINE') !== false) {
     ini_set('error_log', '/dev/null');
     $GLOBALS['transients'] = [boblift_indexnow_key_check_name('abcd1234') => 'ok'];
     $GLOBALS['options']['boblift_indexnow_key'] = 'abcd1234';
+    if (getenv('INDEXNOW_DEADLINE') === 'reserve') {
+        // A six-second budget keeps the last two for sending: leasing the first one-post row takes four seconds, so the
+        // scan stops there and that row is still resolved and sent; the second row is left for the next run.
+        $GLOBALS['posts'] = [63 => new WP_Post(63), 64 => new WP_Post(64)];
+        add_option(rn(0, 'ra'), ['due' => 0, 'ids' => [63], 'retry' => true], '', 'no');
+        add_option(rn(0, 'rb'), ['due' => 0, 'ids' => [64], 'retry' => true], '', 'no');
+        $GLOBALS['slow_rename'] = rn(0, 'ra');
+        $GLOBALS['slow_seconds'] = 4;
+        $GLOBALS['sent'] = [];
+        boblift_indexnow_run_retries();
+        echo json_encode(['sent' => $GLOBALS['sent'], 'left' => array_values(row_ids())]);
+        exit;
+    }
     if (getenv('INDEXNOW_DEADLINE') === 'flush') {
         // Eleven full rows: the eleventh would overflow the group, and leasing it uses up the run's time.
         $GLOBALS['posts'] = [];
@@ -699,7 +715,7 @@ foreach ([503 => 1, 429 => 1, 422 => 0, 202 => 0] as $code => $rows_expected) {
     boblift_indexnow_send([41]);
     $rows = boblift_indexnow_retry_names();
     $check('HTTP ' . $code . ($rows_expected ? ' gets one more try' : ' is not retried'), count($rows) === $rows_expected);
-    unset($GLOBALS['options']['boblift_indexnow_cooldown_until']);
+    unset($GLOBALS['options']['boblift_indexnow_cooldown_until'], $GLOBALS['boblift_indexnow_local_pause']);
     foreach ($rows as $name) {
         unset($GLOBALS['options'][$name]);
     }
@@ -995,7 +1011,7 @@ clear_rows();
 // the local self-check says (a CDN or firewall may block only IndexNow's verifier).
 unset($GLOBALS['key_file_response']);
 $GLOBALS['transients'] = [kc() => 'ok'];
-unset($GLOBALS['options']['boblift_indexnow_cooldown_until']);
+unset($GLOBALS['options']['boblift_indexnow_cooldown_until'], $GLOBALS['boblift_indexnow_local_pause']);
 $GLOBALS['remote_code'] = 403;
 add_option(rn(0, 'k403'), ['due' => 0, 'ids' => [81], 'retry' => false], '', 'no');
 add_option(rn(1, 'k403b'), ['due' => 1, 'ids' => [81], 'retry' => true], '', 'no');
@@ -1017,11 +1033,11 @@ $GLOBALS['transients'] = [];
 
 // A passed check is stored per key-file URL: a new key is checked afresh.
 $GLOBALS['transients'] = [kc() => 'ok'];
-unset($GLOBALS['options']['boblift_indexnow_cooldown_until']);
+unset($GLOBALS['options']['boblift_indexnow_cooldown_until'], $GLOBALS['boblift_indexnow_local_pause']);
 $check('a passed key check does not carry over to another key', kc() !== boblift_indexnow_key_check_name('efgh5678') && get_transient(boblift_indexnow_key_check_name('efgh5678')) === false);
 // A 429 pauses the whole queue for the Retry-After time and keeps the rows, retry allowance unchanged.
 $GLOBALS['transients'] = [kc() => 'ok'];
-unset($GLOBALS['options']['boblift_indexnow_cooldown_until']);
+unset($GLOBALS['options']['boblift_indexnow_cooldown_until'], $GLOBALS['boblift_indexnow_local_pause']);
 $GLOBALS['posts'] = [81 => new WP_Post(81), 82 => new WP_Post(82)];
 add_option(rn(0, 't429a'), ['due' => 0, 'ids' => [81], 'retry' => false], '', 'no');
 add_option(rn(1, 't429b'), ['due' => 1, 'ids' => [82], 'retry' => true], '', 'no');
@@ -1041,7 +1057,7 @@ unset($GLOBALS['remote_code'], $GLOBALS['remote_headers']);
 $GLOBALS['sent'] = [];
 boblift_indexnow_run_retries();
 $check('while the cooldown lasts nothing is posted', $GLOBALS['sent'] === [] && count(boblift_indexnow_retry_names()) === 2);
-unset($GLOBALS['options']['boblift_indexnow_cooldown_until']);
+unset($GLOBALS['options']['boblift_indexnow_cooldown_until'], $GLOBALS['boblift_indexnow_local_pause']);
 // Time passes: the rows come due.
 foreach (boblift_indexnow_retry_names(10) as $i => $n) {
     $GLOBALS['options'][rn(0, 'due' . $i)] = ['due' => 0] + $GLOBALS['options'][$n];
@@ -1057,7 +1073,7 @@ $GLOBALS['transients'] = [];
 
 // Another run's cooldown is rechecked right before each POST.
 $GLOBALS['transients'] = [kc() => 'ok'];
-unset($GLOBALS['options']['boblift_indexnow_cooldown_until']);
+unset($GLOBALS['options']['boblift_indexnow_cooldown_until'], $GLOBALS['boblift_indexnow_local_pause']);
 $GLOBALS['posts'] = [83 => new WP_Post(83)];
 $GLOBALS['sent'] = [];
 $kept_here = [];
@@ -1071,7 +1087,7 @@ $check('a cooldown started by another run is checked right before the POST: noth
     return true;
 }) === true && $GLOBALS['sent'] === [] && $kept_here[0] === [83] && $kept_here[1] >= time() + 890 && $kept_here[2] === true);
 $GLOBALS['transients'] = [];
-unset($GLOBALS['options']['boblift_indexnow_cooldown_until']);
+unset($GLOBALS['options']['boblift_indexnow_cooldown_until'], $GLOBALS['boblift_indexnow_local_pause']);
 $check('the key file is advertised and checked on HTTPS even if home is stored as http', boblift_indexnow_key_url('http://bobliftcrane.com/', 'abcd1234') === 'https://bobliftcrane.com/abcd1234.txt' && (boblift_indexnow_payloads(['http://bobliftcrane.com/a.html'], 'http://bobliftcrane.com', 'abcd1234')[0]['keyLocation'] ?? '') === 'https://bobliftcrane.com/abcd1234.txt');
 
 $GLOBALS['options']['boblift_indexnow_key'] = "abcd1234\n";
@@ -1088,7 +1104,7 @@ $check('a key path with a trailing newline falls through', $route("/abcd1234.txt
 
 // Uneven rows: a group is sent before a row that would take it past 1,000 posts, never after.
 clear_rows();
-unset($GLOBALS['options']['boblift_indexnow_cooldown_until']);
+unset($GLOBALS['options']['boblift_indexnow_cooldown_until'], $GLOBALS['boblift_indexnow_local_pause']);
 $GLOBALS['transients'] = [kc() => 'ok'];
 $GLOBALS['posts'] = [];
 $next = 1;
@@ -1107,6 +1123,8 @@ $GLOBALS['transients'] = [];
 $deadline = json_decode((string) shell_exec('INDEXNOW_DEADLINE=1 ' . escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__)), true);
 $check('rows leased when the run\'s time is up are not sent but released, runnable again now', ($deadline['sent'] ?? null) === 0 && ($deadline['released'] ?? false) === true);
 $check('a row the run did not reach before its time was up is left as it was', ($deadline['untouched'] ?? false) === true);
+$reserve = json_decode((string) shell_exec('INDEXNOW_DEADLINE=reserve ' . escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__)), true);
+$check('leasing stops with time left to send: a slow scan still sends what it leased, the rest waits for the next run', ($reserve['sent'] ?? null) === [['https://bobliftcrane.com/p63.html']] && ($reserve['left'] ?? null) === [[64]]);
 $flush = json_decode((string) shell_exec('INDEXNOW_DEADLINE=flush ' . escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__)), true);
 $check('when time runs out on a row that would overflow the group, the full group is not resolved or sent: all eleven rows are released', ($flush['sent'] ?? null) === 0 && ($flush['released'] ?? false) === true);
 
@@ -1130,7 +1148,7 @@ $root = boblift_indexnow_payloads(['https://bobliftcrane.com', 'https://bobliftc
 $check('a URL with no path is the home page and is kept', ($root[0]['urlList'] ?? []) === ['https://bobliftcrane.com', 'https://bobliftcrane.com/a.html']);
 
 // A failed read of the shared pause is treated as a pause: nothing is posted and the posts are kept.
-unset($GLOBALS['options']['boblift_indexnow_cooldown_until']);
+unset($GLOBALS['options']['boblift_indexnow_cooldown_until'], $GLOBALS['boblift_indexnow_local_pause']);
 $GLOBALS['transients'] = [kc() => 'ok'];
 $GLOBALS['posts'] = [84 => new WP_Post(84)];
 $GLOBALS['sent'] = [];
@@ -1143,22 +1161,19 @@ $check('when the pause cannot be read, nothing is sent and the posts are kept fo
 unset($GLOBALS['cooldown_read_fails']);
 $GLOBALS['transients'] = [];
 
-// A term-only change to a published post's public taxonomy queues it; re-saving the same terms does not.
+// A term-only change to a published post's public taxonomy queues it. WordPress fires added_term_relationship only for
+// a term actually attached, so re-adding one the post has (or re-saving the same terms) fires no hook at all.
 $GLOBALS['boblift_indexnow_queue'] = [];
 $GLOBALS['posts'] = [75 => new WP_Post(75, 'product'), 76 => new WP_Post(76, 'post', 'draft')];
-($GLOBALS['hooks']['set_object_terms'])(75, [3], [30], 'product_cat', false, [30]);
-($GLOBALS['hooks']['set_object_terms'])(75, [3], [30], 'product_cat', true, [30, 31]);
-($GLOBALS['hooks']['set_object_terms'])(75, [9], [90], 'internal_flag', false, []);
-($GLOBALS['hooks']['set_object_terms'])(76, [3], [30], 'product_cat', false, []);
-$check('re-saving the same terms, appending one already there, a private taxonomy or a draft queue nothing', boblift_indexnow_queued_ids() === []);
-($GLOBALS['hooks']['set_object_terms'])(75, [3], [30], 'product_cat', true, [31]);
+$check('the term hooks are the per-change ones, not set_object_terms (which fires with an empty old list on every append)', isset($GLOBALS['hooks']['added_term_relationship'], $GLOBALS['hooks']['deleted_term_relationships']) && !isset($GLOBALS['hooks']['set_object_terms']));
+($GLOBALS['hooks']['added_term_relationship'])(75, 90, 'internal_flag');
+($GLOBALS['hooks']['added_term_relationship'])(76, 30, 'product_cat');
+$check('a private taxonomy or a draft queues nothing', boblift_indexnow_queued_ids() === []);
+($GLOBALS['hooks']['added_term_relationship'])(75, 31, 'product_cat');
 $check('a published product added to a product category is queued', boblift_indexnow_queued_ids() === [1 => [75]]);
 $GLOBALS['boblift_indexnow_queue'] = [];
-($GLOBALS['hooks']['set_object_terms'])(75, [], [], 'product_cat', false, [30]);
-$removed = boblift_indexnow_queued_ids();
-$GLOBALS['boblift_indexnow_queue'] = [];
 ($GLOBALS['hooks']['deleted_term_relationships'])(75, [30], 'category');
-$check('a term removed (replaced or deleted) queues the post', $removed === [1 => [75]] && boblift_indexnow_queued_ids() === [1 => [75]]);
+$check('a term removed queues the post', boblift_indexnow_queued_ids() === [1 => [75]]);
 $GLOBALS['boblift_indexnow_queue'] = [];
 
 // The worker's deadline is rechecked right before each POST.
@@ -1170,6 +1185,28 @@ $check('a send that reaches the deadline before its POST sends nothing and keeps
     $kept_here = [$ids, $due, $retry];
     return true;
 }, time() - 1) === true && $GLOBALS['sent'] === [] && $kept_here[0] === [85] && $kept_here[1] <= time() && $kept_here[2] === true);
+$GLOBALS['transients'] = [];
+
+// A 429 whose pause cannot be saved still stops the current run.
+clear_rows();
+unset($GLOBALS['options']['boblift_indexnow_cooldown_until'], $GLOBALS['boblift_indexnow_local_pause']);
+$GLOBALS['transients'] = [kc() => 'ok'];
+$GLOBALS['posts'] = [86 => new WP_Post(86), 87 => new WP_Post(87)];
+add_option(rn(0, 'wa'), ['due' => 0, 'ids' => [86], 'retry' => true], '', 'no');
+$GLOBALS['cooldown_write_fails'] = true;
+$GLOBALS['remote_code'] = 429;
+$log = tempnam(sys_get_temp_dir(), 'inlog');
+ini_set('error_log', $log);
+$GLOBALS['sent'] = [];
+boblift_indexnow_run_retries();
+unset($GLOBALS['remote_code']);
+add_option(rn(0, 'wb'), ['due' => 0, 'ids' => [87], 'retry' => true], '', 'no');
+boblift_indexnow_send([87], true);
+$check('a pause that cannot be saved still holds in this request: nothing more is posted after the 429, and the failed save is logged', count($GLOBALS['sent']) === 1 && !isset($GLOBALS['options']['boblift_indexnow_cooldown_until']) && str_contains((string) file_get_contents($log), 'could not be saved'));
+ini_set('error_log', '/dev/null');
+unlink($log);
+unset($GLOBALS['cooldown_write_fails'], $GLOBALS['boblift_indexnow_local_pause']);
+clear_rows();
 $GLOBALS['transients'] = [];
 
 exit($failures === 0 ? 0 : 1);
