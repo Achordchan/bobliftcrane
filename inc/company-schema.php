@@ -214,7 +214,9 @@ function boblift_llms_txt_articles(): array
     // skip an article), then the posts are loaded 100 at a time in that order until 500 English articles are found,
     // keeping only the rendered lines between chunks. Each post's language is checked as well, so posts in other
     // languages never take an English post's place, even if the query's language filter is not applied.
-    $query = ['post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => -1, 'fields' => 'ids', 'has_password' => false, 'orderby' => ['date' => 'DESC', 'ID' => 'DESC'], 'no_found_rows' => true, 'lang' => 'en'];
+    // Bounded: the 500 listed, the held-back paths and a margin for posts skipped below; translations are already left
+    // out by the language constraint.
+    $query = ['post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => 600 + count($held_back), 'fields' => 'ids', 'has_password' => false, 'orderby' => ['date' => 'DESC', 'ID' => 'DESC'], 'no_found_rows' => true, 'lang' => 'en'];
     // Polylang stores each post's language as a term of its 'language' taxonomy: constrain on it in the query too, so
     // translations are left out by the database even if the lang query var is not applied.
     if (taxonomy_exists('language')) {

@@ -621,19 +621,6 @@ add_filter('cron_schedules', static function (array $schedules): array {
 
 const BOBLIFT_INDEXNOW_SCHEDULE_LOCK = 'boblift_indexnow_schedule_lock';
 
-/** Start times of the worker event in a cron array, earliest first. */
-function boblift_indexnow_worker_times(mixed $cron): array
-{
-    $times = [];
-    foreach (is_array($cron) ? $cron : [] as $time => $hooks) {
-        if (is_array($hooks) && !empty($hooks[BOBLIFT_INDEXNOW_SWEEP_HOOK])) {
-            $times[] = (int) $time;
-        }
-    }
-    sort($times);
-    return $times;
-}
-
 /** Takes the scheduling lock: an INSERT IGNORE, or a compare-and-swap over a lock left for more than five minutes. */
 function boblift_indexnow_take_schedule_lock(): ?string
 {
@@ -653,7 +640,7 @@ function boblift_indexnow_take_schedule_lock(): ?string
  * Keeps exactly one worker event while submissions are on and none while they are off, through the WordPress cron API
  * (so a host's own cron backend sees the same events its runner runs). It runs from cron and WP-CLI requests and from
  * front-end page views (so the first event is added even when no other cron job is due), never from admin, AJAX or REST
- * requests, where posts are published, and it writes only when the event is missing, duplicated or no longer wanted.
+ * requests, where posts are published, and it writes only when the event is missing or no longer wanted.
  * Changes are made under a lock after reloading the autoloaded options, so concurrent requests do not add the event
  * twice. If another request later saves a stale cron array and drops the event, the next cron run or page view adds it
  * back; queued rows are kept in their own options meanwhile, so nothing is lost.
@@ -661,8 +648,8 @@ function boblift_indexnow_take_schedule_lock(): ?string
 function boblift_indexnow_sync_worker(): void
 {
     $enabled = boblift_indexnow_enabled();
-    $times = boblift_indexnow_worker_times(_get_cron_array());
-    if ($enabled ? count($times) === 1 : $times === []) {
+    // wp_next_scheduled() goes through pre_get_scheduled_event, so a host's own cron backend answers it.
+    if ($enabled === (wp_next_scheduled(BOBLIFT_INDEXNOW_SWEEP_HOOK) !== false)) {
         return;
     }
     $lock = boblift_indexnow_take_schedule_lock();
@@ -674,14 +661,12 @@ function boblift_indexnow_sync_worker(): void
         wp_cache_delete('cron', 'options');
         wp_load_alloptions(true);
     }
-    $times = boblift_indexnow_worker_times(_get_cron_array());
-    if ($enabled && $times === []) {
+    $scheduled = wp_next_scheduled(BOBLIFT_INDEXNOW_SWEEP_HOOK) !== false;
+    // Only a missing event is added and an unwanted one cleared. Extra occurrences are left alone: WP-Cron itself
+    // briefly holds two while it reschedules a recurring event, and a second worker run is harmless (rows are leased).
+    if ($enabled && !$scheduled) {
         wp_schedule_event(time() + MINUTE_IN_SECONDS, BOBLIFT_INDEXNOW_INTERVAL, BOBLIFT_INDEXNOW_SWEEP_HOOK);
-    } elseif ($enabled) {
-        foreach (array_slice($times, 1) as $time) {
-            wp_unschedule_event($time, BOBLIFT_INDEXNOW_SWEEP_HOOK);
-        }
-    } elseif ($times !== []) {
+    } elseif (!$enabled && $scheduled) {
         wp_clear_scheduled_hook(BOBLIFT_INDEXNOW_SWEEP_HOOK);
     }
     global $wpdb;

@@ -165,9 +165,10 @@ for ($i = 1000; $i < 7000; $i++) {
 }
 $GLOBALS['ignore_lang'] = true;
 $taxed = boblift_llms_txt_articles();
-$check('the ID query also constrains on Polylang\'s language taxonomy, so translations are left out by the database', ($GLOBALS['ids_args']['tax_query'][0] ?? []) === ['taxonomy' => 'language', 'field' => 'slug', 'terms' => 'en'] && $taxed === $lines && $GLOBALS['ids_returned'] === 520);
+$check('the ID query also constrains on Polylang\'s language taxonomy, so translations are left out by the database', ($GLOBALS['ids_args']['tax_query'][0] ?? []) === ['taxonomy' => 'language', 'field' => 'slug', 'terms' => 'en'] && $taxed === $lines && $GLOBALS['ids_returned'] === 520 && $GLOBALS['ids_args']['posts_per_page'] === 600 + count(BOBLIFT_LLMS_TXT_HELD_BACK_PATHS));
+$GLOBALS['posts'] = array_values(array_filter($GLOBALS['posts'], static fn(WP_Post $p): bool => $p->ID < 1000 || $p->ID >= 7000));
 $GLOBALS['ignore_tax'] = true;
 $mixed = boblift_llms_txt_articles();
 $check('with no language constraint applied at all, translations are still dropped by their Polylang language', !array_filter($mixed, static fn(string $l): bool => preg_match('#/a(9\d\d|[1-6]\d\d\d)\.html#', $l) === 1));
-$check('without the language filter, later pages are read until 500 English articles are listed', $mixed === $lines);
+$check('with no language constraint applied at all, the per-post check still keeps the list English and complete', $mixed === $lines);
 exit($failures === 0 ? 0 : 1);

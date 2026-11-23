@@ -317,6 +317,9 @@ function wp_schedule_single_event(int $time, string $hook, array $args = [], boo
 }
 function wp_next_scheduled(string $hook, array $args = [])
 {
+    if (isset($GLOBALS['next_scheduled_override'])) {
+        return $GLOBALS['next_scheduled_override'];
+    }
     foreach ($GLOBALS['events'] ?? [] as [$h, $a, $t]) {
         if ($h === $hook && $a === $args) {
             return $t;
@@ -828,7 +831,17 @@ $dup = time();
 $GLOBALS['events'][] = ['boblift_indexnow_sweep', [], $dup - 30];
 $GLOBALS['events'][] = ['boblift_indexnow_sweep', [], $dup + 45];
 ($GLOBALS['hooks']['init'])();
-$check('duplicate worker events are removed, keeping the earliest and other hooks', array_values(array_map(static fn($e) => $e[2], array_filter($GLOBALS['events'], static fn($e) => $e[0] === 'boblift_indexnow_sweep'))) === [$dup - 30] && count($GLOBALS['events']) === 2);
+$check('a second occurrence (as while WP-Cron reschedules the event) is left alone', count(array_filter($GLOBALS['events'], static fn($e) => $e[0] === 'boblift_indexnow_sweep')) === 3);
+$GLOBALS['events'] = array_values(array_filter($GLOBALS['events'], static fn($e) => $e[0] !== 'boblift_indexnow_sweep' || $e[2] === $dup - 30));
+// A cron backend that keeps events outside the cron option answers wp_next_scheduled() itself.
+$GLOBALS['scheduled'] = [];
+$GLOBALS['next_scheduled_override'] = time() + 60;
+$saved_events = $GLOBALS['events'];
+$GLOBALS['events'] = [];
+($GLOBALS['hooks']['wp'])();
+$check('the worker\'s presence is checked through wp_next_scheduled(), so an external cron backend is not asked to add it again', $GLOBALS['scheduled'] === []);
+unset($GLOBALS['next_scheduled_override']);
+$GLOBALS['events'] = $saved_events;
 $check('the every-minute interval is registered', (($GLOBALS['filters']['cron_schedules'])([])['boblift_indexnow_minute']['interval'] ?? 0) === 60);
 $GLOBALS['options']['blog_public'] = '0';
 ($GLOBALS['hooks']['init'])();
