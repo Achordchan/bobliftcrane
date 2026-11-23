@@ -50,7 +50,7 @@ $check('archive: one quote button per brochure', count($buttons($archive)) === 5
 $check('no email-a-copy button left', !str_contains($archive . $product . $single, 'data-catalog-modal-open') && !str_contains($archive, 'Email me a copy'));
 $check('button label', $buttons($archive)[0][1] === 'Get a quote for this range');
 $check('archive: no card stretches across columns', !preg_match('~col-span-[23]~', $archive));
-$check('archive: buttons sit at the bottom of each card', substr_count($archive, 'mt-auto flex flex-wrap') === 5);
+$check('archive: buttons sit at the bottom of each card', substr_count($archive, 'boblift-brochure-card-actions') === 5);
 preg_match('~data-inquiry-products="([^"]*)"~', $archive, $m);
 $picked = json_decode(html_entity_decode($m[1] ?? '', ENT_QUOTES), true);
 $check('archive: asks about the brochure, cover as thumbnail', ($picked[0]['title'] ?? '') === 'Truck Mounted Cranes Brochure' && str_ends_with($picked[0]['image'] ?? '', '-cover.webp'));

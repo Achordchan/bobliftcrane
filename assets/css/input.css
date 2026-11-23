@@ -704,7 +704,7 @@ img { max-width: 100%; }
   }
   .about-logo-scroll-section .about-logo-pin,
   .about-logo-scroll-section .about-logo-shell {
-    min-height: 60svh;
+    min-height: 50svh;
   }
   .about-logo-scroll-section .about-crane-scene { opacity: .55; }
   /* The figures sit two to a row and only need their content's height; the gaps around the timeline tighten to phone scale. */
@@ -772,6 +772,38 @@ img { max-width: 100%; }
     opacity: 1;
     transform: none;
     will-change: auto;
+  }
+  /* Without the scroll animation the wordmark, the page title and the headline read as one centred group on the aerial:
+     the title set as the site's kicker label and the headline at section-heading size, as on every other section. */
+  .about-logo-scroll-section .about-logo-stage {
+    position: relative;
+    inset: auto;
+    flex: none;
+    min-height: 0;
+  }
+  .about-logo-scroll-section .about-hero-copy {
+    position: relative;
+    inset: auto;
+    margin-top: 28px;
+    padding-inline: 0;
+  }
+  .about-hero-copy h1 {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: #0B3F7D;
+  }
+  .about-hero-copy p {
+    max-width: 18em;
+    margin-top: 10px;
+    font-size: 1.6rem;
+    font-weight: 900;
+    line-height: 1.18;
+    letter-spacing: -.015em;
+    color: #0B1B33;
+    text-wrap: balance;
   }
 }
 
@@ -1745,10 +1777,10 @@ img { max-width: 100%; }
   @apply border-navy text-navy;
 }
 .boblift-news-view-switch {
-  @apply inline-flex w-fit overflow-hidden rounded-sm border border-blue-100 bg-white/90 p-1 shadow-card backdrop-blur;
+  @apply inline-flex w-fit overflow-hidden rounded-sm border border-line bg-white p-0.5 shadow-card sm:p-1;
 }
 .boblift-news-view-button {
-  @apply inline-flex h-11 items-center justify-center gap-2 rounded-sm px-4 text-xs font-black uppercase tracking-[0.12em] text-slate-500 transition hover:bg-blue-50 hover:text-blue-700;
+  @apply inline-flex size-9 items-center justify-center rounded-sm text-slate-500 transition hover:bg-blue-50 hover:text-blue-700 sm:size-10;
 }
 .boblift-news-view-button.is-active {
   @apply bg-navy text-white hover:bg-navy hover:text-white;
@@ -2127,14 +2159,15 @@ img { max-width: 100%; }
   .boblift-product-quote-copy {
     gap: 0;
   }
+  /* Same size as the other section headings on phones (1.6rem), not a poster line. */
   .boblift-product-quote-title {
     max-width: 100%;
-    font-size: clamp(34px, 9.1vw, 42px);
-    line-height: 1.02;
-    letter-spacing: -.02em;
+    font-size: 1.6rem;
+    line-height: 1.18;
+    letter-spacing: -.015em;
   }
   .boblift-product-quote-text {
-    margin-top: 18px;
+    margin-top: 12px;
     font-size: clamp(14px, 3.65vw, 15px);
     line-height: 1.8;
   }
@@ -2331,6 +2364,15 @@ img { max-width: 100%; }
 .boblift-cases-select-option.is-active {
   background: #eff6ff;
   color: #0B3F7D;
+}
+/* The model codes under a product name in the case filter. */
+.boblift-cases-select-models {
+  display: block;
+  margin-top: 2px;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.35;
 }
 .boblift-cases-select-check {
   display: none;
@@ -3096,3 +3138,35 @@ html:is(:lang(ru), :lang(uk), :lang(fr), :lang(es), :lang(de), :lang(it), :lang(
 
 /* A small country flag beside its name: a hairline keeps a white flag apart from a white card. */
 .boblift-flag { display: block; flex: none; width: 18px; height: 13px; object-fit: cover; border-radius: 2px; box-shadow: 0 0 0 1px rgb(15 23 42 / 0.14); }
+
+/* Brochure cards (inc/brochures.php). theme.js shows a card by toggling .flex, so the grid is set on that state.
+   Phones: cover and title side by side, then text and actions across the whole card, all on one left edge.
+   From 640px: the cover keeps its own column and the rest stacks beside it with the actions at the foot. */
+.boblift-brochure-card.flex {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  grid-template-areas: "cover head" "text text" "actions actions";
+  column-gap: 14px;
+  row-gap: 0;
+  align-items: start;
+}
+.boblift-brochure-card-cover { grid-area: cover; }
+.boblift-brochure-card-head { grid-area: head; align-self: center; }
+.boblift-brochure-card-text { grid-area: text; margin-top: 14px; }
+.boblift-brochure-card-actions { grid-area: actions; padding-top: 16px; }
+@media (min-width: 640px) {
+  .boblift-brochure-card.flex {
+    grid-template-columns: 112px minmax(0, 1fr);
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas: "cover head" "cover text" "cover actions";
+    column-gap: 16px;
+  }
+  .boblift-brochure-card-head { align-self: start; }
+  .boblift-brochure-card-text { margin-top: 8px; }
+  .boblift-brochure-card-actions { align-self: end; }
+  /* The single wide brochure row has a larger cover (8.5rem, above), so its column and gap follow it. */
+  [data-brochure-single] .boblift-brochure-card.flex {
+    grid-template-columns: 8.5rem minmax(0, 1fr);
+    column-gap: 1.5rem;
+  }
+}

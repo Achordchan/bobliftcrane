@@ -247,22 +247,23 @@ function boblift_render_brochures(array $args = []): void
                 ];
                 $meta = array_values(array_filter($meta, 'strlen'));
                 ?>
-                <article class="<?php echo $hidden ? 'hidden' : 'flex'; ?> gap-4 rounded border border-line <?php echo esc_attr($card_bg); ?> p-4 shadow-card" data-brochure-card data-brochure-family="<?php echo esc_attr($item['key']); ?>">
-                    <a class="block w-24 shrink-0 self-start sm:w-28" data-brochure-cover href="<?php echo esc_url($item['url']); ?>" download="<?php echo esc_attr($item['file']); ?>" tabindex="-1" aria-hidden="true">
+                <?php // Phones: the cover beside the chips and title, then the text and the two actions across the full card width. From 640px the cover takes its own column. ?>
+                <article class="boblift-brochure-card <?php echo $hidden ? 'hidden' : 'flex'; ?> rounded border border-line <?php echo esc_attr($card_bg); ?> p-4 shadow-card" data-brochure-card data-brochure-family="<?php echo esc_attr($item['key']); ?>">
+                    <a class="boblift-brochure-card-cover block" data-brochure-cover href="<?php echo esc_url($item['url']); ?>" download="<?php echo esc_attr($item['file']); ?>" tabindex="-1" aria-hidden="true">
                         <img class="aspect-[520/711] w-full rounded-sm border border-line bg-white object-cover" src="<?php echo esc_url($item['cover']); ?>" width="520" height="711" alt="" loading="lazy" decoding="async">
                     </a>
-                    <div class="flex min-w-0 flex-1 flex-col">
+                    <div class="boblift-brochure-card-head min-w-0">
                         <ul class="flex flex-wrap gap-1.5" aria-label="<?php echo esc_attr($item['title']); ?>">
                             <?php foreach ($meta as $chip) : ?>
                                 <li class="rounded-sm border border-line bg-white px-2 py-0.5 text-[11px] font-black uppercase tracking-[0.08em] text-slate-500"><?php echo esc_html($chip); ?></li>
                             <?php endforeach; ?>
                         </ul>
                         <h3 class="mt-3 text-lg font-black leading-snug text-ink"><?php echo esc_html($item['title']); ?></h3>
-                        <p class="mt-2 text-sm font-normal leading-6 text-slate-600"><?php echo esc_html($item['text']); ?></p>
-                        <div class="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 pt-4">
-                            <a class="inline-flex h-11 items-center justify-center gap-2 rounded-sm bg-navy px-5 text-sm font-black text-white transition hover:bg-[#0b2d5b]" href="<?php echo esc_url($item['url']); ?>" download="<?php echo esc_attr($item['file']); ?>" title="<?php echo esc_attr($download_title); ?>"><?php echo boblift_icon('download', 'h-4 w-4'); ?><?php echo esc_html((string) ($ui['downloadLabel'] ?? 'Download PDF')); ?></a>
-                            <?php echo boblift_brochure_quote_button($item, $args, 'inline-flex h-11 items-center text-sm font-black text-blue-700 transition hover:text-navy'); ?>
-                        </div>
+                    </div>
+                    <p class="boblift-brochure-card-text min-w-0 text-sm font-normal leading-6 text-slate-600"><?php echo esc_html($item['text']); ?></p>
+                    <div class="boblift-brochure-card-actions flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
+                        <a class="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-sm bg-navy px-5 text-sm font-black text-white transition hover:bg-[#0b2d5b] sm:flex-none" href="<?php echo esc_url($item['url']); ?>" download="<?php echo esc_attr($item['file']); ?>" title="<?php echo esc_attr($download_title); ?>"><?php echo boblift_icon('download', 'h-4 w-4'); ?><?php echo esc_html((string) ($ui['downloadLabel'] ?? 'Download PDF')); ?></a>
+                        <?php echo boblift_brochure_quote_button($item, $args, 'inline-flex h-11 shrink-0 items-center text-sm font-black text-blue-700 transition hover:text-navy'); ?>
                     </div>
                 </article>
             <?php endforeach; ?>

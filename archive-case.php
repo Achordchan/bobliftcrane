@@ -18,25 +18,47 @@ $case_results_template = $ui['resultsTemplate'] ?? 'Showing {from}–{to} of {to
 $case_pagination_label = $ui['paginationLabel'] ?? 'Case pages';
 $feedback_items = function_exists('boblift_feedback_items') ? boblift_feedback_items() : [];
 $country_options = [];
+// Products are filtered by name and size ("2 t telescopic boom truck mounted crane"), which customers know and search for,
+// rather than by model code; each option lists its model codes underneath, and the search matches either.
 $product_options = [];
-foreach ($feedback_items as $feedback) {
+$product_models = [];
+$product_group = static function (int $id, string $model): string {
+    $product = $id > 0 ? (boblift_item_related_products($id, 1)[0] ?? null) : null;
+    $title = $product instanceof WP_Post ? trim((string) boblift_series_card_view(boblift_product_from_post($product))['full_title']) : '';
+    return $title !== '' ? $title : $model;
+};
+$add_product = static function (string $group, string $model) use (&$product_options, &$product_models): void {
+    if ($group === '') {
+        return;
+    }
+    $product_options[$group] = $group;
+    if ($model !== '' && $model !== $group) {
+        $product_models[$group][$model] = $model;
+    }
+};
+$feedback_groups = [];
+foreach ($feedback_items as $feedback_index => $feedback) {
     if ($feedback['country'] !== '') {
         $country_options[$feedback['country']] = $feedback['country'];
     }
-    if ($feedback['model'] !== '') {
-        $product_options[$feedback['model']] = $feedback['model'];
-    }
+    // The card's own title (memoised there), so the filter and the card name the product alike.
+    $feedback_groups[$feedback_index] = $feedback['model'] !== '' ? boblift_feedback_card_view($feedback)['title'] : '';
+    $add_product($feedback_groups[$feedback_index], $feedback['model']);
 }
-foreach ($cases as $case) {
+$case_groups = [];
+foreach ($cases as $case_index => $case) {
     $country = trim((string) ($case['country'] ?? ''));
     $product = trim((string) ($case['product_name'] ?? ''));
     if ($country !== '') {
         $country_options[$country] = $country;
     }
-    if ($product !== '') {
-        $product_options[$product] = $product;
-    }
+    $case_groups[$case_index] = $product !== '' ? $product_group((int) ($case['id'] ?? 0), $product) : '';
+    $add_product($case_groups[$case_index], $product);
 }
+foreach ($product_models as &$models) {
+    natcasesort($models);
+}
+unset($models);
 $stats = [
     ['value' => count($feedback_items) + count($cases), 'label' => $ui['statProjectsLabel'] ?? 'Customer projects'],
     ['value' => count($country_options), 'label' => $ui['statCountriesLabel'] ?? 'Countries'],
@@ -46,14 +68,14 @@ $stats = [
 $stats = array_values(array_filter($stats, static fn(array $stat): bool => $stat['value'] > 0));
 natcasesort($country_options);
 natcasesort($product_options);
-$render_case_filter = static function (string $id, string $filter, string $all_label, array $options) use ($case_search_country_label, $case_search_product_label, $case_no_results_label): void {
+$render_case_filter = static function (string $id, string $filter, string $all_label, array $options, array $option_models = []) use ($case_search_country_label, $case_search_product_label, $case_no_results_label): void {
     $search_label = $filter === 'country' ? $case_search_country_label : $case_search_product_label;
     ?>
     <div class="boblift-cases-filter" data-cases-custom-select data-cases-filter-target="<?php echo esc_attr($filter); ?>">
         <label class="sr-only" for="<?php echo esc_attr($id); ?>"><?php echo esc_html($all_label); ?></label>
         <select id="<?php echo esc_attr($id); ?>" class="boblift-cases-native-select" data-cases-filter="<?php echo esc_attr($filter); ?>" tabindex="-1" aria-hidden="true">
             <option value=""><?php echo esc_html($all_label); ?></option>
-            <?php foreach ($options as $option) : ?><option value="<?php echo esc_attr($option); ?>"><?php echo esc_html($option); ?></option><?php endforeach; ?>
+            <?php foreach ($options as $option) : ?><option value="<?php echo esc_attr($option); ?>"<?php echo !empty($option_models[$option]) ? ' data-models="' . esc_attr((string) wp_json_encode(array_values($option_models[$option]), JSON_UNESCAPED_UNICODE)) . '"' : ''; ?>><?php echo esc_html($option); ?></option><?php endforeach; ?>
         </select>
         <button class="boblift-cases-select-trigger" type="button" data-cases-custom-select-toggle aria-haspopup="listbox" aria-expanded="false">
             <span data-cases-custom-select-label><?php echo esc_html($all_label); ?></span>
@@ -68,9 +90,11 @@ $render_case_filter = static function (string $id, string $filter, string $all_l
                     <span><?php echo esc_html($all_label); ?></span>
                     <span class="boblift-cases-select-check"><?php echo boblift_icon('check', 'h-4 w-4'); ?></span>
                 </button>
-                <?php foreach ($options as $option) : ?>
-                    <button class="boblift-cases-select-option" type="button" role="option" aria-selected="false" data-cases-custom-option data-option-text="<?php echo esc_attr($option); ?>" value="<?php echo esc_attr($option); ?>">
-                        <span><?php echo esc_html($option); ?></span>
+                <?php foreach ($options as $option) :
+                    $models_text = implode(' · ', $option_models[$option] ?? []);
+                    ?>
+                    <button class="boblift-cases-select-option" type="button" role="option" aria-selected="false" data-cases-custom-option data-option-label="<?php echo esc_attr($option); ?>" data-option-text="<?php echo esc_attr(trim($option . ' ' . $models_text)); ?>" value="<?php echo esc_attr($option); ?>">
+                        <span class="min-w-0"><?php echo esc_html($option); ?><?php if ($models_text !== '') : ?><span class="boblift-cases-select-models"><bdi><?php echo esc_html($models_text); ?></bdi></span><?php endif; ?></span>
                         <span class="boblift-cases-select-check"><?php echo boblift_icon('check', 'h-4 w-4'); ?></span>
                     </button>
                 <?php endforeach; ?>
@@ -111,7 +135,7 @@ $render_case_filter = static function (string $id, string $filter, string $all_l
             </div>
             <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] gap-3 xl:min-w-[620px]">
                 <?php $render_case_filter('case-country-filter', 'country', $all_countries_label, $country_options); ?>
-                <?php $render_case_filter('case-product-filter', 'product', $all_products_label, $product_options); ?>
+                <?php $render_case_filter('case-product-filter', 'product', $all_products_label, $product_options, $product_models); ?>
                 <button class="boblift-cases-reset-button" type="button" data-cases-reset aria-label="<?php echo esc_attr($reset_label); ?>"><?php echo boblift_icon('rotate-cw', 'h-4 w-4'); ?><span><?php echo esc_html($reset_label); ?></span></button>
             </div>
     </div>
@@ -123,6 +147,7 @@ $render_case_filter = static function (string $id, string $filter, string $all_l
             $kind = boblift_normalize_case_kind((string) ($item['case_kind'] ?? 'scene_case'));
             $country = trim((string) ($item['country'] ?? ''));
             $product = trim((string) ($item['product_name'] ?? ''));
+            $product_key = $case_groups[$index] ?? $product;
             $application = trim((string) ($item['application'] ?? ''));
             $image = boblift_item_image($item);
             $media_type = ($item['feedback_media_type'] ?? 'image') === 'video' ? 'video' : 'image';
@@ -130,7 +155,7 @@ $render_case_filter = static function (string $id, string $filter, string $all_l
             $feedback_quote = trim((string) ($item['feedback_quote'] ?? ''));
         ?>
             <?php if ($kind === 'customer_feedback') : ?>
-                <article class="boblift-case-card group" data-cases-card data-case-kind="customer_feedback" data-country="<?php echo esc_attr($country); ?>" data-product="<?php echo esc_attr($product); ?>">
+                <article class="boblift-case-card group" data-cases-card data-case-kind="customer_feedback" data-country="<?php echo esc_attr($country); ?>" data-product="<?php echo esc_attr($product_key); ?>">
                     <button class="block h-full w-full text-start" type="button" data-cases-media-open data-media-type="<?php echo esc_attr($media_type); ?>" data-media-src="<?php echo esc_url($media_src); ?>" data-media-title="<?php echo esc_attr($item['title']); ?>">
                         <span class="boblift-case-card-media relative block aspect-[4/3] overflow-hidden rounded bg-[#eef5ff]">
                             <img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.035]" <?php echo boblift_img_src($image, '(min-width: 1280px) 30vw, 45vw'); ?> alt="<?php echo esc_attr($item['title']); ?>" loading="<?php echo $index === 0 ? 'eager' : 'lazy'; ?>" decoding="async">
@@ -147,7 +172,7 @@ $render_case_filter = static function (string $id, string $filter, string $all_l
                     </button>
                 </article>
             <?php else : ?>
-                <article class="boblift-case-card group" data-cases-card data-case-kind="scene_case" data-country="<?php echo esc_attr($country); ?>" data-product="<?php echo esc_attr($product); ?>">
+                <article class="boblift-case-card group" data-cases-card data-case-kind="scene_case" data-country="<?php echo esc_attr($country); ?>" data-product="<?php echo esc_attr($product_key); ?>">
                     <a class="block h-full" href="<?php echo esc_url($item['url']); ?>">
                         <span class="boblift-case-card-media relative block aspect-[4/3] overflow-hidden rounded bg-[#eef5ff]">
                             <img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.035]" <?php echo boblift_img_src($image, '(min-width: 1280px) 30vw, 45vw'); ?> alt="<?php echo esc_attr($item['title']); ?>" loading="<?php echo $index === 0 ? 'eager' : 'lazy'; ?>" decoding="async">
@@ -165,13 +190,13 @@ $render_case_filter = static function (string $id, string $filter, string $all_l
                 </article>
             <?php endif; ?>
         <?php endforeach; ?>
-        <?php foreach ($feedback_items as $feedback) :
+        <?php foreach ($feedback_items as $feedback_index => $feedback) :
             $feedback_view = boblift_feedback_card_view($feedback);
             $feedback_title = trim($feedback_view['title'] . ($feedback['note'] !== '' ? ' ' . $feedback['note'] : ''));
             $feedback_caption = implode(' · ', array_filter([$feedback['model'], $feedback['country']]));
             $feedback_counts = boblift_feedback_counts_text($feedback);
         ?>
-            <article class="boblift-case-card group" data-cases-card data-case-kind="customer_feedback" data-country="<?php echo esc_attr($feedback['country']); ?>" data-product="<?php echo esc_attr($feedback['model']); ?>">
+            <article class="boblift-case-card group" data-cases-card data-case-kind="customer_feedback" data-country="<?php echo esc_attr($feedback['country']); ?>" data-product="<?php echo esc_attr($feedback_groups[$feedback_index] ?? $feedback['model']); ?>">
                 <a class="block h-full" href="<?php echo esc_url($feedback['url']); ?>">
                     <span class="boblift-case-card-media relative block aspect-[4/3] overflow-hidden rounded bg-[#eef5ff]">
                         <?php if ($feedback['cover'] !== '') : ?><img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.035]" <?php echo boblift_img_src($feedback['cover'], '(min-width: 1280px) 30vw, 45vw'); ?> alt="<?php echo esc_attr($feedback_caption); ?>" loading="lazy" decoding="async"><?php endif; ?>

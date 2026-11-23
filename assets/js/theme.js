@@ -4898,9 +4898,22 @@
     const casesPerPage = 12;
     let casesPage = Math.max(1, Number.parseInt(urlParams.get('case_page') || '1', 10) || 1);
     // Prefixed: "product" is the product post type's query variable and would turn the address into a product request.
+    // Products are grouped by name; an older address with a model code (case_product=SQ2SA3) opens the group holding it.
     [[countryFilter, 'case_country'], [productFilter, 'case_product']].forEach(([select, key]) => {
       const value = urlParams.get(key) || '';
-      if (select && value && Array.from(select.options).some((option) => option.value === value)) select.value = value;
+      if (!select || !value) return;
+      const options = Array.from(select.options);
+      const aliases = (option) => {
+        try {
+          const list = JSON.parse(option.dataset.models || '[]');
+          return Array.isArray(list) ? list : [];
+        } catch {
+          return [];
+        }
+      };
+      const match = options.find((option) => option.value === value)
+        || options.find((option) => aliases(option).includes(value));
+      if (match) select.value = match.value;
     });
     const writeCasesUrl = () => {
       const url = new URL(window.location.href);
@@ -5126,7 +5139,7 @@
       const options = qsa('[data-cases-custom-option]', selectRoot);
       const value = nativeSelect?.value || '';
       const activeOption = options.find((option) => option.getAttribute('value') === value) || options[0];
-      if (label && activeOption) label.textContent = activeOption.textContent.trim();
+      if (label && activeOption) label.textContent = (activeOption.dataset.optionLabel || activeOption.textContent).trim();
       options.forEach((option) => {
         const active = option === activeOption;
         option.classList.toggle('is-active', active);
@@ -5138,12 +5151,20 @@
       const search = qs('[data-cases-custom-search]', selectRoot);
       const empty = qs('[data-cases-custom-empty]', selectRoot);
       const options = qsa('[data-cases-custom-option]', selectRoot);
-      const query = (search?.value || '').trim().toLowerCase();
+      // Spaces are ignored on both sides, so "2吨" finds "2 吨" and "sq 2" finds SQ2SA3.
+      // A number at either end of the query matches whole numbers only: "5吨" finds 5 t and not 2.5 t or 25 t, "5" not 50 or 5.5.
+      // A decimal comma ("2,5 t" in Spanish, French or Russian titles) is read as a decimal point on both sides.
+      const normalize = (text) => text.replace(/\s+/g, '').replace(/(\d),(?=\d)/g, '$1.').toLowerCase();
+      const query = normalize(search?.value || '');
+      const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const numeric = /^\d|\d$/.test(query)
+        ? new RegExp(`${/^\d/.test(query) ? '(^|[^\\d.])' : ''}${escaped}${/\d$/.test(query) ? '(?!\\d|\\.\\d)' : ''}`)
+        : null;
       let matched = 0;
       options.forEach((option) => {
         const value = option.getAttribute('value') || '';
-        const text = (option.dataset.optionText || option.textContent || '').toLowerCase();
-        const visible = value === '' || query === '' || text.includes(query);
+        const text = normalize(option.dataset.optionText || option.textContent || '');
+        const visible = value === '' || query === '' || (numeric ? numeric.test(text) : text.includes(query));
         option.classList.toggle('hidden', !visible);
         if (value !== '' && visible) matched += 1;
       });
@@ -6680,4 +6701,32 @@
     rel.add('noopener');
     link.rel = [...rel].join(' ');
   });
+})();
+
+// Arriving at an anchor on another page (the menu's Brochures link goes to products.html#brochures): the browser jumps
+// before the product grid and its images have their height, so the section ends up far below the screen. Until the
+// reader scrolls, the target is aligned again whenever the page grows, for the first few seconds.
+(() => {
+  const id = decodeURIComponent(window.location.hash.slice(1));
+  const target = id ? document.getElementById(id) : null;
+  if (!target || !('ResizeObserver' in window)) return;
+  // A reload or Back restores the reader's own position; only a fresh arrival at the anchor is aligned.
+  const navigation = performance.getEntriesByType?.('navigation')[0];
+  if (navigation && navigation.type !== 'navigate') return;
+  let done = false;
+  const stop = () => {
+    done = true;
+    observer.disconnect();
+  };
+  const align = () => {
+    if (!done) target.scrollIntoView({ block: 'start' });
+  };
+  const observer = new ResizeObserver(align);
+  observer.observe(document.body);
+  ['wheel', 'touchstart', 'keydown', 'mousedown'].forEach((type) => window.addEventListener(type, stop, { once: true, passive: true }));
+  window.addEventListener('load', () => {
+    align();
+    window.setTimeout(stop, 2500);
+  }, { once: true });
+  window.setTimeout(stop, 8000);
 })();
