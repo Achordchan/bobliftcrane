@@ -33,6 +33,8 @@ const BOBLIFT_INDEXNOW_LEASE = 15 * 60;
 const BOBLIFT_INDEXNOW_ROW_IDS = 1000;
 const BOBLIFT_INDEXNOW_RUN_ROWS = 20;
 const BOBLIFT_INDEXNOW_RUN_SECONDS = 60;
+// Most batch rows read by one worker run or one wake-up reconciliation.
+const BOBLIFT_INDEXNOW_SCAN_ROWS = 100;
 
 function boblift_indexnow_valid_key(mixed $key): bool
 {
@@ -131,18 +133,38 @@ function boblift_indexnow_payloads(array $urls, string $home, string $key): arra
     return $payloads;
 }
 
-/** @return array<string, int[]> permalink => post IDs, for the queued posts that still qualify, read in the current blog. */
-function boblift_indexnow_resolve(array $post_ids): array
+/**
+ * @return array<string, int[]>|null permalink => post IDs for the queued posts that still qualify, read in the current
+ * blog; null when a post could not be read, so the caller keeps the batch. Existence is checked in one query per chunk
+ * (a failed query is told apart from a deleted post by wpdb's last_error), then the post, term and meta caches are
+ * primed for the chunk so permalinks do not cost one round trip per post.
+ */
+function boblift_indexnow_resolve(array $post_ids): ?array
 {
+    global $wpdb;
+    $ids = array_values(array_unique(array_filter(array_map('intval', $post_ids), static fn(int $id): bool => $id > 0)));
     $urls = [];
-    foreach ($post_ids as $id) {
-        $post = get_post((int) $id);
-        if (!boblift_indexnow_post_qualifies($post)) {
-            continue;
+    foreach (array_chunk($ids, 100) as $chunk) {
+        $in = implode(',', array_fill(0, count($chunk), '%d'));
+        $found = $wpdb->get_col($wpdb->prepare("SELECT ID FROM {$wpdb->posts} WHERE ID IN ($in)", ...$chunk));
+        if ((string) $wpdb->last_error !== '' || !is_array($found)) {
+            return null;
         }
-        $url = get_permalink($post);
-        if (is_string($url) && $url !== '') {
-            $urls[$url][] = (int) $post->ID;
+        $found = array_map('intval', $found);
+        _prime_post_caches($found, true, true);
+        foreach ($found as $id) {
+            $post = get_post($id);
+            if (!$post instanceof WP_Post) {
+                // The row was there a moment ago: treat it as a failed read and keep the batch for another run.
+                return null;
+            }
+            if (!boblift_indexnow_post_qualifies($post)) {
+                continue;
+            }
+            $url = get_permalink($post);
+            if (is_string($url) && $url !== '') {
+                $urls[$url][] = (int) $post->ID;
+            }
         }
     }
     return $urls;
@@ -151,7 +173,7 @@ function boblift_indexnow_resolve(array $post_ids): array
 /**
  * Sends the posts' current permalinks; runs from cron. When $retry is true, the IDs behind a POST that failed (no
  * connection, 429 or 5xx) are saved for one more try ten minutes later; that try itself does not retry. Returns false
- * only when such a retry could not be saved anywhere, so the caller keeps its own copy of the batch.
+ * when the posts could not be read or such a retry could not be saved anywhere, so the caller keeps its copy of the batch.
  */
 function boblift_indexnow_send(array $post_ids, bool $retry = true): bool
 {
@@ -159,6 +181,9 @@ function boblift_indexnow_send(array $post_ids, bool $retry = true): bool
         return true;
     }
     $by_url = boblift_indexnow_resolve($post_ids);
+    if ($by_url === null) {
+        return false;
+    }
     if ($by_url === []) {
         return true;
     }
@@ -189,6 +214,22 @@ function boblift_indexnow_send(array $post_ids, bool $retry = true): bool
 }
 
 /**
+/**
+ * A batch row's option name: the due time, zero-padded so names sort by it, then a unique suffix so concurrent requests
+ * never touch each other's rows. Sorting by name lets the worker and the wake-up read the earliest rows first.
+ */
+function boblift_indexnow_row_name(int $due): string
+{
+    return BOBLIFT_INDEXNOW_RETRY_PREFIX . sprintf('%010d', max(0, $due)) . '_' . str_replace('-', '', wp_generate_uuid4());
+}
+
+/** The due time written into a row's name (0 for a name without one, so it sorts and runs first). */
+function boblift_indexnow_name_due(string $name): int
+{
+    return preg_match('/^' . preg_quote(BOBLIFT_INDEXNOW_RETRY_PREFIX, '/') . '(\d{10})_/', $name, $m) === 1 ? (int) $m[1] : 0;
+}
+
+/**
  * Saves post IDs as batch rows of at most BOBLIFT_INDEXNOW_ROW_IDS each (unique names, so concurrent requests never
  * touch each other's rows, and each row is small enough for one worker step) and moves the wake-up to $due if needed.
  * $retry says whether a failed POST of the batch gets one more try. Returns false if any part could not be kept.
@@ -198,7 +239,7 @@ function boblift_indexnow_save_batch(array $post_ids, int $due, bool $retry): bo
     $kept = true;
     foreach (array_chunk(array_map('intval', $post_ids), BOBLIFT_INDEXNOW_ROW_IDS) as $ids) {
         $batch = ['due' => $due, 'ids' => $ids, 'retry' => $retry];
-        if (add_option(BOBLIFT_INDEXNOW_RETRY_PREFIX . str_replace('-', '', wp_generate_uuid4()), $batch, '', 'no')) {
+        if (add_option(boblift_indexnow_row_name($due), $batch, '', 'no')) {
             // The new row's own due time is enough here; the worker and the hourly sweep reconcile the rest.
             boblift_indexnow_wake_at($due);
         } else {
@@ -220,11 +261,18 @@ function boblift_indexnow_schedule_event(int $time, array $args = []): bool
     return true;
 }
 
-/** @return string[] option names of saved retry batches in the current blog */
-function boblift_indexnow_retry_names(): array
+/**
+ * @return string[] option names of saved batch rows in the current blog, earliest due first, at most $limit of them;
+ * with $due_by, only rows due by then.
+ */
+function boblift_indexnow_retry_names(int $limit = BOBLIFT_INDEXNOW_SCAN_ROWS, ?int $due_by = null): array
 {
     global $wpdb;
-    return array_map('strval', (array) $wpdb->get_col($wpdb->prepare("SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s", $wpdb->esc_like(BOBLIFT_INDEXNOW_RETRY_PREFIX) . '%')));
+    $like = $wpdb->esc_like(BOBLIFT_INDEXNOW_RETRY_PREFIX) . '%';
+    $query = $due_by === null
+        ? $wpdb->prepare("SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s ORDER BY option_name ASC LIMIT %d", $like, $limit)
+        : $wpdb->prepare("SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s AND option_name < %s ORDER BY option_name ASC LIMIT %d", $like, BOBLIFT_INDEXNOW_RETRY_PREFIX . sprintf('%010d', $due_by + 1), $limit);
+    return array_map('strval', (array) $wpdb->get_col($query));
 }
 
 /**
@@ -292,14 +340,24 @@ function boblift_indexnow_runnable_at(array $batch): int
 }
 
 /**
- * Keeps one wake-up event at the earliest time a waiting batch can run. An existing wake-up at or before that time is
- * reused (also when cron is late and it is overdue); it is replaced only when a batch needs an earlier run. A batch
- * that could not be read counts as runnable in ten minutes.
+ * Keeps one wake-up event at the earliest time a waiting batch can run. Reads at most BOBLIFT_INDEXNOW_SCAN_ROWS rows,
+ * earliest due first, and stops as soon as the next row's due time is past the earliest runnable time found (a row
+ * never runs before its due time). If more rows remain unread, the wake-up is set no later than the due time of the
+ * last row read, which is the earliest any unread row can run. A batch that could not be read counts as runnable in
+ * ten minutes.
  */
 function boblift_indexnow_schedule_retry(): void
 {
     $next = null;
-    foreach (boblift_indexnow_retry_names() as $name) {
+    $names = boblift_indexnow_retry_names();
+    $complete = count($names) < BOBLIFT_INDEXNOW_SCAN_ROWS;
+    $last_due = null;
+    foreach ($names as $name) {
+        $last_due = boblift_indexnow_name_due($name);
+        if ($next !== null && $last_due >= $next) {
+            $complete = true;
+            break;
+        }
         $batch = boblift_indexnow_read_retry($name);
         if ($batch === false) {
             boblift_indexnow_claim_retry($name);
@@ -307,6 +365,9 @@ function boblift_indexnow_schedule_retry(): void
         }
         $at = $batch === null ? time() + 10 * MINUTE_IN_SECONDS : boblift_indexnow_runnable_at($batch);
         $next = $next === null ? $at : min($next, $at);
+    }
+    if (!$complete && $last_due !== null) {
+        $next = $next === null ? $last_due : min($next, $last_due);
     }
     if ($next !== null) {
         boblift_indexnow_wake_at($next);
@@ -316,14 +377,14 @@ function boblift_indexnow_schedule_retry(): void
 /**
  * Makes sure the one wake-up event runs no later than $at: an existing wake-up at or before it is reused (also when
  * it is overdue), otherwise it is moved to $at. Reads only the wake-up option, never the batch rows. The read, check
- * and replacement run under a short lock row (add_option() inserts only if absent), so two requests never both
- * replace the same wake-up. A request that finds the lock held schedules its own run at $at instead of waiting;
+ * and replacement run under a short lock row held by a token, so two requests never both replace the same wake-up. A request that finds the lock held schedules its own run at $at instead of waiting;
  * that costs at most one extra worker run and never delays a batch.
  */
 function boblift_indexnow_wake_at(int $at): void
 {
     $next = max($at, time());
-    if (!boblift_indexnow_lock()) {
+    $lock = boblift_indexnow_lock();
+    if ($lock === null) {
         if (!wp_next_scheduled(BOBLIFT_INDEXNOW_RETRY_HOOK, [['at' => $next]])) {
             boblift_indexnow_schedule_event($next, [['at' => $next]]);
         }
@@ -338,29 +399,39 @@ function boblift_indexnow_wake_at(int $at): void
         update_option(BOBLIFT_INDEXNOW_WAKE_OPTION, $next, false);
         boblift_indexnow_schedule_event($next, [['at' => $next]]);
     }
-    boblift_indexnow_unlock();
+    boblift_indexnow_unlock($lock);
 }
 
-/** Takes the wake-up lock; a lock older than 30 seconds belongs to a request that died and is taken over. */
-function boblift_indexnow_lock(): bool
+/**
+ * Takes the wake-up lock and returns this request's token, or null when another request holds it. The lock row is
+ * created with INSERT IGNORE (atomic in the database, unlike add_option()); a lock older than 30 seconds belongs to a
+ * request that died and is taken over with a compare-and-swap UPDATE, so only one request wins it.
+ */
+function boblift_indexnow_lock(): ?string
 {
     global $wpdb;
-    if (add_option(BOBLIFT_INDEXNOW_LOCK_OPTION, time(), '', 'no')) {
-        return true;
+    $token = time() . ':' . wp_generate_uuid4();
+    $inserted = (int) $wpdb->query($wpdb->prepare("INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')", BOBLIFT_INDEXNOW_LOCK_OPTION, $token)) === 1;
+    wp_cache_delete(BOBLIFT_INDEXNOW_LOCK_OPTION, 'options');
+    if ($inserted) {
+        return $token;
     }
     $held = $wpdb->get_row($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s LIMIT 1", BOBLIFT_INDEXNOW_LOCK_OPTION), ARRAY_A);
+    // The token starts with the time it was taken; (int) reads that leading number.
     if (!is_array($held) || (int) $held['option_value'] > time() - 30) {
-        return false;
+        return null;
     }
-    // Take over a stale lock only if nobody else did first.
-    $taken = (int) $wpdb->query($wpdb->prepare("UPDATE {$wpdb->options} SET option_value = %s WHERE option_name = %s AND option_value = %s", (string) time(), BOBLIFT_INDEXNOW_LOCK_OPTION, (string) $held['option_value'])) === 1;
+    $taken = (int) $wpdb->query($wpdb->prepare("UPDATE {$wpdb->options} SET option_value = %s WHERE option_name = %s AND option_value = %s", $token, BOBLIFT_INDEXNOW_LOCK_OPTION, (string) $held['option_value'])) === 1;
     wp_cache_delete(BOBLIFT_INDEXNOW_LOCK_OPTION, 'options');
-    return $taken;
+    return $taken ? $token : null;
 }
 
-function boblift_indexnow_unlock(): void
+/** Releases the lock only if it still holds this request's token, so a request whose lock was taken over leaves the new owner's lock alone. */
+function boblift_indexnow_unlock(string $token): void
 {
-    delete_option(BOBLIFT_INDEXNOW_LOCK_OPTION);
+    global $wpdb;
+    $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name = %s AND option_value = %s", BOBLIFT_INDEXNOW_LOCK_OPTION, $token));
+    wp_cache_delete(BOBLIFT_INDEXNOW_LOCK_OPTION, 'options');
 }
 
 /**
@@ -369,17 +440,23 @@ function boblift_indexnow_unlock(): void
  * scheduled at the end. Each row is leased, checked to be still ours right before its POST, and deleted only by its
  * owner after the POST and any retry row were saved; if the retry could not be saved the row stays and runs again when
  * the lease ends. A row that could not be read, is not due, or is leased by a live run stays; a row that was read but
- * holds no valid batch is removed. $carried is a batch that travelled in the cron event because its row could not be
- * written.
+ * holds no valid batch is removed. Only rows already due are read, earliest first, at most BOBLIFT_INDEXNOW_SCAN_ROWS.
+ * $carried is a batch that travelled in the cron event because its row could not be written; WP-Cron has already
+ * removed that event, so the batch is saved as a row first and runs below like any other. Only if it cannot be saved
+ * anywhere is it sent straight away, and a failure there is logged.
  */
 function boblift_indexnow_run_retries(array $carried = []): void
 {
     $started = time();
     if (is_array($carried['ids'] ?? null)) {
-        boblift_indexnow_send(array_map('intval', $carried['ids']), (bool) ($carried['retry'] ?? false));
+        $ids = array_map('intval', $carried['ids']);
+        $retry = (bool) ($carried['retry'] ?? false);
+        if (!boblift_indexnow_save_batch($ids, time(), $retry) && !boblift_indexnow_send($ids, $retry)) {
+            error_log(sprintf('IndexNow: a batch of %d posts could not be sent or saved.', count($ids)));
+        }
     }
     $rows = 0;
-    foreach (boblift_indexnow_retry_names() as $name) {
+    foreach (boblift_indexnow_retry_names(BOBLIFT_INDEXNOW_SCAN_ROWS, time()) as $name) {
         if ($rows >= BOBLIFT_INDEXNOW_RUN_ROWS || time() - $started >= BOBLIFT_INDEXNOW_RUN_SECONDS) {
             break;
         }

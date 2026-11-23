@@ -206,13 +206,22 @@ const BOBLIFT_LLMS_TXT_HELD_BACK_PATHS = [
 function boblift_llms_txt_articles(): array
 {
     $articles = [];
-    // Matched on the last path segment, so a language or subdirectory prefix (/en/news-show-89.html) still matches.
-    $held_back = array_fill_keys(array_map('basename', BOBLIFT_LLMS_TXT_HELD_BACK_PATHS), true);
+    $held_back = array_fill_keys(BOBLIFT_LLMS_TXT_HELD_BACK_PATHS, true);
+    // Paths are compared whole, after the install's own subdirectory and the English language prefix are removed, so
+    // /en/news-show-89.html matches the listed /news-show-89.html but /guides/news-show-89.html does not.
+    $base = rtrim((string) wp_parse_url((string) get_option('home'), PHP_URL_PATH), '/');
     // Fetch enough to fill 500 after the held-back posts are dropped.
     $posts = get_posts(['post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => 500 + count($held_back), 'has_password' => false, 'orderby' => ['date' => 'DESC', 'ID' => 'DESC'], 'no_found_rows' => true, 'lang' => 'en']);
     foreach ($posts as $post) {
         $url = get_permalink($post);
-        if (!is_string($url) || isset($held_back[basename((string) wp_parse_url($url, PHP_URL_PATH))])) {
+        if (!is_string($url)) {
+            continue;
+        }
+        $path = (string) wp_parse_url($url, PHP_URL_PATH);
+        if ($base !== '' && str_starts_with($path, $base . '/')) {
+            $path = substr($path, strlen($base));
+        }
+        if (isset($held_back[(string) preg_replace('#^/en(?=/)#', '', $path)])) {
             continue;
         }
         $articles[] = boblift_llms_txt_link(get_the_title($post), $url, boblift_seo_post_description($post));

@@ -60,8 +60,13 @@ function get_permalink(WP_Post $post): string
     return match ($post->ID) {
         300 => 'https://bobliftcrane.com/news-show-89.html',
         301 => 'https://bobliftcrane.com/en/news-show-273.html',
+        302 => 'https://bobliftcrane.com/guides/news-show-89.html',
         default => 'https://bobliftcrane.com/a' . $post->ID . '.html',
     };
+}
+function get_option(string $name, $default = false)
+{
+    return $name === 'home' ? 'https://bobliftcrane.com' : $default;
 }
 function wp_parse_url(string $url, int $component = -1)
 {
@@ -81,7 +86,8 @@ $check = static function (string $name, bool $ok) use (&$failures): void {
 $lines = boblift_llms_txt_articles();
 $has = static fn(int $id): bool => (bool) array_filter($lines, static fn(string $l): bool => str_contains($l, '(https://bobliftcrane.com/a' . $id . '.html)'));
 $check('lists 500 articles, not the old 60', count($lines) === 500);
-$check('old news held back for 301 or noindex is left out, with or without a language prefix', !array_filter($lines, static fn(string $l): bool => str_contains($l, 'news-show-')));
+$check('old news held back for 301 or noindex is left out, with or without a language prefix', !array_filter($lines, static fn(string $l): bool => str_contains($l, '(https://bobliftcrane.com/news-show-89.html)') || str_contains($l, 'news-show-273')));
+$check('an article with the same file name under another directory is kept', (bool) array_filter($lines, static fn(string $l): bool => str_contains($l, '(https://bobliftcrane.com/guides/news-show-89.html)')));
 $check('held-back posts do not use up slots: the 500 are filled with older articles', $has(19));
 $check('newest English article first, ID breaking the date tie', str_starts_with($lines[0], '- [Article 520](https://bobliftcrane.com/a520.html): About article 520'));
 $check('an older article past the old 60 is listed', $has(100) && $has(21));
