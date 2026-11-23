@@ -189,8 +189,8 @@ function boblift_llms_txt(): string
         }
     }
     $articles = [];
-    // Up to 500 English articles, newest first (ID breaks date ties), so older posts that AI answers already cite stay listed.
-    $posts = get_posts(['post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => 500, 'orderby' => ['date' => 'DESC', 'ID' => 'DESC'], 'no_found_rows' => true, 'lang' => 'en']);
+    // Up to 500 public (not password-protected) English articles, newest first (ID breaks date ties), so older posts that AI answers already cite stay listed.
+    $posts = get_posts(['post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => 500, 'has_password' => false, 'orderby' => ['date' => 'DESC', 'ID' => 'DESC'], 'no_found_rows' => true, 'lang' => 'en']);
     foreach ($posts as $post) {
         $articles[] = boblift_llms_txt_link(get_the_title($post), get_permalink($post), boblift_seo_post_description($post));
     }

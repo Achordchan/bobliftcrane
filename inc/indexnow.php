@@ -13,8 +13,8 @@ if (!defined('ABSPATH')) {
  * public, production) pings; local copies, staging clones, private sites and other hosts stay quiet. Changed posts are
  * queued by blog and ID during the request and resolved at shutdown, after every term and meta field is saved, then
  * sent in non-blocking POSTs of up to 10,000 URLs. The post IDs of a batch that cannot even be dispatched are saved
- * in their own option row; a cron run about ten minutes later claims each row with an atomic DELETE, checks each post
- * again and tries once more. A lost cron event is put back the next time anything is published.
+ * in their own option row with a due time ten minutes ahead; a cron run claims each due row with an atomic DELETE,
+ * checks each post again and tries once more. A lost cron event is put back the next time anything is published.
  */
 
 const BOBLIFT_INDEXNOW_ENDPOINT = 'https://api.indexnow.org/indexnow';
@@ -173,7 +173,8 @@ function boblift_indexnow_send(array $post_ids, bool $retry = true): void
  */
 function boblift_indexnow_save_retry(array $post_ids): void
 {
-    add_option(BOBLIFT_INDEXNOW_RETRY_PREFIX . str_replace('-', '', wp_generate_uuid4()), array_map('intval', $post_ids), '', 'no');
+    $batch = ['due' => time() + 10 * MINUTE_IN_SECONDS, 'ids' => array_map('intval', $post_ids)];
+    add_option(BOBLIFT_INDEXNOW_RETRY_PREFIX . str_replace('-', '', wp_generate_uuid4()), $batch, '', 'no');
     boblift_indexnow_schedule_retry();
 }
 
@@ -192,19 +193,26 @@ function boblift_indexnow_schedule_retry(): void
     }
 }
 
-/** Claims every saved batch (only the request whose DELETE removed the row sends it) and sends each once. */
+/**
+ * Claims each batch that is due (only the request whose DELETE removed the row sends it) and sends it once. A row that
+ * could not be read, or is not due yet, stays for a later run, which is scheduled while rows remain.
+ */
 function boblift_indexnow_run_retries(): void
 {
     global $wpdb;
     foreach (boblift_indexnow_retry_names() as $name) {
-        $value = $wpdb->get_var($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s LIMIT 1", $name));
+        $row = $wpdb->get_row($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s LIMIT 1", $name), ARRAY_A);
+        $batch = is_array($row) ? maybe_unserialize($row['option_value']) : null;
+        if (!is_array($batch) || (int) ($batch['due'] ?? 0) > time()) {
+            continue;
+        }
         $claimed = (int) $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name = %s", $name)) === 1;
         wp_cache_delete($name, 'options');
-        $post_ids = maybe_unserialize($value);
-        if ($claimed && is_array($post_ids)) {
-            boblift_indexnow_send($post_ids, false);
+        if ($claimed) {
+            boblift_indexnow_send((array) ($batch['ids'] ?? []), false);
         }
     }
+    boblift_indexnow_schedule_retry();
 }
 
 add_action('transition_post_status', static function (string $new_status, string $old_status, WP_Post $post): void {

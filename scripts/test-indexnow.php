@@ -45,9 +45,13 @@ class Fake_Wpdb
         $prefix = stripslashes(rtrim($q[1][0], '%'));
         return array_values(array_filter(array_keys($GLOBALS['options']), static fn($name): bool => str_starts_with((string) $name, $prefix)));
     }
+    public bool $fail_reads = false;
     public function get_row(array $q, string $output = 'OBJECT')
     {
-        return array_key_exists($q[1][0], $GLOBALS['options']) ? ['option_value' => (string) $GLOBALS['options'][$q[1][0]]] : null;
+        if ($this->fail_reads) {
+            return null;
+        }
+        return array_key_exists($q[1][0], $GLOBALS['options']) ? ['option_value' => $GLOBALS['options'][$q[1][0]]] : null;
     }
     public function query(array $q): int
     {
@@ -165,6 +169,14 @@ function maybe_unserialize($value)
 {
     return $value;
 }
+function wp_is_post_revision($post): bool
+{
+    return false;
+}
+function wp_is_post_autosave($post): bool
+{
+    return false;
+}
 function status_header(int $code): void
 {
     http_response_code($code);
@@ -249,7 +261,9 @@ $GLOBALS['remote_fails'] = true;
 boblift_indexnow_send([11]);
 boblift_indexnow_send([12]);
 $rows = boblift_indexnow_retry_names();
-$check('each failed dispatch is saved in its own row', count($rows) === 2 && array_map(static fn($n) => $GLOBALS['options'][$n], $rows) === [[11], [12]]);
+$ids = static fn(array $rows): array => array_map(static fn($n) => $GLOBALS['options'][$n]['ids'], $rows);
+$check('each failed dispatch is saved in its own row', count($rows) === 2 && $ids($rows) === [[11], [12]]);
+$check('each row is due ten minutes after its own failure', $GLOBALS['options'][$rows[0]]['due'] >= time() + 590);
 $check('one retry run is scheduled', $GLOBALS['scheduled'] === ['boblift_indexnow_retry']);
 $GLOBALS['scheduled'] = [];
 boblift_indexnow_schedule_retry();
@@ -257,13 +271,24 @@ $check('a lost retry event is scheduled again while rows wait', $GLOBALS['schedu
 $GLOBALS['posts'][11]->post_password = 'secret';
 $GLOBALS['remote_fails'] = false;
 $GLOBALS['sent'] = [];
+$GLOBALS['scheduled'] = [];
 ($GLOBALS['hooks']['boblift_indexnow_retry'])();
-$check('a retry checks visibility again and clears its rows', $GLOBALS['sent'] === [['https://bobliftcrane.com/p12.html']] && boblift_indexnow_retry_names() === []);
-add_option('boblift_indexnow_retry_x', [12], '', 'no');
+$check('rows that are not due yet are left for a later run', $GLOBALS['sent'] === [] && count(boblift_indexnow_retry_names()) === 2 && $GLOBALS['scheduled'] === ['boblift_indexnow_retry']);
+$GLOBALS['options'][$rows[0]]['due'] = time() - 1;
+$GLOBALS['options'][$rows[1]]['due'] = time() - 1;
+($GLOBALS['hooks']['boblift_indexnow_retry'])();
+$check('a due retry checks visibility again and clears its rows', $GLOBALS['sent'] === [['https://bobliftcrane.com/p12.html']] && boblift_indexnow_retry_names() === []);
+add_option('boblift_indexnow_retry_x', ['due' => 0, 'ids' => [12]], '', 'no');
 $GLOBALS['wpdb']->query(['DELETE', ['boblift_indexnow_retry_x']]);
 $GLOBALS['sent'] = [];
 boblift_indexnow_run_retries();
 $check('a row another run already claimed is not sent twice', $GLOBALS['sent'] === []);
+$GLOBALS['wpdb']->fail_reads = true;
+add_option('boblift_indexnow_retry_y', ['due' => 0, 'ids' => [12]], '', 'no');
+boblift_indexnow_run_retries();
+$GLOBALS['wpdb']->fail_reads = false;
+$check('a row that could not be read is kept', isset($GLOBALS['options']['boblift_indexnow_retry_y']) && $GLOBALS['sent'] === []);
+unset($GLOBALS['options']['boblift_indexnow_retry_y']);
 $GLOBALS['remote_fails'] = true;
 $GLOBALS['scheduled'] = [];
 boblift_indexnow_send([12], false);
@@ -274,8 +299,21 @@ foreach (range(1, 10001) as $i) {
 }
 boblift_indexnow_send(range(1, 10001));
 $rows = boblift_indexnow_retry_names();
-$check('10,001 failed posts are all kept for the retry', count($rows) === 1 && count($GLOBALS['options'][$rows[0]]) === 10001);
+$check('10,001 failed posts are all kept for the retry', count($rows) === 1 && count($ids($rows)[0]) === 10001);
+foreach ($rows as $name) {
+    unset($GLOBALS['options'][$name]);
+}
 $GLOBALS['remote_fails'] = false;
+
+// Publish to shutdown through the registered hooks: queued on publish, sent once at shutdown with the final permalink.
+$GLOBALS['posts'] = [21 => new WP_Post(21, 'product')];
+$GLOBALS['sent'] = [];
+$GLOBALS['boblift_indexnow_queue'] = [];
+($GLOBALS['hooks']['transition_post_status'])('publish', 'draft', $GLOBALS['posts'][21]);
+($GLOBALS['hooks']['transition_post_status'])('publish', 'publish', $GLOBALS['posts'][21]);
+$check('a publish queues without sending', $GLOBALS['sent'] === [] && boblift_indexnow_queued_ids() === [1 => [21]]);
+($GLOBALS['hooks']['shutdown'])();
+$check('shutdown sends the permalink once', $GLOBALS['sent'] === [['https://bobliftcrane.com/p21.html']]);
 
 $GLOBALS['options']['boblift_indexnow_key'] = "abcd1234\n";
 $check('a key with a trailing newline is repaired', preg_match('/^[a-z0-9]{32}\z/', boblift_indexnow_key()) === 1);
