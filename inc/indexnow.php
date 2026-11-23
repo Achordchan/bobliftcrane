@@ -12,9 +12,11 @@ if (!defined('ABSPATH')) {
  * check that the ping comes from the site owner. Only the live site (a host in BOBLIFT_INDEXNOW_HOSTS, explicitly
  * public, production) pings; local copies, staging clones, private sites and other hosts stay quiet. Changed posts are
  * queued by blog and ID during the request. At shutdown they are saved as a batch row (no network call on the
- * publishing request); a cron run claims each due row with an atomic DELETE, checks each post again and sends the
- * permalinks in non-blocking POSTs of up to 10,000 URLs. A POST that cannot even be dispatched gets one more try ten
- * minutes later, in a row of its own. An hourly sweep picks up any row whose cron event was lost.
+ * publishing request). A cron run leases each due row with a compare-and-swap UPDATE, checks each post again, sends
+ * the permalinks in POSTs of up to 10,000 URLs, and deletes the row only afterwards; a run that dies mid-way leaves
+ * the row to be picked up once its lease expires. A POST that fails (no connection, 429 or 5xx) gets one more try ten
+ * minutes later, in a row of its own. One wake-up event is kept, moved earlier only when a batch needs it, and an
+ * hourly sweep picks up any row whose event was lost.
  */
 
 const BOBLIFT_INDEXNOW_ENDPOINT = 'https://api.indexnow.org/indexnow';
@@ -25,6 +27,8 @@ const BOBLIFT_INDEXNOW_KEY_OPTION = 'boblift_indexnow_key';
 const BOBLIFT_INDEXNOW_RETRY_HOOK = 'boblift_indexnow_retry';
 const BOBLIFT_INDEXNOW_RETRY_PREFIX = 'boblift_indexnow_retry_';
 const BOBLIFT_INDEXNOW_SWEEP_HOOK = 'boblift_indexnow_sweep';
+const BOBLIFT_INDEXNOW_WAKE_OPTION = 'boblift_indexnow_wake';
+const BOBLIFT_INDEXNOW_LEASE = 15 * 60;
 
 function boblift_indexnow_valid_key(mixed $key): bool
 {
@@ -162,13 +166,15 @@ function boblift_indexnow_send(array $post_ids, bool $retry = true): void
         return;
     }
     foreach (boblift_indexnow_payloads(array_keys($by_url), (string) get_option('home'), $key) as $payload) {
+        // Blocking, from cron only: a non-blocking request can hide a failed connection.
         $response = wp_remote_post(BOBLIFT_INDEXNOW_ENDPOINT, [
-            'blocking' => false,
-            'timeout' => 3,
+            'timeout' => 10,
             'headers' => ['Content-Type' => 'application/json; charset=utf-8'],
             'body' => wp_json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
         ]);
-        if (is_wp_error($response) && $retry) {
+        $code = is_wp_error($response) ? 0 : (int) wp_remote_retrieve_response_code($response);
+        // IndexNow answers 200 or 202; 429 and 5xx are worth another try, other 4xx (bad key or URLs) are not.
+        if (($code === 0 || $code === 429 || $code >= 500) && $retry) {
             // One retry row per failed POST, so a slow retry of one batch never takes the others down with it.
             $ids = [];
             foreach ($payload['urlList'] as $url) {
@@ -212,7 +218,8 @@ function boblift_indexnow_retry_names(): array
 
 /**
  * Reads a saved batch. Returns null when the read itself failed (the row is kept for later), false when the row was
- * read but holds no valid batch, otherwise ['due' => int, 'ids' => int[], 'retry' => bool].
+ * read but holds no valid batch, otherwise ['due' => int, 'ids' => int[], 'retry' => bool, 'lease' => int, 'raw' => the
+ * stored string, for the compare-and-swap lease].
  */
 function boblift_indexnow_read_retry(string $name): array|false|null
 {
@@ -225,10 +232,10 @@ function boblift_indexnow_read_retry(string $name): array|false|null
     if (!is_array($batch) || !is_array($batch['ids'] ?? null) || !is_numeric($batch['due'] ?? null)) {
         return false;
     }
-    return ['due' => (int) $batch['due'], 'ids' => array_map('intval', $batch['ids']), 'retry' => (bool) ($batch['retry'] ?? false)];
+    return ['due' => (int) $batch['due'], 'ids' => array_map('intval', $batch['ids']), 'retry' => (bool) ($batch['retry'] ?? false), 'lease' => (int) ($batch['lease'] ?? 0), 'raw' => (string) $row['option_value']];
 }
 
-/** Claims a row with an atomic DELETE; true only for the request whose DELETE removed it. */
+/** Removes a row; true only for the request whose DELETE removed it. */
 function boblift_indexnow_claim_retry(string $name): bool
 {
     global $wpdb;
@@ -238,9 +245,30 @@ function boblift_indexnow_claim_retry(string $name): bool
 }
 
 /**
- * Makes sure a run is scheduled at the earliest waiting batch's due time, even when a later run is already scheduled.
- * The event carries that time as its argument, so runs at different times never collide. A batch that could not be
- * read counts as due in ten minutes.
+ * Leases a due row: a compare-and-swap UPDATE from the value just read to the same batch with a lease time, so only one
+ * run wins, and the row stays in the database until the batch has been sent.
+ */
+function boblift_indexnow_lease_retry(string $name, array $batch): bool
+{
+    global $wpdb;
+    $leased = $batch;
+    unset($leased['raw']);
+    $leased['lease'] = time() + BOBLIFT_INDEXNOW_LEASE;
+    $won = (int) $wpdb->query($wpdb->prepare("UPDATE {$wpdb->options} SET option_value = %s WHERE option_name = %s AND option_value = %s", maybe_serialize($leased), $name, $batch['raw'])) === 1;
+    wp_cache_delete($name, 'options');
+    return $won;
+}
+
+/** When the row can next be run: its due time, or the end of a lease still held by another run. */
+function boblift_indexnow_runnable_at(array $batch): int
+{
+    return max($batch['due'], $batch['lease']);
+}
+
+/**
+ * Keeps one wake-up event at the earliest time a waiting batch can run. An existing wake-up at or before that time is
+ * reused (also when cron is late and it is overdue); it is replaced only when a batch needs an earlier run. A batch
+ * that could not be read counts as runnable in ten minutes.
  */
 function boblift_indexnow_schedule_retry(): void
 {
@@ -251,18 +279,29 @@ function boblift_indexnow_schedule_retry(): void
             boblift_indexnow_claim_retry($name);
             continue;
         }
-        $due = $batch === null ? time() + 10 * MINUTE_IN_SECONDS : max(time(), $batch['due']);
-        $next = $next === null ? $due : min($next, $due);
+        $at = $batch === null ? time() + 10 * MINUTE_IN_SECONDS : boblift_indexnow_runnable_at($batch);
+        $next = $next === null ? $at : min($next, $at);
     }
-    if ($next !== null && !wp_next_scheduled(BOBLIFT_INDEXNOW_RETRY_HOOK, [['at' => $next]])) {
-        boblift_indexnow_schedule_event($next, [['at' => $next]]);
+    if ($next === null) {
+        return;
     }
+    $wake = (int) get_option(BOBLIFT_INDEXNOW_WAKE_OPTION, 0);
+    if ($wake > 0 && $wake <= max($next, time()) && wp_next_scheduled(BOBLIFT_INDEXNOW_RETRY_HOOK, [['at' => $wake]])) {
+        return;
+    }
+    $next = max($next, time());
+    if ($wake > 0) {
+        wp_unschedule_event($wake, BOBLIFT_INDEXNOW_RETRY_HOOK, [['at' => $wake]]);
+    }
+    update_option(BOBLIFT_INDEXNOW_WAKE_OPTION, $next, false);
+    boblift_indexnow_schedule_event($next, [['at' => $next]]);
 }
 
 /**
- * Sends each due batch once, after claiming its row. A row that could not be read, or is not due yet, stays for a
- * later run; a row that was read but holds no valid batch is removed so it cannot keep the worker alive. $carried is a
- * batch that travelled in the cron event because its row could not be written.
+ * Sends each runnable batch once: leased first, deleted only after its POSTs (and any retry row) are done. A row that
+ * could not be read, is not due, or is leased by a live run stays for later; a row that was read but holds no valid
+ * batch is removed so it cannot keep the worker alive. $carried is a batch that travelled in the cron event because
+ * its row could not be written.
  */
 function boblift_indexnow_run_retries(array $carried = []): void
 {
@@ -275,11 +314,12 @@ function boblift_indexnow_run_retries(array $carried = []): void
             boblift_indexnow_claim_retry($name);
             continue;
         }
-        if ($batch === null || $batch['due'] > time()) {
+        if ($batch === null || boblift_indexnow_runnable_at($batch) > time()) {
             continue;
         }
-        if (boblift_indexnow_claim_retry($name)) {
+        if (boblift_indexnow_lease_retry($name, $batch)) {
             boblift_indexnow_send($batch['ids'], $batch['retry']);
+            boblift_indexnow_claim_retry($name);
         }
     }
     boblift_indexnow_schedule_retry();
@@ -318,6 +358,13 @@ add_action('init', static function (): void {
     if (boblift_indexnow_enabled() && !wp_next_scheduled(BOBLIFT_INDEXNOW_SWEEP_HOOK)) {
         wp_schedule_event(time() + HOUR_IN_SECONDS, 'hourly', BOBLIFT_INDEXNOW_SWEEP_HOOK);
     }
+});
+
+// Switching away from this theme drops its cron events, so nothing keeps running without a callback.
+add_action('switch_theme', static function (): void {
+    wp_clear_scheduled_hook(BOBLIFT_INDEXNOW_SWEEP_HOOK);
+    wp_unschedule_hook(BOBLIFT_INDEXNOW_RETRY_HOOK);
+    delete_option(BOBLIFT_INDEXNOW_WAKE_OPTION);
 });
 
 // The key file, answered ahead of the legacy redirects (priority 0) and the 404 template.

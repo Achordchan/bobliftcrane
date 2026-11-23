@@ -166,15 +166,54 @@ function boblift_llms_txt_link(string $title, string $url, string $description =
 }
 
 /**
+ * Old news that the 2026-11-23 cleanup list (#8 to #34) will 301 into other pages or noindex. They stay on the site until
+ * that work is done, but llms.txt already leaves them out so AI assistants are not pointed at pages about to go.
+ */
+const BOBLIFT_LLMS_TXT_HELD_BACK_PATHS = [
+    '/news-show-89.html',
+    '/news-show-273.html',
+    '/news-show-311.html',
+    '/how-to-choose-the-right-truck-mounted-crane-and-maintain-it-id45131527.html',
+    '/a-comprehensive-analysis-of-6-major-types-helping-you-choose-the-right-device-to-save-both-time-and-money-id44259316.html',
+    '/the-triple-safety-barriers-of-the-bob-lift-crane-id40278975.html',
+    '/application-cases-and-successful-experience-of-ship-cranes-id49901337.html',
+    '/heavy-lifting-for-global-infrastructure-and-industrial-projects-id40628636.html',
+    '/explore-the-versatile-boblift-800kg-pickup-crane-efficient-lifting-anytime-anywhere-id49431156.html',
+    '/bob-lift-14-meter-high-altitude-work-vehicle-steadily-arrives-calmly-operates-id09491155.html',
+    '/blockbuster-new-product-8-ton-orange-knuckle-boom-crane-the-perfect-combination-of-strength-and-aesthetics-id41994416.html',
+    '/overload-lifting-solution-facilitating-efficient-engineering-operations-id09867845.html',
+    '/bob-lift-offers-efficient-and-reliable-solutions-for-ship-lifting-operations-id02577455.html',
+    '/bob-lift-invites-you-to-the-137th-canton-fair-id41017926.html',
+    '/artistry-creates-quality-hard-work-earns-trust-id06477355.html',
+    '/the-meticulous-craftsmanship-of-bob-lift-supports-every-entrustment-id45058175.html',
+    '/enter-the-bob-lift-factory-with-professional-manufacturing-we-create-more-reliable-lifting-equipment-id09841355.html',
+    '/bob-lift-welcomes-russian-customers-to-visit-the-factory-and-receives-overwhelming-praise-from-them-id41604765.html',
+    '/bob-lift-engages-in-face-to-face-communication-and-cooperation-with-customers-for-the-future-id04130055.html',
+    '/bob-lift-truck-mounted-cranes-dispatched-in-batches-chasing-for-the-trust-of-our-customers-id47108475.html',
+    '/bob-lift-truck-mounted-cranes-are-about-to-be-shipped-overseas-in-large-quantities-id49408865.html',
+    '/nccco-foundation-and-national-safety-council-develop-crane-safety-tool-id44029726.html',
+    '/the-dublin-world-crane-and-transport-summit-will-take-place-on-18-19-november-id46494326.html',
+    '/bob-lift-performs-steadily-in-extreme-environments-pushing-the-limits-and-achieving-extraordinary-results-id49007126.html',
+    '/good-luck-starting-in-2026-bob-lift-helps-you-lift-to-new-heights-in-the-new-year-id08112365.html',
+    '/the-advanced-path-of-bob-lift-s-global-strategy-id02590965.html',
+    '/strength-speaks-louder-than-words-why-bob-lift-is-highly-favored-at-the-canton-fair-id06952655.html',
+];
+
+/**
  * Up to 500 public (not password-protected) English articles, newest first (ID breaks date ties), so older posts that AI
- * answers already cite stay listed. Checked by scripts/test-llms-articles.php.
+ * answers already cite stay listed; the held-back old news is left out. Checked by scripts/test-llms-articles.php.
  */
 function boblift_llms_txt_articles(): array
 {
     $articles = [];
+    $held_back = array_fill_keys(BOBLIFT_LLMS_TXT_HELD_BACK_PATHS, true);
     $posts = get_posts(['post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => 500, 'has_password' => false, 'orderby' => ['date' => 'DESC', 'ID' => 'DESC'], 'no_found_rows' => true, 'lang' => 'en']);
     foreach ($posts as $post) {
-        $articles[] = boblift_llms_txt_link(get_the_title($post), get_permalink($post), boblift_seo_post_description($post));
+        $url = get_permalink($post);
+        if (!is_string($url) || isset($held_back[(string) wp_parse_url($url, PHP_URL_PATH)])) {
+            continue;
+        }
+        $articles[] = boblift_llms_txt_link(get_the_title($post), $url, boblift_seo_post_description($post));
     }
     return $articles;
 }

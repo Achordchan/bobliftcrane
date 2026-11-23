@@ -57,7 +57,11 @@ function get_the_title(WP_Post $post): string
 }
 function get_permalink(WP_Post $post): string
 {
-    return 'https://bobliftcrane.com/a' . $post->ID . '.html';
+    return $post->ID === 300 ? 'https://bobliftcrane.com/news-show-89.html' : 'https://bobliftcrane.com/a' . $post->ID . '.html';
+}
+function wp_parse_url(string $url, int $component = -1)
+{
+    return parse_url($url, $component);
 }
 function boblift_seo_post_description(WP_Post $post): string
 {
@@ -72,7 +76,8 @@ $check = static function (string $name, bool $ok) use (&$failures): void {
 };
 $lines = boblift_llms_txt_articles();
 $has = static fn(int $id): bool => (bool) array_filter($lines, static fn(string $l): bool => str_contains($l, '(https://bobliftcrane.com/a' . $id . '.html)'));
-$check('lists 500 articles, not the old 60', count($lines) === 500);
+$check('lists up to 500 articles, not the old 60', count($lines) === 499);
+$check('old news held back for 301 or noindex is left out', !array_filter($lines, static fn(string $l): bool => str_contains($l, 'news-show-89')));
 $check('newest English article first, ID breaking the date tie', str_starts_with($lines[0], '- [Article 520](https://bobliftcrane.com/a520.html): About article 520'));
 $check('an older article past the old 60 is listed', $has(100) && $has(21));
 $check('the oldest articles past 500 are left out', !$has(20) && !$has(1));

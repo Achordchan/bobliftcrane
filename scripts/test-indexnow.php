@@ -53,11 +53,12 @@ class Fake_Wpdb
             return null;
         }
         if ($this->steal_after_read !== null && $this->steal_after_read === $q[1][0] && array_key_exists($q[1][0], $GLOBALS['options'])) {
-            $row = ['option_value' => $GLOBALS['options'][$q[1][0]]];
+            $row = ['option_value' => maybe_serialize($GLOBALS['options'][$q[1][0]])];
             unset($GLOBALS['options'][$q[1][0]]);
             return $row;
         }
-        return array_key_exists($q[1][0], $GLOBALS['options']) ? ['option_value' => $GLOBALS['options'][$q[1][0]]] : null;
+        // Stored like WordPress does: arrays serialized.
+        return array_key_exists($q[1][0], $GLOBALS['options']) ? ['option_value' => maybe_serialize($GLOBALS['options'][$q[1][0]])] : null;
     }
     public function query(array $q): int
     {
@@ -76,8 +77,8 @@ class Fake_Wpdb
             $GLOBALS['options'][$args[0]] = $args[1];
             return 1;
         }
-        if (($GLOBALS['options'][$args[1]] ?? null) === $args[2]) {
-            $GLOBALS['options'][$args[1]] = $args[0];
+        if (array_key_exists($args[1], $GLOBALS['options']) && maybe_serialize($GLOBALS['options'][$args[1]]) === $args[2]) {
+            $GLOBALS['options'][$args[1]] = maybe_unserialize($args[0]);
             return 1;
         }
         return 0;
@@ -149,7 +150,31 @@ function is_wp_error($thing): bool
 function wp_remote_post(string $url, array $args)
 {
     $GLOBALS['sent'][] = json_decode($args['body'], true)['urlList'];
-    return $GLOBALS['remote_fails'] ? new WP_Error() : [];
+    if (isset($GLOBALS['watch_row'])) {
+        $GLOBALS['row_seen_during_send'] = array_key_exists($GLOBALS['watch_row'], $GLOBALS['options']);
+    }
+    if ($GLOBALS['remote_fails']) {
+        return new WP_Error();
+    }
+    return ['response' => ['code' => $GLOBALS['remote_code'] ?? 200]];
+}
+function wp_remote_retrieve_response_code($response)
+{
+    return $response['response']['code'] ?? '';
+}
+function wp_unschedule_event(int $time, string $hook, array $args = []): bool
+{
+    $GLOBALS['events'] = array_values(array_filter($GLOBALS['events'] ?? [], static fn($e) => !($e[0] === $hook && $e[1] === $args && $e[2] === $time)));
+    return true;
+}
+function wp_clear_scheduled_hook(string $hook): int
+{
+    $GLOBALS['events'] = array_values(array_filter($GLOBALS['events'] ?? [], static fn($e) => $e[0] !== $hook));
+    return 1;
+}
+function wp_unschedule_hook(string $hook): int
+{
+    return wp_clear_scheduled_hook($hook);
 }
 function wp_json_encode($data, int $flags = 0)
 {
@@ -191,8 +216,16 @@ function wp_generate_uuid4(): string
 {
     return bin2hex(random_bytes(16));
 }
+function maybe_serialize($value)
+{
+    return is_array($value) ? serialize($value) : $value;
+}
 function maybe_unserialize($value)
 {
+    if (is_string($value) && preg_match('/^a:\d+:\{/', $value) === 1) {
+        $data = @unserialize($value);
+        return $data === false ? $value : $data;
+    }
     return $value;
 }
 function wp_is_post_revision($post): bool
@@ -373,6 +406,44 @@ $rows = boblift_indexnow_retry_names();
 $check('posts are kept for the retry when the key cannot be read', $GLOBALS['sent'] === [] && count($rows) === 1 && $GLOBALS['options'][$rows[0]]['ids'] === [31]);
 unset($GLOBALS['options'][$rows[0]]);
 $GLOBALS['options']['boblift_indexnow_key'] = $saved_key;
+
+$GLOBALS['posts'] = [41 => new WP_Post(41)];
+foreach ([503 => 1, 429 => 1, 422 => 0, 202 => 0] as $code => $rows_expected) {
+    $GLOBALS['remote_code'] = $code;
+    boblift_indexnow_send([41]);
+    $rows = boblift_indexnow_retry_names();
+    $check('HTTP ' . $code . ($rows_expected ? ' gets one more try' : ' is not retried'), count($rows) === $rows_expected);
+    foreach ($rows as $name) {
+        unset($GLOBALS['options'][$name]);
+    }
+}
+unset($GLOBALS['remote_code']);
+
+add_option('boblift_indexnow_retry_leased', ['due' => 0, 'ids' => [41], 'retry' => false, 'lease' => time() + 600], '', 'no');
+$GLOBALS['sent'] = [];
+boblift_indexnow_run_retries();
+$check('a row leased by a live run is skipped', $GLOBALS['sent'] === [] && isset($GLOBALS['options']['boblift_indexnow_retry_leased']));
+$GLOBALS['options']['boblift_indexnow_retry_leased']['lease'] = time() - 1;
+$GLOBALS['watch_row'] = 'boblift_indexnow_retry_leased';
+boblift_indexnow_run_retries();
+unset($GLOBALS['watch_row']);
+$check('an expired lease is picked up, the row kept until sent, then removed', $GLOBALS['sent'] === [['https://bobliftcrane.com/p41.html']] && ($GLOBALS['row_seen_during_send'] ?? false) && !isset($GLOBALS['options']['boblift_indexnow_retry_leased']));
+
+$GLOBALS['scheduled'] = $GLOBALS['events'] = [];
+add_option('boblift_indexnow_retry_late', ['due' => time() - 100, 'ids' => [41], 'retry' => false], '', 'no');
+$GLOBALS['options']['boblift_indexnow_wake'] = time() - 5;
+$GLOBALS['events'][] = ['boblift_indexnow_retry', [['at' => time() - 5]], time() - 5];
+boblift_indexnow_schedule_retry();
+$check('an overdue wake-up is reused, not duplicated', count($GLOBALS['events']) === 1);
+$GLOBALS['events'] = [['boblift_indexnow_retry', [['at' => time() + 600]], time() + 600]];
+$GLOBALS['options']['boblift_indexnow_wake'] = time() + 600;
+boblift_indexnow_schedule_retry();
+$check('a later wake-up is replaced by an earlier one', count($GLOBALS['events']) === 1 && $GLOBALS['events'][0][2] <= time());
+unset($GLOBALS['options']['boblift_indexnow_retry_late']);
+$GLOBALS['events'][] = ['boblift_indexnow_sweep', [], time() + 3600];
+($GLOBALS['hooks']['switch_theme'])();
+$check('switching themes clears the IndexNow cron events', $GLOBALS['events'] === [] && !isset($GLOBALS['options']['boblift_indexnow_wake']));
+$GLOBALS['scheduled'] = $GLOBALS['events'] = [];
 
 // Publish to shutdown through the registered hooks: queued on publish, sent once at shutdown with the final permalink.
 $GLOBALS['posts'] = [21 => new WP_Post(21, 'product')];
