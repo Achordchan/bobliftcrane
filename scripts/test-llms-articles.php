@@ -81,7 +81,7 @@ function get_posts(array $args): array
 }
 function taxonomy_exists(string $taxonomy): bool
 {
-    return $taxonomy === 'language';
+    return $taxonomy === 'language' && empty($GLOBALS['polylang_off']);
 }
 // Polylang's own record of each post's language.
 function pll_get_post_language(int $id): string|false
@@ -178,4 +178,7 @@ $GLOBALS['ignore_tax'] = true;
 $mixed = boblift_llms_txt_articles();
 $check('with no language constraint applied at all, translations are still dropped by their Polylang language', !array_filter($mixed, static fn(string $l): bool => preg_match('#/a(9\d\d|[1-6]\d\d\d)\.html#', $l) === 1));
 $check('with no language constraint applied at all, the per-post check still keeps the list English and complete', $mixed === $lines);
+$GLOBALS['polylang_off'] = true;
+$check('with Polylang deactivated the article list is left out, rather than listing translations as English', boblift_llms_txt_articles() === []);
+unset($GLOBALS['polylang_off']);
 exit($failures === 0 ? 0 : 1);

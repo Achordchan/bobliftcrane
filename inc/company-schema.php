@@ -209,6 +209,11 @@ const BOBLIFT_LLMS_TXT_HELD_BACK_IDS = [1682, 1718, 1728, 1740, 1838, 1860, 1738
  */
 function boblift_llms_txt_articles(): array
 {
+    // Without Polylang (deactivated, say) a post's language cannot be read, and translations would pass as English: the
+    // article list is left out until it is back.
+    if (!function_exists('pll_get_post_language') || !taxonomy_exists('language')) {
+        return [];
+    }
     $articles = [];
     $held_back = array_fill_keys(BOBLIFT_LLMS_TXT_HELD_BACK_PATHS, true);
     // The IDs were looked up on the live site; anywhere else (an import with new IDs) only the paths count.
@@ -226,9 +231,7 @@ function boblift_llms_txt_articles(): array
     $query = ['post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => 600 + count($held_back), 'fields' => 'ids', 'has_password' => false, 'orderby' => ['date' => 'DESC', 'ID' => 'DESC'], 'no_found_rows' => true, 'lang' => 'en'];
     // Polylang stores each post's language as a term of its 'language' taxonomy: constrain on it in the query too, so
     // translations are left out by the database even if the lang query var is not applied.
-    if (taxonomy_exists('language')) {
-        $query['tax_query'] = [['taxonomy' => 'language', 'field' => 'slug', 'terms' => 'en']];
-    }
+    $query['tax_query'] = [['taxonomy' => 'language', 'field' => 'slug', 'terms' => 'en']];
     $ids = get_posts($query);
     foreach (array_chunk(array_map('intval', $ids), 100) as $chunk) {
         $posts = get_posts(['post_type' => 'post', 'post_status' => 'publish', 'post__in' => $chunk, 'orderby' => 'post__in', 'posts_per_page' => count($chunk), 'has_password' => false, 'ignore_sticky_posts' => true, 'no_found_rows' => true, 'lang' => '']);

@@ -1322,4 +1322,37 @@ $check('posts that got a 503 retry ten minutes out without a retry left; posts n
 clear_rows();
 $GLOBALS['transients'] = [];
 
+// One POST at a time for the whole site: a worker that finds the submission lock held sends nothing and keeps the posts.
+$GLOBALS['transients'] = [kc() => 'ok'];
+$GLOBALS['posts'] = [95 => new WP_Post(95)];
+$GLOBALS['options']['boblift_indexnow_dispatch_lock'] = (time() + 60) . '_other';
+$GLOBALS['sent'] = [];
+$kept_here = [];
+boblift_indexnow_send([95], false, null, static function (array $ids, int $due, bool $retry) use (&$kept_here): bool {
+    $kept_here = [$ids, $due, $retry];
+    return true;
+});
+$check('while another worker holds the submission lock nothing is posted; the posts wait a minute, try kept', $GLOBALS['sent'] === [] && $kept_here[0] === [95] && $kept_here[1] >= time() + 50 && $kept_here[2] === false);
+$GLOBALS['options']['boblift_indexnow_dispatch_lock'] = (time() - 1) . '_stale';
+boblift_indexnow_send([95], false);
+$check('a lock left past its expiry is taken over, the POST made, and the lock released', $GLOBALS['sent'] === [['https://bobliftcrane.com/p95.html']] && !isset($GLOBALS['options']['boblift_indexnow_dispatch_lock']));
+// Splitting a row: the extra part is saved before the row shrinks; if that save fails the row is left whole.
+clear_rows();
+$GLOBALS['posts'] = [];
+foreach (range(1, 150) as $i) {
+    $GLOBALS['posts'][$i] = new WP_Post($i);
+}
+$GLOBALS['options'][rn(0, 'whole')] = ['due' => 0, 'ids' => range(1, 150), 'retry' => true, 'lease' => time() + 600];
+$leased_value = maybe_serialize($GLOBALS['options'][rn(0, 'whole')]);
+$GLOBALS['remote_code'] = 503;
+$GLOBALS['slow_prime'] = 2;
+$GLOBALS['add_option_fails'] = true;
+$GLOBALS['sent'] = [];
+boblift_indexnow_send_group([[rn(0, 'whole'), $leased_value, range(1, 150)]], true, time() + 21);
+$GLOBALS['add_option_fails'] = false;
+unset($GLOBALS['remote_code']);
+$check('when the extra part cannot be saved the original row is not shrunk: all 150 posts stay in it', ($GLOBALS['options'][rn(0, 'whole')]['ids'] ?? null) === range(1, 150) && count(row_ids()) === 1);
+clear_rows();
+$GLOBALS['transients'] = [];
+
 exit($failures === 0 ? 0 : 1);

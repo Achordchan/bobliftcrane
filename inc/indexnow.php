@@ -370,71 +370,110 @@ function boblift_indexnow_send(array $post_ids, bool $retry = true, ?callable $s
         if ($still_owned !== null && !$still_owned()) {
             return false;
         }
-        // The worker's time is up (resolving permalinks can be slow on a cold cache): the rest is kept, runnable again at
-        // once with its retry allowance unchanged, instead of starting another blocking POST.
-        // Another run may have hit a 429 or 403 meanwhile: then nothing more is posted and the rest is kept.
-        $cooldown = boblift_indexnow_cooldown_until();
-        if ($cooldown !== 0) {
-            return (bool) $keep(boblift_indexnow_payload_ids(array_slice($payloads, $index), $by_url), max(time() + MINUTE_IN_SECONDS, (int) $cooldown), $retry) && $kept;
+        // One POST at a time for the whole site: the lock covers the pause check, the POST and any pause it starts, so an
+        // overlapping worker cannot post after another one has just been told to wait. A busy lock keeps the rest for
+        // the next run, retry allowance unchanged.
+        $lock = boblift_indexnow_take_dispatch_lock();
+        if ($lock === null) {
+            return (bool) $keep(boblift_indexnow_payload_ids(array_slice($payloads, $index), $by_url), time() + MINUTE_IN_SECONDS, $retry) && $kept;
         }
-        // The site may have been made private while permalinks were resolved: read the setting afresh, keep the posts.
-        if (!boblift_indexnow_still_public()) {
-            return (bool) $keep(boblift_indexnow_payload_ids(array_slice($payloads, $index), $by_url), time() + HOUR_IN_SECONDS, $retry) && $kept;
-        }
-        // A post may have been made private or password-protected since its permalink was read: its URL is dropped.
-        $payload = boblift_indexnow_drop_hidden($payload, $by_url);
-        if ($payload === null) {
-            return (bool) $keep(boblift_indexnow_payload_ids(array_slice($payloads, $index), $by_url), time() + 10 * MINUTE_IN_SECONDS, $retry) && $kept;
-        }
-        if ($payload['urlList'] === []) {
-            continue;
-        }
-        // Checked last, right before the POST (the queries above can stall). A POST only starts when its full timeout fits
-        // in the run; otherwise the posts wait for the next run without using up a try.
-        if ($deadline !== 0 && time() > $deadline - $margin) {
-            return (bool) $keep(boblift_indexnow_payload_ids(array_slice($payloads, $index), $by_url), time(), $retry) && $kept;
-        }
-        // Blocking, from cron only: a non-blocking request can hide a failed connection.
-        $response = wp_remote_post(BOBLIFT_INDEXNOW_ENDPOINT, [
-            'timeout' => BOBLIFT_INDEXNOW_HTTP_TIMEOUT,
-            'headers' => ['Content-Type' => 'application/json; charset=utf-8'],
-            'body' => wp_json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
-        ]);
-        $code = is_wp_error($response) ? 0 : (int) wp_remote_retrieve_response_code($response);
-        // IndexNow answers 200 or 202. 429 (throttled) and 403 (key not verified) keep the posts and pause the queue;
-        // 5xx and no connection are worth one more try; other 4xx (bad URLs) are not.
-        if ($code === 429) {
-            // Throttled: IndexNow asks the client to wait. This and every later payload of the batch are kept, with the
-            // retry allowance unchanged (being asked to wait is not a failed try), and the whole queue pauses for the
-            // Retry-After time, so other rows are not spent while the endpoint is still throttling. Retention is
-            // deliberate and bounded in rate: under the shared pause the whole site makes at most one POST per
-            // Retry-After window (10 minutes to a day), so posts are never lost to throttling and never hammer the API.
-            $wait = boblift_indexnow_retry_after($response);
-            boblift_indexnow_extend_cooldown(time() + $wait);
-            return (bool) $keep(boblift_indexnow_payload_ids(array_slice($payloads, $index), $by_url), time() + $wait, $retry) && $kept;
-        }
-        if ($code === 403) {
-            // Key not verified. The local self-check cannot prove IndexNow's verifier can reach the file (a CDN or
-            // firewall may block it), so the posts are kept, retry allowance unchanged, and the queue pauses for an hour
-            // (logged), so fixing access never needs the content republished.
-            $held = (bool) $keep(boblift_indexnow_payload_ids(array_slice($payloads, $index), $by_url), time() + HOUR_IN_SECONDS, $retry);
-            boblift_indexnow_extend_cooldown(time() + HOUR_IN_SECONDS);
-            error_log(sprintf('IndexNow: key not verified (HTTP 403) for %s; submissions paused for an hour, posts kept.', $payload['keyLocation']));
-            return $held && $kept;
-        }
-        if (($code === 0 || $code >= 500) && $retry) {
-            $ids = [];
-            foreach ($payload['urlList'] as $url) {
-                array_push($ids, ...$by_url[$url]);
+        try {
+            // Another run may have hit a 429 or 403 meanwhile: then nothing more is posted and the rest is kept.
+            $cooldown = boblift_indexnow_cooldown_until();
+            if ($cooldown !== 0) {
+                return (bool) $keep(boblift_indexnow_payload_ids(array_slice($payloads, $index), $by_url), max(time() + MINUTE_IN_SECONDS, (int) $cooldown), $retry) && $kept;
             }
-            $kept = (bool) $keep(array_values(array_unique($ids)), time() + 10 * MINUTE_IN_SECONDS, false) && $kept;
-        } elseif ($code < 200 || $code >= 300) {
-            // Not retried (a bad key or URL list, or the last try failed): logged, so a broken key route is noticed.
-            $why = is_wp_error($response) ? 'no connection: ' . $response->get_error_message() : ($code === 0 ? 'no HTTP status' : 'HTTP ' . $code);
-            error_log(sprintf('IndexNow: %d URLs not accepted (%s).', count($payload['urlList']), $why));
+            // The site may have been made private while permalinks were resolved: read the setting afresh, keep the posts.
+            if (!boblift_indexnow_still_public()) {
+                return (bool) $keep(boblift_indexnow_payload_ids(array_slice($payloads, $index), $by_url), time() + HOUR_IN_SECONDS, $retry) && $kept;
+            }
+            // A post may have been made private or password-protected since its permalink was read: its URL is dropped.
+            $payload = boblift_indexnow_drop_hidden($payload, $by_url);
+            if ($payload === null) {
+                return (bool) $keep(boblift_indexnow_payload_ids(array_slice($payloads, $index), $by_url), time() + 10 * MINUTE_IN_SECONDS, $retry) && $kept;
+            }
+            if ($payload['urlList'] === []) {
+                continue;
+            }
+            // Checked last, right before the POST (the queries above can stall). A POST only starts when its full timeout fits
+            // in the run; otherwise the posts wait for the next run without using up a try.
+            if ($deadline !== 0 && time() > $deadline - $margin) {
+                return (bool) $keep(boblift_indexnow_payload_ids(array_slice($payloads, $index), $by_url), time(), $retry) && $kept;
+            }
+            // Blocking, from cron only: a non-blocking request can hide a failed connection.
+            $response = wp_remote_post(BOBLIFT_INDEXNOW_ENDPOINT, [
+                'timeout' => BOBLIFT_INDEXNOW_HTTP_TIMEOUT,
+                'headers' => ['Content-Type' => 'application/json; charset=utf-8'],
+                'body' => wp_json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+            ]);
+            $code = is_wp_error($response) ? 0 : (int) wp_remote_retrieve_response_code($response);
+            // IndexNow answers 200 or 202. 429 (throttled) and 403 (key not verified) keep the posts and pause the queue;
+            // 5xx and no connection are worth one more try; other 4xx (bad URLs) are not.
+            if ($code === 429) {
+                // Throttled: IndexNow asks the client to wait. This and every later payload of the batch are kept, with the
+                // retry allowance unchanged (being asked to wait is not a failed try), and the whole queue pauses for the
+                // Retry-After time, so other rows are not spent while the endpoint is still throttling. Retention is
+                // deliberate and bounded in rate: under the shared pause the whole site makes at most one POST per
+                // Retry-After window (10 minutes to a day), so posts are never lost to throttling and never hammer the API.
+                $wait = boblift_indexnow_retry_after($response);
+                boblift_indexnow_extend_cooldown(time() + $wait);
+                return (bool) $keep(boblift_indexnow_payload_ids(array_slice($payloads, $index), $by_url), time() + $wait, $retry) && $kept;
+            }
+            if ($code === 403) {
+                // Key not verified. The local self-check cannot prove IndexNow's verifier can reach the file (a CDN or
+                // firewall may block it), so the posts are kept, retry allowance unchanged, and the queue pauses for an hour
+                // (logged), so fixing access never needs the content republished.
+                $held = (bool) $keep(boblift_indexnow_payload_ids(array_slice($payloads, $index), $by_url), time() + HOUR_IN_SECONDS, $retry);
+                boblift_indexnow_extend_cooldown(time() + HOUR_IN_SECONDS);
+                error_log(sprintf('IndexNow: key not verified (HTTP 403) for %s; submissions paused for an hour, posts kept.', $payload['keyLocation']));
+                return $held && $kept;
+            }
+            if (($code === 0 || $code >= 500) && $retry) {
+                $ids = [];
+                foreach ($payload['urlList'] as $url) {
+                    array_push($ids, ...$by_url[$url]);
+                }
+                $kept = (bool) $keep(array_values(array_unique($ids)), time() + 10 * MINUTE_IN_SECONDS, false) && $kept;
+            } elseif ($code < 200 || $code >= 300) {
+                // Not retried (a bad key or URL list, or the last try failed): logged, so a broken key route is noticed.
+                $why = is_wp_error($response) ? 'no connection: ' . $response->get_error_message() : ($code === 0 ? 'no HTTP status' : 'HTTP ' . $code);
+                error_log(sprintf('IndexNow: %d URLs not accepted (%s).', count($payload['urlList']), $why));
+            }
+        } finally {
+            boblift_indexnow_release_dispatch_lock($lock);
         }
     }
     return $kept;
+}
+
+const BOBLIFT_INDEXNOW_DISPATCH_LOCK = 'boblift_indexnow_dispatch_lock';
+
+/**
+ * Takes the site-wide submission lock: an INSERT IGNORE of "expiry_token", or a compare-and-swap over a lock whose
+ * holder has run past its expiry (one HTTP timeout plus a minute). Null when another worker holds it.
+ */
+function boblift_indexnow_take_dispatch_lock(): ?string
+{
+    global $wpdb;
+    $token = (time() + BOBLIFT_INDEXNOW_HTTP_TIMEOUT + MINUTE_IN_SECONDS) . '_' . wp_generate_password(12, false, false);
+    $taken = (int) $wpdb->query($wpdb->prepare("INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')", BOBLIFT_INDEXNOW_DISPATCH_LOCK, $token)) === 1;
+    if (!$taken) {
+        $held = $wpdb->get_var($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s LIMIT 1", BOBLIFT_INDEXNOW_DISPATCH_LOCK));
+        if (!is_string($held) || (int) $held >= time()) {
+            return null;
+        }
+        $taken = (int) $wpdb->query($wpdb->prepare("UPDATE {$wpdb->options} SET option_value = %s WHERE option_name = %s AND option_value = %s", $token, BOBLIFT_INDEXNOW_DISPATCH_LOCK, $held)) === 1;
+    }
+    wp_cache_delete(BOBLIFT_INDEXNOW_DISPATCH_LOCK, 'options');
+    return $taken ? $token : null;
+}
+
+/** Releases the submission lock if this worker still holds it. */
+function boblift_indexnow_release_dispatch_lock(string $token): void
+{
+    global $wpdb;
+    $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name = %s AND option_value = %s", BOBLIFT_INDEXNOW_DISPATCH_LOCK, $token));
+    wp_cache_delete(BOBLIFT_INDEXNOW_DISPATCH_LOCK, 'options');
 }
 
 /**
@@ -816,19 +855,21 @@ function boblift_indexnow_send_group(array $group, bool $retry, int $deadline = 
             boblift_indexnow_finish_retry($name, $leased);
             continue;
         }
-        // The row moves in place with its first part; any other part (posts treated differently) gets a row of its own.
-        $first = true;
+        // Any part beyond the first (posts treated differently) is saved as a row of its own first; only once every one
+        // is stored does the original row shrink to the first part. If a save fails the row stays leased, whole, and
+        // runs again when the lease ends (at worst some posts are sent twice, none are lost).
+        $first = array_key_first($parts);
         foreach ($parts as $part => $left) {
-            [$due, $flag] = explode('|', $part);
-            if ($first) {
-                if (!boblift_indexnow_reschedule_retry($name, $leased, $left, (int) $due, $flag === '1')) {
-                    break;
-                }
-                $first = false;
+            if ($part === $first) {
                 continue;
             }
-            boblift_indexnow_save_batch($left, (int) $due, $flag === '1');
+            [$due, $flag] = explode('|', (string) $part);
+            if (!boblift_indexnow_save_batch($left, (int) $due, $flag === '1')) {
+                continue 2;
+            }
         }
+        [$due, $flag] = explode('|', (string) $first);
+        boblift_indexnow_reschedule_retry($name, $leased, $parts[$first], (int) $due, $flag === '1');
     }
 }
 
