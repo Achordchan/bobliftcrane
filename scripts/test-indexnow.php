@@ -664,16 +664,40 @@ clear_rows();
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
 
 $GLOBALS['posts'] = [];
-foreach (range(1, 25) as $i) {
+foreach (range(1, 205) as $i) {
     $GLOBALS['posts'][$i] = new WP_Post($i);
-    add_option(rn(0, 'budget' . str_pad((string) $i, 2, '0', STR_PAD_LEFT)), ['due' => 0, 'ids' => [$i], 'retry' => true], '', 'no');
+    add_option(rn(0, 'budget' . str_pad((string) $i, 3, '0', STR_PAD_LEFT)), ['due' => 0, 'ids' => [$i], 'retry' => true], '', 'no');
 }
 $GLOBALS['sent'] = [];
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
 boblift_indexnow_run_retries();
-$check('one run sends at most 20 rows and leaves the rest for the next minute', count($GLOBALS['sent']) === 20 && count(boblift_indexnow_retry_names()) === 5);
+$check('one run takes at most 200 rows and sends their one-post rows together in one request', count($GLOBALS['sent']) === 1 && count($GLOBALS['sent'][0]) === 200 && count(boblift_indexnow_retry_names()) === 5);
 boblift_indexnow_run_retries();
-$check('the next run finishes the rest', count($GLOBALS['sent']) === 25 && boblift_indexnow_retry_names() === []);
+$check('the next run finishes the rest', count($GLOBALS['sent']) === 2 && count($GLOBALS['sent'][1]) === 5 && boblift_indexnow_retry_names() === []);
+// 1,500 posts in rows of 100 go out in requests of at most 1,000 posts.
+$GLOBALS['posts'] = [];
+foreach (range(1, 1500) as $i) {
+    $GLOBALS['posts'][$i] = new WP_Post($i);
+}
+foreach (array_chunk(range(1, 1500), 100) as $n => $chunk) {
+    add_option(rn(0, 'big' . str_pad((string) $n, 2, '0', STR_PAD_LEFT)), ['due' => 0, 'ids' => $chunk, 'retry' => true], '', 'no');
+}
+$GLOBALS['sent'] = [];
+boblift_indexnow_run_retries();
+$check('grouped requests carry at most 1,000 posts and every row is acknowledged', array_map('count', $GLOBALS['sent']) === [1000, 500] && boblift_indexnow_retry_names() === []);
+// Only the posts that need another try stay, each in its own row.
+$GLOBALS['posts'] = [91 => new WP_Post(91), 92 => new WP_Post(92)];
+add_option(rn(0, 'pa'), ['due' => 0, 'ids' => [91], 'retry' => true], '', 'no');
+add_option(rn(0, 'pb'), ['due' => 0, 'ids' => [92], 'retry' => true], '', 'no');
+$GLOBALS['remote_code'] = 503;
+boblift_indexnow_run_retries();
+unset($GLOBALS['remote_code']);
+$check('a failed grouped request moves each row to the retry on its own, nothing merged or lost', row_ids() === [[91], [92]] && count(array_filter(boblift_indexnow_retry_names(), static fn($n) => $GLOBALS['options'][$n]['retry'] === false)) === 2);
+clear_rows();
+$GLOBALS['posts'] = [];
+foreach (range(1, 25) as $i) {
+    $GLOBALS['posts'][$i] = new WP_Post($i);
+}
 
 $GLOBALS['options'][rn(0, 'owned')] = ['due' => 0, 'ids' => [1], 'retry' => true];
 $batch = boblift_indexnow_read_retry(rn(0, 'owned'));
@@ -903,10 +927,10 @@ boblift_indexnow_run_retries();
 $logged403 = (string) file_get_contents($log);
 unlink($log);
 ini_set('error_log', '/dev/null');
-$check('a 403 stops the run: the next row is not posted', count($GLOBALS['sent']) === 1 && isset($GLOBALS['options'][rn(1, 'k403b')]));
-unset($GLOBALS['options'][rn(1, 'k403b')]);
 $rows = boblift_indexnow_retry_names();
-$check('a 403 keeps the posts even on a last try, an hour out, pauses the queue for an hour and logs it, though the self-check passes', count($rows) === 1 && $GLOBALS['options'][$rows[0]]['ids'] === [81] && $GLOBALS['options'][$rows[0]]['retry'] === false && $GLOBALS['options'][$rows[0]]['due'] >= $t403 + 3600 && ($GLOBALS['transient_ttl']['boblift_indexnow_cooldown'] ?? 0) === 3600 && str_contains($logged403, 'key not verified (HTTP 403) for https://bobliftcrane.com/abcd1234.txt'));
+$check('a 403 stops the run: the other row is not posted but kept, retry allowance unchanged', count($GLOBALS['sent']) === 1 && count($rows) === 2 && count(array_filter($rows, static fn($n) => $GLOBALS['options'][$n]['retry'] === true && $GLOBALS['options'][$n]['ids'] === [81])) === 1);
+$last = array_values(array_filter($rows, static fn($n) => $GLOBALS['options'][$n]['retry'] === false));
+$check('a 403 keeps the posts even on a last try, an hour out, pauses the queue for an hour and logs it, though the self-check passes', count($last) === 1 && $GLOBALS['options'][$last[0]]['ids'] === [81] && $GLOBALS['options'][$last[0]]['due'] >= $t403 + 3600 && ($GLOBALS['transient_ttl']['boblift_indexnow_cooldown'] ?? 0) === 3600 && str_contains($logged403, 'key not verified (HTTP 403) for https://bobliftcrane.com/abcd1234.txt'));
 clear_rows();
 unset($GLOBALS['remote_code']);
 $GLOBALS['transients'] = [];
@@ -926,15 +950,23 @@ $t429 = time();
 boblift_indexnow_run_retries();
 $rows = boblift_indexnow_retry_names();
 $held = array_values(array_filter($rows, static fn($n) => $GLOBALS['options'][$n]['ids'] === [81]));
-$check('a 429 keeps the row even on its last try, due after Retry-After, and stops the run', count($GLOBALS['sent']) === 1 && count($held) === 1 && $GLOBALS['options'][$held[0]]['retry'] === false && $GLOBALS['options'][$held[0]]['due'] >= $t429 + 1800 && isset($GLOBALS['options'][rn(1, 't429b')]));
+$other = array_values(array_filter($rows, static fn($n) => $GLOBALS['options'][$n]['ids'] === [82]));
+$check('a 429 keeps the row even on its last try, due after Retry-After, and stops the run: the other row is kept unsent', count($GLOBALS['sent']) === 1 && count($held) === 1 && $GLOBALS['options'][$held[0]]['retry'] === false && $GLOBALS['options'][$held[0]]['due'] >= $t429 + 1800 && count($other) === 1 && $GLOBALS['options'][$other[0]]['retry'] === true);
 $check('the cooldown lasts the Retry-After time', ($GLOBALS['transient_ttl']['boblift_indexnow_cooldown'] ?? 0) === 1800);
 unset($GLOBALS['remote_code'], $GLOBALS['remote_headers']);
 $GLOBALS['sent'] = [];
 boblift_indexnow_run_retries();
-$check('while the cooldown lasts nothing is posted', $GLOBALS['sent'] === [] && isset($GLOBALS['options'][rn(1, 't429b')]));
+$check('while the cooldown lasts nothing is posted', $GLOBALS['sent'] === [] && count(boblift_indexnow_retry_names()) === 2);
 unset($GLOBALS['transients']['boblift_indexnow_cooldown']);
+// Time passes: the rows come due.
+foreach (boblift_indexnow_retry_names(10) as $i => $n) {
+    $GLOBALS['options'][rn(0, 'due' . $i)] = ['due' => 0] + $GLOBALS['options'][$n];
+    unset($GLOBALS['options'][$n]);
+}
 boblift_indexnow_run_retries();
-$check('after the cooldown the waiting rows are sent', $GLOBALS['sent'] === [['https://bobliftcrane.com/p82.html']] && !isset($GLOBALS['options'][rn(1, 't429b')]));
+$sent_urls = array_merge(...$GLOBALS['sent']);
+sort($sent_urls);
+$check('after the cooldown the waiting rows are sent', $sent_urls === ['https://bobliftcrane.com/p81.html', 'https://bobliftcrane.com/p82.html'] && boblift_indexnow_retry_names() === []);
 clear_rows();
 $check('Retry-After is read as seconds or an HTTP date, kept between ten minutes and a day', boblift_indexnow_retry_after(['headers' => ['retry-after' => '5']]) === 600 && boblift_indexnow_retry_after(['headers' => ['retry-after' => '999999']]) === 86400 && abs(boblift_indexnow_retry_after(['headers' => ['retry-after' => gmdate('D, d M Y H:i:s', time() + 7200) . ' GMT']]) - 7200) <= 2 && boblift_indexnow_retry_after(['headers' => []]) === 600);
 $GLOBALS['transients'] = [];

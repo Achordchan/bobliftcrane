@@ -30,7 +30,9 @@ const BOBLIFT_INDEXNOW_INTERVAL = 'boblift_indexnow_minute';
 const BOBLIFT_INDEXNOW_LEASE = 15 * 60;
 // One row is one step of the worker: 100 posts resolved and sent in one POST, so a row never runs long past the budget.
 const BOBLIFT_INDEXNOW_ROW_IDS = 100;
-const BOBLIFT_INDEXNOW_RUN_ROWS = 20;
+const BOBLIFT_INDEXNOW_RUN_ROWS = 200;
+// Leased rows are sent together, up to this many post IDs per request, so many small rows cost few requests.
+const BOBLIFT_INDEXNOW_GROUP_IDS = 1000;
 const BOBLIFT_INDEXNOW_RUN_SECONDS = 60;
 // Most batch rows read per page of a worker scan.
 const BOBLIFT_INDEXNOW_SCAN_ROWS = 100;
@@ -536,7 +538,8 @@ function boblift_indexnow_key_file_ok(string $key, bool $recheck = false): bool
 
 /**
  * Sends runnable batches, one row (at most BOBLIFT_INDEXNOW_ROW_IDS posts) at a time, within a budget of
- * BOBLIFT_INDEXNOW_RUN_ROWS rows and BOBLIFT_INDEXNOW_RUN_SECONDS per call; what is left is picked up by the next run a
+ * BOBLIFT_INDEXNOW_RUN_ROWS rows and BOBLIFT_INDEXNOW_RUN_SECONDS per call, rows sent together up to
+ * BOBLIFT_INDEXNOW_GROUP_IDS posts per request; what is left is picked up by the next run a
  * minute later. Each row is leased, checked to be still ours right before its POST, and then either deleted by its
  * owner or, when its posts get one more try, moved to the retry's due time in the same compare-and-swap UPDATE. A row that could not be read, is not due, or is leased by a live run stays; a row that was read but
  * holds no valid batch is removed. Only rows already due are read, earliest first, a page of
@@ -561,7 +564,10 @@ function boblift_indexnow_run_retries(): void
     }
     $started = time();
     $rows = 0;
-    boblift_indexnow_walk_rows(time(), static function (string $name) use (&$rows, $started): bool {
+    // Leased rows wait in a group per retry allowance and go out together; each row is still acknowledged on its own.
+    $groups = [0 => [], 1 => []];
+    $group_ids = [0 => 0, 1 => 0];
+    boblift_indexnow_walk_rows(time(), static function (string $name) use (&$rows, $started, &$groups, &$group_ids): bool {
         if ($rows >= BOBLIFT_INDEXNOW_RUN_ROWS || time() - $started >= BOBLIFT_INDEXNOW_RUN_SECONDS) {
             return false;
         }
@@ -582,30 +588,67 @@ function boblift_indexnow_run_retries(): void
             return true;
         }
         $rows++;
-        // Ownership is checked again right before each POST, after the permalinks are resolved. IDs to try again are
-        // collected and the leased row itself is moved to their new due time, rather than adding a row and then
-        // deleting this one (a stop between those two writes would leave the batch in both).
-        $again = [];
-        $again_due = 0;
-        $again_retry = false;
-        $collect = static function (array $ids, int $due, bool $retry) use (&$again, &$again_due, &$again_retry): bool {
-            array_push($again, ...$ids);
-            $again_due = max($again_due, $due);
-            $again_retry = $retry;
-            return true;
-        };
-        $sent = boblift_indexnow_send($batch['ids'], $batch['retry'], static fn(): bool => boblift_indexnow_owns_retry($name, $leased), $collect);
-        if (!$sent) {
-            // Nothing acknowledged: the row stays leased and runs again when the lease ends.
-        } elseif ($again === []) {
+        $flag = $batch['retry'] ? 1 : 0;
+        $groups[$flag][] = [$name, $leased, $batch['ids']];
+        $group_ids[$flag] += count($batch['ids']);
+        if ($group_ids[$flag] >= BOBLIFT_INDEXNOW_GROUP_IDS) {
+            boblift_indexnow_send_group($groups[$flag], (bool) $flag);
+            $groups[$flag] = [];
+            $group_ids[$flag] = 0;
+            // A 429 or 403 starts a cooldown, which stops this run: later rows would only be rejected the same way, and
+            // are left queued untouched.
+            return get_transient(BOBLIFT_INDEXNOW_COOLDOWN) === false;
+        }
+        return true;
+    });
+    // What is left goes out now; during a cooldown send() posts nothing and keeps the rows for its end.
+    foreach ($groups as $flag => $group) {
+        if ($group !== []) {
+            boblift_indexnow_send_group($group, (bool) $flag);
+        }
+    }
+}
+
+/**
+ * Sends the post IDs of several leased rows (same retry allowance) in one go. Ownership of every row is checked right
+ * before each POST. Afterwards each row is acknowledged on its own: deleted when none of its posts need another try,
+ * otherwise moved to the retry's due time with just those posts, in one compare-and-swap UPDATE (never a second row).
+ *
+ * @param array<int, array{0: string, 1: string, 2: int[]}> $group [row name, leased value, post IDs]
+ */
+function boblift_indexnow_send_group(array $group, bool $retry): void
+{
+    $again = [];
+    $again_due = 0;
+    $again_retry = false;
+    $collect = static function (array $ids, int $due, bool $retry) use (&$again, &$again_due, &$again_retry): bool {
+        array_push($again, ...$ids);
+        $again_due = max($again_due, $due);
+        $again_retry = $retry;
+        return true;
+    };
+    $owned = static function () use ($group): bool {
+        foreach ($group as [$name, $leased]) {
+            if (!boblift_indexnow_owns_retry($name, $leased)) {
+                return false;
+            }
+        }
+        return true;
+    };
+    $ids = array_values(array_unique(array_merge(...array_map(static fn(array $row): array => $row[2], $group))));
+    if (!boblift_indexnow_send($ids, $retry, $owned, $collect)) {
+        // Nothing acknowledged: the rows stay leased and run again when their leases end.
+        return;
+    }
+    $again = array_flip($again);
+    foreach ($group as [$name, $leased, $row_ids]) {
+        $left = array_values(array_filter($row_ids, static fn(int $id): bool => isset($again[$id])));
+        if ($left === []) {
             boblift_indexnow_finish_retry($name, $leased);
         } else {
-            boblift_indexnow_reschedule_retry($name, $leased, array_unique($again), $again_due, $again_retry);
+            boblift_indexnow_reschedule_retry($name, $leased, $left, $again_due, $again_retry);
         }
-        // A 429 or 403 starts a cooldown, which stops this run: later rows would only be rejected the same way, and are
-        // left queued untouched.
-        return get_transient(BOBLIFT_INDEXNOW_COOLDOWN) === false;
-    });
+    }
 }
 
 add_action('transition_post_status', static function (string $new_status, string $old_status, WP_Post $post): void {

@@ -240,6 +240,8 @@ function boblift_llms_txt_articles(): array
             // Polylang's language directory, however it is configured (/en/, /language/en/), comes off with the helper
             // the rewrites use.
             $path = function_exists('boblift_strip_language_prefix') ? boblift_strip_language_prefix($path) : (string) preg_replace('#^/en(?=/)#', '', $path);
+            // A permalink filter may add a trailing slash: compare without it (the root stays '/').
+            $path = rtrim($path, '/') === '' ? '/' : rtrim($path, '/');
             if (isset($held_back[$path])) {
                 continue;
             }
