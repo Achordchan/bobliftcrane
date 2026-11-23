@@ -35,7 +35,17 @@ $GLOBALS['last_args'] = [];
 function get_posts(array $args): array
 {
     $GLOBALS['last_args'] = $args;
-    $GLOBALS['largest_page'] = max($GLOBALS['largest_page'] ?? 0, $args['posts_per_page'] ?? 5);
+    if (isset($args['post__in'])) {
+        // Loading a chunk by ID, in the given order: lang '' means all languages.
+        $GLOBALS['largest_page'] = max($GLOBALS['largest_page'] ?? 0, count($args['post__in']));
+        $by_id = [];
+        foreach ($GLOBALS['posts'] as $p) {
+            if (in_array($p->ID, $args['post__in'], true) && $p->post_status === $args['post_status'] && $p->post_type === $args['post_type'] && ($args['has_password'] !== false || $p->post_password === '')) {
+                $by_id[$p->ID] = $p;
+            }
+        }
+        return array_values(array_filter(array_map(static fn(int $id) => $by_id[$id] ?? null, $args['post__in'])));
+    }
     $posts = array_filter($GLOBALS['posts'], static fn(WP_Post $p): bool => $p->post_type === $args['post_type']
         && $p->post_status === $args['post_status']
         && (!array_key_exists('has_password', $args) || $args['has_password'] !== false || $p->post_password === '')
@@ -51,7 +61,18 @@ function get_posts(array $args): array
         return 0;
     });
     $per_page = $args['posts_per_page'] ?? 5;
-    return array_slice($posts, (max(1, $args['paged'] ?? 1) - 1) * $per_page, $per_page);
+    if ($per_page !== -1) {
+        $posts = array_slice($posts, (max(1, $args['paged'] ?? 1) - 1) * $per_page, $per_page);
+    }
+    if (($args['fields'] ?? '') === 'ids') {
+        // A post published right after the ID list was read (as during a bulk publish).
+        foreach ($GLOBALS['publish_after_ids'] ?? [] as $late) {
+            $GLOBALS['posts'][] = $late;
+        }
+        $GLOBALS['publish_after_ids'] = [];
+        return array_map(static fn(WP_Post $p): int => $p->ID, array_values($posts));
+    }
+    return array_values($posts);
 }
 // Polylang's own record of each post's language.
 function pll_get_post_language(int $id): string|false
@@ -124,7 +145,11 @@ $check('the oldest articles past 500 are left out', !$has(18) && !$has(1));
 $check('a translation is left out', !$has(900));
 $check('a password-protected article is left out', !$has(901));
 $check('a draft is left out', !$has(902));
-$check('posts are read in pages of at most 100, the request-local cache dropped after each page', $GLOBALS['largest_page'] <= 100 && $GLOBALS['runtime_flushes'] >= 5);
+$check('posts are loaded in chunks of at most 100, the request-local cache dropped after each chunk', $GLOBALS['largest_page'] <= 100 && $GLOBALS['runtime_flushes'] >= 5);
+$GLOBALS['publish_after_ids'] = [new WP_Post(950, '2026-11-24 10:00:00')];
+$during = boblift_llms_txt_articles();
+$check('an article published while the list is built neither repeats nor drops one', $during === $lines && count(array_unique($during)) === 500);
+$GLOBALS['posts'] = array_values(array_filter($GLOBALS['posts'], static fn(WP_Post $p): bool => $p->ID !== 950));
 $again = boblift_llms_txt_articles();
 $check('the order is the same on every request', $again === $lines);
 // If the query's language filter is not applied, 6,000 newer Spanish translations must not push English articles out.

@@ -210,12 +210,13 @@ function boblift_llms_txt_articles(): array
     // Paths are compared whole, after the install's own subdirectory and the language prefix are removed, so
     // /en/news-show-89.html matches the listed /news-show-89.html but /guides/news-show-89.html does not.
     $base = rtrim((string) wp_parse_url((string) get_option('home'), PHP_URL_PATH), '/');
-    // Pages of 100 posts are read until 500 English articles are found or the posts run out, keeping only the rendered lines between pages,
-    // so a request never holds hundreds of full posts at once. Each post's language is checked as well, so posts in other
+    // The IDs are listed once, in one query (so a post published meanwhile cannot shift a page boundary and repeat or
+    // skip an article), then the posts are loaded 100 at a time in that order until 500 English articles are found,
+    // keeping only the rendered lines between chunks. Each post's language is checked as well, so posts in other
     // languages never take an English post's place, even if the query's language filter is not applied.
-    $per_page = 100;
-    for ($page = 1; count($articles) < 500; $page++) {
-        $posts = get_posts(['post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => $per_page, 'paged' => $page, 'has_password' => false, 'orderby' => ['date' => 'DESC', 'ID' => 'DESC'], 'no_found_rows' => true, 'lang' => 'en']);
+    $ids = get_posts(['post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => -1, 'fields' => 'ids', 'has_password' => false, 'orderby' => ['date' => 'DESC', 'ID' => 'DESC'], 'no_found_rows' => true, 'lang' => 'en']);
+    foreach (array_chunk(array_map('intval', $ids), 100) as $chunk) {
+        $posts = get_posts(['post_type' => 'post', 'post_status' => 'publish', 'post__in' => $chunk, 'orderby' => 'post__in', 'posts_per_page' => count($chunk), 'has_password' => false, 'ignore_sticky_posts' => true, 'no_found_rows' => true, 'lang' => '']);
         foreach ($posts as $post) {
             if (function_exists('pll_get_post_language') && pll_get_post_language($post->ID) !== 'en') {
                 continue;
@@ -239,13 +240,12 @@ function boblift_llms_txt_articles(): array
                 break;
             }
         }
-        $full_page = count($posts) === $per_page;
         unset($posts);
-        // Drop this page's posts and meta from the request-local cache, where the cache can do that alone.
+        // Drop this chunk's posts and meta from the request-local cache, where the cache can do that alone.
         if (function_exists('wp_cache_supports') && wp_cache_supports('flush_runtime')) {
             wp_cache_flush_runtime();
         }
-        if (!$full_page) {
+        if (count($articles) === 500) {
             break;
         }
     }
