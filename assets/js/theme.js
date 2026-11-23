@@ -1098,6 +1098,7 @@
     const buttonPointers = new Set();
     // A pinch that began with a finger on a button swallows that button's click.
     let swallowClick = false;
+    let swallowTimer = 0;
     let tipTimer = 0;
     let loadToken = 0;
     let settleTimer = 0;
@@ -1259,6 +1260,7 @@
       document.documentElement.style.overflow = previousOverflow;
       pointers.clear();
       buttonPointers.clear();
+      clearTimeout(swallowTimer);
       swallowClick = false;
       pinch = null;
       drag = null;
@@ -1318,7 +1320,11 @@
       // it still counts toward a pinch with a finger on the picture. A mouse on a button is left alone.
       const onButton = Boolean(event.target.closest('button'));
       if (onButton && event.pointerType === 'mouse') return;
-      if (!pointers.size) swallowClick = false;
+      if (!pointers.size) {
+        // A new gesture: the last one's click window ends here, so its timer cannot clear this one's.
+        clearTimeout(swallowTimer);
+        swallowClick = false;
+      }
       if (onButton) buttonPointers.add(event.pointerId);
       else stage.setPointerCapture?.(event.pointerId);
       stage.classList.add('is-touched');
@@ -1378,7 +1384,7 @@
       const fromButton = buttonPointers.delete(event.pointerId);
       pointers.delete(event.pointerId);
       // The click that follows the last finger of a pinch is swallowed only then; a later keyboard press on an arrow still works.
-      if (!pointers.size && swallowClick) setTimeout(() => { swallowClick = false; }, 400);
+      if (!pointers.size && swallowClick) swallowTimer = setTimeout(() => { swallowClick = false; }, 400);
       stage.classList.remove('is-dragging');
       if (pointers.size >= 2) {
         startPinch();
@@ -1404,10 +1410,29 @@
         lastTap = null;
         return;
       }
+      // The stroke ends where the finger lifts: a fast flick can pass the move threshold, or turn upright, after its last move.
+      if (drag && event.type === 'pointerup') {
+        const end = local(event);
+        const dx = end.x - drag.x;
+        const dy = end.y - drag.y;
+        if (!drag.moved && Math.hypot(dx, dy) > 6) drag.moved = true;
+        if (drag.swipe && drag.moved && Math.abs(dy) > Math.abs(dx)) {
+          // Mostly upright overall: no photo change, the picture springs back.
+          drag = null;
+          lastTap = null;
+          settle();
+          return;
+        }
+        drag.dx = dx;
+        if (drag.moved && !drag.swipe) {
+          x = drag.fromX + dx;
+          y = drag.fromY + dy;
+          apply();
+        }
+      }
       if (drag && drag.swipe && drag.moved) {
         // A swipe past a fifth of the screen (at most 80 px) moves to the neighbouring photo; a shorter one springs back.
-        // The distance is the finger's at the moment it lifts: a fast swipe can cross the line after its last move.
-        const distance = event.type === 'pointerup' ? local(event).x - drag.x : drag.dx;
+        const distance = drag.dx;
         drag = null;
         lastTap = null;
         if (event.type === 'pointerup' && Math.abs(distance) > Math.min(80, stage.clientWidth * 0.2)) onStep(distance < 0 ? forward() : -forward());
