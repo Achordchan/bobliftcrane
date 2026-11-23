@@ -493,10 +493,10 @@ foreach ($languages as $language) {
             </div>
         </div>
     </div>
-    <div id="mobile-menu" class="mobile-menu absolute end-3 top-[calc(100%+10px)] z-50 hidden max-h-[min(calc(100dvh-164px),680px)] w-[min(350px,calc(100vw-24px))] overflow-y-auto overscroll-contain rounded border border-line bg-white p-1.5 shadow-raised sm:end-4 sm:w-[min(360px,calc(100vw-32px))] lg:hidden">
-        <div class="rounded bg-[linear-gradient(135deg,#0a2f62_0%,#155aa2_100%)] px-4 py-2.5 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]">
-            <p class="text-[9px] font-extrabold uppercase tracking-[0.2em] text-gold"><?php echo esc_html($header_ui['mobileLabel'] ?? 'Navigation'); ?></p>
-            <p class="mt-0.5 text-base font-extrabold leading-6"><?php echo esc_html($header_ui['mobileTitle'] ?? 'BOB-LIFT Menu'); ?></p>
+    <div id="mobile-menu" class="mobile-menu absolute end-3 top-[calc(100%+10px)] z-50 hidden max-h-[min(calc(100dvh-164px),680px)] w-[calc(100vw-24px)] overflow-y-auto overscroll-contain rounded border border-line bg-white p-1.5 shadow-raised sm:end-4 sm:w-[min(420px,calc(100vw-32px))] lg:hidden">
+        <div class="rounded bg-[linear-gradient(135deg,#0a2f62_0%,#155aa2_100%)] px-4 py-3 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]">
+            <p class="text-[11px] font-extrabold uppercase tracking-[0.2em] text-gold"><?php echo esc_html($header_ui['mobileLabel'] ?? 'Navigation'); ?></p>
+            <p class="mt-0.5 text-lg font-extrabold leading-7"><?php echo esc_html($header_ui['mobileTitle'] ?? 'BOB-LIFT Menu'); ?></p>
         </div>
         <div class="mt-2 grid gap-1">
             <?php foreach ($nav_items as $mobile_nav_index => $item) :
@@ -519,44 +519,44 @@ foreach ($languages as $language) {
                 <div>
                     <?php if ($mobile_is_product_menu_item) : ?>
                         <div class="flex cursor-pointer items-center rounded px-4 py-3 transition duration-200 hover:bg-[#f7fbff] hover:text-blue-700" data-mobile-submenu-row>
-                            <a class="min-w-0 shrink-0 text-[15px] font-black leading-5 text-ink outline-none hover:text-blue-700" href="<?php echo esc_url(boblift_product_archive_url()); ?>" data-mobile-submenu-link><?php echo esc_html(function_exists('boblift_localized_static_text') ? boblift_localized_static_text((string) ($item['label'] ?? '')) : (string) ($item['label'] ?? '')); ?></a>
+                            <a class="min-w-0 shrink-0 text-[17px] font-black leading-6 text-ink outline-none hover:text-blue-700" href="<?php echo esc_url(boblift_product_archive_url()); ?>" data-mobile-submenu-link><?php echo esc_html(function_exists('boblift_localized_static_text') ? boblift_localized_static_text((string) ($item['label'] ?? '')) : (string) ($item['label'] ?? '')); ?></a>
                             <button class="group -my-3 -me-4 ms-auto grid h-11 w-12 shrink-0 place-items-center text-slate-300 transition hover:text-blue-600" type="button" aria-expanded="false" aria-controls="mobile-products-submenu" aria-label="<?php echo esc_attr($header_ui['expandProductCategoriesLabel'] ?? 'Expand product categories'); ?>" data-mobile-submenu-toggle>
                                 <?php echo boblift_icon('chevron-down', 'h-4 w-4 transition group-aria-expanded:rotate-180'); ?>
                             </button>
                         </div>
                         <div id="mobile-products-submenu" class="mx-1.5 mb-2 hidden rounded border border-line bg-[#f8fbff] p-2.5" data-product-nav="mobile" data-mobile-submenu-panel>
-                            <p class="px-2 pb-2 text-[10px] font-black uppercase tracking-[0.18em] text-gold"><?php echo esc_html($header_ui['productCategoriesLabel'] ?? 'Product Categories'); ?></p>
+                            <p class="px-2 pb-2 text-xs font-black uppercase tracking-[0.18em] text-gold"><?php echo esc_html($header_ui['productCategoriesLabel'] ?? 'Product Categories'); ?></p>
                             <div class="grid gap-3">
                                 <?php $family_group_shown = 'crane'; foreach ($product_menu_families as $family) : ?>
                                     <?php if ($family['group'] !== $family_group_shown) : $family_group_shown = $family['group']; ?>
-                                        <p class="px-2 pt-1 text-[10px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(boblift_product_family_group_label($family['group'])); ?></p>
+                                        <p class="px-2 pt-1 text-xs font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(boblift_product_family_group_label($family['group'])); ?></p>
                                     <?php endif; ?>
                                     <div>
-                                        <a class="flex items-center justify-between gap-3 rounded bg-white px-3 py-2 text-[13px] font-black leading-4 text-ink shadow-card" href="<?php echo esc_url($family['url']); ?>"><span class="min-w-0"><?php echo esc_html($family['title']); ?></span><span class="shrink-0 text-[11px] font-bold tabular-nums text-slate-500"><?php echo esc_html((string) $family['count']); ?></span></a>
+                                        <a class="flex items-center justify-between gap-3 rounded bg-white px-3 py-2.5 text-base font-black leading-5 text-ink shadow-card" href="<?php echo esc_url($family['url']); ?>"><span class="min-w-0"><?php echo esc_html($family['title']); ?></span><span class="shrink-0 text-[13px] font-bold tabular-nums text-slate-500"><?php echo esc_html((string) $family['count']); ?></span></a>
                                         <?php if ($family['children']) : ?>
                                             <div class="mt-1 grid gap-1 ps-2">
-                                                <?php foreach ($family['children'] as $family_child) : ?><a class="rounded px-3 py-1.5 text-xs font-bold leading-[18px] text-slate-500 hover:bg-white hover:text-blue-700" href="<?php echo esc_url($family_child['url']); ?>"><?php echo esc_html($family_child['title']); ?></a><?php endforeach; ?>
+                                                <?php foreach ($family['children'] as $family_child) : ?><a class="rounded px-3 py-2 text-[15px] font-bold leading-5 text-slate-600 hover:bg-white hover:text-blue-700" href="<?php echo esc_url($family_child['url']); ?>"><?php echo esc_html($family_child['title']); ?></a><?php endforeach; ?>
                                             </div>
                                         <?php endif; ?>
                                     </div>
                                 <?php endforeach; ?>
                             </div>
                             <?php $mobile_capacity_links = function_exists('boblift_tonnage_links') ? boblift_tonnage_links() : []; if ($mobile_capacity_links) : ?>
-                                <p class="px-2 pb-2 pt-4 text-[10px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(boblift_localized_static_text('Browse by capacity')); ?></p>
+                                <p class="px-2 pb-2 pt-4 text-xs font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(boblift_localized_static_text('Browse by capacity')); ?></p>
                                 <div class="grid grid-cols-3 gap-1">
-                                    <?php foreach ($mobile_capacity_links as [$capacity_label, $capacity_url]) : ?><a class="rounded bg-white px-2 py-1.5 text-center text-xs font-bold leading-[18px] text-slate-600 shadow-card hover:text-blue-700" href="<?php echo esc_url($capacity_url); ?>"><?php echo esc_html($capacity_label); ?></a><?php endforeach; ?>
+                                    <?php foreach ($mobile_capacity_links as [$capacity_label, $capacity_url]) : ?><a class="rounded bg-white px-2 py-2 text-center text-sm font-bold leading-5 text-slate-600 shadow-card hover:text-blue-700" href="<?php echo esc_url($capacity_url); ?>"><?php echo esc_html($capacity_label); ?></a><?php endforeach; ?>
                                 </div>
                             <?php endif; ?>
                         </div>
                     <?php elseif ($mobile_has_children) : ?>
                         <details class="group rounded" <?php echo $mobile_children_open ? 'open' : ''; ?>>
-                            <summary class="flex cursor-pointer list-none items-center justify-between rounded px-4 py-3 text-[15px] font-black leading-5 text-ink outline-none transition duration-200 hover:bg-[#f7fbff] hover:text-blue-700 [&::-webkit-details-marker]:hidden">
+                            <summary class="flex cursor-pointer list-none items-center justify-between rounded px-4 py-3 text-[17px] font-black leading-6 text-ink outline-none transition duration-200 hover:bg-[#f7fbff] hover:text-blue-700 [&::-webkit-details-marker]:hidden">
                                 <span><?php echo esc_html(function_exists('boblift_localized_static_text') ? boblift_localized_static_text((string) ($item['label'] ?? '')) : (string) ($item['label'] ?? '')); ?></span>
                                 <?php echo boblift_icon('chevron-down', 'h-4 w-4 text-slate-300 transition group-open:rotate-180 group-open:text-blue-600'); ?>
                             </summary>
                             <div class="mx-1.5 mb-2 rounded border border-line bg-[#f8fbff] p-2">
                                 <?php foreach ($mobile_children as $mobile_child) : $mobile_child_href = (string) ($mobile_child['href'] ?? '#'); $mobile_child_active = $nav_href_matches_current($mobile_child_href); ?>
-                                    <a class="flex items-center justify-between rounded px-3 py-2 text-xs font-bold leading-[18px] transition hover:bg-white hover:text-blue-700 <?php echo $mobile_child_active ? 'bg-white text-blue-700' : 'text-slate-500'; ?>" href="<?php echo esc_url(boblift_url($mobile_child_href)); ?>">
+                                    <a class="flex items-center justify-between rounded px-3 py-2.5 text-[15px] font-bold leading-5 transition hover:bg-white hover:text-blue-700 <?php echo $mobile_child_active ? 'bg-white text-blue-700' : 'text-slate-600'; ?>" href="<?php echo esc_url(boblift_url($mobile_child_href)); ?>">
                                         <span><?php echo esc_html(function_exists('boblift_localized_static_text') ? boblift_localized_static_text((string) ($mobile_child['label'] ?? '')) : (string) ($mobile_child['label'] ?? '')); ?></span>
                                         <?php if ($mobile_child_active) : ?><?php echo boblift_icon('check', 'h-3.5 w-3.5 text-gold'); ?><?php endif; ?>
                                     </a>
@@ -565,13 +565,13 @@ foreach ($languages as $language) {
                         </details>
                     <?php elseif ($mobile_is_news_item && $news_menu_items !== []) : ?>
                         <details class="group rounded" <?php echo $mobile_news_open ? 'open' : ''; ?>>
-                            <summary class="flex cursor-pointer list-none items-center justify-between rounded px-4 py-3 text-[15px] font-black leading-5 text-ink outline-none transition duration-200 hover:bg-[#f7fbff] hover:text-blue-700 [&::-webkit-details-marker]:hidden">
+                            <summary class="flex cursor-pointer list-none items-center justify-between rounded px-4 py-3 text-[17px] font-black leading-6 text-ink outline-none transition duration-200 hover:bg-[#f7fbff] hover:text-blue-700 [&::-webkit-details-marker]:hidden">
                                 <span><?php echo esc_html(function_exists('boblift_localized_static_text') ? boblift_localized_static_text((string) ($item['label'] ?? '')) : (string) ($item['label'] ?? '')); ?></span>
                                 <?php echo boblift_icon('chevron-down', 'h-4 w-4 text-slate-300 transition group-open:rotate-180 group-open:text-blue-600'); ?>
                             </summary>
                             <div class="mx-1.5 mb-2 rounded border border-line bg-[#f8fbff] p-2">
                                 <?php foreach ($news_menu_items as $news_menu_item) : ?>
-                                    <a class="flex items-center justify-between rounded px-3 py-2 text-xs font-bold leading-[18px] transition hover:bg-white hover:text-blue-700 <?php echo !empty($news_menu_item['active']) ? 'bg-white text-blue-700' : 'text-slate-500'; ?>" href="<?php echo esc_url(boblift_url((string) $news_menu_item['href'])); ?>">
+                                    <a class="flex items-center justify-between rounded px-3 py-2.5 text-[15px] font-bold leading-5 transition hover:bg-white hover:text-blue-700 <?php echo !empty($news_menu_item['active']) ? 'bg-white text-blue-700' : 'text-slate-600'; ?>" href="<?php echo esc_url(boblift_url((string) $news_menu_item['href'])); ?>">
                                         <span><?php echo esc_html((string) $news_menu_item['label']); ?></span>
                                         <?php if (!empty($news_menu_item['active'])) : ?><?php echo boblift_icon('check', 'h-3.5 w-3.5 text-gold'); ?><?php endif; ?>
                                     </a>
@@ -579,7 +579,7 @@ foreach ($languages as $language) {
                             </div>
                         </details>
                     <?php else : ?>
-                        <a class="group flex cursor-pointer items-center justify-between rounded px-4 py-3 text-[15px] font-black leading-5 text-ink outline-none transition duration-200 hover:bg-[#f7fbff] hover:text-blue-700" href="<?php echo esc_url($mobile_item_url); ?>"><?php echo esc_html(function_exists('boblift_localized_static_text') ? boblift_localized_static_text((string) ($item['label'] ?? '')) : (string) ($item['label'] ?? '')); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-blue-600'); ?></a>
+                        <a class="group flex cursor-pointer items-center justify-between rounded px-4 py-3 text-[17px] font-black leading-6 text-ink outline-none transition duration-200 hover:bg-[#f7fbff] hover:text-blue-700" href="<?php echo esc_url($mobile_item_url); ?>"><?php echo esc_html(function_exists('boblift_localized_static_text') ? boblift_localized_static_text((string) ($item['label'] ?? '')) : (string) ($item['label'] ?? '')); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-blue-600'); ?></a>
                     <?php endif; ?>
                 </div>
             <?php endforeach; ?>
@@ -588,11 +588,11 @@ foreach ($languages as $language) {
         <?php // The header carries the site switch from 360px, so the menu lists the other sites only on narrower phones, where the switch is hidden. ?>
         <?php if ($site_switcher_others !== []) : ?>
             <div class="mt-1.5 border-t border-line px-2 pb-1 pt-3 min-[360px]:hidden">
-                <p class="px-2 pb-1.5 text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html($site_switcher_ui['mobileTitle'] ?? 'Other BOB-LIFT sites'); ?></p>
+                <p class="px-2 pb-1.5 text-xs font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html($site_switcher_ui['mobileTitle'] ?? 'Other BOB-LIFT sites'); ?></p>
                 <?php foreach ($site_switcher_others as $site) : ?>
                     <a class="flex items-center justify-between gap-3 rounded px-2 py-2.5 transition hover:bg-[#f7fbff]" href="<?php echo esc_url($site['url']); ?>"<?php echo $site_leave_attrs($site); ?>>
                         <?php echo $site_mark_html($site, 'border border-line bg-white text-navy'); ?>
-                        <span class="min-w-0 flex-1"><span class="block text-sm font-black text-ink"><?php echo esc_html($site['label']); ?></span><span class="block text-xs font-normal text-slate-500"><?php echo esc_html($site['description'] !== '' ? $site['description'] : $site['domain']); ?></span></span>
+                        <span class="min-w-0 flex-1"><span class="block text-base font-black text-ink"><?php echo esc_html($site['label']); ?></span><span class="block text-sm font-normal text-slate-500"><?php echo esc_html($site['description'] !== '' ? $site['description'] : $site['domain']); ?></span></span>
                         <?php echo boblift_icon('arrow-up-right', 'h-4 w-4 shrink-0 text-slate-500'); ?>
                     </a>
                 <?php endforeach; ?>
