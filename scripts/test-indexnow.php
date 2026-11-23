@@ -85,9 +85,10 @@ class Fake_Wpdb
 }
 const ARRAY_A = 'ARRAY_A';
 $GLOBALS['wpdb'] = new Fake_Wpdb();
+$GLOBALS['add_option_fails'] = false;
 function add_option(string $name, $value, $deprecated = '', $autoload = null): bool
 {
-    if (array_key_exists($name, $GLOBALS['options'])) {
+    if ($GLOBALS['add_option_fails'] || array_key_exists($name, $GLOBALS['options'])) {
         return false;
     }
     $GLOBALS['options'][$name] = $value;
@@ -162,6 +163,7 @@ function wp_schedule_single_event(int $time, string $hook, array $args = []): bo
 {
     $GLOBALS['scheduled'][] = $hook;
     $GLOBALS['scheduled_at'][] = $time;
+    $GLOBALS['scheduled_args'][] = $args;
     return true;
 }
 function wp_next_scheduled(string $hook)
@@ -323,6 +325,32 @@ foreach ($rows as $name) {
     unset($GLOBALS['options'][$name]);
 }
 $GLOBALS['remote_fails'] = false;
+
+$GLOBALS['posts'] = [31 => new WP_Post(31)];
+$GLOBALS['remote_fails'] = true;
+$GLOBALS['add_option_fails'] = true;
+$GLOBALS['scheduled'] = $GLOBALS['scheduled_args'] = [];
+boblift_indexnow_send([31]);
+$GLOBALS['add_option_fails'] = false;
+$check('a retry row that cannot be written travels in the cron event', $GLOBALS['scheduled_args'] === [[[31]]]);
+$GLOBALS['remote_fails'] = false;
+$GLOBALS['sent'] = [];
+boblift_indexnow_run_retries([31]);
+$check('the cron event sends the IDs it carries', $GLOBALS['sent'] === [['https://bobliftcrane.com/p31.html']]);
+add_option('boblift_indexnow_retry_bad2', 'truncated', '', 'no');
+$GLOBALS['scheduled'] = [];
+boblift_indexnow_schedule_retry();
+$check('scheduling removes a malformed row and schedules nothing', !isset($GLOBALS['options']['boblift_indexnow_retry_bad2']) && $GLOBALS['scheduled'] === []);
+$saved_key = $GLOBALS['options']['boblift_indexnow_key'];
+$GLOBALS['options']['boblift_indexnow_key'] = 'bad key!';
+$GLOBALS['wpdb']->fail_reads = true;
+$GLOBALS['sent'] = [];
+boblift_indexnow_send([31]);
+$GLOBALS['wpdb']->fail_reads = false;
+$rows = boblift_indexnow_retry_names();
+$check('posts are kept for the retry when the key cannot be read', $GLOBALS['sent'] === [] && count($rows) === 1 && $GLOBALS['options'][$rows[0]]['ids'] === [31]);
+unset($GLOBALS['options'][$rows[0]]);
+$GLOBALS['options']['boblift_indexnow_key'] = $saved_key;
 
 // Publish to shutdown through the registered hooks: queued on publish, sent once at shutdown with the final permalink.
 $GLOBALS['posts'] = [21 => new WP_Post(21, 'product')];

@@ -148,8 +148,19 @@ function boblift_indexnow_send(array $post_ids, bool $retry = true): void
         return;
     }
     $by_url = boblift_indexnow_resolve($post_ids);
+    if ($by_url === []) {
+        return;
+    }
+    $key = boblift_indexnow_key();
+    if ($key === '') {
+        // The key could not be stored or read back: keep the posts for the retry instead of dropping them.
+        if ($retry) {
+            boblift_indexnow_save_retry(array_merge(...array_values($by_url)));
+        }
+        return;
+    }
     $failed = [];
-    foreach (boblift_indexnow_payloads(array_keys($by_url), (string) get_option('home'), boblift_indexnow_key()) as $payload) {
+    foreach (boblift_indexnow_payloads(array_keys($by_url), (string) get_option('home'), $key) as $payload) {
         $response = wp_remote_post(BOBLIFT_INDEXNOW_ENDPOINT, [
             'blocking' => false,
             'timeout' => 3,
@@ -174,7 +185,11 @@ function boblift_indexnow_send(array $post_ids, bool $retry = true): void
 function boblift_indexnow_save_retry(array $post_ids): void
 {
     $batch = ['due' => time() + 10 * MINUTE_IN_SECONDS, 'ids' => array_map('intval', $post_ids)];
-    add_option(BOBLIFT_INDEXNOW_RETRY_PREFIX . str_replace('-', '', wp_generate_uuid4()), $batch, '', 'no');
+    if (!add_option(BOBLIFT_INDEXNOW_RETRY_PREFIX . str_replace('-', '', wp_generate_uuid4()), $batch, '', 'no')) {
+        // The row could not be written: carry the IDs in the cron event itself so the batch is not lost.
+        wp_schedule_single_event($batch['due'], BOBLIFT_INDEXNOW_RETRY_HOOK, [$batch['ids']]);
+        return;
+    }
     boblift_indexnow_schedule_retry();
 }
 
@@ -225,6 +240,7 @@ function boblift_indexnow_schedule_retry(): void
     foreach (boblift_indexnow_retry_names() as $name) {
         $batch = boblift_indexnow_read_retry($name);
         if ($batch === false) {
+            boblift_indexnow_claim_retry($name);
             continue;
         }
         $due = $batch === null ? time() + 10 * MINUTE_IN_SECONDS : max(time(), $batch['due']);
@@ -239,8 +255,11 @@ function boblift_indexnow_schedule_retry(): void
  * Sends each due batch once, after claiming its row. A row that could not be read, or is not due yet, stays for a
  * later run; a row that was read but holds no valid batch is removed so it cannot keep the retry run alive.
  */
-function boblift_indexnow_run_retries(): void
+function boblift_indexnow_run_retries(array $fallback_ids = []): void
 {
+    if ($fallback_ids !== []) {
+        boblift_indexnow_send($fallback_ids, false);
+    }
     foreach (boblift_indexnow_retry_names() as $name) {
         $batch = boblift_indexnow_read_retry($name);
         if ($batch === false) {
