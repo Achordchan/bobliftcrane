@@ -291,7 +291,7 @@ add_action('init', static function (): void {
 /* ---------------------------------------------------------------------------------------------------------------- */
 
 /**
- * The slim link between the certifications and the products on the home page while the offers run: the label and the
+ * The slim link right after the products on the home page while the offers run: the label and the
  * headline on one line (phones show the headline alone), the deposit line and the button words from 1024px. It used to
  * be a full navy block right under the hero; on phones it pushed the products down and read like a hard sell (11-23).
  * data-offer-ends lets the browser take it away at the end (assets/js/theme.js) on a page the edge cache keeps from

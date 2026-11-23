@@ -151,10 +151,10 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
     </div>
 </section>
 
-<?php // The year-end offers, while they run: a slim link between the certifications and the products (inc/year-end-offers.php). ?>
-<?php if (function_exists('boblift_offer_home_banner')) { boblift_offer_home_banner(); } ?>
-
 <?php boblift_render_home_products(); ?>
+
+<?php // The year-end offers, while they run: a slim link right after the products (inc/year-end-offers.php). ?>
+<?php if (function_exists('boblift_offer_home_banner')) { boblift_offer_home_banner(); } ?>
 
 <?php // About and the factory are one chapter: who we are, then the factory you can come and see. ?>
 <?php // The photo beside the about text: the full width on phones, under half the window from 1024px. ?>
