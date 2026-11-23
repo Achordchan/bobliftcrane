@@ -12,8 +12,8 @@ if (!defined('ABSPATH')) {
  * check that the ping comes from the site owner. Only the live site (a host in BOBLIFT_INDEXNOW_HOSTS, explicitly
  * public, production) pings; local copies, staging clones, private sites and other hosts stay quiet. Changed posts are
  * queued by blog and ID during the request and resolved at shutdown, after every term and meta field is saved, then
- * sent in non-blocking POSTs of up to 10,000 URLs. A batch that cannot even be dispatched is kept and retried once by
- * cron ten minutes later, together with anything queued by then.
+ * sent in non-blocking POSTs of up to 10,000 URLs. The post IDs of a batch that cannot even be dispatched go into
+ * their own single cron event ten minutes later, which checks each post again and tries once more.
  */
 
 const BOBLIFT_INDEXNOW_ENDPOINT = 'https://api.indexnow.org/indexnow';
@@ -21,7 +21,6 @@ const BOBLIFT_INDEXNOW_HOSTS = ['bobliftcrane.com'];
 const BOBLIFT_INDEXNOW_POST_TYPES = ['page', 'post', 'product', 'case'];
 const BOBLIFT_INDEXNOW_BATCH = 10000;
 const BOBLIFT_INDEXNOW_KEY_OPTION = 'boblift_indexnow_key';
-const BOBLIFT_INDEXNOW_RETRY_OPTION = 'boblift_indexnow_retry';
 const BOBLIFT_INDEXNOW_RETRY_HOOK = 'boblift_indexnow_retry';
 
 function boblift_indexnow_valid_key(mixed $key): bool
@@ -29,11 +28,15 @@ function boblift_indexnow_valid_key(mixed $key): bool
     return is_string($key) && preg_match('/^[a-zA-Z0-9-]{8,128}$/', $key) === 1;
 }
 
-/** The stored key, read past the object cache so concurrent requests see the same row. */
-function boblift_indexnow_stored_key(): mixed
+/**
+ * The stored key, read past the object cache so concurrent requests see the same row. Null only when there is no row;
+ * an empty value comes back as '' (get_var() would turn it into null too) so it reaches the repair branch.
+ */
+function boblift_indexnow_stored_key(): ?string
 {
     global $wpdb;
-    return $wpdb->get_var($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s LIMIT 1", BOBLIFT_INDEXNOW_KEY_OPTION));
+    $row = $wpdb->get_row($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s LIMIT 1", BOBLIFT_INDEXNOW_KEY_OPTION), ARRAY_A);
+    return is_array($row) ? (string) $row['option_value'] : null;
 }
 
 /**
@@ -53,7 +56,7 @@ function boblift_indexnow_key(): string
     if ($stored === null) {
         $wpdb->query($wpdb->prepare("INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'yes')", BOBLIFT_INDEXNOW_KEY_OPTION, $candidate));
     } elseif (!boblift_indexnow_valid_key($stored)) {
-        $wpdb->query($wpdb->prepare("UPDATE {$wpdb->options} SET option_value = %s WHERE option_name = %s AND option_value = %s", $candidate, BOBLIFT_INDEXNOW_KEY_OPTION, (string) $stored));
+        $wpdb->query($wpdb->prepare("UPDATE {$wpdb->options} SET option_value = %s WHERE option_name = %s AND option_value = %s", $candidate, BOBLIFT_INDEXNOW_KEY_OPTION, $stored));
     }
     wp_cache_delete(BOBLIFT_INDEXNOW_KEY_OPTION, 'options');
     wp_cache_delete('alloptions', 'options');
@@ -116,36 +119,35 @@ function boblift_indexnow_payloads(array $urls, string $home, string $key): arra
     return $payloads;
 }
 
-/** The permalinks of the queued posts that still qualify, read in the current blog. */
+/** @return array<string, int[]> permalink => post IDs, for the queued posts that still qualify, read in the current blog. */
 function boblift_indexnow_resolve(array $post_ids): array
 {
     $urls = [];
     foreach ($post_ids as $id) {
-        $post = get_post($id);
+        $post = get_post((int) $id);
         if (!boblift_indexnow_post_qualifies($post)) {
             continue;
         }
         $url = get_permalink($post);
         if (is_string($url) && $url !== '') {
-            $urls[] = $url;
+            $urls[$url][] = (int) $post->ID;
         }
     }
     return $urls;
 }
 
-/** Sends the URLs plus any batch kept from a failed dispatch; keeps what could not be dispatched for one retry. */
-function boblift_indexnow_send(array $urls): void
+/**
+ * Sends the posts' current permalinks. When $retry is true, the IDs behind any POST that could not be dispatched get
+ * their own cron event, so concurrent failures never share or overwrite a stored list; the retry itself does not retry.
+ */
+function boblift_indexnow_send(array $post_ids, bool $retry = true): void
 {
     if (!boblift_indexnow_enabled()) {
         return;
     }
-    $retry = get_option(BOBLIFT_INDEXNOW_RETRY_OPTION, []);
-    $retry = is_array($retry) ? $retry : [];
-    if ($retry !== []) {
-        delete_option(BOBLIFT_INDEXNOW_RETRY_OPTION);
-    }
+    $by_url = boblift_indexnow_resolve($post_ids);
     $failed = [];
-    foreach (boblift_indexnow_payloads(array_merge($retry, $urls), (string) get_option('home'), boblift_indexnow_key()) as $payload) {
+    foreach (boblift_indexnow_payloads(array_keys($by_url), (string) get_option('home'), boblift_indexnow_key()) as $payload) {
         $response = wp_remote_post(BOBLIFT_INDEXNOW_ENDPOINT, [
             'blocking' => false,
             'timeout' => 3,
@@ -153,16 +155,13 @@ function boblift_indexnow_send(array $urls): void
             'body' => wp_json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
         ]);
         if (is_wp_error($response)) {
-            $failed = array_merge($failed, $payload['urlList']);
+            foreach ($payload['urlList'] as $url) {
+                array_push($failed, ...$by_url[$url]);
+            }
         }
     }
-    // Only URLs that were not already a retry get another try, so a dead endpoint cannot loop forever.
-    $failed = array_slice(array_values(array_diff($failed, $retry)), 0, BOBLIFT_INDEXNOW_BATCH);
-    if ($failed !== []) {
-        update_option(BOBLIFT_INDEXNOW_RETRY_OPTION, $failed, false);
-        if (!wp_next_scheduled(BOBLIFT_INDEXNOW_RETRY_HOOK)) {
-            wp_schedule_single_event(time() + 10 * MINUTE_IN_SECONDS, BOBLIFT_INDEXNOW_RETRY_HOOK);
-        }
+    if ($retry && $failed !== []) {
+        wp_schedule_single_event(time() + 10 * MINUTE_IN_SECONDS, BOBLIFT_INDEXNOW_RETRY_HOOK, [(int) get_current_blog_id(), array_values(array_unique($failed))]);
     }
 }
 
@@ -182,16 +181,23 @@ add_action('shutdown', static function (): void {
         if ($switched) {
             switch_to_blog((int) $blog_id);
         }
-        boblift_indexnow_send(boblift_indexnow_resolve($post_ids));
+        boblift_indexnow_send($post_ids);
         if ($switched) {
             restore_current_blog();
         }
     }
 });
 
-add_action(BOBLIFT_INDEXNOW_RETRY_HOOK, static function (): void {
-    boblift_indexnow_send([]);
-});
+add_action(BOBLIFT_INDEXNOW_RETRY_HOOK, static function (int $blog_id = 1, array $post_ids = []): void {
+    $switched = is_multisite() && $blog_id !== (int) get_current_blog_id();
+    if ($switched) {
+        switch_to_blog($blog_id);
+    }
+    boblift_indexnow_send($post_ids, false);
+    if ($switched) {
+        restore_current_blog();
+    }
+}, 10, 2);
 
 // The key file, answered ahead of the legacy redirects (priority 0) and the 404 template.
 add_action('template_redirect', static function (): void {

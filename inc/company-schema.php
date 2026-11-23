@@ -189,15 +189,10 @@ function boblift_llms_txt(): string
         }
     }
     $articles = [];
-    // Every English article, newest first, read in pages so older posts that AI answers already cite stay listed.
-    for ($page = 1; ; $page++) {
-        $posts = get_posts(['post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => 200, 'paged' => $page, 'no_found_rows' => true, 'lang' => 'en']);
-        foreach ($posts as $post) {
-            $articles[] = boblift_llms_txt_link(get_the_title($post), get_permalink($post), boblift_seo_post_description($post));
-        }
-        if (count($posts) < 200) {
-            break;
-        }
+    // Up to 500 English articles, newest first (ID breaks date ties), so older posts that AI answers already cite stay listed.
+    $posts = get_posts(['post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => 500, 'orderby' => ['date' => 'DESC', 'ID' => 'DESC'], 'no_found_rows' => true, 'lang' => 'en']);
+    foreach ($posts as $post) {
+        $articles[] = boblift_llms_txt_link(get_the_title($post), get_permalink($post), boblift_seo_post_description($post));
     }
     $company = [boblift_llms_txt_link('All products', boblift_product_archive_url(), 'Every crane model with filters for type, boom and capacity')];
     foreach (['about' => 'About BOB-LIFT', 'factory-tour' => 'Factory tour', 'quality-testing' => 'Quality and testing', 'cases' => 'Application cases and customer feedback', 'contact' => 'Contact and inquiry form'] as $slug => $title) {

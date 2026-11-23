@@ -24,9 +24,15 @@ class Fake_Wpdb
     {
         return [$sql, $args];
     }
+    // Like wpdb: get_var() gives null for a missing row and for an empty value alike.
     public function get_var(array $q)
     {
-        return $GLOBALS['options'][$q[1][0]] ?? null;
+        $value = $GLOBALS['options'][$q[1][0]] ?? null;
+        return $value === '' ? null : $value;
+    }
+    public function get_row(array $q, string $output = 'OBJECT')
+    {
+        return array_key_exists($q[1][0], $GLOBALS['options']) ? ['option_value' => (string) $GLOBALS['options'][$q[1][0]]] : null;
     }
     public function query(array $q): int
     {
@@ -45,6 +51,7 @@ class Fake_Wpdb
         return 0;
     }
 }
+const ARRAY_A = 'ARRAY_A';
 $GLOBALS['wpdb'] = new Fake_Wpdb();
 function add_option(string $name, $value, $deprecated = '', $autoload = null): bool
 {
@@ -83,7 +90,24 @@ class WP_Error
 }
 $GLOBALS['remote_fails'] = false;
 $GLOBALS['sent'] = [];
-$GLOBALS['scheduled'] = 0;
+$GLOBALS['scheduled'] = [];
+$GLOBALS['posts'] = [];
+function get_post(int $id)
+{
+    return $GLOBALS['posts'][$id] ?? null;
+}
+function get_permalink(WP_Post $post): string
+{
+    return 'https://bobliftcrane.com/p' . $post->ID . '.html';
+}
+function get_current_blog_id(): int
+{
+    return 1;
+}
+function is_multisite(): bool
+{
+    return false;
+}
 function is_wp_error($thing): bool
 {
     return $thing instanceof WP_Error;
@@ -102,13 +126,9 @@ function update_option(string $name, $value, $autoload = null): bool
     $GLOBALS['options'][$name] = $value;
     return true;
 }
-function wp_next_scheduled(string $hook)
+function wp_schedule_single_event(int $time, string $hook, array $args = []): bool
 {
-    return $GLOBALS['scheduled'] ?: false;
-}
-function wp_schedule_single_event(int $time, string $hook): bool
-{
-    $GLOBALS['scheduled'] = $time;
+    $GLOBALS['scheduled'][] = $args;
     return true;
 }
 require dirname(__DIR__) . '/inc/indexnow.php';
@@ -174,16 +194,31 @@ $split = boblift_indexnow_payloads($many, 'https://bobliftcrane.com', 'abcd1234'
 $check('10,001 URLs go out in two batches, none dropped', count($split) === 2 && count($split[0]['urlList']) === 10000 && $split[1]['urlList'] === ['https://bobliftcrane.com/p10001.html']);
 
 $GLOBALS['options']['boblift_indexnow_key'] = 'abcd1234';
+$GLOBALS['posts'] = [11 => new WP_Post(11), 12 => new WP_Post(12), 13 => new WP_Post(13, 'post', 'private')];
+$GLOBALS['sent'] = [];
+boblift_indexnow_send([11, 13, 99]);
+$check('only still-public posts are sent', $GLOBALS['sent'] === [['https://bobliftcrane.com/p11.html']]);
 $GLOBALS['remote_fails'] = true;
-boblift_indexnow_send(['https://bobliftcrane.com/x.html']);
-$check('a failed dispatch is kept and a retry scheduled', ($GLOBALS['options']['boblift_indexnow_retry'] ?? []) === ['https://bobliftcrane.com/x.html'] && $GLOBALS['scheduled'] > 0);
+boblift_indexnow_send([11]);
+boblift_indexnow_send([12]);
+$check('each failed dispatch gets its own retry event with its post IDs', $GLOBALS['scheduled'] === [[1, [11]], [1, [12]]]);
+$GLOBALS['scheduled'] = [];
+$GLOBALS['posts'][11]->post_password = 'secret';
 $GLOBALS['remote_fails'] = false;
 $GLOBALS['sent'] = [];
-boblift_indexnow_send(['https://bobliftcrane.com/y.html']);
-$check('the retry goes out with the next batch and is cleared', $GLOBALS['sent'] === [['https://bobliftcrane.com/x.html', 'https://bobliftcrane.com/y.html']] && !isset($GLOBALS['options']['boblift_indexnow_retry']));
+boblift_indexnow_send([11, 12], false);
+$check('a retry checks visibility again', $GLOBALS['sent'] === [['https://bobliftcrane.com/p12.html']]);
 $GLOBALS['remote_fails'] = true;
-boblift_indexnow_send(['https://bobliftcrane.com/z.html']);
-boblift_indexnow_send([]);
-$check('a URL that fails its retry is dropped', !isset($GLOBALS['options']['boblift_indexnow_retry']));
+boblift_indexnow_send([12], false);
+$check('a failed retry is not retried again', $GLOBALS['scheduled'] === []);
+$GLOBALS['remote_fails'] = false;
+$GLOBALS['posts'] = [];
+foreach (range(1, 10001) as $i) {
+    $GLOBALS['posts'][$i] = new WP_Post($i);
+}
+$GLOBALS['remote_fails'] = true;
+boblift_indexnow_send(range(1, 10001));
+$check('10,001 failed posts are all kept for the retry', count($GLOBALS['scheduled']) === 1 && count($GLOBALS['scheduled'][0][1]) === 10001);
+$GLOBALS['remote_fails'] = false;
 
 exit($failures === 0 ? 0 : 1);
