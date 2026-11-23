@@ -2127,14 +2127,15 @@ img { max-width: 100%; }
   .boblift-product-quote-copy {
     gap: 0;
   }
+  /* Same size as the other section headings on phones (1.6rem), not a poster line. */
   .boblift-product-quote-title {
     max-width: 100%;
-    font-size: clamp(34px, 9.1vw, 42px);
-    line-height: 1.02;
-    letter-spacing: -.02em;
+    font-size: 1.6rem;
+    line-height: 1.18;
+    letter-spacing: -.015em;
   }
   .boblift-product-quote-text {
-    margin-top: 18px;
+    margin-top: 12px;
     font-size: clamp(14px, 3.65vw, 15px);
     line-height: 1.8;
   }

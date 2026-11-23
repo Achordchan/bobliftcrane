@@ -916,13 +916,13 @@ if ($family_quote_copy) {
                                     <div class="boblift-story-prose boblift-product-body boblift-product-sections <?php echo $detail_body_lead !== '' ? 'mt-6' : ''; ?>"><?php echo wp_kses_post($detail_body_sections); ?></div>
                                 <?php endif; ?>
                                 <?php if ($product_guide['cards']) : ?>
-                                    <?php // Three figures as one ruled strip under the copy, not three loose boxes. ?>
-                                    <ul class="mt-8 grid grid-cols-1 border border-[#DDE7F2] sm:grid-cols-3">
+                                    <?php // Up to three figures as one ruled strip under the copy, side by side on phones too rather than stacked boxes. ?>
+                                    <ul class="mt-8 grid border border-[#DDE7F2] <?php echo esc_attr([1 => 'grid-cols-1', 2 => 'grid-cols-2'][count($product_guide['cards'])] ?? 'grid-cols-3'); ?>">
                                         <?php foreach ($product_guide['cards'] as $card_index => $card) : ?>
-                                            <li class="min-w-0 p-4 sm:p-5 <?php echo $card_index > 0 ? 'border-t border-[#DDE7F2] sm:border-s sm:border-t-0' : ''; ?>">
-                                                <p class="text-[11px] font-black uppercase leading-4 tracking-[0.12em] text-slate-500 rtl:tracking-normal"><?php echo esc_html($card['label']); ?></p>
-                                                <p class="mt-2 text-2xl font-black leading-none text-[#071f42] [font-variant-numeric:tabular-nums]"><?php echo esc_html($card['value']); ?></p>
-                                                <?php if ($card['text'] !== '') : ?><p class="mt-2 text-sm font-normal leading-5 text-slate-600"><?php echo esc_html($card['text']); ?></p><?php endif; ?>
+                                            <li class="min-w-0 p-3 sm:p-5 <?php echo $card_index > 0 ? 'border-s border-[#DDE7F2]' : ''; ?>">
+                                                <p class="text-[11px] font-black uppercase leading-4 tracking-[0.06em] text-slate-500 sm:tracking-[0.12em] rtl:tracking-normal"><?php echo esc_html($card['label']); ?></p>
+                                                <p class="mt-1.5 text-lg font-black leading-none text-[#071f42] [font-variant-numeric:tabular-nums] sm:mt-2 sm:text-2xl"><?php echo esc_html($card['value']); ?></p>
+                                                <?php if ($card['text'] !== '') : ?><p class="mt-1.5 text-xs font-normal leading-4 text-slate-600 sm:mt-2 sm:text-sm sm:leading-5"><?php echo esc_html($card['text']); ?></p><?php endif; ?>
                                             </li>
                                         <?php endforeach; ?>
                                     </ul>
@@ -1352,7 +1352,7 @@ if ($family_quote_copy) {
                     <div class="boblift-product-quote-copy flex items-start gap-5 md:gap-6">
                         <div class="hidden h-20 w-20 shrink-0 place-items-center rounded border border-blue-100 bg-white/74 text-[#0B3F7D] shadow-card md:grid"><?php echo boblift_icon('mail', 'h-10 w-10'); ?></div>
                         <div class="min-w-0">
-                            <h2 class="boblift-product-quote-title max-w-[1280px] text-[clamp(34px,3vw,58px)] font-black leading-[1.02] tracking-[-0.02em]"><?php echo esc_html($quote_title); ?></h2>
+                            <h2 class="boblift-product-quote-title max-w-[1280px] text-[1.6rem] font-black leading-[1.18] tracking-[-0.015em] md:text-[clamp(34px,3vw,58px)] md:leading-[1.02] md:tracking-[-0.02em]"><?php echo esc_html($quote_title); ?></h2>
                             <p class="boblift-product-quote-text mt-4 max-w-[1120px] text-sm font-normal leading-7 text-slate-600 md:text-base md:leading-8"><?php echo esc_html($quote_description); ?></p>
                         </div>
                     </div>
