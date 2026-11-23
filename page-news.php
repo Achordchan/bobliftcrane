@@ -46,12 +46,14 @@ $empty_text = (string) ($ui['emptyText'] ?? 'Choose another category to browse m
 </div>
 
 <section id="news-updates" class="page-shell scroll-mt-[120px] pb-20 pt-8 md:pt-10 2xl:pb-24" data-news-filter-root data-news-max-visible="9" data-news-initial-category="<?php echo esc_attr($active_category); ?>">
-    <div class="mb-8 flex flex-col gap-4 md:mb-14 xl:flex-row xl:items-center xl:justify-between">
-        <div class="boblift-news-view-switch me-auto" aria-label="<?php echo esc_attr((string) ($ui['viewModeLabel'] ?? 'News display mode')); ?>">
-            <button class="boblift-news-view-button is-active" type="button" data-news-view-button="grid" aria-pressed="true"><?php echo boblift_icon('grid-3x3', 'h-4 w-4'); ?><span><?php echo esc_html((string) ($ui['defaultViewLabel'] ?? 'Default')); ?></span></button>
-            <button class="boblift-news-view-button" type="button" data-news-view-button="list" aria-pressed="false"><?php echo boblift_icon('list', 'h-4 w-4'); ?><span><?php echo esc_html((string) ($ui['listViewLabel'] ?? 'List')); ?></span></button>
+    <?php // One row: the view switch (icons only, named for screen readers and on hover) sits just before "All" and the categories. ?>
+    <div class="mb-8 flex items-center gap-2 sm:gap-4 md:mb-14">
+        <div class="boblift-news-view-switch shrink-0" role="group" aria-label="<?php echo esc_attr((string) ($ui['viewModeLabel'] ?? 'News display mode')); ?>">
+            <?php $grid_view_label = (string) ($ui['defaultViewLabel'] ?? 'Default'); $list_view_label = (string) ($ui['listViewLabel'] ?? 'List'); ?>
+            <button class="boblift-news-view-button is-active" type="button" data-news-view-button="grid" aria-pressed="true" aria-label="<?php echo esc_attr($grid_view_label); ?>" title="<?php echo esc_attr($grid_view_label); ?>"><?php echo boblift_icon('grid-3x3', 'h-[18px] w-[18px]'); ?></button>
+            <button class="boblift-news-view-button" type="button" data-news-view-button="list" aria-pressed="false" aria-label="<?php echo esc_attr($list_view_label); ?>" title="<?php echo esc_attr($list_view_label); ?>"><?php echo boblift_icon('list', 'h-[18px] w-[18px]'); ?></button>
         </div>
-        <div class="-mx-4 -my-1 flex snap-x gap-2 overflow-x-auto px-4 py-1 [scrollbar-width:none] sm:mx-0 sm:my-0 sm:flex-wrap sm:justify-start sm:gap-4 sm:overflow-visible sm:px-0 sm:py-0 xl:ms-auto xl:justify-end [&::-webkit-scrollbar]:hidden">
+        <div class="-me-4 -my-1 flex min-w-0 flex-1 snap-x gap-2 overflow-x-auto py-1 pe-4 [scrollbar-width:none] sm:me-0 sm:my-0 sm:flex-wrap sm:gap-4 sm:overflow-visible sm:py-0 sm:pe-0 [&::-webkit-scrollbar]:hidden">
             <button class="boblift-news-category-pill <?php echo $active_category === '' ? 'is-active' : ''; ?>" type="button" data-news-filter-button value="" aria-pressed="<?php echo $active_category === '' ? 'true' : 'false'; ?>"><?php echo esc_html($all_label); ?></button>
             <?php foreach ($news_categories as $category) : ?>
                 <button class="boblift-news-category-pill <?php echo $active_category === $category->slug ? 'is-active' : ''; ?>" type="button" data-news-filter-button value="<?php echo esc_attr($category->slug); ?>" aria-pressed="<?php echo $active_category === $category->slug ? 'true' : 'false'; ?>"><?php echo esc_html(function_exists('boblift_localized_static_text') ? boblift_localized_static_text($category->name) : $category->name); ?></button>

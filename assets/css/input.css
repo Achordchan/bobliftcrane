@@ -1753,10 +1753,10 @@ img { max-width: 100%; }
   @apply border-navy text-navy;
 }
 .boblift-news-view-switch {
-  @apply inline-flex w-fit overflow-hidden rounded-sm border border-blue-100 bg-white/90 p-1 shadow-card backdrop-blur;
+  @apply inline-flex w-fit overflow-hidden rounded-sm border border-line bg-white p-0.5 shadow-card sm:p-1;
 }
 .boblift-news-view-button {
-  @apply inline-flex h-11 items-center justify-center gap-2 rounded-sm px-4 text-xs font-black uppercase tracking-[0.12em] text-slate-500 transition hover:bg-blue-50 hover:text-blue-700;
+  @apply inline-flex size-9 items-center justify-center rounded-sm text-slate-500 transition hover:bg-blue-50 hover:text-blue-700 sm:size-10;
 }
 .boblift-news-view-button.is-active {
   @apply bg-navy text-white hover:bg-navy hover:text-white;
