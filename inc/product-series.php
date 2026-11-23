@@ -416,6 +416,43 @@ function boblift_series_build_map(): array
 }
 
 /**
+ * How many listings a product category shows: published current products in it (and its children), withdrawn ones left out, one per series and
+ * one per product across its translations. Used to drop a "Compare all" link that would lead to this product alone.
+ */
+function boblift_product_term_listing_count(WP_Term $term): int
+{
+    static $memo = [];
+    if (isset($memo[$term->term_id])) {
+        return $memo[$term->term_id];
+    }
+    $ids = (new WP_Query(boblift_without_legacy([
+        'post_type' => 'product',
+        'post_status' => 'publish',
+        'posts_per_page' => -1,
+        'fields' => 'ids',
+        'no_found_rows' => true,
+        'tax_query' => [['taxonomy' => 'product_category', 'terms' => $term->term_id, 'include_children' => true]],
+    ])))->posts;
+    $index = boblift_series_map()['index'];
+    // Withdrawn configurations leave their series and the archive, so they are not listings either.
+    $withdrawn = array_flip(boblift_withdrawn_product_ids());
+    $keys = [];
+    foreach ($ids as $id) {
+        $id = (int) $id;
+        if (isset($withdrawn[$id])) {
+            continue;
+        }
+        if (isset($index[$id])) {
+            $keys['s' . $index[$id]] = true;
+            continue;
+        }
+        $english = function_exists('pll_get_post') ? (int) pll_get_post($id, 'en') : 0;
+        $keys['p' . ($english > 0 ? $english : $id)] = true;
+    }
+    return $memo[$term->term_id] = count($keys);
+}
+
+/**
  * The series a product belongs to, in that product's language, or null for every product outside the two marine
  * categories. Members: id, slug, model, url (?model=), is_home, values (named, sections, winch, manual).
  */

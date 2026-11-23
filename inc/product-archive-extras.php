@@ -586,15 +586,16 @@ function boblift_render_product_articles(WP_Term $term): void
             </div>
             <a class="inline-flex items-center gap-1.5 text-sm font-black text-blue-700 transition hover:text-[#071f42]" href="<?php echo esc_url(boblift_url('/news')); ?>"><?php echo esc_html((string) ($article_ui['relatedLink'] ?? 'All news')); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></a>
         </div>
-        <ul class="grid gap-x-5 gap-y-6 px-4 py-5 sm:p-6 md:p-8 <?php echo $single ? '' : 'sm:grid-cols-2 lg:grid-cols-3'; ?>">
+        <?php // Phones: a list, each small photo beside its date and title, instead of a full-width photo per article. ?>
+        <ul class="grid gap-x-5 gap-y-4 px-4 py-5 sm:gap-y-6 sm:p-6 md:p-8 <?php echo $single ? '' : 'sm:grid-cols-2 lg:grid-cols-3'; ?>">
             <?php foreach ($posts as $post) : ?>
-                <li class="min-w-0">
-                    <a class="group <?php echo $single ? 'grid items-center gap-x-8 gap-y-3 sm:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]' : 'block'; ?>" href="<?php echo esc_url(get_permalink($post)); ?>">
-                        <span class="block aspect-[16/9] overflow-hidden rounded-sm bg-[#EDF1F5]"><img class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" src="<?php echo esc_url(boblift_post_thumbnail_url($post, boblift_asset('images/page-heroes/factory-floor.webp'))); ?>" alt="<?php echo esc_attr(boblift_post_thumbnail_alt($post, (string) get_the_title($post))); ?>" loading="lazy" decoding="async"></span>
+                <li class="min-w-0 max-sm:border-b max-sm:border-[#E6EDF5] max-sm:pb-4 max-sm:last:border-b-0 max-sm:last:pb-0">
+                    <a class="group grid grid-cols-[120px_minmax(0,1fr)] items-start gap-x-3.5 <?php echo $single ? 'sm:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] sm:items-center sm:gap-x-8 sm:gap-y-3' : 'sm:block'; ?>" href="<?php echo esc_url(get_permalink($post)); ?>">
+                        <span class="block aspect-[4/3] overflow-hidden rounded-sm bg-[#EDF1F5] sm:aspect-[16/9]"><img class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" src="<?php echo esc_url(boblift_post_thumbnail_url($post, boblift_asset('images/page-heroes/factory-floor.webp'))); ?>" alt="<?php echo esc_attr(boblift_post_thumbnail_alt($post, (string) get_the_title($post))); ?>" loading="lazy" decoding="async"></span>
                         <span class="block min-w-0">
-                            <time class="mt-3 block text-xs font-bold text-slate-500 <?php echo $single ? 'sm:mt-0' : ''; ?>" datetime="<?php echo esc_attr(get_the_date('Y-m-d', $post)); ?>"><?php echo esc_html(get_the_date('Y-m-d', $post)); ?></time>
-                            <span class="mt-1.5 line-clamp-2 block font-black leading-snug text-[#071f42] transition group-hover:text-blue-700 <?php echo $single ? 'text-[clamp(1.125rem,1.6vw,1.5rem)]' : 'text-base'; ?>"><?php echo esc_html(get_the_title($post)); ?></span>
-                            <?php if ($single) : ?><span class="mt-4 inline-flex items-center gap-2 text-sm font-black text-blue-700"><?php echo esc_html($t('Read the article')); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></span><?php endif; ?>
+                            <time class="block text-xs font-bold text-slate-500 <?php echo $single ? '' : 'sm:mt-3'; ?>" datetime="<?php echo esc_attr(get_the_date('Y-m-d', $post)); ?>"><?php echo esc_html(get_the_date('Y-m-d', $post)); ?></time>
+                            <span class="mt-1 line-clamp-3 block text-[15px] font-black leading-snug text-[#071f42] transition group-hover:text-blue-700 sm:mt-1.5 sm:line-clamp-2 <?php echo $single ? 'sm:text-[clamp(1.125rem,1.6vw,1.5rem)]' : 'sm:text-base'; ?>"><?php echo esc_html(get_the_title($post)); ?></span>
+                            <?php if ($single) : ?><span class="mt-4 hidden items-center sm:inline-flex gap-2 text-sm font-black text-blue-700"><?php echo esc_html($t('Read the article')); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></span><?php endif; ?>
                         </span>
                     </a>
                 </li>

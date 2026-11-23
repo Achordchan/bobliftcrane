@@ -326,6 +326,33 @@ if (is_array($related_terms) && $related_terms) {
         $related_products[] = boblift_product_from_post(get_post($related_id));
     }
 }
+// A category with no other product lends the section a neighbour of similar size: the pickup crane is the only one of its
+// kind, and the electric mini cranes lift about the same (owner, 2026-11-23). Only the section changes, not $related_term.
+$related_section_term = $related_term;
+$related_neighbours = ['pickup-cranes' => 'electric-mini-cranes'];
+if (!$related_products && $related_term instanceof WP_Term) {
+    $neighbour_slug = $related_neighbours[current(array_intersect(array_keys($related_neighbours), boblift_product_category_lineage(get_the_ID()))) ?: ''] ?? '';
+    $neighbour_term = $neighbour_slug !== '' ? boblift_term_by_slug_for_current_language($neighbour_slug, 'product_category') : null;
+    if ($neighbour_term instanceof WP_Term) {
+        $neighbour_ids = get_posts(boblift_without_legacy([
+            'post_type' => 'product',
+            'post_status' => 'publish',
+            'numberposts' => 4,
+            'fields' => 'ids',
+            'post__not_in' => array_merge([get_the_ID()], boblift_withdrawn_product_ids()),
+            'meta_key' => '_capacity_value',
+            'orderby' => 'meta_value_num',
+            'order' => 'ASC',
+            'tax_query' => [['taxonomy' => 'product_category', 'field' => 'term_id', 'terms' => $neighbour_term->term_id]],
+        ]));
+        foreach ($neighbour_ids as $neighbour_id) {
+            $related_products[] = boblift_product_from_post(get_post($neighbour_id));
+        }
+        if ($related_products) {
+            $related_section_term = $neighbour_term;
+        }
+    }
+}
 // Previous models (inc/product-lifecycle.php): this model beside the other configurations of its capacity.
 $is_legacy_model = !$product_series && boblift_product_is_legacy((int) get_the_ID());
 $model_history = !$product_series && $related_term instanceof WP_Term ? boblift_product_model_history((int) get_the_ID(), $related_term) : [];
@@ -383,6 +410,8 @@ $process_sets = [
     'knuckle-boom-truck-mounted-cranes' => 'knuckle',
     'telescopic-boom-truck-mounted-cranes' => 'telescopic',
     'forklift-fly-jib-cranes' => 'forklift',
+    // Pickup cranes are knuckle boom cranes built in the same workshop; they use the knuckle set until photos of their own exist (owner, 2026-11-23).
+    'pickup-cranes' => 'knuckle',
 ];
 // Order terms (from the user, 2026-10-19) hold for cranes; aerial work platforms, tail lifts and fly jibs are not covered.
 $hero_terms_apply = boblift_product_crane_terms_apply(get_the_ID());
@@ -681,6 +710,10 @@ if ($family_quote_copy) {
                 // Grouped (lifting, hydraulics, machine) when the English table lines up with this language's rows; one group otherwise.
                 $spec_sections = $spec_groups ?: [['label' => '', 'rows' => $technical_specs]];
                 $spec_range_link = $related_term instanceof WP_Term ? get_term_link($related_term) : '';
+                // "Compare all" only where the range lists more than this one product (a series counts once).
+                if ($related_term instanceof WP_Term && boblift_product_term_listing_count($related_term) < 2) {
+                    $spec_range_link = '';
+                }
                 // Figures read off the drawing join the groups they belong to (reach, height and boom angle under Lifting, the
                 // outrigger span under Machine) instead of a group of their own, and a figure the table already gives is not
                 // repeated. A product without outriggers has no span on its drawing, so it shows no outrigger row.
@@ -1060,13 +1093,14 @@ if ($family_quote_copy) {
                         <p class="boblift-kicker"><?php echo esc_html($ui['processLabel'] ?? 'Manufacturing & delivery'); ?></p>
                         <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($ui['processTitle'] ?? 'From our workshop to your port'); ?></h2>
                     </div>
-                    <ol class="grid grid-cols-2 gap-x-4 gap-y-6 px-4 py-5 sm:p-6 md:grid-cols-3 md:gap-x-5 md:p-8 <?php echo esc_attr($process_cols); ?>">
+                    <?php // Phones: the steps swipe sideways in order, the next one peeking in, instead of a two-column grid with one left over. ?>
+                    <ol class="flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 py-5 [scrollbar-width:none] sm:grid sm:snap-none sm:grid-cols-2 sm:gap-x-4 sm:gap-y-6 sm:overflow-visible sm:p-6 md:grid-cols-3 md:gap-x-5 md:p-8 [&::-webkit-scrollbar]:hidden <?php echo esc_attr($process_cols); ?>">
                         <?php foreach ($process_steps as $index => $step) :
                             $step_asset = static fn(string $path): string => $path === '' || preg_match('#^(https?:)?//#', $path) || str_starts_with($path, '/') ? $path : boblift_asset($path);
                             $step_image = $step_asset(trim((string) $step['image']));
                             $step_video = $step_asset(trim((string) ($step['video'] ?? '')));
                             ?>
-                            <li class="min-w-0">
+                            <li class="w-[72%] min-w-0 shrink-0 snap-start sm:w-auto">
                                 <div class="relative aspect-[4/3] overflow-hidden rounded-sm bg-[#EDF1F5]">
                                     <?php if ($step_video !== '') : ?>
                                         <video class="h-full w-full object-cover" src="<?php echo esc_url($step_video); ?>" poster="<?php echo esc_url($step_image); ?>" muted loop playsinline preload="none" aria-label="<?php echo esc_attr((string) ($step['title'] ?? '')); ?>" data-inview-video></video>
@@ -1076,8 +1110,8 @@ if ($family_quote_copy) {
                                     <?php endif; ?>
                                     <span class="absolute left-2 top-2 rounded-sm bg-[#071f42]/85 px-2 py-0.5 text-[11px] font-black tracking-[0.08em] text-white [font-variant-numeric:tabular-nums]"><?php echo esc_html(str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT)); ?></span>
                                 </div>
-                                <h3 class="mt-3 text-sm font-black leading-snug text-[#071f42] md:text-base"><?php echo esc_html((string) ($step['title'] ?? '')); ?></h3>
-                                <p class="mt-1 text-xs font-normal leading-5 text-slate-600 md:text-sm md:leading-6"><?php echo esc_html((string) ($step['text'] ?? '')); ?></p>
+                                <h3 class="mt-3 text-[15px] font-black leading-snug text-[#071f42] sm:text-sm md:text-base"><?php echo esc_html((string) ($step['title'] ?? '')); ?></h3>
+                                <p class="mt-1 text-[13px] font-normal leading-5 text-slate-600 sm:text-xs md:text-sm md:leading-6"><?php echo esc_html((string) ($step['text'] ?? '')); ?></p>
                             </li>
                         <?php endforeach; ?>
                     </ol>
@@ -1229,6 +1263,17 @@ if ($family_quote_copy) {
                                 <?php if ($feedback_view['meta'] !== '') : ?><span class="mt-1 block text-xs font-normal text-slate-500 md:text-[13px]"><?php echo esc_html($feedback_view['meta']); ?></span><?php endif; ?>
                             </a>
                         <?php endforeach; ?>
+                        <?php // One card alone leaves half the row empty: a card of the same size leads to all customer feedback, over this product's photo blurred into a backdrop. ?>
+                        <?php if (count($feedback_shown) === 1) : ?>
+                            <a class="group block min-w-0" href="<?php echo esc_url($feedback_list_url); ?>">
+                                <span class="relative block aspect-[4/3] overflow-hidden rounded-sm bg-[radial-gradient(circle_at_48%_34%,#ffffff_0%,#eef2f7_60%,#dfe6ef_100%)]">
+                                    <?php if ($main_image !== '') : ?><img class="absolute inset-0 h-full w-full scale-110 object-cover blur-[5px] transition duration-500 group-hover:scale-[1.15]" src="<?php echo esc_url($main_image); ?>" alt="" loading="lazy" decoding="async" aria-hidden="true"><?php endif; ?>
+                                    <span class="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,.1)_0%,rgba(234,242,255,.4)_100%)]"></span>
+                                    <span class="absolute inset-0 m-auto grid size-12 place-items-center rounded-sm bg-white/90 text-[#0B3F7D] shadow-sm transition group-hover:bg-white"><?php echo boblift_icon('arrow-right', 'h-5 w-5 rtl:-scale-x-100'); ?></span>
+                                </span>
+                                <span class="mt-3 block text-sm font-black leading-snug text-blue-700 transition group-hover:text-[#071f42] md:text-base"><?php echo esc_html($ui['viewAllFeedbackLabel'] ?? 'All customer feedback'); ?></span>
+                            </a>
+                        <?php endif; ?>
                     </div>
                     <?php if ($product_feedback_total > count($feedback_shown)) : ?>
                         <a class="flex items-center justify-center gap-1.5 border-t border-[#E6EDF5] px-4 py-4 sm:px-6 text-sm font-black text-blue-700 sm:hidden" href="<?php echo esc_url($feedback_list_url); ?>"><?php echo esc_html($ui['viewAllFeedbackLabel'] ?? 'All customer feedback'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
@@ -1255,8 +1300,8 @@ if ($family_quote_copy) {
             <?php endif; ?>
             <?php if (!$buying_terms) boblift_render_brochures(['context' => 'product', 'families' => boblift_brochure_families_for_product($product), 'product' => $product_title, 'product_slug' => (string) ($product['slug'] ?? '')]); ?>
             <?php boblift_render_product_model_history($model_history, (int) get_the_ID(), $is_legacy_model); ?>
-            <?php if ($related_products && $related_term instanceof WP_Term) :
-                $related_link = get_term_link($related_term);
+            <?php if ($related_products && $related_section_term instanceof WP_Term) :
+                $related_link = get_term_link($related_section_term);
                 // Its own setting (产品详情页 → 相关产品标签): the news page's "Related" label is stored per language as
                 // "related articles" (相关文章, 関連情報), which is wrong for products, so it is not reused here.
                 $related_products_label = (string) (($ui['relatedProductsLabel'] ?? '') ?: boblift_localized_static_text('Related products'));
@@ -1265,25 +1310,26 @@ if ($family_quote_copy) {
                     <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 px-4 pt-5 pb-0 sm:p-6 sm:pb-0 md:p-8 md:pb-0">
                         <div>
                             <p class="boblift-kicker"><?php echo esc_html($related_products_label); ?></p>
-                            <h2 id="related-title" class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($related_term->name); ?></h2>
+                            <h2 id="related-title" class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($related_section_term->name); ?></h2>
                         </div>
                         <?php if (!is_wp_error($related_link)) : ?>
                             <a class="inline-flex items-center gap-1.5 text-sm font-black text-blue-700 transition hover:text-[#071f42]" href="<?php echo esc_url($related_link); ?>"><?php echo esc_html($case_detail_ui['viewAllLabel'] ?? 'View all'); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></a>
                         <?php endif; ?>
                     </div>
                     <?php // Product cards, not article cards: the cut-out on the product backdrop, the capacity line, two figures and the way to the page. ?>
-                    <ul class="grid grid-cols-1 gap-3 px-4 py-5 sm:grid-cols-2 sm:p-6 md:gap-5 md:p-8 lg:grid-cols-4">
+                    <?php // Phones: the cards swipe sideways with the next one peeking in, instead of four full-width cards one under another. ?>
+                    <ul class="flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 py-5 [scrollbar-width:none] sm:grid sm:snap-none sm:grid-cols-2 sm:overflow-visible sm:p-6 md:gap-5 md:p-8 lg:grid-cols-4 [&::-webkit-scrollbar]:hidden">
                         <?php foreach ($related_products as $related) :
                             $related_view = boblift_series_card_view($related);
                             $related_image = boblift_product_image($related);
                             $related_fit = boblift_image_fit($related_image) === 'cutout' ? 'object-contain p-4 drop-shadow-[0_6px_8px_rgba(11,27,51,0.10)]' : 'object-contain';
                             $related_specs = array_slice($related_view['figures'], 0, 2);
                             ?>
-                            <li class="min-w-0">
+                            <li class="<?php echo count($related_products) > 1 ? 'w-[64%] shrink-0 snap-start' : 'w-full'; ?> min-w-0 sm:w-auto">
                                 <a class="group flex h-full flex-col overflow-hidden rounded border border-[#E5E7EB] bg-white transition hover:-translate-y-0.5 hover:border-blue-200" href="<?php echo esc_url(boblift_product_url($related)); ?>" title="<?php echo esc_attr($related_view['full_title']); ?>">
                                     <span class="relative block aspect-[4/3] overflow-hidden bg-[radial-gradient(circle_at_48%_34%,#ffffff_0%,#f8fafc_34%,#eef2f7_64%,#e2e8f0_100%)]"><img class="absolute inset-0 h-full w-full transition duration-500 group-hover:scale-[1.03] <?php echo esc_attr($related_fit); ?>" src="<?php echo esc_url($related_image); ?>" alt="<?php echo esc_attr((string) $related['title']); ?>" loading="lazy" decoding="async"></span>
                                     <span class="flex flex-1 flex-col p-3 sm:p-4">
-                                        <span class="line-clamp-2 text-[18px] font-black leading-tight text-[#0B3F7D] transition group-hover:text-blue-700 md:text-[17px]"><?php echo esc_html($related_view['title']); ?></span>
+                                        <span class="line-clamp-2 text-base font-black leading-tight text-[#0B3F7D] transition group-hover:text-blue-700 sm:text-[18px] md:text-[17px]"><?php echo esc_html($related_view['title']); ?></span>
                                         <?php if ($related_view['code'] !== '') : ?><span class="mt-1 block truncate text-[13px] leading-4 text-slate-500"><bdi><?php echo esc_html($related_view['code']); ?></bdi></span><?php endif; ?>
                                         <?php if ($related_specs) : ?>
                                             <span class="mt-3 grid grid-cols-2 gap-2 border-t border-[#E5E7EB] pt-3">
