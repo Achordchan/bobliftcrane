@@ -127,7 +127,8 @@ function boblift_indexnow_post_qualifies(mixed $post): bool
 
 /**
  * Request bodies for the URLs, at most BOBLIFT_INDEXNOW_BATCH each, keeping only URLs on the site's own host and under
- * the directory the key file is served from (the key only verifies URLs there; one URL outside it fails the batch).
+ * the directory the key file is served from (the key only verifies URLs there; one URL outside it fails the batch), and
+ * no longer than IndexNow's 2,048-character limit.
  */
 function boblift_indexnow_payloads(array $urls, string $home, string $key): array
 {
@@ -137,6 +138,12 @@ function boblift_indexnow_payloads(array $urls, string $home, string $key): arra
     }
     $scope = rtrim((string) wp_parse_url($home, PHP_URL_PATH), '/') . '/';
     $same_host = array_values(array_unique(array_filter($urls, static fn(string $url): bool => boblift_indexnow_host($url) === $host && str_starts_with((string) wp_parse_url($url, PHP_URL_PATH), $scope))));
+    // IndexNow rejects the whole POST (422) when one URL is longer than 2,048 characters: leave those out and log them.
+    $too_long = array_filter($same_host, static fn(string $url): bool => strlen($url) > 2048);
+    if ($too_long) {
+        error_log(sprintf('IndexNow: %d URLs longer than 2,048 characters left out.', count($too_long)));
+        $same_host = array_values(array_diff($same_host, $too_long));
+    }
     $payloads = [];
     foreach (array_chunk($same_host, BOBLIFT_INDEXNOW_BATCH) as $batch) {
         $payloads[] = [

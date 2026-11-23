@@ -394,6 +394,8 @@ $check('payload key location', ($payloads[0]['keyLocation'] ?? '') === 'https://
 $check('payload keeps only this host, once each', ($payloads[0]['urlList'] ?? []) === ['https://bobliftcrane.com/a.html', 'https://bobliftcrane.com/es/b.html']);
 $check('nothing to send without a valid key', boblift_indexnow_payloads($urls, 'https://bobliftcrane.com', '') === []);
 $check('only URLs under the key file\'s directory are sent on a subdirectory install', (boblift_indexnow_payloads(['https://bobliftcrane.com/cranes/a.html', 'https://bobliftcrane.com/other/b.html', 'https://bobliftcrane.com/cranesx/c.html'], 'https://bobliftcrane.com/cranes', 'abcd1234')[0]['urlList'] ?? []) === ['https://bobliftcrane.com/cranes/a.html']);
+$long = 'https://bobliftcrane.com/' . str_repeat('a', 2040) . '.html';
+$check('a URL over 2,048 characters is left out and its sibling sent', (boblift_indexnow_payloads([$long, 'https://bobliftcrane.com/a.html'], 'https://bobliftcrane.com', 'abcd1234')[0]['urlList'] ?? []) === ['https://bobliftcrane.com/a.html']);
 $check('nothing to send for other hosts only', boblift_indexnow_payloads(['https://www.boblift.com/c.html'], 'https://bobliftcrane.com', 'abcd1234') === []);
 $many = array_map(static fn(int $i): string => 'https://bobliftcrane.com/p' . $i . '.html', range(1, 10001));
 $split = boblift_indexnow_payloads($many, 'https://bobliftcrane.com', 'abcd1234');
