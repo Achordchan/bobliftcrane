@@ -329,18 +329,19 @@ foreach ($languages as $language) {
 <?php // The announcement bar scrolls away; the navigation below stays at the top of the window. ?>
 <header id="top" class="sticky top-0 z-[200]">
     <div class="relative border-b border-line bg-white shadow-card">
-        <div data-header-row class="page-shell flex h-[78px] items-center justify-between gap-3 lg:h-[92px] lg:gap-4 min-[1380px]:grid min-[1380px]:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] min-[1680px]:gap-8">
-            <div class="flex min-w-0 items-center gap-3 max-md:gap-2.5 lg:gap-2 xl:gap-4">
-                <a class="flex shrink-0 items-center" href="<?php echo esc_url(home_url('/')); ?>" aria-label="<?php echo esc_attr($header_ui['homeAriaLabel'] ?? 'BOB-LIFT Home'); ?>">
-                    <?php echo boblift_img_from_setting($branding['logo'] ?? 'images/bob-lift-logo.png', 'images/bob-lift-logo.png', $branding['logo_alt'] ?? 'BOB-LIFT Cranes', 'h-[52px] w-auto object-contain max-md:h-[42px] lg:h-[58px]', ['loading' => 'eager']); ?>
+        <div data-header-row class="page-shell flex h-[78px] items-center justify-between gap-3 max-md:gap-2 lg:h-[92px] lg:gap-4 min-[1380px]:grid min-[1380px]:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] min-[1680px]:gap-8">
+            <div class="flex min-w-0 items-center gap-3 max-md:gap-2 max-[389px]:gap-1.5 lg:gap-2 xl:gap-4">
+                <a class="flex shrink-0 items-center max-md:min-w-0 max-md:shrink" href="<?php echo esc_url(home_url('/')); ?>" aria-label="<?php echo esc_attr($header_ui['homeAriaLabel'] ?? 'BOB-LIFT Home'); ?>">
+                    <?php echo boblift_img_from_setting($branding['logo'] ?? 'images/bob-lift-logo.png', 'images/bob-lift-logo.png', $branding['logo_alt'] ?? 'BOB-LIFT Cranes', 'h-[52px] w-auto object-contain max-md:h-auto max-md:max-h-[42px] max-md:max-w-full lg:h-[58px]', ['loading' => 'eager']); ?>
                 </a>
                 <?php if ($site_switcher_items !== []) : ?>
-                    <?php // Phones show the site switch too (as the loader site does); its menu then spans the header width. ?>
-                    <span class="h-8 w-px shrink-0 bg-line" aria-hidden="true"></span>
-                    <div class="max-md:static md:relative" data-language-root>
-                        <button class="group flex h-10 items-center gap-1.5 whitespace-nowrap rounded-sm px-2 text-sm font-black text-ink max-md:gap-1 max-md:px-1.5 transition hover:bg-mist focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/20 aria-expanded:bg-mist" type="button" aria-label="<?php echo esc_attr(($site_switcher_current['short'] ?? 'Cranes') . ' · ' . ($site_switcher_ui['openLabel'] ?? 'Switch BOB-LIFT site')); ?>" aria-expanded="false" aria-controls="site-switcher-menu" data-language-toggle>
-                            <span><?php echo esc_html($site_switcher_current['short'] ?? 'Cranes'); ?></span>
-                            <?php echo boblift_icon('chevron-down', 'h-4 w-4 shrink-0 text-slate-500 transition group-aria-expanded:rotate-180'); ?>
+                    <?php // Phones show the site switch too (as the loader site does); its menu then spans the header width. Below 375px the divider goes, and below 360px the switch would crowd the
+                    // buttons, so there it is left to the list of other sites in the mobile menu. The label may shorten before anything overlaps. ?>
+                    <span class="h-8 w-px shrink-0 bg-line max-[374px]:hidden" aria-hidden="true"></span>
+                    <div class="min-w-0 max-md:static max-[359px]:hidden md:relative" data-language-root>
+                        <button class="group flex h-10 items-center gap-1.5 whitespace-nowrap rounded-sm px-2 text-sm font-black text-ink max-md:max-w-full max-md:gap-0.5 max-md:pe-0.5 max-md:ps-1.5 max-[389px]:text-[13px] transition hover:bg-mist focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/20 aria-expanded:bg-mist" type="button" aria-label="<?php echo esc_attr(($site_switcher_current['short'] ?? 'Cranes') . ' · ' . ($site_switcher_ui['openLabel'] ?? 'Switch BOB-LIFT site')); ?>" aria-expanded="false" aria-controls="site-switcher-menu" data-language-toggle>
+                            <span class="min-w-0 truncate"><?php echo esc_html($site_switcher_current['short'] ?? 'Cranes'); ?></span>
+                            <?php echo boblift_icon('chevron-down', 'h-4 w-4 shrink-0 text-slate-500 transition group-aria-expanded:rotate-180 max-md:h-3.5 max-md:w-3.5'); ?>
                         </button>
                         <div id="site-switcher-menu" class="absolute start-0 top-full z-[220] hidden pt-3 max-md:start-4 max-md:end-4 max-md:pt-2" data-language-menu>
                             <div class="w-[340px] max-md:w-auto overflow-hidden rounded border border-line bg-white p-1.5 shadow-raised">
@@ -451,16 +452,15 @@ foreach ($languages as $language) {
                     <?php endif; ?>
                 <?php endforeach; ?>
             </nav>
-            <div class="flex items-center gap-2 md:gap-3 xl:gap-2 min-[1380px]:justify-self-end min-[1680px]:gap-3">
-                <button class="group grid h-11 w-11 shrink-0 place-items-center rounded-sm border border-line bg-white text-ink transition hover:border-ink/30 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/20 aria-expanded:border-ink/40 aria-expanded:bg-mist md:h-12 md:w-12" type="button" aria-label="<?php echo esc_attr($search_ui['openLabel'] ?? 'Search the site'); ?>" aria-expanded="false" aria-controls="site-search" data-search-toggle><?php echo boblift_icon('search', 'h-5 w-5 group-aria-expanded:hidden'); ?><?php echo boblift_icon('x', 'hidden h-5 w-5 group-aria-expanded:block'); ?></button>
-                <?php // On phones the language button is the globe alone and comes first, so the site switch fits beside the logo. ?>
-                <div class="relative max-md:order-first" data-language-root>
+            <div class="flex items-center gap-2 max-md:gap-1.5 md:gap-3 xl:gap-2 min-[1380px]:justify-self-end min-[1680px]:gap-3">
+                <?php // Globe, then search, then the menu, as on the loader site. On phones the language button is the globe alone so the site switch fits beside the logo, and its menu lines up with the header's right gutter. ?>
+                <div class="relative max-md:static" data-language-root>
                     <button class="group flex h-11 items-center gap-1.5 rounded-sm border border-line bg-white px-3 text-start max-md:w-11 max-md:justify-center max-md:px-0 transition hover:border-ink/30 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/20 aria-expanded:border-ink/40 md:h-12" type="button" aria-label="<?php echo esc_attr(strtoupper((string) ($active_language['code'] ?? 'en')) . ' · ' . ($header_ui['changeLanguageLabel'] ?? 'Change language') . ': ' . ($active_language['label'] ?? 'English')); ?>" aria-expanded="false" aria-controls="language-menu" data-language-toggle>
                         <?php echo boblift_icon('globe', 'h-4 w-4 shrink-0 text-slate-500 max-md:h-5 max-md:w-5 max-md:text-ink'); ?>
                         <strong class="text-sm font-black uppercase tracking-[0.06em] text-ink max-md:hidden"><?php echo esc_html(strtoupper((string) ($active_language['code'] ?? 'en'))); ?></strong>
                         <?php echo boblift_icon('chevron-down', 'h-4 w-4 shrink-0 text-slate-500 transition group-aria-expanded:rotate-180 max-md:hidden'); ?>
                     </button>
-                    <div id="language-menu" class="absolute end-0 top-full z-[220] hidden pt-2" data-language-menu>
+                    <div id="language-menu" class="absolute end-0 top-full z-[220] hidden pt-2 max-md:end-4" data-language-menu>
                         <div class="w-52 overflow-hidden rounded border border-line bg-white py-1.5 shadow-raised">
                             <?php foreach ($languages as $language) :
                                 $language_label = (string) ($language['label'] ?? 'English');
@@ -476,6 +476,7 @@ foreach ($languages as $language) {
                         </div>
                     </div>
                 </div>
+                <button class="group grid h-11 w-11 shrink-0 place-items-center rounded-sm border border-line bg-white text-ink transition hover:border-ink/30 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/20 aria-expanded:border-ink/40 aria-expanded:bg-mist md:h-12 md:w-12" type="button" aria-label="<?php echo esc_attr($search_ui['openLabel'] ?? 'Search the site'); ?>" aria-expanded="false" aria-controls="site-search" data-search-toggle><?php echo boblift_icon('search', 'h-5 w-5 group-aria-expanded:hidden'); ?><?php echo boblift_icon('x', 'hidden h-5 w-5 group-aria-expanded:block'); ?></button>
                 <button class="grid h-11 w-11 place-items-center rounded-sm border border-navy/10 bg-navy text-white shadow-card transition duration-300 hover:-translate-y-0.5 lg:hidden" type="button" data-mobile-toggle aria-expanded="false" aria-controls="mobile-menu" aria-label="<?php echo esc_attr($header_ui['mobileOpenLabel'] ?? 'Open mobile navigation'); ?>"><?php echo boblift_icon('menu', 'h-5 w-5', '2.4'); ?></button>
                 <button class="group hidden h-12 items-center justify-center whitespace-nowrap rounded-sm border border-transparent bg-navy bg-clip-padding px-4 text-sm font-black text-white shadow-card outline-none select-none transition-all hover:-translate-y-0.5 hover:bg-navy lg:inline-flex" type="button" data-inquiry-modal-open data-inquiry-source="顶部导航"><?php
                 // The full label wherever it fits beside the menu; the short one only below the width where, in this language, it

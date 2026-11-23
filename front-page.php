@@ -64,8 +64,10 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
             <?php endif; ?>
             <?php
             // English and Chinese phones keep each slide title on one line: below 768px the titles share one size that the
-            // longest title just fills (a CSS estimate from its length, then the script after the slides measures it exactly).
-            // Other languages wrap, with more line height than the desktop headline.
+            // longest title just fills. CSS gives a first guess from its length (still allowed to wrap); the script after the
+            // slides measures the real width, sets the size and only then turns wrapping off. If the longest title would need
+            // less than 18px, the script drops the fitting and the titles wrap at the normal size. Other languages always wrap,
+            // with more line height than the desktop headline.
             $hero_fit = in_array(function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : 'en', ['en', 'zh'], true);
             $hero_fit_chars = $hero_fit ? max(array_map(static fn(array $slide): int => mb_strlen(trim((string) ($slide['title'] ?? ''))), $hero_slides)) : 0;
             ?>
@@ -86,7 +88,7 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
                 <?php endforeach; ?>
             </div>
             <?php if ($hero_fit) : ?>
-                <script>(function(){var box=document.currentScript.previousElementSibling,mq=window.matchMedia('(max-width: 767px)');if(!box||!box.hasAttribute('data-hero-fit'))return;var heads=box.querySelectorAll('h1,h2'),range=document.createRange();function fit(){heads.forEach(function(h){h.style.fontSize='';});if(!mq.matches||!box.clientWidth)return;var max=2.1*parseFloat(getComputedStyle(document.documentElement).fontSize),best=max;heads.forEach(function(h){range.selectNodeContents(h);var w=range.getBoundingClientRect().width,size=parseFloat(getComputedStyle(h).fontSize);if(w>0)best=Math.min(best,size*box.clientWidth/w);});var px=Math.floor(best*0.985*10)/10+'px';heads.forEach(function(h){h.style.fontSize=px;});}fit();if(document.fonts)document.fonts.ready.then(fit);var lastW=window.innerWidth;window.addEventListener('resize',function(){if(window.innerWidth!==lastW){lastW=window.innerWidth;fit();}},{passive:true});})();</script>
+                <script>(function(){var box=document.currentScript.previousElementSibling,mq=window.matchMedia('(max-width: 767px)');if(!box||!box.hasAttribute('data-hero-fit'))return;var heads=box.querySelectorAll('h1,h2'),range=document.createRange(),rem=parseFloat(getComputedStyle(document.documentElement).fontSize)||16;function fit(){box.setAttribute('data-hero-fit','');box.removeAttribute('data-hero-fitted');heads.forEach(function(h){h.style.fontSize='';});if(!mq.matches||!box.clientWidth)return;box.setAttribute('data-hero-fitted','');var best=2.1*rem;heads.forEach(function(h){range.selectNodeContents(h);var w=range.getBoundingClientRect().width,size=parseFloat(getComputedStyle(h).fontSize);if(w>0)best=Math.min(best,size*box.clientWidth/w);});best=Math.floor(best*0.985*10)/10;if(best<1.125*rem){box.removeAttribute('data-hero-fitted');box.removeAttribute('data-hero-fit');return;}heads.forEach(function(h){h.style.fontSize=best+'px';});}fit();if(document.fonts)document.fonts.ready.then(fit);var lastW=window.innerWidth;window.addEventListener('resize',function(){if(window.innerWidth!==lastW){lastW=window.innerWidth;fit();}},{passive:true});})();</script>
             <?php endif; ?>
             <?php if ($hero_count > 1) : ?>
                 <div class="order-first mb-7 flex items-end gap-4 lg:order-none lg:mb-0 lg:mt-12">
