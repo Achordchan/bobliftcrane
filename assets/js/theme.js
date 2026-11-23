@@ -5153,7 +5153,9 @@
       const options = qsa('[data-cases-custom-option]', selectRoot);
       // Spaces are ignored on both sides, so "2吨" finds "2 吨" and "sq 2" finds SQ2SA3.
       // A number at either end of the query matches whole numbers only: "5吨" finds 5 t and not 2.5 t or 25 t, "5" not 50 or 5.5.
-      const query = (search?.value || '').replace(/\s+/g, '').toLowerCase();
+      // A decimal comma ("2,5 t" in Spanish, French or Russian titles) is read as a decimal point on both sides.
+      const normalize = (text) => text.replace(/\s+/g, '').replace(/(\d),(?=\d)/g, '$1.').toLowerCase();
+      const query = normalize(search?.value || '');
       const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const numeric = /^\d|\d$/.test(query)
         ? new RegExp(`${/^\d/.test(query) ? '(^|[^\\d.])' : ''}${escaped}${/\d$/.test(query) ? '(?!\\d|\\.\\d)' : ''}`)
@@ -5161,7 +5163,7 @@
       let matched = 0;
       options.forEach((option) => {
         const value = option.getAttribute('value') || '';
-        const text = (option.dataset.optionText || option.textContent || '').replace(/\s+/g, '').toLowerCase();
+        const text = normalize(option.dataset.optionText || option.textContent || '');
         const visible = value === '' || query === '' || (numeric ? numeric.test(text) : text.includes(query));
         option.classList.toggle('hidden', !visible);
         if (value !== '' && visible) matched += 1;
