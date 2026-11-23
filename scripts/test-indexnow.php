@@ -46,10 +46,16 @@ class Fake_Wpdb
         return array_values(array_filter(array_keys($GLOBALS['options']), static fn($name): bool => str_starts_with((string) $name, $prefix)));
     }
     public bool $fail_reads = false;
+    public ?string $steal_after_read = null;
     public function get_row(array $q, string $output = 'OBJECT')
     {
         if ($this->fail_reads) {
             return null;
+        }
+        if ($this->steal_after_read !== null && $this->steal_after_read === $q[1][0] && array_key_exists($q[1][0], $GLOBALS['options'])) {
+            $row = ['option_value' => $GLOBALS['options'][$q[1][0]]];
+            unset($GLOBALS['options'][$q[1][0]]);
+            return $row;
         }
         return array_key_exists($q[1][0], $GLOBALS['options']) ? ['option_value' => $GLOBALS['options'][$q[1][0]]] : null;
     }
@@ -155,6 +161,7 @@ function update_option(string $name, $value, $autoload = null): bool
 function wp_schedule_single_event(int $time, string $hook, array $args = []): bool
 {
     $GLOBALS['scheduled'][] = $hook;
+    $GLOBALS['scheduled_at'][] = $time;
     return true;
 }
 function wp_next_scheduled(string $hook)
@@ -279,10 +286,22 @@ $GLOBALS['options'][$rows[1]]['due'] = time() - 1;
 ($GLOBALS['hooks']['boblift_indexnow_retry'])();
 $check('a due retry checks visibility again and clears its rows', $GLOBALS['sent'] === [['https://bobliftcrane.com/p12.html']] && boblift_indexnow_retry_names() === []);
 add_option('boblift_indexnow_retry_x', ['due' => 0, 'ids' => [12]], '', 'no');
-$GLOBALS['wpdb']->query(['DELETE', ['boblift_indexnow_retry_x']]);
+$GLOBALS['wpdb']->steal_after_read = 'boblift_indexnow_retry_x';
 $GLOBALS['sent'] = [];
 boblift_indexnow_run_retries();
-$check('a row another run already claimed is not sent twice', $GLOBALS['sent'] === []);
+$GLOBALS['wpdb']->steal_after_read = null;
+$check('a row another run claims between read and DELETE is not sent', $GLOBALS['sent'] === [] && boblift_indexnow_retry_names() === []);
+add_option('boblift_indexnow_retry_bad', 'truncated', '', 'no');
+$GLOBALS['scheduled'] = [];
+boblift_indexnow_run_retries();
+$check('a malformed row is removed and schedules nothing', !isset($GLOBALS['options']['boblift_indexnow_retry_bad']) && $GLOBALS['scheduled'] === []);
+add_option('boblift_indexnow_retry_a', ['due' => time() + 600, 'ids' => [12]], '', 'no');
+add_option('boblift_indexnow_retry_b', ['due' => time() + 60, 'ids' => [12]], '', 'no');
+$GLOBALS['scheduled_at'] = [];
+boblift_indexnow_schedule_retry();
+$check('the next run is scheduled for the earliest waiting batch', ($GLOBALS['scheduled_at'][0] ?? 0) <= time() + 60);
+unset($GLOBALS['options']['boblift_indexnow_retry_a'], $GLOBALS['options']['boblift_indexnow_retry_b']);
+$GLOBALS['scheduled'] = [];
 $GLOBALS['wpdb']->fail_reads = true;
 add_option('boblift_indexnow_retry_y', ['due' => 0, 'ids' => [12]], '', 'no');
 boblift_indexnow_run_retries();

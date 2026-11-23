@@ -185,31 +185,73 @@ function boblift_indexnow_retry_names(): array
     return array_map('strval', (array) $wpdb->get_col($wpdb->prepare("SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s", $wpdb->esc_like(BOBLIFT_INDEXNOW_RETRY_PREFIX) . '%')));
 }
 
-/** Schedules the retry run when batches are waiting and none is scheduled, which also restores a lost cron event. */
+/**
+ * Reads a saved batch. Returns null when the read itself failed (the row is kept for later), false when the row was
+ * read but holds no valid batch, otherwise ['due' => int, 'ids' => int[]].
+ */
+function boblift_indexnow_read_retry(string $name): array|false|null
+{
+    global $wpdb;
+    $row = $wpdb->get_row($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s LIMIT 1", $name), ARRAY_A);
+    if (!is_array($row)) {
+        return null;
+    }
+    $batch = maybe_unserialize($row['option_value']);
+    if (!is_array($batch) || !is_array($batch['ids'] ?? null) || !is_numeric($batch['due'] ?? null)) {
+        return false;
+    }
+    return ['due' => (int) $batch['due'], 'ids' => array_map('intval', $batch['ids'])];
+}
+
+/** Claims a row with an atomic DELETE; true only for the request whose DELETE removed it. */
+function boblift_indexnow_claim_retry(string $name): bool
+{
+    global $wpdb;
+    $claimed = (int) $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name = %s", $name)) === 1;
+    wp_cache_delete($name, 'options');
+    return $claimed;
+}
+
+/**
+ * Schedules the retry run for the earliest waiting batch when none is scheduled, which also restores a lost cron
+ * event. A batch that could not be read counts as due in ten minutes.
+ */
 function boblift_indexnow_schedule_retry(): void
 {
-    if (!wp_next_scheduled(BOBLIFT_INDEXNOW_RETRY_HOOK) && boblift_indexnow_retry_names() !== []) {
-        wp_schedule_single_event(time() + 10 * MINUTE_IN_SECONDS, BOBLIFT_INDEXNOW_RETRY_HOOK);
+    if (wp_next_scheduled(BOBLIFT_INDEXNOW_RETRY_HOOK)) {
+        return;
+    }
+    $next = null;
+    foreach (boblift_indexnow_retry_names() as $name) {
+        $batch = boblift_indexnow_read_retry($name);
+        if ($batch === false) {
+            continue;
+        }
+        $due = $batch === null ? time() + 10 * MINUTE_IN_SECONDS : max(time(), $batch['due']);
+        $next = $next === null ? $due : min($next, $due);
+    }
+    if ($next !== null) {
+        wp_schedule_single_event($next, BOBLIFT_INDEXNOW_RETRY_HOOK);
     }
 }
 
 /**
- * Claims each batch that is due (only the request whose DELETE removed the row sends it) and sends it once. A row that
- * could not be read, or is not due yet, stays for a later run, which is scheduled while rows remain.
+ * Sends each due batch once, after claiming its row. A row that could not be read, or is not due yet, stays for a
+ * later run; a row that was read but holds no valid batch is removed so it cannot keep the retry run alive.
  */
 function boblift_indexnow_run_retries(): void
 {
-    global $wpdb;
     foreach (boblift_indexnow_retry_names() as $name) {
-        $row = $wpdb->get_row($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s LIMIT 1", $name), ARRAY_A);
-        $batch = is_array($row) ? maybe_unserialize($row['option_value']) : null;
-        if (!is_array($batch) || (int) ($batch['due'] ?? 0) > time()) {
+        $batch = boblift_indexnow_read_retry($name);
+        if ($batch === false) {
+            boblift_indexnow_claim_retry($name);
             continue;
         }
-        $claimed = (int) $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name = %s", $name)) === 1;
-        wp_cache_delete($name, 'options');
-        if ($claimed) {
-            boblift_indexnow_send((array) ($batch['ids'] ?? []), false);
+        if ($batch === null || $batch['due'] > time()) {
+            continue;
+        }
+        if (boblift_indexnow_claim_retry($name)) {
+            boblift_indexnow_send($batch['ids'], false);
         }
     }
     boblift_indexnow_schedule_retry();
