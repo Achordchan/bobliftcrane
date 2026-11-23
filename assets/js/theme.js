@@ -1244,9 +1244,13 @@
       // An event from an earlier request (one finishing after the src changed) is not this load's: the picture asked for is
       // then not the one showing (currentSrc), or not finished yet (complete), depending on the browser. It is passed over
       // and the listeners wait for the picture asked for.
-      const stale = (event) => event instanceof Event && (image.currentSrc !== image.src || !image.complete);
+      // With a srcset (a drawing could have one) currentSrc is a candidate rather than src, and the viewer never changes such a
+      // picture's source, so only completeness counts there.
+      const asked = () => image.hasAttribute('srcset') || image.currentSrc === image.src;
+      const stale = (event) => event instanceof Event && (!asked() || !image.complete);
       const done = (event) => {
-        if (stale(event)) return;
+        // A late load event from the previous photo while the one asked for has already failed: its own error decides.
+        if (stale(event) || (event instanceof Event && !image.naturalWidth)) return;
         detach();
         if (token !== loadToken || !dialog.open) return;
         stage.classList.remove('is-loading');
@@ -1255,6 +1259,11 @@
       };
       const failed = (event) => {
         if (stale(event)) return;
+        // A late error from the previous photo while the one asked for has already loaded: that is a success.
+        if (event instanceof Event && image.naturalWidth) {
+          done();
+          return;
+        }
         detach();
         // Closed meanwhile: no fallback download for a viewer nobody sees; opening again asks for the picture anew.
         if (token !== loadToken || !dialog.open) return;
@@ -1263,7 +1272,7 @@
       };
       // complete and naturalWidth speak for the picture the image shows (currentSrc), which right after a new src can still be
       // the previous one: they count only when that is the picture asked for. Otherwise the load or error event decides.
-      const settled = image.complete && image.currentSrc === image.src;
+      const settled = image.complete && asked();
       if (settled && image.naturalWidth) requestAnimationFrame(done);
       // Already failed (a broken picture opened again): no event will come, so report it now.
       else if (settled && image.getAttribute('src')) requestAnimationFrame(failed);
@@ -1595,8 +1604,8 @@
     let shown = -1;
     const wrap = (value) => (value + photos.length) % photos.length;
     // The photos either side load in the background, so a swipe usually lands on one already there.
-    // A photo address that stalled is asked for next time with an extra query argument (the CDN and the uploads server
-    // ignore it): some browsers would otherwise hand the retry the same request that never finished.
+    // A photo address that failed or stalled is asked for next time with an extra query argument (the CDN and the uploads
+    // server ignore it): browsers would otherwise hand back the cached error or the same request that never finished.
     const retries = new Map();
     const address = (url) => retries.get(url) || url;
     // Neighbours being fetched ahead, by address, until they settle: a stalled one can then be dropped (see onError).
@@ -1678,12 +1687,12 @@
         const photo = photos[index];
         const failedUrl = image.getAttribute('src');
         const fallback = photo.src ? address(photo.src) : '';
-        if (!image.complete) {
-          dropStalled(failedUrl);
-          [photo.full, photo.src].filter((url) => url && address(url) === failedUrl).forEach((url) => {
-            retries.set(url, `${url}${url.includes('?') ? '&' : '?'}retry=${Date.now().toString(36)}`);
-          });
-        }
+        if (!image.complete) dropStalled(failedUrl);
+        // Coming back to this photo later asks for the failed address afresh, with a new query argument: neither a stalled
+        // request nor a cached error response (a 404 the CDN let the browser keep) is handed back again.
+        [photo.full, photo.src].filter((url) => url && address(url) === failedUrl).forEach((url) => {
+          retries.set(url, `${url}${url.includes('?') ? '&' : '?'}retry=${Date.now().toString(36)}`);
+        });
         if (fallback && failedUrl !== fallback) {
           image.src = fallback;
           viewer.load();
