@@ -189,7 +189,7 @@ function boblift_llms_txt(): string
         }
     }
     $articles = [];
-    foreach (get_posts(['post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => 60, 'lang' => 'en']) as $post) {
+    foreach (get_posts(['post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => 500, 'no_found_rows' => true, 'lang' => 'en']) as $post) {
         $articles[] = boblift_llms_txt_link(get_the_title($post), get_permalink($post), boblift_seo_post_description($post));
     }
     $company = [boblift_llms_txt_link('All products', boblift_product_archive_url(), 'Every crane model with filters for type, boom and capacity')];
