@@ -1075,31 +1075,19 @@
     toggle();
   });
 
-  // Product dimension drawing: opens in a dialog that fits the whole sheet to the screen. Pinch, the mouse wheel (or a
-  // trackpad pinch), the +/- buttons, the + - 0 keys or a double tap zoom it; one finger or the mouse drags it once it is
-  // larger than the screen, and so do the arrow keys. Esc, the close button or the backdrop close it.
-  qsa('[data-drawing-root]').forEach((root) => {
-    const dialog = qs('[data-drawing-dialog]', root);
-    if (!dialog || typeof dialog.showModal !== 'function') return;
-    const stage = qs('[data-drawing-stage]', dialog);
-    const image = qs('[data-drawing-image]', dialog);
-    const level = qs('[data-drawing-level]', dialog);
-    const zoomIn = qs('[data-drawing-zoom="in"]', dialog);
-    const zoomOut = qs('[data-drawing-zoom="out"]', dialog);
-    qs('[data-drawing-close]', root)?.addEventListener('click', () => dialog.close());
-    dialog.addEventListener('click', (event) => {
-      if (event.target === dialog) dialog.close();
-    });
-    if (!stage || !image) {
-      // Markup cached from before the zoom viewer: the plain dialog still opens and closes (button, backdrop, Esc).
-      qs('[data-drawing-open]', root)?.addEventListener('click', () => dialog.showModal());
-      return;
-    }
+  // Zoom viewer shared by the product drawings and the product photos: a dialog that fits the whole picture to the screen.
+  // Pinch, the mouse wheel (or a trackpad pinch), the +/- buttons, the + - 0 keys or a double tap zoom it; one finger or the
+  // mouse drags it once it is larger than the screen, and so do the arrow keys. Esc, the close button or the backdrop close
+  // it. With onStep (the photos), a sideways swipe or the left and right arrow keys on the fitted picture step to the
+  // neighbouring one. nativeMax is how far past its own pixels the picture may zoom.
+  const bobliftZoomViewer = ({ dialog, stage, image, level, zoomIn, zoomOut, fitButton, nativeMax = 1.5, onStep = null, onError = null, onClose = null }) => {
     let fit = 1;
     let max = 2;
     let scale = 1;
     let x = 0;
     let y = 0;
+    // Sideways offset of a fitted photo following a swiping finger.
+    let swipe = 0;
     let ready = false;
     let previousOverflow = '';
     const pointers = new Map();
@@ -1107,6 +1095,10 @@
     let drag = null;
     let lastTap = null;
     let tipTimer = 0;
+    let loadToken = 0;
+    let settleTimer = 0;
+    // The picture after this one sits on the right, or on the left in Arabic.
+    const forward = () => (document.documentElement.dir === 'rtl' ? -1 : 1);
 
     const size = () => [
       image.naturalWidth || Number(image.getAttribute('width')) || 0,
@@ -1117,7 +1109,8 @@
       return { x: event.clientX - rect.left, y: event.clientY - rect.top };
     };
     const limit = (value) => Math.min(max, Math.max(fit, value));
-    // Keeps the sheet on screen: centred along an axis where it is smaller than the stage, edge to edge where it is larger.
+    const atFit = () => scale <= fit * 1.001;
+    // Keeps the picture on screen: centred along an axis where it is smaller than the stage, edge to edge where it is larger.
     const apply = () => {
       const [width, height] = size();
       const stageWidth = stage.clientWidth;
@@ -1126,31 +1119,32 @@
       const shownHeight = height * scale;
       x = shownWidth <= stageWidth ? (stageWidth - shownWidth) / 2 : Math.min(0, Math.max(stageWidth - shownWidth, x));
       y = shownHeight <= stageHeight ? (stageHeight - shownHeight) / 2 : Math.min(0, Math.max(stageHeight - shownHeight, y));
-      image.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+      image.style.transform = `translate(${x + swipe}px, ${y}px) scale(${scale})`;
       if (level) level.textContent = `${Math.round((scale / fit) * 100)}%`;
       // A button disabled while it has the focus would drop the focus to the page and out of reach of the shortcuts, so the
-      // focus moves to the sheet first.
-      [[zoomIn, scale >= max * 0.999], [zoomOut, scale <= fit * 1.001]].forEach(([button, off]) => {
+      // focus moves to the picture first.
+      [[zoomIn, scale >= max * 0.999], [zoomOut, atFit()]].forEach(([button, off]) => {
         if (!button) return;
         if (off && document.activeElement === button) stage.focus({ preventScroll: true });
         button.disabled = off;
       });
-      stage.classList.toggle('is-zoomed', scale > fit * 1.001);
+      stage.classList.toggle('is-zoomed', !atFit());
     };
-    // Fit: the whole sheet on screen, never blown up past its own pixels. Zoom goes to 4x the fit, and at least to 1.5x the
-    // sheet's own size, so a phone can read the smallest figures.
+    // Fit: the whole picture on screen, never blown up past its own pixels. Zoom goes to 4x the fit, and at least to
+    // nativeMax times the picture's own size, so a phone can read the smallest figures.
     const measure = () => {
       const [width, height] = size();
       if (!width || !height || !stage.clientWidth || !stage.clientHeight) return false;
       image.style.width = `${width}px`;
       image.style.height = `${height}px`;
       fit = Math.min(stage.clientWidth / width, stage.clientHeight / height, 1);
-      max = Math.max(fit * 4, 1.5);
+      max = Math.max(fit * 4, nativeMax);
       return true;
     };
     const reset = () => {
       if (!measure()) return;
       scale = fit;
+      swipe = 0;
       apply();
       ready = true;
       image.classList.add('is-ready');
@@ -1172,45 +1166,84 @@
       pinch = { distance: Math.hypot(a.x - b.x, a.y - b.y) || 1, scale, contentX: (midX - x) / scale, contentY: (midY - y) / scale };
       drag = null;
     };
+    // A finger on a fitted photo swipes it toward the next one; anywhere else it drags the picture.
     const startDrag = (point) => {
-      drag = { x: point.x, y: point.y, fromX: x, fromY: y, moved: false };
+      drag = { x: point.x, y: point.y, fromX: x, fromY: y, moved: false, swipe: Boolean(onStep) && atFit() };
+    };
+    const settle = () => {
+      image.classList.add('is-settling');
+      swipe = 0;
+      apply();
+      clearTimeout(settleTimer);
+      settleTimer = setTimeout(() => image.classList.remove('is-settling'), 220);
     };
 
-    const open = () => {
+    // Shows the picture now in the image's src once it has loaded, fitted. A newer call (the next photo) wins.
+    const load = () => {
+      const token = ++loadToken;
+      ready = false;
+      swipe = 0;
+      pointers.clear();
+      pinch = null;
+      drag = null;
+      lastTap = null;
+      image.classList.remove('is-ready', 'is-settling');
+      stage.classList.add('is-loading');
+      image.loading = 'eager';
+      const done = () => {
+        if (token !== loadToken || !dialog.open) return;
+        stage.classList.remove('is-loading');
+        reset();
+      };
+      const failed = () => {
+        if (token !== loadToken) return;
+        if (onError) onError();
+        else stage.classList.remove('is-loading');
+      };
+      if (image.complete && image.naturalWidth) requestAnimationFrame(done);
+      else {
+        image.addEventListener('load', done, { once: true });
+        image.addEventListener('error', failed, { once: true });
+      }
+    };
+    // event: the click that opened it. A tap or a mouse click (detail > 0) gives the picture the focus without the keyboard
+    // ring; Enter or Space on the button keeps the ring.
+    const show = (event) => {
       previousOverflow = document.documentElement.style.overflow;
       document.documentElement.style.overflow = 'hidden';
-      // The sheet opens at the fit, where zoom out does nothing: disabled before showModal() so it never takes the focus
-      // and drops it to the page when the fit disables it. The focus goes to the sheet, ready for + - 0 and the arrows.
+      // The picture opens at the fit, where zoom out does nothing: disabled before showModal() so it never takes the focus
+      // and drops it to the page when the fit disables it. The focus goes to the picture, ready for + - 0 and the arrows.
       if (zoomOut) zoomOut.disabled = true;
       if (zoomIn) zoomIn.disabled = false;
       dialog.showModal();
-      stage.focus({ preventScroll: true });
-      // The hint shows for a few seconds, or until the first touch, wheel turn or click on the sheet.
+      stage.focus({ preventScroll: true, focusVisible: !(event?.detail > 0) });
+      // The hint shows for a few seconds, or until the first touch, wheel turn or click on the picture.
       stage.classList.remove('is-touched');
       clearTimeout(tipTimer);
       tipTimer = setTimeout(() => stage.classList.add('is-touched'), 4000);
-      image.loading = 'eager';
-      if (image.complete && image.naturalWidth) requestAnimationFrame(reset);
-      else image.addEventListener('load', reset, { once: true });
+      load();
     };
-    qs('[data-drawing-open]', root)?.addEventListener('click', open);
     dialog.addEventListener('close', () => {
       document.documentElement.style.overflow = previousOverflow;
       pointers.clear();
       pinch = null;
       drag = null;
       lastTap = null;
+      if (onClose) onClose();
     });
-    qs('[data-drawing-zoom="in"]', dialog)?.addEventListener('click', () => zoomCentre(1.5));
-    qs('[data-drawing-zoom="out"]', dialog)?.addEventListener('click', () => zoomCentre(1 / 1.5));
-    qs('[data-drawing-zoom="fit"]', dialog)?.addEventListener('click', reset);
+    zoomIn?.addEventListener('click', () => zoomCentre(1.5));
+    zoomOut?.addEventListener('click', () => zoomCentre(1 / 1.5));
+    fitButton?.addEventListener('click', reset);
     dialog.addEventListener('keydown', (event) => {
       if (event.ctrlKey || event.metaKey || event.altKey) return;
       if (event.key === '+' || event.key === '=') zoomCentre(1.5);
       else if (event.key === '-' || event.key === '_') zoomCentre(1 / 1.5);
       else if (event.key === '0') reset();
-      else if (event.key.startsWith('Arrow') && ready) {
-        // Arrow keys move the sheet a fifth of the screen, so a keyboard can reach every edge once it is zoomed.
+      else if (onStep && ready && atFit() && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
+        // A fitted photo has nothing to pan, so left and right step through the photos.
+        onStep(event.key === 'ArrowRight' ? forward() : -forward());
+      } else if (event.key.startsWith('Arrow') && ready) {
+        // Arrow keys move the picture a fifth of the screen, so a keyboard can reach every edge once it is zoomed.
         const stepX = stage.clientWidth * 0.2;
         const stepY = stage.clientHeight * 0.2;
         if (event.key === 'ArrowLeft') x += stepX;
@@ -1224,9 +1257,9 @@
     });
     window.addEventListener('resize', () => {
       if (!dialog.open || !ready) return;
-      const atFit = scale <= fit * 1.001;
+      const wasFit = atFit();
       if (!measure()) return;
-      if (atFit) scale = fit;
+      if (wasFit) scale = fit;
       scale = limit(scale);
       apply();
     });
@@ -1240,12 +1273,15 @@
       zoomAt(scale * Math.exp(-delta * (event.ctrlKey ? 0.01 : 0.002)), point.x, point.y);
     }, { passive: false });
     stage.addEventListener('pointerdown', (event) => {
-      if (!ready || (event.pointerType === 'mouse' && event.button !== 0)) return;
+      // Buttons on the picture (the photo arrows) keep their own clicks: capturing the pointer would take them away.
+      if (!ready || (event.pointerType === 'mouse' && event.button !== 0) || event.target.closest('button')) return;
       stage.setPointerCapture?.(event.pointerId);
       stage.classList.add('is-touched');
       pointers.set(event.pointerId, local(event));
-      if (pointers.size === 2) startPinch();
-      else if (pointers.size === 1) startDrag(local(event));
+      if (pointers.size === 2) {
+        if (swipe) settle();
+        startPinch();
+      } else if (pointers.size === 1) startDrag(local(event));
     });
     stage.addEventListener('pointermove', (event) => {
       if (!pointers.has(event.pointerId)) return;
@@ -1254,7 +1290,7 @@
       if (pinch && pointers.size >= 2) {
         const [a, b] = [...pointers.values()];
         scale = limit(pinch.scale * (Math.hypot(a.x - b.x, a.y - b.y) / pinch.distance));
-        // The point of the sheet that was under the fingers stays under them, so a pinch can also pan.
+        // The point of the picture that was under the fingers stays under them, so a pinch can also pan.
         x = (a.x + b.x) / 2 - pinch.contentX * scale;
         y = (a.y + b.y) / 2 - pinch.contentY * scale;
         apply();
@@ -1263,11 +1299,16 @@
         const dy = point.y - drag.y;
         if (!drag.moved && Math.hypot(dx, dy) > 6) {
           drag.moved = true;
+          // A mostly upright stroke is no swipe.
+          if (drag.swipe && Math.abs(dy) > Math.abs(dx)) drag.swipe = false;
           stage.classList.add('is-dragging');
         }
         if (drag.moved) {
-          x = drag.fromX + dx;
-          y = drag.fromY + dy;
+          if (drag.swipe) swipe = dx;
+          else {
+            x = drag.fromX + dx;
+            y = drag.fromY + dy;
+          }
           apply();
         }
       }
@@ -1287,7 +1328,17 @@
         // One finger left after a pinch carries on dragging from where it is.
         startDrag([...pointers.values()][0]);
         drag.moved = true;
+        drag.swipe = false;
         lastTap = null;
+        return;
+      }
+      if (drag && drag.swipe && drag.moved) {
+        // A swipe past a fifth of the screen (at most 80 px) moves to the neighbouring photo; a shorter one springs back.
+        const distance = swipe;
+        drag = null;
+        lastTap = null;
+        if (event.type === 'pointerup' && Math.abs(distance) > Math.min(80, stage.clientWidth * 0.2)) onStep(distance < 0 ? forward() : -forward());
+        else settle();
         return;
       }
       const tapped = event.type === 'pointerup' && !wasPinch && drag && !drag.moved;
@@ -1308,6 +1359,131 @@
     };
     stage.addEventListener('pointerup', release);
     stage.addEventListener('pointercancel', release);
+    return { show, load };
+  };
+
+  // Product dimension drawing: opens in the zoom viewer above.
+  qsa('[data-drawing-root]').forEach((root) => {
+    const dialog = qs('[data-drawing-dialog]', root);
+    if (!dialog || typeof dialog.showModal !== 'function') return;
+    const stage = qs('[data-drawing-stage]', dialog);
+    const image = qs('[data-drawing-image]', dialog);
+    qs('[data-drawing-close]', root)?.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+    if (!stage || !image) {
+      // Markup cached from before the zoom viewer: the plain dialog still opens and closes (button, backdrop, Esc).
+      qs('[data-drawing-open]', root)?.addEventListener('click', () => dialog.showModal());
+      return;
+    }
+    const viewer = bobliftZoomViewer({
+      dialog,
+      stage,
+      image,
+      level: qs('[data-drawing-level]', dialog),
+      zoomIn: qs('[data-drawing-zoom="in"]', dialog),
+      zoomOut: qs('[data-drawing-zoom="out"]', dialog),
+      fitButton: qs('[data-drawing-zoom="fit"]', dialog),
+    });
+    qs('[data-drawing-open]', root)?.addEventListener('click', viewer.show);
+  });
+
+  // Product photos at the top of the page, on phones and tablets: a tap on the photo (or its full-size button) opens it in
+  // the zoom viewer, at the photo shown. Pinch or double tap zooms; a swipe, the arrows or the arrow keys go through the
+  // photos, and closing leaves the page on the last one seen. Wide screens with a mouse keep the page as it was.
+  const photoViewerMedia = window.matchMedia('(max-width: 1023px), (hover: none) and (pointer: coarse)');
+  qsa('[data-product-hero-gallery-root]').forEach((root) => {
+    const dialog = qs('[data-photo-viewer]', root);
+    const frame = qs('[data-product-hotspot-stage]', root);
+    if (!dialog || !frame || typeof dialog.showModal !== 'function') return;
+    const stage = qs('[data-photo-viewer-stage]', dialog);
+    const image = qs('[data-photo-viewer-image]', dialog);
+    if (!stage || !image) return;
+    const thumbs = qsa('[data-product-hero-gallery-thumb]', root);
+    const photos = thumbs.map((thumb) => ({
+      full: thumb.dataset.productHeroGalleryFull || thumb.dataset.productHeroGallerySrc || '',
+      src: thumb.dataset.productHeroGallerySrc || '',
+      label: thumb.dataset.productHeroGalleryLabel || '',
+    })).filter((photo) => photo.full);
+    if (!photos.length) {
+      const current = qs('[data-product-hero-gallery-current]', root);
+      const src = current?.currentSrc || current?.getAttribute('src') || '';
+      if (!src) return;
+      photos.push({ full: src, src, label: current.alt || '' });
+    }
+    const label = qs('[data-photo-viewer-label]', dialog);
+    const count = qs('[data-photo-viewer-count]', dialog);
+    let index = 0;
+    const wrap = (value) => (value + photos.length) % photos.length;
+    // The photos either side load in the background, so a swipe usually lands on one already there.
+    const preload = (value) => {
+      const photo = photos[wrap(value)];
+      if (!photo || photo === photos[index]) return;
+      const next = new Image();
+      next.decoding = 'async';
+      next.src = photo.full;
+    };
+    const setPhoto = (value) => {
+      index = wrap(value);
+      const photo = photos[index];
+      image.alt = photo.label;
+      if (label) label.textContent = photo.label;
+      if (count) count.textContent = `${index + 1} / ${photos.length}`;
+      if (image.getAttribute('src') !== photo.full) image.src = photo.full;
+    };
+    let viewer = null;
+    const step = (direction) => {
+      setPhoto(index + direction);
+      viewer.load();
+      preload(index + direction);
+    };
+    viewer = bobliftZoomViewer({
+      dialog,
+      stage,
+      image,
+      level: qs('[data-photo-viewer-level]', dialog),
+      zoomIn: qs('[data-photo-viewer-zoom="in"]', dialog),
+      zoomOut: qs('[data-photo-viewer-zoom="out"]', dialog),
+      fitButton: qs('[data-photo-viewer-zoom="fit"]', dialog),
+      // Photos zoom to their own pixels at most (and always to 4x the fit): past that they only blur.
+      nativeMax: 1,
+      onStep: photos.length > 1 ? step : null,
+      // A full-size photo the CDN cannot serve falls back to the page's own size.
+      onError: () => {
+        const photo = photos[index];
+        if (photo.src && image.getAttribute('src') !== photo.src) {
+          image.src = photo.src;
+          viewer.load();
+        } else stage.classList.remove('is-loading');
+      },
+      onClose: () => {
+        const thumb = thumbs.find((item) => (item.dataset.productHeroGalleryFull || item.dataset.productHeroGallerySrc) === photos[index].full);
+        if (thumb && thumb.dataset.productHeroGalleryIndex !== root.dataset.productHeroActiveIndex) thumb.click();
+      },
+    });
+    const open = (event) => {
+      const active = thumbs.find((item) => item.dataset.productHeroGalleryIndex === root.dataset.productHeroActiveIndex);
+      const start = active ? photos.findIndex((photo) => photo.full === (active.dataset.productHeroGalleryFull || active.dataset.productHeroGallerySrc)) : 0;
+      setPhoto(Math.max(start, 0));
+      viewer.show(event);
+      if (photos.length > 1) {
+        preload(index + 1);
+        preload(index - 1);
+      }
+    };
+    frame.addEventListener('click', (event) => {
+      if (!photoViewerMedia.matches || event.target.closest('button, a')) return;
+      open(event);
+    });
+    qs('[data-photo-viewer-open]', root)?.addEventListener('click', open);
+    qsa('[data-photo-viewer-step]', dialog).forEach((button) => {
+      button.addEventListener('click', () => step(Number(button.dataset.photoViewerStep) || 1));
+    });
+    qs('[data-photo-viewer-close]', dialog)?.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) dialog.close();
+    });
   });
 
   // Home hero slideshow. CSS runs the active tab's progress bar; when it finishes, the next

@@ -2833,6 +2833,11 @@ body.boblift-filter-drawer-locked {
 .boblift-drawing-tip { transition: opacity .3s ease; }
 .boblift-drawing-stage.is-touched .boblift-drawing-tip { opacity: 0; }
 .boblift-drawing-tool:disabled { opacity: .4; cursor: default; }
+/* Product photos in the same viewer: a photo let go short of a swipe springs back, and a spinner shows while one loads. */
+.boblift-drawing-image.is-settling { transition: transform .2s ease-out; }
+.boblift-zoom-spinner { display: none; }
+.is-loading > .boblift-zoom-spinner { display: block; animation: boblift-zoom-spin .8s linear infinite; }
+@keyframes boblift-zoom-spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
 
 /* Case and feedback detail pages: article prose and the feedback gallery. */
 /* Copy reads at 400 so the 600 headings and figures stand above it. */
