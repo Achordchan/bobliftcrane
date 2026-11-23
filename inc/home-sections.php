@@ -235,15 +235,20 @@ function boblift_render_home_cases(): void
                 </div>
                 <a class="inline-flex w-fit shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-sm bg-navy min-h-11 px-5 py-2.5 text-xs font-black md:min-h-0 text-white shadow-card transition hover:-translate-y-0.5 hover:bg-[#0b2d5b] md:px-6 md:py-3 md:text-sm" href="<?php echo esc_url(boblift_case_archive_url()); ?>"><?php echo esc_html($ui['secondaryCtaLabel'] ?? 'View Cases'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
             </div>
-            <div class="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] md:mx-0 md:grid md:snap-none md:grid-cols-3 md:gap-5 md:overflow-visible md:px-0 md:pb-0 [&::-webkit-scrollbar]:hidden">
-                <?php foreach (array_slice($cases, 0, 3) as $item) :
+            <?php
+            // Five cases, matching the five product families above: phones swipe through them, tablets show three over
+            // two wider ones, and wide screens show all five in one row.
+            $home_cases = array_slice($cases, 0, 5);
+            ?>
+            <div class="home-cases-grid -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] md:mx-0 md:grid md:snap-none md:grid-cols-3 md:gap-5 md:overflow-visible md:px-0 md:pb-0 [&::-webkit-scrollbar]:hidden" data-count="<?php echo (int) count($home_cases); ?>" style="--home-cases:<?php echo (int) count($home_cases); ?>">
+                <?php foreach ($home_cases as $item) :
                     $meta = array_values(array_filter([trim((string) ($item['country'] ?? '')), trim((string) ($item['application'] ?? ''))]));
                 ?>
                     <a class="group flex w-[82%] shrink-0 snap-start flex-col overflow-hidden rounded border border-line bg-white shadow-card transition duration-300 hover:-translate-y-1 hover:border-blue-300 md:w-auto" href="<?php echo esc_url($item['url']); ?>">
-                        <span class="relative block aspect-[4/3] overflow-hidden bg-[#eef5ff]"><img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" <?php echo boblift_img_src(boblift_item_image($item), '(min-width: 768px) 33vw, 80vw'); ?> alt="<?php echo esc_attr($item['title']); ?>" loading="lazy" decoding="async"></span>
-                        <span class="flex flex-1 flex-col p-5 lg:p-6">
-                            <?php if ($meta !== []) : ?><span class="mb-2 text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(implode(' · ', $meta)); ?></span><?php endif; ?>
-                            <span class="line-clamp-2 text-lg font-black leading-tight tracking-[-0.01em] text-ink lg:text-xl"><?php echo esc_html($item['title']); ?></span>
+                        <span class="home-case-media relative block aspect-[4/3] overflow-hidden bg-[#eef5ff]"><img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" <?php echo boblift_img_src(boblift_item_image($item), '(min-width: 1280px) 20vw, (min-width: 768px) 50vw, 80vw'); ?> alt="<?php echo esc_attr($item['title']); ?>" loading="lazy" decoding="async"></span>
+                        <span class="flex flex-1 flex-col p-5 lg:p-6 xl:p-5">
+                            <?php if ($meta !== []) : ?><span class="mb-2 text-[11px] font-black uppercase tracking-[0.14em] text-slate-500 md:line-clamp-1"><?php echo esc_html(implode(' · ', $meta)); ?></span><?php endif; ?>
+                            <span class="line-clamp-2 text-lg font-black leading-tight tracking-[-0.01em] text-ink lg:text-xl xl:text-lg"><?php echo esc_html($item['title']); ?></span>
                             <?php if (trim((string) ($item['summary'] ?? '')) !== '') : ?><span class="mt-2.5 line-clamp-3 text-[15px] font-normal leading-6 text-slate-600 lg:text-sm"><?php echo esc_html($item['summary']); ?></span><?php endif; ?>
                             <span class="mt-auto inline-flex items-center gap-1.5 pt-4 text-sm font-black text-blue-600"><?php echo esc_html($ui['viewCaseLabel'] ?? 'View Case'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4 transition group-hover:translate-x-1'); ?></span>
                         </span>

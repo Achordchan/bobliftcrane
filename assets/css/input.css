@@ -2832,6 +2832,18 @@ body.boblift-filter-drawer-locked {
   .home-hot-cards { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 }
 
+/* Home cases: five of them, like the five product families. Tablets put three over two wider ones (no half-empty row);
+   wide screens show the whole set in one row. */
+@media (min-width: 768px) and (max-width: 1279px) {
+  .home-cases-grid[data-count="5"] { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .home-cases-grid[data-count="5"] > a { grid-column: span 2; }
+  .home-cases-grid[data-count="5"] > a:nth-child(n+4) { grid-column: span 3; }
+  .home-cases-grid[data-count="5"] > a:nth-child(n+4) .home-case-media { aspect-ratio: 16 / 9; }
+}
+@media (min-width: 1280px) {
+  .home-cases-grid[data-count] { grid-template-columns: repeat(var(--home-cases, 3), minmax(0, 1fr)); }
+}
+
 /* Product dimension drawing opened full size. */
 .boblift-drawing-dialog::backdrop { background: rgba(7, 31, 66, .72); }
 /* Phones get the whole screen; the doubled class outranks the shared dialog radius further down. */
