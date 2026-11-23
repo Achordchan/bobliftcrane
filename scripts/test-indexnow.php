@@ -16,6 +16,8 @@ if (getenv('INDEXNOW_PLATFORM_CONSTANTS') !== false) {
     define('ATOMIC_SITE_ID', 12345);
 }
 $GLOBALS['options'] = ['blog_public' => '1', 'home' => 'https://bobliftcrane.com'];
+// A web request routed here for the live host name, unless a child run says otherwise.
+$_SERVER['HTTP_HOST'] = getenv('INDEXNOW_HOST') !== false ? getenv('INDEXNOW_HOST') : 'bobliftcrane.com';
 if (getenv('INDEXNOW_PINNED') !== false) {
     // The Atomic site ID recorded by an earlier run, as a restored backup would carry it.
     $GLOBALS['options']['boblift_indexnow_platform_site'] = getenv('INDEXNOW_PINNED');
@@ -385,7 +387,7 @@ if (!defined('DAY_IN_SECONDS')) {
 if (!defined('HOUR_IN_SECONDS')) {
     define('HOUR_IN_SECONDS', 3600);
 }
-$GLOBALS['doing_cron'] = false;
+$GLOBALS['doing_cron'] = getenv('INDEXNOW_CRON') !== false;
 function wp_doing_cron(): bool
 {
     return $GLOBALS['doing_cron'];
@@ -487,6 +489,22 @@ if (getenv('INDEXNOW_DEADLINE') !== false) {
     ini_set('error_log', '/dev/null');
     $GLOBALS['transients'] = [boblift_indexnow_key_check_name('abcd1234') => 'ok'];
     $GLOBALS['options']['boblift_indexnow_key'] = 'abcd1234';
+    if (getenv('INDEXNOW_DEADLINE') === 'flush') {
+        // Eleven full rows: the eleventh would overflow the group, and leasing it uses up the run's time.
+        $GLOBALS['posts'] = [];
+        foreach (range(1, 1100) as $i) {
+            $GLOBALS['posts'][$i] = new WP_Post($i);
+        }
+        foreach (array_chunk(range(1, 1100), 100) as $n => $chunk) {
+            add_option(rn(0, 'f' . str_pad((string) $n, 2, '0', STR_PAD_LEFT)), ['due' => 0, 'ids' => $chunk, 'retry' => true], '', 'no');
+        }
+        $GLOBALS['slow_rename'] = rn(0, 'f10');
+        $GLOBALS['sent'] = $GLOBALS['primed'] = [];
+        boblift_indexnow_run_retries();
+        $rows = array_filter($GLOBALS['options'], static fn($v, $k): bool => str_starts_with((string) $k, 'boblift_indexnow_retry_'), ARRAY_FILTER_USE_BOTH);
+        echo json_encode(['sent' => count($GLOBALS['sent']) + count($GLOBALS['primed']), 'released' => count($rows) === 11 && !array_filter($rows, static fn($v): bool => !empty($v['lease']) || $v['due'] > time() || count($v['ids']) !== 100)]);
+        exit;
+    }
     $GLOBALS['posts'] = [61 => new WP_Post(61), 62 => new WP_Post(62)];
     add_option(rn(0, 'da'), ['due' => 0, 'ids' => [61], 'retry' => true], '', 'no');
     add_option(rn(0, 'db'), ['due' => 0, 'ids' => [62], 'retry' => false], '', 'no');
@@ -546,6 +564,9 @@ $platform_run = static fn(string $constants, string $env = ''): ?string => shell
 $check('the live Atomic site\'s ID is recorded the first time submissions are on', ($GLOBALS['options']['boblift_indexnow_platform_site'] ?? null) === '12345');
 $check('a backup restored to another Atomic site (same home, production) stays quiet', $platform_run('ATOMIC_SITE_ID=67890', 'INDEXNOW_PINNED=12345 ') === 'QUIET');
 $check('the Atomic site whose ID was recorded keeps submitting', $platform_run('ATOMIC_SITE_ID=12345', 'INDEXNOW_PINNED=12345 ') === 'ENABLED');
+$check('with nothing recorded yet (a backup from before), a copy reached on its own address does not record its ID', $platform_run('ATOMIC_SITE_ID=67890', 'INDEXNOW_HOST=copy.wpcomstaging.com ') === 'QUIET');
+$check('with nothing recorded yet, a cron run does not record its ID either', $platform_run('ATOMIC_SITE_ID=67890', 'INDEXNOW_CRON=1 ') === 'QUIET');
+$check('with nothing recorded yet, a request for the live host name (routed only to the live site) records it', $platform_run('ATOMIC_SITE_ID=12345', 'INDEXNOW_HOST=bobliftcrane.com:443 ') === 'ENABLED');
 foreach (['BOBLIFT_INDEXNOW_LIVE="false"', 'BOBLIFT_INDEXNOW_LIVE="0"', 'BOBLIFT_INDEXNOW_LIVE=""', 'IS_ATOMIC="false"', 'IS_ATOMIC=false', 'IS_ATOMIC=true', 'ATOMIC_SITE_ID="0"', 'ATOMIC_SITE_ID="abc"', 'ATOMIC_SITE_ID=0'] as $constants) {
     $check('a constant set to a false-like value does not switch submissions on: ' . $constants, $platform_run($constants) === 'QUIET');
 }
@@ -1086,6 +1107,8 @@ $GLOBALS['transients'] = [];
 $deadline = json_decode((string) shell_exec('INDEXNOW_DEADLINE=1 ' . escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__)), true);
 $check('rows leased when the run\'s time is up are not sent but released, runnable again now', ($deadline['sent'] ?? null) === 0 && ($deadline['released'] ?? false) === true);
 $check('a row the run did not reach before its time was up is left as it was', ($deadline['untouched'] ?? false) === true);
+$flush = json_decode((string) shell_exec('INDEXNOW_DEADLINE=flush ' . escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__)), true);
+$check('when time runs out on a row that would overflow the group, the full group is not resolved or sent: all eleven rows are released', ($flush['sent'] ?? null) === 0 && ($flush['released'] ?? false) === true);
 
 // Changes to a published post's public fields (custom fields without a leading underscore) queue it.
 $GLOBALS['boblift_indexnow_queue'] = [];

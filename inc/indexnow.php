@@ -93,9 +93,9 @@ const BOBLIFT_INDEXNOW_PLATFORM_SITE = 'boblift_indexnow_platform_site';
 /**
  * True only on the live hosting. WordPress.com's Atomic platform defines ATOMIC_SITE_ID in its own configuration, outside
  * the database, so a copy of the database or theme running anywhere else (a local clone mapped to the live host name,
- * for instance) stays quiet. The first time every other condition holds, the site's ID is recorded; from then on only
- * that Atomic site submits, so a backup restored to another Atomic site (same home URL, production environment) stays
- * quiet too. Another live host can opt in with define('BOBLIFT_INDEXNOW_LIVE', true) in wp-config.php.
+ * for instance) stays quiet. The site's ID is recorded by the first web request for the live host name (which
+ * WordPress.com routes only to the live site); from then on only that Atomic site submits, so a backup restored to
+ * another Atomic site (same home URL, production environment) stays quiet too. Another live host can opt in with define('BOBLIFT_INDEXNOW_LIVE', true) in wp-config.php.
  */
 function boblift_indexnow_live_platform(): bool
 {
@@ -112,6 +112,13 @@ function boblift_indexnow_live_platform(): bool
     }
     $pinned = get_option(BOBLIFT_INDEXNOW_PLATFORM_SITE);
     if ($pinned === false) {
+        // The ID is recorded only by a web request that WordPress.com routed here for the live host name: the domain is
+        // attached to the live site alone, so a copy (reached on its own address, or running cron or WP-CLI) can never
+        // record its ID, even from a database backup taken before the ID was first recorded.
+        $host = boblift_indexnow_host('https://' . (string) ($_SERVER['HTTP_HOST'] ?? ''));
+        if (wp_doing_cron() || (defined('WP_CLI') && WP_CLI) || !in_array($host, BOBLIFT_INDEXNOW_HOSTS, true)) {
+            return false;
+        }
         // add_option() never replaces a value another request stored first; whichever is stored is what counts.
         add_option(BOBLIFT_INDEXNOW_PLATFORM_SITE, (string) $site, '', 'yes');
         $pinned = get_option(BOBLIFT_INDEXNOW_PLATFORM_SITE);
@@ -646,6 +653,11 @@ function boblift_indexnow_run_retries(): void
         // A group is sent before a row that would take it past the cap joins it (a row holds at most 100 posts).
         $stop = false;
         if ($groups[$flag] !== [] && $group_ids[$flag] + count($batch['ids']) > BOBLIFT_INDEXNOW_GROUP_IDS) {
+            if (time() - $started >= BOBLIFT_INDEXNOW_RUN_SECONDS) {
+                // Time is up (leasing can be slow): nothing more is sent; the final step below releases every leased row.
+                $groups[$flag][] = [$name, $leased, $batch['ids']];
+                return false;
+            }
             boblift_indexnow_send_group($groups[$flag], (bool) $flag, $started + BOBLIFT_INDEXNOW_RUN_SECONDS);
             $groups[$flag] = [];
             $group_ids[$flag] = 0;
