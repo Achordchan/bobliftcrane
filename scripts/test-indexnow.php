@@ -455,6 +455,12 @@ $check('only URLs under the key file\'s directory are sent on a subdirectory ins
 $long = 'https://bobliftcrane.com/' . str_repeat('a', 2040) . '.html';
 $check('a URL over 2,048 characters is left out and its sibling sent', (boblift_indexnow_payloads([$long, 'https://bobliftcrane.com/a.html'], 'https://bobliftcrane.com', 'abcd1234')[0]['urlList'] ?? []) === ['https://bobliftcrane.com/a.html']);
 $check('nothing to send for other hosts only', boblift_indexnow_payloads(['https://www.boblift.com/c.html'], 'https://bobliftcrane.com', 'abcd1234') === []);
+$log = tempnam(sys_get_temp_dir(), 'indexnow');
+ini_set('error_log', $log);
+boblift_indexnow_payloads(['https://es.bobliftcrane.com/b.html', 'https://bobliftcrane.com/a.html'], 'https://bobliftcrane.com', 'abcd1234');
+$check('a permalink on another host (e.g. a language subdomain) is logged, not skipped silently', str_contains((string) file_get_contents($log), 'IndexNow: 1 URLs outside https://bobliftcrane.com/ left out (another host or directory), e.g. https://es.bobliftcrane.com/b.html.'));
+unlink($log);
+ini_set('error_log', '/dev/null');
 $many = array_map(static fn(int $i): string => 'https://bobliftcrane.com/p' . $i . '.html', range(1, 10001));
 $split = boblift_indexnow_payloads($many, 'https://bobliftcrane.com', 'abcd1234');
 $check('10,001 URLs go out in two batches, none dropped', count($split) === 2 && count($split[0]['urlList']) === 10000 && $split[1]['urlList'] === ['https://bobliftcrane.com/p10001.html']);

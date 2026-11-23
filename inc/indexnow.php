@@ -153,7 +153,15 @@ function boblift_indexnow_payloads(array $urls, string $home, string $key): arra
         return [];
     }
     $scope = rtrim((string) wp_parse_url($home, PHP_URL_PATH), '/') . '/';
-    $same_host = array_values(array_unique(array_filter($urls, static fn(string $url): bool => boblift_indexnow_host($url) === $host && str_starts_with((string) wp_parse_url($url, PHP_URL_PATH), $scope))));
+    $urls = array_values(array_unique($urls));
+    $same_host = array_values(array_filter($urls, static fn(string $url): bool => boblift_indexnow_host($url) === $host && str_starts_with((string) wp_parse_url($url, PHP_URL_PATH), $scope)));
+    // This site serves every language under its own host (/es/, /fr/ ...). A permalink on another host or outside the
+    // key's directory (for example if Polylang were switched to subdomains or separate domains) cannot be verified by
+    // this key, so it is left out and logged, so such a change is noticed instead of silently skipped.
+    $elsewhere = array_diff($urls, $same_host);
+    if ($elsewhere) {
+        error_log(sprintf('IndexNow: %d URLs outside %s left out (another host or directory), e.g. %s.', count($elsewhere), rtrim($home, '/') . '/', (string) reset($elsewhere)));
+    }
     // IndexNow rejects the whole POST (422) when one URL is longer than 2,048 characters: leave those out and log them.
     $too_long = array_filter($same_host, static fn(string $url): bool => strlen($url) > 2048);
     if ($too_long) {
