@@ -57,14 +57,16 @@
     }
   }
 
-  const searchToggle = qs('[data-search-toggle]');
+  // Phones show the search button after the globe, wider screens before it, so the header carries two (one hidden by CSS).
+  const searchToggles = qsa('[data-search-toggle]');
+  const searchToggle = searchToggles.find((toggle) => toggle.offsetParent !== null) || searchToggles[0];
   const searchPanel = qs('[data-search-panel]');
   const searchInput = qs('[data-search-input]', searchPanel || document);
   const setSearchOpen = (open, restoreFocus = false) => {
     if (!searchToggle || !searchPanel) return;
     if (open && qs('#mobile-menu:not(.hidden)')) qs('[data-mobile-toggle]')?.click();
     searchPanel.classList.toggle('hidden', !open);
-    searchToggle.setAttribute('aria-expanded', String(open));
+    searchToggles.forEach((toggle) => toggle.setAttribute('aria-expanded', String(open)));
     if (open) {
       qsa('[data-language-root]').forEach((root) => {
         qs('[data-language-menu]', root)?.classList.add('hidden');
@@ -75,18 +77,18 @@
         searchInput?.select();
       });
     } else if (restoreFocus) {
-      searchToggle.focus();
+      (searchToggles.find((toggle) => toggle.offsetParent !== null) || searchToggle).focus();
     }
   };
   if (searchToggle && searchPanel) {
-    searchToggle.addEventListener('click', () => setSearchOpen(searchPanel.classList.contains('hidden')));
+    searchToggles.forEach((toggle) => toggle.addEventListener('click', () => setSearchOpen(searchPanel.classList.contains('hidden'))));
     qs('[data-mobile-toggle]')?.addEventListener('click', () => setSearchOpen(false));
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && !searchPanel.classList.contains('hidden')) setSearchOpen(false, true);
     });
     document.addEventListener('click', (event) => {
       if (searchPanel.classList.contains('hidden')) return;
-      if (searchPanel.contains(event.target) || searchToggle.contains(event.target)) return;
+      if (searchPanel.contains(event.target) || searchToggles.some((toggle) => toggle.contains(event.target))) return;
       setSearchOpen(false);
     });
     qs('form', searchPanel)?.addEventListener('submit', (event) => {

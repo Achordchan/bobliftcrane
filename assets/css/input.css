@@ -876,6 +876,19 @@ img { max-width: 100%; }
 @keyframes boblift-home-hero-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 /* Browsers have no phrase-aware breaking for Chinese yet, so the hero titles break at punctuation. */
 .boblift-home-hero-slide :is(h1, h2):lang(zh) { word-break: keep-all; overflow-wrap: anywhere; }
+/* Phones: titles that wrap get more air between lines than the tight desktop headline. In English and Chinese
+   (front-page.php sets data-hero-fit) every slide title stays on one line at one shared size: a first guess from the
+   longest title's length, which may still wrap, then the inline script after the slides measures it, sets the size and
+   adds data-hero-fitted to stop wrapping. Without the script the titles simply wrap. */
+@media not all and (min-width: 768px) {
+  .boblift-home-hero-slide :is(h1, h2) { line-height: 1.2; }
+  .boblift-home-hero-slides[data-hero-fit] { container-type: inline-size; --hero-em: .5; }
+  :lang(zh) .boblift-home-hero-slides[data-hero-fit] { --hero-em: .98; }
+  /* Japanese phrases (auto-phrase) could be wider than a phone and pushed the whole column past the screen edge. */
+  .boblift-home-hero-slide :is(h1, h2):lang(ja) { overflow-wrap: anywhere; }
+  .boblift-home-hero-slides[data-hero-fit] :is(h1, h2) { font-size: min(2.1rem, max(1.125rem, calc(100cqi / (var(--hero-chars) * var(--hero-em))))); }
+  .boblift-home-hero-slides[data-hero-fitted] :is(h1, h2) { white-space: nowrap; text-wrap: nowrap; }
+}
 
 /* The closing banner photo fades into the navy card beside the heading, like the page hero. */
 @media (min-width: 768px) {
