@@ -1179,8 +1179,11 @@
     };
 
     // Shows the picture now in the image's src once it has loaded, fitted. A newer call (the next photo) wins.
+    // The listeners of the load in progress; a newer load or the outcome removes both, so none pile up on the image.
+    let detachLoad = () => {};
     const load = () => {
       const token = ++loadToken;
+      detachLoad();
       ready = false;
       swipe = 0;
       pointers.clear();
@@ -1190,12 +1193,20 @@
       image.classList.remove('is-ready', 'is-settling');
       stage.classList.add('is-loading');
       image.loading = 'eager';
+      // Removes only this load's own listeners, so a late callback never strips a newer load's.
+      const detach = () => {
+        image.removeEventListener('load', done);
+        image.removeEventListener('error', failed);
+        if (detachLoad === detach) detachLoad = () => {};
+      };
       const done = () => {
+        detach();
         if (token !== loadToken || !dialog.open) return;
         stage.classList.remove('is-loading');
         reset();
       };
       const failed = () => {
+        detach();
         if (token !== loadToken) return;
         if (onError) onError();
         else stage.classList.remove('is-loading');
@@ -1204,8 +1215,9 @@
       // Already failed (a broken picture opened again): no event will come, so report it now.
       else if (image.complete && image.getAttribute('src')) requestAnimationFrame(failed);
       else {
-        image.addEventListener('load', done, { once: true });
-        image.addEventListener('error', failed, { once: true });
+        image.addEventListener('load', done);
+        image.addEventListener('error', failed);
+        detachLoad = detach;
       }
     };
     // event: the click that opened it. A tap or a mouse click (detail > 0) gives the picture the focus without the keyboard
