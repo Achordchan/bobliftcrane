@@ -681,6 +681,10 @@ if ($family_quote_copy) {
                 // Grouped (lifting, hydraulics, machine) when the English table lines up with this language's rows; one group otherwise.
                 $spec_sections = $spec_groups ?: [['label' => '', 'rows' => $technical_specs]];
                 $spec_range_link = $related_term instanceof WP_Term ? get_term_link($related_term) : '';
+                // "Compare all" only where the range lists more than this one product (a series counts once).
+                if ($related_term instanceof WP_Term && boblift_product_term_listing_count($related_term) < 2) {
+                    $spec_range_link = '';
+                }
                 // Figures read off the drawing join the groups they belong to (reach, height and boom angle under Lifting, the
                 // outrigger span under Machine) instead of a group of their own, and a figure the table already gives is not
                 // repeated. A product without outriggers has no span on its drawing, so it shows no outrigger row.
