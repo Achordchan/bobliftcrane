@@ -1080,7 +1080,7 @@
   // mouse drags it once it is larger than the screen, and so do the arrow keys. Esc, the close button or the backdrop close
   // it. With onStep (the photos), a sideways swipe or the left and right arrow keys on the fitted picture step to the
   // neighbouring one. nativeMax is how far past its own pixels the picture may zoom.
-  const bobliftZoomViewer = ({ dialog, stage, image, level, zoomIn, zoomOut, fitButton, nativeMax = 1.5, onStep = null, onError = null, onClose = null }) => {
+  const bobliftZoomViewer = ({ dialog, stage, image, level, zoomIn, zoomOut, fitButton, nativeMax = 1.5, onStep = null, onLoad = null, onError = null, onClose = null }) => {
     let fit = 1;
     let max = 2;
     let scale = 1;
@@ -1204,6 +1204,7 @@
         if (token !== loadToken || !dialog.open) return;
         stage.classList.remove('is-loading');
         reset();
+        if (onLoad) onLoad();
       };
       const failed = () => {
         detach();
@@ -1446,6 +1447,8 @@
     };
     const count = qs('[data-photo-viewer-count]', dialog);
     let index = 0;
+    // The last photo that actually showed in this opening; closing puts that one on the page, never a failed one.
+    let shown = -1;
     const wrap = (value) => (value + photos.length) % photos.length;
     // The photos either side load in the background, so a swipe usually lands on one already there.
     const preload = (value) => {
@@ -1483,6 +1486,9 @@
       // Photos zoom to their own pixels at most (and always to 4x the fit): past that they only blur.
       nativeMax: 1,
       onStep: photos.length > 1 ? step : null,
+      onLoad: () => {
+        shown = index;
+      },
       // A full-size photo the CDN cannot serve falls back to the page's own size; if that fails too, the viewer says so.
       onError: () => {
         const photo = photos[index];
@@ -1495,13 +1501,14 @@
         }
       },
       onClose: () => {
-        const thumb = photos[index].thumb;
+        const thumb = photos[shown]?.thumb;
         if (thumb && thumb.dataset.productHeroGalleryIndex !== root.dataset.productHeroActiveIndex) thumb.click();
       },
     });
     const open = (event) => {
       const active = thumbs.find((item) => item.dataset.productHeroGalleryIndex === root.dataset.productHeroActiveIndex);
       setPhoto(Math.max(photos.findIndex((photo) => photo.thumb === active), 0));
+      shown = -1;
       viewer.show(event);
       if (photos.length > 1) {
         preload(index + 1);
