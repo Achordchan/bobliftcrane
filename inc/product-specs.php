@@ -136,13 +136,14 @@ function boblift_specs_render_decode_strip(string $model, string $winch, int $en
         return;
     }
     ?>
-    <div class="mt-5 flex flex-wrap items-center gap-y-2.5 rounded-sm border border-[#DDE7F2] bg-[#F8FAFC] px-4 py-3">
-        <p class="boblift-kicker me-4 shrink-0"><?php echo esc_html(boblift_series_text('Model code explained')); ?></p>
+    <?php // Phones: two even columns under the label, with no dividers left at the start of a wrapped line. ?>
+    <div class="mt-5 grid grid-cols-2 items-start gap-x-3 gap-y-2.5 rounded-sm border border-[#DDE7F2] bg-[#F8FAFC] px-4 py-3 sm:flex sm:flex-wrap sm:items-center sm:gap-x-0">
+        <p class="boblift-kicker col-span-2 shrink-0 sm:me-4"><?php echo esc_html(boblift_series_text('Model code explained')); ?></p>
         <dl class="contents">
             <?php foreach ($decode['parts'] as [$code, $meaning]) : ?>
-                <div class="flex min-w-0 items-center gap-2 border-s border-[#D5DEE9] px-4"<?php echo $code === 'J' ? ' data-cfg-decode-winch' . ($decode['has_winch'] ? '' : ' style="display:none"') : ''; ?>>
+                <div class="flex min-w-0 items-start gap-2 sm:items-center sm:border-s sm:border-[#D5DEE9] sm:px-4"<?php echo $code === 'J' ? ' data-cfg-decode-winch' . ($decode['has_winch'] ? '' : ' style="display:none"') : ''; ?>>
                     <dt class="inline-flex h-6 min-w-6 shrink-0 items-center justify-center rounded-sm bg-[#071f42] px-1.5 text-[12px] font-black leading-none text-white [font-variant-numeric:tabular-nums]" dir="ltr"><?php echo esc_html($code); ?></dt>
-                    <dd class="text-[14px] leading-5 text-slate-600"><?php echo esc_html($meaning); ?></dd>
+                    <dd class="min-w-0 pt-0.5 text-[14px] leading-5 text-slate-600 sm:pt-0"><?php echo esc_html($meaning); ?></dd>
                 </div>
             <?php endforeach; ?>
         </dl>
@@ -169,12 +170,14 @@ function boblift_specs_render_group_boxes(array $sections, string $weight_label,
                     <h3 class="boblift-spec-group-head flex items-center gap-2.5 border-b border-[#E6EDF5] bg-[#F5F8FC] px-4 py-3 text-[13px] font-black uppercase leading-5 tracking-[0.08em] text-[#071f42] rtl:tracking-normal">
                         <?php echo boblift_icon($icons[$section['key'] ?? ''] ?? 'list', 'h-6 w-6 shrink-0 text-[#0B3F7D]', '1.75'); ?>
                         <span><?php echo esc_html($section['label']); ?></span>
+                        <?php // Phones fold every group but the first under its heading (theme.js adds the button); the figures stay in the page. ?>
+                        <?php echo boblift_icon('chevron-down', 'boblift-spec-group-chevron ms-auto hidden h-5 w-5 shrink-0 text-slate-400 transition'); ?>
                     </h3>
                 <?php endif; ?>
                 <dl class="boblift-spec-rows grid gap-px bg-[#E6EDF5] <?php echo ($section['label'] ?? '') === '' ? 'is-unlabelled' : ''; ?>">
                     <?php foreach ($rows as $index => $row) :
                         if ($index === count($short) && count($short) % 2 === 1) : ?><div class="boblift-spec-filler hidden bg-white" aria-hidden="true"></div><?php endif; ?>
-                        <div class="flex min-w-0 items-baseline justify-between gap-x-3 bg-white px-4 py-3 <?php echo $index >= count($short) ? 'boblift-spec-long flex-wrap gap-y-1' : ''; ?>"<?php echo boblift_specs_row_attributes($row, $weight_label, $winch_label); ?>>
+                        <div class="flex min-w-0 items-baseline justify-between gap-x-3 bg-white px-4 py-2.5 sm:py-3 <?php echo $index >= count($short) ? 'boblift-spec-long flex-wrap gap-y-1' : ''; ?>"<?php echo boblift_specs_row_attributes($row, $weight_label, $winch_label); ?>>
                             <dt class="min-w-0 text-[14px] leading-5 text-slate-500"><?php echo esc_html($row['label']); ?></dt>
                             <dd class="<?php echo $index >= count($short) ? 'ms-auto min-w-0 max-w-full break-words' : 'shrink-0 whitespace-nowrap'; ?> text-end font-black leading-6 text-[#071f42] [font-variant-numeric:tabular-nums]"><span dir="ltr"><?php echo boblift_specs_value_html((string) $row['value'], 'text-[18px]'); ?></span></dd>
                         </div>
