@@ -62,14 +62,21 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
             <?php if ($hero_label !== '') : ?>
                 <h1 id="home-hero-title" class="boblift-kicker empty:hidden"><?php echo esc_html($hero_label); ?></h1>
             <?php endif; ?>
-            <div class="grid">
+            <?php
+            // English and Chinese phones keep each slide title on one line: below 768px the titles share one size that the
+            // longest title just fills (a CSS estimate from its length, then the script after the slides measures it exactly).
+            // Other languages wrap, with more line height than the desktop headline.
+            $hero_fit = in_array(function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : 'en', ['en', 'zh'], true);
+            $hero_fit_chars = $hero_fit ? max(array_map(static fn(array $slide): int => mb_strlen(trim((string) ($slide['title'] ?? ''))), $hero_slides)) : 0;
+            ?>
+            <div class="boblift-home-hero-slides grid"<?php echo $hero_fit && $hero_fit_chars > 0 ? ' data-hero-fit style="--hero-chars:' . esc_attr((string) $hero_fit_chars) . '"' : ''; ?>>
                 <?php foreach ($hero_slides as $index => $slide) :
                     $heading_tag = $index === 0 && $hero_label === '' ? 'h1' : 'h2';
                     $slide_tab = trim((string) ($slide['tab'] ?? ''));
                 ?>
                     <div class="boblift-home-hero-slide [grid-area:1/1]" id="home-hero-slide-<?php echo esc_attr((string) $index); ?>"<?php echo $hero_count > 1 ? ' role="tabpanel" aria-labelledby="home-hero-tab-' . esc_attr((string) $index) . '"' : ''; ?><?php echo $index > 0 ? ' aria-hidden="true"' : ''; ?> data-home-hero-slide>
                         <<?php echo $heading_tag; ?><?php echo $index === 0 && $hero_label === '' ? ' id="home-hero-title"' : ''; ?> class="mt-3 text-[clamp(2.1rem,4vw,4.5rem)] font-black leading-[1.02] tracking-[-0.02em] text-[#0B1B33] [text-wrap:balance] [word-break:auto-phrase]"><?php echo esc_html((string) $slide['title']); ?></<?php echo $heading_tag; ?>>
-                        <p class="mt-5 text-base font-normal leading-7 text-slate-600 empty:hidden [word-break:auto-phrase] md:text-lg md:leading-8"><?php echo esc_html((string) preg_replace('/(\d)\s+(t|kg|m²)(?![\p{L}\d])/u', "$1\u{00A0}$2", (string) ($slide['text'] ?? ''))); ?></p>
+                        <p class="mt-5 text-base font-normal leading-7 text-slate-600 empty:hidden [word-break:auto-phrase] max-sm:hidden md:text-lg md:leading-8"><?php echo esc_html((string) preg_replace('/(\d)\s+(t|kg|m²)(?![\p{L}\d])/u', "$1\u{00A0}$2", (string) ($slide['text'] ?? ''))); ?></p>
                         <div class="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
                             <a class="inline-flex h-12 items-center justify-center gap-2 rounded-sm bg-navy px-6 text-sm font-black text-white transition hover:bg-[#0b2d5b]" href="<?php echo esc_url(boblift_url((string) (($slide['primary_href'] ?? '') ?: '/products'))); ?>"><?php echo esc_html((string) (($slide['primary_label'] ?? '') ?: boblift_localized_static_text('View Products'))); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
                             <?php // Below 1024px the floating contact bar already carries the quote button, so the hero keeps one call to action. ?>
@@ -78,6 +85,9 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
                     </div>
                 <?php endforeach; ?>
             </div>
+            <?php if ($hero_fit) : ?>
+                <script>(function(){var box=document.currentScript.previousElementSibling,mq=window.matchMedia('(max-width: 767px)');if(!box||!box.hasAttribute('data-hero-fit'))return;var heads=box.querySelectorAll('h1,h2'),range=document.createRange();function fit(){heads.forEach(function(h){h.style.fontSize='';});if(!mq.matches||!box.clientWidth)return;var max=2.1*parseFloat(getComputedStyle(document.documentElement).fontSize),best=max;heads.forEach(function(h){range.selectNodeContents(h);var w=range.getBoundingClientRect().width,size=parseFloat(getComputedStyle(h).fontSize);if(w>0)best=Math.min(best,size*box.clientWidth/w);});var px=Math.floor(best*0.985*10)/10+'px';heads.forEach(function(h){h.style.fontSize=px;});}fit();if(document.fonts)document.fonts.ready.then(fit);var lastW=window.innerWidth;window.addEventListener('resize',function(){if(window.innerWidth!==lastW){lastW=window.innerWidth;fit();}},{passive:true});})();</script>
+            <?php endif; ?>
             <?php if ($hero_count > 1) : ?>
                 <div class="order-first mb-7 flex items-end gap-4 lg:order-none lg:mb-0 lg:mt-12">
                     <div class="grid flex-1 gap-4 <?php echo $hero_count > 2 ? 'grid-cols-3' : 'grid-cols-2'; ?>" role="tablist" aria-label="<?php echo esc_attr($home_ui['heroAriaLabel'] ?? 'Featured lifting solutions'); ?>">
