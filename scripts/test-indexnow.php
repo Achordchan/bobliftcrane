@@ -5,6 +5,10 @@ if (PHP_SAPI !== 'cli') {
     exit;
 }
 define('ABSPATH', __DIR__);
+// The live platform's own constant; a child run without it checks that a copy elsewhere stays quiet.
+if (getenv('INDEXNOW_NO_PLATFORM') === false) {
+    define('IS_ATOMIC', true);
+}
 $GLOBALS['options'] = ['blog_public' => '1', 'home' => 'https://bobliftcrane.com'];
 $GLOBALS['env'] = 'production';
 class WP_Post
@@ -297,6 +301,11 @@ function status_header(int $code): void
 }
 require dirname(__DIR__) . '/inc/indexnow.php';
 
+if (getenv('INDEXNOW_NO_PLATFORM') !== false) {
+    echo boblift_indexnow_enabled() ? 'ENABLED' : 'QUIET';
+    exit;
+}
+
 // Child mode: run the key-file route for one path and print what it answers (it exits when it serves the key).
 if (($route = getenv('INDEXNOW_ROUTE')) !== false) {
     $GLOBALS['options']['boblift_indexnow_key'] = 'abcd1234';
@@ -340,6 +349,7 @@ $check('quiet when search engines are discouraged', !boblift_indexnow_enabled())
 $GLOBALS['options']['blog_public'] = '-1';
 $check('quiet on a private WordPress.com site', !boblift_indexnow_enabled());
 $GLOBALS['options']['blog_public'] = '1';
+$check('quiet on a copy of the live site outside the live platform', shell_exec('INDEXNOW_NO_PLATFORM=1 ' . escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__)) === 'QUIET');
 
 boblift_indexnow_queue_add(5);
 boblift_indexnow_queue_add(5);

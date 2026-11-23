@@ -89,10 +89,21 @@ function boblift_indexnow_host(string $url): string
     return rtrim(trim(strtolower((string) wp_parse_url($url, PHP_URL_HOST)), '[]'), '.');
 }
 
+/**
+ * True only on the live hosting: WordPress.com's Atomic platform defines IS_ATOMIC and ATOMIC_SITE_ID in its own
+ * configuration, outside the database, so a copy of the database or theme running anywhere else (a local clone mapped
+ * to the live host name, for instance) stays quiet. Another live host can opt in with define('BOBLIFT_INDEXNOW_LIVE', true) in wp-config.php.
+ */
+function boblift_indexnow_live_platform(): bool
+{
+    return (defined('IS_ATOMIC') && IS_ATOMIC) || (defined('ATOMIC_SITE_ID') && ATOMIC_SITE_ID) || (defined('BOBLIFT_INDEXNOW_LIVE') && BOBLIFT_INDEXNOW_LIVE);
+}
+
 function boblift_indexnow_enabled(): bool
 {
     // WordPress.com stores -1 for a private site, so only an explicit '1' counts as public.
-    return (string) get_option('blog_public') === '1'
+    return boblift_indexnow_live_platform()
+        && (string) get_option('blog_public') === '1'
         && wp_get_environment_type() === 'production'
         && in_array(boblift_indexnow_host((string) get_option('home')), BOBLIFT_INDEXNOW_HOSTS, true);
 }
