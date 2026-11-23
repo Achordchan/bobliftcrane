@@ -293,12 +293,45 @@ function boblift_indexnow_payload_ids(array $payloads, array $by_url): array
  * $keep(int[] $ids, int $due, bool $retry): bool keeps IDs for a later try; by default they are saved as new batch
  * rows. The worker passes its own, so it can move its leased row instead of adding a second one.
  */
-const BOBLIFT_INDEXNOW_HTTP_TIMEOUT = 10;
+defined('BOBLIFT_INDEXNOW_HTTP_TIMEOUT') || define('BOBLIFT_INDEXNOW_HTTP_TIMEOUT', 10);
 
-/** Seconds a run keeps free for one POST: the HTTP timeout, or a third of a shorter run budget. */
+/** Seconds a run keeps free for one POST: its full HTTP timeout. */
 function boblift_indexnow_post_margin(): int
 {
-    return min(BOBLIFT_INDEXNOW_HTTP_TIMEOUT, intdiv(BOBLIFT_INDEXNOW_RUN_SECONDS, 3));
+    return BOBLIFT_INDEXNOW_HTTP_TIMEOUT;
+}
+
+/**
+ * The payload without URLs whose posts are no longer public (not published, or password-protected), read in one query
+ * right before the POST; null when that query fails, so the caller keeps the posts.
+ */
+function boblift_indexnow_drop_hidden(array $payload, array $by_url): ?array
+{
+    global $wpdb;
+    $ids = [];
+    foreach ($payload['urlList'] as $url) {
+        array_push($ids, ...$by_url[$url]);
+    }
+    $ids = array_values(array_unique(array_map('intval', $ids)));
+    if ($ids === []) {
+        return $payload;
+    }
+    $in = implode(',', array_fill(0, count($ids), '%d'));
+    $wpdb->last_error = '';
+    $public = $wpdb->get_col($wpdb->prepare("SELECT ID FROM {$wpdb->posts} WHERE ID IN ($in) AND post_status = 'publish' AND post_password = ''", ...$ids));
+    if ((string) $wpdb->last_error !== '' || !is_array($public)) {
+        return null;
+    }
+    $public = array_flip(array_map('intval', $public));
+    $payload['urlList'] = array_values(array_filter($payload['urlList'], static function (string $url) use ($by_url, $public): bool {
+        foreach ($by_url[$url] as $id) {
+            if (!isset($public[(int) $id])) {
+                return false;
+            }
+        }
+        return true;
+    }));
+    return $payload;
 }
 
 /** The site's search visibility read from the database, not the request's cached options. */
@@ -347,6 +380,14 @@ function boblift_indexnow_send(array $post_ids, bool $retry = true, ?callable $s
         // The site may have been made private while permalinks were resolved: read the setting afresh, keep the posts.
         if (!boblift_indexnow_still_public()) {
             return (bool) $keep(boblift_indexnow_payload_ids(array_slice($payloads, $index), $by_url), time() + HOUR_IN_SECONDS, $retry) && $kept;
+        }
+        // A post may have been made private or password-protected since its permalink was read: its URL is dropped.
+        $payload = boblift_indexnow_drop_hidden($payload, $by_url);
+        if ($payload === null) {
+            return (bool) $keep(boblift_indexnow_payload_ids(array_slice($payloads, $index), $by_url), time() + 10 * MINUTE_IN_SECONDS, $retry) && $kept;
+        }
+        if ($payload['urlList'] === []) {
+            continue;
         }
         // Checked last, right before the POST (the queries above can stall). A POST only starts when its full timeout fits
         // in the run; otherwise the posts wait for the next run without using up a try.
@@ -619,7 +660,7 @@ function boblift_indexnow_retry_after(mixed $response): int
 function boblift_indexnow_check_key_file(string $home, string $key): bool
 {
     $location = boblift_indexnow_key_url($home, $key);
-    $response = wp_remote_get($location, ['timeout' => 10, 'redirection' => 0]);
+    $response = wp_remote_get($location, ['timeout' => BOBLIFT_INDEXNOW_HTTP_TIMEOUT, 'redirection' => 0]);
     $code = is_wp_error($response) ? 0 : (int) wp_remote_retrieve_response_code($response);
     $ok = $code === 200 && (string) wp_remote_retrieve_body($response) === $key;
     if (!$ok) {
@@ -658,6 +699,8 @@ function boblift_indexnow_run_retries(): void
     if (!boblift_indexnow_enabled()) {
         return;
     }
+    // The run's clock starts before the key-file check, whose HTTP request counts against the budget too.
+    $started = time();
     // The daily key-file self-check is a diagnostic only (it logs a failure): a loopback request can be blocked by a
     // firewall while IndexNow still reaches the file. Rows are held back only when IndexNow itself answers 403 and the
     // recheck fails too (see boblift_indexnow_send()).
@@ -669,7 +712,6 @@ function boblift_indexnow_run_retries(): void
     if (boblift_indexnow_cooldown_until() !== 0) {
         return;
     }
-    $started = time();
     $rows = 0;
     // Leased rows wait in a group per retry allowance and go out together; each row is still acknowledged on its own.
     $groups = [0 => [], 1 => []];
@@ -740,13 +782,13 @@ function boblift_indexnow_run_retries(): void
  */
 function boblift_indexnow_send_group(array $group, bool $retry, int $deadline = 0): void
 {
+    // Each post handed back keeps its own due time and retry allowance: posts never attempted (not resolved in time,
+    // or after the deadline) keep theirs, posts that failed a POST get the retry's.
     $again = [];
-    $again_due = 0;
-    $again_retry = false;
-    $collect = static function (array $ids, int $due, bool $retry) use (&$again, &$again_due, &$again_retry): bool {
-        array_push($again, ...$ids);
-        $again_due = max($again_due, $due);
-        $again_retry = $retry;
+    $collect = static function (array $ids, int $due, bool $retry) use (&$again): bool {
+        foreach ($ids as $id) {
+            $again[(int) $id] = [$due, $retry];
+        }
         return true;
     };
     $owned = static function () use ($group): bool {
@@ -762,13 +804,30 @@ function boblift_indexnow_send_group(array $group, bool $retry, int $deadline = 
         // Nothing acknowledged: the rows stay leased and run again when their leases end.
         return;
     }
-    $again = array_flip($again);
     foreach ($group as [$name, $leased, $row_ids]) {
-        $left = array_values(array_filter($row_ids, static fn(int $id): bool => isset($again[$id])));
-        if ($left === []) {
+        // The row's posts still to send, by (due, retry).
+        $parts = [];
+        foreach ($row_ids as $id) {
+            if (isset($again[$id])) {
+                $parts[$again[$id][0] . '|' . (int) $again[$id][1]][] = $id;
+            }
+        }
+        if ($parts === []) {
             boblift_indexnow_finish_retry($name, $leased);
-        } else {
-            boblift_indexnow_reschedule_retry($name, $leased, $left, $again_due, $again_retry);
+            continue;
+        }
+        // The row moves in place with its first part; any other part (posts treated differently) gets a row of its own.
+        $first = true;
+        foreach ($parts as $part => $left) {
+            [$due, $flag] = explode('|', $part);
+            if ($first) {
+                if (!boblift_indexnow_reschedule_retry($name, $leased, $left, (int) $due, $flag === '1')) {
+                    break;
+                }
+                $first = false;
+                continue;
+            }
+            boblift_indexnow_save_batch($left, (int) $due, $flag === '1');
         }
     }
 }

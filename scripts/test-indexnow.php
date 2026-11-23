@@ -77,6 +77,11 @@ class Fake_Wpdb
         if (str_contains($sql, 'wp_posts')) {
             // SELECT ID FROM posts WHERE ID IN (...): a failed query sets last_error and returns no rows, like wpdb.
             $this->last_error = $this->fail_posts ? 'Lost connection' : '';
+            if (str_contains($sql, "post_status = 'publish'")) {
+                // The visibility recheck right before a POST: published and not password-protected.
+                $this->last_error = !empty($GLOBALS['visibility_read_fails']) ? 'Lost connection' : '';
+                return $this->last_error !== '' ? [] : array_values(array_filter($args, static fn($id): bool => isset($GLOBALS['posts'][$id]) && $GLOBALS['posts'][$id]->post_status === 'publish' && $GLOBALS['posts'][$id]->post_password === ''));
+            }
             return $this->fail_posts ? [] : array_values(array_filter($args, static fn($id): bool => isset($GLOBALS['posts'][$id]) || in_array($id, $GLOBALS['ghost_posts'] ?? [], true)));
         }
         $this->scans++;
@@ -470,6 +475,9 @@ function status_header(int $code): void
 if (getenv('INDEXNOW_DEADLINE') !== false) {
     // A child run with a short budget, to reach the deadline without waiting a minute.
     define('BOBLIFT_INDEXNOW_RUN_SECONDS', getenv('INDEXNOW_DEADLINE') === 'reserve' ? 12 : 1);
+    if (getenv('INDEXNOW_DEADLINE') === 'reserve') {
+        define('BOBLIFT_INDEXNOW_HTTP_TIMEOUT', 2);
+    }
 }
 function get_taxonomy(string $taxonomy)
 {
@@ -498,7 +506,7 @@ if (getenv('INDEXNOW_DEADLINE') !== false) {
     $GLOBALS['transients'] = [boblift_indexnow_key_check_name('abcd1234') => 'ok'];
     $GLOBALS['options']['boblift_indexnow_key'] = 'abcd1234';
     if (getenv('INDEXNOW_DEADLINE') === 'reserve') {
-        // A twelve-second budget stops leasing at six seconds and keeps four for the POST: leasing the first one-post row
+        // A twelve-second budget (two-second HTTP timeout) stops leasing at six seconds: leasing the first one-post row
         // takes six seconds, so the scan stops there and that row is still resolved and sent; the second row waits.
         $GLOBALS['posts'] = [63 => new WP_Post(63), 64 => new WP_Post(64)];
         add_option(rn(0, 'ra'), ['due' => 0, 'ids' => [63], 'retry' => true], '', 'no');
@@ -1272,6 +1280,46 @@ boblift_indexnow_send([90], true, $private_during, static function (array $ids, 
 });
 $GLOBALS['options']['blog_public'] = '1';
 $check('visibility is read again from the database right before the POST: a site made private meanwhile sends nothing and keeps the posts', $GLOBALS['sent'] === [] && $kept_here[0] === [90] && $kept_here[1] >= time() + 3500);
+$GLOBALS['transients'] = [];
+
+// A post made private or password-protected after its permalink was read is not sent; the others are.
+$GLOBALS['transients'] = [kc() => 'ok'];
+$GLOBALS['posts'] = [91 => new WP_Post(91), 92 => new WP_Post(92), 93 => new WP_Post(93)];
+$GLOBALS['sent'] = [];
+$hide = static function (): bool {
+    $GLOBALS['posts'][92]->post_status = 'private';
+    $GLOBALS['posts'][93]->post_password = 'secret';
+    return true;
+};
+boblift_indexnow_send([91, 92, 93], true, $hide);
+$check('posts made private or password-protected during resolution are dropped right before the POST', $GLOBALS['sent'] === [['https://bobliftcrane.com/p91.html']]);
+$GLOBALS['posts'] = [94 => new WP_Post(94)];
+$GLOBALS['sent'] = [];
+$GLOBALS['visibility_read_fails'] = true;
+$kept_here = [];
+boblift_indexnow_send([94], true, null, static function (array $ids, int $due, bool $retry) use (&$kept_here): bool {
+    $kept_here = [$ids, $due, $retry];
+    return true;
+});
+unset($GLOBALS['visibility_read_fails']);
+$check('when that recheck cannot be read, nothing is sent and the posts are kept with their try', $GLOBALS['sent'] === [] && $kept_here[0] === [94] && $kept_here[2] === true);
+// A row split between posts that failed a POST and posts never attempted keeps each part's own due time and retry.
+clear_rows();
+$GLOBALS['posts'] = [];
+foreach (range(1, 150) as $i) {
+    $GLOBALS['posts'][$i] = new WP_Post($i);
+}
+$GLOBALS['options'][rn(0, 'split')] = ['due' => 0, 'ids' => range(1, 150), 'retry' => true, 'lease' => time() + 600];
+$leased_value = maybe_serialize($GLOBALS['options'][rn(0, 'split')]);
+$GLOBALS['remote_code'] = 503;
+$GLOBALS['slow_prime'] = 2;
+$GLOBALS['sent'] = [];
+boblift_indexnow_send_group([[rn(0, 'split'), $leased_value, range(1, 150)]], true, time() + 21);
+unset($GLOBALS['remote_code']);
+$parts = array_values(array_filter($GLOBALS['options'], static fn($v, $k): bool => str_starts_with((string) $k, 'boblift_indexnow_retry_'), ARRAY_FILTER_USE_BOTH));
+usort($parts, static fn($a, $b): int => $a['ids'][0] <=> $b['ids'][0]);
+$check('posts that got a 503 retry ten minutes out without a retry left; posts never attempted stay runnable now with theirs', count($parts) === 2 && $parts[0]['ids'] === range(1, 100) && $parts[0]['retry'] === false && $parts[0]['due'] >= time() + 590 && $parts[1]['ids'] === range(101, 150) && $parts[1]['retry'] === true && $parts[1]['due'] <= time());
+clear_rows();
 $GLOBALS['transients'] = [];
 
 exit($failures === 0 ? 0 : 1);

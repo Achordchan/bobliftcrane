@@ -5,6 +5,8 @@
 set -euo pipefail
 key="${1:?usage: $0 <key> [home URL]}"
 home="${2:-https://bobliftcrane.com}"
+# The key file is advertised on HTTPS whatever scheme home is stored with (as boblift_indexnow_key_url() does).
+home="https://${home#*://}"
 url="${home%/}/${key}.txt"
 body_file="$(mktemp)"
 expected_file="$(mktemp)"
