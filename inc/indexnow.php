@@ -247,15 +247,19 @@ function boblift_indexnow_name_due(string $name): int
 function boblift_indexnow_save_batch(array $post_ids, int $due, bool $retry): bool
 {
     $kept = true;
+    $saved = false;
     foreach (array_chunk(array_map('intval', $post_ids), BOBLIFT_INDEXNOW_ROW_IDS) as $ids) {
         $batch = ['due' => $due, 'ids' => $ids, 'retry' => $retry];
         if (add_option(boblift_indexnow_row_name($due), $batch, '', 'no')) {
-            // The new row's own due time is enough here; the worker and the hourly sweep reconcile the rest.
-            boblift_indexnow_wake_at($due);
+            $saved = true;
         } else {
             // The row could not be written: carry the batch in the cron event itself so it is not lost.
             $kept = boblift_indexnow_schedule_event($due, [$batch]) && $kept;
         }
+    }
+    // All rows share one due time: one wake-up after they are all saved. The worker and the hourly sweep reconcile the rest.
+    if ($saved) {
+        boblift_indexnow_wake_at($due);
     }
     return $kept;
 }
@@ -278,14 +282,15 @@ function boblift_indexnow_schedule_event(int $time, array $args = []): bool
 function boblift_indexnow_retry_names(int $limit = BOBLIFT_INDEXNOW_SCAN_ROWS, ?int $due_by = null, string $after = ''): array
 {
     global $wpdb;
-    $upper = $due_by === null ? BOBLIFT_INDEXNOW_RETRY_PREFIX . '~' : BOBLIFT_INDEXNOW_RETRY_PREFIX . sprintf('%010d', $due_by + 1);
-    $query = $wpdb->prepare(
-        "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s AND option_name > %s AND option_name < %s ORDER BY option_name ASC LIMIT %d",
-        $wpdb->esc_like(BOBLIFT_INDEXNOW_RETRY_PREFIX) . '%',
-        $after === '' ? BOBLIFT_INDEXNOW_RETRY_PREFIX : $after,
-        $upper,
-        $limit
-    );
+    $args = [$wpdb->esc_like(BOBLIFT_INDEXNOW_RETRY_PREFIX) . '%', $after === '' ? BOBLIFT_INDEXNOW_RETRY_PREFIX : $after];
+    $where = 'option_name LIKE %s AND option_name > %s';
+    // Only digits are compared at the bound, so the result does not depend on the table's collation.
+    if ($due_by !== null) {
+        $where .= ' AND option_name < %s';
+        $args[] = BOBLIFT_INDEXNOW_RETRY_PREFIX . sprintf('%010d', $due_by + 1);
+    }
+    $args[] = $limit;
+    $query = $wpdb->prepare("SELECT option_name FROM {$wpdb->options} WHERE {$where} ORDER BY option_name ASC LIMIT %d", ...$args);
     return array_map('strval', (array) $wpdb->get_col($query));
 }
 
@@ -340,17 +345,21 @@ function boblift_indexnow_claim_retry(string $name): bool
 }
 
 /**
- * Leases a due row: a compare-and-swap UPDATE from the value just read to the same batch with a lease time and a token
- * of this run, so only one run wins. Returns the leased value (what this run owns), or null when another run won.
+ * Leases a due row: a compare-and-swap UPDATE from the name and value just read to a new name carrying the lease end
+ * (so a leased row sorts by the time it can next run, behind the rows that can run now) and the same batch with the
+ * lease time and a token of this run. Only one run wins. Returns [new name, leased value] (what this run owns), or
+ * null when another run won.
  */
-function boblift_indexnow_lease_retry(string $name, array $batch): ?string
+function boblift_indexnow_lease_retry(string $name, array $batch): ?array
 {
     global $wpdb;
-    $leased = ['due' => $batch['due'], 'ids' => $batch['ids'], 'retry' => $batch['retry'], 'lease' => time() + BOBLIFT_INDEXNOW_LEASE, 'token' => wp_generate_uuid4()];
-    $value = maybe_serialize($leased);
-    $won = (int) $wpdb->query($wpdb->prepare("UPDATE {$wpdb->options} SET option_value = %s WHERE option_name = %s AND option_value = %s", $value, $name, $batch['raw'])) === 1;
+    $until = time() + BOBLIFT_INDEXNOW_LEASE;
+    $leased_name = boblift_indexnow_row_name($until);
+    $value = maybe_serialize(['due' => $batch['due'], 'ids' => $batch['ids'], 'retry' => $batch['retry'], 'lease' => $until, 'token' => wp_generate_uuid4()]);
+    $won = (int) $wpdb->query($wpdb->prepare("UPDATE {$wpdb->options} SET option_name = %s, option_value = %s WHERE option_name = %s AND option_value = %s", $leased_name, $value, $name, $batch['raw'])) === 1;
     wp_cache_delete($name, 'options');
-    return $won ? $value : null;
+    wp_cache_delete($leased_name, 'options');
+    return $won ? [$leased_name, $value] : null;
 }
 
 /** True while the row still holds exactly the lease this run took, so no other run has taken it over. */
@@ -516,8 +525,12 @@ function boblift_indexnow_run_retries(array $carried = []): void
         if ($batch === null || boblift_indexnow_runnable_at($batch) > time()) {
             return true;
         }
-        $leased = boblift_indexnow_lease_retry($name, $batch);
-        if ($leased === null || !boblift_indexnow_owns_retry($name, $leased)) {
+        $lease = boblift_indexnow_lease_retry($name, $batch);
+        if ($lease === null) {
+            return true;
+        }
+        [$name, $leased] = $lease;
+        if (!boblift_indexnow_owns_retry($name, $leased)) {
             return true;
         }
         $rows++;

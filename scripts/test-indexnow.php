@@ -54,8 +54,9 @@ class Fake_Wpdb
         $this->scans++;
         $prefix = stripslashes(rtrim($args[0], '%'));
         // LIKE prefix% AND option_name > after AND option_name < upper ORDER BY option_name LIMIT n
-        [, $after, $upper] = $args;
-        $names = array_filter(array_map('strval', array_keys($GLOBALS['options'])), static fn(string $name): bool => str_starts_with($name, $prefix) && strcmp($name, $after) > 0 && strcmp($name, $upper) < 0);
+        $after = $args[1];
+        $upper = count($args) === 4 ? $args[2] : null;
+        $names = array_filter(array_map('strval', array_keys($GLOBALS['options'])), static fn(string $name): bool => str_starts_with($name, $prefix) && strcmp($name, $after) > 0 && ($upper === null || strcmp($name, $upper) < 0));
         sort($names, SORT_STRING);
         return array_slice(array_values($names), 0, (int) end($args));
     }
@@ -96,6 +97,16 @@ class Fake_Wpdb
                 return 0;
             }
             $GLOBALS['options'][$args[0]] = $args[1];
+            return 1;
+        }
+        if (str_contains($sql, 'SET option_name')) {
+            // UPDATE ... SET option_name = new, option_value = value WHERE option_name = old AND option_value = raw
+            [$new, $value, $old, $raw] = $args;
+            if (!array_key_exists($old, $GLOBALS['options']) || (string) maybe_serialize($GLOBALS['options'][$old]) !== (string) $raw || array_key_exists($new, $GLOBALS['options'])) {
+                return 0;
+            }
+            unset($GLOBALS['options'][$old]);
+            $GLOBALS['options'][$new] = maybe_unserialize($value);
             return 1;
         }
         if (array_key_exists($args[1], $GLOBALS['options']) && (string) maybe_serialize($GLOBALS['options'][$args[1]]) === (string) $args[2]) {
@@ -157,6 +168,19 @@ function rn(int $due, string $tag): string
 {
     return 'boblift_indexnow_retry_' . sprintf('%010d', max(0, $due)) . '_' . $tag;
 }
+// The IDs of every stored batch row, wherever leasing has renamed it.
+function row_ids(): array
+{
+    return array_values(array_map(static fn($v) => $v['ids'] ?? null, array_filter($GLOBALS['options'], static fn($v, $k): bool => str_starts_with((string) $k, 'boblift_indexnow_retry_'), ARRAY_FILTER_USE_BOTH)));
+}
+function clear_rows(): void
+{
+    foreach (array_keys($GLOBALS['options']) as $k) {
+        if (str_starts_with((string) $k, 'boblift_indexnow_retry_')) {
+            unset($GLOBALS['options'][$k]);
+        }
+    }
+}
 function get_post(int $id)
 {
     return $GLOBALS['posts'][$id] ?? null;
@@ -180,8 +204,9 @@ function is_wp_error($thing): bool
 function wp_remote_post(string $url, array $args)
 {
     $GLOBALS['sent'][] = json_decode($args['body'], true)['urlList'];
-    if (isset($GLOBALS['watch_row'])) {
-        $GLOBALS['row_seen_during_send'] = array_key_exists($GLOBALS['watch_row'], $GLOBALS['options']);
+    if (isset($GLOBALS['watch_ids'])) {
+        // Is a batch row with these IDs still stored while the POST is in flight?
+        $GLOBALS['row_seen_during_send'] = (bool) array_filter($GLOBALS['options'], static fn($v, $k): bool => str_starts_with((string) $k, 'boblift_indexnow_retry_') && is_array($v) && ($v['ids'] ?? null) === $GLOBALS['watch_ids'], ARRAY_FILTER_USE_BOTH);
     }
     if ($GLOBALS['remote_fails']) {
         return new WP_Error();
@@ -381,8 +406,10 @@ add_option(rn(0, 'bad'), 'truncated', '', 'no');
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
 boblift_indexnow_run_retries();
 $check('a malformed row is removed and schedules nothing', !isset($GLOBALS['options'][rn(0, 'bad')]) && $GLOBALS['scheduled'] === []);
-add_option(rn(time() + 600, 'a'), ['due' => time() + 600, 'ids' => [12]], '', 'no');
-add_option(rn(time() + 60, 'b'), ['due' => time() + 60, 'ids' => [12]], '', 'no');
+$row_a = rn(time() + 600, 'a');
+$row_b = rn(time() + 60, 'b');
+add_option($row_a, ['due' => time() + 600, 'ids' => [12]], '', 'no');
+add_option($row_b, ['due' => time() + 60, 'ids' => [12]], '', 'no');
 $GLOBALS['scheduled_at'] = [];
 boblift_indexnow_schedule_retry();
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
@@ -390,7 +417,7 @@ wp_schedule_single_event(time() + 600, 'boblift_indexnow_retry', [['at' => time(
 boblift_indexnow_schedule_retry();
 $check('a run is added for an earlier batch even when a later run exists', count($GLOBALS['events']) === 2 && $GLOBALS['events'][1][2] <= time() + 60);
 $check('the next run is scheduled for the earliest waiting batch', ($GLOBALS['scheduled_at'][0] ?? 0) <= time() + 60);
-unset($GLOBALS['options'][rn(time() + 600, 'a')], $GLOBALS['options'][rn(time() + 60, 'b')]);
+unset($GLOBALS['options'][$row_a], $GLOBALS['options'][$row_b]);
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
 $GLOBALS['wpdb']->fail_reads = true;
 add_option(rn(0, 'y'), ['due' => 0, 'ids' => [12]], '', 'no');
@@ -458,13 +485,14 @@ $GLOBALS['sent'] = [];
 boblift_indexnow_run_retries();
 $check('a row leased by a live run is skipped', $GLOBALS['sent'] === [] && isset($GLOBALS['options'][rn(0, 'leased')]));
 $GLOBALS['options'][rn(0, 'leased')]['lease'] = time() - 1;
-$GLOBALS['watch_row'] = rn(0, 'leased');
+$GLOBALS['watch_ids'] = [41];
 boblift_indexnow_run_retries();
-unset($GLOBALS['watch_row']);
-$check('an expired lease is picked up, the row kept until sent, then removed', $GLOBALS['sent'] === [['https://bobliftcrane.com/p41.html']] && ($GLOBALS['row_seen_during_send'] ?? false) && !isset($GLOBALS['options'][rn(0, 'leased')]));
+unset($GLOBALS['watch_ids']);
+$check('an expired lease is picked up, the row kept until sent, then removed', $GLOBALS['sent'] === [['https://bobliftcrane.com/p41.html']] && ($GLOBALS['row_seen_during_send'] ?? false) && boblift_indexnow_retry_names() === []);
 
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
-add_option(rn(time() - 100, 'late'), ['due' => time() - 100, 'ids' => [41], 'retry' => false], '', 'no');
+$row_late = rn(time() - 100, 'late');
+add_option($row_late, ['due' => time() - 100, 'ids' => [41], 'retry' => false], '', 'no');
 $GLOBALS['options']['boblift_indexnow_wake'] = time() - 5;
 $GLOBALS['events'][] = ['boblift_indexnow_retry', [['at' => time() - 5]], time() - 5];
 boblift_indexnow_schedule_retry();
@@ -473,7 +501,7 @@ $GLOBALS['events'] = [['boblift_indexnow_retry', [['at' => time() + 600]], time(
 $GLOBALS['options']['boblift_indexnow_wake'] = time() + 600;
 boblift_indexnow_schedule_retry();
 $check('a later wake-up is replaced by an earlier one', count($GLOBALS['events']) === 1 && $GLOBALS['events'][0][2] <= time());
-unset($GLOBALS['options'][rn(time() - 100, 'late')]);
+unset($GLOBALS['options'][$row_late]);
 $GLOBALS['events'][] = ['boblift_indexnow_sweep', [], time() + 3600];
 ($GLOBALS['hooks']['switch_theme'])();
 $check('switching themes clears the IndexNow cron events', $GLOBALS['events'] === [] && !isset($GLOBALS['options']['boblift_indexnow_wake']));
@@ -504,11 +532,13 @@ $check('the next run finishes the rest', count($GLOBALS['sent']) === 25 && bobli
 
 $GLOBALS['options'][rn(0, 'owned')] = ['due' => 0, 'ids' => [1], 'retry' => true];
 $batch = boblift_indexnow_read_retry(rn(0, 'owned'));
-$leased = boblift_indexnow_lease_retry(rn(0, 'owned'), $batch);
-$check('a lease carries this run\'s token', is_string($leased) && isset($GLOBALS['options'][rn(0, 'owned')]['token']) && boblift_indexnow_owns_retry(rn(0, 'owned'), $leased));
-$GLOBALS['options'][rn(0, 'owned')]['token'] = 'another-run';
-$check('a run that lost its lease no longer owns the row and cannot delete it', !boblift_indexnow_owns_retry(rn(0, 'owned'), $leased) && !boblift_indexnow_finish_retry(rn(0, 'owned'), $leased) && isset($GLOBALS['options'][rn(0, 'owned')]));
-unset($GLOBALS['options'][rn(0, 'owned')]);
+$before = time();
+[$owned, $leased] = boblift_indexnow_lease_retry(rn(0, 'owned'), $batch) ?? ['', ''];
+$check('a lease carries this run\'s token', $leased !== '' && isset($GLOBALS['options'][$owned]['token']) && boblift_indexnow_owns_retry($owned, $leased));
+$check('a leased row is renamed to its lease end, so it sorts behind rows that can run now', !isset($GLOBALS['options'][rn(0, 'owned')]) && boblift_indexnow_name_due($owned) >= $before + BOBLIFT_INDEXNOW_LEASE && boblift_indexnow_retry_names(10, time()) === []);
+$GLOBALS['options'][$owned]['token'] = 'another-run';
+$check('a run that lost its lease no longer owns the row and cannot delete it', !boblift_indexnow_owns_retry($owned, $leased) && !boblift_indexnow_finish_retry($owned, $leased) && isset($GLOBALS['options'][$owned]));
+unset($GLOBALS['options'][$owned]);
 
 add_option(rn(0, 'keep'), ['due' => 0, 'ids' => [1], 'retry' => true], '', 'no');
 $GLOBALS['remote_code'] = 503;
@@ -520,8 +550,8 @@ boblift_indexnow_run_retries();
 $GLOBALS['add_option_fails'] = $GLOBALS['schedule_fails'] = false;
 unset($GLOBALS['remote_code']);
 unlink($log);
-$check('when the retry cannot be saved anywhere, the original row is kept', isset($GLOBALS['options'][rn(0, 'keep')]));
-unset($GLOBALS['options'][rn(0, 'keep')]);
+$check('when the retry cannot be saved anywhere, the original row is kept', row_ids() === [[1]]);
+clear_rows();
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
 unset($GLOBALS['options']['boblift_indexnow_wake']);
 
@@ -559,13 +589,14 @@ add_option(rn(0, 'readfail'), ['due' => 0, 'ids' => [51], 'retry' => true], '', 
 $GLOBALS['wpdb']->fail_posts = true;
 boblift_indexnow_run_retries();
 $GLOBALS['wpdb']->fail_posts = false;
-$check('a batch whose posts could not be read is kept, not dropped as deleted', $GLOBALS['sent'] === [] && isset($GLOBALS['options'][rn(0, 'readfail')]));
-unset($GLOBALS['options'][rn(0, 'readfail')]);
+$check('a batch whose posts could not be read is kept, not dropped as deleted', $GLOBALS['sent'] === [] && row_ids() === [[51]]);
+clear_rows();
 $GLOBALS['ghost_posts'] = [52];
 add_option(rn(0, 'ghost'), ['due' => 0, 'ids' => [51, 52], 'retry' => true], '', 'no');
 boblift_indexnow_run_retries();
-$check('a post that exists but could not be loaded keeps the batch', $GLOBALS['sent'] === [] && isset($GLOBALS['options'][rn(0, 'ghost')]));
-unset($GLOBALS['options'][rn(0, 'ghost')], $GLOBALS['ghost_posts']);
+$check('a post that exists but could not be loaded keeps the batch', $GLOBALS['sent'] === [] && row_ids() === [[51, 52]]);
+clear_rows();
+unset($GLOBALS['ghost_posts']);
 $GLOBALS['posts'] = [];
 foreach (range(1, 250) as $i) {
     $GLOBALS['posts'][$i] = new WP_Post($i);
