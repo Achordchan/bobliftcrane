@@ -1201,6 +1201,8 @@
         else stage.classList.remove('is-loading');
       };
       if (image.complete && image.naturalWidth) requestAnimationFrame(done);
+      // Already failed (a broken picture opened again): no event will come, so report it now.
+      else if (image.complete && image.getAttribute('src')) requestAnimationFrame(failed);
       else {
         image.addEventListener('load', done, { once: true });
         image.addEventListener('error', failed, { once: true });
@@ -1401,7 +1403,9 @@
     const image = qs('[data-photo-viewer-image]', dialog);
     if (!stage || !image) return;
     const thumbs = qsa('[data-product-hero-gallery-thumb]', root);
+    // Each photo keeps its own thumb, so the viewer and the page agree on which entry is shown even if two share a picture.
     const photos = thumbs.map((thumb) => ({
+      thumb,
       full: thumb.dataset.productHeroGalleryFull || thumb.dataset.productHeroGallerySrc || '',
       src: thumb.dataset.productHeroGallerySrc || '',
       label: thumb.dataset.productHeroGalleryLabel || '',
@@ -1410,9 +1414,15 @@
       const current = qs('[data-product-hero-gallery-current]', root);
       const src = current?.currentSrc || current?.getAttribute('src') || '';
       if (!src) return;
-      photos.push({ full: src, src, label: current.alt || '' });
+      photos.push({ thumb: null, full: src, src, label: current.alt || '' });
     }
     const label = qs('[data-photo-viewer-label]', dialog);
+    const failure = qs('[data-photo-viewer-error]', dialog);
+    const showFailure = (shown) => {
+      if (!failure) return;
+      failure.classList.toggle('hidden', !shown);
+      failure.classList.toggle('block', shown);
+    };
     const count = qs('[data-photo-viewer-count]', dialog);
     let index = 0;
     const wrap = (value) => (value + photos.length) % photos.length;
@@ -1430,6 +1440,9 @@
       image.alt = photo.label;
       if (label) label.textContent = photo.label;
       if (count) count.textContent = `${index + 1} / ${photos.length}`;
+      showFailure(false);
+      // A photo that failed before is asked for again, from its full size.
+      if (image.getAttribute('src') === photo.full && image.complete && !image.naturalWidth) image.removeAttribute('src');
       if (image.getAttribute('src') !== photo.full) image.src = photo.full;
     };
     let viewer = null;
@@ -1449,23 +1462,25 @@
       // Photos zoom to their own pixels at most (and always to 4x the fit): past that they only blur.
       nativeMax: 1,
       onStep: photos.length > 1 ? step : null,
-      // A full-size photo the CDN cannot serve falls back to the page's own size.
+      // A full-size photo the CDN cannot serve falls back to the page's own size; if that fails too, the viewer says so.
       onError: () => {
         const photo = photos[index];
         if (photo.src && image.getAttribute('src') !== photo.src) {
           image.src = photo.src;
           viewer.load();
-        } else stage.classList.remove('is-loading');
+        } else {
+          stage.classList.remove('is-loading');
+          showFailure(true);
+        }
       },
       onClose: () => {
-        const thumb = thumbs.find((item) => (item.dataset.productHeroGalleryFull || item.dataset.productHeroGallerySrc) === photos[index].full);
+        const thumb = photos[index].thumb;
         if (thumb && thumb.dataset.productHeroGalleryIndex !== root.dataset.productHeroActiveIndex) thumb.click();
       },
     });
     const open = (event) => {
       const active = thumbs.find((item) => item.dataset.productHeroGalleryIndex === root.dataset.productHeroActiveIndex);
-      const start = active ? photos.findIndex((photo) => photo.full === (active.dataset.productHeroGalleryFull || active.dataset.productHeroGallerySrc)) : 0;
-      setPhoto(Math.max(start, 0));
+      setPhoto(Math.max(photos.findIndex((photo) => photo.thumb === active), 0));
       viewer.show(event);
       if (photos.length > 1) {
         preload(index + 1);
@@ -1476,7 +1491,18 @@
       if (!photoViewerMedia.matches || event.target.closest('button, a')) return;
       open(event);
     });
-    qs('[data-photo-viewer-open]', root)?.addEventListener('click', open);
+    // The full-size button is rendered hidden and shows here, only where a tap opens the viewer.
+    const opener = qs('[data-photo-viewer-open]', root);
+    if (opener) {
+      opener.addEventListener('click', open);
+      const syncOpener = () => {
+        opener.classList.toggle('hidden', !photoViewerMedia.matches);
+        opener.classList.toggle('grid', photoViewerMedia.matches);
+      };
+      syncOpener();
+      if (photoViewerMedia.addEventListener) photoViewerMedia.addEventListener('change', syncOpener);
+      else photoViewerMedia.addListener?.(syncOpener);
+    }
     qsa('[data-photo-viewer-step]', dialog).forEach((button) => {
       button.addEventListener('click', () => step(Number(button.dataset.photoViewerStep) || 1));
     });

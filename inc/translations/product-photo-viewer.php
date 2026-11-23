@@ -1,34 +1,41 @@
 <?php
-// The product photo viewer's full-size button and hints (single-product.php). Translated with DeepL.
+// The product photo viewer's full-size button, hints and load error (single-product.php). Translated with DeepL; the hints
+// name two fingers rather than a pinch, whose direction some languages render as zooming out.
 return [
     'ja' => [
         'View full-size photo' => '写真をフルサイズで表示',
-        'Pinch to zoom. Swipe for the next photo.' => 'ピンチして拡大・縮小してください。スワイプして次の写真に進んでください。',
-        'Pinch to zoom. Drag to move.' => 'ピンチしてズームします。ドラッグして移動します。',
+        'Zoom with two fingers. Swipe for the next photo.' => '2本の指でズームします。スワイプして次の写真に進みます。',
+        'Zoom with two fingers. Drag to move.' => '2本の指でズームします。ドラッグして移動します。',
+        'This photo could not be loaded.' => 'この写真は読み込めませんでした。',
     ],
     'zh' => [
         'View full-size photo' => '查看全尺寸照片',
-        'Pinch to zoom. Swipe for the next photo.' => '双指缩放。滑动查看下一张照片。',
-        'Pinch to zoom. Drag to move.' => '双指缩放。拖动以移动。',
+        'Zoom with two fingers. Swipe for the next photo.' => '用两根手指缩放。滑动查看下一张照片。',
+        'Zoom with two fingers. Drag to move.' => '用两根手指缩放。拖动以移动。',
+        'This photo could not be loaded.' => '无法加载此照片。',
     ],
     'es' => [
         'View full-size photo' => 'Ver la foto a tamaño completo',
-        'Pinch to zoom. Swipe for the next photo.' => 'Acerca los dedos para ampliar la imagen. Desliza el dedo para pasar a la siguiente foto.',
-        'Pinch to zoom. Drag to move.' => 'Acerca los dedos para ampliar. Arrastra para desplazarte.',
+        'Zoom with two fingers. Swipe for the next photo.' => 'Acerca la imagen con dos dedos. Desliza el dedo para pasar a la siguiente foto.',
+        'Zoom with two fingers. Drag to move.' => 'Acerca la imagen con dos dedos. Arrastra para desplazarte.',
+        'This photo could not be loaded.' => 'No se ha podido cargar esta foto.',
     ],
     'ru' => [
         'View full-size photo' => 'Посмотреть фотографию в полном размере',
-        'Pinch to zoom. Swipe for the next photo.' => 'Увеличьте изображение, сжав пальцы. Проведите пальцем, чтобы перейти к следующему снимку.',
-        'Pinch to zoom. Drag to move.' => 'Сведите пальцы для увеличения. Перетащите для перемещения.',
+        'Zoom with two fingers. Swipe for the next photo.' => 'Увеличивайте изображение двумя пальцами. Проведите пальцем, чтобы перейти к следующему снимку.',
+        'Zoom with two fingers. Drag to move.' => 'Увеличивайте изображение двумя пальцами. Перетаскивайте, чтобы переместить.',
+        'This photo could not be loaded.' => 'Эту фотографию не удалось загрузить.',
     ],
     'fr' => [
         'View full-size photo' => 'Afficher la photo en grand format',
-        'Pinch to zoom. Swipe for the next photo.' => "Pincez pour zoomer. Balayez l'écran pour passer à la photo suivante.",
-        'Pinch to zoom. Drag to move.' => 'Pincez pour zoomer. Faites glisser pour déplacer.',
+        'Zoom with two fingers. Swipe for the next photo.' => "Zoomez avec deux doigts. Balayez l'écran pour passer à la photo suivante.",
+        'Zoom with two fingers. Drag to move.' => 'Zoomez avec deux doigts. Faites glisser pour déplacer.',
+        'This photo could not be loaded.' => "Cette photo n'a pas pu être chargée.",
     ],
     'ar' => [
         'View full-size photo' => 'عرض الصورة بالحجم الكامل',
-        'Pinch to zoom. Swipe for the next photo.' => 'قم بالضغط بإصبعين للتكبير/التصغير. اسحب لإظهار الصورة التالية.',
-        'Pinch to zoom. Drag to move.' => 'قم بالضغط بإصبعين للتكبير/التصغير. اسحب للتحريك.',
+        'Zoom with two fingers. Swipe for the next photo.' => 'قم بالتكبير باستخدام إصبعين. اسحب لإظهار الصورة التالية.',
+        'Zoom with two fingers. Drag to move.' => 'قم بالتكبير باستخدام إصبعين. اسحب للتحريك.',
+        'This photo could not be loaded.' => 'تعذر تحميل هذه الصورة.',
     ],
 ];

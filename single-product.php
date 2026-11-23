@@ -584,8 +584,11 @@ if ($family_quote_copy) {
                                 <button class="absolute <?php echo esc_attr($side); ?> top-1/2 z-40 grid size-10 -translate-y-1/2 place-items-center rounded-sm border border-[#D5DEE9] bg-white/90 text-[#071f42] shadow-card backdrop-blur transition hover:border-blue-300 hover:bg-white hover:text-blue-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-100 md:size-11" type="button" data-product-hero-gallery-step="<?php echo esc_attr((string) $step); ?>" aria-label="<?php echo esc_attr(boblift_localized_static_text($label)); ?>"><?php echo boblift_icon($icon, 'h-5 w-5 rtl:-scale-x-100'); ?></button>
                             <?php endforeach; ?>
                         <?php endif; ?>
-                        <?php // Phones and tablets: this button, or a tap on the photo, opens it full screen to zoom (theme.js). ?>
-                        <button class="absolute end-2 top-2 z-40 grid size-9 place-items-center rounded-sm border border-[#D5DEE9] bg-white/90 text-[#071f42] shadow-card backdrop-blur transition hover:border-blue-300 hover:bg-white hover:text-blue-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-100 sm:end-3 sm:top-3 lg:hidden" type="button" data-photo-viewer-open aria-label="<?php echo esc_attr(boblift_localized_static_text('View full-size photo')); ?>"><?php echo boblift_icon('maximize-2', 'h-4 w-4'); ?></button>
+                        <?php if ($hero_gallery_items) : ?>
+                            <?php // Phones and touch tablets: this button, or a tap on the photo, opens it full screen to zoom. It stays hidden
+                            // until theme.js has set up the viewer, and shows only where that applies, so it never does nothing. ?>
+                            <button class="absolute end-2 top-2 z-40 hidden size-9 place-items-center rounded-sm border border-[#D5DEE9] bg-white/90 text-[#071f42] shadow-card backdrop-blur transition hover:border-blue-300 hover:bg-white hover:text-blue-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-100 sm:end-3 sm:top-3" type="button" data-photo-viewer-open aria-label="<?php echo esc_attr(boblift_localized_static_text('View full-size photo')); ?>"><?php echo boblift_icon('maximize-2', 'h-4 w-4'); ?></button>
+                        <?php endif; ?>
                     </div>
                     <?php // Always there, even for one photo: every configuration's gallery keeps one height. ?>
                     <?php if ($hero_gallery_items) : ?>
@@ -625,12 +628,13 @@ if ($family_quote_copy) {
                                 <div class="boblift-drawing-stage relative min-h-0 flex-1 overflow-hidden bg-[#F4F7FB] focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500" tabindex="0" role="group" aria-label="<?php echo esc_attr($product['title']); ?>" aria-keyshortcuts="+ - 0 ArrowUp ArrowDown ArrowLeft ArrowRight" data-photo-viewer-stage>
                                     <img class="boblift-drawing-image absolute left-0 top-0 max-w-none" alt="" draggable="false" decoding="async" data-photo-viewer-image>
                                     <span class="boblift-zoom-spinner pointer-events-none absolute left-1/2 top-1/2 size-8 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[#C9D6E6] border-t-[#0B3F7D]" aria-hidden="true"></span>
+                                    <p class="pointer-events-none absolute inset-x-4 top-1/2 hidden -translate-y-1/2 text-center text-sm font-semibold text-slate-600" role="alert" data-photo-viewer-error><?php echo esc_html(boblift_localized_static_text('This photo could not be loaded.')); ?></p>
                                     <?php if (count($hero_gallery_items) > 1) : ?>
                                         <?php foreach ([[-1, 'start-2 sm:start-3', 'chevron-left', 'Previous photo'], [1, 'end-2 sm:end-3', 'chevron-right', 'Next photo']] as [$step, $side, $icon, $label]) : ?>
                                             <button class="absolute <?php echo esc_attr($side); ?> top-1/2 z-10 grid size-10 -translate-y-1/2 place-items-center rounded-sm border border-[#D5DEE9] bg-white/90 text-[#071f42] shadow-card backdrop-blur transition hover:border-blue-300 hover:bg-white hover:text-blue-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-100 md:size-11" type="button" data-photo-viewer-step="<?php echo esc_attr((string) $step); ?>" aria-label="<?php echo esc_attr(boblift_localized_static_text($label)); ?>"><?php echo boblift_icon($icon, 'h-5 w-5 rtl:-scale-x-100'); ?></button>
                                         <?php endforeach; ?>
                                     <?php endif; ?>
-                                    <p class="boblift-drawing-tip pointer-events-none absolute inset-x-0 bottom-3 z-10 mx-auto w-max max-w-[calc(100%-2rem)] rounded-full bg-[#071f42]/80 px-3 py-1.5 text-center text-xs font-semibold text-white"><?php echo esc_html(boblift_localized_static_text(count($hero_gallery_items) > 1 ? 'Pinch to zoom. Swipe for the next photo.' : 'Pinch to zoom. Drag to move.')); ?></p>
+                                    <p class="boblift-drawing-tip pointer-events-none absolute inset-x-0 bottom-3 z-10 mx-auto w-max max-w-[calc(100%-2rem)] rounded-full bg-[#071f42]/80 px-3 py-1.5 text-center text-xs font-semibold text-white"><?php echo esc_html(boblift_localized_static_text(count($hero_gallery_items) > 1 ? 'Zoom with two fingers. Swipe for the next photo.' : 'Zoom with two fingers. Drag to move.')); ?></p>
                                 </div>
                             </div>
                         </dialog>
