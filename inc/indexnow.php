@@ -197,7 +197,8 @@ function boblift_indexnow_save_batch(array $post_ids, int $due, bool $retry): vo
         boblift_indexnow_schedule_event($due, [$batch]);
         return;
     }
-    boblift_indexnow_schedule_retry();
+    // The new batch's own due time is enough here; the worker and the hourly sweep reconcile the rest of the queue.
+    boblift_indexnow_wake_at($due);
 }
 
 /** Schedules a run of the batch worker; a failure is logged, and the hourly sweep still finds any saved row. */
@@ -282,14 +283,22 @@ function boblift_indexnow_schedule_retry(): void
         $at = $batch === null ? time() + 10 * MINUTE_IN_SECONDS : boblift_indexnow_runnable_at($batch);
         $next = $next === null ? $at : min($next, $at);
     }
-    if ($next === null) {
-        return;
+    if ($next !== null) {
+        boblift_indexnow_wake_at($next);
     }
+}
+
+/**
+ * Makes sure the one wake-up event runs no later than $at: an existing wake-up at or before it is reused (also when
+ * it is overdue), otherwise it is moved to $at. Reads only the wake-up option, never the batch rows.
+ */
+function boblift_indexnow_wake_at(int $at): void
+{
     $wake = (int) get_option(BOBLIFT_INDEXNOW_WAKE_OPTION, 0);
-    if ($wake > 0 && $wake <= max($next, time()) && wp_next_scheduled(BOBLIFT_INDEXNOW_RETRY_HOOK, [['at' => $wake]])) {
+    if ($wake > 0 && $wake <= max($at, time()) && wp_next_scheduled(BOBLIFT_INDEXNOW_RETRY_HOOK, [['at' => $wake]])) {
         return;
     }
-    $next = max($next, time());
+    $next = max($at, time());
     if ($wake > 0) {
         wp_unschedule_event($wake, BOBLIFT_INDEXNOW_RETRY_HOOK, [['at' => $wake]]);
     }

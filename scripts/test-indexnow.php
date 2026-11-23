@@ -42,10 +42,12 @@ class Fake_Wpdb
     }
     public function get_col(array $q): array
     {
+        $this->scans++;
         $prefix = stripslashes(rtrim($q[1][0], '%'));
         return array_values(array_filter(array_keys($GLOBALS['options']), static fn($name): bool => str_starts_with((string) $name, $prefix)));
     }
     public bool $fail_reads = false;
+    public int $scans = 0;
     public ?string $steal_after_read = null;
     public function get_row(array $q, string $output = 'OBJECT')
     {
@@ -444,6 +446,16 @@ $GLOBALS['events'][] = ['boblift_indexnow_sweep', [], time() + 3600];
 ($GLOBALS['hooks']['switch_theme'])();
 $check('switching themes clears the IndexNow cron events', $GLOBALS['events'] === [] && !isset($GLOBALS['options']['boblift_indexnow_wake']));
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
+
+add_option('boblift_indexnow_retry_waiting', ['due' => time() + 300, 'ids' => [41], 'retry' => false], '', 'no');
+$GLOBALS['wpdb']->scans = 0;
+boblift_indexnow_save_batch([41], time(), true);
+$check('saving a batch schedules from its own due time without scanning the queue', $GLOBALS['wpdb']->scans === 0 && ($GLOBALS['options']['boblift_indexnow_wake'] ?? PHP_INT_MAX) <= time());
+foreach (boblift_indexnow_retry_names() as $name) {
+    unset($GLOBALS['options'][$name]);
+}
+$GLOBALS['scheduled'] = $GLOBALS['events'] = [];
+unset($GLOBALS['options']['boblift_indexnow_wake']);
 
 // Publish to shutdown through the registered hooks: queued on publish, sent once at shutdown with the final permalink.
 $GLOBALS['posts'] = [21 => new WP_Post(21, 'product')];
