@@ -1075,38 +1075,35 @@
     toggle();
   });
 
-  // Product dimension drawing: opens in a dialog that fits the whole sheet to the screen. Pinch, the mouse wheel (or a
-  // trackpad pinch), the +/- buttons, the + - 0 keys or a double tap zoom it; one finger or the mouse drags it once it is
-  // larger than the screen, and so do the arrow keys. Esc, the close button or the backdrop close it.
-  qsa('[data-drawing-root]').forEach((root) => {
-    const dialog = qs('[data-drawing-dialog]', root);
-    if (!dialog || typeof dialog.showModal !== 'function') return;
-    const stage = qs('[data-drawing-stage]', dialog);
-    const image = qs('[data-drawing-image]', dialog);
-    const level = qs('[data-drawing-level]', dialog);
-    const zoomIn = qs('[data-drawing-zoom="in"]', dialog);
-    const zoomOut = qs('[data-drawing-zoom="out"]', dialog);
-    qs('[data-drawing-close]', root)?.addEventListener('click', () => dialog.close());
-    dialog.addEventListener('click', (event) => {
-      if (event.target === dialog) dialog.close();
-    });
-    if (!stage || !image) {
-      // Markup cached from before the zoom viewer: the plain dialog still opens and closes (button, backdrop, Esc).
-      qs('[data-drawing-open]', root)?.addEventListener('click', () => dialog.showModal());
-      return;
-    }
+  // Zoom viewer shared by the product drawings and the product photos: a dialog that fits the whole picture to the screen.
+  // Pinch, the mouse wheel (or a trackpad pinch), the +/- buttons, the + - 0 keys or a double tap zoom it; one finger or the
+  // mouse drags it once it is larger than the screen, and so do the arrow keys. Esc, the close button or the backdrop close
+  // it. With onStep (the photos), a sideways swipe or the left and right arrow keys on the fitted picture step to the
+  // neighbouring one. nativeMax is how far past its own pixels the picture may zoom.
+  const bobliftZoomViewer = ({ dialog, stage, image, level, zoomIn, zoomOut, fitButton, nativeMax = 1.5, loadTimeout = 0, loadingStatus = null, onStep = null, onLoad = null, onError = null, onClose = null }) => {
     let fit = 1;
     let max = 2;
     let scale = 1;
     let x = 0;
     let y = 0;
+    // Sideways offset of a fitted photo following a swiping finger.
+    let swipe = 0;
     let ready = false;
     let previousOverflow = '';
     const pointers = new Map();
     let pinch = null;
     let drag = null;
     let lastTap = null;
+    // Fingers that went down on a button on the picture (the photo arrows): tracked for a pinch, never captured or dragged.
+    const buttonPointers = new Set();
+    // A pinch that began with a finger on a button swallows that button's click.
+    let swallowClick = false;
+    let swallowTimer = 0;
     let tipTimer = 0;
+    let loadToken = 0;
+    let settleTimer = 0;
+    // The picture after this one sits on the right, or on the left in Arabic.
+    const forward = () => (document.documentElement.dir === 'rtl' ? -1 : 1);
 
     const size = () => [
       image.naturalWidth || Number(image.getAttribute('width')) || 0,
@@ -1117,7 +1114,24 @@
       return { x: event.clientX - rect.left, y: event.clientY - rect.top };
     };
     const limit = (value) => Math.min(max, Math.max(fit, value));
-    // Keeps the sheet on screen: centred along an axis where it is smaller than the stage, edge to edge where it is larger.
+    const atFit = () => scale <= fit * 1.001;
+    // A button disabled while it has the focus would drop the focus to the page and out of reach of the shortcuts, so the
+    // focus moves to the picture first.
+    const setControl = (button, off) => {
+      if (!button) return;
+      if (off && document.activeElement === button) stage.focus({ preventScroll: true });
+      button.disabled = off;
+    };
+    // While no picture is ready (loading, or failed) the zoom controls have nothing to act on: no level, all disabled.
+    // The level is read out (aria-live), so it is written only when it changes, not on every move of a swipe or pan.
+    const setLevel = (text) => {
+      if (level && level.textContent !== text) level.textContent = text;
+    };
+    const lockControls = () => {
+      setLevel('');
+      [zoomIn, zoomOut, fitButton].forEach((button) => setControl(button, true));
+    };
+    // Keeps the picture on screen: centred along an axis where it is smaller than the stage, edge to edge where it is larger.
     const apply = () => {
       const [width, height] = size();
       const stageWidth = stage.clientWidth;
@@ -1126,91 +1140,236 @@
       const shownHeight = height * scale;
       x = shownWidth <= stageWidth ? (stageWidth - shownWidth) / 2 : Math.min(0, Math.max(stageWidth - shownWidth, x));
       y = shownHeight <= stageHeight ? (stageHeight - shownHeight) / 2 : Math.min(0, Math.max(stageHeight - shownHeight, y));
-      image.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
-      if (level) level.textContent = `${Math.round((scale / fit) * 100)}%`;
-      // A button disabled while it has the focus would drop the focus to the page and out of reach of the shortcuts, so the
-      // focus moves to the sheet first.
-      [[zoomIn, scale >= max * 0.999], [zoomOut, scale <= fit * 1.001]].forEach(([button, off]) => {
-        if (!button) return;
-        if (off && document.activeElement === button) stage.focus({ preventScroll: true });
-        button.disabled = off;
-      });
-      stage.classList.toggle('is-zoomed', scale > fit * 1.001);
+      image.style.transform = `translate(${x + swipe}px, ${y}px) scale(${scale})`;
+      // Zoomed in, the photo arrows step aside (CSS hides [data-zoom-hide]) so a tap meant for the detail cannot change photos;
+      // a focused one hands focus to the stage first. At fit, while loading and after a failure they are back.
+      const zoomed = ready && !atFit();
+      if (zoomed && document.activeElement?.matches?.('[data-zoom-hide]') && stage.contains(document.activeElement)) stage.focus({ preventScroll: true });
+      stage.classList.toggle('is-zoomed', zoomed);
+      // The controls follow a picture that is showing; while none is, lockControls() keeps them off.
+      if (!ready) return;
+      setLevel(`${Math.round((scale / fit) * 100)}%`);
+      [[zoomIn, scale >= max * 0.999], [zoomOut, atFit()], [fitButton, false]].forEach(([button, off]) => setControl(button, off));
     };
-    // Fit: the whole sheet on screen, never blown up past its own pixels. Zoom goes to 4x the fit, and at least to 1.5x the
-    // sheet's own size, so a phone can read the smallest figures.
+    // Fit: the whole picture on screen, never blown up past its own pixels. Zoom goes to 4x the fit, and at least to
+    // nativeMax times the picture's own size, so a phone can read the smallest figures.
     const measure = () => {
       const [width, height] = size();
       if (!width || !height || !stage.clientWidth || !stage.clientHeight) return false;
       image.style.width = `${width}px`;
       image.style.height = `${height}px`;
       fit = Math.min(stage.clientWidth / width, stage.clientHeight / height, 1);
-      max = Math.max(fit * 4, 1.5);
+      max = Math.max(fit * 4, nativeMax);
       return true;
     };
     const reset = () => {
       if (!measure()) return;
       scale = fit;
-      apply();
+      swipe = 0;
       ready = true;
+      apply();
       image.classList.add('is-ready');
     };
     const zoomAt = (next, px, py) => {
       if (!ready) return;
       const target = limit(next);
+      // Zoomed in during a swipe (a wheel turn or + while the mouse is still down): the photo zooms from where it shows,
+      // and the stroke goes on as a pan of the zoomed photo, so letting go never changes photos.
+      const fromSwipe = Boolean(drag?.swipe) && target > fit * 1.001;
+      if (fromSwipe) {
+        clearTimeout(settleTimer);
+        image.classList.remove('is-settling');
+        x += swipe;
+        swipe = 0;
+      }
       const ratio = target / scale;
       x = px - (px - x) * ratio;
       y = py - (py - y) * ratio;
       scale = target;
       apply();
+      if (fromSwipe) {
+        const point = [...pointers.values()][0] || { x: drag.x + drag.dx, y: drag.y };
+        drag = { ...drag, x: point.x, y: point.y, dx: 0, fromX: x, fromY: y, moved: true, swipe: false };
+      }
     };
     const zoomCentre = (factor) => zoomAt(scale * factor, stage.clientWidth / 2, stage.clientHeight / 2);
     const startPinch = () => {
       const [a, b] = [...pointers.values()];
       const midX = (a.x + b.x) / 2;
       const midY = (a.y + b.y) / 2;
-      pinch = { distance: Math.hypot(a.x - b.x, a.y - b.y) || 1, scale, contentX: (midX - x) / scale, contentY: (midY - y) / scale };
+      // Begun before the picture was ready, it starts again from the fitted picture and the fingers where they are by then.
+      pinch = { distance: Math.hypot(a.x - b.x, a.y - b.y) || 1, scale, contentX: (midX - x) / scale, contentY: (midY - y) / scale, pending: !ready };
       drag = null;
     };
+    // A finger on a fitted photo swipes it toward the next one; anywhere else it drags the picture.
     const startDrag = (point) => {
-      drag = { x: point.x, y: point.y, fromX: x, fromY: y, moved: false };
+      // dx: the finger's own sideways travel, kept apart from the picture's offset, which a load resets.
+      // pending: put down before the picture was ready, so there was nothing yet to pan from.
+      drag = { x: point.x, y: point.y, dx: 0, fromX: x, fromY: y, moved: false, swipe: Boolean(onStep) && (!ready || atFit()), pending: !ready };
+    };
+    const settle = () => {
+      image.classList.add('is-settling');
+      swipe = 0;
+      apply();
+      clearTimeout(settleTimer);
+      settleTimer = setTimeout(() => image.classList.remove('is-settling'), 220);
     };
 
-    const open = () => {
+    // Shows the picture now in the image's src once it has loaded, fitted. A newer call (the next photo) wins.
+    // The listeners of the load in progress; a newer load or the outcome removes both, so none pile up on the image.
+    let detachLoad = () => {};
+    // A picture that takes more than a moment is announced (loadingStatus, a polite live region holding its own text in
+    // data-loading-text); the announcement is emptied when the load ends either way.
+    // Whether the src has been set again since the picture last failed. A broken picture reports complete (and its old
+    // address) even while a new request for it is under way, so the "failed already" shortcut below is only taken when
+    // nothing has asked again since that failure (a broken drawing opened twice); otherwise the new request is waited for.
+    let srcTouched = false;
+    const srcWatch = typeof MutationObserver === 'function' ? new MutationObserver(() => { srcTouched = true; }) : null;
+    srcWatch?.observe(image, { attributes: true, attributeFilter: ['src', 'srcset'] });
+    const quiet = () => {
+      if (loadingStatus && loadingStatus.textContent) loadingStatus.textContent = '';
+    };
+    const load = () => {
+      const token = ++loadToken;
+      // A src set just before this call is still in the observer's queue: take it now.
+      if (srcWatch?.takeRecords().length) srcTouched = true;
+      detachLoad();
+      ready = false;
+      swipe = 0;
+      // A gesture under way carries on across the load (a fallback size, or a photo that finished while the finger was
+      // down): a swipe keeps its travel and a pinch starts afresh once the picture is ready. Panning the old picture ends.
+      if (drag && !drag.swipe) drag = null;
+      if (pinch) pinch.pending = true;
+      lastTap = null;
+      lockControls();
+      stage.classList.remove('is-zoomed');
+      image.classList.remove('is-ready', 'is-settling');
+      stage.classList.add('is-loading');
+      image.loading = 'eager';
+      // Removes only this load's own listeners, so a late callback never strips a newer load's.
+      let stall = 0;
+      let frame = 0;
+      // This load's own announcement delay: cancelled with the load, so a photo swiped past within the delay never
+      // announces itself over the next one.
+      let announce = 0;
+      // Ends this load's own waiting (listeners, frame, stall and announcement timers). The shared announcement is this
+      // load's to clear only while it is still the current one, so a late callback of a replaced load never silences the
+      // newer load's.
+      const detach = () => {
+        image.removeEventListener('load', done);
+        image.removeEventListener('error', failed);
+        cancelAnimationFrame(frame);
+        clearTimeout(stall);
+        clearTimeout(announce);
+        if (token === loadToken) quiet();
+        if (detachLoad === detach) detachLoad = () => {};
+      };
+      // An event from an earlier request (one finishing after the src changed) is not this load's: the picture asked for is
+      // then not the one showing (currentSrc), or not finished yet (complete), depending on the browser. It is passed over
+      // and the listeners wait for the picture asked for.
+      // With a srcset or inside <picture> (a drawing could be) currentSrc is the browser's pick rather than src, and the viewer
+      // never changes such a picture's source, so only completeness counts there.
+      const asked = () => image.hasAttribute('srcset') || image.parentElement?.tagName === 'PICTURE' || image.currentSrc === image.src;
+      const stale = (event) => event instanceof Event && (!asked() || !image.complete);
+      const done = (event) => {
+        // A late load event from the previous photo while the one asked for has already failed: its own error decides.
+        if (stale(event) || (event instanceof Event && !image.naturalWidth)) return;
+        detach();
+        if (token !== loadToken || !dialog.open) return;
+        stage.classList.remove('is-loading');
+        reset();
+        if (onLoad) onLoad();
+      };
+      const failed = (event) => {
+        if (stale(event)) return;
+        // A late error from the previous photo while the one asked for has already loaded: that is a success.
+        if (event instanceof Event && image.naturalWidth) {
+          done();
+          return;
+        }
+        srcTouched = false;
+        detach();
+        // Closed meanwhile: no fallback download for a viewer nobody sees; opening again asks for the picture anew.
+        if (token !== loadToken || !dialog.open) return;
+        if (onError) onError();
+        else stage.classList.remove('is-loading');
+      };
+      // complete and naturalWidth speak for the picture the image shows (currentSrc), which right after a new src can still be
+      // the previous one: they count only when that is the picture asked for. Otherwise the load or error event decides.
+      const settled = image.complete && asked();
+      // The answer already in hand is given on the next frame; a newer load before then cancels it (detachLoad).
+      if (settled && image.naturalWidth) {
+        frame = requestAnimationFrame(() => done());
+        detachLoad = detach;
+      // Already failed (a broken picture opened again): no event will come, so report it now.
+      } else if (settled && image.getAttribute('src') && !srcTouched) {
+        frame = requestAnimationFrame(() => failed());
+        detachLoad = detach;
+      } else {
+        image.addEventListener('load', done);
+        image.addEventListener('error', failed);
+        // A response that starts and then stalls fires neither event. Where the caller has a fallback (the photos: their
+        // smaller size, then a message), loadTimeout ms of it count as failed; without one (the drawings) the picture is
+        // waited for as long as it takes, so a slow one still shows when it arrives.
+        if (loadTimeout > 0) stall = setTimeout(failed, loadTimeout);
+        if (loadingStatus) {
+          announce = setTimeout(() => {
+            if (token === loadToken && dialog.open) loadingStatus.textContent = loadingStatus.dataset.loadingText || '';
+          }, 600);
+        }
+        detachLoad = detach;
+      }
+    };
+    // event: the click that opened it. A tap or a mouse click (detail > 0) gives the picture the focus without the keyboard
+    // ring; Enter or Space on the button keeps the ring.
+    const show = (event) => {
       previousOverflow = document.documentElement.style.overflow;
       document.documentElement.style.overflow = 'hidden';
-      // The sheet opens at the fit, where zoom out does nothing: disabled before showModal() so it never takes the focus
-      // and drops it to the page when the fit disables it. The focus goes to the sheet, ready for + - 0 and the arrows.
+      // The picture opens at the fit, where zoom out does nothing: disabled before showModal() so it never takes the focus
+      // and drops it to the page when the fit disables it. The focus goes to the picture, ready for + - 0 and the arrows.
       if (zoomOut) zoomOut.disabled = true;
       if (zoomIn) zoomIn.disabled = false;
       dialog.showModal();
-      stage.focus({ preventScroll: true });
-      // The hint shows for a few seconds, or until the first touch, wheel turn or click on the sheet.
+      stage.focus({ preventScroll: true, focusVisible: !(event?.detail > 0) });
+      // The hint shows for a few seconds, or until the first touch, wheel turn or click on the picture.
       stage.classList.remove('is-touched');
       clearTimeout(tipTimer);
       tipTimer = setTimeout(() => stage.classList.add('is-touched'), 4000);
-      image.loading = 'eager';
-      if (image.complete && image.naturalWidth) requestAnimationFrame(reset);
-      else image.addEventListener('load', reset, { once: true });
+      load();
     };
-    qs('[data-drawing-open]', root)?.addEventListener('click', open);
     dialog.addEventListener('close', () => {
       document.documentElement.style.overflow = previousOverflow;
+      // A drag cut short by Escape never sees its release: its grabbing cursor goes with the viewer.
+      stage.classList.remove('is-dragging');
+      // A load still running has nobody to show it to: its listeners and stall timer go; opening again starts a new one.
+      detachLoad();
       pointers.clear();
+      buttonPointers.clear();
+      clearTimeout(swallowTimer);
+      swallowClick = false;
       pinch = null;
       drag = null;
       lastTap = null;
+      if (onClose) onClose();
     });
-    qs('[data-drawing-zoom="in"]', dialog)?.addEventListener('click', () => zoomCentre(1.5));
-    qs('[data-drawing-zoom="out"]', dialog)?.addEventListener('click', () => zoomCentre(1 / 1.5));
-    qs('[data-drawing-zoom="fit"]', dialog)?.addEventListener('click', reset);
+    zoomIn?.addEventListener('click', () => zoomCentre(1.5));
+    zoomOut?.addEventListener('click', () => zoomCentre(1 / 1.5));
+    // Back to the fit, for a picture that is showing; a load in progress fits its own picture when it arrives, and resetting
+    // before that could show the previous picture's measure under the new one.
+    const refit = () => {
+      if (ready) reset();
+    };
+    fitButton?.addEventListener('click', refit);
     dialog.addEventListener('keydown', (event) => {
       if (event.ctrlKey || event.metaKey || event.altKey) return;
       if (event.key === '+' || event.key === '=') zoomCentre(1.5);
       else if (event.key === '-' || event.key === '_') zoomCentre(1 / 1.5);
-      else if (event.key === '0') reset();
-      else if (event.key.startsWith('Arrow') && ready) {
-        // Arrow keys move the sheet a fifth of the screen, so a keyboard can reach every edge once it is zoomed.
+      else if (event.key === '0') refit();
+      else if (onStep && (!ready || atFit()) && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
+        // A fitted photo, or one still loading or failed, has nothing to pan, so left and right step through the photos.
+        onStep(event.key === 'ArrowRight' ? forward() : -forward());
+      } else if (event.key.startsWith('Arrow') && ready) {
+        // Arrow keys move the picture a fifth of the screen, so a keyboard can reach every edge once it is zoomed.
         const stepX = stage.clientWidth * 0.2;
         const stepY = stage.clientHeight * 0.2;
         if (event.key === 'ArrowLeft') x += stepX;
@@ -1224,9 +1383,9 @@
     });
     window.addEventListener('resize', () => {
       if (!dialog.open || !ready) return;
-      const atFit = scale <= fit * 1.001;
+      const wasFit = atFit();
       if (!measure()) return;
-      if (atFit) scale = fit;
+      if (wasFit) scale = fit;
       scale = limit(scale);
       apply();
     });
@@ -1240,34 +1399,81 @@
       zoomAt(scale * Math.exp(-delta * (event.ctrlKey ? 0.01 : 0.002)), point.x, point.y);
     }, { passive: false });
     stage.addEventListener('pointerdown', (event) => {
-      if (!ready || (event.pointerType === 'mouse' && event.button !== 0)) return;
-      stage.setPointerCapture?.(event.pointerId);
+      // Fingers are tracked from the start, even while the picture loads: a swipe can leave a photo still loading, and a pinch
+      // or pan begun on the spinner carries on once the picture shows (zoom and pan themselves wait for it).
+      if (!pointers.size) {
+        // A new press of any kind (a mouse on an arrow included): the last pinch's click window ends here, so its timer cannot
+        // clear this gesture's guard and a fresh click is never swallowed.
+        clearTimeout(swallowTimer);
+        swallowClick = false;
+      }
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
+      // Buttons on the picture (the photo arrows) keep their own clicks, so a finger on one is never captured or dragged;
+      // it still counts toward a pinch with a finger on the picture. A mouse on a button is left alone.
+      const onButton = Boolean(event.target.closest('button'));
+      if (onButton && event.pointerType === 'mouse') return;
+      if (onButton) buttonPointers.add(event.pointerId);
+      else stage.setPointerCapture?.(event.pointerId);
       stage.classList.add('is-touched');
       pointers.set(event.pointerId, local(event));
-      if (pointers.size === 2) startPinch();
-      else if (pointers.size === 1) startDrag(local(event));
+      if (pointers.size === 2) {
+        if (swipe) {
+          // A fitted photo already pulled sideways: the pinch starts from where it shows, with no spring-back under the fingers.
+          clearTimeout(settleTimer);
+          image.classList.remove('is-settling');
+          x += swipe;
+          swipe = 0;
+        }
+        startPinch();
+        if (buttonPointers.size) swallowClick = true;
+      } else if (pointers.size === 1 && !onButton) startDrag(local(event));
     });
+    stage.addEventListener('click', (event) => {
+      // Only a pointer's click (detail > 0) can be the pinch's leftover; Enter or Space on an arrow (detail 0) always steps.
+      if (!swallowClick || !event.detail || !event.target.closest('button')) return;
+      swallowClick = false;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }, true);
     stage.addEventListener('pointermove', (event) => {
       if (!pointers.has(event.pointerId)) return;
       const point = local(event);
       pointers.set(event.pointerId, point);
       if (pinch && pointers.size >= 2) {
+        if (!ready) return;
+        if (pinch.pending) {
+          startPinch();
+          return;
+        }
         const [a, b] = [...pointers.values()];
         scale = limit(pinch.scale * (Math.hypot(a.x - b.x, a.y - b.y) / pinch.distance));
-        // The point of the sheet that was under the fingers stays under them, so a pinch can also pan.
+        // The point of the picture that was under the fingers stays under them, so a pinch can also pan.
         x = (a.x + b.x) / 2 - pinch.contentX * scale;
         y = (a.y + b.y) / 2 - pinch.contentY * scale;
         apply();
       } else if (drag) {
+        if (!drag.swipe && !ready) return;
+        if (!drag.swipe && drag.pending) {
+          // The picture has just shown under a finger that was already down: the pan starts here, from the fitted picture.
+          drag = { ...drag, x: point.x, y: point.y, dx: 0, fromX: x, fromY: y, moved: true, pending: false };
+          stage.classList.add('is-dragging');
+          return;
+        }
         const dx = point.x - drag.x;
         const dy = point.y - drag.y;
+        drag.dx = dx;
         if (!drag.moved && Math.hypot(dx, dy) > 6) {
           drag.moved = true;
           stage.classList.add('is-dragging');
         }
         if (drag.moved) {
-          x = drag.fromX + dx;
-          y = drag.fromY + dy;
+          // The stroke's overall direction so far decides, not its first few pixels: while it is mostly upright the photo
+          // stays put, and once it runs sideways it follows (the release judges the whole stroke the same way).
+          if (drag.swipe) swipe = Math.abs(dx) >= Math.abs(dy) ? dx : 0;
+          else {
+            x = drag.fromX + dx;
+            y = drag.fromY + dy;
+          }
           apply();
         }
       }
@@ -1276,21 +1482,71 @@
       if (!pointers.has(event.pointerId)) return;
       const point = pointers.get(event.pointerId);
       const wasPinch = Boolean(pinch);
+      const fromButton = buttonPointers.delete(event.pointerId);
       pointers.delete(event.pointerId);
+      // The click that follows the last finger of a pinch is swallowed only then; a later keyboard press on an arrow still works.
+      if (!pointers.size && swallowClick) swallowTimer = setTimeout(() => { swallowClick = false; }, 400);
       stage.classList.remove('is-dragging');
       if (pointers.size >= 2) {
         startPinch();
         return;
       }
       pinch = null;
+      if (wasPinch) {
+        // The pinch is over: the picture goes back inside its bounds (centred at fit), which also undoes a sideways pull the
+        // pinch took over and never moved. Smoothly, unless a finger left on the picture drags on from here.
+        if (pointers.size === 1 && !buttonPointers.has([...pointers.keys()][0])) apply();
+        else settle();
+      }
       if (pointers.size === 1) {
-        // One finger left after a pinch carries on dragging from where it is.
+        lastTap = null;
+        // The finger left on a button does nothing more; one left on the picture carries on dragging from where it is.
+        if (buttonPointers.has([...pointers.keys()][0])) {
+          drag = null;
+          return;
+        }
         startDrag([...pointers.values()][0]);
         drag.moved = true;
+        drag.swipe = false;
         lastTap = null;
         return;
       }
-      const tapped = event.type === 'pointerup' && !wasPinch && drag && !drag.moved;
+      // A plain press on a button: its own click does the work.
+      if (fromButton) {
+        drag = null;
+        lastTap = null;
+        return;
+      }
+      // The stroke ends where the finger lifts: a fast flick can pass the move threshold, or turn upright, after its last move.
+      if (drag && event.type === 'pointerup') {
+        const end = local(event);
+        const dx = end.x - drag.x;
+        const dy = end.y - drag.y;
+        if (!drag.moved && Math.hypot(dx, dy) > 6) drag.moved = true;
+        if (drag.swipe && drag.moved && Math.abs(dy) > Math.abs(dx)) {
+          // Mostly upright overall: no photo change, the picture springs back.
+          drag = null;
+          lastTap = null;
+          settle();
+          return;
+        }
+        drag.dx = dx;
+        if (drag.moved && !drag.swipe && ready && !drag.pending) {
+          x = drag.fromX + dx;
+          y = drag.fromY + dy;
+          apply();
+        }
+      }
+      if (drag && drag.swipe && drag.moved) {
+        // A swipe past a fifth of the screen (at most 80 px) moves to the neighbouring photo; a shorter one springs back.
+        const distance = drag.dx;
+        drag = null;
+        lastTap = null;
+        if (event.type === 'pointerup' && Math.abs(distance) > Math.min(80, stage.clientWidth * 0.2)) onStep(distance < 0 ? forward() : -forward());
+        else settle();
+        return;
+      }
+      const tapped = event.type === 'pointerup' && !wasPinch && drag && !drag.moved && ready;
       drag = null;
       if (!tapped) {
         lastTap = null;
@@ -1308,6 +1564,334 @@
     };
     stage.addEventListener('pointerup', release);
     stage.addEventListener('pointercancel', release);
+    // A change of photo ends a swipe still under way (an arrow key pressed mid-drag), so letting go does not step again.
+    const endSwipe = () => {
+      if (drag?.swipe) {
+        drag = null;
+        stage.classList.remove('is-dragging');
+      }
+      swipe = 0;
+    };
+    return { show, load, endSwipe };
+  };
+
+  // Product dimension drawing: opens in the zoom viewer above.
+  qsa('[data-drawing-root]').forEach((root) => {
+    const dialog = qs('[data-drawing-dialog]', root);
+    if (!dialog || typeof dialog.showModal !== 'function') return;
+    const stage = qs('[data-drawing-stage]', dialog);
+    const image = qs('[data-drawing-image]', dialog);
+    qs('[data-drawing-close]', root)?.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+    if (!stage || !image) {
+      // Markup cached from before the zoom viewer: the plain dialog still opens and closes (button, backdrop, Esc).
+      qs('[data-drawing-open]', root)?.addEventListener('click', () => dialog.showModal());
+      return;
+    }
+    const viewer = bobliftZoomViewer({
+      dialog,
+      stage,
+      image,
+      level: qs('[data-drawing-level]', dialog),
+      zoomIn: qs('[data-drawing-zoom="in"]', dialog),
+      zoomOut: qs('[data-drawing-zoom="out"]', dialog),
+      fitButton: qs('[data-drawing-zoom="fit"]', dialog),
+    });
+    qs('[data-drawing-open]', root)?.addEventListener('click', viewer.show);
+  });
+
+  // Product photos at the top of the page, on phones and tablets: a tap on the photo (or its full-size button) opens it in
+  // the zoom viewer, at the photo shown. Pinch or double tap zooms; a swipe, the arrows or the arrow keys go through the
+  // photos, and closing leaves the page on the last one seen. Wide screens with a mouse keep the page as it was.
+  // Below 1024 px a tap or click on the photo opens it and the corner button shows; wider, only a finger or pen does, and the
+  // button is there for the keyboard only, on touch screens.
+  // Exactly below the gallery's own lg breakpoint (min-width: 1024px), fractional widths under browser zoom included.
+  const photoButtonMedia = window.matchMedia('not all and (min-width: 1024px)');
+  // Any touch screen, primary pointer or not (a tablet with a trackpad attached): the button is kept for its keyboard.
+  const photoTouchMedia = window.matchMedia('(any-pointer: coarse)');
+  const onMediaChange = (media, listener) => {
+    if (media.addEventListener) media.addEventListener('change', listener);
+    else media.addListener?.(listener);
+  };
+  qsa('[data-product-hero-gallery-root]').forEach((root) => {
+    const dialog = qs('[data-photo-viewer]', root);
+    const frame = qs('[data-product-hotspot-stage]', root);
+    if (!dialog || !frame || typeof dialog.showModal !== 'function') return;
+    const stage = qs('[data-photo-viewer-stage]', dialog);
+    const image = qs('[data-photo-viewer-image]', dialog);
+    if (!stage || !image) return;
+    const thumbs = qsa('[data-product-hero-gallery-thumb]', root);
+    // Each photo keeps its own thumb, so the viewer and the page agree on which entry is shown even if two share a picture.
+    const photos = thumbs.map((thumb) => ({
+      thumb,
+      full: thumb.dataset.productHeroGalleryFull || thumb.dataset.productHeroGallerySrc || '',
+      src: thumb.dataset.productHeroGallerySrc || '',
+      label: thumb.dataset.productHeroGalleryLabel || '',
+    })).filter((photo) => photo.full);
+    if (!photos.length) {
+      const current = qs('[data-product-hero-gallery-current]', root);
+      const src = current?.currentSrc || current?.getAttribute('src') || '';
+      if (!src) return;
+      photos.push({ thumb: null, full: src, src, label: current.alt || '' });
+    }
+    const label = qs('[data-photo-viewer-label]', dialog);
+    const failure = qs('[data-photo-viewer-error]', dialog);
+    const showFailure = (shown) => {
+      if (!failure) return;
+      failure.classList.toggle('hidden', !shown);
+      failure.classList.toggle('block', shown);
+    };
+    const count = qs('[data-photo-viewer-count]', dialog);
+    let index = 0;
+    // The last photo that actually showed in this opening; closing puts that one on the page, never a failed one.
+    let shown = -1;
+    const wrap = (value) => (value + photos.length) % photos.length;
+    // The photos either side load in the background, so a swipe usually lands on one already there.
+    // A photo address that failed or stalled is asked for next time with an extra query argument (the CDN and the uploads
+    // server ignore it): browsers would otherwise hand back the cached error or the same request that never finished.
+    const retries = new Map();
+    const address = (url) => retries.get(url) || url;
+    // The address a photo is shown from: its full size, or for the rest of the visit the smaller copy it fell back to and
+    // showed, so a full size that fails or stalls is not waited on again at every return.
+    const want = (photo) => photo.shown || address(photo.full);
+    // The address with a new retry argument, put before any fragment (an SVG view stays a fragment) and leaving the rest of
+    // the query exactly as written (the CDN's resize arguments are not re-encoded). Only for addresses known to ignore an
+    // extra argument, this site's own and the WordPress.com image CDN (i0.wp.com and its siblings): any other address may
+    // be signed, where an extra argument would break it, so it is asked for again unchanged.
+    const bustable = (url) => {
+      try {
+        const host = new URL(url, document.baseURI).hostname;
+        return host === window.location.hostname || /^i\d\.wp\.com$/.test(host);
+      } catch {
+        return false;
+      }
+    };
+    const fresh = (url) => {
+      if (!bustable(url)) return url;
+      const cut = url.indexOf('#');
+      const head = cut < 0 ? url : url.slice(0, cut);
+      const tail = cut < 0 ? '' : url.slice(cut);
+      return `${head}${head.includes('?') ? '&' : '?'}retry=${Date.now().toString(36)}${tail}`;
+    };
+    // Neighbours being fetched ahead, by address, until they settle: a stalled one can then be dropped (see onError).
+    const preloads = new Map();
+    // A preload that is no longer wanted (no longer a neighbour, the viewer closed, or stalled 20 s) lets go of its request.
+    const cancelPreload = (url) => {
+      const entry = preloads.get(url);
+      if (!entry) return;
+      clearTimeout(entry.timer);
+      entry.image.removeAttribute('src');
+      preloads.delete(url);
+    };
+    const preload = (value) => {
+      const photo = photos[wrap(value)];
+      const url = photo && want(photo);
+      // A parked address is already being fetched (see park): a second request would only share it.
+      if (!photo || photo === photos[index] || preloads.has(url) || parked.has(url)) return;
+      const next = new Image();
+      next.decoding = 'async';
+      const settled = () => {
+        // Only this preload's own entry: a cancelled one's late event leaves a newer preload of the address alone.
+        if (preloads.get(url)?.image !== next) return;
+        clearTimeout(preloads.get(url).timer);
+        preloads.delete(url);
+      };
+      next.addEventListener('load', settled, { once: true });
+      next.addEventListener('error', settled, { once: true });
+      preloads.set(url, { image: next, timer: setTimeout(() => cancelPreload(url), 20000) });
+      next.src = url;
+    };
+    // A photo with a single address whose request ran past the time limit may be slow rather than stalled: it is kept going
+    // in the background (for up to 2 minutes, or until the viewer closes) while the viewer shows its message, and if it
+    // arrives it is shown after all (and used from then on), even while a fresh request for it is under way. Once another
+    // copy of that photo has shown, its parked request is let go, so a late arrival never replaces the copy that recovered.
+    // An address that cannot be varied (see fresh) is let go before it is asked for again, so the new request is not handed
+    // the stalled one.
+    const parked = new Map();
+    // Lets a parked request go; true when there was one.
+    const unpark = (url) => {
+      const entry = parked.get(url);
+      if (!entry) return false;
+      clearTimeout(entry.timer);
+      entry.image.removeAttribute('src');
+      parked.delete(url);
+      return true;
+    };
+    const park = (photo, url) => {
+      if (!url || parked.has(url)) return;
+      const keep = new Image();
+      keep.decoding = 'async';
+      const end = () => {
+        if (parked.get(url)?.image !== keep) return;
+        clearTimeout(parked.get(url).timer);
+        parked.delete(url);
+      };
+      keep.addEventListener('load', () => {
+        end();
+        photo.shown = url;
+        if (dialog.open && photos[index] === photo && !image.classList.contains('is-ready')) {
+          showFailure(false);
+          image.src = url;
+          viewer.load();
+        }
+      }, { once: true });
+      keep.addEventListener('error', end, { once: true });
+      parked.set(url, { image: keep, photo, timer: setTimeout(() => unpark(url), 120000) });
+      keep.src = url;
+    };
+    // Keeps only the preloads of the photo showing and the ones either side of it.
+    const trimPreloads = () => {
+      const wanted = new Set([-1, 0, 1].map((offset) => want(photos[wrap(index + offset)])));
+      [...preloads.keys()].filter((url) => !wanted.has(url)).forEach(cancelPreload);
+    };
+    // Ends a request for this address that never finished: the viewer's own and a preload sharing it. The browser keeps a
+    // request open while any image still asks for it, so both have to let go before coming back to the photo asks anew.
+    const dropStalled = (url) => {
+      cancelPreload(url);
+      if (image.getAttribute('src') === url && !image.complete) image.removeAttribute('src');
+    };
+    const setPhoto = (value) => {
+      index = wrap(value);
+      const photo = photos[index];
+      image.alt = photo.label;
+      if (label) label.textContent = photo.label;
+      if (count) count.textContent = `${index + 1} / ${photos.length}`;
+      showFailure(false);
+      // A photo that failed before is asked for again, from its full size.
+      const url = want(photo);
+      // Back on a photo whose very address is parked (an address that cannot be varied, see fresh): the parked request is
+      // let go and the address asked for again a moment later, since Chromium hands a request made in the same task the one
+      // just let go. WebKit goes on sharing a request for the same address however long the wait, so there such a photo
+      // stays on the stalled request (and its message after the time limit) until the page is loaded again.
+      if (unpark(url)) {
+        image.removeAttribute('src');
+        setTimeout(() => {
+          if (dialog.open && photos[index] === photo && !image.getAttribute('src')) {
+            image.src = url;
+            viewer.load();
+          }
+        });
+        return;
+      }
+      if (image.getAttribute('src') === url && image.complete && !image.naturalWidth) image.removeAttribute('src');
+      if (image.getAttribute('src') !== url) image.src = url;
+    };
+    let viewer = null;
+    const step = (direction) => {
+      viewer.endSwipe();
+      setPhoto(index + direction);
+      viewer.load();
+      trimPreloads();
+      // Both neighbours stay warm, the photo just left included, so going straight back does not start over.
+      preload(index + 1);
+      preload(index - 1);
+    };
+    viewer = bobliftZoomViewer({
+      dialog,
+      stage,
+      image,
+      level: qs('[data-photo-viewer-level]', dialog),
+      zoomIn: qs('[data-photo-viewer-zoom="in"]', dialog),
+      zoomOut: qs('[data-photo-viewer-zoom="out"]', dialog),
+      fitButton: qs('[data-photo-viewer-zoom="fit"]', dialog),
+      // Photos zoom to their own pixels at most (and always to 4x the fit): past that they only blur.
+      nativeMax: 1,
+      loadTimeout: 20000,
+      loadingStatus: qs('[data-photo-viewer-loading]', dialog),
+      onStep: photos.length > 1 ? step : null,
+      onLoad: () => {
+        shown = index;
+        const photo = photos[index];
+        const from = image.getAttribute('src');
+        if (from !== address(photo.full)) photo.shown = from;
+        [...parked].filter(([url, entry]) => entry.photo === photo && url !== from).forEach(([url]) => unpark(url));
+      },
+      // A full-size photo the CDN cannot serve falls back to the page's own size; if that fails too, the viewer says so.
+      // A timeout is reported the same way; its request may still hang open, so it is dropped first and coming back to the
+      // photo sends a new one instead of waiting on the stalled one.
+      onError: () => {
+        const photo = photos[index];
+        const failedUrl = image.getAttribute('src');
+        const fallback = photo.src ? address(photo.src) : '';
+        // Timed out with nothing smaller to try: the request is parked before the viewer lets go of it, so it carries on.
+        if (!image.complete && !(fallback && failedUrl !== fallback)) park(photo, failedUrl);
+        if (!image.complete) dropStalled(failedUrl);
+        // The copy remembered as shown failed this time: next visit starts again from the full size.
+        if (photo.shown === failedUrl) delete photo.shown;
+        // Coming back to this photo later asks for the failed address afresh, with a new query argument: neither a stalled
+        // request nor a cached error response (a 404 the CDN let the browser keep) is handed back again.
+        [photo.full, photo.src].filter((url) => url && address(url) === failedUrl).forEach((url) => {
+          retries.set(url, fresh(url));
+        });
+        if (fallback && failedUrl !== fallback) {
+          image.src = fallback;
+          viewer.load();
+        } else {
+          stage.classList.remove('is-loading');
+          showFailure(true);
+        }
+      },
+      onClose: () => {
+        [...preloads.keys()].forEach(cancelPreload);
+        [...parked.keys()].forEach(unpark);
+        // A photo still loading when the viewer closes lets go of its request, and opening again asks afresh (a new address,
+        // as after a failure), so a request that stalled meanwhile is not waited on again.
+        const pending = image.getAttribute('src');
+        if (pending && !image.complete) {
+          const photo = photos[index];
+          [photo.full, photo.src].filter((url) => url && address(url) === pending).forEach((url) => retries.set(url, fresh(url)));
+          if (photo.shown === pending) delete photo.shown;
+          dropStalled(pending);
+        }
+        const thumb = photos[shown]?.thumb;
+        if (thumb && thumb.dataset.productHeroGalleryIndex !== root.dataset.productHeroActiveIndex) thumb.click();
+      },
+    });
+    const open = (event) => {
+      const active = thumbs.find((item) => item.dataset.productHeroGalleryIndex === root.dataset.productHeroActiveIndex);
+      setPhoto(Math.max(photos.findIndex((photo) => photo.thumb === active), 0));
+      shown = -1;
+      viewer.show(event);
+      if (photos.length > 1) {
+        preload(index + 1);
+        preload(index - 1);
+      }
+    };
+    // A finger or pen on the photo opens it on any screen, whatever the device calls its main pointer; on a wide screen a
+    // mouse or trackpad click does not, a tablet's included.
+    let framePointer = '';
+    frame.addEventListener('pointerdown', (event) => {
+      framePointer = event.pointerType;
+    });
+    frame.addEventListener('click', (event) => {
+      const touch = framePointer === 'touch' || framePointer === 'pen';
+      framePointer = '';
+      if (!(photoButtonMedia.matches || touch) || event.target.closest('button, a')) return;
+      open(event);
+    });
+    // The full-size button is rendered hidden and joins the page here, only where a tap opens the viewer.
+    const opener = qs('[data-photo-viewer-open]', root);
+    if (opener) {
+      opener.addEventListener('click', open);
+      const syncOpener = () => {
+        const enabled = photoButtonMedia.matches || photoTouchMedia.matches;
+        opener.classList.toggle('hidden', !enabled);
+        opener.classList.toggle('grid', enabled);
+        opener.classList.toggle('is-focus-only', enabled && !photoButtonMedia.matches);
+      };
+      syncOpener();
+      onMediaChange(photoButtonMedia, syncOpener);
+      onMediaChange(photoTouchMedia, syncOpener);
+    }
+    qsa('[data-photo-viewer-step]', dialog).forEach((button) => {
+      button.addEventListener('click', () => step(Number(button.dataset.photoViewerStep) || 1));
+    });
+    qs('[data-photo-viewer-close]', dialog)?.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) dialog.close();
+    });
   });
 
   // Home hero slideshow. CSS runs the active tab's progress bar; when it finishes, the next

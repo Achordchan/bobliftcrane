@@ -2827,12 +2827,31 @@ body.boblift-filter-drawer-locked {
 /* The stage handles pinch and drag itself (theme.js): no browser panning, page zoom or scroll chaining inside it. */
 .boblift-drawing-stage { touch-action: none; overscroll-behavior: contain; cursor: zoom-in; -webkit-user-select: none; user-select: none; }
 .boblift-drawing-stage.is-zoomed { cursor: grab; }
+/* Zoomed in, the photo arrows step aside (theme.js); a swipe or the arrow keys then pan, and the arrows return at fit. */
+.boblift-drawing-stage [data-zoom-hide] { transition: opacity .15s ease, visibility .15s; }
+.boblift-drawing-stage.is-zoomed [data-zoom-hide] { opacity: 0; visibility: hidden; pointer-events: none; }
+/* A browser without <dialog> (iOS Safari before 15.4) would show closed viewers inline under the gallery; keep them out. */
+.boblift-drawing-dialog:not([open]) { display: none; }
 .boblift-drawing-stage.is-dragging { cursor: grabbing; }
 .boblift-drawing-image { transform-origin: 0 0; visibility: hidden; -webkit-user-drag: none; -webkit-touch-callout: none; }
 .boblift-drawing-image.is-ready { visibility: visible; }
 .boblift-drawing-tip { transition: opacity .3s ease; }
 .boblift-drawing-stage.is-touched .boblift-drawing-tip { opacity: 0; }
 .boblift-drawing-tool:disabled { opacity: .4; cursor: default; }
+/* Product photos in the same viewer: a photo let go short of a swipe springs back, and a spinner shows while one loads. */
+.boblift-drawing-image.is-settling { transition: transform .2s ease-out; }
+.boblift-zoom-spinner { display: none; }
+/* The photo viewer takes the whole screen at every size (100vh first for browsers without dvh); the doubled class outranks the
+   shared dialog radius further down. */
+.boblift-drawing-dialog.boblift-photo-dialog { border-radius: 0; height: 100vh; height: 100dvh; }
+/* Should the page ever use viewport-fit=cover, the header, arrows and picture stay clear of a notch or the home bar
+   (physical insets, so the arrows keep their RTL order); without it every inset is 0. */
+.boblift-photo-dialog > div { padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
+/* Wide touch screens: the full-size button is there for the keyboard only and shows when it has the keyboard focus; taps go
+   through it to the photo and its hotspots. */
+.boblift-photo-open.is-focus-only:not(:focus-visible) { opacity: 0; pointer-events: none; }
+.is-loading > .boblift-zoom-spinner { display: block; animation: boblift-zoom-spin .8s linear infinite; }
+@keyframes boblift-zoom-spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
 
 /* Case and feedback detail pages: article prose and the feedback gallery. */
 /* Copy reads at 400 so the 600 headings and figures stand above it. */
