@@ -1094,6 +1094,10 @@
     let pinch = null;
     let drag = null;
     let lastTap = null;
+    // Fingers that went down on a button on the picture (the photo arrows): tracked for a pinch, never captured or dragged.
+    const buttonPointers = new Set();
+    // A pinch that began with a finger on a button swallows that button's click.
+    let swallowClick = false;
     let tipTimer = 0;
     let loadToken = 0;
     let settleTimer = 0;
@@ -1254,6 +1258,8 @@
     dialog.addEventListener('close', () => {
       document.documentElement.style.overflow = previousOverflow;
       pointers.clear();
+      buttonPointers.clear();
+      swallowClick = false;
       pinch = null;
       drag = null;
       lastTap = null;
@@ -1306,17 +1312,29 @@
       zoomAt(scale * Math.exp(-delta * (event.ctrlKey ? 0.01 : 0.002)), point.x, point.y);
     }, { passive: false });
     stage.addEventListener('pointerdown', (event) => {
-      // Buttons on the picture (the photo arrows) keep their own clicks: capturing the pointer would take them away.
       // A photo still loading, or one that failed, can only be swiped away; everything else waits for the picture.
-      if ((!ready && !onStep) || (event.pointerType === 'mouse' && event.button !== 0) || event.target.closest('button')) return;
-      stage.setPointerCapture?.(event.pointerId);
+      if ((!ready && !onStep) || (event.pointerType === 'mouse' && event.button !== 0)) return;
+      // Buttons on the picture (the photo arrows) keep their own clicks, so a finger on one is never captured or dragged;
+      // it still counts toward a pinch with a finger on the picture. A mouse on a button is left alone.
+      const onButton = Boolean(event.target.closest('button'));
+      if (onButton && event.pointerType === 'mouse') return;
+      if (!pointers.size) swallowClick = false;
+      if (onButton) buttonPointers.add(event.pointerId);
+      else stage.setPointerCapture?.(event.pointerId);
       stage.classList.add('is-touched');
       pointers.set(event.pointerId, local(event));
       if (pointers.size === 2) {
         if (swipe) settle();
         startPinch();
-      } else if (pointers.size === 1) startDrag(local(event));
+        if (buttonPointers.size) swallowClick = true;
+      } else if (pointers.size === 1 && !onButton) startDrag(local(event));
     });
+    stage.addEventListener('click', (event) => {
+      if (!swallowClick || !event.target.closest('button')) return;
+      swallowClick = false;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }, true);
     stage.addEventListener('pointermove', (event) => {
       if (!pointers.has(event.pointerId)) return;
       const point = local(event);
@@ -1357,7 +1375,10 @@
       if (!pointers.has(event.pointerId)) return;
       const point = pointers.get(event.pointerId);
       const wasPinch = Boolean(pinch);
+      const fromButton = buttonPointers.delete(event.pointerId);
       pointers.delete(event.pointerId);
+      // The click that follows the last finger of a pinch is swallowed only then; a later keyboard press on an arrow still works.
+      if (!pointers.size && swallowClick) setTimeout(() => { swallowClick = false; }, 400);
       stage.classList.remove('is-dragging');
       if (pointers.size >= 2) {
         startPinch();
@@ -1365,16 +1386,28 @@
       }
       pinch = null;
       if (pointers.size === 1) {
-        // One finger left after a pinch carries on dragging from where it is.
+        lastTap = null;
+        // The finger left on a button does nothing more; one left on the picture carries on dragging from where it is.
+        if (buttonPointers.has([...pointers.keys()][0])) {
+          drag = null;
+          return;
+        }
         startDrag([...pointers.values()][0]);
         drag.moved = true;
         drag.swipe = false;
         lastTap = null;
         return;
       }
+      // A plain press on a button: its own click does the work.
+      if (fromButton) {
+        drag = null;
+        lastTap = null;
+        return;
+      }
       if (drag && drag.swipe && drag.moved) {
         // A swipe past a fifth of the screen (at most 80 px) moves to the neighbouring photo; a shorter one springs back.
-        const distance = drag.dx;
+        // The distance is the finger's at the moment it lifts: a fast swipe can cross the line after its last move.
+        const distance = event.type === 'pointerup' ? local(event).x - drag.x : drag.dx;
         drag = null;
         lastTap = null;
         if (event.type === 'pointerup' && Math.abs(distance) > Math.min(80, stage.clientWidth * 0.2)) onStep(distance < 0 ? forward() : -forward());
