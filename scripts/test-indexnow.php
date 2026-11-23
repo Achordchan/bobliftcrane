@@ -372,6 +372,14 @@ function _get_cron_array(): array
     ksort($cron);
     return $cron;
 }
+function wp_load_alloptions(bool $force_cache = false): array
+{
+    $GLOBALS['alloptions_reloads'] = ($GLOBALS['alloptions_reloads'] ?? 0) + 1;
+    if (isset($GLOBALS['events_on_reload'])) {
+        $GLOBALS['events'] = $GLOBALS['events_on_reload'];
+    }
+    return [];
+}
 function cron_to_events(array $cron): void
 {
     $GLOBALS['events'] = [];
@@ -796,31 +804,25 @@ $GLOBALS['options']['boblift_indexnow_schedule_lock'] = (string) time() . '_othe
 ($GLOBALS['hooks']['init'])();
 $check('a cron request that does not get the scheduling lock writes nothing', $GLOBALS['events'] === []);
 $GLOBALS['options']['boblift_indexnow_schedule_lock'] = (string) (time() - 600) . '_stale';
-$GLOBALS['cron_read_fails'] = true;
+$GLOBALS['alloptions_reloads'] = 0;
 ($GLOBALS['hooks']['init'])();
-unset($GLOBALS['cron_read_fails']);
-$check('a lock left over five minutes is taken over, and nothing is written when the cron option cannot be read', $GLOBALS['events'] === [] && !isset($GLOBALS['options']['boblift_indexnow_schedule_lock']));
-$GLOBALS['cron_missing'] = true;
 ($GLOBALS['hooks']['init'])();
-$check('a missing cron option is created with the worker event', empty($GLOBALS['cron_missing']) && wp_next_scheduled('boblift_indexnow_sweep') !== false);
+$check('a lock left over five minutes is taken over; the worker is added once through the cron API after reloading options, and the lock released', $GLOBALS['scheduled'] === ['boblift_indexnow_sweep'] && ($GLOBALS['recurrence']['boblift_indexnow_sweep'] ?? '') === 'boblift_indexnow_minute' && $GLOBALS['alloptions_reloads'] === 1 && !isset($GLOBALS['options']['boblift_indexnow_schedule_lock']));
 $GLOBALS['events'] = [['other_plugin_daily', [], time() + 900]];
-$GLOBALS['cron_conflict_once'] = true;
-$GLOBALS['cron_writes'] = 0;
+$GLOBALS['scheduled'] = [];
+$GLOBALS['events_on_reload'] = [['other_plugin_daily', [], time() + 900], ['boblift_indexnow_sweep', [], time() + 20]];
 ($GLOBALS['hooks']['init'])();
-($GLOBALS['hooks']['init'])();
-$hooks_now = array_map(static fn($e) => $e[0], $GLOBALS['events']);
-sort($hooks_now);
-$check('an event another request adds meanwhile is kept: the conditional write retries on the new value', $hooks_now === ['boblift_indexnow_sweep', 'other_plugin_daily', 'other_plugin_event']);
-$check('the every-minute worker is added once, and the lock released', $GLOBALS['cron_writes'] === 1 && !isset($GLOBALS['options']['boblift_indexnow_schedule_lock']) && ($GLOBALS['recurrence']['boblift_indexnow_sweep'] ?? '') === 'boblift_indexnow_minute');
+unset($GLOBALS['events_on_reload']);
+$check('an event another request added just before is seen after the reload, so it is not added twice', $GLOBALS['scheduled'] === [] && count($GLOBALS['events']) === 2);
 $dup = time();
 $GLOBALS['events'][] = ['boblift_indexnow_sweep', [], $dup - 30];
 $GLOBALS['events'][] = ['boblift_indexnow_sweep', [], $dup + 45];
 ($GLOBALS['hooks']['init'])();
-$check('duplicate worker events are removed, keeping the earliest and other hooks', array_values(array_map(static fn($e) => $e[2], array_filter($GLOBALS['events'], static fn($e) => $e[0] === 'boblift_indexnow_sweep'))) === [$dup - 30] && count($GLOBALS['events']) === 3);
+$check('duplicate worker events are removed, keeping the earliest and other hooks', array_values(array_map(static fn($e) => $e[2], array_filter($GLOBALS['events'], static fn($e) => $e[0] === 'boblift_indexnow_sweep'))) === [$dup - 30] && count($GLOBALS['events']) === 2);
 $check('the every-minute interval is registered', (($GLOBALS['filters']['cron_schedules'])([])['boblift_indexnow_minute']['interval'] ?? 0) === 60);
 $GLOBALS['options']['blog_public'] = '0';
 ($GLOBALS['hooks']['init'])();
-$check('the worker event is removed when the site stops submitting', wp_next_scheduled('boblift_indexnow_sweep') === false && count($GLOBALS['events']) === 2);
+$check('the worker event is removed when the site stops submitting', wp_next_scheduled('boblift_indexnow_sweep') === false && count($GLOBALS['events']) === 1);
 $GLOBALS['options']['blog_public'] = '1';
 $GLOBALS['doing_cron'] = false;
 $GLOBALS['events'] = [];
@@ -867,7 +869,11 @@ clear_rows();
 $GLOBALS['transients'] = ['boblift_indexnow_key_file_checked' => 'ok'];
 $GLOBALS['remote_code'] = 403;
 add_option(rn(0, 'k403'), ['due' => 0, 'ids' => [81], 'retry' => true], '', 'no');
+add_option(rn(1, 'k403b'), ['due' => 1, 'ids' => [81], 'retry' => true], '', 'no');
+$GLOBALS['sent'] = [];
 boblift_indexnow_run_retries();
+$check('a 403 whose key-file recheck fails stops the run: the next row is not posted', count($GLOBALS['sent']) === 1 && isset($GLOBALS['options'][rn(1, 'k403b')]));
+unset($GLOBALS['options'][rn(1, 'k403b')]);
 $rows = boblift_indexnow_retry_names();
 $check('a 403 while the key file cannot be fetched keeps the posts for later, retry allowance unchanged', count($rows) === 1 && $GLOBALS['options'][$rows[0]]['ids'] === [81] && $GLOBALS['options'][$rows[0]]['retry'] === true && $GLOBALS['options'][$rows[0]]['due'] >= time() + 590 && $GLOBALS['transients']['boblift_indexnow_key_file_checked'] === 'failed');
 clear_rows();

@@ -49,7 +49,8 @@ function get_posts(array $args): array
     $posts = array_filter($GLOBALS['posts'], static fn(WP_Post $p): bool => $p->post_type === $args['post_type']
         && $p->post_status === $args['post_status']
         && (!array_key_exists('has_password', $args) || $args['has_password'] !== false || $p->post_password === '')
-        && (!empty($GLOBALS['ignore_lang']) || !isset($args['lang']) || $p->lang === $args['lang']));
+        && (!empty($GLOBALS['ignore_lang']) || !isset($args['lang']) || $p->lang === $args['lang'])
+        && (!empty($GLOBALS['ignore_tax']) || !isset($args['tax_query']) || $p->lang === $args['tax_query'][0]['terms']));
     $order = $args['orderby'] ?? ['date' => 'DESC'];
     usort($posts, static function (WP_Post $a, WP_Post $b) use ($order): int {
         foreach ($order as $field => $dir) {
@@ -70,9 +71,15 @@ function get_posts(array $args): array
             $GLOBALS['posts'][] = $late;
         }
         $GLOBALS['publish_after_ids'] = [];
+        $GLOBALS['ids_args'] = $args;
+        $GLOBALS['ids_returned'] = count($posts);
         return array_map(static fn(WP_Post $p): int => $p->ID, array_values($posts));
     }
     return array_values($posts);
+}
+function taxonomy_exists(string $taxonomy): bool
+{
+    return $taxonomy === 'language';
 }
 // Polylang's own record of each post's language.
 function pll_get_post_language(int $id): string|false
@@ -157,7 +164,10 @@ for ($i = 1000; $i < 7000; $i++) {
     $GLOBALS['posts'][] = new WP_Post($i, '2026-11-23 10:00:00', 'es');
 }
 $GLOBALS['ignore_lang'] = true;
+$taxed = boblift_llms_txt_articles();
+$check('the ID query also constrains on Polylang\'s language taxonomy, so translations are left out by the database', ($GLOBALS['ids_args']['tax_query'][0] ?? []) === ['taxonomy' => 'language', 'field' => 'slug', 'terms' => 'en'] && $taxed === $lines && $GLOBALS['ids_returned'] === 520);
+$GLOBALS['ignore_tax'] = true;
 $mixed = boblift_llms_txt_articles();
-$check('without the language filter, translations are dropped by their Polylang language', !array_filter($mixed, static fn(string $l): bool => preg_match('#/a(9\d\d|[1-6]\d\d\d)\.html#', $l) === 1));
+$check('with no language constraint applied at all, translations are still dropped by their Polylang language', !array_filter($mixed, static fn(string $l): bool => preg_match('#/a(9\d\d|[1-6]\d\d\d)\.html#', $l) === 1));
 $check('without the language filter, later pages are read until 500 English articles are listed', $mixed === $lines);
 exit($failures === 0 ? 0 : 1);
