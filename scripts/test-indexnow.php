@@ -157,6 +157,14 @@ class Fake_Wpdb
             $GLOBALS['options'][$new] = maybe_unserialize($value);
             return 1;
         }
+        if (str_contains($sql, 'CAST(option_value AS UNSIGNED) <')) {
+            // Raise a numeric value only if it is lower.
+            if (array_key_exists($args[1], $GLOBALS['options']) && (int) $GLOBALS['options'][$args[1]] < (int) $args[2]) {
+                $GLOBALS['options'][$args[1]] = $args[0];
+                return 1;
+            }
+            return 0;
+        }
         if (array_key_exists($args[1], $GLOBALS['options']) && (string) maybe_serialize($GLOBALS['options'][$args[1]]) === (string) $args[2]) {
             $GLOBALS['options'][$args[1]] = maybe_unserialize($args[0]);
             return 1;
@@ -623,7 +631,7 @@ foreach ([503 => 1, 429 => 1, 422 => 0, 202 => 0] as $code => $rows_expected) {
     boblift_indexnow_send([41]);
     $rows = boblift_indexnow_retry_names();
     $check('HTTP ' . $code . ($rows_expected ? ' gets one more try' : ' is not retried'), count($rows) === $rows_expected);
-    unset($GLOBALS['transients']['boblift_indexnow_cooldown']);
+    unset($GLOBALS['options']['boblift_indexnow_cooldown_until']);
     foreach ($rows as $name) {
         unset($GLOBALS['options'][$name]);
     }
@@ -916,6 +924,7 @@ clear_rows();
 // the local self-check says (a CDN or firewall may block only IndexNow's verifier).
 unset($GLOBALS['key_file_response']);
 $GLOBALS['transients'] = [kc() => 'ok'];
+unset($GLOBALS['options']['boblift_indexnow_cooldown_until']);
 $GLOBALS['remote_code'] = 403;
 add_option(rn(0, 'k403'), ['due' => 0, 'ids' => [81], 'retry' => false], '', 'no');
 add_option(rn(1, 'k403b'), ['due' => 1, 'ids' => [81], 'retry' => true], '', 'no');
@@ -930,16 +939,18 @@ ini_set('error_log', '/dev/null');
 $rows = boblift_indexnow_retry_names();
 $check('a 403 stops the run: the other row is not posted but kept, retry allowance unchanged', count($GLOBALS['sent']) === 1 && count($rows) === 2 && count(array_filter($rows, static fn($n) => $GLOBALS['options'][$n]['retry'] === true && $GLOBALS['options'][$n]['ids'] === [81])) === 1);
 $last = array_values(array_filter($rows, static fn($n) => $GLOBALS['options'][$n]['retry'] === false));
-$check('a 403 keeps the posts even on a last try, an hour out, pauses the queue for an hour and logs it, though the self-check passes', count($last) === 1 && $GLOBALS['options'][$last[0]]['ids'] === [81] && $GLOBALS['options'][$last[0]]['due'] >= $t403 + 3600 && ($GLOBALS['transient_ttl']['boblift_indexnow_cooldown'] ?? 0) === 3600 && str_contains($logged403, 'key not verified (HTTP 403) for https://bobliftcrane.com/abcd1234.txt'));
+$check('a 403 keeps the posts even on a last try, an hour out, pauses the queue for an hour and logs it, though the self-check passes', count($last) === 1 && $GLOBALS['options'][$last[0]]['ids'] === [81] && $GLOBALS['options'][$last[0]]['due'] >= $t403 + 3600 && (int) ($GLOBALS['options']['boblift_indexnow_cooldown_until'] ?? 0) >= $t403 + 3600 && str_contains($logged403, 'key not verified (HTTP 403) for https://bobliftcrane.com/abcd1234.txt'));
 clear_rows();
 unset($GLOBALS['remote_code']);
 $GLOBALS['transients'] = [];
 
 // A passed check is stored per key-file URL: a new key is checked afresh.
 $GLOBALS['transients'] = [kc() => 'ok'];
+unset($GLOBALS['options']['boblift_indexnow_cooldown_until']);
 $check('a passed key check does not carry over to another key', kc() !== boblift_indexnow_key_check_name('efgh5678') && get_transient(boblift_indexnow_key_check_name('efgh5678')) === false);
 // A 429 pauses the whole queue for the Retry-After time and keeps the rows, retry allowance unchanged.
 $GLOBALS['transients'] = [kc() => 'ok'];
+unset($GLOBALS['options']['boblift_indexnow_cooldown_until']);
 $GLOBALS['posts'] = [81 => new WP_Post(81), 82 => new WP_Post(82)];
 add_option(rn(0, 't429a'), ['due' => 0, 'ids' => [81], 'retry' => false], '', 'no');
 add_option(rn(1, 't429b'), ['due' => 1, 'ids' => [82], 'retry' => true], '', 'no');
@@ -952,12 +963,14 @@ $rows = boblift_indexnow_retry_names();
 $held = array_values(array_filter($rows, static fn($n) => $GLOBALS['options'][$n]['ids'] === [81]));
 $other = array_values(array_filter($rows, static fn($n) => $GLOBALS['options'][$n]['ids'] === [82]));
 $check('a 429 keeps the row even on its last try, due after Retry-After, and stops the run: the other row is kept unsent', count($GLOBALS['sent']) === 1 && count($held) === 1 && $GLOBALS['options'][$held[0]]['retry'] === false && $GLOBALS['options'][$held[0]]['due'] >= $t429 + 1800 && count($other) === 1 && $GLOBALS['options'][$other[0]]['retry'] === true);
-$check('the cooldown lasts the Retry-After time', ($GLOBALS['transient_ttl']['boblift_indexnow_cooldown'] ?? 0) === 1800);
+$check('the cooldown lasts the Retry-After time', (int) ($GLOBALS['options']['boblift_indexnow_cooldown_until'] ?? 0) >= $t429 + 1800 && (int) $GLOBALS['options']['boblift_indexnow_cooldown_until'] <= time() + 1800);
+boblift_indexnow_extend_cooldown(time() + 600);
+$check('a shorter pause from an overlapping worker does not cut a longer one', (int) $GLOBALS['options']['boblift_indexnow_cooldown_until'] >= $t429 + 1800);
 unset($GLOBALS['remote_code'], $GLOBALS['remote_headers']);
 $GLOBALS['sent'] = [];
 boblift_indexnow_run_retries();
 $check('while the cooldown lasts nothing is posted', $GLOBALS['sent'] === [] && count(boblift_indexnow_retry_names()) === 2);
-unset($GLOBALS['transients']['boblift_indexnow_cooldown']);
+unset($GLOBALS['options']['boblift_indexnow_cooldown_until']);
 // Time passes: the rows come due.
 foreach (boblift_indexnow_retry_names(10) as $i => $n) {
     $GLOBALS['options'][rn(0, 'due' . $i)] = ['due' => 0] + $GLOBALS['options'][$n];
@@ -973,12 +986,13 @@ $GLOBALS['transients'] = [];
 
 // Another run's cooldown is rechecked right before each POST.
 $GLOBALS['transients'] = [kc() => 'ok'];
+unset($GLOBALS['options']['boblift_indexnow_cooldown_until']);
 $GLOBALS['posts'] = [83 => new WP_Post(83)];
 $GLOBALS['sent'] = [];
 $kept_here = [];
 $owned = static function () use (&$kept_here): bool {
     // Another run hits a 429 while this one resolves permalinks.
-    set_transient('boblift_indexnow_cooldown', time() + 900, 900);
+    boblift_indexnow_extend_cooldown(time() + 900);
     return true;
 };
 $check('a cooldown started by another run is checked right before the POST: nothing is sent and the posts are kept', boblift_indexnow_send([83], true, $owned, static function (array $ids, int $due, bool $retry) use (&$kept_here): bool {
@@ -986,6 +1000,7 @@ $check('a cooldown started by another run is checked right before the POST: noth
     return true;
 }) === true && $GLOBALS['sent'] === [] && $kept_here[0] === [83] && $kept_here[1] >= time() + 890 && $kept_here[2] === true);
 $GLOBALS['transients'] = [];
+unset($GLOBALS['options']['boblift_indexnow_cooldown_until']);
 $check('the key file is advertised and checked on HTTPS even if home is stored as http', boblift_indexnow_key_url('http://bobliftcrane.com/', 'abcd1234') === 'https://bobliftcrane.com/abcd1234.txt' && (boblift_indexnow_payloads(['http://bobliftcrane.com/a.html'], 'http://bobliftcrane.com', 'abcd1234')[0]['keyLocation'] ?? '') === 'https://bobliftcrane.com/abcd1234.txt');
 
 $GLOBALS['options']['boblift_indexnow_key'] = "abcd1234\n";

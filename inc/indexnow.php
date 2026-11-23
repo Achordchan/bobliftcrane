@@ -280,8 +280,8 @@ function boblift_indexnow_send(array $post_ids, bool $retry = true, ?callable $s
             return false;
         }
         // Another run may have hit a 429 or 403 meanwhile: then nothing more is posted and the rest is kept.
-        $cooldown = get_transient(BOBLIFT_INDEXNOW_COOLDOWN);
-        if ($cooldown !== false) {
+        $cooldown = boblift_indexnow_cooldown_until();
+        if ($cooldown !== 0) {
             return (bool) $keep(boblift_indexnow_payload_ids(array_slice($payloads, $index), $by_url), max(time() + MINUTE_IN_SECONDS, (int) $cooldown), $retry) && $kept;
         }
         // Blocking, from cron only: a non-blocking request can hide a failed connection.
@@ -298,7 +298,7 @@ function boblift_indexnow_send(array $post_ids, bool $retry = true, ?callable $s
             // retry allowance unchanged (being asked to wait is not a failed try), and the whole queue pauses for the
             // Retry-After time, so other rows are not spent while the endpoint is still throttling.
             $wait = boblift_indexnow_retry_after($response);
-            set_transient(BOBLIFT_INDEXNOW_COOLDOWN, time() + $wait, $wait);
+            boblift_indexnow_extend_cooldown(time() + $wait);
             return (bool) $keep(boblift_indexnow_payload_ids(array_slice($payloads, $index), $by_url), time() + $wait, $retry) && $kept;
         }
         if ($code === 403) {
@@ -306,7 +306,7 @@ function boblift_indexnow_send(array $post_ids, bool $retry = true, ?callable $s
             // firewall may block it), so the posts are kept, retry allowance unchanged, and the queue pauses for an hour
             // (logged), so fixing access never needs the content republished.
             $held = (bool) $keep(boblift_indexnow_payload_ids(array_slice($payloads, $index), $by_url), time() + HOUR_IN_SECONDS, $retry);
-            set_transient(BOBLIFT_INDEXNOW_COOLDOWN, time() + HOUR_IN_SECONDS, HOUR_IN_SECONDS);
+            boblift_indexnow_extend_cooldown(time() + HOUR_IN_SECONDS);
             error_log(sprintf('IndexNow: key not verified (HTTP 403) for %s; submissions paused for an hour, posts kept.', $payload['keyLocation']));
             return $held && $kept;
         }
@@ -486,7 +486,29 @@ function boblift_indexnow_runnable_at(array $batch): int
 }
 
 const BOBLIFT_INDEXNOW_KEY_CHECK = 'boblift_indexnow_key_file_checked';
-const BOBLIFT_INDEXNOW_COOLDOWN = 'boblift_indexnow_cooldown';
+const BOBLIFT_INDEXNOW_COOLDOWN = 'boblift_indexnow_cooldown_until';
+
+/** End of the shared submission pause (0 when none), read from the database so every worker sees the same value. */
+function boblift_indexnow_cooldown_until(): int
+{
+    global $wpdb;
+    $until = (int) $wpdb->get_var($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s LIMIT 1", BOBLIFT_INDEXNOW_COOLDOWN));
+    return $until > time() ? $until : 0;
+}
+
+/**
+ * Pauses submissions until $until. The deadline only ever moves later: it is created with INSERT IGNORE or raised with
+ * a conditional UPDATE in one statement, so a shorter Retry-After from an overlapping worker cannot cut a longer pause.
+ */
+function boblift_indexnow_extend_cooldown(int $until): void
+{
+    global $wpdb;
+    if ((int) $wpdb->query($wpdb->prepare("INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')", BOBLIFT_INDEXNOW_COOLDOWN, (string) $until)) === 1) {
+        return;
+    }
+    $wpdb->query($wpdb->prepare("UPDATE {$wpdb->options} SET option_value = %s WHERE option_name = %s AND CAST(option_value AS UNSIGNED) < %d", (string) $until, BOBLIFT_INDEXNOW_COOLDOWN, $until));
+    wp_cache_delete(BOBLIFT_INDEXNOW_COOLDOWN, 'options');
+}
 
 /** The key-check result is stored per advertised key-file URL, so a new key or home URL is always checked afresh. */
 function boblift_indexnow_key_check_name(string $key): string
@@ -559,7 +581,7 @@ function boblift_indexnow_run_retries(): void
         boblift_indexnow_key_file_ok($key);
     }
     // After a 429 nothing is posted until the wait IndexNow asked for (Retry-After) has passed.
-    if (get_transient(BOBLIFT_INDEXNOW_COOLDOWN) !== false) {
+    if (boblift_indexnow_cooldown_until() !== 0) {
         return;
     }
     $started = time();
@@ -597,7 +619,7 @@ function boblift_indexnow_run_retries(): void
             $group_ids[$flag] = 0;
             // A 429 or 403 starts a cooldown, which stops this run: later rows would only be rejected the same way, and
             // are left queued untouched.
-            return get_transient(BOBLIFT_INDEXNOW_COOLDOWN) === false;
+            return boblift_indexnow_cooldown_until() === 0;
         }
         return true;
     });
@@ -721,9 +743,11 @@ function boblift_indexnow_sync_worker(): void
         return;
     }
     // Reread the options from the database (another request may have just changed cron) before deciding.
+    // The default object cache ignores wp_load_alloptions()'s force flag, so the cached copies are dropped explicitly.
+    wp_cache_delete('cron', 'options');
+    wp_cache_delete('alloptions', 'options');
     if (function_exists('wp_load_alloptions')) {
-        wp_cache_delete('cron', 'options');
-        wp_load_alloptions(true);
+        wp_load_alloptions();
     }
     $scheduled = wp_next_scheduled(BOBLIFT_INDEXNOW_SWEEP_HOOK) !== false;
     // Only a missing event is added and an unwanted one cleared. Extra occurrences are left alone: WP-Cron itself
