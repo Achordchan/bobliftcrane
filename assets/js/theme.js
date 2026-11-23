@@ -1441,6 +1441,12 @@
         return;
       }
       pinch = null;
+      if (wasPinch) {
+        // The pinch is over: the picture goes back inside its bounds (centred at fit), which also undoes a sideways pull the
+        // pinch took over and never moved. Smoothly, unless a finger left on the picture drags on from here.
+        if (pointers.size === 1 && !buttonPointers.has([...pointers.keys()][0])) apply();
+        else settle();
+      }
       if (pointers.size === 1) {
         lastTap = null;
         // The finger left on a button does nothing more; one left on the picture carries on dragging from where it is.
