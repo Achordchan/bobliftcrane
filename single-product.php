@@ -585,9 +585,10 @@ if ($family_quote_copy) {
                             <?php endforeach; ?>
                         <?php endif; ?>
                         <?php if ($hero_gallery_items) : ?>
-                            <?php // Phones and touch tablets: this button, or a tap on the photo, opens it full screen to zoom. It stays hidden
-                            // until theme.js has set up the viewer, and shows only where that applies, so it never does nothing. ?>
-                            <button class="absolute end-2 top-2 z-40 hidden size-9 place-items-center rounded-sm border border-[#D5DEE9] bg-white/90 text-[#071f42] shadow-card backdrop-blur transition hover:border-blue-300 hover:bg-white hover:text-blue-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-100 sm:end-3 sm:top-3" type="button" data-photo-viewer-open aria-label="<?php echo esc_attr(boblift_localized_static_text('View full-size photo')); ?>"><?php echo boblift_icon('maximize-2', 'h-4 w-4'); ?></button>
+                            <?php // Below 1024 px this button, or a tap on the photo, opens it full screen to zoom. It stays hidden until theme.js
+                            // has set up the viewer, so it never does nothing. Wider touch tablets open the photo with a tap; there the button
+                            // shows only when the keyboard reaches it. ?>
+                            <button class="boblift-photo-open absolute end-2 top-2 z-40 hidden size-9 place-items-center rounded-sm border border-[#D5DEE9] bg-white/90 text-[#071f42] shadow-card backdrop-blur transition hover:border-blue-300 hover:bg-white hover:text-blue-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-100 sm:end-3 sm:top-3" type="button" data-photo-viewer-open aria-label="<?php echo esc_attr(boblift_localized_static_text('View full-size photo')); ?>"><?php echo boblift_icon('maximize-2', 'h-4 w-4'); ?></button>
                         <?php endif; ?>
                     </div>
                     <?php // Always there, even for one photo: every configuration's gallery keeps one height. ?>
@@ -611,9 +612,9 @@ if ($family_quote_copy) {
                                 <?php endforeach; ?>
                             </div>
                         </div>
-                        <?php // The photos full screen, in the drawings' zoom viewer: pinch, double tap or the buttons zoom; a swipe, the arrows or
+                        <?php // The photos full screen at every size (a phone turned sideways keeps the whole screen), in the drawings' zoom viewer: pinch, double tap or the buttons zoom; a swipe, the arrows or
                         // the arrow keys go through the photos (theme.js). The picture is set when it opens, so nothing loads before. ?>
-                        <dialog class="boblift-drawing-dialog m-0 h-[100dvh] max-h-none w-screen max-w-none overflow-hidden border-0 bg-white p-0 shadow-raised sm:m-auto sm:h-[92vh] sm:w-[96vw] sm:border sm:border-[#DDE7F2]" data-photo-viewer aria-label="<?php echo esc_attr($product['title']); ?>">
+                        <dialog class="boblift-drawing-dialog boblift-photo-dialog m-0 h-[100dvh] max-h-none w-screen max-w-none overflow-hidden border-0 bg-white p-0" data-photo-viewer aria-label="<?php echo esc_attr($product['title']); ?>">
                             <div class="flex h-full flex-col">
                                 <div class="flex items-center justify-between gap-3 border-b border-[#DDE7F2] px-3 py-2.5 sm:px-4 sm:py-3 md:px-6">
                                     <p class="flex min-w-0 items-baseline gap-2 text-sm font-black text-[#071f42]"><?php if (count($hero_gallery_items) > 1) : ?><span class="shrink-0 font-semibold text-slate-500 [font-variant-numeric:tabular-nums]" dir="ltr" data-photo-viewer-count>1 / <?php echo esc_html((string) count($hero_gallery_items)); ?></span><?php endif; ?><span class="truncate" data-photo-viewer-label><?php echo esc_html($hero_gallery_items[0]['label']); ?></span></p>

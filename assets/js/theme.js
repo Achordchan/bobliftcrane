@@ -1168,7 +1168,7 @@
     };
     // A finger on a fitted photo swipes it toward the next one; anywhere else it drags the picture.
     const startDrag = (point) => {
-      drag = { x: point.x, y: point.y, fromX: x, fromY: y, moved: false, swipe: Boolean(onStep) && atFit() };
+      drag = { x: point.x, y: point.y, fromX: x, fromY: y, moved: false, swipe: Boolean(onStep) && (!ready || atFit()) };
     };
     const settle = () => {
       image.classList.add('is-settling');
@@ -1207,7 +1207,8 @@
       };
       const failed = () => {
         detach();
-        if (token !== loadToken) return;
+        // Closed meanwhile: no fallback download for a viewer nobody sees; opening again asks for the picture anew.
+        if (token !== loadToken || !dialog.open) return;
         if (onError) onError();
         else stage.classList.remove('is-loading');
       };
@@ -1253,8 +1254,8 @@
       if (event.key === '+' || event.key === '=') zoomCentre(1.5);
       else if (event.key === '-' || event.key === '_') zoomCentre(1 / 1.5);
       else if (event.key === '0') reset();
-      else if (onStep && ready && atFit() && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
-        // A fitted photo has nothing to pan, so left and right step through the photos.
+      else if (onStep && (!ready || atFit()) && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
+        // A fitted photo, or one still loading or failed, has nothing to pan, so left and right step through the photos.
         onStep(event.key === 'ArrowRight' ? forward() : -forward());
       } else if (event.key.startsWith('Arrow') && ready) {
         // Arrow keys move the picture a fifth of the screen, so a keyboard can reach every edge once it is zoomed.
@@ -1288,7 +1289,8 @@
     }, { passive: false });
     stage.addEventListener('pointerdown', (event) => {
       // Buttons on the picture (the photo arrows) keep their own clicks: capturing the pointer would take them away.
-      if (!ready || (event.pointerType === 'mouse' && event.button !== 0) || event.target.closest('button')) return;
+      // A photo still loading, or one that failed, can only be swiped away; everything else waits for the picture.
+      if ((!ready && !onStep) || (event.pointerType === 'mouse' && event.button !== 0) || event.target.closest('button')) return;
       stage.setPointerCapture?.(event.pointerId);
       stage.classList.add('is-touched');
       pointers.set(event.pointerId, local(event));
@@ -1302,6 +1304,7 @@
       const point = local(event);
       pointers.set(event.pointerId, point);
       if (pinch && pointers.size >= 2) {
+        if (!ready) return;
         const [a, b] = [...pointers.values()];
         scale = limit(pinch.scale * (Math.hypot(a.x - b.x, a.y - b.y) / pinch.distance));
         // The point of the picture that was under the fingers stays under them, so a pinch can also pan.
@@ -1407,6 +1410,12 @@
   // the zoom viewer, at the photo shown. Pinch or double tap zooms; a swipe, the arrows or the arrow keys go through the
   // photos, and closing leaves the page on the last one seen. Wide screens with a mouse keep the page as it was.
   const photoViewerMedia = window.matchMedia('(max-width: 1023px), (hover: none) and (pointer: coarse)');
+  // The corner button shows below 1024 px; on wider touch tablets it is there for the keyboard only.
+  const photoButtonMedia = window.matchMedia('(max-width: 1023px)');
+  const onMediaChange = (media, listener) => {
+    if (media.addEventListener) media.addEventListener('change', listener);
+    else media.addListener?.(listener);
+  };
   qsa('[data-product-hero-gallery-root]').forEach((root) => {
     const dialog = qs('[data-photo-viewer]', root);
     const frame = qs('[data-product-hotspot-stage]', root);
@@ -1503,17 +1512,19 @@
       if (!photoViewerMedia.matches || event.target.closest('button, a')) return;
       open(event);
     });
-    // The full-size button is rendered hidden and shows here, only where a tap opens the viewer.
+    // The full-size button is rendered hidden and joins the page here, only where a tap opens the viewer.
     const opener = qs('[data-photo-viewer-open]', root);
     if (opener) {
       opener.addEventListener('click', open);
       const syncOpener = () => {
-        opener.classList.toggle('hidden', !photoViewerMedia.matches);
-        opener.classList.toggle('grid', photoViewerMedia.matches);
+        const enabled = photoViewerMedia.matches;
+        opener.classList.toggle('hidden', !enabled);
+        opener.classList.toggle('grid', enabled);
+        opener.classList.toggle('is-focus-only', enabled && !photoButtonMedia.matches);
       };
       syncOpener();
-      if (photoViewerMedia.addEventListener) photoViewerMedia.addEventListener('change', syncOpener);
-      else photoViewerMedia.addListener?.(syncOpener);
+      onMediaChange(photoViewerMedia, syncOpener);
+      onMediaChange(photoButtonMedia, syncOpener);
     }
     qsa('[data-photo-viewer-step]', dialog).forEach((button) => {
       button.addEventListener('click', () => step(Number(button.dataset.photoViewerStep) || 1));
