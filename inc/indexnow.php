@@ -15,8 +15,8 @@ if (!defined('ABSPATH')) {
  * publishing request). A cron run leases each due row with a compare-and-swap UPDATE, checks each post again, sends
  * the permalinks in POSTs of up to 10,000 URLs, and deletes the row only afterwards; a run that dies mid-way leaves
  * the row to be picked up once its lease expires. A POST that fails (no connection, 429 or 5xx) gets one more try ten
- * minutes later, in a row of its own. One wake-up event is kept, moved earlier only when a batch needs it, and an
- * hourly sweep picks up any row whose event was lost.
+ * minutes later, in a row of its own. A recurring worker event runs every minute; publishing requests only write
+ * batch rows and never touch the shared cron option, so they cannot race WordPress or other plugins scheduling there.
  */
 
 const BOBLIFT_INDEXNOW_ENDPOINT = 'https://api.indexnow.org/indexnow';
@@ -27,18 +27,15 @@ const BOBLIFT_INDEXNOW_KEY_OPTION = 'boblift_indexnow_key';
 const BOBLIFT_INDEXNOW_RETRY_HOOK = 'boblift_indexnow_retry';
 const BOBLIFT_INDEXNOW_RETRY_PREFIX = 'boblift_indexnow_retry_';
 const BOBLIFT_INDEXNOW_SWEEP_HOOK = 'boblift_indexnow_sweep';
-const BOBLIFT_INDEXNOW_WAKE_OPTION = 'boblift_indexnow_wake';
-const BOBLIFT_INDEXNOW_LOCK_OPTION = 'boblift_indexnow_wake_lock';
+const BOBLIFT_INDEXNOW_INTERVAL = 'boblift_indexnow_minute';
 const BOBLIFT_INDEXNOW_LEASE = 15 * 60;
 const BOBLIFT_INDEXNOW_ROW_IDS = 1000;
 const BOBLIFT_INDEXNOW_RUN_ROWS = 20;
 const BOBLIFT_INDEXNOW_RUN_SECONDS = 60;
-// Most batch rows read by one worker run or one wake-up reconciliation.
+// Most batch rows read per page of a worker scan.
 const BOBLIFT_INDEXNOW_SCAN_ROWS = 100;
 // Pages of BOBLIFT_INDEXNOW_SCAN_ROWS one scan may read, so rows leased by stalled runs cannot hide the rows behind them.
 const BOBLIFT_INDEXNOW_SCAN_PAGES = 5;
-// Tries, 100 ms apart, to take the wake-up lock before leaving the rows to the hourly sweep.
-const BOBLIFT_INDEXNOW_LOCK_TRIES = 20;
 
 function boblift_indexnow_valid_key(mixed $key): bool
 {
@@ -249,7 +246,7 @@ function boblift_indexnow_send(array $post_ids, bool $retry = true, ?callable $s
 /**
 /**
  * A batch row's option name: the due time, zero-padded so names sort by it, then a unique suffix so concurrent requests
- * never touch each other's rows. Sorting by name lets the worker and the wake-up read the earliest rows first.
+ * never touch each other's rows. Sorting by name lets the worker read the earliest rows first.
  */
 function boblift_indexnow_row_name(int $due): string
 {
@@ -264,25 +261,19 @@ function boblift_indexnow_name_due(string $name): int
 
 /**
  * Saves post IDs as batch rows of at most BOBLIFT_INDEXNOW_ROW_IDS each (unique names, so concurrent requests never
- * touch each other's rows, and each row is small enough for one worker step) and moves the wake-up to $due if needed.
- * $retry says whether a failed POST of the batch gets one more try. Returns false if any part could not be kept.
+ * touch each other's rows, and each row is small enough for one worker step); the every-minute worker runs them once
+ * due. $retry says whether a failed POST of the batch gets one more try. Returns false if any part could not be kept.
  */
 function boblift_indexnow_save_batch(array $post_ids, int $due, bool $retry): bool
 {
     $kept = true;
-    $saved = false;
     foreach (array_chunk(array_map('intval', $post_ids), BOBLIFT_INDEXNOW_ROW_IDS) as $ids) {
         $batch = ['due' => $due, 'ids' => $ids, 'retry' => $retry];
-        if (add_option(boblift_indexnow_row_name($due), $batch, '', 'no')) {
-            $saved = true;
-        } else {
+        // The every-minute worker picks the row up once it is due; nothing else is scheduled.
+        if (!add_option(boblift_indexnow_row_name($due), $batch, '', 'no')) {
             // The row could not be written: carry the batch in the cron event itself so it is not lost.
             $kept = boblift_indexnow_schedule_event($due, [$batch]) && $kept;
         }
-    }
-    // All rows share one due time: one wake-up after they are all saved. The worker and the hourly sweep reconcile the rest.
-    if ($saved) {
-        boblift_indexnow_wake_at($due);
     }
     return $kept;
 }
@@ -408,111 +399,9 @@ function boblift_indexnow_runnable_at(array $batch): int
 }
 
 /**
- * Keeps one wake-up event at the earliest time a waiting batch can run. Reads rows earliest due first, at most
- * BOBLIFT_INDEXNOW_SCAN_PAGES pages, and stops as soon as the next row's due time is past the earliest runnable time
- * found (a row never runs before its due time). If rows remain unread, the wake-up is set no later than the due time of
- * the last row read (the earliest any unread row can run), but at least a minute out, so rows leased by stalled runs
- * cannot make it fire in a loop. A batch that could not be read counts as runnable in ten minutes.
- */
-function boblift_indexnow_schedule_retry(): void
-{
-    $next = null;
-    $last_due = null;
-    $complete = boblift_indexnow_walk_rows(null, static function (string $name) use (&$next, &$last_due): bool {
-        $last_due = boblift_indexnow_name_due($name);
-        if ($next !== null && $last_due >= $next) {
-            return false;
-        }
-        $batch = boblift_indexnow_read_retry($name);
-        if ($batch === false) {
-            boblift_indexnow_claim_retry($name);
-            return true;
-        }
-        $at = $batch === null ? time() + 10 * MINUTE_IN_SECONDS : boblift_indexnow_runnable_at($batch);
-        $next = $next === null ? $at : min($next, $at);
-        return true;
-    });
-    if (!$complete && $last_due !== null) {
-        $bound = max($last_due, time() + MINUTE_IN_SECONDS);
-        $next = $next === null ? $bound : min($next, $bound);
-    }
-    if ($next !== null) {
-        boblift_indexnow_wake_at($next);
-    }
-}
-
-/**
- * Makes sure the one wake-up event runs no later than $at: an existing wake-up at or before it is reused (also when
- * it is overdue), otherwise it is moved to $at. Reads only the wake-up option, never the batch rows. The read, check
- * and replacement run under a short lock row held by a token, so two requests never both replace the same wake-up and
- * only the lock holder writes the cron option. A request that cannot get the lock within about two seconds leaves the
- * wake-up alone; its rows are already saved and the hourly sweep runs them.
- */
-function boblift_indexnow_wake_at(int $at): void
-{
-    $next = max($at, time());
-    $lock = boblift_indexnow_lock();
-    for ($try = 1; $lock === null && $try < BOBLIFT_INDEXNOW_LOCK_TRIES; $try++) {
-        usleep(100000);
-        $lock = boblift_indexnow_lock();
-    }
-    if ($lock === null) {
-        return;
-    }
-    // Read the wake-up and the cron array fresh from the database: this request may hold copies loaded before another
-    // request changed them under the lock.
-    foreach ([BOBLIFT_INDEXNOW_WAKE_OPTION, 'cron', 'alloptions', 'notoptions'] as $cached) {
-        wp_cache_delete($cached, 'options');
-    }
-    $wake = (int) get_option(BOBLIFT_INDEXNOW_WAKE_OPTION, 0);
-    $wake_exists = $wake > 0 && wp_next_scheduled(BOBLIFT_INDEXNOW_RETRY_HOOK, [['at' => $wake]]);
-    // The replacement is scheduled first; the old wake-up is removed only once it is in place, so a failed cron write
-    // never leaves the waiting batches without one.
-    if (!($wake_exists && $wake <= $next) && boblift_indexnow_schedule_event($next, [['at' => $next]])) {
-        if ($wake_exists) {
-            wp_unschedule_event($wake, BOBLIFT_INDEXNOW_RETRY_HOOK, [['at' => $wake]]);
-        }
-        update_option(BOBLIFT_INDEXNOW_WAKE_OPTION, $next, false);
-    }
-    boblift_indexnow_unlock($lock);
-}
-
-/**
- * Takes the wake-up lock and returns this request's token, or null when another request holds it. The lock row is
- * created with INSERT IGNORE (atomic in the database, unlike add_option()); a lock older than 30 seconds belongs to a
- * request that died and is taken over with a compare-and-swap UPDATE, so only one request wins it.
- */
-function boblift_indexnow_lock(): ?string
-{
-    global $wpdb;
-    $token = time() . ':' . wp_generate_uuid4();
-    $inserted = (int) $wpdb->query($wpdb->prepare("INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')", BOBLIFT_INDEXNOW_LOCK_OPTION, $token)) === 1;
-    wp_cache_delete(BOBLIFT_INDEXNOW_LOCK_OPTION, 'options');
-    if ($inserted) {
-        return $token;
-    }
-    $held = $wpdb->get_row($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s LIMIT 1", BOBLIFT_INDEXNOW_LOCK_OPTION), ARRAY_A);
-    // The token starts with the time it was taken; (int) reads that leading number.
-    if (!is_array($held) || (int) $held['option_value'] > time() - 30) {
-        return null;
-    }
-    $taken = (int) $wpdb->query($wpdb->prepare("UPDATE {$wpdb->options} SET option_value = %s WHERE option_name = %s AND option_value = %s", $token, BOBLIFT_INDEXNOW_LOCK_OPTION, (string) $held['option_value'])) === 1;
-    wp_cache_delete(BOBLIFT_INDEXNOW_LOCK_OPTION, 'options');
-    return $taken ? $token : null;
-}
-
-/** Releases the lock only if it still holds this request's token, so a request whose lock was taken over leaves the new owner's lock alone. */
-function boblift_indexnow_unlock(string $token): void
-{
-    global $wpdb;
-    $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name = %s AND option_value = %s", BOBLIFT_INDEXNOW_LOCK_OPTION, $token));
-    wp_cache_delete(BOBLIFT_INDEXNOW_LOCK_OPTION, 'options');
-}
-
-/**
  * Sends runnable batches, one row (at most BOBLIFT_INDEXNOW_ROW_IDS posts) at a time, within a budget of
- * BOBLIFT_INDEXNOW_RUN_ROWS rows and BOBLIFT_INDEXNOW_RUN_SECONDS per call; what is left is picked up by the wake-up
- * scheduled at the end. Each row is leased, checked to be still ours right before its POST, and deleted only by its
+ * BOBLIFT_INDEXNOW_RUN_ROWS rows and BOBLIFT_INDEXNOW_RUN_SECONDS per call; what is left is picked up by the next run a
+ * minute later. Each row is leased, checked to be still ours right before its POST, and deleted only by its
  * owner after the POST and any retry row were saved; if the retry could not be saved the row stays and runs again when
  * the lease ends. A row that could not be read, is not due, or is leased by a live run stays; a row that was read but
  * holds no valid batch is removed. Only rows already due are read, earliest first, at most BOBLIFT_INDEXNOW_SCAN_ROWS.
@@ -563,7 +452,6 @@ function boblift_indexnow_run_retries(array $carried = []): void
         }
         return true;
     });
-    boblift_indexnow_schedule_retry();
 }
 
 add_action('transition_post_status', static function (string $new_status, string $old_status, WP_Post $post): void {
@@ -594,10 +482,15 @@ add_action('shutdown', static function (): void {
 add_action(BOBLIFT_INDEXNOW_RETRY_HOOK, 'boblift_indexnow_run_retries');
 add_action(BOBLIFT_INDEXNOW_SWEEP_HOOK, 'boblift_indexnow_run_retries');
 
-// The hourly sweep runs rows whose own event was lost, without waiting for the next publish.
+add_filter('cron_schedules', static function (array $schedules): array {
+    $schedules[BOBLIFT_INDEXNOW_INTERVAL] = ['interval' => MINUTE_IN_SECONDS, 'display' => 'Every minute (IndexNow)'];
+    return $schedules;
+});
+
+// The worker runs every minute and picks up whatever rows are due; it is the only regular cron write this file makes.
 add_action('init', static function (): void {
     if (boblift_indexnow_enabled() && !wp_next_scheduled(BOBLIFT_INDEXNOW_SWEEP_HOOK)) {
-        wp_schedule_event(time() + HOUR_IN_SECONDS, 'hourly', BOBLIFT_INDEXNOW_SWEEP_HOOK);
+        wp_schedule_event(time() + MINUTE_IN_SECONDS, BOBLIFT_INDEXNOW_INTERVAL, BOBLIFT_INDEXNOW_SWEEP_HOOK);
     }
 });
 
@@ -605,7 +498,6 @@ add_action('init', static function (): void {
 add_action('switch_theme', static function (): void {
     wp_clear_scheduled_hook(BOBLIFT_INDEXNOW_SWEEP_HOOK);
     wp_unschedule_hook(BOBLIFT_INDEXNOW_RETRY_HOOK);
-    delete_option(BOBLIFT_INDEXNOW_WAKE_OPTION);
 });
 
 // The key file, answered ahead of the legacy redirects (priority 0) and the 404 template.

@@ -22,6 +22,10 @@ function add_action(string $hook, callable $callback, int $priority = 10, int $a
 {
     $GLOBALS['hooks'][$hook] = $callback;
 }
+function add_filter(string $hook, callable $callback, int $priority = 10, int $args = 1): void
+{
+    $GLOBALS['filters'][$hook] = $callback;
+}
 function get_option(string $name, $default = false)
 {
     return $GLOBALS['options'][$name] ?? $default;
@@ -277,6 +281,7 @@ function wp_next_scheduled(string $hook, array $args = [])
 }
 function wp_schedule_event(int $time, string $recurrence, string $hook): bool
 {
+    $GLOBALS['recurrence'][$hook] = $recurrence;
     $GLOBALS['scheduled'][] = $hook;
     $GLOBALS['events'][] = [$hook, [], $time];
     return true;
@@ -403,16 +408,13 @@ $saved = $ids($rows);
 sort($saved);
 $check('each failed dispatch is saved in its own row', count($rows) === 2 && $saved === [[11], [12]]);
 $check('each row is due ten minutes after its own failure', $GLOBALS['options'][$rows[0]]['due'] >= time() + 590);
-$check('one retry run is scheduled', $GLOBALS['scheduled'] === ['boblift_indexnow_retry']);
-$GLOBALS['scheduled'] = $GLOBALS['events'] = [];
-boblift_indexnow_schedule_retry();
-$check('a lost retry event is scheduled again while rows wait', $GLOBALS['scheduled'] === ['boblift_indexnow_retry']);
+$check('saving rows writes nothing to cron', $GLOBALS['scheduled'] === []);
 $GLOBALS['posts'][11]->post_password = 'secret';
 $GLOBALS['remote_fails'] = false;
 $GLOBALS['sent'] = [];
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
 ($GLOBALS['hooks']['boblift_indexnow_retry'])();
-$check('rows that are not due yet are left for a later run', $GLOBALS['sent'] === [] && count(boblift_indexnow_retry_names()) === 2 && $GLOBALS['scheduled'] === ['boblift_indexnow_retry']);
+$check('rows that are not due yet are left for a later run, with no cron write', $GLOBALS['sent'] === [] && count(boblift_indexnow_retry_names()) === 2 && $GLOBALS['scheduled'] === []);
 foreach ($rows as $i => $name) {
     $GLOBALS['options'][rn(time() - 1, 'due' . $i)] = ['due' => time() - 1] + $GLOBALS['options'][$name];
     unset($GLOBALS['options'][$name]);
@@ -429,18 +431,6 @@ add_option(rn(0, 'bad'), 'truncated', '', 'no');
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
 boblift_indexnow_run_retries();
 $check('a malformed row is removed and schedules nothing', !isset($GLOBALS['options'][rn(0, 'bad')]) && $GLOBALS['scheduled'] === []);
-$row_a = rn(time() + 600, 'a');
-$row_b = rn(time() + 60, 'b');
-add_option($row_a, ['due' => time() + 600, 'ids' => [12]], '', 'no');
-add_option($row_b, ['due' => time() + 60, 'ids' => [12]], '', 'no');
-$GLOBALS['scheduled_at'] = [];
-boblift_indexnow_schedule_retry();
-$GLOBALS['scheduled'] = $GLOBALS['events'] = [];
-wp_schedule_single_event(time() + 600, 'boblift_indexnow_retry', [['at' => time() + 600]]);
-boblift_indexnow_schedule_retry();
-$check('a run is added for an earlier batch even when a later run exists', count($GLOBALS['events']) === 2 && $GLOBALS['events'][1][2] <= time() + 60);
-$check('the next run is scheduled for the earliest waiting batch', ($GLOBALS['scheduled_at'][0] ?? 0) <= time() + 60);
-unset($GLOBALS['options'][$row_a], $GLOBALS['options'][$row_b]);
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
 $GLOBALS['wpdb']->fail_reads = true;
 add_option(rn(0, 'y'), ['due' => 0, 'ids' => [12]], '', 'no');
@@ -476,10 +466,6 @@ $GLOBALS['remote_fails'] = false;
 $GLOBALS['sent'] = [];
 boblift_indexnow_run_retries($carried);
 $check('the cron event sends the IDs it carries', $GLOBALS['sent'] === [['https://bobliftcrane.com/p31.html']]);
-add_option(rn(0, 'bad2'), 'truncated', '', 'no');
-$GLOBALS['scheduled'] = $GLOBALS['events'] = [];
-boblift_indexnow_schedule_retry();
-$check('scheduling removes a malformed row and schedules nothing', !isset($GLOBALS['options'][rn(0, 'bad2')]) && $GLOBALS['scheduled'] === []);
 $saved_key = $GLOBALS['options']['boblift_indexnow_key'];
 $GLOBALS['options']['boblift_indexnow_key'] = 'bad key!';
 $GLOBALS['wpdb']->fail_reads = true;
@@ -519,32 +505,17 @@ unset($GLOBALS['watch_ids']);
 $check('an expired lease is picked up, the row kept until sent, then removed', $GLOBALS['sent'] === [['https://bobliftcrane.com/p41.html']] && ($GLOBALS['row_seen_during_send'] ?? false) && boblift_indexnow_retry_names() === []);
 
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
-$row_late = rn(time() - 100, 'late');
-add_option($row_late, ['due' => time() - 100, 'ids' => [41], 'retry' => false], '', 'no');
-$t = time();
-$GLOBALS['options']['boblift_indexnow_wake'] = $t - 5;
-$GLOBALS['events'][] = ['boblift_indexnow_retry', [['at' => $t - 5]], $t - 5];
-boblift_indexnow_schedule_retry();
-$check('an overdue wake-up is reused, not duplicated', count($GLOBALS['events']) === 1);
-$GLOBALS['events'] = [['boblift_indexnow_retry', [['at' => $t + 600]], $t + 600]];
-$GLOBALS['options']['boblift_indexnow_wake'] = $t + 600;
-boblift_indexnow_schedule_retry();
-$check('a later wake-up is replaced by an earlier one', count($GLOBALS['events']) === 1 && $GLOBALS['events'][0][2] <= time());
-unset($GLOBALS['options'][$row_late]);
-$GLOBALS['events'][] = ['boblift_indexnow_sweep', [], time() + 3600];
+$GLOBALS['events'][] = ['boblift_indexnow_sweep', [], time() + 60];
+$GLOBALS['events'][] = ['boblift_indexnow_retry', [['ids' => [1], 'due' => 0, 'retry' => true]], time()];
 ($GLOBALS['hooks']['switch_theme'])();
-$check('switching themes clears the IndexNow cron events', $GLOBALS['events'] === [] && !isset($GLOBALS['options']['boblift_indexnow_wake']));
-$GLOBALS['scheduled'] = $GLOBALS['events'] = [];
+$check('switching themes clears the IndexNow cron events', $GLOBALS['events'] === []);
 
-add_option(rn(time() + 300, 'waiting'), ['due' => time() + 300, 'ids' => [41], 'retry' => false], '', 'no');
 $GLOBALS['wpdb']->scans = 0;
+$GLOBALS['scheduled'] = [];
 boblift_indexnow_save_batch([41], time(), true);
-$check('saving a batch schedules from its own due time without scanning the queue', $GLOBALS['wpdb']->scans === 0 && ($GLOBALS['options']['boblift_indexnow_wake'] ?? PHP_INT_MAX) <= time());
-foreach (boblift_indexnow_retry_names() as $name) {
-    unset($GLOBALS['options'][$name]);
-}
+$check('saving a batch only writes its row: no queue scan and no cron write', $GLOBALS['wpdb']->scans === 0 && $GLOBALS['scheduled'] === [] && count(boblift_indexnow_retry_names()) === 1);
+clear_rows();
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
-unset($GLOBALS['options']['boblift_indexnow_wake']);
 
 $GLOBALS['posts'] = [];
 foreach (range(1, 25) as $i) {
@@ -553,9 +524,8 @@ foreach (range(1, 25) as $i) {
 }
 $GLOBALS['sent'] = [];
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
-unset($GLOBALS['options']['boblift_indexnow_wake']);
 boblift_indexnow_run_retries();
-$check('one run sends at most 20 rows and wakes again for the rest', count($GLOBALS['sent']) === 20 && count(boblift_indexnow_retry_names()) === 5 && ($GLOBALS['options']['boblift_indexnow_wake'] ?? PHP_INT_MAX) <= time());
+$check('one run sends at most 20 rows and leaves the rest for the next minute', count($GLOBALS['sent']) === 20 && count(boblift_indexnow_retry_names()) === 5);
 boblift_indexnow_run_retries();
 $check('the next run finishes the rest', count($GLOBALS['sent']) === 25 && boblift_indexnow_retry_names() === []);
 
@@ -582,34 +552,6 @@ unlink($log);
 $check('when the retry cannot be saved anywhere, the original row is kept', row_ids() === [[1]]);
 clear_rows();
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
-unset($GLOBALS['options']['boblift_indexnow_wake']);
-
-$GLOBALS['scheduled'] = $GLOBALS['events'] = [];
-$base = time();
-$GLOBALS['options']['boblift_indexnow_wake'] = $base + 600;
-$GLOBALS['events'][] = ['boblift_indexnow_retry', [['at' => $base + 600]], $base + 600];
-add_option('boblift_indexnow_wake_lock', $base, '', 'no');
-boblift_indexnow_wake_at($base);
-$check('while another request holds the wake-up lock, it does not write to cron at all and leaves the rows to the sweep', $GLOBALS['options']['boblift_indexnow_wake'] === $base + 600 && $GLOBALS['events'] === [['boblift_indexnow_retry', [['at' => $base + 600]], $base + 600]]);
-$GLOBALS['options']['boblift_indexnow_wake_lock'] = time() - 60;
-$GLOBALS['events'] = [['boblift_indexnow_retry', [['at' => $base + 600]], $base + 600]];
-boblift_indexnow_wake_at(time());
-$check('a stale lock is taken over, the wake-up replaced and the lock released', count($GLOBALS['events']) === 1 && $GLOBALS['events'][0][2] <= time() && !isset($GLOBALS['options']['boblift_indexnow_wake_lock']));
-$GLOBALS['scheduled'] = $GLOBALS['events'] = [];
-unset($GLOBALS['options']['boblift_indexnow_wake']);
-
-$base = time();
-$GLOBALS['options']['boblift_indexnow_wake'] = $base + 600;
-$GLOBALS['events'] = [['boblift_indexnow_retry', [['at' => $base + 600]], $base + 600]];
-$GLOBALS['schedule_fails'] = true;
-$log = tempnam(sys_get_temp_dir(), 'indexnow');
-ini_set('error_log', $log);
-boblift_indexnow_wake_at($base);
-$GLOBALS['schedule_fails'] = false;
-unlink($log);
-$check('when the earlier wake-up cannot be scheduled, the existing one is kept', $GLOBALS['options']['boblift_indexnow_wake'] === $base + 600 && $GLOBALS['events'] === [['boblift_indexnow_retry', [['at' => $base + 600]], $base + 600]]);
-$GLOBALS['scheduled'] = $GLOBALS['events'] = [];
-unset($GLOBALS['options']['boblift_indexnow_wake']);
 
 // Post reads: a failed lookup keeps the batch; existing posts are read with primed caches.
 $GLOBALS['posts'] = [51 => new WP_Post(51)];
@@ -636,43 +578,22 @@ $check('a deleted post is skipped and the rest resolved', count(boblift_indexnow
 $check('post, term and meta caches are primed in chunks of 100', array_map('count', $GLOBALS['primed']) === [100, 100, 50]);
 $check('the request-local cache is dropped after each chunk', $GLOBALS['runtime_flushes'] === 3);
 
-// The wake-up scan reads a bounded number of rows, earliest due first. One base time for the whole setup.
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
-unset($GLOBALS['options']['boblift_indexnow_wake']);
 $base = time();
-foreach (range(0, 599) as $i) {
-    $GLOBALS['options'][rn($base + 1000 + $i, 'scan' . $i)] = ['due' => $base + 1000 + $i, 'ids' => [1], 'retry' => true];
-}
-$GLOBALS['wpdb']->reads = 0;
-boblift_indexnow_schedule_retry();
-$check('the wake-up scan stops once later rows cannot run sooner', $GLOBALS['wpdb']->reads <= 3 && ($GLOBALS['options']['boblift_indexnow_wake'] ?? 0) === $base + 1000);
-foreach (range(0, 599) as $i) {
-    $GLOBALS['options'][rn($base + 1000 + $i, 'scan' . $i)]['lease'] = $base + 5000;
-}
-$GLOBALS['scheduled'] = $GLOBALS['events'] = [];
-unset($GLOBALS['options']['boblift_indexnow_wake']);
-$GLOBALS['wpdb']->reads = 0;
-boblift_indexnow_schedule_retry();
-$check('with more rows than one scan reads, the wake-up is no later than the last due time read', $GLOBALS['wpdb']->reads <= 500 && ($GLOBALS['options']['boblift_indexnow_wake'] ?? 0) === $base + 1499);
-foreach (boblift_indexnow_retry_names(1000) as $name) {
-    unset($GLOBALS['options'][$name]);
-}
-// 150 due rows leased by stalled runs do not hide a runnable row behind them, and do not make the wake-up loop.
+// 150 due rows leased by stalled runs do not hide a runnable row behind them.
 $GLOBALS['posts'] = [71 => new WP_Post(71)];
 foreach (range(0, 149) as $i) {
     $GLOBALS['options'][rn($base - 1000 + $i, 'stuck' . $i)] = ['due' => $base - 1000 + $i, 'ids' => [71], 'retry' => true, 'lease' => $base + 600];
 }
 $GLOBALS['options'][rn($base - 10, 'behind')] = ['due' => $base - 10, 'ids' => [71], 'retry' => true];
 $GLOBALS['sent'] = $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
-unset($GLOBALS['options']['boblift_indexnow_wake']);
 boblift_indexnow_run_retries();
 $check('a runnable row behind 150 leased rows is sent', $GLOBALS['sent'] === [['https://bobliftcrane.com/p71.html']] && !isset($GLOBALS['options'][rn($base - 10, 'behind')]));
-$check('the leased rows wake the worker when their leases end, not at once', ($GLOBALS['options']['boblift_indexnow_wake'] ?? 0) >= $base + 600);
+$check('a worker run writes nothing to cron', $GLOBALS['scheduled'] === []);
 foreach (boblift_indexnow_retry_names(1000) as $name) {
     unset($GLOBALS['options'][$name]);
 }
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
-unset($GLOBALS['options']['boblift_indexnow_wake']);
 
 // A run whose lease is taken over while it resolves permalinks sends nothing and leaves the row to the new owner.
 add_option(rn(0, 'takeover'), ['due' => 0, 'ids' => [71], 'retry' => true], '', 'no');
@@ -689,7 +610,6 @@ $rows = boblift_indexnow_retry_names();
 $check('a carried batch that fails is kept as a row', count($rows) === 1 && $GLOBALS['options'][$rows[0]]['ids'] === [61]);
 unset($GLOBALS['options'][$rows[0]]);
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
-unset($GLOBALS['options']['boblift_indexnow_wake']);
 
 $GLOBALS['add_option_fails'] = true;
 $GLOBALS['sent'] = [];
@@ -698,7 +618,6 @@ $GLOBALS['add_option_fails'] = false;
 $carried_again = array_values(array_filter($GLOBALS['events'], static fn($e): bool => ($e[1][0]['ids'] ?? null) === [61]));
 $check('a carried batch whose row still cannot be written is carried again ten minutes out, not at once', $GLOBALS['sent'] === [] && count($carried_again) === 1 && $carried_again[0][2] >= time() + 590);
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
-unset($GLOBALS['options']['boblift_indexnow_wake']);
 
 // A retry whose key cannot be read makes no POST and keeps its row.
 $saved_key = $GLOBALS['options']['boblift_indexnow_key'];
@@ -711,17 +630,6 @@ $check('a retry that cannot read the key reports failure', boblift_indexnow_send
 unset($GLOBALS['key_reads_fail'], $GLOBALS['options'][rn(0, 'nokey')]);
 $GLOBALS['options']['boblift_indexnow_key'] = $saved_key;
 
-// The lock is owned by a token: a request whose lock was taken over leaves the new owner's lock alone.
-$old = boblift_indexnow_lock();
-$check('the lock is taken with a token and not twice', is_string($old) && boblift_indexnow_lock() === null);
-$GLOBALS['options']['boblift_indexnow_wake_lock'] = (time() - 60) . ':' . substr((string) $old, strpos((string) $old, ':') + 1);
-$stale = $GLOBALS['options']['boblift_indexnow_wake_lock'];
-$new = boblift_indexnow_lock();
-boblift_indexnow_unlock($stale);
-$check('a stale lock is taken over and its old owner cannot release the new lock', is_string($new) && ($GLOBALS['options']['boblift_indexnow_wake_lock'] ?? null) === $new);
-boblift_indexnow_unlock($new);
-$check('the owner releases its own lock', !isset($GLOBALS['options']['boblift_indexnow_wake_lock']));
-
 // Publish to shutdown through the registered hooks: queued on publish, sent once at shutdown with the final permalink.
 $GLOBALS['posts'] = [21 => new WP_Post(21, 'product')];
 $GLOBALS['sent'] = [];
@@ -732,7 +640,7 @@ $check('a publish queues without sending', $GLOBALS['sent'] === [] && boblift_in
 $GLOBALS['scheduled'] = $GLOBALS['scheduled_at'] = $GLOBALS['events'] = [];
 ($GLOBALS['hooks']['shutdown'])();
 $rows = boblift_indexnow_retry_names();
-$check('shutdown makes no network call and saves one batch due now', $GLOBALS['sent'] === [] && count($rows) === 1 && $GLOBALS['options'][$rows[0]]['retry'] === true && ($GLOBALS['scheduled_at'][0] ?? PHP_INT_MAX) <= time());
+$check('shutdown makes no network call or cron write and saves one batch due now', $GLOBALS['sent'] === [] && $GLOBALS['scheduled'] === [] && count($rows) === 1 && $GLOBALS['options'][$rows[0]]['retry'] === true && $GLOBALS['options'][$rows[0]]['due'] <= time());
 ($GLOBALS['hooks']['boblift_indexnow_retry'])();
 $check('the cron run sends the permalink once and clears the batch', $GLOBALS['sent'] === [['https://bobliftcrane.com/p21.html']] && boblift_indexnow_retry_names() === []);
 $GLOBALS['remote_fails'] = true;
@@ -746,17 +654,16 @@ unset($GLOBALS['options'][$rows[0]]);
 $GLOBALS['remote_fails'] = false;
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
 ($GLOBALS['hooks']['init'])();
-$check('the hourly sweep is scheduled on the live site', in_array('boblift_indexnow_sweep', $GLOBALS['scheduled'], true));
+$check('the every-minute worker is scheduled on the live site', in_array('boblift_indexnow_sweep', $GLOBALS['scheduled'], true) && ($GLOBALS['recurrence']['boblift_indexnow_sweep'] ?? '') === 'boblift_indexnow_minute');
+$check('the every-minute interval is registered', (($GLOBALS['filters']['cron_schedules'])([])['boblift_indexnow_minute']['interval'] ?? 0) === 60);
 $log = tempnam(sys_get_temp_dir(), 'indexnow');
 ini_set('error_log', $log);
-$GLOBALS['schedule_fails'] = true;
+$GLOBALS['add_option_fails'] = $GLOBALS['schedule_fails'] = true;
 boblift_indexnow_save_batch([21], time(), true);
-$GLOBALS['schedule_fails'] = false;
-$rows = boblift_indexnow_retry_names();
-$check('a failed schedule is logged and the row waits for the sweep', str_contains((string) file_get_contents($log), 'IndexNow: could not schedule') && count($rows) === 1);
-unset($GLOBALS['options'][$rows[0]]);
+$GLOBALS['add_option_fails'] = $GLOBALS['schedule_fails'] = false;
+$check('a batch that can be neither saved nor carried is logged', str_contains((string) file_get_contents($log), 'IndexNow: could not schedule'));
 unlink($log);
-$check('the sweep runs the batch worker', ($GLOBALS['hooks']['boblift_indexnow_sweep'] ?? null) === 'boblift_indexnow_run_retries');
+$check('the worker hook runs the batch worker', ($GLOBALS['hooks']['boblift_indexnow_sweep'] ?? null) === 'boblift_indexnow_run_retries');
 
 $GLOBALS['options']['boblift_indexnow_key'] = "abcd1234\n";
 $check('a key with a trailing newline is repaired', preg_match('/^[a-z0-9]{32}\z/', boblift_indexnow_key()) === 1);
