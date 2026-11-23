@@ -1241,14 +1241,20 @@
         clearTimeout(stall);
         if (detachLoad === detach) detachLoad = () => {};
       };
-      const done = () => {
+      // An event from an earlier request (one finishing after the src changed) is not this load's: the picture asked for is
+      // then not the one showing (currentSrc), or not finished yet (complete), depending on the browser. It is passed over
+      // and the listeners wait for the picture asked for.
+      const stale = (event) => event instanceof Event && (image.currentSrc !== image.src || !image.complete);
+      const done = (event) => {
+        if (stale(event)) return;
         detach();
         if (token !== loadToken || !dialog.open) return;
         stage.classList.remove('is-loading');
         reset();
         if (onLoad) onLoad();
       };
-      const failed = () => {
+      const failed = (event) => {
+        if (stale(event)) return;
         detach();
         // Closed meanwhile: no fallback download for a viewer nobody sees; opening again asks for the picture anew.
         if (token !== loadToken || !dialog.open) return;
@@ -1595,26 +1601,40 @@
     const address = (url) => retries.get(url) || url;
     // Neighbours being fetched ahead, by address, until they settle: a stalled one can then be dropped (see onError).
     const preloads = new Map();
+    // A preload that is no longer wanted (no longer a neighbour, the viewer closed, or stalled 20 s) lets go of its request.
+    const cancelPreload = (url) => {
+      const entry = preloads.get(url);
+      if (!entry) return;
+      clearTimeout(entry.timer);
+      entry.image.removeAttribute('src');
+      preloads.delete(url);
+    };
     const preload = (value) => {
       const photo = photos[wrap(value)];
       const url = photo && address(photo.full);
       if (!photo || photo === photos[index] || preloads.has(url)) return;
       const next = new Image();
       next.decoding = 'async';
-      const settled = () => preloads.delete(url);
+      const settled = () => {
+        // Only this preload's own entry: a cancelled one's late event leaves a newer preload of the address alone.
+        if (preloads.get(url)?.image !== next) return;
+        clearTimeout(preloads.get(url).timer);
+        preloads.delete(url);
+      };
       next.addEventListener('load', settled, { once: true });
       next.addEventListener('error', settled, { once: true });
-      preloads.set(url, next);
+      preloads.set(url, { image: next, timer: setTimeout(() => cancelPreload(url), 20000) });
       next.src = url;
+    };
+    // Keeps only the preloads of the photo showing and the ones either side of it.
+    const trimPreloads = () => {
+      const wanted = new Set([-1, 0, 1].map((offset) => address(photos[wrap(index + offset)].full)));
+      [...preloads.keys()].filter((url) => !wanted.has(url)).forEach(cancelPreload);
     };
     // Ends a request for this address that never finished: the viewer's own and a preload sharing it. The browser keeps a
     // request open while any image still asks for it, so both have to let go before coming back to the photo asks anew.
     const dropStalled = (url) => {
-      const stuck = preloads.get(url);
-      if (stuck) {
-        stuck.removeAttribute('src');
-        preloads.delete(url);
-      }
+      cancelPreload(url);
       if (image.getAttribute('src') === url && !image.complete) image.removeAttribute('src');
     };
     const setPhoto = (value) => {
@@ -1633,6 +1653,7 @@
     const step = (direction) => {
       setPhoto(index + direction);
       viewer.load();
+      trimPreloads();
       preload(index + direction);
     };
     viewer = bobliftZoomViewer({
@@ -1672,6 +1693,7 @@
         }
       },
       onClose: () => {
+        [...preloads.keys()].forEach(cancelPreload);
         const thumb = photos[shown]?.thumb;
         if (thumb && thumb.dataset.productHeroGalleryIndex !== root.dataset.productHeroActiveIndex) thumb.click();
       },
