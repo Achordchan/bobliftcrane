@@ -273,7 +273,7 @@ function boblift_indexnow_payload_ids(array $payloads, array $by_url): array
  * $keep(int[] $ids, int $due, bool $retry): bool keeps IDs for a later try; by default they are saved as new batch
  * rows. The worker passes its own, so it can move its leased row instead of adding a second one.
  */
-function boblift_indexnow_send(array $post_ids, bool $retry = true, ?callable $still_owned = null, ?callable $keep = null): bool
+function boblift_indexnow_send(array $post_ids, bool $retry = true, ?callable $still_owned = null, ?callable $keep = null, int $deadline = 0): bool
 {
     if (!boblift_indexnow_enabled()) {
         return false;
@@ -297,6 +297,11 @@ function boblift_indexnow_send(array $post_ids, bool $retry = true, ?callable $s
     foreach ($payloads as $index => $payload) {
         if ($still_owned !== null && !$still_owned()) {
             return false;
+        }
+        // The worker's time is up (resolving permalinks can be slow on a cold cache): the rest is kept, runnable again at
+        // once with its retry allowance unchanged, instead of starting another blocking POST.
+        if ($deadline !== 0 && time() >= $deadline) {
+            return (bool) $keep(boblift_indexnow_payload_ids(array_slice($payloads, $index), $by_url), time(), $retry) && $kept;
         }
         // Another run may have hit a 429 or 403 meanwhile: then nothing more is posted and the rest is kept.
         $cooldown = boblift_indexnow_cooldown_until();
@@ -641,7 +646,7 @@ function boblift_indexnow_run_retries(): void
         // A group is sent before a row that would take it past the cap joins it (a row holds at most 100 posts).
         $stop = false;
         if ($groups[$flag] !== [] && $group_ids[$flag] + count($batch['ids']) > BOBLIFT_INDEXNOW_GROUP_IDS) {
-            boblift_indexnow_send_group($groups[$flag], (bool) $flag);
+            boblift_indexnow_send_group($groups[$flag], (bool) $flag, $started + BOBLIFT_INDEXNOW_RUN_SECONDS);
             $groups[$flag] = [];
             $group_ids[$flag] = 0;
             // A 429 or 403 starts a cooldown, which stops this run: later rows would only be rejected the same way.
@@ -663,7 +668,7 @@ function boblift_indexnow_run_retries(): void
             }
             continue;
         }
-        boblift_indexnow_send_group($group, (bool) $flag);
+        boblift_indexnow_send_group($group, (bool) $flag, $started + BOBLIFT_INDEXNOW_RUN_SECONDS);
     }
 }
 
@@ -674,7 +679,7 @@ function boblift_indexnow_run_retries(): void
  *
  * @param array<int, array{0: string, 1: string, 2: int[]}> $group [row name, leased value, post IDs]
  */
-function boblift_indexnow_send_group(array $group, bool $retry): void
+function boblift_indexnow_send_group(array $group, bool $retry, int $deadline = 0): void
 {
     $again = [];
     $again_due = 0;
@@ -694,7 +699,7 @@ function boblift_indexnow_send_group(array $group, bool $retry): void
         return true;
     };
     $ids = array_values(array_unique(array_merge(...array_map(static fn(array $row): array => $row[2], $group))));
-    if (!boblift_indexnow_send($ids, $retry, $owned, $collect)) {
+    if (!boblift_indexnow_send($ids, $retry, $owned, $collect, $deadline)) {
         // Nothing acknowledged: the rows stay leased and run again when their leases end.
         return;
     }
@@ -735,6 +740,33 @@ $boblift_indexnow_meta_changed = static function (mixed $meta_id, int $post_id, 
     }
     boblift_indexnow_queue_add((int) $post->ID, (int) get_current_blog_id());
 };
+// Public terms (categories, tags, product categories) shown on the page: a change made on its own, without a status or
+// field change (wp post term add, a bulk edit), queues the post. Saves that set the same terms again are ignored.
+function boblift_indexnow_terms_changed(int $object_id, string $taxonomy): void
+{
+    $tax = get_taxonomy($taxonomy);
+    if (!$tax || empty($tax->public)) {
+        return;
+    }
+    $post = get_post($object_id);
+    if (!$post instanceof WP_Post || !boblift_indexnow_post_qualifies($post) || wp_is_post_revision($post) || !boblift_indexnow_enabled()) {
+        return;
+    }
+    boblift_indexnow_queue_add((int) $post->ID, (int) get_current_blog_id());
+}
+add_action('set_object_terms', static function (int $object_id, array $terms, array $tt_ids, string $taxonomy, bool $append, array $old_tt_ids): void {
+    $new = array_map('intval', $tt_ids);
+    $old = array_map('intval', $old_tt_ids);
+    // Appending only adds terms; replacing can also remove some.
+    if (array_diff($new, $old) !== [] || (!$append && array_diff($old, $new) !== [])) {
+        boblift_indexnow_terms_changed($object_id, $taxonomy);
+    }
+}, 10, 6);
+add_action('deleted_term_relationships', static function (int $object_id, array $tt_ids, string $taxonomy): void {
+    if ($tt_ids !== []) {
+        boblift_indexnow_terms_changed($object_id, $taxonomy);
+    }
+}, 10, 3);
 add_action('added_post_meta', $boblift_indexnow_meta_changed, 10, 3);
 add_action('updated_post_meta', $boblift_indexnow_meta_changed, 10, 3);
 add_action('deleted_post_meta', $boblift_indexnow_meta_changed, 10, 3);

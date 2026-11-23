@@ -461,6 +461,10 @@ if (getenv('INDEXNOW_DEADLINE') !== false) {
     // A child run with a one-second budget, to reach the deadline without waiting a minute.
     define('BOBLIFT_INDEXNOW_RUN_SECONDS', 1);
 }
+function get_taxonomy(string $taxonomy)
+{
+    return in_array($taxonomy, ['category', 'post_tag', 'product_cat'], true) ? (object) ['public' => true] : (in_array($taxonomy, ['language', 'internal_flag'], true) ? (object) ['public' => false] : false);
+}
 require dirname(__DIR__) . '/inc/indexnow.php';
 
 if (getenv('INDEXNOW_NO_PLATFORM') !== false || getenv('INDEXNOW_PLATFORM_CONSTANTS') !== false) {
@@ -1109,6 +1113,35 @@ $check('when the pause cannot be read, nothing is sent and the posts are kept fo
     return true;
 }) === true && $GLOBALS['sent'] === [] && $kept_here[0] === [84] && $kept_here[1] >= time() + 50 && $kept_here[1] <= time() + 60);
 unset($GLOBALS['cooldown_read_fails']);
+$GLOBALS['transients'] = [];
+
+// A term-only change to a published post's public taxonomy queues it; re-saving the same terms does not.
+$GLOBALS['boblift_indexnow_queue'] = [];
+$GLOBALS['posts'] = [75 => new WP_Post(75, 'product'), 76 => new WP_Post(76, 'post', 'draft')];
+($GLOBALS['hooks']['set_object_terms'])(75, [3], [30], 'product_cat', false, [30]);
+($GLOBALS['hooks']['set_object_terms'])(75, [3], [30], 'product_cat', true, [30, 31]);
+($GLOBALS['hooks']['set_object_terms'])(75, [9], [90], 'internal_flag', false, []);
+($GLOBALS['hooks']['set_object_terms'])(76, [3], [30], 'product_cat', false, []);
+$check('re-saving the same terms, appending one already there, a private taxonomy or a draft queue nothing', boblift_indexnow_queued_ids() === []);
+($GLOBALS['hooks']['set_object_terms'])(75, [3], [30], 'product_cat', true, [31]);
+$check('a published product added to a product category is queued', boblift_indexnow_queued_ids() === [1 => [75]]);
+$GLOBALS['boblift_indexnow_queue'] = [];
+($GLOBALS['hooks']['set_object_terms'])(75, [], [], 'product_cat', false, [30]);
+$removed = boblift_indexnow_queued_ids();
+$GLOBALS['boblift_indexnow_queue'] = [];
+($GLOBALS['hooks']['deleted_term_relationships'])(75, [30], 'category');
+$check('a term removed (replaced or deleted) queues the post', $removed === [1 => [75]] && boblift_indexnow_queued_ids() === [1 => [75]]);
+$GLOBALS['boblift_indexnow_queue'] = [];
+
+// The worker's deadline is rechecked right before each POST.
+$GLOBALS['transients'] = [kc() => 'ok'];
+$GLOBALS['posts'] = [85 => new WP_Post(85)];
+$GLOBALS['sent'] = [];
+$kept_here = [];
+$check('a send that reaches the deadline before its POST sends nothing and keeps the posts, runnable now, retry unchanged', boblift_indexnow_send([85], true, null, static function (array $ids, int $due, bool $retry) use (&$kept_here): bool {
+    $kept_here = [$ids, $due, $retry];
+    return true;
+}, time() - 1) === true && $GLOBALS['sent'] === [] && $kept_here[0] === [85] && $kept_here[1] <= time() && $kept_here[2] === true);
 $GLOBALS['transients'] = [];
 
 exit($failures === 0 ? 0 : 1);
