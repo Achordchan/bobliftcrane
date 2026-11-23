@@ -1080,7 +1080,7 @@
   // mouse drags it once it is larger than the screen, and so do the arrow keys. Esc, the close button or the backdrop close
   // it. With onStep (the photos), a sideways swipe or the left and right arrow keys on the fitted picture step to the
   // neighbouring one. nativeMax is how far past its own pixels the picture may zoom.
-  const bobliftZoomViewer = ({ dialog, stage, image, level, zoomIn, zoomOut, fitButton, nativeMax = 1.5, loadTimeout = 0, onStep = null, onLoad = null, onError = null, onClose = null }) => {
+  const bobliftZoomViewer = ({ dialog, stage, image, level, zoomIn, zoomOut, fitButton, nativeMax = 1.5, loadTimeout = 0, loadingStatus = null, onStep = null, onLoad = null, onError = null, onClose = null }) => {
     let fit = 1;
     let max = 2;
     let scale = 1;
@@ -1218,6 +1218,13 @@
     // Shows the picture now in the image's src once it has loaded, fitted. A newer call (the next photo) wins.
     // The listeners of the load in progress; a newer load or the outcome removes both, so none pile up on the image.
     let detachLoad = () => {};
+    // A picture that takes more than a moment is announced (loadingStatus, a polite live region holding its own text in
+    // data-loading-text); the announcement is emptied when the load ends either way.
+    let statusTimer = 0;
+    const quiet = () => {
+      clearTimeout(statusTimer);
+      if (loadingStatus && loadingStatus.textContent) loadingStatus.textContent = '';
+    };
     const load = () => {
       const token = ++loadToken;
       detachLoad();
@@ -1239,6 +1246,7 @@
         image.removeEventListener('load', done);
         image.removeEventListener('error', failed);
         clearTimeout(stall);
+        quiet();
         if (detachLoad === detach) detachLoad = () => {};
       };
       // An event from an earlier request (one finishing after the src changed) is not this load's: the picture asked for is
@@ -1283,6 +1291,11 @@
         // smaller size, then a message), loadTimeout ms of it count as failed; without one (the drawings) the picture is
         // waited for as long as it takes, so a slow one still shows when it arrives.
         if (loadTimeout > 0) stall = setTimeout(failed, loadTimeout);
+        if (loadingStatus) {
+          statusTimer = setTimeout(() => {
+            loadingStatus.textContent = loadingStatus.dataset.loadingText || '';
+          }, 600);
+        }
         detachLoad = detach;
       }
     };
@@ -1657,6 +1670,39 @@
       preloads.set(url, { image: next, timer: setTimeout(() => cancelPreload(url), 20000) });
       next.src = url;
     };
+    // A photo with a single address whose request ran past the time limit may be slow rather than stalled: it is kept going
+    // in the background (for up to 2 minutes, or until the viewer closes) while the viewer shows its message, and if it
+    // arrives it is shown after all (and used from then on), even while a fresh request for it is under way.
+    const parked = new Map();
+    const unpark = (url) => {
+      const entry = parked.get(url);
+      if (!entry) return;
+      clearTimeout(entry.timer);
+      entry.image.removeAttribute('src');
+      parked.delete(url);
+    };
+    const park = (photo, url) => {
+      if (!url || parked.has(url)) return;
+      const keep = new Image();
+      keep.decoding = 'async';
+      const end = () => {
+        if (parked.get(url)?.image !== keep) return;
+        clearTimeout(parked.get(url).timer);
+        parked.delete(url);
+      };
+      keep.addEventListener('load', () => {
+        end();
+        photo.shown = url;
+        if (dialog.open && photos[index] === photo && !image.classList.contains('is-ready')) {
+          showFailure(false);
+          image.src = url;
+          viewer.load();
+        }
+      }, { once: true });
+      keep.addEventListener('error', end, { once: true });
+      parked.set(url, { image: keep, timer: setTimeout(() => unpark(url), 120000) });
+      keep.src = url;
+    };
     // Keeps only the preloads of the photo showing and the ones either side of it.
     const trimPreloads = () => {
       const wanted = new Set([-1, 0, 1].map((offset) => want(photos[wrap(index + offset)])));
@@ -1700,6 +1746,7 @@
       // Photos zoom to their own pixels at most (and always to 4x the fit): past that they only blur.
       nativeMax: 1,
       loadTimeout: 20000,
+      loadingStatus: qs('[data-photo-viewer-loading]', dialog),
       onStep: photos.length > 1 ? step : null,
       onLoad: () => {
         shown = index;
@@ -1714,6 +1761,8 @@
         const photo = photos[index];
         const failedUrl = image.getAttribute('src');
         const fallback = photo.src ? address(photo.src) : '';
+        // Timed out with nothing smaller to try: the request is parked before the viewer lets go of it, so it carries on.
+        if (!image.complete && !(fallback && failedUrl !== fallback)) park(photo, failedUrl);
         if (!image.complete) dropStalled(failedUrl);
         // The copy remembered as shown failed this time: next visit starts again from the full size.
         if (photo.shown === failedUrl) delete photo.shown;
@@ -1732,6 +1781,7 @@
       },
       onClose: () => {
         [...preloads.keys()].forEach(cancelPreload);
+        [...parked.keys()].forEach(unpark);
         // A photo still loading when the viewer closes lets go of its request, and opening again asks afresh (a new address,
         // as after a failure), so a request that stalled meanwhile is not waited on again.
         const pending = image.getAttribute('src');
