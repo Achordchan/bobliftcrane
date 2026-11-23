@@ -150,6 +150,10 @@ class Fake_Wpdb
         if (str_contains($sql, 'SET option_name')) {
             // UPDATE ... SET option_name = new, option_value = value WHERE option_name = old AND option_value = raw
             [$new, $value, $old, $raw] = $args;
+            if (($GLOBALS['slow_rename'] ?? null) === $old) {
+                // This row's lease takes long enough to use up the run's time.
+                sleep(2);
+            }
             if (!array_key_exists($old, $GLOBALS['options']) || (string) maybe_serialize($GLOBALS['options'][$old]) !== (string) $raw || array_key_exists($new, $GLOBALS['options'])) {
                 return 0;
             }
@@ -445,6 +449,10 @@ function status_header(int $code): void
 {
     http_response_code($code);
 }
+if (getenv('INDEXNOW_DEADLINE') !== false) {
+    // A child run with a one-second budget, to reach the deadline without waiting a minute.
+    define('BOBLIFT_INDEXNOW_RUN_SECONDS', 1);
+}
 require dirname(__DIR__) . '/inc/indexnow.php';
 
 if (getenv('INDEXNOW_NO_PLATFORM') !== false || getenv('INDEXNOW_PLATFORM_CONSTANTS') !== false) {
@@ -458,6 +466,30 @@ if (($route = getenv('INDEXNOW_ROUTE')) !== false) {
     $_SERVER['REQUEST_URI'] = $route;
     ($GLOBALS['hooks']['template_redirect'])();
     echo 'FALLTHROUGH';
+    exit;
+}
+
+// Child mode: two due rows; leasing the first uses up the run's time, so nothing may be sent and the leased row must be
+// released (runnable again now) rather than wait out its 15-minute lease.
+if (getenv('INDEXNOW_DEADLINE') !== false) {
+    ini_set('error_log', '/dev/null');
+    $GLOBALS['transients'] = [boblift_indexnow_key_check_name('abcd1234') => 'ok'];
+    $GLOBALS['options']['boblift_indexnow_key'] = 'abcd1234';
+    $GLOBALS['posts'] = [61 => new WP_Post(61), 62 => new WP_Post(62)];
+    add_option(rn(0, 'da'), ['due' => 0, 'ids' => [61], 'retry' => true], '', 'no');
+    add_option(rn(0, 'db'), ['due' => 0, 'ids' => [62], 'retry' => false], '', 'no');
+    $GLOBALS['slow_rename'] = rn(0, 'da');
+    $GLOBALS['sent'] = [];
+    $before = time();
+    boblift_indexnow_run_retries();
+    $rows = array_filter($GLOBALS['options'], static fn($v, $k): bool => str_starts_with((string) $k, 'boblift_indexnow_retry_'), ARRAY_FILTER_USE_BOTH);
+    $released = array_values(array_filter($rows, static fn($v): bool => $v['ids'] === [61]));
+    $untouched = $rows[rn(0, 'db')] ?? null;
+    echo json_encode([
+        'sent' => count($GLOBALS['sent']),
+        'released' => count($released) === 1 && empty($released[0]['lease']) && $released[0]['retry'] === true && $released[0]['due'] >= $before && $released[0]['due'] <= time(),
+        'untouched' => $untouched !== null && $untouched['ids'] === [62] && empty($untouched['lease']),
+    ]);
     exit;
 }
 
@@ -1013,5 +1045,42 @@ $check('the advertised key file answers with the exact key', $route('/abcd1234.t
 $check('the key file also answers with a trailing slash', $route('/abcd1234.txt/') === 'abcd1234');
 $check('an unrelated .txt path falls through', $route('/robots-file.txt') === 'FALLTHROUGH');
 $check('a key path with a trailing newline falls through', $route("/abcd1234.txt%0A") === 'FALLTHROUGH');
+
+
+// Uneven rows: a group is sent before a row that would take it past 1,000 posts, never after.
+clear_rows();
+unset($GLOBALS['options']['boblift_indexnow_cooldown_until']);
+$GLOBALS['transients'] = [kc() => 'ok'];
+$GLOBALS['posts'] = [];
+$next = 1;
+foreach (array_merge(array_fill(0, 10, 95), [100]) as $n => $size) {
+    $chunk = range($next, $next + $size - 1);
+    $next += $size;
+    foreach ($chunk as $i) {
+        $GLOBALS['posts'][$i] = new WP_Post($i);
+    }
+    add_option(rn(0, 'uneven' . str_pad((string) $n, 2, '0', STR_PAD_LEFT)), ['due' => 0, 'ids' => $chunk, 'retry' => true], '', 'no');
+}
+$GLOBALS['sent'] = [];
+boblift_indexnow_run_retries();
+$check('rows of 95 and then 100 posts: the 950 go out before the 100-post row joins, so no request passes 1,000', array_map('count', $GLOBALS['sent']) === [950, 100] && boblift_indexnow_retry_names() === []);
+$GLOBALS['transients'] = [];
+$deadline = json_decode((string) shell_exec('INDEXNOW_DEADLINE=1 ' . escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__)), true);
+$check('rows leased when the run\'s time is up are not sent but released, runnable again now', ($deadline['sent'] ?? null) === 0 && ($deadline['released'] ?? false) === true);
+$check('a row the run did not reach before its time was up is left as it was', ($deadline['untouched'] ?? false) === true);
+
+// Changes to a published post's public fields (custom fields without a leading underscore) queue it.
+$GLOBALS['boblift_indexnow_queue'] = [];
+$GLOBALS['posts'] = [71 => new WP_Post(71), 72 => new WP_Post(72, 'post', 'draft'), 73 => new WP_Post(73, 'feedback')];
+($GLOBALS['hooks']['updated_post_meta'])(1, 71, '_edit_lock');
+$check('an internal meta change (leading underscore, like _edit_lock) does not queue the post', boblift_indexnow_queued_ids() === []);
+($GLOBALS['hooks']['updated_post_meta'])(1, 71, 'model_specs');
+($GLOBALS['hooks']['added_post_meta'])(2, 72, 'model_specs');
+($GLOBALS['hooks']['deleted_post_meta'])([3], 73, 'model_specs');
+$check('a public field added, changed or removed queues a published post, not a draft or a type outside the list', boblift_indexnow_queued_ids() === [1 => [71]]);
+$GLOBALS['boblift_indexnow_queue'] = [];
+
+$root = boblift_indexnow_payloads(['https://bobliftcrane.com', 'https://bobliftcrane.com/a.html'], 'https://bobliftcrane.com', 'abcd1234');
+$check('a URL with no path is the home page and is kept', ($root[0]['urlList'] ?? []) === ['https://bobliftcrane.com', 'https://bobliftcrane.com/a.html']);
 
 exit($failures === 0 ? 0 : 1);

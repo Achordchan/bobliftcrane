@@ -33,7 +33,7 @@ const BOBLIFT_INDEXNOW_ROW_IDS = 100;
 const BOBLIFT_INDEXNOW_RUN_ROWS = 200;
 // Leased rows are sent together, up to this many post IDs per request, so many small rows cost few requests.
 const BOBLIFT_INDEXNOW_GROUP_IDS = 1000;
-const BOBLIFT_INDEXNOW_RUN_SECONDS = 60;
+defined('BOBLIFT_INDEXNOW_RUN_SECONDS') || define('BOBLIFT_INDEXNOW_RUN_SECONDS', 60);
 // Most batch rows read per page of a worker scan.
 const BOBLIFT_INDEXNOW_SCAN_ROWS = 100;
 // Pages of BOBLIFT_INDEXNOW_SCAN_ROWS one scan may read, so rows leased by stalled runs cannot hide the rows behind them.
@@ -162,7 +162,7 @@ function boblift_indexnow_payloads(array $urls, string $home, string $key): arra
     }
     $scope = rtrim((string) wp_parse_url($home, PHP_URL_PATH), '/') . '/';
     $urls = array_values(array_unique($urls));
-    $same_host = array_values(array_filter($urls, static fn(string $url): bool => boblift_indexnow_host($url) === $host && str_starts_with((string) wp_parse_url($url, PHP_URL_PATH), $scope)));
+    $same_host = array_values(array_filter($urls, static fn(string $url): bool => boblift_indexnow_host($url) === $host && str_starts_with(((string) wp_parse_url($url, PHP_URL_PATH)) ?: '/', $scope)));
     // This site serves every language under its own host (/es/, /fr/ ...). A permalink on another host or outside the
     // key's directory (for example if Polylang were switched to subdomains or separate domains) cannot be verified by
     // this key, so it is left out and logged, so such a change is noticed instead of silently skipped.
@@ -611,23 +611,32 @@ function boblift_indexnow_run_retries(): void
         }
         $rows++;
         $flag = $batch['retry'] ? 1 : 0;
-        $groups[$flag][] = [$name, $leased, $batch['ids']];
-        $group_ids[$flag] += count($batch['ids']);
-        if ($group_ids[$flag] >= BOBLIFT_INDEXNOW_GROUP_IDS) {
+        // A group is sent before a row that would take it past the cap joins it (a row holds at most 100 posts).
+        $stop = false;
+        if ($groups[$flag] !== [] && $group_ids[$flag] + count($batch['ids']) > BOBLIFT_INDEXNOW_GROUP_IDS) {
             boblift_indexnow_send_group($groups[$flag], (bool) $flag);
             $groups[$flag] = [];
             $group_ids[$flag] = 0;
-            // A 429 or 403 starts a cooldown, which stops this run: later rows would only be rejected the same way, and
-            // are left queued untouched.
-            return boblift_indexnow_cooldown_until() === 0;
+            // A 429 or 403 starts a cooldown, which stops this run: later rows would only be rejected the same way.
+            $stop = boblift_indexnow_cooldown_until() !== 0;
         }
-        return true;
+        $groups[$flag][] = [$name, $leased, $batch['ids']];
+        $group_ids[$flag] += count($batch['ids']);
+        return !$stop;
     });
-    // What is left goes out now; during a cooldown send() posts nothing and keeps the rows for its end.
+    // What is left goes out now; during a cooldown send() posts nothing and keeps the rows for its end. Once the run's
+    // time is used up, rows not yet sent are released (runnable again at once) instead of waiting out their lease.
     foreach ($groups as $flag => $group) {
-        if ($group !== []) {
-            boblift_indexnow_send_group($group, (bool) $flag);
+        if ($group === []) {
+            continue;
         }
+        if (time() - $started >= BOBLIFT_INDEXNOW_RUN_SECONDS) {
+            foreach ($group as [$name, $leased, $ids]) {
+                boblift_indexnow_reschedule_retry($name, $leased, $ids, time(), (bool) $flag);
+            }
+            continue;
+        }
+        boblift_indexnow_send_group($group, (bool) $flag);
     }
 }
 
@@ -682,6 +691,26 @@ add_action('transition_post_status', static function (string $new_status, string
     }
     boblift_indexnow_queue_add((int) $post->ID, (int) get_current_blog_id());
 }, 10, 3);
+
+// Public custom fields (keys without a leading underscore, such as product specifications) change the page too, even
+// when edited without a status change (WP-CLI, imports, the REST API). Internal keys (_edit_lock and the like) are not
+// public output and are ignored. The per-request queue removes duplicates.
+$boblift_indexnow_meta_changed = static function (mixed $meta_id, int $post_id, string $meta_key): void {
+    if ($meta_key === '' || $meta_key[0] === '_') {
+        return;
+    }
+    $post = get_post($post_id);
+    if (!$post instanceof WP_Post || $post->post_status !== 'publish' || !in_array($post->post_type, BOBLIFT_INDEXNOW_POST_TYPES, true)) {
+        return;
+    }
+    if (wp_is_post_revision($post) || !boblift_indexnow_enabled()) {
+        return;
+    }
+    boblift_indexnow_queue_add((int) $post->ID, (int) get_current_blog_id());
+};
+add_action('added_post_meta', $boblift_indexnow_meta_changed, 10, 3);
+add_action('updated_post_meta', $boblift_indexnow_meta_changed, 10, 3);
+add_action('deleted_post_meta', $boblift_indexnow_meta_changed, 10, 3);
 
 add_action('shutdown', static function (): void {
     foreach (boblift_indexnow_queued_ids() as $blog_id => $post_ids) {
