@@ -65,7 +65,7 @@ class Fake_Wpdb
     public function get_row(array $q, string $output = 'OBJECT')
     {
         $this->reads++;
-        if ($this->fail_reads) {
+        if ($this->fail_reads || (!empty($GLOBALS['key_reads_fail']) && $q[1][0] === 'boblift_indexnow_key')) {
             return null;
         }
         if ($this->steal_after_read !== null && $this->steal_after_read === $q[1][0] && array_key_exists($q[1][0], $GLOBALS['options'])) {
@@ -592,6 +592,26 @@ $check('a carried batch that fails is kept as a row', count($rows) === 1 && $GLO
 unset($GLOBALS['options'][$rows[0]]);
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
 unset($GLOBALS['options']['boblift_indexnow_wake']);
+
+$GLOBALS['add_option_fails'] = true;
+$GLOBALS['sent'] = [];
+boblift_indexnow_run_retries(['due' => time(), 'ids' => [61], 'retry' => false]);
+$GLOBALS['add_option_fails'] = false;
+$carried_again = array_values(array_filter($GLOBALS['events'], static fn($e): bool => ($e[1][0]['ids'] ?? null) === [61]));
+$check('a carried batch whose row still cannot be written is carried again ten minutes out, not at once', $GLOBALS['sent'] === [] && count($carried_again) === 1 && $carried_again[0][2] >= time() + 590);
+$GLOBALS['scheduled'] = $GLOBALS['events'] = [];
+unset($GLOBALS['options']['boblift_indexnow_wake']);
+
+// A retry whose key cannot be read makes no POST and keeps its row.
+$saved_key = $GLOBALS['options']['boblift_indexnow_key'];
+$GLOBALS['options']['boblift_indexnow_key'] = 'bad key!';
+add_option(rn(0, 'nokey'), ['due' => 0, 'ids' => [61], 'retry' => false], '', 'no');
+$GLOBALS['wpdb']->fail_reads = false;
+$GLOBALS['key_reads_fail'] = true;
+$GLOBALS['sent'] = [];
+$check('a retry that cannot read the key reports failure', boblift_indexnow_send([61], false) === false && $GLOBALS['sent'] === []);
+unset($GLOBALS['key_reads_fail'], $GLOBALS['options'][rn(0, 'nokey')]);
+$GLOBALS['options']['boblift_indexnow_key'] = $saved_key;
 
 // The lock is owned by a token: a request whose lock was taken over leaves the new owner's lock alone.
 $old = boblift_indexnow_lock();

@@ -189,8 +189,9 @@ function boblift_indexnow_send(array $post_ids, bool $retry = true): bool
     }
     $key = boblift_indexnow_key();
     if ($key === '') {
-        // The key could not be stored or read back: keep the posts for the retry instead of dropping them.
-        return !$retry || boblift_indexnow_save_batch(array_merge(...array_values($by_url)), time() + 10 * MINUTE_IN_SECONDS, false);
+        // The key could not be stored or read back, so nothing was submitted: a first try is saved as the retry, and a
+        // retry reports failure so its row is kept and runs again (only a real POST uses up the last attempt).
+        return $retry && boblift_indexnow_save_batch(array_merge(...array_values($by_url)), time() + 10 * MINUTE_IN_SECONDS, false);
     }
     $kept = true;
     foreach (boblift_indexnow_payloads(array_keys($by_url), (string) get_option('home'), $key) as $payload) {
@@ -442,8 +443,9 @@ function boblift_indexnow_unlock(string $token): void
  * the lease ends. A row that could not be read, is not due, or is leased by a live run stays; a row that was read but
  * holds no valid batch is removed. Only rows already due are read, earliest first, at most BOBLIFT_INDEXNOW_SCAN_ROWS.
  * $carried is a batch that travelled in the cron event because its row could not be written; WP-Cron has already
- * removed that event, so the batch is saved as a row first and runs below like any other. Only if it cannot be saved
- * anywhere is it sent straight away, and a failure there is logged.
+ * removed that event, so the batch is saved as a row first and runs below like any other. If rows still cannot be
+ * written it is carried again in an event ten minutes out; only if that also fails is it sent straight away, and a
+ * failure there is logged.
  */
 function boblift_indexnow_run_retries(array $carried = []): void
 {
@@ -451,8 +453,12 @@ function boblift_indexnow_run_retries(array $carried = []): void
     if (is_array($carried['ids'] ?? null)) {
         $ids = array_map('intval', $carried['ids']);
         $retry = (bool) ($carried['retry'] ?? false);
-        if (!boblift_indexnow_save_batch($ids, time(), $retry) && !boblift_indexnow_send($ids, $retry)) {
-            error_log(sprintf('IndexNow: a batch of %d posts could not be sent or saved.', count($ids)));
+        if (!add_option(boblift_indexnow_row_name(time()), ['due' => time(), 'ids' => $ids, 'retry' => $retry], '', 'no')) {
+            // Rows still cannot be written: carry it again, ten minutes later rather than at once, or send it now.
+            $later = time() + 10 * MINUTE_IN_SECONDS;
+            if (!boblift_indexnow_schedule_event($later, [['due' => $later, 'ids' => $ids, 'retry' => $retry]]) && !boblift_indexnow_send($ids, $retry)) {
+                error_log(sprintf('IndexNow: a batch of %d posts could not be sent or saved.', count($ids)));
+            }
         }
     }
     $rows = 0;
