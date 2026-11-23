@@ -265,8 +265,16 @@ function boblift_indexnow_send(array $post_ids, bool $retry = true, ?callable $s
             'body' => wp_json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
         ]);
         $code = is_wp_error($response) ? 0 : (int) wp_remote_retrieve_response_code($response);
-        // IndexNow answers 200 or 202; 429 and 5xx are worth another try, other 4xx (bad key or URLs) are not.
-        if (($code === 0 || $code === 429 || $code >= 500) && $retry) {
+        // IndexNow answers 200 or 202; 429 and 5xx are worth another try, other 4xx (bad key or URLs) are not. A 403
+        // (key not verified) while the key file really cannot be fetched keeps the posts, retry allowance unchanged,
+        // for when the key route is fixed: the worker sends nothing until the key check passes again.
+        if ($code === 403 && !boblift_indexnow_key_file_ok($key, true)) {
+            $ids = [];
+            foreach ($payload['urlList'] as $url) {
+                array_push($ids, ...$by_url[$url]);
+            }
+            $kept = (bool) $keep(array_values(array_unique($ids)), time() + 10 * MINUTE_IN_SECONDS, $retry) && $kept;
+        } elseif (($code === 0 || $code === 429 || $code >= 500) && $retry) {
             $ids = [];
             foreach ($payload['urlList'] as $url) {
                 array_push($ids, ...$by_url[$url]);
@@ -460,6 +468,21 @@ function boblift_indexnow_check_key_file(string $home, string $key): bool
 }
 
 /**
+ * Whether the key file was served correctly at the last check. Checked through the real HTTP stack once a day while it
+ * works and hourly while it fails, or now when $recheck is set.
+ */
+function boblift_indexnow_key_file_ok(string $key, bool $recheck = false): bool
+{
+    $state = $recheck ? false : get_transient(BOBLIFT_INDEXNOW_KEY_CHECK);
+    if ($state === false) {
+        $ok = boblift_indexnow_check_key_file((string) get_option('home'), $key);
+        $state = $ok ? 'ok' : 'failed';
+        set_transient(BOBLIFT_INDEXNOW_KEY_CHECK, $state, $ok ? DAY_IN_SECONDS : HOUR_IN_SECONDS);
+    }
+    return $state === 'ok';
+}
+
+/**
  * Sends runnable batches, one row (at most BOBLIFT_INDEXNOW_ROW_IDS posts) at a time, within a budget of
  * BOBLIFT_INDEXNOW_RUN_ROWS rows and BOBLIFT_INDEXNOW_RUN_SECONDS per call; what is left is picked up by the next run a
  * minute later. Each row is leased, checked to be still ours right before its POST, and then either deleted by its
@@ -473,13 +496,10 @@ function boblift_indexnow_run_retries(): void
     if (!boblift_indexnow_enabled()) {
         return;
     }
-    // Once a day (hourly while it fails) the worker checks the key file through the real HTTP stack.
-    if (get_transient(BOBLIFT_INDEXNOW_KEY_CHECK) === false) {
-        $key = boblift_indexnow_key();
-        if ($key !== '') {
-            $ok = boblift_indexnow_check_key_file((string) get_option('home'), $key);
-            set_transient(BOBLIFT_INDEXNOW_KEY_CHECK, $ok ? 'ok' : 'failed', $ok ? DAY_IN_SECONDS : HOUR_IN_SECONDS);
-        }
+    // While the key file cannot be fetched, nothing is sent: IndexNow would reject it, and the rows wait for the fix.
+    $key = boblift_indexnow_key();
+    if ($key !== '' && !boblift_indexnow_key_file_ok($key)) {
+        return;
     }
     $started = time();
     $rows = 0;
@@ -591,17 +611,62 @@ function boblift_indexnow_take_schedule_lock(): ?string
 }
 
 /**
- * Keeps exactly one worker event while submissions are on and none while they are off. It runs only in cron requests
- * (and WP-CLI), never in a publishing or page request, so those never write the shared cron option. Changes are made
- * under a lock, after reading the cron option again from the database, so two cron requests cannot both add the event;
- * any duplicate left by older code is removed.
+ * Applies the worker event change to the cron option as stored right now: reads the raw value, changes only this hook's
+ * entries, and writes it back with a conditional UPDATE that succeeds only if nobody changed the option in between
+ * (retried up to three times), so another plugin's event added meanwhile is never overwritten. A missing cron option is
+ * created; a failed read changes nothing.
+ */
+function boblift_indexnow_write_worker_event(bool $enabled): void
+{
+    global $wpdb;
+    for ($try = 0; $try < 3; $try++) {
+        $wpdb->last_error = '';
+        $row = $wpdb->get_row($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s LIMIT 1", 'cron'), ARRAY_A);
+        if (!is_array($row) && $wpdb->last_error !== '') {
+            return;
+        }
+        $raw = is_array($row) ? (string) $row['option_value'] : null;
+        $cron = $raw === null ? ['version' => 2] : maybe_unserialize($raw);
+        if (!is_array($cron)) {
+            return;
+        }
+        $times = boblift_indexnow_worker_times($cron);
+        if ($enabled && $times === []) {
+            $cron[time() + MINUTE_IN_SECONDS][BOBLIFT_INDEXNOW_SWEEP_HOOK][md5(serialize([]))] = ['schedule' => BOBLIFT_INDEXNOW_INTERVAL, 'args' => [], 'interval' => MINUTE_IN_SECONDS];
+        } elseif ($enabled ? count($times) > 1 : $times !== []) {
+            // Keep the earliest event while enabled (dropping duplicates), none while disabled.
+            foreach ($enabled ? array_slice($times, 1) : $times as $time) {
+                unset($cron[$time][BOBLIFT_INDEXNOW_SWEEP_HOOK]);
+                if ($cron[$time] === []) {
+                    unset($cron[$time]);
+                }
+            }
+        } else {
+            return;
+        }
+        uksort($cron, 'strnatcasecmp');
+        $value = serialize($cron);
+        $written = $raw === null
+            ? (int) $wpdb->query($wpdb->prepare("INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'yes')", 'cron', $value)) === 1
+            : (int) $wpdb->query($wpdb->prepare("UPDATE {$wpdb->options} SET option_value = %s WHERE option_name = %s AND option_value = %s", $value, 'cron', $raw)) === 1;
+        if ($written) {
+            // The cron option is autoloaded: drop the cached copies so this request and others read the new value.
+            wp_cache_delete('cron', 'options');
+            wp_cache_delete('alloptions', 'options');
+            return;
+        }
+    }
+}
+
+/**
+ * Keeps exactly one worker event while submissions are on and none while they are off. It runs from cron and WP-CLI
+ * requests and from front-end page views (so the first event is added even on a site whose cron only runs when an event
+ * is due), never from admin, AJAX or REST requests, where posts are published. Changes are made under a lock and applied
+ * to the stored cron option with a conditional write, so concurrent requests can neither add the event twice nor
+ * overwrite each other's cron changes.
  */
 function boblift_indexnow_sync_worker(): void
 {
-    if (!wp_doing_cron() && !(defined('WP_CLI') && WP_CLI)) {
-        return;
-    }
-    global $wpdb;
     $enabled = boblift_indexnow_enabled();
     $times = boblift_indexnow_worker_times(_get_cron_array());
     if ($enabled ? count($times) === 1 : $times === []) {
@@ -611,25 +676,24 @@ function boblift_indexnow_sync_worker(): void
     if ($lock === null) {
         return;
     }
-    $cron = $wpdb->get_var($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s LIMIT 1", 'cron'));
-    if ($cron !== null) {
-        $times = boblift_indexnow_worker_times(maybe_unserialize($cron));
-        if ($enabled && $times === []) {
-            wp_schedule_event(time() + MINUTE_IN_SECONDS, BOBLIFT_INDEXNOW_INTERVAL, BOBLIFT_INDEXNOW_SWEEP_HOOK);
-        } elseif ($enabled) {
-            foreach (array_slice($times, 1) as $time) {
-                wp_unschedule_event($time, BOBLIFT_INDEXNOW_SWEEP_HOOK);
-            }
-        } elseif ($times !== []) {
-            wp_clear_scheduled_hook(BOBLIFT_INDEXNOW_SWEEP_HOOK);
-        }
-    }
+    global $wpdb;
+    boblift_indexnow_write_worker_event($enabled);
     $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name = %s AND option_value = %s", BOBLIFT_INDEXNOW_SCHEDULE_LOCK, $lock));
 }
 
 // The worker runs every minute and picks up whatever rows are due; it is the only regular cron write this file makes.
 // When the site stops submitting (made private, or a copy off the live platform), the worker event is removed.
-add_action('init', 'boblift_indexnow_sync_worker');
+add_action('init', static function (): void {
+    if (wp_doing_cron() || (defined('WP_CLI') && WP_CLI)) {
+        boblift_indexnow_sync_worker();
+    }
+});
+// 'wp' fires only for front-end page requests (REST requests are answered before it, admin and AJAX never reach it).
+add_action('wp', static function (): void {
+    if (in_array($_SERVER['REQUEST_METHOD'] ?? 'GET', ['GET', 'HEAD'], true)) {
+        boblift_indexnow_sync_worker();
+    }
+});
 
 // Switching away from this theme drops its cron events, so nothing keeps running without a callback.
 add_action('switch_theme', static function (): void {

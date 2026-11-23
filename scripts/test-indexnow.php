@@ -84,6 +84,14 @@ class Fake_Wpdb
     public int $reads = 0;
     public function get_row(array $q, string $output = 'OBJECT')
     {
+        if ($q[1][0] === 'cron') {
+            // The cron option is kept as the event list in $GLOBALS['events']; it can fail to read or be missing.
+            if (!empty($GLOBALS['cron_read_fails'])) {
+                $this->last_error = 'Lost connection';
+                return null;
+            }
+            return !empty($GLOBALS['cron_missing']) ? null : ['option_value' => serialize(_get_cron_array())];
+        }
         $this->reads++;
         if ($this->fail_reads || (!empty($GLOBALS['key_reads_fail']) && $q[1][0] === 'boblift_indexnow_key')) {
             return null;
@@ -108,6 +116,28 @@ class Fake_Wpdb
                 return 0;
             }
             unset($GLOBALS['options'][$args[0]]);
+            return 1;
+        }
+        if (($args[0] ?? null) === 'cron' && str_starts_with($sql, 'INSERT IGNORE')) {
+            if (empty($GLOBALS['cron_missing'])) {
+                return 0;
+            }
+            unset($GLOBALS['cron_missing']);
+            cron_to_events(unserialize($args[1]));
+            return 1;
+        }
+        if (($args[1] ?? null) === 'cron' && str_starts_with($sql, 'UPDATE')) {
+            if (!empty($GLOBALS['cron_conflict_once'])) {
+                // Another request adds its own event between our read and our write.
+                unset($GLOBALS['cron_conflict_once']);
+                $GLOBALS['events'][] = ['other_plugin_event', [], time() + 300];
+                return 0;
+            }
+            if (serialize(_get_cron_array()) !== $args[2]) {
+                return 0;
+            }
+            $GLOBALS['cron_writes'] = ($GLOBALS['cron_writes'] ?? 0) + 1;
+            cron_to_events(unserialize($args[0]));
             return 1;
         }
         if (str_starts_with($sql, 'INSERT IGNORE')) {
@@ -341,6 +371,23 @@ function _get_cron_array(): array
     }
     ksort($cron);
     return $cron;
+}
+function cron_to_events(array $cron): void
+{
+    $GLOBALS['events'] = [];
+    foreach ($cron as $time => $hooks) {
+        if (!is_int($time)) {
+            continue;
+        }
+        foreach ($hooks as $hook => $entries) {
+            foreach ($entries as $entry) {
+                $GLOBALS['events'][] = [$hook, $entry['args'], $time];
+                if ($entry['schedule'] !== false) {
+                    $GLOBALS['recurrence'][$hook] = $entry['schedule'];
+                }
+            }
+        }
+    }
 }
 function wp_generate_uuid4(): string
 {
@@ -739,29 +786,46 @@ unset($GLOBALS['options'][$rows[0]]);
 $GLOBALS['remote_fails'] = false;
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
 ($GLOBALS['hooks']['init'])();
-$check('a page or publishing request never writes cron, even with no worker event yet', $GLOBALS['scheduled'] === [] && $GLOBALS['events'] === []);
+$check('a non-cron init (where posts are published) never writes cron, even with no worker event yet', $GLOBALS['events'] === []);
+$_SERVER['REQUEST_METHOD'] = 'POST';
+($GLOBALS['hooks']['wp'])();
+$check('a front-end POST does not write cron either', $GLOBALS['events'] === []);
+$_SERVER['REQUEST_METHOD'] = 'GET';
 $GLOBALS['doing_cron'] = true;
 $GLOBALS['options']['boblift_indexnow_schedule_lock'] = (string) time() . '_other';
 ($GLOBALS['hooks']['init'])();
-$check('a cron request that does not get the scheduling lock writes nothing', $GLOBALS['scheduled'] === []);
+$check('a cron request that does not get the scheduling lock writes nothing', $GLOBALS['events'] === []);
 $GLOBALS['options']['boblift_indexnow_schedule_lock'] = (string) (time() - 600) . '_stale';
 $GLOBALS['cron_read_fails'] = true;
 ($GLOBALS['hooks']['init'])();
 unset($GLOBALS['cron_read_fails']);
-$check('a lock left over five minutes is taken over, and nothing is scheduled when the cron option cannot be reread', $GLOBALS['scheduled'] === [] && !isset($GLOBALS['options']['boblift_indexnow_schedule_lock']));
+$check('a lock left over five minutes is taken over, and nothing is written when the cron option cannot be read', $GLOBALS['events'] === [] && !isset($GLOBALS['options']['boblift_indexnow_schedule_lock']));
+$GLOBALS['cron_missing'] = true;
+($GLOBALS['hooks']['init'])();
+$check('a missing cron option is created with the worker event', empty($GLOBALS['cron_missing']) && wp_next_scheduled('boblift_indexnow_sweep') !== false);
+$GLOBALS['events'] = [['other_plugin_daily', [], time() + 900]];
+$GLOBALS['cron_conflict_once'] = true;
+$GLOBALS['cron_writes'] = 0;
 ($GLOBALS['hooks']['init'])();
 ($GLOBALS['hooks']['init'])();
-$check('the every-minute worker is scheduled once, from a cron request, and the lock released', $GLOBALS['scheduled'] === ['boblift_indexnow_sweep'] && !isset($GLOBALS['options']['boblift_indexnow_schedule_lock']));
+$hooks_now = array_map(static fn($e) => $e[0], $GLOBALS['events']);
+sort($hooks_now);
+$check('an event another request adds meanwhile is kept: the conditional write retries on the new value', $hooks_now === ['boblift_indexnow_sweep', 'other_plugin_daily', 'other_plugin_event']);
+$check('the every-minute worker is added once, and the lock released', $GLOBALS['cron_writes'] === 1 && !isset($GLOBALS['options']['boblift_indexnow_schedule_lock']) && ($GLOBALS['recurrence']['boblift_indexnow_sweep'] ?? '') === 'boblift_indexnow_minute');
 $dup = time();
 $GLOBALS['events'][] = ['boblift_indexnow_sweep', [], $dup - 30];
 $GLOBALS['events'][] = ['boblift_indexnow_sweep', [], $dup + 45];
 ($GLOBALS['hooks']['init'])();
-$check('duplicate worker events are removed, keeping the earliest', array_values(array_map(static fn($e) => $e[2], array_filter($GLOBALS['events'], static fn($e) => $e[0] === 'boblift_indexnow_sweep'))) === [$dup - 30]);
-$check('the every-minute worker is scheduled on the live site', in_array('boblift_indexnow_sweep', $GLOBALS['scheduled'], true) && ($GLOBALS['recurrence']['boblift_indexnow_sweep'] ?? '') === 'boblift_indexnow_minute');
+$check('duplicate worker events are removed, keeping the earliest and other hooks', array_values(array_map(static fn($e) => $e[2], array_filter($GLOBALS['events'], static fn($e) => $e[0] === 'boblift_indexnow_sweep'))) === [$dup - 30] && count($GLOBALS['events']) === 3);
 $check('the every-minute interval is registered', (($GLOBALS['filters']['cron_schedules'])([])['boblift_indexnow_minute']['interval'] ?? 0) === 60);
 $GLOBALS['options']['blog_public'] = '0';
 ($GLOBALS['hooks']['init'])();
-$check('the worker event is removed when the site stops submitting', wp_next_scheduled('boblift_indexnow_sweep') === false);
+$check('the worker event is removed when the site stops submitting', wp_next_scheduled('boblift_indexnow_sweep') === false && count($GLOBALS['events']) === 2);
+$GLOBALS['options']['blog_public'] = '1';
+$GLOBALS['doing_cron'] = false;
+$GLOBALS['events'] = [];
+($GLOBALS['hooks']['wp'])();
+$check('a front-end page view adds the first worker event, so it does not wait for another cron job', wp_next_scheduled('boblift_indexnow_sweep') !== false);
 $GLOBALS['doing_cron'] = false;
 $GLOBALS['options']['blog_public'] = '1';
 $log = tempnam(sys_get_temp_dir(), 'indexnow');
@@ -792,7 +856,27 @@ foreach ([['response' => ['code' => 404], 'body' => 'Not found'], ['response' =>
 $check('the failure log names the key file and status', str_contains((string) file_get_contents($log), 'the key file https://bobliftcrane.com/abcd1234.txt did not answer 200 with the key (HTTP 404)'));
 unlink($log);
 ini_set('error_log', '/dev/null');
+// While the key file fails, the worker sends nothing and keeps its rows.
+$GLOBALS['posts'] = [81 => new WP_Post(81)];
+add_option(rn(0, 'keyfail'), ['due' => 0, 'ids' => [81], 'retry' => true], '', 'no');
+$GLOBALS['sent'] = [];
+boblift_indexnow_run_retries();
+$check('while the key file check fails, nothing is sent and the rows are kept', $GLOBALS['sent'] === [] && row_ids() === [[81]]);
+clear_rows();
+// A 403 from IndexNow rechecks the key file: if it really fails, the posts are kept with their retry allowance.
+$GLOBALS['transients'] = ['boblift_indexnow_key_file_checked' => 'ok'];
+$GLOBALS['remote_code'] = 403;
+add_option(rn(0, 'k403'), ['due' => 0, 'ids' => [81], 'retry' => true], '', 'no');
+boblift_indexnow_run_retries();
+$rows = boblift_indexnow_retry_names();
+$check('a 403 while the key file cannot be fetched keeps the posts for later, retry allowance unchanged', count($rows) === 1 && $GLOBALS['options'][$rows[0]]['ids'] === [81] && $GLOBALS['options'][$rows[0]]['retry'] === true && $GLOBALS['options'][$rows[0]]['due'] >= time() + 590 && $GLOBALS['transients']['boblift_indexnow_key_file_checked'] === 'failed');
+clear_rows();
 unset($GLOBALS['key_file_response']);
+$GLOBALS['transients'] = ['boblift_indexnow_key_file_checked' => 'ok'];
+add_option(rn(0, 'k403ok'), ['due' => 0, 'ids' => [81], 'retry' => true], '', 'no');
+boblift_indexnow_run_retries();
+$check('a 403 while the key file is served correctly is logged and not kept', boblift_indexnow_retry_names() === [] && $GLOBALS['transients']['boblift_indexnow_key_file_checked'] === 'ok');
+unset($GLOBALS['remote_code']);
 $GLOBALS['transients'] = ['boblift_indexnow_key_file_checked' => 'ok'];
 
 $GLOBALS['options']['boblift_indexnow_key'] = "abcd1234\n";
