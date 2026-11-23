@@ -63,15 +63,15 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
                 <h1 id="home-hero-title" class="boblift-kicker empty:hidden"><?php echo esc_html($hero_label); ?></h1>
             <?php endif; ?>
             <?php
-            // English and Chinese phones keep each slide title on one line: below 768px (the same query as Tailwind's max-md) the titles share one size that the
-            // longest title just fills. CSS gives a first guess from its length (still allowed to wrap); the script after the
-            // slides measures the real width, sets the size and only then turns wrapping off. If the longest title would need
-            // less than 18px, the script drops the fitting and the titles wrap at the normal size. Other languages always wrap,
-            // with more line height than the desktop headline.
-            $hero_fit = in_array(function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : 'en', ['en', 'zh'], true);
-            $hero_fit_chars = $hero_fit ? max(array_map(static fn(array $slide): int => mb_strlen(trim((string) ($slide['title'] ?? ''))), $hero_slides)) : 0;
+            // Phones (below 768px, the same query as Tailwind's max-md): the slide titles share one size, measured by the script
+            // after the slides. English and Chinese fit one line: CSS gives a first guess from the longest title's length (still
+            // allowed to wrap), the script measures the real width, sets the size and only then turns wrapping off. The other
+            // languages fit at most two lines: the script shrinks the size until every title takes two lines or fewer. If that
+            // would need less than 18px (one line) or 20px (two lines), the titles wrap at the normal size instead.
+            $hero_fit_lines = in_array(function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : 'en', ['en', 'zh'], true) ? 1 : 2;
+            $hero_fit_chars = max(array_map(static fn(array $slide): int => mb_strlen(trim((string) ($slide['title'] ?? ''))), $hero_slides));
             ?>
-            <div class="boblift-home-hero-slides grid"<?php echo $hero_fit && $hero_fit_chars > 0 ? ' data-hero-fit style="--hero-chars:' . esc_attr((string) $hero_fit_chars) . '"' : ''; ?>>
+            <div class="boblift-home-hero-slides grid"<?php echo $hero_fit_chars > 0 ? ' data-hero-fit="' . esc_attr((string) $hero_fit_lines) . '" style="--hero-chars:' . esc_attr((string) $hero_fit_chars) . '"' : ''; ?>>
                 <?php foreach ($hero_slides as $index => $slide) :
                     $heading_tag = $index === 0 && $hero_label === '' ? 'h1' : 'h2';
                     $slide_tab = trim((string) ($slide['tab'] ?? ''));
@@ -87,9 +87,7 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
                     </div>
                 <?php endforeach; ?>
             </div>
-            <?php if ($hero_fit) : ?>
-                <script>(function(){var box=document.currentScript.previousElementSibling,mq=window.matchMedia('not all and (min-width: 768px)');if(!box||!box.hasAttribute('data-hero-fit'))return;var heads=box.querySelectorAll('h1,h2'),range=document.createRange(),rem=parseFloat(getComputedStyle(document.documentElement).fontSize)||16;function fit(){box.setAttribute('data-hero-fit','');box.removeAttribute('data-hero-fitted');heads.forEach(function(h){h.style.fontSize='';});if(!mq.matches||!box.clientWidth)return;box.setAttribute('data-hero-fitted','');var best=2.1*rem;heads.forEach(function(h){range.selectNodeContents(h);var w=range.getBoundingClientRect().width,size=parseFloat(getComputedStyle(h).fontSize);if(w>0)best=Math.min(best,size*box.clientWidth/w);});best=Math.floor(best*0.985*10)/10;if(best<1.125*rem){box.removeAttribute('data-hero-fitted');box.removeAttribute('data-hero-fit');return;}heads.forEach(function(h){h.style.fontSize=best+'px';});}fit();if(document.fonts)document.fonts.ready.then(fit);var lastW=window.innerWidth;window.addEventListener('resize',function(){if(window.innerWidth!==lastW){lastW=window.innerWidth;fit();}},{passive:true});})();</script>
-            <?php endif; ?>
+            <script>(function(){var box=document.currentScript.previousElementSibling,mq=window.matchMedia('not all and (min-width: 768px)');if(!box||!box.hasAttribute('data-hero-fit'))return;var mode=box.getAttribute('data-hero-fit'),lines=mode==='2'?2:1,heads=box.querySelectorAll('h1,h2'),range=document.createRange(),rem=parseFloat(getComputedStyle(document.documentElement).fontSize)||16,max=2.1*rem,min=(lines>1?1.25:1.125)*rem;function count(h){range.selectNodeContents(h);var tops={},n=0;Array.prototype.forEach.call(range.getClientRects(),function(r){var k=Math.round(r.top);if(r.width>=1&&!tops[k]){tops[k]=1;n++;}});return n;}function fit(){box.setAttribute('data-hero-fit',mode);box.removeAttribute('data-hero-fitted');heads.forEach(function(h){h.style.fontSize='';});if(!mq.matches||!box.clientWidth)return;var best=max;if(lines===1){box.setAttribute('data-hero-fitted','');heads.forEach(function(h){range.selectNodeContents(h);var w=range.getBoundingClientRect().width,size=parseFloat(getComputedStyle(h).fontSize);if(w>0)best=Math.min(best,size*box.clientWidth/w);});best=Math.floor(best*0.985*10)/10;}else{heads.forEach(function(h){if(best<min)return;h.style.fontSize=best+'px';if(count(h)<=lines)return;var lo=min,hi=best;h.style.fontSize=lo+'px';if(count(h)>lines){best=0;return;}while(hi-lo>0.25){var mid=(lo+hi)/2;h.style.fontSize=mid+'px';if(count(h)<=lines)lo=mid;else hi=mid;}best=Math.floor(lo*10)/10;});heads.forEach(function(h){h.style.fontSize='';});}if(best<min){box.removeAttribute('data-hero-fitted');box.removeAttribute('data-hero-fit');return;}heads.forEach(function(h){h.style.fontSize=best+'px';});}fit();if(document.fonts)document.fonts.ready.then(fit);var lastW=window.innerWidth;window.addEventListener('resize',function(){if(window.innerWidth!==lastW){lastW=window.innerWidth;fit();}},{passive:true});})();</script>
             <?php if ($hero_count > 1) : ?>
                 <div class="order-first mb-7 flex items-end gap-4 lg:order-none lg:mb-0 lg:mt-12">
                     <div class="grid flex-1 gap-4 <?php echo $hero_count > 2 ? 'grid-cols-3' : 'grid-cols-2'; ?>" role="tablist" aria-label="<?php echo esc_attr($home_ui['heroAriaLabel'] ?? 'Featured lifting solutions'); ?>">
@@ -110,8 +108,6 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
         </div>
     </div>
 </section>
-
-<?php if (function_exists('boblift_offer_home_banner')) { boblift_offer_home_banner(); } ?>
 
 <?php // Tablets and small laptops stack the heading over the marks; the two sit side by side once both fit (xl). ?>
 <section class="page-shell py-5 md:py-8" aria-label="<?php echo esc_attr($home_ui['qualityCertificationsLabel'] ?? 'Quality certifications'); ?>">
@@ -156,6 +152,9 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
 </section>
 
 <?php boblift_render_home_products(); ?>
+
+<?php // The year-end offers, while they run: a slim link right after the products (inc/year-end-offers.php). ?>
+<?php if (function_exists('boblift_offer_home_banner')) { boblift_offer_home_banner(); } ?>
 
 <?php // About and the factory are one chapter: who we are, then the factory you can come and see. ?>
 <?php // The photo beside the about text: the full width on phones, under half the window from 1024px. ?>

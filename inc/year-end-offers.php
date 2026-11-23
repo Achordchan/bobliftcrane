@@ -291,8 +291,11 @@ add_action('init', static function (): void {
 /* ---------------------------------------------------------------------------------------------------------------- */
 
 /**
- * The strip under the home page hero while the offers run. data-offer-ends lets the browser take it away at the end
- * (assets/js/theme.js) on a page the edge cache keeps from before the last day.
+ * The slim link right after the products on the home page while the offers run: the label and the
+ * headline on one line (phones show the headline alone), the deposit line and the button words from 1024px. It used to
+ * be a full navy block right under the hero; on phones it pushed the products down and read like a hard sell (11-23).
+ * data-offer-ends lets the browser take it away at the end (assets/js/theme.js) on a page the edge cache keeps from
+ * before the last day.
  */
 function boblift_offer_home_banner(): void
 {
@@ -300,25 +303,16 @@ function boblift_offer_home_banner(): void
         return;
     }
     $banner = boblift_offer_copy()['banner'];
-    $amounts = ['US$500', 'US$1,500', 'US$2,500'];
     ?>
-    <section class="boblift-offer-banner relative overflow-hidden bg-navy text-white" aria-labelledby="offer-banner-title" data-offer-ends="<?php echo esc_attr(boblift_offer_ends_at()); ?>">
-        <div class="page-shell relative flex flex-col gap-5 py-6 md:py-7 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
-            <div class="min-w-0">
-                <p class="text-xs font-black uppercase tracking-[0.12em] text-gold"><?php echo esc_html(boblift_offer_t($banner['label'])); ?></p>
-                <h2 id="offer-banner-title" class="mt-2 text-2xl font-black leading-tight tracking-[-0.01em] [text-wrap:balance] md:text-3xl"><?php echo esc_html(boblift_offer_t($banner['title'])); ?></h2>
-                <p class="mt-1.5 text-sm font-normal leading-6 text-white/80 md:text-base"><?php echo esc_html(boblift_offer_t($banner['text'])); ?></p>
-            </div>
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center lg:shrink-0">
-                <ul class="grid grid-cols-3 gap-2" aria-hidden="true">
-                    <?php foreach ($amounts as $amount) : ?>
-                        <li class="boblift-offer-ticket rounded-sm border border-dashed border-white/40 px-3 py-2 text-center"><span class="block text-lg font-black leading-none tabular-nums md:text-xl"><?php echo esc_html($amount); ?></span><span class="mt-1 block text-[11px] font-bold uppercase tracking-[0.08em] text-white/70"><?php echo esc_html(boblift_offer_t('Discount')); ?></span></li>
-                    <?php endforeach; ?>
-                </ul>
-                <a class="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-sm bg-gold px-6 text-sm font-black text-navy transition hover:bg-white" href="<?php echo esc_url(boblift_offer_url()); ?>"><?php echo esc_html(boblift_offer_t($banner['button'])); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></a>
-            </div>
-        </div>
-    </section>
+    <div class="boblift-offer-banner page-shell pb-2 md:pb-4" data-offer-ends="<?php echo esc_attr(boblift_offer_ends_at()); ?>">
+        <a class="group flex min-h-12 items-center gap-3 rounded-sm border border-gold/40 bg-[#fff7ee] px-4 py-2.5 text-sm transition hover:border-gold md:px-5" href="<?php echo esc_url(boblift_offer_url()); ?>">
+            <span class="hidden shrink-0 text-xs font-black uppercase tracking-[0.12em] text-[#b3600f] sm:inline"><?php echo esc_html(boblift_offer_t($banner['label'])); ?></span>
+            <span class="hidden h-4 w-px shrink-0 bg-gold/40 sm:block" aria-hidden="true"></span>
+            <span class="min-w-0 flex-1 font-black leading-5 text-ink"><?php echo esc_html(boblift_offer_t($banner['title'])); ?><span class="hidden font-normal text-slate-600 xl:inline"> · <?php echo esc_html(boblift_offer_t($banner['text'])); ?></span></span>
+            <span class="hidden shrink-0 font-black text-ink lg:inline"><?php echo esc_html(boblift_offer_t($banner['button'])); ?></span>
+            <?php echo boblift_icon('arrow-right', 'h-4 w-4 shrink-0 text-ink transition group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5'); ?>
+        </a>
+    </div>
     <?php
 }
 
