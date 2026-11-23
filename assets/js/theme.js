@@ -1220,7 +1220,6 @@
     let detachLoad = () => {};
     // A picture that takes more than a moment is announced (loadingStatus, a polite live region holding its own text in
     // data-loading-text); the announcement is emptied when the load ends either way.
-    let statusTimer = 0;
     // Whether the src has been set again since the picture last failed. A broken picture reports complete (and its old
     // address) even while a new request for it is under way, so the "failed already" shortcut below is only taken when
     // nothing has asked again since that failure (a broken drawing opened twice); otherwise the new request is waited for.
@@ -1228,7 +1227,6 @@
     const srcWatch = typeof MutationObserver === 'function' ? new MutationObserver(() => { srcTouched = true; }) : null;
     srcWatch?.observe(image, { attributes: true, attributeFilter: ['src', 'srcset'] });
     const quiet = () => {
-      clearTimeout(statusTimer);
       if (loadingStatus && loadingStatus.textContent) loadingStatus.textContent = '';
     };
     const load = () => {
@@ -1251,13 +1249,18 @@
       // Removes only this load's own listeners, so a late callback never strips a newer load's.
       let stall = 0;
       let frame = 0;
-      // Ends this load's own waiting (listeners, frame, stall timer). The shared announcement is this load's to clear only
-      // while it is still the current one, so a late callback of a replaced load never silences the newer load's.
+      // This load's own announcement delay: cancelled with the load, so a photo swiped past within the delay never
+      // announces itself over the next one.
+      let announce = 0;
+      // Ends this load's own waiting (listeners, frame, stall and announcement timers). The shared announcement is this
+      // load's to clear only while it is still the current one, so a late callback of a replaced load never silences the
+      // newer load's.
       const detach = () => {
         image.removeEventListener('load', done);
         image.removeEventListener('error', failed);
         cancelAnimationFrame(frame);
         clearTimeout(stall);
+        clearTimeout(announce);
         if (token === loadToken) quiet();
         if (detachLoad === detach) detachLoad = () => {};
       };
@@ -1310,8 +1313,8 @@
         // waited for as long as it takes, so a slow one still shows when it arrives.
         if (loadTimeout > 0) stall = setTimeout(failed, loadTimeout);
         if (loadingStatus) {
-          statusTimer = setTimeout(() => {
-            loadingStatus.textContent = loadingStatus.dataset.loadingText || '';
+          announce = setTimeout(() => {
+            if (token === loadToken && dialog.open) loadingStatus.textContent = loadingStatus.dataset.loadingText || '';
           }, 600);
         }
         detachLoad = detach;
@@ -1685,7 +1688,8 @@
     const preload = (value) => {
       const photo = photos[wrap(value)];
       const url = photo && want(photo);
-      if (!photo || photo === photos[index] || preloads.has(url)) return;
+      // A parked address is already being fetched (see park): a second request would only share it.
+      if (!photo || photo === photos[index] || preloads.has(url) || parked.has(url)) return;
       const next = new Image();
       next.decoding = 'async';
       const settled = () => {
@@ -1701,14 +1705,19 @@
     };
     // A photo with a single address whose request ran past the time limit may be slow rather than stalled: it is kept going
     // in the background (for up to 2 minutes, or until the viewer closes) while the viewer shows its message, and if it
-    // arrives it is shown after all (and used from then on), even while a fresh request for it is under way.
+    // arrives it is shown after all (and used from then on), even while a fresh request for it is under way. Once another
+    // copy of that photo has shown, its parked request is let go, so a late arrival never replaces the copy that recovered.
+    // An address that cannot be varied (see fresh) is let go before it is asked for again, so the new request is not handed
+    // the stalled one.
     const parked = new Map();
+    // Lets a parked request go; true when there was one.
     const unpark = (url) => {
       const entry = parked.get(url);
-      if (!entry) return;
+      if (!entry) return false;
       clearTimeout(entry.timer);
       entry.image.removeAttribute('src');
       parked.delete(url);
+      return true;
     };
     const park = (photo, url) => {
       if (!url || parked.has(url)) return;
@@ -1729,7 +1738,7 @@
         }
       }, { once: true });
       keep.addEventListener('error', end, { once: true });
-      parked.set(url, { image: keep, timer: setTimeout(() => unpark(url), 120000) });
+      parked.set(url, { image: keep, photo, timer: setTimeout(() => unpark(url), 120000) });
       keep.src = url;
     };
     // Keeps only the preloads of the photo showing and the ones either side of it.
@@ -1752,6 +1761,20 @@
       showFailure(false);
       // A photo that failed before is asked for again, from its full size.
       const url = want(photo);
+      // Back on a photo whose very address is parked (an address that cannot be varied, see fresh): the parked request is
+      // let go and the address asked for again a moment later, since Chromium hands a request made in the same task the one
+      // just let go. WebKit goes on sharing a request for the same address however long the wait, so there such a photo
+      // stays on the stalled request (and its message after the time limit) until the page is loaded again.
+      if (unpark(url)) {
+        image.removeAttribute('src');
+        setTimeout(() => {
+          if (dialog.open && photos[index] === photo && !image.getAttribute('src')) {
+            image.src = url;
+            viewer.load();
+          }
+        });
+        return;
+      }
       if (image.getAttribute('src') === url && image.complete && !image.naturalWidth) image.removeAttribute('src');
       if (image.getAttribute('src') !== url) image.src = url;
     };
@@ -1783,6 +1806,7 @@
         const photo = photos[index];
         const from = image.getAttribute('src');
         if (from !== address(photo.full)) photo.shown = from;
+        [...parked].filter(([url, entry]) => entry.photo === photo && url !== from).forEach(([url]) => unpark(url));
       },
       // A full-size photo the CDN cannot serve falls back to the page's own size; if that fails too, the viewer says so.
       // A timeout is reported the same way; its request may still hang open, so it is dropped first and coming back to the
