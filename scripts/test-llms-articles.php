@@ -95,6 +95,8 @@ $check('old news held back for 301 or noindex is left out, with or without a lan
 $check('an article with the same file name under another directory is kept', (bool) array_filter($lines, static fn(string $l): bool => str_contains($l, '(https://bobliftcrane.com/guides/news-show-89.html)')));
 $check('held-back posts do not use up slots: the 500 are filled with older articles', $has(19));
 $check('newest English article first, ID breaking the date tie', str_starts_with($lines[0], '- [Article 520](https://bobliftcrane.com/a520.html): About article 520'));
+$pos = static fn(int $id): int|false => array_search(true, array_map(static fn(string $l): bool => str_contains($l, '(https://bobliftcrane.com/a' . $id . '.html)'), $lines), true);
+$check('articles 519 and 518 share a date and the higher ID comes first', $pos(519) !== false && $pos(518) !== false && $pos(519) < $pos(518) && $pos(519) === 1);
 $check('an older article past the old 60 is listed', $has(100) && $has(21));
 $check('the oldest articles past 500 are left out', !$has(18) && !$has(1));
 $check('a translation is left out', !$has(900));

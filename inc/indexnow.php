@@ -427,14 +427,20 @@ function boblift_indexnow_wake_at(int $at): void
     if ($lock === null) {
         return;
     }
-    wp_cache_delete(BOBLIFT_INDEXNOW_WAKE_OPTION, 'options');
+    // Read the wake-up and the cron array fresh from the database: this request may hold copies loaded before another
+    // request changed them under the lock.
+    foreach ([BOBLIFT_INDEXNOW_WAKE_OPTION, 'cron', 'alloptions', 'notoptions'] as $cached) {
+        wp_cache_delete($cached, 'options');
+    }
     $wake = (int) get_option(BOBLIFT_INDEXNOW_WAKE_OPTION, 0);
-    if (!($wake > 0 && $wake <= $next && wp_next_scheduled(BOBLIFT_INDEXNOW_RETRY_HOOK, [['at' => $wake]]))) {
-        if ($wake > 0) {
+    $wake_exists = $wake > 0 && wp_next_scheduled(BOBLIFT_INDEXNOW_RETRY_HOOK, [['at' => $wake]]);
+    // The replacement is scheduled first; the old wake-up is removed only once it is in place, so a failed cron write
+    // never leaves the waiting batches without one.
+    if (!($wake_exists && $wake <= $next) && boblift_indexnow_schedule_event($next, [['at' => $next]])) {
+        if ($wake_exists) {
             wp_unschedule_event($wake, BOBLIFT_INDEXNOW_RETRY_HOOK, [['at' => $wake]]);
         }
         update_option(BOBLIFT_INDEXNOW_WAKE_OPTION, $next, false);
-        boblift_indexnow_schedule_event($next, [['at' => $next]]);
     }
     boblift_indexnow_unlock($lock);
 }

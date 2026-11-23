@@ -539,6 +539,19 @@ $check('a stale lock is taken over, the wake-up replaced and the lock released',
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
 unset($GLOBALS['options']['boblift_indexnow_wake']);
 
+$base = time();
+$GLOBALS['options']['boblift_indexnow_wake'] = $base + 600;
+$GLOBALS['events'] = [['boblift_indexnow_retry', [['at' => $base + 600]], $base + 600]];
+$GLOBALS['schedule_fails'] = true;
+$log = tempnam(sys_get_temp_dir(), 'indexnow');
+ini_set('error_log', $log);
+boblift_indexnow_wake_at($base);
+$GLOBALS['schedule_fails'] = false;
+unlink($log);
+$check('when the earlier wake-up cannot be scheduled, the existing one is kept', $GLOBALS['options']['boblift_indexnow_wake'] === $base + 600 && $GLOBALS['events'] === [['boblift_indexnow_retry', [['at' => $base + 600]], $base + 600]]);
+$GLOBALS['scheduled'] = $GLOBALS['events'] = [];
+unset($GLOBALS['options']['boblift_indexnow_wake']);
+
 // Post reads: a failed lookup keeps the batch; existing posts are read with primed caches.
 $GLOBALS['posts'] = [51 => new WP_Post(51)];
 $GLOBALS['scheduled'] = $GLOBALS['events'] = $GLOBALS['sent'] = [];
