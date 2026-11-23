@@ -75,7 +75,7 @@ $render_case_filter = static function (string $id, string $filter, string $all_l
         <label class="sr-only" for="<?php echo esc_attr($id); ?>"><?php echo esc_html($all_label); ?></label>
         <select id="<?php echo esc_attr($id); ?>" class="boblift-cases-native-select" data-cases-filter="<?php echo esc_attr($filter); ?>" tabindex="-1" aria-hidden="true">
             <option value=""><?php echo esc_html($all_label); ?></option>
-            <?php foreach ($options as $option) : ?><option value="<?php echo esc_attr($option); ?>"<?php echo !empty($option_models[$option]) ? ' data-models="' . esc_attr(implode(' ', $option_models[$option])) . '"' : ''; ?>><?php echo esc_html($option); ?></option><?php endforeach; ?>
+            <?php foreach ($options as $option) : ?><option value="<?php echo esc_attr($option); ?>"<?php echo !empty($option_models[$option]) ? ' data-models="' . esc_attr((string) wp_json_encode(array_values($option_models[$option]), JSON_UNESCAPED_UNICODE)) . '"' : ''; ?>><?php echo esc_html($option); ?></option><?php endforeach; ?>
         </select>
         <button class="boblift-cases-select-trigger" type="button" data-cases-custom-select-toggle aria-haspopup="listbox" aria-expanded="false">
             <span data-cases-custom-select-label><?php echo esc_html($all_label); ?></span>

@@ -4903,8 +4903,16 @@
       const value = urlParams.get(key) || '';
       if (!select || !value) return;
       const options = Array.from(select.options);
+      const aliases = (option) => {
+        try {
+          const list = JSON.parse(option.dataset.models || '[]');
+          return Array.isArray(list) ? list : [];
+        } catch {
+          return [];
+        }
+      };
       const match = options.find((option) => option.value === value)
-        || options.find((option) => (option.dataset.models || '').split(' ').includes(value));
+        || options.find((option) => aliases(option).includes(value));
       if (match) select.value = match.value;
     });
     const writeCasesUrl = () => {
@@ -5144,9 +5152,12 @@
       const empty = qs('[data-cases-custom-empty]', selectRoot);
       const options = qsa('[data-cases-custom-option]', selectRoot);
       // Spaces are ignored on both sides, so "2吨" finds "2 吨" and "sq 2" finds SQ2SA3.
-      // A query that starts with a number matches whole numbers only, so "5吨" finds 5 t and not 2.5 t or 25 t.
+      // A number at either end of the query matches whole numbers only: "5吨" finds 5 t and not 2.5 t or 25 t, "5" not 50 or 5.5.
       const query = (search?.value || '').replace(/\s+/g, '').toLowerCase();
-      const numeric = /^\d/.test(query) ? new RegExp(`(^|[^\\d.])${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`) : null;
+      const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const numeric = /^\d|\d$/.test(query)
+        ? new RegExp(`${/^\d/.test(query) ? '(^|[^\\d.])' : ''}${escaped}${/\d$/.test(query) ? '(?!\\d|\\.\\d)' : ''}`)
+        : null;
       let matched = 0;
       options.forEach((option) => {
         const value = option.getAttribute('value') || '';
@@ -6697,6 +6708,9 @@
   const id = decodeURIComponent(window.location.hash.slice(1));
   const target = id ? document.getElementById(id) : null;
   if (!target || !('ResizeObserver' in window)) return;
+  // A reload or Back restores the reader's own position; only a fresh arrival at the anchor is aligned.
+  const navigation = performance.getEntriesByType?.('navigation')[0];
+  if (navigation && navigation.type !== 'navigate') return;
   let done = false;
   const stop = () => {
     done = true;
