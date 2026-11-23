@@ -93,7 +93,23 @@ function boblift_indexnow_host(string $url): string
  */
 function boblift_indexnow_live_platform(): bool
 {
-    return (defined('IS_ATOMIC') && IS_ATOMIC) || (defined('ATOMIC_SITE_ID') && ATOMIC_SITE_ID) || (defined('BOBLIFT_INDEXNOW_LIVE') && BOBLIFT_INDEXNOW_LIVE);
+    // Strict checks: a constant set to the string 'false', '0' or '' must not switch submissions on.
+    return boblift_indexnow_flag('IS_ATOMIC')
+        || (defined('ATOMIC_SITE_ID') && filter_var(constant('ATOMIC_SITE_ID'), FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) !== false)
+        || boblift_indexnow_flag('BOBLIFT_INDEXNOW_LIVE');
+}
+
+/** True only for a defined constant that is boolean true, 1, or a string such as 'true', '1', 'yes' or 'on'. */
+function boblift_indexnow_flag(string $name): bool
+{
+    if (!defined($name)) {
+        return false;
+    }
+    $value = constant($name);
+    if (!is_bool($value) && !is_int($value) && !is_string($value)) {
+        return false;
+    }
+    return filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) === true;
 }
 
 function boblift_indexnow_enabled(): bool

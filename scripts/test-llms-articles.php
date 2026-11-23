@@ -38,7 +38,7 @@ function get_posts(array $args): array
     $posts = array_filter($GLOBALS['posts'], static fn(WP_Post $p): bool => $p->post_type === $args['post_type']
         && $p->post_status === $args['post_status']
         && (!array_key_exists('has_password', $args) || $args['has_password'] !== false || $p->post_password === '')
-        && (!isset($args['lang']) || $p->lang === $args['lang']));
+        && (!empty($GLOBALS['ignore_lang']) || !isset($args['lang']) || $p->lang === $args['lang']));
     $order = $args['orderby'] ?? ['date' => 'DESC'];
     usort($posts, static function (WP_Post $a, WP_Post $b) use ($order): int {
         foreach ($order as $field => $dir) {
@@ -49,7 +49,18 @@ function get_posts(array $args): array
         }
         return 0;
     });
-    return array_slice($posts, 0, $args['posts_per_page'] ?? 5);
+    $per_page = $args['posts_per_page'] ?? 5;
+    return array_slice($posts, (max(1, $args['paged'] ?? 1) - 1) * $per_page, $per_page);
+}
+// Polylang's own record of each post's language.
+function pll_get_post_language(int $id): string|false
+{
+    foreach ($GLOBALS['posts'] as $p) {
+        if ($p->ID === $id) {
+            return $p->lang;
+        }
+    }
+    return false;
 }
 function get_the_title(WP_Post $post): string
 {
@@ -104,4 +115,12 @@ $check('a password-protected article is left out', !$has(901));
 $check('a draft is left out', !$has(902));
 $again = boblift_llms_txt_articles();
 $check('the order is the same on every request', $again === $lines);
+// If the query's language filter is not applied, 600 newer Spanish translations must not push English articles out.
+for ($i = 1000; $i < 1600; $i++) {
+    $GLOBALS['posts'][] = new WP_Post($i, '2026-11-23 10:00:00', 'es');
+}
+$GLOBALS['ignore_lang'] = true;
+$mixed = boblift_llms_txt_articles();
+$check('without the language filter, translations are dropped by their Polylang language', !array_filter($mixed, static fn(string $l): bool => preg_match('#/a(9\d\d|1\d\d\d)\.html#', $l) === 1));
+$check('without the language filter, later pages are read until 500 English articles are listed', $mixed === $lines);
 exit($failures === 0 ? 0 : 1);

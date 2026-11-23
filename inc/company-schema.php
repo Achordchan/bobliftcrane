@@ -210,25 +210,35 @@ function boblift_llms_txt_articles(): array
     // Paths are compared whole, after the install's own subdirectory and the language prefix are removed, so
     // /en/news-show-89.html matches the listed /news-show-89.html but /guides/news-show-89.html does not.
     $base = rtrim((string) wp_parse_url((string) get_option('home'), PHP_URL_PATH), '/');
-    // Fetch enough to fill 500 after the held-back posts are dropped.
-    $posts = get_posts(['post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => 500 + count($held_back), 'has_password' => false, 'orderby' => ['date' => 'DESC', 'ID' => 'DESC'], 'no_found_rows' => true, 'lang' => 'en']);
-    foreach ($posts as $post) {
-        $url = get_permalink($post);
-        if (!is_string($url)) {
-            continue;
+    // Pages are read until 500 English articles are found. Each post's language is checked as well, so posts in other
+    // languages never take an English post's place, even if the query's language filter is not applied.
+    $per_page = 500 + count($held_back);
+    for ($page = 1; $page <= 10 && count($articles) < 500; $page++) {
+        $posts = get_posts(['post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => $per_page, 'paged' => $page, 'has_password' => false, 'orderby' => ['date' => 'DESC', 'ID' => 'DESC'], 'no_found_rows' => true, 'lang' => 'en']);
+        foreach ($posts as $post) {
+            if (function_exists('pll_get_post_language') && pll_get_post_language($post->ID) !== 'en') {
+                continue;
+            }
+            $url = get_permalink($post);
+            if (!is_string($url)) {
+                continue;
+            }
+            $path = (string) wp_parse_url($url, PHP_URL_PATH);
+            if ($base !== '' && str_starts_with($path, $base . '/')) {
+                $path = substr($path, strlen($base));
+            }
+            // Polylang's language directory, however it is configured (/en/, /language/en/), comes off with the helper
+            // the rewrites use.
+            $path = function_exists('boblift_strip_language_prefix') ? boblift_strip_language_prefix($path) : (string) preg_replace('#^/en(?=/)#', '', $path);
+            if (isset($held_back[$path])) {
+                continue;
+            }
+            $articles[] = boblift_llms_txt_link(get_the_title($post), $url, boblift_seo_post_description($post));
+            if (count($articles) === 500) {
+                break;
+            }
         }
-        $path = (string) wp_parse_url($url, PHP_URL_PATH);
-        if ($base !== '' && str_starts_with($path, $base . '/')) {
-            $path = substr($path, strlen($base));
-        }
-        // Polylang's language directory, however it is configured (/en/, /language/en/), comes off with the helper the
-        // rewrites use.
-        $path = function_exists('boblift_strip_language_prefix') ? boblift_strip_language_prefix($path) : (string) preg_replace('#^/en(?=/)#', '', $path);
-        if (isset($held_back[$path])) {
-            continue;
-        }
-        $articles[] = boblift_llms_txt_link(get_the_title($post), $url, boblift_seo_post_description($post));
-        if (count($articles) === 500) {
+        if (count($posts) < $per_page) {
             break;
         }
     }

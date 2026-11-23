@@ -6,7 +6,13 @@ if (PHP_SAPI !== 'cli') {
 }
 define('ABSPATH', __DIR__);
 // The live platform's own constant; a child run without it checks that a copy elsewhere stays quiet.
-if (getenv('INDEXNOW_NO_PLATFORM') === false) {
+if (getenv('INDEXNOW_PLATFORM_CONSTANTS') !== false) {
+    // A child run: define the given constants (NAME=json value, comma separated) instead of IS_ATOMIC.
+    foreach (array_filter(explode(',', getenv('INDEXNOW_PLATFORM_CONSTANTS'))) as $pair) {
+        [$name, $json] = explode('=', $pair, 2);
+        define($name, json_decode($json));
+    }
+} elseif (getenv('INDEXNOW_NO_PLATFORM') === false) {
     define('IS_ATOMIC', true);
 }
 $GLOBALS['options'] = ['blog_public' => '1', 'home' => 'https://bobliftcrane.com'];
@@ -321,7 +327,7 @@ function status_header(int $code): void
 }
 require dirname(__DIR__) . '/inc/indexnow.php';
 
-if (getenv('INDEXNOW_NO_PLATFORM') !== false) {
+if (getenv('INDEXNOW_NO_PLATFORM') !== false || getenv('INDEXNOW_PLATFORM_CONSTANTS') !== false) {
     echo boblift_indexnow_enabled() ? 'ENABLED' : 'QUIET';
     exit;
 }
@@ -372,6 +378,13 @@ $GLOBALS['options']['blog_public'] = '-1';
 $check('quiet on a private WordPress.com site', !boblift_indexnow_enabled());
 $GLOBALS['options']['blog_public'] = '1';
 $check('quiet on a copy of the live site outside the live platform', shell_exec('INDEXNOW_NO_PLATFORM=1 ' . escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__)) === 'QUIET');
+$platform_run = static fn(string $constants): ?string => shell_exec('INDEXNOW_PLATFORM_CONSTANTS=' . escapeshellarg($constants) . ' ' . escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__));
+foreach (['BOBLIFT_INDEXNOW_LIVE="false"', 'BOBLIFT_INDEXNOW_LIVE="0"', 'BOBLIFT_INDEXNOW_LIVE=""', 'IS_ATOMIC="false"', 'IS_ATOMIC=false', 'ATOMIC_SITE_ID="0"', 'ATOMIC_SITE_ID="abc"', 'ATOMIC_SITE_ID=0'] as $constants) {
+    $check('a constant set to a false-like value does not switch submissions on: ' . $constants, $platform_run($constants) === 'QUIET');
+}
+foreach (['BOBLIFT_INDEXNOW_LIVE=true', 'BOBLIFT_INDEXNOW_LIVE="true"', 'IS_ATOMIC=true', 'ATOMIC_SITE_ID=12345', 'ATOMIC_SITE_ID="12345"'] as $constants) {
+    $check('a constant set to a true value switches submissions on: ' . $constants, $platform_run($constants) === 'ENABLED');
+}
 
 boblift_indexnow_queue_add(5);
 boblift_indexnow_queue_add(5);
