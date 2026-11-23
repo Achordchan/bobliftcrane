@@ -1141,7 +1141,11 @@
       x = shownWidth <= stageWidth ? (stageWidth - shownWidth) / 2 : Math.min(0, Math.max(stageWidth - shownWidth, x));
       y = shownHeight <= stageHeight ? (stageHeight - shownHeight) / 2 : Math.min(0, Math.max(stageHeight - shownHeight, y));
       image.style.transform = `translate(${x + swipe}px, ${y}px) scale(${scale})`;
-      stage.classList.toggle('is-zoomed', !atFit());
+      // Zoomed in, the photo arrows step aside (CSS hides [data-zoom-hide]) so a tap meant for the detail cannot change photos;
+      // a focused one hands focus to the stage first. At fit, while loading and after a failure they are back.
+      const zoomed = ready && !atFit();
+      if (zoomed && document.activeElement?.matches?.('[data-zoom-hide]') && stage.contains(document.activeElement)) stage.focus({ preventScroll: true });
+      stage.classList.toggle('is-zoomed', zoomed);
       // The controls follow a picture that is showing; while none is, lockControls() keeps them off.
       if (!ready) return;
       setLevel(`${Math.round((scale / fit) * 100)}%`);
@@ -1212,6 +1216,7 @@
       if (pinch) pinch.pending = true;
       lastTap = null;
       lockControls();
+      stage.classList.remove('is-zoomed');
       image.classList.remove('is-ready', 'is-settling');
       stage.classList.add('is-loading');
       image.loading = 'eager';
@@ -1336,7 +1341,13 @@
       stage.classList.add('is-touched');
       pointers.set(event.pointerId, local(event));
       if (pointers.size === 2) {
-        if (swipe) settle();
+        if (swipe) {
+          // A fitted photo already pulled sideways: the pinch starts from where it shows, with no spring-back under the fingers.
+          clearTimeout(settleTimer);
+          image.classList.remove('is-settling');
+          x += swipe;
+          swipe = 0;
+        }
         startPinch();
         if (buttonPointers.size) swallowClick = true;
       } else if (pointers.size === 1 && !onButton) startDrag(local(event));
