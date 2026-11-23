@@ -1221,12 +1221,20 @@
     // A picture that takes more than a moment is announced (loadingStatus, a polite live region holding its own text in
     // data-loading-text); the announcement is emptied when the load ends either way.
     let statusTimer = 0;
+    // Whether the src has been set again since the picture last failed. A broken picture reports complete (and its old
+    // address) even while a new request for it is under way, so the "failed already" shortcut below is only taken when
+    // nothing has asked again since that failure (a broken drawing opened twice); otherwise the new request is waited for.
+    let srcTouched = false;
+    const srcWatch = typeof MutationObserver === 'function' ? new MutationObserver(() => { srcTouched = true; }) : null;
+    srcWatch?.observe(image, { attributes: true, attributeFilter: ['src', 'srcset'] });
     const quiet = () => {
       clearTimeout(statusTimer);
       if (loadingStatus && loadingStatus.textContent) loadingStatus.textContent = '';
     };
     const load = () => {
       const token = ++loadToken;
+      // A src set just before this call is still in the observer's queue: take it now.
+      if (srcWatch?.takeRecords().length) srcTouched = true;
       detachLoad();
       ready = false;
       swipe = 0;
@@ -1242,11 +1250,15 @@
       image.loading = 'eager';
       // Removes only this load's own listeners, so a late callback never strips a newer load's.
       let stall = 0;
+      let frame = 0;
+      // Ends this load's own waiting (listeners, frame, stall timer). The shared announcement is this load's to clear only
+      // while it is still the current one, so a late callback of a replaced load never silences the newer load's.
       const detach = () => {
         image.removeEventListener('load', done);
         image.removeEventListener('error', failed);
+        cancelAnimationFrame(frame);
         clearTimeout(stall);
-        quiet();
+        if (token === loadToken) quiet();
         if (detachLoad === detach) detachLoad = () => {};
       };
       // An event from an earlier request (one finishing after the src changed) is not this load's: the picture asked for is
@@ -1272,6 +1284,7 @@
           done();
           return;
         }
+        srcTouched = false;
         detach();
         // Closed meanwhile: no fallback download for a viewer nobody sees; opening again asks for the picture anew.
         if (token !== loadToken || !dialog.open) return;
@@ -1281,10 +1294,15 @@
       // complete and naturalWidth speak for the picture the image shows (currentSrc), which right after a new src can still be
       // the previous one: they count only when that is the picture asked for. Otherwise the load or error event decides.
       const settled = image.complete && asked();
-      if (settled && image.naturalWidth) requestAnimationFrame(done);
+      // The answer already in hand is given on the next frame; a newer load before then cancels it (detachLoad).
+      if (settled && image.naturalWidth) {
+        frame = requestAnimationFrame(() => done());
+        detachLoad = detach;
       // Already failed (a broken picture opened again): no event will come, so report it now.
-      else if (settled && image.getAttribute('src')) requestAnimationFrame(failed);
-      else {
+      } else if (settled && image.getAttribute('src') && !srcTouched) {
+        frame = requestAnimationFrame(() => failed());
+        detachLoad = detach;
+      } else {
         image.addEventListener('load', done);
         image.addEventListener('error', failed);
         // A response that starts and then stalls fires neither event. Where the caller has a fallback (the photos: their
@@ -1318,6 +1336,8 @@
     };
     dialog.addEventListener('close', () => {
       document.documentElement.style.overflow = previousOverflow;
+      // A drag cut short by Escape never sees its release: its grabbing cursor goes with the viewer.
+      stage.classList.remove('is-dragging');
       // A load still running has nobody to show it to: its listeners and stall timer go; opening again starts a new one.
       detachLoad();
       pointers.clear();
@@ -1541,7 +1561,15 @@
     };
     stage.addEventListener('pointerup', release);
     stage.addEventListener('pointercancel', release);
-    return { show, load };
+    // A change of photo ends a swipe still under way (an arrow key pressed mid-drag), so letting go does not step again.
+    const endSwipe = () => {
+      if (drag?.swipe) {
+        drag = null;
+        stage.classList.remove('is-dragging');
+      }
+      swipe = 0;
+    };
+    return { show, load, endSwipe };
   };
 
   // Product dimension drawing: opens in the zoom viewer above.
@@ -1576,7 +1604,8 @@
   // photos, and closing leaves the page on the last one seen. Wide screens with a mouse keep the page as it was.
   // Below 1024 px a tap or click on the photo opens it and the corner button shows; wider, only a finger or pen does, and the
   // button is there for the keyboard only, on touch screens.
-  const photoButtonMedia = window.matchMedia('(max-width: 1023px)');
+  // Exactly below the gallery's own lg breakpoint (min-width: 1024px), fractional widths under browser zoom included.
+  const photoButtonMedia = window.matchMedia('not all and (min-width: 1024px)');
   // Any touch screen, primary pointer or not (a tablet with a trackpad attached): the button is kept for its keyboard.
   const photoTouchMedia = window.matchMedia('(any-pointer: coarse)');
   const onMediaChange = (media, listener) => {
@@ -1728,6 +1757,7 @@
     };
     let viewer = null;
     const step = (direction) => {
+      viewer.endSwipe();
       setPhoto(index + direction);
       viewer.load();
       trimPreloads();
