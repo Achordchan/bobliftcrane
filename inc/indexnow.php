@@ -28,6 +28,7 @@ const BOBLIFT_INDEXNOW_RETRY_HOOK = 'boblift_indexnow_retry';
 const BOBLIFT_INDEXNOW_RETRY_PREFIX = 'boblift_indexnow_retry_';
 const BOBLIFT_INDEXNOW_SWEEP_HOOK = 'boblift_indexnow_sweep';
 const BOBLIFT_INDEXNOW_WAKE_OPTION = 'boblift_indexnow_wake';
+const BOBLIFT_INDEXNOW_LOCK_OPTION = 'boblift_indexnow_wake_lock';
 const BOBLIFT_INDEXNOW_LEASE = 15 * 60;
 const BOBLIFT_INDEXNOW_ROW_IDS = 1000;
 const BOBLIFT_INDEXNOW_RUN_ROWS = 20;
@@ -314,20 +315,52 @@ function boblift_indexnow_schedule_retry(): void
 
 /**
  * Makes sure the one wake-up event runs no later than $at: an existing wake-up at or before it is reused (also when
- * it is overdue), otherwise it is moved to $at. Reads only the wake-up option, never the batch rows.
+ * it is overdue), otherwise it is moved to $at. Reads only the wake-up option, never the batch rows. The read, check
+ * and replacement run under a short lock row (add_option() inserts only if absent), so two requests never both
+ * replace the same wake-up. A request that finds the lock held schedules its own run at $at instead of waiting;
+ * that costs at most one extra worker run and never delays a batch.
  */
 function boblift_indexnow_wake_at(int $at): void
 {
-    $wake = (int) get_option(BOBLIFT_INDEXNOW_WAKE_OPTION, 0);
-    if ($wake > 0 && $wake <= max($at, time()) && wp_next_scheduled(BOBLIFT_INDEXNOW_RETRY_HOOK, [['at' => $wake]])) {
+    $next = max($at, time());
+    if (!boblift_indexnow_lock()) {
+        if (!wp_next_scheduled(BOBLIFT_INDEXNOW_RETRY_HOOK, [['at' => $next]])) {
+            boblift_indexnow_schedule_event($next, [['at' => $next]]);
+        }
         return;
     }
-    $next = max($at, time());
-    if ($wake > 0) {
-        wp_unschedule_event($wake, BOBLIFT_INDEXNOW_RETRY_HOOK, [['at' => $wake]]);
+    wp_cache_delete(BOBLIFT_INDEXNOW_WAKE_OPTION, 'options');
+    $wake = (int) get_option(BOBLIFT_INDEXNOW_WAKE_OPTION, 0);
+    if (!($wake > 0 && $wake <= $next && wp_next_scheduled(BOBLIFT_INDEXNOW_RETRY_HOOK, [['at' => $wake]]))) {
+        if ($wake > 0) {
+            wp_unschedule_event($wake, BOBLIFT_INDEXNOW_RETRY_HOOK, [['at' => $wake]]);
+        }
+        update_option(BOBLIFT_INDEXNOW_WAKE_OPTION, $next, false);
+        boblift_indexnow_schedule_event($next, [['at' => $next]]);
     }
-    update_option(BOBLIFT_INDEXNOW_WAKE_OPTION, $next, false);
-    boblift_indexnow_schedule_event($next, [['at' => $next]]);
+    boblift_indexnow_unlock();
+}
+
+/** Takes the wake-up lock; a lock older than 30 seconds belongs to a request that died and is taken over. */
+function boblift_indexnow_lock(): bool
+{
+    global $wpdb;
+    if (add_option(BOBLIFT_INDEXNOW_LOCK_OPTION, time(), '', 'no')) {
+        return true;
+    }
+    $held = $wpdb->get_row($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s LIMIT 1", BOBLIFT_INDEXNOW_LOCK_OPTION), ARRAY_A);
+    if (!is_array($held) || (int) $held['option_value'] > time() - 30) {
+        return false;
+    }
+    // Take over a stale lock only if nobody else did first.
+    $taken = (int) $wpdb->query($wpdb->prepare("UPDATE {$wpdb->options} SET option_value = %s WHERE option_name = %s AND option_value = %s", (string) time(), BOBLIFT_INDEXNOW_LOCK_OPTION, (string) $held['option_value'])) === 1;
+    wp_cache_delete(BOBLIFT_INDEXNOW_LOCK_OPTION, 'options');
+    return $taken;
+}
+
+function boblift_indexnow_unlock(): void
+{
+    delete_option(BOBLIFT_INDEXNOW_LOCK_OPTION);
 }
 
 /**

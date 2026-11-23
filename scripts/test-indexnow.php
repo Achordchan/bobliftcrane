@@ -60,7 +60,7 @@ class Fake_Wpdb
             return $row;
         }
         // Stored like WordPress does: arrays serialized.
-        return array_key_exists($q[1][0], $GLOBALS['options']) ? ['option_value' => maybe_serialize($GLOBALS['options'][$q[1][0]])] : null;
+        return array_key_exists($q[1][0], $GLOBALS['options']) ? ['option_value' => (string) maybe_serialize($GLOBALS['options'][$q[1][0]])] : null;
     }
     public function query(array $q): int
     {
@@ -83,7 +83,7 @@ class Fake_Wpdb
             $GLOBALS['options'][$args[0]] = $args[1];
             return 1;
         }
-        if (array_key_exists($args[1], $GLOBALS['options']) && maybe_serialize($GLOBALS['options'][$args[1]]) === $args[2]) {
+        if (array_key_exists($args[1], $GLOBALS['options']) && (string) maybe_serialize($GLOBALS['options'][$args[1]]) === (string) $args[2]) {
             $GLOBALS['options'][$args[1]] = maybe_unserialize($args[0]);
             return 1;
         }
@@ -494,6 +494,19 @@ unset($GLOBALS['remote_code']);
 unlink($log);
 $check('when the retry cannot be saved anywhere, the original row is kept', isset($GLOBALS['options']['boblift_indexnow_retry_keep']));
 unset($GLOBALS['options']['boblift_indexnow_retry_keep']);
+$GLOBALS['scheduled'] = $GLOBALS['events'] = [];
+unset($GLOBALS['options']['boblift_indexnow_wake']);
+
+$GLOBALS['scheduled'] = $GLOBALS['events'] = [];
+$GLOBALS['options']['boblift_indexnow_wake'] = time() + 600;
+$GLOBALS['events'][] = ['boblift_indexnow_retry', [['at' => time() + 600]], time() + 600];
+add_option('boblift_indexnow_wake_lock', time(), '', 'no');
+boblift_indexnow_wake_at(time());
+$check('while another request holds the wake-up lock, the stored wake-up is left alone and a run at the needed time is added', $GLOBALS['options']['boblift_indexnow_wake'] === time() + 600 && count($GLOBALS['events']) === 2 && $GLOBALS['events'][1][2] <= time());
+$GLOBALS['options']['boblift_indexnow_wake_lock'] = time() - 60;
+$GLOBALS['events'] = [['boblift_indexnow_retry', [['at' => time() + 600]], time() + 600]];
+boblift_indexnow_wake_at(time());
+$check('a stale lock is taken over, the wake-up replaced and the lock released', count($GLOBALS['events']) === 1 && $GLOBALS['events'][0][2] <= time() && !isset($GLOBALS['options']['boblift_indexnow_wake_lock']));
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
 unset($GLOBALS['options']['boblift_indexnow_wake']);
 
