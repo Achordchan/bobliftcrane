@@ -1608,9 +1608,23 @@
     // server ignore it): browsers would otherwise hand back the cached error or the same request that never finished.
     const retries = new Map();
     const address = (url) => retries.get(url) || url;
+    // The address a photo is shown from: its full size, or for the rest of the visit the smaller copy it fell back to and
+    // showed, so a full size that fails or stalls is not waited on again at every return.
+    const want = (photo) => photo.shown || address(photo.full);
     // The address with a new retry argument, put before any fragment (an SVG view stays a fragment) and leaving the rest of
-    // the query exactly as written (the CDN's resize arguments are not re-encoded).
+    // the query exactly as written (the CDN's resize arguments are not re-encoded). Only for addresses known to ignore an
+    // extra argument, this site's own and the WordPress.com image CDN (i0.wp.com and its siblings): any other address may
+    // be signed, where an extra argument would break it, so it is asked for again unchanged.
+    const bustable = (url) => {
+      try {
+        const host = new URL(url, document.baseURI).hostname;
+        return host === window.location.hostname || /^i\d\.wp\.com$/.test(host);
+      } catch {
+        return false;
+      }
+    };
     const fresh = (url) => {
+      if (!bustable(url)) return url;
       const cut = url.indexOf('#');
       const head = cut < 0 ? url : url.slice(0, cut);
       const tail = cut < 0 ? '' : url.slice(cut);
@@ -1628,7 +1642,7 @@
     };
     const preload = (value) => {
       const photo = photos[wrap(value)];
-      const url = photo && address(photo.full);
+      const url = photo && want(photo);
       if (!photo || photo === photos[index] || preloads.has(url)) return;
       const next = new Image();
       next.decoding = 'async';
@@ -1645,7 +1659,7 @@
     };
     // Keeps only the preloads of the photo showing and the ones either side of it.
     const trimPreloads = () => {
-      const wanted = new Set([-1, 0, 1].map((offset) => address(photos[wrap(index + offset)].full)));
+      const wanted = new Set([-1, 0, 1].map((offset) => want(photos[wrap(index + offset)])));
       [...preloads.keys()].filter((url) => !wanted.has(url)).forEach(cancelPreload);
     };
     // Ends a request for this address that never finished: the viewer's own and a preload sharing it. The browser keeps a
@@ -1662,7 +1676,7 @@
       if (count) count.textContent = `${index + 1} / ${photos.length}`;
       showFailure(false);
       // A photo that failed before is asked for again, from its full size.
-      const url = address(photo.full);
+      const url = want(photo);
       if (image.getAttribute('src') === url && image.complete && !image.naturalWidth) image.removeAttribute('src');
       if (image.getAttribute('src') !== url) image.src = url;
     };
@@ -1689,6 +1703,9 @@
       onStep: photos.length > 1 ? step : null,
       onLoad: () => {
         shown = index;
+        const photo = photos[index];
+        const from = image.getAttribute('src');
+        if (from !== address(photo.full)) photo.shown = from;
       },
       // A full-size photo the CDN cannot serve falls back to the page's own size; if that fails too, the viewer says so.
       // A timeout is reported the same way; its request may still hang open, so it is dropped first and coming back to the
@@ -1698,6 +1715,8 @@
         const failedUrl = image.getAttribute('src');
         const fallback = photo.src ? address(photo.src) : '';
         if (!image.complete) dropStalled(failedUrl);
+        // The copy remembered as shown failed this time: next visit starts again from the full size.
+        if (photo.shown === failedUrl) delete photo.shown;
         // Coming back to this photo later asks for the failed address afresh, with a new query argument: neither a stalled
         // request nor a cached error response (a 404 the CDN let the browser keep) is handed back again.
         [photo.full, photo.src].filter((url) => url && address(url) === failedUrl).forEach((url) => {
@@ -1719,6 +1738,7 @@
         if (pending && !image.complete) {
           const photo = photos[index];
           [photo.full, photo.src].filter((url) => url && address(url) === pending).forEach((url) => retries.set(url, fresh(url)));
+          if (photo.shown === pending) delete photo.shown;
           dropStalled(pending);
         }
         const thumb = photos[shown]?.thumb;
