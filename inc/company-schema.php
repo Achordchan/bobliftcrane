@@ -207,7 +207,7 @@ function boblift_llms_txt_articles(): array
 {
     $articles = [];
     $held_back = array_fill_keys(BOBLIFT_LLMS_TXT_HELD_BACK_PATHS, true);
-    // Paths are compared whole, after the install's own subdirectory and the English language prefix are removed, so
+    // Paths are compared whole, after the install's own subdirectory and the language prefix are removed, so
     // /en/news-show-89.html matches the listed /news-show-89.html but /guides/news-show-89.html does not.
     $base = rtrim((string) wp_parse_url((string) get_option('home'), PHP_URL_PATH), '/');
     // Fetch enough to fill 500 after the held-back posts are dropped.
@@ -221,7 +221,10 @@ function boblift_llms_txt_articles(): array
         if ($base !== '' && str_starts_with($path, $base . '/')) {
             $path = substr($path, strlen($base));
         }
-        if (isset($held_back[(string) preg_replace('#^/en(?=/)#', '', $path)])) {
+        // Polylang's language directory, however it is configured (/en/, /language/en/), comes off with the helper the
+        // rewrites use.
+        $path = function_exists('boblift_strip_language_prefix') ? boblift_strip_language_prefix($path) : (string) preg_replace('#^/en(?=/)#', '', $path);
+        if (isset($held_back[$path])) {
             continue;
         }
         $articles[] = boblift_llms_txt_link(get_the_title($post), $url, boblift_seo_post_description($post));

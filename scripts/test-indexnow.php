@@ -53,8 +53,9 @@ class Fake_Wpdb
         }
         $this->scans++;
         $prefix = stripslashes(rtrim($args[0], '%'));
-        $upper = count($args) === 3 ? $args[1] : null;
-        $names = array_filter(array_map('strval', array_keys($GLOBALS['options'])), static fn(string $name): bool => str_starts_with($name, $prefix) && ($upper === null || strcmp($name, $upper) < 0));
+        // LIKE prefix% AND option_name > after AND option_name < upper ORDER BY option_name LIMIT n
+        [, $after, $upper] = $args;
+        $names = array_filter(array_map('strval', array_keys($GLOBALS['options'])), static fn(string $name): bool => str_starts_with($name, $prefix) && strcmp($name, $after) > 0 && strcmp($name, $upper) < 0);
         sort($names, SORT_STRING);
         return array_slice(array_values($names), 0, (int) end($args));
     }
@@ -525,13 +526,14 @@ $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
 unset($GLOBALS['options']['boblift_indexnow_wake']);
 
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
-$GLOBALS['options']['boblift_indexnow_wake'] = time() + 600;
-$GLOBALS['events'][] = ['boblift_indexnow_retry', [['at' => time() + 600]], time() + 600];
-add_option('boblift_indexnow_wake_lock', time(), '', 'no');
-boblift_indexnow_wake_at(time());
-$check('while another request holds the wake-up lock, the stored wake-up is left alone and a run at the needed time is added', $GLOBALS['options']['boblift_indexnow_wake'] === time() + 600 && count($GLOBALS['events']) === 2 && $GLOBALS['events'][1][2] <= time());
+$base = time();
+$GLOBALS['options']['boblift_indexnow_wake'] = $base + 600;
+$GLOBALS['events'][] = ['boblift_indexnow_retry', [['at' => $base + 600]], $base + 600];
+add_option('boblift_indexnow_wake_lock', $base, '', 'no');
+boblift_indexnow_wake_at($base);
+$check('while another request holds the wake-up lock, it does not write to cron at all and leaves the rows to the sweep', $GLOBALS['options']['boblift_indexnow_wake'] === $base + 600 && $GLOBALS['events'] === [['boblift_indexnow_retry', [['at' => $base + 600]], $base + 600]]);
 $GLOBALS['options']['boblift_indexnow_wake_lock'] = time() - 60;
-$GLOBALS['events'] = [['boblift_indexnow_retry', [['at' => time() + 600]], time() + 600]];
+$GLOBALS['events'] = [['boblift_indexnow_retry', [['at' => $base + 600]], $base + 600]];
 boblift_indexnow_wake_at(time());
 $check('a stale lock is taken over, the wake-up replaced and the lock released', count($GLOBALS['events']) === 1 && $GLOBALS['events'][0][2] <= time() && !isset($GLOBALS['options']['boblift_indexnow_wake_lock']));
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
@@ -559,28 +561,49 @@ $GLOBALS['primed'] = [];
 $check('a deleted post is skipped and the rest resolved', count(boblift_indexnow_resolve(array_merge(range(1, 250), [999]))) === 250);
 $check('post, term and meta caches are primed in chunks of 100', array_map('count', $GLOBALS['primed']) === [100, 100, 50]);
 
-// The wake-up scan reads a bounded number of rows, earliest due first.
+// The wake-up scan reads a bounded number of rows, earliest due first. One base time for the whole setup.
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
 unset($GLOBALS['options']['boblift_indexnow_wake']);
-foreach (range(0, 149) as $i) {
-    $GLOBALS['options'][rn(time() + 1000 + $i, 'scan' . $i)] = ['due' => time() + 1000 + $i, 'ids' => [1], 'retry' => true];
+$base = time();
+foreach (range(0, 599) as $i) {
+    $GLOBALS['options'][rn($base + 1000 + $i, 'scan' . $i)] = ['due' => $base + 1000 + $i, 'ids' => [1], 'retry' => true];
 }
 $GLOBALS['wpdb']->reads = 0;
 boblift_indexnow_schedule_retry();
-$check('the wake-up scan stops once later rows cannot run sooner', $GLOBALS['wpdb']->reads <= 3 && ($GLOBALS['options']['boblift_indexnow_wake'] ?? 0) === time() + 1000);
-foreach (range(0, 149) as $i) {
-    $GLOBALS['options'][rn(time() + 1000 + $i, 'scan' . $i)]['lease'] = time() + 5000;
+$check('the wake-up scan stops once later rows cannot run sooner', $GLOBALS['wpdb']->reads <= 3 && ($GLOBALS['options']['boblift_indexnow_wake'] ?? 0) === $base + 1000);
+foreach (range(0, 599) as $i) {
+    $GLOBALS['options'][rn($base + 1000 + $i, 'scan' . $i)]['lease'] = $base + 5000;
 }
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
 unset($GLOBALS['options']['boblift_indexnow_wake']);
 $GLOBALS['wpdb']->reads = 0;
 boblift_indexnow_schedule_retry();
-$check('with more rows than one scan reads, the wake-up is no later than the last due time read', $GLOBALS['wpdb']->reads <= 100 && ($GLOBALS['options']['boblift_indexnow_wake'] ?? 0) === time() + 1099);
+$check('with more rows than one scan reads, the wake-up is no later than the last due time read', $GLOBALS['wpdb']->reads <= 500 && ($GLOBALS['options']['boblift_indexnow_wake'] ?? 0) === $base + 1499);
+foreach (boblift_indexnow_retry_names(1000) as $name) {
+    unset($GLOBALS['options'][$name]);
+}
+// 150 due rows leased by stalled runs do not hide a runnable row behind them, and do not make the wake-up loop.
+$GLOBALS['posts'] = [71 => new WP_Post(71)];
+foreach (range(0, 149) as $i) {
+    $GLOBALS['options'][rn($base - 1000 + $i, 'stuck' . $i)] = ['due' => $base - 1000 + $i, 'ids' => [71], 'retry' => true, 'lease' => $base + 600];
+}
+$GLOBALS['options'][rn($base - 10, 'behind')] = ['due' => $base - 10, 'ids' => [71], 'retry' => true];
+$GLOBALS['sent'] = $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
+unset($GLOBALS['options']['boblift_indexnow_wake']);
+boblift_indexnow_run_retries();
+$check('a runnable row behind 150 leased rows is sent', $GLOBALS['sent'] === [['https://bobliftcrane.com/p71.html']] && !isset($GLOBALS['options'][rn($base - 10, 'behind')]));
+$check('the leased rows wake the worker when their leases end, not at once', ($GLOBALS['options']['boblift_indexnow_wake'] ?? 0) >= $base + 600);
 foreach (boblift_indexnow_retry_names(1000) as $name) {
     unset($GLOBALS['options'][$name]);
 }
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
 unset($GLOBALS['options']['boblift_indexnow_wake']);
+
+// A run whose lease is taken over while it resolves permalinks sends nothing and leaves the row to the new owner.
+add_option(rn(0, 'takeover'), ['due' => 0, 'ids' => [71], 'retry' => true], '', 'no');
+$GLOBALS['sent'] = [];
+$check('a send stops when ownership is lost before the POST', boblift_indexnow_send([71], true, static fn(): bool => false) === false && $GLOBALS['sent'] === []);
+unset($GLOBALS['options'][rn(0, 'takeover')]);
 
 // A batch carried in a cron event is saved as a row before it is sent, so a failure cannot lose it.
 $GLOBALS['posts'] = [61 => new WP_Post(61)];

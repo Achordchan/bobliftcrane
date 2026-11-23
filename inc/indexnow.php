@@ -35,6 +35,10 @@ const BOBLIFT_INDEXNOW_RUN_ROWS = 20;
 const BOBLIFT_INDEXNOW_RUN_SECONDS = 60;
 // Most batch rows read by one worker run or one wake-up reconciliation.
 const BOBLIFT_INDEXNOW_SCAN_ROWS = 100;
+// Pages of BOBLIFT_INDEXNOW_SCAN_ROWS one scan may read, so rows leased by stalled runs cannot hide the rows behind them.
+const BOBLIFT_INDEXNOW_SCAN_PAGES = 5;
+// Tries, 100 ms apart, to take the wake-up lock before leaving the rows to the hourly sweep.
+const BOBLIFT_INDEXNOW_LOCK_TRIES = 20;
 
 function boblift_indexnow_valid_key(mixed $key): bool
 {
@@ -174,8 +178,10 @@ function boblift_indexnow_resolve(array $post_ids): ?array
  * Sends the posts' current permalinks; runs from cron. When $retry is true, the IDs behind a POST that failed (no
  * connection, 429 or 5xx) are saved for one more try ten minutes later; that try itself does not retry. Returns false
  * when the posts could not be read or such a retry could not be saved anywhere, so the caller keeps its copy of the batch.
+ * $still_owned, when given, is checked right before each POST; once it says the batch was taken over, nothing more is
+ * sent and false is returned (the run that took it over sends it).
  */
-function boblift_indexnow_send(array $post_ids, bool $retry = true): bool
+function boblift_indexnow_send(array $post_ids, bool $retry = true, ?callable $still_owned = null): bool
 {
     if (!boblift_indexnow_enabled()) {
         return true;
@@ -195,6 +201,9 @@ function boblift_indexnow_send(array $post_ids, bool $retry = true): bool
     }
     $kept = true;
     foreach (boblift_indexnow_payloads(array_keys($by_url), (string) get_option('home'), $key) as $payload) {
+        if ($still_owned !== null && !$still_owned()) {
+            return false;
+        }
         // Blocking, from cron only: a non-blocking request can hide a failed connection.
         $response = wp_remote_post(BOBLIFT_INDEXNOW_ENDPOINT, [
             'timeout' => 10,
@@ -264,16 +273,42 @@ function boblift_indexnow_schedule_event(int $time, array $args = []): bool
 
 /**
  * @return string[] option names of saved batch rows in the current blog, earliest due first, at most $limit of them;
- * with $due_by, only rows due by then.
+ * with $due_by, only rows due by then; with $after, only rows after that name (the next page of a scan).
  */
-function boblift_indexnow_retry_names(int $limit = BOBLIFT_INDEXNOW_SCAN_ROWS, ?int $due_by = null): array
+function boblift_indexnow_retry_names(int $limit = BOBLIFT_INDEXNOW_SCAN_ROWS, ?int $due_by = null, string $after = ''): array
 {
     global $wpdb;
-    $like = $wpdb->esc_like(BOBLIFT_INDEXNOW_RETRY_PREFIX) . '%';
-    $query = $due_by === null
-        ? $wpdb->prepare("SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s ORDER BY option_name ASC LIMIT %d", $like, $limit)
-        : $wpdb->prepare("SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s AND option_name < %s ORDER BY option_name ASC LIMIT %d", $like, BOBLIFT_INDEXNOW_RETRY_PREFIX . sprintf('%010d', $due_by + 1), $limit);
+    $upper = $due_by === null ? BOBLIFT_INDEXNOW_RETRY_PREFIX . '~' : BOBLIFT_INDEXNOW_RETRY_PREFIX . sprintf('%010d', $due_by + 1);
+    $query = $wpdb->prepare(
+        "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s AND option_name > %s AND option_name < %s ORDER BY option_name ASC LIMIT %d",
+        $wpdb->esc_like(BOBLIFT_INDEXNOW_RETRY_PREFIX) . '%',
+        $after === '' ? BOBLIFT_INDEXNOW_RETRY_PREFIX : $after,
+        $upper,
+        $limit
+    );
     return array_map('strval', (array) $wpdb->get_col($query));
+}
+
+/**
+ * Walks batch rows earliest due first, page by page, for at most BOBLIFT_INDEXNOW_SCAN_PAGES pages; $visit returns false
+ * to stop. Returns true when every row was visited or $visit stopped the walk, false when rows were left unread.
+ */
+function boblift_indexnow_walk_rows(?int $due_by, callable $visit): bool
+{
+    $after = '';
+    for ($page = 0; $page < BOBLIFT_INDEXNOW_SCAN_PAGES; $page++) {
+        $names = boblift_indexnow_retry_names(BOBLIFT_INDEXNOW_SCAN_ROWS, $due_by, $after);
+        foreach ($names as $name) {
+            $after = $name;
+            if ($visit($name) === false) {
+                return true;
+            }
+        }
+        if (count($names) < BOBLIFT_INDEXNOW_SCAN_ROWS) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /**
@@ -341,34 +376,33 @@ function boblift_indexnow_runnable_at(array $batch): int
 }
 
 /**
- * Keeps one wake-up event at the earliest time a waiting batch can run. Reads at most BOBLIFT_INDEXNOW_SCAN_ROWS rows,
- * earliest due first, and stops as soon as the next row's due time is past the earliest runnable time found (a row
- * never runs before its due time). If more rows remain unread, the wake-up is set no later than the due time of the
- * last row read, which is the earliest any unread row can run. A batch that could not be read counts as runnable in
- * ten minutes.
+ * Keeps one wake-up event at the earliest time a waiting batch can run. Reads rows earliest due first, at most
+ * BOBLIFT_INDEXNOW_SCAN_PAGES pages, and stops as soon as the next row's due time is past the earliest runnable time
+ * found (a row never runs before its due time). If rows remain unread, the wake-up is set no later than the due time of
+ * the last row read (the earliest any unread row can run), but at least a minute out, so rows leased by stalled runs
+ * cannot make it fire in a loop. A batch that could not be read counts as runnable in ten minutes.
  */
 function boblift_indexnow_schedule_retry(): void
 {
     $next = null;
-    $names = boblift_indexnow_retry_names();
-    $complete = count($names) < BOBLIFT_INDEXNOW_SCAN_ROWS;
     $last_due = null;
-    foreach ($names as $name) {
+    $complete = boblift_indexnow_walk_rows(null, static function (string $name) use (&$next, &$last_due): bool {
         $last_due = boblift_indexnow_name_due($name);
         if ($next !== null && $last_due >= $next) {
-            $complete = true;
-            break;
+            return false;
         }
         $batch = boblift_indexnow_read_retry($name);
         if ($batch === false) {
             boblift_indexnow_claim_retry($name);
-            continue;
+            return true;
         }
         $at = $batch === null ? time() + 10 * MINUTE_IN_SECONDS : boblift_indexnow_runnable_at($batch);
         $next = $next === null ? $at : min($next, $at);
-    }
+        return true;
+    });
     if (!$complete && $last_due !== null) {
-        $next = $next === null ? $last_due : min($next, $last_due);
+        $bound = max($last_due, time() + MINUTE_IN_SECONDS);
+        $next = $next === null ? $bound : min($next, $bound);
     }
     if ($next !== null) {
         boblift_indexnow_wake_at($next);
@@ -378,17 +412,19 @@ function boblift_indexnow_schedule_retry(): void
 /**
  * Makes sure the one wake-up event runs no later than $at: an existing wake-up at or before it is reused (also when
  * it is overdue), otherwise it is moved to $at. Reads only the wake-up option, never the batch rows. The read, check
- * and replacement run under a short lock row held by a token, so two requests never both replace the same wake-up. A request that finds the lock held schedules its own run at $at instead of waiting;
- * that costs at most one extra worker run and never delays a batch.
+ * and replacement run under a short lock row held by a token, so two requests never both replace the same wake-up and
+ * only the lock holder writes the cron option. A request that cannot get the lock within about two seconds leaves the
+ * wake-up alone; its rows are already saved and the hourly sweep runs them.
  */
 function boblift_indexnow_wake_at(int $at): void
 {
     $next = max($at, time());
     $lock = boblift_indexnow_lock();
+    for ($try = 1; $lock === null && $try < BOBLIFT_INDEXNOW_LOCK_TRIES; $try++) {
+        usleep(100000);
+        $lock = boblift_indexnow_lock();
+    }
     if ($lock === null) {
-        if (!wp_next_scheduled(BOBLIFT_INDEXNOW_RETRY_HOOK, [['at' => $next]])) {
-            boblift_indexnow_schedule_event($next, [['at' => $next]]);
-        }
         return;
     }
     wp_cache_delete(BOBLIFT_INDEXNOW_WAKE_OPTION, 'options');
@@ -462,27 +498,29 @@ function boblift_indexnow_run_retries(array $carried = []): void
         }
     }
     $rows = 0;
-    foreach (boblift_indexnow_retry_names(BOBLIFT_INDEXNOW_SCAN_ROWS, time()) as $name) {
+    boblift_indexnow_walk_rows(time(), static function (string $name) use (&$rows, $started): bool {
         if ($rows >= BOBLIFT_INDEXNOW_RUN_ROWS || time() - $started >= BOBLIFT_INDEXNOW_RUN_SECONDS) {
-            break;
+            return false;
         }
         $batch = boblift_indexnow_read_retry($name);
         if ($batch === false) {
             boblift_indexnow_claim_retry($name);
-            continue;
+            return true;
         }
         if ($batch === null || boblift_indexnow_runnable_at($batch) > time()) {
-            continue;
+            return true;
         }
         $leased = boblift_indexnow_lease_retry($name, $batch);
         if ($leased === null || !boblift_indexnow_owns_retry($name, $leased)) {
-            continue;
+            return true;
         }
         $rows++;
-        if (boblift_indexnow_send($batch['ids'], $batch['retry'])) {
+        // Ownership is checked again right before each POST, after the permalinks are resolved.
+        if (boblift_indexnow_send($batch['ids'], $batch['retry'], static fn(): bool => boblift_indexnow_owns_retry($name, $leased))) {
             boblift_indexnow_finish_retry($name, $leased);
         }
-    }
+        return true;
+    });
     boblift_indexnow_schedule_retry();
 }
 
