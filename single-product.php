@@ -339,7 +339,7 @@ if (!$related_products && $related_term instanceof WP_Term) {
             'post_status' => 'publish',
             'numberposts' => 4,
             'fields' => 'ids',
-            'post__not_in' => [get_the_ID()],
+            'post__not_in' => array_merge([get_the_ID()], boblift_withdrawn_product_ids()),
             'meta_key' => '_capacity_value',
             'orderby' => 'meta_value_num',
             'order' => 'ASC',

@@ -416,7 +416,7 @@ function boblift_series_build_map(): array
 }
 
 /**
- * How many listings a product category shows: published current products in it (and its children), one per series and
+ * How many listings a product category shows: published current products in it (and its children), withdrawn ones left out, one per series and
  * one per product across its translations. Used to drop a "Compare all" link that would lead to this product alone.
  */
 function boblift_product_term_listing_count(WP_Term $term): int
@@ -434,9 +434,14 @@ function boblift_product_term_listing_count(WP_Term $term): int
         'tax_query' => [['taxonomy' => 'product_category', 'terms' => $term->term_id, 'include_children' => true]],
     ])))->posts;
     $index = boblift_series_map()['index'];
+    // Withdrawn configurations leave their series and the archive, so they are not listings either.
+    $withdrawn = array_flip(boblift_withdrawn_product_ids());
     $keys = [];
     foreach ($ids as $id) {
         $id = (int) $id;
+        if (isset($withdrawn[$id])) {
+            continue;
+        }
         if (isset($index[$id])) {
             $keys['s' . $index[$id]] = true;
             continue;
