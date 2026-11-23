@@ -35,6 +35,7 @@ $GLOBALS['last_args'] = [];
 function get_posts(array $args): array
 {
     $GLOBALS['last_args'] = $args;
+    $GLOBALS['largest_page'] = max($GLOBALS['largest_page'] ?? 0, $args['posts_per_page'] ?? 5);
     $posts = array_filter($GLOBALS['posts'], static fn(WP_Post $p): bool => $p->post_type === $args['post_type']
         && $p->post_status === $args['post_status']
         && (!array_key_exists('has_password', $args) || $args['has_password'] !== false || $p->post_password === '')
@@ -61,6 +62,16 @@ function pll_get_post_language(int $id): string|false
         }
     }
     return false;
+}
+$GLOBALS['runtime_flushes'] = 0;
+function wp_cache_supports(string $feature): bool
+{
+    return $feature === 'flush_runtime';
+}
+function wp_cache_flush_runtime(): bool
+{
+    $GLOBALS['runtime_flushes']++;
+    return true;
 }
 function get_the_title(WP_Post $post): string
 {
@@ -113,6 +124,7 @@ $check('the oldest articles past 500 are left out', !$has(18) && !$has(1));
 $check('a translation is left out', !$has(900));
 $check('a password-protected article is left out', !$has(901));
 $check('a draft is left out', !$has(902));
+$check('posts are read in pages of at most 100, the request-local cache dropped after each page', $GLOBALS['largest_page'] <= 100 && $GLOBALS['runtime_flushes'] >= 5);
 $again = boblift_llms_txt_articles();
 $check('the order is the same on every request', $again === $lines);
 // If the query's language filter is not applied, 600 newer Spanish translations must not push English articles out.

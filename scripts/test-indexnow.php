@@ -47,6 +47,10 @@ class Fake_Wpdb
     // Like wpdb: get_var() gives null for a missing row and for an empty value alike.
     public function get_var(array $q)
     {
+        if ($q[1][0] === 'cron') {
+            // The cron option as stored, built from the scheduled events; null when the read fails.
+            return !empty($GLOBALS['cron_read_fails']) ? null : serialize(_get_cron_array());
+        }
         $value = $GLOBALS['options'][$q[1][0]] ?? null;
         return $value === '' ? null : $value;
     }
@@ -296,6 +300,47 @@ function wp_schedule_event(int $time, string $recurrence, string $hook): bool
     $GLOBALS['scheduled'][] = $hook;
     $GLOBALS['events'][] = [$hook, [], $time];
     return true;
+}
+// The key-file self-check: by default the key file answers as it should and the check is already done for today.
+$GLOBALS['transients'] = ['boblift_indexnow_key_file_checked' => 'ok'];
+function get_transient(string $name)
+{
+    return $GLOBALS['transients'][$name] ?? false;
+}
+function set_transient(string $name, $value, int $expiration = 0): bool
+{
+    $GLOBALS['transients'][$name] = $value;
+    $GLOBALS['transient_ttl'][$name] = $expiration;
+    return true;
+}
+function wp_remote_get(string $url, array $args = [])
+{
+    $GLOBALS['fetched'][] = $url;
+    return $GLOBALS['key_file_response'] ?? ['response' => ['code' => 200], 'body' => $GLOBALS['options']['boblift_indexnow_key'] ?? ''];
+}
+function wp_remote_retrieve_body($response)
+{
+    return $response['body'] ?? '';
+}
+if (!defined('DAY_IN_SECONDS')) {
+    define('DAY_IN_SECONDS', 86400);
+}
+if (!defined('HOUR_IN_SECONDS')) {
+    define('HOUR_IN_SECONDS', 3600);
+}
+$GLOBALS['doing_cron'] = false;
+function wp_doing_cron(): bool
+{
+    return $GLOBALS['doing_cron'];
+}
+function _get_cron_array(): array
+{
+    $cron = [];
+    foreach ($GLOBALS['events'] ?? [] as [$hook, $args, $time]) {
+        $cron[$time][$hook][md5(serialize($args))] = ['schedule' => $GLOBALS['recurrence'][$hook] ?? false, 'args' => $args];
+    }
+    ksort($cron);
+    return $cron;
 }
 function wp_generate_uuid4(): string
 {
@@ -575,7 +620,22 @@ boblift_indexnow_run_retries();
 $GLOBALS['add_option_fails'] = false;
 unset($GLOBALS['remote_code']);
 unlink($log);
-$check('when the retry cannot be saved anywhere, the original row is kept', row_ids() === [[1]]);
+$rows = boblift_indexnow_retry_names();
+$check('a failed POST moves the leased row to the retry in place: one row, no new row written, no retry left', count($rows) === 1 && $GLOBALS['options'][$rows[0]]['ids'] === [1] && $GLOBALS['options'][$rows[0]]['retry'] === false && $GLOBALS['options'][$rows[0]]['due'] >= time() + 590 && !isset($GLOBALS['options'][$rows[0]]['lease']));
+clear_rows();
+add_option(rn(0, 'lost'), ['due' => 0, 'ids' => [1], 'retry' => true], '', 'no');
+$batch = boblift_indexnow_read_retry(rn(0, 'lost'));
+[$lost, $lost_lease] = boblift_indexnow_lease_retry(rn(0, 'lost'), $batch);
+$GLOBALS['options'][$lost]['token'] = 'another-run';
+$check('a run that lost its lease cannot move the row', !boblift_indexnow_reschedule_retry($lost, $lost_lease, [1], time() + 600, false) && row_ids() === [[1]] && isset($GLOBALS['options'][$lost]));
+clear_rows();
+$GLOBALS['options']['blog_public'] = '0';
+add_option(rn(0, 'off'), ['due' => 0, 'ids' => [1], 'retry' => true], '', 'no');
+$GLOBALS['sent'] = [];
+boblift_indexnow_run_retries();
+$check('while submissions are off, the worker leaves rows alone instead of acknowledging them', $GLOBALS['sent'] === [] && isset($GLOBALS['options'][rn(0, 'off')]));
+$check('a send while submissions are off reports failure, so the caller keeps its batch', boblift_indexnow_send([1]) === false);
+$GLOBALS['options']['blog_public'] = '1';
 clear_rows();
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
 
@@ -673,11 +733,30 @@ unset($GLOBALS['options'][$rows[0]]);
 $GLOBALS['remote_fails'] = false;
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
 ($GLOBALS['hooks']['init'])();
+$check('a page or publishing request never writes cron, even with no worker event yet', $GLOBALS['scheduled'] === [] && $GLOBALS['events'] === []);
+$GLOBALS['doing_cron'] = true;
+$GLOBALS['options']['boblift_indexnow_schedule_lock'] = (string) time() . '_other';
+($GLOBALS['hooks']['init'])();
+$check('a cron request that does not get the scheduling lock writes nothing', $GLOBALS['scheduled'] === []);
+$GLOBALS['options']['boblift_indexnow_schedule_lock'] = (string) (time() - 600) . '_stale';
+$GLOBALS['cron_read_fails'] = true;
+($GLOBALS['hooks']['init'])();
+unset($GLOBALS['cron_read_fails']);
+$check('a lock left over five minutes is taken over, and nothing is scheduled when the cron option cannot be reread', $GLOBALS['scheduled'] === [] && !isset($GLOBALS['options']['boblift_indexnow_schedule_lock']));
+($GLOBALS['hooks']['init'])();
+($GLOBALS['hooks']['init'])();
+$check('the every-minute worker is scheduled once, from a cron request, and the lock released', $GLOBALS['scheduled'] === ['boblift_indexnow_sweep'] && !isset($GLOBALS['options']['boblift_indexnow_schedule_lock']));
+$dup = time();
+$GLOBALS['events'][] = ['boblift_indexnow_sweep', [], $dup - 30];
+$GLOBALS['events'][] = ['boblift_indexnow_sweep', [], $dup + 45];
+($GLOBALS['hooks']['init'])();
+$check('duplicate worker events are removed, keeping the earliest', array_values(array_map(static fn($e) => $e[2], array_filter($GLOBALS['events'], static fn($e) => $e[0] === 'boblift_indexnow_sweep'))) === [$dup - 30]);
 $check('the every-minute worker is scheduled on the live site', in_array('boblift_indexnow_sweep', $GLOBALS['scheduled'], true) && ($GLOBALS['recurrence']['boblift_indexnow_sweep'] ?? '') === 'boblift_indexnow_minute');
 $check('the every-minute interval is registered', (($GLOBALS['filters']['cron_schedules'])([])['boblift_indexnow_minute']['interval'] ?? 0) === 60);
 $GLOBALS['options']['blog_public'] = '0';
 ($GLOBALS['hooks']['init'])();
 $check('the worker event is removed when the site stops submitting', wp_next_scheduled('boblift_indexnow_sweep') === false);
+$GLOBALS['doing_cron'] = false;
 $GLOBALS['options']['blog_public'] = '1';
 $log = tempnam(sys_get_temp_dir(), 'indexnow');
 ini_set('error_log', $log);
@@ -687,6 +766,28 @@ $GLOBALS['add_option_fails'] = false;
 $check('its post IDs are logged and nothing goes to cron', str_contains((string) file_get_contents($log), 'posts not submitted: 21') && !in_array('boblift_indexnow_retry', $GLOBALS['scheduled'], true));
 unlink($log);
 $check('the worker hook runs the batch worker', ($GLOBALS['hooks']['boblift_indexnow_sweep'] ?? null) === 'boblift_indexnow_run_retries');
+
+// The worker fetches the advertised key file over HTTP once a day, hourly while it fails, and logs a failure.
+clear_rows();
+$GLOBALS['transients'] = [];
+$GLOBALS['fetched'] = [];
+boblift_indexnow_run_retries();
+$check('the worker fetches the advertised key file over HTTP and, when it answers, checks again in a day', $GLOBALS['fetched'] === ['https://bobliftcrane.com/abcd1234.txt'] && $GLOBALS['transients']['boblift_indexnow_key_file_checked'] === 'ok' && $GLOBALS['transient_ttl']['boblift_indexnow_key_file_checked'] === 86400);
+boblift_indexnow_run_retries();
+$check('the key file is not fetched again within the day', count($GLOBALS['fetched']) === 1);
+$log = tempnam(sys_get_temp_dir(), 'indexnow');
+ini_set('error_log', $log);
+foreach ([['response' => ['code' => 404], 'body' => 'Not found'], ['response' => ['code' => 200], 'body' => 'wrong']] as $i => $response) {
+    $GLOBALS['transients'] = [];
+    $GLOBALS['key_file_response'] = $response;
+    boblift_indexnow_run_retries();
+    $check('a key file that ' . ($i === 0 ? 'is not served' : 'answers with other text') . ' is logged and checked again in an hour', $GLOBALS['transients']['boblift_indexnow_key_file_checked'] === 'failed' && $GLOBALS['transient_ttl']['boblift_indexnow_key_file_checked'] === 3600);
+}
+$check('the failure log names the key file and status', str_contains((string) file_get_contents($log), 'the key file https://bobliftcrane.com/abcd1234.txt did not answer 200 with the key (HTTP 404)'));
+unlink($log);
+ini_set('error_log', '/dev/null');
+unset($GLOBALS['key_file_response']);
+$GLOBALS['transients'] = ['boblift_indexnow_key_file_checked' => 'ok'];
 
 $GLOBALS['options']['boblift_indexnow_key'] = "abcd1234\n";
 $check('a key with a trailing newline is repaired', preg_match('/^[a-z0-9]{32}\z/', boblift_indexnow_key()) === 1);
