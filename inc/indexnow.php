@@ -29,7 +29,8 @@ const BOBLIFT_INDEXNOW_RETRY_PREFIX = 'boblift_indexnow_retry_';
 const BOBLIFT_INDEXNOW_SWEEP_HOOK = 'boblift_indexnow_sweep';
 const BOBLIFT_INDEXNOW_INTERVAL = 'boblift_indexnow_minute';
 const BOBLIFT_INDEXNOW_LEASE = 15 * 60;
-const BOBLIFT_INDEXNOW_ROW_IDS = 1000;
+// One row is one step of the worker: 100 posts resolved and sent in one POST, so a row never runs long past the budget.
+const BOBLIFT_INDEXNOW_ROW_IDS = 100;
 const BOBLIFT_INDEXNOW_RUN_ROWS = 20;
 const BOBLIFT_INDEXNOW_RUN_SECONDS = 60;
 // Most batch rows read per page of a worker scan.
@@ -182,9 +183,11 @@ function boblift_indexnow_resolve(array $post_ids): ?array
                 $urls[$url][] = (int) $post->ID;
             }
         }
-        // Drop this chunk's primed posts, terms and meta from the request-local cache before the next one, so a
-        // 1,000-post row never holds them all at once (the persistent object cache, if any, keeps them).
-        if (function_exists('wp_cache_flush_runtime')) {
+        // Drop this chunk's primed posts, terms and meta from the request-local cache before the next one, so a run of
+        // many rows never holds them all at once (the persistent object cache, if any, keeps them).
+        // Only where the cache can drop its request-local copies alone: elsewhere wp_cache_flush_runtime() falls back to
+        // flushing the whole shared cache.
+        if (function_exists('wp_cache_flush_runtime') && function_exists('wp_cache_supports') && wp_cache_supports('flush_runtime')) {
             wp_cache_flush_runtime();
         }
     }
@@ -237,7 +240,8 @@ function boblift_indexnow_send(array $post_ids, bool $retry = true, ?callable $s
             $kept = boblift_indexnow_save_batch(array_values(array_unique($ids)), time() + 10 * MINUTE_IN_SECONDS, false) && $kept;
         } elseif ($code < 200 || $code >= 300) {
             // Not retried (a bad key or URL list, or the last try failed): logged, so a broken key route is noticed.
-            error_log(sprintf('IndexNow: %d URLs not accepted (%s).', count($payload['urlList']), $code === 0 ? 'no connection: ' . $response->get_error_message() : 'HTTP ' . $code));
+            $why = is_wp_error($response) ? 'no connection: ' . $response->get_error_message() : ($code === 0 ? 'no HTTP status' : 'HTTP ' . $code);
+            error_log(sprintf('IndexNow: %d URLs not accepted (%s).', count($payload['urlList']), $why));
         }
     }
     return $kept;

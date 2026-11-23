@@ -194,6 +194,11 @@ function clear_rows(): void
     }
 }
 $GLOBALS['runtime_flushes'] = 0;
+$GLOBALS['cache_supports_runtime'] = true;
+function wp_cache_supports(string $feature): bool
+{
+    return $feature === 'flush_runtime' && $GLOBALS['cache_supports_runtime'];
+}
 function wp_cache_flush_runtime(): bool
 {
     $GLOBALS['runtime_flushes']++;
@@ -447,8 +452,8 @@ foreach (range(1, 10001) as $i) {
     $GLOBALS['posts'][$i] = new WP_Post($i);
 }
 boblift_indexnow_send(range(1, 10001));
-$rows = boblift_indexnow_retry_names();
-$check('10,001 failed posts are all kept, in rows of at most 1,000', count($rows) === 11 && max(array_map('count', $ids($rows))) === 1000 && array_sum(array_map('count', $ids($rows))) === 10001);
+$rows = boblift_indexnow_retry_names(1000);
+$check('10,001 failed posts are all kept, in rows of at most 100', count($rows) === 101 && max(array_map('count', $ids($rows))) === 100 && array_sum(array_map('count', $ids($rows))) === 10001);
 foreach ($rows as $name) {
     unset($GLOBALS['options'][$name]);
 }
@@ -492,6 +497,14 @@ foreach ([503 => 1, 429 => 1, 422 => 0, 202 => 0] as $code => $rows_expected) {
 unset($GLOBALS['remote_code']);
 $logged = (string) file_get_contents($log);
 unlink($log);
+$GLOBALS['remote_code'] = '';
+$log2 = tempnam(sys_get_temp_dir(), 'indexnow');
+ini_set('error_log', $log2);
+boblift_indexnow_send([41], false);
+unset($GLOBALS['remote_code']);
+$check('a last try with no HTTP status is logged without failing', str_contains((string) file_get_contents($log2), '(no HTTP status)'));
+unlink($log2);
+ini_set('error_log', '/dev/null');
 $check('a response that is not retried is logged with its status and URL count', str_contains($logged, 'IndexNow: 1 URLs not accepted (HTTP 422)') && !str_contains($logged, 'HTTP 202'));
 
 add_option(rn(0, 'leased'), ['due' => 0, 'ids' => [41], 'retry' => false, 'lease' => time() + 600], '', 'no');
@@ -577,6 +590,11 @@ $GLOBALS['runtime_flushes'] = 0;
 $check('a deleted post is skipped and the rest resolved', count(boblift_indexnow_resolve(array_merge(range(1, 250), [999]))) === 250);
 $check('post, term and meta caches are primed in chunks of 100', array_map('count', $GLOBALS['primed']) === [100, 100, 50]);
 $check('the request-local cache is dropped after each chunk', $GLOBALS['runtime_flushes'] === 3);
+$GLOBALS['cache_supports_runtime'] = false;
+$GLOBALS['runtime_flushes'] = 0;
+boblift_indexnow_resolve(range(1, 250));
+$GLOBALS['cache_supports_runtime'] = true;
+$check('a cache that cannot flush only its runtime copies is never flushed', $GLOBALS['runtime_flushes'] === 0);
 
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
 $base = time();
