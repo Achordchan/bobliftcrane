@@ -158,6 +158,10 @@ const MINUTE_IN_SECONDS = 60;
 const HOUR_IN_SECONDS = 3600;
 class WP_Error
 {
+    public function get_error_message(): string
+    {
+        return 'connection refused';
+    }
 }
 $GLOBALS['remote_fails'] = false;
 $GLOBALS['sent'] = [];
@@ -184,6 +188,12 @@ function clear_rows(): void
             unset($GLOBALS['options'][$k]);
         }
     }
+}
+$GLOBALS['runtime_flushes'] = 0;
+function wp_cache_flush_runtime(): bool
+{
+    $GLOBALS['runtime_flushes']++;
+    return true;
 }
 function get_post(int $id)
 {
@@ -315,6 +325,8 @@ if (($route = getenv('INDEXNOW_ROUTE')) !== false) {
     exit;
 }
 
+// Diagnostics go to a null log unless a check reads them.
+ini_set('error_log', '/dev/null');
 $failures = 0;
 $check = static function (string $name, bool $ok) use (&$failures): void {
     echo ($ok ? 'ok   ' : 'FAIL ') . $name . "\n";
@@ -371,6 +383,7 @@ $check('payload host', ($payloads[0]['host'] ?? '') === 'bobliftcrane.com');
 $check('payload key location', ($payloads[0]['keyLocation'] ?? '') === 'https://bobliftcrane.com/abcd1234.txt');
 $check('payload keeps only this host, once each', ($payloads[0]['urlList'] ?? []) === ['https://bobliftcrane.com/a.html', 'https://bobliftcrane.com/es/b.html']);
 $check('nothing to send without a valid key', boblift_indexnow_payloads($urls, 'https://bobliftcrane.com', '') === []);
+$check('only URLs under the key file\'s directory are sent on a subdirectory install', (boblift_indexnow_payloads(['https://bobliftcrane.com/cranes/a.html', 'https://bobliftcrane.com/other/b.html', 'https://bobliftcrane.com/cranesx/c.html'], 'https://bobliftcrane.com/cranes', 'abcd1234')[0]['urlList'] ?? []) === ['https://bobliftcrane.com/cranes/a.html']);
 $check('nothing to send for other hosts only', boblift_indexnow_payloads(['https://www.boblift.com/c.html'], 'https://bobliftcrane.com', 'abcd1234') === []);
 $many = array_map(static fn(int $i): string => 'https://bobliftcrane.com/p' . $i . '.html', range(1, 10001));
 $split = boblift_indexnow_payloads($many, 'https://bobliftcrane.com', 'abcd1234');
@@ -479,6 +492,8 @@ unset($GLOBALS['options'][$rows[0]]);
 $GLOBALS['options']['boblift_indexnow_key'] = $saved_key;
 
 $GLOBALS['posts'] = [41 => new WP_Post(41)];
+$log = tempnam(sys_get_temp_dir(), 'indexnow');
+ini_set('error_log', $log);
 foreach ([503 => 1, 429 => 1, 422 => 0, 202 => 0] as $code => $rows_expected) {
     $GLOBALS['remote_code'] = $code;
     boblift_indexnow_send([41]);
@@ -489,6 +504,9 @@ foreach ([503 => 1, 429 => 1, 422 => 0, 202 => 0] as $code => $rows_expected) {
     }
 }
 unset($GLOBALS['remote_code']);
+$logged = (string) file_get_contents($log);
+unlink($log);
+$check('a response that is not retried is logged with its status and URL count', str_contains($logged, 'IndexNow: 1 URLs not accepted (HTTP 422)') && !str_contains($logged, 'HTTP 202'));
 
 add_option(rn(0, 'leased'), ['due' => 0, 'ids' => [41], 'retry' => false, 'lease' => time() + 600], '', 'no');
 $GLOBALS['sent'] = [];
@@ -503,12 +521,13 @@ $check('an expired lease is picked up, the row kept until sent, then removed', $
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
 $row_late = rn(time() - 100, 'late');
 add_option($row_late, ['due' => time() - 100, 'ids' => [41], 'retry' => false], '', 'no');
-$GLOBALS['options']['boblift_indexnow_wake'] = time() - 5;
-$GLOBALS['events'][] = ['boblift_indexnow_retry', [['at' => time() - 5]], time() - 5];
+$t = time();
+$GLOBALS['options']['boblift_indexnow_wake'] = $t - 5;
+$GLOBALS['events'][] = ['boblift_indexnow_retry', [['at' => $t - 5]], $t - 5];
 boblift_indexnow_schedule_retry();
 $check('an overdue wake-up is reused, not duplicated', count($GLOBALS['events']) === 1);
-$GLOBALS['events'] = [['boblift_indexnow_retry', [['at' => time() + 600]], time() + 600]];
-$GLOBALS['options']['boblift_indexnow_wake'] = time() + 600;
+$GLOBALS['events'] = [['boblift_indexnow_retry', [['at' => $t + 600]], $t + 600]];
+$GLOBALS['options']['boblift_indexnow_wake'] = $t + 600;
 boblift_indexnow_schedule_retry();
 $check('a later wake-up is replaced by an earlier one', count($GLOBALS['events']) === 1 && $GLOBALS['events'][0][2] <= time());
 unset($GLOBALS['options'][$row_late]);
@@ -612,8 +631,10 @@ foreach (range(1, 250) as $i) {
     $GLOBALS['posts'][$i] = new WP_Post($i);
 }
 $GLOBALS['primed'] = [];
+$GLOBALS['runtime_flushes'] = 0;
 $check('a deleted post is skipped and the rest resolved', count(boblift_indexnow_resolve(array_merge(range(1, 250), [999]))) === 250);
 $check('post, term and meta caches are primed in chunks of 100', array_map('count', $GLOBALS['primed']) === [100, 100, 50]);
+$check('the request-local cache is dropped after each chunk', $GLOBALS['runtime_flushes'] === 3);
 
 // The wake-up scan reads a bounded number of rows, earliest due first. One base time for the whole setup.
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
