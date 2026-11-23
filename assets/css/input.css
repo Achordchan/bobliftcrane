@@ -3164,4 +3164,9 @@ html:is(:lang(ru), :lang(uk), :lang(fr), :lang(es), :lang(de), :lang(it), :lang(
   .boblift-brochure-card-head { align-self: start; }
   .boblift-brochure-card-text { margin-top: 8px; }
   .boblift-brochure-card-actions { align-self: end; }
+  /* The single wide brochure row has a larger cover (8.5rem, above), so its column and gap follow it. */
+  [data-brochure-single] .boblift-brochure-card.flex {
+    grid-template-columns: 8.5rem minmax(0, 1fr);
+    column-gap: 1.5rem;
+  }
 }

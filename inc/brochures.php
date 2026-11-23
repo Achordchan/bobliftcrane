@@ -261,7 +261,7 @@ function boblift_render_brochures(array $args = []): void
                         <h3 class="mt-3 text-lg font-black leading-snug text-ink"><?php echo esc_html($item['title']); ?></h3>
                     </div>
                     <p class="boblift-brochure-card-text min-w-0 text-sm font-normal leading-6 text-slate-600"><?php echo esc_html($item['text']); ?></p>
-                    <div class="boblift-brochure-card-actions flex min-w-0 items-center gap-x-4 gap-y-2 sm:flex-wrap">
+                    <div class="boblift-brochure-card-actions flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
                         <a class="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-sm bg-navy px-5 text-sm font-black text-white transition hover:bg-[#0b2d5b] sm:flex-none" href="<?php echo esc_url($item['url']); ?>" download="<?php echo esc_attr($item['file']); ?>" title="<?php echo esc_attr($download_title); ?>"><?php echo boblift_icon('download', 'h-4 w-4'); ?><?php echo esc_html((string) ($ui['downloadLabel'] ?? 'Download PDF')); ?></a>
                         <?php echo boblift_brochure_quote_button($item, $args, 'inline-flex h-11 shrink-0 items-center text-sm font-black text-blue-700 transition hover:text-navy'); ?>
                     </div>
