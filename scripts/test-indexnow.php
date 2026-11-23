@@ -1209,4 +1209,26 @@ unset($GLOBALS['cooldown_write_fails'], $GLOBALS['boblift_indexnow_local_pause']
 clear_rows();
 $GLOBALS['transients'] = [];
 
+// Before the live site's ID is recorded (just after deploying, with only cron or WP-CLI running), changes are queued but
+// nothing is sent.
+$saved_pin = $GLOBALS['options']['boblift_indexnow_platform_site'];
+unset($GLOBALS['options']['boblift_indexnow_platform_site']);
+$GLOBALS['doing_cron'] = true;
+$GLOBALS['boblift_indexnow_queue'] = [];
+$GLOBALS['posts'] = [88 => new WP_Post(88)];
+($GLOBALS['hooks']['transition_post_status'])('publish', 'draft', $GLOBALS['posts'][88]);
+$GLOBALS['transients'] = [kc() => 'ok'];
+$GLOBALS['sent'] = [];
+$check('a publish before the site ID is recorded is queued, but nothing is sent and no ID is recorded', boblift_indexnow_queued_ids() === [1 => [88]] && !boblift_indexnow_enabled() && boblift_indexnow_send([88]) === false && $GLOBALS['sent'] === [] && !isset($GLOBALS['options']['boblift_indexnow_platform_site']));
+$GLOBALS['doing_cron'] = false;
+$GLOBALS['options']['boblift_indexnow_platform_site'] = $saved_pin;
+$GLOBALS['boblift_indexnow_queue'] = [];
+$GLOBALS['transients'] = [];
+
+// Polylang's language taxonomy is not public, but a language change moves the URL.
+$GLOBALS['posts'] = [89 => new WP_Post(89)];
+($GLOBALS['hooks']['added_term_relationship'])(89, 5, 'language');
+$check('a post moved to another language is queued', boblift_indexnow_queued_ids() === [1 => [89]]);
+$GLOBALS['boblift_indexnow_queue'] = [];
+
 exit($failures === 0 ? 0 : 1);

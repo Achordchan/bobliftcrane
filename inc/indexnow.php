@@ -97,7 +97,7 @@ const BOBLIFT_INDEXNOW_PLATFORM_SITE = 'boblift_indexnow_platform_site';
  * WordPress.com routes only to the live site); from then on only that Atomic site submits, so a backup restored to
  * another Atomic site (same home URL, production environment) stays quiet too. Another live host can opt in with define('BOBLIFT_INDEXNOW_LIVE', true) in wp-config.php.
  */
-function boblift_indexnow_live_platform(): bool
+function boblift_indexnow_live_platform(bool $queue_only = false): bool
 {
     // Strict checks: a constant set to the string 'false', '0' or '' must not switch submissions on.
     if (boblift_indexnow_flag('BOBLIFT_INDEXNOW_LIVE')) {
@@ -117,7 +117,9 @@ function boblift_indexnow_live_platform(): bool
         // record its ID, even from a database backup taken before the ID was first recorded.
         $host = boblift_indexnow_host('https://' . (string) ($_SERVER['HTTP_HOST'] ?? ''));
         if (wp_doing_cron() || (defined('WP_CLI') && WP_CLI) || !in_array($host, BOBLIFT_INDEXNOW_HOSTS, true)) {
-            return false;
+            // Until then changes are still queued (a publish right after deploying is not lost), but nothing is sent:
+            // the worker and send() need the recorded ID.
+            return $queue_only;
         }
         // add_option() never replaces a value another request stored first; whichever is stored is what counts.
         add_option(BOBLIFT_INDEXNOW_PLATFORM_SITE, (string) $site, '', 'yes');
@@ -139,14 +141,18 @@ function boblift_indexnow_flag(string $name): bool
     return filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) === true;
 }
 
-function boblift_indexnow_enabled(): bool
+/**
+ * Whether this site submits. With $queue_only, changes may be queued before the live site's ID has been recorded (they
+ * are sent once it is); sending always needs the full check.
+ */
+function boblift_indexnow_enabled(bool $queue_only = false): bool
 {
     // WordPress.com stores -1 for a private site, so only an explicit '1' counts as public.
     // The platform check comes last: it records the live site's ID, which only the live site may do.
     return (string) get_option('blog_public') === '1'
         && wp_get_environment_type() === 'production'
         && in_array(boblift_indexnow_host((string) get_option('home')), BOBLIFT_INDEXNOW_HOSTS, true)
-        && boblift_indexnow_live_platform();
+        && boblift_indexnow_live_platform($queue_only);
 }
 
 /** Post IDs changed during this request, grouped by blog; adding is constant time. */
@@ -738,7 +744,7 @@ add_action('transition_post_status', static function (string $new_status, string
     if ($new_status !== 'publish' || !in_array($post->post_type, BOBLIFT_INDEXNOW_POST_TYPES, true)) {
         return;
     }
-    if (wp_is_post_revision($post) || wp_is_post_autosave($post) || !boblift_indexnow_enabled()) {
+    if (wp_is_post_revision($post) || wp_is_post_autosave($post) || !boblift_indexnow_enabled(true)) {
         return;
     }
     boblift_indexnow_queue_add((int) $post->ID, (int) get_current_blog_id());
@@ -772,7 +778,7 @@ $boblift_indexnow_meta_changed = static function (mixed $meta_id, int $post_id, 
     if (!$post instanceof WP_Post || $post->post_status !== 'publish' || !in_array($post->post_type, BOBLIFT_INDEXNOW_POST_TYPES, true)) {
         return;
     }
-    if (wp_is_post_revision($post) || !boblift_indexnow_enabled()) {
+    if (wp_is_post_revision($post) || !boblift_indexnow_enabled(true)) {
         return;
     }
     boblift_indexnow_queue_add((int) $post->ID, (int) get_current_blog_id());
@@ -781,12 +787,13 @@ $boblift_indexnow_meta_changed = static function (mixed $meta_id, int $post_id, 
 // field change (wp post term add, a bulk edit), queues the post. Saves that set the same terms again are ignored.
 function boblift_indexnow_terms_changed(int $object_id, string $taxonomy): void
 {
+    // Polylang's language taxonomy is not public, but it decides the URL's language directory, so it counts too.
     $tax = get_taxonomy($taxonomy);
-    if (!$tax || empty($tax->public)) {
+    if ($taxonomy !== 'language' && (!$tax || empty($tax->public))) {
         return;
     }
     $post = get_post($object_id);
-    if (!$post instanceof WP_Post || !boblift_indexnow_post_qualifies($post) || wp_is_post_revision($post) || !boblift_indexnow_enabled()) {
+    if (!$post instanceof WP_Post || !boblift_indexnow_post_qualifies($post) || wp_is_post_revision($post) || !boblift_indexnow_enabled(true)) {
         return;
     }
     boblift_indexnow_queue_add((int) $post->ID, (int) get_current_blog_id());
