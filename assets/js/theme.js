@@ -1173,11 +1173,24 @@
     const zoomAt = (next, px, py) => {
       if (!ready) return;
       const target = limit(next);
+      // Zoomed in during a swipe (a wheel turn or + while the mouse is still down): the photo zooms from where it shows,
+      // and the stroke goes on as a pan of the zoomed photo, so letting go never changes photos.
+      const fromSwipe = Boolean(drag?.swipe) && target > fit * 1.001;
+      if (fromSwipe) {
+        clearTimeout(settleTimer);
+        image.classList.remove('is-settling');
+        x += swipe;
+        swipe = 0;
+      }
       const ratio = target / scale;
       x = px - (px - x) * ratio;
       y = py - (py - y) * ratio;
       scale = target;
       apply();
+      if (fromSwipe) {
+        const point = [...pointers.values()][0] || { x: drag.x + drag.dx, y: drag.y };
+        drag = { ...drag, x: point.x, y: point.y, dx: 0, fromX: x, fromY: y, moved: true, swipe: false };
+      }
     };
     const zoomCentre = (factor) => zoomAt(scale * factor, stage.clientWidth / 2, stage.clientHeight / 2);
     const startPinch = () => {
@@ -1221,9 +1234,11 @@
       stage.classList.add('is-loading');
       image.loading = 'eager';
       // Removes only this load's own listeners, so a late callback never strips a newer load's.
+      let stall = 0;
       const detach = () => {
         image.removeEventListener('load', done);
         image.removeEventListener('error', failed);
+        clearTimeout(stall);
         if (detachLoad === detach) detachLoad = () => {};
       };
       const done = () => {
@@ -1240,12 +1255,18 @@
         if (onError) onError();
         else stage.classList.remove('is-loading');
       };
-      if (image.complete && image.naturalWidth) requestAnimationFrame(done);
+      // complete and naturalWidth speak for the picture the image shows (currentSrc), which right after a new src can still be
+      // the previous one: they count only when that is the picture asked for. Otherwise the load or error event decides.
+      const settled = image.complete && image.currentSrc === image.src;
+      if (settled && image.naturalWidth) requestAnimationFrame(done);
       // Already failed (a broken picture opened again): no event will come, so report it now.
-      else if (image.complete && image.getAttribute('src')) requestAnimationFrame(failed);
+      else if (settled && image.getAttribute('src')) requestAnimationFrame(failed);
       else {
         image.addEventListener('load', done);
         image.addEventListener('error', failed);
+        // A response that starts and then stalls fires neither event: after 20 s it counts as failed (the photos then try
+        // their smaller size), and the spinner never stays up for good.
+        stall = setTimeout(failed, 20000);
         detachLoad = detach;
       }
     };
@@ -1268,6 +1289,8 @@
     };
     dialog.addEventListener('close', () => {
       document.documentElement.style.overflow = previousOverflow;
+      // A load still running has nobody to show it to: its listeners and stall timer go; opening again starts a new one.
+      detachLoad();
       pointers.clear();
       buttonPointers.clear();
       clearTimeout(swallowTimer);
