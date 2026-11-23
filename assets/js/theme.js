@@ -1123,8 +1123,12 @@
       button.disabled = off;
     };
     // While no picture is ready (loading, or failed) the zoom controls have nothing to act on: no level, all disabled.
+    // The level is read out (aria-live), so it is written only when it changes, not on every move of a swipe or pan.
+    const setLevel = (text) => {
+      if (level && level.textContent !== text) level.textContent = text;
+    };
     const lockControls = () => {
-      if (level) level.textContent = '';
+      setLevel('');
       [zoomIn, zoomOut, fitButton].forEach((button) => setControl(button, true));
     };
     // Keeps the picture on screen: centred along an axis where it is smaller than the stage, edge to edge where it is larger.
@@ -1140,7 +1144,7 @@
       stage.classList.toggle('is-zoomed', !atFit());
       // The controls follow a picture that is showing; while none is, lockControls() keeps them off.
       if (!ready) return;
-      if (level) level.textContent = `${Math.round((scale / fit) * 100)}%`;
+      setLevel(`${Math.round((scale / fit) * 100)}%`);
       [[zoomIn, scale >= max * 0.999], [zoomOut, atFit()], [fitButton, false]].forEach(([button, off]) => setControl(button, off));
     };
     // Fit: the whole picture on screen, never blown up past its own pixels. Zoom goes to 4x the fit, and at least to
@@ -1183,7 +1187,8 @@
     // A finger on a fitted photo swipes it toward the next one; anywhere else it drags the picture.
     const startDrag = (point) => {
       // dx: the finger's own sideways travel, kept apart from the picture's offset, which a load resets.
-      drag = { x: point.x, y: point.y, dx: 0, fromX: x, fromY: y, moved: false, swipe: Boolean(onStep) && (!ready || atFit()) };
+      // pending: put down before the picture was ready, so there was nothing yet to pan from.
+      drag = { x: point.x, y: point.y, dx: 0, fromX: x, fromY: y, moved: false, swipe: Boolean(onStep) && (!ready || atFit()), pending: !ready };
     };
     const settle = () => {
       image.classList.add('is-settling');
@@ -1314,8 +1319,9 @@
       zoomAt(scale * Math.exp(-delta * (event.ctrlKey ? 0.01 : 0.002)), point.x, point.y);
     }, { passive: false });
     stage.addEventListener('pointerdown', (event) => {
-      // A photo still loading, or one that failed, can only be swiped away; everything else waits for the picture.
-      if ((!ready && !onStep) || (event.pointerType === 'mouse' && event.button !== 0)) return;
+      // Fingers are tracked from the start, even while the picture loads: a swipe can leave a photo still loading, and a pinch
+      // or pan begun on the spinner carries on once the picture shows (zoom and pan themselves wait for it).
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
       // Buttons on the picture (the photo arrows) keep their own clicks, so a finger on one is never captured or dragged;
       // it still counts toward a pinch with a finger on the picture. A mouse on a button is left alone.
       const onButton = Boolean(event.target.closest('button'));
@@ -1358,6 +1364,13 @@
         y = (a.y + b.y) / 2 - pinch.contentY * scale;
         apply();
       } else if (drag) {
+        if (!drag.swipe && !ready) return;
+        if (!drag.swipe && drag.pending) {
+          // The picture has just shown under a finger that was already down: the pan starts here, from the fitted picture.
+          drag = { ...drag, x: point.x, y: point.y, dx: 0, fromX: x, fromY: y, moved: true, pending: false };
+          stage.classList.add('is-dragging');
+          return;
+        }
         const dx = point.x - drag.x;
         const dy = point.y - drag.y;
         drag.dx = dx;
@@ -1424,7 +1437,7 @@
           return;
         }
         drag.dx = dx;
-        if (drag.moved && !drag.swipe) {
+        if (drag.moved && !drag.swipe && ready && !drag.pending) {
           x = drag.fromX + dx;
           y = drag.fromY + dy;
           apply();

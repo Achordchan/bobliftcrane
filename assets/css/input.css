@@ -2839,6 +2839,9 @@ body.boblift-filter-drawer-locked {
 /* The photo viewer takes the whole screen at every size (100vh first for browsers without dvh); the doubled class outranks the
    shared dialog radius further down. */
 .boblift-drawing-dialog.boblift-photo-dialog { border-radius: 0; height: 100vh; height: 100dvh; }
+/* Should the page ever use viewport-fit=cover, the header, arrows and picture stay clear of a notch or the home bar
+   (physical insets, so the arrows keep their RTL order); without it every inset is 0. */
+.boblift-photo-dialog > div { padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
 /* Wide touch screens: the full-size button is there for the keyboard only and shows when it has the keyboard focus; taps go
    through it to the photo and its hotspots. */
 .boblift-photo-open.is-focus-only:not(:focus-visible) { opacity: 0; pointer-events: none; }
