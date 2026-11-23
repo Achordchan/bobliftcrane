@@ -4898,9 +4898,14 @@
     const casesPerPage = 12;
     let casesPage = Math.max(1, Number.parseInt(urlParams.get('case_page') || '1', 10) || 1);
     // Prefixed: "product" is the product post type's query variable and would turn the address into a product request.
+    // Products are grouped by name; an older address with a model code (case_product=SQ2SA3) opens the group holding it.
     [[countryFilter, 'case_country'], [productFilter, 'case_product']].forEach(([select, key]) => {
       const value = urlParams.get(key) || '';
-      if (select && value && Array.from(select.options).some((option) => option.value === value)) select.value = value;
+      if (!select || !value) return;
+      const options = Array.from(select.options);
+      const match = options.find((option) => option.value === value)
+        || options.find((option) => (option.dataset.models || '').split(' ').includes(value));
+      if (match) select.value = match.value;
     });
     const writeCasesUrl = () => {
       const url = new URL(window.location.href);
@@ -5126,7 +5131,7 @@
       const options = qsa('[data-cases-custom-option]', selectRoot);
       const value = nativeSelect?.value || '';
       const activeOption = options.find((option) => option.getAttribute('value') === value) || options[0];
-      if (label && activeOption) label.textContent = activeOption.textContent.trim();
+      if (label && activeOption) label.textContent = (activeOption.dataset.optionLabel || activeOption.textContent).trim();
       options.forEach((option) => {
         const active = option === activeOption;
         option.classList.toggle('is-active', active);
@@ -5138,12 +5143,15 @@
       const search = qs('[data-cases-custom-search]', selectRoot);
       const empty = qs('[data-cases-custom-empty]', selectRoot);
       const options = qsa('[data-cases-custom-option]', selectRoot);
-      const query = (search?.value || '').trim().toLowerCase();
+      // Spaces are ignored on both sides, so "2吨" finds "2 吨" and "sq 2" finds SQ2SA3.
+      // A query that starts with a number matches whole numbers only, so "5吨" finds 5 t and not 2.5 t or 25 t.
+      const query = (search?.value || '').replace(/\s+/g, '').toLowerCase();
+      const numeric = /^\d/.test(query) ? new RegExp(`(^|[^\\d.])${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`) : null;
       let matched = 0;
       options.forEach((option) => {
         const value = option.getAttribute('value') || '';
-        const text = (option.dataset.optionText || option.textContent || '').toLowerCase();
-        const visible = value === '' || query === '' || text.includes(query);
+        const text = (option.dataset.optionText || option.textContent || '').replace(/\s+/g, '').toLowerCase();
+        const visible = value === '' || query === '' || (numeric ? numeric.test(text) : text.includes(query));
         option.classList.toggle('hidden', !visible);
         if (value !== '' && visible) matched += 1;
       });
@@ -6680,4 +6688,56 @@
     rel.add('noopener');
     link.rel = [...rel].join(' ');
   });
+})();
+
+// Arriving at an anchor on another page (the menu's Brochures link goes to products.html#brochures): the browser jumps
+// before the product grid and its images have their height, so the section ends up far below the screen. Until the
+// reader scrolls, the target is aligned again whenever the page grows, for the first few seconds.
+(() => {
+  const id = decodeURIComponent(window.location.hash.slice(1));
+  const target = id ? document.getElementById(id) : null;
+  if (!target || !('ResizeObserver' in window)) return;
+  let done = false;
+  const stop = () => {
+    done = true;
+    observer.disconnect();
+  };
+  const align = () => {
+    if (!done) target.scrollIntoView({ block: 'start' });
+  };
+  const observer = new ResizeObserver(align);
+  observer.observe(document.body);
+  ['wheel', 'touchstart', 'keydown', 'mousedown'].forEach((type) => window.addEventListener(type, stop, { once: true, passive: true }));
+  window.addEventListener('load', () => {
+    align();
+    window.setTimeout(stop, 2500);
+  }, { once: true });
+  window.setTimeout(stop, 8000);
+})();
+
+// About hero on phones (no scroll animation there): the cut-out wordmark plays the aerial clip while it is on screen,
+// unless the reader asked for less motion or to save data; otherwise the letters keep the still frame.
+(() => {
+  const video = document.querySelector('[data-about-logo-scroll] [data-about-logo-video]');
+  if (!video || !('IntersectionObserver' in window)) return;
+  const phone = window.matchMedia('(max-width: 900px)');
+  const still = window.matchMedia('(prefers-reduced-motion: reduce)');
+  if (still.matches || navigator.connection?.saveData) return;
+  let visible = false;
+  const update = () => {
+    if (phone.matches && visible) {
+      video.muted = true;
+      video.playsInline = true;
+      video.loop = true;
+      if (video.preload === 'none') video.preload = 'auto';
+      video.play().catch(() => {});
+    } else if (phone.matches) {
+      video.pause();
+    }
+  };
+  new IntersectionObserver((entries) => {
+    visible = entries.some((entry) => entry.isIntersecting);
+    update();
+  }).observe(video.closest('[data-about-logo-scroll]'));
+  phone.addEventListener?.('change', update);
 })();

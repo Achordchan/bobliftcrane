@@ -727,6 +727,14 @@ img { max-width: 100%; }
   .about-logo-scroll-section {
     min-height: auto;
   }
+  /* Phones have no scroll animation, so the wordmark is shown as the desktop one ends: cut out of the page, the aerial
+     footage (still frame until theme.js starts the clip) seen through the letters over a paler copy of it. */
+  .about-logo-scroll-section .about-logo-layer--solid {
+    opacity: 0;
+  }
+  .about-logo-scroll-section .about-logo-layer--image {
+    opacity: 1;
+  }
   .about-logo-pin {
     min-height: 84svh;
   }
@@ -2332,6 +2340,15 @@ img { max-width: 100%; }
 .boblift-cases-select-option.is-active {
   background: #eff6ff;
   color: #0B3F7D;
+}
+/* The model codes under a product name in the case filter. */
+.boblift-cases-select-models {
+  display: block;
+  margin-top: 2px;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.35;
 }
 .boblift-cases-select-check {
   display: none;
