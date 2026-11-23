@@ -6728,30 +6728,3 @@
   }, { once: true });
   window.setTimeout(stop, 8000);
 })();
-
-// About hero on phones (no scroll animation there): the cut-out wordmark plays the aerial clip while it is on screen,
-// unless the reader asked for less motion or to save data; otherwise the letters keep the still frame.
-(() => {
-  const video = document.querySelector('[data-about-logo-scroll] [data-about-logo-video]');
-  if (!video || !('IntersectionObserver' in window)) return;
-  const phone = window.matchMedia('(max-width: 900px)');
-  const still = window.matchMedia('(prefers-reduced-motion: reduce)');
-  if (still.matches || navigator.connection?.saveData) return;
-  let visible = false;
-  const update = () => {
-    if (phone.matches && visible) {
-      video.muted = true;
-      video.playsInline = true;
-      video.loop = true;
-      if (video.preload === 'none') video.preload = 'auto';
-      video.play().catch(() => {});
-    } else if (phone.matches) {
-      video.pause();
-    }
-  };
-  new IntersectionObserver((entries) => {
-    visible = entries.some((entry) => entry.isIntersecting);
-    update();
-  }).observe(video.closest('[data-about-logo-scroll]'));
-  phone.addEventListener?.('change', update);
-})();
