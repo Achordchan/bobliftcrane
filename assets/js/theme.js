@@ -1350,16 +1350,17 @@
     stage.addEventListener('pointerdown', (event) => {
       // Fingers are tracked from the start, even while the picture loads: a swipe can leave a photo still loading, and a pinch
       // or pan begun on the spinner carries on once the picture shows (zoom and pan themselves wait for it).
+      if (!pointers.size) {
+        // A new press of any kind (a mouse on an arrow included): the last pinch's click window ends here, so its timer cannot
+        // clear this gesture's guard and a fresh click is never swallowed.
+        clearTimeout(swallowTimer);
+        swallowClick = false;
+      }
       if (event.pointerType === 'mouse' && event.button !== 0) return;
       // Buttons on the picture (the photo arrows) keep their own clicks, so a finger on one is never captured or dragged;
       // it still counts toward a pinch with a finger on the picture. A mouse on a button is left alone.
       const onButton = Boolean(event.target.closest('button'));
       if (onButton && event.pointerType === 'mouse') return;
-      if (!pointers.size) {
-        // A new gesture: the last one's click window ends here, so its timer cannot clear this one's.
-        clearTimeout(swallowTimer);
-        swallowClick = false;
-      }
       if (onButton) buttonPointers.add(event.pointerId);
       else stage.setPointerCapture?.(event.pointerId);
       stage.classList.add('is-touched');
@@ -1377,7 +1378,8 @@
       } else if (pointers.size === 1 && !onButton) startDrag(local(event));
     });
     stage.addEventListener('click', (event) => {
-      if (!swallowClick || !event.target.closest('button')) return;
+      // Only a pointer's click (detail > 0) can be the pinch's leftover; Enter or Space on an arrow (detail 0) always steps.
+      if (!swallowClick || !event.detail || !event.target.closest('button')) return;
       swallowClick = false;
       event.preventDefault();
       event.stopImmediatePropagation();
@@ -1581,12 +1583,33 @@
     let shown = -1;
     const wrap = (value) => (value + photos.length) % photos.length;
     // The photos either side load in the background, so a swipe usually lands on one already there.
+    // A photo address that stalled is asked for next time with an extra query argument (the CDN and the uploads server
+    // ignore it): some browsers would otherwise hand the retry the same request that never finished.
+    const retries = new Map();
+    const address = (url) => retries.get(url) || url;
+    // Neighbours being fetched ahead, by address, until they settle: a stalled one can then be dropped (see onError).
+    const preloads = new Map();
     const preload = (value) => {
       const photo = photos[wrap(value)];
-      if (!photo || photo === photos[index]) return;
+      const url = photo && address(photo.full);
+      if (!photo || photo === photos[index] || preloads.has(url)) return;
       const next = new Image();
       next.decoding = 'async';
-      next.src = photo.full;
+      const settled = () => preloads.delete(url);
+      next.addEventListener('load', settled, { once: true });
+      next.addEventListener('error', settled, { once: true });
+      preloads.set(url, next);
+      next.src = url;
+    };
+    // Ends a request for this address that never finished: the viewer's own and a preload sharing it. The browser keeps a
+    // request open while any image still asks for it, so both have to let go before coming back to the photo asks anew.
+    const dropStalled = (url) => {
+      const stuck = preloads.get(url);
+      if (stuck) {
+        stuck.removeAttribute('src');
+        preloads.delete(url);
+      }
+      if (image.getAttribute('src') === url && !image.complete) image.removeAttribute('src');
     };
     const setPhoto = (value) => {
       index = wrap(value);
@@ -1596,8 +1619,9 @@
       if (count) count.textContent = `${index + 1} / ${photos.length}`;
       showFailure(false);
       // A photo that failed before is asked for again, from its full size.
-      if (image.getAttribute('src') === photo.full && image.complete && !image.naturalWidth) image.removeAttribute('src');
-      if (image.getAttribute('src') !== photo.full) image.src = photo.full;
+      const url = address(photo.full);
+      if (image.getAttribute('src') === url && image.complete && !image.naturalWidth) image.removeAttribute('src');
+      if (image.getAttribute('src') !== url) image.src = url;
     };
     let viewer = null;
     const step = (direction) => {
@@ -1621,10 +1645,20 @@
         shown = index;
       },
       // A full-size photo the CDN cannot serve falls back to the page's own size; if that fails too, the viewer says so.
+      // A timeout is reported the same way; its request may still hang open, so it is dropped first and coming back to the
+      // photo sends a new one instead of waiting on the stalled one.
       onError: () => {
         const photo = photos[index];
-        if (photo.src && image.getAttribute('src') !== photo.src) {
-          image.src = photo.src;
+        const failedUrl = image.getAttribute('src');
+        const fallback = photo.src ? address(photo.src) : '';
+        if (!image.complete) {
+          dropStalled(failedUrl);
+          [photo.full, photo.src].filter((url) => url && address(url) === failedUrl).forEach((url) => {
+            retries.set(url, `${url}${url.includes('?') ? '&' : '?'}retry=${Date.now().toString(36)}`);
+          });
+        }
+        if (fallback && failedUrl !== fallback) {
+          image.src = fallback;
           viewer.load();
         } else {
           stage.classList.remove('is-loading');
