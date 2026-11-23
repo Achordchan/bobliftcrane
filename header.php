@@ -453,7 +453,8 @@ foreach ($languages as $language) {
                 <?php endforeach; ?>
             </nav>
             <div class="flex items-center gap-2 max-md:gap-1.5 md:gap-3 xl:gap-2 min-[1380px]:justify-self-end min-[1680px]:gap-3">
-                <?php // Globe, then search, then the menu, as on the loader site. On phones the language button is the globe alone so the site switch fits beside the logo, and its menu lines up with the header's right gutter. ?>
+                <button class="group grid h-11 w-11 shrink-0 place-items-center rounded-sm border border-line bg-white text-ink transition hover:border-ink/30 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/20 aria-expanded:border-ink/40 aria-expanded:bg-mist max-md:hidden md:h-12 md:w-12" type="button" aria-label="<?php echo esc_attr($search_ui['openLabel'] ?? 'Search the site'); ?>" aria-expanded="false" aria-controls="site-search" data-search-toggle><?php echo boblift_icon('search', 'h-5 w-5 group-aria-expanded:hidden'); ?><?php echo boblift_icon('x', 'hidden h-5 w-5 group-aria-expanded:block'); ?></button>
+                <?php // Phones: globe, search, menu (as on the loader site), with the language button reduced to the globe so the site switch fits beside the logo; its menu lines up with the header's right gutter. Wider screens keep search first, so there are two search buttons and CSS shows one, keeping keyboard order equal to what is shown. ?>
                 <div class="relative max-md:static" data-language-root>
                     <button class="group flex h-11 items-center gap-1.5 rounded-sm border border-line bg-white px-3 text-start max-md:w-11 max-md:justify-center max-md:px-0 transition hover:border-ink/30 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/20 aria-expanded:border-ink/40 md:h-12" type="button" aria-label="<?php echo esc_attr(strtoupper((string) ($active_language['code'] ?? 'en')) . ' · ' . ($header_ui['changeLanguageLabel'] ?? 'Change language') . ': ' . ($active_language['label'] ?? 'English')); ?>" aria-expanded="false" aria-controls="language-menu" data-language-toggle>
                         <?php echo boblift_icon('globe', 'h-4 w-4 shrink-0 text-slate-500 max-md:h-5 max-md:w-5 max-md:text-ink'); ?>
@@ -461,7 +462,7 @@ foreach ($languages as $language) {
                         <?php echo boblift_icon('chevron-down', 'h-4 w-4 shrink-0 text-slate-500 transition group-aria-expanded:rotate-180 max-md:hidden'); ?>
                     </button>
                     <div id="language-menu" class="absolute end-0 top-full z-[220] hidden pt-2 max-md:end-4" data-language-menu>
-                        <div class="w-52 overflow-hidden rounded border border-line bg-white py-1.5 shadow-raised">
+                        <div class="max-h-[calc(100dvh-9rem)] w-52 overflow-y-auto overscroll-contain rounded border border-line bg-white py-1.5 shadow-raised">
                             <?php foreach ($languages as $language) :
                                 $language_label = (string) ($language['label'] ?? 'English');
                                 $language_code = (string) ($language['code'] ?? 'en');
@@ -476,7 +477,7 @@ foreach ($languages as $language) {
                         </div>
                     </div>
                 </div>
-                <button class="group grid h-11 w-11 shrink-0 place-items-center rounded-sm border border-line bg-white text-ink transition hover:border-ink/30 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/20 aria-expanded:border-ink/40 aria-expanded:bg-mist md:h-12 md:w-12" type="button" aria-label="<?php echo esc_attr($search_ui['openLabel'] ?? 'Search the site'); ?>" aria-expanded="false" aria-controls="site-search" data-search-toggle><?php echo boblift_icon('search', 'h-5 w-5 group-aria-expanded:hidden'); ?><?php echo boblift_icon('x', 'hidden h-5 w-5 group-aria-expanded:block'); ?></button>
+                <button class="group grid h-11 w-11 shrink-0 place-items-center rounded-sm border border-line bg-white text-ink transition hover:border-ink/30 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/20 aria-expanded:border-ink/40 aria-expanded:bg-mist md:hidden" type="button" aria-label="<?php echo esc_attr($search_ui['openLabel'] ?? 'Search the site'); ?>" aria-expanded="false" aria-controls="site-search" data-search-toggle><?php echo boblift_icon('search', 'h-5 w-5 group-aria-expanded:hidden'); ?><?php echo boblift_icon('x', 'hidden h-5 w-5 group-aria-expanded:block'); ?></button>
                 <button class="grid h-11 w-11 place-items-center rounded-sm border border-navy/10 bg-navy text-white shadow-card transition duration-300 hover:-translate-y-0.5 lg:hidden" type="button" data-mobile-toggle aria-expanded="false" aria-controls="mobile-menu" aria-label="<?php echo esc_attr($header_ui['mobileOpenLabel'] ?? 'Open mobile navigation'); ?>"><?php echo boblift_icon('menu', 'h-5 w-5', '2.4'); ?></button>
                 <button class="group hidden h-12 items-center justify-center whitespace-nowrap rounded-sm border border-transparent bg-navy bg-clip-padding px-4 text-sm font-black text-white shadow-card outline-none select-none transition-all hover:-translate-y-0.5 hover:bg-navy lg:inline-flex" type="button" data-inquiry-modal-open data-inquiry-source="顶部导航"><?php
                 // The full label wherever it fits beside the menu; the short one only below the width where, in this language, it

@@ -880,7 +880,7 @@ img { max-width: 100%; }
    (front-page.php sets data-hero-fit) every slide title stays on one line at one shared size: a first guess from the
    longest title's length, which may still wrap, then the inline script after the slides measures it, sets the size and
    adds data-hero-fitted to stop wrapping. Without the script the titles simply wrap. */
-@media (max-width: 767px) {
+@media not all and (min-width: 768px) {
   .boblift-home-hero-slide :is(h1, h2) { line-height: 1.2; }
   .boblift-home-hero-slides[data-hero-fit] { container-type: inline-size; --hero-em: .5; }
   :lang(zh) .boblift-home-hero-slides[data-hero-fit] { --hero-em: .98; }
