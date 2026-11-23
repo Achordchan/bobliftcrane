@@ -724,11 +724,28 @@ add_action('transition_post_status', static function (string $new_status, string
     boblift_indexnow_queue_add((int) $post->ID, (int) get_current_blog_id());
 }, 10, 3);
 
-// Public custom fields (keys without a leading underscore, such as product specifications) change the page too, even
-// when edited without a status change (WP-CLI, imports, the REST API). Internal keys (_edit_lock and the like) are not
-// public output and are ignored. The per-request queue removes duplicates.
+// Custom fields change the page too, even when edited without a status change (WP-CLI, imports, the REST API). This
+// theme keeps most of its page content in underscore keys (_seo_title, _seo_description, _specs, _model, _gallery and
+// more), so every key counts except WordPress's and plugins' own bookkeeping, which never reaches the page.
+const BOBLIFT_INDEXNOW_IGNORED_META = ['_edit_lock', '_edit_last', '_encloseme', '_pingme', '_wp_old_slug', '_wp_old_date', '_wp_desired_post_slug', '_wp_trash_meta_status', '_wp_trash_meta_time', '_wp_attachment_metadata', '_wp_attached_file'];
+const BOBLIFT_INDEXNOW_IGNORED_META_PREFIXES = ['_oembed_', '_jetpack_', '_publicize_', '_wpas_', '_transient_'];
+
+function boblift_indexnow_meta_is_bookkeeping(string $meta_key): bool
+{
+    if ($meta_key === '' || in_array($meta_key, BOBLIFT_INDEXNOW_IGNORED_META, true)) {
+        return true;
+    }
+    foreach (BOBLIFT_INDEXNOW_IGNORED_META_PREFIXES as $prefix) {
+        if (str_starts_with($meta_key, $prefix)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// The per-request queue removes duplicates.
 $boblift_indexnow_meta_changed = static function (mixed $meta_id, int $post_id, string $meta_key): void {
-    if ($meta_key === '' || $meta_key[0] === '_') {
+    if (boblift_indexnow_meta_is_bookkeeping($meta_key)) {
         return;
     }
     $post = get_post($post_id);

@@ -1091,7 +1091,12 @@ $check('a row the run did not reach before its time was up is left as it was', (
 $GLOBALS['boblift_indexnow_queue'] = [];
 $GLOBALS['posts'] = [71 => new WP_Post(71), 72 => new WP_Post(72, 'post', 'draft'), 73 => new WP_Post(73, 'feedback')];
 ($GLOBALS['hooks']['updated_post_meta'])(1, 71, '_edit_lock');
-$check('an internal meta change (leading underscore, like _edit_lock) does not queue the post', boblift_indexnow_queued_ids() === []);
+($GLOBALS['hooks']['updated_post_meta'])(1, 71, '_oembed_abc123');
+($GLOBALS['hooks']['updated_post_meta'])(1, 71, '_wp_old_slug');
+$check('WordPress and plugin bookkeeping (_edit_lock, _oembed_*, _wp_old_slug) does not queue the post', boblift_indexnow_queued_ids() === []);
+($GLOBALS['hooks']['updated_post_meta'])(1, 71, '_seo_description');
+$check('the theme\'s own underscore fields shown on the page (like _seo_description) queue the post', boblift_indexnow_queued_ids() === [1 => [71]]);
+$GLOBALS['boblift_indexnow_queue'] = [];
 ($GLOBALS['hooks']['updated_post_meta'])(1, 71, 'model_specs');
 ($GLOBALS['hooks']['added_post_meta'])(2, 72, 'model_specs');
 ($GLOBALS['hooks']['deleted_post_meta'])([3], 73, 'model_specs');
