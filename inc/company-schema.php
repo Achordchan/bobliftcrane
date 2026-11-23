@@ -165,6 +165,20 @@ function boblift_llms_txt_link(string $title, string $url, string $description =
     return $description !== '' ? $line . ': ' . $description : $line;
 }
 
+/**
+ * Up to 500 public (not password-protected) English articles, newest first (ID breaks date ties), so older posts that AI
+ * answers already cite stay listed. Checked by scripts/test-llms-articles.php.
+ */
+function boblift_llms_txt_articles(): array
+{
+    $articles = [];
+    $posts = get_posts(['post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => 500, 'has_password' => false, 'orderby' => ['date' => 'DESC', 'ID' => 'DESC'], 'no_found_rows' => true, 'lang' => 'en']);
+    foreach ($posts as $post) {
+        $articles[] = boblift_llms_txt_link(get_the_title($post), get_permalink($post), boblift_seo_post_description($post));
+    }
+    return $articles;
+}
+
 function boblift_llms_txt(): string
 {
     $contact = boblift_contact_settings();
@@ -188,12 +202,7 @@ function boblift_llms_txt(): string
             $categories[] = boblift_llms_txt_link($term->name, $link, boblift_seo_term_description($term));
         }
     }
-    $articles = [];
-    // Up to 500 public (not password-protected) English articles, newest first (ID breaks date ties), so older posts that AI answers already cite stay listed.
-    $posts = get_posts(['post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => 500, 'has_password' => false, 'orderby' => ['date' => 'DESC', 'ID' => 'DESC'], 'no_found_rows' => true, 'lang' => 'en']);
-    foreach ($posts as $post) {
-        $articles[] = boblift_llms_txt_link(get_the_title($post), get_permalink($post), boblift_seo_post_description($post));
-    }
+    $articles = boblift_llms_txt_articles();
     $company = [boblift_llms_txt_link('All products', boblift_product_archive_url(), 'Every crane model with filters for type, boom and capacity')];
     foreach (['about' => 'About BOB-LIFT', 'factory-tour' => 'Factory tour', 'quality-testing' => 'Quality and testing', 'cases' => 'Application cases and customer feedback', 'contact' => 'Contact and inquiry form'] as $slug => $title) {
         $page = boblift_find_page_by_slug($slug);

@@ -11,10 +11,10 @@ if (!defined('ABSPATH')) {
  * The key is made once and kept in an option. It is served as plain text at /<key>.txt, which is how the engines
  * check that the ping comes from the site owner. Only the live site (a host in BOBLIFT_INDEXNOW_HOSTS, explicitly
  * public, production) pings; local copies, staging clones, private sites and other hosts stay quiet. Changed posts are
- * queued by blog and ID during the request and resolved at shutdown, after every term and meta field is saved, then
- * sent in non-blocking POSTs of up to 10,000 URLs. The post IDs of a batch that cannot even be dispatched are saved
- * in their own option row with a due time ten minutes ahead; a cron run claims each due row with an atomic DELETE,
- * checks each post again and tries once more. A lost cron event is put back the next time anything is published.
+ * queued by blog and ID during the request. At shutdown they are saved as a batch row (no network call on the
+ * publishing request); a cron run claims each due row with an atomic DELETE, checks each post again and sends the
+ * permalinks in non-blocking POSTs of up to 10,000 URLs. A POST that cannot even be dispatched gets one more try ten
+ * minutes later, in a row of its own. An hourly sweep picks up any row whose cron event was lost.
  */
 
 const BOBLIFT_INDEXNOW_ENDPOINT = 'https://api.indexnow.org/indexnow';
@@ -24,6 +24,7 @@ const BOBLIFT_INDEXNOW_BATCH = 10000;
 const BOBLIFT_INDEXNOW_KEY_OPTION = 'boblift_indexnow_key';
 const BOBLIFT_INDEXNOW_RETRY_HOOK = 'boblift_indexnow_retry';
 const BOBLIFT_INDEXNOW_RETRY_PREFIX = 'boblift_indexnow_retry_';
+const BOBLIFT_INDEXNOW_SWEEP_HOOK = 'boblift_indexnow_sweep';
 
 function boblift_indexnow_valid_key(mixed $key): bool
 {
@@ -53,7 +54,8 @@ function boblift_indexnow_key(): string
     if (boblift_indexnow_valid_key($key)) {
         return $key;
     }
-    $candidate = strtolower(wp_generate_password(32, false, false));
+    // Not wp_generate_password(): its random_password filter could add characters IndexNow does not accept.
+    $candidate = bin2hex(random_bytes(16));
     $stored = boblift_indexnow_stored_key();
     if ($stored === null) {
         $wpdb->query($wpdb->prepare("INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'yes')", BOBLIFT_INDEXNOW_KEY_OPTION, $candidate));
@@ -139,8 +141,8 @@ function boblift_indexnow_resolve(array $post_ids): array
 }
 
 /**
- * Sends the posts' current permalinks. When $retry is true, the IDs behind any POST that could not be dispatched are
- * saved for one retry; the retry itself does not retry.
+ * Sends the posts' current permalinks; runs from cron. When $retry is true, the IDs behind any POST that could not be
+ * dispatched are saved for one more try ten minutes later; that try itself does not retry.
  */
 function boblift_indexnow_send(array $post_ids, bool $retry = true): void
 {
@@ -155,7 +157,7 @@ function boblift_indexnow_send(array $post_ids, bool $retry = true): void
     if ($key === '') {
         // The key could not be stored or read back: keep the posts for the retry instead of dropping them.
         if ($retry) {
-            boblift_indexnow_save_retry(array_merge(...array_values($by_url)));
+            boblift_indexnow_save_batch(array_merge(...array_values($by_url)), time() + 10 * MINUTE_IN_SECONDS, false);
         }
         return;
     }
@@ -172,27 +174,33 @@ function boblift_indexnow_send(array $post_ids, bool $retry = true): void
             foreach ($payload['urlList'] as $url) {
                 array_push($ids, ...$by_url[$url]);
             }
-            boblift_indexnow_save_retry(array_values(array_unique($ids)));
+            boblift_indexnow_save_batch(array_values(array_unique($ids)), time() + 10 * MINUTE_IN_SECONDS, false);
         }
     }
 }
 
 /**
- * Saves failed post IDs in a row of their own (a unique name, so concurrent failures never touch each other's row)
- * and makes sure a retry run is scheduled.
+ * Saves post IDs as a batch row of their own (a unique name, so concurrent requests never touch each other's row) and
+ * makes sure a cron run is scheduled. $retry says whether a failed POST of this batch gets one more try.
  */
-function boblift_indexnow_save_retry(array $post_ids): void
+function boblift_indexnow_save_batch(array $post_ids, int $due, bool $retry): void
 {
-    $batch = ['due' => time() + 10 * MINUTE_IN_SECONDS, 'ids' => array_map('intval', $post_ids)];
+    $batch = ['due' => $due, 'ids' => array_map('intval', $post_ids), 'retry' => $retry];
     if (!add_option(BOBLIFT_INDEXNOW_RETRY_PREFIX . str_replace('-', '', wp_generate_uuid4()), $batch, '', 'no')) {
-        // The row could not be written: carry the IDs in the cron event itself so the batch is not lost.
-        $scheduled = wp_schedule_single_event($batch['due'], BOBLIFT_INDEXNOW_RETRY_HOOK, [$batch['ids']], true);
-        if ($scheduled !== true) {
-            error_log(sprintf('IndexNow: could not keep %d post IDs for a retry (%s).', count($batch['ids']), is_wp_error($scheduled) ? $scheduled->get_error_message() : 'cron write failed'));
-        }
+        // The row could not be written: carry the batch in the cron event itself so it is not lost.
+        boblift_indexnow_schedule_event($due, [$batch]);
         return;
     }
     boblift_indexnow_schedule_retry();
+}
+
+/** Schedules a run of the batch worker; a failure is logged, and the hourly sweep still finds any saved row. */
+function boblift_indexnow_schedule_event(int $time, array $args = []): void
+{
+    $scheduled = wp_schedule_single_event($time, BOBLIFT_INDEXNOW_RETRY_HOOK, $args, true);
+    if ($scheduled !== true) {
+        error_log(sprintf('IndexNow: could not schedule a batch run (%s).', is_wp_error($scheduled) ? $scheduled->get_error_message() : 'cron write failed'));
+    }
 }
 
 /** @return string[] option names of saved retry batches in the current blog */
@@ -204,7 +212,7 @@ function boblift_indexnow_retry_names(): array
 
 /**
  * Reads a saved batch. Returns null when the read itself failed (the row is kept for later), false when the row was
- * read but holds no valid batch, otherwise ['due' => int, 'ids' => int[]].
+ * read but holds no valid batch, otherwise ['due' => int, 'ids' => int[], 'retry' => bool].
  */
 function boblift_indexnow_read_retry(string $name): array|false|null
 {
@@ -217,7 +225,7 @@ function boblift_indexnow_read_retry(string $name): array|false|null
     if (!is_array($batch) || !is_array($batch['ids'] ?? null) || !is_numeric($batch['due'] ?? null)) {
         return false;
     }
-    return ['due' => (int) $batch['due'], 'ids' => array_map('intval', $batch['ids'])];
+    return ['due' => (int) $batch['due'], 'ids' => array_map('intval', $batch['ids']), 'retry' => (bool) ($batch['retry'] ?? false)];
 }
 
 /** Claims a row with an atomic DELETE; true only for the request whose DELETE removed it. */
@@ -230,14 +238,12 @@ function boblift_indexnow_claim_retry(string $name): bool
 }
 
 /**
- * Schedules the retry run for the earliest waiting batch when none is scheduled, which also restores a lost cron
- * event. A batch that could not be read counts as due in ten minutes.
+ * Makes sure a run is scheduled at the earliest waiting batch's due time, even when a later run is already scheduled.
+ * The event carries that time as its argument, so runs at different times never collide. A batch that could not be
+ * read counts as due in ten minutes.
  */
 function boblift_indexnow_schedule_retry(): void
 {
-    if (wp_next_scheduled(BOBLIFT_INDEXNOW_RETRY_HOOK)) {
-        return;
-    }
     $next = null;
     foreach (boblift_indexnow_retry_names() as $name) {
         $batch = boblift_indexnow_read_retry($name);
@@ -248,19 +254,20 @@ function boblift_indexnow_schedule_retry(): void
         $due = $batch === null ? time() + 10 * MINUTE_IN_SECONDS : max(time(), $batch['due']);
         $next = $next === null ? $due : min($next, $due);
     }
-    if ($next !== null) {
-        wp_schedule_single_event($next, BOBLIFT_INDEXNOW_RETRY_HOOK);
+    if ($next !== null && !wp_next_scheduled(BOBLIFT_INDEXNOW_RETRY_HOOK, [['at' => $next]])) {
+        boblift_indexnow_schedule_event($next, [['at' => $next]]);
     }
 }
 
 /**
  * Sends each due batch once, after claiming its row. A row that could not be read, or is not due yet, stays for a
- * later run; a row that was read but holds no valid batch is removed so it cannot keep the retry run alive.
+ * later run; a row that was read but holds no valid batch is removed so it cannot keep the worker alive. $carried is a
+ * batch that travelled in the cron event because its row could not be written.
  */
-function boblift_indexnow_run_retries(array $fallback_ids = []): void
+function boblift_indexnow_run_retries(array $carried = []): void
 {
-    if ($fallback_ids !== []) {
-        boblift_indexnow_send($fallback_ids, false);
+    if (is_array($carried['ids'] ?? null)) {
+        boblift_indexnow_send(array_map('intval', $carried['ids']), (bool) ($carried['retry'] ?? false));
     }
     foreach (boblift_indexnow_retry_names() as $name) {
         $batch = boblift_indexnow_read_retry($name);
@@ -272,7 +279,7 @@ function boblift_indexnow_run_retries(array $fallback_ids = []): void
             continue;
         }
         if (boblift_indexnow_claim_retry($name)) {
-            boblift_indexnow_send($batch['ids'], false);
+            boblift_indexnow_send($batch['ids'], $batch['retry']);
         }
     }
     boblift_indexnow_schedule_retry();
@@ -294,16 +301,24 @@ add_action('shutdown', static function (): void {
         if ($switched) {
             switch_to_blog((int) $blog_id);
         }
-        boblift_indexnow_send($post_ids);
-        boblift_indexnow_schedule_retry();
+        // Saved for the cron worker, so a slow IndexNow endpoint never holds up the publishing request.
+        boblift_indexnow_save_batch($post_ids, time(), true);
         if ($switched) {
             restore_current_blog();
         }
     }
 });
 
-// Cron runs in the blog that scheduled it, where its retry rows live.
+// Cron runs in the blog that scheduled it, where its batch rows live.
 add_action(BOBLIFT_INDEXNOW_RETRY_HOOK, 'boblift_indexnow_run_retries');
+add_action(BOBLIFT_INDEXNOW_SWEEP_HOOK, 'boblift_indexnow_run_retries');
+
+// The hourly sweep runs rows whose own event was lost, without waiting for the next publish.
+add_action('init', static function (): void {
+    if (boblift_indexnow_enabled() && !wp_next_scheduled(BOBLIFT_INDEXNOW_SWEEP_HOOK)) {
+        wp_schedule_event(time() + HOUR_IN_SECONDS, 'hourly', BOBLIFT_INDEXNOW_SWEEP_HOOK);
+    }
+});
 
 // The key file, answered ahead of the legacy redirects (priority 0) and the 404 template.
 add_action('template_redirect', static function (): void {
