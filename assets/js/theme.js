@@ -6321,9 +6321,12 @@
       note.hidden = !variant.weightNote;
     });
   };
+  // Phones keep no room: under the short line there it shows as a gap, and the box only grows after the reader's own tap.
+  const phoneQuery = window.matchMedia('(max-width: 639px)');
   const reserveSummaryHeight = () => {
     if (!summaryBox) return;
     summaryBox.style.minHeight = '';
+    if (phoneQuery.matches) return;
     let tallest = 0;
     (data.variants || []).forEach((item) => {
       showSummary(item);
@@ -6612,6 +6615,53 @@
     }, true);
     arm();
     sync();
+  })();
+
+  // Phones: every specification group after the first folds under its heading, which becomes a button. The figures stay in
+  // the page (hidden by CSS only while folded), and from 640px the heading goes back to plain text with every group open.
+  (() => {
+    const lists = document.querySelectorAll('.boblift-spec-groups');
+    if (!lists.length) return;
+    const phone = window.matchMedia('(max-width: 639px)');
+    const folds = [];
+    let uid = 0;
+    lists.forEach((list) => {
+      [...list.children].filter((group) => group.classList.contains('boblift-spec-group')).forEach((group, index) => {
+        const head = group.querySelector(':scope > .boblift-spec-group-head');
+        const rows = group.querySelector(':scope > .boblift-spec-rows');
+        if (index === 0 || !head || !rows) return;
+        uid += 1;
+        if (!rows.id && !rows.hasAttribute('data-vid')) rows.id = `boblift-spec-rows-${uid}`;
+        folds.push({ group, head, rows });
+      });
+    });
+    if (!folds.length) return;
+    const setOpen = (fold, open) => {
+      fold.group.toggleAttribute('data-folded', !open);
+      if (fold.button) fold.button.setAttribute('aria-expanded', open ? 'true' : 'false');
+    };
+    const wrap = (fold) => {
+      if (fold.button) return;
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'boblift-spec-group-toggle';
+      button.setAttribute('aria-controls', fold.rows.id || fold.rows.getAttribute('data-vid') || '');
+      while (fold.head.firstChild) button.appendChild(fold.head.firstChild);
+      fold.head.appendChild(button);
+      button.addEventListener('click', () => setOpen(fold, fold.group.hasAttribute('data-folded')));
+      fold.button = button;
+      setOpen(fold, false);
+    };
+    const unwrap = (fold) => {
+      if (!fold.button) return;
+      while (fold.button.firstChild) fold.head.insertBefore(fold.button.firstChild, fold.button);
+      fold.button.remove();
+      fold.button = null;
+      fold.group.removeAttribute('data-folded');
+    };
+    const sync = () => folds.forEach((fold) => (phone.matches ? wrap(fold) : unwrap(fold)));
+    sync();
+    phone.addEventListener('change', sync);
   })();
 
   // PDFs and pages on other websites open in a new tab, so the visitor keeps this page; links to our own pages

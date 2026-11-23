@@ -484,8 +484,9 @@ if ($family_quote_copy) {
                     $hero_model_shown = $series_page ? (string) ($GLOBALS['boblift_series_render']['active'] ?? $hero_model) : $hero_model;
                     $hero_series_label = $product_series ? boblift_series_label($product_series) : '';
                     ?>
-                    <?php // A name that changes with the choice keeps room for two lines, so nothing under it moves. ?>
-                    <h1 class="boblift-product-hero-title mt-4 text-[clamp(30px,2.6vw,44px)] font-black leading-[1.1] tracking-[-0.015em] text-[#071f42]<?php echo $series_name_switches ? ' min-h-[2.2em]' : ''; ?>"<?php echo $series_name_switches ? ' data-cfg-name' : ''; ?>><?php echo esc_html($hero_name); ?></h1>
+                    <?php // A name that changes with the choice keeps room for two lines from 640px, so nothing under it moves; on phones the
+                    // room would be a gap under a one-line name, and a change there follows the reader's own tap. ?>
+                    <h1 class="boblift-product-hero-title mt-4 text-[clamp(30px,2.6vw,44px)] font-black leading-[1.1] tracking-[-0.015em] text-[#071f42]<?php echo $series_name_switches ? ' sm:min-h-[2.2em]' : ''; ?>"<?php echo $series_name_switches ? ' data-cfg-name' : ''; ?>><?php echo esc_html($hero_name); ?></h1>
                     <?php if ($hero_model_shown !== '') : ?>
                         <p class="mt-3.5 text-[clamp(17px,1.25vw,20px)] leading-snug text-[#071f42]" data-hero-model-line><span class="font-normal text-slate-500"><?php echo esc_html(boblift_series_text('Model')); ?></span> <span class="font-black" dir="ltr"<?php echo $series_page ? ' data-cfg-title' : ''; ?>><?php echo esc_html($hero_model_shown); ?></span><?php if ($hero_series_label !== '' && $hero_series_label !== $hero_model_shown) : ?><span class="mx-2 text-slate-300" aria-hidden="true">·</span><span class="font-normal text-slate-500"><?php echo esc_html($hero_series_label); ?></span><?php endif; ?></p>
                     <?php endif; ?>
@@ -519,11 +520,13 @@ if ($family_quote_copy) {
                     <?php boblift_series_render_configurator(); ?>
                     <?php boblift_series_block_open('keyspecs'); ?>
                     <?php // Plain text with no boxes: only the configuration above is there to be clicked. ?>
-                    <dl class="mt-7 grid grid-cols-2 gap-x-4 gap-y-3 <?php echo $series_page ? 'sm:grid-cols-5' : 'sm:grid-cols-4'; ?>">
+                    <?php // Five figures on phones: three over two, each under a hairline, instead of two columns with one left over. ?>
+                    <?php $hero_specs_five = count($hero_specs) === 5; ?>
+                    <dl class="mt-7 grid <?php echo $hero_specs_five ? 'boblift-hero-figures-five grid-cols-6 gap-x-3 gap-y-4' : 'grid-cols-2 gap-x-4 gap-y-3'; ?> <?php echo $series_page ? 'sm:grid-cols-5' : 'sm:grid-cols-4'; ?> sm:gap-x-4 sm:gap-y-3">
                         <?php foreach ($hero_specs as $index => $spec) :
                             [$spec_number, $spec_unit] = $series_page ? boblift_series_figure_parts((string) ($spec['value'] ?? '')) : $hero_spec_parts((string) ($spec['value'] ?? ''));
                         ?>
-                            <div class="flex min-w-0 flex-col<?php echo $series_page && $index === 4 ? ' col-span-2 sm:col-span-1' : ''; ?>"<?php echo $series_page ? ' data-cfg-cell="' . esc_attr((string) ($spec['key'] ?? '')) . '" data-cfg-cell-value="' . esc_attr((string) ($spec['value'] ?? '')) . '"' : ''; ?>>
+                            <div class="flex min-w-0 flex-col<?php echo $hero_specs_five ? ($index < 3 ? ' col-span-2' : ' col-span-3') . ' border-t border-[#D5DEE9] pt-2.5 sm:col-span-1 sm:border-t-0 sm:pt-0' : ''; ?>"<?php echo $series_page ? ' data-cfg-cell="' . esc_attr((string) ($spec['key'] ?? '')) . '" data-cfg-cell-value="' . esc_attr((string) ($spec['value'] ?? '')) . '"' : ''; ?>>
                                 <dt class="text-[13px] font-semibold leading-[1.25] text-slate-500"><?php echo esc_html($spec['label']); ?></dt>
                                 <dd class="mt-auto break-words pt-1.5 font-black leading-tight text-[#071f42] [font-variant-numeric:tabular-nums]"><span class="<?php echo $series_page ? 'text-[clamp(22px,1.9vw,32px)]' : (($spec_unit !== '' || mb_strlen($spec_number) <= 8) ? 'text-[clamp(22px,1.9vw,32px)]' : 'text-base'); ?><?php echo $spec_number === '—' ? ' text-slate-400' : ''; ?>"><?php echo esc_html($spec_number); ?></span><?php if ($spec_unit !== '') : ?><span class="<?php echo $spec_unit === '°' ? '' : 'ms-1'; ?> whitespace-nowrap text-sm font-bold text-slate-500"><?php echo esc_html($spec_unit); ?></span><?php endif; ?></dd>
                             </div>
@@ -534,13 +537,14 @@ if ($family_quote_copy) {
                     <?php endif; ?>
                     <?php boblift_series_block_close('keyspecs'); ?>
                         <?php // Quote and the two ways to message on one line; brochure and terms on one quiet line below. ?>
-                        <div class="boblift-hero-actions-row mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
-                            <button class="boblift-product-hero-request inline-flex h-12 w-full shrink-0 items-center justify-center gap-2 rounded-sm bg-[#071f42] px-7 sm:w-auto text-sm font-black text-white transition hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页首屏" data-inquiry-product="<?php echo esc_attr($inquiry_product_title); ?>" data-inquiry-product-slug="<?php echo esc_attr($inquiry_product_slug); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html($ui['requestQuoteLabel'] ?? 'Get a Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
+                        <?php // Phones: the quote button with WhatsApp and mail as square buttons beside it, as in the bar at the foot of the screen. ?>
+                        <div class="boblift-hero-actions-row mt-8 flex items-center gap-2 sm:flex-wrap sm:gap-x-6 sm:gap-y-3">
+                            <button class="boblift-product-hero-request inline-flex h-12 min-w-0 flex-1 items-center justify-center gap-2 rounded-sm bg-[#071f42] px-5 sm:w-auto sm:flex-none sm:shrink-0 sm:px-7 text-sm font-black text-white transition hover:bg-[#0B3F7D]" type="button" data-inquiry-modal-open data-inquiry-source="产品页首屏" data-inquiry-product="<?php echo esc_attr($inquiry_product_title); ?>" data-inquiry-product-slug="<?php echo esc_attr($inquiry_product_slug); ?>" data-inquiry-products="<?php echo esc_attr($inquiry_products_payload); ?>"><?php echo esc_html($ui['requestQuoteLabel'] ?? 'Get a Quote'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></button>
                             <?php if ($hero_whatsapp_href !== '') : ?>
-                                <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 text-sm font-semibold text-[#071f42] transition hover:border-blue-500 hover:text-blue-700" href="<?php echo esc_url($hero_whatsapp_href); ?>" target="_blank" rel="noopener"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?><?php echo $series_page ? ' data-series-whatsapp' : ''; ?>><?php echo boblift_icon('whatsapp', 'h-4 w-4 text-[#25D366]'); ?><span class="[font-variant-numeric:tabular-nums]" dir="ltr"><?php echo esc_html($hero_whatsapp_display); ?></span></a>
+                                <a class="inline-flex size-12 shrink-0 items-center justify-center rounded-sm bg-[#25D366] text-white transition hover:bg-[#1ebe5b] sm:size-auto sm:justify-start sm:gap-2 sm:rounded-none sm:border-b sm:border-[#C9D6E6] sm:bg-transparent sm:pb-0.5 sm:text-sm sm:font-semibold sm:text-[#071f42] sm:hover:border-blue-500 sm:hover:bg-transparent sm:hover:text-blue-700" href="<?php echo esc_url($hero_whatsapp_href); ?>" target="_blank" rel="noopener"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?><?php echo $series_page ? ' data-series-whatsapp' : ''; ?>><?php echo boblift_icon('whatsapp', 'h-6 w-6 sm:h-4 sm:w-4 sm:text-[#25D366]'); ?><span class="max-sm:sr-only [font-variant-numeric:tabular-nums]" dir="ltr"><?php echo esc_html($hero_whatsapp_display); ?></span></a>
                             <?php endif; ?>
                             <?php if ($hero_email !== '') : ?>
-                                <a class="inline-flex items-center gap-2 border-b border-[#C9D6E6] pb-0.5 text-sm font-semibold text-[#071f42] transition hover:border-blue-500 hover:text-blue-700" href="<?php echo esc_url($hero_mail_href); ?>"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?><?php echo $series_page ? ' data-series-mail' : ''; ?>><?php echo boblift_icon('mail', 'h-4 w-4 text-slate-500'); ?><?php echo esc_html($hero_email); ?></a>
+                                <a class="inline-flex size-12 shrink-0 items-center justify-center rounded-sm border border-[#D5DEE9] bg-white text-[#071f42] transition hover:border-blue-300 hover:text-blue-700 sm:size-auto sm:justify-start sm:gap-2 sm:rounded-none sm:border-0 sm:border-b sm:border-[#C9D6E6] sm:bg-transparent sm:pb-0.5 sm:text-sm sm:font-semibold sm:hover:border-blue-500" href="<?php echo esc_url($hero_mail_href); ?>"<?php echo $model_variant ? ' data-product-variant-href' : ''; ?><?php echo $series_page ? ' data-series-mail' : ''; ?>><?php echo boblift_icon('mail', 'h-5 w-5 sm:h-4 sm:w-4 sm:text-slate-500'); ?><span class="max-sm:sr-only"><?php echo esc_html($hero_email); ?></span></a>
                             <?php endif; ?>
                         </div>
                         <ul class="boblift-hero-trust mt-7 flex flex-wrap items-center justify-between gap-x-2 gap-y-2 border-t border-[#D5DEE9] pt-5 text-[14px] text-slate-600">
@@ -551,7 +555,6 @@ if ($family_quote_copy) {
                             <?php if ($hero_terms_apply) : ?>
                                 <li class="inline-flex items-center gap-1.5"><?php echo boblift_icon('shield-check', 'h-4 w-4 text-[#0B3F7D]'); ?><?php echo esc_html(boblift_localized_static_text('12-month warranty')); ?></li>
                                 <li class="inline-flex items-center gap-1.5"><?php echo boblift_icon('package-check', 'h-4 w-4 text-[#0B3F7D]'); ?><?php echo esc_html(boblift_localized_static_text('Order from 1 unit')); ?></li>
-                                <li><a class="inline-flex items-center gap-1.5 border-b border-[#C9D6E6] pb-0.5 font-semibold text-[#071f42] transition hover:border-blue-500 hover:text-blue-700" href="#buying"><?php echo esc_html(boblift_localized_static_text('Shipping & warranty')); ?><?php echo boblift_icon('arrow-down', 'h-4 w-4'); ?></a></li>
                             <?php endif; ?>
                         </ul>
                 </div>
@@ -953,14 +956,17 @@ if ($family_quote_copy) {
                         <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($ui['featuresTitle'] ?? 'Product technical advantages'); ?></h2>
                     </div>
                     <?php if ($feature_cards) : ?>
-                        <ul class="grid grid-cols-2 gap-x-4 gap-y-6 px-4 py-5 sm:p-6 md:gap-x-5 md:p-8 <?php echo esc_attr($feature_cols); ?>">
+                        <?php // Phones: one list, each photo beside its text, so an odd count leaves no gap and the list stays short. ?>
+                        <ul class="grid grid-cols-1 gap-y-4 px-4 py-5 sm:grid-cols-2 sm:gap-x-4 sm:gap-y-6 sm:p-6 md:gap-x-5 md:p-8 <?php echo esc_attr($feature_cols); ?>">
                             <?php foreach ($feature_cards as $feature) : ?>
-                                <li class="min-w-0">
+                                <li class="grid min-w-0 grid-cols-[112px_minmax(0,1fr)] items-start gap-x-3.5 max-sm:border-b max-sm:border-[#E6EDF5] max-sm:pb-4 max-sm:last:border-b-0 max-sm:last:pb-0 sm:block">
                                     <div class="aspect-[4/3] overflow-hidden rounded-sm bg-[#EDF1F5]">
                                         <img class="h-full w-full object-cover" src="<?php echo esc_url((string) $feature['image']); ?>" alt="<?php echo esc_attr((string) $feature['title']); ?>" loading="lazy" decoding="async">
                                     </div>
-                                    <h3 class="mt-3 text-sm font-black leading-snug text-[#071f42] md:text-base"><?php echo esc_html((string) $feature['title']); ?></h3>
-                                    <p class="mt-1 text-xs font-normal leading-5 text-slate-600 md:text-sm md:leading-6"><?php echo esc_html((string) ($feature['text'] ?? '')); ?></p>
+                                    <div class="min-w-0">
+                                        <h3 class="text-[15px] font-black leading-snug text-[#071f42] sm:mt-3 sm:text-sm md:text-base"><?php echo esc_html((string) $feature['title']); ?></h3>
+                                        <p class="mt-1 text-[13px] font-normal leading-5 text-slate-600 sm:text-xs md:text-sm md:leading-6"><?php echo esc_html((string) ($feature['text'] ?? '')); ?></p>
+                                    </div>
                                 </li>
                             <?php endforeach; ?>
                         </ul>
@@ -1090,7 +1096,7 @@ if ($family_quote_copy) {
                         <p class="mt-3 hidden max-w-2xl text-sm font-normal leading-6 text-slate-600 sm:block md:text-base md:leading-7"><?php echo esc_html(str_replace('{model}', $hero_title, boblift_localized_static_text('How the {model} reaches you, and what happens after it arrives.'))); ?></p>
                     </div>
                     <div class="mt-4 grid gap-px border-t border-[#E6EDF5] bg-[#E6EDF5] sm:mt-6 md:mt-8 md:grid-cols-3">
-                        <section class="bg-white px-4 py-5 sm:p-6 md:p-8" aria-labelledby="buying-shipping">
+                        <section class="bg-white px-4 py-4 sm:p-6 md:p-8" aria-labelledby="buying-shipping">
                             <h3 id="buying-shipping" class="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(boblift_localized_static_text('Shipping')); ?></h3>
                             <?php if ($container_loading) : // This model's own figures from the factory loading plan (boblift_product_copy "container_loading"). ?>
                                 <table class="mt-3 w-full border-collapse text-start text-sm [font-variant-numeric:tabular-nums] sm:mt-4">
@@ -1128,18 +1134,22 @@ if ($family_quote_copy) {
                                 <p class="mt-2 text-xs font-normal leading-5 text-slate-500"><?php echo esc_html(boblift_localized_static_text('Loading figures are approximate; we confirm the plan with your order.')); ?></p>
                             <?php endif; ?>
                         </section>
-                        <section class="bg-white px-4 py-5 sm:p-6 md:p-8" aria-labelledby="buying-warranty">
-                            <h3 id="buying-warranty" class="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(boblift_localized_static_text('Warranty and parts')); ?></h3>
-                            <p class="mt-2 text-xl font-black leading-none text-[#071f42] sm:mt-4 sm:text-2xl"><?php echo esc_html(boblift_localized_static_text('12 months')); ?></p>
+                        <section class="bg-white px-4 py-4 sm:p-6 md:p-8" aria-labelledby="buying-warranty">
+                            <?php // Phones: the label and the 12 months on one line. ?>
+                            <div class="flex items-baseline justify-between gap-3 sm:block">
+                                <h3 id="buying-warranty" class="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(boblift_localized_static_text('Warranty and parts')); ?></h3>
+                                <p class="text-xl font-black leading-none text-[#071f42] sm:mt-4 sm:text-2xl"><?php echo esc_html(boblift_localized_static_text('12 months')); ?></p>
+                            </div>
                             <p class="mt-2 text-sm font-normal leading-6 text-slate-700 sm:mt-3"><?php echo esc_html(boblift_localized_static_text('Send the model, serial number and a photo or video of the issue; our team guides the repair and ships the parts.')); ?></p>
                             <p class="mt-3 inline-flex items-center gap-2 text-sm font-black text-[#071f42] sm:mt-4"><?php echo boblift_icon('package-check', 'h-4 w-4 text-[#0B3F7D]'); ?><?php echo esc_html(boblift_localized_static_text('Order from 1 unit')); ?></p>
                         </section>
-                        <section class="bg-white px-4 py-5 sm:p-6 md:p-8" aria-labelledby="buying-documents">
+                        <section class="bg-white px-4 py-4 sm:p-6 md:p-8" aria-labelledby="buying-documents">
                             <?php // Links to #brochures (the brochure card this column replaces on crane pages) land here. ?><span id="brochures" class="block scroll-mt-24" aria-hidden="true"></span>
                             <h3 id="buying-documents" class="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(boblift_localized_static_text('Documents')); ?></h3>
-                            <ul class="mt-3 grid gap-3 text-sm sm:mt-4">
+                            <?php // Phones: the two short links side by side under the brochures. ?>
+                            <ul class="mt-3 grid grid-cols-2 gap-3 text-sm sm:mt-4 sm:grid-cols-1">
                                 <?php foreach ($buying_brochures as $buying_brochure) : ?>
-                                    <li class="mb-1 grid grid-cols-[48px_minmax(0,1fr)] items-start gap-3 border-b border-[#E6EDF5] pb-4 sm:mb-2 sm:grid-cols-[64px_minmax(0,1fr)] sm:gap-4 sm:pb-5">
+                                    <li class="col-span-2 mb-1 sm:col-span-1 grid grid-cols-[48px_minmax(0,1fr)] items-start gap-3 border-b border-[#E6EDF5] pb-4 sm:mb-2 sm:grid-cols-[64px_minmax(0,1fr)] sm:gap-4 sm:pb-5">
                                         <a class="block" href="<?php echo esc_url($buying_brochure['url']); ?>" download="<?php echo esc_attr($buying_brochure['file']); ?>" tabindex="-1" aria-hidden="true"><img class="aspect-[520/711] w-full rounded-sm border border-[#DDE7F2] bg-white object-cover" src="<?php echo esc_url($buying_brochure['cover']); ?>" width="520" height="711" alt="" loading="lazy" decoding="async"></a>
                                         <div class="min-w-0">
                                             <p class="font-black leading-snug text-[#071f42]"><?php echo esc_html($buying_brochure['title']); ?></p>
