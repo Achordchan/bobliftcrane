@@ -57,6 +57,7 @@ $boblift_theme_modules = [
     'seo-rest.php',
     'cache-warm.php',
     'company-schema.php',
+    'indexnow.php',
     'about-facts.php',
     'legacy-redirects.php',
     'tonnage-pages.php',
