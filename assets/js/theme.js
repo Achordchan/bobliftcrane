@@ -1244,9 +1244,9 @@
       // An event from an earlier request (one finishing after the src changed) is not this load's: the picture asked for is
       // then not the one showing (currentSrc), or not finished yet (complete), depending on the browser. It is passed over
       // and the listeners wait for the picture asked for.
-      // With a srcset (a drawing could have one) currentSrc is a candidate rather than src, and the viewer never changes such a
-      // picture's source, so only completeness counts there.
-      const asked = () => image.hasAttribute('srcset') || image.currentSrc === image.src;
+      // With a srcset or inside <picture> (a drawing could be) currentSrc is the browser's pick rather than src, and the viewer
+      // never changes such a picture's source, so only completeness counts there.
+      const asked = () => image.hasAttribute('srcset') || image.parentElement?.tagName === 'PICTURE' || image.currentSrc === image.src;
       const stale = (event) => event instanceof Event && (!asked() || !image.complete);
       const done = (event) => {
         // A late load event from the previous photo while the one asked for has already failed: its own error decides.
@@ -1428,12 +1428,12 @@
         drag.dx = dx;
         if (!drag.moved && Math.hypot(dx, dy) > 6) {
           drag.moved = true;
-          // A mostly upright stroke is no swipe.
-          if (drag.swipe && Math.abs(dy) > Math.abs(dx)) drag.swipe = false;
           stage.classList.add('is-dragging');
         }
         if (drag.moved) {
-          if (drag.swipe) swipe = dx;
+          // The stroke's overall direction so far decides, not its first few pixels: while it is mostly upright the photo
+          // stays put, and once it runs sideways it follows (the release judges the whole stroke the same way).
+          if (drag.swipe) swipe = Math.abs(dx) >= Math.abs(dy) ? dx : 0;
           else {
             x = drag.fromX + dx;
             y = drag.fromY + dy;
@@ -1608,6 +1608,14 @@
     // server ignore it): browsers would otherwise hand back the cached error or the same request that never finished.
     const retries = new Map();
     const address = (url) => retries.get(url) || url;
+    // The address with a new retry argument, put before any fragment (an SVG view stays a fragment) and leaving the rest of
+    // the query exactly as written (the CDN's resize arguments are not re-encoded).
+    const fresh = (url) => {
+      const cut = url.indexOf('#');
+      const head = cut < 0 ? url : url.slice(0, cut);
+      const tail = cut < 0 ? '' : url.slice(cut);
+      return `${head}${head.includes('?') ? '&' : '?'}retry=${Date.now().toString(36)}${tail}`;
+    };
     // Neighbours being fetched ahead, by address, until they settle: a stalled one can then be dropped (see onError).
     const preloads = new Map();
     // A preload that is no longer wanted (no longer a neighbour, the viewer closed, or stalled 20 s) lets go of its request.
@@ -1663,7 +1671,9 @@
       setPhoto(index + direction);
       viewer.load();
       trimPreloads();
-      preload(index + direction);
+      // Both neighbours stay warm, the photo just left included, so going straight back does not start over.
+      preload(index + 1);
+      preload(index - 1);
     };
     viewer = bobliftZoomViewer({
       dialog,
@@ -1691,7 +1701,7 @@
         // Coming back to this photo later asks for the failed address afresh, with a new query argument: neither a stalled
         // request nor a cached error response (a 404 the CDN let the browser keep) is handed back again.
         [photo.full, photo.src].filter((url) => url && address(url) === failedUrl).forEach((url) => {
-          retries.set(url, `${url}${url.includes('?') ? '&' : '?'}retry=${Date.now().toString(36)}`);
+          retries.set(url, fresh(url));
         });
         if (fallback && failedUrl !== fallback) {
           image.src = fallback;
@@ -1703,6 +1713,14 @@
       },
       onClose: () => {
         [...preloads.keys()].forEach(cancelPreload);
+        // A photo still loading when the viewer closes lets go of its request, and opening again asks afresh (a new address,
+        // as after a failure), so a request that stalled meanwhile is not waited on again.
+        const pending = image.getAttribute('src');
+        if (pending && !image.complete) {
+          const photo = photos[index];
+          [photo.full, photo.src].filter((url) => url && address(url) === pending).forEach((url) => retries.set(url, fresh(url)));
+          dropStalled(pending);
+        }
         const thumb = photos[shown]?.thumb;
         if (thumb && thumb.dataset.productHeroGalleryIndex !== root.dataset.productHeroActiveIndex) thumb.click();
       },
