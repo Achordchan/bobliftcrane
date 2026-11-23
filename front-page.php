@@ -109,8 +109,6 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
     </div>
 </section>
 
-<?php if (function_exists('boblift_offer_home_banner')) { boblift_offer_home_banner(); } ?>
-
 <?php // Tablets and small laptops stack the heading over the marks; the two sit side by side once both fit (xl). ?>
 <section class="page-shell py-5 md:py-8" aria-label="<?php echo esc_attr($home_ui['qualityCertificationsLabel'] ?? 'Quality certifications'); ?>">
     <div class="flex flex-col gap-2 md:gap-5 xl:flex-row xl:items-center xl:justify-between xl:gap-10">
@@ -152,6 +150,9 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
         <a class="inline-flex min-h-10 items-center gap-1 self-end text-xs font-bold text-slate-500 transition hover:text-blue-700 md:hidden" href="<?php echo esc_url($more_certificates_url); ?>"><?php echo esc_html($more_certificates_label); ?><?php echo boblift_icon('arrow-right', 'h-3 w-3 rtl:-scale-x-100'); ?></a>
     </div>
 </section>
+
+<?php // The year-end offers, while they run: a slim link between the certifications and the products (inc/year-end-offers.php). ?>
+<?php if (function_exists('boblift_offer_home_banner')) { boblift_offer_home_banner(); } ?>
 
 <?php boblift_render_home_products(); ?>
 

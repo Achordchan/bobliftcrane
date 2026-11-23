@@ -585,8 +585,9 @@ foreach ($languages as $language) {
             <?php endforeach; ?>
         </div>
         <?php $site_switcher_others = array_values(array_filter($site_switcher_items, static fn(array $site): bool => !$site['current'])); ?>
+        <?php // The header carries the site switch from 360px, so the menu lists the other sites only on narrower phones, where the switch is hidden. ?>
         <?php if ($site_switcher_others !== []) : ?>
-            <div class="mt-1.5 border-t border-line px-2 pb-1 pt-3">
+            <div class="mt-1.5 border-t border-line px-2 pb-1 pt-3 min-[360px]:hidden">
                 <p class="px-2 pb-1.5 text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html($site_switcher_ui['mobileTitle'] ?? 'Other BOB-LIFT sites'); ?></p>
                 <?php foreach ($site_switcher_others as $site) : ?>
                     <a class="flex items-center justify-between gap-3 rounded px-2 py-2.5 transition hover:bg-[#f7fbff]" href="<?php echo esc_url($site['url']); ?>"<?php echo $site_leave_attrs($site); ?>>
