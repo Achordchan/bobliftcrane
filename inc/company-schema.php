@@ -206,14 +206,19 @@ const BOBLIFT_LLMS_TXT_HELD_BACK_PATHS = [
 function boblift_llms_txt_articles(): array
 {
     $articles = [];
-    $held_back = array_fill_keys(BOBLIFT_LLMS_TXT_HELD_BACK_PATHS, true);
-    $posts = get_posts(['post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => 500, 'has_password' => false, 'orderby' => ['date' => 'DESC', 'ID' => 'DESC'], 'no_found_rows' => true, 'lang' => 'en']);
+    // Matched on the last path segment, so a language or subdirectory prefix (/en/news-show-89.html) still matches.
+    $held_back = array_fill_keys(array_map('basename', BOBLIFT_LLMS_TXT_HELD_BACK_PATHS), true);
+    // Fetch enough to fill 500 after the held-back posts are dropped.
+    $posts = get_posts(['post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => 500 + count($held_back), 'has_password' => false, 'orderby' => ['date' => 'DESC', 'ID' => 'DESC'], 'no_found_rows' => true, 'lang' => 'en']);
     foreach ($posts as $post) {
         $url = get_permalink($post);
-        if (!is_string($url) || isset($held_back[(string) wp_parse_url($url, PHP_URL_PATH)])) {
+        if (!is_string($url) || isset($held_back[basename((string) wp_parse_url($url, PHP_URL_PATH))])) {
             continue;
         }
         $articles[] = boblift_llms_txt_link(get_the_title($post), $url, boblift_seo_post_description($post));
+        if (count($articles) === 500) {
+            break;
+        }
     }
     return $articles;
 }

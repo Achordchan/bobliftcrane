@@ -69,6 +69,10 @@ class Fake_Wpdb
             if (!array_key_exists($args[0], $GLOBALS['options'])) {
                 return 0;
             }
+            // DELETE ... AND option_value = %s only removes the row while it still holds that value.
+            if (isset($args[1]) && maybe_serialize($GLOBALS['options'][$args[0]]) !== $args[1]) {
+                return 0;
+            }
             unset($GLOBALS['options'][$args[0]]);
             return 1;
         }
@@ -376,7 +380,7 @@ foreach (range(1, 10001) as $i) {
 }
 boblift_indexnow_send(range(1, 10001));
 $rows = boblift_indexnow_retry_names();
-$check('10,001 failed posts are kept as one retry row per failed POST', count($rows) === 2 && array_sum(array_map('count', $ids($rows))) === 10001);
+$check('10,001 failed posts are all kept, in rows of at most 1,000', count($rows) === 11 && max(array_map('count', $ids($rows))) === 1000 && array_sum(array_map('count', $ids($rows))) === 10001);
 foreach ($rows as $name) {
     unset($GLOBALS['options'][$name]);
 }
@@ -454,6 +458,42 @@ $check('saving a batch schedules from its own due time without scanning the queu
 foreach (boblift_indexnow_retry_names() as $name) {
     unset($GLOBALS['options'][$name]);
 }
+$GLOBALS['scheduled'] = $GLOBALS['events'] = [];
+unset($GLOBALS['options']['boblift_indexnow_wake']);
+
+$GLOBALS['posts'] = [];
+foreach (range(1, 25) as $i) {
+    $GLOBALS['posts'][$i] = new WP_Post($i);
+    add_option('boblift_indexnow_retry_budget' . str_pad((string) $i, 2, '0', STR_PAD_LEFT), ['due' => 0, 'ids' => [$i], 'retry' => true], '', 'no');
+}
+$GLOBALS['sent'] = [];
+$GLOBALS['scheduled'] = $GLOBALS['events'] = [];
+unset($GLOBALS['options']['boblift_indexnow_wake']);
+boblift_indexnow_run_retries();
+$check('one run sends at most 20 rows and wakes again for the rest', count($GLOBALS['sent']) === 20 && count(boblift_indexnow_retry_names()) === 5 && ($GLOBALS['options']['boblift_indexnow_wake'] ?? PHP_INT_MAX) <= time());
+boblift_indexnow_run_retries();
+$check('the next run finishes the rest', count($GLOBALS['sent']) === 25 && boblift_indexnow_retry_names() === []);
+
+$GLOBALS['options']['boblift_indexnow_retry_owned'] = ['due' => 0, 'ids' => [1], 'retry' => true];
+$batch = boblift_indexnow_read_retry('boblift_indexnow_retry_owned');
+$leased = boblift_indexnow_lease_retry('boblift_indexnow_retry_owned', $batch);
+$check('a lease carries this run\'s token', is_string($leased) && isset($GLOBALS['options']['boblift_indexnow_retry_owned']['token']) && boblift_indexnow_owns_retry('boblift_indexnow_retry_owned', $leased));
+$GLOBALS['options']['boblift_indexnow_retry_owned']['token'] = 'another-run';
+$check('a run that lost its lease no longer owns the row and cannot delete it', !boblift_indexnow_owns_retry('boblift_indexnow_retry_owned', $leased) && !boblift_indexnow_finish_retry('boblift_indexnow_retry_owned', $leased) && isset($GLOBALS['options']['boblift_indexnow_retry_owned']));
+unset($GLOBALS['options']['boblift_indexnow_retry_owned']);
+
+add_option('boblift_indexnow_retry_keep', ['due' => 0, 'ids' => [1], 'retry' => true], '', 'no');
+$GLOBALS['remote_code'] = 503;
+$GLOBALS['add_option_fails'] = true;
+$GLOBALS['schedule_fails'] = true;
+$log = tempnam(sys_get_temp_dir(), 'indexnow');
+ini_set('error_log', $log);
+boblift_indexnow_run_retries();
+$GLOBALS['add_option_fails'] = $GLOBALS['schedule_fails'] = false;
+unset($GLOBALS['remote_code']);
+unlink($log);
+$check('when the retry cannot be saved anywhere, the original row is kept', isset($GLOBALS['options']['boblift_indexnow_retry_keep']));
+unset($GLOBALS['options']['boblift_indexnow_retry_keep']);
 $GLOBALS['scheduled'] = $GLOBALS['events'] = [];
 unset($GLOBALS['options']['boblift_indexnow_wake']);
 
