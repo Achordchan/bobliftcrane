@@ -3660,6 +3660,29 @@
     const caption = qs('[data-inline-video-caption]', root);
     const items = qsa('[data-inline-video-item]', root);
     let current = qs('[data-inline-video-play]', stage);
+    // More than three films: the row scrolls, and the arrows beside its label page through it a view at a time.
+    const list = qs('[data-inline-video-list]', root);
+    const arrows = qsa('[data-inline-video-scroll]', root);
+    if (list && arrows.length) {
+      // In a right-to-left page scrollLeft runs from 0 down to negative values, so "next" moves the other way.
+      const sign = () => (getComputedStyle(list).direction === 'rtl' ? -1 : 1);
+      const update = () => {
+        const offset = Math.abs(list.scrollLeft);
+        arrows.forEach((arrow) => {
+          const step = Number(arrow.dataset.inlineVideoScroll);
+          arrow.disabled = step < 0 ? offset < 2 : offset + list.clientWidth >= list.scrollWidth - 2;
+        });
+      };
+      arrows.forEach((arrow) => arrow.addEventListener('click', () => {
+        const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        list.scrollBy({ left: Number(arrow.dataset.inlineVideoScroll) * sign() * list.clientWidth, behavior: smooth ? 'smooth' : 'auto' });
+      }));
+      list.addEventListener('scroll', update, { passive: true });
+      // A configuration variant that starts hidden measures 0 wide; the observer also fires when it is shown.
+      if ('ResizeObserver' in window) new ResizeObserver(update).observe(list);
+      else window.addEventListener('resize', update, { passive: true });
+      update();
+    }
     // Whether 40% of the player is in view; kept by the observer below so a loop picked while the player is off screen
     // waits instead of playing unseen.
     let stageShown = !('IntersectionObserver' in window);
