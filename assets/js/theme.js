@@ -3678,7 +3678,9 @@
         list.scrollBy({ left: Number(arrow.dataset.inlineVideoScroll) * sign() * list.clientWidth, behavior: smooth ? 'smooth' : 'auto' });
       }));
       list.addEventListener('scroll', update, { passive: true });
-      window.addEventListener('resize', update, { passive: true });
+      // A configuration variant that starts hidden measures 0 wide; the observer also fires when it is shown.
+      if ('ResizeObserver' in window) new ResizeObserver(update).observe(list);
+      else window.addEventListener('resize', update, { passive: true });
       update();
     }
     // Whether 40% of the player is in view; kept by the observer below so a loop picked while the player is off screen
