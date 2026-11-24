@@ -291,6 +291,9 @@ if ($detail_body_html !== '') {
         }
     }
 }
+// Link-only paragraphs ("All … cranes · How to choose …") read as a row of tags; see boblift_mark_body_link_rows().
+$detail_body_lead = boblift_mark_body_link_rows($detail_body_lead);
+$detail_body_sections = boblift_mark_body_link_rows($detail_body_sections);
 $video_ui = boblift_site_ui('videoCenter');
 $product_series_video = boblift_product_series_video(get_the_ID());
 // The model's animation goes first unless the body already holds the same file (an editor placed it by hand).
@@ -976,7 +979,7 @@ if ($family_quote_copy) {
                                     <div class="<?php echo $detail_has_body || $product_guide['compare'] ? 'mt-6 md:mt-8' : ''; ?> rounded border border-[#DDE7F2] bg-[#F8FAFC] p-4 sm:p-5">
                                         <h3 class="text-base font-black leading-snug text-[#071f42]"><?php echo esc_html(boblift_localized_static_text('Choosing the right model')); ?></h3>
                                         <?php foreach (array_filter([$product_guide['steps'], $product_guide['supply']]) as $guide_paragraph) : ?>
-                                            <p class="mt-2 <?php echo esc_attr($detail_text); ?> [&_a]:font-black [&_a]:text-blue-700 [&_a:hover]:underline"><?php echo wp_kses_post($guide_paragraph); ?></p>
+                                            <p class="mt-2 <?php echo esc_attr($detail_text); ?> boblift-inline-links"><?php echo wp_kses_post($guide_paragraph); ?></p>
                                         <?php endforeach; ?>
                                     </div>
                                 <?php endif; ?>
