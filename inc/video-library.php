@@ -264,6 +264,38 @@ function boblift_product_videos(int $product_id): array
     return $videos;
 }
 
+// Model animations: a short schematic film per crane model (unfolding, each extension's reach and load, the maximum boom
+// angle), rendered from the model's load chart. inc/model-animations.json maps the product's model code (its _model
+// meta, as on the English product) to the VideoPress file and poster, and holds the caption in each language. One file
+// serves every language: the picture carries only the model, numbers, the wordmark and the site address.
+function boblift_model_animations(): array
+{
+    static $data = null;
+    if ($data === null) {
+        $file = get_template_directory() . '/inc/model-animations.json';
+        $decoded = is_readable($file) ? json_decode((string) file_get_contents($file), true) : null;
+        $data = is_array($decoded) ? $decoded : [];
+    }
+    return $data;
+}
+
+// The animation for a product, as a player entry marked loop (it plays like a GIF), or null when its model has none.
+function boblift_product_model_animation(int $product_id): ?array
+{
+    $data = boblift_model_animations();
+    $english_id = function_exists('boblift_product_english_id') ? boblift_product_english_id($product_id) : $product_id;
+    $model = strtoupper(trim((string) get_post_meta($english_id, '_model', true)));
+    $entry = $model !== '' ? ($data['models'][$model] ?? null) : null;
+    if (!is_array($entry) || empty($entry['src']) || empty($entry['poster'])) {
+        return null;
+    }
+    $language = function_exists('pll_current_language') ? (string) pll_current_language('slug') : '';
+    $labels = is_array($data['labels'] ?? null) ? $data['labels'] : [];
+    $template = (string) ($labels[$language] ?? $labels['en'] ?? '{model}');
+    $label = str_replace('{model}', $model, $template);
+    return ['key' => 'model-animation', 'group' => 'product', 'title' => $label, 'label' => $label, 'player' => 'local', 'youtube' => '', 'src' => (string) $entry['src'], 'src_mobile' => '', 'poster_src' => (string) $entry['poster'], 'duration' => 0, 'loop' => true];
+}
+
 // Films written into a product's body (a Video block or a Custom HTML figure) play in the product page's video column, so
 // they are lifted out of the copy: returns the body without them and each film as a player entry, in body order. The player
 // only has a URL, a poster and a plain title, so only a figure holding exactly that moves: one video with no children, an
