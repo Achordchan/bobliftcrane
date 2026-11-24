@@ -63,6 +63,18 @@ img { max-width: 100%; }
   .section-label, .boblift-kicker { @apply text-[12px] font-semibold uppercase leading-[1.4] tracking-[0.18em] text-[#0B3F7D]; }
   /* On navy panels the label keeps the gold it had, so it stays legible. */
   .bg-navy .section-label, .bg-navy .boblift-kicker { @apply text-gold; }
+  /* Type scale (product pages first). One size per role, largest first:
+     page title (H1)  clamp(30px, 2.6vw, 44px)      — .boblift-product-hero-title
+     section title    clamp(1.6rem, 2.4vw, 40px)    — .boblift-section-title, capped under the H1 so no H2 outgrows it
+     block title      1rem–1.125rem, black weight   — card, feature and FAQ headings
+     body             15px phone, 1rem from md       — .boblift-product-body
+     note / caption   .875rem                        — .boblift-note: hints, captions, footnotes
+     label            12px uppercase                 — .boblift-kicker (section) and .boblift-label (group); nothing smaller */
+  /* Plain declarations, not @apply: @apply would also copy every custom rule that names .font-black or .text-sm. */
+  .boblift-section-title { color: #071f42; font-size: clamp(1.6rem, 2.4vw, 40px); font-weight: 900; letter-spacing: -0.015em; line-height: 1.08; }
+  .boblift-note { color: #5f6f85; font-size: .875rem; font-weight: 400; line-height: 1.5rem; }
+  .boblift-label { color: #5f6f85; font-size: 12px; font-weight: 900; letter-spacing: .12em; line-height: 1rem; text-transform: uppercase; }
+  [dir="rtl"] .boblift-label { letter-spacing: normal; }
   .card-hover { @apply transition duration-300 hover:-translate-y-2; }
   /* A figure cell of the model comparison tables (boblift_render_model_table()): repeated thousands of times per archive. */
   .boblift-spec-cell { @apply whitespace-nowrap text-[15px] border-b border-[#E5E7EB] px-4 py-3.5 font-semibold text-ink [font-variant-numeric:tabular-nums]; }

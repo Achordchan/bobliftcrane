@@ -137,7 +137,7 @@ function boblift_render_model_variants(string $model, string $product_slug): voi
     $legend = boblift_localized_static_text('Choose the controls');
     ?>
     <div class="boblift-model-variants mt-5" data-product-variants data-product-variants-slug="<?php echo esc_attr($product_slug); ?>" data-product-variants-base="<?php echo esc_attr($model); ?>">
-        <p class="text-[11px] font-black uppercase leading-4 tracking-[0.12em] text-slate-500 rtl:tracking-normal" id="boblift-model-variants-label"><?php echo esc_html($legend); ?></p>
+        <p class="boblift-label" id="boblift-model-variants-label"><?php echo esc_html($legend); ?></p>
         <div class="mt-2 flex flex-wrap gap-2" role="radiogroup" aria-labelledby="boblift-model-variants-label">
             <?php foreach ($variants as $variant) : $checked = $variant['default']; ?>
                 <button class="boblift-model-variant inline-flex min-h-11 flex-col items-start justify-center gap-0.5 rounded-sm border px-3.5 py-2 text-start transition sm:flex-row sm:items-center sm:gap-2 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-100 <?php echo $checked ? 'border-[#071f42] bg-[#071f42] text-white' : 'border-[#D5DEE9] bg-white text-[#071f42] hover:border-blue-300'; ?>" type="button" role="radio" aria-checked="<?php echo $checked ? 'true' : 'false'; ?>" tabindex="<?php echo $checked ? '0' : '-1'; ?>" data-product-variant="<?php echo esc_attr($variant['model']); ?>" data-product-variant-code="<?php echo esc_attr($variant['code']); ?>" data-product-variant-label="<?php echo esc_attr($variant['label']); ?>">

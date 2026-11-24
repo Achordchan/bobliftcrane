@@ -567,7 +567,7 @@ if ($family_quote_copy) {
                         <?php endforeach; ?>
                     </dl>
                     <?php if ($series_page && in_array('—', array_column($hero_specs, 'value'), true)) : ?>
-                        <p class="mt-2 text-xs leading-5 text-slate-500"><?php echo esc_html(boblift_series_text('—: see the drawing, confirmed with your quote')); ?></p>
+                        <p class="mt-2 boblift-note"><?php echo esc_html(boblift_series_text('—: see the drawing, confirmed with your quote')); ?></p>
                     <?php endif; ?>
                     <?php boblift_series_block_close('keyspecs'); ?>
                         <?php // Quote and the two ways to message on one line; brochure and terms on one quiet line below. ?>
@@ -694,7 +694,7 @@ if ($family_quote_copy) {
                     <div class="flex items-start justify-between gap-4">
                         <div class="min-w-0">
                             <p class="boblift-kicker"><?php echo esc_html($ui['cinemaSpecsLabel'] ?? 'Engineering data'); ?></p>
-                            <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($ui['technicalLabel'] ?? 'Technical Specifications'); ?></h2>
+                            <h2 class="mt-3 boblift-section-title"><?php echo esc_html($ui['technicalLabel'] ?? 'Technical Specifications'); ?></h2>
                             <?php if ($hero_model !== '') : ?><p class="mt-2 text-[15px] font-bold text-slate-600" dir="ltr"<?php echo $series_page ? ' data-cfg-model-text' : ''; ?>><?php echo esc_html($hero_model); ?></p><?php endif; ?>
                         </div>
                         <?php if ($former_models !== '') : ?>
@@ -761,7 +761,7 @@ if ($family_quote_copy) {
                         <?php if (is_string($spec_range_link) && $spec_range_link !== '') : ?>
                             <a class="inline-flex min-h-12 max-w-full items-center justify-center gap-2 rounded-sm bg-[#071f42] px-6 py-3 text-sm font-black text-white transition hover:bg-[#0B3F7D]" href="<?php echo esc_url($spec_range_link); ?>"><?php echo esc_html(str_replace('{range}', $related_term->name, boblift_localized_static_text('Compare all {range}'))); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></a>
                         <?php endif; ?>
-                        <p class="min-w-[15rem] flex-1 text-[13px] font-normal leading-5 text-slate-500"><?php // Only a product with a drawing on the page may say its figures come from the drawings. ?><?php echo esc_html(boblift_localized_static_text($drawings ? 'Figures from the BOB-LIFT technical drawings. Confirm the final specification with our team before ordering.' : 'Confirm the final specification with our team before ordering.')); ?></p>
+                        <p class="min-w-[15rem] flex-1 boblift-note"><?php // Only a product with a drawing on the page may say its figures come from the drawings. ?><?php echo esc_html(boblift_localized_static_text($drawings ? 'Figures from the BOB-LIFT technical drawings. Confirm the final specification with our team before ordering.' : 'Confirm the final specification with our team before ordering.')); ?></p>
                     </div>
                 </div>
                 <?php if ($drawings) : ?>
@@ -801,7 +801,7 @@ if ($family_quote_copy) {
                         </div>
                         <?php endforeach; ?>
                         </div>
-                        <p class="text-center text-xs font-normal text-slate-500"><?php echo esc_html($ui['drawingHint'] ?? 'Select the drawing to view it full size.'); ?></p>
+                        <p class="text-center boblift-note"><?php echo esc_html($ui['drawingHint'] ?? 'Select the drawing to view it full size.'); ?></p>
                         <?php if (!empty($drawing_data['chart'])) :
                             $chart_max = max(array_column($drawing_data['chart'], 'load'));
                             $chart_kg = static fn(float $kg): string => number_format($kg, 0, '.', ',');
@@ -816,27 +816,27 @@ if ($family_quote_copy) {
                             <figure class="rounded border border-[#DDE7F2] p-4 sm:p-5" aria-labelledby="load-chart-title">
                                 <figcaption>
                                     <span id="load-chart-title" class="block text-sm font-black text-[#071f42]"><?php echo esc_html(boblift_localized_static_text('How much it lifts at each reach')); ?></span>
-                                    <span class="mt-1 block text-xs leading-5 text-slate-500"><?php echo esc_html($chart_text); ?></span>
+                                    <span class="mt-1 block boblift-note"><?php echo esc_html($chart_text); ?></span>
                                 </figcaption>
                                 <div class="-mx-4 mt-4 overflow-x-auto px-4 [scrollbar-width:thin] sm:mx-0 sm:px-0">
                                     <table class="w-full min-w-[340px] border-separate border-spacing-0 text-center [font-variant-numeric:tabular-nums]">
                                         <tbody>
                                             <tr class="align-bottom">
-                                                <th class="w-20 pe-3 text-start align-bottom text-[11px] font-semibold leading-4 text-slate-500" scope="row"><?php echo esc_html(boblift_localized_static_text('Lifts (kg)')); ?></th>
+                                                <th class="w-20 pe-3 text-start align-bottom text-[12px] font-semibold leading-4 text-slate-500" scope="row"><?php echo esc_html(boblift_localized_static_text('Lifts (kg)')); ?></th>
                                                 <?php foreach ($drawing_data['chart'] as $point) : ?>
-                                                    <td class="px-0.5"><span class="block text-[11px] font-black leading-4 text-[#071f42]" dir="ltr"><?php echo esc_html($chart_kg($point['load'])); ?></span><span class="mx-auto mt-1 block w-full max-w-7 rounded-t-sm bg-[#0B3F7D]" style="height:<?php echo esc_attr((string) max(4, round(72 * $point['load'] / $chart_max))); ?>px" aria-hidden="true"></span></td>
+                                                    <td class="px-0.5"><span class="block text-[12px] font-black leading-4 text-[#071f42]" dir="ltr"><?php echo esc_html($chart_kg($point['load'])); ?></span><span class="mx-auto mt-1 block w-full max-w-7 rounded-t-sm bg-[#0B3F7D]" style="height:<?php echo esc_attr((string) max(4, round(72 * $point['load'] / $chart_max))); ?>px" aria-hidden="true"></span></td>
                                                 <?php endforeach; ?>
                                             </tr>
                                             <tr>
-                                                <th class="pe-3 pt-1.5 text-start text-[11px] font-semibold leading-4 text-slate-500" scope="row"><?php echo esc_html(boblift_localized_static_text('Reach (m)')); ?></th>
+                                                <th class="pe-3 pt-1.5 text-start text-[12px] font-semibold leading-4 text-slate-500" scope="row"><?php echo esc_html(boblift_localized_static_text('Reach (m)')); ?></th>
                                                 <?php foreach ($drawing_data['chart'] as $point) : ?>
-                                                    <td class="border-t border-[#CBD5E1] px-0.5 pt-1.5 text-[11px] font-semibold text-slate-600" dir="ltr"><?php echo esc_html($chart_m($point['radius'])); ?></td>
+                                                    <td class="border-t border-[#CBD5E1] px-0.5 pt-1.5 text-[12px] font-semibold text-slate-600" dir="ltr"><?php echo esc_html($chart_m($point['radius'])); ?></td>
                                                 <?php endforeach; ?>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
-                                <p class="mt-3 text-[11px] leading-4 text-slate-500"><?php echo esc_html(boblift_localized_static_text('Reach is measured from the slewing centre to the hook. Figures from the drawing above.')); ?></p>
+                                <p class="mt-3 boblift-note"><?php echo esc_html(boblift_localized_static_text('Reach is measured from the slewing centre to the hook. Figures from the drawing above.')); ?></p>
                             </figure>
                         <?php endif; ?>
                     </div>
@@ -863,7 +863,7 @@ if ($family_quote_copy) {
                     <div class="grid gap-8 px-4 py-5 sm:p-6 md:p-10 xl:p-12 <?php echo $detail_has_right ? 'lg:grid-cols-2 lg:gap-14 xl:gap-20' : ''; ?>">
                         <div class="min-w-0 <?php echo $detail_has_right ? 'lg:sticky lg:top-[calc(var(--boblift-header-h)+6rem)] lg:self-start' : ''; ?>">
                             <p class="boblift-kicker"<?php echo $series_page ? ' data-cfg-model-text' : ''; ?>><?php echo esc_html($ui['detailBodyLabel'] ?? 'Product details'); ?><?php if ($detail_model_label !== '') : ?><span class="text-slate-500"> · </span><?php echo esc_html($detail_model_label); ?><?php endif; ?></p>
-                            <h2 class="mt-3 text-[clamp(1.75rem,3vw,3rem)] font-black leading-[1.05] tracking-[-0.02em] text-[#071f42] [text-wrap:balance]"><?php echo esc_html($product_title); ?></h2>
+                            <h2 class="mt-3 boblift-section-title [text-wrap:balance]"><?php echo esc_html($product_title); ?></h2>
                         <?php if ($product_videos) :
                             $first_video = $product_videos[0];
                             $video_attrs = static fn(array $video): string => sprintf(
@@ -885,25 +885,25 @@ if ($family_quote_copy) {
                                         <span class="absolute inset-0 m-auto grid size-14 place-items-center rounded-sm bg-white/90 text-[#071f42] shadow-card transition group-hover:bg-white"><?php echo boblift_icon('play', 'h-6 w-6'); ?></span>
                                     </button>
                                 </div>
-                                <?php // A lone film has no list below to carry its title. ?><p class="<?php echo count($product_videos) > 1 ? 'sr-only' : 'mt-2 text-xs font-normal leading-5 text-slate-500'; ?>" data-inline-video-caption><?php echo esc_html((string) $first_video['label']); ?></p>
+                                <?php // A lone film has no list below to carry its title. ?><p class="<?php echo count($product_videos) > 1 ? 'sr-only' : 'mt-2 boblift-note'; ?>" data-inline-video-caption><?php echo esc_html((string) $first_video['label']); ?></p>
                                 <?php if (count($product_videos) > 1) : ?>
                                     <?php // A strip of small thumbnails, each with its title, like a playlist under the player. ?>
-                                    <p class="mt-4 text-[11px] font-black uppercase tracking-[0.14em] text-[#071f42] rtl:tracking-normal"><?php echo esc_html($video_ui['moreVideosLabel'] ?? 'Videos'); ?><span class="ms-2 font-semibold text-slate-500 [font-variant-numeric:tabular-nums]"><?php echo esc_html((string) count($product_videos)); ?></span></p>
-                                    <ul class="mt-2 flex flex-wrap gap-3">
+                                    <p class="mt-6 boblift-label text-[#071f42]"><?php echo esc_html($video_ui['moreVideosLabel'] ?? 'Videos'); ?><span class="ms-2 font-semibold text-slate-500 [font-variant-numeric:tabular-nums]"><?php echo esc_html((string) count($product_videos)); ?></span></p>
+                                    <ul class="-mx-4 mt-3 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:mx-0 sm:grid sm:snap-none sm:grid-cols-3 sm:gap-x-4 sm:gap-y-5 sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden">
                                         <?php foreach ($product_videos as $index => $video) : ?>
-                                            <li class="w-24 sm:w-28">
+                                            <li class="w-[44%] shrink-0 snap-start sm:w-auto sm:min-w-0">
                                                 <button class="group block w-full text-start focus-visible:outline-none" type="button" data-inline-video-item <?php echo $video_attrs($video); ?> aria-pressed="<?php echo $index === 0 ? 'true' : 'false'; ?>">
                                                     <span class="relative block aspect-video overflow-hidden rounded-sm bg-[#071f42] ring-2 ring-transparent transition group-hover:ring-blue-300 group-focus-visible:ring-blue-400 group-aria-pressed:ring-[#0B3F7D]">
                                                         <img class="absolute inset-0 h-full w-full object-cover" src="<?php echo esc_url(boblift_video_poster_src($video)); ?>" alt="" loading="lazy" decoding="async">
-                                                        <span class="absolute inset-0 m-auto grid size-6 place-items-center rounded-full bg-white/85 text-[#071f42]"><?php echo boblift_icon('play', 'h-3 w-3'); ?></span>
+                                                        <span class="absolute inset-0 m-auto grid size-9 place-items-center rounded-full bg-white/85 text-[#071f42]"><?php echo boblift_icon('play', 'h-4 w-4'); ?></span>
                                                     </span>
-                                                    <span class="mt-1.5 line-clamp-2 text-[11px] font-semibold leading-4 text-slate-500 group-aria-pressed:text-[#071f42]"><?php echo esc_html((string) $video['label']); ?></span>
+                                                    <span class="mt-2 line-clamp-2 text-sm font-medium leading-5 text-slate-600 group-aria-pressed:font-semibold group-aria-pressed:text-[#071f42]"><?php echo esc_html((string) $video['label']); ?></span>
                                                 </button>
                                             </li>
                                         <?php endforeach; ?>
                                     </ul>
                                 <?php endif; ?>
-                                <?php if ($product_series_video) : ?><p class="mt-4 text-xs font-normal leading-5 text-slate-500"><?php echo esc_html($video_ui['productVideoNote'] ?? ''); ?></p><?php endif; ?>
+                                <?php if ($product_series_video) : ?><p class="mt-4 boblift-note"><?php echo esc_html($video_ui['productVideoNote'] ?? ''); ?></p><?php endif; ?>
                                 <a class="mt-3 inline-flex items-center gap-1.5 text-sm font-black text-blue-700 hover:text-blue-900" href="<?php echo esc_url(boblift_url('/videos.html')); ?>"><?php echo esc_html($video_ui['moreVideosLabel'] ?? 'More videos'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
                             </div>
                         <?php endif; ?>
@@ -927,7 +927,7 @@ if ($family_quote_copy) {
                                     <ul class="mt-8 grid border border-[#DDE7F2] <?php echo esc_attr([1 => 'grid-cols-1', 2 => 'grid-cols-2'][count($product_guide['cards'])] ?? 'grid-cols-3'); ?>">
                                         <?php foreach ($product_guide['cards'] as $card_index => $card) : ?>
                                             <li class="min-w-0 p-3 sm:p-5 <?php echo $card_index > 0 ? 'border-s border-[#DDE7F2]' : ''; ?>">
-                                                <p class="text-[11px] font-black uppercase leading-4 tracking-[0.06em] text-slate-500 sm:tracking-[0.12em] rtl:tracking-normal"><?php echo esc_html($card['label']); ?></p>
+                                                <p class="boblift-label tracking-[0.06em] sm:tracking-[0.12em] rtl:tracking-normal"><?php echo esc_html($card['label']); ?></p>
                                                 <p class="mt-1.5 text-lg font-black leading-none text-[#071f42] [font-variant-numeric:tabular-nums] sm:mt-2 sm:text-2xl"><?php echo esc_html($card['value']); ?></p>
                                                 <?php if ($card['text'] !== '') : ?><p class="mt-1.5 text-xs font-normal leading-4 text-slate-600 sm:mt-2 sm:text-sm sm:leading-5"><?php echo esc_html($card['text']); ?></p><?php endif; ?>
                                             </li>
@@ -939,7 +939,7 @@ if ($family_quote_copy) {
                                     <div class="mt-3 overflow-x-auto">
                                         <table class="w-full min-w-[420px] border-collapse text-start text-sm">
                                             <thead>
-                                                <tr class="border-b border-[#D5DEE9] text-[11px] font-black uppercase tracking-[0.1em] text-slate-500">
+                                                <tr class="border-b border-[#D5DEE9] boblift-label">
                                                     <th class="py-2 pe-4 text-start font-black" scope="col"><?php echo esc_html($ui['specLabels']['model'] ?? 'Model'); ?></th>
                                                     <th class="py-2 pe-4 text-start font-black" scope="col"><?php echo esc_html(boblift_localized_static_text('Boom sections')); ?></th>
                                                     <th class="py-2 pe-4 text-start font-black" scope="col"><?php echo esc_html(boblift_localized_static_text('Max lifting moment')); ?></th>
@@ -949,7 +949,7 @@ if ($family_quote_copy) {
                                             <tbody class="[font-variant-numeric:tabular-nums]">
                                                 <?php foreach ($product_guide['compare'] as $row) : ?>
                                                     <tr class="border-b border-[#E6EDF5] <?php echo $row['current'] ? 'bg-[#F5F8FC]' : ''; ?>">
-                                                        <th class="py-2.5 pe-4 text-start font-black text-[#071f42]" scope="row"><?php if ($row['current']) : ?><?php echo esc_html($row['model']); ?> <span class="ms-1 text-[11px] font-black uppercase tracking-[0.1em] text-slate-500"><?php echo esc_html(boblift_localized_static_text('This model')); ?></span><?php else : ?><a class="text-blue-700 underline-offset-4 hover:underline" href="<?php echo esc_url($row['url']); ?>"><?php echo esc_html($row['model']); ?></a><?php endif; ?></th>
+                                                        <th class="py-2.5 pe-4 text-start font-black text-[#071f42]" scope="row"><?php if ($row['current']) : ?><?php echo esc_html($row['model']); ?> <span class="ms-1 boblift-label"><?php echo esc_html(boblift_localized_static_text('This model')); ?></span><?php else : ?><a class="text-blue-700 underline-offset-4 hover:underline" href="<?php echo esc_url($row['url']); ?>"><?php echo esc_html($row['model']); ?></a><?php endif; ?></th>
                                                         <td class="py-2.5 pe-4 text-slate-700"><?php echo esc_html($row['sections_label'] !== '' ? $row['sections_label'] : '–'); ?></td>
                                                         <td class="py-2.5 pe-4 text-slate-700"><?php echo esc_html($row['moment'] !== '' ? $row['moment'] : '–'); ?></td>
                                                         <td class="py-2.5 text-slate-700"><?php echo esc_html($row['weight'] !== '' ? $row['weight'] : '–'); ?></td>
@@ -993,7 +993,7 @@ if ($family_quote_copy) {
                 <article id="features" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card">
                     <div class="px-4 pt-5 pb-0 sm:p-6 sm:pb-0 md:p-8 md:pb-0">
                         <p class="boblift-kicker"><?php echo esc_html($features_series !== '' ? boblift_localized_static_text($features_series) : ($ui['featuresLabel'] ?? 'Key Features')); ?></p>
-                        <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($ui['featuresTitle'] ?? 'Product technical advantages'); ?></h2>
+                        <h2 class="mt-3 boblift-section-title"><?php echo esc_html($ui['featuresTitle'] ?? 'Product technical advantages'); ?></h2>
                     </div>
                     <?php if ($feature_cards) : ?>
                         <?php // Phones: one list, each photo beside its text, so an odd count leaves no gap and the list stays short. ?>
@@ -1042,7 +1042,7 @@ if ($family_quote_copy) {
             <section id="faq" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card" aria-labelledby="faq-title">
                 <div class="border-b border-[#E6EDF5] px-4 py-5 sm:p-6 md:p-8">
                     <p class="boblift-kicker"><?php echo esc_html($ui['faqLabel'] ?? 'FAQ'); ?></p>
-                    <h2 id="faq-title" class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html(str_replace('{model}', $hero_title, boblift_localized_static_text('Questions about the {model}'))); ?></h2>
+                    <h2 id="faq-title" class="mt-3 boblift-section-title"><?php echo esc_html(str_replace('{model}', $hero_title, boblift_localized_static_text('Questions about the {model}'))); ?></h2>
                 </div>
                 <div class="grid lg:grid-cols-2">
                     <?php for ($faq_column = 0; $faq_column < 2; $faq_column++) :
@@ -1051,7 +1051,7 @@ if ($family_quote_copy) {
                         ?>
                         <div class="min-w-0 px-4 py-4 sm:p-6 md:p-8 <?php echo $faq_column === 1 ? 'border-t border-[#E6EDF5] lg:border-s lg:border-t-0' : ''; ?>">
                             <?php if ($faq_group) : ?>
-                                <h3 class="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html($faq_group['label']); ?></h3>
+                                <h3 class="boblift-label"><?php echo esc_html($faq_group['label']); ?></h3>
                                 <div class="mt-2 border-t border-[#E6EDF5]">
                                     <?php foreach ($faq_group['items'] as $faq_index => $faq) : ?>
                                         <details class="group border-b border-[#E6EDF5]">
@@ -1098,7 +1098,7 @@ if ($family_quote_copy) {
                 <article id="process" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card">
                     <div class="px-4 pt-5 pb-0 sm:p-6 sm:pb-0 md:p-8 md:pb-0">
                         <p class="boblift-kicker"><?php echo esc_html($ui['processLabel'] ?? 'Manufacturing & delivery'); ?></p>
-                        <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($ui['processTitle'] ?? 'From our workshop to your port'); ?></h2>
+                        <h2 class="mt-3 boblift-section-title"><?php echo esc_html($ui['processTitle'] ?? 'From our workshop to your port'); ?></h2>
                     </div>
                     <?php // Phones: the steps swipe sideways in order, the next one peeking in, instead of a two-column grid with one left over. ?>
                     <ol class="flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 py-5 [scrollbar-width:none] sm:grid sm:snap-none sm:grid-cols-2 sm:gap-x-4 sm:gap-y-6 sm:overflow-visible sm:p-6 md:grid-cols-3 md:gap-x-5 md:p-8 [&::-webkit-scrollbar]:hidden <?php echo esc_attr($process_cols); ?>">
@@ -1133,12 +1133,12 @@ if ($family_quote_copy) {
                 <article id="buying" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card">
                     <div class="px-4 pt-5 pb-0 sm:p-6 sm:pb-0 md:p-8 md:pb-0">
                         <p class="boblift-kicker"><?php echo esc_html(boblift_localized_static_text('Shipping & warranty')); ?></p>
-                        <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html(boblift_localized_static_text('Shipping, warranty and documents')); ?></h2>
+                        <h2 class="mt-3 boblift-section-title"><?php echo esc_html(boblift_localized_static_text('Shipping, warranty and documents')); ?></h2>
                         <p class="mt-3 hidden max-w-2xl text-sm font-normal leading-6 text-slate-600 sm:block md:text-base md:leading-7"><?php echo esc_html(str_replace('{model}', $hero_title, boblift_localized_static_text('How the {model} reaches you, and what happens after it arrives.'))); ?></p>
                     </div>
                     <div class="mt-4 grid gap-px border-t border-[#E6EDF5] bg-[#E6EDF5] sm:mt-6 md:mt-8 md:grid-cols-3">
                         <section class="bg-white px-4 py-4 sm:p-6 md:p-8" aria-labelledby="buying-shipping">
-                            <h3 id="buying-shipping" class="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(boblift_localized_static_text('Shipping')); ?></h3>
+                            <h3 id="buying-shipping" class="boblift-label"><?php echo esc_html(boblift_localized_static_text('Shipping')); ?></h3>
                             <?php if ($container_loading) : // This model's own figures from the factory loading plan (boblift_product_copy "container_loading"). ?>
                                 <table class="mt-3 w-full border-collapse text-start text-sm [font-variant-numeric:tabular-nums] sm:mt-4">
                                     <thead>
@@ -1159,7 +1159,7 @@ if ($family_quote_copy) {
                                     </tbody>
                                 </table>
                                 <p class="mt-4 text-sm font-normal leading-6 text-slate-700"><?php echo esc_html($buying_terms['pending'] ? boblift_localized_static_text('Lead time is confirmed with your quotation.') : str_replace('{days}', $buying_terms['lead'], boblift_localized_static_text('Ships in {days} working days from order.'))); ?></p>
-                                <p class="mt-2 text-xs font-normal leading-5 text-slate-500"><?php echo esc_html(boblift_localized_static_text('Loading figures are approximate; we confirm the plan with your order.')); ?></p>
+                                <p class="mt-2 boblift-note"><?php echo esc_html(boblift_localized_static_text('Loading figures are approximate; we confirm the plan with your order.')); ?></p>
                             <?php elseif ($buying_terms['pending']) : // Unconfirmed figures stay off the page until they are entered under 产品详情页. ?>
                                 <p class="mt-2 text-sm font-normal leading-6 text-slate-700 sm:mt-4"><?php echo esc_html(boblift_localized_static_text('Lead time and container loading are confirmed with your quotation.')); ?></p>
                             <?php else : ?>
@@ -1172,13 +1172,13 @@ if ($family_quote_copy) {
                                     <?php endforeach; ?>
                                 </dl>
                                 <p class="mt-5 text-sm font-normal leading-6 text-slate-700"><?php echo esc_html(str_replace('{days}', $buying_terms['lead'], boblift_localized_static_text('Ships in {days} working days from order.'))); ?></p>
-                                <p class="mt-2 text-xs font-normal leading-5 text-slate-500"><?php echo esc_html(boblift_localized_static_text('Loading figures are approximate; we confirm the plan with your order.')); ?></p>
+                                <p class="mt-2 boblift-note"><?php echo esc_html(boblift_localized_static_text('Loading figures are approximate; we confirm the plan with your order.')); ?></p>
                             <?php endif; ?>
                         </section>
                         <section class="bg-white px-4 py-4 sm:p-6 md:p-8" aria-labelledby="buying-warranty">
                             <?php // Phones: the label and the 12 months on one line. ?>
                             <div class="flex items-baseline justify-between gap-3 sm:block">
-                                <h3 id="buying-warranty" class="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(boblift_localized_static_text('Warranty and parts')); ?></h3>
+                                <h3 id="buying-warranty" class="boblift-label"><?php echo esc_html(boblift_localized_static_text('Warranty and parts')); ?></h3>
                                 <p class="text-xl font-black leading-none text-[#071f42] sm:mt-4 sm:text-2xl"><?php echo esc_html(boblift_localized_static_text('12 months')); ?></p>
                             </div>
                             <p class="mt-2 text-sm font-normal leading-6 text-slate-700 sm:mt-3"><?php echo esc_html(boblift_localized_static_text('Send the model, serial number and a photo or video of the issue; our team guides the repair and ships the parts.')); ?></p>
@@ -1186,7 +1186,7 @@ if ($family_quote_copy) {
                         </section>
                         <section class="bg-white px-4 py-4 sm:p-6 md:p-8" aria-labelledby="buying-documents">
                             <?php // Links to #brochures (the brochure card this column replaces on crane pages) land here. ?><span id="brochures" class="block scroll-mt-24" aria-hidden="true"></span>
-                            <h3 id="buying-documents" class="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(boblift_localized_static_text('Documents')); ?></h3>
+                            <h3 id="buying-documents" class="boblift-label"><?php echo esc_html(boblift_localized_static_text('Documents')); ?></h3>
                             <?php // Phones: the two short links side by side under the brochures. ?>
                             <ul class="mt-3 grid grid-cols-2 gap-3 text-sm sm:mt-4 sm:grid-cols-1">
                                 <?php foreach ($buying_brochures as $buying_brochure) : ?>
@@ -1194,7 +1194,7 @@ if ($family_quote_copy) {
                                         <a class="block" href="<?php echo esc_url($buying_brochure['url']); ?>" download="<?php echo esc_attr($buying_brochure['file']); ?>" tabindex="-1" aria-hidden="true"><img class="aspect-[520/711] w-full rounded-sm border border-[#DDE7F2] bg-white object-cover" src="<?php echo esc_url($buying_brochure['cover']); ?>" width="520" height="711" alt="" loading="lazy" decoding="async"></a>
                                         <div class="min-w-0">
                                             <p class="font-black leading-snug text-[#071f42]"><?php echo esc_html($buying_brochure['title']); ?></p>
-                                            <p class="mt-1 text-[11px] font-black uppercase tracking-[0.1em] text-slate-500"><?php echo esc_html(implode(' · ', array_filter(['PDF', str_replace('{count}', (string) $buying_brochure['pages'], (string) ($brochure_ui['pagesLabel'] ?? '{count} pages')), (string) $buying_brochure['size']]))); ?></p>
+                                            <p class="mt-1 boblift-label"><?php echo esc_html(implode(' · ', array_filter(['PDF', str_replace('{count}', (string) $buying_brochure['pages'], (string) ($brochure_ui['pagesLabel'] ?? '{count} pages')), (string) $buying_brochure['size']]))); ?></p>
                                             <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
                                                 <a class="inline-flex items-center gap-1.5 font-black text-[#0B3F7D] transition hover:text-blue-700" href="<?php echo esc_url($buying_brochure['url']); ?>" download="<?php echo esc_attr($buying_brochure['file']); ?>"><?php echo boblift_icon('download', 'h-4 w-4'); ?><?php echo esc_html((string) ($brochure_ui['downloadLabel'] ?? 'Download PDF')); ?></a>
                                                 <?php echo boblift_brochure_quote_button($buying_brochure, ['product' => $product_title, 'product_slug' => (string) ($product['slug'] ?? '')], 'font-black text-blue-700 transition hover:text-[#071f42]'); ?>
@@ -1216,14 +1216,14 @@ if ($family_quote_copy) {
                     <div class="flex items-end justify-between gap-4 px-4 pt-5 pb-0 sm:p-6 sm:pb-0 md:p-8 md:pb-0">
                         <div>
                             <p class="boblift-kicker"><?php echo esc_html($cases_ui['sceneCasesLabel'] ?? 'Application Cases'); ?></p>
-                            <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($ui['casesTitle'] ?? 'Where this crane works'); ?></h2>
+                            <h2 class="mt-3 boblift-section-title"><?php echo esc_html($ui['casesTitle'] ?? 'Where this crane works'); ?></h2>
                         </div>
                     </div>
                     <?php if (count($product_cases) === 1) : $case_item = $product_cases[0]; ?>
                         <a class="group grid items-center gap-6 px-4 py-5 sm:p-6 md:grid-cols-2 md:gap-10 md:p-8" href="<?php echo esc_url($case_item['url']); ?>">
                             <span class="block aspect-[3/2] overflow-hidden rounded-sm bg-[#EDF1F5]"><img class="h-full w-full object-cover" src="<?php echo esc_url(boblift_item_image($case_item)); ?>" alt="<?php echo esc_attr($case_item['title']); ?>" loading="lazy" decoding="async"></span>
                             <span class="block min-w-0">
-                                <?php if ($case_item['country'] !== '' || $case_item['application'] !== '') : ?><span class="block text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(implode(' · ', array_filter([$case_item['country'], $case_item['application']]))); ?></span><?php endif; ?>
+                                <?php if ($case_item['country'] !== '' || $case_item['application'] !== '') : ?><span class="block boblift-label"><?php echo esc_html(implode(' · ', array_filter([$case_item['country'], $case_item['application']]))); ?></span><?php endif; ?>
                                 <span class="mt-2 block text-xl font-black leading-snug text-[#071f42] transition group-hover:text-blue-700 md:text-2xl"><?php echo esc_html($case_item['title']); ?></span>
                                 <?php if (trim((string) $case_item['summary']) !== '') : ?><span class="mt-3 line-clamp-3 block text-sm font-normal leading-6 text-slate-600 md:text-base md:leading-7"><?php echo esc_html($case_item['summary']); ?></span><?php endif; ?>
                                 <span class="mt-5 inline-flex items-center gap-1.5 text-sm font-black text-blue-700"><?php echo esc_html($cases_ui['viewCaseLabel'] ?? 'View Case'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4 transition group-hover:translate-x-1'); ?></span>
@@ -1234,7 +1234,7 @@ if ($family_quote_copy) {
                         <?php foreach ($product_cases as $case_item) : ?>
                             <a class="group block min-w-0" href="<?php echo esc_url($case_item['url']); ?>">
                                 <span class="block aspect-[3/2] overflow-hidden rounded-sm bg-[#EDF1F5]"><img class="h-full w-full object-cover" src="<?php echo esc_url(boblift_item_image($case_item)); ?>" alt="<?php echo esc_attr($case_item['title']); ?>" loading="lazy" decoding="async"></span>
-                                <?php if ($case_item['country'] !== '' || $case_item['application'] !== '') : ?><span class="mt-3 block text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"><?php echo esc_html(implode(' · ', array_filter([$case_item['country'], $case_item['application']]))); ?></span><?php endif; ?>
+                                <?php if ($case_item['country'] !== '' || $case_item['application'] !== '') : ?><span class="mt-3 block boblift-label"><?php echo esc_html(implode(' · ', array_filter([$case_item['country'], $case_item['application']]))); ?></span><?php endif; ?>
                                 <span class="mt-1.5 line-clamp-2 block text-base font-black leading-snug text-[#071f42] transition group-hover:text-blue-700 md:text-lg"><?php echo esc_html($case_item['title']); ?></span>
                             </a>
                         <?php endforeach; ?>
@@ -1250,7 +1250,7 @@ if ($family_quote_copy) {
                     <div class="flex items-end justify-between gap-4 px-4 pt-5 pb-0 sm:p-6 sm:pb-0 md:p-8 md:pb-0">
                         <div>
                             <p class="boblift-kicker"><?php echo esc_html($cases_ui['customerFeedbackLabel'] ?? 'Customer Feedback'); ?></p>
-                            <h2 class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($ui['feedbackTitle'] ?? 'Photos and videos from customers'); ?></h2>
+                            <h2 class="mt-3 boblift-section-title"><?php echo esc_html($ui['feedbackTitle'] ?? 'Photos and videos from customers'); ?></h2>
                         </div>
                         <?php if ($product_feedback_total > count($feedback_shown)) : ?>
                             <a class="hidden shrink-0 items-center gap-1.5 text-sm font-black text-blue-700 transition hover:text-[#071f42] sm:inline-flex" href="<?php echo esc_url($feedback_list_url); ?>"><?php echo esc_html($ui['viewAllFeedbackLabel'] ?? 'All customer feedback'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
@@ -1317,7 +1317,7 @@ if ($family_quote_copy) {
                     <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 px-4 pt-5 pb-0 sm:p-6 sm:pb-0 md:p-8 md:pb-0">
                         <div>
                             <p class="boblift-kicker"><?php echo esc_html($related_products_label); ?></p>
-                            <h2 id="related-title" class="mt-3 text-[clamp(1.6rem,2.4vw,2.5rem)] font-black leading-[1.08] tracking-[-0.015em] text-[#071f42]"><?php echo esc_html($related_section_term->name); ?></h2>
+                            <h2 id="related-title" class="mt-3 boblift-section-title"><?php echo esc_html($related_section_term->name); ?></h2>
                         </div>
                         <?php if (!is_wp_error($related_link)) : ?>
                             <a class="inline-flex items-center gap-1.5 text-sm font-black text-blue-700 transition hover:text-[#071f42]" href="<?php echo esc_url($related_link); ?>"><?php echo esc_html($case_detail_ui['viewAllLabel'] ?? 'View all'); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></a>
@@ -1359,7 +1359,7 @@ if ($family_quote_copy) {
                     <div class="boblift-product-quote-copy flex items-start gap-5 md:gap-6">
                         <div class="hidden h-20 w-20 shrink-0 place-items-center rounded border border-blue-100 bg-white/74 text-[#0B3F7D] shadow-card md:grid"><?php echo boblift_icon('mail', 'h-10 w-10'); ?></div>
                         <div class="min-w-0">
-                            <h2 class="boblift-product-quote-title max-w-[1280px] text-[1.6rem] font-black leading-[1.18] tracking-[-0.015em] md:text-[clamp(34px,3vw,58px)] md:leading-[1.02] md:tracking-[-0.02em]"><?php echo esc_html($quote_title); ?></h2>
+                            <h2 class="boblift-product-quote-title max-w-[1280px] text-[1.6rem] font-black leading-[1.18] tracking-[-0.015em] md:text-[clamp(34px,2.6vw,44px)] md:leading-[1.02] md:tracking-[-0.02em]"><?php echo esc_html($quote_title); ?></h2>
                             <p class="boblift-product-quote-text mt-4 max-w-[1120px] text-sm font-normal leading-7 text-slate-600 md:text-base md:leading-8"><?php echo esc_html($quote_description); ?></p>
                         </div>
                     </div>
