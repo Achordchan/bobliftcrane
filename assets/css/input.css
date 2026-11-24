@@ -3027,16 +3027,37 @@ body.boblift-filter-drawer-locked {
 
 /* Product page body text (正文): tighter than article prose, list in two columns on wide screens. */
 /* Product details copy reads as plain running text, like the loader site's overview: one size, muted grey, no accents. */
-.boblift-product-body { color: #475569; font-size: .9375rem; font-weight: 400; line-height: 1.75; }
-@media (min-width: 768px) { .boblift-product-body { font-size: 1rem; line-height: 1.8; } }
+/* 2026-11-24: the copy read as a tiring grey block with old-style links. Same words, set for reading: darker text, lines
+   held to about 72 characters, each h3 opening a section under a hairline, links in brand ink with a soft underline, PDF
+   downloads as file tags on their own line, and link-only paragraphs (boblift_mark_body_link_rows()) as a row of tags. */
+.boblift-product-body { color: #334155; font-size: .9375rem; font-weight: 400; line-height: 1.75; }
+@media (min-width: 768px) { .boblift-product-body { font-size: 1rem; line-height: 1.75; } }
 .boblift-product-body > * + * { margin-top: 1rem; }
-.boblift-product-body h3 { margin-top: 1.75rem; color: #1e293b; font-size: 1rem; font-weight: 700; letter-spacing: 0; line-height: 1.6; }
-.boblift-product-body h3 + * { margin-top: 0.5rem; }
-.boblift-product-body strong { color: #1e293b; font-weight: 600; }
+.boblift-product-body > :is(p, ul, ol) { max-width: 72ch; }
+.boblift-product-body h3 { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e4ebf4; color: #071f42; font-size: 1.125rem; font-weight: 900; letter-spacing: -0.005em; line-height: 1.35; }
+.boblift-product-body h3 + * { margin-top: 0.75rem; }
+.boblift-product-body strong { color: #071f42; font-weight: 600; }
 .boblift-product-body ul { padding-inline-start: 1.15rem; }
-.boblift-product-body li + li { margin-top: 0.25rem; }
+.boblift-product-body li + li { margin-top: 0.35rem; }
 .boblift-product-body li::marker { color: #94a3b8; }
 .boblift-product-sections > h3:first-child { margin-top: 0; }
+.boblift-product-body a, .boblift-inline-links a { color: #0b3f7d; font-weight: 600; text-decoration-line: underline; text-decoration-color: rgba(11, 63, 125, .28); text-decoration-thickness: 1.5px; text-underline-offset: 4px; transition: color .15s, text-decoration-color .15s; }
+.boblift-product-body a:hover, .boblift-inline-links a:hover { color: #1d4ed8; text-decoration-color: currentColor; }
+/* A PDF download: a file tag on its own line under its sentence. */
+.boblift-product-body a[href$=".pdf" i] { display: flex; width: fit-content; max-width: 100%; align-items: center; gap: .5rem; margin-top: .75rem; padding: .5rem .875rem; border: 1px solid #dde7f2; border-radius: var(--boblift-r-sm, 6px); background: #f5f8fc; color: #071f42; font-size: .875rem; font-weight: 700; line-height: 1.35; text-decoration: none; }
+.boblift-product-body a[href$=".pdf" i]::before { content: ""; flex: none; width: 1rem; height: 1rem; background: currentColor; -webkit-mask: var(--boblift-icon-download) center / contain no-repeat; mask: var(--boblift-icon-download) center / contain no-repeat; }
+.boblift-product-body a[href$=".pdf" i]:hover { border-color: #0b3f7d; background: #fff; color: #0b3f7d; }
+/* Link-only paragraph: the links become tags; the separators between them are kept in the text but not drawn. */
+.boblift-product-body p.boblift-link-row { display: flex; flex-wrap: wrap; max-width: none; font-size: 0; line-height: 0; }
+.boblift-product-body p.boblift-link-row a { display: inline-flex; align-items: center; gap: .375rem; margin: 0 .5rem .5rem 0; padding: .45rem .8rem; border: 1px solid #dde7f2; border-radius: var(--boblift-r-sm, 6px); background: #fff; color: #071f42; font-size: .875rem; font-weight: 600; line-height: 1.35; text-decoration: none; }
+[dir="rtl"] .boblift-product-body p.boblift-link-row a { margin: 0 0 .5rem .5rem; }
+.boblift-product-body p.boblift-link-row a::after { content: ""; flex: none; width: .875rem; height: .875rem; background: currentColor; -webkit-mask: var(--boblift-icon-arrow) center / contain no-repeat; mask: var(--boblift-icon-arrow) center / contain no-repeat; }
+[dir="rtl"] .boblift-product-body p.boblift-link-row a::after { transform: scaleX(-1); }
+.boblift-product-body p.boblift-link-row a:hover { border-color: #0b3f7d; background: #f5f8fc; color: #0b3f7d; }
+:root {
+  --boblift-icon-download: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 15V3'/%3E%3Cpath d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'/%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3C/svg%3E");
+  --boblift-icon-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14'/%3E%3Cpath d='m12 5 7 7-7 7'/%3E%3C/svg%3E");
+}
 
 /* Header: when the desktop menu does not fit (long languages such as Russian), theme.js sets this class and the header uses the mobile menu. */
 .boblift-nav-collapsed [data-desktop-nav] { display: none !important; }

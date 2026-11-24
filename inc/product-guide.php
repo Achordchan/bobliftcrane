@@ -669,3 +669,31 @@ function boblift_product_quote_copy(string $family): ?array
     }
     return ['title' => boblift_localized_static_text($copy[$family][0]), 'text' => boblift_localized_static_text($copy[$family][1])];
 }
+
+/**
+ * Marks body paragraphs that hold nothing but links (and separators such as "·") with boblift-link-row, so the
+ * product details copy can show them as a row of tags. Only a class is added: the text and the links stay as written.
+ */
+function boblift_mark_body_link_rows(string $html): string
+{
+    if ($html === '' || stripos($html, '<a') === false) {
+        return $html;
+    }
+    return (string) preg_replace_callback('/<p\b([^>]*)>(.*?)<\/p>/is', static function (array $match): string {
+        $inner = $match[2];
+        if (stripos($inner, '<a') === false || preg_match('/<(p|div|ul|ol|table|img|figure)\b/i', $inner)) {
+            return $match[0];
+        }
+        $rest = html_entity_decode(wp_strip_all_tags((string) preg_replace('/<a\b[^>]*>.*?<\/a>/is', '', $inner)), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        if (!preg_match('/^[\s\x{00B7}\x{2022}\x{2013}\x{2014}|,\/-]*$/u', $rest)) {
+            return $match[0];
+        }
+        $attributes = $match[1];
+        if (preg_match('/\bclass\s*=\s*(["\'])(.*?)\1/i', $attributes, $class)) {
+            $attributes = str_replace($class[0], 'class=' . $class[1] . trim($class[2] . ' boblift-link-row') . $class[1], $attributes);
+        } else {
+            $attributes .= ' class="boblift-link-row"';
+        }
+        return '<p' . $attributes . '>' . $inner . '</p>';
+    }, $html);
+}
