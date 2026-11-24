@@ -293,7 +293,12 @@ if ($detail_body_html !== '') {
 }
 $video_ui = boblift_site_ui('videoCenter');
 $product_series_video = boblift_product_series_video(get_the_ID());
-$product_videos = array_merge($product_body_videos, boblift_product_videos(get_the_ID()));
+// The model's animation goes first unless the body already holds the same file (an editor placed it by hand).
+$product_animation = boblift_product_model_animation(get_the_ID());
+if ($product_animation && in_array($product_animation['src'], array_column($product_body_videos, 'src'), true)) {
+    $product_animation = null;
+}
+$product_videos = array_merge($product_animation ? [$product_animation] : [], $product_body_videos, boblift_product_videos(get_the_ID()));
 // Other models from this product's most specific category, nearest in capacity first, shown in capacity order.
 $related_products = [];
 $related_term = null;
