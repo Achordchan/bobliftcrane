@@ -268,7 +268,7 @@ function boblift_product_videos(int $product_id): array
 // they are lifted out of the copy: returns the body without them and each film as a player entry, in body order. The player
 // only has a URL, a poster and a plain title, so only a figure holding exactly that moves: one video with no children, an
 // optional plain-text caption, a poster, URLs that are not page-relative, and no attribute beyond the plain ones listed below
-// (so no anchor, no autoplay, and muted only together with loop). A video marked loop is a short animation (an illustration, not footage): the player shows
+// (so no anchor, no autoplay, and loop and muted only together). A video marked loop muted is a short animation (an illustration, not footage): the player shows
 // it like a GIF, looping and muted with no controls, and a click pauses or resumes it. Anything else stays in the body. An
 // uncaptioned film is named after the product.
 function boblift_split_body_videos(string $html, string $fallback_label = ''): array
@@ -294,9 +294,11 @@ function boblift_split_body_videos(string $html, string $fallback_label = ''): a
         $caption_html = $parts[4] ?? '';
         $video_attributes = ['src', 'poster', 'controls', 'playsinline', 'preload', 'width', 'height', 'style', 'class', 'aria-label', 'title', 'loop', 'muted'];
         $video_names = $names($parts[2]);
+        // An animation is marked loop AND muted together. Either one alone stays in the body: the ordinary player plays sound
+        // (so muted alone would be lost), and loop alone may be a film with sound that the animation player would silence.
         $loop = in_array('loop', $video_names, true);
-        // Muted only travels with loop: the ordinary player plays sound, so a muted film that is not an animation stays put.
-        if (!$portable($src) || !$portable($poster) || str_contains($caption_html, '<') || !$only($parts[1], ['class', 'style']) || !$only($parts[2], $video_attributes) || !$only($parts[3] ?? '', ['class', 'style']) || (!$loop && in_array('muted', $video_names, true))) {
+        $muted = in_array('muted', $video_names, true);
+        if (!$portable($src) || !$portable($poster) || str_contains($caption_html, '<') || !$only($parts[1], ['class', 'style']) || !$only($parts[2], $video_attributes) || !$only($parts[3] ?? '', ['class', 'style']) || $loop !== $muted) {
             return $figure[0];
         }
         $caption = trim(html_entity_decode($caption_html, ENT_QUOTES, 'UTF-8'));
