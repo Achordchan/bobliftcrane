@@ -296,8 +296,12 @@ $detail_body_lead = boblift_mark_body_link_rows($detail_body_lead);
 $detail_body_sections = boblift_mark_body_link_rows($detail_body_sections);
 $video_ui = boblift_site_ui('videoCenter');
 $product_series_video = boblift_product_series_video(get_the_ID());
-// The model's animation goes first unless the body already holds the same file (an editor placed it by hand).
+// The model's animation goes first unless the body already holds the same file (an editor placed it by hand). A body copy
+// of an earlier render of it is dropped, so the page never shows the old and the new version side by side.
 $product_animation = boblift_product_model_animation(get_the_ID());
+if ($product_animation && $product_animation['replaces']) {
+    $product_body_videos = array_values(array_filter($product_body_videos, static fn(array $video): bool => !in_array((string) ($video['src'] ?? ''), $product_animation['replaces'], true)));
+}
 if ($product_animation && in_array($product_animation['src'], array_column($product_body_videos, 'src'), true)) {
     $product_animation = null;
 }

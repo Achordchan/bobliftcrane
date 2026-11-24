@@ -267,7 +267,8 @@ function boblift_product_videos(int $product_id): array
 // Model animations: a short schematic film per crane model (unfolding, each extension's reach and load, the maximum boom
 // angle), rendered from the model's load chart. inc/model-animations.json maps the product's model code (its _model
 // meta, as on the English product) to the VideoPress file and poster, and holds the caption in each language. One file
-// serves every language: the picture carries only the model, numbers, the wordmark and the site address.
+// serves every language: the picture carries only the model, the numbers and BOB-LIFT lettered on the boom. An entry's
+// optional "replaces" lists the files of earlier renders, so a copy an editor placed in the body gives way to the new one.
 function boblift_model_animations(): array
 {
     static $data = null;
@@ -293,7 +294,9 @@ function boblift_product_model_animation(int $product_id): ?array
     $labels = is_array($data['labels'] ?? null) ? $data['labels'] : [];
     $template = (string) ($labels[$language] ?? $labels['en'] ?? '{model}');
     $label = str_replace('{model}', $model, $template);
-    return ['key' => 'model-animation', 'group' => 'product', 'title' => $label, 'label' => $label, 'player' => 'local', 'youtube' => '', 'src' => (string) $entry['src'], 'src_mobile' => '', 'poster_src' => (string) $entry['poster'], 'duration' => 0, 'loop' => true];
+    // Earlier renders of the same animation that an editor may have placed in the body; the page drops those copies.
+    $replaces = array_values(array_filter(array_map('strval', is_array($entry['replaces'] ?? null) ? $entry['replaces'] : [])));
+    return ['key' => 'model-animation', 'group' => 'product', 'title' => $label, 'label' => $label, 'player' => 'local', 'youtube' => '', 'src' => (string) $entry['src'], 'src_mobile' => '', 'poster_src' => (string) $entry['poster'], 'duration' => 0, 'loop' => true, 'replaces' => $replaces];
 }
 
 // Films written into a product's body (a Video block or a Custom HTML figure) play in the product page's video column, so
