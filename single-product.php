@@ -862,12 +862,14 @@ if ($family_quote_copy) {
                         <?php if ($product_videos) :
                             $first_video = $product_videos[0];
                             $video_attrs = static fn(array $video): string => sprintf(
-                                'data-video-player="%s" data-video-src="%s" data-video-youtube="%s" data-video-title="%s" data-video-poster="%s"',
+                                'data-video-player="%s" data-video-src="%s" data-video-youtube="%s" data-video-title="%s" data-video-poster="%s"%s',
                                 esc_attr($video['player']),
                                 esc_url($video['src']),
                                 esc_attr($video['youtube']),
                                 esc_attr((string) $video['label']),
-                                esc_url(boblift_video_poster_src($video))
+                                esc_url(boblift_video_poster_src($video)),
+                                // A looping animation plays like a GIF: muted, no controls, click to pause.
+                                empty($video['loop']) ? '' : ' data-video-loop'
                             );
                         ?>
                             <?php // Films play in place; a list below switches between them. Old shared links to #video land here. ?>

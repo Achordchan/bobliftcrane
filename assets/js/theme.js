@@ -3675,10 +3675,37 @@
         video.className = 'absolute inset-0 h-full w-full bg-black object-contain';
         video.src = source.dataset.videoSrc;
         video.poster = source.dataset.videoPoster || '';
-        video.controls = true;
         video.playsInline = true;
         video.setAttribute('aria-label', source.dataset.videoTitle || '');
-        stage.appendChild(video);
+        if ('videoLoop' in source.dataset) {
+          // A short animation plays like a GIF: looping, muted, no progress bar; a click pauses or resumes it.
+          video.loop = true;
+          video.muted = true;
+          video.className = 'absolute inset-0 h-full w-full cursor-pointer bg-white object-contain';
+          video.setAttribute('disablepictureinpicture', '');
+          const resume = document.createElement('span');
+          resume.className = 'pointer-events-none absolute inset-0 m-auto hidden size-14 place-items-center rounded-sm bg-white/90 text-[#071f42] shadow-card';
+          resume.innerHTML = '<svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"/></svg>';
+          const toggle = () => {
+            // Remembered so scrolling back into view does not restart a film the visitor paused.
+            stage.dataset.userPaused = video.paused ? '' : '1';
+            if (video.paused) video.play().catch(() => {});
+            else video.pause();
+          };
+          video.tabIndex = 0;
+          video.addEventListener('click', toggle);
+          video.addEventListener('keydown', (event) => {
+            if (event.key !== ' ' && event.key !== 'Enter') return;
+            event.preventDefault();
+            toggle();
+          });
+          video.addEventListener('play', () => resume.classList.replace('grid', 'hidden'));
+          video.addEventListener('pause', () => resume.classList.replace('hidden', 'grid'));
+          stage.append(video, resume);
+        } else {
+          video.controls = true;
+          stage.appendChild(video);
+        }
         video.play().catch(() => {});
       }
     };
@@ -3690,8 +3717,26 @@
       if (caption) caption.textContent = item.dataset.videoTitle || '';
       // Picking from the list starts that film at once.
       current = item;
+      stage.dataset.userPaused = '';
       play(item);
     }));
+    // A looping animation shown first starts by itself once the player scrolls into view (nothing loads before that) and
+    // pauses while out of view. Visitors who ask for less motion or save data get the poster and click to play.
+    const quiet = window.matchMedia('(prefers-reduced-motion: reduce)').matches || navigator.connection?.saveData;
+    if (current && 'videoLoop' in current.dataset && !quiet && 'IntersectionObserver' in window) {
+      new IntersectionObserver((entries) => {
+        entries.forEach(({ isIntersecting }) => {
+          const video = qs('video', stage);
+          if (!video) {
+            if (isIntersecting && current && 'videoLoop' in current.dataset) play(current);
+            return;
+          }
+          if (!video.loop) return;
+          if (!isIntersecting) video.pause();
+          else if (!stage.dataset.userPaused) video.play().catch(() => {});
+        });
+      }, { threshold: 0.4 }).observe(stage);
+    }
   });
 
   // Sister-site links ask first: the dialog names the site with a green check, then opens it in a new tab.

@@ -268,7 +268,8 @@ function boblift_product_videos(int $product_id): array
 // they are lifted out of the copy: returns the body without them and each film as a player entry, in body order. The player
 // only has a URL, a poster and a plain title, so only a figure holding exactly that moves: one video with no children, an
 // optional plain-text caption, a poster, URLs that are not page-relative, and no attribute beyond the plain ones listed below
-// (so no anchor and no loop, muted or autoplay). Anything else stays in the body. An
+// (so no anchor and no autoplay). A video marked loop is a short animation (an illustration, not footage): the player shows
+// it like a GIF, looping and muted with no controls, and a click pauses or resumes it. Anything else stays in the body. An
 // uncaptioned film is named after the product.
 function boblift_split_body_videos(string $html, string $fallback_label = ''): array
 {
@@ -292,12 +293,12 @@ function boblift_split_body_videos(string $html, string $fallback_label = ''): a
         $src = $attribute($parts[2], 'src');
         $poster = $attribute($parts[2], 'poster');
         $caption_html = $parts[4] ?? '';
-        $video_attributes = ['src', 'poster', 'controls', 'playsinline', 'preload', 'width', 'height', 'style', 'class', 'aria-label', 'title'];
+        $video_attributes = ['src', 'poster', 'controls', 'playsinline', 'preload', 'width', 'height', 'style', 'class', 'aria-label', 'title', 'loop', 'muted'];
         if (!$portable($src) || !$portable($poster) || str_contains($caption_html, '<') || !$only($parts[1], ['class', 'style']) || !$only($parts[2], $video_attributes) || !$only($parts[3] ?? '', ['class', 'style'])) {
             return $figure[0];
         }
         $caption = trim(html_entity_decode($caption_html, ENT_QUOTES, 'UTF-8'));
-        $videos[] = ['key' => 'body-' . count($videos), 'group' => 'product', 'title' => $caption, 'label' => $caption, 'player' => 'local', 'youtube' => '', 'src' => $src, 'src_mobile' => '', 'poster_src' => $poster, 'duration' => 0];
+        $videos[] = ['key' => 'body-' . count($videos), 'group' => 'product', 'title' => $caption, 'label' => $caption, 'player' => 'local', 'youtube' => '', 'src' => $src, 'src_mobile' => '', 'poster_src' => $poster, 'duration' => 0, 'loop' => (bool) preg_match('/\sloop(?=[\s=>\/]|$)/i', $parts[2])];
         return '';
     }, $html);
     foreach ($videos as $index => $video) {
