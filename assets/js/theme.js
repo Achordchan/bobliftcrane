@@ -3660,7 +3660,13 @@
     const caption = qs('[data-inline-video-caption]', root);
     const items = qsa('[data-inline-video-item]', root);
     let current = qs('[data-inline-video-play]', stage);
-    const play = (source) => {
+    // Whether 40% of the player is in view; kept by the observer below so a loop picked while the player is off screen
+    // waits instead of playing unseen.
+    let stageShown = !('IntersectionObserver' in window);
+    // A looping animation that may not play (out of view, or the browser refused muted autoplay) shows its play icon.
+    const showResume = () => qs('[data-loop-resume]', stage)?.classList.replace('hidden', 'grid');
+    // force: the visitor clicked the player itself, so it is on screen whatever the observer last saw.
+    const play = (source, force = false) => {
       stage.innerHTML = '';
       if (source.dataset.videoPlayer === 'youtube' && source.dataset.videoYoutube) {
         const frame = document.createElement('iframe');
@@ -3685,11 +3691,12 @@
           video.setAttribute('disablepictureinpicture', '');
           const resume = document.createElement('span');
           resume.className = 'pointer-events-none absolute inset-0 m-auto hidden size-14 place-items-center rounded-sm bg-white/90 text-[#071f42] shadow-card';
+          resume.dataset.loopResume = '';
           resume.innerHTML = '<svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"/></svg>';
           const toggle = () => {
             // Remembered so scrolling back into view does not restart a film the visitor paused.
             stage.dataset.userPaused = video.paused ? '' : '1';
-            if (video.paused) video.play().catch(() => {});
+            if (video.paused) video.play().catch(showResume);
             else video.pause();
           };
           video.tabIndex = 0;
@@ -3702,15 +3709,17 @@
           video.addEventListener('play', () => resume.classList.replace('grid', 'hidden'));
           video.addEventListener('pause', () => resume.classList.replace('hidden', 'grid'));
           stage.append(video, resume);
-        } else {
-          video.controls = true;
-          stage.appendChild(video);
+          if (stageShown || force) video.play().catch(showResume);
+          else showResume();
+          return;
         }
+        video.controls = true;
+        stage.appendChild(video);
         video.play().catch(() => {});
       }
     };
     stage.addEventListener('click', (event) => {
-      if (event.target.closest('[data-inline-video-play]')) play(current);
+      if (event.target.closest('[data-inline-video-play]')) play(current, true);
     });
     items.forEach((item) => item.addEventListener('click', () => {
       items.forEach((other) => other.setAttribute('aria-pressed', String(other === item)));
@@ -3731,6 +3740,7 @@
         entries.forEach(({ intersectionRatio }) => {
           // isIntersecting is already true for a sliver at the edge; act only once 40% of the player shows.
           const shown = intersectionRatio >= 0.4;
+          stageShown = shown;
           const video = qs('video', stage);
           if (!video) {
             if (shown && autostart && current && 'videoLoop' in current.dataset) play(current);
@@ -3738,7 +3748,7 @@
           }
           if (!video.loop) return;
           if (!shown) video.pause();
-          else if (!stage.dataset.userPaused) video.play().catch(() => {});
+          else if (!stage.dataset.userPaused) video.play().catch(showResume);
         });
       }, { threshold: [0, 0.4] }).observe(stage);
     }
