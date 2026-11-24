@@ -3720,17 +3720,20 @@
       stage.dataset.userPaused = '';
       play(item);
     }));
-    // A looping animation shown first starts by itself once the player scrolls into view (nothing loads before that) and
-    // pauses while out of view. Visitors who ask for less motion or save data get the poster and click to play.
+    // A looping animation shown first starts by itself once 40% of the player is in view (nothing loads before that).
+    // Visitors who ask for less motion or save data get the poster and click to play. Any looping animation, started by
+    // itself or by a click, pauses while out of view or while its series model block is hidden, and resumes when it shows
+    // again unless the visitor paused it.
     const quiet = window.matchMedia('(prefers-reduced-motion: reduce)').matches || navigator.connection?.saveData;
-    if (current && 'videoLoop' in current.dataset && !quiet && 'IntersectionObserver' in window) {
+    const autostart = Boolean(current && 'videoLoop' in current.dataset && !quiet);
+    if ('IntersectionObserver' in window) {
       new IntersectionObserver((entries) => {
         entries.forEach(({ intersectionRatio }) => {
-          // isIntersecting is already true for a sliver at the edge; start only once 40% of the player shows.
+          // isIntersecting is already true for a sliver at the edge; act only once 40% of the player shows.
           const shown = intersectionRatio >= 0.4;
           const video = qs('video', stage);
           if (!video) {
-            if (shown && current && 'videoLoop' in current.dataset) play(current);
+            if (shown && autostart && current && 'videoLoop' in current.dataset) play(current);
             return;
           }
           if (!video.loop) return;
