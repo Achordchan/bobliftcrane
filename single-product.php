@@ -887,11 +887,23 @@ if ($family_quote_copy) {
                                 </div>
                                 <?php // A lone film has no list below to carry its title. ?><p class="<?php echo count($product_videos) > 1 ? 'sr-only' : 'mt-2 boblift-note'; ?>" data-inline-video-caption><?php echo esc_html((string) $first_video['label']); ?></p>
                                 <?php if (count($product_videos) > 1) : ?>
-                                    <?php // A strip of small thumbnails, each with its title, like a playlist under the player. ?>
-                                    <p class="mt-6 boblift-label text-[#071f42]"><?php echo esc_html($video_ui['moreVideosLabel'] ?? 'Videos'); ?><span class="ms-2 font-semibold text-slate-500 [font-variant-numeric:tabular-nums]"><?php echo esc_html((string) count($product_videos)); ?></span></p>
-                                    <ul class="-mx-4 mt-3 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:mx-0 sm:grid sm:snap-none sm:grid-cols-3 sm:gap-x-4 sm:gap-y-5 sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden">
+                                    <?php // One row of thumbnails, each with its title, like a playlist under the player: three in view from sm up
+                                    // (a swipe strip with the next one peeking on phones), so six films do not stack into rows that push the
+                                    // sticky column past the screen. With more than three, the fourth peeks in at the edge to show the row goes on, and arrows
+                                    // beside the label page through the rest. ?>
+                                    <div class="mt-6 flex items-center justify-between gap-3">
+                                        <p class="boblift-label text-[#071f42]"><?php echo esc_html($video_ui['moreVideosLabel'] ?? 'Videos'); ?><span class="ms-2 font-semibold text-slate-500 [font-variant-numeric:tabular-nums]"><?php echo esc_html((string) count($product_videos)); ?></span></p>
+                                        <?php if (count($product_videos) > 3) : ?>
+                                            <div class="hidden shrink-0 gap-2 sm:flex">
+                                                <button class="grid size-8 place-items-center rounded-sm border border-[#DDE7F2] bg-white text-[#071f42] transition hover:border-[#0B3F7D] disabled:cursor-default disabled:opacity-40 disabled:hover:border-[#DDE7F2]" type="button" data-inline-video-scroll="-1" aria-label="<?php echo esc_attr(boblift_localized_static_text('Previous')); ?>" disabled><?php echo boblift_icon('chevron-left', 'h-4 w-4 rtl:-scale-x-100'); ?></button>
+                                                <button class="grid size-8 place-items-center rounded-sm border border-[#DDE7F2] bg-white text-[#071f42] transition hover:border-[#0B3F7D] disabled:cursor-default disabled:opacity-40 disabled:hover:border-[#DDE7F2]" type="button" data-inline-video-scroll="1" aria-label="<?php echo esc_attr(boblift_localized_static_text('Next')); ?>"><?php echo boblift_icon('chevron-right', 'h-4 w-4 rtl:-scale-x-100'); ?></button>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                    <?php // The 1px inline padding (4px with the matching negative margin) keeps the selected thumbnail's ring inside the scroller. ?>
+                                    <ul class="-mx-4 mt-2 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-1 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:-mx-1 sm:scroll-px-1 sm:gap-4 sm:px-1 [&::-webkit-scrollbar]:hidden" data-inline-video-list>
                                         <?php foreach ($product_videos as $index => $video) : ?>
-                                            <li class="w-[44%] shrink-0 snap-start sm:w-auto sm:min-w-0">
+                                            <li class="w-[44%] shrink-0 snap-start <?php echo count($product_videos) > 3 ? 'sm:w-[calc((100%-3rem)/3.3)]' : 'sm:w-[calc((100%-2rem)/3)]'; ?>">
                                                 <button class="group block w-full text-start focus-visible:outline-none" type="button" data-inline-video-item <?php echo $video_attrs($video); ?> aria-pressed="<?php echo $index === 0 ? 'true' : 'false'; ?>">
                                                     <span class="relative block aspect-video overflow-hidden rounded-sm bg-[#071f42] ring-2 ring-transparent transition group-hover:ring-blue-300 group-focus-visible:ring-blue-400 group-aria-pressed:ring-[#0B3F7D]">
                                                         <img class="absolute inset-0 h-full w-full object-cover" src="<?php echo esc_url(boblift_video_poster_src($video)); ?>" alt="" loading="lazy" decoding="async">
