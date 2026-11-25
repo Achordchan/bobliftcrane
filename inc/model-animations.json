@@ -1,102 +1,416 @@
 {
-  "_note": "Model animation films (schematic unfolding, reach and load per extension, max boom angle) rendered from each model's load chart by ~/Desktop/antigravity-gif-test/batch/render_model.py. Keys are the English product's _model meta.",
+  "_note": "Model animation films (schematic unfolding, reach and load per extension, max boom angle) rendered from each model's load chart by render_v4.py at 2560x1440 with the load table beside the crane (knuckle and telescopic, truck and marine; BOB-LIFT lettered on the boom). Keys are the English product's _model meta. replaces = files of an earlier render that the page drops from the body.",
   "labels": {
-    "en": "{model}: unfolding and reach (illustration)",
-    "zh": "{model} 展开与作业半径示意动画",
-    "ja": "{model}の展開と作業半径（イラスト）",
-    "es": "{model}: despliegue y alcance (ilustración)",
-    "fr": "{model} : dépliage et portée (illustration)",
-    "ru": "{model}: раскладывание стрелы и вылет (иллюстрация)",
-    "ar": "{model}: فتح الذراع ومدى الوصول (رسم توضيحي)"
+    "en": "{model}: crane boom deployment and reach (illustration)",
+    "zh": "{model} 吊臂展开与作业半径示意动画",
+    "ja": "{model}：クレーンブームの展開とリーチ（図解）",
+    "es": "{model}: despliegue y alcance de la pluma de la grúa (ilustración)",
+    "fr": "{model} : déploiement et portée de la flèche de la grue (illustration)",
+    "ru": "{model}: развертывание стрелы крана и дальность вылета (иллюстрация)",
+    "ar": "{model}: نشر ذراع الرافعة ومدى وصولها (رسم توضيحي)"
   },
   "models": {
+    "BLZ129K4": {
+      "src": "https://videos.files.wordpress.com/PEmiKBaR/bob-lift-blz129k4-knuckle-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-blz129k4-knuckle-boom-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "BLZ90K4": {
+      "src": "https://videos.files.wordpress.com/QxXZxbsz/bob-lift-blz90k4-knuckle-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-blz90k4-knuckle-boom-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "BLZ90K4TJ": {
+      "src": "https://videos.files.wordpress.com/0aSeJRpl/bob-lift-blz90k4tj-knuckle-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-blz90k4tj-knuckle-boom-marine-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "BLZ90K5": {
+      "src": "https://videos.files.wordpress.com/MoEvMhVo/bob-lift-blz90k5-knuckle-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-blz90k5-knuckle-boom-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "BLZ90K5TJ": {
+      "src": "https://videos.files.wordpress.com/IxPghz2p/bob-lift-blz90k5tj-knuckle-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-blz90k5tj-knuckle-boom-marine-crane-unfold-illustration-hd-poster.jpg"
+    },
     "SQ08ZA3": {
-      "src": "https://videos.files.wordpress.com/vz5dakrn/bob-lift-sq08za3-knuckle-boom-crane-unfold-illustration.mp4",
-      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq08za3-knuckle-boom-crane-unfold-illustration-poster.jpg"
+      "src": "https://videos.files.wordpress.com/r60HSlU5/bob-lift-sq08za3-knuckle-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq08za3-knuckle-boom-crane-unfold-illustration-hd-poster.jpg",
+      "replaces": [
+        "https://videos.files.wordpress.com/vz5dakrn/bob-lift-sq08za3-knuckle-boom-crane-unfold-illustration.mp4"
+      ]
+    },
+    "SQ10SA4": {
+      "src": "https://videos.files.wordpress.com/Esy9c9Mh/bob-lift-sq10sa4-telescopic-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq10sa4-telescopic-boom-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ10SA4T": {
+      "src": "https://videos.files.wordpress.com/PjVIFtS9/bob-lift-sq10sa4t-telescopic-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq10sa4t-telescopic-boom-marine-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ10SA5": {
+      "src": "https://videos.files.wordpress.com/JGq8K1ET/bob-lift-sq10sa5-telescopic-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq10sa5-telescopic-boom-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ10SA5T": {
+      "src": "https://videos.files.wordpress.com/yu5KAaRd/bob-lift-sq10sa5t-telescopic-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq10sa5t-telescopic-boom-marine-crane-unfold-illustration-hd-poster.jpg"
     },
     "SQ10ZA4": {
-      "src": "https://videos.files.wordpress.com/rUlubKFs/bob-lift-sq10za4-knuckle-boom-crane-unfold-illustration.mp4",
-      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq10za4-knuckle-boom-crane-unfold-illustration-poster.jpg"
+      "src": "https://videos.files.wordpress.com/xAQCsGRA/bob-lift-sq10za4-knuckle-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq10za4-knuckle-boom-crane-unfold-illustration-hd-poster.jpg",
+      "replaces": [
+        "https://videos.files.wordpress.com/rUlubKFs/bob-lift-sq10za4-knuckle-boom-crane-unfold-illustration.mp4"
+      ]
     },
     "SQ10ZA5": {
-      "src": "https://videos.files.wordpress.com/JFUGEXP7/bob-lift-sq10za5-knuckle-boom-crane-unfold-illustration.mp4",
-      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq10za5-knuckle-boom-crane-unfold-illustration-poster.jpg"
+      "src": "https://videos.files.wordpress.com/PR4Tfnpo/bob-lift-sq10za5-knuckle-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq10za5-knuckle-boom-crane-unfold-illustration-hd-poster.jpg",
+      "replaces": [
+        "https://videos.files.wordpress.com/JFUGEXP7/bob-lift-sq10za5-knuckle-boom-crane-unfold-illustration.mp4"
+      ]
+    },
+    "SQ10ZA5T": {
+      "src": "https://videos.files.wordpress.com/hOMB16Gs/bob-lift-sq10za5t-knuckle-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq10za5t-knuckle-boom-marine-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ10ZA5TJ": {
+      "src": "https://videos.files.wordpress.com/AZiamwVq/bob-lift-sq10za5tj-knuckle-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq10za5tj-knuckle-boom-marine-crane-unfold-illustration-hd-poster.jpg"
     },
     "SQ10ZA6": {
-      "src": "https://videos.files.wordpress.com/pSjqd4D5/bob-lift-sq10za6-knuckle-boom-crane-unfold-illustration.mp4",
-      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq10za6-knuckle-boom-crane-unfold-illustration-poster.jpg"
+      "src": "https://videos.files.wordpress.com/KFwKThjS/bob-lift-sq10za6-knuckle-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq10za6-knuckle-boom-crane-unfold-illustration-hd-poster.jpg",
+      "replaces": [
+        "https://videos.files.wordpress.com/pSjqd4D5/bob-lift-sq10za6-knuckle-boom-crane-unfold-illustration.mp4"
+      ]
+    },
+    "SQ10ZA6TJ": {
+      "src": "https://videos.files.wordpress.com/nbOo5orN/bob-lift-sq10za6tj-knuckle-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq10za6tj-knuckle-boom-marine-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ12SA4": {
+      "src": "https://videos.files.wordpress.com/ornMUaIO/bob-lift-sq12sa4-telescopic-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq12sa4-telescopic-boom-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ12SA4T": {
+      "src": "https://videos.files.wordpress.com/Hn1XTij8/bob-lift-sq12sa4t-telescopic-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq12sa4t-telescopic-boom-marine-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ12SA5": {
+      "src": "https://videos.files.wordpress.com/Kcbij1Gd/bob-lift-sq12sa5-telescopic-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq12sa5-telescopic-boom-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ12SA5T": {
+      "src": "https://videos.files.wordpress.com/TjbhirxL/bob-lift-sq12sa5t-telescopic-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq12sa5t-telescopic-boom-marine-crane-unfold-illustration-hd-poster.jpg"
     },
     "SQ12ZA4": {
-      "src": "https://videos.files.wordpress.com/UVd32M7i/bob-lift-sq12za4-knuckle-boom-crane-unfold-illustration.mp4",
-      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq12za4-knuckle-boom-crane-unfold-illustration-poster.jpg"
+      "src": "https://videos.files.wordpress.com/KFJy35aL/bob-lift-sq12za4-knuckle-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq12za4-knuckle-boom-crane-unfold-illustration-hd-poster.jpg",
+      "replaces": [
+        "https://videos.files.wordpress.com/UVd32M7i/bob-lift-sq12za4-knuckle-boom-crane-unfold-illustration.mp4"
+      ]
+    },
+    "SQ12ZA4T": {
+      "src": "https://videos.files.wordpress.com/gLfFNoXN/bob-lift-sq12za4t-knuckle-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq12za4t-knuckle-boom-marine-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ12ZA4TJ": {
+      "src": "https://videos.files.wordpress.com/MIF4QObg/bob-lift-sq12za4tj-knuckle-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq12za4tj-knuckle-boom-marine-crane-unfold-illustration-hd-poster.jpg"
     },
     "SQ12ZA5": {
-      "src": "https://videos.files.wordpress.com/MQcZDEcS/bob-lift-sq12za5-knuckle-boom-crane-unfold-illustration.mp4",
-      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq12za5-knuckle-boom-crane-unfold-illustration-poster.jpg"
+      "src": "https://videos.files.wordpress.com/5Jf5pkK6/bob-lift-sq12za5-knuckle-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq12za5-knuckle-boom-crane-unfold-illustration-hd-poster.jpg",
+      "replaces": [
+        "https://videos.files.wordpress.com/MQcZDEcS/bob-lift-sq12za5-knuckle-boom-crane-unfold-illustration.mp4"
+      ]
+    },
+    "SQ12ZA5T": {
+      "src": "https://videos.files.wordpress.com/MAipzYq7/bob-lift-sq12za5t-knuckle-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq12za5t-knuckle-boom-marine-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ12ZA5TJ": {
+      "src": "https://videos.files.wordpress.com/LV3JO7X3/bob-lift-sq12za5tj-knuckle-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq12za5tj-knuckle-boom-marine-crane-unfold-illustration-hd-poster.jpg"
     },
     "SQ12ZA6": {
-      "src": "https://videos.files.wordpress.com/XNLQxQJk/bob-lift-sq12za6-knuckle-boom-crane-unfold-illustration.mp4",
-      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq12za6-knuckle-boom-crane-unfold-illustration-poster.jpg"
+      "src": "https://videos.files.wordpress.com/V2t0IKb7/bob-lift-sq12za6-knuckle-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq12za6-knuckle-boom-crane-unfold-illustration-hd-poster.jpg",
+      "replaces": [
+        "https://videos.files.wordpress.com/XNLQxQJk/bob-lift-sq12za6-knuckle-boom-crane-unfold-illustration.mp4"
+      ]
+    },
+    "SQ12ZA6T": {
+      "src": "https://videos.files.wordpress.com/ULCEwMN9/bob-lift-sq12za6t-knuckle-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq12za6t-knuckle-boom-marine-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ14SA4": {
+      "src": "https://videos.files.wordpress.com/SZCYcpLd/bob-lift-sq14sa4-telescopic-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq14sa4-telescopic-boom-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ14SA5": {
+      "src": "https://videos.files.wordpress.com/re5YKXeH/bob-lift-sq14sa5-telescopic-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq14sa5-telescopic-boom-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ16SA5": {
+      "src": "https://videos.files.wordpress.com/Osi9gzE2/bob-lift-sq16sa5-telescopic-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq16sa5-telescopic-boom-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ16SA5T": {
+      "src": "https://videos.files.wordpress.com/FoNtHUJG/bob-lift-sq16sa5t-telescopic-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq16sa5t-telescopic-boom-marine-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ20SA5": {
+      "src": "https://videos.files.wordpress.com/vKNaUqyw/bob-lift-sq20sa5-telescopic-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq20sa5-telescopic-boom-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ20SA5T": {
+      "src": "https://videos.files.wordpress.com/gtxjMNAo/bob-lift-sq20sa5t-telescopic-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq20sa5t-telescopic-boom-marine-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ2SA3": {
+      "src": "https://videos.files.wordpress.com/f9iQWlzX/bob-lift-sq2sa3-telescopic-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq2sa3-telescopic-boom-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ2SA3T": {
+      "src": "https://videos.files.wordpress.com/8knoNLJH/bob-lift-sq2sa3t-telescopic-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq2sa3t-telescopic-boom-marine-crane-unfold-illustration-hd-poster.jpg"
     },
     "SQ2ZA2": {
-      "src": "https://videos.files.wordpress.com/xzULlMSS/bob-lift-sq2za2-knuckle-boom-crane-unfold-illustration.mp4",
-      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq2za2-knuckle-boom-crane-unfold-illustration-poster.jpg"
+      "src": "https://videos.files.wordpress.com/ctDvRa7Z/bob-lift-sq2za2-knuckle-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq2za2-knuckle-boom-crane-unfold-illustration-hd-poster.jpg",
+      "replaces": [
+        "https://videos.files.wordpress.com/xzULlMSS/bob-lift-sq2za2-knuckle-boom-crane-unfold-illustration.mp4"
+      ]
+    },
+    "SQ2ZA2TJ": {
+      "src": "https://videos.files.wordpress.com/pgebuSvn/bob-lift-sq2za2tj-knuckle-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq2za2tj-knuckle-boom-marine-crane-unfold-illustration-hd-poster.jpg"
     },
     "SQ2ZA3": {
-      "src": "https://videos.files.wordpress.com/MYdtsNtm/bob-lift-sq2za3-knuckle-boom-crane-unfold-illustration.mp4",
-      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq2za3-knuckle-boom-crane-unfold-illustration-poster.jpg"
+      "src": "https://videos.files.wordpress.com/PWfyKPK9/bob-lift-sq2za3-knuckle-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq2za3-knuckle-boom-crane-unfold-illustration-hd-poster.jpg",
+      "replaces": [
+        "https://videos.files.wordpress.com/MYdtsNtm/bob-lift-sq2za3-knuckle-boom-crane-unfold-illustration.mp4"
+      ]
     },
     "SQ2ZA4": {
-      "src": "https://videos.files.wordpress.com/9p5TVxQE/bob-lift-sq2za4-knuckle-boom-crane-unfold-illustration.mp4",
-      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq2za4-knuckle-boom-crane-unfold-illustration-poster.jpg"
+      "src": "https://videos.files.wordpress.com/Afo3SjYf/bob-lift-sq2za4-knuckle-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq2za4-knuckle-boom-crane-unfold-illustration-hd-poster.jpg",
+      "replaces": [
+        "https://videos.files.wordpress.com/9p5TVxQE/bob-lift-sq2za4-knuckle-boom-crane-unfold-illustration.mp4"
+      ]
+    },
+    "SQ2ZA4T": {
+      "src": "https://videos.files.wordpress.com/CDbjkXRo/bob-lift-sq2za4t-knuckle-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq2za4t-knuckle-boom-marine-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ3.2SA3": {
+      "src": "https://videos.files.wordpress.com/ZggAYsHM/bob-lift-sq3-2sa3-telescopic-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq3-2sa3-telescopic-boom-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ3.2SA3T": {
+      "src": "https://videos.files.wordpress.com/iIny8EAU/bob-lift-sq3-2sa3t-telescopic-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq3-2sa3t-telescopic-boom-marine-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ3.2SA4": {
+      "src": "https://videos.files.wordpress.com/LnHyAgYU/bob-lift-sq3-2sa4-telescopic-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq3-2sa4-telescopic-boom-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ3.2SA4T": {
+      "src": "https://videos.files.wordpress.com/LNgTNMkX/bob-lift-sq3-2sa4t-telescopic-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq3-2sa4t-telescopic-boom-marine-crane-unfold-illustration-hd-poster.jpg"
     },
     "SQ3.2ZA3": {
-      "src": "https://videos.files.wordpress.com/1iSBN13G/bob-lift-sq3-2za3-knuckle-boom-crane-unfold-illustration.mp4",
-      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq3-2za3-knuckle-boom-crane-unfold-illustration-poster.jpg"
+      "src": "https://videos.files.wordpress.com/sLoUx9hV/bob-lift-sq3-2za3-knuckle-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq3-2za3-knuckle-boom-crane-unfold-illustration-hd-poster.jpg",
+      "replaces": [
+        "https://videos.files.wordpress.com/1iSBN13G/bob-lift-sq3-2za3-knuckle-boom-crane-unfold-illustration.mp4"
+      ]
+    },
+    "SQ3.2ZA3T": {
+      "src": "https://videos.files.wordpress.com/yJ4o4TxP/bob-lift-sq3-2za3t-knuckle-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq3-2za3t-knuckle-boom-marine-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ3.2ZA3TJ": {
+      "src": "https://videos.files.wordpress.com/wwr9HAmo/bob-lift-sq3-2za3tj-knuckle-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq3-2za3tj-knuckle-boom-marine-crane-unfold-illustration-hd-poster.jpg"
     },
     "SQ3.2ZA4": {
-      "src": "https://videos.files.wordpress.com/LUEccsNh/bob-lift-sq3-2za4-knuckle-boom-crane-unfold-illustration.mp4",
-      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq3-2za4-knuckle-boom-crane-unfold-illustration-poster.jpg"
+      "src": "https://videos.files.wordpress.com/Kwz7jQhU/bob-lift-sq3-2za4-knuckle-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq3-2za4-knuckle-boom-crane-unfold-illustration-hd-poster.jpg",
+      "replaces": [
+        "https://videos.files.wordpress.com/LUEccsNh/bob-lift-sq3-2za4-knuckle-boom-crane-unfold-illustration.mp4"
+      ]
+    },
+    "SQ4SA3T": {
+      "src": "https://videos.files.wordpress.com/Fm1JQcXG/bob-lift-sq4sa3t-telescopic-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq4sa3t-telescopic-boom-marine-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ4SA4": {
+      "src": "https://videos.files.wordpress.com/HK84eA4W/bob-lift-sq4sa4-telescopic-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq4sa4-telescopic-boom-crane-unfold-illustration-hd-poster.jpg"
     },
     "SQ4ZA3": {
-      "src": "https://videos.files.wordpress.com/EigIXcSA/bob-lift-sq4za3-knuckle-boom-crane-unfold-illustration.mp4",
-      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq4za3-knuckle-boom-crane-unfold-illustration-poster.jpg"
+      "src": "https://videos.files.wordpress.com/OLz11xJP/bob-lift-sq4za3-knuckle-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq4za3-knuckle-boom-crane-unfold-illustration-hd-poster.jpg",
+      "replaces": [
+        "https://videos.files.wordpress.com/EigIXcSA/bob-lift-sq4za3-knuckle-boom-crane-unfold-illustration.mp4"
+      ]
+    },
+    "SQ4ZA3T": {
+      "src": "https://videos.files.wordpress.com/fvcAB8oj/bob-lift-sq4za3t-knuckle-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq4za3t-knuckle-boom-marine-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ4ZA3TJ": {
+      "src": "https://videos.files.wordpress.com/qMRCma43/bob-lift-sq4za3tj-knuckle-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq4za3tj-knuckle-boom-marine-crane-unfold-illustration-hd-poster.jpg"
     },
     "SQ4ZA4": {
-      "src": "https://videos.files.wordpress.com/Na2oDecG/bob-lift-sq4za4-knuckle-boom-crane-unfold-illustration.mp4",
-      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq4za4-knuckle-boom-crane-unfold-illustration-poster.jpg"
+      "src": "https://videos.files.wordpress.com/5wHkiH3V/bob-lift-sq4za4-knuckle-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq4za4-knuckle-boom-crane-unfold-illustration-hd-poster.jpg",
+      "replaces": [
+        "https://videos.files.wordpress.com/Na2oDecG/bob-lift-sq4za4-knuckle-boom-crane-unfold-illustration.mp4"
+      ]
+    },
+    "SQ4ZA4T": {
+      "src": "https://videos.files.wordpress.com/h20Dq0CQ/bob-lift-sq4za4t-knuckle-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq4za4t-knuckle-boom-marine-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ5SA3": {
+      "src": "https://videos.files.wordpress.com/cRs09kQh/bob-lift-sq5sa3-telescopic-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq5sa3-telescopic-boom-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ5SA3T": {
+      "src": "https://videos.files.wordpress.com/kWNuAbdg/bob-lift-sq5sa3t-telescopic-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq5sa3t-telescopic-boom-marine-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ5SA4": {
+      "src": "https://videos.files.wordpress.com/hpfqY8mX/bob-lift-sq5sa4-telescopic-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq5sa4-telescopic-boom-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ5SA4T": {
+      "src": "https://videos.files.wordpress.com/f3uVjcMc/bob-lift-sq5sa4t-telescopic-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq5sa4t-telescopic-boom-marine-crane-unfold-illustration-hd-poster.jpg"
     },
     "SQ5ZA3": {
-      "src": "https://videos.files.wordpress.com/xh0Slkr7/bob-lift-sq5za3-knuckle-boom-crane-unfold-illustration.mp4",
-      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq5za3-knuckle-boom-crane-unfold-illustration-poster-v2.jpg"
+      "src": "https://videos.files.wordpress.com/A5mtfFAX/bob-lift-sq5za3-knuckle-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq5za3-knuckle-boom-crane-unfold-illustration-hd-poster.jpg",
+      "replaces": [
+        "https://videos.files.wordpress.com/xh0Slkr7/bob-lift-sq5za3-knuckle-boom-crane-unfold-illustration.mp4"
+      ]
+    },
+    "SQ5ZA3T": {
+      "src": "https://videos.files.wordpress.com/RKzmZSZD/bob-lift-sq5za3t-knuckle-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq5za3t-knuckle-boom-marine-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ5ZA3TJ": {
+      "src": "https://videos.files.wordpress.com/ZJpDCbt8/bob-lift-sq5za3tj-knuckle-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq5za3tj-knuckle-boom-marine-crane-unfold-illustration-hd-poster.jpg"
     },
     "SQ5ZA4": {
-      "src": "https://videos.files.wordpress.com/t4Rt5Lf9/bob-lift-sq5za4-knuckle-boom-crane-unfold-illustration.mp4",
-      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq5za4-knuckle-boom-crane-unfold-illustration-poster.jpg"
+      "src": "https://videos.files.wordpress.com/9sHCoavY/bob-lift-sq5za4-knuckle-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq5za4-knuckle-boom-crane-unfold-illustration-hd-poster.jpg",
+      "replaces": [
+        "https://videos.files.wordpress.com/t4Rt5Lf9/bob-lift-sq5za4-knuckle-boom-crane-unfold-illustration.mp4"
+      ]
+    },
+    "SQ5ZA4T": {
+      "src": "https://videos.files.wordpress.com/rGG3NrzF/bob-lift-sq5za4t-knuckle-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq5za4t-knuckle-boom-marine-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ6.3SA4": {
+      "src": "https://videos.files.wordpress.com/rmiSXLEm/bob-lift-sq6-3sa4-telescopic-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq6-3sa4-telescopic-boom-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ6.3SA4T": {
+      "src": "https://videos.files.wordpress.com/whvZ7Tgl/bob-lift-sq6-3sa4t-telescopic-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq6-3sa4t-telescopic-boom-marine-crane-unfold-illustration-hd-poster.jpg"
     },
     "SQ6.3ZA3": {
-      "src": "https://videos.files.wordpress.com/QteCO0aW/bob-lift-sq6-3za3-knuckle-boom-crane-unfold-illustration.mp4",
-      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq6-3za3-knuckle-boom-crane-unfold-illustration-poster.jpg"
+      "src": "https://videos.files.wordpress.com/hUkMUS7R/bob-lift-sq6-3za3-knuckle-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq6-3za3-knuckle-boom-crane-unfold-illustration-hd-poster.jpg",
+      "replaces": [
+        "https://videos.files.wordpress.com/QteCO0aW/bob-lift-sq6-3za3-knuckle-boom-crane-unfold-illustration.mp4"
+      ]
     },
     "SQ6.3ZA4": {
-      "src": "https://videos.files.wordpress.com/8O7JnXPj/bob-lift-sq6-3za4-knuckle-boom-crane-unfold-illustration.mp4",
-      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq6-3za4-knuckle-boom-crane-unfold-illustration-poster.jpg"
+      "src": "https://videos.files.wordpress.com/PgzuKDYN/bob-lift-sq6-3za4-knuckle-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq6-3za4-knuckle-boom-crane-unfold-illustration-hd-poster.jpg",
+      "replaces": [
+        "https://videos.files.wordpress.com/8O7JnXPj/bob-lift-sq6-3za4-knuckle-boom-crane-unfold-illustration.mp4"
+      ]
+    },
+    "SQ6.3ZA4T": {
+      "src": "https://videos.files.wordpress.com/0MnGdhKo/bob-lift-sq6-3za4t-knuckle-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq6-3za4t-knuckle-boom-marine-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ6.3ZA4TJ": {
+      "src": "https://videos.files.wordpress.com/b7TvuuZg/bob-lift-sq6-3za4tj-knuckle-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq6-3za4tj-knuckle-boom-marine-crane-unfold-illustration-hd-poster.jpg"
     },
     "SQ6.3ZA5": {
-      "src": "https://videos.files.wordpress.com/9pCDpsvD/bob-lift-sq6-3za5-knuckle-boom-crane-unfold-illustration.mp4",
-      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq6-3za5-knuckle-boom-crane-unfold-illustration-poster.jpg"
+      "src": "https://videos.files.wordpress.com/kYd9POh3/bob-lift-sq6-3za5-knuckle-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq6-3za5-knuckle-boom-crane-unfold-illustration-hd-poster.jpg",
+      "replaces": [
+        "https://videos.files.wordpress.com/9pCDpsvD/bob-lift-sq6-3za5-knuckle-boom-crane-unfold-illustration.mp4"
+      ]
+    },
+    "SQ6.3ZA5T": {
+      "src": "https://videos.files.wordpress.com/RynrWnAQ/bob-lift-sq6-3za5t-knuckle-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq6-3za5t-knuckle-boom-marine-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ8SA4": {
+      "src": "https://videos.files.wordpress.com/t79VKpwm/bob-lift-sq8sa4-telescopic-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq8sa4-telescopic-boom-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ8SA4T": {
+      "src": "https://videos.files.wordpress.com/T3bEmUCL/bob-lift-sq8sa4t-telescopic-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq8sa4t-telescopic-boom-marine-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ8SA5": {
+      "src": "https://videos.files.wordpress.com/xsCGNhit/bob-lift-sq8sa5-telescopic-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq8sa5-telescopic-boom-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ8SA5T": {
+      "src": "https://videos.files.wordpress.com/UNcb9AsM/bob-lift-sq8sa5t-telescopic-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq8sa5t-telescopic-boom-marine-crane-unfold-illustration-hd-poster.jpg"
     },
     "SQ8ZA4": {
-      "src": "https://videos.files.wordpress.com/Ck3YOqZe/bob-lift-sq8za4-knuckle-boom-crane-unfold-illustration.mp4",
-      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq8za4-knuckle-boom-crane-unfold-illustration-poster.jpg"
+      "src": "https://videos.files.wordpress.com/bKknSNUv/bob-lift-sq8za4-knuckle-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq8za4-knuckle-boom-crane-unfold-illustration-hd-poster.jpg",
+      "replaces": [
+        "https://videos.files.wordpress.com/Ck3YOqZe/bob-lift-sq8za4-knuckle-boom-crane-unfold-illustration.mp4"
+      ]
+    },
+    "SQ8ZA4T": {
+      "src": "https://videos.files.wordpress.com/3nE5mBKm/bob-lift-sq8za4t-knuckle-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq8za4t-knuckle-boom-marine-crane-unfold-illustration-hd-poster.jpg"
+    },
+    "SQ8ZA4TJ": {
+      "src": "https://videos.files.wordpress.com/zJsWZoTA/bob-lift-sq8za4tj-knuckle-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq8za4tj-knuckle-boom-marine-crane-unfold-illustration-hd-poster.jpg"
     },
     "SQ8ZA5": {
-      "src": "https://videos.files.wordpress.com/4QQ3fPHm/bob-lift-sq8za5-knuckle-boom-crane-unfold-illustration.mp4",
-      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq8za5-knuckle-boom-crane-unfold-illustration-poster.jpg"
+      "src": "https://videos.files.wordpress.com/MHocyf9C/bob-lift-sq8za5-knuckle-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq8za5-knuckle-boom-crane-unfold-illustration-hd-poster.jpg",
+      "replaces": [
+        "https://videos.files.wordpress.com/4QQ3fPHm/bob-lift-sq8za5-knuckle-boom-crane-unfold-illustration.mp4"
+      ]
+    },
+    "SQ8ZA5TJ": {
+      "src": "https://videos.files.wordpress.com/QzqAwEGg/bob-lift-sq8za5tj-knuckle-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq8za5tj-knuckle-boom-marine-crane-unfold-illustration-hd-poster.jpg"
     },
     "SQ8ZA6": {
-      "src": "https://videos.files.wordpress.com/9hex9f0O/bob-lift-sq8za6-knuckle-boom-crane-unfold-illustration.mp4",
-      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq8za6-knuckle-boom-crane-unfold-illustration-poster.jpg"
+      "src": "https://videos.files.wordpress.com/WHC4giLx/bob-lift-sq8za6-knuckle-boom-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq8za6-knuckle-boom-crane-unfold-illustration-hd-poster.jpg",
+      "replaces": [
+        "https://videos.files.wordpress.com/9hex9f0O/bob-lift-sq8za6-knuckle-boom-crane-unfold-illustration.mp4"
+      ]
+    },
+    "SQ8ZA6TJ": {
+      "src": "https://videos.files.wordpress.com/3QFxd41h/bob-lift-sq8za6tj-knuckle-boom-marine-crane-unfold-illustration-hd.mp4",
+      "poster": "https://bobliftcrane.com/wp-content/uploads/2026/11/bob-lift-sq8za6tj-knuckle-boom-marine-crane-unfold-illustration-hd-poster.jpg"
     }
   }
 }
