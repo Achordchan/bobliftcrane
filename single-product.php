@@ -1175,7 +1175,7 @@ if ($family_quote_copy) {
                         <h2 class="mt-3 boblift-section-title"><?php echo esc_html(boblift_localized_static_text('Shipping, warranty and documents')); ?></h2>
                         <p class="mt-3 hidden max-w-2xl text-sm font-normal leading-6 text-slate-600 sm:block md:text-base md:leading-7"><?php echo esc_html(str_replace('{model}', $hero_title, boblift_localized_static_text('How the {model} reaches you, and what happens after it arrives.'))); ?></p>
                     </div>
-                    <div class="mt-4 grid gap-px border-t border-[#E6EDF5] bg-[#E6EDF5] sm:mt-6 md:mt-8 md:grid-cols-3">
+                    <div class="mt-4 grid gap-px border-t border-[#E6EDF5] bg-[#E6EDF5] sm:mt-6 md:mt-8 <?php echo $buying_brochures ? 'md:grid-cols-3' : 'md:grid-cols-2'; ?>">
                         <section class="bg-white px-4 py-4 sm:p-6 md:p-8" aria-labelledby="buying-shipping">
                             <h3 id="buying-shipping" class="boblift-label"><?php echo esc_html(boblift_localized_static_text('Shipping')); ?></h3>
                             <?php if ($container_loading) : // This model's own figures from the factory loading plan (boblift_product_copy "container_loading"). ?>
@@ -1223,13 +1223,13 @@ if ($family_quote_copy) {
                             <p class="mt-2 text-sm font-normal leading-6 text-slate-700 sm:mt-3"><?php echo esc_html(boblift_localized_static_text('Send the model, serial number and a photo or video of the issue; our team guides the repair and ships the parts.')); ?></p>
                             <p class="mt-3 inline-flex items-center gap-2 text-sm font-black text-[#071f42] sm:mt-4"><?php echo boblift_icon('package-check', 'h-4 w-4 text-[#0B3F7D]'); ?><?php echo esc_html(boblift_localized_static_text('Order from 1 unit')); ?></p>
                         </section>
+                        <?php if ($buying_brochures) : // The brochures only: the drawing and the specifications have their own sections and tabs above. ?>
                         <section class="bg-white px-4 py-4 sm:p-6 md:p-8" aria-labelledby="buying-documents">
                             <?php // Links to #brochures (the brochure card this column replaces on crane pages) land here. ?><span id="brochures" class="block scroll-mt-24" aria-hidden="true"></span>
                             <h3 id="buying-documents" class="boblift-label"><?php echo esc_html(boblift_localized_static_text('Documents')); ?></h3>
-                            <?php // Phones: the two short links side by side under the brochures. ?>
-                            <ul class="mt-3 grid grid-cols-2 gap-3 text-sm sm:mt-4 sm:grid-cols-1">
+                            <ul class="mt-3 grid gap-4 text-sm sm:mt-4 sm:gap-5">
                                 <?php foreach ($buying_brochures as $buying_brochure) : ?>
-                                    <li class="col-span-2 mb-1 sm:col-span-1 grid grid-cols-[48px_minmax(0,1fr)] items-start gap-3 border-b border-[#E6EDF5] pb-4 sm:mb-2 sm:grid-cols-[64px_minmax(0,1fr)] sm:gap-4 sm:pb-5">
+                                    <li class="grid grid-cols-[48px_minmax(0,1fr)] items-start gap-3 border-b border-[#E6EDF5] pb-4 last:border-b-0 last:pb-0 sm:grid-cols-[64px_minmax(0,1fr)] sm:gap-4 sm:pb-5 lg:grid-cols-[84px_minmax(0,1fr)] lg:gap-5">
                                         <a class="block" href="<?php echo esc_url($buying_brochure['url']); ?>" download="<?php echo esc_attr($buying_brochure['file']); ?>" tabindex="-1" aria-hidden="true"><img class="aspect-[520/711] w-full rounded-sm border border-[#DDE7F2] bg-white object-cover" src="<?php echo esc_url($buying_brochure['cover']); ?>" width="520" height="711" alt="" loading="lazy" decoding="async"></a>
                                         <div class="min-w-0">
                                             <p class="font-black leading-snug text-[#071f42]"><?php echo esc_html($buying_brochure['title']); ?></p>
@@ -1241,12 +1241,9 @@ if ($family_quote_copy) {
                                         </div>
                                     </li>
                                 <?php endforeach; ?>
-                                <?php if ($drawings) : ?>
-                                    <li><a class="inline-flex items-start gap-2 font-black text-[#071f42] transition hover:text-blue-700" href="#drawing"><?php echo boblift_icon('maximize-2', 'mt-0.5 h-4 w-4 shrink-0 text-[#0B3F7D]'); ?><?php echo esc_html($ui['drawingTitle'] ?? 'Dimensions and load chart'); ?></a></li>
-                                <?php endif; ?>
-                                <li><a class="inline-flex items-start gap-2 font-black text-[#071f42] transition hover:text-blue-700" href="#technical"><?php echo boblift_icon('file-text', 'mt-0.5 h-4 w-4 shrink-0 text-[#0B3F7D]'); ?><?php echo esc_html(trim($hero_model . ' ' . ($ui['specsHeading'] ?? 'Specifications'))); ?></a></li>
                             </ul>
                         </section>
+                        <?php endif; ?>
                     </div>
                 </article>
             <?php endif; ?>
