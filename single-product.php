@@ -702,7 +702,9 @@ if ($family_quote_copy) {
                         <div class="min-w-0">
                             <p class="boblift-kicker"><?php echo esc_html($ui['cinemaSpecsLabel'] ?? 'Engineering data'); ?></p>
                             <h2 class="mt-3 boblift-section-title"><?php echo esc_html($ui['technicalLabel'] ?? 'Technical Specifications'); ?></h2>
-                            <?php if ($hero_model !== '') : ?><p class="mt-2 text-[15px] font-bold text-slate-600" dir="ltr"<?php echo $series_page ? ' data-cfg-model-text' : ''; ?>><?php echo esc_html($hero_model); ?></p><?php endif; ?>
+                            <?php // The model under the heading was one repeat too many on screen (hero, model code box and list name it, 2026-11-25); it stays for
+                            // screen readers, as the specification table below leaves out its Model row on the strength of it. ?>
+                            <?php if ($hero_model !== '') : ?><p class="sr-only" dir="ltr"<?php echo $series_page ? ' data-cfg-model-text' : ''; ?>><?php echo esc_html($hero_model); ?></p><?php endif; ?>
                         </div>
                         <?php if ($former_models !== '') : ?>
                             <?php // Old-site model names stay on the page so searches for them still land here. ?>
