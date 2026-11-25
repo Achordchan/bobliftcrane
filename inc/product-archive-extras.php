@@ -566,17 +566,19 @@ function boblift_render_archive_extras(array $categories, string $initial_catego
     $blocks(static fn(array $term, string $slug) => boblift_render_archive_articles($term['family'], $slug));
 }
 
-/** Product page: up to three articles about the product's family, in the page's card style, after the related models. */
+/** Product page: up to four articles about the product's family, in the page's card style, after the related models (four across, like them). */
 function boblift_render_product_articles(WP_Term $term): void
 {
-    $posts = boblift_archive_family_articles(boblift_source_term_slug($term));
+    $posts = boblift_archive_family_articles(boblift_source_term_slug($term), 4);
     if (!$posts) {
         return;
     }
     $t = static fn(string $text): string => boblift_localized_static_text($text);
     $article_ui = boblift_site_ui('newsArticle');
-    // One article lies beside its photo, so it does not sit alone in a three-column row.
+    // One article lies beside its photo, so it does not sit alone in a row; two or three fill the row; four line up with the
+    // four related-model cards above (same columns and gap).
     $single = count($posts) === 1;
+    $columns = $single ? '' : ['', '', 'sm:grid-cols-2', 'sm:grid-cols-2 lg:grid-cols-3', 'sm:grid-cols-2 lg:grid-cols-4'][min(count($posts), 4)];
     ?>
     <section id="articles" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card" aria-labelledby="articles-title">
         <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 px-4 pt-5 pb-0 sm:p-6 sm:pb-0 md:p-8 md:pb-0">
@@ -587,7 +589,7 @@ function boblift_render_product_articles(WP_Term $term): void
             <a class="inline-flex items-center gap-1.5 text-sm font-black text-blue-700 transition hover:text-[#071f42]" href="<?php echo esc_url(boblift_url('/news')); ?>"><?php echo esc_html((string) ($article_ui['relatedLink'] ?? 'All news')); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></a>
         </div>
         <?php // Phones: a list, each small photo beside its date and title, instead of a full-width photo per article. ?>
-        <ul class="grid gap-x-5 gap-y-4 px-4 py-5 sm:gap-y-6 sm:p-6 md:p-8 <?php echo $single ? '' : 'sm:grid-cols-2 lg:grid-cols-3'; ?>">
+        <ul class="grid gap-x-5 gap-y-4 px-4 py-5 sm:gap-y-6 sm:p-6 md:p-8 <?php echo esc_attr($columns); ?>">
             <?php foreach ($posts as $post) : ?>
                 <li class="min-w-0 max-sm:border-b max-sm:border-[#E6EDF5] max-sm:pb-4 max-sm:last:border-b-0 max-sm:last:pb-0">
                     <a class="group grid grid-cols-[120px_minmax(0,1fr)] items-start gap-x-3.5 <?php echo $single ? 'sm:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] sm:items-center sm:gap-x-8 sm:gap-y-3' : 'sm:block'; ?>" href="<?php echo esc_url(get_permalink($post)); ?>">

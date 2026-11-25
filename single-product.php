@@ -916,7 +916,7 @@ if ($family_quote_copy) {
                                 <?php endif; ?>
                                 <?php if (count($product_videos) > 1) : ?>
                                     <?php // One row of thumbnails, each with its title, like a playlist under the player: three in view from sm up
-                                    // (on phones a compact swipe strip, about three across with one-line titles, so it stays smaller than the film above), so six films do not stack into rows that push the
+                                    // (titles stay on one line, full text on hover; on phones a compact swipe strip, about three across, so it stays smaller than the film above), so six films do not stack into rows that push the
                                     // sticky column past the screen. With more than three, the fourth peeks in at the edge to show the row goes on, and arrows
                                     // beside the label page through the rest. ?>
                                     <div class="relative mt-6 flex items-center justify-between gap-3">
@@ -930,21 +930,20 @@ if ($family_quote_copy) {
                                         <?php endif; ?>
                                     </div>
                                     <?php // The 1px inline padding (4px with the matching negative margin) keeps the selected thumbnail's ring inside the scroller. ?>
-                                    <ul class="-mx-4 mt-2 flex snap-x snap-mandatory scroll-px-4 gap-2.5 overflow-x-auto px-4 pb-1 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:-mx-1 sm:scroll-px-1 sm:gap-4 sm:px-1 [&::-webkit-scrollbar]:hidden" data-inline-video-list>
+                                    <ul class="-mx-4 mt-2 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-1 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:-mx-1 sm:scroll-px-1 sm:gap-5 sm:px-1 [&::-webkit-scrollbar]:hidden" data-inline-video-list>
                                         <?php foreach ($product_videos as $index => $video) : ?>
-                                            <li class="w-[30%] shrink-0 snap-start <?php echo count($product_videos) > 3 ? 'sm:w-[calc((100%-3rem)/3.3)]' : 'sm:w-[calc((100%-2rem)/3)]'; ?>">
+                                            <li class="w-[30%] shrink-0 snap-start <?php echo count($product_videos) > 3 ? 'sm:w-[calc((100%-3.75rem)/3.3)]' : 'sm:w-[calc((100%-2.5rem)/3)]'; ?>">
                                                 <button class="group block w-full text-start focus-visible:outline-none" type="button" data-inline-video-item <?php echo $video_attrs($video); ?> aria-pressed="<?php echo $index === 0 ? 'true' : 'false'; ?>">
                                                     <span class="relative block aspect-video overflow-hidden rounded-sm bg-[#071f42] ring-2 ring-transparent transition group-hover:ring-blue-300 group-focus-visible:ring-blue-400 group-aria-pressed:ring-[#0B3F7D]">
                                                         <img class="absolute inset-0 h-full w-full object-cover" src="<?php echo esc_url(boblift_video_poster_src($video)); ?>" alt="" loading="lazy" decoding="async">
                                                         <span class="absolute inset-0 m-auto grid size-7 place-items-center rounded-full bg-white/85 text-[#071f42] sm:size-9"><?php echo boblift_icon('play', 'h-3 w-3 sm:h-4 sm:w-4'); ?></span>
                                                     </span>
-                                                    <span class="mt-1.5 line-clamp-1 text-xs font-medium leading-4 text-slate-600 sm:mt-2 sm:line-clamp-2 sm:text-sm sm:leading-5 group-aria-pressed:font-semibold group-aria-pressed:text-[#071f42]"><?php echo esc_html((string) $video['label']); ?></span>
+                                                    <span class="mt-2 line-clamp-1 text-xs font-normal leading-4 text-slate-500 sm:mt-2.5 sm:text-sm sm:leading-5 group-aria-pressed:font-semibold group-aria-pressed:text-[#071f42]" title="<?php echo esc_attr((string) $video['label']); ?>"><?php echo esc_html((string) $video['label']); ?></span>
                                                 </button>
                                             </li>
                                         <?php endforeach; ?>
                                     </ul>
                                 <?php endif; ?>
-                                <a class="mt-4 inline-flex items-center gap-1.5 text-sm font-black text-blue-700 hover:text-blue-900" href="<?php echo esc_url(boblift_url('/videos.html')); ?>"><?php echo esc_html($video_ui['moreVideosLabel'] ?? 'More videos'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
                             </div>
                         <?php endif; ?>
                         </div>
