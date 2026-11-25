@@ -1,6 +1,7 @@
 <?php
 return [
     'ja' => [
+        'About these configurations' => 'これらの構成について',
         'cfg|With or without a winch? Read our winch guide' => 'ウインチ付きか、なしか？ウインチガイドをご覧ください',
         'cfg|What the winch does: read our winch guide' => 'ウインチの役割：ウインチガイドをご覧ください',
         'cfg|+1 = one added manual extension' => '+1 = 手動延長ブームを 1 段追加',
@@ -74,6 +75,7 @@ return [
         '{code} Series' => '{code} シリーズ',
     ],
     'zh' => [
+        'About these configurations' => '关于这些配置',
         'cfg|With or without a winch? Read our winch guide' => '带不带卷扬？请看我们的卷扬指南',
         'cfg|What the winch does: read our winch guide' => '卷扬有什么用？请看我们的卷扬指南',
         'cfg|+1 = one added manual extension' => '+1 = 另加 1 节手动臂',
@@ -147,6 +149,7 @@ return [
         '{code} Series' => '{code} 系列',
     ],
     'es' => [
+        'About these configurations' => 'Acerca de estas configuraciones',
         'cfg|With or without a winch? Read our winch guide' => '¿Con o sin cabrestante? Lea nuestra guía sobre cabrestantes',
         'cfg|What the winch does: read our winch guide' => 'Para qué sirve el cabrestante: lea nuestra guía sobre cabrestantes',
         'cfg|+1 = one added manual extension' => '+1 = 1 extensión manual adicional',
@@ -220,6 +223,7 @@ return [
         '{code} Series' => 'Serie {code}',
     ],
     'ru' => [
+        'About these configurations' => 'Об этих конфигурациях',
         'cfg|With or without a winch? Read our winch guide' => 'С лебёдкой или без? Читайте наше руководство по лебёдкам',
         'cfg|What the winch does: read our winch guide' => 'Как работает лебёдка: читайте наше руководство по лебёдкам',
         'cfg|+1 = one added manual extension' => '+1 = дополнительно 1 ручной удлинитель',
@@ -293,6 +297,7 @@ return [
         '{code} Series' => 'Серия {code}',
     ],
     'fr' => [
+        'About these configurations' => 'À propos de ces configurations',
         'cfg|With or without a winch? Read our winch guide' => 'Avec ou sans treuil ? Consultez notre guide sur les treuils',
         'cfg|What the winch does: read our winch guide' => 'À quoi sert le treuil : consultez notre guide sur les treuils',
         'cfg|+1 = one added manual extension' => '+1 = 1 rallonge manuelle en plus',
@@ -366,6 +371,7 @@ return [
         '{code} Series' => 'Série {code}',
     ],
     'ar' => [
+        'About these configurations' => 'حول هذه التكوينات',
         'cfg|With or without a winch? Read our winch guide' => 'مع ونش أو بدونه؟ اقرأ دليلنا عن الونش',
         'cfg|What the winch does: read our winch guide' => 'وظيفة الونش: اقرأ دليلنا عن الونش',
         'cfg|+1 = one added manual extension' => '+1 = ذراع تمديد يدوي إضافي واحد',

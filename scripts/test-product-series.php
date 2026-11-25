@@ -21,6 +21,12 @@ if (!function_exists('esc_attr')) {
 if (!function_exists('esc_html')) {
     function esc_html($text): string { return htmlspecialchars((string) $text, ENT_QUOTES); }
 }
+if (!function_exists('wp_unique_id')) {
+    function wp_unique_id(string $prefix = ''): string { static $n = 0; return $prefix . (++$n); }
+}
+if (!function_exists('boblift_icon')) {
+    function boblift_icon(string $name, string $class = ''): string { return '<svg></svg>'; }
+}
 if (!function_exists('esc_url')) {
     function esc_url($url): string { return htmlspecialchars((string) $url, ENT_QUOTES); }
 }
@@ -247,6 +253,9 @@ $cmpRow = preg_match('/data-cfg-row="SQ2ZA4J".*?<\/tr>/s', $cmpHtml, $cmpMatch) 
 $check('comparison row shows 910 kg', true, str_contains($cmpRow, '910 kg'));
 $check('comparison keeps the open-weight note for the SQ2ZA3J', true, str_contains($cmpHtml, 'Winch version: self weight confirmed with your quote'));
 $check('comparison never says 70–110 kg', false, str_contains($cmpHtml, '70–110'));
+$check('comparison folds its notes behind the label button', true, str_contains($cmpHtml, 'data-info-toggle') && str_contains($cmpHtml, 'hidden data-info-panel'));
+$check('comparison no longer repeats the +1 note', false, str_contains($cmpHtml, '+1 = one added manual extension'));
+$check('a left-out weight says what it stands for', true, (bool) preg_match('/title="Winch version: self weight confirmed with your quote"><span aria-hidden="true">—/u', $cmpHtml));
 
 $check('winch words', ['With winch', 'No winch', ''], [boblift_series_winch_text('1'), boblift_series_winch_text('0'), boblift_series_winch_text('')]);
 

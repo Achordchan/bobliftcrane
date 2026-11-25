@@ -759,7 +759,8 @@ if ($family_quote_copy) {
                 <div class="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-6 px-4 py-5 sm:p-6 md:p-8 <?php echo $drawings ? '' : 'border-t border-[#E6EDF5]'; ?>">
                     <?php if ($series_page && count((array) ($GLOBALS['boblift_series_render']['variants'] ?? [])) > 1) : ?>
                         <?php // Every configuration with its key figures; a row switches the page like the box at the top, and follows it. ?>
-                        <div><p class="boblift-kicker"><?php echo esc_html(boblift_series_text('Choose your configuration')); ?></p><div class="mt-3" data-cfg-compare-slot><?php boblift_series_render_compare((string) $series_member['model']); ?></div></div>
+                        <?php // The label and its notes come with the list (boblift_specs_render_choices()), which moves to the configuration shown. ?>
+                        <div data-cfg-compare-slot><?php boblift_series_render_compare((string) $series_member['model']); ?></div>
                     <?php endif; ?>
                     <?php // A translated table whose self weight or winch row cannot be placed says so above it on a derived version (theme script). ?>
                     <?php if ($series_page && boblift_series_spec_rows_unplaced((int) $series_member['en_id'], (array) $specs, $series_weight_label, $series_winch_label)) : ?><p class="text-sm leading-6 text-slate-500" data-cfg-spec-note hidden></p><?php endif; ?>
