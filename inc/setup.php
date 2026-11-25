@@ -713,11 +713,15 @@ function boblift_content_jsonld(): void
     if (!is_singular() || post_password_required(get_queried_object())) {
         return;
     }
-    $content = (string) get_post_field('post_content', get_queried_object_id(), 'raw');
-    if (stripos($content, 'application/ld+json') === false || !preg_match_all(boblift_content_jsonld_pattern(), $content, $matches)) {
-        return;
+    $jsons = [];
+    foreach (boblift_content_jsonld_post_ids((int) get_queried_object_id()) as $post_id) {
+        $content = (string) get_post_field('post_content', $post_id, 'raw');
+        if (stripos($content, 'application/ld+json') !== false && preg_match_all(boblift_content_jsonld_pattern(), $content, $matches)) {
+            array_push($jsons, ...$matches[2]);
+        }
     }
-    foreach ($matches[2] as $json) {
+    // Two configurations may carry the same block (one film shared by a series); it is printed once.
+    foreach (array_unique(array_map('trim', $jsons)) as $json) {
         $data = json_decode(str_replace('{{home}}', untrailingslashit((string) get_option('home')), trim($json)), true);
         if (is_array($data)) {
             $data = boblift_demote_product_nodes($data);
@@ -726,6 +730,25 @@ function boblift_content_jsonld(): void
     }
 }
 add_action('wp_head', 'boblift_content_jsonld', 6);
+
+/**
+ * The posts whose body JSON-LD belongs in this page's head: the page itself and, on a series page, every configuration
+ * shown on it. A series page renders each configuration's body (its film and the film's VideoObject among them) under
+ * one address, and the configurations' own addresses redirect there with ?model=, so their JSON-LD is printed here.
+ */
+function boblift_content_jsonld_post_ids(int $post_id): array
+{
+    $ids = [$post_id];
+    $series = function_exists('boblift_series_for_product') ? boblift_series_for_product($post_id) : null;
+    if ($series !== null && (int) $series['home_id'] === $post_id) {
+        foreach ($series['members'] as $member) {
+            if (get_post_status((int) $member['id']) === 'publish' && !post_password_required((int) $member['id'])) {
+                $ids[] = (int) $member['id'];
+            }
+        }
+    }
+    return array_values(array_unique(array_filter($ids)));
+}
 
 // A Product node (a case's "about": its crane model) makes Search Console report a Product snippet missing offers,
 // review or aggregateRating. We publish no prices or ratings, so such nodes go out as a plain Thing that keeps the
