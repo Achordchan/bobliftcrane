@@ -30,6 +30,7 @@ function boblift_rest_json_string_fields(): array
         'boblift_tonnage_copy',
         'boblift_top_bar',
         'boblift_site_text',
+        'boblift_legacy_redirects',
     ];
 }
 
