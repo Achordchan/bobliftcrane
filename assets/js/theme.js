@@ -3654,6 +3654,80 @@
     qsa('[data-inview-video]').forEach((video) => videoObserver.observe(video));
   }
 
+  // Info buttons, such as the (i) beside a product page's video list: a click shows or hides the note the button
+  // controls; a click anywhere else, or Escape, hides it again. One note is open at a time.
+  const infoToggles = qsa('[data-info-toggle]');
+  if (infoToggles.length) {
+    const infoPanel = (toggle) => document.getElementById(toggle.getAttribute('aria-controls') || '');
+    const setInfo = (toggle, open) => {
+      const panel = infoPanel(toggle);
+      if (!panel) return;
+      panel.hidden = !open;
+      toggle.setAttribute('aria-expanded', String(open));
+    };
+    const closeInfo = (except = null) => infoToggles.forEach((toggle) => {
+      if (toggle !== except && toggle.getAttribute('aria-expanded') === 'true') setInfo(toggle, false);
+    });
+    infoToggles.forEach((toggle) => toggle.addEventListener('click', () => {
+      const open = toggle.getAttribute('aria-expanded') !== 'true';
+      closeInfo(toggle);
+      setInfo(toggle, open);
+    }));
+    document.addEventListener('click', (event) => {
+      if (!event.target.closest('[data-info-toggle], [data-info-panel]')) closeInfo();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+      const open = infoToggles.find((toggle) => toggle.getAttribute('aria-expanded') === 'true');
+      if (open) setInfo(open, false);
+    });
+  }
+
+  // Category comparison on phones: folded behind a button, then two models side by side, each picked from a list.
+  qsa('[data-compare-pair]').forEach((pair) => {
+    const toggle = pair.querySelector('[data-compare-toggle]');
+    const label = pair.querySelector('[data-compare-toggle-label]');
+    const picks = qsa('[data-compare-pick]', pair);
+    const picker = pair.querySelector('[data-compare-picker]');
+    if (!toggle || picks.length !== 2) return;
+    const phone = window.matchMedia('(max-width: 639.98px)');
+    // Each row's model cells in the table's own order, restored before the picked two are put in the lists' order.
+    const rows = qsa('tr', pair).map((row) => [row, qsa('[data-col]', row)]);
+    const show = () => {
+      const chosen = picks.map((select) => select.value);
+      const swap = phone.matches && pair.hasAttribute('data-open') && Number(chosen[0]) > Number(chosen[1]);
+      rows.forEach(([row, cells]) => {
+        row.append(...cells);
+        cells.forEach((cell) => cell.toggleAttribute('data-picked', chosen.includes(cell.dataset.col)));
+        if (swap) {
+          const first = cells.find((cell) => cell.dataset.col === chosen[0]);
+          const second = cells.find((cell) => cell.dataset.col === chosen[1]);
+          if (first && second) row.insertBefore(first, second);
+        }
+      });
+    };
+    phone.addEventListener('change', show);
+    picks.forEach((select, which) => select.addEventListener('change', () => {
+      const other = picks[1 - which];
+      // The same model in both lists: move the other list to the next model, so two columns always show.
+      if (other.value === select.value) {
+        other.selectedIndex = (select.selectedIndex + 1) % other.options.length;
+      }
+      show();
+    }));
+    toggle.addEventListener('click', () => {
+      const open = toggle.getAttribute('aria-expanded') !== 'true';
+      toggle.setAttribute('aria-expanded', String(open));
+      pair.toggleAttribute('data-open', open);
+      show();
+      if (label) label.textContent = label.dataset[open ? 'openLabel' : 'closedLabel'] || label.textContent;
+    });
+    show();
+    toggle.hidden = false;
+    if (picker) picker.hidden = false;
+    pair.setAttribute('data-ready', '');
+  });
+
   // Product page films play in place; the list below the player switches which one is loaded.
   qsa('[data-inline-videos]').forEach((root) => {
     const stage = qs('[data-inline-video-stage]', root);

@@ -702,7 +702,9 @@ if ($family_quote_copy) {
                         <div class="min-w-0">
                             <p class="boblift-kicker"><?php echo esc_html($ui['cinemaSpecsLabel'] ?? 'Engineering data'); ?></p>
                             <h2 class="mt-3 boblift-section-title"><?php echo esc_html($ui['technicalLabel'] ?? 'Technical Specifications'); ?></h2>
-                            <?php if ($hero_model !== '') : ?><p class="mt-2 text-[15px] font-bold text-slate-600" dir="ltr"<?php echo $series_page ? ' data-cfg-model-text' : ''; ?>><?php echo esc_html($hero_model); ?></p><?php endif; ?>
+                            <?php // The model under the heading was one repeat too many on screen (hero, model code box and list name it, 2026-11-25); it stays for
+                            // screen readers, as the specification table below leaves out its Model row on the strength of it. ?>
+                            <?php if ($hero_model !== '') : ?><p class="sr-only" dir="ltr"<?php echo $series_page ? ' data-cfg-model-text' : ''; ?>><?php echo esc_html($hero_model); ?></p><?php endif; ?>
                         </div>
                         <?php if ($former_models !== '') : ?>
                             <?php // Old-site model names stay on the page so searches for them still land here. ?>
@@ -759,7 +761,8 @@ if ($family_quote_copy) {
                 <div class="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-6 px-4 py-5 sm:p-6 md:p-8 <?php echo $drawings ? '' : 'border-t border-[#E6EDF5]'; ?>">
                     <?php if ($series_page && count((array) ($GLOBALS['boblift_series_render']['variants'] ?? [])) > 1) : ?>
                         <?php // Every configuration with its key figures; a row switches the page like the box at the top, and follows it. ?>
-                        <div><p class="boblift-kicker"><?php echo esc_html(boblift_series_text('Choose your configuration')); ?></p><div class="mt-3" data-cfg-compare-slot><?php boblift_series_render_compare((string) $series_member['model']); ?></div></div>
+                        <?php // The label and its notes come with the list (boblift_specs_render_choices()), which moves to the configuration shown. ?>
+                        <div data-cfg-compare-slot><?php boblift_series_render_compare((string) $series_member['model']); ?></div>
                     <?php endif; ?>
                     <?php // A translated table whose self weight or winch row cannot be placed says so above it on a derived version (theme script). ?>
                     <?php if ($series_page && boblift_series_spec_rows_unplaced((int) $series_member['en_id'], (array) $specs, $series_weight_label, $series_winch_label)) : ?><p class="text-sm leading-6 text-slate-500" data-cfg-spec-note hidden></p><?php endif; ?>
@@ -883,6 +886,22 @@ if ($family_quote_copy) {
                                 // A looping animation plays like a GIF: muted, no controls, click to pause.
                                 empty($video['loop']) ? '' : ' data-video-loop'
                             );
+                            // A series film shows a crane of the same class, not this exact model. The note saying so stays folded behind an
+                            // (i) button beside the list label (or beside the caption of a lone film) and opens on click.
+                            $video_note = $product_series_video ? trim((string) ($video_ui['productVideoNote'] ?? '')) : '';
+                            $video_note_id = $video_note !== '' ? wp_unique_id('boblift-video-note-') : '';
+                            $video_note_toggle = $video_note === '' ? '' : sprintf(
+                                // 24px icon, 40px tap target (the before: box) so it is easy to hit on a phone.
+                                '<button class="relative inline-grid size-6 shrink-0 place-items-center rounded-full text-slate-400 transition before:absolute before:-inset-2 hover:text-[#0B3F7D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 aria-expanded:text-[#0B3F7D]" type="button" aria-expanded="false" aria-controls="%1$s" aria-label="%2$s" data-info-toggle>%3$s</button>',
+                                esc_attr($video_note_id),
+                                esc_attr(boblift_localized_static_text('About these videos')),
+                                boblift_icon('info', 'h-[18px] w-[18px]')
+                            );
+                            $video_note_panel = $video_note === '' ? '' : sprintf(
+                                '<div id="%1$s" class="absolute -start-1 top-full z-20 mt-2 w-full max-w-[22rem] rounded-sm border border-[#DDE7F2] bg-white px-4 py-3 text-start shadow-[0_8px_24px_rgba(8,35,74,0.12)]" hidden data-info-panel><p class="boblift-note">%2$s</p></div>',
+                                esc_attr($video_note_id),
+                                esc_html($video_note)
+                            );
                         ?>
                             <?php // Films play in place; a list below switches between them. Old shared links to #video land here. ?>
                             <div id="video" class="mt-6 scroll-mt-24 lg:mt-8" data-inline-videos>
@@ -892,14 +911,20 @@ if ($family_quote_copy) {
                                         <span class="absolute inset-0 m-auto grid size-14 place-items-center rounded-sm bg-white/90 text-[#071f42] shadow-card transition group-hover:bg-white"><?php echo boblift_icon('play', 'h-6 w-6'); ?></span>
                                     </button>
                                 </div>
-                                <?php // A lone film has no list below to carry its title. ?><p class="<?php echo count($product_videos) > 1 ? 'sr-only' : 'mt-2 boblift-note'; ?>" data-inline-video-caption><?php echo esc_html((string) $first_video['label']); ?></p>
+                                <?php // A lone film has no list below to carry its title. ?>
+                                <?php if (count($product_videos) === 1 && $video_note_toggle !== '') : ?>
+                                    <div class="relative mt-2 flex items-start gap-1.5"><p class="min-w-0 boblift-note" data-inline-video-caption><?php echo esc_html((string) $first_video['label']); ?></p><?php echo $video_note_toggle . $video_note_panel; ?></div>
+                                <?php else : ?>
+                                    <p class="<?php echo count($product_videos) > 1 ? 'sr-only' : 'mt-2 boblift-note'; ?>" data-inline-video-caption><?php echo esc_html((string) $first_video['label']); ?></p>
+                                <?php endif; ?>
                                 <?php if (count($product_videos) > 1) : ?>
                                     <?php // One row of thumbnails, each with its title, like a playlist under the player: three in view from sm up
-                                    // (on phones a compact swipe strip, about three across with one-line titles, so it stays smaller than the film above), so six films do not stack into rows that push the
+                                    // (titles stay on one line, full text on hover; on phones a compact swipe strip, about three across, so it stays smaller than the film above), so six films do not stack into rows that push the
                                     // sticky column past the screen. With more than three, the fourth peeks in at the edge to show the row goes on, and arrows
                                     // beside the label page through the rest. ?>
-                                    <div class="mt-6 flex items-center justify-between gap-3">
-                                        <p class="boblift-label text-[#071f42]"><?php echo esc_html($video_ui['moreVideosLabel'] ?? 'Videos'); ?><span class="ms-2 font-semibold text-slate-500 [font-variant-numeric:tabular-nums]"><?php echo esc_html((string) count($product_videos)); ?></span></p>
+                                    <div class="relative mt-6 flex items-center justify-between gap-3">
+                                        <p class="flex items-center boblift-label text-[#071f42]"><?php echo esc_html($video_ui['moreVideosLabel'] ?? 'Videos'); ?><span class="ms-2 font-semibold text-slate-500 [font-variant-numeric:tabular-nums]"><?php echo esc_html((string) count($product_videos)); ?></span><?php if ($video_note_toggle !== '') : ?><span class="ms-1.5 inline-flex"><?php echo $video_note_toggle; ?></span><?php endif; ?></p>
+                                        <?php echo $video_note_panel; ?>
                                         <?php if (count($product_videos) > 3) : ?>
                                             <div class="hidden shrink-0 gap-2 sm:flex">
                                                 <button class="grid size-8 place-items-center rounded-sm border border-[#DDE7F2] bg-white text-[#071f42] transition hover:border-[#0B3F7D] disabled:cursor-default disabled:opacity-40 disabled:hover:border-[#DDE7F2]" type="button" data-inline-video-scroll="-1" aria-label="<?php echo esc_attr(boblift_localized_static_text('Previous')); ?>" disabled><?php echo boblift_icon('chevron-left', 'h-4 w-4 rtl:-scale-x-100'); ?></button>
@@ -908,22 +933,20 @@ if ($family_quote_copy) {
                                         <?php endif; ?>
                                     </div>
                                     <?php // The 1px inline padding (4px with the matching negative margin) keeps the selected thumbnail's ring inside the scroller. ?>
-                                    <ul class="-mx-4 mt-2 flex snap-x snap-mandatory scroll-px-4 gap-2.5 overflow-x-auto px-4 pb-1 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:-mx-1 sm:scroll-px-1 sm:gap-4 sm:px-1 [&::-webkit-scrollbar]:hidden" data-inline-video-list>
+                                    <ul class="-mx-4 mt-2 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-1 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:-mx-1 sm:scroll-px-1 sm:gap-5 sm:px-1 [&::-webkit-scrollbar]:hidden" data-inline-video-list>
                                         <?php foreach ($product_videos as $index => $video) : ?>
-                                            <li class="w-[30%] shrink-0 snap-start <?php echo count($product_videos) > 3 ? 'sm:w-[calc((100%-3rem)/3.3)]' : 'sm:w-[calc((100%-2rem)/3)]'; ?>">
+                                            <li class="w-[30%] shrink-0 snap-start <?php echo count($product_videos) > 3 ? 'sm:w-[calc((100%-3.75rem)/3.3)]' : 'sm:w-[calc((100%-2.5rem)/3)]'; ?>">
                                                 <button class="group block w-full text-start focus-visible:outline-none" type="button" data-inline-video-item <?php echo $video_attrs($video); ?> aria-pressed="<?php echo $index === 0 ? 'true' : 'false'; ?>">
                                                     <span class="relative block aspect-video overflow-hidden rounded-sm bg-[#071f42] ring-2 ring-transparent transition group-hover:ring-blue-300 group-focus-visible:ring-blue-400 group-aria-pressed:ring-[#0B3F7D]">
                                                         <img class="absolute inset-0 h-full w-full object-cover" src="<?php echo esc_url(boblift_video_poster_src($video)); ?>" alt="" loading="lazy" decoding="async">
                                                         <span class="absolute inset-0 m-auto grid size-7 place-items-center rounded-full bg-white/85 text-[#071f42] sm:size-9"><?php echo boblift_icon('play', 'h-3 w-3 sm:h-4 sm:w-4'); ?></span>
                                                     </span>
-                                                    <span class="mt-1.5 line-clamp-1 text-xs font-medium leading-4 text-slate-600 sm:mt-2 sm:line-clamp-2 sm:text-sm sm:leading-5 group-aria-pressed:font-semibold group-aria-pressed:text-[#071f42]"><?php echo esc_html((string) $video['label']); ?></span>
+                                                    <span class="mt-2 line-clamp-1 text-xs font-normal leading-4 text-slate-500 sm:mt-2.5 sm:text-sm sm:leading-5 group-aria-pressed:font-semibold group-aria-pressed:text-[#071f42]" title="<?php echo esc_attr((string) $video['label']); ?>"><?php echo esc_html((string) $video['label']); ?></span>
                                                 </button>
                                             </li>
                                         <?php endforeach; ?>
                                     </ul>
                                 <?php endif; ?>
-                                <?php if ($product_series_video) : ?><p class="mt-4 boblift-note"><?php echo esc_html($video_ui['productVideoNote'] ?? ''); ?></p><?php endif; ?>
-                                <a class="mt-3 inline-flex items-center gap-1.5 text-sm font-black text-blue-700 hover:text-blue-900" href="<?php echo esc_url(boblift_url('/videos.html')); ?>"><?php echo esc_html($video_ui['moreVideosLabel'] ?? 'More videos'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
                             </div>
                         <?php endif; ?>
                         </div>
@@ -1155,7 +1178,7 @@ if ($family_quote_copy) {
                         <h2 class="mt-3 boblift-section-title"><?php echo esc_html(boblift_localized_static_text('Shipping, warranty and documents')); ?></h2>
                         <p class="mt-3 hidden max-w-2xl text-sm font-normal leading-6 text-slate-600 sm:block md:text-base md:leading-7"><?php echo esc_html(str_replace('{model}', $hero_title, boblift_localized_static_text('How the {model} reaches you, and what happens after it arrives.'))); ?></p>
                     </div>
-                    <div class="mt-4 grid gap-px border-t border-[#E6EDF5] bg-[#E6EDF5] sm:mt-6 md:mt-8 md:grid-cols-3">
+                    <div class="mt-4 grid gap-px border-t border-[#E6EDF5] bg-[#E6EDF5] sm:mt-6 md:mt-8 <?php echo $buying_brochures ? 'md:grid-cols-3' : 'md:grid-cols-2'; ?>">
                         <section class="bg-white px-4 py-4 sm:p-6 md:p-8" aria-labelledby="buying-shipping">
                             <h3 id="buying-shipping" class="boblift-label"><?php echo esc_html(boblift_localized_static_text('Shipping')); ?></h3>
                             <?php if ($container_loading) : // This model's own figures from the factory loading plan (boblift_product_copy "container_loading"). ?>
@@ -1203,13 +1226,13 @@ if ($family_quote_copy) {
                             <p class="mt-2 text-sm font-normal leading-6 text-slate-700 sm:mt-3"><?php echo esc_html(boblift_localized_static_text('Send the model, serial number and a photo or video of the issue; our team guides the repair and ships the parts.')); ?></p>
                             <p class="mt-3 inline-flex items-center gap-2 text-sm font-black text-[#071f42] sm:mt-4"><?php echo boblift_icon('package-check', 'h-4 w-4 text-[#0B3F7D]'); ?><?php echo esc_html(boblift_localized_static_text('Order from 1 unit')); ?></p>
                         </section>
+                        <?php if ($buying_brochures) : // The brochures only: the drawing and the specifications have their own sections and tabs above. ?>
                         <section class="bg-white px-4 py-4 sm:p-6 md:p-8" aria-labelledby="buying-documents">
                             <?php // Links to #brochures (the brochure card this column replaces on crane pages) land here. ?><span id="brochures" class="block scroll-mt-24" aria-hidden="true"></span>
                             <h3 id="buying-documents" class="boblift-label"><?php echo esc_html(boblift_localized_static_text('Documents')); ?></h3>
-                            <?php // Phones: the two short links side by side under the brochures. ?>
-                            <ul class="mt-3 grid grid-cols-2 gap-3 text-sm sm:mt-4 sm:grid-cols-1">
+                            <ul class="mt-3 grid gap-4 text-sm sm:mt-4 sm:gap-5">
                                 <?php foreach ($buying_brochures as $buying_brochure) : ?>
-                                    <li class="col-span-2 mb-1 sm:col-span-1 grid grid-cols-[48px_minmax(0,1fr)] items-start gap-3 border-b border-[#E6EDF5] pb-4 sm:mb-2 sm:grid-cols-[64px_minmax(0,1fr)] sm:gap-4 sm:pb-5">
+                                    <li class="grid grid-cols-[48px_minmax(0,1fr)] items-start gap-3 border-b border-[#E6EDF5] pb-4 last:border-b-0 last:pb-0 sm:grid-cols-[64px_minmax(0,1fr)] sm:gap-4 sm:pb-5 lg:grid-cols-[84px_minmax(0,1fr)] lg:gap-5">
                                         <a class="block" href="<?php echo esc_url($buying_brochure['url']); ?>" download="<?php echo esc_attr($buying_brochure['file']); ?>" tabindex="-1" aria-hidden="true"><img class="aspect-[520/711] w-full rounded-sm border border-[#DDE7F2] bg-white object-cover" src="<?php echo esc_url($buying_brochure['cover']); ?>" width="520" height="711" alt="" loading="lazy" decoding="async"></a>
                                         <div class="min-w-0">
                                             <p class="font-black leading-snug text-[#071f42]"><?php echo esc_html($buying_brochure['title']); ?></p>
@@ -1221,12 +1244,9 @@ if ($family_quote_copy) {
                                         </div>
                                     </li>
                                 <?php endforeach; ?>
-                                <?php if ($drawings) : ?>
-                                    <li><a class="inline-flex items-start gap-2 font-black text-[#071f42] transition hover:text-blue-700" href="#drawing"><?php echo boblift_icon('maximize-2', 'mt-0.5 h-4 w-4 shrink-0 text-[#0B3F7D]'); ?><?php echo esc_html($ui['drawingTitle'] ?? 'Dimensions and load chart'); ?></a></li>
-                                <?php endif; ?>
-                                <li><a class="inline-flex items-start gap-2 font-black text-[#071f42] transition hover:text-blue-700" href="#technical"><?php echo boblift_icon('file-text', 'mt-0.5 h-4 w-4 shrink-0 text-[#0B3F7D]'); ?><?php echo esc_html(trim($hero_model . ' ' . ($ui['specsHeading'] ?? 'Specifications'))); ?></a></li>
                             </ul>
                         </section>
+                        <?php endif; ?>
                     </div>
                 </article>
             <?php endif; ?>

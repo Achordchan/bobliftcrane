@@ -87,12 +87,11 @@ function boblift_specs_render_choices(array $state): void
     };
     $missing = false;
     $derived_weight = [];
-    $manual = array_filter($choices, static fn(array $choice): bool => ($choice['values']['manual'] ?? '') === '1') && isset($dimensions['sections']);
     // Each row a thin box, cells parted by hairlines; the chosen row takes the dark edge.
     $cell = 'border-y border-s border-[#DDE7F2] px-3 py-3 first:rounded-s-sm last:rounded-e-sm last:border-e [[aria-current]>&]:border-[#0B3F7D] [&:not(:first-child)]:border-s-[#E6EDF5] [[aria-current]>&:not(:first-child)]:border-s-[#C9D8EC]';
     ?>
-    <div data-cfg-compare>
-        <div class="overflow-x-auto [scrollbar-width:thin]">
+    <?php ob_start(); ?>
+        <div class="mt-3 overflow-x-auto [scrollbar-width:thin]">
             <table class="w-full min-w-[460px] border-separate border-spacing-y-1.5 text-[14px] [font-variant-numeric:tabular-nums]">
                 <thead>
                     <tr class="whitespace-nowrap text-[12px] font-semibold uppercase lg:whitespace-normal tracking-[0.08em] text-slate-500 rtl:tracking-normal">
@@ -112,7 +111,7 @@ function boblift_specs_render_choices(array $state): void
                                 $missing = $missing || ($value === null && !($choice['derived'] && $key === 'weight'));
                                 $derived_weight[($choice['values']['winch'] ?? '') === '1' ? 'on' : 'off'] = ($derived_weight[($choice['values']['winch'] ?? '') === '1' ? 'on' : 'off'] ?? false) || ($value === null && $choice['derived'] && $key === 'weight');
                                 ?>
-                                <td class="<?php echo esc_attr($cell); ?> whitespace-nowrap font-bold"><span dir="ltr"><?php echo $value === null ? '<span class="font-normal text-slate-400">—</span>' : esc_html($figure_text($key, $value)); ?></span></td>
+                                <td class="<?php echo esc_attr($cell); ?> whitespace-nowrap font-bold"><span dir="ltr"><?php echo $value === null ? boblift_specs_dash($choice['derived'] && $key === 'weight' ? boblift_series_weight_note(($choice['values']['winch'] ?? '') === '1' ? '1' : '0', (string) ($state['series']['family'] ?? 'marine')) : boblift_series_text('—: not listed here, see the drawing for this configuration.')) : esc_html($figure_text($key, $value)); ?></span></td>
                             <?php endforeach; ?>
                         </tr>
                     <?php endforeach; ?>
@@ -120,12 +119,32 @@ function boblift_specs_render_choices(array $state): void
             </table>
         </div>
         <?php
-        $notes = array_filter([boblift_series_winch_sentence((string) $state['series']['winch'], (string) ($state['series']['family'] ?? 'marine')), $manual ? boblift_series_text('+1 = one added manual extension') : '', !empty($derived_weight['on']) ? '— ' . boblift_series_weight_note('1', (string) ($state['series']['family'] ?? 'marine')) : '', !empty($derived_weight['off']) ? '— ' . boblift_series_text('No-winch version: self weight confirmed with your quote') : '', $missing ? boblift_series_text('—: not listed here, see the drawing for this configuration.') : '']);
-        foreach ($notes as $note) : ?>
-            <p class="mt-1.5 text-[13px] leading-5 text-slate-500"><?php echo esc_html($note); ?></p>
-        <?php endforeach; ?>
+        $table = (string) ob_get_clean();
+        // The notes under the list (winch or not, a self weight left to the quote, a figure only on the drawing) are folded behind an
+        // (i) button beside the label and open on click; they stay in the markup. "+1" is not repeated here: the model code box above
+        // explains it (2026-11-25, the owner found the lines wordy on phones).
+        $notes = array_filter([boblift_series_winch_sentence((string) $state['series']['winch'], (string) ($state['series']['family'] ?? 'marine')), !empty($derived_weight['on']) ? '— ' . boblift_series_weight_note('1', (string) ($state['series']['family'] ?? 'marine')) : '', !empty($derived_weight['off']) ? '— ' . boblift_series_text('No-winch version: self weight confirmed with your quote') : '', $missing ? boblift_series_text('—: not listed here, see the drawing for this configuration.') : '']);
+        $notes_id = $notes ? wp_unique_id('boblift-cfg-notes-') : '';
+        ?>
+    <div data-cfg-compare>
+        <div class="relative">
+            <p class="boblift-kicker flex items-center"><?php echo esc_html(boblift_series_text('Choose your configuration')); ?><?php if ($notes) : ?><span class="ms-1.5 inline-flex"><button class="relative inline-grid size-6 shrink-0 place-items-center rounded-full text-slate-400 transition before:absolute before:-inset-2 hover:text-[#0B3F7D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 aria-expanded:text-[#0B3F7D]" type="button" aria-expanded="false" aria-controls="<?php echo esc_attr($notes_id); ?>" aria-label="<?php echo esc_attr(boblift_localized_static_text('About these configurations')); ?>" data-info-toggle><?php echo boblift_icon('info', 'h-[18px] w-[18px]'); ?></button></span><?php endif; ?></p>
+            <?php if ($notes) : ?>
+                <div id="<?php echo esc_attr($notes_id); ?>" class="absolute start-0 top-full z-20 mt-2 w-full max-w-[24rem] rounded-sm border border-[#DDE7F2] bg-white px-4 py-3 text-start shadow-[0_8px_24px_rgba(8,35,74,0.12)]" hidden data-info-panel>
+                    <?php foreach ($notes as $note) : ?><p class="boblift-note [&+&]:mt-1.5"><?php echo esc_html($note); ?></p><?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+        <?php echo $table; // phpcs:ignore WordPress.Security.EscapeOutput -- built from escaped parts above. ?>
     </div>
     <?php
+}
+
+/** A figure left out of the configuration list: a dash, with what it stands for on hover and for screen readers. */
+function boblift_specs_dash(string $meaning): string
+{
+    $meaning = trim(preg_replace('/^[—\s:]+/u', '', $meaning) ?? $meaning);
+    return '<span class="font-normal text-slate-400" title="' . esc_attr($meaning) . '"><span aria-hidden="true">—</span><span class="sr-only">' . esc_html($meaning) . '</span></span>';
 }
 
 /** The model code as one strip in the order the name is written. */
@@ -136,13 +155,14 @@ function boblift_specs_render_decode_strip(string $model, string $winch, int $en
         return;
     }
     ?>
-    <?php // Phones: two even columns under the label, with no dividers left at the start of a wrapped line. ?>
-    <div class="mt-5 grid grid-cols-2 items-start gap-x-3 gap-y-2.5 rounded-sm border border-[#DDE7F2] bg-[#F8FAFC] px-4 py-3 sm:flex sm:flex-wrap sm:items-center sm:gap-x-0">
-        <p class="boblift-kicker col-span-2 shrink-0 sm:me-4"><?php echo esc_html(boblift_series_text('Model code explained')); ?></p>
+    <?php // Phones: one part to a line under the label, read top to bottom in the order the name is written (two columns were
+    // too crowded, 2026-11-25). ?>
+    <div class="mt-5 grid grid-cols-1 items-start gap-y-2 rounded-sm border border-[#DDE7F2] bg-[#F8FAFC] px-4 py-3 sm:flex sm:flex-wrap sm:items-center sm:gap-x-0">
+        <p class="boblift-kicker mb-1 shrink-0 sm:mb-0 sm:me-4"><?php echo esc_html(boblift_series_text('Model code explained')); ?></p>
         <dl class="contents">
             <?php foreach ($decode['parts'] as [$code, $meaning]) : ?>
                 <div class="flex min-w-0 items-start gap-2 sm:items-center sm:border-s sm:border-[#D5DEE9] sm:px-4"<?php echo $code === 'J' ? ' data-cfg-decode-winch' . ($decode['has_winch'] ? '' : ' style="display:none"') : ''; ?>>
-                    <dt class="inline-flex h-6 min-w-6 shrink-0 items-center justify-center rounded-sm bg-[#071f42] px-1.5 text-[12px] font-black leading-none text-white [font-variant-numeric:tabular-nums]" dir="ltr"><?php echo esc_html($code); ?></dt>
+                    <dt class="inline-flex h-6 min-w-9 shrink-0 sm:min-w-6 items-center justify-center rounded-sm bg-[#071f42] px-1.5 text-[12px] font-black leading-none text-white [font-variant-numeric:tabular-nums]" dir="ltr"><?php echo esc_html($code); ?></dt>
                     <dd class="min-w-0 pt-0.5 text-[14px] leading-5 text-slate-600 sm:pt-0"><?php echo esc_html($meaning); ?></dd>
                 </div>
             <?php endforeach; ?>

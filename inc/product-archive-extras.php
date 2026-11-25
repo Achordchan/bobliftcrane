@@ -214,7 +214,8 @@ function boblift_compare_series_prepare(array $models): array
  * Models side by side: one column per model (photo, model, name), one row per published figure, so a range of twelve
  * models stays five rows tall and scrolls sideways with the labels pinned. $options: label_class (the pinned column's
  * colours), this_id (the page's own model, not linked), status (tag each column current or previous), ask (an inquiry
- * button under each previous model).
+ * button under each previous model), mobile_pair (phones: folded behind a button, and once opened two columns picked from
+ * two lists side by side instead of a wide table to swipe; the whole table stays in the markup for search engines).
  */
 function boblift_render_model_table(array $models, string $labelled_by, array $options = []): void
 {
@@ -249,16 +250,46 @@ function boblift_render_model_table(array $models, string $labelled_by, array $o
     $by_series = isset($models[0]['heading']);
     $label_cell = 'sticky start-0 z-10 w-[132px] min-w-[132px] border-e border-[#E5E7EB] px-4 text-start text-[13px] font-semibold text-slate-500 sm:w-[180px] sm:min-w-[180px] sm:px-5 ' . (string) ($options['label_class'] ?? 'bg-[#F8FAFC]');
     $ask_label = $t('Ask about this model');
-    ?>
+    $pair = !empty($options['mobile_pair']) && count($models) > 2;
+    $pair_id = $pair ? wp_unique_id('boblift-compare-') : '';
+    $col = static fn(int $index): string => $pair ? ' data-col="' . $index . '"' : '';
+    if ($pair) :
+        $pick_names = array_map(static fn(array $item): string => trim(wp_strip_all_tags((string) ($item['heading'] ?? $item['model'] ?? ''))), $models);
+        $pick_select = static function (string $label, int $which, int $selected) use ($pick_names, $pair_id): void {
+            ?>
+            <label class="block min-w-0">
+                <span class="boblift-label"><?php echo esc_html($label); ?></span>
+                <select class="mt-1.5 block h-11 w-full min-w-0 truncate rounded-sm border border-[#DDE7F2] bg-white px-3 text-sm font-black text-[#071f42]" data-compare-pick="<?php echo esc_attr((string) $which); ?>" aria-controls="<?php echo esc_attr($pair_id); ?>">
+                    <?php foreach ($pick_names as $index => $name) : ?>
+                        <option value="<?php echo esc_attr((string) $index); ?>"<?php selected($index, $selected); ?>><?php echo esc_html($name); ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </label>
+            <?php
+        };
+        ?>
+    <?php // Phones: the table is folded behind this button (shown by theme.js, so without scripts the full table stays). ?>
+    <div class="boblift-compare-pair" data-compare-pair>
+    <button class="inline-flex h-12 w-full items-center justify-center gap-2 rounded-sm border border-[#0B3F7D] bg-white px-4 text-sm font-black text-[#0B3F7D] transition hover:bg-blue-50 sm:hidden" type="button" aria-expanded="false" aria-controls="<?php echo esc_attr($pair_id); ?>" data-compare-toggle hidden>
+        <?php echo boblift_icon('layers', 'h-4 w-4 shrink-0'); ?>
+        <span data-compare-toggle-label data-open-label="<?php echo esc_attr($t('Hide the comparison')); ?>" data-closed-label="<?php echo esc_attr($t('Compare side by side')); ?>"><?php echo esc_html($t('Compare side by side')); ?></span>
+        <span class="font-semibold text-slate-500 [font-variant-numeric:tabular-nums]"><?php echo esc_html((string) count($models)); ?></span>
+    </button>
+    <div id="<?php echo esc_attr($pair_id); ?>" class="boblift-compare-body">
+    <div class="mb-3 grid grid-cols-2 gap-3 sm:hidden" data-compare-picker hidden>
+        <?php $pick_select($t('Crane 1'), 0, 0); ?>
+        <?php $pick_select($t('Crane 2'), 1, 1); ?>
+    </div>
+    <?php endif; ?>
     <div class="overflow-x-auto overscroll-x-contain rounded border border-[#E5E7EB] bg-white" tabindex="0" role="region" aria-labelledby="<?php echo esc_attr($labelled_by); ?>">
         <table class="w-full border-separate border-spacing-0 text-sm">
             <thead>
                 <tr>
-                    <th class="<?php echo esc_attr($label_cell); ?> border-b-2 border-b-ink align-bottom pb-4" scope="col"><?php if ($by_series) : ?><span class="sr-only"><?php echo esc_html($t('Model')); ?></span><?php else : echo esc_html($t('Model')); endif; ?></th>
-                    <?php foreach ($models as $item) :
+                    <th class="boblift-compare-label <?php echo esc_attr($label_cell); ?> border-b-2 border-b-ink align-bottom pb-4" scope="col"><?php if ($by_series) : ?><span class="sr-only"><?php echo esc_html($t('Model')); ?></span><?php else : echo esc_html($t('Model')); endif; ?></th>
+                    <?php foreach ($models as $index => $item) :
                         $is_this = $item['id'] === $this_id;
                         ?>
-                        <th class="<?php echo $by_series ? 'min-w-[232px] align-top' : 'min-w-[180px] align-bottom'; ?> border-b-2 border-b-ink px-4 pb-4 pt-5 text-start font-normal <?php echo $is_this ? 'bg-[#F5F8FC]' : ''; ?>" scope="col">
+                        <th class="<?php echo $by_series ? 'min-w-[232px] align-top' : 'min-w-[180px] align-bottom'; ?> border-b-2 border-b-ink px-4 pb-4 pt-5 text-start font-normal <?php echo $is_this ? 'bg-[#F5F8FC]' : ''; ?>" scope="col"<?php echo $col((int) $index); ?>>
                             <?php if ($status) : ?>
                                 <span class="mb-3 inline-flex items-center rounded-sm px-2 py-1 text-[11px] font-black uppercase leading-none tracking-[0.08em] <?php echo $item['legacy'] ? 'bg-[#EEF1F5] text-slate-600' : 'bg-blue-50 text-blue-700'; ?>"><?php echo esc_html($t($item['legacy'] ? 'Previous model' : 'Current model')); ?></span>
                             <?php endif; ?>
@@ -287,17 +318,17 @@ function boblift_render_model_table(array $models, string $labelled_by, array $o
             <tbody>
                 <?php foreach ($rows as $key => $label) : ?>
                     <tr class="group/row">
-                        <th class="<?php echo esc_attr($label_cell); ?> border-b py-3.5" scope="row"><?php echo esc_html($label); ?></th>
-                        <?php foreach ($models as $item) : ?>
-                            <td class="boblift-spec-cell <?php echo $item['id'] === $this_id ? 'bg-[#F5F8FC]' : ''; ?>"><bdi><?php echo esc_html((string) ($item[$key] ?: '—')); ?></bdi></td>
+                        <th class="boblift-compare-label <?php echo esc_attr($label_cell); ?> border-b py-3.5" scope="row"><?php echo esc_html($label); ?></th>
+                        <?php foreach ($models as $index => $item) : ?>
+                            <td class="boblift-spec-cell <?php echo $item['id'] === $this_id ? 'bg-[#F5F8FC]' : ''; ?>"<?php echo $col((int) $index); ?>><bdi><?php echo esc_html((string) ($item[$key] ?: '—')); ?></bdi></td>
                         <?php endforeach; ?>
                     </tr>
                 <?php endforeach; ?>
                 <?php // The last row holds the actions: the full specifications of a current model, or (with ask) an inquiry about a previous one. ?>
                     <tr>
-                        <th class="<?php echo esc_attr($label_cell); ?> py-3.5" scope="row"><span class="sr-only"><?php echo esc_html($t('Built to order')); ?></span></th>
-                        <?php foreach ($models as $item) : ?>
-                            <td class="px-4 py-3.5 <?php echo $item['id'] === $this_id ? 'bg-[#F5F8FC]' : ''; ?>">
+                        <th class="boblift-compare-label <?php echo esc_attr($label_cell); ?> py-3.5" scope="row"><span class="sr-only"><?php echo esc_html($t('Built to order')); ?></span></th>
+                        <?php foreach ($models as $index => $item) : ?>
+                            <td class="px-4 py-3.5 <?php echo $item['id'] === $this_id ? 'bg-[#F5F8FC]' : ''; ?>"<?php echo $col((int) $index); ?>>
                                 <?php if ($ask && $item['legacy']) : ?>
                                     <button class="inline-flex items-center gap-1.5 text-start text-sm font-black text-blue-700 transition hover:text-[#071f42]" type="button" data-inquiry-modal-open data-inquiry-source="历史型号" data-inquiry-product="<?php echo esc_attr((string) $item['title']); ?>" data-inquiry-products="<?php echo esc_attr(boblift_inquiry_product_payload((int) $item['id'], (string) $item['title'], (string) $item['image'])); ?>"><?php echo esc_html($ask_label); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 shrink-0 rtl:rotate-180'); ?></button>
                                 <?php elseif ($item['id'] !== $this_id) : ?>
@@ -311,6 +342,10 @@ function boblift_render_model_table(array $models, string $labelled_by, array $o
             </tbody>
         </table>
     </div>
+    <?php if ($pair) : ?>
+    </div>
+    </div>
+    <?php endif; ?>
     <?php
 }
 
@@ -340,7 +375,7 @@ function boblift_render_archive_compare_block(WP_Term $term): void
             </div>
             <p class="max-w-[46ch] text-sm leading-6 text-slate-600 lg:col-span-5 lg:justify-self-end"><?php echo esc_html($t('Figures from the BOB-LIFT technical drawings. Confirm the final specification with our team before ordering.')); ?></p>
         </div>
-        <div class="mt-6 lg:mt-8"><?php boblift_render_model_table(boblift_compare_series_prepare($models), $id); ?></div>
+        <div class="mt-6 lg:mt-8"><?php boblift_render_model_table(boblift_compare_series_prepare($models), $id, ['mobile_pair' => true]); ?></div>
     </section>
     <?php
 }
@@ -440,15 +475,16 @@ function boblift_render_archive_articles(string $family, string $slug): void
             </div>
             <a class="inline-flex shrink-0 items-center gap-2 text-sm font-bold text-navy transition hover:text-blue-700" href="<?php echo esc_url(boblift_url('/news')); ?>"><?php echo esc_html((string) ($article_ui['relatedLink'] ?? 'All news')); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:-scale-x-100'); ?></a>
         </div>
-        <div class="mt-6 grid gap-5 lg:mt-8 <?php echo $single ? '' : (count($posts) === 2 ? 'md:grid-cols-2' : 'md:grid-cols-3'); ?> xl:gap-6">
+        <?php // Phones: one card holding a list, each small photo beside its date and title, as on the product page. ?>
+        <div class="mt-6 grid gap-5 max-sm:gap-0 max-sm:rounded max-sm:border max-sm:border-[#E5E7EB] max-sm:bg-white max-sm:px-4 lg:mt-8 <?php echo $single ? '' : (count($posts) === 2 ? 'md:grid-cols-2' : 'md:grid-cols-3'); ?> xl:gap-6">
             <?php foreach ($posts as $post) : $excerpt = function_exists('boblift_article_card_excerpt') ? boblift_article_card_excerpt((string) get_the_excerpt($post), (string) get_the_title($post)) : ''; ?>
-                <a class="group grid overflow-hidden rounded border border-[#E5E7EB] bg-white transition hover:border-blue-200 <?php echo $single ? 'md:grid-cols-12' : ''; ?>" href="<?php echo esc_url(get_permalink($post)); ?>">
-                    <span class="relative block aspect-[16/9] overflow-hidden bg-mist <?php echo $single ? 'md:col-span-5 md:aspect-auto md:min-h-[280px]' : ''; ?>"><img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" src="<?php echo esc_url(boblift_post_thumbnail_url($post, boblift_asset('images/page-heroes/factory-floor.webp'))); ?>" alt="<?php echo esc_attr(boblift_post_thumbnail_alt($post, (string) get_the_title($post))); ?>" loading="lazy" decoding="async"></span>
-                    <span class="flex flex-col p-5 <?php echo $single ? 'md:col-span-7 md:justify-center md:p-10' : ''; ?>">
+                <a class="group grid overflow-hidden rounded border border-[#E5E7EB] bg-white transition hover:border-blue-200 max-sm:grid-cols-[120px_minmax(0,1fr)] max-sm:items-start max-sm:gap-x-3.5 max-sm:rounded-none max-sm:border-x-0 max-sm:border-t-0 max-sm:border-[#E6EDF5] max-sm:py-4 max-sm:last:border-b-0 <?php echo $single ? 'md:grid-cols-12' : ''; ?>" href="<?php echo esc_url(get_permalink($post)); ?>">
+                    <span class="relative block aspect-[16/9] overflow-hidden bg-mist max-sm:aspect-[4/3] max-sm:rounded-sm <?php echo $single ? 'md:col-span-5 md:aspect-auto md:min-h-[280px]' : ''; ?>"><img class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" src="<?php echo esc_url(boblift_post_thumbnail_url($post, boblift_asset('images/page-heroes/factory-floor.webp'))); ?>" alt="<?php echo esc_attr(boblift_post_thumbnail_alt($post, (string) get_the_title($post))); ?>" loading="lazy" decoding="async"></span>
+                    <span class="flex min-w-0 flex-col p-5 max-sm:p-0 <?php echo $single ? 'md:col-span-7 md:justify-center md:p-10' : ''; ?>">
                         <time class="text-xs font-bold text-slate-500" datetime="<?php echo esc_attr(get_the_date('Y-m-d', $post)); ?>"><?php echo esc_html(get_the_date('Y-m-d', $post)); ?></time>
-                        <span class="mt-2 line-clamp-2 font-black leading-snug text-ink transition group-hover:text-blue-700 <?php echo $single ? 'text-[clamp(1.25rem,1.8vw,1.75rem)]' : 'text-lg'; ?>"><?php echo esc_html(get_the_title($post)); ?></span>
-                        <?php if ($excerpt !== '') : ?><span class="mt-3 line-clamp-2 text-sm leading-6 text-slate-600"><?php echo esc_html($excerpt); ?></span><?php endif; ?>
-                        <span class="mt-auto inline-flex items-center gap-2 pt-5 text-sm font-bold text-navy transition group-hover:text-blue-700"><?php echo esc_html($t('Read the article')); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 transition group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5'); ?></span>
+                        <span class="mt-2 line-clamp-2 font-black leading-snug text-ink transition group-hover:text-blue-700 max-sm:mt-1 max-sm:line-clamp-3 max-sm:!text-[15px] <?php echo $single ? 'text-[clamp(1.25rem,1.8vw,1.75rem)]' : 'text-lg'; ?>"><?php echo esc_html(get_the_title($post)); ?></span>
+                        <?php if ($excerpt !== '') : ?><span class="mt-3 line-clamp-2 text-sm leading-6 text-slate-600 max-sm:hidden"><?php echo esc_html($excerpt); ?></span><?php endif; ?>
+                        <span class="mt-auto inline-flex items-center gap-2 pt-5 text-sm font-bold text-navy transition group-hover:text-blue-700 max-sm:hidden"><?php echo esc_html($t('Read the article')); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 transition group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5'); ?></span>
                     </span>
                 </a>
             <?php endforeach; ?>
@@ -515,10 +551,11 @@ function boblift_render_archive_made(): void
                     </ol>
                 </div>
             </div>
-            <?php // Two columns, every second photo set lower, so they read as a staggered wall rather than a grid of cards. ?>
-            <div class="grid gap-8 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-10 sm:pb-24 lg:col-span-8 xl:gap-x-8 sm:[&>*:nth-child(even)]:translate-y-24">
+            <?php // Two columns, every second photo set lower, so they read as a staggered wall rather than a grid of cards. Phones swipe
+            // through the steps in one row instead (2026-11-25, the owner's choice), so ten photos do not run a whole screen each. ?>
+            <div class="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:snap-none sm:grid-cols-2 sm:gap-x-6 sm:gap-y-10 sm:overflow-visible sm:px-0 sm:pb-24 lg:col-span-8 xl:gap-x-8 sm:[&>*:nth-child(even)]:translate-y-24 [&::-webkit-scrollbar]:hidden">
                 <?php foreach ($steps as $index => $step) : ?>
-                    <figure id="archive-made-<?php echo esc_attr($number($index)); ?>" class="scroll-mt-5">
+                    <figure id="archive-made-<?php echo esc_attr($number($index)); ?>" class="w-[82%] shrink-0 snap-start scroll-mt-5 sm:w-auto">
                         <a class="group block overflow-hidden rounded-sm bg-mist" href="<?php echo esc_url($step['url']); ?>"><img class="aspect-[4/3] h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" src="<?php echo esc_url($step['image']); ?>" alt="<?php echo esc_attr($step['title']); ?>" loading="lazy" decoding="async"></a>
                         <figcaption class="mt-4 grid grid-cols-[auto_1fr] gap-x-4">
                             <span class="pt-1.5 text-xs font-bold text-blue-700 [font-variant-numeric:tabular-nums]"><?php echo esc_html($number($index) . ' / ' . $total); ?></span>
@@ -566,17 +603,19 @@ function boblift_render_archive_extras(array $categories, string $initial_catego
     $blocks(static fn(array $term, string $slug) => boblift_render_archive_articles($term['family'], $slug));
 }
 
-/** Product page: up to three articles about the product's family, in the page's card style, after the related models. */
+/** Product page: up to four articles about the product's family, in the page's card style, after the related models (four across, like them). */
 function boblift_render_product_articles(WP_Term $term): void
 {
-    $posts = boblift_archive_family_articles(boblift_source_term_slug($term));
+    $posts = boblift_archive_family_articles(boblift_source_term_slug($term), 4);
     if (!$posts) {
         return;
     }
     $t = static fn(string $text): string => boblift_localized_static_text($text);
     $article_ui = boblift_site_ui('newsArticle');
-    // One article lies beside its photo, so it does not sit alone in a three-column row.
+    // One article lies beside its photo, so it does not sit alone in a row; two or three fill the row; four line up with the
+    // four related-model cards above (same columns and gap).
     $single = count($posts) === 1;
+    $columns = $single ? '' : ['', '', 'sm:grid-cols-2', 'sm:grid-cols-2 lg:grid-cols-3', 'sm:grid-cols-2 lg:grid-cols-4'][min(count($posts), 4)];
     ?>
     <section id="articles" class="scroll-mt-24 overflow-hidden rounded border border-[#DDE7F2] bg-white shadow-card" aria-labelledby="articles-title">
         <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 px-4 pt-5 pb-0 sm:p-6 sm:pb-0 md:p-8 md:pb-0">
@@ -587,7 +626,7 @@ function boblift_render_product_articles(WP_Term $term): void
             <a class="inline-flex items-center gap-1.5 text-sm font-black text-blue-700 transition hover:text-[#071f42]" href="<?php echo esc_url(boblift_url('/news')); ?>"><?php echo esc_html((string) ($article_ui['relatedLink'] ?? 'All news')); ?><?php echo boblift_icon('arrow-right', 'h-4 w-4 rtl:rotate-180'); ?></a>
         </div>
         <?php // Phones: a list, each small photo beside its date and title, instead of a full-width photo per article. ?>
-        <ul class="grid gap-x-5 gap-y-4 px-4 py-5 sm:gap-y-6 sm:p-6 md:p-8 <?php echo $single ? '' : 'sm:grid-cols-2 lg:grid-cols-3'; ?>">
+        <ul class="grid gap-x-5 gap-y-4 px-4 py-5 sm:gap-y-6 sm:p-6 md:p-8 <?php echo esc_attr($columns); ?>">
             <?php foreach ($posts as $post) : ?>
                 <li class="min-w-0 max-sm:border-b max-sm:border-[#E6EDF5] max-sm:pb-4 max-sm:last:border-b-0 max-sm:last:pb-0">
                     <a class="group grid grid-cols-[120px_minmax(0,1fr)] items-start gap-x-3.5 <?php echo $single ? 'sm:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] sm:items-center sm:gap-x-8 sm:gap-y-3' : 'sm:block'; ?>" href="<?php echo esc_url(get_permalink($post)); ?>">

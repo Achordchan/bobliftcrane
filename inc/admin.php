@@ -2245,6 +2245,7 @@ function boblift_floating_contact_icon_choices(): array
         'message-circle' => '聊天气泡',
         'whatsapp' => 'WhatsApp',
         'telegram' => 'Telegram',
+        'wechat' => '微信',
         'phone-call' => '电话',
         'qr' => '二维码',
         'arrow-right' => '箭头',

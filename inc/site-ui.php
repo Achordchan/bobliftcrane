@@ -1838,9 +1838,10 @@ function boblift_floating_contact_href(array $button, array $contact): string
 
 function boblift_floating_contact_brand_types(): array
 {
-    // WhatsApp keeps its official mark on its brand green (#25D366) so visitors recognise it at a glance; the icon chosen in
-    // the admin does not apply to it. Telegram and WeChat keep the theme's navy style (the owner's choice, 2026-11-03).
-    return ['whatsapp' => 'whatsapp'];
+    // WhatsApp keeps its official mark on its brand green (#25D366) so visitors recognise it at a glance. WeChat shows its
+    // own mark too (2026-11-25, in place of a generic QR code), drawn in outline and in the theme's navy like Telegram (the owner's
+    // choice, 2026-11-03). The icon chosen in the admin does not apply to either.
+    return ['whatsapp' => 'whatsapp', 'wechat' => 'wechat'];
 }
 
 function boblift_floating_contact_link_class(array $button): string
@@ -1998,6 +1999,8 @@ function boblift_icon(string $name, string $class = 'h-5 w-5', string $stroke_wi
         return '<svg class="' . esc_attr($class) . '" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="' . esc_attr($brand_paths[$name]) . '"/></svg>';
     }
     $paths = [
+        // WeChat drawn in outline (two chat bubbles), to sit with the line icons beside it (2026-11-25).
+        'wechat' => '<path d="M9.41 16.00A7.6 6.4 0 0 1 6.65 15.53L3.40 18.60L4.03 14.05A7.6 6.4 0 1 1 17.10 9.42"/><path d="M21.01 18.43L21.40 21.40L19.23 19.66A5.6 4.6 0 1 1 21.01 18.43"/><path d="M6.6 8.2h.01"/><path d="M12 8.2h.01"/><path d="M14.4 14.6h.01"/><path d="M18.6 14.6h.01"/>',
         'mail' => '<path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/>',
         'phone' => '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.32 1.77.59 2.61a2 2 0 0 1-.45 2.11L8 9.69a16 16 0 0 0 6 6l1.25-1.25a2 2 0 0 1 2.11-.45c.84.27 1.71.47 2.61.59A2 2 0 0 1 22 16.92Z"/>',
         'phone-call' => '<path d="M13 2a9 9 0 0 1 9 9"/><path d="M13 6a5 5 0 0 1 5 5"/><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"/>',
@@ -2035,6 +2038,7 @@ function boblift_icon(string $name, string $class = 'h-5 w-5', string $stroke_wi
         'search' => '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
         'search-x' => '<path d="m13.5 8.5-5 5"/><path d="m8.5 8.5 5 5"/><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
         'x' => '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+        'info' => '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
         'zoom-in' => '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/>',
         'zoom-out' => '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6"/>',
         'scan' => '<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/>',
