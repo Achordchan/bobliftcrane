@@ -160,5 +160,14 @@ if ($decoded !== ['replace' => '15.2 m', 'with' => '11 m'] || boblift_schema_rep
     $failed++;
     echo "FAIL connector JSON string\n  got: " . json_encode($decoded) . "\n";
 }
-echo $failed ? "{$failed} failed\n" : (count($cases) + 16) . " passed\n";
+// The old-address redirect rules field (inc/legacy-redirects.php) arrives the same way on a page update.
+$request = new WP_REST_Request('POST', '/wp/v2/pages/737', ['boblift_legacy_redirects' => '{"rules":[{"from":"/news-show-273.html","to":"/truck-mounted-crane"}]}']);
+foreach ($GLOBALS['filters']['rest_pre_dispatch'] ?? [] as $filter) {
+    $filter(null, null, $request);
+}
+if ($request->get_param('boblift_legacy_redirects') !== ['rules' => [['from' => '/news-show-273.html', 'to' => '/truck-mounted-crane']]]) {
+    $failed++;
+    echo "FAIL connector JSON string (legacy redirects)\n  got: " . json_encode($request->get_param('boblift_legacy_redirects')) . "\n";
+}
+echo $failed ? "{$failed} failed\n" : (count($cases) + 17) . " passed\n";
 exit($failed ? 1 : 0);
