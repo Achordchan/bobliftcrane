@@ -742,8 +742,11 @@ function boblift_content_jsonld_post_ids(int $post_id): array
     $series = function_exists('boblift_series_for_product') ? boblift_series_for_product($post_id) : null;
     if ($series !== null && (int) $series['home_id'] === $post_id) {
         foreach ($series['members'] as $member) {
-            if (get_post_status((int) $member['id']) === 'publish' && !post_password_required((int) $member['id'])) {
-                $ids[] = (int) $member['id'];
+            $member_id = (int) $member['id'];
+            // Only a body the template shows: a hidden imported body would advertise a film the page does not carry.
+            $shown = !function_exists('boblift_product_content_ready') || boblift_product_content_ready($member_id, '_detail_body_ready');
+            if ($shown && get_post_status($member_id) === 'publish' && !post_password_required($member_id)) {
+                $ids[] = $member_id;
             }
         }
     }
