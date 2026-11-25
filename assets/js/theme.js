@@ -3683,6 +3683,37 @@
     });
   }
 
+  // Category comparison on phones: folded behind a button, then two models side by side, each picked from a list.
+  qsa('[data-compare-pair]').forEach((pair) => {
+    const toggle = pair.querySelector('[data-compare-toggle]');
+    const label = pair.querySelector('[data-compare-toggle-label]');
+    const picks = qsa('[data-compare-pick]', pair);
+    const picker = pair.querySelector('[data-compare-picker]');
+    if (!toggle || picks.length !== 2) return;
+    const show = () => {
+      const chosen = picks.map((select) => select.value);
+      qsa('[data-col]', pair).forEach((cell) => cell.toggleAttribute('data-picked', chosen.includes(cell.dataset.col)));
+    };
+    picks.forEach((select, which) => select.addEventListener('change', () => {
+      const other = picks[1 - which];
+      // The same model in both lists: move the other list to the next model, so two columns always show.
+      if (other.value === select.value) {
+        other.selectedIndex = (select.selectedIndex + 1) % other.options.length;
+      }
+      show();
+    }));
+    toggle.addEventListener('click', () => {
+      const open = toggle.getAttribute('aria-expanded') !== 'true';
+      toggle.setAttribute('aria-expanded', String(open));
+      pair.toggleAttribute('data-open', open);
+      if (label) label.textContent = label.dataset[open ? 'openLabel' : 'closedLabel'] || label.textContent;
+    });
+    show();
+    toggle.hidden = false;
+    if (picker) picker.hidden = false;
+    pair.setAttribute('data-ready', '');
+  });
+
   // Product page films play in place; the list below the player switches which one is loaded.
   qsa('[data-inline-videos]').forEach((root) => {
     const stage = qs('[data-inline-video-stage]', root);

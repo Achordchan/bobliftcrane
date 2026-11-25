@@ -3203,3 +3203,42 @@ html:is(:lang(ru), :lang(uk), :lang(fr), :lang(es), :lang(de), :lang(it), :lang(
     column-gap: 1.5rem;
   }
 }
+
+/* Phones, category comparison (boblift_render_model_table() with mobile_pair): folded behind a button until asked for,
+   then two models picked from two lists side by side instead of a wide table to swipe. Without scripts nothing is folded. */
+/* The button and the lists carry display utilities, so their hidden attribute needs this to win until theme.js shows them. */
+.boblift-compare-pair [hidden] {
+  display: none !important;
+}
+@media (max-width: 639.98px) {
+  .boblift-compare-pair[data-ready]:not([data-open]) .boblift-compare-body {
+    display: none;
+  }
+  .boblift-compare-pair[data-open] .boblift-compare-body {
+    margin-top: 12px;
+  }
+  .boblift-compare-pair[data-open] [data-col]:not([data-picked]) {
+    display: none;
+  }
+  .boblift-compare-pair[data-open] table {
+    table-layout: fixed;
+  }
+  .boblift-compare-pair[data-open] .boblift-compare-label {
+    width: 100px;
+    min-width: 100px;
+    padding-inline: 10px;
+    white-space: normal;
+  }
+  .boblift-compare-pair[data-open] [data-col] {
+    min-width: 0;
+    padding-inline: 10px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .boblift-compare-pair[data-open] th[data-col] > a > span:first-child,
+  .boblift-compare-pair[data-open] th[data-col] > span > span:first-child {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+  }
+}
