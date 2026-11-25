@@ -136,13 +136,14 @@ function boblift_specs_render_decode_strip(string $model, string $winch, int $en
         return;
     }
     ?>
-    <?php // Phones: two even columns under the label, with no dividers left at the start of a wrapped line. ?>
-    <div class="mt-5 grid grid-cols-2 items-start gap-x-3 gap-y-2.5 rounded-sm border border-[#DDE7F2] bg-[#F8FAFC] px-4 py-3 sm:flex sm:flex-wrap sm:items-center sm:gap-x-0">
-        <p class="boblift-kicker col-span-2 shrink-0 sm:me-4"><?php echo esc_html(boblift_series_text('Model code explained')); ?></p>
+    <?php // Phones: one part to a line under the label, read top to bottom in the order the name is written (two columns were
+    // too crowded, 2026-11-25). ?>
+    <div class="mt-5 grid grid-cols-1 items-start gap-y-2 rounded-sm border border-[#DDE7F2] bg-[#F8FAFC] px-4 py-3 sm:flex sm:flex-wrap sm:items-center sm:gap-x-0">
+        <p class="boblift-kicker mb-1 shrink-0 sm:mb-0 sm:me-4"><?php echo esc_html(boblift_series_text('Model code explained')); ?></p>
         <dl class="contents">
             <?php foreach ($decode['parts'] as [$code, $meaning]) : ?>
                 <div class="flex min-w-0 items-start gap-2 sm:items-center sm:border-s sm:border-[#D5DEE9] sm:px-4"<?php echo $code === 'J' ? ' data-cfg-decode-winch' . ($decode['has_winch'] ? '' : ' style="display:none"') : ''; ?>>
-                    <dt class="inline-flex h-6 min-w-6 shrink-0 items-center justify-center rounded-sm bg-[#071f42] px-1.5 text-[12px] font-black leading-none text-white [font-variant-numeric:tabular-nums]" dir="ltr"><?php echo esc_html($code); ?></dt>
+                    <dt class="inline-flex h-6 min-w-9 shrink-0 sm:min-w-6 items-center justify-center rounded-sm bg-[#071f42] px-1.5 text-[12px] font-black leading-none text-white [font-variant-numeric:tabular-nums]" dir="ltr"><?php echo esc_html($code); ?></dt>
                     <dd class="min-w-0 pt-0.5 text-[14px] leading-5 text-slate-600 sm:pt-0"><?php echo esc_html($meaning); ?></dd>
                 </div>
             <?php endforeach; ?>
