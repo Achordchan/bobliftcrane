@@ -3654,6 +3654,35 @@
     qsa('[data-inview-video]').forEach((video) => videoObserver.observe(video));
   }
 
+  // Info buttons, such as the (i) beside a product page's video list: a click shows or hides the note the button
+  // controls; a click anywhere else, or Escape, hides it again. One note is open at a time.
+  const infoToggles = qsa('[data-info-toggle]');
+  if (infoToggles.length) {
+    const infoPanel = (toggle) => document.getElementById(toggle.getAttribute('aria-controls') || '');
+    const setInfo = (toggle, open) => {
+      const panel = infoPanel(toggle);
+      if (!panel) return;
+      panel.hidden = !open;
+      toggle.setAttribute('aria-expanded', String(open));
+    };
+    const closeInfo = (except = null) => infoToggles.forEach((toggle) => {
+      if (toggle !== except && toggle.getAttribute('aria-expanded') === 'true') setInfo(toggle, false);
+    });
+    infoToggles.forEach((toggle) => toggle.addEventListener('click', () => {
+      const open = toggle.getAttribute('aria-expanded') !== 'true';
+      closeInfo(toggle);
+      setInfo(toggle, open);
+    }));
+    document.addEventListener('click', (event) => {
+      if (!event.target.closest('[data-info-toggle], [data-info-panel]')) closeInfo();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+      const open = infoToggles.find((toggle) => toggle.getAttribute('aria-expanded') === 'true');
+      if (open) setInfo(open, false);
+    });
+  }
+
   // Product page films play in place; the list below the player switches which one is loaded.
   qsa('[data-inline-videos]').forEach((root) => {
     const stage = qs('[data-inline-video-stage]', root);

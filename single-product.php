@@ -883,6 +883,22 @@ if ($family_quote_copy) {
                                 // A looping animation plays like a GIF: muted, no controls, click to pause.
                                 empty($video['loop']) ? '' : ' data-video-loop'
                             );
+                            // A series film shows a crane of the same class, not this exact model. The note saying so stays folded behind an
+                            // (i) button beside the list label (or beside the caption of a lone film) and opens on click.
+                            $video_note = $product_series_video ? trim((string) ($video_ui['productVideoNote'] ?? '')) : '';
+                            $video_note_id = $video_note !== '' ? wp_unique_id('boblift-video-note-') : '';
+                            $video_note_toggle = $video_note === '' ? '' : sprintf(
+                                // 24px icon, 40px tap target (the before: box) so it is easy to hit on a phone.
+                                '<button class="relative inline-grid size-6 shrink-0 place-items-center rounded-full text-slate-400 transition before:absolute before:-inset-2 hover:text-[#0B3F7D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 aria-expanded:text-[#0B3F7D]" type="button" aria-expanded="false" aria-controls="%1$s" aria-label="%2$s" data-info-toggle>%3$s</button>',
+                                esc_attr($video_note_id),
+                                esc_attr(boblift_localized_static_text('About these videos')),
+                                boblift_icon('info', 'h-[18px] w-[18px]')
+                            );
+                            $video_note_panel = $video_note === '' ? '' : sprintf(
+                                '<div id="%1$s" class="absolute -start-1 top-full z-20 mt-2 w-full max-w-[22rem] rounded-sm border border-[#DDE7F2] bg-white px-4 py-3 text-start shadow-[0_8px_24px_rgba(8,35,74,0.12)]" hidden data-info-panel><p class="boblift-note">%2$s</p></div>',
+                                esc_attr($video_note_id),
+                                esc_html($video_note)
+                            );
                         ?>
                             <?php // Films play in place; a list below switches between them. Old shared links to #video land here. ?>
                             <div id="video" class="mt-6 scroll-mt-24 lg:mt-8" data-inline-videos>
@@ -892,14 +908,20 @@ if ($family_quote_copy) {
                                         <span class="absolute inset-0 m-auto grid size-14 place-items-center rounded-sm bg-white/90 text-[#071f42] shadow-card transition group-hover:bg-white"><?php echo boblift_icon('play', 'h-6 w-6'); ?></span>
                                     </button>
                                 </div>
-                                <?php // A lone film has no list below to carry its title. ?><p class="<?php echo count($product_videos) > 1 ? 'sr-only' : 'mt-2 boblift-note'; ?>" data-inline-video-caption><?php echo esc_html((string) $first_video['label']); ?></p>
+                                <?php // A lone film has no list below to carry its title. ?>
+                                <?php if (count($product_videos) === 1 && $video_note_toggle !== '') : ?>
+                                    <div class="relative mt-2 flex items-start gap-1.5"><p class="min-w-0 boblift-note" data-inline-video-caption><?php echo esc_html((string) $first_video['label']); ?></p><?php echo $video_note_toggle . $video_note_panel; ?></div>
+                                <?php else : ?>
+                                    <p class="<?php echo count($product_videos) > 1 ? 'sr-only' : 'mt-2 boblift-note'; ?>" data-inline-video-caption><?php echo esc_html((string) $first_video['label']); ?></p>
+                                <?php endif; ?>
                                 <?php if (count($product_videos) > 1) : ?>
                                     <?php // One row of thumbnails, each with its title, like a playlist under the player: three in view from sm up
                                     // (on phones a compact swipe strip, about three across with one-line titles, so it stays smaller than the film above), so six films do not stack into rows that push the
                                     // sticky column past the screen. With more than three, the fourth peeks in at the edge to show the row goes on, and arrows
                                     // beside the label page through the rest. ?>
-                                    <div class="mt-6 flex items-center justify-between gap-3">
-                                        <p class="boblift-label text-[#071f42]"><?php echo esc_html($video_ui['moreVideosLabel'] ?? 'Videos'); ?><span class="ms-2 font-semibold text-slate-500 [font-variant-numeric:tabular-nums]"><?php echo esc_html((string) count($product_videos)); ?></span></p>
+                                    <div class="relative mt-6 flex items-center justify-between gap-3">
+                                        <p class="flex items-center boblift-label text-[#071f42]"><?php echo esc_html($video_ui['moreVideosLabel'] ?? 'Videos'); ?><span class="ms-2 font-semibold text-slate-500 [font-variant-numeric:tabular-nums]"><?php echo esc_html((string) count($product_videos)); ?></span><?php if ($video_note_toggle !== '') : ?><span class="ms-1.5 inline-flex"><?php echo $video_note_toggle; ?></span><?php endif; ?></p>
+                                        <?php echo $video_note_panel; ?>
                                         <?php if (count($product_videos) > 3) : ?>
                                             <div class="hidden shrink-0 gap-2 sm:flex">
                                                 <button class="grid size-8 place-items-center rounded-sm border border-[#DDE7F2] bg-white text-[#071f42] transition hover:border-[#0B3F7D] disabled:cursor-default disabled:opacity-40 disabled:hover:border-[#DDE7F2]" type="button" data-inline-video-scroll="-1" aria-label="<?php echo esc_attr(boblift_localized_static_text('Previous')); ?>" disabled><?php echo boblift_icon('chevron-left', 'h-4 w-4 rtl:-scale-x-100'); ?></button>
@@ -922,8 +944,7 @@ if ($family_quote_copy) {
                                         <?php endforeach; ?>
                                     </ul>
                                 <?php endif; ?>
-                                <?php if ($product_series_video) : ?><p class="mt-4 boblift-note"><?php echo esc_html($video_ui['productVideoNote'] ?? ''); ?></p><?php endif; ?>
-                                <a class="mt-3 inline-flex items-center gap-1.5 text-sm font-black text-blue-700 hover:text-blue-900" href="<?php echo esc_url(boblift_url('/videos.html')); ?>"><?php echo esc_html($video_ui['moreVideosLabel'] ?? 'More videos'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
+                                <a class="mt-4 inline-flex items-center gap-1.5 text-sm font-black text-blue-700 hover:text-blue-900" href="<?php echo esc_url(boblift_url('/videos.html')); ?>"><?php echo esc_html($video_ui['moreVideosLabel'] ?? 'More videos'); ?> <?php echo boblift_icon('arrow-right', 'h-4 w-4'); ?></a>
                             </div>
                         <?php endif; ?>
                         </div>
