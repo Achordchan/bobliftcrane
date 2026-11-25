@@ -3690,10 +3690,23 @@
     const picks = qsa('[data-compare-pick]', pair);
     const picker = pair.querySelector('[data-compare-picker]');
     if (!toggle || picks.length !== 2) return;
+    const phone = window.matchMedia('(max-width: 639.98px)');
+    // Each row's model cells in the table's own order, restored before the picked two are put in the lists' order.
+    const rows = qsa('tr', pair).map((row) => [row, qsa('[data-col]', row)]);
     const show = () => {
       const chosen = picks.map((select) => select.value);
-      qsa('[data-col]', pair).forEach((cell) => cell.toggleAttribute('data-picked', chosen.includes(cell.dataset.col)));
+      const swap = phone.matches && pair.hasAttribute('data-open') && Number(chosen[0]) > Number(chosen[1]);
+      rows.forEach(([row, cells]) => {
+        row.append(...cells);
+        cells.forEach((cell) => cell.toggleAttribute('data-picked', chosen.includes(cell.dataset.col)));
+        if (swap) {
+          const first = cells.find((cell) => cell.dataset.col === chosen[0]);
+          const second = cells.find((cell) => cell.dataset.col === chosen[1]);
+          if (first && second) row.insertBefore(first, second);
+        }
+      });
     };
+    phone.addEventListener('change', show);
     picks.forEach((select, which) => select.addEventListener('change', () => {
       const other = picks[1 - which];
       // The same model in both lists: move the other list to the next model, so two columns always show.
@@ -3706,6 +3719,7 @@
       const open = toggle.getAttribute('aria-expanded') !== 'true';
       toggle.setAttribute('aria-expanded', String(open));
       pair.toggleAttribute('data-open', open);
+      show();
       if (label) label.textContent = label.dataset[open ? 'openLabel' : 'closedLabel'] || label.textContent;
     });
     show();
