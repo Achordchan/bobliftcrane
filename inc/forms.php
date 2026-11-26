@@ -96,7 +96,8 @@ function boblift_render_turnstile_widget(string $class = 'mt-4', bool $lazy = fa
         <?php if ($lazy) : ?>
             <div data-turnstile-widget data-sitekey="<?php echo esc_attr($config['site_key']); ?>" data-theme="light"></div>
         <?php else : ?>
-            <div class="cf-turnstile" data-sitekey="<?php echo esc_attr($config['site_key']); ?>" data-theme="light"></div>
+            <?php // A browser Cloudflare does not support: theme.js sends the form without the check (bobliftTurnstileUnsupported). ?>
+            <div class="cf-turnstile" data-sitekey="<?php echo esc_attr($config['site_key']); ?>" data-theme="light" data-unsupported-callback="bobliftTurnstileUnsupported"></div>
         <?php endif; ?>
     </div>
     <?php
@@ -677,6 +678,11 @@ function boblift_handle_catalog_request(): void
     if (!boblift_verify_turnstile()) {
         $quote_ui = function_exists('boblift_site_ui') ? boblift_site_ui('quoteForm') : [];
         boblift_catalog_fail((string) ($quote_ui['messages']['verificationRequired'] ?? 'Please complete the verification and try again.'), 400);
+    }
+    // Let in without the Cloudflare check, as its script would not load in this browser (询盘插件 0.6.0): marked so in
+    // the email, DingTalk and the admin.
+    if (function_exists('achord_inquiry_unchecked_reason') && achord_inquiry_unchecked_reason() !== '') {
+        $fields['unchecked'] = achord_inquiry_unchecked_reason();
     }
 
     $rate_key = boblift_catalog_rate_limit_key($fields['email']);
