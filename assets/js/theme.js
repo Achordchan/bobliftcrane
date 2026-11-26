@@ -1951,25 +1951,25 @@
       }
       return candidates;
     };
-    // The largest copy the page knows of: the largest srcset entry, else the address with the image CDN's resize arguments
-    // and WordPress's -WIDTHxHEIGHT size suffix taken off (the original upload). If that fails the shown copy is used.
+    // The largest copy the page knows of: the original upload the server wrote in data-article-photo-full (Media Library
+    // pictures), else the largest srcset entry, else the address shown; on the WordPress.com image CDN (i0.wp.com and its
+    // siblings) without its resize arguments, which serves the original. No file name is guessed. If it fails, the copy
+    // the page shows is used.
     const largest = (img) => {
       if (img.dataset.articlePhotoFull) return img.dataset.articlePhotoFull;
       const set = srcsetCandidates(img.getAttribute('srcset') || '')
         .filter(([url, size]) => url && /^\d+w$/.test(size || ''))
         .sort((a, b) => parseInt(b[1], 10) - parseInt(a[1], 10));
-      let url = set.length ? set[0][0] : (img.getAttribute('src') || img.currentSrc || '');
+      const url = set.length ? set[0][0] : (img.getAttribute('src') || img.currentSrc || '');
       try {
         const parsed = new URL(url, document.baseURI);
-        if (/^i\d\.wp\.com$/.test(parsed.hostname) || parsed.hostname === window.location.hostname) {
-          ['w', 'h', 'resize', 'fit', 'crop'].forEach((key) => parsed.searchParams.delete(key));
-        }
-        parsed.pathname = parsed.pathname.replace(/-\d+x\d+(\.[a-z0-9]+)$/i, '$1');
-        url = parsed.href;
+        if (!/^i\d\.wp\.com$/.test(parsed.hostname)) return url;
+        ['w', 'h', 'resize', 'fit', 'crop'].forEach((key) => parsed.searchParams.delete(key));
+        return parsed.href;
       } catch {
         // An address the browser cannot parse is used as written.
+        return url;
       }
-      return url;
     };
     const captionOf = (img) => {
       const caption = img.closest('figure')?.querySelector('figcaption');

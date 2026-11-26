@@ -1399,6 +1399,29 @@ function boblift_add_video_backdrops(string $html): string
     }, $html);
 }
 
+/**
+ * The full-size address of each Media Library picture in a story (an <img> with the editor's wp-image-ID class), written
+ * as data-article-photo-full so the article photo viewer (assets/js/theme.js) opens the original upload rather than the
+ * size shown in the text. Pictures without that class, or whose attachment is gone, are left as they are.
+ */
+function boblift_add_article_photo_full(string $html): string
+{
+    if (stripos($html, 'wp-image-') === false) {
+        return $html;
+    }
+    return (string) preg_replace_callback('/<img\b[^>]*>/i', static function (array $m): string {
+        $tag = $m[0];
+        if (stripos($tag, 'data-article-photo-full') !== false || !preg_match('/\bclass=(["\'])(?:(?!\1).)*\bwp-image-(\d+)\b/i', $tag, $id)) {
+            return $tag;
+        }
+        $full = wp_get_attachment_image_url((int) $id[2], 'full');
+        if (!$full) {
+            return $tag;
+        }
+        return (string) preg_replace('/^<img\b/i', '<img data-article-photo-full="' . esc_url($full) . '"', $tag, 1);
+    }, $html);
+}
+
 /*
  * A table typed straight into a story (not a block-editor Table, which already sits in a scrolling figure) is wrapped in
  * a scroll box, so a full-width table that is still too wide for a phone scrolls sideways instead of breaking the page.
