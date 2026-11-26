@@ -1950,6 +1950,8 @@
     };
     let photos = [];
     let index = 0;
+    // The picture the viewer was opened from: closing hands the focus back to it, whichever picture was shown last.
+    let opener = null;
     const wrap = (value) => (value + photos.length) % photos.length;
     const showFailure = (shown) => {
       if (!failure) return;
@@ -2011,6 +2013,7 @@
       },
     });
     const open = (img, event) => {
+      opener = img;
       // Built at each opening, so pictures added or loaded since (lazy ones) are counted with their real size.
       photos = candidates.filter((item) => item === img || bigEnough(item)).map((item) => ({
         img: item,
@@ -2064,10 +2067,11 @@
     dialog.addEventListener('click', (event) => {
       if (event.target === dialog) dialog.close();
     });
-    // Closing hands the focus back to the picture that was opened, so a keyboard visitor carries on reading from there.
+    // Closing hands the focus back to the picture the viewer was opened from, which is where the page still is, so a
+    // keyboard visitor carries on from there even after stepping to pictures further down the article.
     dialog.addEventListener('close', () => {
-      const img = photos[index]?.img;
-      if (img && img.isConnected) img.focus({ preventScroll: true });
+      if (opener && opener.isConnected) opener.focus({ preventScroll: true });
+      opener = null;
     });
   });
 
