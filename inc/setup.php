@@ -518,6 +518,33 @@ function boblift_exclude_utility_pages_from_sitemap(array $args, string $post_ty
 }
 add_filter('wp_sitemaps_posts_query_args', 'boblift_exclude_utility_pages_from_sitemap', 10, 2);
 
+// Posts and pages marked "hide from search engines" in Jetpack SEO (meta jetpack_seo_noindex) already print a noindex
+// robots tag, so they also leave the sitemaps: core's (other languages) and Jetpack's (English).
+function boblift_exclude_noindex_posts_from_sitemap(array $args, string $post_type): array
+{
+    $noindex = [
+        'relation' => 'OR',
+        ['key' => 'jetpack_seo_noindex', 'compare' => 'NOT EXISTS'],
+        ['key' => 'jetpack_seo_noindex', 'value' => '1', 'compare' => '!='],
+    ];
+    $args['meta_query'] = !empty($args['meta_query']) && is_array($args['meta_query'])
+        ? ['relation' => 'AND', $args['meta_query'], $noindex]
+        : $noindex;
+
+    return $args;
+}
+add_filter('wp_sitemaps_posts_query_args', 'boblift_exclude_noindex_posts_from_sitemap', 10, 2);
+
+function boblift_jetpack_sitemap_skip_noindex_post(bool $skip, $post): bool
+{
+    if ($skip || !is_object($post) || empty($post->ID)) {
+        return $skip;
+    }
+
+    return (bool) get_post_meta((int) $post->ID, 'jetpack_seo_noindex', true);
+}
+add_filter('jetpack_sitemap_skip_post', 'boblift_jetpack_sitemap_skip_noindex_post', 10, 2);
+
 function boblift_standard_sitemap_robots_url(string $output, bool $is_public): string
 {
     if (!$is_public) {
