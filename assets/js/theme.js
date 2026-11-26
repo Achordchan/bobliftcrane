@@ -1923,11 +1923,38 @@
     };
     const candidates = qsa('img', root).filter(eligible);
     if (!candidates.length) return;
+    // srcset candidates as [url, descriptor], read the way browsers do: a URL runs to the next whitespace and may itself
+    // contain commas (an image CDN's c_scale,w_1600), and only a comma after a URL's end or a descriptor ends a candidate.
+    const srcsetCandidates = (value) => {
+      const candidates = [];
+      let pos = 0;
+      while (pos < value.length) {
+        while (pos < value.length && /[\s,]/.test(value[pos])) pos += 1;
+        if (pos >= value.length) break;
+        let url = '';
+        while (pos < value.length && !/\s/.test(value[pos])) url += value[pos++];
+        let descriptor = '';
+        if (/,$/.test(url)) {
+          url = url.replace(/,+$/, '');
+        } else {
+          // The descriptor runs to the next comma that is not inside brackets.
+          let depth = 0;
+          while (pos < value.length && (value[pos] !== ',' || depth > 0)) {
+            if (value[pos] === '(') depth += 1;
+            else if (value[pos] === ')') depth = Math.max(0, depth - 1);
+            descriptor += value[pos++];
+          }
+          descriptor = descriptor.trim().split(/\s+/)[0] || '';
+        }
+        if (url) candidates.push([url, descriptor]);
+      }
+      return candidates;
+    };
     // The largest copy the page knows of: the largest srcset entry, else the address with the image CDN's resize arguments
     // and WordPress's -WIDTHxHEIGHT size suffix taken off (the original upload). If that fails the shown copy is used.
     const largest = (img) => {
       if (img.dataset.articlePhotoFull) return img.dataset.articlePhotoFull;
-      const set = (img.getAttribute('srcset') || '').split(',').map((entry) => entry.trim().split(/\s+/))
+      const set = srcsetCandidates(img.getAttribute('srcset') || '')
         .filter(([url, size]) => url && /^\d+w$/.test(size || ''))
         .sort((a, b) => parseInt(b[1], 10) - parseInt(a[1], 10));
       let url = set.length ? set[0][0] : (img.getAttribute('src') || img.currentSrc || '');
