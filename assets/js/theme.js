@@ -3096,10 +3096,13 @@
     if (!validateInquiryModalForm()) return;
     const pendingTurnstile = qsa('[data-turnstile-widget]', form).filter((widget) => !widget.dataset.turnstileWidgetId);
     if (pendingTurnstile.length && !turnstileFallbackOn(form)) {
+      // Locked while waiting, so clicks meanwhile do not each send the form once it cannot load.
+      form.dataset.submitting = 'true';
       inquiryModalStatus(quoteFormMessage('verificationLoading', 'Loading verification...'), 'info');
       await renderLazyTurnstile(form);
       // Drawn now: the visitor completes it and sends again. Could not load: sent without it, as below.
       if (!turnstileFallbackOn(form)) {
+        form.dataset.submitting = 'false';
         inquiryModalStatus(quoteFormMessage('verificationSubmitAgain', 'Please complete the verification and submit again.'), 'error');
         return;
       }
@@ -3258,9 +3261,11 @@
       return;
     }
     if (qsa('[data-turnstile-widget]', form).some((widget) => !widget.dataset.turnstileWidgetId) && !turnstileFallbackOn(form)) {
+      form.dataset.submitting = 'true';
       catalogModalStatus(quoteFormMessage('verificationLoading', 'Loading verification...'), 'info');
       await renderLazyTurnstile(form);
       if (!turnstileFallbackOn(form)) {
+        form.dataset.submitting = 'false';
         catalogModalStatus(quoteFormMessage('verificationSubmitAgain', 'Please complete the verification and submit again.'), 'error');
         return;
       }
