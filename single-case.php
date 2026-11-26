@@ -197,7 +197,7 @@ if (count($related_cards) < 3 && function_exists('boblift_feedback_items')) {
             </figure>
         <?php endif; ?>
         <?php if ($display_facts) : ?>
-            <dl class="boblift-case-facts grid grid-cols-1 overflow-hidden sm:grid-cols-2 border-l border-t border-line <?php echo $image !== '' ? 'rounded-b border-t-0' : 'rounded'; ?> <?php echo [1 => 'lg:grid-cols-1', 2 => 'lg:grid-cols-2', 3 => 'lg:grid-cols-3'][count($display_facts)] ?? 'lg:grid-cols-4'; ?>" aria-label="<?php echo esc_attr($ui['factsTitle'] ?? 'Case Facts'); ?>">
+            <dl class="boblift-case-facts grid grid-cols-1 overflow-hidden sm:grid-cols-2 border-l border-t border-line <?php echo $image !== '' ? 'rounded-b border-t-0' : 'rounded'; ?> <?php echo [1 => 'lg:grid-cols-1', 2 => 'lg:grid-cols-2', 3 => 'lg:grid-cols-3', 4 => 'lg:grid-cols-4', 5 => 'lg:grid-cols-5', 6 => 'lg:grid-cols-3'][count($display_facts)] ?? 'lg:grid-cols-4'; ?>" aria-label="<?php echo esc_attr($ui['factsTitle'] ?? 'Case Facts'); ?>">
                 <?php foreach ($display_facts as $fact) : ?>
                     <div class="border-b border-r border-line flex items-baseline justify-between gap-4 px-4 py-3 sm:block sm:py-4 md:px-6 md:py-5 sm:[&:last-child:nth-child(odd)]:col-span-2 lg:[&:last-child:nth-child(odd)]:col-span-1">
                         <dt class="shrink-0 text-[11px] font-black uppercase tracking-[0.16em] text-slate-500"><?php echo esc_html($fact['label']); ?></dt>
