@@ -1900,7 +1900,8 @@
   // into a chart or a photo without zooming the whole page. Pinch, the mouse wheel, a double tap or the buttons zoom; a drag
   // moves the zoomed picture; a swipe, the arrows or the arrow keys go to the article's other pictures; Esc, the close button
   // or the backdrop close it. A picture inside a link (it already goes somewhere) or a gallery (Jetpack's carousel has those),
-  // a video's blurred backdrop and small pictures (icons, under 160 px across) are left as they are.
+  // WordPress's own "Expand on click" lightbox, a video's blurred backdrop and small pictures (icons, under 160 px across)
+  // are left as they are.
   qsa('[data-article-photos]').forEach((root) => {
     const dialog = qs('[data-article-photo-viewer]');
     if (!dialog || typeof dialog.showModal !== 'function') return;
@@ -1914,7 +1915,7 @@
     const steps = qsa('[data-photo-viewer-step]', dialog);
     const tipDefault = tip ? tip.textContent : '';
     const eligible = (img) => !img.matches('.bl-video-backdrop, [aria-hidden="true"]')
-      && !img.closest('a, button, .wp-block-gallery, .tiled-gallery, .gallery, [data-article-photo-viewer]')
+      && !img.closest('a, button, .wp-block-gallery, .tiled-gallery, .gallery, .wp-lightbox-container, [data-wp-interactive="core/image"], [data-article-photo-viewer]')
       && (img.getAttribute('src') || img.currentSrc);
     // Size is judged once the picture is known: a lazy one not yet loaded counts by its width attribute, or counts at all.
     const bigEnough = (img) => {
@@ -2062,13 +2063,17 @@
       preload(index - 1);
     };
     // A picture that turns out small once it loads (an icon) goes back to a plain picture: no pointer, no tab stop.
+    // As a button the picture is named by what it does and which picture it is (its caption, else its alt text), so a
+    // picture without alt text is never an unnamed button.
+    const openLabel = dialog.dataset.openLabel || 'View full-size photo';
     const mark = (img) => {
       const on = bigEnough(img);
+      const name = captionOf(img);
       img.classList.toggle('boblift-article-photo', on);
       img.style.cursor = on ? 'zoom-in' : '';
-      ['tabindex', 'role', 'aria-haspopup'].forEach((name, i) => {
-        if (on) img.setAttribute(name, ['0', 'button', 'dialog'][i]);
-        else img.removeAttribute(name);
+      [['tabindex', '0'], ['role', 'button'], ['aria-haspopup', 'dialog'], ['aria-label', name ? `${openLabel}: ${name}` : openLabel]].forEach(([attr, value]) => {
+        if (on) img.setAttribute(attr, value);
+        else img.removeAttribute(attr);
       });
     };
     candidates.forEach((img) => {

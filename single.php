@@ -207,7 +207,7 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
     <?php // The article's pictures full screen, in the product photos' zoom viewer: pinch, the mouse wheel, a double tap or the
     // buttons zoom, a drag moves the zoomed picture, and a swipe, the arrows or the arrow keys go through the pictures. Nothing
     // loads until a picture is opened; theme.js sets the picture, the count and the arrows (hidden for a single picture). ?>
-    <dialog class="boblift-drawing-dialog boblift-photo-dialog m-0 max-h-none w-screen max-w-none overflow-hidden border-0 bg-white p-0" data-article-photo-viewer aria-label="<?php echo esc_attr($title); ?>">
+    <dialog class="boblift-drawing-dialog boblift-photo-dialog m-0 max-h-none w-screen max-w-none overflow-hidden border-0 bg-white p-0" data-article-photo-viewer data-open-label="<?php echo esc_attr(boblift_localized_static_text('View full-size photo')); ?>" aria-label="<?php echo esc_attr($title); ?>">
         <div class="flex h-full flex-col">
             <div class="flex items-center justify-between gap-3 border-b border-[#DDE7F2] px-3 py-2.5 sm:px-4 sm:py-3 md:px-6">
                 <p class="flex min-w-0 items-baseline gap-2 text-sm font-black text-[#071f42]" role="status" aria-live="polite" aria-atomic="true"><span class="hidden shrink-0 font-semibold text-slate-500 [font-variant-numeric:tabular-nums]" dir="ltr" data-photo-viewer-count></span><span class="truncate" data-photo-viewer-label></span></p>
