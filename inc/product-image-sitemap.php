@@ -116,7 +116,7 @@ add_action('deleted_post', 'boblift_product_image_sitemap_flush');
 
 function boblift_product_image_sitemap_flush_meta($meta_id, $object_id, $meta_key): void
 {
-    if (in_array($meta_key, ['_gallery', '_thumbnail_id'], true) && get_post_type((int) $object_id) === 'product') {
+    if (in_array($meta_key, ['_gallery', '_thumbnail_id', 'jetpack_seo_noindex'], true) && get_post_type((int) $object_id) === 'product') {
         boblift_product_image_sitemap_flush();
     }
 }
