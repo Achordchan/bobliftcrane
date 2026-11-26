@@ -2814,49 +2814,95 @@
       if (!image.getAttribute('src')) image.setAttribute('src', image.dataset.inquiryLazySrc || '');
     });
   };
+  const TURNSTILE_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+  const turnstileLoadError = () => new Error('Verification could not be loaded. Please try again.');
+  // One try at Cloudflare's script. A script tag already on the page (the page forms' deferred one) is waited for: it may
+  // still be loading, or may have failed before this ran (no event will come then), so after 8 seconds without it the try
+  // fails. A new tag fails on its error event or after 15 seconds.
+  const loadTurnstileOnce = (existing) => new Promise((resolve, reject) => {
+    let settled = false;
+    let poll = null;
+    let timer = null;
+    const finish = (ok) => {
+      if (settled) return;
+      settled = true;
+      window.clearInterval(poll);
+      window.clearTimeout(timer);
+      if (ok) resolve(window.turnstile);
+      else reject(turnstileLoadError());
+    };
+    const loaded = () => {
+      if (window.turnstile?.render) finish(true);
+      else window.setTimeout(() => finish(!!window.turnstile?.render), 120);
+    };
+    if (existing) {
+      existing.addEventListener('load', loaded, { once: true });
+      existing.addEventListener('error', () => finish(false), { once: true });
+      poll = window.setInterval(() => { if (window.turnstile?.render) finish(true); }, 250);
+      timer = window.setTimeout(() => finish(!!window.turnstile?.render), 8000);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = TURNSTILE_SRC;
+    script.async = true;
+    script.defer = true;
+    script.addEventListener('load', loaded, { once: true });
+    script.addEventListener('error', () => { script.remove(); finish(false); }, { once: true });
+    timer = window.setTimeout(() => finish(!!window.turnstile?.render), 15000);
+    document.head.appendChild(script);
+  });
+  // Cloudflare's script, tried twice (a second, fresh tag 1.5 seconds after the first fails). When both fail the forms are
+  // sent without the check (useTurnstileFallback); the inquiry plugin takes them marked 未经人机验证.
   const ensureTurnstileScript = () => {
     if (window.turnstile?.render) return Promise.resolve(window.turnstile);
     if (turnstileLoadPromise) return turnstileLoadPromise;
-    turnstileLoadPromise = new Promise((resolve, reject) => {
-      const done = () => {
-        if (window.turnstile?.render) {
-          resolve(window.turnstile);
-          return;
-        }
-        window.setTimeout(() => {
-          if (window.turnstile?.render) resolve(window.turnstile);
-          else reject(new Error('Verification could not be loaded. Please try again.'));
-        }, 120);
-      };
-      const existing = document.querySelector('script[src*="challenges.cloudflare.com/turnstile"]');
-      if (existing) {
-        existing.addEventListener('load', done, { once: true });
-        existing.addEventListener('error', () => reject(new Error('Verification could not be loaded. Please try again.')), { once: true });
-        done();
-        return;
-      }
-      const script = document.createElement('script');
-      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
-      script.async = true;
-      script.defer = true;
-      script.addEventListener('load', done, { once: true });
-      script.addEventListener('error', () => reject(new Error('Verification could not be loaded. Please try again.')), { once: true });
-      document.head.appendChild(script);
-    });
+    const existing = document.querySelector('script[src*="challenges.cloudflare.com/turnstile"]');
+    turnstileLoadPromise = loadTurnstileOnce(existing)
+      .catch(() => new Promise((resolve) => window.setTimeout(resolve, 1500)).then(() => loadTurnstileOnce(null)));
+    // Once failed for good, later calls get the same failure at once.
     return turnstileLoadPromise;
   };
+  // The forms in scope go without the check: the box is hidden and the form carries boblift_turnstile_unavailable, which
+  // the inquiry plugin reads as "the check could not load here" (it limits how often it accepts that).
+  const useTurnstileFallback = (scope = document) => {
+    const forms = new Set();
+    if (scope instanceof HTMLFormElement) forms.add(scope);
+    qsa('[data-turnstile-widget], .cf-turnstile', scope).forEach((box) => {
+      const form = box.closest('form');
+      if (form) forms.add(form);
+      const wrap = box.closest('.boblift-turnstile-wrap') || box;
+      wrap.classList.add('hidden');
+    });
+    forms.forEach((form) => {
+      if (form.querySelector('input[name="boblift_turnstile_unavailable"]')) return;
+      const flag = document.createElement('input');
+      flag.type = 'hidden';
+      flag.name = 'boblift_turnstile_unavailable';
+      flag.value = '1';
+      form.appendChild(flag);
+    });
+  };
+  const turnstileFallbackOn = (form) => !!form?.querySelector('input[name="boblift_turnstile_unavailable"]');
   const renderLazyTurnstile = async (scope = document) => {
     const widgets = qsa('[data-turnstile-widget]', scope).filter((widget) => !widget.dataset.turnstileWidgetId);
     if (!widgets.length) return;
-    const turnstile = await ensureTurnstileScript();
-    widgets.forEach((widget) => {
-      if (widget.dataset.turnstileWidgetId) return;
-      const id = turnstile.render(widget, {
-        sitekey: widget.dataset.sitekey || '',
-        theme: widget.dataset.theme || 'light',
+    if (turnstileFallbackOn(widgets[0].closest('form'))) return;
+    let turnstile = null;
+    try {
+      turnstile = await ensureTurnstileScript();
+      widgets.forEach((widget) => {
+        if (widget.dataset.turnstileWidgetId) return;
+        const id = turnstile.render(widget, {
+          sitekey: widget.dataset.sitekey || '',
+          theme: widget.dataset.theme || 'light',
+          // A browser Cloudflare does not support cannot pass the check at all.
+          'unsupported-callback': () => useTurnstileFallback(widget.closest('form') || widget),
+        });
+        widget.dataset.turnstileWidgetId = String(id);
       });
-      widget.dataset.turnstileWidgetId = String(id);
-    });
+    } catch (error) {
+      useTurnstileFallback(scope);
+    }
   };
   const resetTurnstile = (scope = document) => {
     if (!window.turnstile?.reset) return;
@@ -2991,10 +3037,9 @@
     inquiryModal.classList.add('flex');
     inquiryModal.setAttribute('aria-hidden', 'false');
     applyInquiryMode();
+    // When Cloudflare's check cannot load here, the form is sent without it (useTurnstileFallback): nothing to show.
     renderLazyTurnstile(form || inquiryModal).then(() => {
       resetTurnstile(form || inquiryModal);
-    }).catch((error) => {
-      inquiryModalStatus(error.message || quoteFormMessage('verificationLoadFailed', 'Verification could not be loaded. Please try again.'), 'error');
     });
     window.setTimeout(() => qs('[role="dialog"]', inquiryModal)?.focus(), 0);
   };
@@ -3050,16 +3095,14 @@
     if (form.dataset.submitting === 'true') return;
     if (!validateInquiryModalForm()) return;
     const pendingTurnstile = qsa('[data-turnstile-widget]', form).filter((widget) => !widget.dataset.turnstileWidgetId);
-    if (pendingTurnstile.length) {
+    if (pendingTurnstile.length && !turnstileFallbackOn(form)) {
       inquiryModalStatus(quoteFormMessage('verificationLoading', 'Loading verification...'), 'info');
-      try {
-        await renderLazyTurnstile(form);
-      } catch (error) {
-        inquiryModalStatus(error.message || quoteFormMessage('verificationLoadFailed', 'Verification could not be loaded. Please try again.'), 'error');
+      await renderLazyTurnstile(form);
+      // Drawn now: the visitor completes it and sends again. Could not load: sent without it, as below.
+      if (!turnstileFallbackOn(form)) {
+        inquiryModalStatus(quoteFormMessage('verificationSubmitAgain', 'Please complete the verification and submit again.'), 'error');
         return;
       }
-      inquiryModalStatus(quoteFormMessage('verificationSubmitAgain', 'Please complete the verification and submit again.'), 'error');
-      return;
     }
     updateInquiryModalProductSlug();
     const submit = qs('[data-inquiry-modal-submit]', form);
@@ -3161,9 +3204,8 @@
     catalogModal.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
     // The same Cloudflare check as the inquiry form, loaded only once the modal opens.
-    renderLazyTurnstile(form || catalogModal).then(() => resetTurnstile(form || catalogModal)).catch((error) => {
-      catalogModalStatus(error.message || quoteFormMessage('verificationLoadFailed', 'Verification could not be loaded. Please try again.'), 'error');
-    });
+    // When it cannot load here, the form is sent without it (useTurnstileFallback).
+    renderLazyTurnstile(form || catalogModal).then(() => resetTurnstile(form || catalogModal));
     window.setTimeout(() => qs('[role="dialog"]', catalogModal)?.focus(), 0);
   };
   const closeCatalogModal = () => {
@@ -3215,16 +3257,13 @@
       window.setTimeout(() => form.reportValidity(), 0);
       return;
     }
-    if (qsa('[data-turnstile-widget]', form).some((widget) => !widget.dataset.turnstileWidgetId)) {
+    if (qsa('[data-turnstile-widget]', form).some((widget) => !widget.dataset.turnstileWidgetId) && !turnstileFallbackOn(form)) {
       catalogModalStatus(quoteFormMessage('verificationLoading', 'Loading verification...'), 'info');
-      try {
-        await renderLazyTurnstile(form);
-      } catch (error) {
-        catalogModalStatus(error.message || quoteFormMessage('verificationLoadFailed', 'Verification could not be loaded. Please try again.'), 'error');
+      await renderLazyTurnstile(form);
+      if (!turnstileFallbackOn(form)) {
+        catalogModalStatus(quoteFormMessage('verificationSubmitAgain', 'Please complete the verification and submit again.'), 'error');
         return;
       }
-      catalogModalStatus(quoteFormMessage('verificationSubmitAgain', 'Please complete the verification and submit again.'), 'error');
-      return;
     }
     const submit = qs('[data-catalog-submit]', form);
     form.dataset.submitting = 'true';
@@ -3609,10 +3648,23 @@
           return;
         }
         form.dataset.submitting = 'true';
-        qsa('button[type="submit"]', form).forEach((button) => button.setAttribute('disabled', 'disabled'));
+        const buttons = qsa('button[type="submit"]', form);
+        buttons.forEach((button) => button.setAttribute('disabled', 'disabled'));
         // Post once the nonce is fresh; form.submit() sends it without firing submit again.
         event.preventDefault();
-        refreshFormNonce(form, 'inquiry').then(() => HTMLFormElement.prototype.submit.call(form));
+        // Cloudflare's check (the page's own deferred script) never appeared: wait for it, or try loading it again. If it
+        // cannot load here, the form goes without it (useTurnstileFallback); if it now appears, the visitor completes it
+        // and sends again, keeping what was typed.
+        const checkMissing = !!qs('.cf-turnstile', form) && !window.turnstile?.render && !turnstileFallbackOn(form);
+        (checkMissing ? ensureTurnstileScript().then(() => false, () => { useTurnstileFallback(form); return true; }) : Promise.resolve(true))
+          .then((send) => {
+            if (!send) {
+              form.dataset.submitting = 'false';
+              buttons.forEach((button) => button.removeAttribute('disabled'));
+              return;
+            }
+            refreshFormNonce(form, 'inquiry').then(() => HTMLFormElement.prototype.submit.call(form));
+          });
       });
     }
     updateLinks();

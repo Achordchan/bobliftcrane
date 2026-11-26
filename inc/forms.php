@@ -678,6 +678,11 @@ function boblift_handle_catalog_request(): void
         $quote_ui = function_exists('boblift_site_ui') ? boblift_site_ui('quoteForm') : [];
         boblift_catalog_fail((string) ($quote_ui['messages']['verificationRequired'] ?? 'Please complete the verification and try again.'), 400);
     }
+    // Let in without the Cloudflare check, as its script would not load in this browser (询盘插件 0.6.0): marked so in
+    // the email, DingTalk and the admin.
+    if (function_exists('achord_inquiry_unchecked_reason') && achord_inquiry_unchecked_reason() !== '') {
+        $fields['unchecked'] = achord_inquiry_unchecked_reason();
+    }
 
     $rate_key = boblift_catalog_rate_limit_key($fields['email']);
     if (get_transient($rate_key)) {
