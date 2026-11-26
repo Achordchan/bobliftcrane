@@ -107,7 +107,8 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
     ?>
     <?php /* As on the loader site: the headline opens the text column, so the side column starts level with it. */ ?>
     <div class="mt-6 grid gap-10 md:mt-8 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-12 xl:grid-cols-[minmax(0,1fr)_20rem] xl:gap-16">
-        <div class="min-w-0">
+        <?php // The pictures in this column open in the photo viewer below when clicked or tapped (theme.js, data-article-photos). ?>
+        <div class="min-w-0" data-article-photos>
             <header class="border-b border-line pb-6 md:pb-8">
                 <?php if ($category_term instanceof WP_Term) : ?>
                     <a class="boblift-kicker transition hover:text-blue-700" href="<?php echo esc_url(add_query_arg('news_category', $category_term->slug, $news_url)); ?>"><?php echo esc_html($category); ?></a>
@@ -141,7 +142,7 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
 
             <?php if ($lead_image !== '') : ?>
                 <figure class="mt-8 overflow-hidden rounded border border-line bg-mist">
-                    <img class="mx-auto h-auto max-h-[min(80vh,calc(100vh-10rem))] w-auto max-w-full" <?php echo boblift_img_src($lead_image, '(min-width: 1024px) 67vw, 92vw', 1280); ?><?php if ((int) $image_src[1] > 0 && (int) $image_src[2] > 0) : ?> width="<?php echo (int) $image_src[1]; ?>" height="<?php echo (int) $image_src[2]; ?>"<?php endif; ?> alt="<?php echo esc_attr($localize(boblift_post_thumbnail_alt(get_post($post_id), $title))); ?>" fetchpriority="high" decoding="async">
+                    <img class="mx-auto h-auto max-h-[min(80vh,calc(100vh-10rem))] w-auto max-w-full" <?php echo boblift_img_src($lead_image, '(min-width: 1024px) 67vw, 92vw', 1280); ?><?php if ((int) $image_src[1] > 0 && (int) $image_src[2] > 0) : ?> width="<?php echo (int) $image_src[1]; ?>" height="<?php echo (int) $image_src[2]; ?>"<?php endif; ?> alt="<?php echo esc_attr($localize(boblift_post_thumbnail_alt(get_post($post_id), $title))); ?>" data-article-photo-full="<?php echo esc_url($lead_image); ?>" fetchpriority="high" decoding="async">
                     <?php if ($lead_caption !== '') : ?>
                         <figcaption class="border-t border-line bg-white px-4 py-2 text-xs text-slate-500"><?php echo esc_html($lead_caption); ?></figcaption>
                     <?php endif; ?>
@@ -203,6 +204,33 @@ $related_query = $related_count > 0 ? new WP_Query($related_query_args) : null;
                     </div>
         </aside>
     </div>
+    <?php // The article's pictures full screen, in the product photos' zoom viewer: pinch, the mouse wheel, a double tap or the
+    // buttons zoom, a drag moves the zoomed picture, and a swipe, the arrows or the arrow keys go through the pictures. Nothing
+    // loads until a picture is opened; theme.js sets the picture, the count and the arrows (hidden for a single picture). ?>
+    <dialog class="boblift-drawing-dialog boblift-photo-dialog m-0 max-h-none w-screen max-w-none overflow-hidden border-0 bg-white p-0" data-article-photo-viewer aria-label="<?php echo esc_attr($title); ?>">
+        <div class="flex h-full flex-col">
+            <div class="flex items-center justify-between gap-3 border-b border-[#DDE7F2] px-3 py-2.5 sm:px-4 sm:py-3 md:px-6">
+                <p class="flex min-w-0 items-baseline gap-2 text-sm font-black text-[#071f42]" role="status" aria-live="polite" aria-atomic="true"><span class="hidden shrink-0 font-semibold text-slate-500 [font-variant-numeric:tabular-nums]" dir="ltr" data-photo-viewer-count></span><span class="truncate" data-photo-viewer-label></span></p>
+                <div class="flex shrink-0 items-center gap-1.5 sm:gap-2" dir="ltr">
+                    <button class="boblift-drawing-tool grid size-9 place-items-center rounded-sm border border-[#DDE7F2] text-[#071f42] transition hover:border-blue-300" type="button" data-photo-viewer-zoom="out" aria-label="<?php echo esc_attr(boblift_localized_static_text('Zoom out')); ?>"><?php echo boblift_icon('zoom-out', 'h-4 w-4'); ?></button>
+                    <span class="w-11 text-center text-xs font-semibold text-slate-600 [font-variant-numeric:tabular-nums]" data-photo-viewer-level aria-live="polite">100%</span>
+                    <button class="boblift-drawing-tool grid size-9 place-items-center rounded-sm border border-[#DDE7F2] text-[#071f42] transition hover:border-blue-300" type="button" data-photo-viewer-zoom="in" aria-label="<?php echo esc_attr(boblift_localized_static_text('Zoom in')); ?>"><?php echo boblift_icon('zoom-in', 'h-4 w-4'); ?></button>
+                    <button class="boblift-drawing-tool grid size-9 place-items-center rounded-sm border border-[#DDE7F2] text-[#071f42] transition hover:border-blue-300" type="button" data-photo-viewer-zoom="fit" aria-label="<?php echo esc_attr(boblift_localized_static_text('Fit to screen')); ?>"><?php echo boblift_icon('scan', 'h-4 w-4'); ?></button>
+                    <button class="ms-1 grid size-9 place-items-center rounded-sm border border-[#DDE7F2] text-[#071f42] transition hover:border-blue-300" type="button" data-photo-viewer-close aria-label="<?php echo esc_attr(boblift_localized_static_text('Close')); ?>"><?php echo boblift_icon('x', 'h-4 w-4'); ?></button>
+                </div>
+            </div>
+            <div class="boblift-drawing-stage relative min-h-0 flex-1 overflow-hidden bg-[#F4F7FB] focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500" tabindex="0" role="group" aria-label="<?php echo esc_attr($title); ?>" aria-keyshortcuts="+ - 0 ArrowUp ArrowDown ArrowLeft ArrowRight" data-photo-viewer-stage>
+                <img class="boblift-drawing-image absolute left-0 top-0 max-w-none" alt="" draggable="false" decoding="async" data-photo-viewer-image>
+                <span class="boblift-zoom-spinner pointer-events-none absolute left-1/2 top-1/2 size-8 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[#C9D6E6] border-t-[#0B3F7D]" aria-hidden="true"></span>
+                <p class="sr-only" role="status" aria-live="polite" data-photo-viewer-loading data-loading-text="<?php echo esc_attr(boblift_localized_static_text('Loading photo…')); ?>"></p>
+                <p class="pointer-events-none absolute inset-x-4 top-1/2 hidden -translate-y-1/2 text-center text-sm font-semibold text-slate-600" role="alert" data-photo-viewer-error><?php echo esc_html(boblift_localized_static_text('This photo could not be loaded.')); ?></p>
+                <?php foreach ([[-1, 'start-2 sm:start-3', 'chevron-left', 'Previous photo'], [1, 'end-2 sm:end-3', 'chevron-right', 'Next photo']] as [$step, $side, $icon, $label]) : ?>
+                    <button class="absolute <?php echo esc_attr($side); ?> top-1/2 z-10 hidden size-10 -translate-y-1/2 place-items-center rounded-sm border border-[#D5DEE9] bg-white/90 text-[#071f42] shadow-card backdrop-blur transition hover:border-blue-300 hover:bg-white hover:text-blue-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-100 md:size-11" type="button" data-photo-viewer-step="<?php echo esc_attr((string) $step); ?>" data-zoom-hide aria-label="<?php echo esc_attr(boblift_localized_static_text($label)); ?>"><?php echo boblift_icon($icon, 'h-5 w-5 rtl:-scale-x-100'); ?></button>
+                <?php endforeach; ?>
+                <p class="boblift-drawing-tip pointer-events-none absolute inset-x-0 bottom-3 z-10 mx-auto w-max max-w-[calc(100%-2rem)] rounded-full bg-[#071f42]/80 px-3 py-1.5 text-center text-xs font-semibold text-white" data-photo-viewer-tip data-tip-swipe="<?php echo esc_attr(boblift_localized_static_text('Zoom with two fingers. Swipe for the next photo.')); ?>"><?php echo esc_html(boblift_localized_static_text('Pinch or use the mouse wheel to zoom. Drag to move.')); ?></p>
+            </div>
+        </div>
+    </dialog>
 </article>
 
     <?php if ($related_query instanceof WP_Query && $related_query->have_posts()) : ?>

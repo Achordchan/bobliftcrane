@@ -1896,6 +1896,181 @@
     });
   });
 
+  // Pictures in a news article: a click or tap on one opens it full screen in the zoom viewer above, so a visitor can zoom
+  // into a chart or a photo without zooming the whole page. Pinch, the mouse wheel, a double tap or the buttons zoom; a drag
+  // moves the zoomed picture; a swipe, the arrows or the arrow keys go to the article's other pictures; Esc, the close button
+  // or the backdrop close it. A picture inside a link (it already goes somewhere) or a gallery (Jetpack's carousel has those),
+  // a video's blurred backdrop and small pictures (icons, under 160 px across) are left as they are.
+  qsa('[data-article-photos]').forEach((root) => {
+    const dialog = qs('[data-article-photo-viewer]');
+    if (!dialog || typeof dialog.showModal !== 'function') return;
+    const stage = qs('[data-photo-viewer-stage]', dialog);
+    const image = qs('[data-photo-viewer-image]', dialog);
+    if (!stage || !image) return;
+    const label = qs('[data-photo-viewer-label]', dialog);
+    const count = qs('[data-photo-viewer-count]', dialog);
+    const failure = qs('[data-photo-viewer-error]', dialog);
+    const tip = qs('[data-photo-viewer-tip]', dialog);
+    const steps = qsa('[data-photo-viewer-step]', dialog);
+    const tipDefault = tip ? tip.textContent : '';
+    const eligible = (img) => !img.matches('.bl-video-backdrop, [aria-hidden="true"]')
+      && !img.closest('a, button, .wp-block-gallery, .tiled-gallery, .gallery, [data-article-photo-viewer]')
+      && (img.getAttribute('src') || img.currentSrc);
+    // Size is judged once the picture is known: a lazy one not yet loaded counts by its width attribute, or counts at all.
+    const bigEnough = (img) => {
+      const width = img.naturalWidth || Number(img.getAttribute('width')) || 0;
+      return !width || width >= 160;
+    };
+    const candidates = qsa('img', root).filter(eligible);
+    if (!candidates.length) return;
+    // The largest copy the page knows of: the largest srcset entry, else the address with the image CDN's resize arguments
+    // and WordPress's -WIDTHxHEIGHT size suffix taken off (the original upload). If that fails the shown copy is used.
+    const largest = (img) => {
+      if (img.dataset.articlePhotoFull) return img.dataset.articlePhotoFull;
+      const set = (img.getAttribute('srcset') || '').split(',').map((entry) => entry.trim().split(/\s+/))
+        .filter(([url, size]) => url && /^\d+w$/.test(size || ''))
+        .sort((a, b) => parseInt(b[1], 10) - parseInt(a[1], 10));
+      let url = set.length ? set[0][0] : (img.getAttribute('src') || img.currentSrc || '');
+      try {
+        const parsed = new URL(url, document.baseURI);
+        if (/^i\d\.wp\.com$/.test(parsed.hostname) || parsed.hostname === window.location.hostname) {
+          ['w', 'h', 'resize', 'fit', 'crop'].forEach((key) => parsed.searchParams.delete(key));
+        }
+        parsed.pathname = parsed.pathname.replace(/-\d+x\d+(\.[a-z0-9]+)$/i, '$1');
+        url = parsed.href;
+      } catch {
+        // An address the browser cannot parse is used as written.
+      }
+      return url;
+    };
+    const captionOf = (img) => {
+      const caption = img.closest('figure')?.querySelector('figcaption');
+      const text = (caption?.textContent || img.alt || '').replace(/\s+/g, ' ').trim();
+      return text;
+    };
+    let photos = [];
+    let index = 0;
+    const wrap = (value) => (value + photos.length) % photos.length;
+    const showFailure = (shown) => {
+      if (!failure) return;
+      failure.classList.toggle('hidden', !shown);
+      failure.classList.toggle('block', shown);
+    };
+    const setPhoto = (value) => {
+      index = wrap(value);
+      const photo = photos[index];
+      photo.tried = false;
+      image.alt = photo.alt;
+      if (label) label.textContent = photo.label;
+      if (count) count.textContent = photos.length > 1 ? `${index + 1} / ${photos.length}` : '';
+      showFailure(false);
+      if (image.getAttribute('src') !== photo.full) image.src = photo.full;
+    };
+    const preload = (value) => {
+      if (photos.length < 2) return;
+      const next = new Image();
+      next.decoding = 'async';
+      next.src = photos[wrap(value)].full;
+    };
+    let viewer = null;
+    const step = (direction) => {
+      viewer.endSwipe();
+      setPhoto(index + direction);
+      viewer.load();
+      preload(index + direction);
+    };
+    viewer = bobliftZoomViewer({
+      dialog,
+      stage,
+      image,
+      level: qs('[data-photo-viewer-level]', dialog),
+      zoomIn: qs('[data-photo-viewer-zoom="in"]', dialog),
+      zoomOut: qs('[data-photo-viewer-zoom="out"]', dialog),
+      fitButton: qs('[data-photo-viewer-zoom="fit"]', dialog),
+      // Charts carry small print: up to twice their own pixels (and always 4x the fit), so the smallest figures can be read.
+      nativeMax: 2,
+      loadTimeout: 20000,
+      loadingStatus: qs('[data-photo-viewer-loading]', dialog),
+      onStep: (direction) => {
+        if (photos.length > 1) step(direction);
+      },
+      // The original upload cannot be had (or stalls): the copy the page itself shows is tried, then the viewer says so.
+      onError: () => {
+        const photo = photos[index];
+        if (!photo.tried && photo.shown && photo.shown !== image.getAttribute('src')) {
+          photo.tried = true;
+          image.src = photo.shown;
+          viewer.load();
+        } else {
+          stage.classList.remove('is-loading');
+          showFailure(true);
+        }
+      },
+      onClose: () => {
+        if (image.getAttribute('src') && !image.complete) image.removeAttribute('src');
+      },
+    });
+    const open = (img, event) => {
+      // Built at each opening, so pictures added or loaded since (lazy ones) are counted with their real size.
+      photos = candidates.filter((item) => item === img || bigEnough(item)).map((item) => ({
+        img: item,
+        full: largest(item),
+        shown: item.currentSrc || item.getAttribute('src') || '',
+        alt: item.alt || '',
+        label: captionOf(item),
+      }));
+      const many = photos.length > 1;
+      steps.forEach((button) => {
+        button.classList.toggle('hidden', !many);
+        button.classList.toggle('grid', many);
+      });
+      count?.classList.toggle('hidden', !many);
+      if (tip) tip.textContent = many && photoTouchMedia.matches && tip.dataset.tipSwipe ? tip.dataset.tipSwipe : tipDefault;
+      setPhoto(Math.max(photos.findIndex((photo) => photo.img === img), 0));
+      viewer.show(event);
+      preload(index + 1);
+      preload(index - 1);
+    };
+    // A picture that turns out small once it loads (an icon) goes back to a plain picture: no pointer, no tab stop.
+    const mark = (img) => {
+      const on = bigEnough(img);
+      img.classList.toggle('boblift-article-photo', on);
+      img.style.cursor = on ? 'zoom-in' : '';
+      ['tabindex', 'role', 'aria-haspopup'].forEach((name, i) => {
+        if (on) img.setAttribute(name, ['0', 'button', 'dialog'][i]);
+        else img.removeAttribute(name);
+      });
+    };
+    candidates.forEach((img) => {
+      mark(img);
+      if (!img.complete) img.addEventListener('load', () => mark(img), { once: true });
+      img.addEventListener('click', (event) => {
+        if (!bigEnough(img)) return;
+        event.preventDefault();
+        open(img, event);
+      });
+      img.addEventListener('keydown', (event) => {
+        if ((event.key !== 'Enter' && event.key !== ' ') || !bigEnough(img)) return;
+        event.preventDefault();
+        open(img, event);
+      });
+    });
+    steps.forEach((button) => {
+      button.addEventListener('click', () => {
+        if (photos.length > 1) step(Number(button.dataset.photoViewerStep) || 1);
+      });
+    });
+    qs('[data-photo-viewer-close]', dialog)?.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+    // Closing hands the focus back to the picture that was opened, so a keyboard visitor carries on reading from there.
+    dialog.addEventListener('close', () => {
+      const img = photos[index]?.img;
+      if (img && img.isConnected) img.focus({ preventScroll: true });
+    });
+  });
+
   // Home hero slideshow. CSS runs the active tab's progress bar; when it finishes, the next
   // slide shows. Mouse hover and keyboard focus hold it, and the toggle stops or restarts it.
   qsa('[data-home-hero]').forEach((hero) => {
