@@ -6269,7 +6269,7 @@
     card.querySelector('[data-language-suggest-text]').textContent = words.text;
     const accept = card.querySelector('[data-language-suggest-accept]');
     accept.textContent = words.action;
-    accept.href = href;
+    accept.href = carry(href);
     accept.hreflang = language;
     const close = card.querySelector('[data-language-suggest-close]');
     close.setAttribute('aria-label', words.close);
@@ -6289,6 +6289,7 @@
       window.setTimeout(() => card.remove(), 300);
     };
     accept.addEventListener('click', () => {
+      carryLink(accept);
       remember(language);
       report('accept', language);
       hide();
@@ -6314,10 +6315,50 @@
     window.requestAnimationFrame(() => window.requestAnimationFrame(() => card.classList.remove('opacity-0', 'translate-y-3')));
   };
 
+  // The address can hold what the visitor picked on the page: ?model= chooses a series page's configuration, ?models= and
+  // the spec filters shape a category page. Every language copy reads the same values, so the language links carry them
+  // over. The head's canonical and hreflang links stay the clean addresses search engines index.
+  const CARRIED = ['model', 'models', 'capacity', 'moment', 'weight', 'boom'];
+  const LINKS = '#language-menu a[hreflang], [data-language-suggest-accept]';
+  const carry = (href) => {
+    try {
+      const target = new URL(href, location.href);
+      if (target.origin !== location.origin) return href;
+      const here = new URLSearchParams(location.search);
+      CARRIED.forEach((key) => {
+        target.searchParams.delete(key);
+        here.getAll(key).forEach((value) => target.searchParams.append(key, value));
+      });
+      return target.href;
+    } catch {
+      return href;
+    }
+  };
+  const carryLink = (link) => {
+    const href = link.getAttribute('href');
+    if (href) {
+      const next = carry(href);
+      if (next !== link.href) link.href = next;
+    }
+  };
+  const syncLanguageLinks = () => document.querySelectorAll(LINKS).forEach(carryLink);
+  // Switching a configuration rewrites the address without a reload; the links follow, and are checked again just before
+  // use (a press, a focus, a new-tab click), which also catches addresses other scripts rewrite.
+  window.addEventListener('boblift:series-change', syncLanguageLinks);
+  ['pointerdown', 'focusin', 'auxclick', 'contextmenu'].forEach((type) => document.addEventListener(type, (event) => {
+    const link = event.target instanceof Element ? event.target.closest(LINKS) : null;
+    if (link) carryLink(link);
+  }, true));
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', syncLanguageLinks);
+  else syncLanguageLinks();
+
   // A language picked in the header menu is the visitor's answer too, even before the page has finished loading.
   document.addEventListener('click', (event) => {
     const link = event.target instanceof Element ? event.target.closest('#language-menu a[hreflang]') : null;
-    if (link) remember(primary(link.getAttribute('hreflang')));
+    if (link) {
+      carryLink(link);
+      remember(primary(link.getAttribute('hreflang')));
+    }
   });
 
   // A page restored from the back/forward cache keeps its card; drop it once a choice has been saved (e.g. in another tab).

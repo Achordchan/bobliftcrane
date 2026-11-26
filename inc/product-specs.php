@@ -91,7 +91,9 @@ function boblift_specs_render_choices(array $state): void
     $cell = 'border-y border-s border-[#DDE7F2] px-3 py-3 first:rounded-s-sm last:rounded-e-sm last:border-e [[aria-current]>&]:border-[#0B3F7D] [&:not(:first-child)]:border-s-[#E6EDF5] [[aria-current]>&:not(:first-child)]:border-s-[#C9D8EC]';
     ?>
     <?php ob_start(); ?>
-        <div class="mt-3 overflow-x-auto [scrollbar-width:thin]">
+        <?php // relative: the screen-reader notes in the cells are absolutely placed; without a positioned box here they escape the
+        // scroller and widen the whole page on phones (the page could be dragged sideways, 2026-11-26). ?>
+        <div class="relative mt-3 overflow-x-auto [scrollbar-width:thin]">
             <table class="w-full min-w-[460px] border-separate border-spacing-y-1.5 text-[14px] [font-variant-numeric:tabular-nums]">
                 <thead>
                     <tr class="whitespace-nowrap text-[12px] font-semibold uppercase lg:whitespace-normal tracking-[0.08em] text-slate-500 rtl:tracking-normal">
@@ -144,7 +146,7 @@ function boblift_specs_render_choices(array $state): void
 function boblift_specs_dash(string $meaning): string
 {
     $meaning = trim(preg_replace('/^[—\s:]+/u', '', $meaning) ?? $meaning);
-    return '<span class="font-normal text-slate-400" title="' . esc_attr($meaning) . '"><span aria-hidden="true">—</span><span class="sr-only">' . esc_html($meaning) . '</span></span>';
+    return '<span class="relative font-normal text-slate-400" title="' . esc_attr($meaning) . '"><span aria-hidden="true">—</span><span class="sr-only">' . esc_html($meaning) . '</span></span>';
 }
 
 /** The model code as one strip in the order the name is written. */
