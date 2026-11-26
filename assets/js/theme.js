@@ -2883,6 +2883,11 @@
     });
   };
   const turnstileFallbackOn = (form) => !!form?.querySelector('input[name="boblift_turnstile_unavailable"]');
+  // The page forms' boxes are drawn by Cloudflare itself (class cf-turnstile), which calls this by name
+  // (data-unsupported-callback) when it does not support the browser; that holds for every box on the page.
+  window.bobliftTurnstileUnsupported = () => {
+    qsa('.cf-turnstile').forEach((box) => useTurnstileFallback(box.closest('form') || box));
+  };
   const renderLazyTurnstile = async (scope = document) => {
     const widgets = qsa('[data-turnstile-widget]', scope).filter((widget) => !widget.dataset.turnstileWidgetId);
     if (!widgets.length) return;

@@ -96,7 +96,8 @@ function boblift_render_turnstile_widget(string $class = 'mt-4', bool $lazy = fa
         <?php if ($lazy) : ?>
             <div data-turnstile-widget data-sitekey="<?php echo esc_attr($config['site_key']); ?>" data-theme="light"></div>
         <?php else : ?>
-            <div class="cf-turnstile" data-sitekey="<?php echo esc_attr($config['site_key']); ?>" data-theme="light"></div>
+            <?php // A browser Cloudflare does not support: theme.js sends the form without the check (bobliftTurnstileUnsupported). ?>
+            <div class="cf-turnstile" data-sitekey="<?php echo esc_attr($config['site_key']); ?>" data-theme="light" data-unsupported-callback="bobliftTurnstileUnsupported"></div>
         <?php endif; ?>
     </div>
     <?php
