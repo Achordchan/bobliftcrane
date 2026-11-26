@@ -26,6 +26,14 @@ $type = trim((string) $localize_case_fragments((string) get_post_meta($post_id, 
 $summary = trim((string) $localize_case_fragments((string) (get_post_meta($post_id, '_summary', true) ?: get_the_excerpt())));
 $title = (string) $localize_case_fragments(get_the_title());
 $content = (string) $localize_case_fragments(apply_filters('the_content', get_the_content()));
+// A body that opens with a video (an optional heading, the video figure and an optional .boblift-video-note line) shows
+// that video above the story sections instead of under them: a customer testimonial is the case's lead evidence. The
+// rest of the body keeps its usual place (the related-links panel or the prose block).
+$lead_video = '';
+if (str_contains($content, 'wp-block-video') && preg_match('#^\s*((?:<h2\b[^>]*>(?:(?!</h2>).)*</h2>\s*)?<figure\b[^>]*\bwp-block-video\b[^>]*>(?:(?!</figure>).)*</figure>(?:\s*<p\b[^>]*\bboblift-video-note\b[^>]*>(?:(?!</p>).)*</p>)?)#is', $content, $lead_match)) {
+    $lead_video = $lead_match[1];
+    $content = (string) substr($content, strlen($lead_match[0]));
+}
 $sections = [];
 foreach ((array) $localize_case_fragments(boblift_decode_meta(get_post_meta($post_id, '_sections', true), [])) as $section) {
     $heading = trim((string) ($section['heading'] ?? ''));
@@ -203,6 +211,9 @@ if (count($related_cards) < 3 && function_exists('boblift_feedback_items')) {
     <div class="page-shell py-14 md:py-20">
         <div class="boblift-case-body">
         <div class="boblift-case-main min-w-0">
+        <?php if ($lead_video !== '') : ?>
+            <section class="boblift-case-lead-video boblift-story-prose max-w-[760px] <?php echo $sections || trim(wp_strip_all_tags($content)) !== '' ? 'mb-14 md:mb-20' : ''; ?>"><?php echo wp_kses_post($lead_video); ?></section>
+        <?php endif; ?>
         <?php if ($sections && $section_images) : ?>
             <div class="grid gap-14 md:gap-20">
                 <?php foreach ($sections as $index => $section) : $photo = $section_images[$index] ?? null; ?>
