@@ -1434,15 +1434,8 @@ function boblift_cached_html(string $group, array $vary, callable $render): stri
     return $html;
 }
 
-/** Temporary (2026-11-27, see inc/fragment-cache.php): the first change that bumped the products cache in this request. */
-function boblift_products_cache_note(string $why): void
-{
-    $GLOBALS['boblift_products_cache_trigger'] ??= $why;
-}
-
 function boblift_bump_products_cache(): void
 {
-    boblift_products_cache_note(current_filter());
     // A product save updates dozens of meta rows: the first change bumps the version at once, the rest of the burst is
     // skipped, and the version is bumped again when the request ends, so nothing built mid-burst (here or on a
     // concurrent request) outlives the save.
@@ -1530,7 +1523,7 @@ function boblift_attachment_is_referenced(int $attachment_id): bool
     $meta_args = $stem !== '' ? [$attachment_id, $id_pattern, $like] : [$attachment_id, $id_pattern];
     $where_values = '(meta_value REGEXP %s' . ($stem !== '' ? ' OR meta_value LIKE %s' : '') . ')';
     $value_args = $stem !== '' ? [$id_pattern, $like] : [$id_pattern];
-    $where_options = "option_name NOT LIKE '\\_%%' AND option_name NOT LIKE 'boblift\\_fflog\\_%%' AND (option_value REGEXP %s" . ($stem !== '' ? ' OR option_value LIKE %s' : '') . ')';
+    $where_options = "option_name NOT LIKE '\\_%%' AND (option_value REGEXP %s" . ($stem !== '' ? ' OR option_value LIKE %s' : '') . ')';
     $referenced = (bool) $wpdb->get_var($wpdb->prepare("SELECT 1 FROM {$wpdb->posts} WHERE {$where_posts} LIMIT 1", ...$posts_args)) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- fixed SQL with placeholders.
         || (bool) $wpdb->get_var($wpdb->prepare("SELECT 1 FROM {$wpdb->postmeta} WHERE {$where_meta} LIMIT 1", ...$meta_args)) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- fixed SQL with placeholders.
         || (bool) $wpdb->get_var($wpdb->prepare("SELECT 1 FROM {$wpdb->termmeta} WHERE {$where_values} LIMIT 1", ...$value_args)) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- fixed SQL with placeholders.
@@ -1550,7 +1543,6 @@ function boblift_bump_products_cache_for_post(int $post_id, ?string $meta_key = 
     }
     // Synced patterns (wp_block) can be embedded in product content, so editing one changes the rendered products.
     if (in_array(get_post_type($post_id), ['product', 'attachment', 'wp_block'], true)) {
-        boblift_products_cache_note(current_filter() . ' post ' . $post_id);
         boblift_bump_products_cache();
     }
 }
@@ -1572,7 +1564,6 @@ function boblift_bump_products_cache_for_content(int $post_id, mixed $post = nul
         return;
     }
     if (!boblift_products_cache_ignores_type($type)) {
-        boblift_products_cache_note(current_filter() . ' ' . $type . ' ' . $post_id);
         boblift_bump_products_cache();
     }
 }
@@ -1628,13 +1619,12 @@ foreach (['added_option', 'updated_option', 'deleted_option'] as $boblift_option
         $option = (string) $option;
         // The products cache version, the image-facts store (boblift_image_facts()) and the rebuild progress
         // (inc/cache-warm.php) and the fatal error log (inc/fatal-log.php) do not change any page.
-        // Nor do the homepage fragment generation (inc/fragment-cache.php) and IndexNow's queue and settings.
-        if (in_array($option, ['boblift_products_cache_version', 'boblift_image_facts', 'boblift_cache_warm_state', 'boblift_fragment_generation'], true) || str_starts_with($option, '_transient') || str_starts_with($option, '_site_transient') || str_starts_with($option, 'boblift_fatal_log_') || str_starts_with($option, 'boblift_indexnow_')) {
+        // Nor do the homepage fragment generation (inc/fragment-cache.php) and IndexNow's queue and settings, or the flag left by the one-time flush-log cleanup.
+        if (in_array($option, ['boblift_products_cache_version', 'boblift_image_facts', 'boblift_cache_warm_state', 'boblift_fragment_generation', 'boblift_flush_log_removed'], true) || str_starts_with($option, '_transient') || str_starts_with($option, '_site_transient') || str_starts_with($option, 'boblift_fatal_log_') || str_starts_with($option, 'boblift_indexnow_')) {
             return;
         }
         if (preg_match('/^(boblift|polylang|pll_|theme_mods_)/', $option)
             || in_array($option, ['permalink_structure', 'category_base', 'tag_base', 'home', 'siteurl', 'show_on_front', 'page_on_front', 'active_plugins', 'template', 'stylesheet'], true)) {
-            boblift_products_cache_note(current_filter() . ' ' . $option);
             boblift_bump_products_cache();
         }
     });

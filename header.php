@@ -326,7 +326,6 @@ foreach ($languages as $language) {
 <?php elseif ($show_top_bar) : ?>
     <div class="bg-navy px-4 py-3 text-center text-[11px] font-normal leading-5 text-white/85 md:text-xs"><?php // Phones drop the highlight so the bar stays on one line. ?><span class="hidden text-gold sm:inline"><?php echo esc_html($top_bar['highlight'] ?? 'Global Lifting Solutions.'); ?> </span><?php echo esc_html($top_bar['text'] ?? 'Exported to 120+ Countries Worldwide.'); ?><a class="-my-3 ms-3 inline-block py-3 text-gold md:ms-5" href="<?php echo esc_url(boblift_url($top_bar['link_href'] ?? '/about')); ?>"><?php echo esc_html($top_bar['link_label'] ?? 'Learn More +'); ?></a></div>
 <?php endif; ?>
-<?php boblift_timing('hdr_topbar'); ?>
 <?php // The announcement bar scrolls away; the navigation below stays at the top of the window. ?>
 <header id="top" class="sticky top-0 z-[200]">
     <div class="relative border-b border-line bg-white shadow-card">
@@ -453,7 +452,6 @@ foreach ($languages as $language) {
                     <?php endif; ?>
                 <?php endforeach; ?>
             </nav>
-            <?php boblift_timing('hdr_desktop_nav'); ?>
             <div class="flex items-center gap-2 max-md:gap-1.5 md:gap-3 xl:gap-2 min-[1380px]:justify-self-end min-[1680px]:gap-3">
                 <button class="group grid h-11 w-11 shrink-0 place-items-center rounded-sm border border-line bg-white text-ink transition hover:border-ink/30 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/20 aria-expanded:border-ink/40 aria-expanded:bg-mist max-md:hidden md:h-12 md:w-12" type="button" aria-label="<?php echo esc_attr($search_ui['openLabel'] ?? 'Search the site'); ?>" aria-expanded="false" aria-controls="site-search" data-search-toggle><?php echo boblift_icon('search', 'h-5 w-5 group-aria-expanded:hidden'); ?><?php echo boblift_icon('x', 'hidden h-5 w-5 group-aria-expanded:block'); ?></button>
                 <?php // Phones: globe, search, menu (as on the loader site), with the language button reduced to the globe so the site switch fits beside the logo; its menu lines up with the header's right gutter. Wider screens keep search first, so there are two search buttons and CSS shows one, keeping keyboard order equal to what is shown. ?>
@@ -621,6 +619,5 @@ foreach ($languages as $language) {
             <?php endif; ?>
         </div>
     </div>
-<?php boblift_timing('hdr_mobile_end'); ?>
 </header>
 <main>
