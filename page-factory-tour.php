@@ -115,6 +115,8 @@ $pad = static fn(int $n): string => str_pad((string) $n, 2, '0', STR_PAD_LEFT);
 </section>
 <?php endif; ?>
 
+<?php boblift_render_page_film((int) get_queried_object_id(), 'border-t border-line py-12 md:py-16'); ?>
+
 <?php if ($intro || $clips !== []) : ?>
 <section class="border-t border-line bg-mist py-12 md:py-16" aria-labelledby="factory-video-title">
     <div class="page-shell">

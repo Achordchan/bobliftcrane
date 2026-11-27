@@ -34,6 +34,7 @@ $boblift_theme_modules = [
     'product-archive-extras.php',
     'category-buying-guide.php',
     'category-video.php',
+    'page-film.php',
     'page-guide.php',
     'marine-brochure-models.php',
     'product-data-2026-10.php',
