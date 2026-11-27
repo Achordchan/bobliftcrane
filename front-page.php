@@ -20,7 +20,9 @@ $trust = $home['trust_bar'] ?? [];
 $about = $home['about'] ?? [];
 // The headline figures (years, export countries) sit in the certification bar, near the top of the page.
 $about_stats = array_values(array_filter((array) ($about['stats'] ?? []), static fn($stat): bool => is_array($stat) && trim((string) ($stat['value'] ?? '')) !== ''));
+boblift_timing('home_vars_start');
 $articles = boblift_articles('', 3);
+boblift_timing('home_articles');
 $gallery = $about['gallery'] ?? [];
 $default_gallery_alts = is_array($home_ui['defaultGalleryAlts'] ?? null) ? $home_ui['defaultGalleryAlts'] : [];
 $default_gallery = [
@@ -151,7 +153,7 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
     </div>
 </section>
 
-<?php boblift_render_home_products(); ?>
+<?php boblift_timing('home_top_done'); boblift_render_home_products(); boblift_timing('home_products'); ?>
 
 <?php // The year-end offers, while they run: a slim link right after the products (inc/year-end-offers.php). ?>
 <?php if (function_exists('boblift_offer_home_banner')) { boblift_offer_home_banner(); } ?>
@@ -202,14 +204,14 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
         <a class="mt-7 inline-flex min-h-11 items-center gap-2 text-base font-black text-ink md:text-lg lg:mt-4 xl:mt-7" href="<?php echo esc_url(boblift_url($about['cta_href'] ?? '/about')); ?>"><?php echo esc_html($about['cta_label'] ?? 'More About Us'); ?> <?php echo boblift_icon('arrow-right', 'h-5 w-5'); ?></a>
     </div>
 </div>
-<?php boblift_render_home_factory(); ?>
+<?php boblift_timing('home_about'); boblift_render_home_factory(); boblift_timing('home_factory'); ?>
 </section>
 
-<?php boblift_render_home_cases(); ?>
+<?php boblift_render_home_cases(); boblift_timing('home_cases'); ?>
 
-<?php boblift_render_home_feedback(); ?>
+<?php boblift_render_home_feedback(); boblift_timing('home_feedback'); ?>
 
-<?php boblift_render_home_faq(); ?>
+<?php boblift_render_home_faq(); boblift_timing('home_faq'); ?>
 
 <?php if (!empty($articles)) : $news_items = array_slice($articles, 0, 3); ?>
 <section id="news" class="relative overflow-hidden bg-[linear-gradient(135deg,#f8fbff_0%,#eef5ff_52%,#ffffff_100%)] py-10 md:py-16">
@@ -232,4 +234,4 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
     </div>
 </section>
 <?php endif; ?>
-<?php get_footer(); ?>
+<?php boblift_timing('home_news'); get_footer(); ?>
