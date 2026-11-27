@@ -108,11 +108,14 @@ function boblift_tonnage_size_for_capacity(float $capacity): int
 /** The tonnage pages that have models, as size => [label, url], for the "Browse by capacity" links. */
 function boblift_tonnage_links(): array
 {
+    // The header asks on every page, so which sizes have products is kept with the products cache (retired with it):
+    // working it out loads and primes every product, 0.1-0.35 s with a warm object cache (measured 2026-11-27).
+    static $sizes = [];
+    $language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
+    $sizes[$language] ??= array_map('intval', (array) boblift_cached_data('tonnage_sizes', [], static fn(): array => array_values(array_filter(array_keys(boblift_tonnage_bins()), static fn($size): bool => (bool) boblift_tonnage_products((int) $size)))));
     $links = [];
-    foreach (array_keys(boblift_tonnage_bins()) as $size) {
-        if (boblift_tonnage_products($size)) {
-            $links[$size] = [str_replace('{n}', (string) $size, boblift_localized_static_text('{n} Ton')), boblift_tonnage_url($size)];
-        }
+    foreach ($sizes[$language] as $size) {
+        $links[$size] = [str_replace('{n}', (string) $size, boblift_localized_static_text('{n} Ton')), boblift_tonnage_url($size)];
     }
     return $links;
 }
