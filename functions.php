@@ -81,7 +81,6 @@ $boblift_theme_modules = [
     'rest-tonnage-copy.php',
     'polylang-rewrites.php',
     'family-layout-migration.php',
-    'render-timing.php',
     'fragment-cache.php',
 ];
 

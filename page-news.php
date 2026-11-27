@@ -21,9 +21,7 @@ if ($active_category !== '' && !in_array($active_category, $allowed_category_slu
 if ($active_category !== '' && !in_array($active_category, $allowed_category_slugs, true)) {
     $active_category = '';
 }
-boblift_timing('news_vars');
 $articles = boblift_articles('', -1);
-boblift_timing('news_articles');
 $grid_articles = $articles;
 $ui = boblift_site_ui('newsPage');
 $hero_image = $ui['heroImage'] ?? 'images/page-heroes/factory-floor.webp';
@@ -95,4 +93,4 @@ $empty_text = (string) ($ui['emptyText'] ?? 'Choose another category to browse m
     <?php endif; ?>
 </section>
 
-<?php boblift_timing('news_body'); get_footer(); ?>
+<?php get_footer(); ?>
