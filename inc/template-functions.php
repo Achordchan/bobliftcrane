@@ -1512,7 +1512,9 @@ function boblift_attachment_is_referenced(int $attachment_id): bool
     // "Unused" is shared by every handler and request for the same file while the content stays as it was: the products
     // cache version, read from the database so another request's save is seen at once, changes with every content,
     // term or setting save. A batch upload so searches about once per picture instead of once per metadata change.
-    $version = (string) $wpdb->get_var("SELECT option_value FROM {$wpdb->options} WHERE option_name = 'boblift_products_cache_version'");
+    // The homepage fragment generation (inc/fragment-cache.php) joins it, as it also changes with meta saved on any post
+    // (a page's _boblift_visit_items, for one) without a full save.
+    $version = implode('|', array_map('strval', (array) $wpdb->get_col("SELECT option_value FROM {$wpdb->options} WHERE option_name IN ('boblift_products_cache_version', 'boblift_fragment_generation') ORDER BY option_name")));
     $unused_key = 'unused_upload_' . $attachment_id . '_' . md5($file);
     if ($version !== '' && wp_cache_get($unused_key, 'boblift') === $version) {
         return false;
