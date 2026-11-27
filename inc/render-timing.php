@@ -48,5 +48,11 @@ add_action('shutdown', static function (): void {
         $previous = $time;
     }
     $lines[] = sprintf('%-22s %7.1f %7.1f q=%d', 'shutdown', (microtime(true) - $start) * 1000, (microtime(true) - $previous) * 1000, function_exists('get_num_queries') ? get_num_queries() : 0);
+    if (function_exists('boblift_fragment_generation')) {
+        $lines[] = 'fragment generation ' . boblift_fragment_generation();
+        foreach (boblift_fragment_flush_log() as $entry) {
+            $lines[] = 'flush ' . preg_replace('/[^\w:.\/ -]/', '', (string) $entry);
+        }
+    }
     echo "\n<!-- boblift-timing\n" . implode("\n", $lines) . "\n-->";
 }, 0);

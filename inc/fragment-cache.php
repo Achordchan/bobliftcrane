@@ -30,13 +30,14 @@ function boblift_fragment_new_generation(): void
  * visitor while a long save (an import, a bulk REST edit) was still writing is dropped as well. Changes in between
  * write nothing.
  */
-function boblift_fragment_flush(): void
+function boblift_fragment_flush($subject = null, string $detail = ''): void
 {
     static $pending = false;
     if ($pending) {
         return;
     }
     $pending = true;
+    boblift_fragment_log_flush($subject, $detail);
     boblift_fragment_new_generation();
     add_action('shutdown', 'boblift_fragment_new_generation', 1);
 }
@@ -91,7 +92,7 @@ function boblift_fragment_meta_flush($meta_ids, $object_id, $meta_key): void
         ? boblift_indexnow_meta_is_bookkeeping($meta_key)
         : in_array($meta_key, ['_edit_lock', '_edit_last'], true) || str_starts_with($meta_key, '_oembed_');
     if (!$bookkeeping) {
-        boblift_fragment_flush();
+        boblift_fragment_flush($object_id, $meta_key);
     }
 }
 
@@ -106,6 +107,30 @@ function boblift_fragment_option_flush($option): void
     $option = (string) $option;
     $watched = ['boblift_theme_options', 'polylang', 'blogname', 'blogdescription', 'home', 'siteurl', 'page_on_front', 'sticky_posts', 'boblift_products_cache_version', 'boblift_product_menu_version'];
     if (in_array($option, $watched, true) || str_starts_with($option, 'theme_mods_')) {
-        boblift_fragment_flush();
+        boblift_fragment_flush(null, $option);
     }
+}
+
+/**
+ * Temporary (2026-11-27): the latest changes that started a new generation (the newest 40 rows are kept), with the hook, the post or option behind
+ * it and the request, so the profiler can show why the cached sections were rebuilt. Remove with inc/render-timing.php.
+ */
+function boblift_fragment_log_flush($subject, string $detail): void
+{
+    global $wpdb;
+    $request = (defined('DOING_CRON') && DOING_CRON) ? 'cron' : ((defined('REST_REQUEST') && REST_REQUEST) || str_contains((string) ($_SERVER['REQUEST_URI'] ?? ''), '/wp-json/') ? 'rest' : (is_admin() ? 'admin' : 'front'));
+    $entry = gmdate('H:i:s') . ' ' . current_filter() . ' ' . (is_scalar($subject) ? (string) $subject : '') . ' ' . $detail . ' ' . $request . ' ' . substr((string) strtok((string) ($_SERVER['REQUEST_URI'] ?? ''), '?'), 0, 60);
+    // One row per change, under its own name, so two requests logging at once cannot overwrite each other's entry.
+    $wpdb->query($wpdb->prepare("INSERT INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')", 'boblift_fflog_' . str_replace('-', '', wp_generate_uuid4()), $entry));
+    $cutoff = $wpdb->get_var("SELECT option_id FROM {$wpdb->options} WHERE option_name LIKE 'boblift\\_fflog\\_%' ORDER BY option_id DESC LIMIT 1 OFFSET 40");
+    if ($cutoff) {
+        $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name LIKE 'boblift\\_fflog\\_%%' AND option_id <= %d", (int) $cutoff));
+    }
+}
+
+/** The 20 most recent logged changes, newest first. */
+function boblift_fragment_flush_log(): array
+{
+    global $wpdb;
+    return array_map('strval', (array) $wpdb->get_col("SELECT option_value FROM {$wpdb->options} WHERE option_name LIKE 'boblift\\_fflog\\_%' ORDER BY option_id DESC LIMIT 20"));
 }
