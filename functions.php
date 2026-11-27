@@ -81,6 +81,7 @@ $boblift_theme_modules = [
     'polylang-rewrites.php',
     'family-layout-migration.php',
     'render-timing.php',
+    'fragment-cache.php',
 ];
 
 $boblift_theme_dir = get_template_directory();
