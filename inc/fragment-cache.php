@@ -30,13 +30,14 @@ function boblift_fragment_new_generation(): void
  * visitor while a long save (an import, a bulk REST edit) was still writing is dropped as well. Changes in between
  * write nothing.
  */
-function boblift_fragment_flush(): void
+function boblift_fragment_flush($subject = null, string $detail = ''): void
 {
     static $pending = false;
     if ($pending) {
         return;
     }
     $pending = true;
+    boblift_fragment_log_flush($subject, $detail);
     boblift_fragment_new_generation();
     add_action('shutdown', 'boblift_fragment_new_generation', 1);
 }
@@ -91,7 +92,7 @@ function boblift_fragment_meta_flush($meta_ids, $object_id, $meta_key): void
         ? boblift_indexnow_meta_is_bookkeeping($meta_key)
         : in_array($meta_key, ['_edit_lock', '_edit_last'], true) || str_starts_with($meta_key, '_oembed_');
     if (!$bookkeeping) {
-        boblift_fragment_flush();
+        boblift_fragment_flush($object_id, $meta_key);
     }
 }
 
@@ -106,6 +107,19 @@ function boblift_fragment_option_flush($option): void
     $option = (string) $option;
     $watched = ['boblift_theme_options', 'polylang', 'blogname', 'blogdescription', 'home', 'siteurl', 'page_on_front', 'sticky_posts', 'boblift_products_cache_version', 'boblift_product_menu_version'];
     if (in_array($option, $watched, true) || str_starts_with($option, 'theme_mods_')) {
-        boblift_fragment_flush();
+        boblift_fragment_flush(null, $option);
     }
+}
+
+/**
+ * Temporary (2026-11-27): the last 20 changes that started a new generation, with the hook, the post or option behind
+ * it and the request, so the profiler can show why the cached sections were rebuilt. Remove with inc/render-timing.php.
+ */
+function boblift_fragment_log_flush($subject, string $detail): void
+{
+    $log = get_option('boblift_fragment_flush_log', []);
+    $log = is_array($log) ? array_slice($log, -19) : [];
+    $request = (defined('DOING_CRON') && DOING_CRON) ? 'cron' : ((defined('REST_REQUEST') && REST_REQUEST) || str_contains((string) ($_SERVER['REQUEST_URI'] ?? ''), '/wp-json/') ? 'rest' : (is_admin() ? 'admin' : 'front'));
+    $log[] = gmdate('H:i:s') . ' ' . current_filter() . ' ' . (is_scalar($subject) ? (string) $subject : '') . ' ' . $detail . ' ' . $request . ' ' . substr((string) strtok((string) ($_SERVER['REQUEST_URI'] ?? ''), '?'), 0, 60);
+    update_option('boblift_fragment_flush_log', $log, false);
 }
