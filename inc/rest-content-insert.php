@@ -678,7 +678,11 @@ function boblift_content_insert_picture(string $content, string $img, string $sr
  * Keeps the block markup around the picture change at byte offset $at valid. Classic HTML and a core/html block need
  * nothing. A core/image block's saved markup can never hold <picture>, so the block editor would call it invalid and
  * could drop the phone layout on recovery; that one block becomes a core/html block instead (same HTML, its image
- * attributes dropped with the old comment). Any other block keeps the image in its own attributes and is refused.
+ * attributes dropped with the old comment). An image block is converted only when every attribute is one whose effect is
+ * already in its saved markup (id, sizeSlug, linkDestination, align, className, width, height, aspectRatio, scale, and metadata holding only the
+ * editor's block name);
+ * one with lightbox, bindings, style or other render-time attributes is refused. Any other block keeps the image in its
+ * own attributes and is refused.
  */
 function boblift_content_insert_picture_block(string $content, int $at): string|WP_Error
 {
@@ -697,10 +701,19 @@ function boblift_content_insert_picture_block(string $content, int $at): string|
         return new WP_Error('boblift_insert_picture', 'The image block around this image could not be read to turn it into an HTML block.', ['status' => 500]);
     }
     $opener = end($open[0]);
-    // A block whose URL or alt comes from block bindings (metadata.bindings) would lose them as HTML: leave it alone.
-    $attrs = json_decode(trim((string) preg_replace('~^<!--\s+wp:(?:core/)?image\s*|\s*-->$~s', '', $opener[0])), true);
-    if (is_array($attrs) && !empty($attrs['metadata']['bindings'])) {
-        return new WP_Error('boblift_insert_picture', 'This image block takes its image from block bindings; it cannot become an HTML block without losing them.', ['status' => 400]);
+    // Only attributes whose effect is already in the saved markup (or that only the editor reads) may be dropped with
+    // the comment. Anything WordPress applies when it renders the block (lightbox, block bindings, duotone and other
+    // styles, block metadata) would be lost silently as HTML, so such a block is refused rather than converted.
+    $json = trim((string) preg_replace('~^<!--\s+wp:(?:core/)?image\s*|\s*-->$~s', '', $opener[0]));
+    $attrs = $json === '' ? [] : json_decode($json, true);
+    $safe = ['id', 'sizeSlug', 'linkDestination', 'align', 'className', 'width', 'height', 'aspectRatio', 'scale'];
+    $extra = is_array($attrs) ? array_diff(array_keys($attrs), $safe) : ['(unreadable attributes)'];
+    // Block metadata that only names the block in the editor's list view is safe to drop; anything else in it is not.
+    if (is_array($attrs) && isset($attrs['metadata']) && is_array($attrs['metadata']) && array_diff(array_keys($attrs['metadata']), ['name']) === []) {
+        $extra = array_diff($extra, ['metadata']);
+    }
+    if ($extra !== []) {
+        return new WP_Error('boblift_insert_picture', sprintf('This image block has attributes WordPress applies when it renders the block (%s); turning it into an HTML block would drop them, so it is left alone.', implode(', ', $extra)), ['status' => 400]);
     }
     $content = substr_replace($content, '<!-- /wp:html -->', $close[0][1], strlen($close[0][0]));
     return substr_replace($content, '<!-- wp:html -->', $opener[1], strlen($opener[0]));
