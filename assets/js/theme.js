@@ -1955,12 +1955,29 @@
     // pictures), else the largest srcset entry, else the address shown; on the WordPress.com image CDN (i0.wp.com and its
     // siblings) without its resize arguments, which serves the original. No file name is guessed. If it fails, the copy
     // the page shows is used.
+    // A chart in a <picture> shows a narrow layout on phones (a <source> with a media query): the viewer opens the layout
+    // the visitor is looking at, from that source's data-article-photo-full or its srcset, never the other layout.
+    const shownSource = (img) => {
+      if (img.parentElement?.tagName !== 'PICTURE') return null;
+      return qsa('source', img.parentElement).find((source) => {
+        const media = source.getAttribute('media');
+        try {
+          return !media || window.matchMedia(media).matches;
+        } catch {
+          return false;
+        }
+      }) || null;
+    };
     const largest = (img) => {
-      if (img.dataset.articlePhotoFull) return img.dataset.articlePhotoFull;
-      const set = srcsetCandidates(img.getAttribute('srcset') || '')
+      const source = shownSource(img);
+      const owner = source || img;
+      if (owner.dataset.articlePhotoFull) return owner.dataset.articlePhotoFull;
+      const set = srcsetCandidates(owner.getAttribute('srcset') || '')
         .filter(([url, size]) => url && /^\d+w$/.test(size || ''))
         .sort((a, b) => parseInt(b[1], 10) - parseInt(a[1], 10));
-      const url = set.length ? set[0][0] : (img.getAttribute('src') || img.currentSrc || '');
+      // A source's srcset without width descriptors ("chart.png" or "chart.png 2x") still names the shown file.
+      const sourceFirst = source ? (srcsetCandidates(source.getAttribute('srcset') || '')[0] || [])[0] : '';
+      const url = set.length ? set[0][0] : (sourceFirst || img.getAttribute('src') || img.currentSrc || '');
       try {
         const parsed = new URL(url, document.baseURI);
         if (!/^i\d\.wp\.com$/.test(parsed.hostname)) return url;
