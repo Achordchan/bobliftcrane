@@ -120,12 +120,12 @@ function boblift_video_center_clean_extra(mixed $items): array|WP_Error
  * The same list as a page meta JSON string, for REST clients that can only send registered meta (the WordPress.com
  * connector refuses unknown top-level fields): POST /wp/v2/pages/<id> {"meta": {"_boblift_video_center_items":
  * "[{\"src\": …, \"poster\": …, \"title\": …, \"group\": …}]"}}. When set and valid it replaces the list saved through
- * boblift_video_center_extra; "" (or a list that fails the checks above) falls back to that list.
+ * boblift_video_center_extra, and "[]" clears it; "" (or a list that fails the checks above) falls back to that list.
  */
 function boblift_video_center_items_sanitize(mixed $value): string
 {
     $items = boblift_video_center_clean_extra(json_decode(is_string($value) ? $value : '', true));
-    return is_wp_error($items) || $items === [] ? '' : (string) wp_json_encode($items, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    return is_wp_error($items) ? '' : (string) wp_json_encode($items, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 }
 
 function boblift_video_center_register_items_meta(): void
