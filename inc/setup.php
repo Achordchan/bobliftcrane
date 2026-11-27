@@ -1471,8 +1471,9 @@ function boblift_allow_picture_sources(array $tags, $context): array
     if ($context !== 'post') {
         return $tags;
     }
-    $tags['picture'] = ['class' => true, 'data-*' => true];
-    $tags['source'] = ['srcset' => true, 'sizes' => true, 'media' => true, 'type' => true, 'width' => true, 'height' => true, 'data-*' => true];
+    // Merged into whatever is already allowed (a <source> inside <video> or <audio> keeps its src).
+    $tags['picture'] = array_merge((array) ($tags['picture'] ?? []), ['class' => true, 'data-*' => true]);
+    $tags['source'] = array_merge((array) ($tags['source'] ?? []), ['srcset' => true, 'sizes' => true, 'media' => true, 'type' => true, 'width' => true, 'height' => true, 'data-*' => true]);
     return $tags;
 }
 add_filter('wp_kses_allowed_html', 'boblift_allow_picture_sources', 10, 2);

@@ -1975,8 +1975,11 @@
       const set = srcsetCandidates(owner.getAttribute('srcset') || '')
         .filter(([url, size]) => url && /^\d+w$/.test(size || ''))
         .sort((a, b) => parseInt(b[1], 10) - parseInt(a[1], 10));
-      // A source's srcset without width descriptors ("chart.png" or "chart.png 2x") still names the shown file.
-      const sourceFirst = source ? (srcsetCandidates(source.getAttribute('srcset') || '')[0] || [])[0] : '';
+      // A source's srcset without width descriptors ("chart.png" or "chart.png 1x, chart@2x.png 2x"): its densest copy.
+      const density = (descriptor) => (/^\d*\.?\d+x$/.test(descriptor || '') ? parseFloat(descriptor) : 1);
+      const sourceFirst = source
+        ? (srcsetCandidates(source.getAttribute('srcset') || '').sort((a, b) => density(b[1]) - density(a[1]))[0] || [])[0] || ''
+        : '';
       const url = set.length ? set[0][0] : (sourceFirst || img.getAttribute('src') || img.currentSrc || '');
       try {
         const parsed = new URL(url, document.baseURI);
