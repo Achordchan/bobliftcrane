@@ -123,6 +123,9 @@ if (boblift_content_insert_apply($once, $value) !== $once || !str_contains($once
 }
 // Image swaps: [content, item, wanted content or error code].
 $new = '/wp-content/uploads/new/b.png';
+$pm = '/wp-content/uploads/new/a-mobile.png';
+$pm2 = '/wp-content/uploads/new/a-mobile-v2.png';
+$ps = '<source media="(max-width: 700px)" srcset="' . $pm . '" width="600" height="900" data-article-photo-full="' . $pm . '">';
 $images = [
     'swap src and alt' => ['<p>x</p><figure><img src="/a.png" alt="Old" width="2"></figure>', ['image' => '/a.png', 'src' => $new, 'alt' => "Kid's \$10 chart"], '<p>x</p><figure><img src="' . $new . '" alt="Kid&apos;s $10 chart" width="2"></figure>'],
     'swap src only' => ["<img alt=\"Old\" src='/a.png'>", ['image' => '/a.png', 'src' => $new], '<img alt="Old" src="' . $new . '">'],
@@ -184,6 +187,25 @@ $images += [
     'video relative src' => ['<video src="' . $vo . '"></video>', ['video' => $vo, 'src' => 'a-hd.mp4'], 'boblift_insert_video'],
     'video bad poster' => ['<video src="' . $vo . '"></video>', ['video' => $vo, 'src' => $vn, 'poster' => '//x.com/p.jpg'], 'boblift_insert_video'],
     'video with another item' => ['<p>A</p><video src="' . $vo . '"></video>', [['after' => 'A', 'html' => '<p>N</p>'], ['video' => $vo, 'src' => $vn]], 'boblift_insert_replace'],
+    // A phone layout for a chart: the <img> is wrapped in <picture> with one <source>; the <img> is not changed.
+    'picture wraps a classic image' => ['<figure><img class="wp-image-5" src="/a.png" alt="A"><figcaption>c</figcaption></figure>', ['picture' => '/a.png', 'srcset' => $pm, 'width' => 600, 'height' => 900], '<figure><picture>' . $ps . '<img class="wp-image-5" src="/a.png" alt="A"></picture><figcaption>c</figcaption></figure>'],
+    'picture in an image block' => ['<!-- wp:image {"id":5} --><figure class="wp-block-image"><img src="/a.png" class="wp-image-5" alt=""/></figure><!-- /wp:image -->', ['picture' => '/a.png', 'srcset' => $pm, 'width' => '600', 'height' => '900'], '<!-- wp:image {"id":5} --><figure class="wp-block-image"><picture>' . $ps . '<img src="/a.png" class="wp-image-5" alt=""/></picture></figure><!-- /wp:image -->'],
+    'picture tag with a > in an attribute' => ['<img alt="a > b" src="/a.png"><p>z</p>', ['picture' => '/a.png', 'srcset' => $pm, 'width' => 600, 'height' => 900], '<picture>' . $ps . '<img alt="a > b" src="/a.png"></picture><p>z</p>'],
+    'picture already done' => ['<picture>' . $ps . '<img src="/a.png"></picture>', ['picture' => '/a.png', 'srcset' => $pm, 'width' => 600, 'height' => 900], '<picture>' . $ps . '<img src="/a.png"></picture>'],
+    'picture source updated' => ['<picture>' . $ps . '<img src="/a.png"></picture>', ['picture' => '/a.png', 'srcset' => $pm2, 'width' => 600, 'height' => 1000], '<picture>' . str_replace([$pm, '"900"'], [$pm2, '"1000"'], $ps) . '<img src="/a.png"></picture>'],
+    'picture two items' => ['<img src="/a.png"><img src="/c.png">', [['picture' => '/a.png', 'srcset' => $pm, 'width' => 600, 'height' => 900], ['picture' => '/c.png', 'srcset' => $pm2, 'width' => 600, 'height' => 1000]], '<picture>' . $ps . '<img src="/a.png"></picture><picture>' . str_replace([$pm, '"900"'], [$pm2, '"1000"'], $ps) . '<img src="/c.png"></picture>'],
+    'picture custom media' => ['<img src="/a.png">', ['picture' => '/a.png', 'srcset' => $pm, 'width' => 600, 'height' => 900, 'media' => '(max-width: 640px)'], '<picture>' . str_replace('700px', '640px', $ps) . '<img src="/a.png"></picture>'],
+    'picture with two sources' => ['<picture><source srcset="/x.webp" type="image/webp">' . $ps . '<img src="/a.png"></picture>', ['picture' => '/a.png', 'srcset' => $pm2, 'width' => 600, 'height' => 900], 'boblift_insert_picture'],
+    'picture src only in a comment' => ['<!-- <img src="/a.png"> --><p>z</p>', ['picture' => '/a.png', 'srcset' => $pm, 'width' => 600, 'height' => 900], 'boblift_insert_picture'],
+    'picture image twice' => ['<img src="/a.png"><img src="/a.png">', ['picture' => '/a.png', 'srcset' => $pm, 'width' => 600, 'height' => 900], 'boblift_insert_picture'],
+    'picture file not in library' => ['<img src="/a.png">', ['picture' => '/a.png', 'srcset' => '/wp-content/uploads/old/m.png', 'width' => 600, 'height' => 900], 'boblift_insert_picture'],
+    'picture file not an image' => ['<img src="/a.png">', ['picture' => '/a.png', 'srcset' => '/wp-content/uploads/new/m.pdf', 'width' => 600, 'height' => 900], 'boblift_insert_picture'],
+    'picture srcset list refused' => ['<img src="/a.png">', ['picture' => '/a.png', 'srcset' => $pm . ' 1x,' . $pm2 . ' 2x', 'width' => 600, 'height' => 900], 'boblift_insert_picture'],
+    'picture bad size' => ['<img src="/a.png">', ['picture' => '/a.png', 'srcset' => $pm, 'width' => 0, 'height' => 900], 'boblift_insert_picture'],
+    'picture bad media' => ['<img src="/a.png">', ['picture' => '/a.png', 'srcset' => $pm, 'width' => 600, 'height' => 900, 'media' => 'screen and (max-width: 700px)'], 'boblift_insert_picture'],
+    'picture in a cover block' => ['<!-- wp:cover {"url":"/a.png"} --><div class="wp-block-cover"><img src="/a.png"></div><!-- /wp:cover -->', ['picture' => '/a.png', 'srcset' => $pm, 'width' => 600, 'height' => 900], 'boblift_insert_picture'],
+    'picture with an image swap' => ['<img src="/a.png"><img src="/c.png">', [['picture' => '/a.png', 'srcset' => $pm, 'width' => 600, 'height' => 900], ['image' => '/c.png', 'src' => $new]], 'boblift_insert_replace'],
+    'image swap inside picture refused' => ['<picture>' . $ps . '<img src="/a.png"></picture>', ['image' => '/a.png', 'src' => $new], 'boblift_insert_image'],
 ];
 if (!class_exists('WP_HTML_Tag_Processor')) {
     echo 'SKIPPED ' . count($images) . " image and video cases: set WP_CORE_DIR to a WordPress copy\n";

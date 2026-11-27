@@ -43,6 +43,17 @@ if (!defined('ABSPATH')) {
  * changed. When no <video> has the old src and one has the new src, the swap is already done and only that JSON-LD
  * step runs. Like "image", a "video" item goes on its own, one per request.
  *
+ * An item can also give a chart a narrow layout for phones: {"picture": "/wp-content/uploads/2026/11/a-en.png",
+ * "srcset": "/wp-content/uploads/2026/11/a-mobile-en.png", "width": 600, "height": 1180}. "picture" is the src of exactly
+ * one <img> in the content, in classic HTML, a core/html block or a core/image block; it is wrapped in <picture> with a
+ * <source media="(max-width: 700px)" srcset width height data-article-photo-full> in front of it, so phones download
+ * only the narrow file and the photo viewer opens it. "srcset" must be an image in this site's media library; "width"
+ * and "height" are its size in CSS pixels; "media" may be sent as "(max-width: Npx)" or "(min-width: Npx)". When the
+ * <img> is already in a <picture> with one <source>, that source is pointed at the new file (a revised narrow layout);
+ * when it already has these exact values the item is done and skipped. The <img> itself is never changed. Several
+ * "picture" items can go in one request, one per chart, and with "after" items, but not with "replace", "image",
+ * "link" or "video" items.
+ *
  * rest_pre_insert_{type} takes a per-post lock that is held until the save is done, every REST update of the item takes
  * the same lock before it loads the post, and any other save takes it just before its row is written, so nothing lands
  * in between; the request's own core update writes the body as stored at that moment. It then checks the insertion
@@ -70,7 +81,7 @@ function boblift_register_rest_content_insert_field(): void
             return true;
         },
         'schema' => [
-            'description' => 'Write only: {"after": snippet, "html": html} adds html after the element holding the snippet; {"replace": text, "with": text} corrects a plain-text phrase; {"image": old src, "src": new src, "alt": text} swaps an image for another media library file; {"link": old href, "href": new href} points one link at another URL; {"video": old src, "src": new src, "poster": url} points one <video> at another file. One item or a list.',
+            'description' => 'Write only: {"after": snippet, "html": html} adds html after the element holding the snippet; {"replace": text, "with": text} corrects a plain-text phrase; {"image": old src, "src": new src, "alt": text} swaps an image for another media library file; {"link": old href, "href": new href} points one link at another URL; {"video": old src, "src": new src, "poster": url} points one <video> at another file; {"picture": img src, "srcset": phone file, "width": w, "height": h} wraps one <img> in <picture> with a phone layout. One item or a list.',
             'type' => ['object', 'array'],
             'context' => ['edit'],
         ],
@@ -219,7 +230,7 @@ function boblift_content_insert_stored(int $post_id): string
 /** Applies every insertion in a request value to $content, filtering the HTML the way a save by this user would. */
 function boblift_content_insert_apply(string $content, $value): string|WP_Error
 {
-    $inserts = is_array($value) && (array_key_exists('after', $value) || array_key_exists('replace', $value) || array_key_exists('image', $value) || array_key_exists('link', $value) || array_key_exists('video', $value)) ? [$value] : (array) $value;
+    $inserts = is_array($value) && (array_key_exists('after', $value) || array_key_exists('replace', $value) || array_key_exists('image', $value) || array_key_exists('link', $value) || array_key_exists('video', $value) || array_key_exists('picture', $value)) ? [$value] : (array) $value;
     // A replacement or an image swap can remove what another item of the request checks for (its own "with", an
     // insertion's HTML, another swap's src), so a retry could not tell that item was done: such an item goes alone.
     if (count($inserts) > 1 && array_filter($inserts, static fn($insert): bool => is_array($insert) && (array_key_exists('replace', $insert) || array_key_exists('image', $insert) || array_key_exists('link', $insert) || array_key_exists('video', $insert))) !== []) {
@@ -243,6 +254,13 @@ function boblift_content_insert_apply(string $content, $value): string|WP_Error
         }
         if (is_array($insert) && array_key_exists('link', $insert)) {
             $content = boblift_content_insert_link($content, (string) ($insert['link'] ?? ''), (string) ($insert['href'] ?? ''));
+            if (is_wp_error($content)) {
+                return $content;
+            }
+            continue;
+        }
+        if (is_array($insert) && array_key_exists('picture', $insert)) {
+            $content = boblift_content_insert_picture($content, (string) ($insert['picture'] ?? ''), (string) ($insert['srcset'] ?? ''), $insert['width'] ?? null, $insert['height'] ?? null, (string) ($insert['media'] ?? '(max-width: 700px)'));
             if (is_wp_error($content)) {
                 return $content;
             }
@@ -500,6 +518,161 @@ function boblift_content_insert_enclosing_block(string $content, int $at): array
         }
     }
     return end($stack);
+}
+
+/**
+ * Wraps the one <img> whose src is $img in <picture> with a <source> for the narrow layout in $srcset (an image in this
+ * site's media library, $width × $height CSS pixels, shown when $media matches), so a phone downloads only that file;
+ * data-article-photo-full on the source tells the photo viewer to open it. The <img> is left as it is. When the <img> is
+ * already in a <picture> with one <source>, that source is updated instead, and when it already carries these values the
+ * content comes back unchanged, so the item can be sent again. Only classic HTML, core/html and core/image blocks are
+ * changed; an <img> in any other block (a cover, media & text) is refused. Tags are found with WordPress's HTML tag
+ * processor, so a src in another attribute, a comment or a script is never taken for an image.
+ */
+function boblift_content_insert_picture(string $content, string $img, string $srcset, $width, $height, string $media): string|WP_Error
+{
+    $bad_url = static fn(string $url): bool => $url === '' || preg_match('~[\s<>"\'\x00,]~', $url) === 1;
+    if ($bad_url($img) || $bad_url($srcset) || $img === $srcset) {
+        return new WP_Error('boblift_insert_picture', 'A "picture" item needs the <img> src in "picture" and a different phone file in "srcset" (one URL: no spaces, commas, "<", ">" or quotes).', ['status' => 400]);
+    }
+    if (preg_match('~^(/(?!/)|https?://)~i', $srcset) !== 1) {
+        return new WP_Error('boblift_insert_picture', 'The "srcset" file must be a root-relative (/wp-content/…) or absolute http(s) URL.', ['status' => 400]);
+    }
+    $size = static fn($v): int => (is_int($v) || (is_string($v) && preg_match('/^\d{1,5}$/', $v) === 1)) && (int) $v >= 1 && (int) $v <= 10000 ? (int) $v : 0;
+    $width = $size($width);
+    $height = $size($height);
+    if ($width === 0 || $height === 0) {
+        return new WP_Error('boblift_insert_picture', 'A "picture" item needs the phone file\'s "width" and "height" as whole numbers from 1 to 10000.', ['status' => 400]);
+    }
+    if (preg_match('~^\((?:max|min)-width: ?\d{2,4}px\)$~', $media) !== 1) {
+        return new WP_Error('boblift_insert_picture', 'A "picture" item\'s "media" must read "(max-width: Npx)" or "(min-width: Npx)".', ['status' => 400]);
+    }
+    $absolute = $srcset;
+    if (str_starts_with($srcset, '/')) {
+        $home = wp_parse_url(home_url());
+        if (!is_array($home) || empty($home['host'])) {
+            return new WP_Error('boblift_insert_picture', 'The site address could not be read to resolve the phone file.', ['status' => 500]);
+        }
+        $absolute = ($home['scheme'] ?? 'https') . '://' . $home['host'] . (isset($home['port']) ? ':' . $home['port'] : '') . $srcset;
+    }
+    $file_id = (int) attachment_url_to_postid($absolute);
+    if ($file_id <= 0 || !wp_attachment_is_image($file_id)) {
+        return new WP_Error('boblift_insert_picture', sprintf('"%s" is not an image in this site\'s media library.', $srcset), ['status' => 400]);
+    }
+    $want = ['media' => $media, 'srcset' => $srcset, 'width' => (string) $width, 'height' => (string) $height, 'data-article-photo-full' => $srcset];
+
+    // Pass 1: find the <img> and, if it is in a <picture>, that picture's number and its <source> tags.
+    $found = 0;
+    $in_picture = -1;
+    $sources = [];
+    $pictures = -1;
+    $open = -1;
+    $scan = new WP_HTML_Tag_Processor($content);
+    while ($scan->next_tag(['tag_closers' => 'visit'])) {
+        $tag = $scan->get_tag();
+        if ($tag === 'PICTURE') {
+            if ($scan->is_tag_closer()) {
+                $open = -1;
+            } else {
+                $open = ++$pictures;
+                $sources[$open] = [];
+            }
+            continue;
+        }
+        if ($scan->is_tag_closer()) {
+            continue;
+        }
+        if ($tag === 'SOURCE' && $open >= 0) {
+            $attrs = [];
+            foreach (array_keys($want) as $name) {
+                $value = $scan->get_attribute($name);
+                $attrs[$name] = is_string($value) ? $value : null;
+            }
+            $sources[$open][] = $attrs;
+        } elseif ($tag === 'IMG' && $scan->get_attribute('src') === $img) {
+            $found++;
+            $in_picture = $open;
+        }
+    }
+    if ($found === 0) {
+        return new WP_Error('boblift_insert_picture', sprintf('No <img> has the src "%s".', $img), ['status' => 400]);
+    }
+    if ($found > 1) {
+        return new WP_Error('boblift_insert_picture', sprintf('%d <img> tags have the src "%s"; it must be exactly one.', $found, $img), ['status' => 400]);
+    }
+
+    if ($in_picture >= 0) {
+        if (count($sources[$in_picture]) !== 1) {
+            return new WP_Error('boblift_insert_picture', sprintf('This image is already in a <picture> with %d <source> tags; only one can be updated safely.', count($sources[$in_picture])), ['status' => 400]);
+        }
+        if ($sources[$in_picture][0] === $want) {
+            return $content;
+        }
+        // Pass 2: point that picture's one source at the new file.
+        $edit = new WP_HTML_Tag_Processor($content);
+        $pictures = -1;
+        $open = -1;
+        $marker = 'data-boblift-swap-' . bin2hex(random_bytes(6));
+        while ($edit->next_tag(['tag_closers' => 'visit'])) {
+            $tag = $edit->get_tag();
+            if ($tag === 'PICTURE') {
+                $open = $edit->is_tag_closer() ? -1 : ++$pictures;
+                continue;
+            }
+            if ($tag === 'SOURCE' && !$edit->is_tag_closer() && $open === $in_picture) {
+                foreach ($want as $name => $value) {
+                    $edit->set_attribute($name, $value);
+                }
+                $edit->set_attribute($marker, true);
+                break;
+            }
+        }
+        $content = $edit->get_updated_html();
+        $at = strpos($content, ' ' . $marker);
+        if ($at === false) {
+            return new WP_Error('boblift_insert_picture', 'The picture source could not be located after the update.', ['status' => 500]);
+        }
+        $content = substr_replace($content, '', $at, strlen($marker) + 1);
+        return boblift_content_insert_picture_block_ok($content, $at);
+    }
+
+    // Pass 2: mark the <img>. A new attribute is written straight after the tag name, so the tag starts just before it.
+    $marker = 'data-boblift-swap-' . bin2hex(random_bytes(6));
+    $edit = new WP_HTML_Tag_Processor($content);
+    while ($edit->next_tag('img')) {
+        if ($edit->get_attribute('src') === $img) {
+            $edit->set_attribute($marker, true);
+            break;
+        }
+    }
+    $content = $edit->get_updated_html();
+    $at = strpos($content, ' ' . $marker);
+    if ($at === false || $at < 4 || strcasecmp(substr($content, $at - 4, 4), '<img') !== 0) {
+        return new WP_Error('boblift_insert_picture', 'The image could not be located to wrap it.', ['status' => 500]);
+    }
+    $content = substr_replace($content, '', $at, strlen($marker) + 1);
+    $start = $at - 4;
+    // The whole start tag, attribute values quoted or not (the tag processor has already read it as one tag).
+    if (preg_match('~\G<img(?:\s+[^\s"\'>/=]+(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s"\'=<>`]+))?)*\s*/?>~i', $content, $tag, 0, $start) !== 1) {
+        return new WP_Error('boblift_insert_picture', 'The image tag could not be read to wrap it.', ['status' => 500]);
+    }
+    $source = '<source';
+    foreach ($want as $name => $value) {
+        $source .= ' ' . $name . '="' . esc_attr($value) . '"';
+    }
+    $source .= '>';
+    $content = substr_replace($content, '<picture>' . $source . $tag[0] . '</picture>', $start, strlen($tag[0]));
+    return boblift_content_insert_picture_block_ok($content, $start);
+}
+
+/** The picture change at byte offset $at is kept only in classic HTML, a core/html block or a core/image block. */
+function boblift_content_insert_picture_block_ok(string $content, int $at): string|WP_Error
+{
+    $block = boblift_content_insert_enclosing_block($content, $at);
+    if ($block === false || in_array($block['name'], ['html', 'core/html', 'image', 'core/image'], true)) {
+        return $content;
+    }
+    return new WP_Error('boblift_insert_picture', sprintf('This image is inside a "%s" block, whose own attributes keep the image; only classic HTML, HTML blocks and image blocks can take a picture.', $block['name']), ['status' => 400]);
 }
 
 /**
