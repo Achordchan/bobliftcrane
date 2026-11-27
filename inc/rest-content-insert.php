@@ -697,6 +697,11 @@ function boblift_content_insert_picture_block(string $content, int $at): string|
         return new WP_Error('boblift_insert_picture', 'The image block around this image could not be read to turn it into an HTML block.', ['status' => 500]);
     }
     $opener = end($open[0]);
+    // A block whose URL or alt comes from block bindings (metadata.bindings) would lose them as HTML: leave it alone.
+    $attrs = json_decode(trim((string) preg_replace('~^<!--\s+wp:(?:core/)?image\s*|\s*-->$~s', '', $opener[0])), true);
+    if (is_array($attrs) && !empty($attrs['metadata']['bindings'])) {
+        return new WP_Error('boblift_insert_picture', 'This image block takes its image from block bindings; it cannot become an HTML block without losing them.', ['status' => 400]);
+    }
     $content = substr_replace($content, '<!-- /wp:html -->', $close[0][1], strlen($close[0][0]));
     return substr_replace($content, '<!-- wp:html -->', $opener[1], strlen($opener[0]));
 }
