@@ -1493,7 +1493,9 @@ function boblift_is_new_unused_upload(int $post_id, ?string $meta_key = null): b
  * Whether any content may refer to the attachment: by its file name (content, galleries, settings) or by its ID in any
  * form (a featured image, a [gallery ids] list, a block's "id", wp-image-N, an ID list in post meta or a setting). The ID
  * is matched as a whole number anywhere, so an unrelated number that happens to equal it counts as a use too: a false
- * match only means the caches are retired as before. Answered once per request.
+ * match only means the caches are retired as before. Searched: post content, post meta, term meta (category images)
+ * and every stored setting except transients and the temporary flush log. A use found is remembered for the request; "unused" is checked again on
+ * every change, as content may start using the picture while its sizes are still being generated.
  */
 function boblift_attachment_is_referenced(int $attachment_id): bool
 {
@@ -1515,12 +1517,17 @@ function boblift_attachment_is_referenced(int $attachment_id): bool
     $like = $stem !== '' ? '%' . $wpdb->esc_like($stem) . '%' : '';
     $posts_args = $stem !== '' ? [$id_pattern, $like] : [$id_pattern];
     $meta_args = $stem !== '' ? [$attachment_id, $id_pattern, $like] : [$attachment_id, $id_pattern];
-    $settings = (string) maybe_serialize(get_option('boblift_theme_options', []));
+    $where_values = '(meta_value REGEXP %s' . ($stem !== '' ? ' OR meta_value LIKE %s' : '') . ')';
+    $value_args = $stem !== '' ? [$id_pattern, $like] : [$id_pattern];
+    $where_options = "option_name NOT LIKE '\\_%%' AND option_name NOT LIKE 'boblift\\_fflog\\_%%' AND (option_value REGEXP %s" . ($stem !== '' ? ' OR option_value LIKE %s' : '') . ')';
     $referenced = (bool) $wpdb->get_var($wpdb->prepare("SELECT 1 FROM {$wpdb->posts} WHERE {$where_posts} LIMIT 1", ...$posts_args)) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- fixed SQL with placeholders.
         || (bool) $wpdb->get_var($wpdb->prepare("SELECT 1 FROM {$wpdb->postmeta} WHERE {$where_meta} LIMIT 1", ...$meta_args)) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- fixed SQL with placeholders.
-        || preg_match('/(^|[^0-9])' . $attachment_id . '([^0-9]|$)/', $settings) === 1
-        || ($stem !== '' && str_contains($settings, $stem));
-    return $known[$attachment_id] = $referenced;
+        || (bool) $wpdb->get_var($wpdb->prepare("SELECT 1 FROM {$wpdb->termmeta} WHERE {$where_values} LIMIT 1", ...$value_args)) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- fixed SQL with placeholders.
+        || (bool) $wpdb->get_var($wpdb->prepare("SELECT 1 FROM {$wpdb->options} WHERE {$where_options} LIMIT 1", ...$value_args)); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- fixed SQL with placeholders.
+    if ($referenced) {
+        $known[$attachment_id] = true;
+    }
+    return $referenced;
 }
 
 function boblift_bump_products_cache_for_post(int $post_id, ?string $meta_key = null): void
