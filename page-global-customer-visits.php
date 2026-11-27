@@ -99,6 +99,8 @@ $wall_alt = $t($visits['label'] ?? 'Global Customer Visits');
 </section>
 <?php endif; ?>
 
+<?php boblift_render_page_film((int) get_queried_object_id(), 'pb-12 md:pb-16'); ?>
+
 <?php if ($steps) : ?>
 <section class="bg-[#F8FAFC] py-12 md:py-16 lg:py-20" aria-labelledby="visit-steps-title">
     <div class="page-shell">
