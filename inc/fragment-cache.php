@@ -14,23 +14,31 @@ if (!defined('ABSPATH')) {
 
 const BOBLIFT_FRAGMENT_TTL = 6 * HOUR_IN_SECONDS;
 
-function boblift_fragment_generation(): int
+function boblift_fragment_generation(): string
 {
-    return (int) get_option('boblift_fragment_generation', 0);
+    return (string) get_option('boblift_fragment_generation', '0');
+}
+
+/** A fresh random token: two requests changing content at once can never land on the same generation. */
+function boblift_fragment_new_generation(): void
+{
+    update_option('boblift_fragment_generation', str_replace('-', '', wp_generate_uuid4()), false);
 }
 
 /**
  * Starts a new generation at the first change in a request and again when the request ends, so a copy built by another
- * visitor while a long save (an import, a bulk REST edit) was still writing is dropped as well.
+ * visitor while a long save (an import, a bulk REST edit) was still writing is dropped as well. Changes in between
+ * write nothing.
  */
 function boblift_fragment_flush(): void
 {
     static $pending = false;
-    update_option('boblift_fragment_generation', boblift_fragment_generation() + 1, false);
-    if (!$pending) {
-        $pending = true;
-        add_action('shutdown', static fn() => update_option('boblift_fragment_generation', boblift_fragment_generation() + 1, false), 1);
+    if ($pending) {
+        return;
     }
+    $pending = true;
+    boblift_fragment_new_generation();
+    add_action('shutdown', 'boblift_fragment_new_generation', 1);
 }
 
 /**
