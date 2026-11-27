@@ -1458,3 +1458,22 @@ function boblift_wrap_bare_tables(string $content): string
     return $content;
 }
 add_filter('the_content', 'boblift_wrap_bare_tables', 9);
+
+/**
+ * Story charts may carry a phone layout: <picture><source media="(max-width: 700px)" srcset="…-mobile.png" width height>
+ * <img class="wp-image-N" …></picture>. The browser downloads only the layout that fits the screen. WordPress's post
+ * HTML filter drops <picture> and <source> (keeping the <img>, so the page falls back to the wide layout), so both are
+ * allowed here with the attributes a responsive picture needs; data-article-photo-full on a <source> tells the photo
+ * viewer which original to open for that layout.
+ */
+function boblift_allow_picture_sources(array $tags, $context): array
+{
+    if ($context !== 'post') {
+        return $tags;
+    }
+    // Merged into whatever is already allowed (a <source> inside <video> or <audio> keeps its src).
+    $tags['picture'] = array_merge((array) ($tags['picture'] ?? []), ['class' => true, 'data-*' => true]);
+    $tags['source'] = array_merge((array) ($tags['source'] ?? []), ['srcset' => true, 'sizes' => true, 'media' => true, 'type' => true, 'width' => true, 'height' => true, 'data-*' => true]);
+    return $tags;
+}
+add_filter('wp_kses_allowed_html', 'boblift_allow_picture_sources', 10, 2);

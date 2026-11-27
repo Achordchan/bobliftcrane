@@ -1955,12 +1955,55 @@
     // pictures), else the largest srcset entry, else the address shown; on the WordPress.com image CDN (i0.wp.com and its
     // siblings) without its resize arguments, which serves the original. No file name is guessed. If it fails, the copy
     // the page shows is used.
+    // A chart in a <picture> shows a narrow layout on phones (a <source> with a media query): the viewer opens the layout
+    // the visitor is looking at, from that source's data-article-photo-full or its srcset, never the other layout.
+    const shownSource = (img) => {
+      if (img.parentElement?.tagName !== 'PICTURE') return null;
+      const absolute = (url) => {
+        try {
+          return new URL(url, document.baseURI).href;
+        } catch {
+          return url;
+        }
+      };
+      const urls = (el) => srcsetCandidates(el.getAttribute('srcset') || '').map(([url]) => absolute(url));
+      const mediaMatches = (source) => {
+        const media = source.getAttribute('media');
+        try {
+          return !media || window.matchMedia(media).matches;
+        } catch {
+          return false;
+        }
+      };
+      // Sources the browser could have picked: a non-empty srcset (an empty one is skipped by the browser too).
+      const sources = qsa('source', img.parentElement).filter((source) => urls(source).length);
+      // The browser's own choice wins: the sources whose srcset holds the file being shown, and of those the one whose media
+      // query matches now (two sources may share a file). When the <img>'s own src or srcset holds that file and no such
+      // source matches, the picture is showing the <img>, and the viewer opens it.
+      const current = img.currentSrc ? absolute(img.currentSrc) : '';
+      if (current) {
+        const holders = sources.filter((source) => urls(source).includes(current));
+        const matching = holders.find(mediaMatches);
+        if (matching) return matching;
+        const imgHolds = absolute(img.getAttribute('src') || '') === current || urls(img).includes(current);
+        return imgHolds ? null : (holders[0] || null);
+      }
+      // Nothing loaded yet: the first source whose media query matches, as the browser would choose.
+      return sources.find(mediaMatches) || null;
+    };
     const largest = (img) => {
-      if (img.dataset.articlePhotoFull) return img.dataset.articlePhotoFull;
-      const set = srcsetCandidates(img.getAttribute('srcset') || '')
+      const source = shownSource(img);
+      const owner = source || img;
+      if (owner.dataset.articlePhotoFull) return owner.dataset.articlePhotoFull;
+      const set = srcsetCandidates(owner.getAttribute('srcset') || '')
         .filter(([url, size]) => url && /^\d+w$/.test(size || ''))
         .sort((a, b) => parseInt(b[1], 10) - parseInt(a[1], 10));
-      const url = set.length ? set[0][0] : (img.getAttribute('src') || img.currentSrc || '');
+      // A source's srcset without width descriptors ("chart.png" or "chart.png 1x, chart@2x.png 2x"): its densest copy.
+      const density = (descriptor) => (/^\d*\.?\d+x$/.test(descriptor || '') ? parseFloat(descriptor) : 1);
+      const sourceFirst = source
+        ? (srcsetCandidates(source.getAttribute('srcset') || '').sort((a, b) => density(b[1]) - density(a[1]))[0] || [])[0] || ''
+        : '';
+      const url = set.length ? set[0][0] : (sourceFirst || img.getAttribute('src') || img.currentSrc || '');
       try {
         const parsed = new URL(url, document.baseURI);
         if (!/^i\d\.wp\.com$/.test(parsed.hostname)) return url;
