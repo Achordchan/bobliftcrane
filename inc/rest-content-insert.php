@@ -45,7 +45,8 @@ if (!defined('ABSPATH')) {
  *
  * An item can also give a chart a narrow layout for phones: {"picture": "/wp-content/uploads/2026/11/a-en.png",
  * "srcset": "/wp-content/uploads/2026/11/a-mobile-en.png", "width": 600, "height": 1180}. "picture" is the src of exactly
- * one <img> in the content, in classic HTML, a core/html block or a core/image block; it is wrapped in <picture> with a
+ * one <img> in the content, in classic HTML, a core/html block or a core/image block (which then becomes a core/html
+ * block, since an image block's saved markup cannot hold <picture>); it is wrapped in <picture> with a
  * <source media="(max-width: 700px)" srcset width height data-article-photo-full> in front of it, so phones download
  * only the narrow file and the photo viewer opens it. "srcset" must be an image in this site's media library; "width"
  * and "height" are its size in CSS pixels; "media" may be sent as "(max-width: Npx)" or "(min-width: Npx)". When the
@@ -524,9 +525,10 @@ function boblift_content_insert_enclosing_block(string $content, int $at): array
  * Wraps the one <img> whose src is $img in <picture> with a <source> for the narrow layout in $srcset (an image in this
  * site's media library, $width × $height CSS pixels, shown when $media matches), so a phone downloads only that file;
  * data-article-photo-full on the source tells the photo viewer to open it. The <img> is left as it is. When the <img> is
- * already in a <picture> with one <source>, that source is updated instead, and when it already carries these values the
- * content comes back unchanged, so the item can be sent again. Only classic HTML, core/html and core/image blocks are
- * changed; an <img> in any other block (a cover, media & text) is refused. Tags are found with WordPress's HTML tag
+ * already in a <picture> with one <source>, that source is updated instead (its old type dropped), and when it already
+ * carries these values the content comes back unchanged, so the item can be sent again. Only classic HTML, core/html
+ * and core/image blocks are changed, the last turned into core/html; an <img> in any other block (a cover, media & text)
+ * is refused. Tags are found with WordPress's HTML tag
  * processor, so a src in another attribute, a comment or a script is never taken for an image.
  */
 function boblift_content_insert_picture(string $content, string $img, string $srcset, $width, $height, string $media): string|WP_Error
@@ -623,6 +625,8 @@ function boblift_content_insert_picture(string $content, string $img, string $sr
                 foreach ($want as $name => $value) {
                     $edit->set_attribute($name, $value);
                 }
+                // A type left from the old file (image/avif, say) would make browsers skip the new one.
+                $edit->remove_attribute('type');
                 $edit->set_attribute($marker, true);
                 break;
             }
@@ -633,7 +637,7 @@ function boblift_content_insert_picture(string $content, string $img, string $sr
             return new WP_Error('boblift_insert_picture', 'The picture source could not be located after the update.', ['status' => 500]);
         }
         $content = substr_replace($content, '', $at, strlen($marker) + 1);
-        return boblift_content_insert_picture_block_ok($content, $at);
+        return boblift_content_insert_picture_block($content, $at);
     }
 
     // Pass 2: mark the <img>. A new attribute is written straight after the tag name, so the tag starts just before it.
@@ -662,17 +666,34 @@ function boblift_content_insert_picture(string $content, string $img, string $sr
     }
     $source .= '>';
     $content = substr_replace($content, '<picture>' . $source . $tag[0] . '</picture>', $start, strlen($tag[0]));
-    return boblift_content_insert_picture_block_ok($content, $start);
+    return boblift_content_insert_picture_block($content, $start);
 }
 
-/** The picture change at byte offset $at is kept only in classic HTML, a core/html block or a core/image block. */
-function boblift_content_insert_picture_block_ok(string $content, int $at): string|WP_Error
+/**
+ * Keeps the block markup around the picture change at byte offset $at valid. Classic HTML and a core/html block need
+ * nothing. A core/image block's saved markup can never hold <picture>, so the block editor would call it invalid and
+ * could drop the phone layout on recovery; that one block becomes a core/html block instead (same HTML, its image
+ * attributes dropped with the old comment). Any other block keeps the image in its own attributes and is refused.
+ */
+function boblift_content_insert_picture_block(string $content, int $at): string|WP_Error
 {
     $block = boblift_content_insert_enclosing_block($content, $at);
-    if ($block === false || in_array($block['name'], ['html', 'core/html', 'image', 'core/image'], true)) {
+    if ($block === false || in_array($block['name'], ['html', 'core/html'], true)) {
         return $content;
     }
-    return new WP_Error('boblift_insert_picture', sprintf('This image is inside a "%s" block, whose own attributes keep the image; only classic HTML, HTML blocks and image blocks can take a picture.', $block['name']), ['status' => 400]);
+    if (!in_array($block['name'], ['image', 'core/image'], true)) {
+        return new WP_Error('boblift_insert_picture', sprintf('This image is inside a "%s" block, whose own attributes keep the image; only classic HTML, HTML blocks and image blocks can take a picture.', $block['name']), ['status' => 400]);
+    }
+    // The opener is the last image-block comment before $at; an image block has no inner blocks, so its closer is the
+    // first image-block closer after $at.
+    $head = substr($content, 0, $at);
+    if (preg_match_all('~<!--\s+wp:(?:core/)?image(?:\s+\{.*?\})?\s+-->~s', $head, $open, PREG_OFFSET_CAPTURE) < 1
+        || preg_match('~<!--\s+/wp:(?:core/)?image\s+-->~', $content, $close, PREG_OFFSET_CAPTURE, $at) !== 1) {
+        return new WP_Error('boblift_insert_picture', 'The image block around this image could not be read to turn it into an HTML block.', ['status' => 500]);
+    }
+    $opener = end($open[0]);
+    $content = substr_replace($content, '<!-- /wp:html -->', $close[0][1], strlen($close[0][0]));
+    return substr_replace($content, '<!-- wp:html -->', $opener[1], strlen($opener[0]));
 }
 
 /**
