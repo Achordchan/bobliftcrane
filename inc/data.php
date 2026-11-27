@@ -1252,8 +1252,17 @@ function boblift_bump_product_menu_version(): void
 {
     update_option('boblift_product_menu_version', (string) microtime(true), false);
 }
-foreach (['save_post_product', 'deleted_post', 'trashed_post', 'untrashed_post', 'set_object_terms', 'created_product_category', 'edited_product_category', 'delete_product_category', 'updated_term_meta', 'added_term_meta', 'deleted_term_meta'] as $boblift_menu_hook) {
+foreach (['save_post_product', 'created_product_category', 'edited_product_category', 'delete_product_category', 'updated_term_meta', 'added_term_meta', 'deleted_term_meta'] as $boblift_menu_hook) {
     add_action($boblift_menu_hook, 'boblift_bump_product_menu_version');
+}
+// These fire for every kind of content, a picture being uploaded included (Polylang gives it a language term); a new
+// picture no post uses yet cannot change the menu (boblift_is_new_unused_upload()).
+foreach (['deleted_post', 'trashed_post', 'untrashed_post', 'set_object_terms'] as $boblift_menu_hook) {
+    add_action($boblift_menu_hook, static function ($object_id): void {
+        if (!(function_exists('boblift_is_new_unused_upload') && boblift_is_new_unused_upload((int) $object_id))) {
+            boblift_bump_product_menu_version();
+        }
+    });
 }
 // Product meta feeds the menu (model, capacity), so changes made without saving the post invalidate it too.
 foreach (['added_post_meta', 'updated_post_meta', 'deleted_post_meta'] as $boblift_menu_meta_hook) {
