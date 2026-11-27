@@ -119,6 +119,9 @@ function boblift_fragment_log_flush($subject, string $detail): void
 {
     global $wpdb;
     $request = (defined('DOING_CRON') && DOING_CRON) ? 'cron' : ((defined('REST_REQUEST') && REST_REQUEST) || str_contains((string) ($_SERVER['REQUEST_URI'] ?? ''), '/wp-json/') ? 'rest' : (is_admin() ? 'admin' : 'front'));
+    if ($detail === 'boblift_products_cache_version' && isset($GLOBALS['boblift_products_cache_trigger'])) {
+        $detail .= ' via ' . (string) $GLOBALS['boblift_products_cache_trigger'];
+    }
     $entry = gmdate('H:i:s') . ' ' . current_filter() . ' ' . (is_scalar($subject) ? (string) $subject : '') . ' ' . $detail . ' ' . $request . ' ' . substr((string) strtok((string) ($_SERVER['REQUEST_URI'] ?? ''), '?'), 0, 60);
     // One row per change, under its own name, so two requests logging at once cannot overwrite each other's entry.
     $wpdb->query($wpdb->prepare("INSERT INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')", 'boblift_fflog_' . str_replace('-', '', wp_generate_uuid4()), $entry));
