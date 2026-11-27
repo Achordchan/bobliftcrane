@@ -96,14 +96,15 @@ function boblift_fragment_meta_flush($meta_ids, $object_id, $meta_key): void
 }
 
 /**
- * The options the cached sections read: theme settings (site texts included), Polylang's settings, the site name and
+ * The options the cached sections read: theme settings (site texts included), Polylang's settings, the site name, its
+ * addresses (links and images are absolute) and
  * front page, and the theme's own version counters for product data and the product menu. Options written while a
  * page renders (image facts, IndexNow's queue) are not on the list, so a page view never empties the cache.
  */
 function boblift_fragment_option_flush($option): void
 {
     $option = (string) $option;
-    $watched = ['boblift_theme_options', 'polylang', 'blogname', 'blogdescription', 'page_on_front', 'sticky_posts', 'boblift_products_cache_version', 'boblift_product_menu_version'];
+    $watched = ['boblift_theme_options', 'polylang', 'blogname', 'blogdescription', 'home', 'siteurl', 'page_on_front', 'sticky_posts', 'boblift_products_cache_version', 'boblift_product_menu_version'];
     if (in_array($option, $watched, true) || str_starts_with($option, 'theme_mods_')) {
         boblift_fragment_flush();
     }
