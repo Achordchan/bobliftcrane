@@ -1959,7 +1959,26 @@
     // the visitor is looking at, from that source's data-article-photo-full or its srcset, never the other layout.
     const shownSource = (img) => {
       if (img.parentElement?.tagName !== 'PICTURE') return null;
-      return qsa('source', img.parentElement).find((source) => {
+      // Only sources the browser could pick: a non-empty srcset and, when typed, a type it would accept for an image.
+      const usable = qsa('source', img.parentElement).filter((source) => {
+        if (!srcsetCandidates(source.getAttribute('srcset') || '').length) return false;
+        const type = (source.getAttribute('type') || '').trim().toLowerCase();
+        return !type || ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/avif', 'image/svg+xml'].includes(type);
+      });
+      const absolute = (url) => {
+        try {
+          return new URL(url, document.baseURI).href;
+        } catch {
+          return url;
+        }
+      };
+      // The browser's own choice wins: the source whose srcset holds the file the page is showing. If the picture shows
+      // the <img>'s own file (or nothing has loaded yet and no media query matches), the viewer opens the <img>.
+      const current = img.currentSrc ? absolute(img.currentSrc) : '';
+      if (current) {
+        return usable.find((source) => srcsetCandidates(source.getAttribute('srcset') || '').some(([url]) => absolute(url) === current)) || null;
+      }
+      return usable.find((source) => {
         const media = source.getAttribute('media');
         try {
           return !media || window.matchMedia(media).matches;
