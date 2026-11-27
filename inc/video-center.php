@@ -116,10 +116,36 @@ function boblift_video_center_clean_extra(mixed $items): array|WP_Error
     return $clean;
 }
 
+/**
+ * The same list as a page meta JSON string, for REST clients that can only send registered meta (the WordPress.com
+ * connector refuses unknown top-level fields): POST /wp/v2/pages/<id> {"meta": {"_boblift_video_center_items":
+ * "[{\"src\": …, \"poster\": …, \"title\": …, \"group\": …}]"}}. When set and valid it replaces the list saved through
+ * boblift_video_center_extra; "" (or a list that fails the checks above) falls back to that list.
+ */
+function boblift_video_center_items_sanitize(mixed $value): string
+{
+    $items = boblift_video_center_clean_extra(json_decode(is_string($value) ? $value : '', true));
+    return is_wp_error($items) || $items === [] ? '' : (string) wp_json_encode($items, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+}
+
+function boblift_video_center_register_items_meta(): void
+{
+    register_post_meta('page', '_boblift_video_center_items', [
+        'type' => 'string',
+        'single' => true,
+        'default' => '',
+        'show_in_rest' => true,
+        'sanitize_callback' => 'boblift_video_center_items_sanitize',
+        'auth_callback' => static fn(): bool => current_user_can('manage_options'),
+    ]);
+}
+add_action('init', 'boblift_video_center_register_items_meta', 20);
+
 // The extra films saved on a Video Center page, as player entries.
 function boblift_video_center_extra_videos(int $page_id): array
 {
-    $saved = get_post_meta($page_id, '_boblift_video_center_extra', true);
+    $items = json_decode(boblift_video_center_items_sanitize((string) get_post_meta($page_id, '_boblift_video_center_items', true)), true);
+    $saved = is_array($items) ? $items : get_post_meta($page_id, '_boblift_video_center_extra', true);
     $videos = [];
     foreach (is_array($saved) ? $saved : [] as $index => $item) {
         if (!is_array($item) || empty($item['src'])) {
