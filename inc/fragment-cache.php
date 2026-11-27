@@ -112,14 +112,25 @@ function boblift_fragment_option_flush($option): void
 }
 
 /**
- * Temporary (2026-11-27): the last 20 changes that started a new generation, with the hook, the post or option behind
+ * Temporary (2026-11-27): the latest changes that started a new generation (the newest 40 rows are kept), with the hook, the post or option behind
  * it and the request, so the profiler can show why the cached sections were rebuilt. Remove with inc/render-timing.php.
  */
 function boblift_fragment_log_flush($subject, string $detail): void
 {
-    $log = get_option('boblift_fragment_flush_log', []);
-    $log = is_array($log) ? array_slice($log, -19) : [];
+    global $wpdb;
     $request = (defined('DOING_CRON') && DOING_CRON) ? 'cron' : ((defined('REST_REQUEST') && REST_REQUEST) || str_contains((string) ($_SERVER['REQUEST_URI'] ?? ''), '/wp-json/') ? 'rest' : (is_admin() ? 'admin' : 'front'));
-    $log[] = gmdate('H:i:s') . ' ' . current_filter() . ' ' . (is_scalar($subject) ? (string) $subject : '') . ' ' . $detail . ' ' . $request . ' ' . substr((string) strtok((string) ($_SERVER['REQUEST_URI'] ?? ''), '?'), 0, 60);
-    update_option('boblift_fragment_flush_log', $log, false);
+    $entry = gmdate('H:i:s') . ' ' . current_filter() . ' ' . (is_scalar($subject) ? (string) $subject : '') . ' ' . $detail . ' ' . $request . ' ' . substr((string) strtok((string) ($_SERVER['REQUEST_URI'] ?? ''), '?'), 0, 60);
+    // One row per change, under its own name, so two requests logging at once cannot overwrite each other's entry.
+    $wpdb->query($wpdb->prepare("INSERT INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')", 'boblift_fflog_' . str_replace('-', '', wp_generate_uuid4()), $entry));
+    $cutoff = $wpdb->get_var("SELECT option_id FROM {$wpdb->options} WHERE option_name LIKE 'boblift\\_fflog\\_%' ORDER BY option_id DESC LIMIT 1 OFFSET 40");
+    if ($cutoff) {
+        $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name LIKE 'boblift\\_fflog\\_%%' AND option_id <= %d", (int) $cutoff));
+    }
+}
+
+/** The 20 most recent logged changes, newest first. */
+function boblift_fragment_flush_log(): array
+{
+    global $wpdb;
+    return array_map('strval', (array) $wpdb->get_col("SELECT option_value FROM {$wpdb->options} WHERE option_name LIKE 'boblift\\_fflog\\_%' ORDER BY option_id DESC LIMIT 20"));
 }
