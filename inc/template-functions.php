@@ -1466,11 +1466,12 @@ function boblift_bump_products_cache_now(): void
 }
 
 /**
- * A picture uploaded to the media library in the last ten minutes and not attached to any post: no page can show it until
- * the content that uses it is saved, and that save retires the caches itself. Its upload (the row, the file and size
+ * A picture uploaded to the media library in the last ten minutes that no content uses yet: no page can show it until the
+ * content that uses it is saved, and that save retires the caches itself. Its upload (the row, the file and size
  * metadata, the language term) therefore leaves the caches alone, so a batch upload no longer empties them for every
- * picture (measured 2026-11-27: one retirement every 5-12 s while another job uploaded a gallery). Its alt text still
- * counts, as an editor may set it right after inserting the picture into a saved page.
+ * picture (measured 2026-11-27: one retirement every 5-12 s while another job uploaded a gallery). Once anything refers
+ * to it (a featured image, post content, post meta such as a gallery, or the theme settings) every change counts again,
+ * and so does its alt text at any time.
  */
 function boblift_is_new_unused_upload(int $post_id, ?string $meta_key = null): bool
 {
@@ -1482,7 +1483,34 @@ function boblift_is_new_unused_upload(int $post_id, ?string $meta_key = null): b
         return false;
     }
     $uploaded = strtotime($post->post_date_gmt . ' UTC');
-    return $uploaded !== false && time() - $uploaded < 10 * MINUTE_IN_SECONDS;
+    if ($uploaded === false || time() - $uploaded >= 10 * MINUTE_IN_SECONDS) {
+        return false;
+    }
+    return !boblift_attachment_is_referenced($post_id);
+}
+
+/** Whether any content refers to the attachment, by ID as a featured image or by its file name anywhere else. */
+function boblift_attachment_is_referenced(int $attachment_id): bool
+{
+    global $wpdb;
+    if ($wpdb->get_var($wpdb->prepare("SELECT 1 FROM {$wpdb->postmeta} WHERE meta_key = '_thumbnail_id' AND meta_value = %s LIMIT 1", (string) $attachment_id))) {
+        return true;
+    }
+    // The file name without its extension also matches the resized copies (name-300x200.jpg) and CDN addresses.
+    $file = (string) get_post_meta($attachment_id, '_wp_attached_file', true);
+    $stem = $file !== '' ? (string) pathinfo($file, PATHINFO_FILENAME) : '';
+    if (strlen($stem) < 4) {
+        // No file name yet (the row is written before the file) or one too short to match safely.
+        return $file !== '';
+    }
+    $like = '%' . $wpdb->esc_like($stem) . '%';
+    if ($wpdb->get_var($wpdb->prepare("SELECT 1 FROM {$wpdb->posts} WHERE post_type NOT IN ('attachment', 'revision') AND post_content LIKE %s LIMIT 1", $like))) {
+        return true;
+    }
+    if ($wpdb->get_var($wpdb->prepare("SELECT 1 FROM {$wpdb->postmeta} WHERE post_id <> %d AND meta_value LIKE %s LIMIT 1", $attachment_id, $like))) {
+        return true;
+    }
+    return str_contains((string) maybe_serialize(get_option('boblift_theme_options', [])), $stem);
 }
 
 function boblift_bump_products_cache_for_post(int $post_id, ?string $meta_key = null): void
