@@ -70,9 +70,9 @@ function boblift_fragment(string $name, callable $render): void
     echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- markup the theme rendered and escaped above.
 }
 
-add_action('save_post', 'boblift_fragment_flush');
+add_action('save_post', 'boblift_fragment_post_flush');
 add_action('deleted_post', 'boblift_fragment_flush');
-add_action('trashed_post', 'boblift_fragment_flush');
+add_action('trashed_post', 'boblift_fragment_post_flush');
 add_action('untrashed_post', 'boblift_fragment_flush');
 add_action('created_term', 'boblift_fragment_flush');
 add_action('edited_term', 'boblift_fragment_flush');
@@ -85,13 +85,21 @@ add_action('deleted_post_meta', 'boblift_fragment_meta_flush', 10, 3);
 add_action('updated_option', 'boblift_fragment_option_flush');
 add_action('added_option', 'boblift_fragment_option_flush');
 
+/** A saved or trashed post, except a picture just uploaded and not used anywhere yet (boblift_is_new_unused_upload()). */
+function boblift_fragment_post_flush($post_id): void
+{
+    if (!(function_exists('boblift_is_new_unused_upload') && boblift_is_new_unused_upload((int) $post_id))) {
+        boblift_fragment_flush($post_id);
+    }
+}
+
 function boblift_fragment_meta_flush($meta_ids, $object_id, $meta_key): void
 {
     $meta_key = (string) $meta_key;
     $bookkeeping = function_exists('boblift_indexnow_meta_is_bookkeeping')
         ? boblift_indexnow_meta_is_bookkeeping($meta_key)
         : in_array($meta_key, ['_edit_lock', '_edit_last'], true) || str_starts_with($meta_key, '_oembed_');
-    if (!$bookkeeping) {
+    if (!$bookkeeping && !(function_exists('boblift_is_new_unused_upload') && boblift_is_new_unused_upload((int) $object_id, $meta_key))) {
         boblift_fragment_flush($object_id, $meta_key);
     }
 }

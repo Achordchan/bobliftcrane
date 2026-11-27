@@ -1465,8 +1465,89 @@ function boblift_bump_products_cache_now(): void
     update_option('boblift_products_cache_version', wp_generate_uuid4(), true);
 }
 
-function boblift_bump_products_cache_for_post(int $post_id): void
+/**
+ * A picture uploaded to the media library in the last ten minutes that no content uses yet: no page can show it until the
+ * content that uses it is saved, and that save retires the caches itself. Its upload (the row, the file and size
+ * metadata, the language term) therefore leaves the caches alone, so a batch upload no longer empties them for every
+ * picture (measured 2026-11-27: one retirement every 5-12 s while another job uploaded a gallery). Once anything refers
+ * to it (a featured image, post content, post meta such as a gallery, or the theme settings) every change counts again,
+ * and so does its alt text at any time.
+ */
+function boblift_is_new_unused_upload(int $post_id, ?string $meta_key = null): bool
 {
+    if ($meta_key === '_wp_attachment_image_alt') {
+        return false;
+    }
+    $post = get_post($post_id);
+    if (!$post instanceof WP_Post || $post->post_type !== 'attachment' || (int) $post->post_parent !== 0) {
+        return false;
+    }
+    $uploaded = strtotime($post->post_date_gmt . ' UTC');
+    if ($uploaded === false || time() - $uploaded >= 10 * MINUTE_IN_SECONDS) {
+        return false;
+    }
+    return !boblift_attachment_is_referenced($post_id);
+}
+
+/**
+ * Whether any content may refer to the attachment: by its file name (content, galleries, settings) or by its ID in any
+ * form (a featured image, a [gallery ids] list, a block's "id", wp-image-N, an ID list in post meta or a setting). The ID
+ * is matched as a whole number anywhere, so an unrelated number that happens to equal it counts as a use too: a false
+ * match only means the caches are retired as before. Searched: post content, post meta, term meta (category images)
+ * and every stored setting except transients and the temporary flush log. A use found is remembered for the request;
+ * "unused" holds only until any content changes, as content may start using the picture while its sizes are still
+ * being generated.
+ */
+function boblift_attachment_is_referenced(int $attachment_id): bool
+{
+    static $known = [];
+    if (isset($known[$attachment_id])) {
+        return $known[$attachment_id];
+    }
+    global $wpdb;
+    $id_pattern = '(^|[^0-9])' . $attachment_id . '([^0-9]|$)';
+    $file = (string) get_post_meta($attachment_id, '_wp_attached_file', true);
+    // The file name without its extension also matches the resized copies (name-300x200.jpg) and CDN addresses.
+    $stem = $file !== '' ? (string) pathinfo($file, PATHINFO_FILENAME) : '';
+    // "Unused" is shared by every handler and request for the same file while the content stays as it was: the products
+    // cache version, read from the database so another request's save is seen at once, changes with every content,
+    // term or setting save. A batch upload so searches about once per picture instead of once per metadata change.
+    // The homepage fragment generation (inc/fragment-cache.php) joins it, as it also changes with meta saved on any post
+    // (a page's _boblift_visit_items, for one) without a full save.
+    $version = implode('|', array_map('strval', (array) $wpdb->get_col("SELECT option_value FROM {$wpdb->options} WHERE option_name IN ('boblift_products_cache_version', 'boblift_fragment_generation') ORDER BY option_name")));
+    $unused_key = 'unused_upload_' . $attachment_id . '_' . md5($file);
+    if ($version !== '' && wp_cache_get($unused_key, 'boblift') === $version) {
+        return false;
+    }
+    if ($file !== '' && strlen($stem) < 4) {
+        // A file name too short to match safely.
+        return $known[$attachment_id] = true;
+    }
+    $where_posts = "post_type NOT IN ('attachment', 'revision') AND (post_content REGEXP %s" . ($stem !== '' ? ' OR post_content LIKE %s' : '') . ')';
+    $where_meta = 'post_id <> %d AND (meta_value REGEXP %s' . ($stem !== '' ? ' OR meta_value LIKE %s' : '') . ')';
+    $like = $stem !== '' ? '%' . $wpdb->esc_like($stem) . '%' : '';
+    $posts_args = $stem !== '' ? [$id_pattern, $like] : [$id_pattern];
+    $meta_args = $stem !== '' ? [$attachment_id, $id_pattern, $like] : [$attachment_id, $id_pattern];
+    $where_values = '(meta_value REGEXP %s' . ($stem !== '' ? ' OR meta_value LIKE %s' : '') . ')';
+    $value_args = $stem !== '' ? [$id_pattern, $like] : [$id_pattern];
+    $where_options = "option_name NOT LIKE '\\_%%' AND option_name NOT LIKE 'boblift\\_fflog\\_%%' AND (option_value REGEXP %s" . ($stem !== '' ? ' OR option_value LIKE %s' : '') . ')';
+    $referenced = (bool) $wpdb->get_var($wpdb->prepare("SELECT 1 FROM {$wpdb->posts} WHERE {$where_posts} LIMIT 1", ...$posts_args)) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- fixed SQL with placeholders.
+        || (bool) $wpdb->get_var($wpdb->prepare("SELECT 1 FROM {$wpdb->postmeta} WHERE {$where_meta} LIMIT 1", ...$meta_args)) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- fixed SQL with placeholders.
+        || (bool) $wpdb->get_var($wpdb->prepare("SELECT 1 FROM {$wpdb->termmeta} WHERE {$where_values} LIMIT 1", ...$value_args)) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- fixed SQL with placeholders.
+        || (bool) $wpdb->get_var($wpdb->prepare("SELECT 1 FROM {$wpdb->options} WHERE {$where_options} LIMIT 1", ...$value_args)); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- fixed SQL with placeholders.
+    if ($referenced) {
+        $known[$attachment_id] = true;
+    } elseif ($version !== '') {
+        wp_cache_set($unused_key, $version, 'boblift', 10 * MINUTE_IN_SECONDS);
+    }
+    return $referenced;
+}
+
+function boblift_bump_products_cache_for_post(int $post_id, ?string $meta_key = null): void
+{
+    if (boblift_is_new_unused_upload($post_id, $meta_key ?? '')) {
+        return;
+    }
     // Synced patterns (wp_block) can be embedded in product content, so editing one changes the rendered products.
     if (in_array(get_post_type($post_id), ['product', 'attachment', 'wp_block'], true)) {
         boblift_products_cache_note(current_filter() . ' post ' . $post_id);
@@ -1487,7 +1568,7 @@ function boblift_bump_products_cache_for_content(int $post_id, mixed $post = nul
     // Content no visitor can see (a draft being written, an autosave, a scheduled post, the trash) cannot change a page;
     // publishing or unpublishing it passes through transition_post_status, which sees the published side.
     $status = $post instanceof WP_Post ? $post->post_status : (string) get_post_status($post_id);
-    if (in_array($status, ['draft', 'auto-draft', 'pending', 'future', 'trash'], true)) {
+    if (in_array($status, ['draft', 'auto-draft', 'pending', 'future', 'trash'], true) || ($type === 'attachment' && boblift_is_new_unused_upload($post_id))) {
         return;
     }
     if (!boblift_products_cache_ignores_type($type)) {
@@ -1505,7 +1586,11 @@ add_action('save_post', static fn($post_id) => boblift_bump_products_cache_for_c
 add_action('deleted_post', static fn($post_id, $post = null) => boblift_bump_products_cache_for_content((int) $post_id, $post), 10, 2);
 add_action('trashed_post', static fn($post_id) => boblift_bump_products_cache_for_content((int) $post_id));
 add_action('untrashed_post', static fn($post_id) => boblift_bump_products_cache_for_content((int) $post_id));
-add_action('add_attachment', 'boblift_bump_products_cache');
+add_action('add_attachment', static function ($post_id): void {
+    if (!boblift_is_new_unused_upload((int) $post_id)) {
+        boblift_bump_products_cache();
+    }
+});
 add_action('edit_attachment', 'boblift_bump_products_cache');
 add_action('delete_attachment', 'boblift_bump_products_cache');
 add_action('transition_post_status', static function ($new_status, $old_status, $post): void {
@@ -1520,9 +1605,9 @@ add_action('transition_post_status', static function ($new_status, $old_status, 
 add_action('set_object_terms', static fn($object_id) => boblift_bump_products_cache_for_content((int) $object_id));
 add_action('deleted_term_relationships', static fn($object_id) => boblift_bump_products_cache_for_content((int) $object_id));
 foreach (['added_post_meta', 'updated_post_meta', 'deleted_post_meta'] as $boblift_meta_hook) {
-    add_action($boblift_meta_hook, static function ($meta_ids, $object_id): void {
-        boblift_bump_products_cache_for_post((int) $object_id);
-    }, 10, 2);
+    add_action($boblift_meta_hook, static function ($meta_ids, $object_id, $meta_key = ''): void {
+        boblift_bump_products_cache_for_post((int) $object_id, (string) $meta_key);
+    }, 10, 3);
 }
 // Term edits of any taxonomy (dynamic blocks in product content can list categories or tags) and comment changes (a
 // latest-comments block) retire the cache too; both only happen through editors or moderated submissions.
