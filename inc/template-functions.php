@@ -1494,8 +1494,9 @@ function boblift_is_new_unused_upload(int $post_id, ?string $meta_key = null): b
  * form (a featured image, a [gallery ids] list, a block's "id", wp-image-N, an ID list in post meta or a setting). The ID
  * is matched as a whole number anywhere, so an unrelated number that happens to equal it counts as a use too: a false
  * match only means the caches are retired as before. Searched: post content, post meta, term meta (category images)
- * and every stored setting except transients and the temporary flush log. A use found is remembered for the request; "unused" is checked again on
- * every change, as content may start using the picture while its sizes are still being generated.
+ * and every stored setting except transients and the temporary flush log. A use found is remembered for the request;
+ * "unused" holds only until any content changes, as content may start using the picture while its sizes are still
+ * being generated.
  */
 function boblift_attachment_is_referenced(int $attachment_id): bool
 {
@@ -1508,6 +1509,14 @@ function boblift_attachment_is_referenced(int $attachment_id): bool
     $file = (string) get_post_meta($attachment_id, '_wp_attached_file', true);
     // The file name without its extension also matches the resized copies (name-300x200.jpg) and CDN addresses.
     $stem = $file !== '' ? (string) pathinfo($file, PATHINFO_FILENAME) : '';
+    // "Unused" is shared by every handler and request for the same file while the content stays as it was: the products
+    // cache version, read from the database so another request's save is seen at once, changes with every content,
+    // term or setting save. A batch upload so searches about once per picture instead of once per metadata change.
+    $version = (string) $wpdb->get_var("SELECT option_value FROM {$wpdb->options} WHERE option_name = 'boblift_products_cache_version'");
+    $unused_key = 'unused_upload_' . $attachment_id . '_' . md5($file);
+    if ($version !== '' && wp_cache_get($unused_key, 'boblift') === $version) {
+        return false;
+    }
     if ($file !== '' && strlen($stem) < 4) {
         // A file name too short to match safely.
         return $known[$attachment_id] = true;
@@ -1526,6 +1535,8 @@ function boblift_attachment_is_referenced(int $attachment_id): bool
         || (bool) $wpdb->get_var($wpdb->prepare("SELECT 1 FROM {$wpdb->options} WHERE {$where_options} LIMIT 1", ...$value_args)); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- fixed SQL with placeholders.
     if ($referenced) {
         $known[$attachment_id] = true;
+    } elseif ($version !== '') {
+        wp_cache_set($unused_key, $version, 'boblift', 10 * MINUTE_IN_SECONDS);
     }
     return $referenced;
 }
