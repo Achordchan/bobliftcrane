@@ -1,5 +1,6 @@
 <?php
 get_header();
+boblift_timing('header_done');
 $options = boblift_options();
 $home = $options['home'] ?? [];
 $home_ui = function_exists('boblift_site_ui') ? boblift_site_ui('homePage') : [];
@@ -153,7 +154,7 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
     </div>
 </section>
 
-<?php boblift_timing('home_top_done'); boblift_render_home_products(); boblift_timing('home_products'); ?>
+<?php boblift_timing('home_top_done'); boblift_fragment('home_products', 'boblift_render_home_products'); boblift_timing('home_products'); ?>
 
 <?php // The year-end offers, while they run: a slim link right after the products (inc/year-end-offers.php). ?>
 <?php if (function_exists('boblift_offer_home_banner')) { boblift_offer_home_banner(); } ?>
@@ -209,7 +210,7 @@ $active_gallery_is_youtube = $active_gallery_type === 'youtube' && $active_galle
 
 <?php boblift_render_home_cases(); boblift_timing('home_cases'); ?>
 
-<?php boblift_render_home_feedback(); boblift_timing('home_feedback'); ?>
+<?php boblift_fragment('home_feedback', 'boblift_render_home_feedback'); boblift_timing('home_feedback'); ?>
 
 <?php boblift_render_home_faq(); boblift_timing('home_faq'); ?>
 
