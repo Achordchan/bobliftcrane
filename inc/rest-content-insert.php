@@ -52,8 +52,7 @@ if (!defined('ABSPATH')) {
  * and "height" are its size in CSS pixels; "media" may be sent as "(max-width: Npx)" or "(min-width: Npx)". When the
  * <img> is already in a <picture> with one <source>, that source is pointed at the new file (a revised narrow layout);
  * when it already has these exact values the item is done and skipped. The <img> itself is never changed. Several
- * "picture" items can go in one request, one per chart, and with "after" items, but not with "replace", "image",
- * "link" or "video" items.
+ * "picture" items can go in one request, one per chart, but not with any other kind of item.
  *
  * rest_pre_insert_{type} takes a per-post lock that is held until the save is done, every REST update of the item takes
  * the same lock before it loads the post, and any other save takes it just before its row is written, so nothing lands
@@ -236,6 +235,12 @@ function boblift_content_insert_apply(string $content, $value): string|WP_Error
     // insertion's HTML, another swap's src), so a retry could not tell that item was done: such an item goes alone.
     if (count($inserts) > 1 && array_filter($inserts, static fn($insert): bool => is_array($insert) && (array_key_exists('replace', $insert) || array_key_exists('image', $insert) || array_key_exists('link', $insert) || array_key_exists('video', $insert))) !== []) {
         return new WP_Error('boblift_insert_replace', 'Send a "replace", "image", "link" or "video" item on its own, one per request.', ['status' => 400]);
+    }
+    // A picture item can wrap an <img> that an "after" item of the same request inserted, and then a retry would no longer
+    // find that HTML and insert it again: picture items go only with other picture items.
+    $pictures = array_filter($inserts, static fn($insert): bool => is_array($insert) && array_key_exists('picture', $insert));
+    if ($pictures !== [] && count($pictures) !== count($inserts)) {
+        return new WP_Error('boblift_insert_picture', 'Send "picture" items only together with other "picture" items.', ['status' => 400]);
     }
     foreach ($inserts as $insert) {
         if (is_array($insert) && array_key_exists('replace', $insert)) {

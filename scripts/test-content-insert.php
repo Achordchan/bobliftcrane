@@ -207,6 +207,7 @@ $images += [
     'picture bad media' => ['<img src="/a.png">', ['picture' => '/a.png', 'srcset' => $pm, 'width' => 600, 'height' => 900, 'media' => 'screen and (max-width: 700px)'], 'boblift_insert_picture'],
     'picture in a cover block' => ['<!-- wp:cover {"url":"/a.png"} --><div class="wp-block-cover"><img src="/a.png"></div><!-- /wp:cover -->', ['picture' => '/a.png', 'srcset' => $pm, 'width' => 600, 'height' => 900], 'boblift_insert_picture'],
     'picture with an image swap' => ['<img src="/a.png"><img src="/c.png">', [['picture' => '/a.png', 'srcset' => $pm, 'width' => 600, 'height' => 900], ['image' => '/c.png', 'src' => $new]], 'boblift_insert_replace'],
+    'picture with an after item' => ['<p>A</p>', [['after' => 'A', 'html' => '<figure><img src="/a.png"></figure>'], ['picture' => '/a.png', 'srcset' => $pm, 'width' => 600, 'height' => 900]], 'boblift_insert_picture'],
     'image swap inside picture refused' => ['<picture>' . $ps . '<img src="/a.png"></picture>', ['image' => '/a.png', 'src' => $new], 'boblift_insert_image'],
 ];
 if (!class_exists('WP_HTML_Tag_Processor')) {
