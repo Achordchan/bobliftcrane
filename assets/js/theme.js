@@ -1959,12 +1959,6 @@
     // the visitor is looking at, from that source's data-article-photo-full or its srcset, never the other layout.
     const shownSource = (img) => {
       if (img.parentElement?.tagName !== 'PICTURE') return null;
-      // Only sources the browser could pick: a non-empty srcset and, when typed, a type it would accept for an image.
-      const usable = qsa('source', img.parentElement).filter((source) => {
-        if (!srcsetCandidates(source.getAttribute('srcset') || '').length) return false;
-        const type = (source.getAttribute('type') || '').trim().toLowerCase();
-        return !type || ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/avif', 'image/svg+xml'].includes(type);
-      });
       const absolute = (url) => {
         try {
           return new URL(url, document.baseURI).href;
@@ -1972,20 +1966,30 @@
           return url;
         }
       };
-      // The browser's own choice wins: the source whose srcset holds the file the page is showing. If the picture shows
-      // the <img>'s own file (or nothing has loaded yet and no media query matches), the viewer opens the <img>.
-      const current = img.currentSrc ? absolute(img.currentSrc) : '';
-      if (current) {
-        return usable.find((source) => srcsetCandidates(source.getAttribute('srcset') || '').some(([url]) => absolute(url) === current)) || null;
-      }
-      return usable.find((source) => {
+      const urls = (el) => srcsetCandidates(el.getAttribute('srcset') || '').map(([url]) => absolute(url));
+      const mediaMatches = (source) => {
         const media = source.getAttribute('media');
         try {
           return !media || window.matchMedia(media).matches;
         } catch {
           return false;
         }
-      }) || null;
+      };
+      // Sources the browser could have picked: a non-empty srcset (an empty one is skipped by the browser too).
+      const sources = qsa('source', img.parentElement).filter((source) => urls(source).length);
+      // The browser's own choice wins: the sources whose srcset holds the file being shown, and of those the one whose media
+      // query matches now (two sources may share a file). When the <img>'s own src or srcset holds that file and no such
+      // source matches, the picture is showing the <img>, and the viewer opens it.
+      const current = img.currentSrc ? absolute(img.currentSrc) : '';
+      if (current) {
+        const holders = sources.filter((source) => urls(source).includes(current));
+        const matching = holders.find(mediaMatches);
+        if (matching) return matching;
+        const imgHolds = absolute(img.getAttribute('src') || '') === current || urls(img).includes(current);
+        return imgHolds ? null : (holders[0] || null);
+      }
+      // Nothing loaded yet: the first source whose media query matches, as the browser would choose.
+      return sources.find(mediaMatches) || null;
     };
     const largest = (img) => {
       const source = shownSource(img);
