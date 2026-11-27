@@ -1547,9 +1547,9 @@ foreach (['added_option', 'updated_option', 'deleted_option'] as $boblift_option
         if (in_array($option, ['boblift_products_cache_version', 'boblift_image_facts', 'boblift_cache_warm_state', 'boblift_fragment_generation'], true) || str_starts_with($option, '_transient') || str_starts_with($option, '_site_transient') || str_starts_with($option, 'boblift_fatal_log_') || str_starts_with($option, 'boblift_indexnow_')) {
             return;
         }
-        boblift_products_cache_note(current_filter() . ' ' . $option);
         if (preg_match('/^(boblift|polylang|pll_|theme_mods_)/', $option)
             || in_array($option, ['permalink_structure', 'category_base', 'tag_base', 'home', 'siteurl', 'show_on_front', 'page_on_front', 'active_plugins', 'template', 'stylesheet'], true)) {
+            boblift_products_cache_note(current_filter() . ' ' . $option);
             boblift_bump_products_cache();
         }
     });
