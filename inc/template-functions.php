@@ -1489,28 +1489,38 @@ function boblift_is_new_unused_upload(int $post_id, ?string $meta_key = null): b
     return !boblift_attachment_is_referenced($post_id);
 }
 
-/** Whether any content refers to the attachment, by ID as a featured image or by its file name anywhere else. */
+/**
+ * Whether any content may refer to the attachment: by its file name (content, galleries, settings) or by its ID in any
+ * form (a featured image, a [gallery ids] list, a block's "id", wp-image-N, an ID list in post meta or a setting). The ID
+ * is matched as a whole number anywhere, so an unrelated number that happens to equal it counts as a use too: a false
+ * match only means the caches are retired as before. Answered once per request.
+ */
 function boblift_attachment_is_referenced(int $attachment_id): bool
 {
+    static $known = [];
+    if (isset($known[$attachment_id])) {
+        return $known[$attachment_id];
+    }
     global $wpdb;
-    if ($wpdb->get_var($wpdb->prepare("SELECT 1 FROM {$wpdb->postmeta} WHERE meta_key = '_thumbnail_id' AND meta_value = %s LIMIT 1", (string) $attachment_id))) {
-        return true;
-    }
-    // The file name without its extension also matches the resized copies (name-300x200.jpg) and CDN addresses.
+    $id_pattern = '(^|[^0-9])' . $attachment_id . '([^0-9]|$)';
     $file = (string) get_post_meta($attachment_id, '_wp_attached_file', true);
+    // The file name without its extension also matches the resized copies (name-300x200.jpg) and CDN addresses.
     $stem = $file !== '' ? (string) pathinfo($file, PATHINFO_FILENAME) : '';
-    if (strlen($stem) < 4) {
-        // No file name yet (the row is written before the file) or one too short to match safely.
-        return $file !== '';
+    if ($file !== '' && strlen($stem) < 4) {
+        // A file name too short to match safely.
+        return $known[$attachment_id] = true;
     }
-    $like = '%' . $wpdb->esc_like($stem) . '%';
-    if ($wpdb->get_var($wpdb->prepare("SELECT 1 FROM {$wpdb->posts} WHERE post_type NOT IN ('attachment', 'revision') AND post_content LIKE %s LIMIT 1", $like))) {
-        return true;
-    }
-    if ($wpdb->get_var($wpdb->prepare("SELECT 1 FROM {$wpdb->postmeta} WHERE post_id <> %d AND meta_value LIKE %s LIMIT 1", $attachment_id, $like))) {
-        return true;
-    }
-    return str_contains((string) maybe_serialize(get_option('boblift_theme_options', [])), $stem);
+    $where_posts = "post_type NOT IN ('attachment', 'revision') AND (post_content REGEXP %s" . ($stem !== '' ? ' OR post_content LIKE %s' : '') . ')';
+    $where_meta = 'post_id <> %d AND (meta_value REGEXP %s' . ($stem !== '' ? ' OR meta_value LIKE %s' : '') . ')';
+    $like = $stem !== '' ? '%' . $wpdb->esc_like($stem) . '%' : '';
+    $posts_args = $stem !== '' ? [$id_pattern, $like] : [$id_pattern];
+    $meta_args = $stem !== '' ? [$attachment_id, $id_pattern, $like] : [$attachment_id, $id_pattern];
+    $settings = (string) maybe_serialize(get_option('boblift_theme_options', []));
+    $referenced = (bool) $wpdb->get_var($wpdb->prepare("SELECT 1 FROM {$wpdb->posts} WHERE {$where_posts} LIMIT 1", ...$posts_args)) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- fixed SQL with placeholders.
+        || (bool) $wpdb->get_var($wpdb->prepare("SELECT 1 FROM {$wpdb->postmeta} WHERE {$where_meta} LIMIT 1", ...$meta_args)) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- fixed SQL with placeholders.
+        || preg_match('/(^|[^0-9])' . $attachment_id . '([^0-9]|$)/', $settings) === 1
+        || ($stem !== '' && str_contains($settings, $stem));
+    return $known[$attachment_id] = $referenced;
 }
 
 function boblift_bump_products_cache_for_post(int $post_id, ?string $meta_key = null): void
