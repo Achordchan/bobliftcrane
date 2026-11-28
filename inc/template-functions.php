@@ -741,6 +741,59 @@ function boblift_product_phrase_translation_map(): array
     return $map;
 }
 
+/**
+ * The factory confirmed on 2026-11-28 that the load moment (torque) limiter is an option, not standard equipment, but
+ * the product feature rows imported from the brochure, in every language, still call it "Dedicated" and say it is "on
+ * every crane". The rows live in the _features meta of each product and translation, so they are corrected here, as
+ * they are read, instead of by hand on every product. A row whose title names the limiter gets the corrected title and
+ * text in the page's language; its image stays. Other rows are left as they are.
+ */
+function boblift_optional_lmi_feature_text(string $language): array
+{
+    $texts = [
+        'en' => ['Optional torque limiter', 'Load moment limiter with display, available as an option.'],
+        'zh' => ['选装力矩限制器', '带显示屏的力矩限制器，可选装。'],
+        'ja' => ['モーメントリミッター（オプション）', 'ディスプレイ付きモーメントリミッター（オプション）。'],
+        'es' => ['Limitador de par opcional', 'Limitador de momento de carga con pantalla, disponible como opción.'],
+        'fr' => ['Limiteur de couple en option', 'Limiteur de moment de charge avec affichage, disponible en option.'],
+        'ru' => ['Ограничитель грузового момента (опция)', 'Ограничитель грузового момента с дисплеем, предлагается как опция.'],
+        'ar' => ['محدد عزم اختياري', 'محدد عزم الحمولة مزود بشاشة، متوفر كخيار إضافي.'],
+    ];
+    return $texts[$language] ?? $texts['en'];
+}
+
+/** True when a feature title names the load moment (torque) limiter, in any of the site's languages. */
+function boblift_feature_names_lmi(string $title): bool
+{
+    return (bool) preg_match('/torque limiter|moment limiter|力矩限制器|扭矩限制器|モーメントリミッタ|トルクリミッタ|limitador de (?:par|momento)|limiteur de (?:couple|moment)|ограничитель (?:грузового|крутящего) момента|محدد (?:ال)?عزم/iu', $title);
+}
+
+/** The language a product is filed in (Polylang), else the page's, else English. */
+function boblift_product_post_language(WP_Post $post): string
+{
+    $language = function_exists('pll_get_post_language') ? (string) pll_get_post_language($post->ID, 'slug') : '';
+    if ($language === '' && function_exists('boblift_current_language_slug')) {
+        $language = boblift_current_language_slug();
+    }
+    return $language !== '' ? $language : 'en';
+}
+
+function boblift_correct_optional_lmi_features(mixed $features, string $language): mixed
+{
+    if (!is_array($features)) {
+        return $features;
+    }
+    [$title, $text] = boblift_optional_lmi_feature_text($language);
+    foreach ($features as $index => $feature) {
+        if (is_array($feature) && boblift_feature_names_lmi((string) ($feature['title'] ?? ''))) {
+            $features[$index]['title'] = $title;
+            $features[$index]['text'] = $text;
+            unset($features[$index]['detail']);
+        }
+    }
+    return $features;
+}
+
 function boblift_localize_product_text_fragments(mixed $value): mixed
 {
     if (is_array($value)) {
@@ -1076,7 +1129,7 @@ function boblift_product_from_post(WP_Post $post): array
         $short_description = wp_trim_words(wp_strip_all_tags((string) $post->post_content), 40);
     }
     $short_description = boblift_localize_product_text_fragments($short_description);
-    $features = boblift_localize_product_text_fragments(boblift_decode_meta(get_post_meta($post->ID, '_features', true), []));
+    $features = boblift_correct_optional_lmi_features(boblift_localize_product_text_fragments(boblift_decode_meta(get_post_meta($post->ID, '_features', true), [])), boblift_product_post_language($post));
     $content = post_password_required($post) ? '' : boblift_localize_product_text_fragments(apply_filters('the_content', $post->post_content));
     // Hide English copy left untranslated on the Japanese and Chinese sites; English pages keep it.
     $content_language = function_exists('boblift_current_language_slug') ? boblift_current_language_slug() : '';
